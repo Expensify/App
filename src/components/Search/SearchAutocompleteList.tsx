@@ -353,25 +353,31 @@ function SearchAutocompleteList({
     }, [autocompleteQueryWithoutFilters, debounceHandleSearch]);
 
     /* Sections generation */
-    const {sections, styledRecentReports} = useMemo(() => {
+    const {sections, styledRecentReports, suggestionsCount} = useMemo(() => {
         const nextSections: Array<Section<AutocompleteListItem>> = [];
         let sectionIndex = 0;
+        let nextSuggestionsCount = 0;
+
+        const pushSection = (section: Section<AutocompleteListItem>) => {
+            nextSections.push(section);
+            nextSuggestionsCount += section.data.filter((item) => item.keyForList !== CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.FIND_ITEM).length;
+        };
 
         if (searchQueryItem) {
-            nextSections.push({data: [searchQueryItem as AutocompleteListItem], sectionIndex: sectionIndex++});
+            pushSection({data: [searchQueryItem as AutocompleteListItem], sectionIndex: sectionIndex++});
         }
 
         const additionalSections = getAdditionalSections?.(searchOptions, sectionIndex);
 
         if (additionalSections) {
             for (const section of additionalSections) {
-                nextSections.push(section);
+                pushSection(section);
                 sectionIndex++;
             }
         }
 
         if (!autocompleteQueryValue && recentSearchesData && recentSearchesData.length > 0) {
-            nextSections.push({title: translate('search.recentSearches'), data: recentSearchesData as AutocompleteListItem[], sectionIndex: sectionIndex++});
+            pushSection({title: translate('search.recentSearches'), data: recentSearchesData as AutocompleteListItem[], sectionIndex: sectionIndex++});
         }
 
         const nextStyledRecentReports = recentReportsOptions.map((option) => {
@@ -388,7 +394,7 @@ function SearchAutocompleteList({
             } as AutocompleteListItem;
         });
 
-        nextSections.push({
+        pushSection({
             title: autocompleteQueryValue.trim() === '' ? translate('search.recentChats') : undefined,
             data: nextStyledRecentReports,
             sectionIndex: sectionIndex++,
@@ -407,17 +413,16 @@ function SearchAutocompleteList({
                 };
             });
 
-            nextSections.push({title: translate('search.suggestions'), data: autocompleteData, sectionIndex: sectionIndex++});
+            pushSection({title: translate('search.suggestions'), data: autocompleteData, sectionIndex: sectionIndex++});
         }
 
-        return {sections: nextSections, styledRecentReports: nextStyledRecentReports};
+        return {sections: nextSections, styledRecentReports: nextStyledRecentReports, suggestionsCount: nextSuggestionsCount};
     }, [autocompleteQueryValue, autocompleteSuggestions, expensifyIcons, getAdditionalSections, recentReportsOptions, recentSearchesData, searchOptions, searchQueryItem, styles, translate]);
 
     const sectionItemText = sections?.at(1)?.data?.[0]?.text ?? '';
     const normalizedReferenceText = sectionItemText.toLowerCase();
-    const suggestionsCount = sections.reduce((total, section) => total + section.data.filter((item) => item.searchItemType !== CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.FIND_ITEM).length, 0);
     const trimmedAutocompleteQueryValue = autocompleteQueryValue.trim();
-    const suggestionsAnnouncement = suggestionsCount > 0 ? translate('search.suggestionsAvailable', {count: suggestionsCount}, trimmedAutocompleteQueryValue || undefined) : '';
+    const suggestionsAnnouncement = suggestionsCount > 0 ? translate('search.suggestionsAvailable', {count: suggestionsCount}, trimmedAutocompleteQueryValue) : '';
     useDebouncedAccessibilityAnnouncement(suggestionsAnnouncement, !!suggestionsAnnouncement, autocompleteQueryValue);
 
     const firstRecentReportKey = styledRecentReports.at(0)?.keyForList;

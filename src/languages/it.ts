@@ -7382,7 +7382,10 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
         searchIn: 'Cerca in',
         searchPlaceholder: 'Cerca qualcosa',
         suggestions: 'Suggerimenti',
-        suggestionsAvailable: ({count}: {count: number}, query?: string) => `Suggerimenti disponibili${query ? ` per ${query}` : ''}. ${count} ${count === 1 ? 'risultato' : 'risultati'}.`,
+        suggestionsAvailable: ({count}: {count: number}, query = '') => ({
+            one: `Suggerimenti disponibili${query ? ` per ${query}` : ''}. ${count} risultato.`,
+            other: (resultCount: number) => `Suggerimenti disponibili${query ? ` per ${query}` : ''}. ${resultCount} risultati.`,
+        }),
         exportSearchResults: {
             title: 'Crea esportazione',
             description: 'Wow, sono davvero tanti elementi! Li raggrupperemo e Concierge ti invierà un file a breve.',

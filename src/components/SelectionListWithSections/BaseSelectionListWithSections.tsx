@@ -860,7 +860,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
     const trimmedSearchValue = textInputValue.trim();
     const suggestionsAnnouncement =
         shouldShowTextInput && !isLoadingNewOptions && flattenedSections.allOptions.length > 0
-            ? translate('search.suggestionsAvailable', {count: flattenedSections.allOptions.length}, trimmedSearchValue || undefined)
+            ? translate('search.suggestionsAvailable', {count: flattenedSections.allOptions.length}, trimmedSearchValue)
             : '';
 
     useEffect(() => {

@@ -7336,7 +7336,10 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
         searchIn: 'Pesquisar em',
         searchPlaceholder: 'Pesquisar algo',
         suggestions: 'Sugestões',
-        suggestionsAvailable: ({count}: {count: number}, query?: string) => `Sugestões disponíveis${query ? ` para ${query}` : ''}. ${count} ${count === 1 ? 'resultado' : 'resultados'}.`,
+        suggestionsAvailable: ({count}: {count: number}, query = '') => ({
+            one: `Sugestões disponíveis${query ? ` para ${query}` : ''}. ${count} resultado.`,
+            other: (resultCount: number) => `Sugestões disponíveis${query ? ` para ${query}` : ''}. ${resultCount} resultados.`,
+        }),
         exportSearchResults: {
             title: 'Criar exportação',
             description: 'Uau, são muitos itens! Vamos agrupá-los e o Concierge enviará um arquivo para você em breve.',
