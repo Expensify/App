@@ -396,6 +396,8 @@ const translations: TranslationDeepObject<typeof en> = {
         headsUp: '¡Atención!',
         submitTo: 'Enviar a',
         forwardTo: 'Reenviar a',
+        approvalLimit: 'Límite de aprobación',
+        overLimitForwardTo: 'Reenviar si excede el límite',
         merge: 'Fusionar',
         none: 'Ninguno',
         unstableInternetConnection: 'Conexión a internet inestable. Por favor, revisa tu red e inténtalo de nuevo.',
@@ -8088,11 +8090,13 @@ ${amount} para ${merchant} - ${date}`,
         [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.START_CHAT]: {
             buttonText: 'Inicia un chat y <success><strong>recomienda a un amigo</strong></success>',
             header: 'Inicia un chat, recomienda a un amigo',
+            closeAccessibilityLabel: 'Cerrar, iniciar un chat, recomendar a un amigo, banner',
             body: '¿Quieres que tus amigos también usen Expensify? Simplemente inicia un chat con ellos y nosotros nos encargaremos del resto.',
         },
         [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SUBMIT_EXPENSE]: {
             buttonText: 'Presenta un gasto y <success><strong>recomienda a tu equipo</strong></success>',
             header: 'Envía un gasto, recomienda a tu equipo',
+            closeAccessibilityLabel: 'Cerrar, enviar un gasto, recomendar a tu equipo, banner',
             body: '¿Quieres que tu equipo también use Expensify? Simplemente envíale un gasto y nosotros nos encargaremos del resto.',
         },
         [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.REFER_FRIEND]: {

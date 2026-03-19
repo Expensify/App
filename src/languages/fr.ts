@@ -491,6 +491,8 @@ const translations: TranslationDeepObject<typeof en> = {
         headsUp: 'Attention !',
         submitTo: 'Soumettre à',
         forwardTo: 'Transférer à',
+        approvalLimit: "Limite d'approbation",
+        overLimitForwardTo: 'Transférer si dépassement de limite',
         merge: 'Fusionner',
         none: 'Aucun',
         unstableInternetConnection: 'Connexion Internet instable. Veuillez vérifier votre réseau et réessayer.',
@@ -7859,11 +7861,13 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
         [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.START_CHAT]: {
             buttonText: 'Démarrez une discussion, <success><strong>parrainez un ami</strong></success>.',
             header: 'Commencez une discussion, parrainez un ami',
+            closeAccessibilityLabel: 'Fermer, démarrer un chat, parrainer un ami, bannière',
             body: 'Vous voulez que vos amis utilisent Expensify, eux aussi ? Il vous suffit de commencer une discussion avec eux et nous nous occupons du reste.',
         },
         [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SUBMIT_EXPENSE]: {
             buttonText: 'Soumettez une dépense, <success><strong>parrainez votre équipe</strong></success>.',
             header: 'Soumettez une dépense, parrainez votre équipe',
+            closeAccessibilityLabel: 'Fermer, soumettre une dépense, parrainer votre équipe, bannière',
             body: 'Vous voulez que votre équipe utilise Expensify, elle aussi ? Soumettez-leur simplement une dépense et nous nous occupons du reste.',
         },
         [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.REFER_FRIEND]: {

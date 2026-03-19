@@ -231,7 +231,6 @@ const CONST = {
     ANIMATED_PROGRESS_BAR_DURATION: 750,
     ANIMATION_IN_TIMING: 100,
     COMPOSER_FOCUS_DELAY: 150,
-    MAX_TRANSITION_DURATION_MS: 1000,
     ANIMATION_DIRECTION: {
         IN: 'in',
         OUT: 'out',
@@ -8175,7 +8174,7 @@ const CONST = {
         CUSTOM_FIELD_1: 'customField1',
         CUSTOM_FIELD_2: 'customField2',
         ROLE: 'role',
-        REPORT_THRESHHOLD: 'reportThreshold',
+        REPORT_THRESHOLD: 'reportThreshold',
         APPROVE_TO_ALTERNATE: 'approveToAlternate',
         SUBRATE: 'subRate',
         AMOUNT: 'amount',
@@ -8465,6 +8464,10 @@ const CONST = {
         REVIEW_WORKSPACE_SETTINGS: 'reviewWorkspaceSettings',
         INVITE_ACCOUNTANT: 'inviteAccountant',
         ADD_EXPENSE_APPROVALS: 'addExpenseApprovals',
+    },
+
+    MODAL_EVENTS: {
+        CLOSED: 'modalClosed',
     },
 
     LIST_BEHAVIOR: {
