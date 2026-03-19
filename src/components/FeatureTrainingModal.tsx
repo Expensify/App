@@ -7,12 +7,14 @@ import type {ImageResizeMode, ImageSourcePropType, LayoutChangeEvent, ScrollView
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import type {MergeExclusive} from 'type-fest';
 import useKeyboardState from '@hooks/useKeyboardState';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+import Accessibility from '@libs/Accessibility';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import variables from '@styles/variables';
@@ -127,6 +129,12 @@ type BaseFeatureTrainingModalProps = {
 
     /** Whether to call onHelp when modal is hidden completely */
     shouldCallOnHelpWhenModalHidden?: boolean;
+
+    /** Sentry label for the help/skip button */
+    helpSentryLabel?: string;
+
+    /** Sentry label for the confirm/submit button */
+    confirmSentryLabel?: string;
 };
 
 type FeatureTrainingModalVideoProps = {
@@ -193,10 +201,14 @@ function FeatureTrainingModal({
     canConfirmWhileOffline = true,
     shouldGoBack = true,
     shouldCallOnHelpWhenModalHidden = false,
+    helpSentryLabel,
+    confirmSentryLabel,
 }: FeatureTrainingModalProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
+    const isReduceMotionEnabled = Accessibility.useReducedMotion();
+    const illustrations = useMemoizedLazyIllustrations(['Hands']);
     const {onboardingIsMediumOrLargerScreenWidth} = useResponsiveLayout();
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [willShowAgain, setWillShowAgain] = useState(true);
@@ -293,13 +305,20 @@ function FeatureTrainingModal({
                 )}
                 {((!videoURL && !image) || (!!videoURL && videoStatus === 'animation')) && (
                     <View style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter, !!videoURL && {aspectRatio}, animationStyle]}>
-                        <Lottie
-                            source={animation ?? LottieAnimations.Hands}
-                            style={styles.h100}
-                            webStyle={shouldUseNarrowLayout ? styles.h100 : undefined}
-                            autoPlay
-                            loop
-                        />
+                        {isReduceMotionEnabled && (animation ?? LottieAnimations.Hands) === LottieAnimations.Hands ? (
+                            <ImageSVG
+                                src={illustrations.Hands}
+                                style={styles.h100}
+                            />
+                        ) : (
+                            <Lottie
+                                source={animation ?? LottieAnimations.Hands}
+                                style={styles.h100}
+                                webStyle={shouldUseNarrowLayout ? styles.h100 : undefined}
+                                autoPlay
+                                loop
+                            />
+                        )}
                     </View>
                 )}
             </View>
@@ -324,6 +343,8 @@ function FeatureTrainingModal({
         animationStyle,
         animation,
         shouldUseNarrowLayout,
+        isReduceMotionEnabled,
+        illustrations.Hands,
     ]);
 
     const toggleWillShowAgain = useCallback(() => setWillShowAgain((prevWillShowAgain) => !prevWillShowAgain), []);
@@ -473,6 +494,7 @@ function FeatureTrainingModal({
                                 onHelp();
                             }}
                             text={helpText}
+                            sentryLabel={helpSentryLabel}
                         />
                     )}
                     <FormAlertWithSubmitButton
@@ -480,6 +502,7 @@ function FeatureTrainingModal({
                         isLoading={shouldShowConfirmationLoader}
                         buttonText={confirmText}
                         enabledWhenOffline={canConfirmWhileOffline}
+                        sentryLabel={confirmSentryLabel}
                     />
                     {!canConfirmWhileOffline && <OfflineIndicator />}
                 </View>

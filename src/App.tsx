@@ -1,6 +1,6 @@
 import {PortalProvider} from '@gorhom/portal';
 import * as Sentry from '@sentry/react-native';
-import React from 'react';
+import React, {useEffect} from 'react';
 import {LogBox, View} from 'react-native';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import {PickerStateProvider} from 'react-native-picker-select';
@@ -13,7 +13,7 @@ import ComposeProviders from './components/ComposeProviders';
 import {CurrentUserPersonalDetailsProvider} from './components/CurrentUserPersonalDetailsProvider';
 import CustomStatusBarAndBackground from './components/CustomStatusBarAndBackground';
 import CustomStatusBarAndBackgroundContextProvider from './components/CustomStatusBarAndBackground/CustomStatusBarAndBackgroundContextProvider';
-import {EnvironmentProvider} from './components/EnvironmentContext';
+import EnvironmentProvider from './components/EnvironmentContextProvider';
 import ErrorBoundary from './components/ErrorBoundary';
 import FullScreenBlockingViewContextProvider from './components/FullScreenBlockingViewContextProvider';
 import FullScreenLoaderContextProvider from './components/FullScreenLoaderContext';
@@ -36,8 +36,8 @@ import SidePanelContextProvider from './components/SidePanel/SidePanelContextPro
 import SVGDefinitionsProvider from './components/SVGDefinitionsProvider';
 import ThemeIllustrationsProvider from './components/ThemeIllustrationsProvider';
 import ThemeProvider from './components/ThemeProvider';
-import ThemeStylesProvider from './components/ThemeStylesProvider';
-import {FullScreenContextProvider} from './components/VideoPlayerContexts/FullScreenContext';
+import ThemeStylesProvider from './components/ThemeStylesContextProvider';
+import FullScreenContextProvider from './components/VideoPlayerContexts/FullScreenContextProvider';
 import {PlaybackContextProvider} from './components/VideoPlayerContexts/PlaybackContext';
 import {VideoPopoverMenuContextProvider} from './components/VideoPlayerContexts/VideoPopoverMenuContext';
 import {VolumeContextProvider} from './components/VideoPlayerContexts/VolumeContext';
@@ -51,8 +51,10 @@ import useDefaultDragAndDrop from './hooks/useDefaultDragAndDrop';
 import HybridAppHandler from './HybridAppHandler';
 import OnyxUpdateManager from './libs/actions/OnyxUpdateManager';
 import './libs/HybridApp';
+import NavigationFocusManager from './libs/NavigationFocusManager';
 import {AttachmentModalContextProvider} from './pages/media/AttachmentModalScreen/AttachmentModalContext';
 import ExpensifyCardContextProvider from './pages/settings/Wallet/ExpensifyCardPage/ExpensifyCardContextProvider';
+import TravelCVVContextProvider from './pages/settings/Wallet/TravelCVVPage/TravelCVVContextProvider';
 import './setup/backgroundLocationTrackingTask';
 import './setup/backgroundTask';
 import './setup/fraudProtection';
@@ -73,6 +75,16 @@ const StrictModeWrapper = CONFIG.USE_REACT_STRICT_MODE_IN_DEV ? React.StrictMode
 function App() {
     useDefaultDragAndDrop();
     OnyxUpdateManager();
+
+    // Initialize NavigationFocusManager for web focus restoration during back navigation
+    // This captures focus on pointerdown/keydown before navigation changes focus to body
+    useEffect(() => {
+        NavigationFocusManager.initialize();
+
+        return () => {
+            NavigationFocusManager.destroy();
+        };
+    }, []);
 
     return (
         <StrictModeWrapper>
@@ -131,6 +143,7 @@ function App() {
                                         ModalProvider,
                                         SidePanelContextProvider,
                                         ExpensifyCardContextProvider,
+                                        TravelCVVContextProvider,
                                         KYCWallContextProvider,
                                         WideRHPContextProvider,
                                     ]}

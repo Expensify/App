@@ -67,6 +67,15 @@ const categoryOverLimitViolation = {
     },
 };
 
+const overTripLimitViolation = {
+    name: CONST.VIOLATIONS.OVER_TRIP_LIMIT,
+    type: CONST.VIOLATION_TYPES.VIOLATION,
+    showInReview: true,
+    data: {
+        formattedLimit: convertAmountToDisplayString(400),
+    },
+};
+
 const categoryMissingCommentViolation = {
     name: CONST.VIOLATIONS.MISSING_COMMENT,
     type: CONST.VIOLATION_TYPES.VIOLATION,
@@ -639,12 +648,44 @@ describe('getViolationsOnyxData', () => {
             expect(result.value).toEqual(expect.arrayContaining([{...missingTagViolation, showInReview: true, data: {tagName: 'Meals'}}]));
         });
 
-        it('should add a tagOutOfPolicy violation when policy requires tags and tag is not in the policy', () => {
+        it('should not add missingTag or tagOutOfPolicy violations when policy requires tags but no tags are enabled', () => {
             policyTags = {};
+            transaction.tag = undefined;
 
             const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
 
             expect(result.value).toEqual([]);
+        });
+
+        it('should remove an existing missingTag violation when policy requires tags but no tags are enabled', () => {
+            policyTags = {};
+            transaction.tag = undefined;
+            transactionViolations = [missingTagViolation, {name: 'duplicatedTransaction', type: CONST.VIOLATION_TYPES.VIOLATION}];
+
+            const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
+
+            expect(result.value).toEqual([{name: 'duplicatedTransaction', type: CONST.VIOLATION_TYPES.VIOLATION}]);
+        });
+
+        it('should remove existing tagOutOfPolicy when tag is cleared to empty string', () => {
+            transaction.tag = '';
+            transactionViolations = [tagOutOfPolicyViolation, duplicatedTransactionViolation];
+
+            const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
+
+            expect(result.value).not.toContainEqual(tagOutOfPolicyViolation);
+            expect(result.value).toContainEqual(duplicatedTransactionViolation);
+            expect(result.value).toContainEqual({...missingTagViolation, showInReview: true, data: {tagName: 'Meals'}});
+        });
+
+        it('should remove existing tagOutOfPolicy when policy requires tags, no tags are enabled, and tag is empty string', () => {
+            policyTags = {};
+            transaction.tag = '';
+            transactionViolations = [tagOutOfPolicyViolation, duplicatedTransactionViolation];
+
+            const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
+
+            expect(result.value).toEqual([duplicatedTransactionViolation]);
         });
 
         it('should not add a tag violation when the transaction is scanning', () => {
@@ -688,6 +729,46 @@ describe('getViolationsOnyxData', () => {
 
             expect(result.value).not.toContainEqual(tagOutOfPolicyViolation);
             expect(result.value).not.toContainEqual(missingTagViolation);
+        });
+
+        it('should not add tagOutOfPolicy when transaction has a stale tag and no tags are enabled', () => {
+            policyTags = {
+                Meals: {
+                    name: 'Meals',
+                    required: false,
+                    tags: {
+                        Lunch: {name: 'Lunch', enabled: false},
+                        Dinner: {name: 'Dinner', enabled: false},
+                    },
+                    orderWeight: 1,
+                },
+            };
+            transaction.tag = 'Lunch';
+
+            const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
+
+            expect(result.value).not.toContainEqual(tagOutOfPolicyViolation);
+        });
+
+        it('should remove existing tagOutOfPolicy when transaction has a stale tag and no tags are enabled', () => {
+            policyTags = {
+                Meals: {
+                    name: 'Meals',
+                    required: false,
+                    tags: {
+                        Lunch: {name: 'Lunch', enabled: false},
+                        Dinner: {name: 'Dinner', enabled: false},
+                    },
+                    orderWeight: 1,
+                },
+            };
+            transaction.tag = 'Lunch';
+            transactionViolations = [tagOutOfPolicyViolation, duplicatedTransactionViolation];
+
+            const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
+
+            expect(result.value).not.toContainEqual(tagOutOfPolicyViolation);
+            expect(result.value).toContainEqual(duplicatedTransactionViolation);
         });
     });
 
@@ -761,12 +842,37 @@ describe('getViolationsOnyxData', () => {
             result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
             expect(result.value).toEqual([]);
         });
-        it('should return tagOutOfPolicy when a tag is not enabled in the policy but is set in the transaction', () => {
+        it('should not return tagOutOfPolicy when the selected tag level has no enabled tags', () => {
             policyTags.Department.tags.Accounting.enabled = false;
             transaction.tag = 'Africa:Accounting:Project1';
+
+            const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
+
+            expect(result.value).toEqual([]);
+        });
+
+        it('should return tagOutOfPolicy when selected tag is disabled and another tag in that level is enabled', () => {
+            policyTags.Department.tags.Engineering = {
+                name: 'Engineering',
+                enabled: true,
+            };
+            policyTags.Department.tags.Accounting.enabled = false;
+            transaction.tag = 'Africa:Accounting:Project1';
+
             const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
             const violation = {...tagOutOfPolicyViolation, data: {tagName: 'Department'}};
+
             expect(result.value).toEqual([violation]);
+        });
+        it('should not return tagOutOfPolicy when no tags are enabled in the policy', () => {
+            policyTags.Department.tags.Accounting.enabled = false;
+            policyTags.Region.tags.Africa.enabled = false;
+            policyTags.Project.tags.Project1.enabled = false;
+            transaction.tag = 'Africa:Accounting:Project1';
+
+            const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
+
+            expect(result.value).toEqual([]);
         });
         it('should return missingTag when all dependent tags are enabled in the policy but are not set in the transaction', () => {
             const missingDepartmentTag = {...missingTagViolation, data: {tagName: 'Department'}};
@@ -972,6 +1078,62 @@ describe('getViolationsOnyxData', () => {
                 // Violation should be removed since we now have 2 attendees
                 expect(result.value).not.toEqual(expect.arrayContaining([missingAttendeesViolation]));
             });
+        });
+    });
+
+    describe('overTripLimit violation', () => {
+        it('should add overTripLimit violation if the modified transaction amount is over the original transaction amount', () => {
+            policy.outputCurrency = CONST.CURRENCY.USD;
+            transaction.amount = -400;
+            transaction.modifiedAmount = -600;
+            transaction.receipt = {
+                reservationList: [
+                    {
+                        start: {date: '2023-07-24'},
+                        end: {date: '2023-07-25'},
+                        type: 'train',
+                    },
+                ],
+            };
+            const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
+            expect(result.value).toEqual(expect.arrayContaining([overTripLimitViolation, ...transactionViolations]));
+        });
+
+        it('should not add overTripLimit violation if the modified transaction currency is different from the original transaction currency', () => {
+            policy.outputCurrency = CONST.CURRENCY.USD;
+            transaction.amount = -400;
+            transaction.modifiedAmount = -600;
+            transaction.currency = CONST.CURRENCY.USD;
+            transaction.modifiedCurrency = CONST.CURRENCY.GBP;
+            transaction.receipt = {
+                reservationList: [
+                    {
+                        start: {date: '2023-07-24'},
+                        end: {date: '2023-07-25'},
+                        type: 'train',
+                    },
+                ],
+            };
+            const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
+            expect(result.value).toEqual([]);
+        });
+
+        it('should remove overTripLimit violation if the modified transaction amount is not over the original transaction amount', () => {
+            policy.outputCurrency = CONST.CURRENCY.USD;
+            transaction.amount = -400;
+            transaction.modifiedAmount = -300;
+            transaction.receipt = {
+                reservationList: [
+                    {
+                        start: {date: '2023-07-24'},
+                        end: {date: '2023-07-25'},
+                        type: 'train',
+                    },
+                ],
+            };
+            const modifiedTransactionViolations = [overTripLimitViolation, ...transactionViolations];
+            const result = ViolationsUtils.getViolationsOnyxData(transaction, modifiedTransactionViolations, policy, policyTags, policyCategories, false, false);
+            expect(result.value).toEqual([]);
         });
     });
 });
@@ -1521,11 +1683,30 @@ describe('getIsViolationFixed', () => {
             expect(result).toBe(false);
         });
 
-        it('should return false when tag exists but is disabled', () => {
+        it('should return true when tag exists but no tags are enabled', () => {
             const result = getIsViolationFixed('violations.tagOutOfPolicy', {
                 ...defaultParams,
                 tag: 'Lunch',
                 policyTagLists: createPolicyTagList('Lunch', false),
+            });
+            expect(result).toBe(true);
+        });
+
+        it('should return false when tag exists but is disabled while other tags are enabled', () => {
+            const result = getIsViolationFixed('violations.tagOutOfPolicy', {
+                ...defaultParams,
+                tag: 'Lunch',
+                policyTagLists: {
+                    Meals: {
+                        name: 'Meals',
+                        required: true,
+                        orderWeight: 1,
+                        tags: {
+                            Lunch: {name: 'Lunch', enabled: false},
+                            Dinner: {name: 'Dinner', enabled: true},
+                        },
+                    },
+                },
             });
             expect(result).toBe(false);
         });
@@ -1565,6 +1746,16 @@ describe('getIsViolationFixed', () => {
                 policyTaxRates: {TAX_10: {name: '10%', value: '10'}},
             });
             expect(result).toBe(true);
+        });
+
+        it("should return false when taxCodes match but the taxValues doesn't", () => {
+            const result = getIsViolationFixed('violations.taxOutOfPolicy', {
+                ...defaultParams,
+                taxCode: 'CUSTOM_TAX',
+                taxValue: '15',
+                policyTaxRates: {CUSTOM_TAX: {name: '10%', value: '10'}},
+            });
+            expect(result).toBe(false);
         });
     });
 

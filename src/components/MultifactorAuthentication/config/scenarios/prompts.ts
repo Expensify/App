@@ -7,7 +7,7 @@ import VALUES from '@libs/MultifactorAuthentication/Biometrics/VALUES';
  * Exported to a separate file to avoid circular dependencies.
  */
 export default {
-    [VALUES.PROMPT.ENABLE_BIOMETRICS]: {
+    [VALUES.PROMPT.BIOMETRICS]: {
         animation: LottieAnimations.Fingerprint,
         title: 'multifactorAuthentication.verifyYourself.biometrics',
         subtitle: 'multifactorAuthentication.enableQuickVerification.biometrics',

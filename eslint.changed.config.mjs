@@ -1,4 +1,5 @@
 import {defineConfig} from 'eslint/config';
+import reportNameUtilsPlugin from './eslint-plugin-report-name-utils/index.mjs';
 import mainConfig from './eslint.config.mjs';
 
 const restrictedIconImportPaths = [
@@ -27,6 +28,14 @@ const restrictedIconImportPatterns = [
     },
 ];
 
+const restrictedReportNameImportPatterns = [
+    {
+        group: ['**/ReportNameUtils', '**/libs/ReportNameUtils'],
+        importNames: ['computeReportName'],
+        message: 'Do not import computeReportName. Use getReportName instead, which properly uses derived report attributes.',
+    },
+];
+
 const config = defineConfig([
     ...mainConfig,
 
@@ -35,7 +44,6 @@ const config = defineConfig([
         rules: {
             '@typescript-eslint/no-deprecated': 'error',
             'rulesdir/no-default-id-values': 'error',
-            'rulesdir/provide-canBeMissing-in-useOnyx': 'error',
             'rulesdir/no-unstable-hook-defaults': 'error',
             'no-restricted-syntax': [
                 'error',
@@ -71,6 +79,19 @@ const config = defineConfig([
     },
 
     {
+        files: ['**/*.ts', '**/*.tsx'],
+        ignores: ['src/libs/actions/OnyxDerived/configs/reportAttributes.ts'],
+        rules: {
+            'no-restricted-imports': [
+                'error',
+                {
+                    patterns: restrictedReportNameImportPatterns,
+                },
+            ],
+        },
+    },
+
+    {
         files: ['**/libs/**/*.{ts,tsx}'],
         rules: {
             'no-restricted-syntax': [
@@ -85,6 +106,12 @@ const config = defineConfig([
                 },
             ],
         },
+    },
+
+    {
+        files: ['src/libs/ReportNameUtils.ts'],
+        plugins: {'report-name-utils': reportNameUtilsPlugin},
+        rules: {'report-name-utils/no-function-call-in-get-report-name': 'error'},
     },
 ]);
 

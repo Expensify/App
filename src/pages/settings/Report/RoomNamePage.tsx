@@ -38,7 +38,7 @@ function RoomNamePage({report}: RoomNamePageProps) {
     const isFocused = useIsFocused();
     const {translate} = useLocalize();
     const reportID = report?.reportID;
-    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
+    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const isReportArchived = useReportIsArchived(report?.reportID);
 
     const goBack = useCallback(() => {
@@ -62,7 +62,7 @@ function RoomNamePage({report}: RoomNamePageProps) {
                 addErrorMessage(errors, 'roomName', translate('newRoomPage.roomNameInvalidError'));
             } else if (isReservedRoomName(values.roomName)) {
                 // Certain names are reserved for default rooms and should not be used for policy rooms.
-                addErrorMessage(errors, 'roomName', translate('newRoomPage.roomNameReservedError', {reservedName: values.roomName}));
+                addErrorMessage(errors, 'roomName', translate('newRoomPage.roomNameReservedError', values.roomName));
             } else if (isExistingRoomName(values.roomName, reports, report?.policyID)) {
                 // The room name can't be set to one that already exists on the policy
                 addErrorMessage(errors, 'roomName', translate('newRoomPage.roomAlreadyExistsError'));

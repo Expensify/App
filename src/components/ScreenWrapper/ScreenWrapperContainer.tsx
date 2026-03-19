@@ -1,5 +1,5 @@
 import type {ForwardedRef, ReactNode} from 'react';
-import React, {useContext, useEffect, useMemo, useRef} from 'react';
+import React, {useContext, useEffect, useMemo} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {Keyboard, PanResponder, View} from 'react-native';
 import {PickerAvoidingView} from 'react-native-picker-select';
@@ -11,6 +11,7 @@ import useInitialDimensions from '@hooks/useInitialWindowDimensions';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useTackInputFocus from '@hooks/useTackInputFocus';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useViewportOffsetTop from '@hooks/useViewportOffsetTop';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {isMobile, isMobileWebKit, isSafari} from '@libs/Browser';
 import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
@@ -84,6 +85,9 @@ type ScreenWrapperContainerProps = ForwardedFSClassProps &
          */
         isFocused?: boolean;
 
+        /** Whether this screen should be hidden from accessibility tree */
+        shouldHideFromAccessibility?: boolean;
+
         /** Reference to the outer element */
         ref?: ForwardedRef<View>;
     }>;
@@ -108,6 +112,7 @@ function ScreenWrapperContainer({
     includePaddingTop = true,
     includeSafeAreaPaddingBottom = false,
     isFocused = true,
+    shouldHideFromAccessibility = false,
     ref,
     forwardedFSClass,
 }: ScreenWrapperContainerProps) {
@@ -119,6 +124,7 @@ function ScreenWrapperContainer({
     const {isBlurred} = useInputBlurState();
     const {setIsBlurred} = useInputBlurActions();
     const isAvoidingViewportScroll = useTackInputFocus(isFocused && shouldEnableMaxHeight && shouldAvoidScrollOnVirtualViewport && isMobileWebKit());
+    const viewportOffsetTop = useViewportOffsetTop();
 
     const isUsingEdgeToEdgeMode = enableEdgeToEdgeBottomSafeAreaPadding !== undefined;
     const shouldKeyboardOffsetBottomSafeAreaPadding = shouldKeyboardOffsetBottomSafeAreaPaddingProp ?? isUsingEdgeToEdgeMode;
@@ -161,24 +167,28 @@ function ScreenWrapperContainer({
         [isUsingEdgeToEdgeMode, edgeToEdgeBottomContentStyle, legacyBottomContentStyle, bottomContentStyleProp],
     );
 
-    const panResponder = useRef(
-        PanResponder.create({
-            onStartShouldSetPanResponderCapture: (_e, gestureState) => gestureState.numberActiveTouches === CONST.TEST_TOOL.NUMBER_OF_TAPS,
-            onPanResponderRelease: toggleTestToolsModal,
-        }),
-    ).current;
+    const panResponder = useMemo(
+        () =>
+            PanResponder.create({
+                onStartShouldSetPanResponderCapture: (_e, gestureState) => gestureState.numberActiveTouches === CONST.TEST_TOOL.NUMBER_OF_TAPS,
+                onPanResponderRelease: toggleTestToolsModal,
+            }),
+        [],
+    );
 
-    const keyboardDismissPanResponder = useRef(
-        PanResponder.create({
-            onMoveShouldSetPanResponderCapture: (_e, gestureState) => {
-                const isHorizontalSwipe = Math.abs(gestureState.dx) > Math.abs(gestureState.dy);
-                const shouldDismissKeyboard = shouldDismissKeyboardBeforeClose && Keyboard.isVisible() && isMobile();
+    const keyboardDismissPanResponder = useMemo(
+        () =>
+            PanResponder.create({
+                onMoveShouldSetPanResponderCapture: (_e, gestureState) => {
+                    const isHorizontalSwipe = Math.abs(gestureState.dx) > Math.abs(gestureState.dy);
+                    const shouldDismissKeyboard = shouldDismissKeyboardBeforeClose && Keyboard.isVisible() && isMobile();
 
-                return isHorizontalSwipe && shouldDismissKeyboard;
-            },
-            onPanResponderGrant: Keyboard.dismiss,
-        }),
-    ).current;
+                    return isHorizontalSwipe && shouldDismissKeyboard;
+                },
+                onPanResponderGrant: Keyboard.dismiss,
+            }),
+        [shouldDismissKeyboardBeforeClose],
+    );
 
     useEffect(() => {
         /**
@@ -210,10 +220,13 @@ function ScreenWrapperContainer({
             {...panResponder.panHandlers}
             testID={testID}
             fsClass={forwardedFSClass}
+            tabIndex={-1}
+            accessibilityElementsHidden={shouldHideFromAccessibility}
+            aria-hidden={shouldHideFromAccessibility}
         >
             <View
                 // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
-                style={[style, paddingTopStyle]}
+                style={[shouldEnableMaxHeight && {marginTop: viewportOffsetTop}, style, paddingTopStyle]}
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...keyboardDismissPanResponder.panHandlers}
             >

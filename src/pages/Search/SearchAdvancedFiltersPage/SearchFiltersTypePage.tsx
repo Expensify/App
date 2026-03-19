@@ -12,7 +12,7 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {updateAdvancedFilters} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
-import {getTypeOptions} from '@libs/SearchUIUtils';
+import {filterValidHasValues, getTypeOptions} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -21,9 +21,9 @@ import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 function SearchFiltersTypePage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true});
-    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
-    const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {canBeMissing: true});
+    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
     const [selectedItem, setSelectedItem] = useState(searchAdvancedFiltersForm?.type ?? CONST.SEARCH.DATA_TYPES.EXPENSE);
 
     const listData: Array<ListItem<SearchDataTypes>> = useMemo(() => {
@@ -44,16 +44,18 @@ function SearchFiltersTypePage() {
 
     const applyChanges = useCallback(() => {
         const hasTypeChanged = selectedItem !== searchAdvancedFiltersForm?.type;
+        const filteredHasValues = filterValidHasValues(searchAdvancedFiltersForm?.has, selectedItem, translate) ?? [];
         const updatedFilters = {
             type: selectedItem,
             ...(hasTypeChanged && {
                 groupBy: null,
                 status: CONST.SEARCH.STATUS.EXPENSE.ALL,
+                has: filteredHasValues,
             }),
         };
         updateAdvancedFilters(updatedFilters);
         Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS.getRoute());
-    }, [searchAdvancedFiltersForm?.type, selectedItem]);
+    }, [searchAdvancedFiltersForm?.has, searchAdvancedFiltersForm?.type, selectedItem, translate]);
 
     return (
         <ScreenWrapper

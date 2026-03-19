@@ -15,6 +15,7 @@ import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import {formatMemberForList, getHeaderMessage, getSearchValueForPhoneOrEmail} from '@libs/OptionsListUtils';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
@@ -32,16 +33,18 @@ type ShareBankAccountProps = PlatformStackScreenProps<SettingsNavigatorParamList
 function UnshareBankAccount({route}: ShareBankAccountProps) {
     const bankAccountID = route.params?.bankAccountID;
     const styles = useThemeStyles();
-    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [showExpensifyCardErrorModal, setShowExpensifyCardErrorModal] = useState(false);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
-    const [unsharedBankAccountData] = useOnyx(ONYXKEYS.UNSHARE_BANK_ACCOUNT, {canBeMissing: true});
+    const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
+    const [unsharedBankAccountData] = useOnyx(ONYXKEYS.UNSHARE_BANK_ACCOUNT);
     const [unshareUser, setUnshareUser] = useState<{login?: string | null; text?: string | null} | undefined>(undefined);
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const {translate} = useLocalize();
     const admins = bankAccountList?.[bankAccountID]?.accountData?.sharees;
     const totalAdmins = bankAccountList?.[bankAccountID]?.accountData?.sharees?.length;
+    const error = getLatestErrorMessage(bankAccountList?.[bankAccountID] ?? {});
+    const isExpensifyCardError = error?.includes(CONST.EXPENSIFY_CARD.BANK);
     const isExpensifyCardSettlementAccount = bankAccountList?.[bankAccountID]?.isExpensifyCardSettlementAccount ?? false;
     const shouldShowTextInput = Number(totalAdmins) >= CONST.STANDARD_LIST_ITEM_LIMIT;
     const textInputLabel = shouldShowTextInput ? translate('common.search') : undefined;
@@ -56,6 +59,14 @@ function UnshareBankAccount({route}: ShareBankAccountProps) {
             Navigation.goBack();
         }
     }, [totalAdmins, shouldShowSuccess]);
+
+    useEffect(() => {
+        if (!isExpensifyCardError) {
+            return;
+        }
+        setUnshareUser(undefined);
+        setShowExpensifyCardErrorModal(true);
+    }, [isExpensifyCardError]);
 
     const handleUnshare = () => {
         if (!bankAccountID || !unshareUser?.login) {
@@ -101,7 +112,10 @@ function UnshareBankAccount({route}: ShareBankAccountProps) {
         return adminsToDisplay;
     };
 
-    const hideUnshareErrorModal = () => setShowExpensifyCardErrorModal(false);
+    const hideUnshareErrorModal = () => {
+        clearUnshareBankAccountErrors(Number(bankAccountID));
+        setShowExpensifyCardErrorModal(false);
+    };
 
     const itemRightSideComponent = (item: ListItem) => {
         return (
@@ -144,11 +158,11 @@ function UnshareBankAccount({route}: ShareBankAccountProps) {
                         onChangeText: setSearchTerm,
                     }}
                     data={adminsList}
-                    showListEmptyContent={false}
+                    shouldShowListEmptyContent={false}
                     rightHandSideComponent={itemRightSideComponent}
                     footerContent={
                         <ErrorMessageRow
-                            errors={unsharedBankAccountData?.errors}
+                            errors={isExpensifyCardError ? null : unsharedBankAccountData?.errors}
                             errorRowStyles={[styles.mv3]}
                             onDismiss={() => clearUnshareBankAccountErrors(Number(bankAccountID))}
                         />

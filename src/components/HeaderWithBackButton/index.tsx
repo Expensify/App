@@ -20,6 +20,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useThrottledButtonState from '@hooks/useThrottledButtonState';
 import getButtonState from '@libs/getButtonState';
 import Navigation from '@libs/Navigation/Navigation';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
@@ -37,6 +38,7 @@ function HeaderWithBackButton({
     onRotateButtonPress = () => {},
     onThreeDotsButtonPress = () => {},
     report,
+    policy,
     policyAvatar,
     shouldShowReportAvatarWithDisplay = false,
     shouldDisplayStatus,
@@ -68,7 +70,7 @@ function HeaderWithBackButton({
     shouldOverlayDots = false,
     shouldOverlay = false,
     shouldNavigateToTopMostReport = false,
-    shouldDisplayHelpButton = true,
+    shouldDisplayHelpButton = false,
     shouldDisplaySearchRouter = false,
     progressBarPercentage,
     style,
@@ -82,6 +84,22 @@ function HeaderWithBackButton({
     const StyleUtils = useStyleUtils();
     const [isDownloadButtonActive, temporarilyDisableDownloadButton] = useThrottledButtonState();
     const {translate} = useLocalize();
+
+    const downloadReasonAttributes = useMemo<SkeletonSpanReasonAttributes>(
+        () => ({
+            context: 'HeaderWithBackButton.Download',
+            isDownloading,
+        }),
+        [isDownloading],
+    );
+
+    const rotateReasonAttributes = useMemo<SkeletonSpanReasonAttributes>(
+        () => ({
+            context: 'HeaderWithBackButton.Rotate',
+            isRotating,
+        }),
+        [isRotating],
+    );
 
     const middleContent = useMemo(() => {
         if (progressBarPercentage) {
@@ -103,6 +121,7 @@ function HeaderWithBackButton({
             return (
                 <AvatarWithDisplayName
                     report={report}
+                    policy={policy}
                     shouldDisplayStatus={shouldDisplayStatus}
                     shouldEnableDetailPageNavigation={shouldEnableDetailPageNavigation}
                     openParentReportInCurrentTab={openParentReportInCurrentTab}
@@ -125,6 +144,7 @@ function HeaderWithBackButton({
         shouldUseHeadlineHeader,
         progressBarPercentage,
         report,
+        policy,
         shouldEnableDetailPageNavigation,
         shouldShowReportAvatarWithDisplay,
         stepCounter,
@@ -280,7 +300,10 @@ function HeaderWithBackButton({
                                     </PressableWithoutFeedback>
                                 </Tooltip>
                             ) : (
-                                <ActivityIndicator style={[styles.touchableButtonImage]} />
+                                <ActivityIndicator
+                                    style={[styles.touchableButtonImage]}
+                                    reasonAttributes={downloadReasonAttributes}
+                                />
                             ))}
                         {shouldShowRotateButton &&
                             (!isRotating ? (
@@ -290,6 +313,7 @@ function HeaderWithBackButton({
                                         style={[styles.touchableButtonImage]}
                                         role="button"
                                         accessibilityLabel={translate('common.rotate')}
+                                        sentryLabel={CONST.SENTRY_LABEL.HEADER.ROTATE_BUTTON}
                                     >
                                         <Icon
                                             src={icons.Rotate}
@@ -298,7 +322,10 @@ function HeaderWithBackButton({
                                     </PressableWithoutFeedback>
                                 </Tooltip>
                             ) : (
-                                <ActivityIndicator style={[styles.touchableButtonImage]} />
+                                <ActivityIndicator
+                                    style={[styles.touchableButtonImage]}
+                                    reasonAttributes={rotateReasonAttributes}
+                                />
                             ))}
                         {shouldShowPinButton && !!report && <PinButton report={report} />}
                     </View>
@@ -320,8 +347,8 @@ function HeaderWithBackButton({
                         </Tooltip>
                     )}
                 </View>
-                {shouldDisplayHelpButton && <SidePanelButton />}
                 {shouldDisplaySearchRouter && <SearchButton />}
+                {shouldDisplayHelpButton && <SidePanelButton />}
             </View>
         </View>
     );

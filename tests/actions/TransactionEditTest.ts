@@ -1,7 +1,8 @@
 import Onyx from 'react-native-onyx';
 import OnyxUpdateManager from '@libs/actions/OnyxUpdateManager';
-import {createBackupTransaction, restoreOriginalTransactionFromBackup} from '@libs/actions/TransactionEdit';
+import {createBackupTransaction, removeDraftTransactionsByIDs, restoreOriginalTransactionFromBackup} from '@libs/actions/TransactionEdit';
 import initOnyxDerivedValues from '@userActions/OnyxDerived';
+import CONST from '@src/CONST';
 import * as SequentialQueue from '@src/libs/Network/SequentialQueue';
 import ONYXKEYS from '@src/ONYXKEYS';
 import createRandomTransaction from '../utils/collections/transaction';
@@ -128,6 +129,112 @@ describe('actions/TransactionEdit', () => {
 
                 expect(transactions).toBeUndefined();
             });
+        });
+    });
+
+    describe('removeDraftTransactionsByIDs', () => {
+        it('should remove draft transactions for the given IDs', async () => {
+            const transaction1 = createRandomTransaction(1);
+            const transaction2 = createRandomTransaction(2);
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transaction1.transactionID}`, transaction1);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transaction2.transactionID}`, transaction2);
+            await waitForBatchedUpdates();
+
+            removeDraftTransactionsByIDs([transaction1.transactionID, transaction2.transactionID]);
+            await waitForBatchedUpdates();
+
+            const draft1 = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transaction1.transactionID}`);
+            const draft2 = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transaction2.transactionID}`);
+
+            expect(draft1).toBeUndefined();
+            expect(draft2).toBeUndefined();
+        });
+
+        it('should only remove specified draft transactions and leave others intact', async () => {
+            const transaction1 = createRandomTransaction(1);
+            const transaction2 = createRandomTransaction(2);
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transaction1.transactionID}`, transaction1);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transaction2.transactionID}`, transaction2);
+            await waitForBatchedUpdates();
+
+            removeDraftTransactionsByIDs([transaction1.transactionID]);
+            await waitForBatchedUpdates();
+
+            const draft1 = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transaction1.transactionID}`);
+            const draft2 = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transaction2.transactionID}`);
+
+            expect(draft1).toBeUndefined();
+            expect(draft2).toBeDefined();
+        });
+
+        it('should do nothing when given an empty array', async () => {
+            const transaction1 = createRandomTransaction(1);
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transaction1.transactionID}`, transaction1);
+            await waitForBatchedUpdates();
+
+            removeDraftTransactionsByIDs([]);
+            await waitForBatchedUpdates();
+
+            const draft1 = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transaction1.transactionID}`);
+            expect(draft1).toBeDefined();
+        });
+
+        it('should do nothing when given undefined', async () => {
+            const transaction1 = createRandomTransaction(1);
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transaction1.transactionID}`, transaction1);
+            await waitForBatchedUpdates();
+
+            removeDraftTransactionsByIDs(undefined);
+            await waitForBatchedUpdates();
+
+            const draft1 = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transaction1.transactionID}`);
+            expect(draft1).toBeDefined();
+        });
+
+        it('should exclude the initial optimistic transaction when shouldExcludeInitialTransaction is true', async () => {
+            const transaction1 = createRandomTransaction(3);
+            const optimisticTransaction = {
+                ...createRandomTransaction(4),
+                transactionID: CONST.IOU.OPTIMISTIC_TRANSACTION_ID,
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transaction1.transactionID}`, transaction1);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`, optimisticTransaction);
+            await waitForBatchedUpdates();
+
+            removeDraftTransactionsByIDs([transaction1.transactionID, CONST.IOU.OPTIMISTIC_TRANSACTION_ID], true);
+            await waitForBatchedUpdates();
+
+            const draft1 = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transaction1.transactionID}`);
+            const optimisticDraft = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`);
+
+            expect(draft1).toBeUndefined();
+            expect(optimisticDraft).toBeDefined();
+        });
+
+        it('should remove all transactions including optimistic when shouldExcludeInitialTransaction is false', async () => {
+            const transaction1 = createRandomTransaction(3);
+            const optimisticTransaction = {
+                ...createRandomTransaction(4),
+                transactionID: CONST.IOU.OPTIMISTIC_TRANSACTION_ID,
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transaction1.transactionID}`, transaction1);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`, optimisticTransaction);
+            await waitForBatchedUpdates();
+
+            removeDraftTransactionsByIDs([transaction1.transactionID, CONST.IOU.OPTIMISTIC_TRANSACTION_ID], false);
+            await waitForBatchedUpdates();
+
+            const draft1 = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transaction1.transactionID}`);
+            const optimisticDraft = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`);
+
+            expect(draft1).toBeUndefined();
+            expect(optimisticDraft).toBeUndefined();
         });
     });
 });

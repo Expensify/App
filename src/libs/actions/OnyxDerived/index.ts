@@ -28,24 +28,12 @@ function init() {
 
         // Create an array to hold the current values for each dependency.
         // We cast its type to match the tuple expected by config.compute.
-        let dependencyValues = new Array(totalConnections) as Parameters<typeof compute>[0];
+        const dependencyValues = new Array(totalConnections) as Parameters<typeof compute>[0];
 
         OnyxUtils.get(key).then((storedDerivedValue) => {
             let derivedValue = storedDerivedValue;
             if (derivedValue) {
                 Log.info(`Derived value for ${key} restored from disk`);
-            } else {
-                OnyxUtils.tupleGet(dependencies).then((values) => {
-                    const initialContext: DerivedValueContext<typeof key, typeof dependencies> = {
-                        currentValue: derivedValue,
-                        sourceValues: undefined,
-                        areAllConnectionsSet: false,
-                    };
-                    // @ts-expect-error TypeScript can't confirm the shape of dependencyValues matches the compute function's parameters
-                    derivedValue = compute(dependencyValues, initialContext);
-                    dependencyValues = values;
-                    setDerivedValue(key, derivedValue ?? null);
-                });
             }
 
             const setDependencyValue = <Index extends number>(i: Index, value: Parameters<typeof compute>[0][Index]) => {
@@ -68,17 +56,24 @@ function init() {
             const context: DerivedValueContext<typeof key, typeof dependencies> = {
                 currentValue: undefined,
                 sourceValues: undefined,
-                areAllConnectionsSet: false,
             };
 
             const recomputeDerivedValue = (sourceKey?: string, sourceValue?: unknown, triggeredByIndex?: number) => {
                 // If this recompute was triggered by a connection callback, check if it initializes the connection
-                if (triggeredByIndex !== undefined) {
+                if (!areAllConnectionsSet && triggeredByIndex !== undefined) {
                     checkAndMarkConnectionInitialized(triggeredByIndex);
                 }
 
+                // Before all connections are established, don't write to Onyx.
+                // This prevents overwriting a valid disk-cached value with empty defaults,
+                // and avoids N-1 unnecessary Onyx writes during initialization.
+                // We still update dependencyValues via setDependencyValue so data accumulates correctly.
+                if (!areAllConnectionsSet) {
+                    Log.info(`[OnyxDerived] not all connections set for ${key}, deferring Onyx write`);
+                    return;
+                }
+
                 context.currentValue = derivedValue;
-                context.areAllConnectionsSet = areAllConnectionsSet;
                 context.sourceValues = sourceKey && sourceValue !== undefined ? {[sourceKey]: sourceValue} : undefined;
 
                 // @ts-expect-error TypeScript can't confirm the shape of dependencyValues matches the compute function's parameters

@@ -23,14 +23,14 @@ function OnboardingMergingAccountBlockedView({workEmail, isVsb}: OnboardingMergi
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const illustrations = useMemoizedLazyIllustrations(['ToddBehindCloud']);
-    const [onboardingErrorMessage] = useOnyx(ONYXKEYS.ONBOARDING_ERROR_MESSAGE_TRANSLATION_KEY, {canBeMissing: true});
+    const [onboardingErrorMessage] = useOnyx(ONYXKEYS.ONBOARDING_ERROR_MESSAGE_TRANSLATION_KEY);
 
     const getErrorSubtitle = () => {
         if (onboardingErrorMessage) {
             return translate(onboardingErrorMessage);
         }
         // Fallback to generic error message
-        return translate('onboarding.mergeBlockScreen.subtitle', {workEmail});
+        return translate('onboarding.mergeBlockScreen.subtitle', workEmail);
     };
 
     return (
