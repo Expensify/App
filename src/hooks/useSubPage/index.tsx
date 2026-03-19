@@ -20,8 +20,8 @@ export default function useSubPage<TProps extends SubPageProps>({pages, onFinish
     const urlPageName = params?.subPage;
     const isEditing = params?.action === 'edit';
 
-    const startPageName = pages.at(startFrom)?.pageName;
-    const isRedirecting = !urlPageName && !!startPageName;
+    const startPageName = startFrom >= 0 ? pages.at(startFrom)?.pageName : undefined;
+    const isRedirecting = !urlPageName && (!!startPageName || startFrom < 0);
 
     useEffect(() => {
         if (!isRedirecting) {
