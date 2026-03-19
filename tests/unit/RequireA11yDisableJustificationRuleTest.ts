@@ -56,18 +56,23 @@ describe('require-a11y-disable-justification', () => {
         expect(reports).toHaveLength(0);
     });
 
-    it('fails when the disable comment is missing the issue link', () => {
+    it('passes when the disable comment has only a rationale', () => {
         const reports = runRule([' eslint-disable react-native-a11y/foo -- false positive in wrapper ']);
 
-        expect(reports).toHaveLength(1);
-        expect(reports.at(0)?.messageId).toBe('missingIssue');
+        expect(reports).toHaveLength(0);
+    });
+
+    it('passes when the disable comment has only a tracking issue link', () => {
+        const reports = runRule([' eslint-disable react-native-a11y/foo -- https://github.com/Expensify/App/issues/123 ']);
+
+        expect(reports).toHaveLength(0);
     });
 
     it('fails when the disable comment has neither rationale nor issue link', () => {
         const reports = runRule([' eslint-disable react-native-a11y/foo ']);
 
         expect(reports).toHaveLength(1);
-        expect(reports.at(0)?.messageId).toBe('missingIssueAndRationale');
+        expect(reports.at(0)?.messageId).toBe('missingIssueOrRationale');
     });
 
     it('passes for multiline block comments after normalization', () => {

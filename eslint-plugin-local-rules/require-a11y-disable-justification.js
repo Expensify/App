@@ -7,14 +7,12 @@ const DISABLE_A11Y_REGEX = /eslint-disable(?:-next-line|-line)?\s+[^]*?react-nat
 const meta = {
     type: 'problem',
     docs: {
-        description: 'Require react-native-a11y eslint-disable comments to include rationale and a tracking issue link.',
+        description: 'Require react-native-a11y eslint-disable comments to include rationale or tracking issue link.',
         recommended: 'error',
     },
     schema: [],
     messages: {
-        missingIssueAndRationale: 'react-native-a11y eslint-disable comments must include a rationale and a tracking issue link.',
-        missingIssue: 'react-native-a11y eslint-disable comments must include a tracking issue link.',
-        missingRationale: 'react-native-a11y eslint-disable comments must include a rationale describing why the disable is needed.',
+        missingIssueOrRationale: 'react-native-a11y eslint-disable comments must include rationale or tracking issue link.',
     },
 };
 
@@ -57,22 +55,7 @@ function create(context) {
                 if (!hasIssueLink && !hasDisableRationale) {
                     context.report({
                         loc: comment.loc,
-                        messageId: 'missingIssueAndRationale',
-                    });
-                    continue;
-                }
-
-                if (!hasIssueLink) {
-                    context.report({
-                        loc: comment.loc,
-                        messageId: 'missingIssue',
-                    });
-                }
-
-                if (!hasDisableRationale) {
-                    context.report({
-                        loc: comment.loc,
-                        messageId: 'missingRationale',
+                        messageId: 'missingIssueOrRationale',
                     });
                 }
             }
