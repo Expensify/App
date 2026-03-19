@@ -33,14 +33,11 @@ const hasPolicyRelevantFieldChanged = (prev: Policy | null | undefined, next: Po
         return true;
     }
     return (
-        prev.name !== next.name ||
         prev.type !== next.type ||
         prev.approvalMode !== next.approvalMode ||
         prev.reimbursementChoice !== next.reimbursementChoice ||
         prev.autoReimbursementLimit !== next.autoReimbursementLimit ||
         prev.role !== next.role ||
-        prev.achAccount?.accountNumber !== next.achAccount?.accountNumber ||
-        JSON.stringify(prev.fieldList) !== JSON.stringify(next.fieldList) ||
         JSON.stringify(prev.autoReimbursement) !== JSON.stringify(next.autoReimbursement)
     );
 };
