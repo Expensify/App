@@ -76,7 +76,10 @@ function IOURequestStepScan({
     const device = useCameraDevice('back', {
         physicalDevices: ['wide-angle-camera', 'ultra-wide-angle-camera'],
     });
-    const format = useCameraFormat(device, [{photoAspectRatio: 4 / 3}, {videoResolution: 'max'}, {photoResolution: {width: 4032, height: 3024}}]);
+    const format = useCameraFormat(device, [{photoAspectRatio: 4 / 3}, {photoResolution: {width: 4032, height: 3024}}, {videoResolution: 'max'}]);
+    if (device && format) {
+        console.log(`[CameraFormats] Selected: ${format.photoWidth}x${format.photoHeight} (video: ${format.videoWidth}x${format.videoHeight})`);
+    }
     // Format dimensions are in landscape orientation, so height/width gives portrait aspect ratio
     const cameraAspectRatio = format ? format.photoHeight / format.photoWidth : undefined;
 
@@ -368,9 +371,16 @@ function IOURequestStepScan({
         showBlink();
 
         const path = getReceiptsUploadFolderPath();
+        const captureStart = performance.now();
 
         captureReceipt(camera.current, {flash, hasFlash, isPlatformMuted, path})
             .then((photo: PhotoFile) => {
+                const captureMs = (performance.now() - captureStart).toFixed(0);
+                console.log(`[CameraCapture] ${captureMs}ms | ${photo.width}x${photo.height}`);
+                ReactNativeBlobUtil.fs.stat(photo.path.replace('file://', '')).then((stats) => {
+                    const sizeMB = (Number(stats.size) / (1024 * 1024)).toFixed(2);
+                    console.log(`[CameraCapture] File size: ${sizeMB} MB`);
+                }).catch(() => {});
                 setDidCapturePhoto(true);
 
                 const transaction =
@@ -510,6 +520,7 @@ function IOURequestStepScan({
                                         ref={camera}
                                         device={device}
                                         format={format}
+                                        fps={30}
                                         style={styles.flex1}
                                         zoom={device.neutralZoom}
                                         photo
