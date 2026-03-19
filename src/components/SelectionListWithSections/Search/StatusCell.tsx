@@ -16,7 +16,7 @@ type StatusCellProps = {
     /** Whether the report's state/status is pending */
     isPending?: boolean;
 
-    /** Wheter the transaction was deleted */
+    /** Whether the transaction was deleted */
     isDeleted?: boolean;
 };
 
