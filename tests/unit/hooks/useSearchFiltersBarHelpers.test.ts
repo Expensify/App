@@ -19,9 +19,9 @@ describe('useSearchFiltersBar helpers', () => {
 
     it('prefers range when on/after/before are empty for hidden date filter checks', () => {
         const filterFormValues = {
-            postedRange: '2026-02-01,2026-02-29',
+            postedRange: '2026-02-01,2026-02-28',
         };
 
-        expect(hasDateFilterValue(filterFormValues, CONST.SEARCH.SYNTAX_FILTER_KEYS.POSTED)).toBe('2026-02-01,2026-02-29');
+        expect(hasDateFilterValue(filterFormValues, CONST.SEARCH.SYNTAX_FILTER_KEYS.POSTED)).toBe('2026-02-01,2026-02-28');
     });
 });

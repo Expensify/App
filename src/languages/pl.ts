@@ -483,7 +483,7 @@ const translations: TranslationDeepObject<typeof en> = {
         status: 'Status',
         on: 'Włączone',
         before: 'Przed',
-        after: 'PoPo',
+        after: 'Po',
         range: 'Zakres',
         reschedule: 'Przełóż',
         general: 'Ogólne',
