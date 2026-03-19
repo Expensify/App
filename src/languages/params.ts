@@ -141,8 +141,6 @@ type UpdatedPolicyCurrencyDefaultTaxParams = {oldName: string; newName: string};
 
 type UpdatedPolicyForeignCurrencyDefaultTaxParams = {oldName: string; newName: string};
 
-type UpdatedPolicyReimburserParams = {newReimburser: string; previousReimburser?: string};
-
 type ExportedToIntegrationParams = {label: string; markedManually?: boolean; inProgress?: boolean; lastModified?: string};
 
 type AddBudgetParams = {frequency: string; entityType: string; entityName: string; shared?: string; individual?: string; notificationThreshold?: number};
@@ -383,7 +381,6 @@ export type {
     UpdatedPolicyCustomTaxNameParams,
     UpdatedPolicyCurrencyDefaultTaxParams,
     UpdatedPolicyForeignCurrencyDefaultTaxParams,
-    UpdatedPolicyReimburserParams,
     UpdatePolicyCustomUnitDefaultCategoryParams,
     UpdatePolicyCustomUnitParams,
     UpdatedPolicyApprovalRuleParams,
