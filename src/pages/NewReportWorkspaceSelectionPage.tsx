@@ -1,7 +1,8 @@
 import {accountIDSelector, emailSelector} from '@selectors/Session';
 import React, {useEffect, useState} from 'react';
+import {View} from 'react-native';
 import type {OnyxCollection} from 'react-native-onyx';
-import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
+import ActivityIndicator from '@components/ActivityIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import {useSearchActionsContext, useSearchStateContext} from '@components/Search/SearchContext';
@@ -152,7 +153,7 @@ function NewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelectionPag
         navigateToNewReport(optimisticReport.reportID);
     };
 
-    const {openCreateReportConfirmation, CreateReportConfirmationModal} = useCreateEmptyReportConfirmation({
+    const {openCreateReportConfirmation} = useCreateEmptyReportConfirmation({
         policyID: pendingPolicySelection?.policy.policyID,
         policyName: pendingPolicySelection?.policy.text ?? '',
         onConfirm: (shouldDismissEmptyReportsConfirmation: boolean) => {
@@ -266,12 +267,13 @@ function NewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelectionPag
                         title={translate('report.newReport.createReport')}
                         onBackButtonPress={Navigation.goBack}
                     />
-                    {CreateReportConfirmationModal}
                     {shouldShowLoadingIndicator ? (
-                        <FullScreenLoadingIndicator
-                            style={[styles.flex1, styles.pRelative]}
-                            reasonAttributes={{context: 'NewReportWorkspaceSelectionPage', isLoadingApp: !!isLoadingApp}}
-                        />
+                        <View style={[styles.flex1, styles.fullScreenLoading]}>
+                            <ActivityIndicator
+                                size="large"
+                                reasonAttributes={{context: 'NewReportWorkspaceSelectionPage', isLoadingApp: !!isLoadingApp}}
+                            />
+                        </View>
                     ) : (
                         <>
                             <Text style={[styles.ph5, styles.mb3]}>{translate('report.newReport.chooseWorkspace')}</Text>
