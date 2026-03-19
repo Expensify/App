@@ -45,7 +45,6 @@ import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import useActiveAdminPolicies from './useActiveAdminPolicies';
 import useConfirmModal from './useConfirmModal';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
-import useEnvironment from './useEnvironment';
 import {useMemoizedLazyExpensifyIcons} from './useLazyAsset';
 import useLocalize from './useLocalize';
 import useOnyx from './useOnyx';
@@ -80,7 +79,6 @@ function useSelectionModeReportActions({
 }: UseSelectionModeReportActionsParams) {
     const {translate, localeCompare} = useLocalize();
     const {showConfirmModal} = useConfirmModal();
-    const {isProduction} = useEnvironment();
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const {isBetaEnabled} = usePermissions();
     const {areStrictPolicyRulesEnabled} = useStrictPolicyRules();
@@ -598,9 +596,6 @@ function useSelectionModeReportActions({
 
     /* eslint-disable react-hooks/refs -- onSelected callbacks are event handlers, not invoked during render */
     const selectionModeReportLevelActions = useMemo(() => {
-        if (isProduction) {
-            return [];
-        }
         const actions: Array<DropdownOption<string> & Pick<PopoverMenuItem, 'backButtonText' | 'rightIcon' | 'subMenuItems'>> = [];
         if (hasSubmitAction && !shouldBlockSubmit) {
             actions.push({
@@ -637,7 +632,6 @@ function useSelectionModeReportActions({
         }
         return actions;
     }, [
-        isProduction,
         hasSubmitAction,
         shouldBlockSubmit,
         hasApproveAction,
