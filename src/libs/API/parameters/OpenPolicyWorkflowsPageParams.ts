@@ -1,6 +1,6 @@
 type OpenPolicyWorkflowsPageParams = {
     policyID: string;
-    includeAllBankAccounts: boolean;
+    includeAllBankAccounts?: boolean;
 };
 
 export default OpenPolicyWorkflowsPageParams;
