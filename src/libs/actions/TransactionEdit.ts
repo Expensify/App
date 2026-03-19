@@ -2,6 +2,7 @@ import {format} from 'date-fns';
 import Onyx from 'react-native-onyx';
 import type {Connection, OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {formatCurrentUserToAttendee} from '@libs/IOUUtils';
+import revokeOdometerImageUri from '@libs/OdometerImageUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails, Transaction} from '@src/types/onyx';
@@ -183,10 +184,57 @@ function buildOptimisticTransactionAndCreateDraft({initialTransaction, currentUs
     return newTransaction;
 }
 
+function removeBackupTransactionWithImageCleanup(transactionID: string | undefined, isDraft: boolean, onComplete?: () => void) {
+    if (!transactionID) {
+        return;
+    }
+    const backupConn = Onyx.connectWithoutView({
+        key: `${ONYXKEYS.COLLECTION.TRANSACTION_BACKUP}${transactionID}`,
+        callback: (backupTransaction) => {
+            Onyx.disconnect(backupConn);
+            const currentConn = Onyx.connectWithoutView({
+                key: `${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+                callback: (currentTransaction) => {
+                    Onyx.disconnect(currentConn);
+                    revokeOdometerImageUri(backupTransaction?.comment?.odometerStartImage, currentTransaction?.comment?.odometerStartImage);
+                    revokeOdometerImageUri(backupTransaction?.comment?.odometerEndImage, currentTransaction?.comment?.odometerEndImage);
+                    removeBackupTransaction(transactionID);
+                    onComplete?.();
+                },
+            });
+        },
+    });
+}
+
+function restoreOriginalTransactionFromBackupWithImageCleanup(transactionID: string | undefined, isDraft: boolean, onComplete?: () => void) {
+    if (!transactionID) {
+        return;
+    }
+    connection = Onyx.connectWithoutView({
+        key: `${ONYXKEYS.COLLECTION.TRANSACTION_BACKUP}${transactionID}`,
+        callback: (backupTransaction) => {
+            Onyx.disconnect(connection);
+            const currentConn = Onyx.connectWithoutView({
+                key: `${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+                callback: (currentTransaction) => {
+                    Onyx.disconnect(currentConn);
+                    revokeOdometerImageUri(currentTransaction?.comment?.odometerStartImage, backupTransaction?.comment?.odometerStartImage);
+                    revokeOdometerImageUri(currentTransaction?.comment?.odometerEndImage, backupTransaction?.comment?.odometerEndImage);
+                    Onyx.set(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, backupTransaction ?? null);
+                    removeBackupTransaction(transactionID);
+                    onComplete?.();
+                },
+            });
+        },
+    });
+}
+
 export {
     createBackupTransaction,
     removeBackupTransaction,
+    removeBackupTransactionWithImageCleanup,
     restoreOriginalTransactionFromBackup,
+    restoreOriginalTransactionFromBackupWithImageCleanup,
     createDraftTransaction,
     removeDraftTransaction,
     removeTransactionReceipt,

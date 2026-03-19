@@ -245,9 +245,9 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
         if (!transaction?.transactionID || !imageType) {
             return;
         }
-        removeMoneyRequestOdometerImage(transaction.transactionID, imageType, isDraftTransaction);
+        removeMoneyRequestOdometerImage(transaction.transactionID, imageType, isDraftTransaction, !isEditingConfirmation);
         navigation.goBack();
-    }, [transaction?.transactionID, imageType, isDraftTransaction, navigation]);
+    }, [transaction?.transactionID, imageType, isDraftTransaction, isEditingConfirmation, navigation]);
 
     const onDownloadAttachment = useDownloadAttachment({
         isAuthTokenRequired,
