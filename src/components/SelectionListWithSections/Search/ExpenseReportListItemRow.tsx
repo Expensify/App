@@ -9,6 +9,7 @@ import type {SearchColumnType} from '@components/Search/types';
 import type {ExpenseReportListItemType} from '@components/SelectionListWithSections/types';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -20,6 +21,7 @@ import {getParentNavigationSubtitle, getReportStatusTranslation} from '@libs/Rep
 import {isCorrectSearchUserName} from '@libs/SearchUIUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportAction} from '@src/types/onyx';
 import ActionCell from './ActionCell';
 import DateCell from './DateCell';
@@ -68,6 +70,7 @@ function ExpenseReportListItemRow({
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const {isLargeScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
     const policy = usePolicy(item.policyID);
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
@@ -234,7 +237,7 @@ function ExpenseReportListItemRow({
         const isInMobileSelectionMode = shouldUseNarrowLayout && !!canSelectMultiple;
 
         // Compute accessible group label (user name, subtitle, report title, status, amount)
-        const parentNavigationSubtitleData = getParentNavigationSubtitle(item, policy);
+        const parentNavigationSubtitleData = getParentNavigationSubtitle(item, policy, conciergeReportID);
         const subtitleLabel = translate('threads.parentNavigationSummary', parentNavigationSubtitleData);
         const statusLabel = getReportStatusTranslation({stateNum: item.stateNum, statusNum: item.statusNum, translate});
         const amountLabel = convertToDisplayString(totalDisplaySpend, currency);

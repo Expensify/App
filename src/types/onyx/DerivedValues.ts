@@ -34,6 +34,10 @@ type ReportAttributes = {
      */
     actionBadge?: ValueOf<typeof CONST.REPORT.ACTION_BADGE>;
     /**
+     * The reportActionID that the action badge refers to, used for deep linking when the LHN row is pressed.
+     */
+    actionTargetReportActionID?: string;
+    /**
      * The errors of the report.
      */
     reportErrors: Errors;
