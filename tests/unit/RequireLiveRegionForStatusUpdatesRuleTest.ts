@@ -126,7 +126,7 @@ describe('require-live-region-for-status-updates', () => {
         expect(reports).toHaveLength(0);
     });
 
-    it('fails when alert or status uses accessibilityLiveRegion=\"none\"', () => {
+    it('fails when alert or status uses accessibilityLiveRegion="none"', () => {
         const reports = runRule([createLiteralAttribute('role', 'status'), createLiteralAttribute('accessibilityLiveRegion', 'none')]);
 
         expect(reports).toHaveLength(1);
