@@ -620,7 +620,7 @@ const translations: TranslationDeepObject<typeof en> = {
             biometricsTest: '生物识别测试',
             authenticationSuccessful: '认证成功',
             successfullyAuthenticatedUsing: (authType?: string) => `您已成功使用 ${authType} 完成验证。`,
-            troubleshootBiometricsStatus: (status?: string) => `生物识别（${status}）`,
+            troubleshootBiometricsStatus: ({status}: {status?: string}) => `生物识别（${status}）`,
             yourAttemptWasUnsuccessful: '您的身份验证尝试未成功。',
             youCouldNotBeAuthenticated: '无法验证您的身份',
             areYouSureToReject: '您确定吗？如果您关闭此界面，此次身份验证尝试将被拒绝。',

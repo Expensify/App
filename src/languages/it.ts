@@ -628,7 +628,7 @@ const translations: TranslationDeepObject<typeof en> = {
             biometricsTest: 'Test biometrico',
             authenticationSuccessful: 'Autenticazione riuscita',
             successfullyAuthenticatedUsing: (authType?: string) => `Hai effettuato l’autenticazione con successo usando ${authType}.`,
-            troubleshootBiometricsStatus: (status?: string) => `Dati biometrici (${status})`,
+            troubleshootBiometricsStatus: ({status}: {status?: string}) => `Dati biometrici (${status})`,
             yourAttemptWasUnsuccessful: 'Il tentativo di autenticazione non è andato a buon fine.',
             youCouldNotBeAuthenticated: 'Autenticazione non riuscita',
             areYouSureToReject: 'Sei sicuro? Il tentativo di autenticazione verrà rifiutato se chiudi questa schermata.',
