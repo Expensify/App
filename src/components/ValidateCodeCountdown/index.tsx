@@ -28,14 +28,15 @@ function ValidateCodeCountdown({onCountdownFinish, ref}: ValidateCodeCountdownPr
         };
     }, [onCountdownFinish, timeRemaining]);
 
-    // Announce countdown start/reset for screen readers
-    useAccessibilityAnnouncement(translate('validateCodeForm.timeRemainingAnnouncement', {timeRemaining: CONST.REQUEST_CODE_DELAY}), timeRemaining === CONST.REQUEST_CODE_DELAY, {
-        shouldAnnounceOnNative: true,
-        shouldAnnounceOnWeb: true,
-    });
-
-    // Announce expiration for screen readers
-    useAccessibilityAnnouncement(translate('validateCodeForm.timeExpiredAnnouncement'), timeRemaining === 0, {shouldAnnounceOnNative: true, shouldAnnounceOnWeb: true});
+    // Announce countdown start/reset/expiration for screen readers
+    useAccessibilityAnnouncement(
+        timeRemaining === 1 ? translate('validateCodeForm.timeExpiredAnnouncement') : translate('validateCodeForm.timeRemainingAnnouncement', {timeRemaining: timeRemaining - 1}),
+        timeRemaining % 10 === 1,
+        {
+            shouldAnnounceOnNative: true,
+            shouldAnnounceOnWeb: true,
+        },
+    );
 
     return (
         <RenderHTML
