@@ -118,9 +118,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     // Filter out travel cards — they should not appear on the member profile page
     // as they expose card-level controls and data not intended for workspace admin view.
     const memberCards = workspaceCards
-        ? Object.values(workspaceCards).filter(
-              (card) => card.accountID === accountID && !card.nameValuePairs?.isTravelCard && card.nameValuePairs?.feedCountry !== CONST.TRAVEL.PROGRAM_TRAVEL_US,
-          )
+        ? Object.values(workspaceCards).filter((card) => card.accountID === accountID && card.nameValuePairs?.feedCountry !== CONST.TRAVEL.PROGRAM_TRAVEL_US)
         : [];
 
     const isApprover = isApproverUserAction(policy, memberLogin);
