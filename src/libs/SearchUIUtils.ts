@@ -4027,6 +4027,10 @@ function getTypeOptions(translate: LocalizedTranslate, policies: OnyxCollection<
     return shouldHideInvoiceOption ? typeOptions.filter((typeOption) => typeOption.value !== CONST.SEARCH.DATA_TYPES.INVOICE) : typeOptions;
 }
 
+function getGroupByOptions(translate: LocalizedTranslate) {
+    return Object.values(CONST.SEARCH.GROUP_BY).map<SingleSelectItem<SearchGroupBy>>((value) => ({text: translate(`search.filters.groupBy.${value}`), value}));
+}
+
 function getSortByOptions(columns: SearchColumnType[], translate: LocalizedTranslate) {
     const sortableColumns: Array<SingleSelectItem<SearchColumnType>> = [];
     for (const column of columns) {
@@ -4989,6 +4993,7 @@ export {
     getValidGroupBy,
     getStatusOptions,
     getTypeOptions,
+    getGroupByOptions,
     getSortByOptions,
     getGroupBySections,
     getViewOptions,

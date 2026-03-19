@@ -8574,6 +8574,7 @@ const CONST = {
             TRANSACTION_LIST_ITEM: 'Search-TransactionListItem',
             REPORT_EXPAND_COLLAPSE: 'Search-ReportExpandCollapse',
             SELECT_ALL_BUTTON: 'Search-SelectAllButton',
+            TYPE_MENU_BUTTON: 'Search-TypeMenuButton',
             FILTER_DISPLAY: 'Search-FilterDisplay',
             FILTER_TYPE: 'Search-FilterType',
             FILTER_STATUS: 'Search-FilterStatus',

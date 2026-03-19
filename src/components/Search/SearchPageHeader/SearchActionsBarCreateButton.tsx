@@ -27,6 +27,7 @@ import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTop
 import Navigation from '@libs/Navigation/Navigation';
 import {areAllGroupPoliciesExpenseChatDisabled, getDefaultChatEnabledPolicy} from '@libs/PolicyUtils';
 import {generateReportID, hasViolations as hasViolationsReportUtils} from '@libs/ReportUtils';
+import shouldRevampSearchActionsBar from '@libs/shouldRevampSearchActionsBar';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -225,7 +226,7 @@ function SearchActionsBarCreateButton() {
     );
 
     return (
-        <View style={[styles.searchActionsBarCreateButton]}>
+        <View style={[!shouldRevampSearchActionsBar() && styles.pr5, styles.searchActionsBarCreateButton]}>
             <PopoverMenu
                 onClose={hideCreateMenu}
                 isVisible={isCreateMenuActive}

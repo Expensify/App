@@ -16,6 +16,7 @@ import {ACTIVE_LABEL_SCALE} from '@components/TextInput/styleConst';
 import {animatedReceiptPaneRHPWidth, animatedSuperWideRHPWidth, animatedWideRHPWidth} from '@components/WideRHPContextProvider';
 import {getBrowser, isMobile, isMobileSafari, isSafari} from '@libs/Browser';
 import getPlatform from '@libs/getPlatform';
+import shouldRevampSearchActionsBar from '@libs/shouldRevampSearchActionsBar';
 import CONST from '@src/CONST';
 import type {Dimensions} from '@src/types/utils/Layout';
 import {defaultTheme} from './theme';
@@ -2534,6 +2535,15 @@ const staticStyles = (theme: ThemeColors) =>
 
         searchResultsHeaderBar: {
             display: 'flex',
+            height: variables.contentHeaderDesktopHeight,
+            zIndex: variables.popoverZIndex,
+            position: 'relative',
+            paddingLeft: 20,
+            paddingRight: 12,
+        },
+
+        newSearchResultsHeaderBar: {
+            display: 'flex',
             position: 'relative',
         },
 
@@ -3451,6 +3461,12 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         searchAutocompleteInputResults: {
+            borderWidth: 1,
+            borderColor: theme.border,
+            height: 54,
+        },
+
+        newSearchAutocompleteInputResults: {
             borderWidth: 1,
             borderColor: theme.border,
         },
@@ -4747,6 +4763,11 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         listTableHeader: {
+            paddingVertical: 12,
+            paddingHorizontal: 32,
+        },
+
+        newListTableHeader: {
             paddingTop: 4,
             paddingBottom: 4,
             paddingHorizontal: 32,
@@ -4854,6 +4875,12 @@ const staticStyles = (theme: ThemeColors) =>
             marginTop: 3,
         },
 
+        searchFiltersBarContainer: {
+            marginTop: 8,
+            flexDirection: 'row',
+            alignItems: 'center',
+        },
+
         searchActionsBarContainer: {
             marginTop: 12,
             marginBottom: 16,
@@ -4864,6 +4891,7 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         searchActionsBarCreateButton: {
+            marginLeft: 'auto',
             alignSelf: 'flex-start',
         },
 
@@ -6188,9 +6216,14 @@ const dynamicStyles = (theme: ThemeColors) =>
             maxWidth: shouldUseNarrowLayout ? '100%' : 300,
         }),
 
-        searchListContentContainerStyles: (isSearchInputVisible) => ({
-            paddingTop: isSearchInputVisible ? variables.searchListContentWithInputMarginTop : variables.searchListContentMarginTop,
-        }),
+        searchListContentContainerStyles: (isSearchInputVisible) => {
+            if (shouldRevampSearchActionsBar()) {
+                return {
+                    paddingTop: isSearchInputVisible ? variables.searchListContentWithInputMarginTop : variables.newSearchListContentMarginTop,
+                };
+            }
+            return {paddingTop: variables.searchListContentMarginTop};
+        },
 
         getForYouSectionContainerStyle: (shouldUseNarrowLayout: boolean): ViewStyle => ({
             flexDirection: 'column',
@@ -6280,7 +6313,7 @@ const dynamicStyles = (theme: ThemeColors) =>
             borderRadius: shouldUseNarrowLayout ? variables.buttonBorderRadius : 8,
             paddingHorizontal: shouldUseNarrowLayout ? 12 : 16,
             paddingVertical: 10,
-            height: shouldUseNarrowLayout ? variables.sectionMenuItemHeightSmall : variables.sectionMenuItemHeight,
+            height: shouldUseNarrowLayout ? variables.sectionMenuItemHeight : variables.sectionMenuItemHeightCompact,
             alignItems: 'center',
         }),
     }) satisfies DynamicStyles;

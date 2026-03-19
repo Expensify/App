@@ -243,7 +243,7 @@ function SearchPageInputWide({queryJSON, handleSearch}: SearchPageInputWideProps
             {isAutocompleteListVisible && <View style={styles.searchPageInputPlaceholder} />}
             <View
                 dataSet={{dragArea: false}}
-                style={[styles.appBG, styles.searchResultsHeaderBar, ...autocompleteInputStyle]}
+                style={[styles.appBG, styles.newSearchResultsHeaderBar, ...autocompleteInputStyle]}
             >
                 <SearchInputSelectionWrapper
                     value={textInputValue}
@@ -261,7 +261,7 @@ function SearchPageInputWide({queryJSON, handleSearch}: SearchPageInputWideProps
                     autoFocus={false}
                     onFocus={showAutocompleteList}
                     onBlur={hideAutocompleteList}
-                    wrapperStyle={{...styles.searchAutocompleteInputResults, ...styles.br2}}
+                    wrapperStyle={{...styles.newSearchAutocompleteInputResults, ...styles.br2}}
                     wrapperFocusedStyle={styles.searchAutocompleteInputResultsFocused}
                     outerWrapperStyle={[inputWrapperActiveStyle, styles.flex1]}
                     ref={textInputRef}

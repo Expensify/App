@@ -1,10 +1,13 @@
 import React from 'react';
-import SearchAutocompleteInput from '@components/Search/SearchAutocompleteInput';
-import type {SearchAutocompleteInputProps} from '@components/Search/SearchAutocompleteInput';
+import SearchAutocompleteInput from '@components/Search/NewSearchAutocompleteInput';
+import NewSearchAutoCompleteInput from '@components/Search/NewSearchAutocompleteInput';
+import type {NewSearchAutoCompleteInputProps} from '@components/Search/NewSearchAutocompleteInput';
+import shouldRevampSearchActionsBar from '@libs/shouldRevampSearchActionsBar';
 
-function SearchInputSelectionWrapper({selection, ref, ...props}: SearchAutocompleteInputProps) {
+function SearchInputSelectionWrapper({selection, ref, ...props}: NewSearchAutoCompleteInputProps) {
+    const InputComponent = shouldRevampSearchActionsBar() ? NewSearchAutoCompleteInput : SearchAutocompleteInput;
     return (
-        <SearchAutocompleteInput
+        <InputComponent
             selection={selection}
             ref={ref}
             // eslint-disable-next-line react/jsx-props-no-spreading

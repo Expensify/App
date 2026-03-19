@@ -4,6 +4,7 @@ import SkeletonRect from '@components/SkeletonRect';
 import SkeletonViewContentLoader from '@components/SkeletonViewContentLoader';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import shouldRevampSearchActionsBar from '@libs/shouldRevampSearchActionsBar';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import useSkeletonSpan from '@libs/telemetry/useSkeletonSpan';
 
@@ -31,7 +32,7 @@ function SearchActionsSkeleton({shouldAnimate = true, itemCount = 5, width = 84,
     const skeletonCount = new Array(itemCount).fill(0);
 
     return (
-        <View style={[styles.mh5, styles.mb4, styles.mt3]}>
+        <View style={[styles.mh5, styles.mb4, shouldRevampSearchActionsBar() ? styles.mt3 : styles.mt2]}>
             <SkeletonViewContentLoader
                 animate={shouldAnimate}
                 width={width}
