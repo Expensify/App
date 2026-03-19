@@ -44,7 +44,7 @@ describe('actions/BankAccounts', () => {
     });
 
     describe('connectBankAccountWithPlaid', () => {
-        test('switches to manual flow and clears account and routing numbers for new Chase accounts', async () => {
+        test('short-circuits new Chase accounts to manual flow and clears account/routing draft fields', async () => {
             // Given a new reimbursement account in Plaid setup with existing draft values
             await Onyx.set(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {
                 achData: {
@@ -64,7 +64,7 @@ describe('actions/BankAccounts', () => {
             connectBankAccountWithPlaid(CONST.DEFAULT_NUMBER_ID, getPlaidBankAccount(CONST.BANK_NAMES_USER_FRIENDLY[CONST.BANK_NAMES.CHASE]), POLICY_ID);
             await waitForBatchedUpdates();
 
-            // Then we should not call the backend, and should move user to manual with cleared account + routing numbers only
+            // Then we should not call the backend, and should move user to manual with cleared account/routing draft fields
             const reimbursementAccount = await getOnyxValue(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
             const reimbursementAccountDraft = await getOnyxValue(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
 
@@ -79,7 +79,7 @@ describe('actions/BankAccounts', () => {
             expect(reimbursementAccountDraft?.mask).toBe('3333');
         });
 
-        test('keeps API flow for existing Chase accounts', () => {
+        test('does not short-circuit Chase flow when bankAccountID is non-zero', () => {
             // Given an existing Chase bank account
             const bankAccountID = 123;
             const selectedPlaidBankAccount = getPlaidBankAccount(CONST.BANK_NAMES_USER_FRIENDLY[CONST.BANK_NAMES.CHASE]);
