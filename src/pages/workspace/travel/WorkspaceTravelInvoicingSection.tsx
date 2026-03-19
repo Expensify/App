@@ -88,21 +88,6 @@ function WorkspaceTravelInvoicingSection({policyID}: WorkspaceTravelInvoicingSec
     const hasSettlementAccount = hasTravelInvoicingSettlementAccount(travelSettings);
     const travelSpend = getTravelSpend(travelSettings);
 
-    // Preserve the last valid (non-zero) travelSpend to prevent momentary $0.00 flicker during pending updates.
-    // When changing settlement frequency or bank account, the BE Pusher response can transiently
-    // overwrite card settings without currentBalance, causing travelSpend to briefly read as 0.
-    // NOTE: This could also be fixed on the BE side by ensuring currentBalance is always included
-    // in the Onyx Pusher updates for the card settings key.
-    const lastValidTravelSpendRef = useRef(travelSpend);
-    if (travelSpend > 0) {
-        lastValidTravelSpendRef.current = travelSpend;
-    }
-
-    // Only use the cached balance if the actual balance is 0 AND we are in the middle of a settlement-related update.
-    // This prevents stale balances from being shown after a real zero-balance transition (e.g. a completed payment).
-    const isSettlementUpdatePending = !!cardSettings?.pendingFields?.monthlySettlementDate || !!cardSettings?.pendingFields?.paymentBankAccountID;
-    const stableTravelSpend = travelSpend === 0 && isSettlementUpdatePending ? lastValidTravelSpendRef.current : travelSpend;
-
     // Derive the payment queued state from the manual billing Onyx key
     const isPaymentQueued = !!cardManualBilling;
     const travelLimit = getTravelLimit(travelSettings);
@@ -114,10 +99,10 @@ function WorkspaceTravelInvoicingSection({policyID}: WorkspaceTravelInvoicingSec
     const shouldShowPayButton = travelSpend > 0 && isMonthlySettlementFrequency && !isPaymentQueued;
     // Format currency values (assuming USD for Travel Invoicing based on PROGRAM_TRAVEL_US)
     // Current spend resets to $0.00 once payment is queued, since the balance has been paid
-    const formattedSpend = convertToDisplayString(isPaymentQueued ? 0 : stableTravelSpend, CONST.CURRENCY.USD);
+    const formattedSpend = convertToDisplayString(isPaymentQueued ? 0 : travelSpend, CONST.CURRENCY.USD);
 
     // Queued amount preserves the original travelSpend value for the "payment queued" subtitle
-    const formattedQueuedAmount = convertToDisplayString(stableTravelSpend, CONST.CURRENCY.USD);
+    const formattedQueuedAmount = convertToDisplayString(travelSpend, CONST.CURRENCY.USD);
     const formattedLimit = convertToDisplayString(travelLimit, CONST.CURRENCY.USD);
 
     // Settlement account display - show empty if no account is selected
