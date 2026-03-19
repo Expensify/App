@@ -1509,10 +1509,8 @@ describe('DebugUtils', () => {
                         },
                     ],
                 };
+                await Onyx.set(ONYXKEYS.SESSION, {accountID: 1234});
                 await Onyx.multiSet({
-                    [ONYXKEYS.SESSION]: {
-                        accountID: 1234,
-                    },
                     [`${ONYXKEYS.COLLECTION.REPORT}0` as const]: report,
                     [`${ONYXKEYS.COLLECTION.REPORT}1` as const]: {
                         reportID: '1',

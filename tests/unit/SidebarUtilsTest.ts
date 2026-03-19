@@ -103,10 +103,8 @@ describe('SidebarUtils', () => {
             };
 
             await act(async () => {
+                await Onyx.set(ONYXKEYS.SESSION, {accountID: 12345});
                 await Onyx.multiSet({
-                    [ONYXKEYS.SESSION]: {
-                        accountID: 12345,
-                    },
                     ...MOCK_REPORTS,
                     ...MOCK_TRANSACTION_VIOLATIONS,
                     [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${MOCK_REPORT.reportID}` as const]: MOCK_REPORT_ACTIONS,

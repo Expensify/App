@@ -35,8 +35,8 @@ describe('WorkspacesSettingsUtils', () => {
             const reportActions = mockData.reportActions;
             const transactions = mockData.transactions;
 
+            await Onyx.set(ONYXKEYS.SESSION, session);
             await Onyx.multiSet({
-                session,
                 ...(reports as ReportCollectionDataSet),
                 ...(reportActions as OnyxCollection<ReportActions>),
                 ...(transactionViolations as OnyxCollection<TransactionViolations>),
@@ -59,10 +59,10 @@ describe('WorkspacesSettingsUtils', () => {
             const session = mockData.session;
             const reportActions = mockData.reportActions;
 
+            await Onyx.set(ONYXKEYS.SESSION, session);
             await Onyx.multiSet({
                 ...(reports as ReportCollectionDataSet),
                 ...(reportActions as OnyxCollection<ReportActions>),
-                session,
             });
 
             await waitForBatchedUpdates();
@@ -84,8 +84,8 @@ describe('WorkspacesSettingsUtils', () => {
             const reportActions = mockData.reportActions;
             const transactions = mockData.transactions;
 
+            await Onyx.set(ONYXKEYS.SESSION, session);
             await Onyx.multiSet({
-                session,
                 ...(reports as ReportCollectionDataSet),
                 ...(reportActions as OnyxCollection<ReportActions>),
                 ...(transactionViolations as OnyxCollection<TransactionViolations>),
@@ -108,10 +108,10 @@ describe('WorkspacesSettingsUtils', () => {
             const session = mockData.session;
             const reportActions = mockData.reportActions;
 
+            await Onyx.set(ONYXKEYS.SESSION, session);
             await Onyx.multiSet({
                 ...(reports as ReportCollectionDataSet),
                 ...(reportActions as OnyxCollection<ReportActions>),
-                session,
             });
 
             const reportIDs = Object.values(reports).map((report) => report.reportID);
@@ -134,8 +134,8 @@ describe('WorkspacesSettingsUtils', () => {
             const reportActions = mockData.reportActions;
             const transactions = mockData.transactions;
 
+            await Onyx.set(ONYXKEYS.SESSION, session);
             await Onyx.multiSet({
-                session,
                 ...(reports as ReportCollectionDataSet),
                 ...(reportActions as OnyxCollection<ReportActions>),
                 ...(transactionViolations as OnyxCollection<TransactionViolations>),
@@ -158,10 +158,10 @@ describe('WorkspacesSettingsUtils', () => {
             const session = mockData.session;
             const reportActions = mockData.reportActions;
 
+            await Onyx.set(ONYXKEYS.SESSION, session);
             await Onyx.multiSet({
                 ...(reports as ReportCollectionDataSet),
                 ...(reportActions as OnyxCollection<ReportActions>),
-                session,
             });
 
             const reportIDs = Object.values(reports).map((report) => report.reportID);
