@@ -1,5 +1,6 @@
 import {isUserValidatedSelector} from '@selectors/Account';
 import {activeAdminPoliciesSelector} from '@selectors/Policy';
+import {emailSelector} from '@selectors/Session';
 import React, {useCallback} from 'react';
 import {View} from 'react-native';
 import type {OnyxCollection} from 'react-native-onyx';
@@ -77,7 +78,7 @@ function TimeSensitiveSection() {
         selector: isUserValidatedSelector,
     });
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
-    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [sessionEmail] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector});
 
     // Get card feed errors for company card connections (Release 4)
     const cardFeedErrors = useCardFeedErrors();
@@ -144,7 +145,7 @@ function TimeSensitiveSection() {
     const hasBrokenCompanyCards = brokenCompanyCardConnections.length > 0;
     const hasBrokenPersonalCards = brokenPersonalCardConnections.length > 0;
     const hasBrokenAccountingConnections = brokenAccountingConnections.length > 0;
-    const isCurrentLoginValidated = isCurrentUserValidated(loginList, session?.email ?? login);
+    const isCurrentLoginValidated = isCurrentUserValidated(loginList, sessionEmail ?? login);
     const shouldShowValidateAccount = isUserValidated === false && !isAnonymous && !isCurrentLoginValidated;
     // This guard must exactly match the conditions used to render each widget below.
     // If a widget has additional conditions in the render (e.g. && !!discountInfo), those
