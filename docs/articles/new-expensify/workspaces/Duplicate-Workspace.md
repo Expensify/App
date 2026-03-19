@@ -30,7 +30,8 @@ Follow these steps to create a new workspace based on an existing one:
    - Tags  
    - Taxes  
    - Workflows  
-   - Rules  
+   - Rules
+   - Merchant rules
    - Distance Rates  
    - Per Diem  
    - Invoices
