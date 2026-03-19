@@ -119,11 +119,6 @@ type ReportActionsListProps = {
     /** ID of the list */
     listID: number;
 
-    /** Should enable auto scroll to top threshold */
-    // TODO: check if we still need it
-    // eslint-disable-next-line react/no-unused-prop-types
-    shouldEnableAutoScrollToTopThreshold?: boolean;
-
     /** Whether the optimistic CREATED report action was added */
     hasCreatedActionAdded?: boolean;
 
@@ -180,7 +175,6 @@ function ReportActionsList({
     onLayout,
     isComposerFullSize,
     listID,
-    // shouldEnableAutoScrollToTopThreshold,
     parentReportActionForTransactionThread,
     hasCreatedActionAdded,
     isConciergeSidePanel,
@@ -933,7 +927,6 @@ function ReportActionsList({
                     onViewableItemsChanged={onViewableItemsChanged}
                     extraData={extraData}
                     key={listID}
-                    // shouldEnableAutoScrollToTopThreshold={shouldEnableAutoScrollToTopThreshold}
                     initialScrollKey={linkedReportActionID}
                     onContentSizeChange={() => {
                         trackVerticalScrolling(undefined);
