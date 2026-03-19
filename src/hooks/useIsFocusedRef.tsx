@@ -1,8 +1,9 @@
-import {useFocusEffect} from '@react-navigation/native';
+import {useFocusEffect, useNavigation} from '@react-navigation/native';
 import {useCallback, useRef} from 'react';
 
 function useIsFocusedRef() {
-    const isFocusedRef = useRef(true);
+    const navigation = useNavigation();
+    const isFocusedRef = useRef(navigation.isFocused());
 
     useFocusEffect(
         useCallback(() => {
