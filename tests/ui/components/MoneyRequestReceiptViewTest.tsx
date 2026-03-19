@@ -247,7 +247,7 @@ describe('MoneyRequestReceiptView', () => {
             await waitForBatchedUpdatesWithAct();
 
             expect(screen.queryByLabelText(translateLocal('accessibilityHints.viewAttachment'))).toBeNull();
-            expect(screen.queryByLabelText(translateLocal('reportActionCompose.addAttachment'))).toBeNull();
+            expect(screen.queryByLabelText(translateLocal('receipt.addAdditionalReceipt'))).toBeNull();
         });
 
         it('shows action buttons when transaction has a receipt', async () => {
@@ -264,7 +264,7 @@ describe('MoneyRequestReceiptView', () => {
             await waitForBatchedUpdatesWithAct();
 
             expect(screen.getByLabelText(translateLocal('accessibilityHints.viewAttachment'))).toBeTruthy();
-            expect(screen.getByLabelText(translateLocal('reportActionCompose.addAttachment'))).toBeTruthy();
+            expect(screen.getByLabelText(translateLocal('receipt.addAdditionalReceipt'))).toBeTruthy();
         });
 
         it('shows action buttons when receipt is scanning', async () => {
@@ -281,7 +281,7 @@ describe('MoneyRequestReceiptView', () => {
             await waitForBatchedUpdatesWithAct();
 
             expect(screen.getByLabelText(translateLocal('accessibilityHints.viewAttachment'))).toBeTruthy();
-            expect(screen.getByLabelText(translateLocal('reportActionCompose.addAttachment'))).toBeTruthy();
+            expect(screen.getByLabelText(translateLocal('receipt.addAdditionalReceipt'))).toBeTruthy();
         });
 
         it('does not show action buttons in readonly mode', async () => {
@@ -301,7 +301,7 @@ describe('MoneyRequestReceiptView', () => {
             await waitForBatchedUpdatesWithAct();
 
             expect(screen.queryByLabelText(translateLocal('accessibilityHints.viewAttachment'))).toBeNull();
-            expect(screen.queryByLabelText(translateLocal('reportActionCompose.addAttachment'))).toBeNull();
+            expect(screen.queryByLabelText(translateLocal('receipt.addAdditionalReceipt'))).toBeNull();
         });
     });
 });
