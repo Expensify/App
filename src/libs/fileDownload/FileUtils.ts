@@ -632,9 +632,8 @@ const isValidReceiptExtension = (file: FileObject) => {
     );
 };
 
-const hasHeicOrHeifExtension = (file: FileObject) => {
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    return file.name?.toLowerCase().endsWith('.heic') || file.name?.toLowerCase().endsWith('.heif');
+const hasHeicOrHeifExtension = (file: FileObject): boolean => {
+    return (file.name?.toLowerCase().endsWith('.heic') ?? false) || (file.name?.toLowerCase().endsWith('.heif') ?? false);
 };
 
 /**
