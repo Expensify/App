@@ -580,6 +580,21 @@ function hasReceiptSource(transaction: OnyxInputOrEntry<Transaction>): boolean {
     return !!transaction?.receipt?.source;
 }
 
+/** Check if odometer image has the source file */
+function hasOdometerImageSource(transaction: OnyxInputOrEntry<Transaction>, imageType: string): boolean {
+    const odometerImage = imageType === CONST.IOU.ODOMETER_IMAGE_TYPE.START ? transaction?.comment?.odometerStartImage : transaction?.comment?.odometerEndImage;
+    if (!odometerImage) {
+        return false;
+    }
+    if (typeof odometerImage === 'string') {
+        return odometerImage.length > 0;
+    }
+    if ('uri' in odometerImage) {
+        return typeof odometerImage.uri === 'string' && odometerImage.uri.length > 0;
+    }
+    return true;
+}
+
 function isDemoTransaction(transaction: OnyxInputOrEntry<Transaction>): boolean {
     return transaction?.comment?.isDemoTransaction ?? false;
 }
@@ -745,6 +760,10 @@ function getUpdatedTransaction({
             updatedTransaction.modifiedAmount = updatedAmount;
             updatedTransaction.modifiedMerchant = updatedMerchant;
         }
+    }
+
+    if (Object.hasOwn(transactionChanges, 'reportID') && typeof transactionChanges.reportID === 'string') {
+        updatedTransaction.reportID = transactionChanges.reportID;
     }
 
     if (Object.hasOwn(transactionChanges, 'routes')) {
@@ -1418,6 +1437,11 @@ function isPosted(transaction: Transaction): boolean {
 function isScanning(transaction: OnyxEntry<Transaction>): boolean {
     // Performance optimization: Check the receipt state first (cheapest check) before doing more expensive checks
     if (!isReceiptBeingScanned(transaction)) {
+        return false;
+    }
+
+    // SmartScan can continue in the background, but a manual amount edit should stop the scanning UI state.
+    if (hasValidModifiedAmount(transaction)) {
         return false;
     }
 
@@ -2930,6 +2954,7 @@ export {
     removeTransactionFromDuplicateTransactionViolation,
     getCardName,
     hasReceiptSource,
+    hasOdometerImageSource,
     shouldShowAttendees,
     getAllSortedTransactions,
     getFormattedPostedDate,

@@ -55,12 +55,12 @@ function TwoFactorAuthSecretDisplay({contactMethod, secretKey, description}: Two
                     textChecked={translate('common.copied')}
                     tooltipText=""
                     tooltipTextChecked=""
+                    accessibilityLabel={translate('twoFactorAuth.copy')}
                     icon={Expensicons.Copy}
                     inline={false}
                     onPress={() => Clipboard.setString(secretKey)}
                     styles={[styles.button, styles.buttonMedium, styles.twoFactorAuthCopyCodeButton]}
                     textStyles={[styles.buttonMediumText]}
-                    accessible={false}
                     sentryLabel="TwoFactorAuthSecret-Copy"
                 />
             </View>

@@ -69,6 +69,7 @@ import focusComposerWithDelay from '@libs/focusComposerWithDelay';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {isReportMessageAttachment} from '@libs/isReportMessageAttachment';
 import Navigation from '@libs/Navigation/Navigation';
+import {getBankAccountLastFourDigits} from '@libs/PaymentUtils';
 import Permissions from '@libs/Permissions';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {getCleanedTagName, hasDynamicExternalWorkflow, isPolicyAdmin, isPolicyMember, isPolicyOwner} from '@libs/PolicyUtils';
@@ -467,7 +468,7 @@ type PureReportActionItemProps = {
     reportMetadata?: OnyxEntry<OnyxTypes.ReportMetadata>;
 
     /** The billing grace end period's shared NVP collection */
-    userBillingGraceEndPeriodCollection: OnyxCollection<OnyxTypes.BillingGraceEndPeriod>;
+    userBillingGraceEndPeriods: OnyxCollection<OnyxTypes.BillingGraceEndPeriod>;
 };
 
 // This is equivalent to returning a negative boolean in normal functions, but we can keep the element return type
@@ -536,7 +537,7 @@ function PureReportActionItem({
     reportNameValuePairsOrigin,
     reportNameValuePairsOriginalID,
     reportMetadata,
-    userBillingGraceEndPeriodCollection,
+    userBillingGraceEndPeriods,
 }: PureReportActionItemProps) {
     const isConciergeGreeting = action.reportActionID === CONST.CONCIERGE_GREETING_ACTION_ID;
     const shouldDisplayContextMenuValue = shouldDisplayContextMenu && !isConciergeGreeting;
@@ -596,7 +597,7 @@ function PureReportActionItem({
         (isHiddenValue: boolean) => {
             setIsHidden(isHiddenValue);
             const message = Array.isArray(action.message) ? action.message?.at(-1) : action.message;
-            const isAttachment = CONST.ATTACHMENT_REGEX.test(message?.html ?? '') || isReportMessageAttachment(message);
+            const isAttachment = (message?.html ?? '').search(CONST.REGEX.ATTACHMENT.ATTACHMENT_REGEX) !== -1 || isReportMessageAttachment(message);
             if (!isAttachment) {
                 return;
             }
@@ -830,7 +831,7 @@ function PureReportActionItem({
             action,
             transactionThreadReport,
             isDisabled: false,
-            shouldDisplayContextMenuValue,
+            shouldDisplayContextMenu: shouldDisplayContextMenuValue,
         }),
         [report, action, transactionThreadReport, shouldDisplayContextMenuValue, isReportArchived],
     );
@@ -946,7 +947,7 @@ function PureReportActionItem({
                             introSelected,
                             allTransactionDrafts,
                             activePolicy,
-                            userBillingGraceEndPeriodCollection,
+                            userBillingGraceEndPeriods,
                             amountOwed,
                             isRestrictedToPreferredPolicy,
                             preferredPolicyID,
@@ -969,7 +970,7 @@ function PureReportActionItem({
                                 introSelected,
                                 allTransactionDrafts,
                                 activePolicy,
-                                userBillingGraceEndPeriodCollection,
+                                userBillingGraceEndPeriods,
                                 amountOwed,
                             });
                         },
@@ -986,7 +987,7 @@ function PureReportActionItem({
                                 introSelected,
                                 allTransactionDrafts,
                                 activePolicy,
-                                userBillingGraceEndPeriodCollection,
+                                userBillingGraceEndPeriods,
                                 amountOwed,
                             });
                         },
@@ -1132,7 +1133,7 @@ function PureReportActionItem({
         report,
         originalReport,
         personalPolicyID,
-        userBillingGraceEndPeriodCollection,
+        userBillingGraceEndPeriods,
         amountOwed,
     ]);
 
@@ -1279,7 +1280,7 @@ function PureReportActionItem({
 
             children = (
                 <ReportActionItemBasicMessage
-                    message={translate(paymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY ? 'iou.waitingOnEnabledWallet' : 'iou.waitingOnBankAccount', {submitterDisplayName})}
+                    message={translate(paymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY ? 'iou.waitingOnEnabledWallet' : 'iou.waitingOnBankAccount', submitterDisplayName)}
                 >
                     <>
                         {missingPaymentMethod === 'bankAccount' && (
@@ -1359,9 +1360,12 @@ function PureReportActionItem({
 
             if (wasAutoApproved) {
                 children = (
-                    <ReportActionItemBasicMessage>
-                        <RenderHTML html={`<comment><muted-text>${translate('iou.automaticallyApproved')}</muted-text></comment>`} />
-                    </ReportActionItemBasicMessage>
+                    <ReportActionItemMessageWithExplain
+                        message={translate('iou.automaticallyApproved')}
+                        action={action}
+                        childReport={childReport}
+                        originalReport={originalReport}
+                    />
                 );
             } else if (hasPendingDEWApprove(reportMetadata, isDEWPolicy) && isPendingAdd) {
                 children = <ReportActionItemBasicMessage message={translate('iou.queuedToApproveViaDEW')} />;
@@ -1375,8 +1379,8 @@ function PureReportActionItem({
             if (paymentType === CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {
                 children = <ReportActionItemBasicMessage message={translate('iou.paidElsewhere')} />;
             } else if (paymentType === CONST.IOU.PAYMENT_TYPE.VBBA) {
-                const last4Digits = policy?.achAccount?.accountNumber?.slice(-4) ?? '';
-
+                const originalMessage = getOriginalMessage(action);
+                const last4Digits = getBankAccountLastFourDigits(originalMessage?.bankAccountID, bankAccountList, policy);
                 if (wasAutoPaid) {
                     const translation = translate('iou.automaticallyPaidWithBusinessBankAccount', '', last4Digits);
 
