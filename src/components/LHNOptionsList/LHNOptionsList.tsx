@@ -198,6 +198,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
                 reportActions,
                 visibleReportActionsData,
                 itemOneTransactionThreadReport?.reportID,
+                itemPolicy,
             );
 
             const iouReportIDOfLastAction = getIOUReportIDOfLastAction(item, itemReportNameValuePairs?.private_isArchived, visibleReportActionsData, lastAction);
