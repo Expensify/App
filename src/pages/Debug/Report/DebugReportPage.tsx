@@ -21,7 +21,7 @@ import DebugTabNavigator from '@libs/Navigation/DebugTabNavigator';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {DebugParamList} from '@libs/Navigation/types';
-import {shouldDisplayViolationsRBRInLHN} from '@libs/ReportUtils';
+import {getViolatingReportIDForRBRInLHN} from '@libs/ReportUtils';
 import DebugDetails from '@pages/Debug/DebugDetails';
 import DebugJSON from '@pages/Debug/DebugJSON';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
@@ -81,7 +81,7 @@ function DebugReportPage({
             return [];
         }
 
-        const shouldDisplayViolations = shouldDisplayViolationsRBRInLHN(report, transactionViolations);
+        const shouldDisplayViolations = !!getViolatingReportIDForRBRInLHN(report, transactionViolations);
         const hasViolations = !!shouldDisplayViolations;
         const {reason: reasonGBR, reportAction: reportActionGBR} = DebugUtils.getReasonAndReportActionForGBRInLHNRow(report, isReportArchived) ?? {};
         const {reason: reasonRBR, reportAction: reportActionRBR} =

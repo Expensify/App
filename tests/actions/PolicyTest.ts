@@ -541,6 +541,37 @@ describe('actions/Policy', () => {
             expect(policy?.approvalMode).toBe(CONST.POLICY.APPROVAL_MODE.BASIC);
         });
 
+        it('creates a new workspace when betas are explicitly passed', async () => {
+            const policyID = Policy.generatePolicyID();
+            Policy.createWorkspace({
+                policyOwnerEmail: ESH_EMAIL,
+                makeMeAdmin: true,
+                policyName: WORKSPACE_NAME,
+                policyID,
+                engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
+                introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
+                currentUserAccountIDParam: ESH_ACCOUNT_ID,
+                currentUserEmailParam: ESH_EMAIL,
+                isSelfTourViewed: false,
+                betas: [CONST.BETAS.SUGGESTED_FOLLOWUPS],
+            });
+            await waitForBatchedUpdates();
+
+            const policy: OnyxEntry<PolicyType> | OnyxCollection<PolicyType> = await new Promise((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                    callback: (workspace) => {
+                        Onyx.disconnect(connection);
+                        resolve(workspace);
+                    },
+                });
+            });
+
+            expect(policy?.id).toBe(policyID);
+            expect(policy?.name).toBe(WORKSPACE_NAME);
+            expect(policy?.approvalMode).toBe(CONST.POLICY.APPROVAL_MODE.BASIC);
+        });
+
         it('creates a new workspace with OPTIONAL approval mode if the introSelected is TRACK_WORKSPACE', async () => {
             const policyID = Policy.generatePolicyID();
             // When a new workspace is created with introSelected set to TRACK_WORKSPACE
@@ -1308,6 +1339,68 @@ describe('actions/Policy', () => {
             expect(updatedRate?.currency).toBe(policy.outputCurrency);
             expect(updatedRate?.pendingFields?.currency).toBeUndefined();
             expect(updatedRate?.errorFields?.currency).not.toBeUndefined();
+        });
+    });
+
+    describe('updateAddress', () => {
+        it('should send discrete address fields with UPDATE_POLICY_ADDRESS', async () => {
+            const apiWriteSpy = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => Promise.resolve());
+            const policyID = Policy.generatePolicyID();
+
+            Policy.updateAddress(policyID, {
+                addressStreet: '123 Main St',
+                addressStreet2: 'Suite 200',
+                city: 'San Francisco',
+                state: 'CA',
+                zipCode: '94102',
+                country: 'US',
+            });
+            await waitForBatchedUpdates();
+
+            const apiCallArgs = apiWriteSpy.mock.calls.find((call) => call.at(0) === WRITE_COMMANDS.UPDATE_POLICY_ADDRESS);
+            expect(apiCallArgs).toBeDefined();
+
+            const params = apiCallArgs?.[1] as Record<string, string>;
+            expect(params).toEqual(
+                expect.objectContaining({
+                    policyID,
+                    addressStreet: '123 Main St',
+                    addressStreet2: 'Suite 200',
+                    city: 'San Francisco',
+                    state: 'CA',
+                    zipCode: '94102',
+                    country: 'US',
+                }),
+            );
+            expect(params).not.toHaveProperty('data[addressStreet]');
+            expect(params).not.toHaveProperty('data[city]');
+            expect(params).not.toHaveProperty('data[state]');
+            expect(params).not.toHaveProperty('data[zipCode]');
+            expect(params).not.toHaveProperty('data[country]');
+
+            apiWriteSpy.mockRestore();
+        });
+
+        it('should send an empty second line when addressStreet2 is missing', async () => {
+            const apiWriteSpy = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => Promise.resolve());
+            const policyID = Policy.generatePolicyID();
+
+            Policy.updateAddress(policyID, {
+                addressStreet: '123 Main St',
+                city: 'San Francisco',
+                state: 'CA',
+                zipCode: '94102',
+                country: 'US',
+            });
+            await waitForBatchedUpdates();
+
+            const apiCallArgs = apiWriteSpy.mock.calls.find((call) => call.at(0) === WRITE_COMMANDS.UPDATE_POLICY_ADDRESS);
+            expect(apiCallArgs).toBeDefined();
+
+            const params = apiCallArgs?.[1] as Record<string, string>;
+            expect(params.addressStreet2).toBe('');
+
+            apiWriteSpy.mockRestore();
         });
     });
 

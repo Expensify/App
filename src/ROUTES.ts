@@ -99,6 +99,10 @@ const DYNAMIC_ROUTES = {
         path: 'owner-selector',
         entryScreens: [],
     },
+    REPORT_SETTINGS_VISIBILITY: {
+        path: 'visibility',
+        entryScreens: [SCREENS.REPORT_SETTINGS.ROOT],
+    },
     ADDRESS_COUNTRY: {
         path: 'country',
         entryScreens: [
@@ -413,14 +417,6 @@ const ROUTES = {
         route: 'settings/wallet/card/:cardID/confirm-magic-code',
         getRoute: (cardID: string) => `settings/wallet/card/${cardID}/confirm-magic-code` as const,
     },
-    SETTINGS_WALLET_CARD_MISSING_DETAILS: {
-        route: 'settings/wallet/card/:cardID/missing-details',
-        getRoute: (cardID: string) => `settings/wallet/card/${cardID}/missing-details` as const,
-    },
-    SETTINGS_WALLET_CARD_MISSING_DETAILS_CONFIRM_MAGIC_CODE: {
-        route: 'settings/wallet/card/:cardID/missing-details/confirm-magic-code',
-        getRoute: (cardID: string) => `settings/wallet/card/${cardID}/missing-details/confirm-magic-code` as const,
-    },
     SETTINGS_DOMAIN_CARD_DETAIL: {
         route: 'settings/card/:cardID?',
         getRoute: (cardID: string) => `settings/card/${cardID}` as const,
@@ -609,6 +605,8 @@ const ROUTES = {
     },
     SETTINGS_2FA_DISABLED: 'settings/security/two-factor-auth/disabled',
     SETTINGS_2FA_DISABLE: 'settings/security/two-factor-auth/disable',
+    SETTINGS_2FA_REPLACE_VERIFY_OLD: 'settings/security/two-factor-auth/replace/verify-old',
+    SETTINGS_2FA_REPLACE_VERIFY_NEW: 'settings/security/two-factor-auth/replace/verify-new',
 
     SETTINGS_STATUS: 'settings/profile/status',
 
@@ -809,12 +807,6 @@ const ROUTES = {
 
         // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
         getRoute: (reportID: string, backTo?: string) => getUrlWithBackToParam(`r/${reportID}/settings/who-can-post` as const, backTo),
-    },
-    REPORT_SETTINGS_VISIBILITY: {
-        route: 'r/:reportID/settings/visibility',
-
-        // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-        getRoute: (reportID: string, backTo?: string) => getUrlWithBackToParam(`r/${reportID}/settings/visibility` as const, backTo),
     },
     REPORT_CHANGE_APPROVER: {
         route: 'r/:reportID/change-approver',
@@ -1160,13 +1152,15 @@ const ROUTES = {
     },
     MONEY_REQUEST_EDIT_REPORT: {
         route: ':action/:iouType/report/:reportID/edit',
-        getRoute: (action: IOUAction, iouType: IOUType, reportID?: string, shouldTurnOffSelectionMode?: boolean, backTo = '') => {
+        getRoute: (action: IOUAction, iouType: IOUType, reportID?: string, shouldTurnOffSelectionMode?: boolean, backTo = '', transactionID?: string) => {
             if (!reportID) {
                 Log.warn('Invalid reportID while building route MONEY_REQUEST_EDIT_REPORT');
             }
+            const queryParams = [shouldTurnOffSelectionMode ? 'shouldTurnOffSelectionMode=true' : '', transactionID ? `transactionID=${transactionID}` : ''].filter(Boolean).join('&');
+            const queryString = queryParams ? `?${queryParams}` : '';
 
             // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-            return getUrlWithBackToParam(`${action as string}/${iouType as string}/report/${reportID}/edit${shouldTurnOffSelectionMode ? '?shouldTurnOffSelectionMode=true' : ''}`, backTo);
+            return getUrlWithBackToParam(`${action as string}/${iouType as string}/report/${reportID}/edit${queryString}`, backTo);
         },
     },
     SET_DEFAULT_WORKSPACE: {
@@ -2454,6 +2448,10 @@ const ROUTES = {
     WORKSPACE_COMPANY_CARDS_BROKEN_CARD_FEED_CONNECTION: {
         route: 'workspaces/:policyID/company-cards/:feed/broken-card-feed-connection',
         getRoute: (policyID: string, feed: CompanyCardFeedWithDomainID) => `workspaces/${policyID}/company-cards/${encodeURIComponent(feed)}/broken-card-feed-connection` as const,
+    },
+    WORKSPACE_COMPANY_CARDS_REFRESH_CARD_FEED_CONNECTION: {
+        route: 'workspaces/:policyID/company-cards/:feed/refresh-card-feed-connection',
+        getRoute: (policyID: string, feed: CompanyCardFeedWithDomainID) => `workspaces/${policyID}/company-cards/${encodeURIComponent(feed)}/refresh-card-feed-connection` as const,
     },
     WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_ASSIGNEE: {
         route: 'workspaces/:policyID/company-cards/:feed/assign-card/:cardID/assignee',
@@ -4069,18 +4067,19 @@ function getAttachmentModalScreenRoute(url: AttachmentRoutes, params?: ReportAtt
         return url;
     }
 
-    const {source, attachmentID, type, reportID, accountID, isAuthTokenRequired, originalFileName, attachmentLink} = params;
+    const {source, attachmentID, type, reportID, reportActionID, accountID, isAuthTokenRequired, originalFileName, attachmentLink} = params;
 
     const sourceParam = `?source=${encodeURIComponent(source as string)}`;
     const attachmentIDParam = attachmentID ? `&attachmentID=${attachmentID}` : '';
     const typeParam = type ? `&type=${type as string}` : '';
     const reportIDParam = reportID ? `&reportID=${reportID}` : '';
+    const reportActionIDParam = reportActionID ? `&reportActionID=${reportActionID}` : '';
     const accountIDParam = accountID ? `&accountID=${accountID}` : '';
     const authTokenParam = isAuthTokenRequired ? '&isAuthTokenRequired=true' : '';
     const fileNameParam = originalFileName ? `&originalFileName=${originalFileName}` : '';
     const attachmentLinkParam = attachmentLink ? `&attachmentLink=${attachmentLink}` : '';
 
-    return `${url}${sourceParam}${typeParam}${reportIDParam}${attachmentIDParam}${accountIDParam}${authTokenParam}${fileNameParam}${attachmentLinkParam} ` as const;
+    return `${url}${sourceParam}${typeParam}${reportIDParam}${reportActionIDParam}${attachmentIDParam}${accountIDParam}${authTokenParam}${fileNameParam}${attachmentLinkParam} ` as const;
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
