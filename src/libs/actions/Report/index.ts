@@ -127,7 +127,6 @@ import {
     getChatByParticipants,
     getChildReportNotificationPreference,
     getDefaultNotificationPreferenceForReport,
-    getFieldViolation,
     getLastVisibleMessage,
     getNextApproverAccountID,
     getOptimisticDataForAncestors,
@@ -211,7 +210,6 @@ import type {
     ReportActionReactions,
     ReportNextStepDeprecated,
     ReportUserIsTyping,
-    ReportViolations,
     Transaction,
     TransactionViolations,
     VisibleReportActionsDerivedValue,
@@ -346,7 +344,7 @@ type AddCommentParams = {
 
 type AddActionsParams = {
     report: OnyxEntry<Report>;
-    notifyReportID: string;
+    notifyReportID: string | string[];
     ancestors: Ancestor[];
     timezoneParam: Timezone;
     currentUserAccountID: number;
@@ -359,7 +357,7 @@ type AddActionsParams = {
 
 type AddAttachmentWithCommentParams = {
     report: OnyxEntry<Report>;
-    notifyReportID: string;
+    notifyReportID: string | string[];
     ancestors: Ancestor[];
     attachments: FileObject | FileObject[];
     currentUserAccountID: number;
@@ -643,12 +641,17 @@ function subscribeToNewActionEvent(reportID: string, callback: SubscriberCallbac
 }
 
 /** Notify the ReportActionsView that a new comment has arrived */
-function notifyNewAction(reportID: string | undefined, reportAction: ReportAction | undefined, isFromCurrentUser: boolean) {
-    const actionSubscriber = newActionSubscribers.find((subscriber) => subscriber.reportID === reportID);
-    if (!actionSubscriber) {
+function notifyNewAction(reportID: string | string[] | undefined, reportAction: ReportAction | undefined, isFromCurrentUser: boolean) {
+    if (!reportID) {
         return;
     }
-    actionSubscriber.callback(isFromCurrentUser, reportAction);
+    const ids = Array.isArray(reportID) ? reportID : [reportID];
+    for (const id of ids) {
+        const actionSubscriber = newActionSubscribers.find((subscriber) => subscriber.reportID === id);
+        if (actionSubscriber) {
+            actionSubscriber.callback(isFromCurrentUser, reportAction);
+        }
+    }
 }
 
 /**
@@ -915,7 +918,7 @@ function addActions({
         failureReportActions[pregeneratedResponseParams.optimisticConciergeReportActionID] = null;
     }
 
-    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.SNAPSHOT>> = [
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
@@ -1403,7 +1406,7 @@ function openReport(params: OpenReportActionParams) {
         });
     }
 
-    const finallyData: Array<OnyxUpdate<typeof ONYXKEYS.RAM_ONLY_IS_CHECKING_PUBLIC_ROOM>> = [];
+    const finallyData: Array<OnyxUpdate<typeof ONYXKEYS.IS_CHECKING_PUBLIC_ROOM>> = [];
 
     const parameters: OpenReportParams = {
         reportID,
@@ -1670,7 +1673,7 @@ function openReport(params: OpenReportActionParams) {
     if (isFromDeepLink) {
         finallyData.push({
             onyxMethod: Onyx.METHOD.SET,
-            key: ONYXKEYS.RAM_ONLY_IS_CHECKING_PUBLIC_ROOM,
+            key: ONYXKEYS.IS_CHECKING_PUBLIC_ROOM,
             value: false,
         });
 
@@ -2056,7 +2059,7 @@ function navigateToAndCreateGroupChat(
  *
  * @param participantAccountIDs of user logins to start a chat report with.
  */
-function navigateToAndOpenReportWithAccountIDs(participantAccountIDs: number[], currentUserAccountID: number, introSelected: OnyxEntry<IntroSelected>) {
+function navigateToAndOpenReportWithAccountIDs(participantAccountIDs: number[], currentUserAccountID: number, introSelected: OnyxEntry<IntroSelected>, betas: OnyxEntry<Beta[]>) {
     let newChat: OptimisticChatReport | undefined;
     const chat = getChatByParticipants([...participantAccountIDs, currentUserAccountID]);
     if (!chat) {
@@ -2070,6 +2073,7 @@ function navigateToAndOpenReportWithAccountIDs(participantAccountIDs: number[], 
             newReportObject: newChat,
             parentReportActionID: '0',
             participantAccountIDList: participantAccountIDs,
+            betas,
         });
     }
     const report = chat ?? newChat;
@@ -2092,8 +2096,9 @@ function navigateToAndOpenChildReport(
     parentReport: OnyxEntry<Report>,
     currentUserAccountID: number,
     introSelected: OnyxEntry<IntroSelected>,
+    betas: OnyxEntry<Beta[]>,
 ) {
-    const report = childReport ?? createChildReport(childReport, parentReportAction, parentReport, currentUserAccountID, introSelected);
+    const report = childReport ?? createChildReport(childReport, parentReportAction, parentReport, currentUserAccountID, introSelected, betas);
 
     Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(report.reportID, undefined, undefined, Navigation.getActiveRoute()));
 }
@@ -2109,6 +2114,7 @@ function createChildReport(
     parentReport: OnyxEntry<Report>,
     currentUserAccountID: number,
     introSelected: OnyxEntry<IntroSelected>,
+    betas: OnyxEntry<Beta[]>,
 ): Report {
     const participantAccountIDs = [...new Set([currentUserAccountID, Number(parentReportAction.actorAccountID)])];
     // Threads from DMs and selfDMs don't have a chatType. All other threads inherit the chatType from their parent
@@ -2136,6 +2142,7 @@ function createChildReport(
             newReportObject: newChat,
             parentReportActionID: parentReportAction.reportActionID,
             isNewThread: true,
+            betas,
         });
     } else {
         Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${childReportID}`, newChat);
@@ -2155,6 +2162,7 @@ function explain(
     translate: LocalizedTranslate,
     currentUserAccountID: number,
     introSelected: OnyxEntry<IntroSelected>,
+    betas: OnyxEntry<Beta[]>,
     timezone: Timezone = CONST.DEFAULT_TIME_ZONE,
 ) {
     if (!originalReport?.reportID || !reportAction) {
@@ -2162,7 +2170,7 @@ function explain(
     }
 
     // Check if explanation thread report already exists
-    const report = childReport ?? createChildReport(childReport, reportAction, originalReport, currentUserAccountID, introSelected);
+    const report = childReport ?? createChildReport(childReport, reportAction, originalReport, currentUserAccountID, introSelected, betas);
 
     Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(report.reportID, undefined, undefined, Navigation.getActiveRoute()));
     // Schedule adding the explanation comment on the next animation frame
@@ -2942,10 +2950,11 @@ function toggleSubscribeToChildReport(
     parentReportAction: ReportAction,
     parentReport: OnyxEntry<Report>,
     introSelected: OnyxEntry<IntroSelected>,
+    betas: OnyxEntry<Beta[]>,
     prevNotificationPreference?: NotificationPreference,
 ) {
     if (childReportID) {
-        openReport({reportID: childReportID, introSelected});
+        openReport({reportID: childReportID, introSelected, betas});
         const parentReportActionID = parentReportAction.reportActionID;
         if (!prevNotificationPreference || isHiddenForCurrentUser(prevNotificationPreference)) {
             updateNotificationPreference(
@@ -2986,6 +2995,7 @@ function toggleSubscribeToChildReport(
             participantLoginList: participantLogins,
             newReportObject: newChat,
             parentReportActionID: parentReportAction.reportActionID,
+            betas,
         });
         const notificationPreference = isHiddenForCurrentUser(prevNotificationPreference) ? CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS : CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
         updateNotificationPreference(newChat.reportID, prevNotificationPreference, notificationPreference, currentUserAccountID, parentReport?.reportID, parentReportAction.reportActionID);
@@ -3065,7 +3075,6 @@ function updateReportField({
     email,
     hasViolationsParam,
     recentlyUsedReportFields,
-    reportViolations,
     shouldFixViolations = false,
 }: {
     report: Report;
@@ -3077,12 +3086,10 @@ function updateReportField({
     email: string;
     hasViolationsParam: boolean;
     recentlyUsedReportFields: OnyxEntry<RecentlyUsedReportFields>;
-    reportViolations: OnyxEntry<ReportViolations>;
     shouldFixViolations: boolean | undefined;
 }) {
     const reportID = report.reportID;
     const fieldKey = getReportFieldKey(reportField.fieldID);
-    const fieldViolation = getFieldViolation(reportViolations, reportField);
     const recentlyUsedValues = recentlyUsedReportFields?.[fieldKey] ?? [];
 
     const optimisticChangeFieldAction = buildOptimisticChangeFieldAction(reportField, previousReportField);
@@ -3112,13 +3119,7 @@ function updateReportField({
     });
 
     const optimisticData: Array<
-        OnyxUpdate<
-            | typeof ONYXKEYS.COLLECTION.REPORT
-            | typeof ONYXKEYS.COLLECTION.NEXT_STEP
-            | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
-            | typeof ONYXKEYS.COLLECTION.REPORT_VIOLATIONS
-            | typeof ONYXKEYS.RECENTLY_USED_REPORT_FIELDS
-        >
+        OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.NEXT_STEP | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.RECENTLY_USED_REPORT_FIELDS>
     > = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -3147,18 +3148,6 @@ function updateReportField({
             },
         },
     ];
-
-    if (fieldViolation) {
-        optimisticData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_VIOLATIONS}${reportID}`,
-            value: {
-                [fieldViolation]: {
-                    [reportField.fieldID]: null,
-                },
-            },
-        });
-    }
 
     if (reportField.type === 'dropdown' && reportField.value) {
         optimisticData.push({
@@ -4233,7 +4222,7 @@ function toggleEmojiReaction(
 }
 
 function doneCheckingPublicRoom() {
-    Onyx.set(ONYXKEYS.RAM_ONLY_IS_CHECKING_PUBLIC_ROOM, false);
+    Onyx.set(ONYXKEYS.IS_CHECKING_PUBLIC_ROOM, false);
 }
 
 function navigateToMostRecentReport(currentReport: OnyxEntry<Report>, conciergeReportID: string | undefined, currentUserAccountID: number, introSelected: OnyxEntry<IntroSelected>) {
@@ -5066,22 +5055,22 @@ function savePrivateNotesDraft(reportID: string, note: string) {
 function searchForReports(isOffline: boolean, searchInput: string, policyID?: string, isUserSearch = false) {
     // We do not try to make this request while offline because it sets a loading indicator optimistically
     if (isOffline) {
-        Onyx.set(ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS, false);
+        Onyx.set(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, false);
         return;
     }
 
-    const successData: Array<OnyxUpdate<typeof ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS>> = [
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.IS_SEARCHING_FOR_REPORTS>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS,
+            key: ONYXKEYS.IS_SEARCHING_FOR_REPORTS,
             value: false,
         },
     ];
 
-    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS>> = [
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.IS_SEARCHING_FOR_REPORTS>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS,
+            key: ONYXKEYS.IS_SEARCHING_FOR_REPORTS,
             value: false,
         },
     ];
@@ -5105,14 +5094,14 @@ function performServerSearch(searchInput: string, policyID?: string, isUserSearc
     // We are not getting isOffline from components as useEffect change will re-trigger the search on network change
     const isOffline = NetworkStore.isOffline();
     if (isOffline || !searchInput.trim().length) {
-        Onyx.set(ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS, false);
+        Onyx.set(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, false);
         return;
     }
 
     // Why not set this in optimistic data? It won't run until the API request happens and while the API request is debounced
     // we want to show the loading state right away. Otherwise, we will see a flashing UI where the client options are sorted and
     // tell the user there are no options, then we start searching, and tell them there are no options again.
-    Onyx.set(ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS, true);
+    Onyx.set(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, true);
     searchForReports(isOffline, searchInput, policyID, isUserSearch);
 }
 
