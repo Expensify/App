@@ -24,9 +24,10 @@ import useOnyx from './useOnyx';
 type UseCreateReportActionParams = {
     /** Callback to create the report and navigate after creation */
     onCreateReport: (shouldDismissEmptyReportsConfirmation?: boolean) => void;
-
     /** Group policies with expense chat enabled */
     groupPoliciesWithChatEnabled: readonly never[] | Array<OnyxEntry<OnyxTypes.Policy>>;
+    /** Whether the modal should push a history entry so browser-back dismisses it (default: true) */
+    shouldHandleNavigationBack?: boolean;
 };
 
 type UseCreateReportActionResult = {
@@ -45,7 +46,7 @@ type UseCreateReportActionResult = {
  * 4. Show empty report confirmation or create directly if workspace is valid
  * 5. Navigate to restricted action if billing restricts the workspace
  */
-export default function useCreateReportAction({onCreateReport, groupPoliciesWithChatEnabled}: UseCreateReportActionParams): UseCreateReportActionResult {
+export default function useCreateReportAction({onCreateReport, groupPoliciesWithChatEnabled, shouldHandleNavigationBack = true}: UseCreateReportActionParams): UseCreateReportActionResult {
     const {translate} = useLocalize();
     const {showConfirmModal} = useConfirmModal();
 
@@ -82,6 +83,7 @@ export default function useCreateReportAction({onCreateReport, groupPoliciesWith
             prompt: translate('sidebarScreen.redirectToExpensifyClassicModal.description'),
             confirmText: translate('exitSurvey.goToExpensifyClassic'),
             cancelText: translate('common.cancel'),
+            shouldHandleNavigationBack,
         });
         if (action !== ModalActions.CONFIRM) {
             return;
@@ -91,7 +93,7 @@ export default function useCreateReportAction({onCreateReport, groupPoliciesWith
             return;
         }
         openOldDotLink(CONST.OLDDOT_URLS.INBOX);
-    }, [showConfirmModal, translate, isTrackingGPS]);
+    }, [showConfirmModal, translate, isTrackingGPS, shouldHandleNavigationBack]);
 
     const createReportAction = useCallback(() => {
         interceptAnonymousUser(() => {
