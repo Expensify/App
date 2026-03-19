@@ -1028,6 +1028,9 @@ const ONYXKEYS = {
         ADD_DOMAIN_MEMBER_FORM_DRAFT: 'addDomainMemberFormDraft',
         EDIT_DOMAIN_GROUP_NAME_FORM: 'editDomainGroupNameForm',
         EDIT_DOMAIN_GROUP_NAME_FORM_DRAFT: 'editDomainGroupNameFormDraft',
+        CREATE_DOMAIN_GROUP_FORM: 'createDomainGroupForm',
+        CREATE_DOMAIN_GROUP_FORM_DRAFT: 'createDomainGroupFormDraft',
+
     },
     DERIVED: {
         REPORT_ATTRIBUTES: 'reportAttributes',
@@ -1161,6 +1164,7 @@ type OnyxFormValuesMapping = {
     [ONYXKEYS.FORMS.MERCHANT_RULE_FORM]: FormTypes.MerchantRuleForm;
     [ONYXKEYS.FORMS.ADD_DOMAIN_MEMBER_FORM]: FormTypes.AddDomainMemberForm;
     [ONYXKEYS.FORMS.EDIT_DOMAIN_GROUP_NAME_FORM]: FormTypes.DomainGroupEditNameForm;
+    [ONYXKEYS.FORMS.CREATE_DOMAIN_GROUP_FORM]: FormTypes.DomainGroupCreateForm;
 };
 
 type OnyxFormDraftValuesMapping = {
