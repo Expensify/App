@@ -1321,12 +1321,11 @@ function getExchangeRate(transaction: TransactionWithOptionalSearchFields, repor
         return `${transaction.groupExchangeRate} ${fromCurrency}/${toCurrency}`;
     }
 
-    const rate = Number(transaction.currencyConversionRate);
-    if (!rate || rate === 1) {
+    if (!transaction.currencyConversionRate || Number(transaction.currencyConversionRate) === 1) {
         return '';
     }
 
-    return `${rate} ${fromCurrency}/${toCurrency}`;
+    return `${transaction.currencyConversionRate} ${fromCurrency}/${toCurrency}`;
 }
 
 /**
