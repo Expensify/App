@@ -8,7 +8,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetailsList, Policy, ReportAttributesDerivedValue} from '@src/types/onyx';
 
-let isFullyComputed = false;
 let previousDisplayNames: Record<string, string | undefined> = {};
 let previousPersonalDetails: OnyxEntry<PersonalDetailsList> | undefined;
 let previousPolicies: OnyxCollection<Policy>;
@@ -78,7 +77,6 @@ const checkDisplayNamesChanged = (personalDetails: OnyxEntry<PersonalDetailsList
 /**
  * This derived value is used to get the report attributes for the report.
  */
-
 export default createOnyxDerivedValueConfig({
     key: ONYXKEYS.DERIVED.REPORT_ATTRIBUTES,
     dependencies: [
@@ -111,18 +109,17 @@ export default createOnyxDerivedValueConfig({
             previousPersonalDetails = undefined;
         }
 
-        // if any of those keys changed, reset the isFullyComputed flag to recompute all reports
-        // we need to recompute all report attributes on locale change because the report names are locale dependent
-        if (hasKeyTriggeredCompute(ONYXKEYS.NVP_PREFERRED_LOCALE, sourceValues) || displayNamesChanged) {
-            isFullyComputed = false;
-        }
+        // A full recompute is needed when locale changes (report names are locale-dependent) or display names change.
+        // We compare preferredLocale against currentValue?.locale so that the first locale load on startup
+        // (where both equal the same persisted value) does not trigger an unnecessary full recompute.
+        let needsFullRecompute = (hasKeyTriggeredCompute(ONYXKEYS.NVP_PREFERRED_LOCALE, sourceValues) && preferredLocale !== currentValue?.locale) || displayNamesChanged;
 
         // if policies are loaded first time, we need to recompute all report attributes to get correct action badge in LHN, such as Approve because it depends on policy's type (see canApproveIOU function)
         const policyChangedReportKeys: string[] = [];
         if (hasKeyTriggeredCompute(ONYXKEYS.COLLECTION.POLICY, sourceValues)) {
-            if (isFullyComputed && Object.keys(previousPolicies ?? {}).length === 0 && Object.keys(policies ?? {}).length > 0) {
-                isFullyComputed = false;
-            } else if (isFullyComputed) {
+            if (Object.keys(previousPolicies ?? {}).length === 0 && Object.keys(policies ?? {}).length > 0) {
+                needsFullRecompute = true;
+            } else if (!needsFullRecompute) {
                 // Policy updated — only recompute reports whose relevant fields actually changed
                 const changedPolicyIDs = new Set<string>();
                 for (const key of Object.keys(sourceValues?.[ONYXKEYS.COLLECTION.POLICY] ?? {})) {
@@ -141,8 +138,12 @@ export default createOnyxDerivedValueConfig({
             previousPolicies = policies;
         }
 
+        // Use incremental updates when currentValue is already populated and no full recompute is required.
+        // If currentValue has no reports (fresh install or cleared storage), fall back to a full scan.
+        const useIncrementalUpdates = !!currentValue?.reports && Object.keys(currentValue.reports).length > 0 && !needsFullRecompute;
+
         // if we already computed the report attributes and there is no new reports data, return the current value
-        if ((isFullyComputed && !sourceValues) || !reports) {
+        if ((useIncrementalUpdates && !sourceValues) || !reports) {
             return currentValue ?? {reports: {}, locale: null};
         }
 
@@ -178,7 +179,7 @@ export default createOnyxDerivedValueConfig({
             ...policyChangedReportKeys,
         ];
 
-        if (isFullyComputed) {
+        if (useIncrementalUpdates) {
             // if there are report-related updates, iterate over the updates
             if (updates.length > 0 || !!transactionsUpdates || !!transactionViolationsUpdates) {
                 if (updates.length > 0) {
@@ -224,6 +225,7 @@ export default createOnyxDerivedValueConfig({
                 return currentValue ?? {reports: {}, locale: null};
             }
         }
+
         const reportAttributes = dataToIterate.reduce<ReportAttributesDerivedValue['reports']>((acc, key) => {
             // source value sends partial data, so we need an entire report object to do computations
             const report = reports[key];
@@ -331,11 +333,6 @@ export default createOnyxDerivedValueConfig({
 
             reportAttributes[chatReportID].brickRoadStatus = CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
             reportAttributes[chatReportID].actionBadge = CONST.REPORT.ACTION_BADGE.FIX;
-        }
-
-        // mark the report attributes as fully computed after first iteration to avoid unnecessary recomputation on all objects
-        if (!Object.keys(reportUpdates).length && Object.keys(reports ?? {}).length > 0 && !isFullyComputed) {
-            isFullyComputed = true;
         }
 
         return {
