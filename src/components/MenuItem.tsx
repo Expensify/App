@@ -18,6 +18,7 @@ import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 import getButtonState from '@libs/getButtonState';
 import mergeRefs from '@libs/mergeRefs';
 import Parser from '@libs/Parser';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import type {AvatarSource} from '@libs/UserAvatarUtils';
 import TextWithEmojiFragment from '@pages/inbox/report/comment/TextWithEmojiFragment';
 import {showContextMenu} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
@@ -597,6 +598,9 @@ function MenuItem({
     const isCompact = viewMode === CONST.OPTION_MODE.COMPACT;
     const isDeleted = style && Array.isArray(style) ? style.includes(styles.offlineFeedbackDeleted) : false;
     const descriptionVerticalMargin = shouldShowDescriptionOnTop ? styles.mb1 : styles.mt1;
+    const menuItemLoadingReasonAttributes: SkeletonSpanReasonAttributes = {
+        context: 'MenuItem',
+    };
     const defaultAccessibilityLabel = (shouldShowDescriptionOnTop ? [description, title] : [title, description]).filter(Boolean).join(', ');
 
     const combinedTitleTextStyle = StyleUtils.combineStyles<TextStyle>(
@@ -869,7 +873,10 @@ function MenuItem({
                                                                         additionalStyles={additionalIconStyles}
                                                                     />
                                                                 ) : (
-                                                                    <ActivityIndicator color={theme.textSupporting} />
+                                                                    <ActivityIndicator
+                                                                        color={theme.textSupporting}
+                                                                        reasonAttributes={menuItemLoadingReasonAttributes}
+                                                                    />
                                                                 ))}
                                                             {!!icon && iconType === CONST.ICON_TYPE_WORKSPACE && (
                                                                 <Avatar

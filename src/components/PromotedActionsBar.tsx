@@ -32,6 +32,7 @@ type PromotedActionsType = Record<BasePromotedActions, (report: OnyxReport) => P
         login?: string;
         currentUserAccountID: number;
         introSelected: OnyxEntry<IntroSelected>;
+        isSelfTourViewed: boolean | undefined;
     }) => PromotedAction;
 } & {
     [CONST.PROMOTED_ACTIONS.JOIN]: (report: OnyxReport, currentUserAccountID: number) => PromotedAction;
@@ -63,7 +64,7 @@ const PromotedActions = {
             joinRoom(report, currentUserAccountID);
         }),
     }),
-    message: ({reportID, accountID, login, currentUserAccountID, introSelected}) => ({
+    message: ({reportID, accountID, login, currentUserAccountID, introSelected, isSelfTourViewed}) => ({
         key: CONST.PROMOTED_ACTIONS.MESSAGE,
         icon: 'CommentBubbles',
         translationKey: 'common.message',
@@ -75,11 +76,11 @@ const PromotedActions = {
 
             // The accountID might be optimistic, so we should use the login if we have it
             if (login) {
-                navigateToAndOpenReport([login], currentUserAccountID, introSelected, false);
+                navigateToAndOpenReport([login], currentUserAccountID, introSelected, isSelfTourViewed, false);
                 return;
             }
             if (accountID) {
-                navigateToAndOpenReportWithAccountIDs([accountID], currentUserAccountID);
+                navigateToAndOpenReportWithAccountIDs([accountID], currentUserAccountID, introSelected);
             }
         },
     }),

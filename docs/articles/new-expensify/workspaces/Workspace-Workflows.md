@@ -56,7 +56,7 @@ Learn how to [add Approvals](https://help.expensify.com/articles/new-expensify/w
    - Manually – Expenses are auto-added to a report, but employees must submit them manually.
 - If turned **off**, all reimbursable and non-reimbursable expenses are submitted instantly.
 
-Learn how to [configure Submissions](https://help.expensify.com/articles/new-expensify/workspaces/Workspace-Workflows#submission-frequency) on your workspace. 
+Learn how to [configure Submissions](https://help.expensify.com/articles/new-expensify/workspaces/Workspace-Workflows#how-to-set-a-submission-frequency) on your workspace. 
 
 ---
 

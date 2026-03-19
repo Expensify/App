@@ -16,6 +16,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {updateAdvancedFilters} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
 import {getHasOptions} from '@libs/SearchUIUtils';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -70,7 +71,11 @@ function SearchFiltersHasPage() {
     };
 
     if (searchAdvancedFiltersFormResult.status === 'loading') {
-        return <FullScreenLoadingIndicator />;
+        const reasonAttributes: SkeletonSpanReasonAttributes = {
+            context: 'SearchFiltersHasPage',
+            isLoading: searchAdvancedFiltersFormResult.status === 'loading',
+        };
+        return <FullScreenLoadingIndicator reasonAttributes={reasonAttributes} />;
     }
 
     return (
