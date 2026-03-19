@@ -1,25 +1,26 @@
 import shouldStartLocationPermissionFlowSelector from '@selectors/LocationPermission';
 import {hasSeenTourSelector} from '@selectors/Onboarding';
-import {useEffect, useState} from 'react';
+import {useEffect, useMemo, useState} from 'react';
 import TestReceipt from '@assets/images/fake-receipt.png';
 import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
 import useFilesValidation from '@hooks/useFilesValidation';
 import useOnyx from '@hooks/useOnyx';
 import useOptimisticDraftTransactions from '@hooks/useOptimisticDraftTransactions';
+import useParticipantsPolicyTags from '@hooks/useParticipantsPolicyTags';
 import usePermissions from '@hooks/usePermissions';
 import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import usePolicy from '@hooks/usePolicy';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import useReportAttributes from '@hooks/useReportAttributes';
 import useSelfDMReport from '@hooks/useSelfDMReport';
-import {handleMoneyRequestStepScanParticipants} from '@libs/actions/IOU/MoneyRequest';
+import {getMoneyRequestParticipantOptions, handleMoneyRequestStepScanParticipants} from '@libs/actions/IOU/MoneyRequest';
 import setTestReceipt from '@libs/actions/setTestReceipt';
 import {isArchivedReport, isPolicyExpenseChat} from '@libs/ReportUtils';
 import {getSpan, startSpan} from '@libs/telemetry/activeSpans';
 import {getDefaultTaxCode, hasReceipt, shouldReuseInitialTransaction} from '@libs/TransactionUtils';
 import type {ReceiptFile, UseReceiptScanParams} from '@pages/iou/request/step/IOURequestStepScan/types';
 import {setMoneyRequestReceipt} from '@userActions/IOU';
-import {buildOptimisticTransactionAndCreateDraft, removeDraftTransactions} from '@userActions/TransactionEdit';
+import {buildOptimisticTransactionAndCreateDraft, removeDraftTransactionsByIDs} from '@userActions/TransactionEdit';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {validTransactionDraftsSelector} from '@src/selectors/TransactionDraft';
@@ -65,6 +66,7 @@ function useReceiptScan({
     const selfDMReport = useSelfDMReport();
     const [allTransactionDrafts] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftsSelector});
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
+    const draftTransactionIDs = Object.keys(allTransactionDrafts ?? {});
 
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const isArchived = isArchivedReport(reportNameValuePairs);
@@ -96,6 +98,12 @@ function useReceiptScan({
 
     const [recentWaypoints] = useOnyx(ONYXKEYS.NVP_RECENT_WAYPOINTS);
 
+    const participants = useMemo(
+        () => getMoneyRequestParticipantOptions(currentUserPersonalDetails.accountID, report, policy, personalDetails, reportNameValuePairs?.private_isArchived, reportAttributesDerived),
+        [currentUserPersonalDetails.accountID, report, policy, personalDetails, reportNameValuePairs?.private_isArchived, reportAttributesDerived],
+    );
+
+    const participantsPolicyTags = useParticipantsPolicyTags(participants);
     function navigateToConfirmationStep(files: ReceiptFile[], locationPermissionGranted = false, isTestTransaction = false) {
         startSpan(CONST.TELEMETRY.SPAN_SCAN_PROCESS_AND_NAVIGATE, {
             name: CONST.TELEMETRY.SPAN_SCAN_PROCESS_AND_NAVIGATE,
@@ -103,12 +111,12 @@ function useReceiptScan({
             parentSpan: getSpan(CONST.TELEMETRY.SPAN_SHUTTER_TO_CONFIRMATION),
             attributes: {[CONST.TELEMETRY.ATTRIBUTE_IS_MULTI_SCAN]: isMultiScanEnabled},
         });
+
         handleMoneyRequestStepScanParticipants({
             iouType,
             policy,
             report,
             reportID,
-            reportAttributesDerived,
             transactions,
             initialTransaction: {
                 transactionID: initialTransactionID,
@@ -135,7 +143,6 @@ function useReceiptScan({
             policyRecentlyUsedCurrencies,
             introSelected,
             activePolicyID,
-            privateIsArchived: reportNameValuePairs?.private_isArchived,
             files,
             isTestTransaction,
             locationPermissionGranted,
@@ -145,6 +152,8 @@ function useReceiptScan({
             betas,
             recentWaypoints,
             allTransactionDrafts,
+            participants,
+            participantsPolicyTags,
             amountOwed,
         });
     }
@@ -152,7 +161,7 @@ function useReceiptScan({
     function setTestReceiptAndNavigate() {
         setTestReceipt(TestReceipt, 'png', (source, file, filename) => {
             setMoneyRequestReceipt(initialTransactionID, source, filename, !isEditing, CONST.TEST_RECEIPT.FILE_TYPE, true);
-            removeDraftTransactions(true);
+            removeDraftTransactionsByIDs(draftTransactionIDs, true);
             navigateToConfirmationStep([{file, source, transactionID: initialTransactionID}], false, true);
         });
     }
@@ -179,7 +188,7 @@ function useReceiptScan({
         }
 
         if (!isMultiScanEnabled && isStartingScan) {
-            removeDraftTransactions(true);
+            removeDraftTransactionsByIDs(draftTransactionIDs, true);
         }
 
         for (const [index, file] of files.entries()) {
