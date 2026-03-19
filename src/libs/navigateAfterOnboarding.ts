@@ -1,4 +1,5 @@
 import {handleRHPVariantNavigation, shouldOpenRHPVariant} from '@components/SidePanel/RHPVariantTest';
+import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {OnboardingRHPVariant} from '@src/types/onyx';
 import {setDisableDismissOnEscape} from './actions/Modal';
@@ -57,6 +58,14 @@ function navigateAfterOnboarding(
 
     if (shouldOpenRHPVariant(onboardingRHPVariant)) {
         handleRHPVariantNavigation(onboardingPolicyID, onboardingRHPVariant);
+        return;
+    }
+
+    // On mobile (small screen), Track workspace admins with the trackExpensesWithConcierge variant
+    // should navigate directly to the Concierge DM (which contains onboarding tasks).
+    // The native shouldOpenRHPVariant() returns false (no side panel on mobile), so we handle it here.
+    if (isSmallScreenWidth && onboardingRHPVariant === CONST.ONBOARDING_RHP_VARIANT.TRACK_EXPENSES_WITH_CONCIERGE) {
+        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(conciergeReportID));
         return;
     }
 
