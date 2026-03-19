@@ -224,7 +224,7 @@ function process(): Promise<void> {
                 Log.info('[SequentialQueue] RESEND_VALIDATE_CODE throttled, not retrying', false, {
                     command: requestToProcess.command,
                 });
-                Onyx.update(requestToProcess.failureData ?? []);
+                Onyx.update([...(requestToProcess.failureData ?? []), ...(requestToProcess.finallyData ?? [])] as AnyOnyxUpdate[]);
                 endPersistedRequestAndRemoveFromQueue(requestToProcess);
                 sequentialQueueRequestThrottle.clear();
                 return process();
@@ -249,7 +249,7 @@ function process(): Promise<void> {
                         command: requestToProcess.command,
                         errorMessage: error.message,
                     });
-                    Onyx.update(requestToProcess.failureData ?? []);
+                    Onyx.update([...(requestToProcess.failureData ?? []), ...(requestToProcess.finallyData ?? [])] as AnyOnyxUpdate[]);
                     endPersistedRequestAndRemoveFromQueue(requestToProcess);
                     sequentialQueueRequestThrottle.clear();
                     if (requestToProcess.command === WRITE_COMMANDS.OPEN_APP) {
