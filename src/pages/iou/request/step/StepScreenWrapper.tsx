@@ -39,6 +39,9 @@ type StepScreenWrapperProps = {
 
     /** Flag to indicate if the keyboard avoiding view should be enabled */
     shouldEnableKeyboardAvoidingView?: boolean;
+
+    /** Optional content rendered in the right side of the header */
+    headerChildren?: ReactNode;
 };
 
 function StepScreenWrapper({
@@ -52,6 +55,7 @@ function StepScreenWrapper({
     includeSafeAreaPaddingBottom,
     shouldShowOfflineIndicator = true,
     shouldEnableKeyboardAvoidingView = true,
+    headerChildren,
 }: StepScreenWrapperProps) {
     const styles = useThemeStyles();
 
@@ -74,7 +78,9 @@ function StepScreenWrapper({
                         <HeaderWithBackButton
                             title={headerTitle}
                             onBackButtonPress={onBackButtonPress}
-                        />
+                        >
+                            {headerChildren}
+                        </HeaderWithBackButton>
                         {
                             // If props.children is a function, call it to provide the insets to the children
                             callOrReturn(children, {insets, safeAreaPaddingBottomStyle, didScreenTransitionEnd})
