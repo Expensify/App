@@ -346,7 +346,7 @@ type AddCommentParams = {
 
 type AddActionsParams = {
     report: OnyxEntry<Report>;
-    notifyReportID: string;
+    notifyReportID: string | string[];
     ancestors: Ancestor[];
     timezoneParam: Timezone;
     currentUserAccountID: number;
@@ -359,7 +359,7 @@ type AddActionsParams = {
 
 type AddAttachmentWithCommentParams = {
     report: OnyxEntry<Report>;
-    notifyReportID: string;
+    notifyReportID: string | string[];
     ancestors: Ancestor[];
     attachments: FileObject | FileObject[];
     currentUserAccountID: number;
@@ -643,12 +643,17 @@ function subscribeToNewActionEvent(reportID: string, callback: SubscriberCallbac
 }
 
 /** Notify the ReportActionsView that a new comment has arrived */
-function notifyNewAction(reportID: string | undefined, reportAction: ReportAction | undefined, isFromCurrentUser: boolean) {
-    const actionSubscriber = newActionSubscribers.find((subscriber) => subscriber.reportID === reportID);
-    if (!actionSubscriber) {
+function notifyNewAction(reportID: string | string[] | undefined, reportAction: ReportAction | undefined, isFromCurrentUser: boolean) {
+    if (!reportID) {
         return;
     }
-    actionSubscriber.callback(isFromCurrentUser, reportAction);
+    const ids = Array.isArray(reportID) ? reportID : [reportID];
+    for (const id of ids) {
+        const actionSubscriber = newActionSubscribers.find((subscriber) => subscriber.reportID === id);
+        if (actionSubscriber) {
+            actionSubscriber.callback(isFromCurrentUser, reportAction);
+        }
+    }
 }
 
 /**
@@ -915,7 +920,7 @@ function addActions({
         failureReportActions[pregeneratedResponseParams.optimisticConciergeReportActionID] = null;
     }
 
-    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.SNAPSHOT>> = [
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
@@ -1403,7 +1408,7 @@ function openReport(params: OpenReportActionParams) {
         });
     }
 
-    const finallyData: Array<OnyxUpdate<typeof ONYXKEYS.RAM_ONLY_IS_CHECKING_PUBLIC_ROOM>> = [];
+    const finallyData: Array<OnyxUpdate<typeof ONYXKEYS.IS_CHECKING_PUBLIC_ROOM>> = [];
 
     const parameters: OpenReportParams = {
         reportID,
@@ -1670,7 +1675,7 @@ function openReport(params: OpenReportActionParams) {
     if (isFromDeepLink) {
         finallyData.push({
             onyxMethod: Onyx.METHOD.SET,
-            key: ONYXKEYS.RAM_ONLY_IS_CHECKING_PUBLIC_ROOM,
+            key: ONYXKEYS.IS_CHECKING_PUBLIC_ROOM,
             value: false,
         });
 
@@ -4237,7 +4242,7 @@ function toggleEmojiReaction(
 }
 
 function doneCheckingPublicRoom() {
-    Onyx.set(ONYXKEYS.RAM_ONLY_IS_CHECKING_PUBLIC_ROOM, false);
+    Onyx.set(ONYXKEYS.IS_CHECKING_PUBLIC_ROOM, false);
 }
 
 function navigateToMostRecentReport(currentReport: OnyxEntry<Report>, conciergeReportID: string | undefined, currentUserAccountID: number, introSelected: OnyxEntry<IntroSelected>) {
@@ -5070,22 +5075,22 @@ function savePrivateNotesDraft(reportID: string, note: string) {
 function searchForReports(isOffline: boolean, searchInput: string, policyID?: string, isUserSearch = false) {
     // We do not try to make this request while offline because it sets a loading indicator optimistically
     if (isOffline) {
-        Onyx.set(ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS, false);
+        Onyx.set(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, false);
         return;
     }
 
-    const successData: Array<OnyxUpdate<typeof ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS>> = [
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.IS_SEARCHING_FOR_REPORTS>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS,
+            key: ONYXKEYS.IS_SEARCHING_FOR_REPORTS,
             value: false,
         },
     ];
 
-    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS>> = [
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.IS_SEARCHING_FOR_REPORTS>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS,
+            key: ONYXKEYS.IS_SEARCHING_FOR_REPORTS,
             value: false,
         },
     ];
@@ -5109,14 +5114,14 @@ function performServerSearch(searchInput: string, policyID?: string, isUserSearc
     // We are not getting isOffline from components as useEffect change will re-trigger the search on network change
     const isOffline = NetworkStore.isOffline();
     if (isOffline || !searchInput.trim().length) {
-        Onyx.set(ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS, false);
+        Onyx.set(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, false);
         return;
     }
 
     // Why not set this in optimistic data? It won't run until the API request happens and while the API request is debounced
     // we want to show the loading state right away. Otherwise, we will see a flashing UI where the client options are sorted and
     // tell the user there are no options, then we start searching, and tell them there are no options again.
-    Onyx.set(ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS, true);
+    Onyx.set(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, true);
     searchForReports(isOffline, searchInput, policyID, isUserSearch);
 }
 

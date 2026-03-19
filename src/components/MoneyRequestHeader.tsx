@@ -168,7 +168,7 @@ function MoneyRequestHeader({reportID: reportIDProp, onBackButtonPress}: MoneyRe
     const isDuplicate = isDuplicateTransactionUtils(transaction, email ?? '', accountID, report, policy, transactionViolations);
     const reportID = report?.reportID;
     const {currentSearchHash} = useSearchStateContext();
-    const {removeTransaction, setSelectedTransactions} = useSearchActionsContext();
+    const {removeTransaction} = useSearchActionsContext();
     const [outstandingReportsByPolicyID] = useOnyx(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID);
     const {isExpenseSplit} = getOriginalTransactionWithSplitInfo(transaction, originalTransaction);
     const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
@@ -676,8 +676,9 @@ function MoneyRequestHeader({reportID: reportIDProp, onBackButtonPress}: MoneyRe
                     );
                     return;
                 }
-                setSelectedTransactions([transaction.transactionID]);
-                Navigation.navigate(ROUTES.MONEY_REQUEST_EDIT_REPORT.getRoute(CONST.IOU.ACTION.EDIT, iouType, parentReport.reportID, true, Navigation.getActiveRoute()));
+                Navigation.navigate(
+                    ROUTES.MONEY_REQUEST_EDIT_REPORT.getRoute(CONST.IOU.ACTION.EDIT, iouType, parentReport.reportID, true, Navigation.getActiveRoute(), transaction.transactionID),
+                );
             },
         },
     };

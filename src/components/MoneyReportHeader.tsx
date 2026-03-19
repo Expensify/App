@@ -525,7 +525,7 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
     > | null>(null);
 
     const {selectedTransactionIDs, currentSearchQueryJSON, currentSearchKey, currentSearchHash, currentSearchResults} = useSearchStateContext();
-    const {removeTransaction, clearSelectedTransactions, setSelectedTransactions} = useSearchActionsContext();
+    const {removeTransaction, clearSelectedTransactions} = useSearchActionsContext();
     const shouldCalculateTotals = useSearchShouldCalculateTotals(currentSearchKey, currentSearchQueryJSON?.hash, true);
 
     const [shouldFailAllRequests] = useOnyx(ONYXKEYS.NETWORK, {selector: shouldFailAllRequestsSelector});
@@ -728,6 +728,12 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
                     userBillingGraceEndPeriods,
                     amountOwed,
                     methodID: type === CONST.IOU.PAYMENT_TYPE.VBBA ? methodID : undefined,
+                    onPaid: () => {
+                        if (isFromSelectionMode) {
+                            return;
+                        }
+                        startAnimation();
+                    },
                 });
                 if (currentSearchQueryJSON && !isOffline) {
                     search({
@@ -819,6 +825,12 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
                     userBillingGraceEndPeriods,
                     amountOwed,
                     full: true,
+                    onApproved: () => {
+                        if (skipAnimation) {
+                            return;
+                        }
+                        startApprovedAnimation();
+                    },
                 });
                 if (skipAnimation) {
                     clearSelectedTransactions(true);
@@ -855,10 +867,23 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
                 showDWEModal();
                 return;
             }
-            if (!skipAnimation) {
-                startSubmittingAnimation();
-            }
-            submitReport(moneyRequestReport, policy, accountID, email ?? '', hasViolations, isASAPSubmitBetaEnabled, nextStep, userBillingGraceEndPeriods, amountOwed);
+            submitReport({
+                expenseReport: moneyRequestReport,
+                policy,
+                currentUserAccountIDParam: accountID,
+                currentUserEmailParam: email ?? '',
+                hasViolations,
+                isASAPSubmitBetaEnabled,
+                expenseReportCurrentNextStepDeprecated: nextStep,
+                userBillingGraceEndPeriods,
+                amountOwed,
+                onSubmitted: () => {
+                    if (skipAnimation) {
+                        return;
+                    }
+                    startSubmittingAnimation();
+                },
+            });
             if (currentSearchQueryJSON && !isOffline) {
                 search({
                     searchKey: currentSearchKey,
@@ -1696,7 +1721,17 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
                     showDWEModal();
                     return;
                 }
-                submitReport(moneyRequestReport, policy, accountID, email ?? '', hasViolations, isASAPSubmitBetaEnabled, nextStep, userBillingGraceEndPeriods, amountOwed);
+                submitReport({
+                    expenseReport: moneyRequestReport,
+                    policy,
+                    currentUserAccountIDParam: accountID,
+                    currentUserEmailParam: email ?? '',
+                    hasViolations,
+                    isASAPSubmitBetaEnabled,
+                    expenseReportCurrentNextStepDeprecated: nextStep,
+                    userBillingGraceEndPeriods,
+                    amountOwed,
+                });
             },
         },
         [CONST.REPORT.SECONDARY_ACTIONS.APPROVE]: {
@@ -1895,8 +1930,16 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
                 if (!transactionToMove?.transactionID) {
                     return;
                 }
-                setSelectedTransactions([transactionToMove.transactionID]);
-                Navigation.navigate(ROUTES.MONEY_REQUEST_EDIT_REPORT.getRoute(CONST.IOU.ACTION.EDIT, CONST.IOU.TYPE.SUBMIT, moneyRequestReport.reportID, true, Navigation.getActiveRoute()));
+                Navigation.navigate(
+                    ROUTES.MONEY_REQUEST_EDIT_REPORT.getRoute(
+                        CONST.IOU.ACTION.EDIT,
+                        CONST.IOU.TYPE.SUBMIT,
+                        moneyRequestReport.reportID,
+                        true,
+                        Navigation.getActiveRoute(),
+                        transactionToMove.transactionID,
+                    ),
+                );
             },
         },
         [CONST.REPORT.SECONDARY_ACTIONS.CHANGE_APPROVER]: {

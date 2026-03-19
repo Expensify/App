@@ -115,6 +115,7 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
     const isReportArchived = isArchivedReport(reportNameValuePairs);
     const [reportAttributes] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {selector: reportsSelector});
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
 
     const {translate, localeCompare, formatPhoneNumber} = useLocalize();
     const theme = useTheme();
@@ -151,7 +152,7 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
         : undefined;
     const statusColorForInvoiceReport = isParentInvoiceAndIsChatThread ? getReportStatusColorStyle(theme, reportHeaderData?.stateNum, reportHeaderData?.statusNum) : {};
     const isParentReportHeaderDataArchived = useReportIsArchived(reportHeaderData?.parentReportID);
-    const parentNavigationSubtitleData = getParentNavigationSubtitle(parentNavigationReport, isParentReportHeaderDataArchived);
+    const parentNavigationSubtitleData = getParentNavigationSubtitle(parentNavigationReport, conciergeReportID, isParentReportHeaderDataArchived);
     const reportDescription = Parser.htmlToText(getReportDescription(report));
     const policyName = getPolicyName({report, returnEmptyIfNotFound: true});
     const policyDescription = getPolicyDescriptionText(policy);
@@ -234,7 +235,6 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
     const isReportInRHP = route.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT;
     const shouldDisplaySearchRouter = !isInSidePanel && (!isReportInRHP || isSmallScreenWidth);
     const [onboardingPurposeSelected] = useOnyx(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED);
-    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const isChatUsedForOnboarding = isChatUsedForOnboardingReportUtils(report, onboarding, conciergeReportID, onboardingPurposeSelected);
     const shouldShowRegisterForWebinar =
         introSelected?.companySize === CONST.ONBOARDING_COMPANY_SIZE.MICRO && (isChatUsedForOnboarding || (isAdminRoom(report) && !isChatThread)) && !isInSidePanel;
