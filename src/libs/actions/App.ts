@@ -569,6 +569,7 @@ type CreateWorkspaceWithPolicyDraftParams = {
     type?: PolicyType;
     // TODO: Remove optional (?) once allBetas Onyx.connect is removed (https://github.com/Expensify/App/issues/66417)
     betas?: OnyxEntry<OnyxTypes.Beta[]>;
+    lastWorkspaceNumber: number | undefined;
 };
 
 /**
@@ -746,6 +747,7 @@ function setUpPoliciesAndNavigate(
     introSelected: OnyxEntry<OnyxTypes.IntroSelected>,
     activePolicyID: string | undefined,
     isSelfTourViewed: boolean | undefined,
+    lastWorkspaceNumber: number | undefined,
 ) {
     const currentUrl = getCurrentUrl();
     if (!session || !currentUrl?.includes('exitTo')) {
@@ -777,6 +779,7 @@ function setUpPoliciesAndNavigate(
             currentUserAccountIDParam: currentSessionData.accountID ?? CONST.DEFAULT_NUMBER_ID,
             currentUserEmailParam: currentSessionData.email ?? '',
             isSelfTourViewed,
+            lastWorkspaceNumber,
         });
         return;
     }

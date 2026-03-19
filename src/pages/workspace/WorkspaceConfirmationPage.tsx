@@ -39,6 +39,7 @@ function WorkspaceConfirmationPage() {
             makeMeAdmin: params.makeMeAdmin,
             backTo: '',
             policyID,
+            lastWorkspaceNumber: undefined,
             currency: params.currency,
             file: params.avatarFile as File,
             routeToNavigateAfterCreate: routeToNavigate,

@@ -2142,6 +2142,53 @@ function clearDuplicateWorkspace() {
     Onyx.set(ONYXKEYS.DUPLICATE_WORKSPACE, {});
 }
 
+function getDisplayNameForWorkspace(email: string) {
+    const emailParts = email.split('@');
+    const domain = emailParts.at(1) ?? '';
+    const isSMSDomain = `@${domain}` === CONST.SMS.DOMAIN;
+    if (isSMSDomain) {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        return translateLocal('workspace.new.myGroupWorkspace', {});
+    }
+
+    if (!PUBLIC_DOMAINS_SET.has(domain.toLowerCase())) {
+        return Str.UCFirst(domain.split('.').at(0) ?? '');
+    }
+
+    const userDetails = PersonalDetailsUtils.getPersonalDetailByEmail(email);
+    const displayName = userDetails?.displayName?.trim();
+    if (displayName) {
+        return Str.UCFirst(displayName);
+    }
+
+    const username = emailParts.at(0) ?? '';
+    return Str.UCFirst(username);
+}
+
+/**
+ * Generate a policy name based on an email and policy list.
+ * @param [email] the email to base the workspace name on. If not passed, will use the logged-in user's email instead
+ * @param [lastWorkspaceNumber] the last workspace number
+ */
+function newGenerateDefaultWorkspaceName(email = '', lastWorkspaceNumber: number | undefined): string {
+    const emailParts = email ? email.split('@') : deprecatedSessionEmail.split('@');
+    if (!emailParts || emailParts.length !== 2) {
+        return '';
+    }
+    const domain = emailParts.at(1) ?? '';
+    const isSMSDomain = `@${domain}` === CONST.SMS.DOMAIN;
+
+    if (isSMSDomain) {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        return translateLocal('workspace.new.myGroupWorkspace', {workspaceNumber: lastWorkspaceNumber !== undefined ? lastWorkspaceNumber + 1 : undefined});
+    }
+
+    const displayNameForWorkspace = getDisplayNameForWorkspace(email || deprecatedSessionEmail);
+
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
+    return translateLocal('workspace.new.workspaceName', displayNameForWorkspace, lastWorkspaceNumber !== undefined ? lastWorkspaceNumber + 1 : undefined);
+}
+
 /**
  * Generate a policy name based on an email and policy list.
  * @param [email] the email to base the workspace name on. If not passed, will use the logged-in user's email instead

@@ -1,6 +1,7 @@
 import {hasSeenTourSelector} from '@selectors/Onboarding';
 import {useEffect, useRef} from 'react';
 import {useInitialURLActions, useInitialURLState} from '@components/InitialURLContextProvider';
+import useLastWorkspaceNumber from '@hooks/useLastWorkspaceNumber';
 import useOnyx from '@hooks/useOnyx';
 import {init, isClientTheLeader} from '@libs/ActiveClientManager';
 import Log from '@libs/Log';
@@ -55,12 +56,13 @@ function AuthScreensInitHandler() {
     const [initialLastUpdateIDAppliedToClient] = useOnyx(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT);
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
-
     const [lastUpdateIDAppliedToClient] = useOnyx(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT);
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const [conciergeReportID, conciergeReportIDMetadata] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const lastUpdateIDAppliedToClientRef = useRef(lastUpdateIDAppliedToClient);
     const isLoadingAppRef = useRef(isLoadingApp);
+
+    const lastWorkspaceNumber = useLastWorkspaceNumber();
 
     lastUpdateIDAppliedToClientRef.current = lastUpdateIDAppliedToClient;
     isLoadingAppRef.current = isLoadingApp;
@@ -133,7 +135,7 @@ function AuthScreensInitHandler() {
             App.reconnectApp(initialLastUpdateIDAppliedToClient);
         }
 
-        App.setUpPoliciesAndNavigate(session, introSelected, activePolicyID, isSelfTourViewed);
+        App.setUpPoliciesAndNavigate(session, introSelected, activePolicyID, isSelfTourViewed, lastWorkspaceNumber);
 
         Download.clearDownloads();
 
