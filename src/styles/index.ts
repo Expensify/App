@@ -374,7 +374,6 @@ const staticStyles = (theme: ThemeColors) =>
 
         reportLayoutGroupHeader: {
             paddingHorizontal: 12,
-            marginTop: 16,
             paddingVertical: 8,
             backgroundColor: theme.highlightBG,
             justifyContent: 'center',
