@@ -1,6 +1,5 @@
 import {format, setYear} from 'date-fns';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import type {GestureResponderEvent} from 'react-native';
 import {InteractionManager, View} from 'react-native';
 import TextInput from '@components/TextInput';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
@@ -71,18 +70,14 @@ function DatePicker({
         });
     }, [windowHeight]);
 
-    const handlePress = useCallback(
-        (event?: GestureResponderEvent | KeyboardEvent) => {
-            // This makes sure that cursor does not appear in the TextInput when we open the DatePicker
-            event?.preventDefault();
-            calculatePopoverPosition();
-            setIsModalVisible(true);
-        },
-        [calculatePopoverPosition],
-    );
+    const showDatePickerModal = useCallback(() => {
+        // Blur the input before showing the modal, so the focus won't be returned after the modal is closed
+        textInputRef.current?.blur();
+        calculatePopoverPosition();
+        setIsModalVisible(true);
+    }, [calculatePopoverPosition]);
 
     const closeDatePicker = useCallback(() => {
-        textInputRef.current?.blur();
         setIsModalVisible(false);
     }, []);
 
@@ -113,9 +108,9 @@ function DatePicker({
         isAutoFocused.current = true;
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
-            handlePress();
+            textInputRef.current?.focus();
         });
-    }, [handlePress, autoFocus]);
+    }, [autoFocus]);
 
     const getValidDateForCalendar = useMemo(() => {
         if (!selectedDate) {
@@ -145,7 +140,7 @@ function DatePicker({
                     errorText={errorText}
                     inputStyle={styles.pointerEventsNone}
                     disabled={disabled}
-                    onPress={handlePress}
+                    onFocus={showDatePickerModal}
                     textInputContainerStyles={isModalVisible ? styles.borderColorFocus : {}}
                     shouldHideClearButton={shouldHideClearButton}
                     onClearInput={handleClear}

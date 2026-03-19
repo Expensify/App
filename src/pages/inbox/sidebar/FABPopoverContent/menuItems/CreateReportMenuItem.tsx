@@ -79,6 +79,7 @@ function CreateReportMenuItem() {
     const {createReportAction} = useCreateReportAction({
         onCreateReport: handleCreateWorkspaceReport,
         groupPoliciesWithChatEnabled,
+        shouldHandleNavigationBack: false,
     });
 
     return (

@@ -1,4 +1,4 @@
-import {hasSeenTourSelector, tryNewDotOnyxSelector} from '@selectors/Onboarding';
+import {hasSeenTourSelector} from '@selectors/Onboarding';
 import {accountIDSelector} from '@selectors/Session';
 import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
 import React from 'react';
@@ -18,7 +18,6 @@ import TextLink from '@components/TextLink';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useCreateReportAction from '@hooks/useCreateReportAction';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import useIsPaidPolicyAdmin from '@hooks/useIsPaidPolicyAdmin';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -38,7 +37,7 @@ import type {SearchTypeMenuSection} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {IntroSelected, PersonalDetails, Policy, Report, Transaction} from '@src/types/onyx';
+import type {PersonalDetails, Policy, Report, Transaction} from '@src/types/onyx';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 import useSearchEmptyStateIllustration from './useSearchEmptyStateIllustration';
 
@@ -53,10 +52,8 @@ type EmptySearchViewContentProps = EmptySearchViewProps & {
     currentUserPersonalDetails: PersonalDetails;
     typeMenuSections: SearchTypeMenuSection[];
     allPolicies: OnyxCollection<Policy>;
-    isUserPaidPolicyMember: boolean;
     activePolicy: OnyxEntry<Policy>;
     groupPoliciesWithChatEnabled: readonly never[] | Array<OnyxEntry<Policy>>;
-    introSelected: OnyxEntry<IntroSelected>;
     hasSeenTour: boolean;
 };
 
@@ -82,12 +79,9 @@ function EmptySearchView({similarSearchHash, type, hasResults, queryJSON}: Empty
 
     const groupPoliciesWithChatEnabled = getGroupPaidPoliciesWithExpenseChatEnabled(allPolicies);
 
-    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [hasSeenTour = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
         selector: hasSeenTourSelector,
     });
-
-    const isUserPaidPolicyMember = useIsPaidPolicyAdmin();
 
     return (
         <SearchScopeProvider>
@@ -98,10 +92,8 @@ function EmptySearchView({similarSearchHash, type, hasResults, queryJSON}: Empty
                 currentUserPersonalDetails={currentUserPersonalDetails}
                 typeMenuSections={typeMenuSections}
                 allPolicies={allPolicies}
-                isUserPaidPolicyMember={isUserPaidPolicyMember}
                 activePolicy={activePolicy}
                 groupPoliciesWithChatEnabled={groupPoliciesWithChatEnabled}
-                introSelected={introSelected}
                 hasSeenTour={hasSeenTour}
                 queryJSON={queryJSON}
             />
@@ -122,10 +114,8 @@ function EmptySearchViewContent({
     currentUserPersonalDetails,
     typeMenuSections,
     allPolicies,
-    isUserPaidPolicyMember,
     activePolicy,
     groupPoliciesWithChatEnabled,
-    introSelected,
     hasSeenTour,
     queryJSON,
 }: EmptySearchViewContentProps) {
@@ -149,10 +139,6 @@ function EmptySearchViewContent({
     });
     const [hasExpenseReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {
         selector: hasExpenseReportsSelector,
-    });
-
-    const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT, {
-        selector: tryNewDotOnyxSelector,
     });
 
     const shouldRedirectToExpensifyClassic = areAllGroupPoliciesExpenseChatDisabled(allPolicies ?? {});
@@ -227,7 +213,7 @@ function EmptySearchViewContent({
     const defaultViewItemHeader = useSearchEmptyStateIllustration();
 
     const startTestDriveAction = () => {
-        startTestDrive(introSelected, tryNewDot?.hasBeenAddedToNudgeMigration ?? false, isUserPaidPolicyMember);
+        startTestDrive();
     };
 
     let content: EmptySearchViewItem | undefined;
