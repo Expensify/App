@@ -32,7 +32,7 @@ function CompleteVerification({onBackButtonPress}: CompleteVerificationProps) {
 
     const submit = useCallback(() => {
         acceptACHContractForBankAccount(
-            Number(reimbursementAccount?.achData?.bankAccountID),
+            Number(reimbursementAccount?.achData?.bankAccountID ?? CONST.DEFAULT_NUMBER_ID),
             {
                 isAuthorizedToUseBankAccount: values.isAuthorizedToUseBankAccount,
                 certifyTrueInformation: values.certifyTrueInformation,
