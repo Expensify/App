@@ -368,7 +368,7 @@ diff --git a/node_modules/react-native/ReactAndroid/src/main/jni/react/fabric/Fa
 diff --git a/node_modules/react-native/ReactCommon/react/nativemodule/dom/NativeDOM.cpp b/node_modules/react-native/ReactCommon/react/nativemodule/dom/NativeDOM.cpp
 --- a/node_modules/react-native/ReactCommon/react/nativemodule/dom/NativeDOM.cpp
 +++ b/node_modules/react-native/ReactCommon/react/nativemodule/dom/NativeDOM.cpp
-@@ -13,6 +13,7 @@
+@@ -13,4 +13,5 @@
  #include <react/renderer/uimanager/UIManagerBinding.h>
 +#include <utility>
  
@@ -509,7 +509,7 @@ diff --git a/node_modules/react-native/jest/MockNativeMethods.js b/node_modules/
 diff --git a/node_modules/react-native/jest/mockNativeComponent.js b/node_modules/react-native/jest/mockNativeComponent.js
 --- a/node_modules/react-native/jest/mockNativeComponent.js
 +++ b/node_modules/react-native/jest/mockNativeComponent.js
-@@ -38,6 +38,7 @@ export default function mockNativeComponent<TProps: {...}>(
+@@ -38,4 +38,5 @@ export default function mockNativeComponent<TProps: {...}>(
      measure: () => void = jest.fn();
 +    measureAsyncOnUI: () => void = jest.fn();
      measureInWindow: () => void = jest.fn();
@@ -531,7 +531,7 @@ diff --git a/node_modules/react-native/src/private/types/HostInstance.js b/node_
 diff --git a/node_modules/react-native/src/private/webapis/dom/nodes/ReactNativeElement.js b/node_modules/react-native/src/private/webapis/dom/nodes/ReactNativeElement.js
 --- a/node_modules/react-native/src/private/webapis/dom/nodes/ReactNativeElement.js
 +++ b/node_modules/react-native/src/private/webapis/dom/nodes/ReactNativeElement.js
-@@ -155,6 +155,16 @@ class ReactNativeElement
+@@ -155,6 +155,17 @@ class ReactNativeElement
      }
    }
  
