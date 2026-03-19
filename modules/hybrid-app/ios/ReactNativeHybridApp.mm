@@ -51,6 +51,14 @@ RCT_EXPORT_MODULE()
     NSLog(@"[ReactNativeHybridApp] `signOutFromOldDot` should never be called in standalone `New Expensify` app");
 }
 
+- (void)startSignOut {
+    NSLog(@"[ReactNativeHybridApp] `startSignOut` should never be called in standalone `New Expensify` app");
+}
+
+- (void)cancelSignOut {
+    NSLog(@"[ReactNativeHybridApp] `cancelSignOut` should never be called in standalone `New Expensify` app");
+}
+
 - (void)clearOldDotAfterSignOut {
     NSLog(@"[ReactNativeHybridApp] `clearOldDotAfterSignOut` should never be called in standalone `New Expensify` app");
 }
