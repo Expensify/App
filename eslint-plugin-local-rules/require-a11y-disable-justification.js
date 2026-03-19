@@ -13,8 +13,8 @@ const meta = {
     schema: [],
     messages: {
         missingIssueAndRationale:
-            'react-native-a11y eslint-disable comments must include a rationale and a tracking issue link (for example: "-- false positive in polymorphic wrapper. https://github.com/Expensify/App/issues/12345").',
-        missingIssue: 'react-native-a11y eslint-disable comments must include a tracking issue link (Expensify/App or eslint-plugin-react-native-a11y).',
+            'react-native-a11y eslint-disable comments must include a rationale and a tracking issue link.',
+        missingIssue: 'react-native-a11y eslint-disable comments must include a tracking issue link.',
         missingRationale: 'react-native-a11y eslint-disable comments must include a rationale describing why the disable is needed.',
     },
 };
