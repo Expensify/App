@@ -259,10 +259,11 @@ const useProductTrainingContext = (tooltipName: ProductTrainingTooltipName, shou
     }, [shouldRenderTooltip, tooltipName, shouldShow, shouldHideToolTip]);
 
     useEffect(() => {
-        if (shouldShowProductTrainingTooltip) {
-            config.onShown?.();
+        if (!shouldShowProductTrainingTooltip) {
+            return;
         }
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        config.onShown?.();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [shouldShowProductTrainingTooltip]);
 
     const hideTooltip = useCallback(
