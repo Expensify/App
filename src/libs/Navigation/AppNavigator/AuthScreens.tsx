@@ -31,6 +31,7 @@ import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import RequireTwoFactorAuthenticationOverlay from '@pages/RequireTwoFactorAuthenticationOverlay';
 import WorkspacesListPage from '@pages/workspace/WorkspacesListPage';
 import * as Modal from '@userActions/Modal';
+import AuthenticatedGlobalModals from '@src/AuthenticatedGlobalModals';
 import CONST from '@src/CONST';
 import '@src/libs/subscribeToFullReconnect';
 import NAVIGATORS from '@src/NAVIGATORS';
@@ -174,6 +175,7 @@ function AuthScreens() {
             <KeyboardShortcutsHandler />
             <ThreeDSAuthHandler />
             <UserStatusHandler />
+            <AuthenticatedGlobalModals />
             <DelegatorConnectGuard>
                 <ComposeProviders
                     components={[

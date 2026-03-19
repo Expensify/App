@@ -7,11 +7,11 @@ import Onyx from 'react-native-onyx';
 import {useInitialURLActions} from './components/InitialURLContextProvider';
 import AppleAuthWrapper from './components/SignInButtons/AppleAuthWrapper';
 import SplashScreenHider from './components/SplashScreenHider';
+import UpdateAppModal from './components/UpdateAppModal';
 import CONFIG from './CONFIG';
 import CONST from './CONST';
 import DeepLinkHandler from './DeepLinkHandler';
 import DelegateAccessHandler from './DelegateAccessHandler';
-import ExpensifyGlobalModals from './ExpensifyGlobalModals';
 import FullstoryInitHandler from './FullstoryInitHandler';
 import useDebugShortcut from './hooks/useDebugShortcut';
 import useIsAuthenticated from './hooks/useIsAuthenticated';
@@ -57,6 +57,7 @@ function Expensify() {
     const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
     const [lastRoute] = useOnyx(ONYXKEYS.LAST_ROUTE);
     const [isCheckingPublicRoom = true] = useOnyx(ONYXKEYS.IS_CHECKING_PUBLIC_ROOM, {initWithStoredValues: false});
+    const [updateAvailable] = useOnyx(ONYXKEYS.UPDATE_AVAILABLE, {initWithStoredValues: false});
     const [updateRequired] = useOnyx(ONYXKEYS.UPDATE_REQUIRED, {initWithStoredValues: false});
     const [lastVisitedPath] = useOnyx(ONYXKEYS.LAST_VISITED_PATH);
 
@@ -212,6 +213,7 @@ function Expensify() {
             if (splashScreenState === CONST.BOOT_SPLASH_STATE.VISIBLE) {
                 const propsToLog = {
                     isCheckingPublicRoom,
+                    updateAvailable,
                     updateRequired,
                     isAuthenticated,
                     lastVisitedPath,
@@ -271,7 +273,7 @@ function Expensify() {
 
     return (
         <>
-            {shouldInit && <ExpensifyGlobalModals updateRequired={updateRequired} />}
+            {shouldInit && !!updateAvailable && <UpdateAppModal />}
             <PriorityModeHandler />
             <DelegateAccessHandler />
             <FullstoryInitHandler />

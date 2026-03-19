@@ -1,12 +1,15 @@
 import React, {useState} from 'react';
-import ConfirmModal from '@components/ConfirmModal';
 import useLocalize from '@hooks/useLocalize';
-import type UpdateAppModalProps from './types';
+import ConfirmModal from './ConfirmModal';
 
-function BaseUpdateAppModal({onSubmit}: UpdateAppModalProps) {
+type UpdateAppModalProps = {
+    /** Callback to fire when we want to trigger the update. */
+    onSubmit?: () => void;
+};
+
+function UpdateAppModal({onSubmit}: UpdateAppModalProps) {
     const [isModalOpen, setIsModalOpen] = useState(true);
     const {translate} = useLocalize();
-
     /**
      * Execute the onSubmit callback and close the modal.
      */
@@ -28,6 +31,4 @@ function BaseUpdateAppModal({onSubmit}: UpdateAppModalProps) {
     );
 }
 
-BaseUpdateAppModal.displayName = 'BaseUpdateAppModal';
-
-export default React.memo(BaseUpdateAppModal);
+export default UpdateAppModal;
