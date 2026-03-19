@@ -78,13 +78,15 @@ diff --git a/node_modules/react-native/React/Fabric/Mounting/RCTMountingManager.
 diff --git a/node_modules/react-native/React/Fabric/Mounting/RCTMountingManager.mm b/node_modules/react-native/React/Fabric/Mounting/RCTMountingManager.mm
 --- a/node_modules/react-native/React/Fabric/Mounting/RCTMountingManager.mm
 +++ b/node_modules/react-native/React/Fabric/Mounting/RCTMountingManager.mm
-@@ -8,6 +8,7 @@
+@@ -8,7 +8,8 @@
  #import "RCTMountingManager.h"
  
 +#import "UIView+React.h"
  #import <QuartzCore/QuartzCore.h>
  
  #import <React/RCTAssert.h>
+ #import <React/RCTComponent.h>
+ #import <React/RCTLog.h>
 @@ -347,4 +348,37 @@
    }
  }
