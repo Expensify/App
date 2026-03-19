@@ -250,12 +250,6 @@ const translations: TranslationDeepObject<typeof en> = {
         na: '不适用',
         noResultsFound: '未找到结果',
         noResultsFoundMatching: (searchString: string) => `未找到与”${searchString}”匹配的结果`,
-        resultsAvailable: () => ({
-            other: (count: number) => `${count}个结果可用`,
-        }),
-        suggestionsAvailable: () => ({
-            other: (count: number) => `${count}个建议可用`,
-        }),
         recentDestinations: '最近目的地',
         timePrefix: '它是',
         conjunctionFor: '用于',
