@@ -213,12 +213,9 @@ function FormProvider({
             return;
         }
 
-        // Prepare validation values
-        const trimmedStringValues = shouldTrimValues ? prepareValues(inputValues) : inputValues;
-
         // Validate in order to make sure the correct error translations are displayed,
         // making sure to not clear server errors if they exist
-        onValidate(trimmedStringValues, !hasServerError);
+        onValidate(inputValues, !hasServerError);
 
         // Only run when locales change
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -233,14 +230,11 @@ function FormProvider({
     );
 
     const submit = useDebounceNonReactive(
-        useCallback(() => {
+        () => {
             // Return early if the form is already submitting to avoid duplicate submission
             if (!!formState?.isLoading || isLoading) {
                 return;
             }
-
-            // Prepare values before submitting
-            const trimmedStringValues = shouldTrimValues ? prepareValues(inputValues) : inputValues;
 
             // Touches all form inputs, so we can validate the entire form
             for (const inputID of Object.keys(inputRefs.current)) {
@@ -252,7 +246,7 @@ function FormProvider({
             }
 
             // Validate form and return early if any errors are found
-            if (!isEmptyObject(onValidate(trimmedStringValues))) {
+            if (!isEmptyObject(onValidate(inputValues))) {
                 return;
             }
 
@@ -261,8 +255,10 @@ function FormProvider({
                 return;
             }
 
+            // Prepare values only when we are actually going to submit
+            const trimmedStringValues = shouldTrimValues ? prepareValues(inputValues) : inputValues;
             KeyboardUtils.dismiss().then(() => onSubmit(trimmedStringValues));
-        }, [enabledWhenOffline, formState?.isLoading, inputValues, isLoading, network?.isOffline, onSubmit, onValidate, shouldTrimValues, hasServerError]),
+        },
         1000,
         {leading: true, trailing: false},
     );
