@@ -35,14 +35,6 @@ function useNewTransactions(
             if (isFocused && reportID && pendingNewTransactionIDs && transactions?.length) {
                 const pendingSet = new Set(Object.keys(pendingNewTransactionIDs));
                 const pendingTransactions = transactions.filter((transaction) => pendingSet.has(transaction.transactionID) && pendingNewTransactionIDs[transaction.transactionID]);
-                if (pendingTransactions.length) {
-                    setTimeout(() => {
-                        deletePendingNewTransactionIDs(
-                            reportID,
-                            pendingTransactions.map((transaction) => transaction.transactionID),
-                        );
-                    }, CONST.PENDING_TRANSACTION_DELETION_AFTER_HIGHLIGHT_TIMEOUT);
-                }
                 return pendingTransactions;
             }
             return CONST.EMPTY_ARRAY as unknown as Transaction[];
@@ -53,6 +45,25 @@ function useNewTransactions(
         }
         return transactions.filter((transaction) => !prevTransactions?.some((prevTransaction) => prevTransaction.transactionID === transaction.transactionID));
     }, [transactions, prevTransactions, pendingNewTransactionIDs, reportID, isFocused]);
+
+    useEffect(() => {
+        if (!pendingNewTransactionIDs) {
+            return;
+        }
+        const pendingSet = new Set(Object.keys(pendingNewTransactionIDs));
+        const pendingTransactions = newTransactions.filter((transaction) => pendingSet.has(transaction.transactionID) && pendingNewTransactionIDs[transaction.transactionID]);
+        if (!pendingTransactions.length) {
+            return;
+        }
+
+        // We deletePendingNewTransactionIDs after the scroll and highlight has occurred.
+        setTimeout(() => {
+            deletePendingNewTransactionIDs(
+                reportID,
+                pendingTransactions.map((transaction) => transaction.transactionID),
+            );
+        }, CONST.PENDING_TRANSACTION_DELETION_AFTER_HIGHLIGHT_TIMEOUT);
+    }, [pendingNewTransactionIDs, newTransactions, reportID]);
 
     // In case when we have loaded the report, but there were no transactions in it, then we need to explicitly set skipFirstTransactionsChange to false, as it will be not set in the useMemo above.
     useEffect(() => {
