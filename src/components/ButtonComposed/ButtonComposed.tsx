@@ -271,7 +271,40 @@ function ButtonComposed({
                     listener: pressOnEnter ? CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey : undefined,
                 }}
                 ref={ref as PressableRef}
+                id={id}
+                testID={testID}
+                accessibilityLabel={accessibilityLabel}
+                sentryLabel={sentryLabel}
+                role={getButtonRole(isNested)}
+                isNested={isNested}
+                disabled={isLoading || isDisabled}
+                disabledStyle={!shouldStayNormalOnDisable ? disabledStyle : undefined}
+                shouldBlendOpacity={shouldBlendOpacity}
+                style={buttonStyles}
+                wrapperStyle={[
+                    isDisabled && !shouldStayNormalOnDisable ? {...styles.cursorDisabled, ...styles.noSelect} : {},
+                    styles.buttonContainer,
+                    shouldRemoveBorderRadius === 'right' || shouldRemoveBorderRadius === 'all' ? styles.noRightBorderRadius : undefined,
+                    shouldRemoveBorderRadius === 'left' || shouldRemoveBorderRadius === 'all' ? styles.noLeftBorderRadius : undefined,
+                    style,
+                ]}
+                hoverDimmingValue={1}
+                hoverStyle={
+                    !isDisabled || !shouldStayNormalOnDisable
+                        ? [
+                              shouldUseDefaultHover && !isDisabled ? styles.buttonDefaultHovered : undefined,
+                              variant === 'success' && !isDisabled ? styles.buttonSuccessHovered : undefined,
+                              variant === 'danger' && !isDisabled ? styles.buttonDangerHovered : undefined,
+                              hoverStyles,
+                          ]
+                        : []
+                }
                 onLayout={onLayout}
+                onPressIn={onPressIn}
+                onPressOut={onPressOut}
+                onMouseDown={onMouseDown}
+                onHoverIn={!isDisabled || !shouldStayNormalOnDisable ? () => setIsHovered(true) : undefined}
+                onHoverOut={!isDisabled || !shouldStayNormalOnDisable ? () => setIsHovered(false) : undefined}
                 onPress={(event) => {
                     if (event?.type === 'click') {
                         const currentTarget = event?.currentTarget as HTMLElement;
@@ -296,39 +329,6 @@ function ButtonComposed({
                     }
                     onLongPress(event);
                 }}
-                onPressIn={onPressIn}
-                onPressOut={onPressOut}
-                onMouseDown={onMouseDown}
-                shouldBlendOpacity={shouldBlendOpacity}
-                disabled={isLoading || isDisabled}
-                wrapperStyle={[
-                    isDisabled && !shouldStayNormalOnDisable ? {...styles.cursorDisabled, ...styles.noSelect} : {},
-                    styles.buttonContainer,
-                    shouldRemoveBorderRadius === 'right' || shouldRemoveBorderRadius === 'all' ? styles.noRightBorderRadius : undefined,
-                    shouldRemoveBorderRadius === 'left' || shouldRemoveBorderRadius === 'all' ? styles.noLeftBorderRadius : undefined,
-                    style,
-                ]}
-                style={buttonStyles}
-                isNested={isNested}
-                hoverStyle={
-                    !isDisabled || !shouldStayNormalOnDisable
-                        ? [
-                              shouldUseDefaultHover && !isDisabled ? styles.buttonDefaultHovered : undefined,
-                              variant === 'success' && !isDisabled ? styles.buttonSuccessHovered : undefined,
-                              variant === 'danger' && !isDisabled ? styles.buttonDangerHovered : undefined,
-                              hoverStyles,
-                          ]
-                        : []
-                }
-                disabledStyle={!shouldStayNormalOnDisable ? disabledStyle : undefined}
-                id={id}
-                testID={testID}
-                accessibilityLabel={accessibilityLabel}
-                role={getButtonRole(isNested)}
-                hoverDimmingValue={1}
-                onHoverIn={!isDisabled || !shouldStayNormalOnDisable ? () => setIsHovered(true) : undefined}
-                onHoverOut={!isDisabled || !shouldStayNormalOnDisable ? () => setIsHovered(false) : undefined}
-                sentryLabel={sentryLabel}
             >
                 <ButtonComposedContext.Provider value={contextValue}>
                     <View
