@@ -7910,7 +7910,7 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
         },
         itemizedReceiptRequired: (formattedLimit?: string) => `Einzelpostenbeleg erforderlich${formattedLimit ? `über ${formattedLimit}` : ''}`,
         prohibitedExpense: ({prohibitedExpenseTypes}: ViolationsProhibitedExpenseParams) => {
-            const preMessage = 'Unzulässige Ausgabe:';
+            const preMessage = 'Verbotene Ausgabe:';
             const getProhibitedExpenseTypeText = (prohibitedExpenseType: string) => {
                 switch (prohibitedExpenseType) {
                     case 'alcohol':
@@ -7922,7 +7922,7 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
                     case 'adultEntertainment':
                         return `Erwachsenenunterhaltung`;
                     case 'hotelIncidentals':
-                        return `Nebenkosten im Hotel`;
+                        return `Hotelnebenkosten`;
                     default:
                         return `${prohibitedExpenseType}`;
                 }

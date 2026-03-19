@@ -7887,7 +7887,7 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
             } else if (prohibitedExpenseTypes) {
                 types = [prohibitedExpenseTypes];
             }
-            const postMessage = 'Prosimy o sprawdzenie paragonu w celu potwierdzenia.';
+            const postMessage = 'Sprawdź paragon, żeby potwierdzić.';
             if (types.length === 0) {
                 return `${preMessage} ${postMessage}`;
             }

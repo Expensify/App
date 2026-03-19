@@ -7911,7 +7911,7 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
                     case 'adultEntertainment':
                         return `intrattenimento per adulti`;
                     case 'hotelIncidentals':
-                        return `spese accessorie dell’hotel`;
+                        return `spese accessorie d’hotel`;
                     default:
                         return `${prohibitedExpenseType}`;
                 }
@@ -7922,7 +7922,7 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
             } else if (prohibitedExpenseTypes) {
                 types = [prohibitedExpenseTypes];
             }
-            const postMessage = 'Si prega di controllare la ricevuta per confermare.';
+            const postMessage = 'Controlla la ricevuta per confermare.';
             if (types.length === 0) {
                 return `${preMessage} ${postMessage}`;
             }

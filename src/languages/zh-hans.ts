@@ -7700,7 +7700,7 @@ ${reportName}
             if (types.length === 0) {
                 return `${preMessage} ${postMessage}`;
             }
-            return `${preMessage} ${types.map(getProhibitedExpenseTypeText).join('、')}。${postMessage}`;
+            return `${preMessage} ${types.map(getProhibitedExpenseTypeText).join(', ')}. ${postMessage}`;
         },
         customRules: (message: string) => message,
         reviewRequired: '需要审核',

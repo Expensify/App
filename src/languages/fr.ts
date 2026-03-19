@@ -7947,7 +7947,7 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
                     case 'adultEntertainment':
                         return `divertissement pour adultes`;
                     case 'hotelIncidentals':
-                        return `Frais annexes d'hôtel`;
+                        return `frais annexes d'hôtel`;
                     default:
                         return `${prohibitedExpenseType}`;
                 }
@@ -7958,7 +7958,7 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
             } else if (prohibitedExpenseTypes) {
                 types = [prohibitedExpenseTypes];
             }
-            const postMessage = 'Veuillez vérifier le reçu pour confirmer.';
+            const postMessage = 'Veuillez examiner le reçu pour confirmer.';
             if (types.length === 0) {
                 return `${preMessage} ${postMessage}`;
             }

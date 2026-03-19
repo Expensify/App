@@ -7888,7 +7888,7 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
                     case 'adultEntertainment':
                         return `entertainment voor volwassenen`;
                     case 'hotelIncidentals':
-                        return `hotelincidentals`;
+                        return `hotelbijdragen`;
                     default:
                         return `${prohibitedExpenseType}`;
                 }
@@ -7899,7 +7899,7 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
             } else if (prohibitedExpenseTypes) {
                 types = [prohibitedExpenseTypes];
             }
-            const postMessage = 'Controleer de bon ter bevestiging.';
+            const postMessage = 'Controleer alsjeblieft de bon ter bevestiging.';
             if (types.length === 0) {
                 return `${preMessage} ${postMessage}`;
             }

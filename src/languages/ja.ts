@@ -7821,11 +7821,11 @@ ${reportName}
                     case 'gambling':
                         return `ギャンブル`;
                     case 'tobacco':
-                        return `タバコ`;
+                        return `たばこ`;
                     case 'adultEntertainment':
                         return `アダルトエンターテインメント`;
                     case 'hotelIncidentals':
-                        return `ホテル諸雑費`;
+                        return `ホテル付帯費用`;
                     default:
                         return `${prohibitedExpenseType}`;
                 }
@@ -7836,11 +7836,11 @@ ${reportName}
             } else if (prohibitedExpenseTypes) {
                 types = [prohibitedExpenseTypes];
             }
-            const postMessage = '確認のため、領収書をご確認ください。';
+            const postMessage = '確認のため、レシートを確認してください。';
             if (types.length === 0) {
                 return `${preMessage} ${postMessage}`;
             }
-            return `${preMessage} ${types.map(getProhibitedExpenseTypeText).join('、')}。${postMessage}`;
+            return `${preMessage} ${types.map(getProhibitedExpenseTypeText).join(', ')}. ${postMessage}`;
         },
         customRules: (message: string) => message,
         reviewRequired: '要レビュー',

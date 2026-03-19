@@ -7880,7 +7880,7 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
                     case 'adultEntertainment':
                         return `entretenimento adulto`;
                     case 'hotelIncidentals':
-                        return `despesas incidentais de hotel`;
+                        return `despesas extras de hotel`;
                     default:
                         return `${prohibitedExpenseType}`;
                 }
@@ -7891,7 +7891,7 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
             } else if (prohibitedExpenseTypes) {
                 types = [prohibitedExpenseTypes];
             }
-            const postMessage = 'Por favor, revise o recibo para confirmar.';
+            const postMessage = 'Revise o recibo para confirmar.';
             if (types.length === 0) {
                 return `${preMessage} ${postMessage}`;
             }
