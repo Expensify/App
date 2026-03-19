@@ -8,6 +8,8 @@ import * as Modal from '@userActions/Modal';
 import CONST from '@src/CONST';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 
+const KEYBOARD_SHORTCUTS_PATH = DYNAMIC_ROUTES.KEYBOARD_SHORTCUTS.path;
+
 function ShortcutsOverviewHandler() {
     const shouldShowRequire2FAPage = useShouldShowRequire2FAPage();
 
@@ -22,10 +24,10 @@ function ShortcutsOverviewHandler() {
                     }
 
                     const activeRoute = Navigation.getActiveRoute();
-                    if (findMatchingDynamicSuffix(activeRoute) === DYNAMIC_ROUTES.KEYBOARD_SHORTCUTS.path) {
+                    if (findMatchingDynamicSuffix(activeRoute) === KEYBOARD_SHORTCUTS_PATH) {
                         return;
                     }
-                    return Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.KEYBOARD_SHORTCUTS.path));
+                    return Navigation.navigate(createDynamicRoute(KEYBOARD_SHORTCUTS_PATH));
                 });
             },
             shortcutConfig.descriptionKey,
