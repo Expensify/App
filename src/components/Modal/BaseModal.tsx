@@ -56,6 +56,7 @@ function BaseModal({
     onBackdropPress,
     modalId,
     shouldEnableNewFocusManagement = false,
+    shouldReturnFocus,
     restoreFocusType,
     shouldUseModalPaddingStyle = true,
     initialFocus = false,
@@ -373,6 +374,7 @@ function BaseModal({
                         shouldIgnoreBackHandlerDuringTransition={shouldIgnoreBackHandlerDuringTransition}
                         shouldEnableNewFocusManagement={shouldEnableNewFocusManagement}
                         supportedOrientations={isInLandscapeMode ? ['portrait', 'portrait-upside-down', 'landscape', 'landscape-left', 'landscape-right'] : undefined}
+                        shouldReturnFocus={shouldReturnFocus}
                     >
                         <Animated.View
                             onLayout={onViewLayout}
