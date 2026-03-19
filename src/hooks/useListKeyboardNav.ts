@@ -41,7 +41,6 @@ function useListKeyboardNav<T extends View | HTMLElement>({isActive, itemKeys, d
         maxIndex: itemKeys.length - 1,
         disabledIndexes,
         isActive: isArrowKeyActive,
-        disableCyclicTraversal: true,
     });
 
     useEffect(() => {
