@@ -8,6 +8,7 @@ import type {ScrollView as RNScrollView} from 'react-native';
 import ScrollView from '@components/ScrollView';
 import useListKeyboardNav from '@hooks/useListKeyboardNav';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {cancelDndKeyboardDrag} from '@libs/cancelDndKeyboardDrag';
 import CONST from '@src/CONST';
 import SortableItem from './SortableItem';
 import type DraggableListProps from './types';
@@ -49,12 +50,10 @@ function DraggableList<T>({
     // Cancel any active keyboard drag when the component unmounts to prevent ghost drag state
     useEffect(() => {
         return () => {
-            if (typeof document === 'undefined' || !isDraggingRef.current) {
+            if (!isDraggingRef.current) {
                 return;
             }
-            document.dispatchEvent(
-                new KeyboardEvent('keydown', {key: CONST.KEYBOARD_SHORTCUTS.ESCAPE.shortcutKey, code: CONST.KEYBOARD_SHORTCUTS.ESCAPE.shortcutKey, bubbles: true, cancelable: true}),
-            );
+            cancelDndKeyboardDrag();
         };
     }, []);
 

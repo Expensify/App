@@ -1,3 +1,4 @@
+import {isCancellingDndKeyboardDrag} from '@libs/cancelDndKeyboardDrag';
 import getKeyEventModifiers from '@libs/KeyboardShortcut/getKeyEventModifiers';
 import isEnterWhileComposition from '@libs/KeyboardShortcut/isEnterWhileComposition';
 import CONST from '@src/CONST';
@@ -8,6 +9,13 @@ import type BindHandlerToKeydownEvent from './types';
  */
 const bindHandlerToKeydownEvent: BindHandlerToKeydownEvent = (getDisplayName, eventHandlers, keyCommandEvent, event) => {
     if (!(event instanceof KeyboardEvent) || isEnterWhileComposition(event)) {
+        return;
+    }
+
+    // A synthetic Escape dispatched by cancelDndKeyboardDrag is only meant for
+    // the dnd-kit KeyboardSensor. Skip the entire shortcut system so no handler
+    // (EscapeHandler, SidePanelModal, etc.) triggers navigation side-effects.
+    if (isCancellingDndKeyboardDrag()) {
         return;
     }
 
