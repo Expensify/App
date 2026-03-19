@@ -40,7 +40,9 @@ Anyone can enable Two-Factor Authentication on their own account. Domain Admins 
 
 If a member loses access to their authenticator app or recovery codes, you can reset their 2FA if: 
 - They use a company email on your verified domain, **and**
-- You (the Domain Admin) also have 2FA enabled
+- You (the Domain Admin) have 2FA enabled on your own account
+
+**Note:** Domain-level 2FA does not need to be enabled — only the admin performing the reset needs 2FA on their own account.
 
 To reset a member’s 2FA settings:
 
