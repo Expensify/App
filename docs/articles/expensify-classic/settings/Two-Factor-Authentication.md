@@ -49,11 +49,6 @@ To reset a member’s 2FA settings:
 3. Click **Reset** to disable 2FA.
 4. The member can now log in and set up 2FA again.
 
-If your domain doesn't have 2FA enabled yet:
-
-1. Go to **Settings > Domains > Domain Members**.
-2. Enable **Two-Factor Authentication**.
-3. Then follow the steps above to reset 2FA for the member.
 
 ---
 
