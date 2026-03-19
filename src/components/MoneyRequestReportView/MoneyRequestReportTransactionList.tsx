@@ -252,18 +252,16 @@ function MoneyRequestReportTransactionList({
     const isExpenseReportViewFromIOUReport = isIOUReport(report);
     const shouldShowBillableColumn = isBillableEnabledOnPolicy(policy);
     const columnsToShow = useMemo(() => {
-        return getColumnsToShow(
-            currentUserDetails?.accountID,
-            transactions,
-            (reportDetailsColumns ?? []) as SearchCustomColumnIds[],
-            true,
-            undefined,
-            undefined,
+        return getColumnsToShow({
+            currentAccountID: currentUserDetails?.accountID,
+            data: transactions,
+            visibleColumns: (reportDetailsColumns ?? []) as SearchCustomColumnIds[],
+            isExpenseReportView: true,
             isExpenseReportViewFromIOUReport,
             shouldShowBillableColumn,
-            hasNonReimbursableTransactions(transactions),
-            report?.currency,
-        );
+            shouldShowReimbursableColumn: hasNonReimbursableTransactions(transactions),
+            reportCurrency: report?.currency,
+        });
     }, [transactions, currentUserDetails?.accountID, isExpenseReportViewFromIOUReport, shouldShowBillableColumn, reportDetailsColumns, report?.currency]);
 
     const {windowWidth, windowHeight} = useWindowDimensions();
