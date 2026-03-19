@@ -17,6 +17,7 @@ type WorkspaceConfirmationForTravelPageProps = StackScreenProps<TravelNavigatorP
 
 function WorkspaceConfirmationForTravelPage({route}: WorkspaceConfirmationForTravelPageProps) {
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
 
@@ -38,6 +39,7 @@ function WorkspaceConfirmationForTravelPage({route}: WorkspaceConfirmationForTra
             activePolicyID,
             currentUserAccountIDParam: currentUserPersonalDetails.accountID,
             currentUserEmailParam: currentUserPersonalDetails.email ?? '',
+            betas,
             isSelfTourViewed,
         });
         goBack();
