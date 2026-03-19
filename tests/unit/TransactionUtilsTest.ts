@@ -2951,55 +2951,33 @@ describe('TransactionUtils', () => {
             expect(TransactionUtils.getExchangeRate(transaction)).toBe('');
         });
 
-        it('computes exchange rate from convertedAmount and amount when groupExchangeRate is missing', () => {
+        it('returns currencyConversionRate string when groupExchangeRate is missing but currencyConversionRate is set', () => {
             const transaction = generateTransaction({
                 currency: 'USD',
-                amount: 1000,
-                convertedAmount: 850,
+                currencyConversionRate: '0.85',
+                groupCurrency: 'EUR',
             });
 
-            const result = TransactionUtils.getExchangeRate(transaction, 'EUR');
-            expect(result).toBe('0.8500 EUR/USD');
+            expect(TransactionUtils.getExchangeRate(transaction)).toBe('0.85 USD/EUR');
         });
 
-        it('returns empty string when convertedCurrency equals transactionCurrency', () => {
+        it('returns empty string when currencyConversionRate is 1', () => {
             const transaction = generateTransaction({
                 currency: 'USD',
-                amount: 1000,
-                convertedAmount: 1000,
+                currencyConversionRate: '1',
+                groupCurrency: 'EUR',
             });
 
-            expect(TransactionUtils.getExchangeRate(transaction, 'USD')).toBe('');
+            expect(TransactionUtils.getExchangeRate(transaction)).toBe('');
         });
 
-        it('returns empty string when convertedAmount is 0', () => {
+        it('returns empty string when currencyConversionRate is undefined and groupExchangeRate is missing', () => {
             const transaction = generateTransaction({
                 currency: 'USD',
-                amount: 1000,
-                convertedAmount: 0,
+                currencyConversionRate: undefined,
             });
 
-            expect(TransactionUtils.getExchangeRate(transaction, 'EUR')).toBe('');
-        });
-
-        it('returns empty string when amount is 0', () => {
-            const transaction = generateTransaction({
-                currency: 'USD',
-                amount: 0,
-                convertedAmount: 850,
-            });
-
-            expect(TransactionUtils.getExchangeRate(transaction, 'EUR')).toBe('');
-        });
-
-        it('returns empty string when computed rate equals 1', () => {
-            const transaction = generateTransaction({
-                currency: 'USD',
-                amount: 1000,
-                convertedAmount: 1000,
-            });
-
-            expect(TransactionUtils.getExchangeRate(transaction, 'EUR')).toBe('');
+            expect(TransactionUtils.getExchangeRate(transaction)).toBe('');
         });
 
         it('uses fromCurrency as toCurrency when groupCurrency is not set', () => {
@@ -3013,15 +2991,15 @@ describe('TransactionUtils', () => {
             expect(TransactionUtils.getExchangeRate(transaction)).toBe('2.5 USD/USD');
         });
 
-        it('handles negative amounts correctly using absolute values', () => {
+        it('prefers groupExchangeRate over currencyConversionRate when both are set', () => {
             const transaction = generateTransaction({
                 currency: 'USD',
-                amount: -1000,
-                convertedAmount: -850,
+                groupExchangeRate: 1.25,
+                currencyConversionRate: '0.85',
+                groupCurrency: 'EUR',
             });
 
-            const result = TransactionUtils.getExchangeRate(transaction, 'EUR');
-            expect(result).toBe('0.8500 EUR/USD');
+            expect(TransactionUtils.getExchangeRate(transaction)).toBe('1.25 USD/EUR');
         });
     });
 });

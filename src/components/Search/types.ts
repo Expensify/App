@@ -76,6 +76,9 @@ type SelectedTransactionInfo = {
     /** The exchange rate of the transaction if the transaction is grouped. Defaults to the exchange rate against the active policy currency if group has no target currency */
     groupExchangeRate?: number;
 
+    /** The currency conversion rate from the transaction currency to the report currency */
+    currencyConversionRate?: string;
+
     /** Whether it is the only expense of the parent expense report */
     isFromOneTransactionReport: boolean;
 

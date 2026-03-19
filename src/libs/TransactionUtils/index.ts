@@ -1311,33 +1311,22 @@ function getTagArrayFromName(tagName: string): string[] {
 }
 
 /**
- * Returns the exchange rate for a transaction, based on its group or computed from convertedAmount
+ * Returns the exchange rate for a transaction, based on its group or currencyConversionRate
  */
 function getExchangeRate(transaction: TransactionWithOptionalSearchFields, reportCurrency?: string) {
     const fromCurrency = getCurrency(transaction);
-    const toCurrency = transaction.groupCurrency ?? fromCurrency;
+    const toCurrency = transaction.groupCurrency ?? reportCurrency ?? fromCurrency;
 
     if (transaction.groupExchangeRate && Number(transaction.groupExchangeRate) !== 1) {
         return `${transaction.groupExchangeRate} ${fromCurrency}/${toCurrency}`;
     }
 
-    // Fallback: compute exchange rate from convertedAmount and amount.
-    // convertedAmount is in the report's currency, amount is in the transaction's currency.
-    const transactionCurrency = fromCurrency;
-    const convertedCurrency = reportCurrency ?? '';
-    const convertedAmount = Math.abs(transaction.convertedAmount ?? 0);
-    const amount = Math.abs(getAmount(transaction, false)) || Math.abs(transaction.amount ?? 0);
-
-    if (!convertedCurrency || !convertedAmount || !amount || convertedCurrency === transactionCurrency) {
+    const rate = Number(transaction.currencyConversionRate);
+    if (!rate || rate === 1) {
         return '';
     }
 
-    const computedRate = convertedAmount / amount;
-    if (computedRate === 1) {
-        return '';
-    }
-
-    return `${computedRate.toFixed(4)} ${transactionCurrency}/${convertedCurrency}`;
+    return `${rate} ${fromCurrency}/${toCurrency}`;
 }
 
 /**
