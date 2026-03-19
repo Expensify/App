@@ -1,10 +1,10 @@
 diff --git a/node_modules/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTFontUtils.mm b/node_modules/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTFontUtils.mm
-index 39093ef..36cb558 100644
+index 9b04cad..407ef5d 100644
 --- a/node_modules/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTFontUtils.mm
 +++ b/node_modules/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTFontUtils.mm
-@@ -38,9 +38,6 @@ static RCTFontProperties RCTResolveFontProperties(
+@@ -40,9 +40,6 @@ static RCTFontProperties RCTResolveFontProperties(
  {
-   fontProperties.family = fontProperties.family.length ? fontProperties.family : baseFontProperties.family;
+   fontProperties.family = (fontProperties.family.length != 0u) ? fontProperties.family : baseFontProperties.family;
    fontProperties.size = !isnan(fontProperties.size) ? fontProperties.size : baseFontProperties.size;
 -  fontProperties.weight = !isnan(fontProperties.weight) ? fontProperties.weight : baseFontProperties.weight;
 -  fontProperties.style =
@@ -12,7 +12,7 @@ index 39093ef..36cb558 100644
    fontProperties.variant =
        fontProperties.variant != RCTFontVariantUndefined ? fontProperties.variant : baseFontProperties.variant;
    return fontProperties;
-@@ -319,10 +316,14 @@ UIFont *RCTFontWithFontProperties(RCTFontProperties fontProperties)
+@@ -350,10 +347,14 @@ UIFont *RCTFontWithFontProperties(RCTFontProperties fontProperties)
    } else if ([fontProperties.family isEqualToString:defaultFontProperties.family]) {
      // Handle system font as special case. This ensures that we preserve
      // the specific metrics of the standard system font as closely as possible.
@@ -27,13 +27,13 @@ index 39093ef..36cb558 100644
  
      if (fontNames.count == 0) {
        // Gracefully handle being given a font name rather than font family, for
-@@ -335,15 +336,18 @@ UIFont *RCTFontWithFontProperties(RCTFontProperties fontProperties)
+@@ -366,15 +367,18 @@ UIFont *RCTFontWithFontProperties(RCTFontProperties fontProperties)
          // Failback to system font.
-         font = [UIFont systemFontOfSize:effectiveFontSize weight:fontProperties.weight];
+         font = RCTDefaultFontWithFontProperties(fontProperties);
        }
 +      fontNames = [UIFont fontNamesForFamilyName:font.familyName];
-+      fontWeight = isnan(fontWeight) ? RCTGetFontWeight(font) : fontWeight;
-+      fontStyle = fontStyle == RCTFontStyleUndefined ? RCTGetFontStyle(font) : fontStyle;
++          fontWeight = isnan(fontWeight) ? RCTGetFontWeight(font) : fontWeight;
++          fontStyle = fontStyle == RCTFontStyleUndefined ? RCTGetFontStyle(font) : fontStyle;
      }
  
 -    if (fontNames.count > 0) {
