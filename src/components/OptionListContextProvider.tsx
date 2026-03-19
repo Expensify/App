@@ -183,7 +183,7 @@ function OptionsListContextProvider({children}: OptionsListProviderProps) {
                 reports: Array.from(updatedReportsMap.values()),
             };
         });
-    }, [changedReportActions, personalDetails, currentUserAccountID, reports, reportAttributes?.reports, privateIsArchivedMap]);
+    }, [changedReportActions, personalDetails, currentUserAccountID, reports, allPolicies, reportAttributes?.reports, privateIsArchivedMap]);
 
     /**
      * This effect is used to update the options list when personal details change.

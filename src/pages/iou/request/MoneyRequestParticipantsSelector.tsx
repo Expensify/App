@@ -405,6 +405,7 @@ function MoneyRequestParticipantsSelector({
         availableOptions.recentReports,
         availableOptions.personalDetails,
         userToInviteExpenseReport,
+        userToInviteExpenseReportPolicy,
         isWorkspacesOnly,
         loginList,
         isPerDiemRequest,
