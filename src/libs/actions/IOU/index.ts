@@ -13206,7 +13206,22 @@ function updateMultipleMoneyRequests({transactionIDs, changes, policy, reports, 
         const isFromExpenseReport = isExpenseReport(baseIouReport);
 
         const transactionReportActions = reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transaction.reportID}`] ?? {};
-        const reportAction = getIOUActionForTransactionID(Object.values(transactionReportActions), transactionID);
+        let reportAction = getIOUActionForTransactionID(Object.values(transactionReportActions), transactionID);
+
+        // Track expenses created via self DM are stored with reportID = UNREPORTED_REPORT_ID ('0')
+        // because they have never been submitted to a report. As a result, the lookup above returns
+        // nothing — the IOU action is stored under the self DM report (chat with yourself, unique
+        // per user) rather than under transaction.reportID. Without this fallback we cannot resolve
+        // the transaction thread, which means no optimistic MODIFIED_EXPENSE comment would be
+        // generated during bulk edit for these expenses.
+        if (!reportAction && (!transaction.reportID || transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID)) {
+            const selfDMReportID = findSelfDMReportID(reports);
+            if (selfDMReportID) {
+                const selfDMReportActions = reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReportID}`] ?? {};
+                reportAction = getIOUActionForTransactionID(Object.values(selfDMReportActions), transactionID);
+            }
+        }
+
         let transactionThreadReportID = transaction.transactionThreadReportID ?? reportAction?.childReportID;
         let transactionThread = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`] ?? null;
 
@@ -13234,6 +13249,7 @@ function updateMultipleMoneyRequests({transactionIDs, changes, policy, reports, 
             if (isUnreportedExpense) {
                 return true;
             }
+
             return canEditFieldOfMoneyRequest(reportAction, field, undefined, false, undefined, transaction, iouReport, transactionPolicy);
         };
 
@@ -13268,6 +13284,11 @@ function updateMultipleMoneyRequests({transactionIDs, changes, policy, reports, 
             const taxAmount = calculateTaxAmount(taxValue, effectiveAmount, decimals);
             transactionChanges.taxAmount = convertToBackendAmount(taxAmount);
         }
+
+        console.log('supportsExpenseFields', supportsExpenseFields);
+        console.log('changes.billable', changes.billable);
+        console.log('reimbursable', changes.reimbursable);
+
         if (changes.billable !== undefined && supportsExpenseFields && canEditField(CONST.EDIT_REQUEST_FIELD.BILLABLE)) {
             transactionChanges.billable = changes.billable;
         }
