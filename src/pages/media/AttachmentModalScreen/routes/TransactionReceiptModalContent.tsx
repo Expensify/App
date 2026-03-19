@@ -521,9 +521,16 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
                                           Navigation.getActiveRoute(),
                                       );
                             };
+                            if (isNative) {
+                                Navigation.goBack();
+                                Navigation.setNavigationActionToMicrotaskQueue(() => {
+                                    Navigation.navigate(getDestinationRoute());
+                                });
+                                return;
+                            }
 
                             Navigation.dismissModal({
-                                afterTransition: () => Navigation.navigate(getDestinationRoute()),
+                                callback: () => Navigation.navigate(getDestinationRoute()),
                             });
                         }}
                         text={translate('common.replace')}
