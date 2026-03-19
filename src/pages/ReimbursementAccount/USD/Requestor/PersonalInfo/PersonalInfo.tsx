@@ -55,6 +55,7 @@ function PersonalInfo({onBackButtonPress, ref}: PersonalInfoProps) {
         prevScreen,
         moveTo,
         goToTheLastStep,
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     } = useSubStep({bodyContent, startFrom, onFinished: () => submit(true), onNextSubStep: () => submit(false)});
 
     const handleBackButtonPress = () => {
