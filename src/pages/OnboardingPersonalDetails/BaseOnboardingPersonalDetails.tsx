@@ -10,6 +10,7 @@ import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import useArchivedReportsIdSet from '@hooks/useArchivedReportsIdSet';
+import useAutoCreateTrackWorkspace from '@hooks/useAutoCreateTrackWorkspace';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useOnboardingMessages from '@hooks/useOnboardingMessages';
@@ -20,13 +21,11 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {addErrorMessage} from '@libs/ErrorUtils';
 import {navigateAfterOnboardingWithMicrotaskQueue} from '@libs/navigateAfterOnboarding';
 import Navigation from '@libs/Navigation/Navigation';
-import {isPaidGroupPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
 import {hasURL} from '@libs/Url';
 import {isCurrentUserValidated} from '@libs/UserUtils';
 import {doesContainReservedWord, isValidDisplayName} from '@libs/ValidationUtils';
 import {clearPersonalDetailsDraft, setPersonalDetails} from '@userActions/Onboarding';
 import {setDisplayName, updateDisplayName} from '@userActions/PersonalDetails';
-import {createWorkspace, generatePolicyID} from '@userActions/Policy/Policy';
 import {completeOnboarding as completeOnboardingReport} from '@userActions/Report';
 import {setOnboardingAdminsChatReportID, setOnboardingErrorMessage, setOnboardingPolicyID} from '@userActions/Welcome';
 import CONST from '@src/CONST';
@@ -52,8 +51,7 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [onboardingPersonalDetailsForm] = useOnyx(ONYXKEYS.FORMS.ONBOARDING_PERSONAL_DETAILS_FORM);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
-    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
-    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
+    const autoCreateTrackWorkspace = useAutoCreateTrackWorkspace();
 
     // When we merge public email with work email, we now want to navigate to the
     // concierge chat report of the new work email and not the last accessed report.
@@ -138,54 +136,7 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
 
             if (onboardingPurposeSelected === CONST.ONBOARDING_CHOICES.PERSONAL_SPEND) {
                 updateDisplayName(firstName, lastName, formatPhoneNumber, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, session?.email ?? '');
-
-                const paidGroupPolicy = Object.values(allPolicies ?? {}).find((policy) => isPaidGroupPolicy(policy) && isPolicyAdmin(policy, session?.email));
-                const shouldCreateWorkspace = !onboardingPolicyID && !paidGroupPolicy;
-
-                const {adminsChatReportID: newAdminsChatReportID, policyID: newPolicyID} = shouldCreateWorkspace
-                    ? createWorkspace({
-                          policyOwnerEmail: undefined,
-                          makeMeAdmin: true,
-                          policyName: `${firstName}'s Workspace`,
-                          policyID: generatePolicyID(),
-                          engagementChoice: CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE,
-                          currency: currentUserPersonalDetails.localCurrencyCode ?? CONST.CURRENCY.USD,
-                          file: undefined,
-                          shouldAddOnboardingTasks: false,
-                          introSelected,
-                          activePolicyID,
-                          currentUserAccountIDParam: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
-                          currentUserEmailParam: session?.email ?? '',
-                          shouldAddGuideWelcomeMessage: false,
-                          onboardingPurposeSelected,
-                          isSelfTourViewed,
-                      })
-                    : {adminsChatReportID: onboardingAdminsChatReportID, policyID: onboardingPolicyID};
-
-                completeOnboardingReport({
-                    engagementChoice: CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE,
-                    onboardingMessage: onboardingMessages[CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE],
-                    firstName,
-                    lastName,
-                    adminsChatReportID: newAdminsChatReportID,
-                    onboardingPolicyID: newPolicyID,
-                    introSelected,
-                    isSelfTourViewed,
-                    betas,
-                });
-
-                setOnboardingAdminsChatReportID();
-                setOnboardingPolicyID();
-
-                navigateAfterOnboardingWithMicrotaskQueue(
-                    isSmallScreenWidth,
-                    isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS),
-                    conciergeChatReportID,
-                    archivedReportsIdSet,
-                    newPolicyID,
-                    mergedAccountConciergeReportID,
-                    false,
-                );
+                autoCreateTrackWorkspace(firstName, lastName, onboardingPurposeSelected);
                 return;
             }
 
@@ -208,20 +159,7 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
             completeOnboarding,
             isValidated,
             route.params?.backTo,
-            allPolicies,
-            onboardingPolicyID,
-            onboardingAdminsChatReportID,
-            currentUserPersonalDetails.localCurrencyCode,
-            introSelected,
-            activePolicyID,
-            isSelfTourViewed,
-            onboardingMessages,
-            betas,
-            isSmallScreenWidth,
-            isBetaEnabled,
-            conciergeChatReportID,
-            archivedReportsIdSet,
-            mergedAccountConciergeReportID,
+            autoCreateTrackWorkspace,
         ],
     );
 
