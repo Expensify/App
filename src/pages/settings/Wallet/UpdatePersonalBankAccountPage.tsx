@@ -91,13 +91,22 @@ function UpdatePersonalBankAccountPage() {
     const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
     const [personalBankAccountDraft] = useOnyx(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM_DRAFT);
     const [homeAddressDraft] = useOnyx(ONYXKEYS.FORMS.HOME_ADDRESS_FORM_DRAFT);
-    const [personalBankAccount] = useOnyx(ONYXKEYS.PERSONAL_BANK_ACCOUNT);
+    const [personalBankAccount, personalBankAccountResult] = useOnyx(ONYXKEYS.PERSONAL_BANK_ACCOUNT);
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
 
     const shouldShowSuccess = personalBankAccount?.shouldShowSuccess ?? false;
     const bankAccountID = personalBankAccount?.bankAccountID;
+    const isPersonalBankAccountLoaded = personalBankAccountResult.status === 'loaded';
 
     useEffect(() => clearPersonalBankAccount, []);
+
+    useEffect(() => {
+        if (!isPersonalBankAccountLoaded || bankAccountID) {
+            return;
+        }
+
+        Navigation.goBack(ROUTES.SETTINGS_WALLET);
+    }, [isPersonalBankAccountLoaded, bankAccountID]);
 
     const completedSteps = bankAccountID ? getCompletedStepsForBankAccount(bankAccountList, bankAccountID) : [];
 
