@@ -452,6 +452,8 @@ const translations: TranslationDeepObject<typeof en> = {
         downloadAsCSV: '下载为 CSV',
         print: '打印',
         help: '帮助',
+        collapsed: '已折叠',
+        expanded: '已展开',
         expenseReport: '报销报告',
         expenseReports: '报销报告',
         rateOutOfPolicy: '超出政策的费率',
@@ -520,6 +522,7 @@ const translations: TranslationDeepObject<typeof en> = {
         concierge: {sidePanelGreeting: '你好，我能帮你做什么？', showHistory: '显示历史'},
         duplicateReport: '重复报销单',
         approver: '审批人',
+        copyOfReportName: (reportName: string) => `${reportName} 的副本`,
     },
     socials: {
         podcast: '在播客上关注我们',
