@@ -196,6 +196,7 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
     ) : (
         !!icon && <ButtonComposed.IconLeft src={icon} />
     );
+    const firstOptionIcon = options.at(0)?.icon;
     const focusDropdownAnchor = useCallback(() => {
         const anchor = dropdownAnchor.current;
 
@@ -297,31 +298,47 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
                     )}
                 </View>
             ) : (
-                <Button
-                    success={success}
-                    ref={buttonRef}
+                <ButtonComposed
+                    variant={success ? 'success' : undefined}
                     pressOnEnter={pressOnEnter}
+                    ref={buttonRef}
+                    onPress={handleSingleOptionPress}
                     isDisabled={isDisabled || !!options.at(0)?.disabled}
                     shouldStayNormalOnDisable={shouldStayNormalOnDisable}
-                    style={[styles.w100, style]}
-                    disabledStyle={disabledStyle}
                     isLoading={isLoading}
-                    text={selectedItem?.text}
-                    onPress={handleSingleOptionPress}
-                    extraSmall={buttonSize === CONST.DROPDOWN_BUTTON_SIZE.EXTRA_SMALL}
-                    large={buttonSize === CONST.DROPDOWN_BUTTON_SIZE.LARGE}
-                    medium={buttonSize === CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
-                    small={buttonSize === CONST.DROPDOWN_BUTTON_SIZE.SMALL}
+                    style={[styles.w100, style]}
+                    size={buttonSize}
                     innerStyles={[innerStyleDropButton, shouldShowButtonRightIcon && styles.dropDownButtonCartIconView]}
-                    iconRightStyles={shouldShowButtonRightIcon && styles.ml2}
+                    disabledStyle={disabledStyle}
                     enterKeyEventListenerPriority={enterKeyEventListenerPriority}
-                    secondLineText={secondLineText}
-                    icon={shouldUseOptionIcon && !shouldShowButtonRightIcon ? options.at(0)?.icon : icon}
-                    iconRight={shouldShowButtonRightIcon ? options.at(0)?.icon : undefined}
-                    shouldShowRightIcon={shouldShowButtonRightIcon}
                     testID={testID}
                     sentryLabel={sentryLabel}
-                />
+                >
+                    {shouldUseOptionIcon && !shouldShowButtonRightIcon
+                        ? !!firstOptionIcon && <ButtonComposed.IconLeft src={firstOptionIcon} />
+                        : !!icon && <ButtonComposed.IconLeft src={icon} />}
+                    {secondLineText ? (
+                        <View style={[styles.alignItemsCenter, styles.flexColumn, styles.flexShrink1, styles.mw100]}>
+                            <ButtonComposed.Text style={styles.noPaddingBottom}>{selectedItem?.text ?? ''}</ButtonComposed.Text>
+                            <Text
+                                style={[styles.pointerEventsNone, styles.fontWeightNormal, styles.textDoubleDecker, styles.textExtraSmallSupporting, styles.textWhite, styles.textBold]}
+                                numberOfLines={1}
+                            >
+                                {secondLineText}
+                            </Text>
+                        </View>
+                    ) : (
+                        <ButtonComposed.Text style={isTextTooLong && shouldUseShortForm ? {...styles.textExtraSmall, ...styles.textBold} : {}}>
+                            {customText ?? selectedItem?.text ?? ''}
+                        </ButtonComposed.Text>
+                    )}
+                    {shouldShowButtonRightIcon && !!firstOptionIcon && (
+                        <ButtonComposed.IconRight
+                            src={firstOptionIcon}
+                            style={styles.ml2}
+                        />
+                    )}
+                </ButtonComposed>
             )}
             {(shouldAlwaysShowDropdownMenu || options.length > 1) && !!popoverAnchorPosition && (
                 <PopoverMenu

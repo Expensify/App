@@ -16,9 +16,13 @@ type ButtonComposedTextProps = {
 
     /** Additional text styles */
     style?: StyleProp<TextStyle>;
+
+    /** Additional text styles to apply when the button is hovered. */
+    hoverStyle?: StyleProp<TextStyle>;
 };
 
-function ButtonComposedText({children, numberOfLines = 1, style}: ButtonComposedTextProps) {
+// TODO: resolve !!icon && styles.textAlignLeft style
+function ButtonComposedText({children, numberOfLines = 1, style, hoverStyle}: ButtonComposedTextProps) {
     const {isLoading, variant, size, isHovered} = useButtonComposedContext();
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -40,6 +44,7 @@ function ButtonComposedText({children, numberOfLines = 1, style}: ButtonComposed
                 variant === 'danger' && styles.buttonDangerText,
                 variant === 'link' && [styles.fontWeightNormal, styles.fontSizeLabel, styles.link, isHovered && StyleUtils.getColorStyle(theme.linkHover)],
                 style,
+                isHovered && hoverStyle,
             ]}
             dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
         >

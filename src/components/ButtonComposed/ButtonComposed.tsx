@@ -337,12 +337,12 @@ function ButtonComposed({
                 <ButtonComposedContext.Provider value={contextValue}>
                     <View
                         style={[
+                            styles.mw100,
                             styles.flexRow,
+                            styles.flexShrink1,
                             styles.alignItemsCenter,
                             isContentCentered ? styles.justifyContentCenter : styles.justifyContentBetween,
                             contentContainerStyle,
-                            styles.mw100,
-                            isLoading && styles.opacity0,
                         ]}
                     >
                         {children}

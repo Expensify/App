@@ -47,14 +47,16 @@ function ButtonIconBase({src, style, marginStyle, hoverFill, fill}: ButtonIconBa
     );
 }
 
+// TODO: resolve !text && styles.mr0 styles
 function ButtonComposedIconLeft({src, style, hoverFill, fill}: ButtonComposedIconProps) {
     const styles = useThemeStyles();
-    const {size} = useButtonComposedContext();
+    const {size, isLoading} = useButtonComposedContext();
 
     return (
         <ButtonIconBase
-            {...{src, style, hoverFill, fill}}
+            {...{src, hoverFill, fill}}
             marginStyle={size === CONST.DROPDOWN_BUTTON_SIZE.EXTRA_SMALL ? styles.mr1 : styles.mr2}
+            style={[isLoading && styles.opacity0, style]}
         />
     );
 }
