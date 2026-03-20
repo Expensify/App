@@ -12,8 +12,8 @@ import Navigation from '@libs/Navigation/Navigation';
 import {endSpan} from '@libs/telemetry/activeSpans';
 import withFullTransactionOrNotFound from '@pages/iou/request/step/withFullTransactionOrNotFound';
 import withWritableReportOrNotFound from '@pages/iou/request/step/withWritableReportOrNotFound';
-import {checkIfScanFileCanBeRead, replaceReceipt, updateLastLocationPermissionPrompt} from '@userActions/IOU';
-import {removeDraftTransactions, removeTransactionReceipt} from '@userActions/TransactionEdit';
+import {checkIfLocalFileIsAccessible, replaceReceipt, updateLastLocationPermissionPrompt} from '@userActions/IOU';
+import {removeDraftTransactionsByIDs, removeTransactionReceipt} from '@userActions/TransactionEdit';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {FileObject} from '@src/types/utils/Attachment';
@@ -112,7 +112,7 @@ function IOURequestStepScan({
                     isAllScanFilesCanBeRead = false;
                 };
 
-                return checkIfScanFileCanBeRead(item.receipt?.filename, itemReceiptPath, item.receipt?.type, () => {}, onFailure);
+                return checkIfLocalFileIsAccessible(item.receipt?.filename, itemReceiptPath, item.receipt?.type, () => {}, onFailure);
             }),
         ).then(() => {
             if (isAllScanFilesCanBeRead) {
@@ -120,7 +120,7 @@ function IOURequestStepScan({
             }
             setIsMultiScanEnabled?.(false);
             removeTransactionReceipt(CONST.IOU.OPTIMISTIC_TRANSACTION_ID);
-            removeDraftTransactions(true);
+            removeDraftTransactionsByIDs(transactions.map((t) => t.transactionID));
         });
         // We want this hook to run on mounting only
         // eslint-disable-next-line react-hooks/exhaustive-deps

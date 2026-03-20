@@ -1,7 +1,7 @@
 import {useEffect} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
-import {checkIfScanFileCanBeRead, setMoneyRequestReceipt} from '@libs/actions/IOU';
-import {removeDraftTransactions} from '@libs/actions/TransactionEdit';
+import {checkIfLocalFileIsAccessible, setMoneyRequestReceipt} from '@libs/actions/IOU';
+import {removeDraftTransactionsByIDs} from '@libs/actions/TransactionEdit';
 import {isLocalFile as isLocalFileUtil} from '@libs/fileDownload/FileUtils';
 import {navigateToStartMoneyRequestStep} from '@libs/IOUUtils';
 import {getRequestType} from '@libs/TransactionUtils';
@@ -34,13 +34,13 @@ const useRestartOnReceiptFailure = (transaction: OnyxEntry<Transaction>, reportI
             setMoneyRequestReceipt(transaction.transactionID, '', '', true);
         };
 
-        checkIfScanFileCanBeRead(itemReceiptFilename, itemReceiptPath, itemReceiptType, () => {}, onFailure)?.then(() => {
+        checkIfLocalFileIsAccessible(itemReceiptFilename, itemReceiptPath, itemReceiptType, () => {}, onFailure)?.then(() => {
             const requestType = getRequestType(transaction);
             if (isScanFilesCanBeRead || requestType !== CONST.IOU.REQUEST_TYPE.SCAN) {
                 return;
             }
 
-            removeDraftTransactions(true);
+            removeDraftTransactionsByIDs([transaction.transactionID]);
             navigateToStartMoneyRequestStep(requestType, iouType, transaction.transactionID, reportID);
         });
 

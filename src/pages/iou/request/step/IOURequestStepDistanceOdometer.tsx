@@ -21,6 +21,7 @@ import usePolicy from '@hooks/usePolicy';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import useReportAttributes from '@hooks/useReportAttributes';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useRestartOnOdometerImagesFailure from '@hooks/useRestartOnOdometerImagesFailure';
 import useSelfDMReport from '@hooks/useSelfDMReport';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -147,6 +148,8 @@ function IOURequestStepDistanceOdometer({
     useEffect(() => {
         setShouldEnableDiscardConfirmation(!isEditingConfirmation && !isEditing);
     }, [isEditing, isEditingConfirmation]);
+
+    useRestartOnOdometerImagesFailure(transaction, reportID, iouType, action);
 
     // Get odometer images from transaction (only for display, not for initialization)
     const odometerStartImage = transaction?.comment?.odometerStartImage;
