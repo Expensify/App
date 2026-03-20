@@ -35,6 +35,15 @@ Onyx.connectWithoutView({
     callback: (value) => (allReports = value),
 });
 
+// We use connectWithoutView because `initSplitExpense` doesn't affect the UI rendering and
+// this avoids unnecessary re-rendering for components when the selfDM report ID changes. This data should ONLY
+// be used for `initSplitExpense`
+let selfDMReportID: string | undefined;
+Onyx.connectWithoutView({
+    key: ONYXKEYS.SELF_DM_REPORT_ID,
+    callback: (value) => (selfDMReportID = value ?? undefined),
+});
+
 /**
  * Create a draft transaction to set up split expense details for the split expense flow
  */
@@ -66,7 +75,16 @@ function initSplitExpense(transaction: OnyxEntry<Transaction>, policy?: OnyxEntr
         const transactionDetails = getTransactionDetails(originalTransaction);
         const splitExpenses = relatedTransactions.map((currentTransaction) => {
             const currentTransactionReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${currentTransaction?.reportID}`];
-            return initSplitExpenseItemData(currentTransaction, currentTransactionReport, {isManuallyEdited: true, reportID: isSelfDMReport ? reportID : undefined});
+            let itemReportID: string | undefined;
+            if (isSelfDMReport) {
+                itemReportID = reportID;
+            } else if (currentTransaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
+                // For unreported (selfDM) transactions viewed from a workspace context,
+                // use the selfDM report ID from Onyx so that SplitExpenseEditPage can
+                // resolve the correct report and show the edit screen.
+                itemReportID = selfDMReportID;
+            }
+            return initSplitExpenseItemData(currentTransaction, currentTransactionReport, {isManuallyEdited: true, reportID: itemReportID});
         });
         const draftTransaction = buildOptimisticTransaction({
             originalTransactionID,

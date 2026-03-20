@@ -1180,6 +1180,14 @@ function updateSplitTransactions({
         let isSelfDMSplit = splitExpense.reportID === CONST.REPORT.UNREPORTED_REPORT_ID || splitTransaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
         let selfDMReportID: string | undefined = isSelfDMSplit ? originalSelfDMReportID : undefined;
 
+        // If the split is selfDM but we couldn't derive the selfDM report ID from the transaction
+        // context (e.g. saving from a workspace split screen where none of transactionReport/
+        // expenseReport/chatReport are selfDM), fall back to finding it in allReportsList.
+        if (isSelfDMSplit && !selfDMReportID) {
+            const foundSelfDMReport = Object.values(allReportsList ?? {}).find((r) => isSelfDM(r));
+            selfDMReportID = foundSelfDMReport?.reportID;
+        }
+
         // If not already determined as selfDM, check the report hierarchy
         if (!isSelfDMSplit) {
             const splitExpenseReport = getReportOrDraftReport(splitExpense.reportID);
