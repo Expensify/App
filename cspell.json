@@ -736,7 +736,6 @@
         "Tele",
         "Teleproduction",
         "testflight",
-        "THRESHHOLD",
         "TIMATIC",
         "Timothée",
         "tnode",
@@ -862,7 +861,8 @@
         "zoneinfo",
         "zxcv",
         "zxldvw",
-        "مثال"
+        "مثال",
+        "PINATM"
     ],
     "ignorePaths": [
         "src/languages/de.ts",

@@ -13,6 +13,8 @@ const ownerPoliciesSelector = (policies: OnyxCollection<Policy>, currentUserAcco
 
 const activeAdminPoliciesSelector = (policies: OnyxCollection<Policy>, currentUserAccountLogin: string) => getActiveAdminWorkspaces(policies, currentUserAccountLogin);
 
+const hasActiveAdminPoliciesSelector = (policies: OnyxCollection<Policy>, currentUserAccountLogin: string) => !!activeAdminPoliciesSelector(policies, currentUserAccountLogin).length;
+
 /**
  * Creates a selector that aggregates all non-formula policy report fields from all policies,
  * sorted alphabetically by field key using the provided locale compare function
@@ -166,6 +168,7 @@ export {
     createAllPolicyReportFieldsSelector,
     ownerPoliciesSelector,
     activeAdminPoliciesSelector,
+    hasActiveAdminPoliciesSelector,
     createPoliciesForDomainCardsSelector,
     policyTimeTrackingSelector,
     hasMultipleOutputCurrenciesSelector,

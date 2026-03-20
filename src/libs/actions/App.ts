@@ -569,6 +569,7 @@ type CreateWorkspaceWithPolicyDraftParams = {
     type?: PolicyType;
     // TODO: Remove optional (?) once allBetas Onyx.connect is removed (https://github.com/Expensify/App/issues/66417)
     betas?: OnyxEntry<OnyxTypes.Beta[]>;
+    hasActiveAdminPolicies: boolean;
     lastWorkspaceNumber: number | undefined;
 };
 
@@ -595,6 +596,7 @@ function createWorkspaceWithPolicyDraftAndNavigateToIt(params: CreateWorkspaceWi
         type,
         isSelfTourViewed,
         betas,
+        hasActiveAdminPolicies,
     } = params;
 
     const policyIDWithDefault = policyID || generatePolicyID();
@@ -622,6 +624,7 @@ function createWorkspaceWithPolicyDraftAndNavigateToIt(params: CreateWorkspaceWi
             type,
             isSelfTourViewed,
             betas,
+            hasActiveAdminPolicies,
         });
         Navigation.navigate(routeToNavigate, {forceReplace: !transitionFromOldDot});
     });
@@ -643,6 +646,7 @@ function createWorkspaceWithPolicyDraft(params: CreateWorkspaceWithPolicyDraftPa
         shouldCreateControlPolicy,
         isSelfTourViewed,
         betas,
+        hasActiveAdminPolicies,
     } = params;
 
     createDraftInitialWorkspace(introSelected, policyOwnerEmail, policyName, policyID, makeMeAdmin, currency, file);
@@ -662,6 +666,7 @@ function createWorkspaceWithPolicyDraft(params: CreateWorkspaceWithPolicyDraftPa
         shouldCreateControlPolicy,
         isSelfTourViewed,
         betas,
+        hasActiveAdminPolicies,
     });
 }
 
@@ -683,6 +688,7 @@ type SavePolicyDraftByNewWorkspaceParams = {
     type?: PolicyType;
     // TODO: Remove optional (?) once allBetas Onyx.connect is removed (https://github.com/Expensify/App/issues/66417)
     betas?: OnyxEntry<OnyxTypes.Beta[]>;
+    hasActiveAdminPolicies: boolean;
 };
 
 /**
@@ -705,6 +711,7 @@ function savePolicyDraftByNewWorkspace({
     type,
     isSelfTourViewed,
     betas,
+    hasActiveAdminPolicies,
 }: SavePolicyDraftByNewWorkspaceParams) {
     createWorkspace({
         policyOwnerEmail,
@@ -724,6 +731,7 @@ function savePolicyDraftByNewWorkspace({
         type,
         isSelfTourViewed,
         betas,
+        hasActiveAdminPolicies,
     });
 }
 
@@ -747,6 +755,7 @@ function setUpPoliciesAndNavigate(
     introSelected: OnyxEntry<OnyxTypes.IntroSelected>,
     activePolicyID: string | undefined,
     isSelfTourViewed: boolean | undefined,
+    hasActiveAdminPolicies: boolean,
     lastWorkspaceNumber: number | undefined,
 ) {
     const currentUrl = getCurrentUrl();
@@ -779,6 +788,7 @@ function setUpPoliciesAndNavigate(
             currentUserAccountIDParam: currentSessionData.accountID ?? CONST.DEFAULT_NUMBER_ID,
             currentUserEmailParam: currentSessionData.email ?? '',
             isSelfTourViewed,
+            hasActiveAdminPolicies,
             lastWorkspaceNumber,
         });
         return;
