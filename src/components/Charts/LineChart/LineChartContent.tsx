@@ -287,7 +287,7 @@ function LineChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUn
                             yAxis={[
                                 {
                                     font,
-                                    labelColor: theme.textSupporting,
+                                    labelColor: theme.transparent,
                                     formatYLabel: formatValue,
                                     tickCount: Y_AXIS_TICK_COUNT,
                                     lineWidth: Y_AXIS_LINE_WIDTH,
