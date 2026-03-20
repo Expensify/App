@@ -4,8 +4,10 @@ import type {ForwardedRef, ReactNode, RefObject} from 'react';
 import React, {createRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import {InteractionManager} from 'react-native';
 import type {StyleProp, TextInputSubmitEditingEvent, ViewStyle} from 'react-native';
+import type {ValueOf} from 'type-fest';
 import {useInputBlurActions} from '@components/InputBlurContext';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
+import {getIsRestoringKeyboardFocus} from '@components/TextInput';
 import useDebounceNonReactive from '@hooks/useDebounceNonReactive';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -100,6 +102,14 @@ type FormProviderProps<TFormID extends OnyxFormKey = OnyxFormKey> = FormProps<TF
     /** Prevents the submit button from triggering blur on mouse down. */
     shouldPreventDefaultFocusOnPressSubmit?: boolean;
 
+    /**
+     * Controls how keyboard dismissal interacts with form submission.
+     * - `DISMISS_THEN_SUBMIT` (default): waits for the keyboard to fully dismiss before calling `onSubmit`.
+     * - `SUBMIT_AND_DISMISS`: calls `onSubmit` immediately while dismissing the keyboard in parallel via `dismissKeyboardAndExecute`.
+     * - `SUBMIT_ONLY`: calls `onSubmit` immediately without any keyboard dismissal (navigation handles keyboard cleanup).
+     */
+    keyboardSubmitBehavior?: ValueOf<typeof CONST.KEYBOARD_SUBMIT_BEHAVIOR>;
+
     /** Reference to the outer element */
     ref?: ForwardedRef<FormRef>;
 };
@@ -118,6 +128,7 @@ function FormProvider({
     shouldRenderFooterAboveSubmit = false,
     shouldUseStrictHtmlTagValidation = false,
     shouldPreventDefaultFocusOnPressSubmit = false,
+    keyboardSubmitBehavior = CONST.KEYBOARD_SUBMIT_BEHAVIOR.DISMISS_THEN_SUBMIT,
     ref,
     ...rest
 }: FormProviderProps) {
@@ -261,8 +272,14 @@ function FormProvider({
                 return;
             }
 
-            KeyboardUtils.dismiss().then(() => onSubmit(trimmedStringValues));
-        }, [enabledWhenOffline, formState?.isLoading, inputValues, isLoading, network?.isOffline, onSubmit, onValidate, shouldTrimValues, hasServerError]),
+            if (keyboardSubmitBehavior === CONST.KEYBOARD_SUBMIT_BEHAVIOR.DISMISS_THEN_SUBMIT) {
+                KeyboardUtils.dismiss().then(() => onSubmit(trimmedStringValues));
+            } else if (keyboardSubmitBehavior === CONST.KEYBOARD_SUBMIT_BEHAVIOR.SUBMIT_AND_DISMISS) {
+                KeyboardUtils.dismissKeyboardAndExecute(() => onSubmit(trimmedStringValues));
+            } else {
+                onSubmit(trimmedStringValues);
+            }
+        }, [enabledWhenOffline, formState?.isLoading, inputValues, isLoading, network?.isOffline, onSubmit, onValidate, shouldTrimValues, hasServerError, keyboardSubmitBehavior]),
         1000,
         {leading: true, trailing: false},
     );
@@ -422,8 +439,8 @@ function FormProvider({
                                 return;
                             }
                             setTouchedInput(inputID);
-                            // We don't validate the form on blur in case the current screen is not focused
-                            if (shouldValidateOnBlur && isFocusedRef.current) {
+                            // Skip validation if the screen is not focused or keyboard focus is being restored (Android mWeb)
+                            if (shouldValidateOnBlur && isFocusedRef.current && !getIsRestoringKeyboardFocus()) {
                                 onValidate(inputValues, !hasServerError);
                             }
                         }, VALIDATE_DELAY);

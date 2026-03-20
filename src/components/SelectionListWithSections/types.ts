@@ -757,7 +757,7 @@ type TransactionGroupListItemProps<TItem extends ListItem> = ListItemProps<TItem
 
 type TransactionGroupListExpandedProps<TItem extends ListItem> = Pick<
     TransactionGroupListItemProps<TItem>,
-    'showTooltip' | 'canSelectMultiple' | 'onCheckboxPress' | 'columns' | 'groupBy' | 'accountID' | 'isOffline' | 'violations'
+    'showTooltip' | 'canSelectMultiple' | 'onCheckboxPress' | 'onSelectRow' | 'columns' | 'groupBy' | 'accountID' | 'isOffline' | 'violations'
 > & {
     transactions: TransactionListItemType[];
     transactionsVisibleLimit: number;
@@ -820,7 +820,7 @@ type LoadingPlaceholderComponentProps = {
     shouldStyleAsTable?: boolean;
     fixedNumItems?: number;
     speed?: number;
-    reasonAttributes?: SkeletonSpanReasonAttributes;
+    reasonAttributes: SkeletonSpanReasonAttributes;
 };
 
 type SectionWithIndexOffset<TItem extends ListItem> = Section<TItem> & {

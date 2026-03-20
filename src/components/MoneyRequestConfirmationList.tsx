@@ -495,9 +495,12 @@ function MoneyRequestConfirmationList({
         // eslint-disable-next-line react-hooks/exhaustive-deps -- we don't want this effect to run if it's just setFormError that changes
     }, [isFocused, shouldDisplayFieldError, hasSmartScanFailed, didConfirmSplit, isViolationFixed]);
 
+    const prevPolicy = usePrevious(policy);
+
     useEffect(() => {
-        // We want this effect to run only when the transaction is moving from Self DM to a expense chat
-        if (!transactionID || !isDistanceRequest || !isMovingTransactionFromTrackExpense || !isPolicyExpenseChat) {
+        // We want this effect to run when the transaction is moving from Self DM to an expense chat, or when the policy changes
+        const isPolicyChanged = prevPolicy?.id !== policy?.id;
+        if (!transactionID || !isDistanceRequest || !isPolicyExpenseChat || (!isMovingTransactionFromTrackExpense && !isPolicyChanged)) {
             return;
         }
 
@@ -514,6 +517,7 @@ function MoneyRequestConfirmationList({
         const matchingRate = Object.values(policyRates).find((policyRate) => policyRate.rate === mileageRate.rate && policyRate.unit === mileageRate.unit);
         if (matchingRate?.customUnitRateID) {
             setCustomUnitRateID(transactionID, matchingRate.customUnitRateID, transaction, policy);
+            clearFormErrors([errorKey]);
             return;
         }
 
@@ -531,6 +535,7 @@ function MoneyRequestConfirmationList({
         setFormError,
         clearFormErrors,
         transaction,
+        prevPolicy?.id,
     ]);
 
     const routeError = Object.values(transaction?.errorFields?.route ?? {}).at(0);
