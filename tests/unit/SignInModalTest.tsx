@@ -29,12 +29,12 @@ jest.mock('@libs/Network/SequentialQueue', () => ({
 }));
 
 jest.mock('@libs/Navigation/Navigation', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention -- __esModule is required by Jest to properly mock ES modules with default exports
-    __esModule: true,
-    default: {
-        dismissModal: (...args: unknown[]) => mockDismissModal(...args),
-        isNavigationReady: () => mockIsNavigationReady(),
-        goBack: (...args: unknown[]) => mockGoBack(...args),
+    dismissModal: (...args: unknown[]) => {
+        mockDismissModal(...args);
+    },
+    isNavigationReady: () => mockIsNavigationReady(),
+    goBack: (...args: unknown[]) => {
+        mockGoBack(...args);
     },
 }));
 
