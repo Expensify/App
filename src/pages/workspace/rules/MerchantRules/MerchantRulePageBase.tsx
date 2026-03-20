@@ -386,6 +386,7 @@ function MerchantRulePageBase({policyID, ruleID, titleKey, testID}: MerchantRule
                 testID={testID}
                 offlineIndicatorStyle={styles.mtAuto}
                 includeSafeAreaPaddingBottom
+                shouldUseScrollViewInLandscapeMode
             >
                 <HeaderWithBackButton title={translate(titleKey)} />
                 <ScrollView contentContainerStyle={[styles.flexGrow1]}>
