@@ -5,18 +5,15 @@ import type Middleware from './types';
 /**
  * Middleware that observes request outcomes and feeds them to FailureTracker.
  *
+ * Any resolved response counts as success — if the server responded at all, the network works.
  * Only genuine connectivity issues count as failures:
- * - jsonCode 200 → success (server responded normally)
  * - FAILED_TO_FETCH → failure (DNS, no internet, network timeout)
  * - EXPENSIFY_SERVICE_INTERRUPTED → failure (server down: 500/502/504/520, auth socket)
- * - Everything else (429 throttle, 4xx, cancelled, duplicate) → ignored (server responded, connectivity is fine)
  */
 const FailureTracking: Middleware = (response) =>
     response
         .then((data) => {
-            if (data?.jsonCode === 200) {
-                recordSuccess();
-            }
+            recordSuccess();
             return data;
         })
         .catch((error: Error) => {
