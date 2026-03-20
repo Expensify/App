@@ -1,8 +1,9 @@
 import {hasSeenTourSelector} from '@selectors/Onboarding';
-import {useEffect} from 'react';
+import {useEffect, useRef} from 'react';
 import {useInitialURLActions, useInitialURLState} from '@components/InitialURLContextProvider';
 import useHasActiveAdminPolicies from '@hooks/useHasActiveAdminPolicies';
 import useOnyx from '@hooks/useOnyx';
+import useReportAttributes from '@hooks/useReportAttributes';
 import {init, isClientTheLeader} from '@libs/ActiveClientManager';
 import Log from '@libs/Log';
 import getCurrentUrl from '@libs/Navigation/currentUrl';
@@ -22,15 +23,15 @@ import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+import type {ReportAttributesDerivedValue} from '@src/types/onyx';
 
-function initializePusher(conciergeReportID: string | undefined, currentUserAccountID?: number) {
+function initializePusher(currentUserAccountID?: number, getReportAttributes?: () => ReportAttributesDerivedValue['reports'] | undefined) {
     return Pusher.init({
         appKey: CONFIG.PUSHER.APP_KEY,
         cluster: CONFIG.PUSHER.CLUSTER,
         authEndpoint: `${CONFIG.EXPENSIFY.DEFAULT_API_ROOT}api/AuthenticatePusher?`,
     }).then(() => {
-        User.subscribeToUserEvents(currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID, conciergeReportID);
+        User.subscribeToUserEvents(currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID, getReportAttributes);
     });
 }
 
@@ -57,18 +58,18 @@ function AuthScreensInitHandler() {
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
 
-    const [conciergeReportID, conciergeReportIDMetadata] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const reportAttributes = useReportAttributes();
+    // We use a ref so the Pusher callback (registered once on mount) always reads the latest value without re-subscribing.
+    const reportAttributesRef = useRef(reportAttributes);
+    reportAttributesRef.current = reportAttributes;
 
     useEffect(() => {
         if (!Navigation.isActiveRoute(ROUTES.SIGN_IN_MODAL)) {
             return;
         }
-        if (isLoadingOnyxValue(conciergeReportIDMetadata)) {
-            return;
-        }
         // This means sign in in RHP was successful, so we can subscribe to user events
-        initializePusher(conciergeReportID, session?.accountID);
-    }, [session?.accountID, conciergeReportID, conciergeReportIDMetadata]);
+        initializePusher(session?.accountID, () => reportAttributesRef.current);
+    }, [session?.accountID]);
 
     useEffect(() => {
         const isLoggingInAsNewUser = !!session?.email && SessionUtils.isLoggingInAsNewUser(currentUrl, session.email);
@@ -87,7 +88,8 @@ function AuthScreensInitHandler() {
             parentSpan: getSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.ROOT),
         });
         PusherConnectionManager.init();
-        initializePusher(conciergeReportID, session?.accountID).finally(() => {
+
+        initializePusher(session?.accountID, () => reportAttributesRef.current).finally(() => {
             endSpan(CONST.TELEMETRY.SPAN_NAVIGATION.PUSHER_INIT);
         });
 

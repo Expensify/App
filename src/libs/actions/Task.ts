@@ -14,6 +14,7 @@ import {getDBTimeWithSkew} from '@libs/NetworkState';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
+import {getReportName} from '@libs/ReportNameUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import {buildOptimisticSnapshotData} from '@libs/SearchQueryUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
@@ -1073,7 +1074,7 @@ function getShareDestination(
     reports: OnyxCollection<OnyxTypes.Report>,
     personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>,
     localeCompare: LocaleContextProps['localeCompare'],
-    conciergeReportID: string | undefined,
+    reportAttributes?: OnyxTypes.ReportAttributesDerivedValue['reports'],
 ): ShareDestination {
     const report = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
 
@@ -1101,9 +1102,7 @@ function getShareDestination(
     }
     return {
         icons: ReportUtils.getIcons(report, LocalePhoneNumber.formatPhoneNumber, personalDetails, Expensicons.FallbackAvatar),
-        // Will be fixed in https://github.com/Expensify/App/issues/76852
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        displayName: ReportUtils.getReportName({report, conciergeReportID}),
+        displayName: getReportName(report, reportAttributes),
         subtitle,
         displayNamesWithTooltips,
         shouldUseFullTitleToDisplay: ReportUtils.shouldUseFullTitleToDisplay(report),
