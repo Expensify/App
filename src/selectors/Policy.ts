@@ -137,7 +137,7 @@ const hasPoliciesConnectedToSageIntacctSelector = (policies: OnyxCollection<Poli
 
 const hasPoliciesConnectedToNetSuiteSelector = (policies: OnyxCollection<Policy>) => !!adminPoliciesConnectedToNetSuiteSelector(policies).length;
 
-function lastWorkspaceNumberSelector(policies: OnyxCollection<Policy> = {}, email: string): number | undefined {
+function lastWorkspaceNumberSelector(policies: OnyxCollection<Policy>, email: string): number | undefined {
     const emailParts = email.split('@');
     if (emailParts.length !== 2) {
         return undefined;
@@ -154,7 +154,7 @@ function lastWorkspaceNumberSelector(policies: OnyxCollection<Policy> = {}, emai
     const isSMSDomain = `@${domain}` === CONST.SMS.DOMAIN;
     const workspaceRegex = isSMSDomain ? new RegExp(`^${escapedName}\\s*(\\d+)?$`, 'i') : new RegExp(`^(?=.*${escapedName})(?:.*(?:${workspaceTranslations})\\s*(\\d+)?)`, 'i');
 
-    const workspaceNumbers = Object.values(policies)
+    const workspaceNumbers = Object.values(policies ?? {})
         .map((policy) => workspaceRegex.exec(policy?.name ?? ''))
         .filter(Boolean) // Remove null matches
         .map((match) => Number(match?.[1] ?? '0'));

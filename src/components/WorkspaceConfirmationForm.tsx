@@ -10,7 +10,7 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceConfirmationAvatar from '@hooks/useWorkspaceConfirmationAvatar';
 import {clearDraftValues} from '@libs/actions/FormActions';
-import {generateDefaultWorkspaceName, generatePolicyID} from '@libs/actions/Policy/Policy';
+import {newGenerateDefaultWorkspaceName, generatePolicyID} from '@libs/actions/Policy/Policy';
 import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types';
 import {addErrorMessage} from '@libs/ErrorUtils';
 import getFirstAlphaNumericCharacter from '@libs/getFirstAlphaNumericCharacter';
@@ -35,6 +35,7 @@ import ScrollView from './ScrollView';
 import Switch from './Switch';
 import Text from './Text';
 import TextInput from './TextInput';
+import { lastWorkspaceNumberSelector } from '@src/selectors/Policy';
 
 type PolicyType = typeof CONST.POLICY.TYPE.TEAM | typeof CONST.POLICY.TYPE.CORPORATE;
 
@@ -114,7 +115,9 @@ function WorkspaceConfirmationForm({onSubmit, policyOwnerEmail = '', onBackButto
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [draftValues] = useOnyx(ONYXKEYS.FORMS.WORKSPACE_CONFIRMATION_FORM_DRAFT);
 
-    const defaultWorkspaceName = generateDefaultWorkspaceName(policyOwnerEmail || session?.email);
+    const email = policyOwnerEmail || session?.email || '';
+    const lastWorkspaceNumber = lastWorkspaceNumberSelector(policies, email);
+    const defaultWorkspaceName = newGenerateDefaultWorkspaceName(email, lastWorkspaceNumber);
     const [workspaceNameFirstCharacter, setWorkspaceNameFirstCharacter] = useState(defaultWorkspaceName ?? '');
 
     const userCurrency = draftValues?.currency ?? currentUserPersonalDetails?.localCurrencyCode ?? CONST.CURRENCY.USD;

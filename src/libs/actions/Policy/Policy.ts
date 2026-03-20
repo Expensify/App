@@ -2163,7 +2163,7 @@ function getDisplayNameForWorkspace(email: string) {
  * @param [email] the email to base the workspace name on. If not passed, will use the logged-in user's email instead
  * @param [lastWorkspaceNumber] the last workspace number
  */
-function newGenerateDefaultWorkspaceName(email = '', lastWorkspaceNumber: number | undefined): string {
+function newGenerateDefaultWorkspaceName(email: string, lastWorkspaceNumber: number | undefined): string {
     const emailParts = email ? email.split('@') : deprecatedSessionEmail.split('@');
     if (!emailParts || emailParts.length !== 2) {
         return '';
@@ -7128,6 +7128,8 @@ export {
     updateLastAccessedWorkspace,
     clearDeleteWorkspaceError,
     setWorkspaceDefaultSpendCategory,
+    getDisplayNameForWorkspace,
+    newGenerateDefaultWorkspaceName,
     generateDefaultWorkspaceName,
     updateGeneralSettings,
     deleteWorkspaceAvatar,
