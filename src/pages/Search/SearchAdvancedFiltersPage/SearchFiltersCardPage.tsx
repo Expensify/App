@@ -1,5 +1,6 @@
 import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
+import ActivityIndicator from '@components/ActivityIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -17,6 +18,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {openSearchCardFiltersPage, updateAdvancedFilters} from '@libs/actions/Search';
 import type {CardFilterItem} from '@libs/CardFeedUtils';
 import {buildCardFeedsData, buildCardsData, generateSelectedCards, getDomainFeedData, getSelectedCardsFromFeeds} from '@libs/CardFeedUtils';
+import {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import Navigation from '@navigation/Navigation';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -24,6 +26,7 @@ import ROUTES from '@src/ROUTES';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 function SearchFiltersCardPage() {
+    const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
@@ -136,8 +139,7 @@ function SearchFiltersCardPage() {
         headerMessage: debouncedSearchTerm.trim() && sections.every((section) => !section.data.length) ? translate('common.noResultsFound') : '',
     };
 
-    const isLoadingOnyxData = isLoadingOnyxValue(userCardListMetadata, workspaceCardFeedsMetadata, searchAdvancedFiltersFormMetadata, policiesMetadata);
-    const shouldShowLoadingState = isLoadingOnyxData || (!areCardsLoaded && !isOffline);
+    const reasonAttributes: SkeletonSpanReasonAttributes = {context: 'SearchFiltersCardPage', isLoadingFromOnyx: !!areCardsLoaded};
 
     return (
         <ScreenWrapper
@@ -146,31 +148,48 @@ function SearchFiltersCardPage() {
             offlineIndicatorStyle={styles.mtAuto}
             shouldEnableMaxHeight
         >
-            {({didScreenTransitionEnd}) => (
-                <>
-                    <HeaderWithBackButton
-                        title={translate('common.card')}
-                        onBackButtonPress={() => {
-                            Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS.getRoute());
-                        }}
-                    />
+            {({didScreenTransitionEnd}) => {
+                const isLoadingOnyxData = isLoadingOnyxValue(userCardListMetadata, workspaceCardFeedsMetadata, searchAdvancedFiltersFormMetadata, policiesMetadata);
+                const shouldShowLoadingState = isLoadingOnyxData || (!areCardsLoaded && !isOffline) || !didScreenTransitionEnd;
 
-                    <View style={[styles.flex1]}>
-                        <SelectionListWithSections<CardFilterItem>
-                            sections={sections}
-                            ListItem={CardListItem}
-                            onSelectRow={updateNewCards}
-                            footerContent={footerContent}
-                            shouldPreventDefaultFocusOnSelectRow={false}
-                            shouldShowTextInput={shouldShowSearchInput}
-                            textInputOptions={textInputOptions}
-                            shouldShowLoadingPlaceholder={shouldShowLoadingState || !didScreenTransitionEnd}
-                            shouldStopPropagation
-                            canSelectMultiple
+                return (
+                    <>
+                        <HeaderWithBackButton
+                            title={translate('common.card')}
+                            onBackButtonPress={() => {
+                                Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS.getRoute());
+                            }}
                         />
-                    </View>
-                </>
-            )}
+
+                        {!!shouldShowLoadingState && (
+                            <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter, styles.alignItemsCenter]}>
+                                <ActivityIndicator
+                                    color={theme.spinner}
+                                    size={25}
+                                    style={[styles.pl3]}
+                                    reasonAttributes={reasonAttributes}
+                                />
+                            </View>
+                        )}
+
+                        {!shouldShowLoadingState && (
+                            <View style={[styles.flex1]}>
+                                <SelectionListWithSections<CardFilterItem>
+                                    sections={sections}
+                                    ListItem={CardListItem}
+                                    onSelectRow={updateNewCards}
+                                    footerContent={footerContent}
+                                    shouldPreventDefaultFocusOnSelectRow={false}
+                                    shouldShowTextInput={shouldShowSearchInput}
+                                    textInputOptions={textInputOptions}
+                                    shouldStopPropagation
+                                    canSelectMultiple
+                                />
+                            </View>
+                        )}
+                    </>
+                );
+            }}
         </ScreenWrapper>
     );
 }
