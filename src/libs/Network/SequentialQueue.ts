@@ -537,6 +537,15 @@ function push<TKey extends OnyxKey>(newRequest: OnyxRequest<TKey>) {
         savePersistedRequest(newRequest);
     }
 
+    // If we are offline we don't need to trigger the queue to empty as it will happen when we come back online
+    if (isOfflineNetwork()) {
+        Log.info('[SequentialQueue] Request persisted but not flushing — we are offline', false, {
+            command: newRequest.command,
+            queueLength: getAllPersistedRequests().length,
+        });
+        return;
+    }
+
     // If the queue is running this request will run once it has finished processing the current batch
     if (isSequentialQueueRunning) {
         Log.info('[SequentialQueue] Queue is running. Will flush when the current request is finished.', false, {
