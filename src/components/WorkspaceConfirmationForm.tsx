@@ -14,7 +14,7 @@ import {generateDefaultWorkspaceName, generatePolicyID} from '@libs/actions/Poli
 import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types';
 import {addErrorMessage} from '@libs/ErrorUtils';
 import getFirstAlphaNumericCharacter from '@libs/getFirstAlphaNumericCharacter';
-import createDynamicRoute from '@libs/Navigation/helpers/createDynamicRoute';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
 import {isRequiredFulfilled} from '@libs/ValidationUtils';

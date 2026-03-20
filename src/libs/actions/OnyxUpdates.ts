@@ -137,6 +137,7 @@ function apply<TKey extends OnyxKey>({lastUpdateID, type, request, response, upd
         Log.info('[OnyxUpdateManager] Update received was older than or the same as current state, returning without applying the updates other than successData and failureData', false, {
             lastUpdateID,
             lastUpdateIDAppliedToClient,
+            command: request?.command,
         });
 
         // In this case, we're already received the OnyxUpdate included in the response, so we don't need to apply it again.

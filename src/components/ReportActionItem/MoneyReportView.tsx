@@ -39,6 +39,7 @@ import {
     isSettled as isSettledReportUtils,
     shouldHideSingleReportField,
 } from '@libs/ReportUtils';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {getTransactionPendingAction} from '@libs/TransactionUtils';
 import AnimatedEmptyStateBackground from '@pages/inbox/report/AnimatedEmptyStateBackground';
 import variables from '@styles/variables';
@@ -101,6 +102,11 @@ function MoneyReportView({
     const formattedBillableAmount = convertToDisplayString(billableTotal, report?.currency);
     const formattedTaxAmount = convertToDisplayString(taxTotal, report?.currency);
     const isPartiallyPaid = !!report?.pendingFields?.partial;
+    const totalActivityReasonAttributes: SkeletonSpanReasonAttributes = {
+        context: 'MoneyReportView.Total',
+        isTotalUpdated,
+        isOffline,
+    };
 
     const subAmountTextStyles: StyleProp<TextStyle> = [
         styles.taskTitleMenuItem,
@@ -159,7 +165,7 @@ function MoneyReportView({
                 {!isClosedExpenseReportWithNoExpenses && (
                     <>
                         {(isPaidGroupPolicyExpenseReport || isInvoiceReport) &&
-                            policy?.areReportFieldsEnabled &&
+                            !!policy?.areReportFieldsEnabled &&
                             (!isCombinedReport || !isOnlyTitleFieldEnabled) &&
                             sortedPolicyReportFields.map((reportField) => {
                                 if (shouldHideSingleReportField(reportField)) {
@@ -227,6 +233,7 @@ function MoneyReportView({
                                         <ActivityIndicator
                                             style={[styles.moneyRequestLoadingHeight]}
                                             color={theme.textSupporting}
+                                            reasonAttributes={totalActivityReasonAttributes}
                                         />
                                     ) : (
                                         <Text
