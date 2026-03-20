@@ -10,17 +10,13 @@ import {growlRef} from './libs/Growl';
 import PopoverReportActionContextMenu from './pages/inbox/report/ContextMenu/PopoverReportActionContextMenu';
 import * as ReportActionContextMenu from './pages/inbox/report/ContextMenu/ReportActionContextMenu';
 
-type GlobalModalsProps = {
-    updateAvailable?: boolean;
-};
-
 /**
  * Renders global modals and overlays that are mounted once at the top level.
  */
-function GlobalModals({updateAvailable}: GlobalModalsProps) {
+function GlobalModals() {
     return (
         <>
-            {!!updateAvailable && <UpdateAppModal />}
+            <UpdateAppModal />
             {/* Those below are only available to the authenticated user. */}
             <GrowlNotification ref={growlRef} />
             <DelegateNoAccessModalProvider>

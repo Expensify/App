@@ -57,7 +57,6 @@ function Expensify() {
     const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
     const [lastRoute] = useOnyx(ONYXKEYS.LAST_ROUTE);
     const [isCheckingPublicRoom = true] = useOnyx(ONYXKEYS.IS_CHECKING_PUBLIC_ROOM, {initWithStoredValues: false});
-    const [updateAvailable] = useOnyx(ONYXKEYS.UPDATE_AVAILABLE, {initWithStoredValues: false});
     const [updateRequired] = useOnyx(ONYXKEYS.UPDATE_REQUIRED, {initWithStoredValues: false});
     const [lastVisitedPath] = useOnyx(ONYXKEYS.LAST_VISITED_PATH);
 
@@ -214,7 +213,6 @@ function Expensify() {
                 const propsToLog = {
                     isCheckingPublicRoom,
                     updateRequired,
-                    updateAvailable,
                     isAuthenticated,
                     lastVisitedPath,
                 };
@@ -273,7 +271,7 @@ function Expensify() {
 
     return (
         <>
-            {shouldInit && <GlobalModals updateAvailable={updateAvailable} />}
+            {shouldInit && <GlobalModals />}
             <PriorityModeHandler />
             <DelegateAccessHandler />
             <FullstoryInitHandler />
