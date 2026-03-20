@@ -129,7 +129,6 @@ function SearchPageWide({
                                     searchResults={searchResults}
                                     handleSearch={handleSearchAction}
                                     isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
-                                    // isSearchInputVisible={false}
                                     onSearchListScroll={scrollHandler}
                                     onSortPressedCallback={onSortPressedCallback}
                                     searchRequestResponseStatusCode={searchRequestResponseStatusCode}

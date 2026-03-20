@@ -271,7 +271,6 @@ function SearchPageNarrow({queryJSON, searchResults, isMobileSelectionModeEnable
                                     contentContainerStyle={!isMobileSelectionModeEnabled ? styles.searchListContentContainerStyles : undefined}
                                     handleSearch={handleSearchAction}
                                     isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
-                                    // isSearchInputVisible={false}
                                     searchRequestResponseStatusCode={searchRequestResponseStatusCode}
                                 />
                             )}
