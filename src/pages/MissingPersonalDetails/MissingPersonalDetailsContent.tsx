@@ -170,7 +170,7 @@ function MissingPersonalDetailsContent({privatePersonalDetails, draftValues, hea
                 onMove={moveTo}
                 currentPageName={currentPageName}
                 personalDetailsValues={values}
-                shouldCollectPin={!!shouldCollectPIN}
+                shouldCollectPIN={!!shouldCollectPIN}
             />
         </ScreenWrapper>
     );

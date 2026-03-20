@@ -4218,7 +4218,7 @@ describe('actions/Report', () => {
             Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${PARENT_REPORT_ID}`, PARENT_REPORT);
             await waitForBatchedUpdates();
 
-            Report.navigateToAndOpenChildReport(EXISTING_CHILD_REPORT, PARENT_REPORT_ACTION, PARENT_REPORT, TEST_USER_ACCOUNT_ID, INTRO_SELECTED);
+            Report.navigateToAndOpenChildReport(EXISTING_CHILD_REPORT, PARENT_REPORT_ACTION, PARENT_REPORT, TEST_USER_ACCOUNT_ID, INTRO_SELECTED, undefined);
             await waitForBatchedUpdates();
 
             expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(EXISTING_CHILD_REPORT.reportID));
@@ -4237,7 +4237,7 @@ describe('actions/Report', () => {
             Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${PARENT_REPORT_ID}`, PARENT_REPORT);
             await waitForBatchedUpdates();
 
-            Report.navigateToAndOpenChildReport(undefined, PARENT_REPORT_ACTION, PARENT_REPORT, TEST_USER_ACCOUNT_ID, INTRO_SELECTED);
+            Report.navigateToAndOpenChildReport(undefined, PARENT_REPORT_ACTION, PARENT_REPORT, TEST_USER_ACCOUNT_ID, INTRO_SELECTED, undefined);
             await waitForBatchedUpdates();
 
             expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(MOCK_NEW_THREAD_REPORT_ID));
@@ -4252,7 +4252,7 @@ describe('actions/Report', () => {
             Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${PARENT_REPORT_ID}`, PARENT_REPORT);
             await waitForBatchedUpdates();
 
-            Report.navigateToAndOpenChildReport(EXISTING_CHILD_REPORT, {} as OnyxTypes.ReportAction, PARENT_REPORT, TEST_USER_ACCOUNT_ID, INTRO_SELECTED);
+            Report.navigateToAndOpenChildReport(EXISTING_CHILD_REPORT, {} as OnyxTypes.ReportAction, PARENT_REPORT, TEST_USER_ACCOUNT_ID, INTRO_SELECTED, undefined);
             await waitForBatchedUpdates();
 
             expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(EXISTING_CHILD_REPORT.reportID));
@@ -4271,7 +4271,7 @@ describe('actions/Report', () => {
             Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${PARENT_REPORT_ID}`, PARENT_REPORT);
             await waitForBatchedUpdates();
 
-            Report.navigateToAndOpenChildReport(undefined, PARENT_REPORT_ACTION, PARENT_REPORT, TEST_USER_ACCOUNT_ID, INTRO_SELECTED);
+            Report.navigateToAndOpenChildReport(undefined, PARENT_REPORT_ACTION, PARENT_REPORT, TEST_USER_ACCOUNT_ID, INTRO_SELECTED, undefined);
             await waitForBatchedUpdates();
 
             expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(MOCK_NEW_THREAD_REPORT_ID));
@@ -4290,7 +4290,7 @@ describe('actions/Report', () => {
             Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${PARENT_REPORT_ID}`, PARENT_REPORT);
             await waitForBatchedUpdates();
 
-            Report.navigateToAndOpenChildReport(undefined, PARENT_REPORT_ACTION, PARENT_REPORT, TEST_USER_ACCOUNT_ID, INTRO_SELECTED);
+            Report.navigateToAndOpenChildReport(undefined, PARENT_REPORT_ACTION, PARENT_REPORT, TEST_USER_ACCOUNT_ID, INTRO_SELECTED, undefined);
             await waitForBatchedUpdates();
 
             // Verify navigation happened with the new thread report
@@ -4315,10 +4315,31 @@ describe('actions/Report', () => {
             Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${PARENT_REPORT_ID}`, PARENT_REPORT);
             await waitForBatchedUpdates();
 
-            Report.navigateToAndOpenChildReport(EXISTING_CHILD_REPORT, PARENT_REPORT_ACTION, PARENT_REPORT, TEST_USER_ACCOUNT_ID, undefined);
+            Report.navigateToAndOpenChildReport(EXISTING_CHILD_REPORT, PARENT_REPORT_ACTION, PARENT_REPORT, TEST_USER_ACCOUNT_ID, undefined, undefined);
             await waitForBatchedUpdates();
 
             expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(EXISTING_CHILD_REPORT.reportID));
+        });
+
+        it('should pass betas through to openReport when creating a new child report', async () => {
+            const PARENT_REPORT = createRandomReport(1, undefined);
+            const PARENT_REPORT_ACTION: OnyxTypes.ReportAction = {
+                ...createRandomReportAction(REPORT_ACTION_ID),
+                reportActionID: '1',
+                actorAccountID: TEST_USER_ACCOUNT_ID,
+            };
+            const testBetas = [CONST.BETAS.ALL];
+
+            await TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN);
+            await TestHelper.setPersonalDetails(TEST_USER_LOGIN, TEST_USER_ACCOUNT_ID);
+            Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${PARENT_REPORT_ID}`, PARENT_REPORT);
+            await waitForBatchedUpdates();
+
+            Report.navigateToAndOpenChildReport(undefined, PARENT_REPORT_ACTION, PARENT_REPORT, TEST_USER_ACCOUNT_ID, INTRO_SELECTED, testBetas);
+            await waitForBatchedUpdates();
+
+            TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.OPEN_REPORT, 1);
+            expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(MOCK_NEW_THREAD_REPORT_ID));
         });
     });
 
@@ -4349,13 +4370,13 @@ describe('actions/Report', () => {
                 actorAccountID: TEST_USER_ACCOUNT_ID,
             };
 
-            const result = Report.explain(undefined, undefined, REPORT_ACTION, TestHelper.translateLocal, TEST_USER_ACCOUNT_ID, INTRO_SELECTED, CONST.DEFAULT_TIME_ZONE);
+            const result = Report.explain(undefined, undefined, REPORT_ACTION, TestHelper.translateLocal, TEST_USER_ACCOUNT_ID, INTRO_SELECTED, undefined, CONST.DEFAULT_TIME_ZONE);
 
             expect(result).toBeUndefined();
         });
 
         it('should return early if reportAction is not provided', () => {
-            const result = Report.explain(undefined, undefined, undefined, TestHelper.translateLocal, TEST_USER_ACCOUNT_ID, INTRO_SELECTED, CONST.DEFAULT_TIME_ZONE);
+            const result = Report.explain(undefined, undefined, undefined, TestHelper.translateLocal, TEST_USER_ACCOUNT_ID, INTRO_SELECTED, undefined, CONST.DEFAULT_TIME_ZONE);
 
             expect(result).toBeUndefined();
         });
@@ -4374,7 +4395,7 @@ describe('actions/Report', () => {
             Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${CHILD_REPORT_ID}`, EXISTING_CHILD_REPORT);
             await waitForBatchedUpdates();
 
-            Report.explain(EXISTING_CHILD_REPORT, PARENT_REPORT, REPORT_ACTION, TestHelper.translateLocal, TEST_USER_ACCOUNT_ID, INTRO_SELECTED, CONST.DEFAULT_TIME_ZONE);
+            Report.explain(EXISTING_CHILD_REPORT, PARENT_REPORT, REPORT_ACTION, TestHelper.translateLocal, TEST_USER_ACCOUNT_ID, INTRO_SELECTED, undefined, CONST.DEFAULT_TIME_ZONE);
             await waitForBatchedUpdates();
 
             expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(EXISTING_CHILD_REPORT.reportID));
@@ -4393,7 +4414,7 @@ describe('actions/Report', () => {
             Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${PARENT_REPORT_ID}`, PARENT_REPORT);
             await waitForBatchedUpdates();
 
-            Report.explain(undefined, PARENT_REPORT, REPORT_ACTION, TestHelper.translateLocal, TEST_USER_ACCOUNT_ID, INTRO_SELECTED, CONST.DEFAULT_TIME_ZONE);
+            Report.explain(undefined, PARENT_REPORT, REPORT_ACTION, TestHelper.translateLocal, TEST_USER_ACCOUNT_ID, INTRO_SELECTED, undefined, CONST.DEFAULT_TIME_ZONE);
             await waitForBatchedUpdates();
 
             expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(MOCK_NEW_THREAD_REPORT_ID));
@@ -4417,7 +4438,7 @@ describe('actions/Report', () => {
             Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${CHILD_REPORT_ID}`, EXISTING_CHILD_REPORT);
             await waitForBatchedUpdates();
 
-            Report.explain(EXISTING_CHILD_REPORT, PARENT_REPORT, REPORT_ACTION, TestHelper.translateLocal, TEST_USER_ACCOUNT_ID, INTRO_SELECTED);
+            Report.explain(EXISTING_CHILD_REPORT, PARENT_REPORT, REPORT_ACTION, TestHelper.translateLocal, TEST_USER_ACCOUNT_ID, INTRO_SELECTED, undefined);
             await waitForBatchedUpdates();
 
             expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(EXISTING_CHILD_REPORT.reportID));
@@ -4437,10 +4458,31 @@ describe('actions/Report', () => {
             Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${CHILD_REPORT_ID}`, EXISTING_CHILD_REPORT);
             await waitForBatchedUpdates();
 
-            Report.explain(EXISTING_CHILD_REPORT, PARENT_REPORT, REPORT_ACTION, TestHelper.translateLocal, TEST_USER_ACCOUNT_ID, undefined, CONST.DEFAULT_TIME_ZONE);
+            Report.explain(EXISTING_CHILD_REPORT, PARENT_REPORT, REPORT_ACTION, TestHelper.translateLocal, TEST_USER_ACCOUNT_ID, undefined, undefined, CONST.DEFAULT_TIME_ZONE);
             await waitForBatchedUpdates();
 
             expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(EXISTING_CHILD_REPORT.reportID));
+        });
+
+        it('should pass betas through to createChildReport when creating a new explain thread', async () => {
+            const PARENT_REPORT = createRandomReport(1, undefined);
+            const REPORT_ACTION: OnyxTypes.ReportAction = {
+                ...createRandomReportAction(REPORT_ACTION_ID),
+                reportActionID: '1',
+                actorAccountID: TEST_USER_ACCOUNT_ID,
+            };
+            const testBetas = [CONST.BETAS.ALL];
+
+            await TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN);
+            await TestHelper.setPersonalDetails(TEST_USER_LOGIN, TEST_USER_ACCOUNT_ID);
+            Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${PARENT_REPORT_ID}`, PARENT_REPORT);
+            await waitForBatchedUpdates();
+
+            Report.explain(undefined, PARENT_REPORT, REPORT_ACTION, TestHelper.translateLocal, TEST_USER_ACCOUNT_ID, INTRO_SELECTED, testBetas, CONST.DEFAULT_TIME_ZONE);
+            await waitForBatchedUpdates();
+
+            TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.OPEN_REPORT, 1);
+            expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(MOCK_NEW_THREAD_REPORT_ID));
         });
     });
 
@@ -4466,7 +4508,7 @@ describe('actions/Report', () => {
             await waitForBatchedUpdates();
 
             expect(() => {
-                Report.toggleSubscribeToChildReport(CHILD_REPORT_ID, TEST_USER_ACCOUNT_ID, PARENT_REPORT_ACTION, PARENT_REPORT, INTRO_SELECTED, 'hidden');
+                Report.toggleSubscribeToChildReport(CHILD_REPORT_ID, TEST_USER_ACCOUNT_ID, PARENT_REPORT_ACTION, PARENT_REPORT, INTRO_SELECTED, undefined, 'hidden');
             }).not.toThrow();
         });
 
@@ -4484,7 +4526,7 @@ describe('actions/Report', () => {
             await waitForBatchedUpdates();
 
             expect(() => {
-                Report.toggleSubscribeToChildReport(undefined, TEST_USER_ACCOUNT_ID, PARENT_REPORT_ACTION, PARENT_REPORT, INTRO_SELECTED);
+                Report.toggleSubscribeToChildReport(undefined, TEST_USER_ACCOUNT_ID, PARENT_REPORT_ACTION, PARENT_REPORT, INTRO_SELECTED, undefined);
             }).not.toThrow();
         });
 
@@ -4502,7 +4544,7 @@ describe('actions/Report', () => {
             await waitForBatchedUpdates();
 
             expect(() => {
-                Report.toggleSubscribeToChildReport(CHILD_REPORT_ID, TEST_USER_ACCOUNT_ID, PARENT_REPORT_ACTION, PARENT_REPORT, undefined, 'hidden');
+                Report.toggleSubscribeToChildReport(CHILD_REPORT_ID, TEST_USER_ACCOUNT_ID, PARENT_REPORT_ACTION, PARENT_REPORT, undefined, undefined, 'hidden');
             }).not.toThrow();
         });
 
@@ -4520,7 +4562,53 @@ describe('actions/Report', () => {
             await waitForBatchedUpdates();
 
             expect(() => {
-                Report.toggleSubscribeToChildReport(CHILD_REPORT_ID, TEST_USER_ACCOUNT_ID, PARENT_REPORT_ACTION, PARENT_REPORT, INTRO_SELECTED, CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS);
+                Report.toggleSubscribeToChildReport(
+                    CHILD_REPORT_ID,
+                    TEST_USER_ACCOUNT_ID,
+                    PARENT_REPORT_ACTION,
+                    PARENT_REPORT,
+                    INTRO_SELECTED,
+                    undefined,
+                    CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
+                );
+            }).not.toThrow();
+        });
+
+        it('should pass betas to openReport when subscribing to an existing child report', async () => {
+            const PARENT_REPORT = createRandomReport(Number(PARENT_REPORT_ID), undefined);
+            const PARENT_REPORT_ACTION: OnyxTypes.ReportAction = {
+                ...createRandomReportAction(REPORT_ACTION_ID),
+                reportActionID: '1',
+                actorAccountID: TEST_USER_ACCOUNT_ID,
+                childReportID: CHILD_REPORT_ID,
+            };
+            const testBetas = [CONST.BETAS.ALL];
+
+            await TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN);
+            Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${PARENT_REPORT_ID}`, PARENT_REPORT);
+            await waitForBatchedUpdates();
+
+            expect(() => {
+                Report.toggleSubscribeToChildReport(CHILD_REPORT_ID, TEST_USER_ACCOUNT_ID, PARENT_REPORT_ACTION, PARENT_REPORT, INTRO_SELECTED, testBetas, 'hidden');
+            }).not.toThrow();
+        });
+
+        it('should pass betas through to openReport when creating a new child report', async () => {
+            const PARENT_REPORT = createRandomReport(Number(PARENT_REPORT_ID), undefined);
+            const PARENT_REPORT_ACTION: OnyxTypes.ReportAction = {
+                ...createRandomReportAction(REPORT_ACTION_ID),
+                reportActionID: '1',
+                actorAccountID: TEST_USER_ACCOUNT_ID,
+            };
+            const testBetas = [CONST.BETAS.ALL];
+
+            await TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN);
+            await TestHelper.setPersonalDetails(TEST_USER_LOGIN, TEST_USER_ACCOUNT_ID);
+            Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${PARENT_REPORT_ID}`, PARENT_REPORT);
+            await waitForBatchedUpdates();
+
+            expect(() => {
+                Report.toggleSubscribeToChildReport(undefined, TEST_USER_ACCOUNT_ID, PARENT_REPORT_ACTION, PARENT_REPORT, INTRO_SELECTED, testBetas);
             }).not.toThrow();
         });
     });

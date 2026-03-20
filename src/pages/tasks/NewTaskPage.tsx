@@ -16,7 +16,7 @@ import useOnyx from '@hooks/useOnyx';
 import useReportAttributes from '@hooks/useReportAttributes';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useThemeStyles from '@hooks/useThemeStyles';
-import blurActiveInputElement from '@libs/Accessibility/blurActiveInputElement';
+import blurActiveElement from '@libs/Accessibility/blurActiveElement';
 import {createTaskAndNavigate, dismissModalAndClearOutTaskInfo, getAssignee, getShareDestination, setShareDestinationValue} from '@libs/actions/Task';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -66,7 +66,7 @@ function NewTaskPage({route}: NewTaskPageProps) {
         focusTimeoutRef.current = setTimeout(() => {
             // eslint-disable-next-line @typescript-eslint/no-deprecated
             InteractionManager.runAfterInteractions(() => {
-                blurActiveInputElement();
+                blurActiveElement();
             });
         }, CONST.ANIMATED_TRANSITION);
         return () => focusTimeoutRef.current && clearTimeout(focusTimeoutRef.current);
