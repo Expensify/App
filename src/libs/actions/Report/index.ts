@@ -3599,7 +3599,7 @@ function buildNewReportOptimisticData(
         });
     } else if (currentSearchQueryJSON?.type === CONST.SEARCH.DATA_TYPES.CHAT) {
         // Building this object sequentially resolves TypeScript type inference issues
-        const optimisticSnapshotData = {} as SearchResultDataType;
+        const optimisticSnapshotData: SearchResultDataType = {};
 
         optimisticSnapshotData[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReport?.reportID}`] = {
             [reportPreviewReportActionID]: {...optimisticReportPreview, reportID: parentReport?.reportID},

@@ -11671,7 +11671,7 @@ function replaceReceipt({transactionID, file, source, state, transactionPolicy, 
         // Initializing as an empty typed object to allow dynamic key assignment resolves TypeScript type inference issue
         const failureSnapshotData: NullishDeep<SearchResultDataType> = {};
         failureSnapshotData[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] = {
-            receipt: !isEmptyObject(oldReceipt) ? oldReceipt : undefined,
+            receipt: !isEmptyObject(oldReceipt) ? oldReceipt : null,
         };
         failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
