@@ -1,6 +1,6 @@
 import React from 'react';
 import createScreenWithDefaults from '@components/MultifactorAuthentication/components/OutcomeScreen/createScreenWithDefaults';
-import {DefaultClientFailureScreen} from '@components/MultifactorAuthentication/components/OutcomeScreen/FailureScreen/defaultScreens';
+import {DefaultClientFailureScreen, DefaultServerFailureScreen} from '@components/MultifactorAuthentication/components/OutcomeScreen/FailureScreen/defaultScreens';
 import type {
     MultifactorAuthenticationScenario,
     MultifactorAuthenticationScenarioAdditionalParams,
@@ -33,18 +33,26 @@ type Payload = {
 };
 
 /**
- * Type guard to verify the payload is a SetPinOrderCard payload.
+ * Type guard to verify the payload is a SetPINOrderCard payload.
  */
-function isSetPinOrderCardPayload(payload: MultifactorAuthenticationScenarioAdditionalParams<MultifactorAuthenticationScenario> | undefined): payload is Payload {
+function isSetPINOrderCardPayload(payload: MultifactorAuthenticationScenarioAdditionalParams<MultifactorAuthenticationScenario> | undefined): payload is Payload {
     return !!payload && 'cardID' in payload && 'pin' in payload;
 }
 
-const AuthenticationCanceledFailureScreen = createScreenWithDefaults(
+const ClientFailureScreen = createScreenWithDefaults(
     DefaultClientFailureScreen,
     {
         subtitle: 'multifactorAuthentication.setPin.didNotShipCard',
     },
-    'AuthenticationCanceledFailureScreen',
+    'ClientFailureScreen',
+);
+
+const ServerFailureScreen = createScreenWithDefaults(
+    DefaultServerFailureScreen,
+    {
+        subtitle: 'multifactorAuthentication.setPin.didNotShipCard',
+    },
+    'ServerFailureScreen',
 );
 
 /**
@@ -61,7 +69,7 @@ export default {
     action: setPersonalDetailsAndShipExpensifyCardsWithPIN,
 
     callback: async (isSuccessful, _callbackInput, payload) => {
-        if (isSuccessful && isSetPinOrderCardPayload(payload)) {
+        if (isSuccessful && isSetPINOrderCardPayload(payload)) {
             clearDraftValues(ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM);
             Navigation.closeRHPFlow();
             Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAIN_CARD.getRoute(String(payload.cardID)));
@@ -71,9 +79,8 @@ export default {
         return CONST.MULTIFACTOR_AUTHENTICATION.CALLBACK_RESPONSE.SHOW_OUTCOME_SCREEN;
     },
 
-    failureScreens: {
-        [CONST.MULTIFACTOR_AUTHENTICATION.REASON.EXPO.CANCELED]: <AuthenticationCanceledFailureScreen />,
-    },
+    defaultClientFailureScreen: <ClientFailureScreen />,
+    defaultServerFailureScreen: <ServerFailureScreen />,
 } as const satisfies MultifactorAuthenticationScenarioCustomConfig<Payload>;
 
 export type {Payload};
