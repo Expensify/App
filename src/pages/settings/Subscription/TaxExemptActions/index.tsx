@@ -38,7 +38,7 @@ function TaxExemptActions() {
                 },
             },
         ],
-        [translate, icons.Coins, conciergeReportID, introSelected, currentUserAccountID],
+        [translate, icons.Coins, conciergeReportID, introSelected, currentUserAccountID, betas],
     );
 
     return (

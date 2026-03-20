@@ -243,6 +243,7 @@ function DebugReportPage({
             currentUserAccountID,
             conciergeReportID,
             introSelected,
+            betas,
         ],
     );
 
