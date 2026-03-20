@@ -106,14 +106,12 @@ describe('canEditFieldOfMoneyRequest', () => {
             it('should return false for invoice report action if it is not outstanding report', async () => {
                 const outstandingReportsByPolicyID = await OnyxUtils.get(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID);
 
-                const canEditReportField = canEditFieldOfMoneyRequest(
+                const canEditReportField = canEditFieldOfMoneyRequest({
                     reportAction,
-                    CONST.EDIT_REQUEST_FIELD.REPORT,
-                    undefined,
-                    undefined,
+                    fieldToEdit: CONST.EDIT_REQUEST_FIELD.REPORT,
                     outstandingReportsByPolicyID,
-                    moneyRequestTransaction,
-                );
+                    transaction: moneyRequestTransaction,
+                });
                 expect(canEditReportField).toBe(false);
             });
 
@@ -122,14 +120,12 @@ describe('canEditFieldOfMoneyRequest', () => {
                 await waitForBatchedUpdates();
                 const outstandingReportsByPolicyID = await OnyxUtils.get(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID);
 
-                const canEditReportField = canEditFieldOfMoneyRequest(
+                const canEditReportField = canEditFieldOfMoneyRequest({
                     reportAction,
-                    CONST.EDIT_REQUEST_FIELD.REPORT,
-                    undefined,
-                    undefined,
+                    fieldToEdit: CONST.EDIT_REQUEST_FIELD.REPORT,
                     outstandingReportsByPolicyID,
-                    moneyRequestTransaction,
-                );
+                    transaction: moneyRequestTransaction,
+                });
 
                 expect(canEditReportField).toBe(true);
             });
@@ -223,8 +219,8 @@ describe('canEditFieldOfMoneyRequest', () => {
 
                 // If it is the submitter of a distance request
                 const distanceTransaction = {...moneyRequestTransaction, iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE};
-                const canEditReportFieldAmount = canEditFieldOfMoneyRequest(reportAction, CONST.EDIT_REQUEST_FIELD.AMOUNT, undefined, undefined, undefined, distanceTransaction);
-                const canEditReportFieldCurrency = canEditFieldOfMoneyRequest(reportAction, CONST.EDIT_REQUEST_FIELD.CURRENCY, undefined, undefined, undefined, distanceTransaction);
+                const canEditReportFieldAmount = canEditFieldOfMoneyRequest({reportAction, fieldToEdit: CONST.EDIT_REQUEST_FIELD.AMOUNT, transaction: distanceTransaction});
+                const canEditReportFieldCurrency = canEditFieldOfMoneyRequest({reportAction, fieldToEdit: CONST.EDIT_REQUEST_FIELD.CURRENCY, transaction: distanceTransaction});
 
                 // Then we should allow editing amount and currency fields.
                 expect(canEditReportFieldAmount).toBe(true);
@@ -240,14 +236,12 @@ describe('canEditFieldOfMoneyRequest', () => {
                 const outstandingReportsByPolicyID = await OnyxUtils.get(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID);
 
                 // When the submitter tries to move an expense between reports
-                const canEditReportField = canEditFieldOfMoneyRequest(
+                const canEditReportField = canEditFieldOfMoneyRequest({
                     reportAction,
-                    CONST.EDIT_REQUEST_FIELD.REPORT,
-                    undefined,
-                    undefined,
+                    fieldToEdit: CONST.EDIT_REQUEST_FIELD.REPORT,
                     outstandingReportsByPolicyID,
-                    moneyRequestTransaction,
-                );
+                    transaction: moneyRequestTransaction,
+                });
 
                 // Then they should be able to move the expense since there are multiple outstanding expense reports
                 expect(canEditReportField).toBe(true);
@@ -269,14 +263,12 @@ describe('canEditFieldOfMoneyRequest', () => {
                 const outstandingReportsByPolicyID = await OnyxUtils.get(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID);
 
                 // When a user tries to move an expense between reports
-                const canEditReportField = canEditFieldOfMoneyRequest(
+                const canEditReportField = canEditFieldOfMoneyRequest({
                     reportAction,
-                    CONST.EDIT_REQUEST_FIELD.REPORT,
-                    undefined,
-                    undefined,
+                    fieldToEdit: CONST.EDIT_REQUEST_FIELD.REPORT,
                     outstandingReportsByPolicyID,
-                    moneyRequestTransaction,
-                );
+                    transaction: moneyRequestTransaction,
+                });
 
                 // Then they should not be able to move the expense since only the submitter or admin can edit the report when the report is open
                 expect(canEditReportField).toBe(false);
@@ -304,14 +296,12 @@ describe('canEditFieldOfMoneyRequest', () => {
                 const outstandingReportsByPolicyID = await OnyxUtils.get(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID);
 
                 // When trying to move an expense between reports
-                const canEditReportField = canEditFieldOfMoneyRequest(
+                const canEditReportField = canEditFieldOfMoneyRequest({
                     reportAction,
-                    CONST.EDIT_REQUEST_FIELD.REPORT,
-                    undefined,
-                    undefined,
+                    fieldToEdit: CONST.EDIT_REQUEST_FIELD.REPORT,
                     outstandingReportsByPolicyID,
-                    moneyRequestTransaction,
-                );
+                    transaction: moneyRequestTransaction,
+                });
 
                 // Then they should not be able to move the expense since there's only one outstanding report
                 expect(canEditReportField).toBe(false);
@@ -326,14 +316,12 @@ describe('canEditFieldOfMoneyRequest', () => {
                 const outstandingReportsByPolicyID = await OnyxUtils.get(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID);
 
                 // When the submitter tries to move an expense between reports
-                const canEditReportField = canEditFieldOfMoneyRequest(
+                const canEditReportField = canEditFieldOfMoneyRequest({
                     reportAction,
-                    CONST.EDIT_REQUEST_FIELD.REPORT,
-                    undefined,
-                    undefined,
+                    fieldToEdit: CONST.EDIT_REQUEST_FIELD.REPORT,
                     outstandingReportsByPolicyID,
-                    moneyRequestTransaction,
-                );
+                    transaction: moneyRequestTransaction,
+                });
 
                 // Then they should be able to move the expense since there are multiple outstanding expense reports
                 expect(canEditReportField).toBe(false);
@@ -396,7 +384,7 @@ describe('canEditFieldOfMoneyRequest', () => {
                 });
                 await waitForBatchedUpdates();
 
-                const canEditReceipt = canEditFieldOfMoneyRequest(dewReportAction, CONST.EDIT_REQUEST_FIELD.RECEIPT);
+                const canEditReceipt = canEditFieldOfMoneyRequest({reportAction: dewReportAction, fieldToEdit: CONST.EDIT_REQUEST_FIELD.RECEIPT, transaction: dewTransaction});
 
                 expect(canEditReceipt).toBe(false);
             });
@@ -419,7 +407,7 @@ describe('canEditFieldOfMoneyRequest', () => {
                 });
                 await waitForBatchedUpdates();
 
-                const canEditReceipt = canEditFieldOfMoneyRequest(dewReportAction, CONST.EDIT_REQUEST_FIELD.RECEIPT);
+                const canEditReceipt = canEditFieldOfMoneyRequest({reportAction: dewReportAction, fieldToEdit: CONST.EDIT_REQUEST_FIELD.RECEIPT, transaction: dewTransaction});
 
                 expect(canEditReceipt).toBe(true);
             });
@@ -446,7 +434,7 @@ describe('canEditFieldOfMoneyRequest', () => {
                 });
                 await waitForBatchedUpdates();
 
-                const canEditReceipt = canEditFieldOfMoneyRequest(dewReportAction, CONST.EDIT_REQUEST_FIELD.RECEIPT);
+                const canEditReceipt = canEditFieldOfMoneyRequest({reportAction: dewReportAction, fieldToEdit: CONST.EDIT_REQUEST_FIELD.RECEIPT, transaction: dewTransaction});
 
                 expect(canEditReceipt).toBe(true);
             });
@@ -532,7 +520,7 @@ describe('canEditFieldOfMoneyRequest', () => {
                 });
                 await waitForBatchedUpdates();
 
-                const canEditReportField = canEditFieldOfMoneyRequest(perDiemReportAction, CONST.EDIT_REQUEST_FIELD.REPORT, undefined, undefined);
+                const canEditReportField = canEditFieldOfMoneyRequest({reportAction: perDiemReportAction, fieldToEdit: CONST.EDIT_REQUEST_FIELD.REPORT, transaction: perDiemTransaction});
 
                 expect(canEditReportField).toBe(true);
             });
@@ -545,7 +533,7 @@ describe('canEditFieldOfMoneyRequest', () => {
                 });
                 await waitForBatchedUpdates();
 
-                const canEditReportField = canEditFieldOfMoneyRequest(perDiemReportAction, CONST.EDIT_REQUEST_FIELD.REPORT, undefined, undefined);
+                const canEditReportField = canEditFieldOfMoneyRequest({reportAction: perDiemReportAction, fieldToEdit: CONST.EDIT_REQUEST_FIELD.REPORT, transaction: perDiemTransaction});
 
                 expect(canEditReportField).toBe(false);
             });
@@ -627,7 +615,7 @@ describe('canEditFieldOfMoneyRequest', () => {
             await waitForBatchedUpdates();
 
             // When the admin tries to edit the receipt field
-            const canEditReceipt = canEditFieldOfMoneyRequest(reportAction, CONST.EDIT_REQUEST_FIELD.RECEIPT);
+            const canEditReceipt = canEditFieldOfMoneyRequest({reportAction, fieldToEdit: CONST.EDIT_REQUEST_FIELD.RECEIPT, transaction: moneyRequestTransaction});
 
             // Then they should not be able to edit the receipt on a closed report
             expect(canEditReceipt).toBe(false);
@@ -648,7 +636,7 @@ describe('canEditFieldOfMoneyRequest', () => {
             await waitForBatchedUpdates();
 
             // When the admin tries to edit the receipt field
-            const canEditReceipt = canEditFieldOfMoneyRequest(reportAction, CONST.EDIT_REQUEST_FIELD.RECEIPT);
+            const canEditReceipt = canEditFieldOfMoneyRequest({reportAction, fieldToEdit: CONST.EDIT_REQUEST_FIELD.RECEIPT, transaction: moneyRequestTransaction});
 
             // Then they should be able to edit the receipt on an open report
             expect(canEditReceipt).toBe(true);

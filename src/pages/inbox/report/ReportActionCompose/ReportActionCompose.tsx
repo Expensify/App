@@ -244,7 +244,7 @@ function ReportActionCompose({
     const canUserPerformWriteAction = !!canUserPerformWriteActionReportUtils(report, isReportArchived);
     const canEditReceipt =
         canUserPerformWriteAction &&
-        canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.RECEIPT, undefined, undefined, undefined, transaction) &&
+        canEditFieldOfMoneyRequest({reportAction: parentReportAction, fieldToEdit: CONST.EDIT_REQUEST_FIELD.RECEIPT, transaction}) &&
         !transaction?.receipt?.isTestDriveReceipt;
     const shouldAddOrReplaceReceipt = (isTransactionThreadView || isSingleTransactionView) && canEditReceipt;
 

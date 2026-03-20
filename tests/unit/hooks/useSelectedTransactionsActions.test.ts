@@ -627,10 +627,10 @@ describe('useSelectedTransactionsActions', () => {
             expect(moveOption).toBeDefined();
         });
 
-        // Verify canEditFieldOfMoneyRequest was called with the transaction as the 6th argument
-        const lastCall = canEditFieldSpy.mock.calls[canEditFieldSpy.mock.calls.length - 1];
-        expect(lastCall[1]).toBe(CONST.EDIT_REQUEST_FIELD.REPORT);
-        expect(lastCall[5]).toEqual(expect.objectContaining({transactionID}));
+        // Verify canEditFieldOfMoneyRequest was called with the transaction in the object argument
+        const lastCall = canEditFieldSpy.mock.calls[canEditFieldSpy.mock.calls.length - 1][0] as Record<string, unknown>;
+        expect(lastCall.fieldToEdit).toBe(CONST.EDIT_REQUEST_FIELD.REPORT);
+        expect(lastCall.transaction).toEqual(expect.objectContaining({transactionID}));
     });
 
     it('should show split option when transaction can be split', async () => {

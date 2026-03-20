@@ -4872,16 +4872,25 @@ function canEditReportPolicy(report: OnyxEntry<Report>, reportPolicy: OnyxEntry<
  * Checks if the current user can edit the provided property of an expense
  *
  */
-function canEditFieldOfMoneyRequest(
-    reportAction: OnyxInputOrEntry<ReportAction>,
-    fieldToEdit: ValueOf<typeof CONST.EDIT_REQUEST_FIELD>,
-    isDeleteAction?: boolean,
+function canEditFieldOfMoneyRequest({
+    reportAction,
+    fieldToEdit,
+    isDeleteAction = false,
     isChatReportArchived = false,
-    outstandingReportsByPolicyID?: OutstandingReportsByPolicyIDDerivedValue,
-    linkedTransaction?: OnyxEntry<Transaction>,
-    report?: OnyxInputOrEntry<Report>,
-    policy?: OnyxEntry<Policy>,
-): boolean {
+    outstandingReportsByPolicyID,
+    transaction: linkedTransaction,
+    report,
+    policy,
+}: {
+    reportAction: OnyxInputOrEntry<ReportAction>;
+    fieldToEdit: ValueOf<typeof CONST.EDIT_REQUEST_FIELD>;
+    isDeleteAction?: boolean;
+    isChatReportArchived?: boolean;
+    outstandingReportsByPolicyID?: OutstandingReportsByPolicyIDDerivedValue;
+    transaction: OnyxEntry<Transaction>;
+    report?: OnyxInputOrEntry<Report>;
+    policy?: OnyxEntry<Policy>;
+}): boolean {
     // A list of fields that cannot be edited by anyone, once an expense has been settled
     const restrictedFields: string[] = [
         CONST.EDIT_REQUEST_FIELD.AMOUNT,

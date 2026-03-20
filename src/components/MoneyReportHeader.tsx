@@ -484,7 +484,13 @@ function MoneyReportHeader({
         }
 
         const iouReportAction = getIOUActionForTransactionID(reportActions, transactionToMove.transactionID);
-        const canMoveExpense = canEditFieldOfMoneyRequest(iouReportAction, CONST.EDIT_REQUEST_FIELD.REPORT, undefined, isChatReportArchived, outstandingReportsByPolicyID);
+        const canMoveExpense = canEditFieldOfMoneyRequest({
+            reportAction: iouReportAction,
+            fieldToEdit: CONST.EDIT_REQUEST_FIELD.REPORT,
+            isChatReportArchived,
+            outstandingReportsByPolicyID,
+            transaction: transactionToMove,
+        });
 
         const canUserPerformWriteAction = canUserPerformWriteActionReportUtils(moneyRequestReport, isChatReportArchived);
 
