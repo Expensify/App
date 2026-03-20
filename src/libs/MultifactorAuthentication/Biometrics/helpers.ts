@@ -1,7 +1,7 @@
 /**
  * Helper utilities for multifactor authentication biometrics operations.
  */
-import type {Entries, ValueOf} from 'type-fest';
+import type {ValueOf} from 'type-fest';
 import type {MultifactorAuthenticationReason, MultifactorAuthenticationResponseMap} from './types';
 import VALUES from './VALUES';
 
@@ -28,7 +28,7 @@ const findMessageInSource = (source: ParseHTTPSource[keyof ParseHTTPSource], mes
         return VALUES.REASON.GENERIC.UNKNOWN_RESPONSE;
     }
 
-    const sourceEntries = Object.entries(source) as Entries<typeof source>;
+    const sourceEntries = Object.entries(source) as Array<[string, MultifactorAuthenticationReason]>;
     const [, value] = sourceEntries.find(([backendMessage]) => message.endsWith(backendMessage)) ?? [];
     return value ?? VALUES.REASON.GENERIC.UNKNOWN_RESPONSE;
 };

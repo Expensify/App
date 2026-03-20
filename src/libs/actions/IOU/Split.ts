@@ -144,6 +144,7 @@ type SplitBillActionsParams = {
     splitShares?: SplitShares;
     taxCode?: string;
     taxAmount?: number;
+    taxValue?: string;
     isRetry?: boolean;
     policyRecentlyUsedCategories?: OnyxEntry<OnyxTypes.RecentlyUsedCategories>;
     policyRecentlyUsedTags: OnyxEntry<RecentlyUsedTags>;
@@ -177,6 +178,7 @@ function splitBill({
     splitShares = {},
     taxCode = '',
     taxAmount = 0,
+    taxValue,
     policyRecentlyUsedCategories,
     isASAPSubmitBetaEnabled,
     transactionViolations,
@@ -206,6 +208,7 @@ function splitBill({
             iouRequestType,
             taxCode,
             taxAmount,
+            taxValue,
         },
         policyRecentlyUsedCategories,
         policyRecentlyUsedTags,
@@ -269,6 +272,7 @@ function splitBillAndOpenReport({
     splitShares = {},
     taxCode = '',
     taxAmount = 0,
+    taxValue,
     existingSplitChatReportID,
     policyRecentlyUsedCategories,
     policyRecentlyUsedTags,
@@ -300,6 +304,7 @@ function splitBillAndOpenReport({
             iouRequestType,
             taxCode,
             taxAmount,
+            taxValue,
         },
         policyRecentlyUsedCategories,
         policyRecentlyUsedTags,
@@ -360,6 +365,7 @@ function startSplitBill({
     currency,
     taxCode = '',
     taxAmount = 0,
+    taxValue,
     shouldPlaySound = true,
     policyRecentlyUsedCategories,
     policyRecentlyUsedTags,
@@ -386,6 +392,7 @@ function startSplitBill({
             tag,
             taxCode,
             taxAmount,
+            taxValue,
             billable,
             reimbursable,
         },
@@ -546,6 +553,7 @@ function startSplitBill({
         currency,
         taxCode,
         taxAmount,
+        taxValue,
         quickAction,
         policyRecentlyUsedCurrencies,
         policyRecentlyUsedTags,
@@ -908,6 +916,7 @@ function completeSplitBill(
                 tag: updatedTransaction?.tag,
                 taxCode: updatedTransaction?.taxCode,
                 taxAmount: isPolicyExpenseChat ? -splitTaxAmount : splitAmount,
+                taxValue: updatedTransaction?.taxValue,
                 billable: updatedTransaction?.billable,
                 reimbursable: updatedTransaction?.reimbursable,
                 source: CONST.IOU.TYPE.SPLIT,
@@ -1236,6 +1245,7 @@ function updateSplitTransactions({
                 reimbursable: originalTransactionDetails?.reimbursable,
                 taxCode: originalTransactionDetails?.taxCode,
                 taxAmount: calculateIOUAmount(splitExpenses.length - 1, originalTransactionDetails?.taxAmount ?? 0, originalTransactionDetails?.currency ?? CONST.CURRENCY.USD, false),
+                taxValue: originalTransactionDetails?.taxValue,
                 billable: originalTransactionDetails?.billable,
                 waypoints: splitExpense.waypoints,
                 customUnit: splitExpense.customUnit,
@@ -1276,6 +1286,7 @@ function updateSplitTransactions({
                 linkedTrackedExpenseReportAction: currentReportAction,
                 taxCode: originalTransactionDetails?.taxCode,
                 taxAmount: calculateIOUAmount(splitExpenses.length - 1, originalTransactionDetails?.taxAmount ?? 0, originalTransactionDetails?.currency ?? CONST.CURRENCY.USD, false),
+                taxValue: originalTransactionDetails?.taxValue,
                 billable: originalTransactionDetails?.billable,
                 waypoints: splitExpense.waypoints,
                 customUnit: splitExpense.customUnit,

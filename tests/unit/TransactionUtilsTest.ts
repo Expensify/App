@@ -450,6 +450,32 @@ describe('TransactionUtils', () => {
 
             expect(updatedTransaction.modifiedAmount).toBe(newAmount);
         });
+
+        it('should update taxValue when taxValue and taxCode are both in transactionChanges', () => {
+            const transaction = generateTransaction();
+
+            const updatedTransaction = TransactionUtils.getUpdatedTransaction({
+                transaction,
+                isFromExpenseReport: true,
+                transactionChanges: {taxCode: 'id_TAX_RATE_1', taxAmount: 50, taxValue: '5%'},
+            });
+
+            expect(updatedTransaction.taxValue).toBe('5%');
+            expect(updatedTransaction.taxCode).toBe('id_TAX_RATE_1');
+            expect(updatedTransaction.taxAmount).toBe(-50);
+        });
+
+        it('should not update taxValue when taxCode is not in transactionChanges', () => {
+            const transaction = generateTransaction({taxValue: '10%'});
+
+            const updatedTransaction = TransactionUtils.getUpdatedTransaction({
+                transaction,
+                isFromExpenseReport: false,
+                transactionChanges: {taxValue: '5%'},
+            });
+
+            expect(updatedTransaction.taxValue).toBe('10%');
+        });
     });
 
     describe('isScanning', () => {
@@ -2281,8 +2307,8 @@ describe('TransactionUtils', () => {
 
                 const result = TransactionUtils.compareDuplicateTransactionFields({}, reviewingTransaction, duplicates, mockReport, undefined, policy, policyCategories);
 
-                // When only one valid category exists and fields differ, neither keep nor change is set
-                expect(result.keep.category).toBeUndefined();
+                // When only one valid category exists and fields differ, keep preserves the first transaction's category
+                expect(result.keep.category).toBe('Travel');
                 expect(result.change.category).toBeUndefined();
             });
 
@@ -2316,8 +2342,8 @@ describe('TransactionUtils', () => {
 
                 const result = TransactionUtils.compareDuplicateTransactionFields({}, reviewingTransaction, duplicates, mockReport, undefined, policy, policyCategories);
 
-                // When only one valid category exists and fields differ, neither keep nor change is set
-                expect(result.keep.category).toBeUndefined();
+                // When only one valid category exists and fields differ, keep preserves the first transaction's category
+                expect(result.keep.category).toBe('Travel');
                 expect(result.change.category).toBeUndefined();
             });
 
@@ -2339,8 +2365,8 @@ describe('TransactionUtils', () => {
 
                 const result = TransactionUtils.compareDuplicateTransactionFields({}, reviewingTransaction, duplicates, mockReport, undefined, policy, undefined);
 
-                // When categories are not enabled and fields differ, neither keep nor change is set
-                expect(result.keep.category).toBeUndefined();
+                // When categories are not enabled and fields differ, keep preserves the first transaction's category
+                expect(result.keep.category).toBe('Travel');
                 expect(result.change.category).toBeUndefined();
             });
 
@@ -2612,8 +2638,8 @@ describe('TransactionUtils', () => {
 
                 const result = TransactionUtils.compareDuplicateTransactionFields({}, reviewingTransaction, duplicates, mockReport, undefined, policy, undefined);
 
-                // When only one valid tax exists and fields differ, neither keep nor change is set
-                expect(result.keep.taxCode).toBeUndefined();
+                // When only one valid tax exists and fields differ, keep preserves the first transaction's taxCode
+                expect(result.keep.taxCode).toBe('id_TAX_EXEMPT');
                 expect(result.change.taxCode).toBeUndefined();
             });
 
@@ -2653,8 +2679,8 @@ describe('TransactionUtils', () => {
 
                 const result = TransactionUtils.compareDuplicateTransactionFields({}, reviewingTransaction, duplicates, mockReport, undefined, policy, undefined);
 
-                // When only one valid tax exists and fields differ, neither keep nor change is set
-                expect(result.keep.taxCode).toBeUndefined();
+                // When only one valid tax exists and fields differ, keep preserves the first transaction's taxCode
+                expect(result.keep.taxCode).toBe('id_TAX_EXEMPT');
                 expect(result.change.taxCode).toBeUndefined();
             });
         });
