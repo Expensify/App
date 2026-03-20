@@ -38,7 +38,6 @@ function useLoadReportActions({reportID, reportActions, allReportActionIDs, tran
 
     const isTransactionThreadReport = !isEmptyObject(transactionThreadReport);
 
-    // Track oldest/newest actions per report in a single pass
     let currentReportNewestAction = null;
     let currentReportOldestAction = null;
     let transactionThreadNewestAction = null;
@@ -68,11 +67,6 @@ function useLoadReportActions({reportID, reportActions, allReportActionIDs, tran
         }
     }
 
-    const currentReportOldest = currentReportOldestAction;
-    const currentReportNewest = currentReportNewestAction;
-    const transactionThreadOldest = transactionThreadOldestAction;
-    const transactionThreadNewest = transactionThreadNewestAction;
-
     /**
      * Retrieves the next set of reportActions for the chat once we are nearing the end of what we are currently
      * displaying.
@@ -89,10 +83,10 @@ function useLoadReportActions({reportID, reportActions, allReportActionIDs, tran
         }
 
         if (isTransactionThreadReport) {
-            getOlderActions(reportID, currentReportOldest?.reportActionID);
-            getOlderActions(transactionThreadReport?.reportID, transactionThreadOldest?.reportActionID);
+            getOlderActions(reportID, currentReportOldestAction?.reportActionID);
+            getOlderActions(transactionThreadReport?.reportID, transactionThreadOldestAction?.reportActionID);
         } else {
-            getOlderActions(reportID, currentReportOldest?.reportActionID);
+            getOlderActions(reportID, currentReportOldestAction?.reportActionID);
         }
     };
 
@@ -111,8 +105,8 @@ function useLoadReportActions({reportID, reportActions, allReportActionIDs, tran
         }
 
         if (isTransactionThreadReport) {
-            getNewerActions(reportID, currentReportNewest?.reportActionID);
-            getNewerActions(transactionThreadReport.reportID, transactionThreadNewest?.reportActionID);
+            getNewerActions(reportID, currentReportNewestAction?.reportActionID);
+            getNewerActions(transactionThreadReport.reportID, transactionThreadNewestAction?.reportActionID);
         } else if (newestReportAction) {
             getNewerActions(reportID, newestReportAction.reportActionID);
         }
