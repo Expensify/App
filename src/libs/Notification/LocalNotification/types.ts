@@ -29,7 +29,6 @@ type LocalNotificationModifiedExpensePushParams = LocalNotificationModifiedExpen
     usesIcon?: boolean;
     policyTags: OnyxEntry<PolicyTagLists>;
     policy?: OnyxEntry<Policy>;
-    conciergeReportID: string | undefined;
 };
 
 export type {LocalNotificationModule, LocalNotificationClickHandler, LocalNotificationData, LocalNotificationModifiedExpenseParams, LocalNotificationModifiedExpensePushParams};
