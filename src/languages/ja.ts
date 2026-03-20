@@ -460,6 +460,8 @@ const translations: TranslationDeepObject<typeof en> = {
         downloadAsCSV: 'CSVとしてダウンロード',
         print: '印刷',
         help: 'ヘルプ',
+        collapsed: '折りたたみ',
+        expanded: '展開',
         expenseReport: '経費精算書',
         expenseReports: '経費レポート',
         rateOutOfPolicy: 'ポリシー対象外のレート',
@@ -727,6 +729,8 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         verificationFailed: '認証に失敗しました',
         setPin: {didNotShipCard: 'カードを発送できませんでした。もう一度お試しください。'},
+        revealPin: {couldNotReveal: 'PIN を表示できませんでした。もう一度お試しください。'},
+        changePin: {didNotChange: 'お客様の暗証番号は変更されていません。もう一度お試しください。'},
     },
     validateCodeModal: {
         successfulSignInTitle: dedent(`
@@ -2332,12 +2336,20 @@ ${date} の ${merchant} への ${amount}`,
         },
         setYourPin: 'PIN を設定.',
         confirmYourPin: 'PIN を確認してください.',
+        changeYourPin: 'カードの新しい暗証番号を入力してください。',
+        confirmYourChangedPin: '新しい暗証番号を確認してください。',
         pinMustBeFourDigits: 'PIN は 4 桁で入力してください。',
         invalidPin: 'より安全な暗証番号を選択してください。',
         pinMismatch: 'PIN が一致しません。もう一度お試しください。',
         revealPin: 'PIN を表示',
         hidePin: 'PIN を非表示',
         pin: 'PIN',
+        changePin: 'PIN を変更',
+        pinChanged: 'PIN を変更しました！',
+        pinChangedHeader: 'PIN を変更しました',
+        pinChangedDescription: 'これで暗証番号をすぐにご利用いただけます。',
+        changePinAtATM: 'PIN は任意の ATM で変更できます',
+        changePinAtATMDescription: 'これはお住まいの地域では必須です。ご不明な点がある場合は<concierge-link>Concierge に連絡</concierge-link>してください。',
         freezeCard: 'カードを一時停止',
         unfreeze: '再開',
         unfreezeCard: 'カードの一時停止を解除',
@@ -7440,7 +7452,8 @@ ${reportName}
                     `${feedName} との接続が切断されています。カードの取引明細の取込を再開するには、<a href='${workspaceCompanyCardRoute}'>銀行にログイン</a>してください。`,
                 plaidBalanceFailure: ({maskedAccountNumber, walletRoute}: {maskedAccountNumber: string; walletRoute: string}) =>
                     `Plaid によるビジネス銀行口座との接続が切断されています。Expensify カードを引き続きご利用いただくために、<a href='${walletRoute}'>銀行口座 ${maskedAccountNumber} を再接続</a>してください。`,
-                addEmployee: (email: string, role: string) => `${email} を ${role === 'member' ? 'a' : 'ある'} ${role} として追加しました`,
+                addEmployee: (email: string, role: string, didJoinPolicy?: boolean) =>
+                    didJoinPolicy ? `${email} さんがワークスペースの招待リンクから参加しました` : `${role === 'member' ? 'a' : '1つの'} ${role} として ${email} を追加しました`,
                 updateRole: ({email, currentRole, newRole}: UpdateRoleParams) => `${email} のロールを ${currentRole} から ${newRole} に更新しました`,
                 updatedCustomField1: (email: string, newValue: string, previousValue: string) => {
                     if (!newValue) {
@@ -8153,6 +8166,8 @@ ${reportName}
             title: 'Expensifyコード',
             discountCode: '割引コード',
             enterCode: 'サブスクリプションに適用するExpensifyコードを入力してください。',
+            discountMessage: (promoDiscount: string, validBillingCycles: string) =>
+                `次の${validBillingCycles ? `${validBillingCycles}回の` : ''}請求に対して${promoDiscount}%の割引が適用されます。`,
             apply: '適用',
             error: {
                 invalid: 'このコードは無効です',
@@ -8179,6 +8194,8 @@ ${reportName}
                 `<muted-text>詳しくは<a href="${CONST.PRICING}">料金ページ</a>をご覧いただくか、${hasAdminsRoom ? `<a href="adminsRoom">#adminsルーム。</a>` : '#admins ルーム。'}で当社チームにチャットでお問い合わせください</muted-text>`,
             estimatedPrice: '概算価格',
             changesBasedOn: 'これは、お客様の Expensify カードの利用状況と、以下のサブスクリプションオプションによって変わります。',
+            collectBillingDescription: 'Collect ワークスペースは、年間契約なしで、メンバーごとに毎月課金されます。',
+            pricing: '料金',
         },
         requestEarlyCancellation: {
             title: '早期解約をリクエスト',

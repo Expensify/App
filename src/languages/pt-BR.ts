@@ -460,6 +460,8 @@ const translations: TranslationDeepObject<typeof en> = {
         downloadAsCSV: 'Baixar como CSV',
         print: 'Imprimir',
         help: 'Ajuda',
+        collapsed: 'Recolhido',
+        expanded: 'Expandido',
         expenseReport: 'Relatório de despesas',
         expenseReports: 'Relatórios de despesas',
         rateOutOfPolicy: 'Taxa fora da política',
@@ -727,6 +729,8 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         verificationFailed: 'Falha na verificação',
         setPin: {didNotShipCard: 'Não enviamos seu cartão. Tente novamente.'},
+        revealPin: {couldNotReveal: 'Não foi possível revelar seu PIN. Tente novamente.'},
+        changePin: {didNotChange: 'Nós não alteramos seu PIN. Tente novamente.'},
     },
     validateCodeModal: {
         successfulSignInTitle: dedent(`
@@ -2339,12 +2343,20 @@ ${amount} para ${merchant} - ${date}`,
         },
         setYourPin: 'Defina seu PIN.',
         confirmYourPin: 'Confirme seu PIN.',
+        changeYourPin: 'Digite um novo PIN para o seu cartão.',
+        confirmYourChangedPin: 'Confirme seu novo PIN.',
         pinMustBeFourDigits: 'O PIN deve ter exatamente 4 dígitos.',
         invalidPin: 'Escolha um PIN mais seguro.',
         pinMismatch: 'Os PINs não coincidem. Tente novamente.',
         revealPin: 'Revelar PIN',
         hidePin: 'Ocultar PIN',
         pin: 'PIN',
+        changePin: 'Alterar PIN',
+        pinChanged: 'PIN alterado!',
+        pinChangedHeader: 'PIN alterado',
+        pinChangedDescription: 'Tudo pronto para você usar seu PIN agora.',
+        changePinAtATM: 'Altere seu PIN em qualquer caixa eletrônico',
+        changePinAtATMDescription: 'Isso é obrigatório na sua região. <concierge-link>Falar com a Concierge</concierge-link> se você tiver alguma dúvida.',
         freezeCard: 'Bloquear cartão',
         unfreeze: 'Desbloquear',
         unfreezeCard: 'Desbloquear cartão',
@@ -7494,7 +7506,8 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
                     `A conexão de ${feedName} está interrompida. Para restaurar as importações do cartão, <a href='${workspaceCompanyCardRoute}'>faça login no seu banco</a>.`,
                 plaidBalanceFailure: ({maskedAccountNumber, walletRoute}: {maskedAccountNumber: string; walletRoute: string}) =>
                     `a conexão Plaid com a sua conta bancária empresarial foi interrompida. Por favor, <a href='${walletRoute}'>reconecte sua conta bancária ${maskedAccountNumber}</a> para continuar usando seus Cartões Expensify.`,
-                addEmployee: (email: string, role: string) => `adicionou ${email} como ${role === 'member' ? 'a' : 'um'} ${role}`,
+                addEmployee: (email: string, role: string, didJoinPolicy?: boolean) =>
+                    didJoinPolicy ? `${email} entrou pelo link de convite do workspace` : `adicionou ${email} como ${role === 'member' ? 'a' : 'um'} ${role}`,
                 updateRole: ({email, currentRole, newRole}: UpdateRoleParams) => `atualizou a função de ${email} para ${newRole} (anteriormente ${currentRole})`,
                 updatedCustomField1: (email: string, newValue: string, previousValue: string) => {
                     if (!newValue) {
@@ -8211,6 +8224,8 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
             title: 'Código Expensify',
             discountCode: 'Código de desconto',
             enterCode: 'Insira um código Expensify para aplicar à sua assinatura.',
+            discountMessage: (promoDiscount: string, validBillingCycles: string) =>
+                `Você receberá ${promoDiscount}% de desconto nas próximas ${validBillingCycles ? `${validBillingCycles} ` : ''}cobranças de faturamento.`,
             apply: 'Aplicar',
             error: {
                 invalid: 'Este código é inválido',
@@ -8238,6 +8253,8 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
                 `<muted-text>Saiba mais na nossa <a href="${CONST.PRICING}">página de preços</a> ou converse com nossa equipe no seu ${hasAdminsRoom ? `<a href="adminsRoom">Sala #admins.</a>` : 'Sala #admins.'}</muted-text>`,
             estimatedPrice: 'Preço estimado',
             changesBasedOn: 'Isso muda de acordo com o uso do seu Cartão Expensify e as opções de assinatura abaixo.',
+            collectBillingDescription: 'Os espaços de trabalho Collect são cobrados mensalmente por membro, sem compromisso anual.',
+            pricing: 'Preços',
         },
         requestEarlyCancellation: {
             title: 'Solicitar cancelamento antecipado',

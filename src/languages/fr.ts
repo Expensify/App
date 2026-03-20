@@ -461,6 +461,8 @@ const translations: TranslationDeepObject<typeof en> = {
         downloadAsCSV: 'Télécharger au format CSV',
         print: 'Imprimer',
         help: 'Aide',
+        collapsed: 'Réduit',
+        expanded: 'Développé',
         expenseReport: 'Note de frais',
         expenseReports: 'Notes de frais',
         rateOutOfPolicy: 'Taux hors politique',
@@ -731,6 +733,8 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         verificationFailed: 'Échec de la vérification',
         setPin: {didNotShipCard: 'Nous n’avons pas envoyé votre carte. Veuillez réessayer.'},
+        revealPin: {couldNotReveal: "Nous n'avons pas pu afficher votre code PIN. Veuillez réessayer."},
+        changePin: {didNotChange: "Nous n'avons pas modifié votre code PIN. Veuillez réessayer."},
     },
     validateCodeModal: {
         successfulSignInTitle: dedent(`
@@ -2358,12 +2362,20 @@ ${amount} pour ${merchant} - ${date}`,
         },
         setYourPin: 'Définir votre code PIN.',
         confirmYourPin: 'Confirmez votre code PIN.',
+        changeYourPin: 'Saisissez un nouveau code PIN pour votre carte.',
+        confirmYourChangedPin: 'Confirmez votre nouveau code PIN.',
         pinMustBeFourDigits: 'Le code PIN doit comporter exactement 4 chiffres.',
         invalidPin: 'Veuillez choisir un code PIN plus sécurisé.',
         pinMismatch: 'Les codes PIN ne correspondent pas. Veuillez réessayer.',
         revealPin: 'Afficher le code PIN',
         hidePin: 'Masquer le code PIN',
         pin: 'Code PIN',
+        changePin: 'Modifier le code PIN',
+        pinChanged: 'Code PIN modifié !',
+        pinChangedHeader: 'Code PIN modifié',
+        pinChangedDescription: 'Vous êtes maintenant prêt à utiliser votre code PIN.',
+        changePinAtATM: 'Modifiez votre code PIN à n’importe quel distributeur automatique de billets',
+        changePinAtATMDescription: 'Ceci est obligatoire dans votre région. <concierge-link>Contacter Concierge</concierge-link> si vous avez des questions.',
         freezeCard: 'Geler la carte',
         unfreeze: 'Dégeler',
         unfreezeCard: 'Dégeler la carte',
@@ -7560,7 +7572,8 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
                     `La connexion ${feedName} est interrompue. Pour rétablir l’importation des cartes, <a href='${workspaceCompanyCardRoute}'>connectez-vous à votre banque</a>.`,
                 plaidBalanceFailure: ({maskedAccountNumber, walletRoute}: {maskedAccountNumber: string; walletRoute: string}) =>
                     `la connexion Plaid à votre compte bancaire professionnel est rompue. Veuillez <a href='${walletRoute}'>reconnecter votre compte bancaire ${maskedAccountNumber}</a> afin de pouvoir continuer à utiliser vos Cartes Expensify.`,
-                addEmployee: (email: string, role: string) => `a ajouté ${email} en tant que ${role === 'member' ? 'un' : 'un'} ${role}`,
+                addEmployee: (email: string, role: string, didJoinPolicy?: boolean) =>
+                    didJoinPolicy ? `${email} a rejoint via le lien d’invitation de l’espace de travail` : `a ajouté ${email} en tant que ${role === 'member' ? 'a' : 'un'} ${role}`,
                 updateRole: ({email, currentRole, newRole}: UpdateRoleParams) => `a mis à jour le rôle de ${email} en ${newRole} (précédemment ${currentRole})`,
                 updatedCustomField1: (email: string, newValue: string, previousValue: string) => {
                     if (!newValue) {
@@ -8279,6 +8292,8 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
             title: 'Code Expensify',
             discountCode: 'Code de réduction',
             enterCode: 'Saisissez un code Expensify à appliquer à votre abonnement.',
+            discountMessage: (promoDiscount: string, validBillingCycles: string) =>
+                `Vous bénéficierez de ${promoDiscount}% de réduction sur vos ${validBillingCycles ? `${validBillingCycles} ` : ''}prochaines facturations.`,
             apply: 'Appliquer',
             error: {
                 invalid: "Ce code n'est pas valide",
@@ -8306,6 +8321,8 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
                 `<muted-text>En savoir plus sur notre <a href="${CONST.PRICING}">page des tarifs</a> ou discutez avec notre équipe dans votre ${hasAdminsRoom ? `<a href="adminsRoom">Salon #admins.</a>` : 'Salon #admins.'}</muted-text>`,
             estimatedPrice: 'Prix estimé',
             changesBasedOn: 'Cela varie en fonction de votre utilisation de la Carte Expensify et des options d’abonnement ci-dessous.',
+            collectBillingDescription: 'Les espaces de travail Collect sont facturés mensuellement par membre, sans engagement annuel.',
+            pricing: 'Tarification',
         },
         requestEarlyCancellation: {
             title: 'Demander une résiliation anticipée',
