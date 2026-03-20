@@ -63,6 +63,7 @@ function DisplayPopup({queryJSON, searchResults, closeOverlay, onSort}: DisplayP
         };
 
         const isExpenseType = queryJSON.type === CONST.SEARCH.DATA_TYPES.EXPENSE;
+        const isTripType = queryJSON.type === CONST.SEARCH.DATA_TYPES.TRIP;
         return (
             <View style={[!shouldUseNarrowLayout && styles.pv4]}>
                 <MenuItemWithTopDescription
@@ -71,7 +72,7 @@ function DisplayPopup({queryJSON, searchResults, closeOverlay, onSort}: DisplayP
                     title={translate(getSearchColumnTranslationKey(sortByValue))}
                     onPress={() => setSelectedDisplayFilter(CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_BY)}
                 />
-                {isExpenseType && (
+                {(isExpenseType || isTripType) && (
                     <MenuItemWithTopDescription
                         shouldShowRightIcon
                         description={translate('search.display.groupBy')}
