@@ -12,6 +12,11 @@ const prefixes: LinkingOptions<RootNavigatorParamList>['prefixes'] = [
     CONST.NEW_EXPENSIFY_URL,
     CONST.STAGING_NEW_EXPENSIFY_URL,
     CONST.PR_TESTING_NEW_EXPENSIFY_URL,
+    // Old Dot URLs - needed to ensure OD Report links open in the app instead of browser
+    'https://www.expensify.com',
+    'https://staging.expensify.com',
+    CONST.EXPENSIFY_URL,
+    CONST.STAGING_EXPENSIFY_URL,
 ];
 
 export default prefixes;
