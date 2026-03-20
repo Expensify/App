@@ -70,7 +70,7 @@ function ForYouSection() {
             count: payCount,
             icon: icons.MoneyBag,
             translationKey: 'homePage.forYouSection.pay' as const,
-            handler: createNavigationHandler(CONST.SEARCH.ACTION_FILTERS.PAY, {reimbursable: CONST.SEARCH.BOOLEAN.YES, payer: accountID?.toString()}),
+            handler: createNavigationHandler(CONST.SEARCH.ACTION_FILTERS.PAY, {payer: accountID?.toString()}),
         },
         {
             key: 'export',
