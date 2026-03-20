@@ -77,6 +77,16 @@ describe('useExportedToFilterOptions', () => {
         expect(result.current.exportedToFilterOptions).not.toContain(templateName);
     });
 
+    it('excludes templates whose templateName matches integration connection key', () => {
+        const templateName = CONST.POLICY.CONNECTIONS.NAME.QBO;
+        const templateDisplayName = 'QBO Custom Template';
+        mockGetExportTemplates.mockReturnValue([{templateName, name: templateDisplayName, type: CONST.EXPORT_TEMPLATE_TYPES.INTEGRATIONS} as ExportTemplate]);
+
+        const {result} = renderHook(() => useExportedToFilterOptions());
+
+        expect(result.current.exportedToFilterOptions).not.toContain(templateDisplayName);
+    });
+
     it('includes standard export label in options when getExportTemplates returns standard template', () => {
         mockGetExportTemplates.mockReturnValue([{templateName: CONST.REPORT.EXPORT_OPTIONS.EXPENSE_LEVEL_EXPORT, name: expenseLevelLabel} as ExportTemplate]);
 
