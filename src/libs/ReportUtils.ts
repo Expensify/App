@@ -4878,7 +4878,7 @@ function canEditFieldOfMoneyRequest({
     isDeleteAction = false,
     isChatReportArchived = false,
     outstandingReportsByPolicyID,
-    transaction: linkedTransaction,
+    transaction,
     report,
     policy,
 }: {
@@ -4915,7 +4915,6 @@ function canEditFieldOfMoneyRequest({
 
     const iouMessage = getOriginalMessage(reportAction);
     const moneyRequestReport = report ?? (iouMessage?.IOUReportID ? (getReport(iouMessage?.IOUReportID, allReports) ?? ({} as Report)) : ({} as Report));
-    const transaction = linkedTransaction ?? ({} as Transaction);
 
     if (isSettled(String(moneyRequestReport.reportID)) || isReportIDApproved(String(moneyRequestReport.reportID))) {
         return false;
