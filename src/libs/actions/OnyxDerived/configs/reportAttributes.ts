@@ -354,3 +354,5 @@ export default createOnyxDerivedValueConfig({
         };
     },
 });
+
+export {hasPolicyRelevantFieldChanged};
