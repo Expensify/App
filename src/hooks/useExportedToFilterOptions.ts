@@ -62,11 +62,12 @@ export default function useExportedToFilterOptions(): UseExportedToFilterDataRes
     }
 
     const combinedUniqueExportTemplates = Array.from(uniqueExportTemplatesByName.values());
+    const integrationConnectionNamesSet = new Set<string>(Object.values(CONST.POLICY.CONNECTIONS.NAME));
 
     const standardAndCustomExportTemplates: string[] = [];
     for (const template of combinedUniqueExportTemplates) {
         // Classic export formats map to in-app templates and cannot be identified in exported-to filter.
-        if (template.type === CONST.EXPORT_TEMPLATE_TYPES.IN_APP) {
+        if (template.type === CONST.EXPORT_TEMPLATE_TYPES.IN_APP || integrationConnectionNamesSet.has(template.templateName)) {
             continue;
         }
 
