@@ -165,8 +165,6 @@ function getMovedFromOrToReportMessage(
     movedFromReport: OnyxEntry<Report> | undefined,
     movedToReport: OnyxEntry<Report> | undefined,
     currentUserLogin: string,
-    // TODO: This will be required eventually. Refactor issue: https://github.com/Expensify/App/issues/66411
-    conciergeReportID?: string,
     reportAttributes?: ReportAttributesDerivedValue['reports'],
 ): string | undefined {
     if (movedToReport) {
@@ -274,7 +272,7 @@ function getForReportAction({
         return '';
     }
 
-    const movedFromOrToReportMessage = getMovedFromOrToReportMessage(translate, movedFromReport, movedToReport, currentUserLogin, conciergeReportID, reportAttributes);
+    const movedFromOrToReportMessage = getMovedFromOrToReportMessage(translate, movedFromReport, movedToReport, currentUserLogin, reportAttributes);
     if (movedFromOrToReportMessage) {
         return movedFromOrToReportMessage;
     }
