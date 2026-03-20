@@ -525,6 +525,7 @@ const translations: TranslationDeepObject<typeof en> = {
         concierge: {sidePanelGreeting: 'Oi, como posso ajudar?', showHistory: 'Mostrar histórico'},
         duplicateReport: 'Duplicar relatório',
         approver: 'Aprovador',
+        copyOfReportName: (reportName: string) => `Cópia de ${reportName}`,
     },
     socials: {
         podcast: 'Siga-nos no Podcast',
