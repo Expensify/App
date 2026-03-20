@@ -10,6 +10,6 @@ if (!CONFIG.IS_HYBRID_APP) {
         Log.info('BackgroundTask', true, `Executing ${BACKGROUND_FETCH_TASK} background task at ${new Date().toISOString()}`);
         flush();
     }).catch((error: unknown) => {
-        Log.warn('BackgroundTask', false, `Failed to define ${BACKGROUND_FETCH_TASK}: ${String(error)}`);
+        Log.warn(`[BackgroundTask] Failed to define ${BACKGROUND_FETCH_TASK}: ${String(error)}`);
     });
 }
