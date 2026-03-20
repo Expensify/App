@@ -139,6 +139,18 @@ export default createOnyxDerivedValueConfig({
             }
         }
 
+        // Extract policy updates and find reports affected by policy changes (e.g. workspace rename)
+        const policyUpdates = sourceValues?.[ONYXKEYS.COLLECTION.POLICY] ?? {};
+        const changedPolicyIDs = new Set(Object.keys(policyUpdates).map((key) => key.replace(ONYXKEYS.COLLECTION.POLICY, '')));
+        const reportKeysForPolicyUpdates: string[] = [];
+        if (changedPolicyIDs.size > 0) {
+            for (const [reportKey, report] of Object.entries(reports)) {
+                if (report?.policyID && changedPolicyIDs.has(report.policyID)) {
+                    reportKeysForPolicyUpdates.push(reportKey);
+                }
+            }
+        }
+
         const updates = [
             ...Object.keys(reportUpdates),
             ...Object.keys(reportMetadataUpdates),
@@ -146,6 +158,7 @@ export default createOnyxDerivedValueConfig({
             ...Object.keys(reportNameValuePairsUpdates),
             ...Object.keys(reportViolationsUpdates),
             ...Array.from(reportUpdatesRelatedToReportActions),
+            ...reportKeysForPolicyUpdates,
         ];
 
         if (useIncrementalUpdates) {
