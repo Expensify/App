@@ -181,10 +181,7 @@ function DynamicWorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
         Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_INVITE_MESSAGE.path));
     }, [route.params.policyID, selectedOptions]);
 
-    const [policyName, shouldShowAlertPrompt] = useMemo(
-        () => [policy?.name ?? '', !isEmptyObject(policy?.errors) || !!policy?.alertMessage],
-        [policy?.name, policy?.errors, policy?.alertMessage],
-    );
+    const [policyName, shouldShowAlertPrompt] = useMemo(() => [policy?.name ?? '', !isEmptyObject(policy?.errors)], [policy?.name, policy?.errors]);
 
     const headerMessage = useMemo(() => {
         const searchValue = debouncedSearchTerm.trim().toLowerCase();
@@ -217,12 +214,11 @@ function DynamicWorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
                 isAlertVisible={shouldShowAlertPrompt}
                 buttonText={translate('common.next')}
                 onSubmit={inviteUser}
-                message={policy?.alertMessage ?? ''}
                 containerStyles={[styles.flexReset, styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto]}
                 enabledWhenOffline
             />
         ),
-        [inviteUser, policy?.alertMessage, selectedOptions.length, shouldShowAlertPrompt, styles.flexBasisAuto, styles.flexGrow0, styles.flexReset, styles.flexShrink0, translate],
+        [inviteUser, selectedOptions.length, shouldShowAlertPrompt, styles.flexBasisAuto, styles.flexGrow0, styles.flexReset, styles.flexShrink0, translate],
     );
 
     useEffect(() => {
