@@ -43,7 +43,7 @@ import {isDefaultAvatar, isLetterAvatar, isPresetAvatar} from '@libs/UserAvatarU
 import Navigation from '@navigation/Navigation';
 import ReactionListWrapper from '@pages/inbox/ReactionListWrapper';
 import {ActionListContext} from '@pages/inbox/ReportScreenContext';
-import {clearDeleteTransactionNavigateBackUrl, createTransactionThreadReport, hydrateReportCurrencyFromSnapshot, openReport, updateLastVisitTime} from '@userActions/Report';
+import {clearDeleteTransactionNavigateBackUrl, createTransactionThreadReport, openReport, updateLastVisitTime} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
@@ -132,11 +132,6 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
             });
         });
     }, [isFocused, deleteTransactionNavigateBackUrl]);
-
-    const snapshotReport = useMemo(() => {
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        return (snapshot?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${reportIDFromRoute}`] ?? {}) as typeof report;
-    }, [snapshot, reportIDFromRoute]);
 
     const [reportMetadata = defaultReportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportIDFromRoute}`);
     const [policies = getEmptyObject<NonNullable<OnyxCollection<Policy>>>()] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
@@ -227,11 +222,6 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
         // Reset flag when reportID changes (screen stays mounted but navigates to different report)
         if (prevReportIDFromRoute !== reportIDFromRoute) {
             isInitialMountRef.current = true;
-        }
-
-        // Hydrate currency from snapshot if Onyx lacks it (offline)
-        if (report?.reportID && !report.currency && snapshotReport?.currency) {
-            hydrateReportCurrencyFromSnapshot(report.reportID, snapshotReport.currency);
         }
 
         // Guard prevents calling openReport for multi-transaction reports

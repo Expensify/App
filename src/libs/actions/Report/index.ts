@@ -1920,10 +1920,6 @@ function getOptimisticChatReport(accountID: number, currentUserAccountID: number
     });
 }
 
-function hydrateReportCurrencyFromSnapshot(reportID: string, currency: string) {
-    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {currency});
-}
-
 function createTransactionThreadReport(
     introSelected: OnyxEntry<IntroSelected>,
     currentUserLogin: string,
@@ -7299,5 +7295,4 @@ export {
     setOptimisticTransactionThread,
     prepareOnyxDataForCleanUpOptimisticParticipants,
     getGuidedSetupDataForOpenReport,
-    hydrateReportCurrencyFromSnapshot,
 };
