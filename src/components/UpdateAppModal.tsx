@@ -1,17 +1,19 @@
 import React, {useState} from 'react';
-import ConfirmModal from '@components/ConfirmModal';
 import useLocalize from '@hooks/useLocalize';
-import type UpdateAppModalProps from './types';
+import useOnyx from '@hooks/useOnyx';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ConfirmModal from './ConfirmModal';
 
-function BaseUpdateAppModal({onSubmit}: UpdateAppModalProps) {
+function UpdateAppModal() {
     const [isModalOpen, setIsModalOpen] = useState(true);
     const {translate} = useLocalize();
+    const [updateAvailable] = useOnyx(ONYXKEYS.UPDATE_AVAILABLE, {initWithStoredValues: false});
 
-    /**
-     * Execute the onSubmit callback and close the modal.
-     */
-    const submitAndClose = () => {
-        onSubmit?.();
+    if (!updateAvailable) {
+        return null;
+    }
+
+    const handleClose = () => {
         setIsModalOpen(false);
     };
 
@@ -19,8 +21,8 @@ function BaseUpdateAppModal({onSubmit}: UpdateAppModalProps) {
         <ConfirmModal
             title={translate('baseUpdateAppModal.updateApp')}
             isVisible={isModalOpen}
-            onConfirm={submitAndClose}
-            onCancel={() => setIsModalOpen(false)}
+            onConfirm={handleClose}
+            onCancel={handleClose}
             prompt={translate('baseUpdateAppModal.updatePrompt')}
             confirmText={translate('baseUpdateAppModal.updateApp')}
             cancelText={translate('common.cancel')}
@@ -28,6 +30,4 @@ function BaseUpdateAppModal({onSubmit}: UpdateAppModalProps) {
     );
 }
 
-BaseUpdateAppModal.displayName = 'BaseUpdateAppModal';
-
-export default React.memo(BaseUpdateAppModal);
+export default UpdateAppModal;

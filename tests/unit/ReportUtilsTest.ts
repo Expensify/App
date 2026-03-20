@@ -97,6 +97,7 @@ import {
     getReportStatusTranslation,
     getReportSubtitlePrefix,
     getTaskAssigneeChatOnyxData,
+    getTransactionDetails,
     getViolatingReportIDForRBRInLHN,
     getWorkspaceIcon,
     getWorkspaceNameUpdatedMessage,
@@ -628,11 +629,121 @@ describe('ReportUtils', () => {
                 companySize: CONST.ONBOARDING_COMPANY_SIZE.MICRO,
             });
             expect(result?.guidedSetupData).toHaveLength(0);
-            // MICRO company size with suggestedFollowups beta adds a bespoke Concierge welcome action optimistically
+            // suggestedFollowups beta adds a bespoke Concierge welcome action optimistically for all company sizes
             const reportActionsEntries = result?.optimisticData.filter((i) => i.key === `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${adminsChatReportID}`);
             expect(reportActionsEntries).toHaveLength(1);
-            expect(result?.bespokeWelcomeMessage).toBeDefined();
+            expect(result?.bespokeWelcomeMessage).toContain('For a small team like yours');
             expect(result?.optimisticConciergeReportActionID).toBeDefined();
+        });
+
+        it('should generate bespoke welcome message for SMALL company sizes with suggestedFollowups beta', async () => {
+            const adminsChatReportID = '1';
+            await Onyx.merge(ONYXKEYS.SESSION, {email: 'test@example.com'});
+            await Onyx.merge(ONYXKEYS.BETAS, [CONST.BETAS.SUGGESTED_FOLLOWUPS]);
+            await waitForBatchedUpdates();
+
+            const result = prepareOnboardingOnyxData({
+                introSelected: undefined,
+                engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
+                onboardingMessage: {
+                    message: 'This is a test',
+                    tasks: [{type: CONST.ONBOARDING_TASK_TYPE.CONNECT_CORPORATE_CARD, title: () => '', description: () => '', autoCompleted: false}],
+                },
+                adminsChatReportID,
+                selectedInterestedFeatures: ['areCompanyCardsEnabled'],
+                companySize: CONST.ONBOARDING_COMPANY_SIZE.SMALL,
+            });
+            expect(result?.guidedSetupData).toHaveLength(0);
+            expect(result?.bespokeWelcomeMessage).toContain('growing team');
+            expect(result?.optimisticConciergeReportActionID).toBeDefined();
+        });
+
+        it('should generate bespoke welcome message for LARGE company sizes with suggestedFollowups beta', async () => {
+            const adminsChatReportID = '1';
+            await Onyx.merge(ONYXKEYS.SESSION, {email: 'test@example.com'});
+            await Onyx.merge(ONYXKEYS.BETAS, [CONST.BETAS.SUGGESTED_FOLLOWUPS]);
+            await waitForBatchedUpdates();
+
+            const result = prepareOnboardingOnyxData({
+                introSelected: undefined,
+                engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
+                onboardingMessage: {
+                    message: 'This is a test',
+                    tasks: [{type: CONST.ONBOARDING_TASK_TYPE.CONNECT_CORPORATE_CARD, title: () => '', description: () => '', autoCompleted: false}],
+                },
+                adminsChatReportID,
+                selectedInterestedFeatures: ['areCompanyCardsEnabled'],
+                companySize: CONST.ONBOARDING_COMPANY_SIZE.LARGE,
+            });
+            expect(result?.guidedSetupData).toHaveLength(0);
+            expect(result?.bespokeWelcomeMessage).toContain('organization your size');
+            expect(result?.optimisticConciergeReportActionID).toBeDefined();
+        });
+
+        it('should generate bespoke welcome message for MEDIUM_SMALL company sizes with suggestedFollowups beta', async () => {
+            const adminsChatReportID = '1';
+            await Onyx.merge(ONYXKEYS.SESSION, {email: 'test@example.com'});
+            await Onyx.merge(ONYXKEYS.BETAS, [CONST.BETAS.SUGGESTED_FOLLOWUPS]);
+            await waitForBatchedUpdates();
+
+            const result = prepareOnboardingOnyxData({
+                introSelected: undefined,
+                engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
+                onboardingMessage: {
+                    message: 'This is a test',
+                    tasks: [{type: CONST.ONBOARDING_TASK_TYPE.CONNECT_CORPORATE_CARD, title: () => '', description: () => '', autoCompleted: false}],
+                },
+                adminsChatReportID,
+                selectedInterestedFeatures: ['areCompanyCardsEnabled'],
+                companySize: CONST.ONBOARDING_COMPANY_SIZE.MEDIUM_SMALL,
+            });
+            expect(result?.guidedSetupData).toHaveLength(0);
+            expect(result?.bespokeWelcomeMessage).toContain('growing team');
+            expect(result?.optimisticConciergeReportActionID).toBeDefined();
+        });
+
+        it('should generate bespoke welcome message for MEDIUM company sizes with suggestedFollowups beta', async () => {
+            const adminsChatReportID = '1';
+            await Onyx.merge(ONYXKEYS.SESSION, {email: 'test@example.com'});
+            await Onyx.merge(ONYXKEYS.BETAS, [CONST.BETAS.SUGGESTED_FOLLOWUPS]);
+            await waitForBatchedUpdates();
+
+            const result = prepareOnboardingOnyxData({
+                introSelected: undefined,
+                engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
+                onboardingMessage: {
+                    message: 'This is a test',
+                    tasks: [{type: CONST.ONBOARDING_TASK_TYPE.CONNECT_CORPORATE_CARD, title: () => '', description: () => '', autoCompleted: false}],
+                },
+                adminsChatReportID,
+                selectedInterestedFeatures: ['areCompanyCardsEnabled'],
+                companySize: CONST.ONBOARDING_COMPANY_SIZE.MEDIUM,
+            });
+            expect(result?.guidedSetupData).toHaveLength(0);
+            expect(result?.bespokeWelcomeMessage).toContain('organization your size');
+            expect(result?.optimisticConciergeReportActionID).toBeDefined();
+        });
+
+        it('should append accounting integration suffix to bespoke welcome message', async () => {
+            const adminsChatReportID = '1';
+            await Onyx.merge(ONYXKEYS.SESSION, {email: 'test@example.com'});
+            await Onyx.merge(ONYXKEYS.BETAS, [CONST.BETAS.SUGGESTED_FOLLOWUPS]);
+            await waitForBatchedUpdates();
+
+            const result = prepareOnboardingOnyxData({
+                introSelected: undefined,
+                engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
+                onboardingMessage: {
+                    message: 'This is a test',
+                    tasks: [{type: CONST.ONBOARDING_TASK_TYPE.CONNECT_CORPORATE_CARD, title: () => '', description: () => '', autoCompleted: false}],
+                },
+                adminsChatReportID,
+                selectedInterestedFeatures: ['areCompanyCardsEnabled'],
+                companySize: CONST.ONBOARDING_COMPANY_SIZE.SMALL,
+                userReportedIntegration: 'quickbooksOnline',
+            });
+            expect(result?.bespokeWelcomeMessage).toContain('QuickBooks Online');
+            expect(result?.bespokeWelcomeMessage).toContain('expenses sync automatically');
         });
 
         it('should add guidedSetupData when posting into admin room WITHOUT suggestedFollowups beta', async () => {
@@ -14710,6 +14821,64 @@ describe('ReportUtils', () => {
 
                 expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.RESTRICTED_ACTION.getRoute(policyID));
             });
+        });
+    });
+
+    describe('getTransactionDetails', () => {
+        it('should return taxValue from the transaction', () => {
+            const transaction = buildOptimisticTransaction({
+                transactionParams: {
+                    amount: 1000,
+                    currency: 'USD',
+                    reportID: '1',
+                    comment: '',
+                    created: '2024-01-01',
+                    taxCode: 'id_TAX_RATE_1',
+                    taxAmount: 0,
+                    taxValue: '0%',
+                },
+            });
+
+            const details = getTransactionDetails(transaction);
+
+            expect(details?.taxValue).toBe('0%');
+            expect(details?.taxCode).toBe('id_TAX_RATE_1');
+            expect(details?.taxAmount).toBe(0);
+        });
+
+        it('should return undefined taxValue when not set on the transaction', () => {
+            const transaction = buildOptimisticTransaction({
+                transactionParams: {
+                    amount: 500,
+                    currency: 'USD',
+                    reportID: '1',
+                    comment: '',
+                    created: '2024-01-01',
+                },
+            });
+
+            const details = getTransactionDetails(transaction);
+
+            expect(details?.taxValue).toBeUndefined();
+        });
+
+        it('should return non-zero taxValue from the transaction', () => {
+            const transaction = buildOptimisticTransaction({
+                transactionParams: {
+                    amount: 1000,
+                    currency: 'USD',
+                    reportID: '1',
+                    comment: '',
+                    created: '2024-01-01',
+                    taxCode: 'id_TAX_RATE_1',
+                    taxAmount: 100,
+                    taxValue: '10%',
+                },
+            });
+
+            const details = getTransactionDetails(transaction);
+
+            expect(details?.taxValue).toBe('10%');
         });
     });
 });

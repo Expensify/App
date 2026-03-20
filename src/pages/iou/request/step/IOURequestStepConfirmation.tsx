@@ -74,6 +74,7 @@ import {
     getDefaultTaxCode,
     getRateID,
     getRequestType,
+    getTaxValue,
     getValidWaypoints,
     hasReceipt,
     isDistanceRequest as isDistanceRequestTransactionUtils,
@@ -303,6 +304,7 @@ function IOURequestStepConfirmation({
     const defaultTaxCode = getDefaultTaxCode(policy, transaction);
     const transactionTaxCode = (transaction?.taxCode ? transaction?.taxCode : defaultTaxCode) ?? '';
     const transactionTaxAmount = transaction?.taxAmount ?? 0;
+    const transactionTaxValue = transaction?.taxValue ?? getTaxValue(policy, transaction, transactionTaxCode) ?? '';
     const isSharingTrackExpense = action === CONST.IOU.ACTION.SHARE;
     const isCategorizingTrackExpense = action === CONST.IOU.ACTION.CATEGORIZE;
     const isMovingTransactionFromTrackExpense = isMovingTransactionFromTrackExpenseIOUUtils(action);
@@ -692,6 +694,7 @@ function IOURequestStepConfirmation({
                         tag: item.tag,
                         taxCode: transactionTaxCode,
                         taxAmount: transactionTaxAmount,
+                        taxValue: transactionTaxValue,
                         billable: item.billable,
                         reimbursable: item.reimbursable,
                         actionableWhisperReportActionID: item.actionableWhisperReportActionID,
@@ -744,6 +747,7 @@ function IOURequestStepConfirmation({
             isManualDistanceRequest,
             transactionTaxCode,
             transactionTaxAmount,
+            transactionTaxValue,
             customUnitRateID,
             isTimeRequest,
             shouldGenerateTransactionThreadReport,
@@ -901,6 +905,7 @@ function IOURequestStepConfirmation({
                         tag: item.tag,
                         taxCode: transactionTaxCode,
                         taxAmount: transactionTaxAmount,
+                        taxValue: transactionTaxValue,
                         billable: item.billable,
                         reimbursable: item.reimbursable,
                         gpsPoint,
@@ -950,6 +955,7 @@ function IOURequestStepConfirmation({
             receiptFiles,
             transactionTaxCode,
             transactionTaxAmount,
+            transactionTaxValue,
             customUnitRateID,
             gpsDraftDetails,
             isASAPSubmitBetaEnabled,
@@ -994,6 +1000,7 @@ function IOURequestStepConfirmation({
                     tag: transaction.tag,
                     taxCode: transactionTaxCode,
                     taxAmount: transactionTaxAmount,
+                    taxValue: transactionTaxValue,
                     customUnitRateID,
                     splitShares: transaction.splitShares,
                     validWaypoints: getValidWaypoints(transaction.comment?.waypoints, true, isGPSDistanceRequest),
@@ -1030,6 +1037,7 @@ function IOURequestStepConfirmation({
             transactionDistance,
             transactionTaxCode,
             transactionTaxAmount,
+            transactionTaxValue,
             customUnitRateID,
             isManualDistanceRequest,
             isOdometerDistanceRequest,
@@ -1146,6 +1154,7 @@ function IOURequestStepConfirmation({
                             currency: item.currency,
                             taxCode: transactionTaxCode,
                             taxAmount: transactionTaxAmount,
+                            taxValue: transactionTaxValue,
                             shouldPlaySound: index === transactions.length - 1,
                             policyRecentlyUsedCategories,
                             policyRecentlyUsedTags,
@@ -1181,6 +1190,7 @@ function IOURequestStepConfirmation({
                         splitShares: transaction.splitShares,
                         taxCode: transactionTaxCode,
                         taxAmount: transactionTaxAmount,
+                        taxValue: transactionTaxValue,
                         policyRecentlyUsedCategories,
                         policyRecentlyUsedTags,
                         isASAPSubmitBetaEnabled,
@@ -1215,6 +1225,7 @@ function IOURequestStepConfirmation({
                         splitShares: transaction.splitShares,
                         taxCode: transactionTaxCode,
                         taxAmount: transactionTaxAmount,
+                        taxValue: transactionTaxValue,
                         policyRecentlyUsedCategories,
                         policyRecentlyUsedTags,
                         isASAPSubmitBetaEnabled,
@@ -1333,6 +1344,7 @@ function IOURequestStepConfirmation({
             report,
             transactionTaxCode,
             transactionTaxAmount,
+            transactionTaxValue,
             policyRecentlyUsedCategories,
             policyRecentlyUsedTags,
             quickAction,
