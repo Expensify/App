@@ -94,6 +94,7 @@ import {
     hasMultipleSplitChildren,
     hasReservationList,
     hasRoute as hasRouteTransactionUtils,
+    hasTransactionBeenRejected,
     isFromCreditCardImport as isCardTransactionTransactionUtils,
     isCategoryBeingAnalyzed,
     isCustomUnitRateIDForP2P,
@@ -450,7 +451,8 @@ function MoneyRequestView({
         !isFromMergeTransaction &&
         !isFromReviewDuplicates &&
         !getPendingFieldAction('amount') &&
-        !pendingAction;
+        !pendingAction &&
+        !hasTransactionBeenRejected(transactionViolations);
 
     const saveBillable = (newBillable: boolean) => {
         // If the value hasn't changed, don't request to save changes on the server and just close the modal
