@@ -21,6 +21,7 @@ import usePrevious from '@hooks/usePrevious';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useReportScrollManager from '@hooks/useReportScrollManager';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useScrollToEndOnNewMessageReceived from '@hooks/useScrollToEndOnNewMessageReceived';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {isSafari} from '@libs/Browser';
@@ -409,6 +410,17 @@ function ReportActionsList({
         hasOnceLoadedReportActions: !!reportMetadata?.hasOnceLoadedReportActions,
     });
 
+    useScrollToEndOnNewMessageReceived({
+        sizeChangeType: 'changed',
+        scrollOffsetRef,
+        lastActionID: lastAction?.reportActionID,
+        visibleActionsLength: sortedVisibleReportActions.length,
+        hasNewestReportAction,
+        setIsFloatingMessageCounterVisible,
+        scrollToEnd: reportScrollManager.scrollToBottom,
+        resetKey: linkedReportActionID,
+    });
+
     useEffect(() => {
         const shouldTriggerScroll = shouldFocusToTopOnMount && prevHasCreatedActionAdded && !hasCreatedActionAdded;
         if (!shouldTriggerScroll) {
@@ -754,6 +766,7 @@ function ReportActionsList({
             parentReportAction,
             parentReportActionForTransactionThread,
             report,
+            isOffline,
             transactionThreadReport,
             linkedReportActionID,
             sortedVisibleReportActions,
