@@ -13362,6 +13362,27 @@ describe('ReportUtils', () => {
     });
 
     describe('createDraftTransactionAndNavigateToParticipantSelector', () => {
+        it('should return early and not navigate when transaction is undefined', async () => {
+            jest.clearAllMocks();
+            await Onyx.clear();
+            await Onyx.set(ONYXKEYS.SESSION, {email: currentUserEmail, accountID: currentUserAccountID});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${1}`, {});
+
+            createDraftTransactionAndNavigateToParticipantSelector({
+                reportID: '1',
+                actionName: CONST.IOU.ACTION.CATEGORIZE,
+                reportActionID: '1',
+                introSelected: undefined,
+                draftTransactionIDs: [],
+                activePolicy: undefined,
+                userBillingGraceEndPeriods: undefined,
+                amountOwed: 0,
+                transaction: undefined,
+            });
+
+            expect(Navigation.navigate).not.toHaveBeenCalled();
+        });
+
         describe('when action is CATEGORIZE', () => {
             beforeEach(async () => {
                 jest.clearAllMocks();
@@ -13385,7 +13406,6 @@ describe('ReportUtils', () => {
 
                 // When we call createDraftTransactionAndNavigateToParticipantSelector with the restricted policy
                 createDraftTransactionAndNavigateToParticipantSelector({
-                    transactionID: transaction.transactionID,
                     reportID: '1',
                     actionName: CONST.IOU.ACTION.CATEGORIZE,
                     reportActionID: '1',
@@ -13394,6 +13414,7 @@ describe('ReportUtils', () => {
                     activePolicy,
                     userBillingGraceEndPeriods: undefined,
                     amountOwed: 1,
+                    transaction,
                 });
 
                 // Then it should navigate to the restricted action page
@@ -13420,7 +13441,6 @@ describe('ReportUtils', () => {
 
                 // When we call createDraftTransactionAndNavigateToParticipantSelector
                 createDraftTransactionAndNavigateToParticipantSelector({
-                    transactionID: transaction.transactionID,
                     reportID: '1',
                     actionName: CONST.IOU.ACTION.CATEGORIZE,
                     reportActionID: '1',
@@ -13429,6 +13449,7 @@ describe('ReportUtils', () => {
                     activePolicy,
                     userBillingGraceEndPeriods,
                     amountOwed: 0,
+                    transaction,
                 });
 
                 // Then it should navigate to the restricted action page
@@ -13458,7 +13479,6 @@ describe('ReportUtils', () => {
 
                 // When we call createDraftTransactionAndNavigateToParticipantSelector
                 createDraftTransactionAndNavigateToParticipantSelector({
-                    transactionID: transaction.transactionID,
                     reportID: '1',
                     actionName: CONST.IOU.ACTION.CATEGORIZE,
                     reportActionID: '1',
@@ -13467,6 +13487,7 @@ describe('ReportUtils', () => {
                     activePolicy,
                     userBillingGraceEndPeriods: undefined,
                     amountOwed: 0,
+                    transaction,
                 });
 
                 // Then it should navigate to the category step
@@ -13498,7 +13519,6 @@ describe('ReportUtils', () => {
 
                 // When we call createDraftTransactionAndNavigateToParticipantSelector with undefined activePolicy
                 createDraftTransactionAndNavigateToParticipantSelector({
-                    transactionID: transaction.transactionID,
                     reportID: '2',
                     actionName: CONST.IOU.ACTION.CATEGORIZE,
                     reportActionID: '2',
@@ -13507,6 +13527,7 @@ describe('ReportUtils', () => {
                     activePolicy: undefined,
                     userBillingGraceEndPeriods: undefined,
                     amountOwed: 0,
+                    transaction,
                 });
 
                 // Then it should automatically pick the available policy and navigate to the category step
@@ -13525,7 +13546,6 @@ describe('ReportUtils', () => {
 
                 // When we call createDraftTransactionAndNavigateToParticipantSelector with undefined activePolicy
                 createDraftTransactionAndNavigateToParticipantSelector({
-                    transactionID: transaction.transactionID,
                     reportID: '1',
                     actionName: CONST.IOU.ACTION.CATEGORIZE,
                     reportActionID: '1',
@@ -13534,6 +13554,7 @@ describe('ReportUtils', () => {
                     activePolicy: undefined,
                     userBillingGraceEndPeriods: undefined,
                     amountOwed: 0,
+                    transaction,
                 });
 
                 // Then it should navigate to the upgrade page because no policies were found to categorize with
@@ -13573,7 +13594,6 @@ describe('ReportUtils', () => {
 
                 // When we call createDraftTransactionAndNavigateToParticipantSelector with undefined activePolicy
                 createDraftTransactionAndNavigateToParticipantSelector({
-                    transactionID: transaction.transactionID,
                     reportID: '1',
                     actionName: CONST.IOU.ACTION.CATEGORIZE,
                     reportActionID: '1',
@@ -13582,6 +13602,7 @@ describe('ReportUtils', () => {
                     activePolicy: undefined,
                     userBillingGraceEndPeriods: undefined,
                     amountOwed: 0,
+                    transaction,
                 });
 
                 // Then it should navigate to the upgrade page because it's ambiguous which policy to use
@@ -13617,7 +13638,6 @@ describe('ReportUtils', () => {
 
                 // When we call createDraftTransactionAndNavigateToParticipantSelector
                 createDraftTransactionAndNavigateToParticipantSelector({
-                    transactionID: transaction.transactionID,
                     reportID: '1',
                     actionName: CONST.IOU.ACTION.CATEGORIZE,
                     reportActionID: '1',
@@ -13626,6 +13646,7 @@ describe('ReportUtils', () => {
                     activePolicy,
                     userBillingGraceEndPeriods: undefined,
                     amountOwed: 0,
+                    transaction,
                 });
 
                 // Then it should log a warning and not navigate
@@ -13659,7 +13680,6 @@ describe('ReportUtils', () => {
 
                 // When we call with amountOwed = 0
                 createDraftTransactionAndNavigateToParticipantSelector({
-                    transactionID: transaction.transactionID,
                     reportID: '1',
                     actionName: CONST.IOU.ACTION.CATEGORIZE,
                     reportActionID: '1',
@@ -13668,6 +13688,7 @@ describe('ReportUtils', () => {
                     activePolicy,
                     userBillingGraceEndPeriods: undefined,
                     amountOwed: 0,
+                    transaction,
                 });
 
                 // Then it should NOT navigate to restricted action page, but to category step
@@ -13693,7 +13714,6 @@ describe('ReportUtils', () => {
 
                 // When we call with amountOwed = 50
                 createDraftTransactionAndNavigateToParticipantSelector({
-                    transactionID: transaction.transactionID,
                     reportID: '1',
                     actionName: CONST.IOU.ACTION.CATEGORIZE,
                     reportActionID: '1',
@@ -13702,6 +13722,7 @@ describe('ReportUtils', () => {
                     activePolicy,
                     userBillingGraceEndPeriods: undefined,
                     amountOwed: 50,
+                    transaction,
                 });
 
                 // Then it should navigate to restricted action page
