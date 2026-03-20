@@ -385,7 +385,7 @@ describe('useAgentZeroStatusIndicator', () => {
             expect(result.current.isProcessing).toBe(true);
             expect(result.current.statusLabel).toBe('Thinking...');
 
-            // When the client missed the real-time Pusher events (e.g., tab was backgrounded)
+            // When the client missed the real-time Pusher events (e.g., tab was in the background)
             // and catches up via GetMissingOnyxMessages, both the SET and CLEAR arrive
             // in the same Onyx batch. The final merged state is empty string.
             // Simulate this by setting the server label and then immediately clearing it.

@@ -1,10 +1,9 @@
 import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import Onyx from 'react-native-onyx';
 import {subscribeToReportReasoningEvents, unsubscribeFromReportReasoningChannel} from '@libs/actions/Report';
 import ConciergeReasoningStore from '@libs/ConciergeReasoningStore';
 import type {ReasoningEntry} from '@libs/ConciergeReasoningStore';
+import NVPIndicatorVersionTracker from '@libs/NVPIndicatorVersionTracker';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ReportNameValuePairs} from '@src/types/onyx';
 import useLocalize from './useLocalize';
 import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
@@ -50,25 +49,22 @@ function useAgentZeroStatusIndicator(reportID: string, isAgentZeroChat: boolean)
     // Debounce delay for server label updates
     const DEBOUNCE_DELAY = 150; // ms
 
-    // Subscribe to raw Onyx updates to count NVP writes.
-    // Onyx.connect fires its callback for each merge (before Onyx's internal batching
+    // Subscribe to NVP indicator version tracking via a lib-level Onyx.connect.
+    // The tracker fires its callback for each merge (before Onyx's internal batching
     // coalesces them for React subscribers via useSyncExternalStore). This lets us
     // detect changes that useOnyx's rendered value might skip.
     useEffect(() => {
-        const connection = Onyx.connect({
-            key: `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`,
-            callback: (value: ReportNameValuePairs | null) => {
-                const indicatorValue = value?.agentZeroProcessingRequestIndicator;
-                // Only count updates where the indicator field is explicitly present
-                // (set to a string, including empty string), not when the NVP object
-                // is updated for unrelated fields.
-                if (indicatorValue !== undefined) {
-                    nvpVersionRef.current += 1;
-                }
-            },
+        const unsubscribeConnection = NVPIndicatorVersionTracker.subscribe(reportID);
+        const unsubscribeListener = NVPIndicatorVersionTracker.addListener((updatedReportID, version) => {
+            if (updatedReportID === reportID) {
+                nvpVersionRef.current = version;
+            }
         });
 
-        return () => Onyx.disconnect(connection);
+        return () => {
+            unsubscribeListener();
+            unsubscribeConnection();
+        };
     }, [reportID]);
 
     useEffect(() => {
