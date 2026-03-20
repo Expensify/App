@@ -116,14 +116,6 @@ describe('SearchPageNarrow', () => {
     });
 
     it('NavigationTabBar should be hidden when the search input is focused', async () => {
-        const queryJSON = SearchQueryUtils.buildSearchQueryJSON('');
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.SNAPSHOT}${queryJSON?.hash}`, {
-            data: {},
-            search: {
-                type: queryJSON?.type,
-                status: queryJSON?.status,
-            },
-        });
         renderPage();
 
         await act(async () => {
@@ -135,9 +127,6 @@ describe('SearchPageNarrow', () => {
         // Initially, there are two NavigationTabBars on screen: one from TopLevelNavigationTabBar and one from SearchPageNarrow.
         let navigationTabBars = screen.getAllByTestId('NavigationTabBar', {includeHiddenElements: true});
         expect(navigationTabBars).toHaveLength(2);
-
-        const searchButton = screen.getByTestId('search-button-narrow');
-        fireEvent.press(searchButton);
 
         const searchAutocompleteInput = await screen.findByTestId('search-autocomplete-text-input', {includeHiddenElements: true});
         expect(searchAutocompleteInput).toBeTruthy();
