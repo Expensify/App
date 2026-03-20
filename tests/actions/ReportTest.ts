@@ -27,7 +27,7 @@ import * as User from '@src/libs/actions/User';
 import DateUtils from '@src/libs/DateUtils';
 import Log from '@src/libs/Log';
 import * as SequentialQueue from '@src/libs/Network/SequentialQueue';
-import NetworkState from '@src/libs/NetworkState';
+import {setHasRadio} from '@src/libs/NetworkState';
 import * as ReportUtils from '@src/libs/ReportUtils';
 import type * as SearchQueryUtilsType from '@src/libs/SearchQueryUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -190,7 +190,7 @@ describe('actions/Report', () => {
 
     beforeEach(() => {
         HttpUtils.xhr = originalXHR;
-        NetworkState.setHasRadio(true);
+        setHasRadio(true);
         const promise = Onyx.clear().then(() => {
             jest.useRealTimers();
             waitForBatchedUpdates();
@@ -1248,7 +1248,7 @@ describe('actions/Report', () => {
 
         const REPORT_ID = '1';
 
-        NetworkState.setHasRadio(false);
+        setHasRadio(false);
         await waitForBatchedUpdates();
         await waitForBatchedUpdates();
 
@@ -1265,7 +1265,7 @@ describe('actions/Report', () => {
 
         expect(PersistedRequests.getAll().length).toBe(1);
 
-        NetworkState.setHasRadio(true);
+        setHasRadio(true);
         await waitForBatchedUpdates();
         await waitForBatchedUpdates();
 
@@ -1349,7 +1349,7 @@ describe('actions/Report', () => {
 
         const REPORT_ID = '1';
 
-        NetworkState.setHasRadio(false);
+        setHasRadio(false);
         await waitForBatchedUpdates();
         await waitForBatchedUpdates();
 
@@ -1370,7 +1370,7 @@ describe('actions/Report', () => {
 
         expect(PersistedRequests.getAll().length).toBe(4);
 
-        NetworkState.setHasRadio(true);
+        setHasRadio(true);
         await waitForBatchedUpdates();
         await waitForBatchedUpdates();
 
@@ -1386,7 +1386,7 @@ describe('actions/Report', () => {
         const TEN_MINUTES_AGO = subMinutes(new Date(), 10);
         const created = format(addSeconds(TEN_MINUTES_AGO, 10), CONST.DATE.FNS_DB_FORMAT_STRING);
 
-        NetworkState.setHasRadio(false);
+        setHasRadio(false);
 
         Report.addComment({
             report: REPORT,
@@ -1455,7 +1455,7 @@ describe('actions/Report', () => {
             },
         });
 
-        NetworkState.setHasRadio(true);
+        setHasRadio(true);
         await waitForBatchedUpdates();
 
         // Checking no requests were or will be made
@@ -1471,7 +1471,7 @@ describe('actions/Report', () => {
         const REPORT: OnyxTypes.Report = createRandomReport(1, undefined);
         const created = format(addSeconds(subMinutes(new Date(), 10), 10), CONST.DATE.FNS_DB_FORMAT_STRING);
 
-        NetworkState.setHasRadio(false);
+        setHasRadio(false);
         Report.addComment({
             report: REPORT,
             notifyReportID: REPORT_ID,
@@ -1498,7 +1498,7 @@ describe('actions/Report', () => {
         await waitForBatchedUpdates();
 
         expect(PersistedRequests.getAll().length).toBe(0);
-        NetworkState.setHasRadio(true);
+        setHasRadio(true);
         await waitForBatchedUpdates();
 
         TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.ADD_COMMENT, 0);
@@ -1515,7 +1515,7 @@ describe('actions/Report', () => {
         const TEN_MINUTES_AGO = subMinutes(new Date(), 10);
         const created = format(addSeconds(TEN_MINUTES_AGO, 10), CONST.DATE.FNS_DB_FORMAT_STRING);
 
-        NetworkState.setHasRadio(true);
+        setHasRadio(true);
         await waitForBatchedUpdates();
 
         Report.addComment({
@@ -1538,7 +1538,7 @@ describe('actions/Report', () => {
         // setHasRadio(false) calls pause() synchronously, which blocks processing immediately.
         await waitForBatchedUpdates();
 
-        NetworkState.setHasRadio(false);
+        setHasRadio(false);
         await waitForBatchedUpdates();
 
         const originalReport = {
@@ -1567,7 +1567,7 @@ describe('actions/Report', () => {
         await waitForBatchedUpdates();
         expect(PersistedRequests.getAll().length).toBe(1);
 
-        NetworkState.setHasRadio(true);
+        setHasRadio(true);
         await waitForBatchedUpdates();
 
         // Checking no requests were or will be made
@@ -1648,7 +1648,7 @@ describe('actions/Report', () => {
         const TEN_MINUTES_AGO = subMinutes(new Date(), 10);
         const created = format(addSeconds(TEN_MINUTES_AGO, 10), CONST.DATE.FNS_DB_FORMAT_STRING);
 
-        NetworkState.setHasRadio(false);
+        setHasRadio(false);
         await waitForBatchedUpdates();
 
         const file = new File([''], 'test.txt', {type: 'text/plain'});
@@ -1703,7 +1703,7 @@ describe('actions/Report', () => {
             },
         });
 
-        NetworkState.setHasRadio(true);
+        setHasRadio(true);
         await waitForBatchedUpdates();
 
         // Checking no requests were or will be made
@@ -1725,7 +1725,7 @@ describe('actions/Report', () => {
         const created = format(addSeconds(TEN_MINUTES_AGO, 10), CONST.DATE.FNS_DB_FORMAT_STRING);
         const file = new File([''], 'test.txt', {type: 'text/plain'});
 
-        NetworkState.setHasRadio(false);
+        setHasRadio(false);
         await waitForBatchedUpdates();
 
         const REPORT: OnyxTypes.Report = createRandomReport(1, undefined);
@@ -1779,7 +1779,7 @@ describe('actions/Report', () => {
             },
         });
 
-        NetworkState.setHasRadio(true);
+        setHasRadio(true);
         await waitForBatchedUpdates();
 
         // Checking no requests were or will be made
@@ -1795,7 +1795,7 @@ describe('actions/Report', () => {
             }),
         });
         const playSoundMock = playSound as jest.MockedFunction<typeof playSound>;
-        NetworkState.setHasRadio(false);
+        setHasRadio(false);
         await waitForBatchedUpdates();
         await waitForBatchedUpdates();
 
@@ -1845,7 +1845,7 @@ describe('actions/Report', () => {
             }),
         });
         const playSoundMock = playSound as jest.MockedFunction<typeof playSound>;
-        NetworkState.setHasRadio(false);
+        setHasRadio(false);
         await waitForBatchedUpdates();
         await waitForBatchedUpdates();
 
@@ -1894,7 +1894,7 @@ describe('actions/Report', () => {
             }),
         });
         const playSoundMock = playSound as jest.MockedFunction<typeof playSound>;
-        NetworkState.setHasRadio(false);
+        setHasRadio(false);
         await waitForBatchedUpdates();
         await waitForBatchedUpdates();
 
@@ -1935,7 +1935,7 @@ describe('actions/Report', () => {
         const TEN_MINUTES_AGO = subMinutes(new Date(), 10);
         const created = format(addSeconds(TEN_MINUTES_AGO, 10), CONST.DATE.FNS_DB_FORMAT_STRING);
 
-        NetworkState.setHasRadio(false);
+        setHasRadio(false);
         await waitForBatchedUpdates();
         await Promise.resolve();
 
@@ -2023,7 +2023,7 @@ describe('actions/Report', () => {
             },
         });
 
-        NetworkState.setHasRadio(true);
+        setHasRadio(true);
         await waitForBatchedUpdates();
 
         // Checking no requests were or will be made
@@ -2063,7 +2063,7 @@ describe('actions/Report', () => {
         // Let the queue process the online ADD_COMMENT request before going offline
         await waitForBatchedUpdates();
 
-        NetworkState.setHasRadio(false);
+        setHasRadio(false);
         await waitForBatchedUpdates();
 
         // wait for Onyx.connect execute the callback and start processing the queue
@@ -2111,7 +2111,7 @@ describe('actions/Report', () => {
         await waitForBatchedUpdates();
         expect(PersistedRequests.getAll().length).toBe(1);
 
-        NetworkState.setHasRadio(true);
+        setHasRadio(true);
         await waitForBatchedUpdates();
 
         // Checking no requests were or will be made
@@ -2130,7 +2130,7 @@ describe('actions/Report', () => {
         const TEN_MINUTES_AGO = subMinutes(new Date(), 10);
         const created = format(addSeconds(TEN_MINUTES_AGO, 10), CONST.DATE.FNS_DB_FORMAT_STRING);
 
-        NetworkState.setHasRadio(false);
+        setHasRadio(false);
         await waitForBatchedUpdates();
         await waitForBatchedUpdates();
 
@@ -2174,7 +2174,7 @@ describe('actions/Report', () => {
         expect(persistedRequests?.at(1)?.command).toBe(WRITE_COMMANDS.OPEN_REPORT);
         expect(persistedRequests?.at(2)?.command).toBe(WRITE_COMMANDS.DELETE_COMMENT);
 
-        NetworkState.setHasRadio(true);
+        setHasRadio(true);
         await waitForBatchedUpdates();
 
         // Checking no requests were or will be made
@@ -2192,7 +2192,7 @@ describe('actions/Report', () => {
         const TEN_MINUTES_AGO = subMinutes(new Date(), 10);
         const created = format(addSeconds(TEN_MINUTES_AGO, 10), CONST.DATE.FNS_DB_FORMAT_STRING);
 
-        NetworkState.setHasRadio(false);
+        setHasRadio(false);
 
         Report.addComment({
             report: REPORT,
@@ -2220,7 +2220,7 @@ describe('actions/Report', () => {
         await waitForBatchedUpdates();
         expect(PersistedRequests.getAll().length).toBe(1);
 
-        NetworkState.setHasRadio(true);
+        setHasRadio(true);
         await waitForBatchedUpdates();
 
         // Checking no requests were or will be made
@@ -2232,7 +2232,7 @@ describe('actions/Report', () => {
         global.fetch = TestHelper.getGlobalFetchMock();
         const reportID = '123';
 
-        NetworkState.setHasRadio(false);
+        setHasRadio(false);
         await waitForBatchedUpdates();
 
         const action: OnyxEntry<OnyxTypes.ReportAction> = {
@@ -2258,7 +2258,7 @@ describe('actions/Report', () => {
         expect(requests?.at(0)?.command).toBe(WRITE_COMMANDS.UPDATE_COMMENT);
         expect(requests?.at(0)?.data?.reportComment).toBe('value3');
 
-        NetworkState.setHasRadio(true);
+        setHasRadio(true);
         await waitForBatchedUpdates();
 
         TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.UPDATE_COMMENT, 1);
@@ -2287,7 +2287,7 @@ describe('actions/Report', () => {
             },
         });
 
-        NetworkState.setHasRadio(false);
+        setHasRadio(false);
         await waitForBatchedUpdates();
 
         Report.addComment({
@@ -2331,14 +2331,14 @@ describe('actions/Report', () => {
                 },
             });
         });
-        NetworkState.setHasRadio(true);
+        setHasRadio(true);
         await waitForBatchedUpdates();
         await waitForBatchedUpdates();
     });
 
     it('it should only send the last sequential UpdateComment request to BE with currentUserLogin', async () => {
         global.fetch = TestHelper.getGlobalFetchMock();
-        NetworkState.setHasRadio(false);
+        setHasRadio(false);
         await waitForBatchedUpdates();
 
         const action: OnyxEntry<OnyxTypes.ReportAction> = {
@@ -2360,7 +2360,7 @@ describe('actions/Report', () => {
         expect(requests?.at(0)?.command).toBe(WRITE_COMMANDS.UPDATE_COMMENT);
         expect(requests?.at(0)?.data?.reportComment).toBe('value3');
 
-        NetworkState.setHasRadio(true);
+        setHasRadio(true);
         await waitForBatchedUpdates();
 
         TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.UPDATE_COMMENT, 1);

@@ -1,7 +1,9 @@
 import type {OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
+import AppStateMonitor from '@libs/AppStateMonitor';
 import Log from '@libs/Log';
 import {flush} from '@libs/Network/SequentialQueue';
+import {isOffline, onReachabilityConfirmed as onNetworkReachabilityConfirmed, refresh as refreshNetworkState} from '@libs/NetworkState';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {openApp, reconnectApp} from './App';
 
@@ -41,6 +43,21 @@ function reconnect() {
     // Flush the sequential queue to process any pending write requests
     flush();
 }
+
+// Internet confirmed reachable — reconnect
+onNetworkReachabilityConfirmed(() => {
+    reconnect();
+});
+
+// App came to foreground — reconnect to catch up on missed Pusher events
+AppStateMonitor.addBecameActiveListener(() => {
+    Log.info('[Reconnect] App became active');
+    if (isOffline()) {
+        refreshNetworkState();
+    }
+    // Always reconnect on foreground to catch up on missed events
+    reconnect();
+});
 
 // eslint-disable-next-line import/prefer-default-export -- single export is intentional; more reconnection helpers may be added here as the architecture evolves
 export {reconnect};

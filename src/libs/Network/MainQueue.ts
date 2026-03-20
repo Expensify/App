@@ -1,8 +1,9 @@
 import type {OnyxKey} from 'react-native-onyx';
+import {isOffline} from '@libs/NetworkState';
 import {processWithMiddleware} from '@libs/Request';
 import type OnyxRequest from '@src/types/onyx/Request';
 import type {AnyRequest} from '@src/types/onyx/Request';
-import {isAuthenticating, isOffline} from './NetworkStore';
+import {isAuthenticating} from './NetworkStore';
 import {isRunning as sequentialQueueIsRunning} from './SequentialQueue';
 
 // Queue for network requests so we don't lose actions done by the user while offline

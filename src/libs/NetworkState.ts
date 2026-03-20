@@ -1,32 +1,84 @@
 import NetInfo from '@react-native-community/netinfo';
-import {setIsOffline} from './actions/Network';
-import {reconnect} from './actions/Reconnect';
-import AppStateMonitor from './AppStateMonitor';
+import Onyx from 'react-native-onyx';
+import CONFIG from '@src/CONFIG';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import DateUtils from './DateUtils';
 import {onSustainedFailureChange, reset as resetFailureCounters} from './FailureTracker';
 import Log from './Log';
-import {pause, unpause} from './Network/SequentialQueue';
 
 let hasRadio = true;
 let sustainedFailuresActive = false;
 let shouldForceOffline = false;
-let appForegroundListenerRegistered = false;
+let simulatedOffline = false;
+let lastOfflineAt: string | undefined;
 
-// Wire FailureTracker → NetworkState (avoids circular dependency)
+// NetInfo state
+let accountID: number | undefined;
+let unsubscribeNetInfo: (() => void) | null = null;
+let prevIsInternetReachable: boolean | null | undefined;
+let isPoorConnectionSimulated: boolean | undefined;
+let networkTimeSkew = 0;
+
+// Subscriber sets
+const listeners = new Set<() => void>();
+const reconnectListeners = new Set<() => void>();
+
+// Wire FailureTracker → NetworkState so sustained failures trigger offline state.
 onSustainedFailureChange((active) => setSustainedFailures(active));
 
-function isInHardStop(): boolean {
-    return !hasRadio || sustainedFailuresActive || shouldForceOffline;
+function isOffline(): boolean {
+    return !hasRadio || sustainedFailuresActive || shouldForceOffline || simulatedOffline;
+}
+
+function getLastOfflineAt(): string | undefined {
+    return lastOfflineAt;
+}
+
+/**
+ * Subscribe to any offline state change.
+ * Returns an unsubscribe function.
+ */
+function subscribe(cb: () => void): () => void {
+    listeners.add(cb);
+    return () => {
+        listeners.delete(cb);
+    };
+}
+
+/**
+ * Subscribe to internet-confirmed-reachable events.
+ * Returns an unsubscribe function.
+ */
+function onReachabilityConfirmed(cb: () => void): () => void {
+    reconnectListeners.add(cb);
+    return () => {
+        reconnectListeners.delete(cb);
+    };
+}
+
+function notifyListeners() {
+    for (const cb of listeners) {
+        cb();
+    }
+}
+
+function notifyReconnectListeners() {
+    for (const cb of reconnectListeners) {
+        cb();
+    }
 }
 
 function updateState() {
-    const offline = isInHardStop();
-    setIsOffline(offline, `hard stop: noRadio=${!hasRadio}, sustainedFailures=${sustainedFailuresActive}, forceOffline=${shouldForceOffline}`);
+    const offline = isOffline();
 
     if (offline) {
-        pause();
+        lastOfflineAt = new Date().toISOString();
     } else {
-        unpause();
+        lastOfflineAt = undefined;
     }
+
+    notifyListeners();
 }
 
 /**
@@ -73,45 +125,160 @@ function setForceOffline(force: boolean) {
 
 /**
  * Called by the NetInfo listener when isInternetReachable transitions to true.
- * Clears all hard stops and triggers reconnect.
+ * Clears all hard stops and notifies reconnect listeners.
  */
 function onReachabilityRestored() {
-    Log.info('[NetworkState] Internet reachability restored — clearing hard stops and reconnecting');
+    Log.info('[NetworkState] Internet reachability restored — clearing hard stops');
     hasRadio = true;
     sustainedFailuresActive = false;
     resetFailureCounters();
     updateState();
 
-    // Trigger app data sync
-    reconnect();
+    // Notify reconnect listeners (Reconnect.ts will handle app data sync)
+    notifyReconnectListeners();
 }
 
 /**
- * Wire app foreground listener.
- * - If in hard stop → refresh NetInfo to force a fresh native state fetch
- * - Always → reconnect to catch up on missed data
+ * Returns the current time plus skew in milliseconds in the format expected by the database
  */
-function initAppForegroundListener() {
-    if (appForegroundListenerRegistered) {
+function getDBTimeWithSkew(timestamp: string | number = ''): string {
+    if (networkTimeSkew > 0) {
+        const datetime = timestamp ? new Date(timestamp) : new Date();
+        return DateUtils.getDBTime(datetime.valueOf() + networkTimeSkew);
+    }
+    return DateUtils.getDBTime(timestamp);
+}
+
+// --- Poor connection simulation ---
+
+let poorConnectionTimerID: NodeJS.Timeout | undefined;
+
+function simulatePoorConnection(shouldSimulate: boolean) {
+    // Starts random network status change when shouldSimulatePoorConnection is turned on
+    if (!isPoorConnectionSimulated && shouldSimulate) {
+        isPoorConnectionSimulated = true;
+        setRandomNetworkStatus(true);
         return;
     }
-    appForegroundListenerRegistered = true;
 
-    AppStateMonitor.addBecameActiveListener(() => {
-        Log.info('[NetworkState] App became active');
-        if (isInHardStop() && !shouldForceOffline) {
-            NetInfo.refresh();
+    // Restore real state when simulation is turned off
+    if (isPoorConnectionSimulated && !shouldSimulate) {
+        isPoorConnectionSimulated = false;
+        clearTimeout(poorConnectionTimerID);
+        poorConnectionTimerID = undefined;
+        simulatedOffline = false;
+        NetInfo.fetch().then((state) => {
+            const radio = state.isConnected !== false;
+            setHasRadio(radio);
+            Log.info(`[NetworkState] Poor connection simulation turned off. Radio: ${radio}`);
+        });
+    }
+}
+
+/** Sets online/offline connection randomly every 2-5 seconds */
+function setRandomNetworkStatus(initialCall = false) {
+    if (!isPoorConnectionSimulated && !initialCall) {
+        return;
+    }
+
+    const randomOffline = Math.random() < 0.5;
+    const randomInterval = Math.random() * (5000 - 2000) + 2000;
+    Log.info(`[NetworkState] Simulating ${randomOffline ? 'offline' : 'online'} for ${randomInterval}ms`);
+
+    simulatedOffline = randomOffline;
+    updateState();
+    poorConnectionTimerID = setTimeout(setRandomNetworkStatus, randomInterval);
+}
+
+// --- NetInfo configuration and subscription ---
+
+/**
+ * Configure NetInfo with the reachability URL and subscribe to state changes.
+ * Must unsubscribe before calling configure() — configure tears down NetInfo internal state.
+ */
+function configureAndSubscribe() {
+    if (unsubscribeNetInfo) {
+        unsubscribeNetInfo();
+        unsubscribeNetInfo = null;
+    }
+
+    if (!CONFIG.IS_USING_LOCAL_WEB) {
+        NetInfo.configure({
+            reachabilityUrl: `${CONFIG.EXPENSIFY.DEFAULT_API_ROOT}api/Ping?accountID=${accountID ?? 'unknown'}`,
+            reachabilityMethod: 'GET',
+            reachabilityTest: (response) => {
+                if (!response.ok) {
+                    return Promise.resolve(false);
+                }
+                return response
+                    .json()
+                    .then((json: {jsonCode: number}) => Promise.resolve(json.jsonCode === 200))
+                    .catch(() => Promise.resolve(false));
+            },
+            reachabilityRequestTimeout: CONST.NETWORK.MAX_PENDING_TIME_MS,
+            // Use JS fetch polling (api/Ping) on all platforms instead of native OS reachability.
+            // This aligns behavior across web and mobile: poll every 60s when reachable, 5s when unreachable.
+            useNativeReachability: false,
+        });
+    }
+
+    unsubscribeNetInfo = NetInfo.addEventListener((state) => {
+        if (shouldForceOffline) {
+            Log.info('[NetworkState] Not processing NetInfo state because shouldForceOffline = true');
+            return;
         }
-        // Always reconnect on foreground to catch up on missed Pusher events
-        reconnect();
+
+        const radio = state.isConnected !== false;
+        Log.info(`[NetworkState] NetInfo state change: isConnected=${state.isConnected}, isInternetReachable=${state.isInternetReachable}, type=${state.type}`);
+        setHasRadio(radio);
+
+        if (state.isInternetReachable === true && prevIsInternetReachable !== true) {
+            Log.info('[NetworkState] Internet reachability restored');
+            onReachabilityRestored();
+        }
+        prevIsInternetReachable = state.isInternetReachable;
     });
 }
 
-export default {
-    isInHardStop,
-    setHasRadio,
-    setSustainedFailures,
-    setForceOffline,
-    onReachabilityRestored,
-    initAppForegroundListener,
-};
+// --- Onyx subscriptions (inputs for state computation) ---
+
+Onyx.connectWithoutView({
+    key: ONYXKEYS.SESSION,
+    callback: (session) => {
+        const newAccountID = session?.accountID;
+        if (newAccountID === accountID) {
+            return;
+        }
+        accountID = newAccountID;
+        configureAndSubscribe();
+    },
+});
+
+Onyx.connectWithoutView({
+    key: ONYXKEYS.NETWORK,
+    callback: (network) => {
+        if (!network) {
+            return;
+        }
+
+        networkTimeSkew = network?.timeSkew ?? 0;
+
+        simulatePoorConnection(!!network.shouldSimulatePoorConnection);
+
+        const currentShouldForceOffline = !!network.shouldForceOffline;
+        if (currentShouldForceOffline !== shouldForceOffline) {
+            setForceOffline(currentShouldForceOffline);
+        }
+    },
+});
+
+/**
+ * Force NetInfo to re-fetch native network state.
+ * Useful when the app comes to foreground while in a hard stop —
+ * bypasses stale isInternetReachable cache (see NetInfo issue #326).
+ */
+function refresh() {
+    NetInfo.refresh();
+}
+
+export {isOffline, getLastOfflineAt, subscribe, onReachabilityConfirmed, setHasRadio, setSustainedFailures, setForceOffline, onReachabilityRestored, getDBTimeWithSkew, refresh};

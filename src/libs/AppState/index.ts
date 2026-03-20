@@ -4,6 +4,7 @@ import Log from '@libs/Log';
 import getPathFromState from '@libs/Navigation/helpers/getPathFromState';
 import {navigationRef} from '@libs/Navigation/Navigation';
 import {isAuthenticating as isAuthenticatingNetworkStore} from '@libs/Network/NetworkStore';
+import {isOffline} from '@libs/NetworkState';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Network, Session} from '@src/types/onyx';
 import captureRequestsQueueState from './RequestsQueuesState';
@@ -68,7 +69,7 @@ function captureSessionState(): SessionStateInfo {
  */
 function captureNetworkState(): NetworkStateInfo {
     return {
-        isOffline: currentNetwork?.isOffline,
+        isOffline: isOffline(),
         timeSkew: currentNetwork?.timeSkew,
         shouldForceOffline: currentNetwork?.shouldForceOffline,
         shouldSimulatePoorConnection: currentNetwork?.shouldSimulatePoorConnection,

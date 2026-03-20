@@ -15,6 +15,7 @@ import shouldOpenOnAdminRoom from '@libs/Navigation/helpers/shouldOpenOnAdminRoo
 import willRouteNavigateToRHP from '@libs/Navigation/helpers/willRouteNavigateToRHP';
 import Navigation from '@libs/Navigation/Navigation';
 import navigationRef from '@libs/Navigation/navigationRef';
+import {isOffline} from '@libs/NetworkState';
 import {findLastAccessedReport, getReportIDFromLink, getRouteFromLink} from '@libs/ReportUtils';
 import shouldSkipDeepLinkNavigation from '@libs/shouldSkipDeepLinkNavigation';
 import {endSpan, getSpan, startSpan} from '@libs/telemetry/activeSpans';
@@ -31,15 +32,6 @@ import type {Beta, IntroSelected, Report} from '@src/types/onyx';
 import {doneCheckingPublicRoom, navigateToConciergeChat, openReport} from './Report';
 import {canAnonymousUserAccessRoute, isAnonymousUser, signOutAndRedirectToSignIn, waitForUserSignIn} from './Session';
 import {setOnboardingErrorMessage} from './Welcome';
-
-let isNetworkOffline = false;
-// Use connectWithoutView since this is to open an external link and doesn't affect any UI
-Onyx.connectWithoutView({
-    key: ONYXKEYS.NETWORK,
-    callback: (value) => {
-        isNetworkOffline = value?.isOffline ?? false;
-    },
-});
 
 let currentUserEmail = '';
 let currentUserAccountID = -1;
@@ -84,7 +76,7 @@ function openExternalLink(url: string, shouldSkipCustomSafariLogic = false, shou
 }
 
 function openOldDotLink(url: string, shouldOpenInSameTab = false) {
-    if (isNetworkOffline) {
+    if (isOffline()) {
         buildOldDotURL(url).then((oldDotURL) => openExternalLink(oldDotURL, undefined, shouldOpenInSameTab));
         return;
     }
@@ -251,7 +243,7 @@ function openReportFromDeepLink(
         openReport({reportID, introSelected, parentReportActionID: '0', isFromDeepLink: true, betas});
 
         // Show the sign-in page if the app is offline
-        if (isNetworkOffline) {
+        if (isOffline()) {
             endSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.PUBLIC_ROOM_API);
             doneCheckingPublicRoom();
         }

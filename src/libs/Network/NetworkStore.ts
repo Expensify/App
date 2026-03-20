@@ -1,3 +1,4 @@
+// TODO: Rename this module to AuthStore in a follow-up PR — it only manages auth/credentials state now.
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
@@ -10,7 +11,6 @@ let credentials: Credentials | null | undefined;
 let lastShortAuthToken: string | null | undefined;
 let authToken: string | null | undefined;
 let authTokenType: ValueOf<typeof CONST.AUTH_TOKEN_TYPES> | null;
-let offline = false;
 let authenticating = false;
 
 let resolveIsReadyPromise: (args?: unknown[]) => void;
@@ -57,24 +57,8 @@ Onyx.connectWithoutView({
     },
 });
 
-// Subscribe to offline state — simplified to just track the flag
-Onyx.connectWithoutView({
-    key: ONYXKEYS.NETWORK,
-    callback: (network) => {
-        if (!network) {
-            return;
-        }
-
-        offline = !!network.shouldForceOffline || !!network.isOffline;
-    },
-});
-
 function getCredentials(): Credentials | null | undefined {
     return credentials;
-}
-
-function isOffline(): boolean {
-    return offline;
 }
 
 function getAuthToken(): string | null | undefined {
@@ -115,7 +99,6 @@ export {
     getCurrentUserEmail,
     hasReadRequiredDataFromStorage,
     resetHasReadRequiredDataFromStorage,
-    isOffline,
     isAuthenticating,
     setIsAuthenticating,
     getCredentials,

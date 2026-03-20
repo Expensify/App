@@ -1,8 +1,5 @@
-/** Model of network state */
+/** Model of persisted network debug settings */
 type Network = {
-    /** Is the network currently offline or not */
-    isOffline: boolean;
-
     /** Should the network be forced offline */
     shouldForceOffline?: boolean;
 
@@ -14,9 +11,6 @@ type Network = {
 
     /** Skew between the client and server clocks  */
     timeSkew?: number;
-
-    /** The time when network change from online to offline */
-    lastOfflineAt?: string;
 };
 
 export default Network;

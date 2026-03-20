@@ -16,13 +16,13 @@ import {flushQueue, isEmpty} from '@libs/actions/QueuedOnyxUpdates';
 import {isClientTheLeader} from '@libs/ActiveClientManager';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import Log from '@libs/Log';
+import {isOffline as isOfflineNetwork, subscribe as subscribeNetworkState} from '@libs/NetworkState';
 import {processWithMiddleware} from '@libs/Request';
 import RequestThrottle from '@libs/RequestThrottle';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type OnyxRequest from '@src/types/onyx/Request';
 import type {AnyOnyxUpdate, AnyRequest, ConflictData} from '@src/types/onyx/Request';
-import {isOffline} from './NetworkStore';
 
 let shouldFailAllRequests: boolean;
 // Use connectWithoutView since this is for network data and don't affect to any UI
@@ -121,9 +121,10 @@ function getQueueFlushedData() {
  * requests to our backend is evenly distributed and it gradually decreases with time, which helps the servers catch up.
  */
 function process(): Promise<void> {
-    // When the queue is paused, return early. This prevents any new requests from happening. The queue will be flushed again when the queue is unpaused.
-    if (isQueuePaused) {
-        Log.info('[SequentialQueue] Unable to process. Queue is paused.');
+    // When the queue is paused or offline, return early. This prevents any new requests from happening.
+    // The queue will be flushed again when the queue is unpaused or we come back online.
+    if (isQueuePaused || isOfflineNetwork()) {
+        Log.info('[SequentialQueue] Unable to process. Queue is paused or offline.');
         return Promise.resolve();
     }
 
@@ -264,9 +265,10 @@ function process(): Promise<void> {
  * so some cases (e.g., unpausing) require skipping the reset to maintain proper behavior.
  */
 function flush(shouldResetPromise = true) {
-    // When the queue is paused, return early. This will keep an requests in the queue and they will get flushed again when the queue is unpaused
-    if (isQueuePaused) {
-        Log.info('[SequentialQueue] Unable to flush. Queue is paused.');
+    // When the queue is paused or offline, return early. Requests stay in the queue
+    // and will be flushed when the queue is unpaused or we come back online.
+    if (isQueuePaused || isOfflineNetwork()) {
+        Log.info('[SequentialQueue] Unable to flush. Queue is paused or offline.');
         return;
     }
 
@@ -335,18 +337,18 @@ function flush(shouldResetPromise = true) {
                 const remainingRequests = getAllPersistedRequests().length;
                 Log.info('[SequentialQueue] Finished processing queue.', false, {
                     remainingRequests,
-                    isOffline: isOffline(),
-                    willResolvePromise: isOffline() || remainingRequests === 0,
+                    isOffline: isOfflineNetwork(),
+                    willResolvePromise: isOfflineNetwork() || remainingRequests === 0,
                 });
 
                 isSequentialQueueRunning = false;
-                // Use isOffline() — not isQueuePaused — to decide whether to resolve isReadyPromise.
+                // Use isOfflineNetwork() — not isQueuePaused — to decide whether to resolve isReadyPromise.
                 // isQueuePaused is true for both offline pauses AND shouldPauseQueue (data gap sync).
                 // For shouldPauseQueue, WRITEs are still pending so READs must wait (don't resolve).
                 // For offline, the queue can't process anyway so READs should proceed (resolve).
-                if (isOffline() || remainingRequests === 0) {
+                if (isOfflineNetwork() || remainingRequests === 0) {
                     Log.info('[SequentialQueue] Resolving isReadyPromise', false, {
-                        reason: isOffline() ? 'offline' : 'queue empty',
+                        reason: isOfflineNetwork() ? 'offline' : 'queue empty',
                     });
                     resolveIsReadyPromise?.();
                 }
@@ -430,6 +432,18 @@ function getShouldFailAllRequests(): boolean {
 // Flush the queue when the persisted requests are initialized
 onPersistedRequestsInitialization(flush);
 
+// Flush the queue when transitioning from offline to online.
+// This replaces the old NetworkState → unpause() → flush() coupling
+// with a cleaner dependency direction (SequentialQueue → NetworkState).
+let wasOfflineForQueue = isOfflineNetwork();
+subscribeNetworkState(() => {
+    const currentlyOffline = isOfflineNetwork();
+    if (wasOfflineForQueue && !currentlyOffline) {
+        flush();
+    }
+    wasOfflineForQueue = currentlyOffline;
+});
+
 function handleConflictActions<TKey extends OnyxKey>(conflictAction: ConflictData, newRequest: OnyxRequest<TKey>) {
     Log.info('[SequentialQueue] handleConflictActions', false, {
         conflictType: conflictAction.type,
@@ -484,7 +498,7 @@ function push<TKey extends OnyxKey>(newRequest: OnyxRequest<TKey>) {
         command: newRequest.command,
         hasConflictChecker: !!newRequest.checkAndFixConflictingRequest,
         currentQueueLength: currentRequests.length,
-        isOffline: isOffline(),
+        isOffline: isOfflineNetwork(),
         isSequentialQueueRunning,
     });
 

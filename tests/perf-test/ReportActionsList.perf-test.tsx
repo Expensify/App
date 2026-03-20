@@ -5,6 +5,7 @@ import {measureRenders} from 'reassure';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import type Navigation from '@libs/Navigation/Navigation';
+import {setHasRadio} from '@libs/NetworkState';
 import ReportActionsList from '@pages/inbox/report/ReportActionsList';
 import {ActionListContext, ReactionListContext} from '@pages/inbox/ReportScreenContext';
 import {AttachmentModalContextProvider} from '@pages/media/AttachmentModalScreen/AttachmentModalContext';
@@ -84,7 +85,7 @@ const parentReportAction = createRandomReportAction(1);
 
 beforeEach(() => {
     // Initialize the network key for OfflineWithFeedback
-    Onyx.merge(ONYXKEYS.NETWORK, {isOffline: false});
+    setHasRadio(true);
     wrapOnyxWithWaitForBatchedUpdates(Onyx);
     signUpWithTestUser();
 });

@@ -7,7 +7,6 @@ import {init, isClientTheLeader} from '@libs/ActiveClientManager';
 import Log from '@libs/Log';
 import getCurrentUrl from '@libs/Navigation/currentUrl';
 import Navigation from '@libs/Navigation/Navigation';
-import NetworkState from '@libs/NetworkState';
 import Pusher from '@libs/Pusher';
 import PusherConnectionManager from '@libs/PusherConnectionManager';
 import {getReportIDFromLink} from '@libs/ReportUtils';
@@ -80,9 +79,6 @@ function AuthScreensInitHandler() {
             Session.signOutAndRedirectToSignIn(false, isSupportalTransition);
             return;
         }
-
-        // Wire app foreground listener for recovery probing and reconnection
-        NetworkState.initAppForegroundListener();
 
         // Pusher initialization span
         startSpan(CONST.TELEMETRY.SPAN_NAVIGATION.PUSHER_INIT, {

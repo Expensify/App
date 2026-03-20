@@ -16,7 +16,7 @@ import * as Network from '@src/libs/Network';
 import * as MainQueue from '@src/libs/Network/MainQueue';
 import * as NetworkStore from '@src/libs/Network/NetworkStore';
 import * as SequentialQueue from '@src/libs/Network/SequentialQueue';
-import NetworkState from '@src/libs/NetworkState';
+import {isOffline, setHasRadio} from '@src/libs/NetworkState';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Session as OnyxSession} from '@src/types/onyx';
 import type ReactNativeOnyxMock from '../../__mocks__/react-native-onyx';
@@ -39,7 +39,7 @@ const originalXHR = HttpUtils.xhr;
 beforeEach(() => {
     global.fetch = TestHelper.getGlobalFetchMock();
     HttpUtils.xhr = originalXHR;
-    NetworkState.setHasRadio(true);
+    setHasRadio(true);
 
     // Reset any pending requests
     MainQueue.clear();
@@ -163,7 +163,7 @@ describe('NetworkTests', () => {
         HttpUtils.xhr = mockedXhr;
 
         // 3. Test Execution Phase - Start with online network
-        NetworkState.setHasRadio(true);
+        setHasRadio(true);
         await waitForBatchedUpdates();
 
         // Trigger reconnect which will fail due to expired token
@@ -181,9 +181,9 @@ describe('NetworkTests', () => {
         expect(secondCall[0]).toBe('Authenticate');
 
         // 6. Network State Change - Set offline and back online while authenticate is pending
-        NetworkState.setHasRadio(false);
+        setHasRadio(false);
         await waitForBatchedUpdates();
-        NetworkState.setHasRadio(true);
+        setHasRadio(true);
         await waitForBatchedUpdates();
 
         // 7. Trigger another reconnect due to network change
@@ -289,7 +289,7 @@ describe('NetworkTests', () => {
     test('Non-retryable request will not be retried if connection is lost in flight', () => {
         // Given a xhr mock that will fail as if network connection dropped
         const xhr = jest.spyOn(HttpUtils, 'xhr').mockImplementationOnce(() => {
-            NetworkState.setHasRadio(false);
+            setHasRadio(false);
             return Promise.reject(new Error(CONST.ERROR.FAILED_TO_FETCH));
         });
 
@@ -299,7 +299,7 @@ describe('NetworkTests', () => {
         return waitForBatchedUpdates()
             .then(() => {
                 // When network connection is recovered
-                NetworkState.setHasRadio(true);
+                setHasRadio(true);
                 return waitForBatchedUpdates();
             })
             .then(() => {
@@ -322,7 +322,7 @@ describe('NetworkTests', () => {
         const logHmmmSpy = jest.spyOn(Log, 'hmmm');
 
         // Given we have a request made while online
-        return Promise.resolve(NetworkState.setHasRadio(true))
+        return Promise.resolve(setHasRadio(true))
             .then(() => {
                 Network.post('MockBadNetworkResponse', {param1: 'value1'});
                 return waitForBatchedUpdates();
@@ -338,7 +338,7 @@ describe('NetworkTests', () => {
         const logAlertSpy = jest.spyOn(Log, 'alert');
 
         // Given we have a request made while online
-        return Promise.resolve(NetworkState.setHasRadio(true))
+        return Promise.resolve(setHasRadio(true))
             .then(() => {
                 Network.post('MockBadNetworkResponse', {param1: 'value1'});
                 return waitForBatchedUpdates();
@@ -354,9 +354,9 @@ describe('NetworkTests', () => {
         const onResolved = jest.fn() as jest.MockedFunction<OnResolved>;
 
         // Given we have a request made while online
-        return Promise.resolve(NetworkState.setHasRadio(true))
+        return Promise.resolve(setHasRadio(true))
             .then(() => {
-                expect(NetworkStore.isOffline()).toBe(false);
+                expect(isOffline()).toBe(false);
 
                 // When network calls with are made
                 Network.post('mock command', {param1: 'value1'}).then(onResolved);
@@ -375,7 +375,7 @@ describe('NetworkTests', () => {
         // GIVEN a mock that will return a "cancelled" request error
         global.fetch = jest.fn().mockRejectedValue(new DOMException('Aborted', CONST.ERROR.REQUEST_CANCELLED));
 
-        return Promise.resolve(NetworkState.setHasRadio(true))
+        return Promise.resolve(setHasRadio(true))
             .then(() => {
                 // WHEN we make a few requests and then cancel them
                 Network.post('MockCommandOne');
