@@ -719,6 +719,9 @@ type OriginalMessagePolicyChangeLog = {
         /** The accountID of the previous reimburser */
         accountID: number;
     };
+
+    /** Whether the user joined the workspace via joining link */
+    didJoinPolicy?: boolean;
 };
 
 /** Model of `join policy` report action */
@@ -1094,6 +1097,9 @@ type OriginalMessageApproved = {
 
     /** The login of approver who is on vacation */
     managerOnVacation?: string;
+
+    /** The Concierge reasoning for the action */
+    reasoning?: string;
 };
 
 /** Model of `forwarded` report action */

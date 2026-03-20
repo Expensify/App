@@ -152,6 +152,7 @@ function TaskAssigneeSelectorModal() {
             ...allPersonalDetails?.[option?.accountID ?? CONST.DEFAULT_NUMBER_ID],
             accountID: option.accountID ?? CONST.DEFAULT_NUMBER_ID,
             login: option.login ?? '',
+            isOptimisticPersonalDetail: !allPersonalDetails?.[option?.accountID ?? CONST.DEFAULT_NUMBER_ID],
         };
 
         // Check to see if we're editing a task and if so, update the assignee
