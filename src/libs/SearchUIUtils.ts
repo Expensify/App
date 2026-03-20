@@ -64,7 +64,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
-import type {CardFeedWithNumber} from '@src/types/onyx/CardFeeds';
 import type {ConnectionName} from '@src/types/onyx/Policy';
 import type {SaveSearchItem} from '@src/types/onyx/SaveSearch';
 import type SearchResults from '@src/types/onyx/SearchResults';
@@ -91,7 +90,7 @@ import type {TransactionPreviewData} from './actions/Search';
 import {setOptimisticDataForTransactionThreadPreview} from './actions/Search';
 import type {CardFeedForDisplay} from './CardFeedUtils';
 import {getCardFeedsForDisplay} from './CardFeedUtils';
-import {doesCardFeedExist, getCardDescription, getFeedNameForDisplay, getPlaidInstitutionId} from './CardUtils';
+import {doesCardFeedExist, getCardDescriptionForSearchTable, getFeedNameForDisplay} from './CardUtils';
 import {getDecodedCategoryName} from './CategoryUtils';
 import {convertToDisplayString} from './CurrencyUtils';
 import DateUtils from './DateUtils';
@@ -492,7 +491,6 @@ type GetSectionsParams = {
     isActionLoadingSet?: ReadonlySet<string>;
     isOffline?: boolean;
     cardFeeds?: OnyxCollection<OnyxTypes.CardFeeds>;
-    cardList?: OnyxTypes.CardList;
     customCardNames?: Record<number, string>;
     allTransactionViolations?: OnyxCollection<OnyxTypes.TransactionViolation[]>;
     visibleReportActionsData?: OnyxTypes.VisibleReportActionsDerivedValue;
@@ -2549,7 +2547,6 @@ function getCardSections(
     translate: LocalizedTranslate,
     cardFeeds?: OnyxCollection<OnyxTypes.CardFeeds>,
     customCardNames?: Record<number, string>,
-    cardList?: OnyxTypes.CardList,
 ): [TransactionCardGroupListItemType[], number] {
     const cardSections: Record<string, TransactionCardGroupListItemType> = {};
     const cardDescriptionByCardID = new Map<number, string>();
@@ -2564,27 +2561,22 @@ function getCardSections(
                 continue;
             }
 
-            const card = cardList?.[cardGroup.cardID];
             let formattedCardName = customCardNames?.[cardGroup.cardID];
             if (formattedCardName === undefined) {
                 const cached = cardDescriptionByCardID.get(cardGroup.cardID);
                 if (cached !== undefined) {
-                    formattedCardName = cardGroup.lastFourPAN ? formattedCardNameWithDotAndLastFour(cached, cardGroup.lastFourPAN) : cached;
+                    formattedCardName = cached;
                 } else {
-                    const cardFormattedName = getCardDescription(
+                    formattedCardName = getCardDescriptionForSearchTable(
                         {
                             cardID: cardGroup.cardID,
                             bank: cardGroup.bank,
                             cardName: cardGroup.cardName,
-                            fundID: card?.fundID,
                             lastFourPAN: cardGroup.lastFourPAN,
                         } as OnyxTypes.Card,
-                        translate,
-                        true,
+                        personalDetails?.displayName,
                     );
-                    const isPlaid = cardGroup?.bank ? !!getPlaidInstitutionId(cardGroup.bank as CardFeedWithNumber) : false;
-                    formattedCardName = isPlaid && cardGroup.lastFourPAN ? formattedCardNameWithDotAndLastFour(cardFormattedName, cardGroup.lastFourPAN) : cardFormattedName;
-                    cardDescriptionByCardID.set(cardGroup.cardID, cardFormattedName);
+                    cardDescriptionByCardID.set(cardGroup.cardID, formattedCardName);
                 }
             } else if (cardGroup.lastFourPAN) {
                 formattedCardName = formattedCardNameWithDotAndLastFour(formattedCardName, cardGroup.lastFourPAN);
@@ -2930,7 +2922,6 @@ function getSections({
     allTransactionViolations,
     visibleReportActionsData,
     allReportMetadata,
-    cardList,
     conciergeReportID,
     onyxPersonalDetailsList,
 }: GetSectionsParams) {
@@ -2968,7 +2959,7 @@ function getSections({
             case CONST.SEARCH.GROUP_BY.FROM:
                 return getMemberSections(data, queryJSON, formatPhoneNumber);
             case CONST.SEARCH.GROUP_BY.CARD:
-                return getCardSections(data, queryJSON, translate, cardFeeds, customCardNames, cardList);
+                return getCardSections(data, queryJSON, translate, cardFeeds, customCardNames);
             case CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID:
                 return getWithdrawalIDSections(data, queryJSON);
             case CONST.SEARCH.GROUP_BY.CATEGORY:

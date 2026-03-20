@@ -158,10 +158,9 @@ function supportsPINManagementFeatures(card: Card | undefined): boolean {
 /**
  * @param card
  * @param translate
- * @param isForceCardNameUsage
  * @returns string in format %<bank> • <lastFourPAN || Not Activated>%.
  */
-function getCardDescription(card: Card | undefined, translate: LocalizedTranslate, isForceCardNameUsage?: boolean) {
+function getCardDescription(card: Card | undefined, translate: LocalizedTranslate) {
     if (!card) {
         return '';
     }
@@ -173,8 +172,24 @@ function getCardDescription(card: Card | undefined, translate: LocalizedTranslat
     const bankName = isPlaid ? card?.cardName : getBankName(card.bank);
     const cardDescriptor = card.state === CONST.EXPENSIFY_CARD.STATE.NOT_ACTIVATED ? translate('cardTransactions.notActivated') : card.lastFourPAN;
     const humanReadableBankName = card.bank === CONST.EXPENSIFY_CARD.BANK ? CONST.EXPENSIFY_CARD.BANK : bankName;
-    const finalName = isForceCardNameUsage ? card?.cardName : humanReadableBankName;
-    return cardDescriptor && !isPlaid ? `${finalName} ${CONST.DOT_SEPARATOR} ${cardDescriptor}` : `${finalName}`;
+    return cardDescriptor && !isPlaid ? `${humanReadableBankName} ${CONST.DOT_SEPARATOR} ${cardDescriptor}` : `${humanReadableBankName}`;
+}
+
+/**
+ * @param card
+ * @param displayName
+ * @returns string in format %<defaultOrCustomCardName> • <lastFourPAN>%.
+ */
+function getCardDescriptionForSearchTable(card?: Card, displayName?: string) {
+    if (!card) {
+        return '';
+    }
+    const isCSVCard = card.bank === CONST.COMPANY_CARD.FEED_BANK_NAME.UPLOAD || card.bank?.includes(CONST.COMPANY_CARD.FEED_BANK_NAME.CSV);
+    if (isCSVCard) {
+        return card.nameValuePairs?.cardTitle ?? card.cardName ?? '';
+    }
+    const finalName = getDefaultCardName(displayName ?? '') ?? card.cardName;
+    return card.lastFourPAN ? `${finalName} ${CONST.DOT_SEPARATOR} ${card.lastFourPAN}` : `${finalName}`;
 }
 
 /**
@@ -1598,6 +1613,7 @@ export {
     formatMaskedCardName,
     splitMaskedCardNumber,
     isCardAlreadyAssigned,
+    getCardDescriptionForSearchTable,
     generateCardID,
     hasDisplayableAssignedCards,
     isCardFrozen,
