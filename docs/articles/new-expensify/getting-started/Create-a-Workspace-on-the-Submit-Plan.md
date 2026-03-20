@@ -30,6 +30,8 @@ If you’re new to Expensify, you can create a Submit workspace during setup.
 2. Select **Get paid back by my employer** when prompted.
 3. Choose to create a new workspace (if you don’t join an existing one).
 
+![Get paid back intent](https://github.com/user-attachments/assets/82358073-bef0-4896-8e72-a09f2697eca6)
+
 You’ll be taken directly to your workspace to start setting it up.
 
 ---
@@ -91,8 +93,7 @@ Once your workspace is set up, you can submit reports for approval.
 
 Your manager will receive an email with a link to review the report.
 
-[ADD IMAGE OF SUBMIT POPOVER]
-
+![Submit report to manager popover](https://github.com/user-attachments/assets/ed59c9b2-47ac-44c1-af55-62c91760b286)
 ---
 
 ## Track reimbursement status with “Mark as paid”
