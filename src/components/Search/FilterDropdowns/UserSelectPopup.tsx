@@ -49,10 +49,10 @@ function UserSelectPopup({value, closeOverlay, onChange, isSearchable}: UserSele
     const shouldFocusInputOnScreenFocus = canFocusInputOnScreenFocus();
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false});
     const initialSelectedOptions = useMemo(() => {
-        return value.reduce<OptionData[]>((acc, id) => {
+        return value.reduce<OptionData[]>((options, id) => {
             const participant = personalDetails?.[id];
             if (!participant) {
-                return acc;
+                return options;
             }
 
             const optionData = {
@@ -61,10 +61,10 @@ function UserSelectPopup({value, closeOverlay, onChange, isSearchable}: UserSele
             };
 
             if (optionData) {
-                acc.push(optionData as OptionData);
+                options.push(optionData as OptionData);
             }
 
-            return acc;
+            return options;
         }, []);
     }, [value, personalDetails]);
 
