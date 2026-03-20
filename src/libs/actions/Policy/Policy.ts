@@ -2147,7 +2147,7 @@ function generateDefaultWorkspaceName(email = '', displayNameOverride?: string):
     const username = emailParts.at(0) ?? '';
     const domain = emailParts.at(1) ?? '';
     const userDetails = PersonalDetailsUtils.getPersonalDetailByEmail(email || deprecatedSessionEmail);
-    const displayName = displayNameOverride?.trim() || userDetails?.displayName?.trim();
+    const displayName = displayNameOverride?.trim() ?? userDetails?.displayName?.trim();
     let displayNameForWorkspace = '';
 
     if (!PUBLIC_DOMAINS_SET.has(domain.toLowerCase())) {
