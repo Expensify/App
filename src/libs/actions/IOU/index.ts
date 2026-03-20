@@ -261,6 +261,7 @@ import type {OnyxData} from '@src/types/onyx/Request';
 import type {Comment, Receipt, ReceiptSource, Routes, SplitShares, TransactionChanges, TransactionCustomUnit, WaypointCollection} from '@src/types/onyx/Transaction';
 import type {FileObject} from '@src/types/utils/Attachment';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import {resolveDetachReceiptConflicts} from '../RequestConflictUtils';
 
 type IOURequestType = ValueOf<typeof CONST.IOU.REQUEST_TYPE>;
 
@@ -277,6 +278,7 @@ type BaseTransactionParams = {
     tag?: string;
     taxCode?: string;
     taxAmount?: number;
+    taxValue?: string;
     billable?: boolean;
     reimbursable?: boolean;
     customUnitRateID?: string;
@@ -379,13 +381,14 @@ type TrackExpenseInformation = {
     onyxData: OnyxData<BuildOnyxDataForTrackExpenseKeys | BuildPolicyDataKeys | typeof ONYXKEYS.SELF_DM_REPORT_ID>;
 };
 
-type TrackedExpenseTransactionParams = Omit<BaseTransactionParams, 'taxCode' | 'taxAmount'> & {
+type TrackedExpenseTransactionParams = Omit<BaseTransactionParams, 'taxCode' | 'taxAmount' | 'taxValue'> & {
     waypoints?: string;
     distance?: number;
     transactionID: string | undefined;
     receipt?: Receipt;
     taxCode: string;
     taxAmount: number;
+    taxValue?: string;
     attendees?: Attendee[];
 };
 
@@ -680,6 +683,7 @@ type TrackExpenseTransactionParams = {
     tag?: string;
     taxCode?: string;
     taxAmount?: number;
+    taxValue?: string;
     billable?: boolean;
     reimbursable?: boolean;
     validWaypoints?: WaypointCollection;
@@ -735,6 +739,7 @@ type GetTrackExpenseInformationTransactionParams = {
     tag?: string;
     taxCode?: string;
     taxAmount?: number;
+    taxValue?: string;
     billable?: boolean;
     reimbursable?: boolean;
     linkedTrackedExpenseReportAction?: OnyxTypes.ReportAction;
@@ -792,6 +797,7 @@ type StartSplitBilActionParams = {
     currency: string;
     taxCode: string;
     taxAmount: number;
+    taxValue?: string;
     shouldPlaySound?: boolean;
     policyRecentlyUsedCategories?: OnyxEntry<OnyxTypes.RecentlyUsedCategories>;
     policyRecentlyUsedTags: OnyxEntry<RecentlyUsedTags>;
@@ -3300,6 +3306,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         tag,
         taxCode,
         taxAmount,
+        taxValue,
         billable,
         reimbursable = true,
         linkedTrackedExpenseReportAction,
@@ -3463,6 +3470,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
             taxCode,
             source,
             taxAmount: isExpenseReport(iouReport) ? -(taxAmount ?? 0) : taxAmount,
+            taxValue,
             billable,
             pendingAction,
             pendingFields: isDistanceRequest && !isManualDistanceRequest ? {waypoints: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD, ...pendingFields} : pendingFields,
@@ -3730,6 +3738,7 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
         tag,
         taxCode,
         taxAmount,
+        taxValue,
         billable,
         reimbursable,
         linkedTrackedExpenseReportAction,
@@ -3941,6 +3950,7 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
             tag,
             taxCode,
             taxAmount: taxAmount ? -taxAmount : undefined,
+            taxValue,
             billable,
             pendingFields: isDistanceRequest && !isManualDistanceRequest ? {waypoints: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD} : undefined,
             reimbursable,
@@ -6655,6 +6665,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
         tag,
         taxCode = '',
         taxAmount = 0,
+        taxValue,
         billable,
         reimbursable,
         gpsPoint,
@@ -6700,6 +6711,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
             tag,
             taxCode,
             taxAmount,
+            taxValue,
             billable,
             reimbursable,
             validWaypoints,
@@ -6753,6 +6765,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
             tag,
             taxCode,
             taxAmount,
+            taxValue,
             billable,
             reimbursable,
             linkedTrackedExpenseReportAction,
@@ -7057,6 +7070,7 @@ function createSplitsAndOnyxData({
         iouRequestType = CONST.IOU.REQUEST_TYPE.MANUAL,
         taxCode = '',
         taxAmount = 0,
+        taxValue,
         attendees,
     },
     policyRecentlyUsedCategories,
@@ -7094,6 +7108,7 @@ function createSplitsAndOnyxData({
             tag,
             taxCode,
             taxAmount,
+            taxValue,
             billable,
             reimbursable,
             pendingFields: isDistanceRequest ? {waypoints: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD} : undefined,
@@ -7398,6 +7413,7 @@ function createSplitsAndOnyxData({
                 tag,
                 taxCode,
                 taxAmount: isExpenseReport(oneOnOneIOUReport) ? -splitTaxAmount : splitTaxAmount,
+                taxValue,
                 billable,
                 source: CONST.IOU.TYPE.SPLIT,
             },
@@ -7594,6 +7610,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
         tag,
         taxAmount,
         taxCode,
+        taxValue,
         merchant,
         modifiedAmount,
         billable,
@@ -7648,6 +7665,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
                 iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE,
                 taxCode,
                 taxAmount,
+                taxValue,
                 attendees,
             },
             policyRecentlyUsedCategories,
@@ -7729,6 +7747,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
                 tag,
                 taxCode,
                 taxAmount,
+                taxValue,
                 billable,
                 reimbursable,
                 attendees,
@@ -11548,7 +11567,14 @@ function detachReceipt(transactionID: string | undefined, transactionPolicy: Ony
 
     const parameters: DetachReceiptParams = {transactionID, reportActionID: updatedReportAction.reportActionID};
 
-    API.write(WRITE_COMMANDS.DETACH_RECEIPT, parameters, {optimisticData, successData, failureData});
+    API.write(
+        WRITE_COMMANDS.DETACH_RECEIPT,
+        parameters,
+        {optimisticData, successData, failureData},
+        {
+            checkAndFixConflictingRequest: (persistedRequests) => resolveDetachReceiptConflicts(persistedRequests, parameters),
+        },
+    );
 }
 
 function replaceReceipt({transactionID, file, source, state, transactionPolicy, transactionPolicyCategories, isSameReceipt}: ReplaceReceipt) {
