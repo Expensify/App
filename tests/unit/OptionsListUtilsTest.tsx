@@ -6787,7 +6787,7 @@ describe('OptionsListUtils', () => {
             expect(result).toBeDefined();
         });
 
-        it('should return all reports when searchTerm is provided (isSearching is true)', () => {
+        it('should return all reports when isSearching is true', () => {
             const result = createFilteredOptionList(
                 PERSONAL_DETAILS,
                 REPORTS,
@@ -6795,7 +6795,7 @@ describe('OptionsListUtils', () => {
                 undefined,
                 {},
                 {
-                    searchTerm: 'Report',
+                    isSearching: true,
                     maxRecentReports: 2,
                 },
             );
