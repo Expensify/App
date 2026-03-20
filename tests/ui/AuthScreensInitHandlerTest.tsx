@@ -161,6 +161,46 @@ describe('AuthScreensInitHandler', () => {
         expect(subscribeToUserEvents).toHaveBeenCalledWith(TEST_ACCOUNT_ID, expect.any(Function));
     });
 
+    it('calls subscribeToUserEvents from sign-in modal effect when SIGN_IN_MODAL is active', async () => {
+        mockedIsActiveRoute.mockReturnValue(true);
+
+        await Onyx.merge(ONYXKEYS.SESSION, {accountID: TEST_ACCOUNT_ID, email: 'test@test.com'});
+        await waitForBatchedUpdates();
+
+        renderAuthScreensInitHandler();
+        await waitForBatchedUpdatesWithAct();
+
+        // Both mount effect AND sign-in modal effect fire → 2 calls
+        expect(subscribeToUserEvents).toHaveBeenCalledTimes(2);
+        expect(subscribeToUserEvents).toHaveBeenCalledWith(TEST_ACCOUNT_ID, expect.any(Function));
+    });
+
+    it('getter passed to subscribeToUserEvents returns report attributes when available', async () => {
+        const mockReports = {'1': {reportName: 'Test Report'}} as Record<string, unknown>;
+
+        await Onyx.merge(ONYXKEYS.SESSION, {accountID: TEST_ACCOUNT_ID, email: 'test@test.com'});
+        await Onyx.merge(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {reports: mockReports});
+        await waitForBatchedUpdates();
+
+        renderAuthScreensInitHandler();
+        await waitForBatchedUpdatesWithAct();
+
+        const getter = (subscribeToUserEvents as jest.Mock).mock.calls.at(0)?.[1] as () => unknown;
+        expect(getter()).toEqual(mockReports);
+    });
+
+    it('getter passed to subscribeToUserEvents returns undefined when report attributes not yet loaded', async () => {
+        await Onyx.merge(ONYXKEYS.SESSION, {accountID: TEST_ACCOUNT_ID, email: 'test@test.com'});
+        // Intentionally do not set ONYXKEYS.DERIVED.REPORT_ATTRIBUTES
+        await waitForBatchedUpdates();
+
+        renderAuthScreensInitHandler();
+        await waitForBatchedUpdatesWithAct();
+
+        const getter = (subscribeToUserEvents as jest.Mock).mock.calls.at(0)?.[1] as () => unknown;
+        expect(getter()).toBeUndefined();
+    });
+
     it('signs out when logging in as new user during transition', async () => {
         mockedGetCurrentUrl.mockReturnValue(`https://new.expensify.com/${ROUTES.TRANSITION_BETWEEN_APPS}`);
         mockedIsLoggingInAsNewUser.mockReturnValue(true);
