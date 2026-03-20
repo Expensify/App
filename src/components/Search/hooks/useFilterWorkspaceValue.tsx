@@ -4,7 +4,7 @@ import type {SearchFilter} from '@libs/SearchUIUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy} from '@src/types/onyx';
 
-function useFilterWorkspaceValues(policyIDs: SearchFilter['value']): string {
+function useFilterWorkspaceValue(policyIDs: SearchFilter['value']): string {
     const filterWorkspaceSelector = (policies: OnyxCollection<Policy>) => {
         if (!Array.isArray(policyIDs) || !policies) {
             return null;
@@ -23,4 +23,4 @@ function useFilterWorkspaceValues(policyIDs: SearchFilter['value']): string {
     return workspaceNames?.join(', ') ?? '';
 }
 
-export default useFilterWorkspaceValues;
+export default useFilterWorkspaceValue;

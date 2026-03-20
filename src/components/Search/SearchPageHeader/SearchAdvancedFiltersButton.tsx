@@ -10,7 +10,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
-function SearchAdvanceFiltersButton({queryJSON}: {queryJSON: SearchQueryJSON}) {
+function SearchAdvancedFiltersButton({queryJSON}: {queryJSON: SearchQueryJSON}) {
     const {translate} = useLocalize();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Filter']);
     const filterFormValues = useFilterFormValues(queryJSON);
@@ -32,4 +32,4 @@ function SearchAdvanceFiltersButton({queryJSON}: {queryJSON: SearchQueryJSON}) {
     );
 }
 
-export default SearchAdvanceFiltersButton;
+export default SearchAdvancedFiltersButton;

@@ -3,9 +3,9 @@ import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import DropdownButton from '@components/Search/FilterDropdowns/DropdownButton';
 import type {DropdownButtonProps} from '@components/Search/FilterDropdowns/DropdownButton';
-import useFilterFeedValues from '@components/Search/hooks/useFilterFeedValue';
-import useFilterFromValues from '@components/Search/hooks/useFilterFromValue';
-import useFilterWorkspaceValues from '@components/Search/hooks/useFilterWorkspaceValue';
+import useFilterFeedValue from '@components/Search/hooks/useFilterFeedValue';
+import useFilterFromValue from '@components/Search/hooks/useFilterFromValue';
+import useFilterWorkspaceValue from '@components/Search/hooks/useFilterWorkspaceValue';
 import SearchBulkActionsButton from '@components/Search/SearchBulkActionsButton';
 import type {SearchQueryJSON} from '@components/Search/types';
 import SearchActionsSkeleton from '@components/Skeletons/SearchActionsSkeleton';
@@ -14,7 +14,7 @@ import FILTER_KEYS from '@src/types/form/SearchAdvancedFiltersForm';
 import type {SearchAdvancedFiltersKey} from '@src/types/form/SearchAdvancedFiltersForm';
 import type {SearchResults} from '@src/types/onyx';
 import SearchActionsBarCreateButton from './SearchActionsBarCreateButton';
-import SearchAdvanceFiltersButton from './SearchAdvanceFiltersButton';
+import SearchAdvancedFiltersButton from './SearchAdvancedFiltersButton';
 import SearchDisplayDropdownButton from './SearchDisplayDropdownButton';
 import SearchPageInputWide from './SearchPageInputWide';
 import SearchSaveButton from './SearchSaveButton';
@@ -30,7 +30,7 @@ type SearchActionsBarWideProps = {
 type SearchDropdownProps = Omit<DropdownButtonProps, 'viewportOffsetTop'>;
 
 function FromDropdown({label, value, PopoverComponent, sentryLabel}: SearchDropdownProps) {
-    const fromValue = useFilterFromValues(value);
+    const fromValue = useFilterFromValue(value);
     return (
         <DropdownButton
             label={label}
@@ -42,7 +42,7 @@ function FromDropdown({label, value, PopoverComponent, sentryLabel}: SearchDropd
 }
 
 function WorkspaceDropdown({label, value, PopoverComponent, sentryLabel}: SearchDropdownProps) {
-    const workspaceValue = useFilterWorkspaceValues(value);
+    const workspaceValue = useFilterWorkspaceValue(value);
     return (
         <DropdownButton
             label={label}
@@ -54,7 +54,7 @@ function WorkspaceDropdown({label, value, PopoverComponent, sentryLabel}: Search
 }
 
 function FeedDropdown({label, value, PopoverComponent, sentryLabel}: SearchDropdownProps) {
-    const feedValue = useFilterFeedValues(value);
+    const feedValue = useFilterFeedValue(value);
     return (
         <DropdownButton
             label={label}
@@ -117,7 +117,7 @@ function SearchActionsBarWide({queryJSON, searchResults, handleSearch, onSort}: 
                         })}
                     </View>
                     <View style={styles.filtersBar}>
-                        <SearchAdvanceFiltersButton queryJSON={queryJSON} />
+                        <SearchAdvancedFiltersButton queryJSON={queryJSON} />
                         <SearchDisplayDropdownButton
                             queryJSON={queryJSON}
                             searchResults={searchResults}

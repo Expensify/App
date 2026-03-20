@@ -5,7 +5,7 @@ import {getCardFeedsForDisplay} from '@libs/CardFeedUtils';
 import type {SearchFilter} from '@libs/SearchUIUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 
-function useFilterFeedValues(feedIDs: SearchFilter['value']): string {
+function useFilterFeedValue(feedIDs: SearchFilter['value']): string {
     const {translate} = useLocalize();
     const feedKeysWithCards = useFeedKeysWithAssignedCards();
     const [personalAndWorkspaceCards] = useOnyx(ONYXKEYS.DERIVED.PERSONAL_AND_WORKSPACE_CARD_LIST);
@@ -28,4 +28,4 @@ function useFilterFeedValues(feedIDs: SearchFilter['value']): string {
     }, '');
 }
 
-export default useFilterFeedValues;
+export default useFilterFeedValue;

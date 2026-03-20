@@ -5,7 +5,7 @@ import type {SearchFilter} from '@libs/SearchUIUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetailsList} from '@src/types/onyx';
 
-function useFilterFromValues(fromAccountIDs: SearchFilter['value']): string {
+function useFilterFromValue(fromAccountIDs: SearchFilter['value']): string {
     const filterFromSelector = (personalDetails: OnyxEntry<PersonalDetailsList>) => {
         if (!Array.isArray(fromAccountIDs) || !personalDetails) {
             return null;
@@ -17,4 +17,4 @@ function useFilterFromValues(fromAccountIDs: SearchFilter['value']): string {
     return fromDisplayNames?.join(', ') ?? '';
 }
 
-export default useFilterFromValues;
+export default useFilterFromValue;

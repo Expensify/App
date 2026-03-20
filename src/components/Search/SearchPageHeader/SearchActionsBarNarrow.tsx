@@ -8,7 +8,7 @@ import SearchActionsSkeleton from '@components/Skeletons/SearchActionsSkeleton';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import type {SearchResults} from '@src/types/onyx';
-import SearchAdvanceFiltersButton from './SearchAdvanceFiltersButton';
+import SearchAdvancedFiltersButton from './SearchAdvancedFiltersButton';
 import SearchDisplayDropdownButton from './SearchDisplayDropdownButton';
 import SearchSaveButton from './SearchSaveButton';
 import useSearchActionsBar from './useSearchActionsBar';
@@ -59,7 +59,7 @@ function SearchActionsBarNarrow({queryJSON, isMobileSelectionModeEnabled, isSear
                                 onPress={onSearchButtonPress}
                             />
                         )}
-                        <SearchAdvanceFiltersButton queryJSON={queryJSON} />
+                        <SearchAdvancedFiltersButton queryJSON={queryJSON} />
                     </View>
                     <View style={[styles.flexRow, styles.gap2]}>
                         <SearchSaveButton />
