@@ -3435,7 +3435,7 @@ function navigateToConciergeChat(
                 return;
             }
             // TODO: We'll pass isSelfTourViewed in the next PR. Refactor issue: https://github.com/Expensify/App/issues/66424
-            // TODO: Thread betas through navigateToConciergeChat in PR D. Refactor issue: https://github.com/Expensify/App/issues/66417
+            // TODO: Thread betas through navigateToConciergeChat in next PR. Refactor issue: https://github.com/Expensify/App/issues/66417
             navigateToAndOpenReport([CONST.EMAIL.CONCIERGE], currentUserAccountID, introSelected, undefined, undefined, shouldDismissModal);
         });
     } else if (shouldDismissModal) {
