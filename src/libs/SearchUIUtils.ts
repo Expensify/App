@@ -4452,7 +4452,8 @@ function getColumnsToShow({
                 }
             }
 
-            return result;
+            // Don't return early — fall through to updateColumns to detect empty columns
+            customResult = result;
         }
     }
 
@@ -4467,34 +4468,44 @@ function getColumnsToShow({
             columns[CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION] = true;
         }
 
-        const category = getCategory(transaction);
-        if (category !== '' && category !== CONST.SEARCH.CATEGORY_EMPTY_VALUE) {
-            columns[CONST.SEARCH.TABLE_COLUMNS.CATEGORY] = !isExpenseReportViewFromIOUReport;
+        const hasCategory = (() => {
+            const category = getCategory(transaction);
+            return category !== '' && category !== CONST.SEARCH.CATEGORY_EMPTY_VALUE;
+        })();
+
+        const hasTag = (() => {
+            const tag = getTag(transaction);
+            return tag !== '' && tag !== CONST.SEARCH.TAG_EMPTY_VALUE;
+        })();
+
+        // Universal data-presence checks — apply to both expense report view and search page
+        // so that custom columns with no data are hidden regardless of context.
+        if (transaction.cardName && transaction.cardName !== CONST.EXPENSE.TYPE.CASH_CARD_NAME) {
+            columns[CONST.SEARCH.TABLE_COLUMNS.CARD] = true;
         }
 
-        const tag = getTag(transaction);
-        if (tag !== '' && tag !== CONST.SEARCH.TAG_EMPTY_VALUE) {
-            columns[CONST.SEARCH.TABLE_COLUMNS.TAG] = !isExpenseReportViewFromIOUReport;
+        if (transaction.taxCode) {
+            columns[CONST.SEARCH.TABLE_COLUMNS.TAX_RATE] = true;
+        }
+
+        if (transaction.taxAmount) {
+            columns[CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT] = true;
+        }
+
+        if (transaction.originalAmount) {
+            columns[CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT] = true;
+        }
+
+        if (getExchangeRate(transaction, reportCurrency) !== '') {
+            columns[CONST.SEARCH.TABLE_COLUMNS.EXCHANGE_RATE] = true;
         }
 
         if (isExpenseReportView) {
-            if (transaction.cardName && transaction.cardName !== CONST.EXPENSE.TYPE.CASH_CARD_NAME) {
-                columns[CONST.SEARCH.TABLE_COLUMNS.CARD] = true;
+            if (hasCategory) {
+                columns[CONST.SEARCH.TABLE_COLUMNS.CATEGORY] = !isExpenseReportViewFromIOUReport;
             }
-            if (transaction.taxCode) {
-                columns[CONST.SEARCH.TABLE_COLUMNS.TAX_RATE] = true;
-            }
-
-            if (transaction.taxAmount) {
-                columns[CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT] = true;
-            }
-
-            if (transaction.originalAmount) {
-                columns[CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT] = true;
-            }
-
-            if (getExchangeRate(transaction, reportCurrency) !== '') {
-                columns[CONST.SEARCH.TABLE_COLUMNS.EXCHANGE_RATE] = true;
+            if (hasTag) {
+                columns[CONST.SEARCH.TABLE_COLUMNS.TAG] = !isExpenseReportViewFromIOUReport;
             }
             return;
         }
@@ -4511,8 +4522,14 @@ function getColumnsToShow({
                 columns[CONST.SEARCH.TABLE_COLUMNS.FROM] = true;
             }
 
-            columns[CONST.SEARCH.TABLE_COLUMNS.CATEGORY] = columns[CONST.SEARCH.TABLE_COLUMNS.CATEGORY] && !isIOUReportReportUtil(report);
-            columns[CONST.SEARCH.TABLE_COLUMNS.TAG] = columns[CONST.SEARCH.TABLE_COLUMNS.TAG] && !isIOUReportReportUtil(report);
+            // Show category/tag if any non-IOU transaction has them.
+            // Only set to true, never reset — so a previous non-IOU match is preserved.
+            if (hasCategory && !isIOUReportReportUtil(report)) {
+                columns[CONST.SEARCH.TABLE_COLUMNS.CATEGORY] = true;
+            }
+            if (hasTag && !isIOUReportReportUtil(report)) {
+                columns[CONST.SEARCH.TABLE_COLUMNS.TAG] = true;
+            }
 
             // eslint-disable-next-line @typescript-eslint/no-deprecated
             const toFieldValue = getToFieldValueForTransaction(transaction, report, data.personalDetailsList, reportAction);
@@ -4537,6 +4554,7 @@ function getColumnsToShow({
 
     if (customResult) {
         const alwaysShownColumns = new Set<SearchColumnType>([
+            CONST.SEARCH.TABLE_COLUMNS.AVATAR,
             CONST.SEARCH.TABLE_COLUMNS.RECEIPT,
             CONST.SEARCH.TABLE_COLUMNS.TYPE,
             CONST.SEARCH.TABLE_COLUMNS.DATE,
