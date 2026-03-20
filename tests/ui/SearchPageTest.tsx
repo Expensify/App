@@ -128,7 +128,7 @@ describe('SearchPageNarrow', () => {
         let navigationTabBars = screen.getAllByTestId('NavigationTabBar', {includeHiddenElements: true});
         expect(navigationTabBars).toHaveLength(2);
 
-        const searchAutocompleteInput = await screen.findByTestId('search-autocomplete-text-input', {includeHiddenElements: true});
+        const searchAutocompleteInput = screen.getByTestId('search-autocomplete-text-input', {includeHiddenElements: true});
         expect(searchAutocompleteInput).toBeTruthy();
 
         // When the search input is focused, the NavigationTabBar from SearchPageNarrow will unmount, and the one from TopLevelNavigationTabBar will be hidden.
