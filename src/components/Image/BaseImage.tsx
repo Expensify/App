@@ -1,5 +1,5 @@
 import {Image as ExpoImage} from 'expo-image';
-import type {ImageLoadEventData} from 'expo-image';
+import type {ImageProps as ExpoImageProps, ImageLoadEventData} from 'expo-image';
 import React, {useCallback, useContext, useEffect} from 'react';
 import type {AttachmentSource} from '@components/Attachments/types';
 import useCachedImageSource from '@hooks/useCachedImageSource';
@@ -7,7 +7,7 @@ import getImageRecyclingKey from '@libs/getImageRecyclingKey';
 import {AttachmentStateContext} from '@pages/media/AttachmentModalScreen/AttachmentModalBaseContent/AttachmentStateContextProvider';
 import type {BaseImageProps} from './types';
 
-function BaseImage({onLoad, onLoadStart, source, ...props}: BaseImageProps) {
+function BaseImage({onLoad, onLoadStart, source, style, ...props}: BaseImageProps) {
     const cachedSource = useCachedImageSource(typeof source === 'object' && !Array.isArray(source) ? source : undefined);
     const resolvedSource = cachedSource !== undefined ? cachedSource : source;
 
@@ -49,6 +49,7 @@ function BaseImage({onLoad, onLoadStart, source, ...props}: BaseImageProps) {
             onLoad={onLoad ? imageLoadedSuccessfully : undefined}
             source={resolvedSource}
             recyclingKey={getImageRecyclingKey(source)}
+            style={style as ExpoImageProps['style']}
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
         />
