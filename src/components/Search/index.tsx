@@ -219,7 +219,7 @@ function Search({
 }: SearchProps) {
     const {type, status, sortBy, sortOrder, hash, similarSearchHash, groupBy, view} = queryJSON;
     // On the submit-expense->search path a deferred API write is pending.
-    // Force the skeleton so the user gets instant first paint while heavy work defers.
+    // Force the skeleton so the user gets instant first paint while heavy work is deferred for performance reasons.
     const hasPendingWriteOnMountRef = useRef(hasDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH));
     const skipDeferralOnFocusRef = useRef(isSearchDataLoaded(searchResults, queryJSON) && !hasPendingWriteOnMountRef.current);
 
@@ -1367,9 +1367,9 @@ function Search({
     // Reset before conditional returns. Only cancelNavigationSpans (error/empty paths) sets it to true.
     didBailToFallbackState.current = false;
 
-    // Component-level skeleton for the submit-expense->search path only.
-    // The page-level skeleton (useSearchLoadingState) can't cover this case because
-    // Search must mount for its onLayout to flush the deferred API write.
+    // This is a performance optimization for the submit-expense->search path only.
+    // The SearchPage skeleton (useSearchLoadingState) doesn't cover this case because
+    // Search must mount for its onLayout to flush the deferred CreateMoneyRequest API write, which would block the JS thread causing a slowdown on post expense creation navigation
     if (shouldShowLoadingState && hasPendingWriteOnMountRef.current) {
         return (
             <SearchRowSkeleton

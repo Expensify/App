@@ -1,5 +1,5 @@
 import {useNavigationState} from '@react-navigation/native';
-import React, {useCallback, useContext, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
 // We need direct access to useOnyx from react-native-onyx to avoid circular dependencies in SearchContext
 // eslint-disable-next-line no-restricted-imports
 import {useOnyx} from 'react-native-onyx';
@@ -211,7 +211,9 @@ function SearchContextProvider({children}: SearchContextProps) {
     }, []);
 
     const currentSearchHashRef = useRef(currentSearchHash);
-    currentSearchHashRef.current = currentSearchHash;
+    useEffect(() => {
+        currentSearchHashRef.current = currentSearchHash;
+    }, [currentSearchHash]);
 
     const clearSelectedTransactions: SearchActionsContextValue['clearSelectedTransactions'] = useCallback(
         (searchHashOrClearIDsFlag, shouldTurnOffSelectionMode = false) => {
