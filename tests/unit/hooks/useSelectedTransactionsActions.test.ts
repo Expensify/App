@@ -628,7 +628,7 @@ describe('useSelectedTransactionsActions', () => {
         });
 
         // Verify canEditFieldOfMoneyRequest was called with the transaction in the object argument
-        const lastCall = canEditFieldSpy.mock.calls[canEditFieldSpy.mock.calls.length - 1][0] as Record<string, unknown>;
+        const lastCall = canEditFieldSpy.mock.calls.at(canEditFieldSpy.mock.calls.length - 1)?.at(0) as Record<string, unknown>;
         expect(lastCall.fieldToEdit).toBe(CONST.EDIT_REQUEST_FIELD.REPORT);
         expect(lastCall.transaction).toEqual(expect.objectContaining({transactionID}));
     });
