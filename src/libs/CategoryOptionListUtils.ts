@@ -33,8 +33,20 @@ type Hierarchy = Record<string, Category & {[key: string]: Hierarchy & Category}
 function getCategoryOptionTree(options: Record<string, Category> | Category[], selectedOptions: Category[] = []): OptionTree[] {
     const optionCollection = new Map<string, OptionTree>();
     for (const option of Object.values(options)) {
-        const array = option.name.split(CONST.PARENT_CHILD_SEPARATOR);
+        const parts = option.name.split(CONST.PARENT_CHILD_SEPARATOR);
 
+        // Process the split to handle trailing colon (e.g., "A: B:")
+        const array: string[] = [];
+        for (let i = 0; i < parts.length; i++) {
+            if (parts[i] === '' && i === parts.length - 1) {
+                // Trailing colon: merge the colon back to the last part
+                if (array.length > 0) {
+                    array[array.length - 1] = array[array.length - 1] + CONST.PARENT_CHILD_SEPARATOR;
+                }
+            } else {
+                array.push(parts[i]);
+            }
+        }
         for (let index = 0; index < array.length; index++) {
             const optionName = array.at(index);
             if (!optionName) {
@@ -251,7 +263,19 @@ function sortCategories(categories: Record<string, Category>, localeCompare: Loc
      * }
      */
     for (const category of sortedCategories) {
-        const path = category.name.split(CONST.PARENT_CHILD_SEPARATOR);
+        const parts = category.name.split(CONST.PARENT_CHILD_SEPARATOR);
+
+        // Process the split to handle trailing colon
+        const path: string[] = [];
+        for (let i = 0; i < parts.length; i++) {
+            if (parts[i] === '' && i === parts.length - 1) {
+                if (path.length > 0) {
+                    path[path.length - 1] = path[path.length - 1] + CONST.PARENT_CHILD_SEPARATOR;
+                }
+            } else {
+                path.push(parts[i]);
+            }
+        }
         const existedValue = lodashGet(hierarchy, path, {}) as Hierarchy;
         lodashSet(hierarchy, path, {
             ...existedValue,
