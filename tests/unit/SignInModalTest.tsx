@@ -35,8 +35,16 @@ jest.mock('@libs/Navigation/Navigation', () => ({
 }));
 
 jest.mock('@libs/Browser', () => ({
+    getBrowser: jest.fn(() => ''),
+    isMobile: jest.fn(() => false),
+    isMobileIOS: jest.fn(() => false),
     isMobileSafari: jest.fn(() => false),
+    isMobileWebKit: jest.fn(() => false),
     isSafari: jest.fn(() => false),
+    isModernSafari: jest.fn(() => false),
+    isMobileChrome: jest.fn(() => false),
+    isChromeIOS: jest.fn(() => false),
+    isMobileSafariOnIos26: jest.fn(() => false),
 }));
 
 jest.mock('@hooks/useAndroidBackButtonHandler', () => jest.fn());
