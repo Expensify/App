@@ -839,7 +839,7 @@ describe('actions/User', () => {
                 WRITE_COMMANDS.RESPOND_TO_PROACTIVE_APP_REVIEW,
                 expect.objectContaining({
                     response: 'positive',
-                    optimisticReportActionID: expect.any(String),
+                    optimisticReportActionID: expect.any(String) as string,
                 }),
                 expect.anything(),
             );
@@ -851,7 +851,7 @@ describe('actions/User', () => {
 
             expect(mockAPI.write).toHaveBeenCalledWith(
                 WRITE_COMMANDS.RESPOND_TO_PROACTIVE_APP_REVIEW,
-                expect.not.objectContaining({optimisticReportActionID: expect.any(String)}),
+                expect.not.objectContaining({optimisticReportActionID: expect.any(String) as string}),
                 expect.anything(),
             );
         });
