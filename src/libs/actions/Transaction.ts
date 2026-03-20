@@ -1142,10 +1142,13 @@ function changeTransactionsReport({
         const oldReportTotal = oldReport?.total ?? 0;
         const updatedReportTotal = oldTransactionAmount < 0 ? oldReportTotal - oldTransactionAmount : oldReportTotal + oldTransactionAmount;
 
-        if (oldReport && oldReport.currency === oldTransactionCurrency) {
-            updatedReportTotals[oldReportID] = updatedReportTotals[oldReportID] ? updatedReportTotals[oldReportID] : updatedReportTotal;
+        if (oldReport) {
             const oldReportTransactionCount = updatedReportTransactionCounts[oldReportID] ?? oldReport.transactionCount ?? 0;
             updatedReportTransactionCounts[oldReportID] = Math.max(0, oldReportTransactionCount - 1);
+        }
+
+        if (oldReport && oldReport.currency === oldTransactionCurrency) {
+            updatedReportTotals[oldReportID] = updatedReportTotals[oldReportID] ? updatedReportTotals[oldReportID] : updatedReportTotal;
             updatedReportNonReimbursableTotals[oldReportID] =
                 (updatedReportNonReimbursableTotals[oldReportID] ? updatedReportNonReimbursableTotals[oldReportID] : (oldReport?.nonReimbursableTotal ?? 0)) +
                 (transaction?.reimbursable ? 0 : oldTransactionAmount);
