@@ -56,7 +56,7 @@ import {
     isPolicyAccessible,
     isTaxTrackingEnabled,
 } from '@libs/PolicyUtils';
-import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
+import {getOriginalMessage, isMoneyRequestAction, isRejectedAction} from '@libs/ReportActionsUtils';
 import {getReportName} from '@libs/ReportNameUtils';
 import {isMarkAsCashActionForTransaction} from '@libs/ReportPrimaryActionUtils';
 import {isSplitAction} from '@libs/ReportSecondaryActionUtils';
@@ -442,6 +442,7 @@ function MoneyRequestView({
     const isEmptyUpdatedMerchant = isInvalidMerchantValue(updatedTransaction?.modifiedMerchant);
     const updatedMerchantTitle = isEmptyUpdatedMerchant ? '' : (updatedTransaction?.modifiedMerchant ?? merchantTitle);
 
+    const isRejected = parentReportAction && isRejectedAction(parentReportAction);
     const shouldShowConvertedAmount =
         transactionConvertedAmount &&
         currency !== moneyRequestReport?.currency &&
@@ -450,7 +451,8 @@ function MoneyRequestView({
         !isFromMergeTransaction &&
         !isFromReviewDuplicates &&
         !getPendingFieldAction('amount') &&
-        !pendingAction;
+        !pendingAction &&
+        !isRejected;
 
     const saveBillable = (newBillable: boolean) => {
         // If the value hasn't changed, don't request to save changes on the server and just close the modal
