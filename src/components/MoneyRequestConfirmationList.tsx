@@ -709,7 +709,7 @@ function MoneyRequestConfirmationList({
             !isPolicyExpenseChat ||
             !transactionID ||
             !lastSelectedRate ||
-            isMovingTransactionFromTrackExpense ||
+            (isMovingTransactionFromTrackExpense && customUnitRateID === CONST.CUSTOM_UNITS.FAKE_P2P_ID) ||
             !selectedParticipants.some((participant) => participant.policyID === policy?.id)
         ) {
             return;
