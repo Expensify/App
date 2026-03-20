@@ -145,7 +145,7 @@ function PieChartContent({data, isLoading, valueUnit, valueUnitPosition, onSlice
     if (isLoading) {
         const reasonAttributes: SkeletonSpanReasonAttributes = {context: 'PieChartContent', isLoading};
         return (
-            <View style={[styles.justifyContentCenter, styles.alignItemsCenter]}>
+            <View style={styles.chartActivityIndicator}>
                 <ActivityIndicator
                     size="large"
                     reasonAttributes={reasonAttributes}

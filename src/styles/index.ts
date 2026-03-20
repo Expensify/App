@@ -11,6 +11,7 @@ import type {SharedValue} from 'react-native-reanimated';
 import {interpolate} from 'react-native-reanimated';
 import type {MixedStyleDeclaration, MixedStyleRecord} from 'react-native-render-html';
 import type {ValueOf} from 'type-fest';
+import {CHART_CONTENT_MIN_HEIGHT} from '@components/Charts/constants';
 import type DotLottieAnimation from '@components/LottieAnimations/types';
 import {ACTIVE_LABEL_SCALE} from '@components/TextInput/styleConst';
 import {animatedReceiptPaneRHPWidth, animatedSuperWideRHPWidth, animatedWideRHPWidth} from '@components/WideRHPContextProvider';
@@ -5816,6 +5817,7 @@ const staticStyles = (theme: ThemeColors) =>
             backgroundColor: theme.highlightBG,
             borderRadius: variables.componentBorderRadiusLarge,
             padding: 20,
+            minHeight: CHART_CONTENT_MIN_HEIGHT,
         },
         chartHeader: {
             flexDirection: 'row',
@@ -5854,7 +5856,12 @@ const staticStyles = (theme: ThemeColors) =>
             borderRadius: variables.componentBorderRadiusLarge,
         },
         chartContent: {
-            minHeight: 250,
+            minHeight: CHART_CONTENT_MIN_HEIGHT,
+        },
+        chartActivityIndicator: {
+            minHeight: CHART_CONTENT_MIN_HEIGHT,
+            justifyContent: 'center',
+            alignItems: 'center',
         },
         pieChartLegendContainer: {
             display: 'flex',

@@ -35,9 +35,6 @@ type CartesianChartProps = ChartProps & {
 
     /** Position of the unit symbol relative to the value. Defaults to 'left'. */
     yAxisUnitPosition?: UnitPosition;
-
-    /** When true, the overall chart container height remains fixed and the plot area shrinks to make room for x-axis labels instead of the container growing taller. */
-    disableDynamicHeight?: boolean;
 };
 
 type PieSlice = {

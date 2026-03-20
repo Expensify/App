@@ -365,9 +365,6 @@ type SearchChartProps = {
 
     /** Position of currency symbol relative to value */
     unitPosition?: UnitPosition;
-
-    /** When true, the overall chart container height remains fixed and the plot area shrinks to make room for x-axis labels instead of the container growing taller. */
-    disableDynamicHeight?: boolean;
 };
 
 export type {

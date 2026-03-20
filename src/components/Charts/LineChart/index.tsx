@@ -2,7 +2,6 @@ import {WithSkiaWeb} from '@shopify/react-native-skia/lib/module/web';
 import React from 'react';
 import {View} from 'react-native';
 import ActivityIndicator from '@components/ActivityIndicator';
-import {CHART_CONTENT_MIN_HEIGHT} from '@components/Charts/constants';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import type {LineChartProps} from './LineChartContent';
@@ -18,7 +17,7 @@ function LineChart(props: LineChartProps) {
             getComponent={getLineChartContent}
             componentProps={props}
             fallback={
-                <View style={[styles.chartWebFallback, props.disableDynamicHeight && {minHeight: CHART_CONTENT_MIN_HEIGHT}]}>
+                <View style={styles.chartWebFallback}>
                     <ActivityIndicator
                         size="large"
                         reasonAttributes={reasonAttributes}

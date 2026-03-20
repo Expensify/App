@@ -86,7 +86,6 @@ function SpendOverTimeSectionContent() {
                         groupBy={GROUP_BY}
                         data={sortedData ?? []}
                         isLoading={shouldShowLoadingIndicator}
-                        disableDynamicHeight
                     />
                 </View>
             )}

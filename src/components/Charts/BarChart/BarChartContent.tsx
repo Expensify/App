@@ -73,7 +73,7 @@ type BarChartProps = CartesianChartProps & {
     useSingleColor?: boolean;
 };
 
-function BarChartContent({data, isLoading, yAxisUnit, yAxisUnitPosition = 'left', useSingleColor = false, onBarPress, disableDynamicHeight}: BarChartProps) {
+function BarChartContent({data, isLoading, yAxisUnit, yAxisUnitPosition = 'left', useSingleColor = false, onBarPress}: BarChartProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const font = useFont(fontSource, variables.iconSizeExtraSmall);
@@ -229,13 +229,13 @@ function BarChartContent({data, isLoading, yAxisUnit, yAxisUnitPosition = 'left'
     };
 
     const labelSpace = AXIS_LABEL_GAP + (xAxisLabelHeight ?? 0);
-    const dynamicChartStyle = {height: disableDynamicHeight ? CHART_CONTENT_MIN_HEIGHT : CHART_CONTENT_MIN_HEIGHT + labelSpace};
+    const dynamicChartStyle = {height: CHART_CONTENT_MIN_HEIGHT + labelSpace};
     const chartPadding = {...CHART_PADDING, bottom: labelSpace + CHART_PADDING.bottom};
 
     if (isLoading || !font) {
         const reasonAttributes: SkeletonSpanReasonAttributes = {context: 'BarChartContent', isLoading, isFontLoading: !font};
         return (
-            <View style={[styles.justifyContentCenter, styles.alignItemsCenter, disableDynamicHeight && {minHeight: CHART_CONTENT_MIN_HEIGHT}]}>
+            <View style={styles.chartActivityIndicator}>
                 <ActivityIndicator
                     size="large"
                     reasonAttributes={reasonAttributes}
