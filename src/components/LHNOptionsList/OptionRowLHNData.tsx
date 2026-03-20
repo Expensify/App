@@ -126,7 +126,6 @@ function OptionRowLHNData({
         conciergeReportID,
         iouReportReportActions,
         transaction,
-
         invoiceReceiverPolicy,
         lastMessageTextFromReport,
         card,
