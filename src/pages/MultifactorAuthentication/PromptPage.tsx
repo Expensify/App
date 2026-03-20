@@ -16,6 +16,7 @@ import {markHasAcceptedSoftPrompt} from '@libs/actions/MultifactorAuthentication
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {MultifactorAuthenticationParamList} from '@libs/Navigation/types';
 import Navigation from '@navigation/Navigation';
+import variables from '@styles/variables';
 import type SCREENS from '@src/SCREENS';
 
 type MultifactorAuthenticationPromptPageProps = PlatformStackScreenProps<MultifactorAuthenticationParamList, typeof SCREENS.MULTIFACTOR_AUTHENTICATION.PROMPT>;
@@ -94,8 +95,8 @@ function MultifactorAuthenticationPromptPage({route}: MultifactorAuthenticationP
                             text={translate('common.buttonConfirm')}
                         />
                     ) : (
-                        <View style={[styles.w100, styles.h10]}>
-                            <LoadingIndicator />
+                        <View style={[styles.w100, styles.justifyContentCenter, {height: variables.componentSizeLarge}]}>
+                            <LoadingIndicator iconSize={28} />
                         </View>
                     )}
                 </FixedFooter>
