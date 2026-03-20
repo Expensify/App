@@ -171,6 +171,7 @@ function TaskAssigneeSelectorModal() {
                     parentReport,
                     currentUserPersonalDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID,
                     option?.login ?? '',
+                    currentUserEmail,
                     currentUserPersonalDetails.accountID,
                     hasOutstandingChildTask,
                     option?.accountID,
