@@ -18,7 +18,7 @@ const mockGoBack = jest.fn();
 let mockSessionData: {authToken?: string; authTokenType?: string} | undefined;
 
 jest.mock('@libs/actions/App', () => ({
-    openApp: mockOpenApp,
+    openApp: (...args: unknown[]) => mockOpenApp(...args),
 }));
 
 jest.mock('@libs/Network/SequentialQueue', () => ({
