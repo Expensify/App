@@ -5,7 +5,7 @@ import usePrevious from './usePrevious';
 
 type UseScrollToEndOnPaginationMergeParams = {
     /** The ref to the scroll offset. */
-    scrollOffsetRef: React.MutableRefObject<number>;
+    scrollOffsetRef: React.RefObject<number>;
     /** The ID of the last visible report action. */
     lastActionID?: string;
     /** The length of the visible report actions. */

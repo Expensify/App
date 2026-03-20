@@ -563,7 +563,7 @@ function MoneyRequestReportActionsList({
             scrollingVerticalBottomOffset.current = fullContentHeight - layoutMeasurement.height - contentOffset.y;
             scrollOffsetRef.current = scrollingVerticalBottomOffset.current;
 
-            // We additionally track the top offset to be able to scroll to the new transaction when it's addedx
+            // We additionally track the top offset to be able to scroll to the new transaction when it's added
             scrollingVerticalTopOffset.current = contentOffset.y;
         },
         hasOnceLoadedReportActions: !!reportMetadata?.hasOnceLoadedReportActions,
