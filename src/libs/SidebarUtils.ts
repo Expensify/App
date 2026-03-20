@@ -264,6 +264,7 @@ function shouldDisplayReportInLHN(
     }
 
     // Check if report should override hidden status
+    const requiresAttention = reportAttributes?.[report?.reportID]?.requiresAttention;
     const isSystemChat = isSystemChatUtil(report);
     const shouldOverrideHidden =
         !!draftComment ||
@@ -272,7 +273,7 @@ function shouldDisplayReportInLHN(
         isSystemChat ||
         !!report.isPinned ||
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        reportAttributes?.[report?.reportID]?.requiresAttention ||
+        requiresAttention ||
         (report.isOwnPolicyExpenseChat && !isReportArchived);
 
     if (isHidden && !shouldOverrideHidden) {
@@ -291,6 +292,7 @@ function shouldDisplayReportInLHN(
         draftComment,
         includeSelfDM: true,
         isReportArchived,
+        requiresAttention,
     });
 
     return {shouldDisplay};

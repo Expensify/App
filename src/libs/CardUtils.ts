@@ -396,8 +396,8 @@ function getTranslationKeyForLimitType(limitType: ValueOf<typeof CONST.EXPENSIFY
     }
 }
 
-function maskPin(pin = ''): string {
-    if (!pin) {
+function maskPin(pin: string | undefined): string {
+    if (pin === undefined) {
         return '••••';
     }
     return pin;
