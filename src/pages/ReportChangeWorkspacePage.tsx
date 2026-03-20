@@ -60,6 +60,7 @@ function ReportChangeWorkspacePage({report, route}: ReportChangeWorkspacePagePro
     const [isChangePolicyTrainingModalDismissed = false] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {selector: changePolicyTrainingModalDismissedSelector});
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const isReportLastVisibleArchived = useReportIsArchived(report?.parentReportID);
     const reportOwnerAccountID = report?.ownerAccountID;
     const submitterEmailSelector = useCallback(
@@ -108,6 +109,7 @@ function ReportChangeWorkspacePage({report, route}: ReportChangeWorkspacePagePro
                     employeeList,
                     formatPhoneNumber,
                     isReportLastVisibleArchived,
+                    bankAccountList,
                 });
             } else {
                 changeReportPolicy(
@@ -121,6 +123,7 @@ function ReportChangeWorkspacePage({report, route}: ReportChangeWorkspacePagePro
                     isASAPSubmitBetaEnabled,
                     reportNextStep,
                     isReportLastVisibleArchived,
+                    bankAccountList,
                 );
             }
         },

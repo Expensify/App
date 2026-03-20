@@ -538,6 +538,7 @@ type RequestMoneyInformation = {
     isSelfTourViewed: boolean;
     betas: OnyxEntry<OnyxTypes.Beta[]>;
     personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
+    bankAccountList?: OnyxEntry<OnyxTypes.BankAccountList>;
 };
 
 type MoneyRequestInformationParams = {
@@ -569,6 +570,7 @@ type MoneyRequestInformationParams = {
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
     policyRecentlyUsedCurrencies: string[];
     personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
+    bankAccountList?: OnyxEntry<OnyxTypes.BankAccountList>;
 };
 
 type MoneyRequestOptimisticParams = {
@@ -615,6 +617,7 @@ type BuildOnyxDataForMoneyRequestParams = {
     hasViolations: boolean;
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
     personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
+    bankAccountList?: OnyxEntry<OnyxTypes.BankAccountList>;
 };
 
 type DistanceRequestTransactionParams = BaseTransactionParams & {
@@ -647,6 +650,7 @@ type CreateDistanceRequestInformation = {
     shouldHandleNavigation?: boolean;
     personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
     betas: OnyxEntry<OnyxTypes.Beta[]>;
+    bankAccountList?: OnyxEntry<OnyxTypes.BankAccountList>;
 };
 
 type CreateSplitsTransactionParams = Omit<BaseTransactionParams, 'customUnitRateID'> & {
@@ -1913,6 +1917,7 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
         hasViolations,
         quickAction,
         personalDetails,
+        bankAccountList,
     } = moneyRequestParams;
     const {policy, policyCategories, policyTagList} = policyParams;
     const {
@@ -2540,6 +2545,7 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
                 currentUserEmailParam,
                 hasViolations,
                 isASAPSubmitBetaEnabled,
+                bankAccountList,
             }),
         });
         onyxData.optimisticData?.push({
@@ -3288,6 +3294,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         policyRecentlyUsedCurrencies,
         personalDetails,
         betas,
+        bankAccountList,
     } = moneyRequestInformation;
     const {payeeAccountID = userAccountID, payeeEmail = currentUserEmail, participant} = participantParams;
     const {policy, policyCategories, policyTagList, policyRecentlyUsedCategories, policyRecentlyUsedTags} = policyParams;
@@ -3599,6 +3606,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         currentUserEmailParam,
         hasViolations,
         isASAPSubmitBetaEnabled,
+        bankAccountList,
     });
 
     const optimisticNextStep = buildOptimisticNextStep({
@@ -3655,6 +3663,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         hasViolations,
         quickAction,
         personalDetails,
+        bankAccountList,
     });
 
     return {
@@ -5985,6 +5994,7 @@ function convertBulkTrackedExpensesToIOU({
     quickAction,
     personalDetails,
     betas,
+    bankAccountList,
 }: {
     transactions: OnyxTypes.Transaction[];
     iouReport: OnyxEntry<OnyxTypes.Report>;
@@ -5997,6 +6007,7 @@ function convertBulkTrackedExpensesToIOU({
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
     personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
     betas: OnyxEntry<OnyxTypes.Beta[]>;
+    bankAccountList?: OnyxEntry<OnyxTypes.BankAccountList>;
 }) {
     const iouReportID = iouReport?.reportID;
 
@@ -6114,6 +6125,7 @@ function convertBulkTrackedExpensesToIOU({
             policyRecentlyUsedCurrencies,
             personalDetails,
             betas,
+            bankAccountList,
         });
 
         const isDistanceRequest = isDistanceRequestTransactionUtils(transaction);
@@ -6367,6 +6379,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
         isSelfTourViewed,
         betas,
         personalDetails,
+        bankAccountList,
     } = requestMoneyInformation;
     const {payeeAccountID} = participantParams;
     const parsedComment = getParsedComment(transactionParams.comment ?? '');
@@ -6462,6 +6475,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
         policyRecentlyUsedCurrencies,
         betas,
         personalDetails,
+        bankAccountList,
     });
     const activeReportID = isMoneyRequestReport ? report?.reportID : chatReport.reportID;
 
@@ -7596,6 +7610,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
         shouldHandleNavigation = true,
         personalDetails,
         betas,
+        bankAccountList,
     } = distanceRequestInformation;
     const {policy, policyCategories, policyTagList, policyRecentlyUsedCategories, policyRecentlyUsedTags} = policyParams;
     const parsedComment = getParsedComment(transactionParams.comment);
@@ -7763,6 +7778,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
             policyRecentlyUsedCurrencies,
             personalDetails,
             betas,
+            bankAccountList,
         });
 
         onyxData = moneyRequestOnyxData;
@@ -9877,7 +9893,7 @@ function getReportOriginalCreationTimestamp(expenseReport?: OnyxEntry<OnyxTypes.
     return createdAction?.created ?? expenseReport.created;
 }
 
-function approveMoneyRequest(params: ApproveMoneyRequestFunctionParams) {
+function approveMoneyRequest(params: ApproveMoneyRequestFuncƒtionParams) {
     const {
         expenseReport,
         policy,
@@ -9924,6 +9940,7 @@ function approveMoneyRequest(params: ApproveMoneyRequestFunctionParams) {
           buildNextStepNew({
               report: expenseReport,
               policy,
+              bankAccountList,
               currentUserAccountIDParam,
               currentUserEmailParam,
               hasViolations,

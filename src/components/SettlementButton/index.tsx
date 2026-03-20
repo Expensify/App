@@ -435,18 +435,30 @@ function SettlementButton({
                 confirmApproval();
             } else {
                 approveMoneyRequest({
-                    expenseReport: iouReport,
+                    expenseReport: 
+                    iouReport,
+                   
                     policy,
-                    currentUserAccountIDParam: accountID,
+                    currentUserAccountIDParam:
+                    accountID,
+                   
                     currentUserEmailParam: email ?? '',
+                   
                     hasViolations,
+                   
                     isASAPSubmitBetaEnabled,
-                    expenseReportCurrentNextStepDeprecated: iouReportNextStep,
+                    expenseReportCurrentNextStepDeprecated:
+                    iouReportNextStep,
+                   
                     betas,
+                   
                     userBillingGraceEndPeriods,
                     amountOwed,
-                    full: false,
-                });
+                    full:
+                    false,
+                },
+                    bankAccountList,
+                );
             }
             return;
         }

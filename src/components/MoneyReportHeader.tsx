@@ -831,6 +831,7 @@ function MoneyReportHeader({
                     userBillingGraceEndPeriods,
                     amountOwed,
                     full: true,
+                    bankAccountList,
                     onApproved: () => {
                         if (skipAnimation) {
                             return;
@@ -1114,7 +1115,7 @@ function MoneyReportHeader({
         setIsHoldEducationalModalVisible(false);
         setNameValuePair(ONYXKEYS.NVP_DISMISSED_HOLD_USE_EXPLANATION, true, false, !shouldFailAllRequests);
         if (requestParentReportAction) {
-            changeMoneyRequestHoldStatus(requestParentReportAction, transaction);
+            changeMoneyRequestHoldStatus(requestParentReportAction, transaction, bankAccountList);
         }
     };
 
@@ -1122,7 +1123,7 @@ function MoneyReportHeader({
         if (rejectModalAction === CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.HOLD) {
             dismissRejectUseExplanation();
             if (requestParentReportAction) {
-                changeMoneyRequestHoldStatus(requestParentReportAction, transaction);
+                changeMoneyRequestHoldStatus(requestParentReportAction, transaction, bankAccountList);
             }
         } else if (rejectModalAction === CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.REJECT_BULK) {
             dismissRejectUseExplanation();
@@ -1446,7 +1447,7 @@ function MoneyReportHeader({
 
                     if (IOUActions.length) {
                         for (const action of IOUActions) {
-                            changeMoneyRequestHoldStatus(action, getLinkedIOUTransaction(action, transactions));
+                            changeMoneyRequestHoldStatus(action, getLinkedIOUTransaction(action, transactions), bankAccountList);
                         }
                         return;
                     }
@@ -1455,7 +1456,7 @@ function MoneyReportHeader({
                     if (!moneyRequestAction) {
                         return;
                     }
-                    changeMoneyRequestHoldStatus(moneyRequestAction, getLinkedIOUTransaction(moneyRequestAction, transactions));
+                    changeMoneyRequestHoldStatus(moneyRequestAction, getLinkedIOUTransaction(moneyRequestAction, transactions), bankAccountList);
                 }}
             />
         ),
@@ -1815,7 +1816,7 @@ function MoneyReportHeader({
                 const isDismissed = isReportSubmitter ? dismissedHoldUseExplanation : dismissedRejectUseExplanation;
 
                 if (isDismissed || isChatReportDM) {
-                    changeMoneyRequestHoldStatus(requestParentReportAction, transaction);
+                    changeMoneyRequestHoldStatus(requestParentReportAction, transaction, bankAccountList);
                 } else if (isReportSubmitter) {
                     setIsHoldEducationalModalVisible(true);
                 } else {
@@ -1838,7 +1839,7 @@ function MoneyReportHeader({
                     return;
                 }
 
-                changeMoneyRequestHoldStatus(requestParentReportAction, transaction);
+                changeMoneyRequestHoldStatus(requestParentReportAction, transaction, bankAccountList);
             },
         },
         [CONST.REPORT.SECONDARY_ACTIONS.SPLIT]: {
@@ -2307,7 +2308,8 @@ function MoneyReportHeader({
                 betas,
                 userBillingGraceEndPeriods,
                 amountOwed,
-            });
+                bankAccountList,
+        });
         },
         [
             checkForNecessaryAction,
@@ -2374,6 +2376,7 @@ function MoneyReportHeader({
             translate,
             selectedTransactionIDs.length,
             kycWallRef,
+            bankAccountList,
         ],
     );
 

@@ -73,6 +73,7 @@ function NewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelectionPag
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [ownerBillingGraceEndPeriod] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const [userBillingGracePeriods] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [policies, fetchStatus] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
@@ -115,6 +116,7 @@ function NewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelectionPag
             betas,
             false,
             shouldDismissEmptyReportsConfirmation,
+            bankAccountList,
         );
         const selectedTransactionsKeys = Object.keys(selectedTransactions);
 
@@ -133,6 +135,7 @@ function NewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelectionPag
                     allTransactions,
                     translate,
                     toLocaleDigit,
+                    bankAccountList,
                 });
 
                 // eslint-disable-next-line rulesdir/no-default-id-values

@@ -261,6 +261,7 @@ type ContextMenuActionPayload = {
     currentUserAccountID: number;
     report: OnyxEntry<ReportType>;
     policy?: OnyxEntry<Policy>;
+    bankAccountList?: OnyxEntry<BankAccountList>;
     draftMessage: string;
     selection: string;
     close: () => void;
@@ -558,19 +559,19 @@ const ContextMenuActions: ContextMenuAction[] = [
             const holdReportAction = getReportAction(moneyRequestAction?.childReportID, `${iouTransaction?.comment?.hold ?? ''}`);
             return canHoldUnholdReportAction(moneyRequestReport, moneyRequestAction, holdReportAction, iouTransaction, moneyRequestPolicy).canUnholdRequest;
         },
-        onPress: (closePopover, {moneyRequestAction, iouTransaction, isDelegateAccessRestricted, showDelegateNoAccessModal}) => {
+        onPress: (closePopover, {moneyRequestAction, iouTransaction, bankAccountList, isDelegateAccessRestricted, showDelegateNoAccessModal}) => {
             if (isDelegateAccessRestricted) {
                 hideContextMenu(false, showDelegateNoAccessModal);
                 return;
             }
 
             if (closePopover) {
-                hideContextMenu(false, () => changeMoneyRequestHoldStatus(moneyRequestAction, iouTransaction));
+                hideContextMenu(false, () => changeMoneyRequestHoldStatus(moneyRequestAction, iouTransaction, bankAccountList));
                 return;
             }
 
             // No popover to hide, call changeMoneyRequestHoldStatus immediately
-            changeMoneyRequestHoldStatus(moneyRequestAction, iouTransaction);
+            changeMoneyRequestHoldStatus(moneyRequestAction, iouTransaction, bankAccountList);
         },
         getDescription: () => {},
         sentryLabel: CONST.SENTRY_LABEL.CONTEXT_MENU.UNHOLD,
@@ -586,19 +587,19 @@ const ContextMenuActions: ContextMenuAction[] = [
             const holdReportAction = getReportAction(moneyRequestAction?.childReportID, `${iouTransaction?.comment?.hold ?? ''}`);
             return canHoldUnholdReportAction(moneyRequestReport, moneyRequestAction, holdReportAction, iouTransaction, moneyRequestPolicy).canHoldRequest;
         },
-        onPress: (closePopover, {moneyRequestAction, iouTransaction, isDelegateAccessRestricted, showDelegateNoAccessModal}) => {
+        onPress: (closePopover, {moneyRequestAction, iouTransaction, bankAccountList, isDelegateAccessRestricted, showDelegateNoAccessModal}) => {
             if (isDelegateAccessRestricted) {
                 hideContextMenu(false, showDelegateNoAccessModal);
                 return;
             }
 
             if (closePopover) {
-                hideContextMenu(false, () => changeMoneyRequestHoldStatus(moneyRequestAction, iouTransaction));
+                hideContextMenu(false, () => changeMoneyRequestHoldStatus(moneyRequestAction, iouTransaction, bankAccountList));
                 return;
             }
 
             // No popover to hide, call changeMoneyRequestHoldStatus immediately
-            changeMoneyRequestHoldStatus(moneyRequestAction, iouTransaction);
+            changeMoneyRequestHoldStatus(moneyRequestAction, iouTransaction, bankAccountList);
         },
         getDescription: () => {},
         sentryLabel: CONST.SENTRY_LABEL.CONTEXT_MENU.HOLD,

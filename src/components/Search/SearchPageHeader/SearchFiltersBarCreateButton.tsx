@@ -47,6 +47,7 @@ function SearchFiltersBarCreateButton() {
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [email] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector});
     const [allBetas] = useOnyx(ONYXKEYS.BETAS);
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
@@ -104,6 +105,7 @@ function SearchFiltersBarCreateButton() {
                 allBetas,
                 false,
                 shouldDismissEmptyReportsConfirmation,
+                bankAccountList,
             );
             Navigation.setNavigationActionToMicrotaskQueue(() => {
                 Navigation.navigate(
@@ -113,7 +115,7 @@ function SearchFiltersBarCreateButton() {
                 );
             });
         },
-        [currentUserPersonalDetails, hasViolations, defaultChatEnabledPolicy, isASAPSubmitBetaEnabled, allBetas],
+        [currentUserPersonalDetails, hasViolations, defaultChatEnabledPolicy, isASAPSubmitBetaEnabled, allBetas, bankAccountList],
     );
 
     const {openCreateReportConfirmation} = useCreateEmptyReportConfirmation({

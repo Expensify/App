@@ -46,6 +46,7 @@ type SelectPaymentTypeParams = {
     betas: OnyxEntry<Beta[]>;
     userBillingGraceEndPeriods: OnyxCollection<BillingGraceEndPeriod>;
     amountOwed: OnyxEntry<number>;
+    bankAccountList?: OnyxEntry<Record<string, BankAccount>>;
 };
 
 type BusinessBankAccountOption = {
@@ -226,6 +227,7 @@ const selectPaymentType = (params: SelectPaymentTypeParams) => {
         betas,
         userBillingGraceEndPeriods,
         amountOwed,
+        bankAccountList,
     } = params;
     if (policy && shouldRestrictUserBillableActions(policy.id, userBillingGraceEndPeriods, amountOwed)) {
         Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
@@ -246,18 +248,30 @@ const selectPaymentType = (params: SelectPaymentTypeParams) => {
             confirmApproval();
         } else {
             approveMoneyRequest({
-                expenseReport: iouReport,
+                expenseReport: 
+                iouReport,
+               
                 policy,
-                currentUserAccountIDParam: currentAccountID,
-                currentUserEmailParam: currentEmail,
+                currentUserAccountIDParam:
+                currentAccountID,
+                currentUserEmailParam:
+                currentEmail,
+               
                 hasViolations,
+               
                 isASAPSubmitBetaEnabled,
-                expenseReportCurrentNextStepDeprecated: iouReportNextStep,
+                expenseReportCurrentNextStepDeprecated:
+                iouReportNextStep,
+               
                 betas,
+               
                 userBillingGraceEndPeriods,
                 amountOwed,
-                full: true,
-            });
+                full:
+                true,
+            },
+                bankAccountList,
+            );
         }
         return;
     }

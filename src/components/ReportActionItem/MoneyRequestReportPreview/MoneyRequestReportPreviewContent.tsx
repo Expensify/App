@@ -373,6 +373,7 @@ function MoneyRequestReportPreviewContent({
                 userBillingGraceEndPeriods,
                 amountOwed,
                 full: true,
+                bankAccountList,
                 onApproved: startApprovedAnimation,
             });
         }

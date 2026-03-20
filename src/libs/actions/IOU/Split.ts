@@ -118,6 +118,7 @@ type UpdateSplitTransactionsParams = {
     policyRecentlyUsedCurrencies: string[];
     iouReportNextStep: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>;
     betas: OnyxEntry<OnyxTypes.Beta[]>;
+    bankAccountList?: OnyxEntry<OnyxTypes.BankAccountList>;
     isFromSplitExpensesFlow?: boolean;
     policyTags: OnyxTypes.PolicyTagLists;
     personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
@@ -1060,6 +1061,7 @@ function updateSplitTransactions({
     personalDetails,
     transactionReport,
     expenseReport,
+    bankAccountList,
 }: UpdateSplitTransactionsParams) {
     const originalTransactionID = transactionData?.originalTransactionID ?? CONST.IOU.OPTIMISTIC_TRANSACTION_ID;
     const originalTransaction = allTransactionsList?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`];
@@ -1269,6 +1271,7 @@ function updateSplitTransactions({
             policyRecentlyUsedCurrencies,
             betas,
             personalDetails,
+            bankAccountList,
         });
 
         let updateMoneyRequestParamsOnyxData: OnyxData<UpdateMoneyRequestDataKeys> = {};

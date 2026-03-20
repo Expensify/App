@@ -175,8 +175,9 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
             reportNextSteps: allReportNextSteps,
             transactionViolations,
             betas,
+            bankAccountList,
         });
-    }, [allReportNextSteps, betas, policy?.owner, route.params.policyID, transactionViolations]);
+    }, [allReportNextSteps, betas, policy?.owner, route.params.policyID, transactionViolations, bankAccountList]);
 
     // User should be allowed to add new Approval Workflow only if he's upgraded to Control Plan, otherwise redirected to the Upgrade Page
     const addApprovalAction = useCallback(() => {
@@ -315,6 +316,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                         reportNextSteps: allReportNextSteps,
                         transactionViolations,
                         betas,
+                        bankAccountList,
                     });
                 },
                 subMenuItems: (
