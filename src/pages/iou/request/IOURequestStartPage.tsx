@@ -12,6 +12,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import TabSelector from '@components/TabSelector/TabSelector';
 import useAndroidBackButtonHandler from '@hooks/useAndroidBackButtonHandler';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -103,7 +104,7 @@ function IOURequestStartPage({
     const {isOffline} = useNetwork();
     const [hasUserSubmittedExpenseOrScannedReceipt] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {selector: isTestReceiptTooltipDismissedSelector});
     const hasOnlyPersonalPolicies = useMemo(() => hasOnlyPersonalPoliciesUtil(allPolicies), [allPolicies]);
-
+    const isInLandscapeMode = useIsInLandscapeMode();
     const perDiemInputRef = useRef<AnimatedTextInputRef | null>(null);
 
     const tabTitles = {
@@ -119,6 +120,10 @@ function IOURequestStartPage({
     };
 
     const onTabSelectFocusHandler = ({index}: {index: number}) => {
+        if (isInLandscapeMode) {
+            return;
+        }
+
         // We requestAnimationFrame since the function is called in the animate block in the web implementation
         // which fixes a locked animation glitch when swiping between tabs, and aligns with the native implementation internal delay
         requestAnimationFrame(() => {

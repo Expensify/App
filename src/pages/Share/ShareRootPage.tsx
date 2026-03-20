@@ -6,6 +6,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import TabNavigatorSkeleton from '@components/Skeletons/TabNavigatorSkeleton';
 import TabSelector from '@components/TabSelector/TabSelector';
 import useFilesValidation from '@hooks/useFilesValidation';
+import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -71,6 +72,7 @@ function ShareRootPage() {
     const shareFileMimeTypes = Object.values(CONST.SHARE_FILE_MIMETYPE) as string[];
     const [errorTitle, setErrorTitle] = useState<string | undefined>(undefined);
     const [errorMessage, setErrorMessage] = useState<string | undefined>(undefined);
+    const isInLandscapeMode = useIsInLandscapeMode();
 
     useEffect(() => {
         if (!errorTitle || !errorMessage) {
@@ -170,6 +172,10 @@ function ShareRootPage() {
     // We're focusing the input using internal onPageSelected to fix input focus inconsistencies on native.
     // More info: https://github.com/Expensify/App/issues/59388
     const onTabSelectFocusHandler = ({index}: {index: number}) => {
+        if (isInLandscapeMode) {
+            return;
+        }
+
         // We runAfterInteractions since the function is called in the animate block on web-based
         // implementation, this fixes an animation glitch and matches the native internal delay
         // eslint-disable-next-line @typescript-eslint/no-deprecated
