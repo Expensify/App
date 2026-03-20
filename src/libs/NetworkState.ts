@@ -72,9 +72,9 @@ function notifyReconnectListeners() {
 function updateState() {
     const offline = isOffline();
 
-    if (offline) {
+    if (offline && !lastOfflineAt) {
         lastOfflineAt = new Date().toISOString();
-    } else {
+    } else if (!offline) {
         lastOfflineAt = undefined;
     }
 
