@@ -10,6 +10,12 @@ let persistedRequests: AnyRequest[] = [];
 let ongoingRequest: AnyRequest | null = null;
 let pendingSaveOperations: AnyRequest[] = [];
 let isInitialized = false;
+
+// Tracks all requestIDs this tab has ever seen (from disk init, save(), or other tabs).
+// Used to distinguish stale own-write callbacks (ignore) from new requests enqueued
+// by other browser tabs (merge into memory).
+const knownRequestIDs = new Set<number>();
+
 let initializationCallback: () => void;
 function triggerInitializationCallback() {
     if (typeof initializationCallback !== 'function') {
@@ -26,7 +32,32 @@ function onInitialization(callbackFunction: () => void) {
 Onyx.connectWithoutView({
     key: ONYXKEYS.PERSISTED_REQUESTS,
     callback: (val) => {
-        Log.info('[PersistedRequests] hit Onyx connect callback', false, {isValNullish: val == null});
+        Log.info('[PersistedRequests] hit Onyx connect callback', false, {isValNullish: val == null, isInitialized});
+
+        // After initialization, in-memory is authoritative — ignore stale disk
+        // callbacks to prevent out-of-order Onyx.set() from overwriting the
+        // correct in-memory state (Bug #80759 Issue 4).
+        // Exception 1: Onyx.clear() fires callback with null — allow through.
+        // Exception 2: Other browser tabs can enqueue requests. We detect these
+        // by checking for requestIDs not in knownRequestIDs, and merge them in.
+        if (isInitialized && val != null) {
+            const newFromOtherTabs = val.filter((r) => r.requestID != null && !knownRequestIDs.has(r.requestID));
+            if (newFromOtherTabs.length > 0) {
+                Log.info('[PersistedRequests] Merging requests from other tabs', false, {
+                    newCount: newFromOtherTabs.length,
+                    newCommands: getCommands(newFromOtherTabs),
+                });
+                for (const r of newFromOtherTabs) {
+                    if (r.requestID != null) {
+                        knownRequestIDs.add(r.requestID);
+                    }
+                }
+                persistedRequests = [...persistedRequests, ...newFromOtherTabs];
+                Onyx.set(ONYXKEYS.PERSISTED_REQUESTS, persistedRequests);
+            }
+            return;
+        }
+
         const previousInMemoryRequests = [...persistedRequests];
         const diskRequests = val ?? [];
         persistedRequests = diskRequests;
@@ -270,18 +301,24 @@ function processNextRequest(): AnyRequest | null {
         newQueueLength: persistedRequests.length,
     });
 
-    if (ongoingRequest && ongoingRequest.persistWhenOngoing) {
-        Log.info('[PersistedRequests] Persisting ongoingRequest to disk', false, {
-            command: ongoingRequest.command,
-        });
-        Onyx.set(ONYXKEYS.PERSISTED_ONGOING_REQUESTS, ongoingRequest);
-    } else {
-        Log.info('[PersistedRequests] NOT persisting ongoingRequest to disk (persistWhenOngoing=false)', false, {
-            command: ongoingRequest?.command ?? 'null',
-        });
-    }
+    // Persist both the updated queue and the ongoing request to disk atomically.
+    // This ensures that if the app crashes mid-flight, the ongoing request is not
+    // lost (Bug #80759 Issue 3a) and the queue on disk matches memory (Issue 3c).
+    // Skip persisting ongoingRequest when it contains non-serializable values
+    // (e.g. File objects in data.file or data.receipt). IndexedDB cannot clone
+    // native File objects (DataCloneError). These requests cannot survive a crash
+    // anyway since File references are lost on restart.
+    const hasNonSerializableData = ongoingRequest?.data && Object.values(ongoingRequest.data).some((v) => v instanceof File || v instanceof Blob);
+    Onyx.multiSet({
+        [ONYXKEYS.PERSISTED_REQUESTS]: persistedRequests,
+        ...(ongoingRequest && !hasNonSerializableData ? {[ONYXKEYS.PERSISTED_ONGOING_REQUESTS]: ongoingRequest} : {}),
+    });
 
-    return ongoingRequest;
+    // Return the local reference, not `ongoingRequest`. The Onyx.multiSet above
+    // triggers a synchronous callback (Onyx 3.0.46+) that overwrites `ongoingRequest`
+    // with a JSON-serialized copy — which destroys non-serializable values like File
+    // objects. The local `nextRequest` still holds the original object.
+    return nextRequest;
 }
 
 function rollbackOngoingRequest() {
