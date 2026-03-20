@@ -90,6 +90,7 @@ function UserSelectPopup({value, closeOverlay, onChange, isSearchable}: UserSele
         }));
         const combinedOptions = [...selectedOptionsForDisplay, ...personalDetailsList, ...recentReports];
 
+        // Sort the options so that selected items appear first, and the current user appears right after that, followed by the rest of the options in their original order
         combinedOptions.sort((a, b) => {
             // selected items first
             if (a.isSelected && !b.isSelected) {
@@ -130,7 +131,7 @@ function UserSelectPopup({value, closeOverlay, onChange, isSearchable}: UserSele
     );
 
     const applyChanges = useCallback(() => {
-        const accountIDs = selectedOptions.map((option) => (option.accountID ? option.accountID.toString() : undefined)).filter(Boolean) as string[];
+        const accountIDs = selectedOptions.flatMap((option) => (option.accountID ? [option.accountID.toString()] : []));
         closeOverlay();
         onChange(accountIDs);
     }, [closeOverlay, onChange, selectedOptions]);
@@ -144,11 +145,11 @@ function UserSelectPopup({value, closeOverlay, onChange, isSearchable}: UserSele
     const [totalOptionsCount, setTotalOptionsCount] = useState(() => selectedOptionsForDisplay.length + availableOptions.personalDetails.length + availableOptions.recentReports.length);
 
     useEffect(() => {
-        if (debouncedSearchTerm.length !== 0) {
+        if (debouncedSearchTerm) {
             return;
         }
         setTotalOptionsCount(selectedOptionsForDisplay.length + availableOptions.personalDetails.length + availableOptions.recentReports.length);
-    }, [debouncedSearchTerm.length, selectedOptionsForDisplay.length, availableOptions.personalDetails.length, availableOptions.recentReports.length]);
+    }, [debouncedSearchTerm, selectedOptionsForDisplay.length, availableOptions.personalDetails.length, availableOptions.recentReports.length]);
 
     const shouldShowSearchInput = isSearchable ?? totalOptionsCount >= CONST.STANDARD_LIST_ITEM_LIMIT;
 
