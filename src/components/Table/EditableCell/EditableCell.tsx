@@ -1,11 +1,11 @@
-import React, {useEffect} from 'react';
+import React, {useEffect, useId} from 'react';
 import type {ReactNode, RefObject} from 'react';
 import {View} from 'react-native';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
-import {setIsEditingCell} from './editingCellState';
+import {setFocusedCellId, setIsEditingCell} from './editingCellState';
 
 type EditableCellProps = {
     /** Content to display when not editing */
@@ -49,6 +49,7 @@ function EditableCell({children, editContent, popoverContent, isEditing, canEdit
     const styles = useThemeStyles();
     const {isLargeScreenWidth} = useResponsiveLayout();
     const isEditable = isLargeScreenWidth;
+    const cellId = useId();
 
     useEffect(() => {
         if (!isEditable || !isEditing) {
@@ -95,6 +96,8 @@ function EditableCell({children, editContent, popoverContent, isEditing, canEdit
             accessibilityLabel="Edit cell"
             sentryLabel={CONST.SENTRY_LABEL.TABLE.EDITABLE_CELL}
             onPress={onStartEditing}
+            onFocus={() => setFocusedCellId(cellId)}
+            onBlur={() => setFocusedCellId(null)}
             style={styles.editableCell}
             wrapperStyle={styles.w100}
             focusStyle={styles.editableCellFocus}
