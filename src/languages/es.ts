@@ -8522,6 +8522,8 @@ ${amount} para ${merchant} - ${date}`,
             title: 'Código Expensify',
             discountCode: 'Código de descuento',
             enterCode: 'Introduce un código Expensify para aplicarlo a tu suscripción.',
+            discountMessage: (promoDiscount: string, validBillingCycles: string) =>
+                `Obtendrás un ${promoDiscount}% de descuento en tus próximos ${validBillingCycles ? `${validBillingCycles} ` : ''}cargos de facturación.`,
             apply: 'Aplicar',
             error: {
                 invalid: 'Este código no es válido',
@@ -8549,6 +8551,8 @@ ${amount} para ${merchant} - ${date}`,
                 `<muted-text>Obtén más información en nuestra <a href="${CONST.PRICING}">página de precios</a> o chatea con nuestro equipo en tu ${hasAdminsRoom ? `<a href="adminsRoom">sala #admins.</a>` : '#admins room.'}</muted-text>`,
             estimatedPrice: 'Precio estimado',
             changesBasedOn: 'Esto varía según el uso de tu Tarjeta Expensify y las opciones de suscripción que elijas a continuación.',
+            collectBillingDescription: 'Los espacios de trabajo del plan Collect se facturan mensualmente por miembro, sin compromiso anual.',
+            pricing: 'Precios',
         },
         requestEarlyCancellation: {
             title: 'Solicitar cancelación anticipada',
