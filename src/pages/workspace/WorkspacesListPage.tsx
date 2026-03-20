@@ -11,6 +11,7 @@ import DomainsEmptyStateComponent from '@components/DomainsEmptyStateComponent';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import type {MenuItemProps} from '@components/MenuItem';
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
+import TabBarBottomContent from '@components/Navigation/TabBarBottomContent';
 import TopBar from '@components/Navigation/TopBar';
 import type {OfflineWithFeedbackProps} from '@components/OfflineWithFeedback';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -34,7 +35,6 @@ import usePreferredPolicy from '@hooks/usePreferredPolicy';
 import usePrivateSubscription from '@hooks/usePrivateSubscription';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchResults from '@hooks/useSearchResults';
-import useTabBarBottomContent from '@hooks/useTabBarBottomContent';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionViolationOfWorkspace from '@hooks/useTransactionViolationOfWorkspace';
@@ -155,7 +155,7 @@ function WorkspacesListPage() {
     const [allDomainErrors] = useOnyx(ONYXKEYS.COLLECTION.DOMAIN_ERRORS);
     const [adminAccess] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_ADMIN_ACCESS);
     const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID);
-    const tabBarContent = useTabBarBottomContent(NAVIGATION_TABS.WORKSPACES);
+    const tabBarContent = <TabBarBottomContent selectedTab={NAVIGATION_TABS.WORKSPACES} />;
 
     // This hook preloads the screens of adjacent tabs to make changing tabs faster.
     usePreloadFullScreenNavigators();
@@ -714,7 +714,7 @@ function WorkspacesListPage() {
             testID="WorkspacesListPage"
             enableEdgeToEdgeBottomSafeAreaPadding={false}
             bottomContent={tabBarContent}
-            bottomContentStyle={{overflow: 'visible'}}
+            bottomContentStyle={styles.overflowVisible}
         >
             <View style={styles.flex1}>
                 <TopBar

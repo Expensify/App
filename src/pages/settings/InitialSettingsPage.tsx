@@ -12,6 +12,7 @@ import Icon from '@components/Icon';
 import MenuItem from '@components/MenuItem';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
+import TabBarBottomContent from '@components/Navigation/TabBarBottomContent';
 import TopBar from '@components/Navigation/TopBar';
 import {PressableWithFeedback} from '@components/Pressable';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -33,7 +34,6 @@ import usePrivateSubscription from '@hooks/usePrivateSubscription';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useSubscriptionPlan from '@hooks/useSubscriptionPlan';
-import useTabBarBottomContent from '@hooks/useTabBarBottomContent';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {resetExitSurveyForm} from '@libs/actions/ExitSurvey';
@@ -135,7 +135,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
     const [amountOwed = 0] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const [ownerBillingGraceEndPeriod] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const tabBarContent = useTabBarBottomContent(NAVIGATION_TABS.SETTINGS);
+    const tabBarContent = <TabBarBottomContent selectedTab={NAVIGATION_TABS.SETTINGS} />;
     const network = useNetwork();
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -559,7 +559,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
             testID="InitialSettingsPage"
             shouldEnableKeyboardAvoidingView={false}
             bottomContent={tabBarContent}
-            bottomContentStyle={{overflow: 'visible'}}
+            bottomContentStyle={styles.overflowVisible}
         >
             {shouldUseNarrowLayout && (
                 <TopBar

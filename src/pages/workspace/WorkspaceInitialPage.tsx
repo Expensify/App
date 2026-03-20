@@ -1,11 +1,13 @@
-import {findFocusedRoute, useFocusEffect, useIsFocused, useNavigationState} from '@react-navigation/native';
-import {emailSelector} from '@selectors/Session';
-import React, {useCallback, useEffect, useRef} from 'react';
-import {View} from 'react-native';
-import type {ValueOf} from 'type-fest';
+import { findFocusedRoute, useFocusEffect, useIsFocused, useNavigationState } from '@react-navigation/native';
+import { emailSelector } from '@selectors/Session';
+import React, { useCallback, useEffect, useRef } from 'react';
+import { View } from 'react-native';
+import type { ValueOf } from 'type-fest';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import HighlightableMenuItem from '@components/HighlightableMenuItem';
+import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
+import TabBarBottomContent from '@components/Navigation/TabBarBottomContent/index.native';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
@@ -13,7 +15,7 @@ import useCardFeedErrors from '@hooks/useCardFeedErrors';
 import useConfirmReadyToOpenApp from '@hooks/useConfirmReadyToOpenApp';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useGetReceiptPartnersIntegrationData from '@hooks/useGetReceiptPartnersIntegrationData';
-import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import { useMemoizedLazyExpensifyIcons } from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -24,39 +26,80 @@ import useSingleExecution from '@hooks/useSingleExecution';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
 import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
-import {isConnectionInProgress} from '@libs/actions/connections';
-import {shouldShowQBOReimbursableExportDestinationAccountError} from '@libs/actions/connections/QuickbooksOnline';
-import {clearErrors, openPolicyInitialPage, removeWorkspace} from '@libs/actions/Policy/Policy';
-import {convertToDisplayString} from '@libs/CurrencyUtils';
+import { isConnectionInProgress } from '@libs/actions/connections';
+import { shouldShowQBOReimbursableExportDestinationAccountError } from '@libs/actions/connections/QuickbooksOnline';
+import { clearErrors, openPolicyInitialPage, removeWorkspace } from '@libs/actions/Policy/Policy';
+import { convertToDisplayString } from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import {
-    shouldShowPolicy as checkIfShouldShowPolicy,
-    goBackFromInvalidPolicy,
-    hasPolicyCategoriesError,
-    isPaidGroupPolicy,
-    isPendingDeletePolicy,
-    isPolicyAdmin,
-    isTimeTrackingEnabled,
-    shouldShowEmployeeListError,
-    shouldShowSyncError,
-    shouldShowTaxRateError,
-} from '@libs/PolicyUtils';
-import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
+import type { PlatformStackScreenProps } from '@libs/Navigation/PlatformStackNavigation/types';
+import { shouldShowPolicy as checkIfShouldShowPolicy, goBackFromInvalidPolicy, hasPolicyCategoriesError, isPaidGroupPolicy, isPendingDeletePolicy, isPolicyAdmin, isTimeTrackingEnabled, shouldShowEmployeeListError, shouldShowSyncError, shouldShowTaxRateError } from '@libs/PolicyUtils';
+import { getDefaultWorkspaceAvatar } from '@libs/ReportUtils';
 import type WORKSPACE_TO_RHP from '@navigation/linkingConfig/RELATIONS/WORKSPACE_TO_RHP';
-import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
+import type { WorkspaceSplitNavigatorParamList } from '@navigation/types';
 import CONST from '@src/CONST';
-import type {TranslationPaths} from '@src/languages/types';
+import type { TranslationPaths } from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
-import type {PendingAction} from '@src/types/onyx/OnyxCommon';
-import type {PolicyFeatureName} from '@src/types/onyx/Policy';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import type { PendingAction } from '@src/types/onyx/OnyxCommon';
+import type { PolicyFeatureName } from '@src/types/onyx/Policy';
+import { isEmptyObject } from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
 import type WithSentryLabel from '@src/types/utils/SentryLabel';
-import type {WithPolicyAndFullscreenLoadingProps} from './withPolicyAndFullscreenLoading';
+import type { WithPolicyAndFullscreenLoadingProps } from './withPolicyAndFullscreenLoading';
 import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 type WorkspaceTopLevelScreens = keyof typeof WORKSPACE_TO_RHP;
 
@@ -418,6 +461,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
         <ScreenWrapper
             testID="WorkspaceInitialPage"
             enableEdgeToEdgeBottomSafeAreaPadding={false}
+            bottomContent={<TabBarBottomContent selectedTab={NAVIGATION_TABS.WORKSPACES} />}
         >
             <FullPageNotFoundView
                 onBackButtonPress={Navigation.dismissModal}

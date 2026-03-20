@@ -39,6 +39,7 @@ function RootTabNavigatorTabBar({tabState}: {tabState: BottomTabBarProps['state'
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {paddingBottom: safeAreaPaddingBottom} = useSafeAreaPaddings(true);
     const theme = useTheme();
+    const styles = useThemeStyles();
     const selectedRouteName = tabState.routes[tabState.index]?.name;
     const selectedTab = ROUTE_TO_NAVIGATION_TAB[selectedRouteName ?? ''] ?? NAVIGATION_TABS.HOME;
 
@@ -71,13 +72,11 @@ function RootTabNavigatorTabBar({tabState}: {tabState: BottomTabBarProps['state'
         // Negative marginTop overlays the tab bar on content (zero flex space) to prevent layout shifts.
         return (
             <View
-                style={{
-                    overflow: 'visible',
-                    marginTop: -(variables.bottomTabHeight + safeAreaPaddingBottom),
-                    paddingBottom: safeAreaPaddingBottom,
-                    backgroundColor: theme.appBG,
-                    opacity: isHidden ? 0 : 1,
-                }}
+                style={[
+                    styles.overflowVisible,
+                    {marginTop: -(variables.bottomTabHeight + safeAreaPaddingBottom), paddingBottom: safeAreaPaddingBottom, backgroundColor: theme.appBG},
+                    isHidden && styles.opacity0,
+                ]}
                 pointerEvents={isHidden ? 'none' : 'auto'}
             >
                 <NavigationTabBar
@@ -89,7 +88,7 @@ function RootTabNavigatorTabBar({tabState}: {tabState: BottomTabBarProps['state'
     }
 
     return (
-        <View style={{overflow: 'visible'}}>
+        <View style={styles.overflowHidden}>
             <NavigationTabBar selectedTab={selectedTab} />
         </View>
     );

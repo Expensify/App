@@ -61,7 +61,6 @@ const useSplitNavigatorScreenOptions = () => {
                     ? StyleUtils.getNavigationModalCardStyle()
                     : {
                           ...themeStyles.h100,
-                          marginLeft: 0,
                       },
             },
         },

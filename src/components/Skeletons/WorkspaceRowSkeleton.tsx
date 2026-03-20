@@ -10,7 +10,6 @@ import ItemListSkeletonView from './ItemListSkeletonView';
 const barHeight = 7;
 const longBarWidth = 120;
 const shortBarWidth = 60;
-const leftPaneWidth = 0;
 const gapWidth = 12;
 
 type WorkspaceRowSkeletonProps = {
@@ -27,7 +26,7 @@ function WorkspaceRowSkeleton({shouldAnimate = true, fixedNumItems, gradientOpac
     useSkeletonSpan('WorkspaceRowSkeleton', reasonAttributes);
     // We calculate the width of the sections on the skeleton by first calculating the skeleton view width
     // Then we subtract the width by 66, which is the x position of the first part.
-    const partWidth = Math.floor((windowWidth - leftPaneWidth - gapWidth * 2 - 66) / 3);
+    const partWidth = Math.floor((windowWidth - gapWidth * 2 - 66) / 3);
     return (
         <ItemListSkeletonView
             shouldAnimate={shouldAnimate}
