@@ -9,6 +9,7 @@ import {openApp, reconnectApp} from './App';
 
 let lastUpdateIDAppliedToClient: OnyxEntry<number>;
 let isLoadingApp: OnyxEntry<boolean>;
+let currentAccountID: number | undefined;
 
 Onyx.connectWithoutView({
     key: ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT,
@@ -24,12 +25,24 @@ Onyx.connectWithoutView({
     },
 });
 
+Onyx.connectWithoutView({
+    key: ONYXKEYS.SESSION,
+    callback: (session) => {
+        currentAccountID = session?.accountID;
+    },
+});
+
 /**
  * Centralized reconnection logic.
  * Called when recovering from a hard stop or when the app comes to foreground.
  * Syncs app data and flushes the sequential queue.
  */
 function reconnect() {
+    if (!currentAccountID) {
+        Log.info('[Reconnect] Skipping reconnection — no active session');
+        return;
+    }
+
     Log.info('[Reconnect] Triggering reconnection');
 
     if (isLoadingApp) {
