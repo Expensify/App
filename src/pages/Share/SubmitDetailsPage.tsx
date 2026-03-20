@@ -295,7 +295,7 @@ function SubmitDetailsPage({
                     <MoneyRequestConfirmationList
                         transaction={transaction}
                         selectedParticipants={participants}
-                        iouAmount={0}
+                        iouAmount={transactionAmount}
                         iouComment={trimmedComment}
                         iouCategory={transaction?.category}
                         onConfirm={() => onConfirm(true)}
