@@ -1909,6 +1909,14 @@ function setDefaultSecurityGroup(domainAccountID: number, groupID: string, domai
     API.write(WRITE_COMMANDS.SET_DEFAULT_DOMAIN_SECURITY_GROUP, params, {optimisticData, failureData, successData});
 }
 
+function setDomainGroupCreatePreferredPolicyID(policyID: string) {
+    Onyx.set(ONYXKEYS.DOMAIN_GROUP_CREATE_PREFERRED_POLICY_ID, policyID);
+}
+
+function clearDomainGroupCreatePreferredPolicyID() {
+    Onyx.set(ONYXKEYS.DOMAIN_GROUP_CREATE_PREFERRED_POLICY_ID, null);
+}
+
 export {
     getDomainValidationCode,
     validateDomain,
@@ -1948,4 +1956,6 @@ export {
     updateDomainSecurityGroup,
     clearDomainSecurityGroupSettingError,
     setDefaultSecurityGroup,
+    setDomainGroupCreatePreferredPolicyID,
+    clearDomainGroupCreatePreferredPolicyID,
 };

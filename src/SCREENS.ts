@@ -964,6 +964,7 @@ const SCREENS = {
         GROUP_DETAILS: 'Domain_Group_Details',
         GROUP_EDIT_NAME: 'Domain_Group_Edit_Name',
         GROUP_CREATE: 'Domain_Group_Create',
+        GROUP_CREATE_PREFERRED_WORKSPACE: 'Domain_Group_Create_Preferred_Workspace',
     },
     MULTIFACTOR_AUTHENTICATION: {
         MAGIC_CODE: 'Multifactor_Authentication_Magic_Code',

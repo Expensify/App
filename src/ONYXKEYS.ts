@@ -671,6 +671,9 @@ const ONYXKEYS = {
     /** The transaction IDs to be highlighted when opening the Expenses search route page */
     TRANSACTION_IDS_HIGHLIGHT_ON_SEARCH_ROUTE: 'transactionIdsHighlightOnSearchRoute',
 
+    /** The preferred policy ID to be used when creating a group */
+    DOMAIN_GROUP_CREATE_PREFERRED_POLICY_ID: 'domainGroupCreatePreferredPolicyID',
+
     /** Collection Keys */
     COLLECTION: {
         DOMAIN: 'domain_',
@@ -1459,6 +1462,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.PERSONAL_POLICY_ID]: string;
     [ONYXKEYS.TRANSACTION_IDS_HIGHLIGHT_ON_SEARCH_ROUTE]: Record<string, Record<string, boolean>>;
     [ONYXKEYS.DEVICE_BIOMETRICS]: OnyxTypes.DeviceBiometrics;
+    [ONYXKEYS.DOMAIN_GROUP_CREATE_PREFERRED_POLICY_ID]: string | undefined;
 };
 
 type OnyxDerivedValuesMapping = {

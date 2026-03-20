@@ -1345,6 +1345,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.DOMAIN.GROUP_CREATE]: {
                             path: ROUTES.DOMAIN_GROUP_CREATE.route,
                         },
+                        [SCREENS.DOMAIN.GROUP_CREATE_PREFERRED_WORKSPACE]: {
+                            path: ROUTES.DOMAIN_GROUP_CREATE_PREFERRED_WORKSPACE.route,
+                        },
                     },
                 },
                 [SCREENS.RIGHT_MODAL.TWO_FACTOR_AUTH]: {

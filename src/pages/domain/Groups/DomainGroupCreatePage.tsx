@@ -1,14 +1,17 @@
-import React, {useRef, useState} from 'react';
+import {policyNameSelector} from '@selectors/Policy';
+import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {addErrorMessage} from '@libs/ErrorUtils';
 import Navigation from '@navigation/Navigation';
@@ -16,6 +19,7 @@ import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import DomainNotFoundPageWrapper from '@pages/domain/DomainNotFoundPageWrapper';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
+import {clearDomainGroupCreatePreferredPolicyID} from '@userActions/Domain';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -35,8 +39,19 @@ function DomainGroupCreatePage({route}: DomainGroupCreatePageProps) {
     const [strictlyEnforceWorkspaceRules, setStrictlyEnforceWorkspaceRules] = useState(false);
     const [restrictDefaultLoginSelection, setRestrictDefaultLoginSelection] = useState(false);
     const [restrictExpenseWorkspaceCreation, setRestrictExpenseWorkspaceCreation] = useState(false);
-    const [preferredWorkspace, setPreferredWorkspace] = useState(false);
     const [expensifyCardPreferredWorkspace, setExpensifyCardPreferredWorkspace] = useState(false);
+    const [preferredWorkspace, setPreferredWorkspace] = useState(false);
+
+    const [preferredPolicyID] = useOnyx(ONYXKEYS.DOMAIN_GROUP_CREATE_PREFERRED_POLICY_ID);
+    const [preferredPolicyName] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${preferredPolicyID}`, {
+        selector: policyNameSelector,
+    });
+
+    useEffect(() => {
+        return () => {
+            clearDomainGroupCreatePreferredPolicyID();
+        };
+    }, []);
 
     return (
         <DomainNotFoundPageWrapper domainAccountID={domainAccountID}>
@@ -49,7 +64,9 @@ function DomainGroupCreatePage({route}: DomainGroupCreatePageProps) {
             >
                 <HeaderWithBackButton
                     title={translate('domain.groups.createNewGroupButton')}
-                    onBackButtonPress={() => Navigation.goBack(ROUTES.DOMAIN_GROUPS.getRoute(domainAccountID))}
+                    onBackButtonPress={() => {
+                        Navigation.goBack(ROUTES.DOMAIN_GROUPS.getRoute(domainAccountID));
+                    }}
                 />
                 <FormProvider
                     formID={ONYXKEYS.FORMS.CREATE_DOMAIN_GROUP_FORM}
@@ -62,7 +79,10 @@ function DomainGroupCreatePage({route}: DomainGroupCreatePageProps) {
                         }
                         return errors;
                     }}
-                    onSubmit={() => {}}
+                    onSubmit={() => {
+                        // ...
+                        clearDomainGroupCreatePreferredPolicyID();
+                    }}
                     submitButtonText={translate('domain.groups.createGroupSubmitButton')}
                     style={[styles.flex1]}
                     submitButtonStyles={[styles.ph5, styles.pb3]}
@@ -116,16 +136,28 @@ function DomainGroupCreatePage({route}: DomainGroupCreatePageProps) {
                         wrapperStyle={[styles.ph5, styles.mv3]}
                         shouldPlaceSubtitleBelowSwitch
                     />
-                    {/* temporary no menu item with workspace selection */}
                     <ToggleSettingOptionRow
                         title={translate('domain.groups.preferredWorkspace')}
                         subtitle={translate('domain.groups.preferredWorkspaceDescription', preferredWorkspace)}
                         switchAccessibilityLabel={translate('domain.groups.preferredWorkspace')}
                         isActive={preferredWorkspace}
-                        onToggle={setPreferredWorkspace}
+                        onToggle={(value) => {
+                            setPreferredWorkspace(value);
+                            if (!value) {
+                                clearDomainGroupCreatePreferredPolicyID();
+                            }
+                        }}
                         wrapperStyle={[styles.ph5, styles.mv3]}
                         shouldPlaceSubtitleBelowSwitch
                     />
+                    {preferredWorkspace && (
+                        <MenuItemWithTopDescription
+                            description={translate('domain.groups.preferredWorkspace')}
+                            title={preferredPolicyName ?? ''}
+                            shouldShowRightIcon
+                            onPress={() => Navigation.navigate(ROUTES.DOMAIN_GROUP_CREATE_PREFERRED_WORKSPACE.getRoute(domainAccountID))}
+                        />
+                    )}
                     <ToggleSettingOptionRow
                         title={translate('domain.groups.ExpensifyCardPreferredWorkspace')}
                         subtitle={translate('domain.groups.ExpensifyCardPreferredWorkspaceDescription')}
