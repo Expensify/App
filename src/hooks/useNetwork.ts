@@ -1,5 +1,5 @@
 import {useEffect, useRef, useSyncExternalStore} from 'react';
-import {getLastOfflineAt, isOffline as getIsOffline, subscribe} from '@libs/NetworkState';
+import {isOffline as getIsOffline, getLastOfflineAt, subscribe} from '@libs/NetworkState';
 
 type UseNetworkProps = {
     onReconnect?: () => void;
