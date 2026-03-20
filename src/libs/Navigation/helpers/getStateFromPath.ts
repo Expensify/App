@@ -1,16 +1,17 @@
 import type {NavigationState, PartialState} from '@react-navigation/native';
-import {findFocusedRoute, getStateFromPath as RNGetStateFromPath} from '@react-navigation/native';
+import {getStateFromPath as RNGetStateFromPath} from '@react-navigation/native';
 import Log from '@libs/Log';
 import {linkingConfig} from '@libs/Navigation/linkingConfig';
 import type {Route} from '@src/ROUTES';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {Screen} from '@src/SCREENS';
 import SCREENS from '@src/SCREENS';
-import getLastSuffixFromPath from './getLastSuffixFromPath';
+import findMatchingDynamicSuffix from './dynamicRoutesUtils/findMatchingDynamicSuffix';
+import getPathWithoutDynamicSuffix from './dynamicRoutesUtils/getPathWithoutDynamicSuffix';
+import getStateForDynamicRoute from './dynamicRoutesUtils/getStateForDynamicRoute';
+import findFocusedRouteWithOnyxTabGuard from './findFocusedRouteWithOnyxTabGuard';
 import getMatchingNewRoute from './getMatchingNewRoute';
 import getRedirectedPath from './getRedirectedPath';
-import getStateForDynamicRoute from './getStateForDynamicRoute';
-import isDynamicRouteSuffix from './isDynamicRouteSuffix';
 
 /**
  * @param path - The path to parse
@@ -21,9 +22,9 @@ function getStateFromPath(path: Route): PartialState<NavigationState> {
     const redirectedPath = getRedirectedPath(normalizedPath);
     const normalizedPathAfterRedirection = getMatchingNewRoute(redirectedPath) ?? redirectedPath;
 
-    const dynamicRouteSuffix = getLastSuffixFromPath(normalizedPathAfterRedirection);
-    if (isDynamicRouteSuffix(dynamicRouteSuffix)) {
-        const pathWithoutDynamicSuffix = normalizedPathAfterRedirection.replace(`/${dynamicRouteSuffix}`, '');
+    const dynamicRouteSuffix = findMatchingDynamicSuffix(normalizedPathAfterRedirection);
+    if (dynamicRouteSuffix) {
+        const pathWithoutDynamicSuffix = getPathWithoutDynamicSuffix(normalizedPathAfterRedirection, dynamicRouteSuffix);
 
         type DynamicRouteKey = keyof typeof DYNAMIC_ROUTES;
         const dynamicRouteKeys = Object.keys(DYNAMIC_ROUTES) as DynamicRouteKey[];
@@ -32,19 +33,19 @@ function getStateFromPath(path: Route): PartialState<NavigationState> {
         const dynamicRoute: string = dynamicRouteKeys.find((key) => DYNAMIC_ROUTES[key].path === dynamicRouteSuffix) ?? '';
 
         // Get the currently focused route from the base path to check permissions
-        const focusedRoute = findFocusedRoute(getStateFromPath(pathWithoutDynamicSuffix as Route) ?? {});
+        const focusedRoute = findFocusedRouteWithOnyxTabGuard(getStateFromPath(pathWithoutDynamicSuffix) ?? {});
         const entryScreens: Screen[] = DYNAMIC_ROUTES[dynamicRoute as DynamicRouteKey]?.entryScreens ?? [];
 
         // Check if the focused route is allowed to access this dynamic route
         if (focusedRoute?.name) {
             if (entryScreens.includes(focusedRoute.name as Screen)) {
                 // Generate navigation state for the dynamic route
-                const dynamicRouteState = getStateForDynamicRoute(normalizedPath, dynamicRoute as DynamicRouteKey);
+                const dynamicRouteState = getStateForDynamicRoute(normalizedPath, dynamicRoute as DynamicRouteKey, focusedRoute?.params as Record<string, unknown> | undefined);
                 return dynamicRouteState;
             }
 
             // Fallback to not found page so users can't land on dynamic suffix directly.
-            if (pathWithoutDynamicSuffix === '/' || pathWithoutDynamicSuffix === '') {
+            if (!pathWithoutDynamicSuffix) {
                 const state = {routes: [{name: SCREENS.NOT_FOUND, path: normalizedPathAfterRedirection}]};
 
                 return state;

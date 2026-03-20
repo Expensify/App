@@ -15,6 +15,7 @@ import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {readFileAsync} from '@libs/fileDownload/FileUtils';
 import {getDistanceRateCustomUnit, getMemberAccountIDsForWorkspace, getPerDiemCustomUnit, isCollectPolicy} from '@libs/PolicyUtils';
+import {formatAddressToString} from '@libs/ReportActionsUtils';
 import {getReportFieldsByPolicyID} from '@libs/ReportUtils';
 import Navigation from '@navigation/Navigation';
 import {duplicateWorkspace as duplicateWorkspaceAction, openDuplicatePolicyPage} from '@userActions/Policy/Policy';
@@ -69,11 +70,7 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
         return Object.values(policyTags).reduce((sum, tagGroup) => sum + Number(Object.values(tagGroup.tags)?.length ?? 0), 0);
     }, [policyTags]);
 
-    const [street1, street2] = (policy?.address?.addressStreet ?? '').split('\n');
-    const formattedAddress =
-        !isEmptyObject(policy) && !isEmptyObject(policy.address)
-            ? `${street1?.trim()}, ${street2 ? `${street2.trim()}, ` : ''}${policy.address.city}, ${policy.address.state} ${policy.address.zipCode ?? ''}`
-            : '';
+    const formattedAddress = !isEmptyObject(policy) && !isEmptyObject(policy.address) ? formatAddressToString(policy.address) : '';
 
     const items = useMemo(() => {
         const rules = getWorkspaceRules(policy, translate);
@@ -356,22 +353,24 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
                     <Text style={[styles.webViewStyles.baseFontStyle, styles.textSupporting]}>{translate('workspace.duplicateWorkspace.whichFeatures')}</Text>
                 </View>
                 <View style={[styles.flex1]}>
-                    <View style={[styles.searchListHeaderContainerStyle, styles.pv3, styles.ph5]}>
+                    <View style={[styles.searchListHeaderContainerStyle, styles.pv3, styles.ph5, styles.flexRow, styles.alignItemsCenter]}>
                         <Checkbox
                             accessibilityLabel={translate('accessibilityHints.selectAllFeatures')}
                             isChecked={isSelectAllChecked}
                             isIndeterminate={selectedItems.length > 0 && selectedItems.length !== items.length}
                             onPress={toggleAllItems}
                             disabled={items.length === 0}
+                            shouldSelectOnPressEnter
                         />
                         <PressableWithFeedback
                             style={[styles.userSelectNone, styles.alignItemsCenter]}
                             onPress={toggleAllItems}
-                            accessibilityLabel={translate('accessibilityHints.selectAllFeatures')}
-                            role="button"
-                            accessibilityState={{checked: isSelectAllChecked}}
-                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.DUPLICATE_SELECT_FEATURES_SELECT_ALL}
+                            accessible={false}
+                            accessibilityElementsHidden
+                            importantForAccessibility="no-hide-descendants"
+                            tabIndex={-1}
                             dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
+                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.DUPLICATE_SELECT_FEATURES_SELECT_ALL}
                         >
                             <Text style={[styles.textLabelSupporting, styles.ph3]}>{translate('workspace.common.selectAll')}</Text>
                         </PressableWithFeedback>

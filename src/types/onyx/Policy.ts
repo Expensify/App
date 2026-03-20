@@ -110,6 +110,9 @@ type CompanyAddress = {
     /** Street address */
     addressStreet: string;
 
+    /** Street address line 2 */
+    addressStreet2?: string;
+
     /** City */
     city: string;
 
@@ -510,6 +513,12 @@ type QBOConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
      * transactions upon import
      */
     autoCreateVendor: boolean;
+
+    /** Default vendor ID for travel expenses */
+    travelInvoicingVendorID?: string;
+
+    /** Account ID that receives the exported travel payable */
+    travelInvoicingPayableAccountID?: string;
 
     /** TODO: Will be handled in another issue */
     hasChosenAutoSyncOption: boolean;
@@ -1464,6 +1473,9 @@ type Connections = {
 
     /** QuickBooks Desktop integration connection */
     [CONST.POLICY.CONNECTIONS.NAME.QBD]: Connection<QBDConnectionData, QBDConnectionConfig>;
+
+    /** Certinia integration connection */
+    [CONST.POLICY.CONNECTIONS.NAME.CERTINIA]: Connection<Record<string, never>, Record<string, never>>;
 };
 
 /** All integration connections, including unsupported ones */
@@ -1786,6 +1798,9 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** The URL for the policy avatar */
         avatarURL?: string;
 
+        /** The client ID set by an Approved! Accountant for tracking purposes */
+        clientID?: string;
+
         /** Error objects keyed by field name containing errors keyed by microtime */
         errorFields?: OnyxCommon.ErrorFields;
 
@@ -1867,7 +1882,7 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         autoApproval?: OnyxCommon.OnyxValueWithOfflineFeedback<
             {
                 /**
-                 * The maximum report total allowed to trigger auto approval.
+                 * The maximum per-expense amount allowed to trigger auto approval.
                  */
                 limit?: number;
                 /**
@@ -1883,9 +1898,6 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** Original file name which is used for the policy avatar */
         originalFileName?: string;
-
-        /** Alert message for the policy */
-        alertMessage?: string;
 
         /** Informative messages about which policy members were added with primary logins when invited with their secondary login */
         primaryLoginsInvited?: Record<string, string>;

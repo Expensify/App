@@ -2,10 +2,11 @@ import React from 'react';
 import type {ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import Icon from '@components/Icon';
-import {DotIndicator} from '@components/Icon/Expensicons';
 import RenderHTML from '@components/RenderHTML';
+import Text from '@components/Text';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useEnvironment from '@hooks/useEnvironment';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useTheme from '@hooks/useTheme';
@@ -19,8 +20,11 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Report, TransactionViolation} from '@src/types/onyx';
 import type Transaction from '@src/types/onyx/Transaction';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-type TransactionItemRowRBRProps = {
+const HTML_TAG_PATTERN = /<\/?[a-z][^>]*>/i;
+
+type TransactionItemRowRBRInnerProps = {
     /** Transaction item */
     transaction: Transaction;
 
@@ -37,7 +41,12 @@ type TransactionItemRowRBRProps = {
     missingFieldError?: string;
 };
 
-function TransactionItemRowRBR({transaction, violations, report, containerStyles, missingFieldError}: TransactionItemRowRBRProps) {
+type TransactionItemRowRBRProps = TransactionItemRowRBRInnerProps & {
+    /** The child report ID of the IOU action thread, used to detect thread errors without mounting the heavy inner component */
+    transactionThreadReportID?: string;
+};
+
+function TransactionItemRowRBRInner({transaction, violations, report, containerStyles, missingFieldError}: TransactionItemRowRBRInnerProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const theme = useTheme();
@@ -48,6 +57,7 @@ function TransactionItemRowRBR({transaction, violations, report, containerStyles
     const companyCardPageURL = `${environmentURL}/${ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(report?.policyID)}`;
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${report?.policyID}`);
     const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
+    const icons = useMemoizedLazyExpensifyIcons(['DotIndicator'] as const);
     const transactionThreadId = reportActions ? getIOUActionForTransactionID(Object.values(reportActions ?? {}), transaction.transactionID)?.childReportID : undefined;
     const [transactionThreadActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadId}`);
     const {login: currentUserLogin} = useCurrentUserPersonalDetails();
@@ -65,6 +75,7 @@ function TransactionItemRowRBR({transaction, violations, report, containerStyles
         cardList,
         isMarkAsCash,
     );
+    const hasHTMLTags = HTML_TAG_PATTERN.test(RBRMessages);
 
     return (
         RBRMessages.length > 0 && (
@@ -73,16 +84,48 @@ function TransactionItemRowRBR({transaction, violations, report, containerStyles
                 testID="TransactionItemRowRBR"
             >
                 <Icon
-                    src={DotIndicator}
+                    src={icons.DotIndicator}
                     fill={theme.danger}
                     height={variables.iconSizeExtraSmall}
                     width={variables.iconSizeExtraSmall}
                 />
                 <View style={[styles.pre, styles.flexShrink1, {color: theme.danger}]}>
-                    <RenderHTML html={`<rbr shouldShowEllipsis="1" issmall >${RBRMessages}</rbr>`} />
+                    {hasHTMLTags ? (
+                        <RenderHTML html={`<rbr shouldShowEllipsis="1" issmall >${RBRMessages}</rbr>`} />
+                    ) : (
+                        <Text
+                            numberOfLines={1}
+                            ellipsizeMode="tail"
+                            style={[styles.textLabelError, styles.textMicro]}
+                        >
+                            {RBRMessages}
+                        </Text>
+                    )}
                 </View>
             </View>
         )
+    );
+}
+
+function TransactionItemRowRBR({transaction, violations, report, containerStyles, missingFieldError, transactionThreadReportID}: TransactionItemRowRBRProps) {
+    const [transactionThreadActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`);
+
+    const hasThreadErrors = transactionThreadActions ? Object.values(transactionThreadActions).some((action) => !isEmptyObject(action.errors)) : false;
+
+    // When transactionThreadReportID is not provided (e.g. MoneyRequestReportView), we can't reliably detect thread errors,
+    // so we skip the early-return and always mount the inner component to avoid suppressing RBR messages.
+    if (transactionThreadReportID !== undefined && !violations?.length && !missingFieldError && isEmptyObject(transaction.errors) && !hasThreadErrors) {
+        return null;
+    }
+
+    return (
+        <TransactionItemRowRBRInner
+            transaction={transaction}
+            violations={violations}
+            report={report}
+            containerStyles={containerStyles}
+            missingFieldError={missingFieldError}
+        />
     );
 }
 

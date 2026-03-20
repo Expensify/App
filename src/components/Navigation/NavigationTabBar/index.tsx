@@ -14,7 +14,7 @@ import useOnyx from '@hooks/useOnyx';
 import useReportAttributes from '@hooks/useReportAttributes';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useRootNavigationState from '@hooks/useRootNavigationState';
-import {useSidebarOrderedReports} from '@hooks/useSidebarOrderedReports';
+import {useSidebarOrderedReportsState} from '@hooks/useSidebarOrderedReports';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useSubscriptionPlan from '@hooks/useSubscriptionPlan';
 import useTheme from '@hooks/useTheme';
@@ -55,7 +55,7 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFloatin
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {orderedReportIDs} = useSidebarOrderedReports();
+    const {orderedReportIDs} = useSidebarOrderedReportsState();
     const [isDebugModeEnabled] = useOnyx(ONYXKEYS.IS_DEBUG_MODE_ENABLED);
     const subscriptionPlan = useSubscriptionPlan();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['ExpensifyAppIcon', 'Home', 'Inbox']);
@@ -149,7 +149,7 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFloatin
                 >
                     <View style={styles.flex1}>
                         <PressableWithFeedback
-                            accessibilityRole={CONST.ROLE.BUTTON}
+                            role={CONST.ROLE.LINK}
                             accessibilityLabel={translate('common.home')}
                             accessible
                             testID="ExpensifyLogoButton"
@@ -160,6 +160,7 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFloatin
                             <ImageSVG
                                 style={StyleUtils.getAvatarStyle(CONST.AVATAR_SIZE.DEFAULT)}
                                 src={expensifyIcons.ExpensifyAppIcon}
+                                aria-hidden
                             />
                         </PressableWithFeedback>
                         <PressableWithFeedback

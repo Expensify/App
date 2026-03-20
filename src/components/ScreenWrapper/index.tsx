@@ -10,6 +10,7 @@ import FocusTrapForScreen from '@components/FocusTrap/FocusTrapForScreen';
 import type FocusTrapForScreenProps from '@components/FocusTrap/FocusTrapForScreen/FocusTrapProps';
 import {useInitialURLState} from '@components/InitialURLContextProvider';
 import withNavigationFallback from '@components/withNavigationFallback';
+import useAccessibilityFocus from '@hooks/useAccessibilityFocus';
 import useEnvironment from '@hooks/useEnvironment';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -112,8 +113,7 @@ function ScreenWrapper({
 
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout for a case where we want to show the offline indicator only on small screens
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
-    const {isSmallScreenWidth} = useResponsiveLayout();
-    const shouldMoveAccessibilityFocus = getPlatform() === CONST.PLATFORM.WEB && isMobile();
+    const {isSmallScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
 
     const styles = useThemeStyles();
     const {isDevelopment} = useEnvironment();
@@ -139,6 +139,9 @@ function ScreenWrapper({
     // This context allows us to disable the safe area padding offsetting the offline indicator in scrollable components like 'ScrollView', 'SelectionList' or 'FormProvider'.
     // This is useful e.g. for the RightModalNavigator, where we want to avoid the safe area padding offsetting the offline indicator because we only show the offline indicator on small screens.
     const {isInNarrowPane} = useContext(NarrowPaneContext);
+    const isMobileWebNarrowLayout = getPlatform() === CONST.PLATFORM.WEB && isMobile() && shouldUseNarrowLayout;
+    const shouldMoveAccessibilityFocus = isMobileWebNarrowLayout && isInNarrowPane;
+    const shouldHideFromAccessibility = isMobileWebNarrowLayout && !isFocused;
     const {addSafeAreaPadding, showOnSmallScreens, showOnWideScreens, originalValues} = useContext(ScreenWrapperOfflineIndicatorContext);
     const offlineIndicatorContextValue = useMemo(() => {
         const newAddSafeAreaPadding = isInNarrowPane ? isSmallScreenWidth : addSafeAreaPadding;
@@ -183,6 +186,8 @@ function ScreenWrapper({
         closeReactNativeApp({shouldSetNVP: false, isTrackingGPS: false});
     });
 
+    useAccessibilityFocus({didScreenTransitionEnd, isFocused, ref: screenWrapperRef, shouldMoveAccessibilityFocus});
+
     useEffect(() => {
         // On iOS, the transitionEnd event doesn't trigger some times. As such, we need to set a timeout
         const timeout = setTimeout(() => {
@@ -225,44 +230,6 @@ function ScreenWrapper({
         // Rule disabled because this effect is only for component did mount & will component unmount lifecycle event
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
-
-    useEffect(() => {
-        if (!shouldMoveAccessibilityFocus || !didScreenTransitionEnd || !isFocused) {
-            return;
-        }
-
-        if (typeof document === 'undefined') {
-            return;
-        }
-
-        const element = screenWrapperRef.current;
-        if (!element || !('contains' in element) || !('querySelectorAll' in element)) {
-            return;
-        }
-
-        const activeElement = document.activeElement;
-        if (activeElement && element.contains(activeElement)) {
-            return;
-        }
-
-        const focusTargets = element.querySelectorAll<HTMLElement>('button, [href], [role="button"], [role="link"], [tabindex]:not([tabindex="-1"])');
-        for (const focusTarget of focusTargets) {
-            const isDisabledTarget = focusTarget.matches(':disabled') || focusTarget.getAttribute('aria-disabled')?.toLowerCase() === 'true';
-            if (isDisabledTarget || focusTarget.getAttribute('aria-hidden') === 'true') {
-                continue;
-            }
-
-            if (focusTarget === activeElement) {
-                return;
-            }
-
-            focusTarget.focus();
-            const focusedElement = document.activeElement;
-            if (focusedElement === focusTarget || (focusedElement && focusTarget.contains(focusedElement))) {
-                return;
-            }
-        }
-    }, [didScreenTransitionEnd, isFocused, shouldMoveAccessibilityFocus]);
 
     useFocusEffect(
         useCallback(() => {
@@ -308,6 +275,7 @@ function ScreenWrapper({
                 includePaddingTop={includePaddingTop}
                 includeSafeAreaPaddingBottom={includeSafeAreaPaddingBottom}
                 isFocused={isFocused}
+                shouldHideFromAccessibility={shouldHideFromAccessibility}
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...restContainerProps}
             >

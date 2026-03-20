@@ -31,7 +31,7 @@ function Documents({onNext, isEditing, ownerBeingModifiedID}: DocumentsProps) {
     const countryStepCountryValue = reimbursementAccountDraft?.[INPUT_IDS.ADDITIONAL_DATA.COUNTRY] ?? '';
     const policyID = reimbursementAccount?.achData?.policyID;
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
-    const currency = policy?.outputCurrency ?? '';
+    const currency = policy?.outputCurrency ?? reimbursementAccountDraft?.currency ?? '';
     const proofOfOwnershipInputID = `${PREFIX}_${ownerBeingModifiedID}_${PROOF_OF_OWNERSHIP}` as const;
     const copyOfIDInputID = `${PREFIX}_${ownerBeingModifiedID}_${COPY_OF_ID}` as const;
     const addressProofInputID = `${PREFIX}_${ownerBeingModifiedID}_${ADDRESS_PROOF}` as const;

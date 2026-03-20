@@ -16,10 +16,11 @@ const STEP_FIELDS = [TRADE_VOLUME];
 function AverageReimbursement({onNext, onMove, isEditing}: AverageReimbursementProps) {
     const {translate} = useLocalize();
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
+    const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
     const [corpayOnboardingFields] = useOnyx(ONYXKEYS.CORPAY_ONBOARDING_FIELDS);
     const policyID = reimbursementAccount?.achData?.policyID;
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
-    const currency = policy?.outputCurrency ?? '';
+    const currency = policy?.outputCurrency ?? reimbursementAccountDraft?.currency ?? '';
 
     const tradeVolumeRangeListOptions = useMemo(
         () => getListOptionsFromCorpayPicklist(corpayOnboardingFields?.picklists.TradeVolumeRange),
