@@ -805,6 +805,7 @@ function MenuItem({
                                 accessibilityLabel={combinedAccessibilityLabel}
                                 accessibilityHint={contextMenuHint}
                                 accessible={shouldBeAccessible}
+                                accessibilityState={role === CONST.ROLE.TAB ? {selected: focused} : undefined}
                                 tabIndex={interactive ? tabIndex : -1}
                                 onFocus={onFocus}
                                 sentryLabel={sentryLabel}
