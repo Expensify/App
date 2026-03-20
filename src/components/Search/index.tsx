@@ -464,8 +464,6 @@ function Search({
             return [[], 0, 0];
         }
 
-        // eslint-disable-next-line no-console
-        console.count('[getSections] Search/index');
         const [filteredData1, allLength] = getSections({
             type,
             data: searchResults.data,
