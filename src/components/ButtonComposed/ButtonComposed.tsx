@@ -58,9 +58,6 @@ type ButtonComposedBehaviorProps = {
     /** Should the press event bubble across multiple instances when Enter key triggers it. */
     allowBubble?: boolean;
 
-    /** Whether button's content should be centered */
-    isContentCentered?: boolean;
-
     /** Should enable the haptic feedback? */
     shouldEnableHapticFeedback?: boolean;
 
@@ -199,7 +196,6 @@ function ButtonComposed({
     id = '',
     testID = undefined,
     accessibilityLabel = '',
-    isContentCentered = false,
     isPressOnEnterActive,
     isNested = false,
     shouldBlendOpacity = false,
@@ -335,18 +331,7 @@ function ButtonComposed({
                 }}
             >
                 <ButtonComposedContext.Provider value={contextValue}>
-                    <View
-                        style={[
-                            styles.mw100,
-                            styles.flexRow,
-                            styles.flexShrink1,
-                            styles.alignItemsCenter,
-                            isContentCentered ? styles.justifyContentCenter : styles.justifyContentBetween,
-                            contentContainerStyle,
-                        ]}
-                    >
-                        {children}
-                    </View>
+                    <View style={[styles.mw100, styles.flexRow, styles.flexShrink1, styles.alignItemsCenter, styles.justifyContentBetween, contentContainerStyle]}>{children}</View>
                 </ButtonComposedContext.Provider>
                 {isLoading && (
                     <ActivityIndicator

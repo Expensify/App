@@ -155,9 +155,6 @@ type ButtonProps = Partial<ChildrenProps> &
         /** Boolean whether to display the right icon */
         shouldShowRightIcon?: boolean;
 
-        /** Whether button's content should be centered */
-        isContentCentered?: boolean;
-
         /** Whether the Enter keyboard listening is active whether or not the screen that contains the button is focused */
         isPressOnEnterActive?: boolean;
 
@@ -285,7 +282,6 @@ function Button({
     testID = undefined,
     accessibilityLabel = '',
     link = false,
-    isContentCentered = false,
     isPressOnEnterActive,
     isNested = false,
     secondLineText = '',
@@ -366,7 +362,7 @@ function Button({
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         if (icon || shouldShowRightIcon) {
             return (
-                <View style={[isContentCentered ? styles.justifyContentCenter : styles.justifyContentBetween, styles.flexRow, iconWrapperStyles, styles.mw100]}>
+                <View style={[styles.justifyContentBetween, styles.flexRow, iconWrapperStyles, styles.mw100]}>
                     <View style={[styles.alignItemsCenter, styles.flexRow, styles.flexShrink1]}>
                         {!!icon && (
                             <View style={[extraSmall ? styles.mr1 : styles.mr2, !text && styles.mr0, iconStyles, isLoading && styles.opacity0]}>
