@@ -48,13 +48,20 @@ function acceptSpotnanaTerms(domain?: string, policyID?: string) {
         },
     ];
 
-    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.TRAVEL_PROVISIONING>> = [
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.TRAVEL_PROVISIONING | typeof ONYXKEYS.NVP_TRAVEL_SETTINGS>> = [
         {
             onyxMethod: 'merge',
             key: ONYXKEYS.TRAVEL_PROVISIONING,
             value: {
                 isLoading: false,
                 errors: getMicroSecondOnyxErrorWithTranslationKey('travel.errorMessage'),
+            },
+        },
+        {
+            onyxMethod: 'merge',
+            key: ONYXKEYS.NVP_TRAVEL_SETTINGS,
+            value: {
+                hasAcceptedTerms: false,
             },
         },
     ];
