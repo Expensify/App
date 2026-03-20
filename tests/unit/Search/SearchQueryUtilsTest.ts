@@ -1535,6 +1535,36 @@ describe('SearchQueryUtils', () => {
             expect(result).toContain('sortBy:groupmonth');
             expect(result).toContain('sortOrder:asc');
         });
+
+        test('view switch from table to chart with time-based groupBy resets custom sortBy to groupBy default', () => {
+            // User has month groupBy in table view, but has manually sorted by groupTotal
+            // When switching to line chart, sortBy should reset to groupMonth for chronological display
+            const result = buildFilterQueryWithSortDefaults(
+                {type: 'expense', groupBy: CONST.SEARCH.GROUP_BY.MONTH, view: CONST.SEARCH.VIEW.LINE},
+                {view: CONST.SEARCH.VIEW.TABLE, groupBy: CONST.SEARCH.GROUP_BY.MONTH},
+                {sortBy: CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL, sortOrder: CONST.SEARCH.SORT_ORDER.DESC},
+            );
+            const queryJSON = buildSearchQueryJSON(result ?? '');
+
+            // Both sortBy and sortOrder should be reset for proper chronological chart display
+            expect(queryJSON?.sortBy).toBe(CONST.SEARCH.TABLE_COLUMNS.GROUP_MONTH);
+            expect(queryJSON?.sortOrder).toBe(CONST.SEARCH.SORT_ORDER.ASC);
+        });
+
+        test('view switch from table to bar with time-based groupBy resets custom sortBy to groupBy default', () => {
+            // User has week groupBy in table view, but has manually sorted by groupTotal
+            // When switching to bar chart, sortBy should reset to groupWeek for chronological display
+            const result = buildFilterQueryWithSortDefaults(
+                {type: 'expense', groupBy: CONST.SEARCH.GROUP_BY.WEEK, view: CONST.SEARCH.VIEW.BAR},
+                {view: CONST.SEARCH.VIEW.TABLE, groupBy: CONST.SEARCH.GROUP_BY.WEEK},
+                {sortBy: CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL, sortOrder: CONST.SEARCH.SORT_ORDER.DESC},
+            );
+            const queryJSON = buildSearchQueryJSON(result ?? '');
+
+            // Both sortBy and sortOrder should be reset for proper chronological chart display
+            expect(queryJSON?.sortBy).toBe(CONST.SEARCH.TABLE_COLUMNS.GROUP_WEEK);
+            expect(queryJSON?.sortOrder).toBe(CONST.SEARCH.SORT_ORDER.ASC);
+        });
     });
 
     describe('shouldResetSort', () => {
