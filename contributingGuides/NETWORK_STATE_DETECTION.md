@@ -104,7 +104,7 @@ One successful request resets everything — it proves the server is reachable a
 
 **File:** `src/libs/NetworkState.ts`
 
-`NetworkState` is the single source of truth for offline status. It holds three module-level boolean flags:
+`NetworkState` is the single source of truth for offline status. It holds three module-level boolean flags. Because the state is module-level (not persisted in Onyx), each browser tab detects connectivity independently. This is intentional — each tab has its own network conditions and should evaluate them on its own.
 
 ```
 noRadioActive          — set by NetworkConnection (Layer 1)
