@@ -1,10 +1,11 @@
-import React, {useEffect} from 'react';
+import React, {useEffect, useRef} from 'react';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useSubStep from '@hooks/useSubStep';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import getPlaidOAuthReceivedRedirectURI from '@libs/getPlaidOAuthReceivedRedirectURI';
+import {getBankAccountIDAsNumber} from '@libs/ReimbursementAccountUtils';
 import getSubStepValues from '@pages/ReimbursementAccount/utils/getSubStepValues';
 import {connectBankAccountManually, connectBankAccountWithPlaid} from '@userActions/BankAccounts';
 import {hideBankAccountErrors} from '@userActions/ReimbursementAccount';
@@ -41,7 +42,7 @@ function BankInfo({onBackButtonPress, policyID, setUSDBankAccountStep}: BankInfo
     const [plaidLinkToken] = useOnyx(ONYXKEYS.PLAID_LINK_TOKEN);
     const {translate} = useLocalize();
 
-    const [redirectedFromPlaidToManual, setRedirectedFromPlaidToManual] = React.useState(false);
+    const redirectedFromPlaidToManualRef = useRef(false);
     const values = getSubStepValues(BANK_INFO_STEP_KEYS, reimbursementAccountDraft, reimbursementAccount ?? {});
 
     let setupType = reimbursementAccount?.achData?.subStep ?? '';
@@ -51,7 +52,7 @@ function BankInfo({onBackButtonPress, policyID, setUSDBankAccountStep}: BankInfo
         setupType = CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID;
     }
 
-    const bankAccountID = Number(reimbursementAccount?.achData?.bankAccountID);
+    const bankAccountID = getBankAccountIDAsNumber(reimbursementAccount?.achData);
     const submit = (submitData: unknown) => {
         const data = submitData as ReimbursementAccountForm;
         if (setupType === CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL) {
@@ -86,19 +87,20 @@ function BankInfo({onBackButtonPress, policyID, setUSDBankAccountStep}: BankInfo
     };
 
     const bodyContent = setupType === CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID ? plaidSubSteps : manualSubSteps;
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const {componentToRender: SubStep, isEditing, screenIndex, nextScreen, prevScreen, moveTo} = useSubStep<BankInfoSubStepProps>({bodyContent, startFrom: 0, onFinished: submit});
 
     // Some services user connects to via Plaid return dummy account numbers and routing numbers e.g. Chase
     // In this case we need to redirect user to manual flow to enter real account number and routing number
     // and we need to do it only once so redirectedFromPlaidToManual flag is used
     useEffect(() => {
-        if (redirectedFromPlaidToManual) {
+        if (redirectedFromPlaidToManualRef.current) {
             return;
         }
-        if (setupType === CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL && values.bankName !== '' && !redirectedFromPlaidToManual) {
-            setRedirectedFromPlaidToManual(true);
+        if (setupType === CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL && values.bankName !== '') {
+            redirectedFromPlaidToManualRef.current = true;
         }
-    }, [redirectedFromPlaidToManual, setupType, values.bankName]);
+    }, [setupType, values.bankName]);
 
     const handleBackButtonPress = () => {
         if (screenIndex === 0) {
