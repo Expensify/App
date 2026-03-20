@@ -586,7 +586,7 @@ describe('useSelectedTransactionsActions', () => {
         expect(moveOption?.text).toBe('iou.moveExpenses');
     });
 
-    it('should pass transaction to canEditFieldOfMoneyRequest when checking move eligibility', async () => {
+    it('should forward transaction when calling canEditFieldOfMoneyRequest for move eligibility', async () => {
         const transactionID = '123';
         const report = createRandomReport(1, undefined);
         report.type = CONST.REPORT.TYPE.EXPENSE;
