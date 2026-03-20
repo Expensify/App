@@ -525,11 +525,11 @@ function search({
         // eslint-disable-next-line rulesdir/no-api-side-effects-method
         return API.makeRequestWithSideEffects(READ_COMMANDS.SEARCH, {hash: queryJSON.hash, jsonQuery}, {optimisticData, finallyData, failureData})
             .then((result) => {
-                const response = result?.onyxData?.[0]?.value as OnyxSearchResponse;
-                const reports = Object.keys(response?.data ?? {})
-                    .filter((key) => key.startsWith(ONYXKEYS.COLLECTION.REPORT))
-                    .map((key) => key.replace(ONYXKEYS.COLLECTION.REPORT, ''));
                 if (shouldUpdateLastSearchParams) {
+                    const response = result?.onyxData?.[0]?.value as OnyxSearchResponse;
+                    const reports = Object.keys(response?.data ?? {})
+                        .filter((key) => key.startsWith(ONYXKEYS.COLLECTION.REPORT))
+                        .map((key) => key.replace(ONYXKEYS.COLLECTION.REPORT, ''));
                     if (response?.search?.offset) {
                         // Indicates that search results are extended from the Report view (with navigation between reports),
                         // using previous results to enable correct counter behavior.
