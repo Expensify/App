@@ -101,6 +101,13 @@ function handleNavigationGuards(
         // to them after the redirect screen is dismissed. Otherwise (fresh app with no stack),
         // use the full redirect state which includes the base route (e.g., Home).
         const redirectRoute = redirectState.routes.at(-1);
+
+        // If the redirect target is already in the stack (e.g., multiple actions triggered
+        // on fresh app open all fire the same guard), don't add it again.
+        if (redirectRoute && state.routes.some((route) => route.name === redirectRoute.name)) {
+            return state;
+        }
+
         const routes = hasExistingFullScreenRoute && redirectRoute ? [...state.routes, redirectRoute] : redirectState.routes;
 
         const resetAction = CommonActions.reset({
