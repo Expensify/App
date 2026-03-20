@@ -224,6 +224,7 @@ const CONST = {
     ANIMATED_HIGHLIGHT_END_DELAY: 800,
     ANIMATED_HIGHLIGHT_END_DURATION: 2000,
     ANIMATED_TRANSITION: 300,
+    KEYBOARD_RESTORATION_FLAG_RESET_DELAY: 100,
     SIDE_PANEL_ANIMATED_TRANSITION: 300,
     ANIMATED_TRANSITION_FROM_VALUE: 100,
     ANIMATED_PROGRESS_BAR_DELAY: 300,
@@ -8522,6 +8523,9 @@ const CONST = {
         ODOMETER_EXPENSE: {
             CAPTURE_IMAGE_START: 'IOURequestStepDistanceOdometer-CaptureStartImage',
             CAPTURE_IMAGE_END: 'IOURequestStepDistanceOdometer-CaptureEndImage',
+        },
+        OPTION_CARD_PICKER: {
+            OPTION_ITEM: 'OptionCardPicker-OptionItem',
         },
         ATTACHMENT_CAROUSEL: {
             PREVIOUS_BUTTON: 'AttachmentCarousel-PreviousButton',
