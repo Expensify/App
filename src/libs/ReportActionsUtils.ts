@@ -476,7 +476,7 @@ function getReimbursedMessage(translate: LocalizedTranslate, reportAction: OnyxI
 
     let paymentSuffix = '';
     if (paymentMethod === 'Fast_ACH' && expectedDate && expectedDate !== '???') {
-        const formattedDate = DateUtils.formatWithUTCTimeZone(expectedDate, CONST.DATE.FNS_FORMAT_STRING);
+        const formattedDate = DateUtils.formatWithUTCTimeZone(expectedDate, CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT);
         paymentSuffix = translate('iou.reimbursedWithFastACH', {isCurrentUser, submitterLogin, creditBankAccount: creditBankAccountLast4 ?? '', expectedDate: formattedDate});
     } else if (paymentMethod === 'Check') {
         paymentSuffix = translate('iou.reimbursedWithCheck');
