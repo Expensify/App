@@ -37,7 +37,7 @@ import {openOldDotLink} from '@libs/actions/Link';
 import {turnOffMobileSelectionMode, turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import type {TransactionPreviewData} from '@libs/actions/Search';
 import {setOptimisticDataForTransactionThreadPreview} from '@libs/actions/Search';
-import {flushDeferredSearchWrite, hasDeferredSearchWrite} from '@libs/deferredSearchWrite';
+import {flushDeferredWrite, hasDeferredWrite} from '@libs/deferredLayoutWrite';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import Log from '@libs/Log';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
@@ -220,7 +220,7 @@ function Search({
     const {type, status, sortBy, sortOrder, hash, similarSearchHash, groupBy, view} = queryJSON;
     // On the submit-expense->search path a deferred API write is pending.
     // Force the skeleton so the user gets instant first paint while heavy work defers.
-    const hasPendingWriteOnMountRef = useRef(hasDeferredSearchWrite());
+    const hasPendingWriteOnMountRef = useRef(hasDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH));
     const skipDeferralOnFocusRef = useRef(isSearchDataLoaded(searchResults, queryJSON) && !hasPendingWriteOnMountRef.current);
 
     const [shouldDeferHeavySearchWork, setShouldDeferHeavySearchWork] = useState(() => !isSearchDataLoaded(searchResults, queryJSON) || hasPendingWriteOnMountRef.current);
@@ -1299,7 +1299,7 @@ function Search({
         // Reset the ref after the span is ended so future render-time cancelSpan calls are no longer guarded.
         spanExistedOnMount.current = false;
         handleSelectionListScroll(sortedData, searchListRef.current);
-        flushDeferredSearchWrite();
+        flushDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH);
     }, [handleSelectionListScroll, sortedData]);
 
     useEffect(() => {
@@ -1331,11 +1331,11 @@ function Search({
     // so its onLayout callback (the primary flush site) never fires. This effect
     // catches that case and flushes immediately after commit.
     useEffect(() => {
-        if (!didBailToFallbackState.current || !hasDeferredSearchWrite()) {
+        if (!didBailToFallbackState.current || !hasDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH)) {
             return;
         }
         didBailToFallbackState.current = false;
-        flushDeferredSearchWrite();
+        flushDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH);
     });
 
     const onLayoutChart = useCallback(() => {
@@ -1360,7 +1360,7 @@ function Search({
             markNavigateAfterExpenseCreateEnd();
             spanExistedOnMount.current = false;
             // On re-focus (e.g. DISMISS_MODAL_ONLY) onLayout won't re-fire — flush here.
-            flushDeferredSearchWrite();
+            flushDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH);
         }, [shouldShowLoadingState]),
     );
 
