@@ -452,6 +452,8 @@ const translations: TranslationDeepObject<typeof en> = {
         downloadAsCSV: '下载为 CSV',
         print: '打印',
         help: '帮助',
+        collapsed: '已折叠',
+        expanded: '已展开',
         expenseReport: '报销报告',
         expenseReports: '报销报告',
         rateOutOfPolicy: '超出政策的费率',
