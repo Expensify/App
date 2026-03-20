@@ -441,7 +441,15 @@ function deleteSavedSearch(hash: number) {
 }
 
 function openSearchPage({includePartiallySetupBankAccounts}: OpenSearchPageParams) {
-    API.read(READ_COMMANDS.OPEN_SEARCH_PAGE, {includePartiallySetupBankAccounts});
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.IS_SEARCH_PAGE_DATA_LOADED>> = [
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: ONYXKEYS.IS_SEARCH_PAGE_DATA_LOADED,
+            value: true,
+        },
+    ];
+
+    API.read(READ_COMMANDS.OPEN_SEARCH_PAGE, {includePartiallySetupBankAccounts}, {successData});
 }
 
 // Tracks in-flight search requests by hash+offset to prevent duplicate API calls
