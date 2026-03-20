@@ -223,7 +223,7 @@ function HeaderWithBackButton({
                 shouldOverlay && StyleSheet.absoluteFillObject,
                 style,
             ]}
-            onTouchStart={() => Keyboard.dismiss()}
+            onTouchStart={isInLandscapeMode ? () => Keyboard.dismiss() : undefined}
         >
             <View style={[styles.dFlex, styles.flexRow, styles.alignItemsCenter, styles.flexGrow1, styles.justifyContentBetween, styles.overflowHidden, styles.mr3]}>
                 {shouldShowBackButton && (

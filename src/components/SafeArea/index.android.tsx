@@ -5,6 +5,7 @@ import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeed
 import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useThemeStyles from '@hooks/useThemeStyles';
+import CONST from '@src/CONST';
 import type SafeAreaProps from './types';
 
 function SafeArea({children}: SafeAreaProps) {
@@ -28,6 +29,7 @@ function SafeArea({children}: SafeAreaProps) {
                     onPress={() => Keyboard.dismiss()}
                     role="none"
                     accessible={false}
+                    sentryLabel={CONST.SENTRY_LABEL.SAFE_AREA.DISMISS_KEYBOARD_LANDSCAPE_MODE}
                 />
             )}
             {right > 0 && (
@@ -36,6 +38,7 @@ function SafeArea({children}: SafeAreaProps) {
                     onPress={() => Keyboard.dismiss()}
                     role="none"
                     accessible={false}
+                    sentryLabel={CONST.SENTRY_LABEL.SAFE_AREA.DISMISS_KEYBOARD_LANDSCAPE_MODE}
                 />
             )}
         </SafeAreaView>
