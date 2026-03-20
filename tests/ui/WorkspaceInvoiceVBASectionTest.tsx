@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/naming-convention */
-import {act, render, screen} from '@testing-library/react-native';
+/* eslint-disable react-native-a11y/has-valid-accessibility-descriptors */
+import {act, render} from '@testing-library/react-native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 import ComposeProviders from '@components/ComposeProviders';
@@ -15,7 +16,9 @@ import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct'
 const POLICY_ID = 'testInvoicePolicy123';
 
 jest.mock('@react-navigation/native', () => {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const actualNav = jest.requireActual('@react-navigation/native');
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return {
         ...actualNav,
         useIsFocused: () => true,
@@ -39,6 +42,7 @@ const mockNavigate = jest.fn();
 jest.mock('@libs/Navigation/Navigation', () => ({
     __esModule: true,
     default: {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-return
         navigate: (...args: unknown[]) => mockNavigate(...args),
         getActiveRoute: jest.fn(() => ''),
         isTopmostRouteModalScreen: jest.fn(() => false),
@@ -51,18 +55,22 @@ jest.mock('@libs/actions/ReimbursementAccount', () => ({
 
 const mockDeletePaymentBankAccount = jest.fn();
 jest.mock('@userActions/BankAccounts', () => ({
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     deletePaymentBankAccount: (...args: unknown[]) => mockDeletePaymentBankAccount(...args),
 }));
 
 const mockSetInvoicingTransferBankAccount = jest.fn();
 jest.mock('@userActions/PaymentMethods', () => ({
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     setInvoicingTransferBankAccount: (...args: unknown[]) => mockSetInvoicingTransferBankAccount(...args),
 }));
 
 const mockCloseActionModal = jest.fn((callback?: () => void) => {
-    if (callback) {
-        callback();
+    if (!callback) {
+        return;
     }
+
+    callback();
 });
 jest.mock('@userActions/Modal', () => ({
     close: (...args: [(() => void)?]) => mockCloseActionModal(...args),
@@ -80,6 +88,7 @@ jest.mock('@hooks/useConfirmModal', () => {
 
 // Mock PaymentMethodList to expose callbacks for testing
 let mockCapturedOnAddBankAccountPress: (() => void) | undefined;
+// eslint-disable-next-line rulesdir/no-negated-variables
 let mockCapturedOnThreeDotsMenuPress: ((mockParams: Record<string, unknown>) => void) | undefined;
 let mockCapturedThreeDotsMenuItems: Array<{text: string; onSelected?: () => void}> | undefined;
 
@@ -150,6 +159,7 @@ describe('WorkspaceInvoiceVBASection - Modal Features', () => {
 
     describe('Currency Change Confirm Modal', () => {
         it('should show currency change confirm modal when currency is not supported for global reimbursement', async () => {
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
             const {isCurrencySupportedForGlobalReimbursement} = require('@libs/actions/Policy/Policy');
             (isCurrencySupportedForGlobalReimbursement as jest.Mock).mockReturnValue(false);
 
@@ -178,6 +188,7 @@ describe('WorkspaceInvoiceVBASection - Modal Features', () => {
         });
 
         it('should navigate to currency page when user confirms currency change', async () => {
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
             const {isCurrencySupportedForGlobalReimbursement} = require('@libs/actions/Policy/Policy');
             (isCurrencySupportedForGlobalReimbursement as jest.Mock).mockReturnValue(false);
             mockShowConfirmModal.mockResolvedValue({action: 'CONFIRM'});
@@ -206,6 +217,7 @@ describe('WorkspaceInvoiceVBASection - Modal Features', () => {
         });
 
         it('should reset payment method data when user dismisses currency change modal', async () => {
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
             const {isCurrencySupportedForGlobalReimbursement} = require('@libs/actions/Policy/Policy');
             (isCurrencySupportedForGlobalReimbursement as jest.Mock).mockReturnValue(false);
             mockShowConfirmModal.mockResolvedValue({action: 'CLOSE'});
@@ -234,6 +246,7 @@ describe('WorkspaceInvoiceVBASection - Modal Features', () => {
         });
 
         it('should not show currency modal when currency is supported', async () => {
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
             const {isCurrencySupportedForGlobalReimbursement} = require('@libs/actions/Policy/Policy');
             (isCurrencySupportedForGlobalReimbursement as jest.Mock).mockReturnValue(true);
 

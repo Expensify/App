@@ -1,3 +1,4 @@
+/* eslint-disable react-native-a11y/has-valid-accessibility-descriptors */
 /* eslint-disable @typescript-eslint/naming-convention */
 import {act, render} from '@testing-library/react-native';
 import React from 'react';
@@ -16,7 +17,9 @@ import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct'
 const POLICY_ID = 'testReportsPolicy123';
 
 jest.mock('@react-navigation/native', () => {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const actualNav = jest.requireActual('@react-navigation/native');
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return {
         ...actualNav,
         useIsFocused: () => true,
@@ -40,6 +43,7 @@ const mockNavigate = jest.fn();
 jest.mock('@libs/Navigation/Navigation', () => ({
     __esModule: true,
     default: {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-return
         navigate: (...mockArgs: unknown[]) => mockNavigate(...mockArgs),
         getActiveRoute: jest.fn(() => ''),
         isTopmostRouteModalScreen: jest.fn(() => false),
@@ -61,8 +65,11 @@ const mockEnablePolicyReportFields = jest.fn();
 const mockClearPolicyTitleFieldError = jest.fn();
 const mockSetPolicyPreventMemberCreatedTitle = jest.fn();
 jest.mock('@libs/actions/Policy/Policy', () => ({
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     enablePolicyReportFields: (...mockArgs: unknown[]) => mockEnablePolicyReportFields(...mockArgs),
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     clearPolicyTitleFieldError: (...mockArgs: unknown[]) => mockClearPolicyTitleFieldError(...mockArgs),
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     setPolicyPreventMemberCreatedTitle: (...mockArgs: unknown[]) => mockSetPolicyPreventMemberCreatedTitle(...mockArgs),
 }));
 
@@ -79,7 +86,6 @@ type MockToggleProps = {
     disabledAction?: () => void;
 };
 let mockCapturedReportFieldsToggle: MockToggleProps | undefined;
-let mockCapturedPreventMemberToggle: MockToggleProps | undefined;
 
 jest.mock('@pages/workspace/workflows/ToggleSettingsOptionRow', () => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
@@ -87,8 +93,6 @@ jest.mock('@pages/workspace/workflows/ToggleSettingsOptionRow', () => {
     return (mockProps: MockToggleProps) => {
         if (mockProps.title === 'Report fields') {
             mockCapturedReportFieldsToggle = mockProps;
-        } else if (mockProps.title === 'Prevent members from changing custom report titles') {
-            mockCapturedPreventMemberToggle = mockProps;
         }
         return (
             <View testID={`ToggleSettingOptionRow-${mockProps.title}`}>
@@ -162,7 +166,6 @@ describe('WorkspaceReportsPage - Modal Features', () => {
     afterEach(async () => {
         jest.clearAllMocks();
         mockCapturedReportFieldsToggle = undefined;
-        mockCapturedPreventMemberToggle = undefined;
         await act(async () => {
             await Onyx.clear();
             await waitForBatchedUpdatesWithAct();
