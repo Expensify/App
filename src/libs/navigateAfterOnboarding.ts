@@ -1,6 +1,5 @@
 import {handleRHPVariantNavigation, shouldOpenRHPVariant} from '@components/SidePanel/RHPVariantTest';
 import ROUTES from '@src/ROUTES';
-import type {OnboardingRHPVariant} from '@src/types/onyx';
 import {setDisableDismissOnEscape} from './actions/Modal';
 import shouldOpenOnAdminRoom from './Navigation/helpers/shouldOpenOnAdminRoom';
 import Navigation from './Navigation/Navigation';
@@ -51,12 +50,11 @@ function navigateAfterOnboarding(
     onboardingPolicyID?: string,
     onboardingAdminsChatReportID?: string,
     shouldPreventOpenAdminRoom = false,
-    onboardingRHPVariant?: OnboardingRHPVariant | null,
 ) {
     setDisableDismissOnEscape(false);
 
-    if (shouldOpenRHPVariant(onboardingRHPVariant)) {
-        handleRHPVariantNavigation(onboardingPolicyID, onboardingRHPVariant);
+    if (shouldOpenRHPVariant()) {
+        handleRHPVariantNavigation(onboardingPolicyID);
         return;
     }
 
@@ -85,7 +83,6 @@ function navigateAfterOnboardingWithMicrotaskQueue(
     onboardingPolicyID?: string,
     onboardingAdminsChatReportID?: string,
     shouldPreventOpenAdminRoom = false,
-    onboardingRHPVariant?: OnboardingRHPVariant | null,
 ) {
     Navigation.dismissModal();
     Navigation.setNavigationActionToMicrotaskQueue(() => {
@@ -97,7 +94,6 @@ function navigateAfterOnboardingWithMicrotaskQueue(
             onboardingPolicyID,
             onboardingAdminsChatReportID,
             shouldPreventOpenAdminRoom,
-            onboardingRHPVariant,
         );
     });
 }
