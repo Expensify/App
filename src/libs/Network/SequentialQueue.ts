@@ -121,10 +121,15 @@ function getQueueFlushedData() {
  * requests to our backend is evenly distributed and it gradually decreases with time, which helps the servers catch up.
  */
 function process(): Promise<void> {
-    // When the queue is paused or offline, return early. This prevents any new requests from happening.
-    // The queue will be flushed again when the queue is unpaused or we come back online.
-    if (isQueuePaused || isOfflineNetwork()) {
-        Log.info('[SequentialQueue] Unable to process. Queue is paused or offline.');
+    // When the queue is paused, return early. This prevents any new requests from happening.
+    // The queue will be flushed again when the queue is unpaused.
+    if (isQueuePaused) {
+        Log.info('[SequentialQueue] Unable to process. Queue is paused.');
+        return Promise.resolve();
+    }
+
+    if (isOfflineNetwork()) {
+        Log.info('[SequentialQueue] Unable to process. We are offline.');
         return Promise.resolve();
     }
 
