@@ -56,7 +56,7 @@ When the hard stop clears:
 
 ## Layer 1: OS Radio Detection
 
-**File:** `src/libs/NetworkConnection.ts`
+**File:** `src/libs/NetworkState.ts`
 
 This layer uses `@react-native-community/netinfo` to detect whether the device has an active network interface.
 
@@ -146,6 +146,14 @@ Called after reachability is restored or on app foreground. Handles data synchro
 - Otherwise → calls `App.reconnectApp(lastUpdateIDAppliedToClient)` (incremental sync)
 - Flushes `SequentialQueue` to send any pending write requests
 
+## Thundering Herd Protection
+
+When the server recovers after an outage, many clients detect reachability at roughly the same time. The queue does not add an artificial delay before flushing because the architecture has three layers of natural backoff:
+
+1. **Polling jitter** — each client's NetInfo polls `api/Ping` on its own 5-second cycle, so clients discover recovery at different times (up to 5 seconds of natural spread).
+2. **Per-request exponential backoff** — if the server is still overloaded when a client flushes, `RequestThrottle` applies jittered exponential backoff (10–100 ms initial, doubling up to 30 s cap) on each failed request.
+3. **Re-triggering hard stop** — if enough requests fail after recovery (3 failures over 10 seconds), `FailureTracker` puts the client back into a hard stop, preventing it from hammering the server further.
+
 ## Configuration Constants
 
 All values are defined in `src/CONST/index.ts` under `CONST.NETWORK`:
@@ -159,20 +167,19 @@ All values are defined in `src/CONST/index.ts` under `CONST.NETWORK`:
 
 Two debug options are available via the TestToolMenu (accessible in dev builds):
 
-- **`shouldForceOffline`**: Forces the app into a hard stop. Flows through Onyx → `NetworkConnection` → `NetworkState.setForceOffline()`. Useful for testing offline UX patterns.
-- **`shouldSimulatePoorConnection`**: Randomly toggles the app between online and offline every 2–5 seconds. Handled in `NetworkConnection.ts`. Useful for testing flaky network behavior.
+- **`shouldForceOffline`**: Forces the app into a hard stop. Flows through Onyx → `NetworkState.setForceOffline()`. Useful for testing offline UX patterns.
+- **`shouldSimulatePoorConnection`**: Randomly toggles the app between online and offline every 2–5 seconds. Handled in `NetworkState.ts`. Useful for testing flaky network behavior.
 
 ## Key Files Reference
 
 | File | Role |
 |---|---|
-| `src/libs/NetworkState.ts` | Central hard stop state machine |
-| `src/libs/NetworkConnection.ts` | OS radio detection and reachability tracking via NetInfo |
+| `src/libs/NetworkState.ts` | Central hard stop state machine, OS radio detection, and reachability tracking via NetInfo |
 | `src/libs/FailureTracker.ts` | Counts failures, triggers sustained failure hard stop |
 | `src/libs/Middleware/FailureTracking.ts` | Middleware that observes request outcomes |
 | `src/libs/actions/Reconnect.ts` | Syncs app data after recovery |
 | `src/libs/Network/SequentialQueue.ts` | Write request queue (paused/unpaused by hard stop) |
-| `src/libs/actions/Network.ts` | Sets `isOffline` in Onyx |
+| `src/libs/actions/Network.ts` | Onyx actions for debug flags (forceOffline, simulatePoorConnection) |
 | `src/hooks/useNetwork.ts` | Hook for components to read offline status |
 
 ## Relationship to Offline UX Patterns
