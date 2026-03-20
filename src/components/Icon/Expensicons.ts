@@ -49,6 +49,7 @@ import Download from '@assets/images/download.svg';
 import DragAndDrop from '@assets/images/drag-and-drop.svg';
 import DragHandles from '@assets/images/drag-handles.svg';
 import Emoji from '@assets/images/emoji.svg';
+import EnvelopeOpenStar from '@assets/images/envelope-open-star.svg';
 import EReceiptIcon from '@assets/images/eReceiptIcon.svg';
 import Exclamation from '@assets/images/exclamation.svg';
 import Exit from '@assets/images/exit.svg';
@@ -100,6 +101,7 @@ import InvoiceGeneric from '@assets/images/invoice-generic.svg';
 import Invoice from '@assets/images/invoice.svg';
 import LinkCopy from '@assets/images/link-copy.svg';
 import Link from '@assets/images/link.svg';
+import LuggageWithLinesPlus from '@assets/images/luggage-with-lines-plus.svg';
 import LuggageWithLines from '@assets/images/luggage-with-lines.svg';
 import Mail from '@assets/images/mail.svg';
 import MakeAdmin from '@assets/images/make-admin.svg';
@@ -215,6 +217,7 @@ export {
     DragHandles,
     EReceiptIcon,
     Emoji,
+    EnvelopeOpenStar,
     ExpenseCopy,
     Exclamation,
     Exit,
@@ -338,6 +341,7 @@ export {
     SageIntacctExport,
     XeroExport,
     LuggageWithLines,
+    LuggageWithLinesPlus,
     PlusCircle,
     BillComSquare,
     CertiniaSquare,
