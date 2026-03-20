@@ -667,6 +667,8 @@
         "setuptools",
         "shareeEmail",
         "Sharees",
+        "sharee",
+        "sharees",
         "Sharons",
         "shellcheck",
         "shellenv",
@@ -859,7 +861,8 @@
         "zoneinfo",
         "zxcv",
         "zxldvw",
-        "مثال"
+        "مثال",
+        "PINATM"
     ],
     "ignorePaths": [
         "src/languages/de.ts",

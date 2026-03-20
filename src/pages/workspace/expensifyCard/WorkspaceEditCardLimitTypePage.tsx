@@ -1,5 +1,5 @@
 import {useFocusEffect} from '@react-navigation/native';
-import {toZonedTime} from 'date-fns-tz';
+import {format, toZonedTime} from 'date-fns-tz';
 import React, {useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
@@ -86,10 +86,10 @@ function WorkspaceEditCardLimitTypePage({route}: WorkspaceEditCardLimitTypePageP
     const validFromDefaultValue = useMemo(() => {
         const validFrom = card?.nameValuePairs?.validFrom;
         if (!validFrom) {
-            return undefined;
+            return format(minDate, CONST.DATE.FNS_FORMAT_STRING);
         }
         return DateUtils.formatUTCDateTimeToDateInTimezone(validFrom, assigneeTimeZone);
-    }, [card?.nameValuePairs?.validFrom, assigneeTimeZone]);
+    }, [card?.nameValuePairs?.validFrom, assigneeTimeZone, minDate]);
 
     const validThruDefaultValue = useMemo(() => {
         const validThru = card?.nameValuePairs?.validThru;

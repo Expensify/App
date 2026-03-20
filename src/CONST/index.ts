@@ -22,6 +22,8 @@ import {LOCALES} from './LOCALES';
 const EMPTY_ARRAY = Object.freeze([]);
 const EMPTY_OBJECT = Object.freeze({});
 const EMPTY_SET = new Set<string>();
+// Shared immutable map used in hot paths that only read from the instance.
+const EMPTY_MAP = new Map<string, string>();
 const EMPTY_TODOS_REPORT_COUNTS = Object.freeze({
     submit: 0,
     approve: 0,
@@ -222,6 +224,7 @@ const CONST = {
     ANIMATED_HIGHLIGHT_END_DELAY: 800,
     ANIMATED_HIGHLIGHT_END_DURATION: 2000,
     ANIMATED_TRANSITION: 300,
+    KEYBOARD_RESTORATION_FLAG_RESET_DELAY: 100,
     SIDE_PANEL_ANIMATED_TRANSITION: 300,
     ANIMATED_TRANSITION_FROM_VALUE: 100,
     ANIMATED_PROGRESS_BAR_DELAY: 300,
@@ -821,6 +824,7 @@ const CONST = {
         AU: 'AU',
         CA: 'CA',
         GB: 'GB',
+        GI: 'GI',
         IT: 'IT',
         PR: 'PR',
         GU: 'GU',
@@ -1042,6 +1046,7 @@ const CONST = {
     EMPTY_ARRAY,
     EMPTY_OBJECT,
     EMPTY_SET,
+    EMPTY_MAP,
     EMPTY_TODOS_REPORT_COUNTS,
     DEFAULT_NUMBER_ID,
     DEFAULT_MISSING_ID,
@@ -1149,6 +1154,7 @@ const CONST = {
         EMPLOYEE_TOUR_MOBILE: 'https://expensify.storylane.io/share/v8uwkznocw0g',
         EMPLOYEE_MIGRATED: 'https://app.storylane.io/share/v9dr1rjqsd9y',
         EMPLOYEE_MIGRATED_MOBILE: 'https://app.storylane.io/share/qbbob6zvapqo',
+        IFRAME_SANDBOX: 'allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox',
     },
     OLD_DOT_PUBLIC_URLS: {
         TERMS_URL: `${EXPENSIFY_URL}/terms`,
@@ -1249,6 +1255,7 @@ const CONST = {
             MERGE: 'merge',
             DUPLICATE: 'duplicate',
             DUPLICATE_REPORT: 'duplicateReport',
+            MOVE_EXPENSE: 'moveExpense',
         },
         PRIMARY_ACTIONS: {
             SUBMIT: 'submit',
@@ -1285,6 +1292,7 @@ const CONST = {
             REJECT_BULK: 'rejectBulk',
             MERGE: 'merge',
             DUPLICATE: 'duplicate',
+            MOVE_EXPENSE: 'moveExpense',
         },
         ADD_EXPENSE_OPTIONS: {
             CREATE_NEW_EXPENSE: 'createNewExpense',
@@ -1754,6 +1762,17 @@ const CONST = {
             FAB_OUT: 200,
         },
     },
+    FAB_MENU_ITEM_IDS: {
+        QUICK_ACTION: 'quick-action',
+        EXPENSE: 'expense',
+        TRACK_DISTANCE: 'track-distance',
+        CREATE_REPORT: 'create-report',
+        NEW_CHAT: 'new-chat',
+        INVOICE: 'invoice',
+        TRAVEL: 'travel',
+        TEST_DRIVE: 'test-drive',
+        NEW_WORKSPACE: 'new-workspace',
+    },
     TIMING: {
         REPORT_ACTION_ITEM_LAYOUT_DEBOUNCE_TIME: 1500,
         SHOW_LOADING_SPINNER_DEBOUNCE_TIME: 250,
@@ -1761,6 +1780,7 @@ const CONST = {
         TOOLTIP_SENSE: 1000,
         COMMENT_LENGTH_DEBOUNCE_TIME: 1500,
         SEARCH_OPTION_LIST_DEBOUNCE_TIME: 300,
+        ACCESSIBILITY_ANNOUNCEMENT_DEBOUNCE_TIME: 1000,
         SUGGESTION_DEBOUNCE_TIME: 100,
         RESIZE_DEBOUNCE_TIME: 100,
         UNREAD_UPDATE_DEBOUNCE_TIME: 300,
@@ -1844,6 +1864,7 @@ const CONST = {
         SPAN_NAVIGATE_AFTER_EXPENSE_CREATE: 'ManualCreateExpenseNavigation',
         SPAN_SUBMIT_TO_DESTINATION_VISIBLE: 'ManualSubmitToDestinationVisible',
         SPAN_EXPENSE_SERVER_RESPONSE: 'ManualCreateExpenseServerResponse',
+        SPAN_GEOLOCATION_WAIT: 'ManualGeolocationWait',
         SPAN_SEND_MESSAGE: 'ManualSendMessage',
         SPAN_NOT_FOUND_PAGE: 'ManualNotFoundPage',
         SPAN_SKELETON: 'ManualSkeleton',
@@ -2199,9 +2220,16 @@ const CONST = {
     KEYBOARD_TYPE: {
         VISIBLE_PASSWORD: 'visible-password',
         ASCII_CAPABLE: 'ascii-capable',
+        PHONE_PAD: 'phone-pad',
         NUMBER_PAD: 'number-pad',
         DECIMAL_PAD: 'decimal-pad',
         NUMBERS_AND_PUNCTUATION: 'numbers-and-punctuation',
+    },
+
+    KEYBOARD_SUBMIT_BEHAVIOR: {
+        DISMISS_THEN_SUBMIT: 'dismiss-then-submit',
+        SUBMIT_AND_DISMISS: 'submit-and-dismiss',
+        SUBMIT_ONLY: 'submit-only',
     },
 
     INPUT_MODE: {
@@ -2223,7 +2251,6 @@ const CONST = {
     YOUR_LOCATION_TEXT: 'Your Location',
 
     ATTACHMENT_MESSAGE_TEXT: '[Attachment]',
-    ATTACHMENT_REGEX: /<video |<img /,
     ATTACHMENT_SOURCE_ATTRIBUTE: 'data-expensify-source',
     ATTACHMENT_ID_ATTRIBUTE: 'data-attachment-id',
     ATTACHMENT_OPTIMISTIC_SOURCE_ATTRIBUTE: 'data-optimistic-src',
@@ -2277,6 +2304,20 @@ const CONST = {
         HEIC: 'image/heic',
     },
 
+    IMAGE_CACHE_FILE_TYPES: {
+        'image/webp': 'webp',
+        'image/png': 'png',
+        'image/apng': 'png',
+        'image/avif': 'avif',
+        'image/jpeg': 'jpg',
+        'image/jpg': 'jpg',
+        'image/gif': 'gif',
+        'image/svg+xml': 'svg',
+        'image/x-icon': 'ico',
+        'image/vnd.microsoft.icon': 'ico',
+        'image/heic': 'heic',
+    },
+
     SHARE_FILE_MIMETYPE: {
         JPG: 'image/jpg',
         JPEG: 'image/jpeg',
@@ -2286,6 +2327,7 @@ const CONST = {
         TIF: 'image/tif',
         TIFF: 'image/tiff',
         HEIC: 'image/heic',
+        HEIF: 'image/heif',
         IMG: 'image/*',
         PDF: 'application/pdf',
         MSWORD: 'application/msword',
@@ -2350,16 +2392,16 @@ const CONST = {
     },
 
     FILE_VALIDATION_ERRORS: {
+        FILE_INVALID: 'fileInvalid',
         WRONG_FILE_TYPE: 'wrongFileType',
-        WRONG_FILE_TYPE_MULTIPLE: 'wrongFileTypeMultiple',
         FILE_TOO_LARGE: 'fileTooLarge',
-        FILE_TOO_LARGE_MULTIPLE: 'fileTooLargeMultiple',
         FILE_TOO_SMALL: 'fileTooSmall',
         FILE_CORRUPTED: 'fileCorrupted',
-        FOLDER_NOT_ALLOWED: 'folderNotAllowed',
-        MAX_FILE_LIMIT_EXCEEDED: 'fileLimitExceeded',
         PROTECTED_FILE: 'protectedFile',
+        HEIC_OR_HEIF_IMAGE: 'heicOrHeifImage',
         IMAGE_DIMENSIONS_TOO_LARGE: 'imageDimensionsTooLarge',
+        FOLDER_NOT_ALLOWED: 'folderNotAllowed',
+        MAX_FILE_LIMIT_EXCEEDED: 'maxFileLimitExceeded',
     },
 
     IOS_CAMERA_ROLL_ACCESS_ERROR: 'Access to photo library was denied',
@@ -4223,15 +4265,25 @@ const CONST = {
         NON_NUMERIC: /\D/g,
         ANY_SPACE: /\s/g,
 
-        // Extract attachment's source from the data's html string
-        ATTACHMENT_DATA: /(data-expensify-source|data-name)="([^"]+)"/g,
-
         EMOJI_NAME: /(?<=^|[\s\S]):[\p{L}0-9_+-]+:/gu,
         EMOJI_SUGGESTIONS: /(?<=^|[\s\S]):[\p{L}0-9_+-]{1,40}$/u,
         AFTER_FIRST_LINE_BREAK: /\n.*/g,
         LINE_BREAK: /\r\n|\r|\n|\u2028/g,
         CODE_2FA: /^\d{6}$/,
-        ATTACHMENT_ID: /chat-attachments\/(\d+)/,
+
+        ATTACHMENT: {
+            // Match any attachment tag inside the markdown text i.e only: <img or <video
+            ATTACHMENT_REGEX: /<video |<img /g,
+            // Extract all attachments including all atributes and values from markdown text
+            ATTACHMENT: /<(img|video)[^>]*>/gi,
+            // Retrieve the attachment id value from data-attachment-id attribute
+            ATTACHMENT_ID: /data-attachment-id=(["'])(.*?)\1/,
+            // Retrive attachment source id from attachment source url link
+            ATTACHMENT_SOURCE_ID: /chat-attachments\/(\d+)/,
+            // Retrieve attachment source either local or remote
+            ATTACHMENT_SOURCE: /(src|data-expensify-source|data-optimistic-src)="([^"]+)"/i,
+        },
+
         HAS_COLON_ONLY_AT_THE_BEGINNING: /^:[^:]+$/,
         HAS_AT_MOST_TWO_AT_SIGNS: /^@[^@]*@?[^@]*$/,
         EMPTY_COMMENT: /^(\s)*$/,
@@ -5971,6 +6023,8 @@ const CONST = {
         ENABLED: 'ENABLED',
         DISABLED: 'DISABLED',
         DISABLE: 'DISABLE',
+        REPLACE_VERIFY_OLD: 'REPLACE_VERIFY_OLD',
+        REPLACE_VERIFY_NEW: 'REPLACE_VERIFY_NEW',
     },
     MERGE_ACCOUNT_RESULTS: {
         SUCCESS: 'success',
@@ -6063,6 +6117,7 @@ const CONST = {
 
             /** These action types are custom for RootNavigator */
             DISMISS_MODAL: 'DISMISS_MODAL',
+            REPLACE_FULLSCREEN_UNDER_RHP: 'REPLACE_FULLSCREEN_UNDER_RHP',
             OPEN_WORKSPACE_SPLIT: 'OPEN_WORKSPACE_SPLIT',
             OPEN_DOMAIN_SPLIT: 'OPEN_DOMAIN_SPLIT',
             SET_HISTORY_PARAM: 'SET_HISTORY_PARAM',
@@ -6075,7 +6130,7 @@ const CONST = {
         PM: 'PM',
     },
     INDENTS: '    ',
-    PARENT_CHILD_SEPARATOR: ':',
+    PARENT_CHILD_SEPARATOR: ': ',
     DISTANCE_MERCHANT_SEPARATOR: '@',
     COLON: ':',
     MAPBOX: {
@@ -7143,6 +7198,10 @@ const CONST = {
         BOOK_MEETING_LINK: 'https://calendly.com/d/cqsm-2gm-fxr/expensify-product-team',
     },
 
+    CACHE_API_KEYS: {
+        ATTACHMENTS: 'attachments',
+    },
+
     SESSION_STORAGE_KEYS: {
         INITIAL_URL: 'INITIAL_URL',
         ACTIVE_WORKSPACE_ID: 'ACTIVE_WORKSPACE_ID',
@@ -7308,6 +7367,7 @@ const CONST = {
                 EXPENSE: {
                     RECEIPT: this.TABLE_COLUMNS.RECEIPT,
                     DATE: this.TABLE_COLUMNS.DATE,
+                    STATUS: this.TABLE_COLUMNS.STATUS,
                     SUBMITTED: this.TABLE_COLUMNS.SUBMITTED,
                     APPROVED: this.TABLE_COLUMNS.APPROVED,
                     POSTED: this.TABLE_COLUMNS.POSTED,
@@ -7328,7 +7388,6 @@ const CONST = {
                     BILLABLE: this.TABLE_COLUMNS.BILLABLE,
                     TAX_RATE: this.TABLE_COLUMNS.TAX_RATE,
                     TAX_AMOUNT: this.TABLE_COLUMNS.TAX_AMOUNT,
-                    STATUS: this.TABLE_COLUMNS.STATUS,
                     TITLE: this.TABLE_COLUMNS.TITLE,
                     AMOUNT: this.TABLE_COLUMNS.TOTAL_AMOUNT,
                     EXPORTED_TO: this.TABLE_COLUMNS.EXPORTED_TO,
@@ -7439,13 +7498,12 @@ const CONST = {
                 EXPENSE: [
                     this.TABLE_COLUMNS.RECEIPT,
                     this.TABLE_COLUMNS.DATE,
+                    this.TABLE_COLUMNS.STATUS,
                     this.TABLE_COLUMNS.MERCHANT,
                     this.TABLE_COLUMNS.FROM,
-                    this.TABLE_COLUMNS.TO,
                     this.TABLE_COLUMNS.CATEGORY,
                     this.TABLE_COLUMNS.TAG,
                     this.TABLE_COLUMNS.TOTAL_AMOUNT,
-                    this.TABLE_COLUMNS.ACTION,
                 ],
                 EXPENSE_REPORT: [
                     this.TABLE_COLUMNS.DATE,
@@ -7794,6 +7852,11 @@ const CONST = {
             ON: 'On',
             AFTER: 'After',
             BEFORE: 'Before',
+        },
+        DATE_FILTER_SUB_PAGE: {
+            ON: 'on',
+            AFTER: 'after',
+            BEFORE: 'before',
         },
         AMOUNT_MODIFIERS: {
             LESS_THAN: 'LessThan',
@@ -8148,7 +8211,7 @@ const CONST = {
         CUSTOM_FIELD_1: 'customField1',
         CUSTOM_FIELD_2: 'customField2',
         ROLE: 'role',
-        REPORT_THRESHHOLD: 'reportThreshold',
+        REPORT_THRESHOLD: 'reportThreshold',
         APPROVE_TO_ALTERNATE: 'approveToAlternate',
         SUBRATE: 'subRate',
         AMOUNT: 'amount',
@@ -8483,6 +8546,9 @@ const CONST = {
             CAPTURE_IMAGE_START: 'IOURequestStepDistanceOdometer-CaptureStartImage',
             CAPTURE_IMAGE_END: 'IOURequestStepDistanceOdometer-CaptureEndImage',
         },
+        OPTION_CARD_PICKER: {
+            OPTION_ITEM: 'OptionCardPicker-OptionItem',
+        },
         ATTACHMENT_CAROUSEL: {
             PREVIOUS_BUTTON: 'AttachmentCarousel-PreviousButton',
             NEXT_BUTTON: 'AttachmentCarousel-NextButton',
@@ -8700,6 +8766,7 @@ const CONST = {
             ADD_EXPENSE_UNREPORTED: 'MoreMenu-AddExpenseUnreported',
             PAY: 'MoreMenu-Pay',
             DUPLICATE_REPORT: 'MoreMenu-DuplicateReport',
+            MOVE_EXPENSE: 'MoreMenu-MoveExpense',
         },
         REPORT_PREVIEW: {
             CARD: 'ReportPreview-Card',
