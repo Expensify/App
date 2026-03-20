@@ -1468,102 +1468,79 @@ describe('SearchQueryUtils', () => {
             expect(result).toContain('sortOrder:desc');
         });
 
-        test('view switch from bar to table preserves sort entirely', () => {
-            const result = buildFilterQueryWithSortDefaults(
+        test('view switches between table and bar/pie preserve sort for non-time groupBy', () => {
+            // Bar → Table
+            let result = buildFilterQueryWithSortDefaults(
                 {type: 'expense', groupBy: CONST.SEARCH.GROUP_BY.CATEGORY, view: CONST.SEARCH.VIEW.TABLE},
                 {view: CONST.SEARCH.VIEW.BAR, groupBy: CONST.SEARCH.GROUP_BY.CATEGORY},
                 {sortBy: CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL, sortOrder: CONST.SEARCH.SORT_ORDER.DESC},
             );
-
             expect(result).toContain('sortBy:groupTotal');
             expect(result).toContain('sortOrder:desc');
-        });
 
-        test('view switch from table to bar preserves sort for non-time groupBy', () => {
-            const result = buildFilterQueryWithSortDefaults(
+            // Table → Bar
+            result = buildFilterQueryWithSortDefaults(
                 {type: 'expense', groupBy: CONST.SEARCH.GROUP_BY.CATEGORY, view: CONST.SEARCH.VIEW.BAR},
                 {view: CONST.SEARCH.VIEW.TABLE, groupBy: CONST.SEARCH.GROUP_BY.CATEGORY},
                 {sortBy: CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL, sortOrder: CONST.SEARCH.SORT_ORDER.DESC},
             );
-
             expect(result).toContain('sortBy:groupTotal');
             expect(result).toContain('sortOrder:desc');
         });
 
-        test('view switch from pie to table preserves sort entirely', () => {
-            const result = buildFilterQueryWithSortDefaults(
-                {type: 'expense', groupBy: CONST.SEARCH.GROUP_BY.MERCHANT, view: CONST.SEARCH.VIEW.TABLE},
-                {view: CONST.SEARCH.VIEW.PIE, groupBy: CONST.SEARCH.GROUP_BY.MERCHANT},
-                {sortBy: CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL, sortOrder: CONST.SEARCH.SORT_ORDER.DESC},
-            );
-
-            expect(result).toContain('sortBy:groupTotal');
-            expect(result).toContain('sortOrder:desc');
-        });
-
-        test('view switch from table to line with time-based groupBy resets sortOrder to asc', () => {
-            const result = buildFilterQueryWithSortDefaults(
+        test('view switch to line with time-based groupBy resets sort for chronological display', () => {
+            // With default sortBy (groupMonth)
+            let result = buildFilterQueryWithSortDefaults(
                 {type: 'expense', groupBy: CONST.SEARCH.GROUP_BY.MONTH, view: CONST.SEARCH.VIEW.LINE},
                 {view: CONST.SEARCH.VIEW.TABLE, groupBy: CONST.SEARCH.GROUP_BY.MONTH},
                 {sortBy: CONST.SEARCH.TABLE_COLUMNS.GROUP_MONTH, sortOrder: CONST.SEARCH.SORT_ORDER.DESC},
             );
-            const queryJSON = buildSearchQueryJSON(result ?? '');
-
+            let queryJSON = buildSearchQueryJSON(result ?? '');
             expect(queryJSON?.sortBy).toBe(CONST.SEARCH.TABLE_COLUMNS.GROUP_MONTH);
             expect(queryJSON?.sortOrder).toBe(CONST.SEARCH.SORT_ORDER.ASC);
-        });
 
-        test('view switch from table to bar with time-based groupBy preserves sort order', () => {
-            // Bar charts can display data in any order (e.g., top spending months first)
-            // so sort should be preserved when switching from table to bar
-            const result = buildFilterQueryWithSortDefaults(
-                {type: 'expense', groupBy: CONST.SEARCH.GROUP_BY.WEEK, view: CONST.SEARCH.VIEW.BAR},
-                {view: CONST.SEARCH.VIEW.TABLE, groupBy: CONST.SEARCH.GROUP_BY.WEEK},
-                {sortBy: CONST.SEARCH.TABLE_COLUMNS.GROUP_WEEK, sortOrder: CONST.SEARCH.SORT_ORDER.DESC},
-            );
-
-            expect(result).toContain('sortBy:groupweek');
-            expect(result).toContain('sortOrder:desc');
-        });
-
-        test('view switch between chart views with time-based groupBy preserves sortOrder', () => {
-            const result = buildFilterQueryWithSortDefaults(
-                {type: 'expense', groupBy: CONST.SEARCH.GROUP_BY.MONTH, view: CONST.SEARCH.VIEW.LINE},
-                {view: CONST.SEARCH.VIEW.BAR, groupBy: CONST.SEARCH.GROUP_BY.MONTH},
-                {sortBy: CONST.SEARCH.TABLE_COLUMNS.GROUP_MONTH, sortOrder: CONST.SEARCH.SORT_ORDER.ASC},
-            );
-
-            expect(result).toContain('sortBy:groupmonth');
-            expect(result).toContain('sortOrder:asc');
-        });
-
-        test('view switch from table to chart with time-based groupBy resets custom sortBy to groupBy default', () => {
-            // User has month groupBy in table view, but has manually sorted by groupTotal
-            // When switching to line chart, sortBy should reset to groupMonth for chronological display
-            const result = buildFilterQueryWithSortDefaults(
+            // With custom sortBy (groupTotal) - should also reset to groupBy default
+            result = buildFilterQueryWithSortDefaults(
                 {type: 'expense', groupBy: CONST.SEARCH.GROUP_BY.MONTH, view: CONST.SEARCH.VIEW.LINE},
                 {view: CONST.SEARCH.VIEW.TABLE, groupBy: CONST.SEARCH.GROUP_BY.MONTH},
                 {sortBy: CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL, sortOrder: CONST.SEARCH.SORT_ORDER.DESC},
             );
-            const queryJSON = buildSearchQueryJSON(result ?? '');
-
-            // Both sortBy and sortOrder should be reset for proper chronological chart display
+            queryJSON = buildSearchQueryJSON(result ?? '');
             expect(queryJSON?.sortBy).toBe(CONST.SEARCH.TABLE_COLUMNS.GROUP_MONTH);
             expect(queryJSON?.sortOrder).toBe(CONST.SEARCH.SORT_ORDER.ASC);
         });
 
-        test('view switch from table to bar with time-based groupBy preserves custom sortBy', () => {
-            // User has week groupBy in table view, sorted by groupTotal (top spending weeks first)
-            // Bar charts can display data in any order, so sort should be preserved
-            const result = buildFilterQueryWithSortDefaults(
+        test('view switch to bar with time-based groupBy preserves sort', () => {
+            // Bar charts can display data in any order (e.g., top spending months first)
+            // With default sortBy
+            let result = buildFilterQueryWithSortDefaults(
+                {type: 'expense', groupBy: CONST.SEARCH.GROUP_BY.WEEK, view: CONST.SEARCH.VIEW.BAR},
+                {view: CONST.SEARCH.VIEW.TABLE, groupBy: CONST.SEARCH.GROUP_BY.WEEK},
+                {sortBy: CONST.SEARCH.TABLE_COLUMNS.GROUP_WEEK, sortOrder: CONST.SEARCH.SORT_ORDER.DESC},
+            );
+            expect(result).toContain('sortBy:groupweek');
+            expect(result).toContain('sortOrder:desc');
+
+            // With custom sortBy (groupTotal)
+            result = buildFilterQueryWithSortDefaults(
                 {type: 'expense', groupBy: CONST.SEARCH.GROUP_BY.WEEK, view: CONST.SEARCH.VIEW.BAR},
                 {view: CONST.SEARCH.VIEW.TABLE, groupBy: CONST.SEARCH.GROUP_BY.WEEK},
                 {sortBy: CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL, sortOrder: CONST.SEARCH.SORT_ORDER.DESC},
             );
-
-            // Sort should be preserved for bar charts - they can show top spending periods first
             expect(result).toContain('sortBy:groupTotal');
             expect(result).toContain('sortOrder:desc');
+        });
+
+        test('view switch from bar to line with time-based groupBy resets sort', () => {
+            // Switching from bar (any order) to line (needs chronological)
+            const result = buildFilterQueryWithSortDefaults(
+                {type: 'expense', groupBy: CONST.SEARCH.GROUP_BY.MONTH, view: CONST.SEARCH.VIEW.LINE},
+                {view: CONST.SEARCH.VIEW.BAR, groupBy: CONST.SEARCH.GROUP_BY.MONTH},
+                {sortBy: CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL, sortOrder: CONST.SEARCH.SORT_ORDER.DESC},
+            );
+            const queryJSON = buildSearchQueryJSON(result ?? '');
+            expect(queryJSON?.sortBy).toBe(CONST.SEARCH.TABLE_COLUMNS.GROUP_MONTH);
+            expect(queryJSON?.sortOrder).toBe(CONST.SEARCH.SORT_ORDER.ASC);
         });
     });
 
@@ -1590,25 +1567,17 @@ describe('SearchQueryUtils', () => {
     });
 
     describe('shouldResetSortForViewChange', () => {
-        test('returns true when switching to line view with time-based groupBy', () => {
-            // Line charts need chronological order for proper left-to-right reading
+        test('returns true for line view transitions with time-based groupBy', () => {
+            // Line charts need chronological order - reset when entering or leaving line view
             expect(shouldResetSortForViewChange({newView: CONST.SEARCH.VIEW.LINE, oldView: CONST.SEARCH.VIEW.TABLE, groupBy: CONST.SEARCH.GROUP_BY.MONTH})).toBe(true);
             expect(shouldResetSortForViewChange({newView: CONST.SEARCH.VIEW.LINE, oldView: CONST.SEARCH.VIEW.BAR, groupBy: CONST.SEARCH.GROUP_BY.WEEK})).toBe(true);
-        });
-
-        test('returns true when switching from line view to table with time-based groupBy', () => {
-            // When leaving line view, reset so table gets its default (desc for most recent first)
             expect(shouldResetSortForViewChange({newView: CONST.SEARCH.VIEW.TABLE, oldView: CONST.SEARCH.VIEW.LINE, groupBy: CONST.SEARCH.GROUP_BY.WEEK})).toBe(true);
         });
 
-        test('returns false when switching to bar/pie view with time-based groupBy', () => {
-            // Bar and pie charts can display data in any order (e.g., top spending months first)
+        test('returns false for bar/pie view transitions with time-based groupBy', () => {
+            // Bar and pie charts can display data in any order - preserve sort in both directions
             expect(shouldResetSortForViewChange({newView: CONST.SEARCH.VIEW.BAR, oldView: CONST.SEARCH.VIEW.TABLE, groupBy: CONST.SEARCH.GROUP_BY.WEEK})).toBe(false);
             expect(shouldResetSortForViewChange({newView: CONST.SEARCH.VIEW.PIE, oldView: CONST.SEARCH.VIEW.TABLE, groupBy: CONST.SEARCH.GROUP_BY.YEAR})).toBe(false);
-        });
-
-        test('returns false when switching from bar/pie to table with time-based groupBy', () => {
-            // Preserve sort when moving between bar/pie and table
             expect(shouldResetSortForViewChange({newView: CONST.SEARCH.VIEW.TABLE, oldView: CONST.SEARCH.VIEW.BAR, groupBy: CONST.SEARCH.GROUP_BY.MONTH})).toBe(false);
             expect(shouldResetSortForViewChange({newView: CONST.SEARCH.VIEW.TABLE, oldView: CONST.SEARCH.VIEW.PIE, groupBy: CONST.SEARCH.GROUP_BY.YEAR})).toBe(false);
         });
@@ -1618,10 +1587,9 @@ describe('SearchQueryUtils', () => {
             expect(shouldResetSortForViewChange({newView: CONST.SEARCH.VIEW.LINE, oldView: CONST.SEARCH.VIEW.LINE, groupBy: CONST.SEARCH.GROUP_BY.MONTH})).toBe(false);
         });
 
-        test('returns false for non-time groupBy even when switching views', () => {
-            expect(shouldResetSortForViewChange({newView: CONST.SEARCH.VIEW.BAR, oldView: CONST.SEARCH.VIEW.TABLE, groupBy: CONST.SEARCH.GROUP_BY.CATEGORY})).toBe(false);
+        test('returns false for non-time groupBy even when switching to line view', () => {
             expect(shouldResetSortForViewChange({newView: CONST.SEARCH.VIEW.LINE, oldView: CONST.SEARCH.VIEW.TABLE, groupBy: CONST.SEARCH.GROUP_BY.MERCHANT})).toBe(false);
-            expect(shouldResetSortForViewChange({newView: CONST.SEARCH.VIEW.TABLE, oldView: CONST.SEARCH.VIEW.BAR, groupBy: CONST.SEARCH.GROUP_BY.CATEGORY})).toBe(false);
+            expect(shouldResetSortForViewChange({newView: CONST.SEARCH.VIEW.TABLE, oldView: CONST.SEARCH.VIEW.LINE, groupBy: CONST.SEARCH.GROUP_BY.CATEGORY})).toBe(false);
         });
 
         test('returns false when groupBy is undefined', () => {
