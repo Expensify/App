@@ -94,34 +94,27 @@ function handleNavigationGuards(
             return null;
         }
 
-        // When the redirect adds a modal (e.g., OnboardingModalNavigator), push it on top of the
-        // existing stack instead of resetting. This preserves deep-linked routes (e.g., a report)
-        // so the user returns to them after dismissing the modal.
-        const modalRoute = redirectState.routes.find((route) => !isFullScreenName(route.name));
-        const hasExistingFullScreenRoute = state.routes.some((route) => isFullScreenName(route.name));
-
-        if (modalRoute && hasExistingFullScreenRoute) {
-            // getAdaptedStateFromPath returns nested state format, but StackActions.push expects {screen, params}.
-            let pushParams = modalRoute.params as Record<string, unknown> | undefined;
-            const nestedRoute = modalRoute.state?.routes?.at(-1);
-            if (nestedRoute) {
-                pushParams = {
-                    ...pushParams,
-                    screen: nestedRoute.name,
-                    params: nestedRoute.params,
-                };
-            }
-
-            const pushAction = StackActions.push(modalRoute.name, pushParams);
-            return stackRouter.getStateForAction(state, pushAction, configOptions);
+        // Push the redirect target on top of the existing stack. This preserves whatever is
+        // already in the stack (e.g., a deep-linked report) so the user returns to it after
+        // the redirected screen is dismissed.
+        const redirectRoute = redirectState.routes.at(-1);
+        if (!redirectRoute) {
+            return null;
         }
 
-        const resetAction = CommonActions.reset({
-            index: redirectState.routes.length - 1,
-            routes: redirectState.routes,
-        });
+        // getAdaptedStateFromPath returns nested state format, but StackActions.push expects {screen, params}.
+        let pushParams = redirectRoute.params as Record<string, unknown> | undefined;
+        const nestedRoute = redirectRoute.state?.routes?.at(-1);
+        if (nestedRoute) {
+            pushParams = {
+                ...pushParams,
+                screen: nestedRoute.name,
+                params: nestedRoute.params,
+            };
+        }
 
-        return stackRouter.getStateForAction(state, resetAction, configOptions);
+        const pushAction = StackActions.push(redirectRoute.name, pushParams);
+        return stackRouter.getStateForAction(state, pushAction, configOptions);
     }
 
     return null;
