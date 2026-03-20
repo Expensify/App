@@ -1,7 +1,6 @@
 import type {ForwardedRef, RefObject} from 'react';
-import React, {useContext, useEffect, useRef, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import {OptionsListStateContext, useOptionsList} from '@components/OptionListContextProvider';
 import OptionsListSkeletonView from '@components/OptionsListSkeletonView';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import type {ListItem as NewListItem, UserListItemProps} from '@components/SelectionList/ListItem/types';
@@ -15,6 +14,7 @@ import useAutocompleteSuggestions from '@hooks/useAutocompleteSuggestions';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebounce from '@hooks/useDebounce';
 import useFeedKeysWithAssignedCards from '@hooks/useFeedKeysWithAssignedCards';
+import useFilteredOptions from '@hooks/useFilteredOptions';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -93,6 +93,11 @@ const defaultListOptions = {
     categoryOptions: [],
 };
 
+const emptyOptionList = {
+    reports: [],
+    personalDetails: [],
+};
+
 const setPerformanceTimersEnd = () => {
     endSpan(CONST.TELEMETRY.SPAN_OPEN_SEARCH_ROUTER);
 };
@@ -164,7 +169,7 @@ function SearchAutocompleteList({
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['History', 'MagnifyingGlass']);
     const taxRates = getAllTaxRates(policies);
 
-    const {options, areOptionsInitialized} = useOptionsList();
+    const {options: listOptions, isLoading} = useFilteredOptions({enabled: true});
 
     const isRecentSearchesDataLoaded = !isLoadingOnyxValue(recentSearchesMetadata);
 
@@ -174,7 +179,6 @@ function SearchAutocompleteList({
         };
     }, []);
 
-    const {areOptionsInitialized: contextAreOptionsInitialized} = useContext(OptionsListStateContext);
     const coldStartAttributeSet = useRef(false);
     useEffect(() => {
         if (coldStartAttributeSet.current) {
@@ -182,17 +186,17 @@ function SearchAutocompleteList({
         }
         const parentSpan = getSpan(CONST.TELEMETRY.SPAN_OPEN_SEARCH_ROUTER);
         if (parentSpan) {
-            parentSpan.setAttribute(CONST.TELEMETRY.ATTRIBUTE_COLD_START, !contextAreOptionsInitialized);
+            parentSpan.setAttribute(CONST.TELEMETRY.ATTRIBUTE_COLD_START, isLoading);
             coldStartAttributeSet.current = true;
         }
-    }, [contextAreOptionsInitialized]);
+    }, [isLoading]);
 
     const searchOptions = (() => {
-        if (!areOptionsInitialized) {
+        if (listOptions === null) {
             return defaultListOptions;
         }
         return getSearchOptions({
-            options,
+            options: listOptions,
             draftComments,
             nvpDismissedProductTraining,
             betas: betas ?? [],
@@ -276,7 +280,7 @@ function SearchAutocompleteList({
         autocompleteQueryValue,
         allCards,
         allFeeds,
-        options,
+        options: listOptions ?? emptyOptionList,
         draftComments,
         nvpDismissedProductTraining,
         betas,
@@ -412,7 +416,7 @@ function SearchAutocompleteList({
     // because useState(initialFocusedIndex) in useArrowKeyFocusManager only reads the initial value.
     // Imperatively focus the first recent report once options become available (desktop only).
     useEffect(() => {
-        if (shouldUseNarrowLayout || !areOptionsInitialized || hasSetInitialFocusRef.current || !firstRecentReportKey) {
+        if (shouldUseNarrowLayout || isLoading || hasSetInitialFocusRef.current || !firstRecentReportKey) {
             return;
         }
         hasSetInitialFocusRef.current = true;
@@ -434,7 +438,7 @@ function SearchAutocompleteList({
                 flatIndex++;
             }
         }
-    }, [areOptionsInitialized, firstRecentReportKey, sections, shouldUseNarrowLayout]);
+    }, [isLoading, firstRecentReportKey, sections, shouldUseNarrowLayout]);
 
     useEffect(() => {
         const targetText = autocompleteQueryValue;
@@ -444,15 +448,15 @@ function SearchAutocompleteList({
         }
     }, [autocompleteQueryValue, onHighlightFirstItem, normalizedReferenceText]);
 
-    const isLoading = !isRecentSearchesDataLoaded || !areOptionsInitialized;
+    const isLoadingFullData = !isRecentSearchesDataLoaded || isLoading;
 
     const reasonAttributes: SkeletonSpanReasonAttributes = {
         context: 'SearchAutocompleteList',
         isRecentSearchesDataLoaded,
-        areOptionsInitialized,
+        areOptionsInitialized: !isLoading,
     };
 
-    if (isLoading) {
+    if (isLoadingFullData) {
         return (
             <OptionsListSkeletonView
                 fixedNumItems={4}
