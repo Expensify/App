@@ -171,14 +171,6 @@ type SettingsNavigatorParamList = {
         /** cardID of selected card */
         cardID: string;
     };
-    [SCREENS.SETTINGS.WALLET.CARD_MISSING_DETAILS]: {
-        /** cardID of selected card */
-        cardID: string;
-    };
-    [SCREENS.SETTINGS.WALLET.CARD_MISSING_DETAILS_CONFIRM_MAGIC_CODE]: {
-        /** cardID of selected card */
-        cardID: string;
-    };
     [SCREENS.SETTINGS.WALLET.REPORT_VIRTUAL_CARD_FRAUD]: {
         /** cardID of selected card */
         cardID: string;
@@ -190,6 +182,14 @@ type SettingsNavigatorParamList = {
         cardID: string;
     };
     [SCREENS.SETTINGS.WALLET.CARD_ACTIVATE]: {
+        /** cardID of selected card */
+        cardID: string;
+    };
+    [SCREENS.SETTINGS.WALLET.CARD_CHANGE_PIN]: {
+        /** cardID of selected card */
+        cardID: string;
+    };
+    [SCREENS.SETTINGS.WALLET.CARD_CHANGE_PIN_ATM]: {
         /** cardID of selected card */
         cardID: string;
     };
@@ -1698,10 +1698,8 @@ type ReportSettingsNavigatorParamList = {
         // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
         backTo?: Routes;
     };
-    [SCREENS.REPORT_SETTINGS.VISIBILITY]: {
+    [SCREENS.REPORT_SETTINGS.DYNAMIC_SETTINGS_VISIBILITY]: {
         reportID: string;
-        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
-        backTo?: Routes;
     };
     [SCREENS.REPORT_SETTINGS.REPORT_LAYOUT]: {
         reportID: string;
@@ -1779,6 +1777,7 @@ type MoneyRequestNavigatorParamList = {
         // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
         backTo: Routes;
         shouldTurnOffSelectionMode?: boolean;
+        transactionID?: string;
     };
     [SCREENS.MONEY_REQUEST.STEP_REPORT]: {
         action: IOUAction;

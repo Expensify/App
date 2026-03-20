@@ -260,6 +260,7 @@ const translations: TranslationDeepObject<typeof en> = {
         conjunctionTo: '宛先',
         genericErrorMessage: 'おっと…問題が発生したため、リクエストを完了できませんでした。時間をおいてもう一度お試しください。',
         percentage: 'パーセンテージ',
+        progressBarLabel: 'オンボーディング進捗',
         converted: '変換済み',
         error: {
             invalidAmount: '金額が無効です',
@@ -490,6 +491,8 @@ const translations: TranslationDeepObject<typeof en> = {
         headsUp: 'ご注意ください！',
         submitTo: '提出先',
         forwardTo: '転送先',
+        approvalLimit: '承認限度額',
+        overLimitForwardTo: '限度額超過時の転送先',
         merge: 'マージ',
         none: 'なし',
         unstableInternetConnection: 'インターネット接続が不安定です。ネットワークを確認して、もう一度お試しください。',
@@ -716,6 +719,8 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         verificationFailed: '認証に失敗しました',
         setPin: {didNotShipCard: 'カードを発送できませんでした。もう一度お試しください。'},
+        revealPin: {couldNotReveal: 'PIN を表示できませんでした。もう一度お試しください。'},
+        changePin: {didNotChange: 'お客様の暗証番号は変更されていません。もう一度お試しください。'},
     },
     validateCodeModal: {
         successfulSignInTitle: dedent(`
@@ -1131,6 +1136,7 @@ const translations: TranslationDeepObject<typeof en> = {
         deleteReceipt: '領収書を削除',
         deleteConfirmation: 'この領収書を削除してもよろしいですか？',
         addReceipt: '領収書を追加',
+        addAdditionalReceipt: 'レシートを追加',
         scanFailed: 'このレシートは、店舗名、日付、または金額が不足しているためスキャンできませんでした。',
         crop: 'トリミング',
         addAReceipt: {
@@ -2069,6 +2075,12 @@ const translations: TranslationDeepObject<typeof en> = {
         twoFactorAuthIsRequiredCompany: 'あなたの会社では、2 要素認証が必須です。',
         twoFactorAuthCannotDisable: '2要素認証を無効にできません',
         twoFactorAuthRequired: 'Xero 連携には二要素認証（2FA）が必須で、無効にすることはできません。',
+        replaceDevice: 'デバイスを交換',
+        replaceDeviceTitle: '2 要素認証デバイスを変更',
+        verifyOldDeviceTitle: '古い端末を確認',
+        verifyOldDeviceDescription: '現在使用している認証アプリに表示されている6桁のコードを入力して、アクセスできることを確認してください。',
+        verifyNewDeviceTitle: '新しいデバイスを設定',
+        verifyNewDeviceDescription: '新しいデバイスでQRコードをスキャンし、表示されたコードを入力して設定を完了してください。',
     },
     recoveryCodeForm: {
         error: {
@@ -2292,7 +2304,6 @@ const translations: TranslationDeepObject<typeof en> = {
         cardDetailsLoadingFailure: 'カード詳細の読み込み中にエラーが発生しました。インターネット接続を確認して、もう一度お試しください。',
         validateCardTitle: 'ご本人確認を行います',
         enterMagicCode: (contactMethod: string) => `カード情報を表示するには、${contactMethod} に送信されたマジックコードを入力してください。1～2分以内に届きます。`,
-        missingPrivateDetails: ({missingDetailsLink}: {missingDetailsLink: string}) => `<a href="${missingDetailsLink}">個人情報を追加</a>してから、もう一度お試しください。`,
         unexpectedError: 'Expensifyカードの詳細を取得中にエラーが発生しました。もう一度お試しください。',
         cardFraudAlert: {
             confirmButtonText: 'はい、そうです',
@@ -2315,12 +2326,20 @@ ${date} の ${merchant} への ${amount}`,
         },
         setYourPin: 'PIN を設定.',
         confirmYourPin: 'PIN を確認してください.',
+        changeYourPin: 'カードの新しい暗証番号を入力してください。',
+        confirmYourChangedPin: '新しい暗証番号を確認してください。',
         pinMustBeFourDigits: 'PIN は 4 桁で入力してください。',
         invalidPin: 'より安全な暗証番号を選択してください。',
         pinMismatch: 'PIN が一致しません。もう一度お試しください。',
         revealPin: 'PIN を表示',
         hidePin: 'PIN を非表示',
         pin: 'PIN',
+        changePin: 'PIN を変更',
+        pinChanged: 'PIN を変更しました！',
+        pinChangedHeader: 'PIN を変更しました',
+        pinChangedDescription: 'これで暗証番号をすぐにご利用いただけます。',
+        changePinAtATM: 'PIN は任意の ATM で変更できます',
+        changePinAtATMDescription: 'これはお住まいの地域では必須です。ご不明な点がある場合は<concierge-link>Concierge に連絡</concierge-link>してください。',
         freezeCard: 'カードを一時停止',
         unfreeze: '再開',
         unfreezeCard: 'カードの一時停止を解除',
@@ -2437,6 +2456,16 @@ ${date} の ${merchant} への ${amount}`,
         admins: '管理者',
         payer: '支払者',
         paymentAccount: '支払口座',
+        shareBankAccount: {
+            shareTitle: '銀行口座へのアクセスを共有しますか？',
+            shareDescription: ({admin}: {admin: string}) => `${admin}を支払人にするには、銀行口座へのアクセスを${admin}と共有する必要があります。`,
+            validationTitle: '銀行口座の検証待ち',
+            validationDescription: ({admin}: {admin: string}) =>
+                `<a href="#">この銀行口座を検証</a>する必要があります。検証が完了すると、銀行口座へのアクセス権を${admin}と共有して、支払人にすることができます。`,
+            errorTitle: '支払人を変更できません',
+            errorDescription: ({admin, owner}: {admin: string; owner: string}) =>
+                `${admin} はこの銀行口座へのアクセス権がないため、支払人に指定できません。銀行口座を共有する必要がある場合は、<a href="#">${owner} とチャットしてください。</a>`,
+        },
     },
     reportFraudPage: {
         title: 'バーチャルカードの不正利用を報告',
@@ -7396,7 +7425,8 @@ ${reportName}
                 markedReimbursed: (amount: string, currency: string) => `他の場所で${currency}${amount}を支払いました`,
                 markedReimbursedFromIntegration: ({amount, currency}: MarkReimbursedFromIntegrationParams) => `連携経由で${currency}${amount}を支払いました`,
                 outdatedBankAccount: `支払元の銀行口座に問題があるため、支払いを処理できませんでした`,
-                reimbursementACHBounce: `銀行口座の問題により支払いを処理できませんでした`,
+                reimbursementACHBounceDefault: `ルーティング番号または口座番号の誤り、もしくは口座が閉鎖されているため、支払いを処理できませんでした`,
+                reimbursementACHBounceWithReason: ({returnReason}: {returnReason: string}) => `支払いを処理できませんでした：${returnReason}`,
                 reimbursementACHCancelled: `支払いをキャンセルしました`,
                 reimbursementAccountChanged: `支払元が銀行口座を変更したため、支払いを処理できませんでした`,
                 reimbursementDelayed: `支払いは処理されましたが、あと1～2営業日遅れています`,
@@ -7412,7 +7442,8 @@ ${reportName}
                     `${feedName} との接続が切断されています。カードの取引明細の取込を再開するには、<a href='${workspaceCompanyCardRoute}'>銀行にログイン</a>してください。`,
                 plaidBalanceFailure: ({maskedAccountNumber, walletRoute}: {maskedAccountNumber: string; walletRoute: string}) =>
                     `Plaid によるビジネス銀行口座との接続が切断されています。Expensify カードを引き続きご利用いただくために、<a href='${walletRoute}'>銀行口座 ${maskedAccountNumber} を再接続</a>してください。`,
-                addEmployee: (email: string, role: string) => `${email} を ${role === 'member' ? 'a' : 'ある'} ${role} として追加しました`,
+                addEmployee: (email: string, role: string, didJoinPolicy?: boolean) =>
+                    didJoinPolicy ? `${email} さんがワークスペースの招待リンクから参加しました` : `${role === 'member' ? 'a' : '1つの'} ${role} として ${email} を追加しました`,
                 updateRole: ({email, currentRole, newRole}: UpdateRoleParams) => `${email} のロールを ${currentRole} から ${newRole} に更新しました`,
                 updatedCustomField1: (email: string, newValue: string, previousValue: string) => {
                     if (!newValue) {
@@ -7717,11 +7748,13 @@ ${reportName}
         [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.START_CHAT]: {
             buttonText: 'チャットを開始して、<success><strong>友達を紹介しましょう</strong></success>。',
             header: 'チャットを開始、友達を紹介',
+            closeAccessibilityLabel: '閉じる、チャットを開始、友達を紹介、バナー',
             body: '友だちにもExpensifyを使ってほしいですか？チャットを開始するだけで、あとはお任せください。',
         },
         [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SUBMIT_EXPENSE]: {
             buttonText: '経費を申請し、<success><strong>チームを紹介しましょう</strong></success>。',
             header: '経費を提出し、チームを紹介する',
+            closeAccessibilityLabel: '閉じる、経費を提出、チームを紹介、バナー',
             body: 'あなたのチームにもExpensifyを使ってほしいですか？チームに経費精算を1件提出するだけで、あとは私たちにお任せください。',
         },
         [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.REFER_FRIEND]: {
