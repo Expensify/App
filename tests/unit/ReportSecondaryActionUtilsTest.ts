@@ -2258,7 +2258,7 @@ describe('getSecondaryAction', () => {
             policy,
             reportActions,
         });
-        expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.DUPLICATE)).toBe(true);
+        expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.DUPLICATE_EXPENSE)).toBe(true);
     });
 
     it('does not include DUPLICATE option if there are no transactions', async () => {
@@ -2288,7 +2288,7 @@ describe('getSecondaryAction', () => {
             originalTransaction: {} as Transaction,
             policy,
         });
-        expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.DUPLICATE)).toBe(false);
+        expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.DUPLICATE_EXPENSE)).toBe(false);
     });
 
     it('does not include DUPLICATE option for expense report with multiple transactions', () => {
@@ -2348,7 +2348,7 @@ describe('getSecondaryAction', () => {
             policy,
             reportActions,
         });
-        expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.DUPLICATE)).toBe(false);
+        expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.DUPLICATE_EXPENSE)).toBe(false);
     });
 
     it('does not include DUPLICATE option for card transaction', async () => {
@@ -2388,7 +2388,7 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
         });
-        expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.DUPLICATE)).toBe(false);
+        expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.DUPLICATE_EXPENSE)).toBe(false);
     });
 
     it('does not include DUPLICATE option for expenses from other users', () => {
@@ -2433,7 +2433,7 @@ describe('getSecondaryAction', () => {
             policy,
             reportActions,
         });
-        expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.DUPLICATE)).toBe(false);
+        expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.DUPLICATE_EXPENSE)).toBe(false);
     });
 
     it('includes MOVE_EXPENSE option for single expense report when user can move expense', async () => {
