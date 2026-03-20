@@ -35,7 +35,7 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
     const styles = useThemeStyles();
     const {singleExecution} = useSingleExecution();
     const {translate} = useLocalize();
-    const {typeMenuSections, shouldShowSuggestedSearchSkeleton, activeItemIndex} = useSearchTypeMenuSections({hash, similarSearchHash});
+    const {typeMenuSections, activeItemIndex} = useSearchTypeMenuSections({hash, similarSearchHash});
     const expensifyIcons = useMemoizedLazyExpensifyIcons([
         'Basket',
         'CalendarSolid',
@@ -51,6 +51,7 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
         'Folder',
     ] as const);
     const {clearSelectedTransactions} = useSearchActionsContext();
+    const [isSearchDataLoaded] = useOnyx(ONYXKEYS.IS_SEARCH_PAGE_DATA_LOADED);
     const [reportCounts = CONST.EMPTY_TODOS_REPORT_COUNTS] = useOnyx(ONYXKEYS.DERIVED.TODOS, {selector: todosReportCountsSelector});
 
     const route = useRoute();
@@ -93,7 +94,7 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
             ref={scrollViewRef}
             showsVerticalScrollIndicator={false}
         >
-            {shouldShowSuggestedSearchSkeleton ? (
+            {isSearchDataLoaded ? (
                 <View style={[styles.pb4, styles.mh3, styles.gap4]}>
                     <SuggestedSearchSkeleton />
                 </View>
