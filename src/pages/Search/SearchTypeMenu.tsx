@@ -10,6 +10,7 @@ import type {SearchQueryJSON} from '@components/Search/types';
 import Text from '@components/Text';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useSearchTypeMenuSections from '@hooks/useSearchTypeMenuSections';
 import useSingleExecution from '@hooks/useSingleExecution';
@@ -33,8 +34,9 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
     const {hash, similarSearchHash} = queryJSON ?? {};
 
     const styles = useThemeStyles();
-    const {singleExecution} = useSingleExecution();
+    const {isOffline} = useNetwork();
     const {translate} = useLocalize();
+    const {singleExecution} = useSingleExecution();
     const {typeMenuSections, activeItemIndex} = useSearchTypeMenuSections({hash, similarSearchHash});
     const expensifyIcons = useMemoizedLazyExpensifyIcons([
         'Basket',
@@ -88,13 +90,15 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
         Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: searchQuery}));
     });
 
+    const areSuggestedSearchesLoading = !isSearchDataLoaded && !isOffline;
+
     return (
         <ScrollView
             onScroll={onScroll}
             ref={scrollViewRef}
             showsVerticalScrollIndicator={false}
         >
-            {isSearchDataLoaded ? (
+            {areSuggestedSearchesLoading ? (
                 <View style={[styles.pb4, styles.mh3, styles.gap4]}>
                     <SuggestedSearchSkeleton />
                 </View>
