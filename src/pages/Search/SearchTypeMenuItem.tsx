@@ -1,6 +1,5 @@
 import React from 'react';
 import {View} from 'react-native';
-import type {LayoutChangeEvent} from 'react-native';
 import Badge from '@components/Badge';
 import Icon from '@components/Icon';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
