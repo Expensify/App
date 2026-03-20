@@ -86,6 +86,7 @@ function SavedSearchList({hash}: SavedSearchListProps) {
 
         return {
             ...baseMenuItem,
+            role: CONST.ROLE.TAB,
             sentryLabel: CONST.SENTRY_LABEL.SEARCH.SAVED_SEARCH_MENU_ITEM,
             onPress: () => {
                 setSearchContext(false);
