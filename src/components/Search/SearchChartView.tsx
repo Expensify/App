@@ -126,9 +126,6 @@ type SearchChartViewProps = {
     /** Whether data is loading */
     isLoading?: boolean;
 
-    /** Whether the search input is visible */
-    isSearchInputVisible: boolean;
-
     /** Scroll handler for hiding the top bar on mobile */
     onScroll?: (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
 

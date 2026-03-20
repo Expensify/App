@@ -96,7 +96,6 @@ type SearchProps = {
     handleSearch: (value: SearchParams) => void;
     onSortPressedCallback?: () => void;
     isMobileSelectionModeEnabled: boolean;
-    isSearchInputVisible: boolean;
     searchRequestResponseStatusCode?: number | null;
     onDEWModalOpen?: () => void;
 };
@@ -213,7 +212,6 @@ function Search({
     contentContainerStyle,
     handleSearch,
     isMobileSelectionModeEnabled,
-    isSearchInputVisible,
     onSortPressedCallback,
     searchRequestResponseStatusCode,
     onDEWModalOpen,
@@ -1422,7 +1420,6 @@ function Search({
                     groupBy={validGroupBy}
                     data={sortedData}
                     isLoading={shouldShowLoadingState}
-                    isSearchInputVisible={isSearchInputVisible}
                     onScroll={onSearchListScroll}
                     onLayout={onLayoutChart}
                     title={chartTitle}
