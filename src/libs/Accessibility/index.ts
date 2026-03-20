@@ -1,41 +1,33 @@
-import {useCallback, useEffect, useState, useSyncExternalStore} from 'react';
+import {useCallback, useState, useSyncExternalStore} from 'react';
 import type {LayoutChangeEvent} from 'react-native';
 import {AccessibilityInfo} from 'react-native';
-import Log from '@libs/Log';
 import moveAccessibilityFocus from './moveAccessibilityFocus';
 
 type HitSlop = {x: number; y: number};
 
-const useScreenReaderStatus = (): boolean => {
-    const [isScreenReaderEnabled, setIsScreenReaderEnabled] = useState<boolean>(false);
-    useEffect(() => {
-        let isMounted = true;
+let cachedScreenReaderValue = false;
 
-        // Check initial screen reader status
-        AccessibilityInfo.isScreenReaderEnabled()
-            .then((enabled) => {
-                if (!isMounted) {
-                    return;
-                }
-                setIsScreenReaderEnabled(enabled);
-            })
-            .catch((error) => {
-                Log.warn('[Accessibility] Failed to get initial screen reader status', {error});
-                if (isMounted) {
-                    setIsScreenReaderEnabled(false);
-                }
-            });
+function subscribeScreenReader(callback: () => void) {
+    const subscription = AccessibilityInfo.addEventListener('screenReaderChanged', (enabled) => {
+        cachedScreenReaderValue = enabled;
+        callback();
+    });
 
-        const subscription = AccessibilityInfo.addEventListener('screenReaderChanged', setIsScreenReaderEnabled);
+    AccessibilityInfo.isScreenReaderEnabled()
+        .then((enabled) => {
+            cachedScreenReaderValue = enabled;
+            callback();
+        })
+        .catch(() => {});
 
-        return () => {
-            isMounted = false;
-            subscription?.remove();
-        };
-    }, []);
+    return () => subscription?.remove();
+}
 
-    return isScreenReaderEnabled;
-};
+function getScreenReaderSnapshot() {
+    return cachedScreenReaderValue;
+}
+
+const useScreenReaderStatus = (): boolean => useSyncExternalStore(subscribeScreenReader, getScreenReaderSnapshot, () => false);
 
 let cachedReduceMotionValue = false;
 
