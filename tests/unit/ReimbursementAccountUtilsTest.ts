@@ -24,7 +24,7 @@ describe('ReimbursementAccountUtils', () => {
         });
 
         it('should return DEFAULT_NUMBER_ID when bankAccountID is undefined on achData', () => {
-            // Given achData without bankAccountID (fixture omits unrelated required ACH fields)
+            // Given achData without bankAccountID
             // When resolving the numeric bank account id
             const result = getBankAccountIDAsNumber({} as ACHDataReimbursementAccount);
             // Then we default to CONST.DEFAULT_NUMBER_ID
