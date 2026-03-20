@@ -161,7 +161,12 @@ function getBusinessBankAccountOptions(formattedPaymentMethods: PaymentMethod[])
             }
             const accountData = method.accountData;
             const isPartiallySetup = isBankAccountPartiallySetup(accountData.state);
-            return accountData.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS && accountData.state === CONST.BANK_ACCOUNT.STATE.OPEN && method?.methodID != null && !isPartiallySetup;
+            return (
+                accountData.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS &&
+                (accountData.state === CONST.BANK_ACCOUNT.STATE.OPEN || accountData.state === CONST.BANK_ACCOUNT.STATE.LOCKED) &&
+                method?.methodID != null &&
+                !isPartiallySetup
+            );
         })
         .map((formattedPaymentMethod) => ({
             text: formattedPaymentMethod?.title ?? '',
