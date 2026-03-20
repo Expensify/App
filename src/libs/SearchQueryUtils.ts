@@ -1652,12 +1652,12 @@ function shouldResetSort({newGroupBy, oldGroupBy}: {newGroupBy: string | undefin
 
 /**
  * Returns true when the view is changing between table and chart views (line/bar/pie)
- * with a time-based groupBy (month/week/year/quarter). In this case sortOrder should
- * be reset so the parser can apply the appropriate default:
- * - Charts use ascending (chronological left-to-right)
- * - Tables use descending (most recent first)
+ * with a time-based groupBy (month/week/year/quarter). In this case both sortBy and
+ * sortOrder should be reset so the parser can apply the appropriate defaults:
+ * - Charts use ascending (chronological left-to-right) sorted by the time column
+ * - Tables use descending (most recent first) sorted by the time column
  */
-function shouldResetSortOrderForViewChange({newView, oldView, groupBy}: {newView: string | undefined; oldView: string | undefined; groupBy: string | undefined}): boolean {
+function shouldResetSortForViewChange({newView, oldView, groupBy}: {newView: string | undefined; oldView: string | undefined; groupBy: string | undefined}): boolean {
     if (newView === oldView || !groupBy) {
         return false;
     }
@@ -1668,8 +1668,8 @@ function shouldResetSortOrderForViewChange({newView, oldView, groupBy}: {newView
  * Builds a query string from filter form values, resetting sortBy and sortOrder
  * when the groupBy has changed so the parser can re-derive the correct defaults.
  * When only the view changes between table and chart with a time-based groupBy,
- * sortOrder is reset to allow the parser to apply the appropriate default
- * (asc for charts, desc for tables).
+ * both sortBy and sortOrder are reset to allow the parser to apply the appropriate
+ * defaults (e.g., groupMonth asc for charts, groupMonth desc for tables).
  *
  * Returns undefined if the parser round-trip fails.
  */
@@ -1683,21 +1683,21 @@ function buildFilterQueryWithSortDefaults(
         oldGroupBy: previousState.groupBy,
     });
 
-    const resetSortOrder =
+    const resetSortForViewChange =
         !resetSort &&
-        shouldResetSortOrderForViewChange({
+        shouldResetSortForViewChange({
             newView: filterValues.view,
             oldView: previousState.view,
             groupBy: filterValues.groupBy,
         });
 
     const queryString = buildQueryStringFromFilterFormValues(filterValues, {
-        sortBy: resetSort ? undefined : currentQueryOptions.sortBy,
-        sortOrder: resetSort || resetSortOrder ? undefined : currentQueryOptions.sortOrder,
+        sortBy: resetSort || resetSortForViewChange ? undefined : currentQueryOptions.sortBy,
+        sortOrder: resetSort || resetSortForViewChange ? undefined : currentQueryOptions.sortOrder,
         limit: currentQueryOptions.limit,
     });
 
-    if (!resetSort && !resetSortOrder) {
+    if (!resetSort && !resetSortForViewChange) {
         return queryString;
     }
 
@@ -1748,7 +1748,7 @@ export {
     getUserFriendlyValue,
     getUserFriendlyKey,
     shouldResetSort,
-    shouldResetSortOrderForViewChange,
+    shouldResetSortForViewChange,
     buildFilterQueryWithSortDefaults,
     buildOptimisticSnapshotData,
 };

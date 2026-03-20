@@ -40,5 +40,5 @@ See the video in the [PR review comment](https://github.com/Expensify/App/pull/8
 
 ## Related Files
 
-- `src/libs/SearchQueryUtils.ts` - `buildFilterQueryWithSortDefaults` and `shouldResetSortOrderForViewChange` functions
+- `src/libs/SearchQueryUtils.ts` - `buildFilterQueryWithSortDefaults` and `shouldResetSortForViewChange` functions
 - `tests/unit/Search/SearchQueryUtilsTest.ts` - Unit tests for these functions
