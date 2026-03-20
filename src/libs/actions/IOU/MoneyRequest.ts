@@ -86,6 +86,7 @@ type InitialTransactionParams = {
     reportID?: string;
     taxCode: string;
     taxAmount: number;
+    taxValue?: string;
     isFromGlobalCreate?: boolean;
     currency?: string;
     participants?: Participant[];
@@ -390,6 +391,7 @@ function handleMoneyRequestStepScanParticipants({
                     currency: initialTransaction?.currency ?? 'USD',
                     taxCode: initialTransaction.taxCode,
                     taxAmount: initialTransaction.taxAmount,
+                    taxValue: initialTransaction.taxValue,
                     quickAction,
                     policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
                     // No need to update recently used tags because no tags are used when the confirmation step is skipped
