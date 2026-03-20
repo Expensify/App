@@ -15,12 +15,14 @@ const mockWaitForIdle = jest.fn(() => Promise.resolve());
 const mockDismissModal = jest.fn();
 const mockIsNavigationReady = jest.fn(() => Promise.resolve());
 const mockGoBack = jest.fn();
+let mockSessionData: {authToken?: string; authTokenType?: string} | undefined;
 
 jest.mock('@libs/actions/App', () => ({
     openApp: mockOpenApp,
 }));
 
 jest.mock('@libs/Network/SequentialQueue', () => ({
+    flush: jest.fn(),
     waitForIdle: () => mockWaitForIdle(),
 }));
 
@@ -48,6 +50,10 @@ jest.mock('@libs/Browser', () => ({
 }));
 
 jest.mock('@hooks/useAndroidBackButtonHandler', () => jest.fn());
+
+jest.mock('@components/OnyxListItemProvider', () => ({
+    useSession: () => mockSessionData,
+}));
 
 jest.mock('@pages/signin/SignInPage', () => {
     const MockReact = require('react') as typeof React;
@@ -81,6 +87,7 @@ describe('SignInModal', () => {
 
     beforeEach(async () => {
         jest.clearAllMocks();
+        mockSessionData = undefined;
         await Onyx.clear();
         await waitForBatchedUpdates();
     });
@@ -90,11 +97,10 @@ describe('SignInModal', () => {
     });
 
     it('should not call openApp or dismissModal when user is anonymous', async () => {
-        await Onyx.merge(ONYXKEYS.SESSION, {
+        mockSessionData = {
             authToken: 'anonymousToken',
             authTokenType: CONST.AUTH_TOKEN_TYPES.ANONYMOUS,
-        });
-        await waitForBatchedUpdates();
+        };
 
         render(<SignInModal />);
         await waitForBatchedUpdatesWithAct();
@@ -104,11 +110,10 @@ describe('SignInModal', () => {
     });
 
     it('should call openApp and dismissModal when user is not anonymous', async () => {
-        await Onyx.merge(ONYXKEYS.SESSION, {
+        mockSessionData = {
             authToken: 'realToken',
             authTokenType: undefined,
-        });
-        await waitForBatchedUpdates();
+        };
 
         render(<SignInModal />);
         await waitForBatchedUpdatesWithAct();
@@ -145,11 +150,10 @@ describe('SignInModal', () => {
             callOrder.push('dismissModal');
         });
 
-        await Onyx.merge(ONYXKEYS.SESSION, {
+        mockSessionData = {
             authToken: 'realToken',
             authTokenType: undefined,
-        });
-        await waitForBatchedUpdates();
+        };
 
         render(<SignInModal />);
         await waitForBatchedUpdatesWithAct();
@@ -174,11 +178,10 @@ describe('SignInModal', () => {
 
     it('should call openApp and dismissModal when session transitions from anonymous to authenticated', async () => {
         // Start as anonymous
-        await Onyx.merge(ONYXKEYS.SESSION, {
+        mockSessionData = {
             authToken: 'anonymousToken',
             authTokenType: CONST.AUTH_TOKEN_TYPES.ANONYMOUS,
-        });
-        await waitForBatchedUpdates();
+        };
 
         const {rerender} = render(<SignInModal />);
         await waitForBatchedUpdatesWithAct();
@@ -187,11 +190,10 @@ describe('SignInModal', () => {
         expect(mockDismissModal).not.toHaveBeenCalled();
 
         // Transition to authenticated user
-        await Onyx.merge(ONYXKEYS.SESSION, {
+        mockSessionData = {
             authToken: 'realToken',
             authTokenType: undefined,
-        });
-        await waitForBatchedUpdates();
+        };
 
         rerender(<SignInModal />);
         await waitForBatchedUpdatesWithAct();
