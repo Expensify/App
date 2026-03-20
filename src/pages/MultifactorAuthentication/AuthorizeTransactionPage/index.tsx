@@ -91,6 +91,7 @@ function MultifactorAuthenticationScenarioAuthorizeTransactionPage({route}: Mult
 
     const onApproveTransaction = () => {
         addBreadcrumb('Approve tapped', {transactionID});
+        allowNavigatingAwayRef.current = true;
         executeScenario(CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.AUTHORIZE_TRANSACTION, {
             transactionID,
         });
