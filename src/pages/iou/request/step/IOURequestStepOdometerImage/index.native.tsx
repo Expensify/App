@@ -23,7 +23,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {showCameraPermissionsAlert} from '@libs/fileDownload/FileUtils';
+import {getMimeTypeFromUri, showCameraPermissionsAlert} from '@libs/fileDownload/FileUtils';
 import getPhotoSource from '@libs/fileDownload/getPhotoSource';
 import getPlatform from '@libs/getPlatform';
 import type Platform from '@libs/getPlatform/types';
@@ -184,7 +184,13 @@ function IOURequestStepOdometerImage({
 
         const file = files.at(0);
         const imageUri = (file as {uri?: string}).uri ?? '';
-        setMoneyRequestOdometerImage(transactionID, imageType, imageUri, isTransactionDraft, isEditingConfirmation !== 'true');
+        setMoneyRequestOdometerImage(
+            transactionID,
+            imageType,
+            {uri: imageUri, name: imageUri.split('/').pop() ?? '', type: getMimeTypeFromUri(imageUri) ?? 'image/jpeg'},
+            isTransactionDraft,
+            isEditingConfirmation !== 'true',
+        );
         navigateBack();
     };
 
@@ -237,8 +243,19 @@ function IOURequestStepOdometerImage({
                     .then((photo: PhotoFile) => {
                         const imageObject: ImageObject = {file: photo, filename: photo.path, source: getPhotoSource(photo.path)};
                         cropImageToAspectRatio(imageObject, viewfinderLayout.current?.width, viewfinderLayout.current?.height, undefined, photo.orientation)
-                            .then(({source}) => {
-                                setMoneyRequestOdometerImage(transactionID, imageType, source, isTransactionDraft, isEditingConfirmation !== 'true');
+                            .then(({file, filename, source}) => {
+                                setMoneyRequestOdometerImage(
+                                    transactionID,
+                                    imageType,
+                                    {
+                                        uri: source,
+                                        name: filename,
+                                        type: (file as FileObject | undefined)?.type ?? getMimeTypeFromUri(source) ?? 'image/jpeg',
+                                        size: (file as FileObject | undefined)?.size,
+                                    },
+                                    isTransactionDraft,
+                                    isEditingConfirmation !== 'true',
+                                );
                                 navigateBack();
                             })
                             .catch((error: unknown) => {
