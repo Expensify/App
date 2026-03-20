@@ -47,7 +47,7 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
         {text: translate('common.forwardTo'), value: CONST.CSV_IMPORT_COLUMNS.APPROVE_TO},
         {text: translate('workspace.common.customField1'), value: CONST.CSV_IMPORT_COLUMNS.CUSTOM_FIELD_1},
         {text: translate('workspace.common.customField2'), value: CONST.CSV_IMPORT_COLUMNS.CUSTOM_FIELD_2},
-        {text: translate('common.approvalLimit'), value: CONST.CSV_IMPORT_COLUMNS.REPORT_THRESHHOLD},
+        {text: translate('common.approvalLimit'), value: CONST.CSV_IMPORT_COLUMNS.REPORT_THRESHOLD},
         {text: translate('common.overLimitForwardTo'), value: CONST.CSV_IMPORT_COLUMNS.APPROVE_TO_ALTERNATE},
     ];
 
@@ -104,7 +104,7 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
         const membersForwardsToColumn = columns.findIndex((column) => column === CONST.CSV_IMPORT_COLUMNS.APPROVE_TO);
         const membersCustomField1Column = columns.findIndex((column) => column === CONST.CSV_IMPORT_COLUMNS.CUSTOM_FIELD_1);
         const membersCustomField2Column = columns.findIndex((column) => column === CONST.CSV_IMPORT_COLUMNS.CUSTOM_FIELD_2);
-        const membersApprovalLimitColumn = columns.findIndex((column) => column === CONST.CSV_IMPORT_COLUMNS.REPORT_THRESHHOLD);
+        const membersApprovalLimitColumn = columns.findIndex((column) => column === CONST.CSV_IMPORT_COLUMNS.REPORT_THRESHOLD);
         const membersOverLimitForwardsToColumn = columns.findIndex((column) => column === CONST.CSV_IMPORT_COLUMNS.APPROVE_TO_ALTERNATE);
         const membersSubmitsTo = membersSubmitsToColumn !== -1 ? spreadsheet?.data[membersSubmitsToColumn].map((submitsTo) => submitsTo) : [];
         const membersForwardsTo = membersForwardsToColumn !== -1 ? spreadsheet?.data[membersForwardsToColumn].map((forwardsTo) => forwardsTo) : [];
