@@ -260,6 +260,7 @@ const translations: TranslationDeepObject<typeof en> = {
         conjunctionTo: 'do',
         genericErrorMessage: 'Ups... coś poszło nie tak i Twoje żądanie nie mogło zostać zrealizowane. Spróbuj ponownie później.',
         percentage: 'Procent',
+        progressBarLabel: 'Postęp wdrożenia',
         converted: 'Przekonwertowano',
         error: {
             invalidAmount: 'Nieprawidłowa kwota',
@@ -720,6 +721,8 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         verificationFailed: 'Weryfikacja nie powiodła się',
         setPin: {didNotShipCard: 'Nie wysłaliśmy twojej karty. Spróbuj ponownie.'},
+        revealPin: {couldNotReveal: 'Nie udało się wyświetlić twojego PIN-u. Spróbuj ponownie.'},
+        changePin: {didNotChange: 'Nie zmieniliśmy twojego PIN-u. Spróbuj ponownie.'},
     },
     validateCodeModal: {
         successfulSignInTitle: dedent(`
@@ -2333,12 +2336,20 @@ ${amount} dla ${merchant} - ${date}`,
         },
         setYourPin: 'Ustaw swój PIN.',
         confirmYourPin: 'Potwierdź swój PIN.',
+        changeYourPin: 'Wprowadź nowy PIN do swojej karty.',
+        confirmYourChangedPin: 'Potwierdź swój nowy PIN.',
         pinMustBeFourDigits: 'PIN musi mieć dokładnie 4 cyfry.',
         invalidPin: 'Wybierz proszę bardziej bezpieczny PIN.',
         pinMismatch: 'Kody PIN nie są takie same. Spróbuj ponownie.',
         revealPin: 'Pokaż PIN',
         hidePin: 'Ukryj PIN',
         pin: 'PIN',
+        changePin: 'Zmień PIN',
+        pinChanged: 'PIN zmieniony!',
+        pinChangedHeader: 'PIN został zmieniony',
+        pinChangedDescription: 'Możesz już teraz używać swojego PIN-u.',
+        changePinAtATM: 'Zmień swój PIN w dowolnym bankomacie',
+        changePinAtATMDescription: 'To jest wymagane w twoim regionie. <concierge-link>Skontaktuj się z Concierge</concierge-link> jeśli masz jakieś pytania.',
         freezeCard: 'Zamroź kartę',
         unfreeze: 'Odmroź',
         unfreezeCard: 'Odmroź kartę',
@@ -7484,7 +7495,8 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
                     `Połączenie ${feedName} jest przerwane. Aby przywrócić importy kart, <a href='${workspaceCompanyCardRoute}'>zaloguj się do swojego banku</a>.`,
                 plaidBalanceFailure: ({maskedAccountNumber, walletRoute}: {maskedAccountNumber: string; walletRoute: string}) =>
                     `połączenie Plaid z twoim firmowym kontem bankowym jest przerwane. Proszę, <a href='${walletRoute}'>połącz ponownie swoje konto bankowe ${maskedAccountNumber}</a>, aby móc dalej używać Kart Expensify.`,
-                addEmployee: (email: string, role: string) => `dodano ${email} jako ${role === 'member' ? 'a' : 'włączony'} ${role}`,
+                addEmployee: (email: string, role: string, didJoinPolicy?: boolean) =>
+                    didJoinPolicy ? `${email} dołączył(a) przez link z zaproszeniem do przestrzeni roboczej` : `dodano ${email} jako ${role === 'member' ? 'a' : 'jeden'} ${role}`,
                 updateRole: ({email, currentRole, newRole}: UpdateRoleParams) => `zaktualizowano rolę użytkownika ${email} na ${newRole} (wcześniej ${currentRole})`,
                 updatedCustomField1: (email: string, newValue: string, previousValue: string) => {
                     if (!newValue) {

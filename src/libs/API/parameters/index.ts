@@ -500,5 +500,7 @@ export type {default as DeleteVacationDelegateParams} from './DeleteVacationDele
 export type {default as SetTwoFactorAuthExemptEmailForDomainParams} from './SetTwoFactorAuthExemptEmailForDomainParams';
 export type {default as ResetDomainMemberTwoFactorAuthParams} from './ResetDomainMemberTwoFactorAuthParams';
 export type {default as AuthorizeTransactionParams} from './AuthorizeTransactionParams';
+export type {default as RevealCardPINParams} from './RevealCardPINParams';
 export type {default as DenyTransactionParams} from './DenyTransactionParams';
+export type {default as ChangeCardPINParams} from './ChangeCardPINParams';
 export type {default as ExportDomainMembersCSVParams} from './ExportDomainMembersCSVParams';

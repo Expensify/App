@@ -260,6 +260,7 @@ const translations: TranslationDeepObject<typeof en> = {
         conjunctionTo: '至',
         genericErrorMessage: '哎呀……出现问题，无法完成您的请求。请稍后重试。',
         percentage: '百分比',
+        progressBarLabel: '入门进度',
         converted: '已转换',
         error: {
             invalidAmount: '金额无效',
@@ -711,6 +712,8 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         verificationFailed: '验证失败',
         setPin: {didNotShipCard: '我们未能寄出您的卡。请重试。'},
+        revealPin: {couldNotReveal: '我们无法显示您的 PIN。请重试。'},
+        changePin: {didNotChange: '我们未更改您的 PIN。请重试。'},
     },
     validateCodeModal: {
         successfulSignInTitle: dedent(`
@@ -2286,12 +2289,20 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         },
         setYourPin: '设置您的 PIN.',
         confirmYourPin: '确认您的 PIN.',
+        changeYourPin: '为您的银行卡输入新 PIN 码。',
+        confirmYourChangedPin: '确认您的新 PIN。',
         pinMustBeFourDigits: 'PIN 必须正好为 4 位数字。',
         invalidPin: '请选择一个更安全的 PIN。',
         pinMismatch: 'PIN 不匹配。请重试。',
         revealPin: '显示 PIN',
         hidePin: '隐藏 PIN',
         pin: 'PIN',
+        changePin: '更改 PIN',
+        pinChanged: 'PIN 已更改！',
+        pinChangedHeader: 'PIN 已更改',
+        pinChangedDescription: '现在您可以开始使用您的 PIN 了。',
+        changePinAtATM: '在任意 ATM 更改您的 PIN',
+        changePinAtATMDescription: '这是您所在地区的必填项。如果你有任何问题，请<concierge-link>联系 Concierge</concierge-link>。',
         freezeCard: '冻结卡片',
         unfreeze: '解冻',
         unfreezeCard: '解冻卡片',
@@ -7311,7 +7322,8 @@ ${reportName}
                     `${feedName} 连接已中断。要恢复银行卡导入，请<a href='${workspaceCompanyCardRoute}'>登录您的银行账户</a>。`,
                 plaidBalanceFailure: ({maskedAccountNumber, walletRoute}: {maskedAccountNumber: string; walletRoute: string}) =>
                     `您与企业银行账户的 Plaid 连接已中断。请<a href='${walletRoute}'>重新连接您的银行账户 ${maskedAccountNumber}</a>，以便继续使用 Expensify 卡。`,
-                addEmployee: (email: string, role: string) => `已将 ${email} 添加为 ${role === 'member' ? 'a' : '一个'} 的 ${role}`,
+                addEmployee: (email: string, role: string, didJoinPolicy?: boolean) =>
+                    didJoinPolicy ? `${email} 通过工作区邀请链接加入` : `已将 ${email} 添加为 ${role === 'member' ? '一个' : '一个'} 的 ${role}`,
                 updateRole: ({email, currentRole, newRole}: UpdateRoleParams) => `已将 ${email} 的角色更新为 ${newRole}（先前为 ${currentRole}）`,
                 updatedCustomField1: (email: string, newValue: string, previousValue: string) => {
                     if (!newValue) {
