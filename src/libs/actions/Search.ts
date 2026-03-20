@@ -111,6 +111,7 @@ type HandleActionButtonPressParams = {
     isDelegateAccessRestricted?: boolean;
     onDelegateAccessRestricted?: () => void;
     personalPolicyID: string | undefined;
+    onUndelete?: () => void;
 };
 
 type BulkDeleteReportsParams = {
@@ -144,6 +145,7 @@ function handleActionButtonPress({
     isDelegateAccessRestricted,
     onDelegateAccessRestricted,
     personalPolicyID,
+    onUndelete,
 }: HandleActionButtonPressParams) {
     // The transactionIDList is needed to handle actions taken on `status:""` where transactions on single expense reports can be approved/paid.
     // We need the transactionID to display the loading indicator for that list item's action.
@@ -213,6 +215,9 @@ function handleActionButtonPress({
             exportToIntegrationOnSearch(hash, [item.reportID], connectedIntegration, currentSearchKey);
             return;
         }
+        case CONST.SEARCH.ACTION_TYPES.UNDELETE:
+            onUndelete?.();
+            return;
         default:
             goToItem();
     }

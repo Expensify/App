@@ -52,6 +52,7 @@ function TransactionListItem<TItem extends ListItem>({
     isDEWBetaEnabled,
     lastPaymentMethod,
     personalPolicyID,
+    onUndelete,
 }: TransactionListItemProps<TItem>) {
     const transactionItem = item as unknown as TransactionListItemType;
     const isDeletedTransaction = transactionItem.reportID === CONST.REPORT.TRASH_REPORT_ID;
@@ -167,6 +168,7 @@ function TransactionListItem<TItem extends ListItem>({
             isDelegateAccessRestricted,
             onDelegateAccessRestricted: showDelegateNoAccessModal,
             personalPolicyID,
+            onUndelete: () => onUndelete?.(transactionItem.transactionID),
         });
     };
 
@@ -200,11 +202,11 @@ function TransactionListItem<TItem extends ListItem>({
             >
                 {({hovered}) => (
                     <>
-                        {!isLargeScreenWidth && !isDeletedTransaction && (
+                        {!isLargeScreenWidth && (
                             <UserInfoAndActionButtonRow
                                 item={transactionItem}
                                 handleActionButtonPress={handleActionButtonPress}
-                                shouldShowUserInfo={!!transactionItem?.from}
+                                shouldShowUserInfo={!isDeletedTransaction && !!transactionItem?.from}
                                 isInMobileSelectionMode={shouldUseNarrowLayout && !!canSelectMultiple}
                                 isDisabledItem={!!isDisabled}
                             />

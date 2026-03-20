@@ -1923,6 +1923,11 @@ function getActions(
     }
 
     const transaction = isTransaction ? data[key] : undefined;
+
+    if (transaction?.reportID === CONST.REPORT.TRASH_REPORT_ID) {
+        return [CONST.SEARCH.ACTION_TYPES.UNDELETE];
+    }
+
     // Tracked and unreported expenses don't have a report, so we return early.
     if (!report) {
         return [CONST.SEARCH.ACTION_TYPES.VIEW];

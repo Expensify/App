@@ -7271,6 +7271,7 @@ const CONST = {
             DONE: 'done',
             EXPORT_TO_ACCOUNTING: 'exportToAccounting',
             PAID: 'paid',
+            UNDELETE: 'undelete',
         },
         HAS_VALUES: {
             RECEIPT: 'receipt',

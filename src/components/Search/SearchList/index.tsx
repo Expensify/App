@@ -35,17 +35,21 @@ import type {
     TransactionYearGroupListItemType,
 } from '@components/SelectionListWithSections/types';
 import Text from '@components/Text';
+import useAllTransactions from '@hooks/useAllTransactions';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useKeyboardState from '@hooks/useKeyboardState';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
+import {changeTransactionsReport} from '@libs/actions/Transaction';
 import DateUtils from '@libs/DateUtils';
 import navigationRef from '@libs/Navigation/navigationRef';
 import {applySelectionToItem, getTableMinWidth} from '@libs/SearchUIUtils';
@@ -285,7 +289,7 @@ function SearchList({
         return selectableTransactions.length;
     }, [data, type, flattenedItems, emptyReports]);
 
-    const {translate} = useLocalize();
+    const {translate, toLocaleDigit} = useLocalize();
     const {isOffline} = useNetwork();
     const listRef = useRef<FlashListRef<SearchListItem>>(null);
     const {isKeyboardShown} = useKeyboardState();
@@ -309,6 +313,26 @@ function SearchList({
     const [userBillingFundID] = useOnyx(ONYXKEYS.NVP_BILLING_FUND_ID);
     const [lastPaymentMethod] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD);
     const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID);
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const allTransactions = useAllTransactions();
+    const {isBetaEnabled} = usePermissions();
+    const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
+
+    const handleUndelete = useCallback(
+        (transactionID: string) => {
+            changeTransactionsReport({
+                transactionIDs: [transactionID],
+                isASAPSubmitBetaEnabled,
+                accountID: currentUserPersonalDetails.accountID ?? CONST.DEFAULT_NUMBER_ID,
+                email: currentUserPersonalDetails.email ?? '',
+                policy: policies?.[`${ONYXKEYS.COLLECTION.POLICY}${personalPolicyID}`],
+                allTransactions,
+                translate,
+                toLocaleDigit,
+            });
+        },
+        [isASAPSubmitBetaEnabled, currentUserPersonalDetails.accountID, currentUserPersonalDetails.email, policies, personalPolicyID, allTransactions, translate, toLocaleDigit],
+    );
 
     const route = useRoute();
     const {getScrollOffset} = useContext(ScrollOffsetContext);
@@ -460,6 +484,7 @@ function SearchList({
                         customCardNames={customCardNames}
                         onFocus={onFocus}
                         newTransactionID={newTransactionID}
+                        onUndelete={handleUndelete}
                     />
                 </Animated.View>
             );
@@ -493,6 +518,7 @@ function SearchList({
             personalPolicyID,
             customCardNames,
             selectedTransactions,
+            handleUndelete,
         ],
     );
 
