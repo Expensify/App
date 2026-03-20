@@ -873,14 +873,24 @@ function MoneyRequestReportPreviewContent({
         carouselRef.current?.scrollToEnd();
     }, [carouselTransactions.length]);
 
-    const reportPreviewActionView = {
-        [CONST.REPORT.REPORT_PREVIEW_ACTIONS.SUBMIT]: submitAction,
-        [CONST.REPORT.REPORT_PREVIEW_ACTIONS.APPROVE]: approveAction,
-        [CONST.REPORT.REPORT_PREVIEW_ACTIONS.PAY]: payAction,
-        [CONST.REPORT.REPORT_PREVIEW_ACTIONS.EXPORT_TO_ACCOUNTING]: exportAction,
-        [CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW]: viewAction,
-        [CONST.REPORT.REPORT_PREVIEW_ACTIONS.ADD_EXPENSE]: addExpenseAction,
-    }[reportPreviewAction];
+    const reportPreviewActionView = (() => {
+        switch (reportPreviewAction) {
+            case CONST.REPORT.REPORT_PREVIEW_ACTIONS.SUBMIT:
+                return submitAction;
+            case CONST.REPORT.REPORT_PREVIEW_ACTIONS.APPROVE:
+                return approveAction;
+            case CONST.REPORT.REPORT_PREVIEW_ACTIONS.PAY:
+                return payAction;
+            case CONST.REPORT.REPORT_PREVIEW_ACTIONS.EXPORT_TO_ACCOUNTING:
+                return exportAction;
+            case CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW:
+                return viewAction;
+            case CONST.REPORT.REPORT_PREVIEW_ACTIONS.ADD_EXPENSE:
+                return addExpenseAction;
+            default:
+                return null;
+        }
+    })();
 
     const renderSeparator = () => <View style={styles.transactionsCarouselGap} />;
 
