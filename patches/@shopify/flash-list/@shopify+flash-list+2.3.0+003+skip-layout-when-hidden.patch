@@ -1,8 +1,8 @@
 diff --git a/node_modules/@shopify/flash-list/dist/recyclerview/RecyclerView.js b/node_modules/@shopify/flash-list/dist/recyclerview/RecyclerView.js
-index 8b75322..dd2d3bc 100644
+index 8ea7795..d7a3d84 100644
 --- a/node_modules/@shopify/flash-list/dist/recyclerview/RecyclerView.js
 +++ b/node_modules/@shopify/flash-list/dist/recyclerview/RecyclerView.js
-@@ -74,6 +74,10 @@ const RecyclerViewComponent = (props, ref) => {
+@@ -134,6 +134,10 @@ const RecyclerViewComponent = (props, ref) => {
          if (internalViewRef.current && firstChildViewRef.current) {
              // Measure the outer container size and inner container layout
              const outerViewSize = measureParentSize(internalViewRef.current);
@@ -13,7 +13,7 @@ index 8b75322..dd2d3bc 100644
              const firstChildViewLayout = measureFirstChildLayout(firstChildViewRef.current, internalViewRef.current);
              containerViewSizeRef.current = outerViewSize;
              // firstChildViewLayout is already relative to the outer container,
-@@ -103,6 +107,10 @@ const RecyclerViewComponent = (props, ref) => {
+@@ -163,6 +167,10 @@ const RecyclerViewComponent = (props, ref) => {
          if (pendingChildIds.size > 0) {
              return;
          }

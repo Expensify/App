@@ -1,18 +1,18 @@
 diff --git a/node_modules/@shopify/flash-list/dist/recyclerview/RecyclerView.js b/node_modules/@shopify/flash-list/dist/recyclerview/RecyclerView.js
-index 205069b..7819c8b 100644
+index ffcdad8..ee42f63 100644
 --- a/node_modules/@shopify/flash-list/dist/recyclerview/RecyclerView.js
 +++ b/node_modules/@shopify/flash-list/dist/recyclerview/RecyclerView.js
-@@ -162,9 +162,6 @@ const RecyclerViewComponent = (props, ref) => {
+@@ -166,9 +166,6 @@ const RecyclerViewComponent = (props, ref) => {
      // eslint-disable-next-line react-hooks/exhaustive-deps
      useLayoutEffect(() => {
          var _a, _b;
 -        if (pendingChildIds.size > 0) {
 -            return;
 -        }
-         const layoutInfo = Array.from(refHolder, ([index, viewHolderRef]) => {
-             const layout = measureItemLayout(viewHolderRef.current, recyclerViewManager.tryGetLayout(index));
-             // comapre height with stored layout
-@@ -188,8 +185,17 @@ const RecyclerViewComponent = (props, ref) => {
+         if (((_a = containerViewSizeRef.current) === null || _a === void 0 ? void 0 : _a.width) === 0 &&
+             ((_b = containerViewSizeRef.current) === null || _b === void 0 ? void 0 : _b.height) === 0) {
+             return;
+@@ -196,8 +193,17 @@ const RecyclerViewComponent = (props, ref) => {
          }
          if (recyclerViewManager.modifyChildrenLayout(layoutInfo, (_a = data === null || data === void 0 ? void 0 : data.length) !== null && _a !== void 0 ? _a : 0) &&
              !hasExceededMaxRendersWithoutCommit) {
