@@ -1685,7 +1685,7 @@ function setOptimisticDataForTransactionThreadPreview(item: TransactionListItemT
         onyxUpdates.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-            value: report ?? {},
+            value: report ?? null,
         });
     }
 
