@@ -453,6 +453,8 @@ const translations: TranslationDeepObject<typeof en> = {
         downloadAsCSV: 'Télécharger au format CSV',
         print: 'Imprimer',
         help: 'Aide',
+        collapsed: 'Réduit',
+        expanded: 'Développé',
         expenseReport: 'Note de frais',
         expenseReports: 'Notes de frais',
         rateOutOfPolicy: 'Taux hors politique',

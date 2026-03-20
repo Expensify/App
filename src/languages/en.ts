@@ -472,6 +472,8 @@ const translations = {
         downloadAsCSV: 'Download as CSV',
         print: 'Print',
         help: 'Help',
+        collapsed: 'Collapsed',
+        expanded: 'Expanded',
         expenseReport: 'Expense Report',
         expenseReports: 'Expense Reports',
         // @context Rate as a noun, not a verb
