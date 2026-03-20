@@ -192,7 +192,7 @@ const darkTheme = {
             textColor: colors.pink200,
         },
         deleted: {
-            backgroundColor: colors.productDark400,
+            backgroundColor: colors.tangerine700,
             textColor: colors.productDark900,
         },
     },

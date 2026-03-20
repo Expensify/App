@@ -192,8 +192,8 @@ const lightTheme = {
             textColor: colors.pink700,
         },
         deleted: {
-            backgroundColor: colors.productLight400,
-            textColor: colors.productLight900,
+            backgroundColor: colors.tangerine500,
+            textColor: colors.productLight100,
         },
     },
 
