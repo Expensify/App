@@ -4041,7 +4041,7 @@ const ROUTES = {
     DOMAIN_GROUP_CREATE: {
         route: 'domain/:domainAccountID/groups/new',
         getRoute: (domainAccountID: number) => `domain/${domainAccountID}/groups/new` as const,
-    }
+    },
 } as const;
 
 /**

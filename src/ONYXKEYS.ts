@@ -1030,7 +1030,6 @@ const ONYXKEYS = {
         EDIT_DOMAIN_GROUP_NAME_FORM_DRAFT: 'editDomainGroupNameFormDraft',
         CREATE_DOMAIN_GROUP_FORM: 'createDomainGroupForm',
         CREATE_DOMAIN_GROUP_FORM_DRAFT: 'createDomainGroupFormDraft',
-
     },
     DERIVED: {
         REPORT_ATTRIBUTES: 'reportAttributes',

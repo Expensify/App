@@ -9134,8 +9134,8 @@ const CONST = {
         DOMAIN: {
             GROUPS: {
                 CREATE_GROUP_BUTTON: 'DomainGroups-CreateGroupButton',
-            }
-        }
+            },
+        },
     },
 
     DOMAIN: {

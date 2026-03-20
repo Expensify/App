@@ -1,22 +1,21 @@
-/* eslint-disable */
-import React from 'react';
-import {useRef} from 'react';
+import React, {useRef, useState} from 'react';
+import {View} from 'react-native';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
-import {FormOnyxValues} from '@components/Form/types';
+import type {FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import {AnimatedTextInputRef} from '@components/RNTextInput';
+import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import ScreenWrapper from '@components/ScreenWrapper';
-import ScrollView from '@components/ScrollView';
+import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {setDefaultSecurityGroup} from '@libs/actions/Domain';
 import {addErrorMessage} from '@libs/ErrorUtils';
 import Navigation from '@navigation/Navigation';
 import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import DomainNotFoundPageWrapper from '@pages/domain/DomainNotFoundPageWrapper';
+import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -31,6 +30,13 @@ function DomainGroupCreatePage({route}: DomainGroupCreatePageProps) {
     const {translate} = useLocalize();
 
     const inputRef = useRef<AnimatedTextInputRef>(null);
+
+    const [defaultGroupForNewMembers, setDefaultGroupForNewMembers] = useState(false);
+    const [strictlyEnforceWorkspaceRules, setStrictlyEnforceWorkspaceRules] = useState(false);
+    const [restrictDefaultLoginSelection, setRestrictDefaultLoginSelection] = useState(false);
+    const [restrictExpenseWorkspaceCreation, setRestrictExpenseWorkspaceCreation] = useState(false);
+    const [preferredWorkspace, setPreferredWorkspace] = useState(false);
+    const [expensifyCardPreferredWorkspace, setExpensifyCardPreferredWorkspace] = useState(false);
 
     return (
         <DomainNotFoundPageWrapper domainAccountID={domainAccountID}>
@@ -58,7 +64,8 @@ function DomainGroupCreatePage({route}: DomainGroupCreatePageProps) {
                     }}
                     onSubmit={() => {}}
                     submitButtonText={translate('domain.groups.createGroupSubmitButton')}
-                    style={[styles.flex1, styles.ph5, styles.pb3]}
+                    style={[styles.flex1]}
+                    submitButtonStyles={[styles.ph5, styles.pb3]}
                 >
                     <InputWrapper
                         InputComponent={TextInput}
@@ -71,8 +78,63 @@ function DomainGroupCreatePage({route}: DomainGroupCreatePageProps) {
                         spellCheck={false}
                         enterKeyHint="done"
                         ref={inputRef}
+                        containerStyles={[styles.ph5, styles.mv3]}
                     />
-                    <ScrollView></ScrollView>
+                    <ToggleSettingOptionRow
+                        title={translate('domain.groups.defaultGroup')}
+                        switchAccessibilityLabel={translate('domain.groups.defaultGroup')}
+                        isActive={defaultGroupForNewMembers}
+                        onToggle={setDefaultGroupForNewMembers}
+                        wrapperStyle={[styles.ph5, styles.mv3]}
+                    />
+                    <View style={[styles.sectionDividerLine, styles.mh5, styles.mv6]} />
+                    <Text style={[styles.textNormal, styles.textStrong, styles.ph5]}>{translate('domain.groups.permissions')}</Text>
+                    <ToggleSettingOptionRow
+                        title={translate('domain.groups.StrictlyEnforceWorkspaceRules')}
+                        subtitle={translate('domain.groups.StrictlyEnforceWorkspaceRulesDescription')}
+                        switchAccessibilityLabel={translate('domain.groups.StrictlyEnforceWorkspaceRules')}
+                        isActive={strictlyEnforceWorkspaceRules}
+                        onToggle={setStrictlyEnforceWorkspaceRules}
+                        wrapperStyle={[styles.ph5, styles.mv3]}
+                        shouldPlaceSubtitleBelowSwitch
+                    />
+                    <ToggleSettingOptionRow
+                        title={translate('domain.groups.RestrictDefaultLoginSelection')}
+                        subtitle={translate('domain.groups.RestrictDefaultLoginSelectionDescription')}
+                        switchAccessibilityLabel={translate('domain.groups.RestrictDefaultLoginSelection')}
+                        isActive={restrictDefaultLoginSelection}
+                        onToggle={setRestrictDefaultLoginSelection}
+                        wrapperStyle={[styles.ph5, styles.mv3]}
+                        shouldPlaceSubtitleBelowSwitch
+                    />
+                    <ToggleSettingOptionRow
+                        title={translate('domain.groups.RestrictExpenseWorkspaceCreation')}
+                        subtitle={translate('domain.groups.RestrictExpenseWorkspaceCreationDescription')}
+                        switchAccessibilityLabel={translate('domain.groups.RestrictExpenseWorkspaceCreation')}
+                        isActive={restrictExpenseWorkspaceCreation}
+                        onToggle={setRestrictExpenseWorkspaceCreation}
+                        wrapperStyle={[styles.ph5, styles.mv3]}
+                        shouldPlaceSubtitleBelowSwitch
+                    />
+                    {/* temporary no menu item with workspace selection */}
+                    <ToggleSettingOptionRow
+                        title={translate('domain.groups.preferredWorkspace')}
+                        subtitle={translate('domain.groups.preferredWorkspaceDescription', preferredWorkspace)}
+                        switchAccessibilityLabel={translate('domain.groups.preferredWorkspace')}
+                        isActive={preferredWorkspace}
+                        onToggle={setPreferredWorkspace}
+                        wrapperStyle={[styles.ph5, styles.mv3]}
+                        shouldPlaceSubtitleBelowSwitch
+                    />
+                    <ToggleSettingOptionRow
+                        title={translate('domain.groups.ExpensifyCardPreferredWorkspace')}
+                        subtitle={translate('domain.groups.ExpensifyCardPreferredWorkspaceDescription')}
+                        switchAccessibilityLabel={translate('domain.groups.ExpensifyCardPreferredWorkspace')}
+                        isActive={expensifyCardPreferredWorkspace}
+                        onToggle={setExpensifyCardPreferredWorkspace}
+                        wrapperStyle={[styles.ph5, styles.mv3]}
+                        shouldPlaceSubtitleBelowSwitch
+                    />
                 </FormProvider>
             </ScreenWrapper>
         </DomainNotFoundPageWrapper>

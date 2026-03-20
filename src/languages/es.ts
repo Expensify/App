@@ -8905,7 +8905,20 @@ ${amount} para ${merchant} - ${date}`,
             error: {
                 settings: '<rbr>No se pudo guardar este cambio. Inténtalo de nuevo o <concierge-link>contacta con Concierge</concierge-link> para obtener más ayuda.</rbr>',
             },
-            createNewGroupButton: 'Crear nuevo grupo',
+            permissions: 'Permisos de grupo',
+            ExpensifyCardPreferredWorkspace: 'Espacio de trabajo preferido para Expensify Card',
+            ExpensifyCardPreferredWorkspaceDescription:
+                'Todas las transacciones de Expensify Card se crearán en el espacio de trabajo preferido de Expensify Card en lugar del espacio de trabajo preferido. Al habilitar esta función, la configuración de espacio de trabajo preferido se aplicará solo a las transacciones de Expensify Card.',
+            RestrictExpenseWorkspaceCreation: 'Restringir la creación/eliminación de espacios de trabajo de gastos',
+            RestrictExpenseWorkspaceCreationDescription:
+                'Evita que los miembros creen un espacio de trabajo de gastos o se eliminen a sí mismos de uno. Esto, cuando se combina con la aplicación estricta de espacios de trabajo, es útil para evitar que se utilice Expensify para enviar informes destinados a usarse fuera de tu dominio.',
+            RestrictDefaultLoginSelection: 'Restringir el inicio de sesión predeterminado',
+            RestrictDefaultLoginSelectionDescription: 'Evita que los miembros cambien su correo de inicio de sesión fuera del dominio de la empresa para eludir restricciones de políticas.',
+            StrictlyEnforceWorkspaceRules: 'Hacer cumplir estrictamente las reglas del espacio de trabajo',
+            StrictlyEnforceWorkspaceRulesDescription: 'Todas las reglas del espacio de trabajo deben cumplirse antes de enviar un informe. No se permiten excepciones manuales.',
+            preferredWorkspaceDescription: (enabled: boolean) =>
+                `Todos los informes y gastos nuevos se crearán en ${enabled ? 'el espacio de trabajo preferido seleccionado' : 'este'} espacio de trabajo.`,
+            preferredWorkspaceSelectDescription: 'Todos los gastos e informes nuevos se crearán en este espacio de trabajo.',
         },
     },
     gps: {

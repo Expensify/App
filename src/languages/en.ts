@@ -8650,8 +8650,22 @@ const translations = {
             error: {
                 settings: '<rbr>Couldn’t save this change. Please try again or <concierge-link>contact Concierge</concierge-link> for more support.</rbr>',
             },
+            permissions: 'Group permissions',
             createNewGroupButton: 'New group',
-            createGroupSubmitButton: 'Create group'
+            createGroupSubmitButton: 'Create group',
+            ExpensifyCardPreferredWorkspace: 'Expensify Card Preferred Workspace',
+            ExpensifyCardPreferredWorkspaceDescription:
+                'All Expensify Card transactions will be created on the Expensify Card Preferred Workspace instead of the Preferred Workspace. Enabling this feature will override the Preferred Workspace setting for Expensify Card transactions only.',
+            RestrictExpenseWorkspaceCreation: 'Restrict expense workspace creation/removal',
+            RestrictExpenseWorkspaceCreationDescription:
+                'Prevent members from being able to create an expense workspace or remove themselves from an expense workspace. This is useful for preventing people from using Expensify to submit reports for use outside your domain when combined with strict workspace enforcement.',
+            RestrictDefaultLoginSelection: 'Restrict default login selection',
+            RestrictDefaultLoginSelectionDescription: 'Prevent members from changing their login email away from their company domain to avoid policy restrictions.',
+            StrictlyEnforceWorkspaceRules: 'Strictly enforce workspace rules',
+            StrictlyEnforceWorkspaceRulesDescription: 'All workspace rules must be met before submitting a report. No manual exceptions allowed.',
+            preferredWorkspace: 'Preferred Workspace',
+            preferredWorkspaceDescription: (enabled: boolean) => `All new reports and expenses will be created on ${enabled ? 'selected preferred' : 'this'} workspace.`,
+            preferredWorkspaceSelectDescription: 'All new expenses and reports will be created on this workspace.',
         },
     },
 };
