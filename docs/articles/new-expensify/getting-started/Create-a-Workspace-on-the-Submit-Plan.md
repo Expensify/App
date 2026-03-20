@@ -96,12 +96,14 @@ Your manager will receive an email with a link to review the report.
 ![Submit report to manager popover](https://github.com/user-attachments/assets/ed59c9b2-47ac-44c1-af55-62c91760b286)
 ---
 
-## Track reimbursement status with “Mark as paid”
+## Track reimbursement outside of Expensify
 
 If your manager reimburses you outside of Expensify, you can track it manually.
 
 1. Open a submitted report
-2. Click **Mark as paid**
+2. Click **More** > **Payment received**
+
+![Paymemt received](https://github.com/user-attachments/assets/4c82cc8e-4c1b-4a8c-8327-b3b0b8ccce51)
 
 This helps you track which reports are complete without requiring your manager to take action in Expensify.
 
