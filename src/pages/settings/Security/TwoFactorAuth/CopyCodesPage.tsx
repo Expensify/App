@@ -43,7 +43,7 @@ function CopyCodesPage({route}: TwoFactorAuthPageProps) {
     const [nativeAnnouncement, setNativeAnnouncement] = useState('');
     const isFocused = useIsFocused();
 
-    useAccessibilityAnnouncement(nativeAnnouncement, !!nativeAnnouncement, {shouldAnnounceOnNative: true});
+    useAccessibilityAnnouncement(nativeAnnouncement, !!nativeAnnouncement, {shouldAnnounceOnNative: true, delay: CONST.TIMING.VOICEOVER_LABEL_COMPLETION_DELAY});
 
     const announceStatus = (message: string, shouldAnnounceOnNative = false) => {
         setStatusAnnouncement((prev) => ({id: prev.id + 1, text: message}));

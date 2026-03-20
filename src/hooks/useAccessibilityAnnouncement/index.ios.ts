@@ -5,9 +5,9 @@ import type UseAccessibilityAnnouncementOptions from './types';
 
 const DELAY_FOR_ACCESSIBILITY_TREE_SYNC = 100;
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-function useAccessibilityAnnouncement(message: string | ReactNode, shouldAnnounceMessage: boolean, _options?: UseAccessibilityAnnouncementOptions) {
+function useAccessibilityAnnouncement(message: string | ReactNode, shouldAnnounceMessage: boolean, options?: UseAccessibilityAnnouncementOptions) {
     const previousAnnouncedMessageRef = useRef('');
+    const delay = options?.delay ?? DELAY_FOR_ACCESSIBILITY_TREE_SYNC;
 
     useEffect(() => {
         if (!shouldAnnounceMessage || typeof message !== 'string' || !message.trim()) {
@@ -24,10 +24,10 @@ function useAccessibilityAnnouncement(message: string | ReactNode, shouldAnnounc
         // On iOS real devices, a brief delay helps the accessibility tree sync before announcing.
         const timeout = setTimeout(() => {
             AccessibilityInfo.announceForAccessibility(message);
-        }, DELAY_FOR_ACCESSIBILITY_TREE_SYNC);
+        }, delay);
 
         return () => clearTimeout(timeout);
-    }, [message, shouldAnnounceMessage]);
+    }, [message, shouldAnnounceMessage, delay]);
 }
 
 export default useAccessibilityAnnouncement;
