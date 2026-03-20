@@ -1,5 +1,5 @@
 import type {ReactNode} from 'react';
-import React, {useMemo, useRef} from 'react';
+import React, {useMemo} from 'react';
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import {Linking, View} from 'react-native';
 import useDialogContainerFocus from '@hooks/useDialogContainerFocus';
@@ -51,10 +51,9 @@ function Header({
     isScreenHeader = false,
 }: HeaderProps) {
     const styles = useThemeStyles();
-    const {isInsideDialog, isTransitionReady, claimInitialFocus} = useDialogLabelRegistration(isScreenHeader ? title : '');
-    const titleRef = useRef<React.ComponentRef<typeof Text>>(null);
+    const {isTransitionReady, claimInitialFocus, containerRef} = useDialogLabelRegistration(isScreenHeader ? title : '');
 
-    useDialogContainerFocus(titleRef, isTransitionReady, claimInitialFocus);
+    useDialogContainerFocus(containerRef, isTransitionReady, claimInitialFocus);
 
     const renderedSubtitle = useMemo(
         () => (
@@ -96,12 +95,10 @@ function Header({
                 {typeof title === 'string'
                     ? !!title && (
                           <Text
-                              ref={isInsideDialog ? titleRef : undefined}
                               numberOfLines={numberOfTitleLines}
-                              style={[styles.headerText, styles.textLarge, styles.lineHeightXLarge, textStyles, isInsideDialog && styles.noOutline]}
+                              style={[styles.headerText, styles.textLarge, styles.lineHeightXLarge, textStyles]}
                               accessibilityRole={CONST.ROLE.HEADER}
                               accessibilityLabel={title}
-                              tabIndex={isInsideDialog ? -1 : undefined}
                           >
                               {title}
                           </Text>

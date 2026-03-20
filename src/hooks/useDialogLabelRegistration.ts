@@ -5,7 +5,7 @@ import ScreenWrapperStatusContext from '@components/ScreenWrapper/ScreenWrapperS
 
 /** Registers and manages a dialog label in the DialogLabelContext for the lifetime of the calling component. */
 function useDialogLabelRegistration(title: ReactNode) {
-    const {isInsideDialog} = useDialogLabelData();
+    const {isInsideDialog, containerRef} = useDialogLabelData();
     const {pushLabel, popLabel, claimInitialFocus} = useDialogLabelActions();
     const screenWrapperStatus = useContext(ScreenWrapperStatusContext);
 
@@ -19,7 +19,7 @@ function useDialogLabelRegistration(title: ReactNode) {
 
     const isTransitionReady = !!isInsideDialog && !!screenWrapperStatus?.didScreenTransitionEnd;
 
-    return {isInsideDialog, isTransitionReady, claimInitialFocus};
+    return {isInsideDialog, isTransitionReady, claimInitialFocus, containerRef};
 }
 
 export default useDialogLabelRegistration;
