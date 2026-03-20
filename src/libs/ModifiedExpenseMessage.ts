@@ -251,7 +251,6 @@ function getForReportAction({
     movedToReport,
     policyTags,
     currentUserLogin,
-    conciergeReportID,
     reportAttributes,
 }: {
     translate: LocalizedTranslate;
@@ -264,8 +263,6 @@ function getForReportAction({
     // See https://github.com/Expensify/App/pull/75562
     policyTags?: OnyxEntry<PolicyTagLists>;
     currentUserLogin: string;
-    // TODO: This will be required eventually. Refactor issue: https://github.com/Expensify/App/issues/66411
-    conciergeReportID?: string;
     reportAttributes?: ReportAttributesDerivedValue['reports'];
 }): string {
     if (!isModifiedExpenseAction(reportAction)) {
