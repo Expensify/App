@@ -3,6 +3,7 @@ import {render} from '@testing-library/react-native';
 import React from 'react';
 import type {View as RNView} from 'react-native';
 import Onyx from 'react-native-onyx';
+import {openApp} from '@libs/actions/App';
 // eslint-disable-next-line rulesdir/no-inline-named-export
 import SignInModal from '@pages/signin/SignInModal';
 import CONST from '@src/CONST';
@@ -10,7 +11,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
-const mockOpenApp = jest.fn(() => Promise.resolve());
 const mockWaitForIdle = jest.fn(() => Promise.resolve());
 const mockDismissModal = jest.fn();
 const mockIsNavigationReady = jest.fn(() => Promise.resolve());
@@ -18,8 +18,10 @@ const mockGoBack = jest.fn();
 let mockSessionData: {authToken?: string; authTokenType?: string} | undefined;
 
 jest.mock('@libs/actions/App', () => ({
-    openApp: (...args: unknown[]) => mockOpenApp(...args),
+    openApp: jest.fn(() => Promise.resolve()),
 }));
+
+const mockOpenApp = openApp as jest.Mock;
 
 jest.mock('@libs/Network/SequentialQueue', () => ({
     flush: jest.fn(),
