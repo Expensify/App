@@ -14,6 +14,7 @@ import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {PersonalDetailsList} from '@src/types/onyx';
+import type Beta from '@src/types/onyx/Beta';
 import type OnyxReport from '@src/types/onyx/Report';
 import Button from './Button';
 import type {ThreeDotsMenuItem} from './HeaderWithBackButton/types';
@@ -35,6 +36,7 @@ type PromotedActionsType = Record<BasePromotedActions, (report: OnyxReport) => P
         personalDetails: OnyxEntry<PersonalDetailsList>;
         introSelected: OnyxEntry<IntroSelected>;
         isSelfTourViewed: boolean | undefined;
+        betas: OnyxEntry<Beta[]>;
     }) => PromotedAction;
 } & {
     [CONST.PROMOTED_ACTIONS.JOIN]: (report: OnyxReport, currentUserAccountID: number) => PromotedAction;
@@ -66,7 +68,7 @@ const PromotedActions = {
             joinRoom(report, currentUserAccountID);
         }),
     }),
-    message: ({reportID, accountID, login, currentUserAccountID, personalDetails, introSelected, isSelfTourViewed}) => ({
+    message: ({reportID, accountID, login, currentUserAccountID, personalDetails, introSelected, isSelfTourViewed, betas}) => ({
         key: CONST.PROMOTED_ACTIONS.MESSAGE,
         icon: 'CommentBubbles',
         translationKey: 'common.message',
@@ -78,11 +80,11 @@ const PromotedActions = {
 
             // The accountID might be optimistic, so we should use the login if we have it
             if (login) {
-                navigateToAndOpenReport([login], personalDetails, currentUserAccountID, introSelected, isSelfTourViewed, false);
+                navigateToAndOpenReport([login], personalDetails, currentUserAccountID, introSelected, isSelfTourViewed, betas, false);
                 return;
             }
             if (accountID) {
-                navigateToAndOpenReportWithAccountIDs([accountID], currentUserAccountID, introSelected);
+                navigateToAndOpenReportWithAccountIDs([accountID], currentUserAccountID, introSelected, betas);
             }
         },
     }),
