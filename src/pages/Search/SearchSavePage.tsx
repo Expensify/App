@@ -1,6 +1,6 @@
 import React, {useState} from 'react';
-import {View} from 'react-native';
-import Button from '@components/Button';
+import FormProvider from '@components/Form/FormProvider';
+import InputWrapper from '@components/Form/InputWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useFilterFeedValue from '@components/Search/hooks/useFilterFeedValue';
@@ -8,6 +8,7 @@ import useFilterFromValue from '@components/Search/hooks/useFilterFromValue';
 import useFilterWorkspaceValue from '@components/Search/hooks/useFilterWorkspaceValue';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
+import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -22,6 +23,7 @@ import ROUTES from '@src/ROUTES';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
 import {FILTER_KEYS} from '@src/types/form/SearchAdvancedFiltersForm';
 import type {SearchAdvancedFiltersKey} from '@src/types/form/SearchAdvancedFiltersForm';
+import INPUT_IDS from '@src/types/form/SearchSaveForm';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
 
 type FilterValueProps = {
@@ -100,50 +102,52 @@ function SearchSavePage() {
 
     const appliedFilters = mapFiltersFormToLabelValueList(searchAdvancedFiltersForm, undefined, translate);
 
+    const {inputCallbackRef} = useAutoFocusInput();
+
     return (
         <ScreenWrapper
             testID="SearchSavePage"
             includeSafeAreaPaddingBottom
         >
             <HeaderWithBackButton title={translate('search.saveSearch')} />
-            <View style={[styles.flex1, styles.mh5, styles.mt2, styles.mb3, styles.gap5]}>
-                <TextInput
+            <FormProvider
+                formID={ONYXKEYS.FORMS.SEARCH_SAVE_FORM}
+                submitButtonText={translate('search.saveSearch')}
+                onSubmit={onSaveSearch}
+                style={[styles.mh5, styles.flex1]}
+                enabledWhenOffline
+                shouldHideFixErrorsAlert
+                sentryLabel={CONST.SENTRY_LABEL.SEARCH.SAVE_SEARCH_BUTTON}
+            >
+                <InputWrapper
+                    InputComponent={TextInput}
+                    inputID={INPUT_IDS.NAME}
+                    ref={inputCallbackRef}
                     value={name}
                     onChangeText={setName}
                     placeholder={translate('common.name')}
                     accessibilityLabel={translate('common.name')}
                     role={CONST.ROLE.PRESENTATION}
                 />
-                <View>
-                    <Text style={[styles.textLabelSupporting, styles.mb2]}>{translate('search.appliedFilters')}:</Text>
-                    {appliedFilters.length > 0 ? (
-                        appliedFilters.map((filter) => (
-                            <Text
-                                key={filter.key}
-                                style={[styles.label]}
-                            >
-                                <Text style={[styles.label, styles.ph2]}>{CONST.DOT_SEPARATOR}</Text>
-                                <Text style={[styles.labelStrong]}>{filter.label}: </Text>
-                                <FilterValue
-                                    filterKey={filter.key}
-                                    value={filter.value}
-                                />
-                            </Text>
-                        ))
-                    ) : (
-                        <Text>{translate('common.none')}</Text>
-                    )}
-                </View>
-            </View>
-            <Button
-                text={translate('search.saveSearch')}
-                onPress={onSaveSearch}
-                style={[styles.mh5, styles.mb5]}
-                success
-                large
-                pressOnEnter
-                sentryLabel={CONST.SENTRY_LABEL.SEARCH.SAVE_SEARCH_BUTTON}
-            />
+                <Text style={[styles.textLabelSupporting, styles.mb2, styles.mt5]}>{translate('search.appliedFilters')}:</Text>
+                {appliedFilters.length > 0 ? (
+                    appliedFilters.map((filter) => (
+                        <Text
+                            key={filter.key}
+                            style={[styles.label]}
+                        >
+                            <Text style={[styles.label, styles.ph2]}>{CONST.DOT_SEPARATOR}</Text>
+                            <Text style={[styles.labelStrong]}>{filter.label}: </Text>
+                            <FilterValue
+                                filterKey={filter.key}
+                                value={filter.value}
+                            />
+                        </Text>
+                    ))
+                ) : (
+                    <Text>{translate('common.none')}</Text>
+                )}
+            </FormProvider>
         </ScreenWrapper>
     );
 }
