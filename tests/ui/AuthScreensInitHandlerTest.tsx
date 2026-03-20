@@ -14,6 +14,7 @@ import {signOutAndRedirectToSignIn} from '@userActions/Session';
 import {subscribeToUserEvents} from '@userActions/User';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type {ReportAttributesDerivedValue} from '@src/types/onyx';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatchedUpdates';
@@ -176,7 +177,7 @@ describe('AuthScreensInitHandler', () => {
     });
 
     it('getter passed to subscribeToUserEvents returns report attributes when available', async () => {
-        const mockReports = {'1': {reportName: 'Test Report'}} as Record<string, unknown>;
+        const mockReports = {testReport: {reportName: 'Test Report'}} as unknown as ReportAttributesDerivedValue['reports'];
 
         await Onyx.merge(ONYXKEYS.SESSION, {accountID: TEST_ACCOUNT_ID, email: 'test@test.com'});
         await Onyx.merge(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {reports: mockReports});
@@ -185,7 +186,9 @@ describe('AuthScreensInitHandler', () => {
         renderAuthScreensInitHandler();
         await waitForBatchedUpdatesWithAct();
 
-        const getter = (subscribeToUserEvents as jest.Mock).mock.calls.at(0)?.[1] as () => unknown;
+        const mockCalls = (subscribeToUserEvents as jest.Mock).mock.calls;
+        const firstCallArgs = mockCalls.at(0) as unknown[];
+        const getter = firstCallArgs.at(1) as () => unknown;
         expect(getter()).toEqual(mockReports);
     });
 
@@ -197,7 +200,9 @@ describe('AuthScreensInitHandler', () => {
         renderAuthScreensInitHandler();
         await waitForBatchedUpdatesWithAct();
 
-        const getter = (subscribeToUserEvents as jest.Mock).mock.calls.at(0)?.[1] as () => unknown;
+        const mockCalls = (subscribeToUserEvents as jest.Mock).mock.calls;
+        const firstCallArgs = mockCalls.at(0) as unknown[];
+        const getter = firstCallArgs.at(1) as () => unknown;
         expect(getter()).toBeUndefined();
     });
 
