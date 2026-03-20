@@ -166,6 +166,7 @@ const translations: TranslationDeepObject<typeof en> = {
         conjunctionTo: 'a',
         genericErrorMessage: 'Ups... algo no ha ido bien y la acción no se ha podido completar. Por favor, inténtalo más tarde.',
         percentage: 'Porcentaje',
+        progressBarLabel: 'Progreso de incorporación',
         converted: 'Convertido',
         error: {
             invalidAmount: 'Importe no válido',
@@ -630,6 +631,12 @@ const translations: TranslationDeepObject<typeof en> = {
         setPin: {
             didNotShipCard: 'No enviamos tu tarjeta. Por favor, inténtalo de nuevo.',
         },
+        revealPin: {
+            couldNotReveal: 'No pudimos revelar tu PIN. Por favor, inténtalo de nuevo.',
+        },
+        changePin: {
+            didNotChange: 'No pudimos cambiar tu PIN. Por favor, inténtalo de nuevo.',
+        },
     },
     validateCodeModal: {
         successfulSignInTitle: 'Abracadabra,\n¡sesión iniciada!',
@@ -892,6 +899,11 @@ const translations: TranslationDeepObject<typeof en> = {
                 titleWithDetails: ({amount, merchant}: {amount: string; merchant: string}) => `Revisa ${amount} en posible fraude en ${merchant}`,
                 subtitle: 'Tarjeta Expensify',
                 cta: 'Revisar',
+            },
+            validateAccount: {
+                title: 'Valida tu cuenta para continuar usando Expensify',
+                subtitle: 'Cuenta',
+                cta: 'Validar',
             },
         },
         assignedCards: 'Tus tarjetas Expensify',
@@ -2240,12 +2252,20 @@ ${amount} para ${merchant} - ${date}`,
         },
         setYourPin: 'Establece tu PIN.',
         confirmYourPin: 'Confirma tu PIN.',
+        changeYourPin: 'Introduce un nuevo PIN para tu tarjeta.',
+        confirmYourChangedPin: 'Confirma tu nuevo PIN.',
         pinMustBeFourDigits: 'El PIN debe tener exactamente 4 dígitos.',
         invalidPin: 'Por favor, elige un PIN más seguro.',
         pinMismatch: 'Los PINs no coinciden. Por favor, inténtalo de nuevo.',
         revealPin: 'Mostrar PIN',
         hidePin: 'Ocultar PIN',
         pin: 'PIN',
+        changePin: 'Cambiar PIN',
+        pinChanged: '¡PIN cambiado!',
+        pinChangedHeader: 'PIN cambiado',
+        pinChangedDescription: 'Ya puedes usar tu nuevo PIN.',
+        changePinAtATM: 'Cambia tu PIN en cualquier cajero automático',
+        changePinAtATMDescription: 'Esto es obligatorio en tu región. <concierge-link>Contacta a Concierge</concierge-link> si tienes alguna pregunta.',
         freezeCard: 'Congelar tarjeta',
         unfreeze: 'Descongelar',
         unfreezeCard: 'Descongelar tarjeta',
@@ -7401,7 +7421,8 @@ ${amount} para ${merchant} - ${date}`,
                     `La conexión ${feedName} está rota. Para restaurar las importaciones de tarjetas, <a href='${workspaceCompanyCardRoute}'>inicia sesión en tu banco</a>.`,
                 plaidBalanceFailure: ({maskedAccountNumber, walletRoute}: {maskedAccountNumber: string; walletRoute: string}) =>
                     `la conexión Plaid con tu cuenta bancaria de empresa está rota. Por favor, <a href='${walletRoute}'>reconecta tu cuenta bancaria ${maskedAccountNumber}</a> para poder seguir usando tus Tarjetas Expensify.`,
-                addEmployee: (email, role) => `agregó a ${email} como ${role}`,
+                addEmployee: (email: string, role: string, didJoinPolicy?: boolean) =>
+                    didJoinPolicy ? `${email} se unió mediante el enlace de invitación del espacio de trabajo` : `se añadió ${email} como ${role === 'member' ? 'a' : 'a un'} ${role}`,
                 updateRole: ({email, currentRole, newRole}) => `actualizó el rol ${email} a ${newRole} (previamente ${currentRole})`,
                 updatedCustomField1: (email, newValue, previousValue) => {
                     if (!newValue) {
