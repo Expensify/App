@@ -76,7 +76,7 @@ function PayActionButton({
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
 
-    const transactions = getReportTransactions(iouReportID);
+    const transactions = getReportTransactions(iouReportID).filter((t) => isOffline || t.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
 
     const isDEWBetaEnabled = isBetaEnabled(CONST.BETAS.NEW_DOT_DEW);
     const existingB2BInvoiceReport = useParticipantsInvoiceReport(activePolicyID, CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS, chatReport?.policyID);

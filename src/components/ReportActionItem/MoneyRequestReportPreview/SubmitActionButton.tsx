@@ -5,6 +5,7 @@ import {ModalActions} from '@components/Modal/Global/ModalContext';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import {hasDynamicExternalWorkflow} from '@libs/PolicyUtils';
@@ -40,7 +41,8 @@ function SubmitActionButton({iouReportID, chatReportID, isSubmittingAnimationRun
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportID}`);
-    const transactions = getReportTransactions(iouReportID);
+    const {isOffline} = useNetwork();
+    const transactions = getReportTransactions(iouReportID).filter((t) => isOffline || t.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
 
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const isDEWBetaEnabled = isBetaEnabled(CONST.BETAS.NEW_DOT_DEW);

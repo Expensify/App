@@ -6,6 +6,7 @@ import ExportWithDropdownMenu from '@components/ReportActionItem/ExportWithDropd
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -66,7 +67,8 @@ function ReportPreviewActionButton({
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${iouReport?.policyID}`);
     const invoiceReceiverPolicyID = chatReport?.invoiceReceiver && 'policyID' in chatReport.invoiceReceiver ? chatReport.invoiceReceiver.policyID : undefined;
     const [invoiceReceiverPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${invoiceReceiverPolicyID}`);
-    const transactions = getReportTransactions(iouReportID);
+    const {isOffline} = useNetwork();
+    const transactions = getReportTransactions(iouReportID).filter((t) => isOffline || t.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
 
     const isIouReportArchived = useReportIsArchived(iouReportID);
     const isChatReportArchived = useReportIsArchived(chatReportID);

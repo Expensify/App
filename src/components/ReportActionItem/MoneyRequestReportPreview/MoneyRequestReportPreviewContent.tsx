@@ -153,7 +153,6 @@ function MoneyRequestReportPreviewContent({
     const [requestType, setRequestType] = useState<ActionHandledType>();
     const [paymentType, setPaymentType] = useState<PaymentMethodType>();
     const hasOnlyHeldExpenses = hasOnlyHeldExpensesReportUtils(iouReport?.reportID);
-    const {nonHeldAmount, fullAmount, hasValidNonHeldAmount} = getNonHeldAndFullAmount(iouReport, true);
 
     const handleHoldMenuOpen = (holdRequestType: string, holdPaymentType?: PaymentMethodType) => {
         setRequestType(holdRequestType as ActionHandledType);
@@ -716,27 +715,34 @@ function MoneyRequestReportPreviewContent({
                         </View>
                     </PressableWithoutFeedback>
                 </View>
-                {isHoldMenuVisible && !!iouReport && !!requestType && (
-                    <ProcessMoneyReportHoldMenu
-                        nonHeldAmount={!hasOnlyHeldExpenses && hasValidNonHeldAmount ? nonHeldAmount : undefined}
-                        requestType={requestType}
-                        fullAmount={fullAmount}
-                        onClose={() => setIsHoldMenuVisible(false)}
-                        isVisible={isHoldMenuVisible}
-                        paymentType={paymentType}
-                        chatReport={chatReport}
-                        moneyRequestReport={iouReport}
-                        transactionCount={numberOfRequests}
-                        hasNonHeldExpenses={!hasOnlyHeldExpenses}
-                        startAnimation={() => {
-                            if (requestType === CONST.IOU.REPORT_ACTION_TYPE.APPROVE) {
-                                startApprovedAnimation();
-                            } else {
-                                startAnimation();
-                            }
-                        }}
-                    />
-                )}
+                {isHoldMenuVisible &&
+                    !!iouReport &&
+                    !!requestType &&
+                    (() => {
+                        const shouldExcludeNonReimbursables = requestType === CONST.IOU.REPORT_ACTION_TYPE.PAY;
+                        const {nonHeldAmount, fullAmount, hasValidNonHeldAmount} = getNonHeldAndFullAmount(iouReport, shouldExcludeNonReimbursables);
+                        return (
+                            <ProcessMoneyReportHoldMenu
+                                nonHeldAmount={!hasOnlyHeldExpenses && hasValidNonHeldAmount ? nonHeldAmount : undefined}
+                                requestType={requestType}
+                                fullAmount={fullAmount}
+                                onClose={() => setIsHoldMenuVisible(false)}
+                                isVisible={isHoldMenuVisible}
+                                paymentType={paymentType}
+                                chatReport={chatReport}
+                                moneyRequestReport={iouReport}
+                                transactionCount={numberOfRequests}
+                                hasNonHeldExpenses={!hasOnlyHeldExpenses}
+                                startAnimation={() => {
+                                    if (requestType === CONST.IOU.REPORT_ACTION_TYPE.APPROVE) {
+                                        startApprovedAnimation();
+                                    } else {
+                                        startAnimation();
+                                    }
+                                }}
+                            />
+                        );
+                    })()}
             </OfflineWithFeedback>
         </View>
     );
