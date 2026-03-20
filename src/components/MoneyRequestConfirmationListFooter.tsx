@@ -1097,7 +1097,7 @@ function MoneyRequestConfirmationListFooter({
                 style={[styles.moneyRequestImage, receiptContainerStyle, isLoadingReceipt && [styles.justifyContentCenter, styles.alignItemsCenter]]}
                 onLayout={isCompactMode ? handleCompactReceiptContainerLayout : undefined}
             >
-                {isLoadingReceipt && <ActivityIndicator />}
+                {isLoadingReceipt && <ActivityIndicator reasonAttributes={{context: 'MoneyRequestConfirmationListFooter'}} />}
                 {!isLoadingReceipt &&
                     (isLocalFile && Str.isPDF(receiptFilename) ? (
                         <PressableWithoutFocus
