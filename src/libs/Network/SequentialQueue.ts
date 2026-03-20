@@ -270,10 +270,15 @@ function process(): Promise<void> {
  * so some cases (e.g., unpausing) require skipping the reset to maintain proper behavior.
  */
 function flush(shouldResetPromise = true) {
-    // When the queue is paused or offline, return early. Requests stay in the queue
-    // and will be flushed when the queue is unpaused or we come back online.
-    if (isQueuePaused || isOfflineNetwork()) {
-        Log.info('[SequentialQueue] Unable to flush. Queue is paused or offline.');
+    // When the queue is paused, return early. This will keep an requests in the queue and they will get flushed again when
+    // the queue is unpaused
+    if (isQueuePaused) {
+        Log.info('[SequentialQueue] Unable to flush. Queue is paused.');
+        return;
+    }
+
+    if (isOfflineNetwork()) {
+        Log.info('[SequentialQueue] Unable to flush. We are offline.');
         return;
     }
 
