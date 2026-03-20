@@ -209,6 +209,7 @@ import type {
     Report,
     ReportAction,
     ReportActionReactions,
+    ReportAttributesDerivedValue,
     ReportNextStepDeprecated,
     ReportUserIsTyping,
     ReportViolations,
@@ -4093,7 +4094,13 @@ function shouldShowReportActionNotification(reportID: string, currentUserAccount
     return true;
 }
 
-function showReportActionNotification(reportID: string, reportAction: ReportAction, currentUserAccountID: number, currentUserLogin: string, conciergeReportID: string | undefined) {
+function showReportActionNotification(
+    reportID: string,
+    reportAction: ReportAction,
+    currentUserAccountID: number,
+    currentUserLogin: string,
+    reportAttributes?: ReportAttributesDerivedValue['reports'],
+) {
     if (!shouldShowReportActionNotification(reportID, currentUserAccountID, reportAction)) {
         return;
     }
@@ -4112,9 +4119,9 @@ function showReportActionNotification(reportID: string, reportAction: ReportActi
     if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE) {
         const movedFromReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${getMovedReportID(reportAction, CONST.REPORT.MOVE_TYPE.FROM)}`];
         const movedToReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${getMovedReportID(reportAction, CONST.REPORT.MOVE_TYPE.TO)}`];
-        LocalNotification.showModifiedExpenseNotification({report, reportAction, onClick, movedFromReport, movedToReport, currentUserLogin, conciergeReportID});
+        LocalNotification.showModifiedExpenseNotification({report, reportAction, onClick, movedFromReport, movedToReport, currentUserLogin, reportAttributes});
     } else {
-        LocalNotification.showCommentNotification(report, reportAction, onClick, conciergeReportID);
+        LocalNotification.showCommentNotification(report, reportAction, onClick, reportAttributes);
     }
 
     notifyNewAction(reportID, undefined, reportAction.actorAccountID === currentUserAccountID);
