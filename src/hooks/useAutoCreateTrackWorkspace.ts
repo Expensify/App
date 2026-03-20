@@ -2,6 +2,7 @@ import {hasSeenTourSelector} from '@selectors/Onboarding';
 import {useCallback, useMemo} from 'react';
 import type {OnyxCollection} from 'react-native-onyx';
 import {navigateAfterOnboardingWithMicrotaskQueue} from '@libs/navigateAfterOnboarding';
+import {createDisplayName} from '@libs/PersonalDetailsUtils';
 import {isPaidGroupPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
 import {createWorkspace, generateDefaultWorkspaceName, generatePolicyID} from '@userActions/Policy/Policy';
 import {completeOnboarding} from '@userActions/Report';
@@ -13,6 +14,7 @@ import useArchivedReportsIdSet from './useArchivedReportsIdSet';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useHasActiveAdminPolicies from './useHasActiveAdminPolicies';
 import useOnboardingMessages from './useOnboardingMessages';
+import useLocalize from './useLocalize';
 import useOnyx from './useOnyx';
 import usePermissions from './usePermissions';
 import usePreferredPolicy from './usePreferredPolicy';
@@ -42,6 +44,7 @@ function useAutoCreateTrackWorkspace() {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const archivedReportsIdSet = useArchivedReportsIdSet();
     const {isBetaEnabled} = usePermissions();
+    const {formatPhoneNumber} = useLocalize();
     const {isRestrictedPolicyCreation} = usePreferredPolicy();
     const hasActiveAdminPolicies = useHasActiveAdminPolicies();
     const {onboardingMessages} = useOnboardingMessages();
@@ -54,12 +57,13 @@ function useAutoCreateTrackWorkspace() {
     const autoCreateTrackWorkspace = useCallback(
         (firstName: string, lastName: string, onboardingPurposeSelected: OnboardingPurpose) => {
             const shouldCreateWorkspace = !isRestrictedPolicyCreation && !onboardingPolicyID && !hasPaidGroupAdminPolicy;
+            const displayName = createDisplayName(session?.email ?? '', {firstName, lastName}, formatPhoneNumber);
 
             const {adminsChatReportID: newAdminsChatReportID, policyID: newPolicyID} = shouldCreateWorkspace
                 ? createWorkspace({
                       policyOwnerEmail: undefined,
                       makeMeAdmin: true,
-                      policyName: generateDefaultWorkspaceName(session?.email, firstName),
+                      policyName: generateDefaultWorkspaceName(session?.email, displayName),
                       policyID: generatePolicyID(),
                       engagementChoice: CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE,
                       currency: currentUserPersonalDetails.localCurrencyCode ?? CONST.CURRENCY.USD,
@@ -105,6 +109,7 @@ function useAutoCreateTrackWorkspace() {
         [
             session?.email,
             session?.accountID,
+            formatPhoneNumber,
             isRestrictedPolicyCreation,
             onboardingPolicyID,
             hasPaidGroupAdminPolicy,
