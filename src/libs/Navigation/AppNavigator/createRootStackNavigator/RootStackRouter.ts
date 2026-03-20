@@ -1,5 +1,5 @@
 import {CommonActions, StackRouter} from '@react-navigation/native';
-import type {RouterConfigOptions, StackActionType, StackNavigationState} from '@react-navigation/native';
+import type {NavigationState, PartialState, RouterConfigOptions, StackActionType, StackNavigationState} from '@react-navigation/native';
 import type {ParamListBase} from '@react-navigation/routers';
 import {createGuardContext, evaluateGuards} from '@libs/Navigation/guards';
 import getAdaptedStateFromPath from '@libs/Navigation/helpers/getAdaptedStateFromPath';
@@ -106,7 +106,7 @@ function handleNavigationGuards(
         const resetAction = CommonActions.reset({
             index: routes.length - 1,
             routes,
-        });
+        } as PartialState<NavigationState>);
 
         return stackRouter.getStateForAction(state, resetAction, configOptions);
     }
