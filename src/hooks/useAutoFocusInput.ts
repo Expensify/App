@@ -19,19 +19,6 @@ type UseAutoFocusInput = {
     inputRef: RefObject<TextInput | null>;
 };
 
-function shouldPreserveExistingFocus(target: TextInput | null): boolean {
-    if (typeof document === 'undefined') {
-        return false;
-    }
-
-    const activeElement = document.activeElement;
-    if (!activeElement || activeElement === document.body || activeElement === document.documentElement) {
-        return false;
-    }
-
-    return !target?.isFocused?.();
-}
-
 export default function useAutoFocusInput(isMultiline = false): UseAutoFocusInput {
     const [isInputInitialized, setIsInputInitialized] = useState(false);
     const [isScreenTransitionEnded, setIsScreenTransitionEnded] = useState(false);
@@ -58,21 +45,10 @@ export default function useAutoFocusInput(isMultiline = false): UseAutoFocusInpu
         }
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         const focusTaskHandle = InteractionManager.runAfterInteractions(() => {
-            const currentInput = inputRef.current;
-            if (shouldPreserveExistingFocus(currentInput)) {
-                setIsScreenTransitionEnded(false);
-                return;
+            if (inputRef.current && isMultiline) {
+                moveSelectionToEnd(inputRef.current);
             }
-
-            if (currentInput && isMultiline) {
-                moveSelectionToEnd(currentInput);
-            }
-            isWindowReadyToFocus().then(() => {
-                if (shouldPreserveExistingFocus(inputRef.current)) {
-                    return;
-                }
-                inputRef.current?.focus();
-            });
+            isWindowReadyToFocus().then(() => inputRef.current?.focus());
             setIsScreenTransitionEnded(false);
         });
 

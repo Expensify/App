@@ -5,7 +5,6 @@ import Button from '@components/Button';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import Text from '@components/Text';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import useHasTeam2025Pricing from '@hooks/useHasTeam2025Pricing';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePrivateSubscription from '@hooks/usePrivateSubscription';
@@ -14,10 +13,10 @@ import {upgradeToCorporate} from '@libs/actions/Policy/Policy';
 import {getOwnedPaidPolicies, isPolicyAdmin} from '@libs/PolicyUtils';
 import {isSubscriptionTypeOfInvoicing} from '@libs/SubscriptionUtils';
 import Navigation from '@navigation/Navigation';
+import {getPrivatePromoDiscountInfo} from '@pages/settings/Subscription/utils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import AddMembersButton from './AddMembersButton';
 import type {PersonalPolicyTypeExcludedProps} from './SubscriptionPlanCard';
 
 type SubscriptionPlanCardActionButtonProps = {
@@ -40,12 +39,14 @@ type SubscriptionPlanCardActionButtonProps = {
 function SubscriptionPlanCardActionButton({subscriptionPlan, isFromComparisonModal, isSelected, closeComparisonModal, style}: SubscriptionPlanCardActionButtonProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const hasTeam2025Pricing = useHasTeam2025Pricing();
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const privateSubscription = usePrivateSubscription();
+    const [privatePromoCode] = useOnyx(ONYXKEYS.NVP_PRIVATE_PROMO_CODE);
+    const [privatePromoDiscount] = useOnyx(ONYXKEYS.NVP_PRIVATE_PROMO_DISCOUNT);
     const isAnnual = privateSubscription?.type === CONST.SUBSCRIPTION.TYPE.ANNUAL;
+    const {isSecretPromoCode} = getPrivatePromoDiscountInfo(privatePromoDiscount, isAnnual);
     const ownerPolicies = useMemo(() => getOwnedPaidPolicies(policies, currentUserAccountID), [policies, currentUserAccountID]);
 
     const [canPerformUpgrade, policy] = useMemo(() => {
@@ -107,9 +108,6 @@ function SubscriptionPlanCardActionButton({subscriptionPlan, isFromComparisonMod
                 />
             );
         }
-        if (hasTeam2025Pricing) {
-            return <AddMembersButton />;
-        }
     }
 
     if (subscriptionPlan === CONST.POLICY.TYPE.CORPORATE) {
@@ -136,7 +134,7 @@ function SubscriptionPlanCardActionButton({subscriptionPlan, isFromComparisonMod
     const subscriptionType = isAnnual ? translate('subscription.subscriptionSettings.annual') : translate('subscription.details.payPerUse');
     const subscriptionSize = `${privateSubscription?.userCount ?? translate('subscription.subscriptionSettings.none')}`;
     const autoRenew = privateSubscription?.autoRenew ? translate('subscription.subscriptionSettings.on') : translate('subscription.subscriptionSettings.off');
-    const expensifyCode = privateSubscription?.isSecretPromoCode ? '' : (privateSubscription?.expensifyCode ?? '');
+    const expensifyCode = isSecretPromoCode ? '' : (privatePromoCode ?? '');
 
     return (
         <MenuItemWithTopDescription
