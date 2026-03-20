@@ -223,16 +223,14 @@ function configureAndSubscribe() {
     }
 
     unsubscribeNetInfo = NetInfo.addEventListener((state) => {
-        if (shouldForceOffline) {
-            Log.info('[NetworkState] Not processing NetInfo state because shouldForceOffline = true');
-            return;
-        }
-
         const radio = state.isConnected !== false;
         Log.info(`[NetworkState] NetInfo state change: isConnected=${state.isConnected}, isInternetReachable=${state.isInternetReachable}, type=${state.type}`);
+
+        // Always track real radio/reachability state so values are never stale
+        // when shouldForceOffline is turned off. Only gate the reconnect side effect.
         setHasRadio(radio);
 
-        if (state.isInternetReachable === true && prevIsInternetReachable !== true) {
+        if (!shouldForceOffline && state.isInternetReachable === true && prevIsInternetReachable !== true) {
             Log.info('[NetworkState] Internet reachability restored');
             onReachabilityRestored();
         }
