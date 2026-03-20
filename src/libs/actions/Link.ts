@@ -159,6 +159,15 @@ function getInternalNewExpensifyPath(href: string) {
         return '';
     }
     const attrPath = Url.getPathFromURL(href);
+	
+	// UI / Flow Worker route-experience normalization
+    const normalizedAttrPath = Str.removeLeadingSlash(attrPath);
+    const isTravelRoute = normalizedAttrPath === 'trips' || normalizedAttrPath.startsWith('trips/');
+    const isNewDotOrigin = href.startsWith(CONST.NEW_EXPENSIFY_URL) || href.startsWith(CONST.NEW_EXPENSIFY_STAGING_URL) || href.startsWith(CONST.NEW_EXPENSIFY_DEV_URL);
+    if (isTravelRoute && isNewDotOrigin) {
+        return normalizedAttrPath;
+    }
+	
     return (Url.hasSameExpensifyOrigin(href, CONST.NEW_EXPENSIFY_URL) || Url.hasSameExpensifyOrigin(href, CONST.STAGING_NEW_EXPENSIFY_URL) || href.startsWith(CONST.DEV_NEW_EXPENSIFY_URL)) &&
         !CONST.PATHS_TO_TREAT_AS_EXTERNAL.find((path) => attrPath.startsWith(path))
         ? attrPath
