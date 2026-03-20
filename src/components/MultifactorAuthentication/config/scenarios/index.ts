@@ -9,8 +9,8 @@ import ChangePIN from './ChangePIN';
 import {customConfig} from './DefaultUserInterface';
 import type {Payload as RevealPINPayload} from './RevealPIN';
 import RevealPIN from './RevealPIN';
-import type {Payload as SetPINOrderCardPayload} from './SetPINOrderCard';
-import SetPINOrderCard from './SetPINOrderCard';
+import type {Payload as SetPINOrderCardPayload} from './SetPinOrderCard';
+import SetPINOrderCard from './SetPinOrderCard';
 
 /**
  * Payload types for multifactor authentication scenarios.
