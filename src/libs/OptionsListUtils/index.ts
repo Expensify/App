@@ -2238,6 +2238,7 @@ function prepareReportOptionsForDisplay(
     config: GetValidReportsConfig,
     visibleReportActionsData: VisibleReportActionsDerivedValue = {},
     reportAttributesDerived?: ReportAttributesDerivedValue['reports'],
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     sortedActions: Record<string, ReportAction[]> = deprecatedAllSortedReportActions,
     policyTags?: OnyxCollection<PolicyTagLists>,
 ): Array<SearchOption<Report>> {

@@ -20,7 +20,9 @@ import Navigation from '@navigation/Navigation';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type * as OnyxTypes from '@src/types/onyx';
 import type {Attendee} from '@src/types/onyx/IOU';
+import {getEmptyObject} from '@src/types/utils/EmptyObject';
 import SearchFilterPageFooterButtons from './SearchFilterPageFooterButtons';
 
 const defaultListOptions = {
@@ -97,7 +99,7 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate, 
     const [nvpDismissedProductTraining] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [recentAttendees] = useOnyx(ONYXKEYS.NVP_RECENT_ATTENDEES);
-    const [{sortedActions} = {}] = useOnyx(ONYXKEYS.DERIVED.SORTED_REPORT_ACTIONS);
+    const [{sortedActions} = getEmptyObject<OnyxTypes.SortedReportActionsDerivedValue>()] = useOnyx(ONYXKEYS.DERIVED.SORTED_REPORT_ACTIONS);
     const privateIsArchivedMap = usePrivateIsArchivedMap();
 
     // Transform raw recentAttendees into Option[] format for use with getValidOptions (only for attendee filter)

@@ -47,8 +47,10 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type * as OnyxTypes from '@src/types/onyx';
 import type {ReportAttributesDerivedValue} from '@src/types/onyx/DerivedValues';
 import type {SelectedParticipant} from '@src/types/onyx/NewGroupChatDraft';
+import {getEmptyObject} from '@src/types/utils/EmptyObject';
 import KeyboardUtils from '@src/utils/keyboard';
 
 const excludedGroupEmails = new Set<string>(CONST.EXPENSIFY_EMAILS.filter((value) => value !== CONST.EMAIL.CONCIERGE));
@@ -74,7 +76,7 @@ function useOptions(reportAttributesDerived: ReportAttributesDerivedValue['repor
     const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT);
     const allPersonalDetails = usePersonalDetails();
     const [allPolicyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
-    const [{sortedActions} = {}] = useOnyx(ONYXKEYS.DERIVED.SORTED_REPORT_ACTIONS);
+    const [{sortedActions} = getEmptyObject<OnyxTypes.SortedReportActionsDerivedValue>()] = useOnyx(ONYXKEYS.DERIVED.SORTED_REPORT_ACTIONS);
 
     const {
         options: listOptions,

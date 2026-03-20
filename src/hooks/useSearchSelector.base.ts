@@ -7,7 +7,8 @@ import {getEmptyOptions, getSearchOptions, getSearchValueForPhoneOrEmail, getVal
 import type {OptionData} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PersonalDetails} from '@src/types/onyx';
+import type * as OnyxTypes from '@src/types/onyx';
+import {getEmptyObject} from '@src/types/utils/EmptyObject';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useDebounce from './useDebounce';
 import useDebouncedState from './useDebouncedState';
@@ -66,7 +67,7 @@ type UseSearchSelectorConfig = {
     shouldInitialize?: boolean;
 
     /** Additional contact options to merge (used by platform-specific implementations) */
-    contactOptions?: Array<SearchOption<PersonalDetails>>;
+    contactOptions?: Array<SearchOption<OnyxTypes.PersonalDetails>>;
 };
 
 type ContactState = {
@@ -74,7 +75,7 @@ type ContactState = {
     permissionStatus: PermissionStatus;
 
     /** Contact options from device */
-    contactOptions: Array<SearchOption<PersonalDetails>>;
+    contactOptions: Array<SearchOption<OnyxTypes.PersonalDetails>>;
 
     /** Whether to show import UI */
     showImportUI: boolean;
@@ -173,7 +174,7 @@ function useSearchSelectorBase({
     const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT);
     const [nvpDismissedProductTraining] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING);
     const [visibleReportActionsData] = useOnyx(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS);
-    const [{sortedActions} = {}] = useOnyx(ONYXKEYS.DERIVED.SORTED_REPORT_ACTIONS);
+    const [{sortedActions} = getEmptyObject<OnyxTypes.SortedReportActionsDerivedValue>()] = useOnyx(ONYXKEYS.DERIVED.SORTED_REPORT_ACTIONS);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserAccountID = currentUserPersonalDetails.accountID;
     const currentUserEmail = currentUserPersonalDetails.email ?? '';
