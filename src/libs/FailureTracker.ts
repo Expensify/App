@@ -19,13 +19,14 @@ function onSustainedFailureChange(listener: (active: boolean) => void): () => vo
  * Resets the failure tracker — one success proves connectivity.
  */
 function recordSuccess() {
-    if (failureCount > 0) {
-        Log.info(`[FailureTracker] Success after ${failureCount} failures — resetting tracker`);
+    if (failureCount === 0) {
+        return;
     }
+
+    Log.info(`[FailureTracker] Success after ${failureCount} failures — resetting tracker`);
     failureCount = 0;
     firstFailureTimestamp = 0;
 
-    // If we were in sustained failure hard stop, clear it
     for (const cb of sustainedFailureListeners) {
         cb(false);
     }
