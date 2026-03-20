@@ -777,8 +777,8 @@ const translations: TranslationDeepObject<typeof en> = {
         emoji: '表情符号',
         collapse: '折叠',
         expand: '展开',
-        askConciergeToUpdate: '试试“更新一笔报销”…',
-        askConciergeToCorrect: '尝试搜索“更正一笔报销”…',
+        askConciergeToUpdate: '让 Concierge AI 更新一笔报销…',
+        askConciergeToCorrect: '让 Concierge AI 更正一笔报销…',
         askConciergeForHelp: '向 Concierge AI 寻求帮助…',
     },
     reportActionContextMenu: {

@@ -787,8 +787,8 @@ const translations: TranslationDeepObject<typeof en> = {
         emoji: 'Emoji',
         collapse: 'Comprimi',
         expand: 'Espandi',
-        askConciergeToUpdate: 'Prova con "Aggiorna una spesa"...',
-        askConciergeToCorrect: 'Prova con "Correggi una spesa"...',
+        askConciergeToUpdate: 'Chiedi a Concierge AI di aggiornare una spesa...',
+        askConciergeToCorrect: 'Chiedi a Concierge AI di correggere una spesa...',
         askConciergeForHelp: 'Chiedi aiuto a Concierge AI...',
     },
     reportActionContextMenu: {
