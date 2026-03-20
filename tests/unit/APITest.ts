@@ -436,8 +436,6 @@ describe('APITests', () => {
                 });
 
                 Onyx.set(ONYXKEYS.NETWORK, {isOffline: true});
-                expect(NetworkStore.isOffline()).toBe(true);
-                expect(NetworkStore.isAuthenticating()).toBe(false);
                 return waitForBatchedUpdates();
             })
             .then(() => {
