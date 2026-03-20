@@ -9,6 +9,8 @@ type SetPersonalDetailsAndShipExpensifyCardsParams = {
     addressCountry: string;
     dob: string;
     validateCode: string;
-} & ({addressState: string} | {addressProvince: string});
+    addressState: string;
+    addressProvince: string;
+};
 
 export default SetPersonalDetailsAndShipExpensifyCardsParams;

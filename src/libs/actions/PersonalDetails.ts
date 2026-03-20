@@ -58,7 +58,8 @@ function buildSetPersonalDetailsAndShipExpensifyCardsParams(values: PersonalDeta
         addressStreet2: values.addressLine2?.trim() ?? '',
         addressZip: values.zipPostCode?.trim().toUpperCase() ?? '',
         addressCountry: values.country,
-        ...(values.country === CONST.COUNTRY.US ? {addressState: stateValue} : {addressProvince: stateValue}),
+        addressState: values.country === CONST.COUNTRY.US ? stateValue : '',
+        addressProvince: values.country !== CONST.COUNTRY.US ? stateValue : '',
         dob: values.dob,
     };
 }
