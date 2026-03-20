@@ -373,11 +373,27 @@ function BaseTextInput({
                             <InputComponent
                                 ref={(element: HTMLFormElement | AnimatedTextInputRef | AnimatedMarkdownTextInputRef | null): void => {
                                     const baseTextInputRef = element as BaseTextInputRef | null;
+
+                                    // Wrap the external ref in a Proxy so programmatic focus() calls
+                                    // are suppressed while in landscape mode
+                                    const refWithOptionalProxy =
+                                        baseTextInputRef && isInLandscapeMode
+                                            ? new Proxy(baseTextInputRef, {
+                                                  get(target, prop, receiver) {
+                                                      if (prop !== 'focus') {
+                                                          // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+                                                          return Reflect.get(target, prop, receiver);
+                                                      }
+                                                      return () => {};
+                                                  },
+                                              })
+                                            : baseTextInputRef;
+
                                     if (typeof ref === 'function') {
-                                        ref(baseTextInputRef);
+                                        ref(refWithOptionalProxy);
                                     } else if (ref && 'current' in ref) {
                                         // eslint-disable-next-line no-param-reassign
-                                        ref.current = baseTextInputRef;
+                                        ref.current = refWithOptionalProxy;
                                     }
 
                                     const elementRef = element as AnimatedTextInputRef | AnimatedMarkdownTextInputRef | null;
