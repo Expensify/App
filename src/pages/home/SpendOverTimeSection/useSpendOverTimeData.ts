@@ -54,6 +54,7 @@ function useSpendOverTimeData() {
                       formatPhoneNumber,
                       bankAccountList: undefined,
                       allReportMetadata: undefined,
+                      conciergeReportID: undefined,
                   })[0],
                   localeCompare,
                   translate,
