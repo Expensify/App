@@ -368,7 +368,7 @@ function IOURequestStepOdometerImage({
                                 </View>
                                 <Animated.View
                                     pointerEvents="none"
-                                    style={[StyleSheet.absoluteFillObject, styles.backgroundWhite, blinkStyle, styles.zIndex10]}
+                                    style={[StyleSheet.absoluteFill, styles.backgroundWhite, blinkStyle, styles.zIndex10]}
                                 />
                                 <Animated.View style={[styles.cameraFocusIndicator, cameraFocusIndicatorAnimatedStyle]} />
                             </View>
