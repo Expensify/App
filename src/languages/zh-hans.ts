@@ -8009,6 +8009,8 @@ ${reportName}
             title: 'Expensify代码',
             discountCode: '折扣代码',
             enterCode: '输入Expensify代码以应用于您的订阅。',
+            discountMessage: (promoDiscount: string, validBillingCycles: string) =>
+                `在接下来的${validBillingCycles ? `${validBillingCycles}次` : ''}账单中，你将获得${promoDiscount}%的折扣。`,
             apply: '应用',
             error: {
                 invalid: '此代码无效',
@@ -8035,6 +8037,8 @@ ${reportName}
                 `<muted-text>在我们的<a href="${CONST.PRICING}">定价页面</a>了解更多，或在您的${hasAdminsRoom ? `<a href="adminsRoom">#admins 房间。</a>` : '#admins 房间。'}中与我们的团队聊天</muted-text>`,
             estimatedPrice: '预估价格',
             changesBasedOn: '这会根据你使用 Expensify 卡的情况以及下方的订阅选项而变化。',
+            collectBillingDescription: 'Collect 工作区按每位成员每月计费，无需年度承诺。',
+            pricing: '定价',
         },
         requestEarlyCancellation: {
             title: '请求提前取消',
