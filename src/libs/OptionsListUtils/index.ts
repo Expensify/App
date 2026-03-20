@@ -933,22 +933,34 @@ function getLastMessageTextForReport({
     return lastMessageTextFromReport || (report?.lastMessageText ?? '');
 }
 
+type CreateOptionParams = {
+    accountIDs: number[];
+    personalDetails: OnyxInputOrEntry<PersonalDetailsList>;
+    report: OnyxInputOrEntry<Report>;
+    currentUserAccountID: number;
+    privateIsArchived: string | undefined;
+    config?: PreviewConfig;
+    reportAttributesDerived?: ReportAttributesDerivedValue['reports'];
+    policyTags?: OnyxEntry<PolicyTagLists>;
+    visibleReportActionsData?: VisibleReportActionsDerivedValue;
+    translate?: LocalizedTranslate;
+};
+
 /**
  * Creates a report list option - optimized for SearchOption context
  */
-// eslint-disable-next-line max-params, @typescript-eslint/max-params -- this should be handled in the separate issue
-function createOption(
-    accountIDs: number[],
-    personalDetails: OnyxInputOrEntry<PersonalDetailsList>,
-    report: OnyxInputOrEntry<Report>,
-    currentUserAccountID: number,
-    privateIsArchived: string | undefined,
-    config?: PreviewConfig,
-    reportAttributesDerived?: ReportAttributesDerivedValue['reports'],
-    policyTags?: OnyxEntry<PolicyTagLists>,
-    visibleReportActionsData: VisibleReportActionsDerivedValue = {},
-    translate?: LocalizedTranslate,
-): SearchOptionData {
+function createOption({
+    accountIDs,
+    personalDetails,
+    report,
+    currentUserAccountID,
+    privateIsArchived,
+    config,
+    reportAttributesDerived,
+    policyTags,
+    visibleReportActionsData = {},
+    translate,
+}: CreateOptionParams): SearchOptionData {
     const {showChatPreviewLine = false, forcePolicyNamePreview = false, showPersonalDetails = false, selected, isSelected, isDisabled} = config ?? {};
 
     // Initialize only the properties that are actually used in SearchOption context
@@ -1106,20 +1118,20 @@ function getReportOption(
     const visibleParticipantAccountIDs = getParticipantsAccountIDsForDisplay(report, true);
     const reportPolicyTags = policyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(report?.policyID)}`];
 
-    const option = createOption(
-        visibleParticipantAccountIDs,
-        personalDetails ?? {},
-        !isEmptyObject(report) ? report : undefined,
+    const option = createOption({
+        accountIDs: visibleParticipantAccountIDs,
+        personalDetails: personalDetails ?? {},
+        report: !isEmptyObject(report) ? report : undefined,
         currentUserAccountID,
         privateIsArchived,
-        {
+        config: {
             showChatPreviewLine: false,
             forcePolicyNamePreview: false,
         },
         reportAttributesDerived,
-        reportPolicyTags,
+        policyTags: reportPolicyTags,
         visibleReportActionsData,
-    );
+    });
 
     // Update text & alternateText because createOption returns workspace name only if report is owned by the user
     if (option.isSelfDM) {
@@ -1167,20 +1179,20 @@ function getReportDisplayOption(
 ): OptionData {
     const visibleParticipantAccountIDs = getParticipantsAccountIDsForDisplay(report, true);
 
-    const option = createOption(
-        visibleParticipantAccountIDs,
-        personalDetails ?? {},
-        !isEmptyObject(report) ? report : undefined,
+    const option = createOption({
+        accountIDs: visibleParticipantAccountIDs,
+        personalDetails: personalDetails ?? {},
+        report: !isEmptyObject(report) ? report : undefined,
         currentUserAccountID,
         privateIsArchived,
-        {
+        config: {
             showChatPreviewLine: false,
             forcePolicyNamePreview: false,
         },
         reportAttributesDerived,
         policyTags,
         visibleReportActionsData,
-    );
+    });
 
     // Update text & alternateText because createOption returns workspace name only if report is owned by the user
     if (option.isSelfDM) {
@@ -1222,20 +1234,20 @@ function getPolicyExpenseReportOption(
         .filter(([, reportParticipant]) => reportParticipant && !isHiddenForCurrentUser(reportParticipant.notificationPreference))
         .map(([accountID]) => Number(accountID));
 
-    const option = createOption(
-        visibleParticipantAccountIDs,
-        personalDetails ?? {},
-        !isEmptyObject(expenseReport) ? expenseReport : null,
+    const option = createOption({
+        accountIDs: visibleParticipantAccountIDs,
+        personalDetails: personalDetails ?? {},
+        report: !isEmptyObject(expenseReport) ? expenseReport : null,
         currentUserAccountID,
         privateIsArchived,
-        {
+        config: {
             showChatPreviewLine: false,
             forcePolicyNamePreview: false,
         },
         reportAttributesDerived,
         policyTags,
         visibleReportActionsData,
-    );
+    });
 
     // Update text & alternateText because createOption returns workspace name only if report is owned by the user
     option.text = getPolicyName({report: expenseReport});
@@ -1371,7 +1383,7 @@ function processReport(
         reportMapEntry,
         reportOption: {
             item: report,
-            ...createOption(accountIDs, personalDetails, report, currentUserAccountID, privateIsArchived, undefined, reportAttributesDerived, policyTags, visibleReportActionsData),
+            ...createOption({accountIDs, personalDetails, report, currentUserAccountID, privateIsArchived, reportAttributesDerived, policyTags, visibleReportActionsData}),
         },
     };
 }
@@ -1422,19 +1434,19 @@ function createOptionList(
 
         return {
             item: personalDetail,
-            ...createOption(
-                [personalDetail?.accountID ?? CONST.DEFAULT_NUMBER_ID],
+            ...createOption({
+                accountIDs: [personalDetail?.accountID ?? CONST.DEFAULT_NUMBER_ID],
                 personalDetails,
                 report,
                 currentUserAccountID,
                 privateIsArchived,
-                {
+                config: {
                     showPersonalDetails: true,
                 },
                 reportAttributesDerived,
-                reportPolicyTags,
+                policyTags: reportPolicyTags,
                 visibleReportActionsData,
-            ),
+            }),
         };
     });
 
@@ -1572,17 +1584,17 @@ function createFilteredOptionList(
               const reportPolicyTags = policyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(report?.policyID)}`];
               return {
                   item: personalDetail,
-                  ...createOption(
-                      [accountID],
+                  ...createOption({
+                      accountIDs: [accountID],
                       personalDetails,
-                      reportMapForAccountIDs[accountID],
+                      report: reportMapForAccountIDs[accountID],
                       currentUserAccountID,
                       privateIsArchived,
-                      {showPersonalDetails: true},
+                      config: {showPersonalDetails: true},
                       reportAttributesDerived,
-                      reportPolicyTags,
+                      policyTags: reportPolicyTags,
                       visibleReportActionsData,
-                  ),
+                  }),
               };
           })
         : [];
@@ -1607,7 +1619,7 @@ function createOptionFromReport(
 
     return {
         item: report,
-        ...createOption(accountIDs, personalDetails, report, currentUserAccountID, privateIsArchived, config, reportAttributesDerived, policyTags, visibleReportActionsData),
+        ...createOption({accountIDs, personalDetails, report, currentUserAccountID, privateIsArchived, config, reportAttributesDerived, policyTags, visibleReportActionsData}),
     };
 }
 
@@ -1931,17 +1943,15 @@ function getUserToInviteOption({
             login: searchValue,
         },
     };
-    const userToInvite = createOption(
-        [optimisticAccountID],
-        personalDetailsExtended,
-        null,
+    const userToInvite = createOption({
+        accountIDs: [optimisticAccountID],
+        personalDetails: personalDetailsExtended,
+        report: null,
         currentUserAccountID,
-        undefined,
-        {showChatPreviewLine},
-        undefined,
-        undefined,
+        privateIsArchived: undefined,
+        config: {showChatPreviewLine},
         visibleReportActionsData,
-    );
+    });
     userToInvite.isOptimisticAccount = true;
     userToInvite.login = searchValue;
 
