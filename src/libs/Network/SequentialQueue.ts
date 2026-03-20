@@ -436,7 +436,7 @@ onReconnection(flush);
 // Flush the queue when the persisted requests are initialized
 onPersistedRequestsInitialization(flush);
 
-async function handleConflictActions<TKey extends OnyxKey>(conflictAction: ConflictData, newRequest: OnyxRequest<TKey>): Promise<void> {
+function handleConflictActions<TKey extends OnyxKey>(conflictAction: ConflictData, newRequest: OnyxRequest<TKey>) {
     Log.info('[SequentialQueue] handleConflictActions', false, {
         conflictType: conflictAction.type,
         newCommand: newRequest.command,
@@ -447,14 +447,14 @@ async function handleConflictActions<TKey extends OnyxKey>(conflictAction: Confl
         Log.info('[SequentialQueue] Conflict resolution: PUSH', false, {
             command: newRequest.command,
         });
-        await savePersistedRequest(newRequest);
+        savePersistedRequest(newRequest);
     } else if (conflictAction.type === 'replace') {
         Log.info('[SequentialQueue] Conflict resolution: REPLACE', false, {
             command: newRequest.command,
             replaceIndex: conflictAction.index,
             replacementRequest: conflictAction.request?.command ?? newRequest.command,
         });
-        await updatePersistedRequest(conflictAction.index, conflictAction.request ?? (newRequest as AnyRequest));
+        updatePersistedRequest(conflictAction.index, conflictAction.request ?? (newRequest as AnyRequest));
     } else if (conflictAction.type === 'delete') {
         Log.info('[SequentialQueue] Conflict resolution: DELETE', false, {
             command: newRequest.command,
@@ -462,19 +462,19 @@ async function handleConflictActions<TKey extends OnyxKey>(conflictAction: Confl
             willPushNewRequest: conflictAction.pushNewRequest ?? false,
             hasNextAction: !!conflictAction.nextAction,
         });
-        await deletePersistedRequestsByIndices(conflictAction.indices);
+        deletePersistedRequestsByIndices(conflictAction.indices);
         if (conflictAction.pushNewRequest) {
             Log.info('[SequentialQueue] Pushing new request after delete', false, {
                 command: newRequest.command,
             });
-            await savePersistedRequest(newRequest);
+            savePersistedRequest(newRequest);
         }
         if (conflictAction.nextAction) {
             Log.info('[SequentialQueue] Processing next conflict action', false, {
                 command: newRequest.command,
                 nextActionType: conflictAction.nextAction.type,
             });
-            await handleConflictActions(conflictAction.nextAction, newRequest);
+            handleConflictActions(conflictAction.nextAction, newRequest);
         }
     } else {
         Log.info('[SequentialQueue] No action performed, request ignored', false, {
@@ -484,7 +484,7 @@ async function handleConflictActions<TKey extends OnyxKey>(conflictAction: Confl
     }
 }
 
-function push<TKey extends OnyxKey>(newRequest: OnyxRequest<TKey>): Promise<void> {
+function push<TKey extends OnyxKey>(newRequest: OnyxRequest<TKey>) {
     const currentRequests = getAllPersistedRequests();
     Log.info('[SequentialQueue] push() called', false, {
         command: newRequest.command,
@@ -493,11 +493,6 @@ function push<TKey extends OnyxKey>(newRequest: OnyxRequest<TKey>): Promise<void
         isOffline: isOffline(),
         isSequentialQueueRunning,
     });
-
-    // Save the request to the persisted queue. The in-memory update inside save()
-    // happens synchronously, so flush() below will see the new request immediately.
-    // The returned promise resolves when disk persistence completes.
-    let persistencePromise: Promise<void>;
 
     if (newRequest.checkAndFixConflictingRequest) {
         const requests = currentRequests;
@@ -515,13 +510,13 @@ function push<TKey extends OnyxKey>(newRequest: OnyxRequest<TKey>): Promise<void
         // don't try to serialize a function.
         // eslint-disable-next-line no-param-reassign
         delete newRequest.checkAndFixConflictingRequest;
-        persistencePromise = handleConflictActions(conflictAction, newRequest);
+        handleConflictActions(conflictAction, newRequest);
     } else {
         Log.info('[SequentialQueue] No conflict action. Adding request to Persisted Requests', false, {
             command: newRequest.command,
         });
         // Add request to Persisted Requests so that it can be retried if it fails
-        persistencePromise = savePersistedRequest(newRequest);
+        savePersistedRequest(newRequest);
     }
 
     // If we are offline we don't need to trigger the queue to empty as it will happen when we come back online
@@ -530,7 +525,7 @@ function push<TKey extends OnyxKey>(newRequest: OnyxRequest<TKey>): Promise<void
             command: newRequest.command,
             queueLength: getAllPersistedRequests().length,
         });
-        return persistencePromise;
+        return;
     }
 
     // If the queue is running this request will run once it has finished processing the current batch
@@ -544,14 +539,13 @@ function push<TKey extends OnyxKey>(newRequest: OnyxRequest<TKey>): Promise<void
             });
             flush(true);
         });
-        return persistencePromise;
+        return;
     }
 
     Log.info('[SequentialQueue] Queue is not running. Flushing the queue.', false, {
         command: newRequest.command,
     });
     flush(true);
-    return persistencePromise;
 }
 
 function getCurrentRequest(): Promise<void> {
