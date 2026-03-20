@@ -252,7 +252,7 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
                 navigateToAndOpenReport(item.login ? [item.login] : [], allPersonalDetails, currentUserAccountID, introSelected, isSelfTourViewed, betas, false);
             }
         },
-        [autocompleteSubstitutions, onSearchQueryChange, submitSearch, textInputValue, currentUserAccountID, introSelected, isSelfTourViewed, betas],
+        [textInputValue, onSearchQueryChange, autocompleteSubstitutions, submitSearch, allPersonalDetails, currentUserAccountID, introSelected, isSelfTourViewed, betas],
     );
 
     const searchQueryItem = useMemo(

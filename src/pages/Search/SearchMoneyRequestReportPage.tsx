@@ -157,6 +157,7 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
     const reportTransactionIDs = useMemo(() => visibleTransactions?.map((transaction) => transaction.transactionID), [visibleTransactions]);
     const transactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, reportActions ?? [], isOffline, reportTransactionIDs);
     const oneTransactionID = reportTransactions.at(0)?.transactionID;
+
     const reportID = report?.reportID;
     const doesReportIDLookValid = isValidReportIDFromPath(reportID);
     const hasLoadedReportActionsForAccessError = hasLoadedReportActions(reportMetadata, isOffline);
