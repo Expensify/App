@@ -232,6 +232,15 @@ const ONYXKEYS = {
     /** Store the state of the subscription */
     NVP_PRIVATE_SUBSCRIPTION: 'nvp_private_subscription',
 
+    /** Store the applied Expensify promo code */
+    NVP_PRIVATE_PROMO_CODE: 'nvp_private_promoCode',
+
+    /** Store the applied Expensify promo discount details */
+    NVP_PRIVATE_PROMO_DISCOUNT: 'nvp_private_promoDiscount',
+
+    /** Store the number of valid billing cycles for the applied promo code */
+    NVP_PRIVATE_PROMO_CODE_VALID_BILLING_CYCLES: 'nvp_private_promoCodeValidBillingCycles',
+
     /** Store the state of the private tax-exempt */
     NVP_PRIVATE_TAX_EXEMPT: 'nvp_private_taxExempt',
 
@@ -713,6 +722,7 @@ const ONYXKEYS = {
         REPORT_USER_IS_TYPING: 'reportUserIsTyping_',
         PENDING_CONCIERGE_RESPONSE: 'pendingConciergeResponse_',
         REPORT_USER_IS_LEAVING_ROOM: 'reportUserIsLeavingRoom_',
+        REPORT_VIOLATIONS: 'reportViolations_',
         SECURITY_GROUP: 'securityGroup_',
         TRANSACTION: 'transactions_',
         TRANSACTION_VIOLATIONS: 'transactionViolations_',
@@ -1197,6 +1207,7 @@ type OnyxCollectionValuesMapping = {
     [ONYXKEYS.COLLECTION.REPORT_USER_IS_TYPING]: OnyxTypes.ReportUserIsTyping;
     [ONYXKEYS.COLLECTION.PENDING_CONCIERGE_RESPONSE]: OnyxTypes.PendingConciergeResponse;
     [ONYXKEYS.COLLECTION.REPORT_USER_IS_LEAVING_ROOM]: boolean;
+    [ONYXKEYS.COLLECTION.REPORT_VIOLATIONS]: OnyxTypes.ReportViolations;
     [ONYXKEYS.COLLECTION.SECURITY_GROUP]: OnyxTypes.SecurityGroup;
     [ONYXKEYS.COLLECTION.TRANSACTION]: OnyxTypes.Transaction;
     [ONYXKEYS.COLLECTION.TRANSACTION_DRAFT]: OnyxTypes.Transaction;
@@ -1320,6 +1331,9 @@ type OnyxValuesMapping = {
     [ONYXKEYS.NVP_DISMISSED_REFERRAL_BANNERS]: OnyxTypes.DismissedReferralBanners;
     [ONYXKEYS.NVP_HAS_SEEN_TRACK_TRAINING]: boolean;
     [ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION]: OnyxTypes.PrivateSubscription;
+    [ONYXKEYS.NVP_PRIVATE_PROMO_CODE]: string | null;
+    [ONYXKEYS.NVP_PRIVATE_PROMO_DISCOUNT]: OnyxTypes.PrivatePromoDiscount | null;
+    [ONYXKEYS.NVP_PRIVATE_PROMO_CODE_VALID_BILLING_CYCLES]: number | null;
     [ONYXKEYS.NVP_PRIVATE_STRIPE_CUSTOMER_ID]: OnyxTypes.StripeCustomerID;
     [ONYXKEYS.NVP_PRIVATE_BILLING_DISPUTE_PENDING]: number;
     [ONYXKEYS.NVP_PRIVATE_BILLING_STATUS]: OnyxTypes.BillingStatus;
