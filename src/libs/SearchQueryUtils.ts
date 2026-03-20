@@ -1651,17 +1651,25 @@ function shouldResetSort({newGroupBy, oldGroupBy}: {newGroupBy: string | undefin
 }
 
 /**
- * Returns true when the view is changing between table and chart views (line/bar/pie)
- * with a time-based groupBy (month/week/year/quarter). In this case both sortBy and
- * sortOrder should be reset so the parser can apply the appropriate defaults:
- * - Charts use ascending (chronological left-to-right) sorted by the time column
- * - Tables use descending (most recent first) sorted by the time column
+ * Returns true when the view change requires resetting sort for proper display.
+ * Only line charts require chronological (ascending) order for time-based groupBys
+ * to be readable left-to-right. Bar and pie charts can display data in any order
+ * (e.g., top spending months first), so sort is preserved for those views.
+ *
+ * Reset occurs when:
+ * - Switching TO line view with time-based groupBy (need chronological asc order)
+ * - Switching FROM line view to table with time-based groupBy (need table's default desc)
  */
 function shouldResetSortForViewChange({newView, oldView, groupBy}: {newView: string | undefined; oldView: string | undefined; groupBy: string | undefined}): boolean {
     if (newView === oldView || !groupBy) {
         return false;
     }
-    return TIME_BASED_GROUP_BYS.has(groupBy);
+    if (!TIME_BASED_GROUP_BYS.has(groupBy)) {
+        return false;
+    }
+    const isLineView = (view: string | undefined) => view === CONST.SEARCH.VIEW.LINE;
+    // Reset when switching to line (needs chronological order) or from line to table
+    return isLineView(newView) || (isLineView(oldView) && newView === CONST.SEARCH.VIEW.TABLE);
 }
 
 /**
