@@ -290,7 +290,16 @@ function ScreenWrapper({
                 {isDevelopment && <CustomDevMenu />}
                 <ScreenWrapperStatusContext.Provider value={statusContextValue}>
                     <ScreenWrapperOfflineIndicatorContext.Provider value={offlineIndicatorContextValue}>
-                        {shouldUseScrollViewInLandscapeMode && isInLandscapeMode ? <ScrollView style={styles.w100}>{ChildrenContent}</ScrollView> : ChildrenContent}
+                        {shouldUseScrollViewInLandscapeMode && isInLandscapeMode ? (
+                            <ScrollView
+                                style={styles.w100}
+                                contentContainerStyle={styles.flexGrow1}
+                            >
+                                {ChildrenContent}
+                            </ScrollView>
+                        ) : (
+                            ChildrenContent
+                        )}
 
                         <ScreenWrapperOfflineIndicators
                             offlineIndicatorStyle={offlineIndicatorStyle}
