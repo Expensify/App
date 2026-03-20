@@ -22,7 +22,6 @@ type LocalNotificationModifiedExpenseParams = {
     movedFromReport?: OnyxEntry<Report>;
     movedToReport?: OnyxEntry<Report>;
     currentUserLogin: string;
-    conciergeReportID: string | undefined;
     reportAttributes?: ReportAttributesDerivedValue['reports'];
 };
 
