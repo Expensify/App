@@ -6,6 +6,7 @@ import type {StyleProp, TextInputSubmitEditingEvent, ViewStyle} from 'react-nati
 import type {ValueOf} from 'type-fest';
 import {useInputBlurActions} from '@components/InputBlurContext';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
+import {getIsRestoringKeyboardFocus} from '@components/TextInput';
 import useDebounceNonReactive from '@hooks/useDebounceNonReactive';
 import useIsFocusedRef from '@hooks/useIsFocusedRef';
 import useLocalize from '@hooks/useLocalize';
@@ -429,8 +430,8 @@ function FormProvider({
                                 return;
                             }
                             setTouchedInput(inputID);
-                            // We don't validate the form on blur in case the current screen is not focused
-                            if (shouldValidateOnBlur && isFocusedRef.current) {
+                            // Skip validation if the screen is not focused or keyboard focus is being restored (Android mWeb)
+                            if (shouldValidateOnBlur && isFocusedRef.current && !getIsRestoringKeyboardFocus()) {
                                 onValidate(inputValues, !hasServerError);
                             }
                         }, VALIDATE_DELAY);
