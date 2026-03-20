@@ -2367,7 +2367,8 @@ function updateSplitExpenseField(
                     if (distanceInUnits !== undefined) {
                         // Calculate amount from distance and rate: amount = distance * rate
                         // Both amount and rate are in cents, distance is in units
-                        const calculatedAmount = distanceInUnits > 0 ? Math.round(distanceInUnits * rate) : 0;
+                        const sign = item.amount < 0 ? -1 : 1;
+                        const calculatedAmount = distanceInUnits > 0 ? Math.round(distanceInUnits * rate) * sign : 0;
                         updatedItem.amount = calculatedAmount;
 
                         // Update merchant for distance transactions

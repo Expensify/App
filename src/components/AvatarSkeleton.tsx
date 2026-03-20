@@ -10,7 +10,7 @@ import SkeletonViewContentLoader from './SkeletonViewContentLoader';
 
 type AvatarSkeletonProps = {
     size?: ValueOf<typeof CONST.AVATAR_SIZE>;
-    reasonAttributes?: SkeletonSpanReasonAttributes;
+    reasonAttributes: SkeletonSpanReasonAttributes;
 };
 
 function AvatarSkeleton({size = CONST.AVATAR_SIZE.SMALL, reasonAttributes}: AvatarSkeletonProps) {
