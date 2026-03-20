@@ -1,8 +1,8 @@
+import type {BiometricSensorInfo} from '@sbaiahmed1/react-native-biometrics';
+import {createKeys, deleteKeys, getAllKeys, InputEncoding, isSensorAvailable, sha256, signWithOptions} from '@sbaiahmed1/react-native-biometrics';
 import {Buffer} from 'buffer';
 import {useCallback} from 'react';
 import type {ValueOf} from 'type-fest';
-import type {BiometricSensorInfo} from '@sbaiahmed1/react-native-biometrics';
-import {createKeys, deleteKeys, getAllKeys, InputEncoding, isSensorAvailable, sha256, signWithOptions} from '@sbaiahmed1/react-native-biometrics';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import {PrivateKeyStore, PublicKeyStore} from '@libs/MultifactorAuthentication/NativeBiometrics/KeyStore';
@@ -153,8 +153,8 @@ function useNativeBiometricsEC256(): UseBiometricsReturn {
             const keyAlias = getKeyAlias(accountID);
 
             // createKeys with failIfExists=false auto-deletes existing key and recreates
-            const {publicKey} = await createKeys(keyAlias, 'ec256', undefined, false, false);
-
+            const {publicKey} = await createKeys(keyAlias, 'ec256', undefined, true, false);
+            console.log('[Network-less] created keys');
             const credentialID = base64ToBase64url(publicKey);
 
             // Map biometryType from module-level cache to auth type
