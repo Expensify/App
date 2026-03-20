@@ -1,8 +1,8 @@
 import type {NavigatorScreenParams} from '@react-navigation/native';
 import {useFocusEffect} from '@react-navigation/native';
-import React, {useCallback, useMemo, useRef} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef} from 'react';
 // eslint-disable-next-line no-restricted-imports
-import {Animated, InteractionManager} from 'react-native';
+import {Animated, DeviceEventEmitter, InteractionManager} from 'react-native';
 import {DialogLabelProvider} from '@components/DialogLabelContext';
 import NoDropZone from '@components/DragAndDrop/NoDropZone';
 import {MultifactorAuthenticationContextProviders} from '@components/MultifactorAuthentication/Context';
@@ -50,7 +50,7 @@ const Stack = createPlatformStackNavigator<RightModalNavigatorParamList, string>
 const singleRHPWidth = variables.sideBarWidth;
 const getWideRHPWidth = (windowWidth: number) => variables.sideBarWidth + calculateReceiptPaneRHPWidth(windowWidth);
 
-function MissingPersonalDetailsWithPinContext(props: Record<string, unknown>) {
+function MissingPersonalDetailsWithPINContext(props: Record<string, unknown>) {
     return (
         <PINContextProvider>
             <ModalStackNavigators.MissingPersonalDetailsModalStackNavigator
@@ -182,6 +182,8 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
             return () => clearWideRHPKeysAfterTabChanged();
         }, [syncRHPKeys, clearWideRHPKeysAfterTabChanged]),
     );
+
+    useEffect(() => () => DeviceEventEmitter.emit(CONST.MODAL_EVENTS.CLOSED), []);
 
     return (
         <NarrowPaneContextProvider>
@@ -384,7 +386,7 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                                 />
                                 <Stack.Screen
                                     name={SCREENS.RIGHT_MODAL.MISSING_PERSONAL_DETAILS}
-                                    component={MissingPersonalDetailsWithPinContext}
+                                    component={MissingPersonalDetailsWithPINContext}
                                 />
                                 <Stack.Screen
                                     name={SCREENS.RIGHT_MODAL.ADD_UNREPORTED_EXPENSE}

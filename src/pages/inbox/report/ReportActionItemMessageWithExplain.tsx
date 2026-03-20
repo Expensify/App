@@ -37,6 +37,7 @@ function ReportActionItemMessageWithExplain({message, action, childReport, origi
     const personalDetail = useCurrentUserPersonalDetails();
     const {environmentURL} = useEnvironment();
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const [betas] = useOnyx(ONYXKEYS.BETAS);
 
     const actionHasReasoning = hasReasoning(action);
     const computedMessage = actionHasReasoning ? `${message}${translate('iou.AskToExplain')}` : message;
@@ -44,7 +45,7 @@ function ReportActionItemMessageWithExplain({message, action, childReport, origi
     const handleLinkPress = (event: GestureResponderEvent | KeyboardEvent, href: string) => {
         // Handle the special "Explain" link
         if (href.endsWith(CONST.CONCIERGE_EXPLAIN_LINK_PATH)) {
-            explain(childReport, originalReport, action, translate, personalDetail.accountID, introSelected, personalDetail?.timezone);
+            explain(childReport, originalReport, action, translate, personalDetail.accountID, introSelected, betas, personalDetail?.timezone);
             return;
         }
 
