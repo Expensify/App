@@ -175,16 +175,16 @@ function ReportActionsView({
         updateLoadingInitialReportAction(report.reportID);
     }, [isOffline, report.reportID, reportActionID]);
 
-    const hasFetchedForStaleReimbursed = useRef(false);
+    const fetchedForStaleReimbursedReportID = useRef<string | null>(null);
     useEffect(() => {
-        if (hasFetchedForStaleReimbursed.current) {
+        if (fetchedForStaleReimbursedReportID.current === reportID) {
             return;
         }
         const hasStaleReimbursedAction = allReportActions?.some((action) => isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.REIMBURSED) && !getOriginalMessage(action)?.paymentMethod);
         if (!hasStaleReimbursedAction) {
             return;
         }
-        hasFetchedForStaleReimbursed.current = true;
+        fetchedForStaleReimbursedReportID.current = reportID;
         openReport({reportID, introSelected: undefined});
     }, [allReportActions, reportID]);
 
