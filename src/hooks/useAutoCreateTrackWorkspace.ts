@@ -1,13 +1,14 @@
 import {hasSeenTourSelector} from '@selectors/Onboarding';
-import {useCallback} from 'react';
+import {useCallback, useMemo} from 'react';
+import type {OnyxCollection} from 'react-native-onyx';
 import {navigateAfterOnboardingWithMicrotaskQueue} from '@libs/navigateAfterOnboarding';
 import {isPaidGroupPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
-import {createWorkspace, generatePolicyID} from '@userActions/Policy/Policy';
+import {createWorkspace, generateDefaultWorkspaceName, generatePolicyID} from '@userActions/Policy/Policy';
 import {completeOnboarding} from '@userActions/Report';
 import {setOnboardingAdminsChatReportID, setOnboardingPolicyID} from '@userActions/Welcome';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {OnboardingPurpose} from '@src/types/onyx';
+import type {OnboardingPurpose, Policy} from '@src/types/onyx';
 import useArchivedReportsIdSet from './useArchivedReportsIdSet';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useHasActiveAdminPolicies from './useHasActiveAdminPolicies';
@@ -30,7 +31,12 @@ function useAutoCreateTrackWorkspace() {
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [session] = useOnyx(ONYXKEYS.SESSION);
-    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const paidGroupPolicySelector = useMemo(
+        () => (policies: OnyxCollection<Policy>) =>
+            Object.values(policies ?? {}).some((policy) => isPaidGroupPolicy(policy) && isPolicyAdmin(policy, session?.email)),
+        [session?.email],
+    );
+    const [hasPaidGroupAdminPolicy] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: paidGroupPolicySelector});
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [conciergeChatReportID = ''] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [onboardingValues] = useOnyx(ONYXKEYS.NVP_ONBOARDING);
@@ -48,14 +54,13 @@ function useAutoCreateTrackWorkspace() {
 
     const autoCreateTrackWorkspace = useCallback(
         (firstName: string, lastName: string, onboardingPurposeSelected: OnboardingPurpose) => {
-            const paidGroupPolicy = Object.values(allPolicies ?? {}).find((policy) => isPaidGroupPolicy(policy) && isPolicyAdmin(policy, session?.email));
-            const shouldCreateWorkspace = !isRestrictedPolicyCreation && !onboardingPolicyID && !paidGroupPolicy;
+            const shouldCreateWorkspace = !isRestrictedPolicyCreation && !onboardingPolicyID && !hasPaidGroupAdminPolicy;
 
             const {adminsChatReportID: newAdminsChatReportID, policyID: newPolicyID} = shouldCreateWorkspace
                 ? createWorkspace({
                       policyOwnerEmail: undefined,
                       makeMeAdmin: true,
-                      policyName: `${firstName}'s Workspace`,
+                      policyName: generateDefaultWorkspaceName(session?.email),
                       policyID: generatePolicyID(),
                       engagementChoice: CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE,
                       currency: currentUserPersonalDetails.localCurrencyCode ?? CONST.CURRENCY.USD,
@@ -99,11 +104,11 @@ function useAutoCreateTrackWorkspace() {
             );
         },
         [
-            allPolicies,
             session?.email,
             session?.accountID,
             isRestrictedPolicyCreation,
             onboardingPolicyID,
+            hasPaidGroupAdminPolicy,
             onboardingAdminsChatReportID,
             currentUserPersonalDetails.localCurrencyCode,
             introSelected,
