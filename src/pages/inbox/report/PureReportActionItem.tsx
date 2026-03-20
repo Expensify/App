@@ -270,8 +270,8 @@ type PureReportActionItemProps = {
     /** Model of onboarding selected */
     introSelected?: OnyxEntry<OnyxTypes.IntroSelected>;
 
-    /** All transaction drafts */
-    allTransactionDrafts: OnyxCollection<OnyxTypes.Transaction>;
+    /** All transaction draft IDs */
+    draftTransactionIDs: string[] | undefined;
 
     /** Report for this action */
     report: OnyxEntry<OnyxTypes.Report>;
@@ -481,7 +481,7 @@ const isEmptyHTML = <T extends React.JSX.Element>({props: {html}}: T): boolean =
 function PureReportActionItem({
     personalPolicyID,
     introSelected,
-    allTransactionDrafts,
+    draftTransactionIDs,
     action,
     report,
     policy,
@@ -946,7 +946,7 @@ function PureReportActionItem({
                             actionName: CONST.IOU.ACTION.SUBMIT,
                             reportActionID: action.reportActionID,
                             introSelected,
-                            allTransactionDrafts,
+                            draftTransactionIDs,
                             activePolicy,
                             userBillingGraceEndPeriods,
                             amountOwed,
@@ -969,7 +969,7 @@ function PureReportActionItem({
                                 actionName: CONST.IOU.ACTION.CATEGORIZE,
                                 reportActionID: action.reportActionID,
                                 introSelected,
-                                allTransactionDrafts,
+                                draftTransactionIDs,
                                 activePolicy,
                                 userBillingGraceEndPeriods,
                                 amountOwed,
@@ -986,7 +986,7 @@ function PureReportActionItem({
                                 actionName: CONST.IOU.ACTION.SHARE,
                                 reportActionID: action.reportActionID,
                                 introSelected,
-                                allTransactionDrafts,
+                                draftTransactionIDs,
                                 activePolicy,
                                 userBillingGraceEndPeriods,
                                 amountOwed,
@@ -1129,7 +1129,7 @@ function PureReportActionItem({
         isOriginalReportArchived,
         resolveActionableMentionWhisper,
         introSelected,
-        allTransactionDrafts,
+        draftTransactionIDs,
         activePolicy,
         report,
         originalReport,

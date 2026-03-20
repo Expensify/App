@@ -134,8 +134,7 @@ import type ReportNameValuePairs from './ReportNameValuePairs';
 import type LastSearchParams from './ReportNavigation';
 import type ReportNextStepDeprecated from './ReportNextStepDeprecated';
 import type ReportUserIsTyping from './ReportUserIsTyping';
-import type {ReportFieldsViolations, ReportViolationName} from './ReportViolation';
-import type ReportViolations from './ReportViolation';
+import type ReportViolationName from './ReportViolationName';
 import type Request from './Request';
 import type {AnyRequest} from './Request';
 import type Response from './Response';
@@ -281,8 +280,6 @@ export type {
     ReportMetadata,
     ReportNextStepDeprecated,
     ReportViolationName,
-    ReportViolations,
-    ReportFieldsViolations,
     ReportLayoutGroupBy,
     GroupedTransactions,
     AnyRequest,

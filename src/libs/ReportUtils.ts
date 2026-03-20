@@ -56,7 +56,6 @@ import type {
     ReportMetadata,
     ReportNameValuePairs,
     ReportViolationName,
-    ReportViolations,
     Task,
     Transaction,
     TransactionViolation,
@@ -106,7 +105,7 @@ import {hasCreditBankAccount} from './actions/ReimbursementAccount/store';
 import {openUnreportedExpense} from './actions/Report';
 import type {GuidedSetupData, TaskForParameters} from './actions/Report';
 import {isAnonymousUser as isAnonymousUserSession} from './actions/Session';
-import {removeDraftTransactions} from './actions/TransactionEdit';
+import {removeDraftTransactionsByIDs} from './actions/TransactionEdit';
 import {getOnboardingMessages} from './actions/Welcome/OnboardingFlow';
 import type {OnboardingCompanySize, OnboardingMessage, OnboardingPurpose, OnboardingTaskLinks} from './actions/Welcome/OnboardingFlow';
 import type {AddCommentOrAttachmentParams} from './API/parameters';
@@ -5916,13 +5915,12 @@ function getReportName(reportNameInformation: GetReportNameParams): string {
             return generateArchivedReportName(reportActionMessage);
         }
         if (!isEmptyObject(parentReportAction) && isModifiedExpenseAction(parentReportAction)) {
-            const policyID = report?.policyID;
-
             const movedFromReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${getMovedReportID(parentReportAction, CONST.REPORT.MOVE_TYPE.FROM)}`];
             const movedToReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${getMovedReportID(parentReportAction, CONST.REPORT.MOVE_TYPE.TO)}`];
             const modifiedMessageWithHTML = getForReportAction({
+                // eslint-disable-next-line @typescript-eslint/no-deprecated -- translateLocal is deprecated; getReportName is non-React code that cannot use the translate hook
+                translate: translateLocal,
                 reportAction: parentReportAction,
-                policyID,
                 movedFromReport,
                 movedToReport,
                 // Temporarily retrieves current user email from getCurrentUserEmail, since getReportName is deprecated and no longer requires this parameter to be passed explicitly.
@@ -9210,6 +9208,42 @@ function hasViolations(
     return transactions.some((transaction) => hasViolation(transaction, transactionViolations, currentUserEmailParam ?? '', currentUserAccountIDParam, report, policy, shouldShowInReview));
 }
 
+function hasVisibleReportFieldViolations(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>, reportViolations?: OnyxEntry<ReportViolations>): boolean {
+    if (!report || !policy?.fieldList || !policy?.areReportFieldsEnabled) {
+        return false;
+    }
+
+    const isPaidGroupPolicyReport = isExpenseReport(report) && (policy?.type === CONST.POLICY.TYPE.CORPORATE || policy?.type === CONST.POLICY.TYPE.TEAM);
+    if (!isPaidGroupPolicyReport && !isInvoiceReport(report)) {
+        return false;
+    }
+
+    // We only show the RBR to the submitter for expense reports
+    if (isPaidGroupPolicyReport && !isCurrentUserSubmitter(report)) {
+        return false;
+    }
+
+    // Allow both open and processing reports to show RBR for field violations (expense reports only)
+    if (isPaidGroupPolicyReport && !isOpenOrProcessingReport(report)) {
+        return false;
+    }
+
+    const {fieldsByName} = getReportFieldMaps(report, policy.fieldList);
+
+    return Object.values(fieldsByName).some((field) => {
+        if (field.target !== report.type) {
+            return false;
+        }
+        if (shouldHideSingleReportField(field)) {
+            return false;
+        }
+        if (isReportFieldDisabledForUser(report, field, policy)) {
+            return false;
+        }
+        return !!getFieldViolation(reportViolations, field);
+    });
+}
+
 /**
  * Checks to see if a report contains a violation of type `warning`
  */
@@ -9285,13 +9319,6 @@ function hasAnyViolations(
         hasNoticeTypeViolations(reportID, transactionViolations, currentUserAccountIDParam, currentUserEmailParam, true, reportTransactions, report, policy) ||
         hasWarningTypeViolations(reportID, transactionViolations, currentUserAccountIDParam, currentUserEmailParam ?? '', true, reportTransactions, report, policy)
     );
-}
-
-function hasReportViolations(reportViolations: OnyxEntry<ReportViolations>) {
-    if (!reportViolations) {
-        return false;
-    }
-    return Object.values(reportViolations ?? {}).some((violations) => !isEmptyObject(violations));
 }
 
 /**
@@ -9445,6 +9472,8 @@ type ShouldReportBeInOptionListParams = {
     includeDomainEmail?: boolean;
     isReportArchived: boolean | undefined;
     draftComment: string | undefined;
+    /** Pre-computed value from reportAttributes derived value. When provided, skips the expensive requiresAttentionFromCurrentUser recomputation. */
+    requiresAttention?: boolean;
 };
 
 function reasonForReportToBeInOptionList({
@@ -9460,6 +9489,7 @@ function reasonForReportToBeInOptionList({
     login,
     includeDomainEmail = false,
     isReportArchived,
+    requiresAttention,
 }: ShouldReportBeInOptionListParams): ValueOf<typeof CONST.REPORT_IN_LHN_REASONS> | null {
     const isInDefaultMode = !isInFocusMode;
 
@@ -9540,7 +9570,7 @@ function reasonForReportToBeInOptionList({
         return CONST.REPORT_IN_LHN_REASONS.HAS_DRAFT_COMMENT;
     }
 
-    if (requiresAttentionFromCurrentUser(report, undefined, isReportArchived)) {
+    if (requiresAttention ?? requiresAttentionFromCurrentUser(report, undefined, isReportArchived)) {
         return CONST.REPORT_IN_LHN_REASONS.HAS_GBR;
     }
 
@@ -11289,7 +11319,7 @@ type CreateDraftTransactionParams = {
     actionName: IOUAction;
     reportActionID: string | undefined;
     introSelected: OnyxEntry<IntroSelected>;
-    allTransactionDrafts: OnyxCollection<Transaction>;
+    draftTransactionIDs: string[] | undefined;
     activePolicy: OnyxEntry<Policy>;
     userBillingGraceEndPeriods: OnyxCollection<BillingGraceEndPeriod>;
     amountOwed: OnyxEntry<number>;
@@ -11303,7 +11333,7 @@ function createDraftTransactionAndNavigateToParticipantSelector({
     actionName,
     reportActionID,
     introSelected,
-    allTransactionDrafts,
+    draftTransactionIDs,
     activePolicy,
     userBillingGraceEndPeriods,
     amountOwed,
@@ -11333,7 +11363,7 @@ function createDraftTransactionAndNavigateToParticipantSelector({
         attendees: transaction?.modifiedAttendees ?? baseComment.attendees,
     };
 
-    removeDraftTransactions(false, allTransactionDrafts);
+    removeDraftTransactionsByIDs(draftTransactionIDs);
 
     createDraftTransaction({
         ...transaction,
@@ -12383,23 +12413,12 @@ function getChatUsedForOnboarding(onboardingValue: OnyxEntry<Onboarding>, concie
 /**
  * Checks if given field has any violations and returns name of the first encountered one
  */
-function getFieldViolation(violations: OnyxEntry<ReportViolations>, reportField: PolicyReportField): ReportViolationName | undefined {
+function getFieldViolation(reportField: PolicyReportField): ReportViolationName | undefined {
     if (!reportField) {
         return undefined;
     }
 
-    if (!violations) {
-        return (reportField.value ?? reportField.defaultValue) ? undefined : CONST.REPORT_VIOLATIONS.FIELD_REQUIRED;
-    }
-
-    const fieldViolation = Object.values(CONST.REPORT_VIOLATIONS).find((violation) => !!violations[violation] && violations[violation][reportField.fieldID]);
-
-    // If the field has no value or no violation, we return 'fieldRequired' violation
-    if (!fieldViolation) {
-        return reportField.value ? undefined : CONST.REPORT_VIOLATIONS.FIELD_REQUIRED;
-    }
-
-    return fieldViolation;
+    return (reportField.value ?? reportField.defaultValue) ? undefined : CONST.REPORT_VIOLATIONS.FIELD_REQUIRED;
 }
 
 /**
@@ -13337,6 +13356,7 @@ export {
     hasSmartscanError,
     hasUpdatedTotal,
     hasViolations,
+    hasVisibleReportFieldViolations,
     hasWarningTypeViolations,
     hasNoticeTypeViolations,
     hasAnyViolations,
@@ -13486,7 +13506,6 @@ export {
     getMostRecentlyVisitedReport,
     getSourceIDFromReportAction,
     getIntegrationNameFromExportMessage,
-    hasReportViolations,
     isPayAtEndExpenseReport,
     getApprovalChain,
     isIndividualInvoiceRoom,
