@@ -1,4 +1,3 @@
-import {useFocusEffect} from '@react-navigation/native';
 import {deepEqual} from 'fast-equals';
 import type {ForwardedRef, ReactNode, RefObject} from 'react';
 import React, {createRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
@@ -9,6 +8,7 @@ import {useInputBlurActions} from '@components/InputBlurContext';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import {getIsRestoringKeyboardFocus} from '@components/TextInput';
 import useDebounceNonReactive from '@hooks/useDebounceNonReactive';
+import useIsFocusedRef from '@hooks/useIsFocusedRef';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import {isSafari} from '@libs/Browser';
@@ -286,16 +286,7 @@ function FormProvider({
 
     // Keep track of the focus state of the current screen.
     // This is used to prevent validating the form on blur before it has been interacted with.
-    const isFocusedRef = useRef(true);
-
-    useFocusEffect(
-        useCallback(() => {
-            isFocusedRef.current = true;
-            return () => {
-                isFocusedRef.current = false;
-            };
-        }, []),
-    );
+    const isFocusedRef = useIsFocusedRef();
 
     const resetForm = useCallback(
         (optionalValue: FormOnyxValues) => {
@@ -474,7 +465,21 @@ function FormProvider({
                 },
             };
         },
-        [draftValues, inputValues, formState?.errorFields, errors, submit, setTouchedInput, shouldValidateOnBlur, onValidate, hasServerError, setIsBlurred, formID, shouldValidateOnChange],
+        [
+            draftValues,
+            inputValues,
+            formState?.errorFields,
+            errors,
+            submit,
+            setTouchedInput,
+            shouldValidateOnBlur,
+            onValidate,
+            hasServerError,
+            setIsBlurred,
+            formID,
+            shouldValidateOnChange,
+            isFocusedRef,
+        ],
     );
     const value = useMemo(() => ({registerInput}), [registerInput]);
 
