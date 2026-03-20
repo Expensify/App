@@ -634,13 +634,31 @@ const ContextMenuActions: ContextMenuAction[] = [
             if (closePopover) {
                 hideContextMenu(false, () => {
                     ReportActionComposeFocusManager.focus();
-                    toggleSubscribeToChildReport(reportAction?.childReportID, currentUserAccountID, reportAction, originalReport, introSelected, isSelfTourViewed, betas, childReportNotificationPreference);
+                    toggleSubscribeToChildReport(
+                        reportAction?.childReportID,
+                        currentUserAccountID,
+                        reportAction,
+                        originalReport,
+                        introSelected,
+                        isSelfTourViewed,
+                        betas,
+                        childReportNotificationPreference,
+                    );
                 });
                 return;
             }
 
             ReportActionComposeFocusManager.focus();
-            toggleSubscribeToChildReport(reportAction?.childReportID, currentUserAccountID, reportAction, originalReport, introSelected, isSelfTourViewed, betas, childReportNotificationPreference);
+            toggleSubscribeToChildReport(
+                reportAction?.childReportID,
+                currentUserAccountID,
+                reportAction,
+                originalReport,
+                introSelected,
+                isSelfTourViewed,
+                betas,
+                childReportNotificationPreference,
+            );
         },
         getDescription: () => {},
         sentryLabel: CONST.SENTRY_LABEL.CONTEXT_MENU.JOIN_THREAD,
@@ -673,13 +691,31 @@ const ContextMenuActions: ContextMenuAction[] = [
             if (closePopover) {
                 hideContextMenu(false, () => {
                     ReportActionComposeFocusManager.focus();
-                    toggleSubscribeToChildReport(reportAction?.childReportID, currentUserAccountID, reportAction, originalReport, introSelected, isSelfTourViewed, betas, childReportNotificationPreference);
+                    toggleSubscribeToChildReport(
+                        reportAction?.childReportID,
+                        currentUserAccountID,
+                        reportAction,
+                        originalReport,
+                        introSelected,
+                        isSelfTourViewed,
+                        betas,
+                        childReportNotificationPreference,
+                    );
                 });
                 return;
             }
 
             ReportActionComposeFocusManager.focus();
-            toggleSubscribeToChildReport(reportAction?.childReportID, currentUserAccountID, reportAction, originalReport, introSelected, isSelfTourViewed, betas, childReportNotificationPreference);
+            toggleSubscribeToChildReport(
+                reportAction?.childReportID,
+                currentUserAccountID,
+                reportAction,
+                originalReport,
+                introSelected,
+                isSelfTourViewed,
+                betas,
+                childReportNotificationPreference,
+            );
         },
         getDescription: () => {},
         sentryLabel: CONST.SENTRY_LABEL.CONTEXT_MENU.LEAVE_THREAD,
