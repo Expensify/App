@@ -77,14 +77,14 @@ function resolveSuggestedFollowup(
         },
     });
 
-    const optimisticConciergeAction = buildOptimisticAddCommentReportAction(
-        selectedFollowup.response,
-        undefined,
-        CONST.ACCOUNT_ID.CONCIERGE,
-        CONCIERGE_RESPONSE_DELAY_MS,
+    const optimisticConciergeAction = buildOptimisticAddCommentReportAction({
+        text: selectedFollowup.response,
+        actorAccountID: CONST.ACCOUNT_ID.CONCIERGE,
+        createdOffset: 1,
+        reportActionID: optimisticConciergeReportActionID,
         reportID,
-        optimisticConciergeReportActionID,
-    );
+        isHTML: true,
+    });
 
     addOptimisticConciergeActionWithDelay(reportID, optimisticConciergeAction);
 }
