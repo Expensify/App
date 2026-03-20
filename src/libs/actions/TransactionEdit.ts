@@ -1,11 +1,11 @@
 import {format} from 'date-fns';
 import Onyx from 'react-native-onyx';
-import type {Connection, OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {Connection, OnyxEntry} from 'react-native-onyx';
 import {formatCurrentUserToAttendee} from '@libs/IOUUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails, Transaction} from '@src/types/onyx';
-import {generateTransactionID, getDraftTransactions} from './Transaction';
+import {generateTransactionID} from './Transaction';
 
 let connection: Connection;
 
@@ -99,31 +99,16 @@ function removeDraftSplitTransaction(transactionID: string | undefined) {
     Onyx.set(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`, null);
 }
 
-function getRemoveDraftTransactionsData(shouldExcludeInitialTransaction = false, allTransactionDrafts?: OnyxCollection<Transaction>): Record<string, null> {
-    const draftTransactions = getDraftTransactions(allTransactionDrafts);
-    return draftTransactions.reduce(
-        (acc, item) => {
-            if (shouldExcludeInitialTransaction && item.transactionID === CONST.IOU.OPTIMISTIC_TRANSACTION_ID) {
-                return acc;
-            }
-            acc[`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${item.transactionID}`] = null;
-            return acc;
-        },
-        {} as Record<string, null>,
-    );
-}
-
-function removeDraftTransactions(shouldExcludeInitialTransaction = false, allTransactionDrafts?: OnyxCollection<Transaction>) {
-    Onyx.multiSet(getRemoveDraftTransactionsData(shouldExcludeInitialTransaction, allTransactionDrafts));
-}
-
-function getRemoveDraftTransactionsByIDsData(transactionIDs: string[] | undefined): Record<string, null> {
+function getRemoveDraftTransactionsByIDsData(transactionIDs: string[] | undefined, shouldExcludeInitialTransaction = false): Record<string, null> {
     if (!transactionIDs?.length) {
         return {};
     }
 
     return transactionIDs.reduce(
         (acc, transactionID) => {
+            if (shouldExcludeInitialTransaction && transactionID === CONST.IOU.OPTIMISTIC_TRANSACTION_ID) {
+                return acc;
+            }
             acc[`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`] = null;
             return acc;
         },
@@ -131,11 +116,11 @@ function getRemoveDraftTransactionsByIDsData(transactionIDs: string[] | undefine
     );
 }
 
-function removeDraftTransactionsByIDs(transactionIDs: string[] | undefined) {
+function removeDraftTransactionsByIDs(transactionIDs: string[] | undefined, shouldExcludeInitialTransaction = false) {
     if (!transactionIDs?.length) {
         return;
     }
-    Onyx.multiSet(getRemoveDraftTransactionsByIDsData(transactionIDs));
+    Onyx.multiSet(getRemoveDraftTransactionsByIDsData(transactionIDs, shouldExcludeInitialTransaction));
 }
 
 function replaceDefaultDraftTransaction(transaction: OnyxEntry<Transaction>) {
@@ -199,9 +184,7 @@ export {
     createDraftTransaction,
     removeDraftTransaction,
     removeTransactionReceipt,
-    getRemoveDraftTransactionsData,
     getRemoveDraftTransactionsByIDsData,
-    removeDraftTransactions,
     removeDraftTransactionsByIDs,
     removeDraftSplitTransaction,
     replaceDefaultDraftTransaction,
