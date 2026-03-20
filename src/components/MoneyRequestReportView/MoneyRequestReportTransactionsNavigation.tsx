@@ -103,7 +103,12 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
     useEffect(() => {
         return () => {
             const focusedRoute = findFocusedRoute(navigationRef.getRootState());
-            if (focusedRoute?.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT || focusedRoute?.name === SCREENS.TRANSACTION_DUPLICATE.REVIEW) {
+            if (
+                focusedRoute?.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT ||
+                focusedRoute?.name === SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT ||
+                focusedRoute?.name === SCREENS.RIGHT_MODAL.EXPENSE_REPORT ||
+                focusedRoute?.name === SCREENS.TRANSACTION_DUPLICATE.REVIEW
+            ) {
                 return;
             }
             clearActiveTransactionIDs();

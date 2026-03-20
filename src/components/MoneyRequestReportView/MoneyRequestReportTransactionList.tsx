@@ -338,7 +338,11 @@ function MoneyRequestReportTransactionList({
 
     useEffect(() => {
         const focusedRoute = findFocusedRoute(navigationRef.getRootState());
-        if (focusedRoute?.name !== SCREENS.RIGHT_MODAL.SEARCH_REPORT) {
+        if (
+            focusedRoute?.name !== SCREENS.RIGHT_MODAL.SEARCH_REPORT &&
+            focusedRoute?.name !== SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT &&
+            focusedRoute?.name !== SCREENS.RIGHT_MODAL.EXPENSE_REPORT
+        ) {
             return;
         }
         setActiveTransactionIDs(visualOrderTransactionIDs);
