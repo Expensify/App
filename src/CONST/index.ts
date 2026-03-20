@@ -777,7 +777,6 @@ const CONST = {
         UBER_FOR_BUSINESS: 'uberForBusiness',
         NEW_DOT_DEW: 'newDotDEW',
         ODOMETER_EXPENSES: 'odometerExpenses',
-        SINGLE_USE_AND_EXPIRE_BY_CARDS: 'singleUseAndExpireByCards',
         PAY_INVOICE_VIA_EXPENSIFY: 'payInvoiceViaExpensify',
         PERSONAL_CARD_IMPORT: 'personalCardImport',
         SUGGESTED_FOLLOWUPS: 'suggestedFollowups',
