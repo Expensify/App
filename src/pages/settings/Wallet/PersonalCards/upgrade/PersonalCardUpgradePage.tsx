@@ -4,6 +4,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useHasActiveAdminPolicies from '@hooks/useHasActiveAdminPolicies';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -31,6 +32,7 @@ function PersonalCardUpgradePage() {
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
 
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const hasActiveAdminPolicies = useHasActiveAdminPolicies();
 
     const onUpgrade = () => {
         createWorkspaceWithPolicyDraft({
@@ -46,6 +48,7 @@ function PersonalCardUpgradePage() {
             shouldCreateControlPolicy: false,
             isSelfTourViewed,
             betas,
+            hasActiveAdminPolicies,
         });
         setIsUpgraded(true);
     };
