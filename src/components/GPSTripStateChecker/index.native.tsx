@@ -14,6 +14,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {useSplashScreenState} from '@src/SplashScreenStateContext';
+import useUpdateGpsNotification from './useUpdateGpsNotification';
 import useUpdateGpsTripOnReconnect from './useUpdateGpsTripOnReconnect';
 
 function GPSTripStateChecker() {
@@ -27,6 +28,7 @@ function GPSTripStateChecker() {
     const reportID = gpsDraftDetails?.reportID ?? generateReportID();
 
     useUpdateGpsTripOnReconnect();
+    useUpdateGpsNotification();
 
     useEffect(() => {
         async function handleGpsTripInProgressOnAppRestart() {

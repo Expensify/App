@@ -69,7 +69,7 @@ function EditReportFieldPage({route}: EditReportFieldPageProps) {
     const session = useSession();
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const hasViolations = hasViolationsReportUtils(report?.reportID, transactionViolations, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, session?.email ?? '');
-
+    const [reportViolations] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_VIOLATIONS}${reportID}`);
     const {translate} = useLocalize();
     const {showConfirmModal} = useConfirmModal();
     const icons = useMemoizedLazyExpensifyIcons(['Trashcan'] as const);
@@ -133,19 +133,20 @@ function EditReportFieldPage({route}: EditReportFieldPageProps) {
             goBack();
         } else {
             if (value !== '') {
-                updateReportField(
-                    {...report, reportID: report.reportID},
-                    {...reportField, value},
-                    reportField,
-                    policy as unknown as Policy,
+                updateReportField({
+                    report: {...report, reportID: report.reportID},
+                    reportField: {...reportField, value},
+                    previousReportField: reportField,
+                    policy: policy as unknown as Policy,
                     isASAPSubmitBetaEnabled,
-                    session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
-                    session?.email ?? '',
-                    hasViolations,
+                    accountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
+                    email: session?.email ?? '',
+                    hasViolationsParam: hasViolations,
                     recentlyUsedReportFields,
-                    hasOtherViolations,
+                    reportViolations,
                     bankAccountList,
-                );
+                    shouldFixViolations: hasOtherViolations ?? false,
+                });
             }
             goBack();
         }

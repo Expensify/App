@@ -227,7 +227,7 @@ function WorkspacesListRow({
 
     const ThreeDotsSection = !isJoinRequestPending ? (
         <View style={[styles.flexRow, styles.gap1, !isNarrow && styles.ml2, isNarrow && styles.alignItemsCenter]}>
-            <View style={[styles.flexRow, styles.gap2, styles.alignItemsCenter, isNarrow && styles.workspaceListRBR]}>
+            <View style={[styles.flexRow, styles.gap2, styles.alignItemsCenter]}>
                 <BrickRoadIndicatorIcon brickRoadIndicator={brickRoadIndicator} />
             </View>
             <ThreeDotsMenu
@@ -262,11 +262,11 @@ function WorkspacesListRow({
 
     return (
         <View style={[styles.flexRow, styles.highlightBG, rowStyles, style, styles.br3]}>
-            <Animated.View style={[styles.flex1, styles.flexRow, styles.bgTransparent, isWide && styles.gap5, styles.p5, styles.pr3, animatedHighlightStyle]}>
+            <Animated.View style={[styles.flex1, styles.flexRow, styles.bgTransparent, isWide ? styles.gap5 : styles.gap2, styles.p5, styles.pr3, animatedHighlightStyle]}>
                 <PressableWithoutFeedback
                     accessible
                     accessibilityLabel={accessibilityLabel}
-                    role={isWide ? CONST.ROLE.ROW : CONST.ROLE.BUTTON}
+                    role={isWide ? CONST.ROLE.ROW : CONST.ROLE.LINK}
                     onPress={onPress}
                     disabled={disabled}
                     style={[isWide ? styles.flexRow : styles.flexColumn, styles.flex1, isWide && styles.gap5]}
