@@ -17,7 +17,7 @@ const mockIsNavigationReady = jest.fn(() => Promise.resolve());
 const mockGoBack = jest.fn();
 
 jest.mock('@libs/actions/App', () => ({
-    openApp: (...args: unknown[]) => mockOpenApp(...args),
+    openApp: mockOpenApp,
 }));
 
 jest.mock('@libs/Network/SequentialQueue', () => ({
@@ -28,9 +28,9 @@ jest.mock('@libs/Navigation/Navigation', () => ({
     // eslint-disable-next-line @typescript-eslint/naming-convention -- __esModule is required by Jest to properly mock ES modules with default exports
     __esModule: true,
     default: {
-        dismissModal: (...args: unknown[]) => mockDismissModal(...args),
+        dismissModal: mockDismissModal,
         isNavigationReady: () => mockIsNavigationReady(),
-        goBack: (...args: unknown[]) => mockGoBack(...args),
+        goBack: mockGoBack,
     },
 }));
 
@@ -43,7 +43,7 @@ jest.mock('@hooks/useAndroidBackButtonHandler', () => jest.fn());
 jest.mock('@pages/signin/SignInPage', () => {
     const MockReact = require('react') as typeof React;
     const {View} = require('react-native') as {View: typeof RNView};
-    const MockSignInPage = MockReact.forwardRef((_, ref: React.Ref<unknown>) => MockReact.createElement(View, {testID: 'MockSignInPage', ref}));
+    const MockSignInPage = MockReact.forwardRef(() => MockReact.createElement(View, {testID: 'MockSignInPage'}));
     MockSignInPage.displayName = 'MockSignInPage';
     return {
         // eslint-disable-next-line @typescript-eslint/naming-convention -- __esModule is required by Jest to properly mock ES modules with default exports
