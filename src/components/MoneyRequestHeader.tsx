@@ -4,7 +4,7 @@ import {hasSeenTourSelector} from '@selectors/Onboarding';
 import {validTransactionDraftsSelector} from '@selectors/TransactionDraft';
 import type {ReactNode} from 'react';
 import React, {useCallback, useMemo, useRef, useState} from 'react';
-import {View} from 'react-native';
+import {InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import useConfirmModal from '@hooks/useConfirmModal';
@@ -626,8 +626,12 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
                             currentUserAccountID: accountID,
                         });
                     } else {
-                        deleteTransactions([transaction.transactionID], duplicateTransactions, duplicateTransactionViolations, currentSearchHash, true);
-                        removeTransaction(transaction.transactionID);
+                        // Money request should be deleted when interactions are done, to not show the not found page before navigating to goBackRoute
+                        // eslint-disable-next-line @typescript-eslint/no-deprecated
+                        InteractionManager.runAfterInteractions(() => {
+                            deleteTransactions([transaction.transactionID], duplicateTransactions, duplicateTransactionViolations, currentSearchHash, true);
+                            removeTransaction(transaction.transactionID);
+                        });
                     }
                     if (isInNarrowPaneModal) {
                         Navigation.navigateBackToLastSuperWideRHPScreen();
