@@ -10,7 +10,7 @@ import * as MainQueue from '@src/libs/Network/MainQueue';
 import * as NetworkStore from '@src/libs/Network/NetworkStore';
 import * as SequentialQueue from '@src/libs/Network/SequentialQueue';
 import {sequentialQueueRequestThrottle} from '@src/libs/Network/SequentialQueue';
-import {isOffline, setHasRadio} from '@src/libs/NetworkState';
+import {getIsOffline, setHasRadio} from '@src/libs/NetworkState';
 import * as Request from '@src/libs/Request';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type ReactNativeOnyxMock from '../../__mocks__/react-native-onyx';
@@ -125,7 +125,7 @@ describe('APITests', () => {
                 .then(() => Promise.resolve(setHasRadio(true)))
                 .then(waitForBatchedUpdates)
                 .then(() => {
-                    expect(isOffline()).toBe(false);
+                    expect(getIsOffline()).toBe(false);
                     expect(SequentialQueue.isRunning()).toBe(false);
 
                     // Then `xhr` should be called with expected data, and the persisted queue should be empty
@@ -439,14 +439,14 @@ describe('APITests', () => {
 
                 // setHasRadio is synchronous — offline state is immediate
                 setHasRadio(false);
-                expect(isOffline()).toBe(true);
+                expect(getIsOffline()).toBe(true);
                 expect(NetworkStore.isAuthenticating()).toBe(false);
                 return waitForBatchedUpdates();
             })
             .then(() => {
                 API.write('MockCommand' as WriteCommand, {});
                 expect(PersistedRequests.getAll().length).toBe(1);
-                expect(isOffline()).toBe(true);
+                expect(getIsOffline()).toBe(true);
                 expect(SequentialQueue.isRunning()).toBe(false);
                 expect(NetworkStore.isAuthenticating()).toBe(false);
 
@@ -471,7 +471,7 @@ describe('APITests', () => {
                 expect(PersistedRequests.getAll().length).toBe(0);
 
                 // We are not offline anymore
-                expect(isOffline()).toBe(false);
+                expect(getIsOffline()).toBe(false);
 
                 // First call to xhr is the AuthenticatePusher request that could not call Authenticate because we went offline
                 const [firstCommand] = xhr.mock.calls.at(0) ?? [];
@@ -508,7 +508,7 @@ describe('APITests', () => {
         })
             .then(waitForBatchedUpdates)
             .then(() => {
-                expect(isOffline()).toBe(true);
+                expect(getIsOffline()).toBe(true);
 
                 NetworkStore.resetHasReadRequiredDataFromStorage();
 
@@ -546,7 +546,7 @@ describe('APITests', () => {
         return Promise.resolve(setHasRadio(true))
             .then(() => {
                 // GIVEN that we are online
-                expect(isOffline()).toBe(false);
+                expect(getIsOffline()).toBe(false);
 
                 // WHEN we make a request that should be retried, one that should not, and another that should
                 API.write('MockCommandOne' as WriteCommand, {});

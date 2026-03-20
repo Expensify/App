@@ -5,7 +5,7 @@ import Log from '@libs/Log';
 import {replay as replayMainQueue} from '@libs/Network/MainQueue';
 import {isAuthenticating as isAuthenticatingNetworkStore, setIsAuthenticating} from '@libs/Network/NetworkStore';
 import type {RequestError} from '@libs/Network/SequentialQueue';
-import {isOffline} from '@libs/NetworkState';
+import {getIsOffline} from '@libs/NetworkState';
 import {processWithMiddleware} from '@libs/Request';
 import RequestThrottle from '@libs/RequestThrottle';
 import CONST from '@src/CONST';
@@ -62,7 +62,7 @@ const Reauthentication: Middleware = (response, request, isFromSequentialQueue) 
             }
 
             if (data.jsonCode === CONST.JSON_CODE.NOT_AUTHENTICATED) {
-                if (isOffline()) {
+                if (getIsOffline()) {
                     // If we are offline and somehow handling this response we do not want to reauthenticate
                     throw new Error('Unable to reauthenticate because we are offline');
                 }

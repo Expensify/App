@@ -16,7 +16,7 @@ import * as Network from '@src/libs/Network';
 import * as MainQueue from '@src/libs/Network/MainQueue';
 import * as NetworkStore from '@src/libs/Network/NetworkStore';
 import * as SequentialQueue from '@src/libs/Network/SequentialQueue';
-import {isOffline, setHasRadio} from '@src/libs/NetworkState';
+import {getIsOffline, setHasRadio} from '@src/libs/NetworkState';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Session as OnyxSession} from '@src/types/onyx';
 import type ReactNativeOnyxMock from '../../__mocks__/react-native-onyx';
@@ -356,7 +356,7 @@ describe('NetworkTests', () => {
         // Given we have a request made while online
         return Promise.resolve(setHasRadio(true))
             .then(() => {
-                expect(isOffline()).toBe(false);
+                expect(getIsOffline()).toBe(false);
 
                 // When network calls with are made
                 Network.post('mock command', {param1: 'value1'}).then(onResolved);

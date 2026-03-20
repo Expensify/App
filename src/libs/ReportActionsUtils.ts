@@ -54,7 +54,7 @@ import {formatMessageElementList} from './Localize';
 import Log from './Log';
 import type {MessageElementBase, MessageTextElement} from './MessageElement';
 import getReportURLForCurrentContext from './Navigation/helpers/getReportURLForCurrentContext';
-import {isOffline, subscribe as subscribeNetworkState} from './NetworkState';
+import {getIsOffline, subscribe as subscribeNetworkState} from './NetworkState';
 import Parser from './Parser';
 import {arePersonalDetailsMissing, createPersonalDetailsLookupByAccountID, getEffectiveDisplayName, getPersonalDetailByEmail, getPersonalDetailsByIDs} from './PersonalDetailsUtils';
 import stripFollowupListFromHtml from './ReportActionFollowupUtils/stripFollowupListFromHtml';
@@ -110,9 +110,9 @@ Onyx.connect({
     },
 });
 
-let deprecatedIsNetworkOffline = isOffline();
+let deprecatedIsNetworkOffline = getIsOffline();
 subscribeNetworkState(() => {
-    deprecatedIsNetworkOffline = isOffline();
+    deprecatedIsNetworkOffline = getIsOffline();
 });
 
 let deprecatedCurrentUserAccountID: number | undefined;

@@ -27,7 +27,7 @@ const reconnectListeners = new Set<() => void>();
 // Wire FailureTracker → NetworkState so sustained failures trigger offline state.
 onSustainedFailureChange((active) => setSustainedFailures(active));
 
-function isOffline(): boolean {
+function getIsOffline(): boolean {
     return !hasRadio || sustainedFailuresActive || shouldForceOffline || simulatedOffline;
 }
 
@@ -70,7 +70,7 @@ function notifyReconnectListeners() {
 }
 
 function updateState() {
-    const offline = isOffline();
+    const offline = getIsOffline();
 
     if (offline && !lastOfflineAt) {
         lastOfflineAt = new Date().toISOString();
@@ -279,4 +279,4 @@ function refresh() {
     NetInfo.refresh();
 }
 
-export {isOffline, getLastOfflineAt, subscribe, onReachabilityConfirmed, setHasRadio, setSustainedFailures, setForceOffline, onReachabilityRestored, getDBTimeWithSkew, refresh};
+export {getIsOffline, getLastOfflineAt, subscribe, onReachabilityConfirmed, setHasRadio, setSustainedFailures, setForceOffline, onReachabilityRestored, getDBTimeWithSkew, refresh};

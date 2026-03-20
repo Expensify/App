@@ -3,7 +3,7 @@ import Onyx from 'react-native-onyx';
 import AppStateMonitor from '@libs/AppStateMonitor';
 import Log from '@libs/Log';
 import {flush} from '@libs/Network/SequentialQueue';
-import {isOffline, onReachabilityConfirmed as onNetworkReachabilityConfirmed, refresh as refreshNetworkState} from '@libs/NetworkState';
+import {getIsOffline, onReachabilityConfirmed as onNetworkReachabilityConfirmed, refresh as refreshNetworkState} from '@libs/NetworkState';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {openApp, reconnectApp} from './App';
 
@@ -65,7 +65,7 @@ onNetworkReachabilityConfirmed(() => {
 // App came to foreground — reconnect to catch up on missed Pusher events
 AppStateMonitor.addBecameActiveListener(() => {
     Log.info('[Reconnect] App became active');
-    if (isOffline()) {
+    if (getIsOffline()) {
         refreshNetworkState();
     }
     // Always reconnect on foreground to catch up on missed events

@@ -2,7 +2,7 @@ import HybridAppModule from '@expensify/react-native-hybrid-app';
 import Onyx from 'react-native-onyx';
 import {getMicroSecondOnyxErrorWithMessage} from '@libs/ErrorUtils';
 import {clearSessionStorage} from '@libs/Navigation/helpers/lastVisitedTabPathUtils';
-import {isOffline} from '@libs/NetworkState';
+import {getIsOffline} from '@libs/NetworkState';
 import CONFIG from '@src/CONFIG';
 import type {OnyxKey} from '@src/ONYXKEYS';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -57,7 +57,7 @@ function clearStorageAndRedirect(errorMessage?: string): Promise<void> {
 
     // After signing out, set ourselves as offline if we were offline before logging out and we are not forcing it.
     // If we are forcing offline, ignore it while signed out, otherwise it would require a refresh because there's no way to toggle the switch to go back online while signed out.
-    if (isOffline() && !currentShouldForceOffline) {
+    if (getIsOffline() && !currentShouldForceOffline) {
         keysToPreserve.push(ONYXKEYS.NETWORK);
     }
 

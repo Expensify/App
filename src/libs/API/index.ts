@@ -8,7 +8,7 @@ import {FailureTracking, handleDeletedAccount, HandleUnusedOptimisticID, Logging
 import FraudMonitoring from '@libs/Middleware/FraudMonitoring';
 import SentryServerTiming from '@libs/Middleware/SentryServerTiming';
 import {push as pushToSequentialQueue, waitForIdle as waitForSequentialQueueIdle} from '@libs/Network/SequentialQueue';
-import {isOffline} from '@libs/NetworkState';
+import {getIsOffline} from '@libs/NetworkState';
 import Pusher from '@libs/Pusher';
 import {addMiddleware, processWithMiddleware} from '@libs/Request';
 import {getAll, getLength as getPersistedRequestsLength} from '@userActions/PersistedRequests';
@@ -102,7 +102,7 @@ function prepareRequest<TCommand extends ApiCommand, TKey extends OnyxKey>(
     const request: SetRequired<OnyxRequest<TKey>, 'data'> = {
         command,
         data,
-        initiatedOffline: isOffline(),
+        initiatedOffline: getIsOffline(),
         requestID: requestIndex++,
         ...onyxDataWithoutOptimisticData,
         successData,

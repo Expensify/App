@@ -1,5 +1,5 @@
 import type {OnyxKey} from 'react-native-onyx';
-import {isOffline} from '@libs/NetworkState';
+import {getIsOffline} from '@libs/NetworkState';
 import {processWithMiddleware} from '@libs/Request';
 import type OnyxRequest from '@src/types/onyx/Request';
 import type {AnyRequest} from '@src/types/onyx/Request';
@@ -33,7 +33,7 @@ function replay<TKey extends OnyxKey>(request: OnyxRequest<TKey>) {
  * Process the networkRequestQueue by looping through the queue and attempting to make the requests
  */
 function process() {
-    if (isOffline()) {
+    if (getIsOffline()) {
         return;
     }
 

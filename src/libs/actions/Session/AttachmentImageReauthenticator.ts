@@ -1,7 +1,7 @@
 import Onyx from 'react-native-onyx';
 import {reauthenticate} from '@libs/Authentication';
 import Log from '@libs/Log';
-import {isOffline} from '@libs/NetworkState';
+import {getIsOffline} from '@libs/NetworkState';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type Session from '@src/types/onyx/Session';
 
@@ -43,7 +43,7 @@ function deactivate() {
  * @returns
  */
 function activate(session: Session) {
-    if (!session || isSameSession(session) || isOffline()) {
+    if (!session || isSameSession(session) || getIsOffline()) {
         return;
     }
     currentActiveSession = session;
@@ -52,7 +52,7 @@ function activate(session: Session) {
 }
 
 function tryReauthenticate() {
-    if (isOffline() || !active) {
+    if (getIsOffline() || !active) {
         return;
     }
     reauthenticate().catch((error) => {
