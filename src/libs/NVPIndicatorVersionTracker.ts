@@ -1,4 +1,5 @@
 import Onyx from 'react-native-onyx';
+import type {Connection} from 'react-native-onyx';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 /**
@@ -13,7 +14,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 type VersionListener = (reportID: string, version: number) => void;
 
 const versionMap = new Map<string, number>();
-const connectionMap = new Map<string, number>();
+const connectionMap = new Map<string, Connection>();
 const refCountMap = new Map<string, number>();
 const listeners = new Set<VersionListener>();
 

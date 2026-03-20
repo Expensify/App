@@ -56,9 +56,10 @@ function useAgentZeroStatusIndicator(reportID: string, isAgentZeroChat: boolean)
     useEffect(() => {
         const unsubscribeConnection = NVPIndicatorVersionTracker.subscribe(reportID);
         const unsubscribeListener = NVPIndicatorVersionTracker.addListener((updatedReportID, version) => {
-            if (updatedReportID === reportID) {
-                nvpVersionRef.current = version;
+            if (updatedReportID !== reportID) {
+                return;
             }
+            nvpVersionRef.current = version;
         });
 
         return () => {
