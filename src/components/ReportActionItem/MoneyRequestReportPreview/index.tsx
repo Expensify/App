@@ -121,7 +121,6 @@ function MoneyRequestReportPreview({
         selector: hasOnceLoadedReportActionsSelector,
     });
     const newTransactions = useNewTransactions(hasOnceLoadedReportActions, transactions);
-    // We only want to highlight the new expenses if the screen is focused.
     const newTransactionIDs = new Set(newTransactions.map((transaction) => transaction.transactionID));
 
     const transactionPreviewContainerStyles = [styles.h100, reportPreviewStyles.transactionPreviewCarouselStyle];
