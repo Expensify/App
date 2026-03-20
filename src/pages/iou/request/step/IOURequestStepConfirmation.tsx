@@ -32,6 +32,7 @@ import usePermissions from '@hooks/usePermissions';
 import usePolicyForTransaction from '@hooks/usePolicyForTransaction';
 import usePrivateIsArchivedMap from '@hooks/usePrivateIsArchivedMap';
 import useReportAttributes from '@hooks/useReportAttributes';
+import useRestartOnOdometerImagesFailure from '@hooks/useRestartOnOdometerImagesFailure';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {completeTestDriveTask} from '@libs/actions/Task';
@@ -88,6 +89,7 @@ import {
 } from '@libs/TransactionUtils';
 import type {GpsPoint} from '@userActions/IOU';
 import {
+    checkIfLocalFileIsAccessible,
     createDistanceRequest as createDistanceRequestIOUActions,
     getIOURequestPolicyID,
     requestMoney as requestMoneyIOUActions,
@@ -420,6 +422,8 @@ function IOURequestStepConfirmation({
         }
     }, [isOffline, policy?.pendingAction, policyExpenseChatPolicyID, senderPolicyID]);
 
+    useRestartOnOdometerImagesFailure(isOdometerDistanceRequest ? transaction : undefined, reportID, iouType, action);
+
     const odometerStartImage = transaction?.comment?.odometerStartImage;
     const odometerEndImage = transaction?.comment?.odometerEndImage;
 
@@ -458,32 +462,71 @@ function IOURequestStepConfirmation({
         setIsStitchingReceipt(true);
         setStitchError('');
 
-        stitchOdometerImages(odometerStartImage, odometerEndImage)
-            .then((stitchedImage) => {
-                if (ignore || !stitchedImage) {
-                    return;
-                }
-                setMoneyRequestReceipt(currentTransactionID, stitchedImage.uri ?? '', stitchedImage.name ?? '', shouldUseTransactionDraft(action));
-                lastStitchedImages.current = {startImage: odometerStartImage, endImage: odometerEndImage};
-            })
-            .catch((error: unknown) => {
+        const runStitch = () => {
+            stitchOdometerImages(odometerStartImage, odometerEndImage)
+                .then((stitchedImage) => {
+                    if (ignore || !stitchedImage) {
+                        return;
+                    }
+                    setMoneyRequestReceipt(currentTransactionID, stitchedImage.uri ?? '', stitchedImage.name ?? '', shouldUseTransactionDraft(action));
+                    lastStitchedImages.current = {startImage: odometerStartImage, endImage: odometerEndImage};
+                })
+                .catch((error: unknown) => {
+                    if (ignore) {
+                        return;
+                    }
+                    Log.warn('stitchOdometerImages failed', {error});
+                    setStitchError(translate('iou.error.stitchOdometerImagesFailed'));
+                })
+                .finally(() => {
+                    if (ignore) {
+                        return;
+                    }
+                    setIsStitchingReceipt(false);
+                });
+        };
+
+        // Pre-flight: verify blob URLs haven't expired before attempting to stitch (edge case guard)
+        const getOdometerFilename = (img: typeof odometerStartImage): string => (typeof img === 'object' ? img?.name : undefined) ?? 'odometer-image.jpg';
+        const localImages = [
+            {uri: startUri, image: odometerStartImage},
+            {uri: endUri, image: odometerEndImage},
+        ].filter((item): item is {uri: string; image: typeof odometerStartImage} => !!item.uri && item.uri.startsWith('blob:'));
+        if (localImages.length > 0) {
+            let hasExpiredImages = false;
+            Promise.all(
+                localImages.map(({uri, image}) =>
+                    checkIfLocalFileIsAccessible(
+                        getOdometerFilename(image),
+                        uri,
+                        typeof image === 'object' ? image?.type : undefined,
+                        () => {},
+                        () => {
+                            hasExpiredImages = true;
+                        },
+                    ),
+                ),
+            ).then(() => {
                 if (ignore) {
                     return;
                 }
-                Log.warn('stitchOdometerImages failed', {error});
-                setStitchError(translate('iou.error.stitchOdometerImagesFailed'));
-            })
-            .finally(() => {
-                if (ignore) {
+                if (hasExpiredImages) {
+                    setIsStitchingReceipt(false);
+                    setMoneyRequestReceipt(currentTransactionID, '', '', shouldUseTransactionDraft(action));
+                    removeDraftTransactionsByIDs(draftTransactionIDs, true);
+                    navigateToStartMoneyRequestStep(requestType, iouType, currentTransactionID, reportID);
                     return;
                 }
-                setIsStitchingReceipt(false);
+                runStitch();
             });
+        } else {
+            runStitch();
+        }
 
         return () => {
             ignore = true;
         };
-    }, [isOdometerDistanceRequest, isFocused, currentTransactionID, odometerStartImage, odometerEndImage, action, translate]);
+    }, [isOdometerDistanceRequest, isFocused, currentTransactionID, odometerStartImage, odometerEndImage, action, translate, draftTransactionIDs, requestType, iouType, reportID]);
 
     const defaultBillable = !!policy?.defaultBillable;
     useEffect(() => {
