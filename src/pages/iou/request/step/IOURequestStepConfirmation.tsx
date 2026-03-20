@@ -40,7 +40,7 @@ import {getCurrencySymbol} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
-import {isLocalFile as isLocalFileFileUtils} from '@libs/fileDownload/FileUtils';
+import {isLocalFile as isLocalFileFileUtils, getMimeTypeFromUri} from '@libs/fileDownload/FileUtils';
 import validateReceiptFile from '@libs/fileDownload/validateReceiptFile';
 import getCurrentPosition from '@libs/getCurrentPosition';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
@@ -442,7 +442,18 @@ function IOURequestStepConfirmation({
                     if (ignore || !stitchedImage) {
                         return;
                     }
-                    setMoneyRequestReceipt(currentTransactionID, stitchedImage.uri ?? '', stitchedImage.name ?? '', shouldUseTransactionDraft(action));
+                    const uri = stitchedImage?.uri ?? startUri ?? endUri ?? '';
+                    const name =
+                        stitchedImage?.name ??
+                        (typeof odometerStartImage !== 'string' ? odometerStartImage?.name : odometerStartImage?.split('/').pop()) ??
+                        (typeof odometerEndImage !== 'string' ? odometerEndImage?.name : odometerEndImage?.split('/').pop()) ??
+                        '';
+                    const type =
+                        stitchedImage?.type ??
+                        (typeof odometerStartImage !== 'string' ? odometerStartImage?.type : getMimeTypeFromUri(odometerStartImage)) ??
+                        (typeof odometerEndImage !== 'string' ? odometerEndImage?.type : getMimeTypeFromUri(odometerEndImage)) ??
+                        'image/jpeg';
+                    setMoneyRequestReceipt(currentTransactionID, uri, name, shouldUseTransactionDraft(action), type);
                     lastStitchedImages.current = {startImage: odometerStartImage, endImage: odometerEndImage};
                 })
                 .catch((error: unknown) => {
