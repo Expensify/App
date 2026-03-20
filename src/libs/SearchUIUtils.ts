@@ -2114,16 +2114,14 @@ function createAndOpenSearchTransactionThread(
     // The transaction thread can be created from the chat page and the snapshot data is stale
     if (hasActualTransactionThread) {
         transactionThreadReport = getReportOrDraftReport(iouReportAction.childReportID);
-    } else {
-        // For legacy transactions without an IOU action in the backend, pass transaction data
-        // This allows OpenReport to create the IOU action and transaction thread on the backend
+    }
+
+    // If the thread doesn't exist in Onyx (no childReportID, or report was deleted from backend e.g. after trashing an expense), create a new one
+    if (!transactionThreadReport) {
         const reportActionID = moneyRequestReportActionID ?? iouReportAction?.reportActionID;
-        // Pass transaction data when there's no reportActionID OR when the item is from self DM
-        // (unreported transactions have a valid reportActionID but still need transaction data for proper detection)
         const shouldPassTransactionData = !reportActionID || isFromSelfDM;
         const transaction = shouldPassTransactionData ? getTransactionFromTransactionListItem(item) : undefined;
         const transactionViolations = shouldPassTransactionData ? item.violations : undefined;
-        // Use the full reportAction to preserve originalMessage.type (e.g., "track") for proper expense type detection
         const reportActionToPass = iouReportAction ?? item.reportAction ?? ({reportActionID} as OnyxTypes.ReportAction);
         transactionThreadReport = createTransactionThreadReport(
             introSelected,
