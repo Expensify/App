@@ -96,6 +96,7 @@ import {
     getReportPreviewMessage,
     getReportStatusTranslation,
     getReportSubtitlePrefix,
+    getTaskAssigneeChatOnyxData,
     getTransactionDetails,
     getViolatingReportIDForRBRInLHN,
     getWorkspaceIcon,
@@ -475,6 +476,62 @@ describe('ReportUtils', () => {
             const paidSystemMessage = translate(CONST.LOCALES.EN, 'iou.businessBankAccount', '', last4Digits);
 
             expect(getIOUReportActionDisplayMessage(translateLocal, reportAction, undefined, iouReport)).toBe(paidSystemMessage);
+        });
+    });
+
+    describe('getTaskAssigneeChatOnyxData', () => {
+        it('uses passed currentUserEmail/currentUserAccountID for optimistic assignee comment', () => {
+            const passedCurrentUserEmail = 'passed@user.com';
+            const passedCurrentUserAccountID = 50;
+            const passedAccountID = 999;
+
+            const {optimisticAssigneeAddComment} = getTaskAssigneeChatOnyxData(
+                passedAccountID,
+                1,
+                'taskReportID',
+                'assigneeChatReportID',
+                'parentReportID',
+                'Task title',
+                {} as unknown as OnyxEntry<Report>,
+                passedCurrentUserEmail,
+                passedCurrentUserAccountID,
+            );
+
+            expect(optimisticAssigneeAddComment).toBeDefined();
+            const reportAction = optimisticAssigneeAddComment?.reportAction as ReportAction | undefined;
+
+            // Actor for the comment should use the passed `currentUserAccountID`, not the first `accountID` arg.
+            expect(reportAction?.actorAccountID).toBe(passedCurrentUserAccountID);
+            expect(reportAction?.person?.[0]?.text).toBe(passedCurrentUserEmail);
+        });
+
+        it('uses personal detail displayName for passed currentUserAccountID when available', () => {
+            const passedCurrentUserEmail = 'different-email@user.com';
+            const passedCurrentUserAccountID = currentUserAccountID; // 5, which exists in `participantsPersonalDetails`
+
+            const result = getTaskAssigneeChatOnyxData(
+                1,
+                2,
+                'taskReportID',
+                'assigneeChatReportID',
+                'parentReportID',
+                'Task title',
+                {} as unknown as OnyxEntry<Report>,
+                passedCurrentUserEmail,
+                passedCurrentUserAccountID,
+            );
+
+            const reportAction = result.optimisticAssigneeAddComment?.reportAction as ReportAction | undefined;
+            expect(reportAction?.actorAccountID).toBe(passedCurrentUserAccountID);
+
+            // When personal details exist for this accountID, we should render displayName instead of the passed email.
+            expect(reportAction?.person?.[0]?.text).toBe(participantsPersonalDetails[String(passedCurrentUserAccountID)]?.displayName);
+        });
+
+        it('does not create optimistic assignee comment when assigneeChatReportID equals parentReportID', () => {
+            const result = getTaskAssigneeChatOnyxData(1, 2, 'taskReportID', 'sameReportID', 'sameReportID', 'Task title', {} as unknown as OnyxEntry<Report>, 'email@user.com', 50);
+
+            expect(result.optimisticAssigneeAddComment).toBeUndefined();
         });
     });
 
