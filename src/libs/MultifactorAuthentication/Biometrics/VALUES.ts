@@ -63,6 +63,9 @@ const REASON = {
         ALREADY_REVIEWED: 'Transaction already reviewed',
         TRANSACTION_APPROVED: 'Transaction approved successfully',
         TRANSACTION_DENIED: 'Transaction denied successfully',
+        PIN_REVEALED: 'PIN revealed successfully',
+        PIN_CHANGED: 'PIN changed successfully',
+        SET_PIN: 'PIN set successfully',
     },
     CHALLENGE: {
         CHALLENGE_MISSING: 'Challenge is missing',
@@ -180,6 +183,18 @@ const API_RESPONSE_MAP = {
             [BACKEND_MESSAGE.TRANSACTION_ALREADY_REVIEWED]: REASON.BACKEND.ALREADY_REVIEWED,
             [BACKEND_MESSAGE.TRANSACTION_NOT_FOUND]: REASON.BACKEND.TRANSACTION_NOT_FOUND,
         },
+    },
+
+    SET_PERSONAL_DETAILS_AND_SHIP_EXPENSIFY_CARDS_WITH_PIN: {
+        [HTTP_STATUS.SUCCESS]: REASON.BACKEND.SET_PIN,
+    },
+
+    REVEAL_CARD_PIN: {
+        [HTTP_STATUS.SUCCESS]: REASON.BACKEND.PIN_REVEALED,
+    },
+
+    CHANGE_CARD_PIN: {
+        [HTTP_STATUS.SUCCESS]: REASON.BACKEND.PIN_CHANGED,
     },
 } as const;
 

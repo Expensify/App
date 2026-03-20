@@ -10,6 +10,7 @@ import useFeedKeysWithAssignedCards from '@hooks/useFeedKeysWithAssignedCards';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setSearchContext} from '@libs/actions/Search';
 import {mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
@@ -32,6 +33,7 @@ type SavedSearchListProps = {
 function SavedSearchList({hash}: SavedSearchListProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const isFocused = useIsFocused();
 
     const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES);
@@ -43,6 +45,7 @@ function SavedSearchList({hash}: SavedSearchListProps) {
     const [allFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER);
     const feedKeysWithCards = useFeedKeysWithAssignedCards();
     const [currentUserAccountID = -1] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
 
     const {showDeleteModal} = useDeleteSavedSearch();
     const {
@@ -74,6 +77,7 @@ function SavedSearchList({hash}: SavedSearchListProps) {
                 autoCompleteWithSpace: false,
                 translate,
                 feedKeysWithCards,
+                conciergeReportID,
             });
         }
 
@@ -82,6 +86,7 @@ function SavedSearchList({hash}: SavedSearchListProps) {
 
         return {
             ...baseMenuItem,
+            role: CONST.ROLE.TAB,
             sentryLabel: CONST.SENTRY_LABEL.SEARCH.SAVED_SEARCH_MENU_ITEM,
             onPress: () => {
                 setSearchContext(false);
@@ -113,7 +118,7 @@ function SavedSearchList({hash}: SavedSearchListProps) {
     return (
         <MenuItemList
             menuItems={savedSearchesMenuItems}
-            wrapperStyle={styles.sectionMenuItem}
+            wrapperStyle={styles.sectionMenuItem(shouldUseNarrowLayout)}
             icon={expensifyIcons.Bookmark}
             iconWidth={variables.iconSizeNormal}
             iconHeight={variables.iconSizeNormal}

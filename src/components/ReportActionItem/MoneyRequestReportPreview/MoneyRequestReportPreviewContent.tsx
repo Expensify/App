@@ -88,6 +88,7 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import {validTransactionDraftIDsSelector} from '@src/selectors/TransactionDraft';
 import type {ReportAttributesDerivedValue, Transaction} from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import AccessMoneyRequestReportPreviewPlaceHolder from './AccessMoneyRequestReportPreviewPlaceHolder';
@@ -156,6 +157,12 @@ function MoneyRequestReportPreviewContent({
         isTransactionsEmpty: transactions.length === 0,
         isOptimisticReport: chatReportMetadata?.isOptimisticReport,
     };
+    const carouselReasonAttributes: SkeletonSpanReasonAttributes = {
+        context: 'MoneyRequestReportPreviewContent.Carousel',
+        hasCurrentWidth: !!currentWidth,
+        shouldShowLoading,
+        shouldShowLoadingDeferred,
+    };
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -196,6 +203,7 @@ function MoneyRequestReportPreviewContent({
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const isDEWBetaEnabled = isBetaEnabled(CONST.BETAS.NEW_DOT_DEW);
     const hasViolations = hasViolationsReportUtils(iouReport?.reportID, transactionViolations, currentUserAccountID, currentUserEmail);
+    const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
 
     const getCanIOUBePaid = useCallback(
         (shouldShowOnlyPayElsewhere = false) =>
@@ -271,8 +279,8 @@ function MoneyRequestReportPreviewContent({
             } else if (hasHeldExpensesReportUtils(iouReport?.reportID)) {
                 setIsHoldMenuVisible(true);
             } else if (chatReport && iouReport) {
-                startAnimation();
                 if (isInvoiceReportUtils(iouReport)) {
+                    startAnimation();
                     payInvoice({
                         paymentMethodType: type,
                         chatReport,
@@ -303,6 +311,7 @@ function MoneyRequestReportPreviewContent({
                         isSelfTourViewed,
                         userBillingGraceEndPeriods,
                         amountOwed,
+                        onPaid: startAnimation,
                     });
                 }
             }
@@ -352,7 +361,6 @@ function MoneyRequestReportPreviewContent({
         } else if (hasHeldExpensesReportUtils(iouReport?.reportID)) {
             setIsHoldMenuVisible(true);
         } else {
-            startApprovedAnimation();
             approveMoneyRequest({
                 expenseReport: iouReport,
                 policy: activePolicy,
@@ -365,6 +373,7 @@ function MoneyRequestReportPreviewContent({
                 userBillingGraceEndPeriods,
                 amountOwed,
                 full: true,
+                onApproved: startApprovedAnimation,
             });
         }
     };
@@ -704,18 +713,19 @@ function MoneyRequestReportPreviewContent({
 
     const addExpenseDropdownOptions = useMemo(
         () =>
-            getAddExpenseDropdownOptions(
+            getAddExpenseDropdownOptions({
                 translate,
-                expensifyIcons,
-                iouReport?.reportID,
+                icons: expensifyIcons,
+                iouReportID: iouReport?.reportID,
                 policy,
                 userBillingGraceEndPeriods,
+                draftTransactionIDs,
                 amountOwed,
                 ownerBillingGraceEndPeriod,
-                chatReportID,
-                iouReport?.parentReportID,
+                iouRequestBackToReport: chatReportID,
+                unreportedExpenseBackToReport: iouReport?.parentReportID,
                 lastDistanceExpenseType,
-            ),
+            }),
         [
             translate,
             expensifyIcons,
@@ -727,6 +737,7 @@ function MoneyRequestReportPreviewContent({
             chatReportID,
             lastDistanceExpenseType,
             ownerBillingGraceEndPeriod,
+            draftTransactionIDs,
         ],
     );
 
@@ -743,18 +754,18 @@ function MoneyRequestReportPreviewContent({
                         showDEWModal();
                         return;
                     }
-                    startSubmittingAnimation();
-                    submitReport(
-                        iouReport,
+                    submitReport({
+                        expenseReport: iouReport,
                         policy,
-                        currentUserAccountID,
-                        currentUserEmail,
+                        currentUserAccountIDParam: currentUserAccountID,
+                        currentUserEmailParam: currentUserEmail,
                         hasViolations,
                         isASAPSubmitBetaEnabled,
-                        iouReportNextStep,
+                        expenseReportCurrentNextStepDeprecated: iouReportNextStep,
                         userBillingGraceEndPeriods,
                         amountOwed,
-                    );
+                        onSubmitted: startSubmittingAnimation,
+                    });
                 }}
                 isSubmittingAnimationRunning={isSubmittingAnimationRunning}
                 onAnimationFinish={stopAnimation}
@@ -998,7 +1009,10 @@ function MoneyRequestReportPreviewContent({
                                                 styles.mtn1,
                                             ]}
                                         >
-                                            <ActivityIndicator size={40} />
+                                            <ActivityIndicator
+                                                size={40}
+                                                reasonAttributes={carouselReasonAttributes}
+                                            />
                                         </View>
                                     ) : (
                                         <View style={[styles.flex1, styles.flexColumn, styles.overflowVisible, styles.minHeight42]}>
