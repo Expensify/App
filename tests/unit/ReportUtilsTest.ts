@@ -14905,7 +14905,7 @@ describe('ReportUtils', () => {
             const expenseReportID = 'report42';
             const action = buildOptimisticApprovedReportAction(amount, currency, expenseReportID, currentUserAccountID);
 
-            expect(action.originalMessage).toMatchObject({amount, currency, expenseReportID});
+            expect(getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.APPROVED>)).toMatchObject({amount, currency, expenseReportID});
         });
 
         it('should set pendingAction to ADD', () => {
@@ -14941,7 +14941,7 @@ describe('ReportUtils', () => {
             const currency = 'GBP';
             const action = buildOptimisticCancelPaymentReportAction(expenseReportID, amount, currency, currentUserAccountID);
 
-            expect(action.originalMessage).toMatchObject({
+            expect(getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DEQUEUED>)).toMatchObject({
                 expenseReportID,
                 amount,
                 currency,
@@ -14981,7 +14981,7 @@ describe('ReportUtils', () => {
             const assigneeAccountID = 42;
             const action = buildOptimisticCardAssignedReportAction(assigneeAccountID, currentUserAccountID);
 
-            expect(action.originalMessage).toMatchObject({assigneeAccountID});
+            expect(getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.CARD_ASSIGNED>)).toMatchObject({assigneeAccountID});
         });
 
         it('should set pendingAction to ADD', () => {
