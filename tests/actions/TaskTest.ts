@@ -955,7 +955,7 @@ describe('actions/Task', () => {
 
             editTask(taskReport, {title: 'Updated Title'}, DELEGATE_EMAIL);
 
-            // eslint-disable-next-line rulesdir/no-multiple-api-calls
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls -- Inspecting mock call args to verify optimistic data structure
             const calls = (API.write as jest.Mock).mock.calls;
             const [, , onyxData] = calls.at(0) as [unknown, unknown, OnyxData<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>];
             const optimisticData = onyxData.optimisticData ?? [];
@@ -977,7 +977,7 @@ describe('actions/Task', () => {
 
             editTask(taskReport, {title: 'Updated Title'}, '');
 
-            // eslint-disable-next-line rulesdir/no-multiple-api-calls
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls -- Inspecting mock call args to verify optimistic data structure
             const calls = (API.write as jest.Mock).mock.calls;
             const [, , onyxData] = calls.at(0) as [unknown, unknown, OnyxData<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>];
             const optimisticData = onyxData.optimisticData ?? [];
