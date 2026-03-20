@@ -165,6 +165,7 @@ function getMovedFromOrToReportMessage(
     movedFromReport: OnyxEntry<Report> | undefined,
     movedToReport: OnyxEntry<Report> | undefined,
     currentUserLogin: string,
+    // TODO: This will be required eventually. Refactor issue: https://github.com/Expensify/App/issues/66411
     conciergeReportID?: string,
 ): string | undefined {
     if (movedToReport) {
@@ -264,6 +265,7 @@ function getForReportAction({
     // See https://github.com/Expensify/App/pull/75562
     policyTags?: OnyxEntry<PolicyTagLists>;
     currentUserLogin: string;
+    // TODO: This will be required eventually. Refactor issue: https://github.com/Expensify/App/issues/66411
     conciergeReportID?: string;
 }): string {
     if (!isModifiedExpenseAction(reportAction)) {
