@@ -36,7 +36,7 @@ Within the report, duplicate expenses will show the label **Potential duplicate*
 ---
 
 <!-- SCREENSHOT:
-Suggestion: Show Inbox > Chat with red dot > 
+Suggestion: Show Inbox > Chat with red dot 
 Design request:https://github.com/Expensify/Expensify/issues/614048
 -->
 
