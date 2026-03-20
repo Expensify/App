@@ -9,6 +9,7 @@ import type {AuthTypeInfo, MultifactorAuthenticationReason} from '@libs/Multifac
 
 type ErrorState = {
     reason: MultifactorAuthenticationReason;
+    payload?: MultifactorAuthenticationScenarioAdditionalParams<MultifactorAuthenticationScenario>;
     httpStatusCode?: number;
     message?: string;
 };
@@ -31,6 +32,9 @@ type MultifactorAuthenticationState = {
 
     /** Whether user approved the soft prompt for biometric setup */
     softPromptApproved: boolean;
+
+    /** Scenario name identifier (e.g. 'AUTHORIZE-TRANSACTION') */
+    scenarioName: MultifactorAuthenticationScenario | undefined;
 
     /** Current scenario configuration being executed */
     scenario: MultifactorAuthenticationScenarioConfig | undefined;

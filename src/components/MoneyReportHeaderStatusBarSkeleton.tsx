@@ -1,10 +1,10 @@
 import React from 'react';
 import {View} from 'react-native';
-import {Rect} from 'react-native-svg';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import useSkeletonSpan from '@libs/telemetry/useSkeletonSpan';
+import SkeletonRect from './SkeletonRect';
 import SkeletonViewContentLoader from './SkeletonViewContentLoader';
 
 type MoneyReportHeaderStatusBarSkeletonProps = {
@@ -23,12 +23,12 @@ function MoneyReportHeaderStatusBarSkeleton({reasonAttributes}: MoneyReportHeade
                 backgroundColor={theme.skeletonLHNIn}
                 foregroundColor={theme.skeletonLHNOut}
             >
-                <Rect
+                <SkeletonRect
                     transform={[{translateY: 12}]}
                     width={16}
                     height={8}
                 />
-                <Rect
+                <SkeletonRect
                     transform={[{translateX: 24}, {translateY: 12}]}
                     width={120}
                     height={8}

@@ -20,12 +20,13 @@ const STEP_FIELDS = [COMPANY_WEBSITE];
 
 function Website({onNext, onMove, isEditing}: WebsiteProps) {
     const {translate} = useLocalize();
-    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: false});
-    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: false});
+    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
+    const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
     const policyID = reimbursementAccount?.achData?.policyID;
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: false});
-    const currency = policy?.outputCurrency ?? '';
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+    const currency = policy?.outputCurrency ?? reimbursementAccountDraft?.currency ?? '';
     const isWebsiteRequired = currency === CONST.CURRENCY.USD || CONST.CURRENCY.CAD;
 
     const defaultWebsiteExample = useMemo(() => getDefaultCompanyWebsite(session, account, true), [session, account]);

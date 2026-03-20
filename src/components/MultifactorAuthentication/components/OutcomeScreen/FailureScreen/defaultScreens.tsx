@@ -1,7 +1,6 @@
 import React from 'react';
 import NoEligibleMethodsDescription from '@components/MultifactorAuthentication/components/NoEligibleMethodsDescription';
 import createScreenWithDefaults from '@components/MultifactorAuthentication/components/OutcomeScreen/createScreenWithDefaults';
-import UnsupportedDeviceDescription from '@components/MultifactorAuthentication/components/UnsupportedDeviceDescription';
 import variables from '@styles/variables';
 import FailureScreenBase from './FailureScreenBase';
 
@@ -32,6 +31,7 @@ const DefaultServerFailureScreen = createScreenWithDefaults(
 const OutOfTimeFailureScreen = createScreenWithDefaults(
     FailureScreenBase,
     {
+        headerTitle: 'multifactorAuthentication.reviewTransaction.transactionFailed',
         illustration: 'RunOutOfTime',
         iconWidth: variables.runOutOfTimeWidth,
         iconHeight: variables.runOutOfTimeHeight,
@@ -54,7 +54,7 @@ const UnsupportedDeviceFailureScreen = createScreenWithDefaults(
     DefaultClientFailureScreen,
     {
         title: 'multifactorAuthentication.unsupportedDevice.unsupportedDevice',
-        customSubtitle: <UnsupportedDeviceDescription />,
+        subtitle: 'multifactorAuthentication.unsupportedDevice.pleaseDownloadMobileApp',
     },
     'UnsupportedDeviceFailureScreen',
 );

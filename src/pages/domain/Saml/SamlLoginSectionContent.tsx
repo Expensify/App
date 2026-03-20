@@ -39,12 +39,10 @@ function SamlLoginSectionContent({accountID, domainName, isSamlEnabled, isSamlRe
     const styles = useThemeStyles();
 
     const [domain] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${accountID}`, {
-        canBeMissing: false,
         selector: domainSamlSettingsStateSelector,
     });
-    const [metaIdentity] = useOnyx(`${ONYXKEYS.COLLECTION.SAML_METADATA}${accountID}`, {canBeMissing: true, selector: metaIdentitySelector});
+    const [metaIdentity] = useOnyx(`${ONYXKEYS.COLLECTION.SAML_METADATA}${accountID}`, {selector: metaIdentitySelector});
     const [domainSettings] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${accountID}`, {
-        canBeMissing: false,
         selector: domainMemberSettingsSelector,
     });
     const [isOktaScimConfirmModalVisible, setIsScimConfirmModalVisible] = useState(false);
@@ -68,7 +66,12 @@ function SamlLoginSectionContent({accountID, domainName, isSamlEnabled, isSamlRe
             >
                 <View style={styles.sectionMenuItemTopDescription}>
                     <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.gap3, styles.pv1]}>
-                        <Text>{translate('domain.samlLogin.enableSamlLogin')}</Text>
+                        <Text
+                            accessible={false}
+                            aria-hidden
+                        >
+                            {translate('domain.samlLogin.enableSamlLogin')}
+                        </Text>
 
                         <Switch
                             accessibilityLabel={translate('domain.samlLogin.enableSamlLogin')}
@@ -97,7 +100,12 @@ function SamlLoginSectionContent({accountID, domainName, isSamlEnabled, isSamlRe
                 >
                     <View style={styles.sectionMenuItemTopDescription}>
                         <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.gap3, styles.pv1]}>
-                            <Text>{translate('domain.samlLogin.requireSamlLogin')}</Text>
+                            <Text
+                                accessible={false}
+                                aria-hidden
+                            >
+                                {translate('domain.samlLogin.requireSamlLogin')}
+                            </Text>
                             <Switch
                                 accessibilityLabel={translate('domain.samlLogin.requireSamlLogin')}
                                 isOn={isSamlRequired}

@@ -9,7 +9,7 @@ type LocalNotificationData = {
 };
 
 type LocalNotificationModule = {
-    showCommentNotification: (report: Report, reportAction: ReportAction, onClick: LocalNotificationClickHandler) => void;
+    showCommentNotification: (report: Report, reportAction: ReportAction, onClick: LocalNotificationClickHandler, conciergeReportID: string | undefined) => void;
     showUpdateAvailableNotification: () => void;
     showModifiedExpenseNotification: (params: LocalNotificationModifiedExpenseParams) => void;
     clearReportNotifications: ClearReportNotifications;
@@ -21,6 +21,7 @@ type LocalNotificationModifiedExpenseParams = {
     onClick: LocalNotificationClickHandler;
     movedFromReport?: OnyxEntry<Report>;
     movedToReport?: OnyxEntry<Report>;
+    currentUserLogin: string;
 };
 
 type LocalNotificationModifiedExpensePushParams = LocalNotificationModifiedExpenseParams & {

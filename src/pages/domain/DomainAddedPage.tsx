@@ -11,6 +11,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspacesDomainModalNavigatorParamList} from '@libs/Navigation/types';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -24,10 +25,15 @@ function DomainAddedPage({route}: DomainAddedPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const domainAccountID = route.params.domainAccountID;
-    const [isAdmin, isAdminResults] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_ADMIN_ACCESS}${domainAccountID}`, {canBeMissing: true});
+    const [isAdmin, isAdminResults] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_ADMIN_ACCESS}${domainAccountID}`);
 
-    if (isLoadingOnyxValue(isAdminResults)) {
-        return <FullScreenLoadingIndicator />;
+    const isAdminLoading = isLoadingOnyxValue(isAdminResults);
+    if (isAdminLoading) {
+        const reasonAttributes: SkeletonSpanReasonAttributes = {
+            context: 'DomainAddedPage',
+            isAdminLoading,
+        };
+        return <FullScreenLoadingIndicator reasonAttributes={reasonAttributes} />;
     }
 
     if (!isAdmin) {

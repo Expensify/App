@@ -18,6 +18,7 @@ import {getCompanyCardFeed, getCompanyFeeds, getCustomOrFormattedFeedName, getDo
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {isRequiredFulfilled} from '@libs/ValidationUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import {setWorkspaceCompanyCardFeedName} from '@userActions/CompanyCards';
@@ -41,7 +42,7 @@ function WorkspaceCompanyCardsSettingsFeedNamePage({
     const {inputCallbackRef} = useAutoFocusInput();
     const policy = usePolicy(policyID);
     const workspaceAccountID = policy?.workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID;
-    const [lastSelectedFeed, lastSelectedFeedResult] = useOnyx(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${policyID}`, {canBeMissing: true});
+    const [lastSelectedFeed, lastSelectedFeedResult] = useOnyx(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${policyID}`);
     const [cardFeeds, cardFeedsResult] = useCardFeeds(policyID);
     const selectedFeed = getSelectedFeed(lastSelectedFeed, cardFeeds);
     const feed = selectedFeed ? getCompanyCardFeed(selectedFeed) : undefined;
@@ -73,7 +74,12 @@ function WorkspaceCompanyCardsSettingsFeedNamePage({
     };
 
     if (isLoadingOnyxValue(cardFeedsResult) || isLoadingOnyxValue(lastSelectedFeedResult)) {
-        return <FullScreenLoadingIndicator />;
+        const reasonAttributes: SkeletonSpanReasonAttributes = {
+            context: 'WorkspaceCompanyCardsSettingsFeedNamePage',
+            isCardFeedsLoading: isLoadingOnyxValue(cardFeedsResult),
+            isLastSelectedFeedLoading: isLoadingOnyxValue(lastSelectedFeedResult),
+        };
+        return <FullScreenLoadingIndicator reasonAttributes={reasonAttributes} />;
     }
 
     return (

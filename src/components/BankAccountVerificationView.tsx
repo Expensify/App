@@ -1,0 +1,97 @@
+import React from 'react';
+import type {ValueOf} from 'type-fest';
+import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
+import useLocalize from '@hooks/useLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
+import Navigation from '@navigation/Navigation';
+import variables from '@styles/variables';
+import CONST from '@src/CONST';
+import ROUTES from '@src/ROUTES';
+import BlockingView from './BlockingViews/BlockingView';
+import Button from './Button';
+import LottieAnimations from './LottieAnimations';
+
+type BankAccountVerificationViewProps = {
+    verificationState: ValueOf<typeof CONST.EXPENSIFY_CARD.VERIFICATION_STATE> | '';
+    children: React.ReactNode;
+    onVerifiedButtonPress?: () => void;
+    verifiedButtonText?: string;
+    verifiedTitle?: string;
+    verifiedSubtitle?: string;
+};
+
+function BankAccountVerificationView({verificationState, children, onVerifiedButtonPress, verifiedButtonText, verifiedTitle, verifiedSubtitle}: BankAccountVerificationViewProps) {
+    const {translate} = useLocalize();
+    const styles = useThemeStyles();
+    const illustrations = useMemoizedLazyIllustrations(['Puzzle']);
+    const bottomSafeAreaPaddingStyle = useBottomSafeSafeAreaPaddingStyle({addBottomSafeAreaPadding: true});
+
+    if (!verificationState) {
+        return children;
+    }
+
+    switch (verificationState) {
+        case CONST.EXPENSIFY_CARD.VERIFICATION_STATE.LOADING:
+            return (
+                <BlockingView
+                    title={translate('workspace.expensifyCard.verifyingBankAccount')}
+                    subtitle={translate('workspace.expensifyCard.verifyingBankAccountDescription')}
+                    animation={LottieAnimations.ReviewingBankInfo}
+                    animationStyles={styles.loadingVBAAnimation}
+                    animationWebStyle={styles.loadingVBAAnimationWeb}
+                    subtitleStyle={styles.textLabelSupporting}
+                    containerStyle={styles.pb20}
+                    addBottomSafeAreaPadding
+                />
+            );
+        case CONST.EXPENSIFY_CARD.VERIFICATION_STATE.ON_WAITLIST:
+            return (
+                <>
+                    <BlockingView
+                        title={translate('workspace.expensifyCard.oneMoreStep')}
+                        subtitle={translate('workspace.expensifyCard.oneMoreStepDescription')}
+                        icon={illustrations.Puzzle}
+                        subtitleStyle={styles.textLabelSupporting}
+                        iconHeight={variables.cardPreviewHeight}
+                        iconWidth={variables.cardPreviewHeight}
+                    />
+                    <Button
+                        success
+                        large
+                        text={translate('workspace.expensifyCard.goToConcierge')}
+                        style={[styles.m5, bottomSafeAreaPaddingStyle]}
+                        pressOnEnter
+                        onPress={() => Navigation.navigate(ROUTES.CONCIERGE)}
+                    />
+                </>
+            );
+        case CONST.EXPENSIFY_CARD.VERIFICATION_STATE.VERIFIED:
+            return (
+                <>
+                    <BlockingView
+                        title={verifiedTitle ?? translate('workspace.expensifyCard.bankAccountVerified')}
+                        subtitle={verifiedSubtitle ?? translate('workspace.expensifyCard.bankAccountVerifiedDescription')}
+                        animation={LottieAnimations.Fireworks}
+                        animationStyles={styles.loadingVBAAnimation}
+                        animationWebStyle={styles.loadingVBAAnimationWeb}
+                        subtitleStyle={styles.textLabelSupporting}
+                    />
+                    <Button
+                        success
+                        large
+                        text={verifiedButtonText ?? translate('workspace.expensifyCard.gotIt')}
+                        style={[styles.m5, bottomSafeAreaPaddingStyle]}
+                        pressOnEnter
+                        onPress={onVerifiedButtonPress}
+                    />
+                </>
+            );
+        default:
+            return children;
+    }
+}
+
+BankAccountVerificationView.displayName = 'BankAccountVerificationView';
+
+export default BankAccountVerificationView;

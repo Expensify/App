@@ -17,6 +17,7 @@ import {getTransactionsMatchingCodingRule} from '@libs/actions/Policy/Rules';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import UnreportedExpenseListItem from '@pages/UnreportedExpenseListItem';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -39,9 +40,9 @@ function PreviewMatchesPage({route}: PreviewMatchesPageProps) {
     const {isOffline} = useNetwork();
     const illustrations = useMemoizedLazyIllustrations(['Telescope']);
 
-    const [form] = useOnyx(ONYXKEYS.FORMS.MERCHANT_RULE_FORM, {canBeMissing: true});
-    const [isLoading] = useOnyx(ONYXKEYS.IS_LOADING_POLICY_CODING_RULES_PREVIEW, {canBeMissing: true});
-    const [matchingTransactions] = useOnyx(ONYXKEYS.COLLECTION.CODING_RULE_MATCHING_TRANSACTION, {canBeMissing: true});
+    const [form] = useOnyx(ONYXKEYS.FORMS.MERCHANT_RULE_FORM);
+    const [isLoading] = useOnyx(ONYXKEYS.IS_LOADING_POLICY_CODING_RULES_PREVIEW);
+    const [matchingTransactions] = useOnyx(ONYXKEYS.COLLECTION.CODING_RULE_MATCHING_TRANSACTION);
 
     const merchant = form?.merchantToMatch ?? '';
     const operator = form?.matchType ?? CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS;
@@ -63,6 +64,7 @@ function PreviewMatchesPage({route}: PreviewMatchesPageProps) {
     const matchingTransactionsArray = Object.values(matchingTransactions ?? {}).filter((transaction): transaction is Transaction => !!transaction);
     const hasMatchingTransactions = !!(merchant && matchingTransactionsArray.length);
 
+    const reasonAttributes: SkeletonSpanReasonAttributes = {context: 'PreviewMatchesPage', isLoadingFromOnyx: !!isLoading};
     const isLoadedAndEmpty = !isLoading && !hasMatchingTransactions;
     const isLoadedWithTransactions = !isLoading && hasMatchingTransactions;
 
@@ -104,6 +106,7 @@ function PreviewMatchesPage({route}: PreviewMatchesPageProps) {
                                 color={theme.spinner}
                                 size={25}
                                 style={[styles.pl3]}
+                                reasonAttributes={reasonAttributes}
                             />
                         </View>
                     )}

@@ -6,6 +6,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {PublicScreensParamList} from '@libs/Navigation/types';
 import {getLastShortAuthToken} from '@libs/Network/NetworkStore';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {setAccountError, signInWithShortLivedAuthToken, signInWithSupportAuthToken} from '@userActions/Session';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -18,7 +19,7 @@ type LogInWithShortLivedAuthTokenPageProps = PlatformStackScreenProps<PublicScre
 
 function LogInWithShortLivedAuthTokenPage({route}: LogInWithShortLivedAuthTokenPageProps) {
     const {shortLivedAuthToken = '', shortLivedToken = '', authTokenType, exitTo, error, isSAML = false} = route?.params ?? {};
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: false});
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
 
     useEffect(() => {
         // We have to check for both shortLivedAuthToken and shortLivedToken, as the old mobile app uses shortLivedToken, and is not being actively updated.
@@ -72,7 +73,11 @@ function LogInWithShortLivedAuthTokenPage({route}: LogInWithShortLivedAuthTokenP
     }, [route]);
 
     if (account?.isLoading) {
-        return <FullScreenLoadingIndicator />;
+        const reasonAttributes: SkeletonSpanReasonAttributes = {
+            context: 'LogInWithShortLivedAuthTokenPage',
+            isAccountLoading: account.isLoading,
+        };
+        return <FullScreenLoadingIndicator reasonAttributes={reasonAttributes} />;
     }
 
     return <SessionExpiredPage />;

@@ -2,6 +2,8 @@ import Onyx from 'react-native-onyx';
 import {
     clearTravelInvoicingSettlementAccountErrors,
     clearTravelInvoicingSettlementFrequencyErrors,
+    configureTravelInvoicingForPolicy,
+    deactivateTravelInvoicing,
     setTravelInvoicingSettlementAccount,
     updateTravelInvoiceSettlementFrequency,
 } from '@libs/actions/TravelInvoicing';
@@ -131,7 +133,6 @@ describe('TravelInvoicing', () => {
     });
 
     it('updateTravelInvoiceSettlementFrequency sends correct optimistic, success, and failure data', () => {
-        const policyID = '123';
         const workspaceAccountID = 456;
         const frequency = CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.MONTHLY;
         const currentMonthlySettlementDate = new Date('2024-01-01');
@@ -142,13 +143,12 @@ describe('TravelInvoicing', () => {
         jest.useFakeTimers();
         jest.setSystemTime(mockDate);
 
-        updateTravelInvoiceSettlementFrequency(policyID, workspaceAccountID, frequency, currentMonthlySettlementDate);
+        updateTravelInvoiceSettlementFrequency(workspaceAccountID, frequency, currentMonthlySettlementDate);
 
         expect(spyAPIWrite).toHaveBeenCalledWith(
             'UpdateTravelInvoiceSettlementFrequency',
             {
-                policyID,
-                workspaceAccountID,
+                domainAccountID: workspaceAccountID,
                 settlementFrequency: frequency,
             },
             expect.objectContaining({
@@ -201,5 +201,119 @@ describe('TravelInvoicing', () => {
         );
 
         jest.useRealTimers();
+    });
+
+    it('configureTravelInvoicingForPolicy sends correct optimistic, success, and failure data', () => {
+        const policyID = '123';
+        const workspaceAccountID = 456;
+        const settlementBankAccountID = 789;
+        const cardSettingsKey = getTravelInvoicingCardSettingsKey(workspaceAccountID);
+
+        configureTravelInvoicingForPolicy(policyID, workspaceAccountID, settlementBankAccountID);
+
+        expect(spyAPIWrite).toHaveBeenCalledWith(
+            'ConfigureTravelInvoicingForPolicy',
+            {
+                policyID,
+                settlementBankAccountID,
+            },
+            expect.objectContaining({
+                optimisticData: expect.arrayContaining([
+                    expect.objectContaining({
+                        key: cardSettingsKey,
+                        value: expect.objectContaining({
+                            isLoading: true,
+                            isSuccess: false,
+                            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                            pendingFields: expect.objectContaining({
+                                paymentBankAccountID: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                            }),
+                            errors: null,
+                        }),
+                    }),
+                ]),
+                successData: expect.arrayContaining([
+                    expect.objectContaining({
+                        key: cardSettingsKey,
+                        value: expect.objectContaining({
+                            isLoading: false,
+                            isSuccess: true,
+                            pendingAction: null,
+                            pendingFields: expect.objectContaining({
+                                paymentBankAccountID: null,
+                            }),
+                        }),
+                    }),
+                ]),
+                failureData: expect.arrayContaining([
+                    expect.objectContaining({
+                        key: cardSettingsKey,
+                        value: expect.objectContaining({
+                            isLoading: false,
+                            isSuccess: false,
+                            pendingAction: null,
+                            pendingFields: expect.objectContaining({
+                                paymentBankAccountID: null,
+                            }),
+                            errors: expect.anything() as unknown,
+                        }),
+                    }),
+                ]),
+            }),
+        );
+    });
+
+    it('deactivateTravelInvoicing sends correct optimistic, success, and failure data', () => {
+        const policyID = '123';
+        const workspaceAccountID = 456;
+        const cardSettingsKey = getTravelInvoicingCardSettingsKey(workspaceAccountID);
+
+        deactivateTravelInvoicing(policyID, workspaceAccountID);
+
+        expect(spyAPIWrite).toHaveBeenCalledWith(
+            'DeactivateTravelInvoicing',
+            {
+                policyID,
+            },
+            expect.objectContaining({
+                optimisticData: expect.arrayContaining([
+                    expect.objectContaining({
+                        key: cardSettingsKey,
+                        value: expect.objectContaining({
+                            isEnabled: false,
+                            [CONST.TRAVEL.PROGRAM_TRAVEL_US]: expect.objectContaining({
+                                isEnabled: false,
+                            }),
+                            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                            errors: null,
+                        }),
+                    }),
+                ]),
+                successData: expect.arrayContaining([
+                    expect.objectContaining({
+                        key: cardSettingsKey,
+                        value: expect.objectContaining({
+                            pendingAction: null,
+                            [CONST.TRAVEL.PROGRAM_TRAVEL_US]: expect.objectContaining({
+                                isEnabled: false,
+                            }),
+                        }),
+                    }),
+                ]),
+                failureData: expect.arrayContaining([
+                    expect.objectContaining({
+                        key: cardSettingsKey,
+                        value: expect.objectContaining({
+                            isEnabled: true,
+                            [CONST.TRAVEL.PROGRAM_TRAVEL_US]: expect.objectContaining({
+                                isEnabled: true,
+                            }),
+                            pendingAction: null,
+                            errors: expect.anything() as unknown,
+                        }),
+                    }),
+                ]),
+            }),
+        );
     });
 });

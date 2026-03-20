@@ -1,5 +1,6 @@
 import React from 'react';
-import {Circle, Rect} from 'react-native-svg';
+import {Circle} from 'react-native-svg';
+import SkeletonRect from '@components/SkeletonRect';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import useSkeletonSpan from '@libs/telemetry/useSkeletonSpan';
@@ -40,12 +41,12 @@ function TableListItemSkeleton({shouldAnimate = true, fixedNumItems, gradientOpa
                         cy={circleY}
                         r="20"
                     />
-                    <Rect
+                    <SkeletonRect
                         transform={[{translateX: rectX}, {translateY: rectY1}]}
                         width={longBarWidth}
                         height={barHeight}
                     />
-                    <Rect
+                    <SkeletonRect
                         transform={[{translateX: rectX}, {translateY: rectY2}]}
                         width={shortBarWidth}
                         height={barHeight}

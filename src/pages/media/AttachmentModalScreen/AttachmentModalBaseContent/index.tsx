@@ -67,6 +67,9 @@ function AttachmentModalBaseContent({
     onCarouselAttachmentChange = () => {},
     transaction: transactionProp,
     shouldCloseOnSwipeDown = false,
+    footerActionButtons,
+    customAttachmentContent,
+    attachmentViewContainerStyles,
 }: AttachmentModalBaseContentProps) {
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -91,7 +94,7 @@ function AttachmentModalBaseContent({
     const [isConfirmButtonDisabled, setIsConfirmButtonDisabled] = useState(false);
     const parentReportAction = getReportAction(report?.parentReportID, report?.parentReportActionID);
     const transactionID = isMoneyRequestAction(parentReportAction) ? getOriginalMessage(parentReportAction)?.IOUTransactionID : undefined;
-    const [transactionFromOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`, {canBeMissing: true});
+    const [transactionFromOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`);
     const transaction = transactionProp ?? transactionFromOnyx;
     const [currentAttachmentLink, setCurrentAttachmentLink] = useState(attachmentLink);
     const bottomSafeAreaPaddingStyle = useBottomSafeSafeAreaPaddingStyle({
@@ -326,8 +329,13 @@ function AttachmentModalBaseContent({
                 shouldOverlayDots
                 subTitleLink={currentAttachmentLink ?? ''}
             />
-            <View style={styles.imageModalImageCenterContainer}>
-                {isLoading && <FullScreenLoadingIndicator testID="attachment-loading-spinner" />}
+            <View style={[styles.imageModalImageCenterContainer, attachmentViewContainerStyles]}>
+                {isLoading && (
+                    <FullScreenLoadingIndicator
+                        testID="attachment-loading-spinner"
+                        reasonAttributes={{context: 'AttachmentModalBaseContent'}}
+                    />
+                )}
                 {shouldShowNotFoundPage && !isLoading && (
                     <BlockingView
                         icon={illustrations.ToddBehindCloud}
@@ -339,8 +347,18 @@ function AttachmentModalBaseContent({
                         onLinkPress={onClose}
                     />
                 )}
-                {shouldDisplayContent && Content}
+                {shouldDisplayContent && (customAttachmentContent ?? Content)}
             </View>
+            {!!footerActionButtons && (
+                <LayoutAnimationConfig skipEntering>
+                    <Animated.View
+                        style={bottomSafeAreaPaddingStyle}
+                        entering={FadeIn}
+                    >
+                        {footerActionButtons}
+                    </Animated.View>
+                </LayoutAnimationConfig>
+            )}
             {/* If we have an onConfirm method show a confirmation button */}
             {!!onConfirm && !isConfirmButtonDisabled && (
                 <LayoutAnimationConfig skipEntering>

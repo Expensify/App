@@ -7,8 +7,8 @@ import Text from '@components/Text';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
-import CONST from '@src/CONST';
 import variables from '@styles/variables';
+import CONST from '@src/CONST';
 import SignInHeroImage from './SignInHeroImage';
 import type {SignInPageLayoutProps} from './types';
 
@@ -44,6 +44,7 @@ function SignInPageContent({shouldShowWelcomeHeader, welcomeHeader, welcomeText,
                                         styles.mb5,
                                     ]}
                                     accessibilityRole={CONST.ROLE.HEADER}
+                                    aria-level={2}
                                 >
                                     {welcomeHeader}
                                 </Text>

@@ -1,4 +1,4 @@
-import {isValidPerDiemExpenseAmount} from '@libs/actions/IOU';
+import {isValidPerDiemExpenseAmount} from '@libs/actions/IOU/PerDiem';
 import {handleNegativeAmountFlipping, validateAmount, validatePercentage} from '@libs/MoneyRequestUtils';
 import CONST from '@src/CONST';
 import type {TransactionCustomUnit} from '@src/types/onyx/Transaction';

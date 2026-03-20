@@ -24,18 +24,6 @@
 - E/App issue: 🛑
 - PR introducing patch: https://github.com/Expensify/App/pull/32843
 
-### [react-native-web+0.21.2+003+image-header-support.patch](react-native-web+0.21.2+003+image-header-support.patch)
-
-- Reason:
-  
-    ```
-    Adds support for Image component with HTTP headers.
-    ```
-  
-- Upstream PR/issue: https://github.com/necolas/react-native-web/pull/2442
-- E/App issue: 🛑
-- PR introducing patch: https://github.com/Expensify/App/pull/13036
-
 ### [react-native-web+0.21.2+004+fixPointerEventDown.patch](react-native-web+0.21.2+004+fixPointerEventDown.patch)
 
 - Reason:
@@ -146,3 +134,13 @@
 - Upstream PR/issue: https://github.com/necolas/react-native-web/issues/2817
 - E/App issue: https://github.com/Expensify/App/issues/73782
 - PR introducing patch: https://github.com/Expensify/App/pull/76332
+
+### [react-native-web+0.21.2+013+fix-selection-bug.patch](react-native-web+0.21.2+013+fix-selection-bug.patch)
+
+- Reason:
+    ```
+    Fix selection bug for InvertedFlatlist by reversing the DOM tree elements using `pushOrUnshift` method
+    ```
+- Upstream PR/issue: https://github.com/necolas/react-native-web/issues/1807, it has been closed because of [this](https://github.com/necolas/react-native-web/issues/1807#issuecomment-725689704) 
+- E/App issue: https://github.com/Expensify/App/issues/37447
+- PR introducing patch: https://github.com/Expensify/App/pull/82507

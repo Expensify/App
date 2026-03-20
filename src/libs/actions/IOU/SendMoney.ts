@@ -19,6 +19,7 @@ import {
     getParsedComment,
 } from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
+import {startSpan} from '@libs/telemetry/activeSpans';
 import {buildOptimisticTransaction} from '@libs/TransactionUtils';
 import {notifyNewAction} from '@userActions/Report';
 import CONST from '@src/CONST';
@@ -503,6 +504,17 @@ function sendMoneyElsewhere(
         merchant,
         receipt,
     });
+    startSpan(CONST.TELEMETRY.SPAN_SUBMIT_TO_DESTINATION_VISIBLE, {
+        name: 'submit-to-destination-visible',
+        op: CONST.TELEMETRY.SPAN_SUBMIT_TO_DESTINATION_VISIBLE,
+        attributes: {
+            [CONST.TELEMETRY.ATTRIBUTE_SCENARIO]: CONST.TELEMETRY.SUBMIT_EXPENSE_SCENARIO.SEND_MONEY,
+            [CONST.TELEMETRY.ATTRIBUTE_HAS_RECEIPT]: !!receipt,
+            [CONST.TELEMETRY.ATTRIBUTE_IS_FROM_GLOBAL_CREATE]: isEmptyObject(report) || !report?.reportID,
+            [CONST.TELEMETRY.ATTRIBUTE_IOU_TYPE]: CONST.IOU.TYPE.PAY,
+            [CONST.TELEMETRY.ATTRIBUTE_IOU_REQUEST_TYPE]: 'pay',
+        },
+    });
     playSound(SOUNDS.DONE);
     API.write(WRITE_COMMANDS.SEND_MONEY_ELSEWHERE, params, {optimisticData, successData, failureData});
 
@@ -538,6 +550,17 @@ function sendMoneyWithWallet(
         created,
         merchant,
         receipt,
+    });
+    startSpan(CONST.TELEMETRY.SPAN_SUBMIT_TO_DESTINATION_VISIBLE, {
+        name: 'submit-to-destination-visible',
+        op: CONST.TELEMETRY.SPAN_SUBMIT_TO_DESTINATION_VISIBLE,
+        attributes: {
+            [CONST.TELEMETRY.ATTRIBUTE_SCENARIO]: CONST.TELEMETRY.SUBMIT_EXPENSE_SCENARIO.SEND_MONEY,
+            [CONST.TELEMETRY.ATTRIBUTE_HAS_RECEIPT]: !!receipt,
+            [CONST.TELEMETRY.ATTRIBUTE_IS_FROM_GLOBAL_CREATE]: isEmptyObject(report) || !report?.reportID,
+            [CONST.TELEMETRY.ATTRIBUTE_IOU_TYPE]: CONST.IOU.TYPE.PAY,
+            [CONST.TELEMETRY.ATTRIBUTE_IOU_REQUEST_TYPE]: 'pay',
+        },
     });
     playSound(SOUNDS.DONE);
     API.write(WRITE_COMMANDS.SEND_MONEY_WITH_WALLET, params, {optimisticData, successData, failureData});

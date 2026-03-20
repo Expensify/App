@@ -1,6 +1,6 @@
 import type {ImageContentFit} from 'expo-image';
 import type {ReactElement, ReactNode, Ref} from 'react';
-import React, {useContext, useMemo, useRef} from 'react';
+import React, {useMemo, useRef} from 'react';
 import type {GestureResponderEvent, Role, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
@@ -18,6 +18,7 @@ import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 import getButtonState from '@libs/getButtonState';
 import mergeRefs from '@libs/mergeRefs';
 import Parser from '@libs/Parser';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import type {AvatarSource} from '@libs/UserAvatarUtils';
 import TextWithEmojiFragment from '@pages/inbox/report/comment/TextWithEmojiFragment';
 import {showContextMenu} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
@@ -37,7 +38,7 @@ import type {DisplayNameWithTooltip} from './DisplayNames/types';
 import FormHelpMessage from './FormHelpMessage';
 import Hoverable from './Hoverable';
 import Icon from './Icon';
-import {MenuItemGroupContext} from './MenuItemGroup';
+import {useMenuItemGroupActions, useMenuItemGroupState} from './MenuItemGroup';
 import PlaidCardFeedIcon from './PlaidCardFeedIcon';
 import type {PressableRef} from './Pressable/GenericPressable/types';
 import PressableWithSecondaryInteraction from './PressableWithSecondaryInteraction';
@@ -85,7 +86,13 @@ type MenuItemBaseProps = ForwardedFSClassProps &
         badgeIcon?: IconAsset;
 
         /** Whether the badge should be shown as success */
-        badgeSuccess?: boolean;
+        isBadgeSuccess?: boolean;
+
+        /** Whether the badge should use strong (filled) variant */
+        isBadgeStrong?: boolean;
+
+        /** Whether the badge should use condensed (smaller) sizing */
+        isBadgeCondensed?: boolean;
 
         /** Callback to fire when the badge is pressed */
         onBadgePress?: (event?: GestureResponderEvent | KeyboardEvent) => void;
@@ -109,7 +116,7 @@ type MenuItemBaseProps = ForwardedFSClassProps &
         titleStyle?: StyleProp<TextStyle>;
 
         /** Any additional styles to apply on the badge element */
-        badgeStyle?: ViewStyle;
+        badgeStyle?: StyleProp<ViewStyle>;
 
         /** Any additional styles to apply to the label */
         labelStyle?: StyleProp<ViewStyle>;
@@ -211,6 +218,9 @@ type MenuItemBaseProps = ForwardedFSClassProps &
 
         /** Label to be displayed on the right */
         rightLabel?: string;
+
+        /** Icon to be displayed next to the right label */
+        rightLabelIcon?: IconAsset;
 
         /** Text to display for the item */
         title?: string;
@@ -448,7 +458,9 @@ function MenuItem({
     onPress,
     badgeText,
     badgeIcon,
-    badgeSuccess,
+    isBadgeSuccess,
+    isBadgeStrong,
+    isBadgeCondensed,
     onBadgePress,
     shouldShowBadgeInSeparateRow = false,
     shouldShowBadgeBelow = false,
@@ -502,6 +514,7 @@ function MenuItem({
     titleContainerStyle,
     subtitle,
     shouldShowBasicTitle,
+    rightLabelIcon,
     label,
     shouldTruncateTitle = false,
     characterLimit = 200,
@@ -565,26 +578,29 @@ function MenuItem({
     isFocused,
     sentryLabel,
     rootWrapperStyle,
-    role = CONST.ROLE.MENUITEM,
+    role = CONST.ROLE.BUTTON,
     shouldBeAccessible = true,
     tabIndex = 0,
     rightIconWrapperStyle,
     titleAccessibilityRole,
 }: MenuItemProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'FallbackAvatar', 'DotIndicator', 'Checkmark']);
+    const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'FallbackAvatar', 'DotIndicator', 'Checkmark', 'NewWindow']);
     const {translate} = useLocalize();
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const combinedStyle = [styles.popoverMenuItem, style];
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const {isExecuting, singleExecution, waitForNavigate} = useContext(MenuItemGroupContext) ?? {};
+    const {isExecuting} = useMenuItemGroupState() ?? {};
+    const {singleExecution, waitForNavigate} = useMenuItemGroupActions() ?? {};
     const popoverAnchor = useRef<View>(null);
     const deviceHasHoverSupport = hasHoverSupport();
-
     const isCompact = viewMode === CONST.OPTION_MODE.COMPACT;
     const isDeleted = style && Array.isArray(style) ? style.includes(styles.offlineFeedbackDeleted) : false;
     const descriptionVerticalMargin = shouldShowDescriptionOnTop ? styles.mb1 : styles.mt1;
+    const menuItemLoadingReasonAttributes: SkeletonSpanReasonAttributes = {
+        context: 'MenuItem',
+    };
     const defaultAccessibilityLabel = (shouldShowDescriptionOnTop ? [description, title] : [title, description]).filter(Boolean).join(', ');
 
     const combinedTitleTextStyle = StyleUtils.combineStyles<TextStyle>(
@@ -722,6 +738,12 @@ function MenuItem({
 
     const isIDPassed = !!iconReportID || !!iconAccountID || iconAccountID === CONST.DEFAULT_NUMBER_ID;
 
+    const isNewWindowIcon = iconRight === icons.NewWindow;
+    let enhancedAccessibilityLabel = accessibilityLabel ?? defaultAccessibilityLabel;
+    if (isNewWindowIcon) {
+        enhancedAccessibilityLabel = `${enhancedAccessibilityLabel}. ${translate('common.opensInNewTab')}`;
+    }
+
     return (
         <View
             style={rootWrapperStyle}
@@ -772,10 +794,10 @@ function MenuItem({
                                 disabledStyle={shouldUseDefaultCursorWhenDisabled && [styles.cursorDefault]}
                                 disabled={disabled || isExecuting}
                                 ref={mergeRefs(ref, popoverAnchor)}
-                                role={role}
-                                accessibilityLabel={`${accessibilityLabel ?? defaultAccessibilityLabel}${brickRoadIndicator ? `. ${translate('common.yourReviewIsRequired')}` : ''}`}
+                                role={interactive ? role : undefined}
+                                accessibilityLabel={`${enhancedAccessibilityLabel}${brickRoadIndicator ? `. ${translate('common.yourReviewIsRequired')}` : ''}`}
                                 accessible={shouldBeAccessible}
-                                tabIndex={tabIndex}
+                                tabIndex={interactive ? tabIndex : -1}
                                 onFocus={onFocus}
                                 sentryLabel={sentryLabel}
                             >
@@ -851,7 +873,10 @@ function MenuItem({
                                                                         additionalStyles={additionalIconStyles}
                                                                     />
                                                                 ) : (
-                                                                    <ActivityIndicator color={theme.textSupporting} />
+                                                                    <ActivityIndicator
+                                                                        color={theme.textSupporting}
+                                                                        reasonAttributes={menuItemLoadingReasonAttributes}
+                                                                    />
                                                                 ))}
                                                             {!!icon && iconType === CONST.ICON_TYPE_WORKSPACE && (
                                                                 <Avatar
@@ -970,8 +995,16 @@ function MenuItem({
                                                             <Badge
                                                                 text={badgeText}
                                                                 icon={badgeIcon}
-                                                                badgeStyles={[badgeStyle, styles.alignSelfStart, styles.ml3, styles.mt2]}
-                                                                success={badgeSuccess}
+                                                                badgeStyles={[
+                                                                    badgeStyle,
+                                                                    styles.alignSelfStart,
+                                                                    styles.ml3,
+                                                                    styles.mt2,
+                                                                    focused && !isBadgeSuccess && styles.badgeDefaultActive,
+                                                                ]}
+                                                                success={isBadgeSuccess}
+                                                                isStrong={isBadgeStrong}
+                                                                isCondensed={isBadgeCondensed}
                                                                 onPress={onBadgePress}
                                                                 pressable={!!onBadgePress}
                                                             />
@@ -986,8 +1019,10 @@ function MenuItem({
                                                     <Badge
                                                         text={badgeText}
                                                         icon={badgeIcon}
-                                                        badgeStyles={badgeStyle}
-                                                        success={badgeSuccess}
+                                                        badgeStyles={[badgeStyle, focused && !isBadgeSuccess && styles.badgeDefaultActive]}
+                                                        success={isBadgeSuccess}
+                                                        isStrong={isBadgeStrong}
+                                                        isCondensed={isBadgeCondensed}
                                                         onPress={onBadgePress}
                                                         pressable={!!onBadgePress}
                                                     />
@@ -1025,7 +1060,15 @@ function MenuItem({
                                                     </View>
                                                 )}
                                                 {!title && !!rightLabel && !errorText && (
-                                                    <View style={styles.justifyContentCenter}>
+                                                    <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentCenter, styles.gap1]}>
+                                                        {!!rightLabelIcon && (
+                                                            <Icon
+                                                                src={rightLabelIcon}
+                                                                fill={theme.icon}
+                                                                width={variables.iconSizeSmall}
+                                                                height={variables.iconSizeSmall}
+                                                            />
+                                                        )}
                                                         <Text style={styles.rightLabelMenuItem}>{rightLabel}</Text>
                                                     </View>
                                                 )}
@@ -1076,8 +1119,10 @@ function MenuItem({
                                             <Badge
                                                 text={badgeText}
                                                 icon={badgeIcon}
-                                                badgeStyles={[badgeStyle, styles.alignSelfStart, styles.ml13, styles.mt2]}
-                                                success={badgeSuccess}
+                                                badgeStyles={[badgeStyle, styles.alignSelfStart, styles.ml13, styles.mt2, focused && !isBadgeSuccess && styles.badgeDefaultActive]}
+                                                success={isBadgeSuccess}
+                                                isStrong={isBadgeStrong}
+                                                isCondensed={isBadgeCondensed}
                                                 onPress={onBadgePress}
                                                 pressable={!!onBadgePress}
                                             />

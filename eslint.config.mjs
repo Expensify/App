@@ -600,6 +600,13 @@ const config = defineConfig([
         },
     },
 
+    {
+        files: ['modules/ExpensifyNitroUtils/src/**/*'],
+        rules: {
+            '@typescript-eslint/consistent-type-definitions': 'off',
+        },
+    },
+
     globalIgnores([
         '!**/.storybook',
         '!**/.github',

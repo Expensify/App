@@ -8,6 +8,8 @@ import type {ViolationDataType} from '@src/types/onyx/TransactionViolation';
 type MultifactorAuthenticationTranslationParams = {
     authType?: string;
     registered?: boolean;
+    otherDeviceCount?: number;
+    status?: string;
 };
 
 type ZipCodeExampleFormatParams = {
@@ -64,6 +66,8 @@ type ReportArchiveReasonsInvoiceReceiverPolicyDeletedParams = {
 type CreatedReportForUnapprovedTransactionsParams = {
     reportUrl: string;
     reportName: string;
+    reportID: string;
+    isReportDeleted: boolean;
 };
 
 type WorkspacesListRouteParams = {
@@ -133,6 +137,9 @@ type ViolationsRterParams = {
     member?: string;
     rterType?: ValueOf<typeof CONST.RTER_VIOLATION_TYPES>;
     companyCardPageURL?: string;
+    connectionLink?: string;
+    isPersonalCard?: boolean;
+    isMarkAsCash?: boolean;
 };
 
 type ViolationsTagOutOfPolicyParams = {tagName?: string} | undefined;
@@ -210,6 +217,12 @@ type UpdatedPolicyDefaultTitleParams = {newDefaultTitle: string; oldDefaultTitle
 type UpdatedPolicyManualApprovalThresholdParams = {oldLimit: string; newLimit: string};
 
 type UpdatedPolicyReimbursementEnabledParams = {enabled: boolean};
+
+type UpdatedPolicyCustomTaxNameParams = {oldName: string; newName: string};
+
+type UpdatedPolicyCurrencyDefaultTaxParams = {oldName: string; newName: string};
+
+type UpdatedPolicyForeignCurrencyDefaultTaxParams = {oldName: string; newName: string};
 
 type UpdatedPolicyReimburserParams = {newReimburser: string; previousReimburser?: string};
 
@@ -373,6 +386,11 @@ type NextStepParams = {
     etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>;
 };
 
+type ConciergeBrokenCardConnectionParams = {
+    cardName: string;
+    connectionLink?: string;
+};
+
 export type {
     MissingPropertyParams,
     InvalidPropertyParams,
@@ -397,6 +415,7 @@ export type {
     NotAllowedExtensionParams,
     ParentNavigationSummaryParams,
     PaidElsewhereParams,
+    ConciergeBrokenCardConnectionParams,
     ReportArchiveReasonsClosedParams,
     ReportArchiveReasonsMergedParams,
     ReportArchiveReasonsInvoiceReceiverPolicyDeletedParams,
@@ -468,6 +487,9 @@ export type {
     AddedOrDeletedPolicyReportFieldParams,
     UpdatedPolicyManualApprovalThresholdParams,
     UpdatedPolicyReimbursementEnabledParams,
+    UpdatedPolicyCustomTaxNameParams,
+    UpdatedPolicyCurrencyDefaultTaxParams,
+    UpdatedPolicyForeignCurrencyDefaultTaxParams,
     UpdatedPolicyReimburserParams,
     UpdatePolicyCustomUnitTaxEnabledParams,
     ImportPolicyCustomUnitRatesParams,

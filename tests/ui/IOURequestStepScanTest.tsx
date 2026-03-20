@@ -52,6 +52,7 @@ jest.mock('@hooks/useFilesValidation', () => {
 
 jest.mock('react-native-vision-camera', () => ({
     useCameraDevice: jest.fn(() => null),
+    useCameraFormat: jest.fn(() => null),
 }));
 
 function createMinimalReport(reportID: string, policyID: string): Report {
@@ -151,7 +152,7 @@ describe('IOURequestStepScan', () => {
 
         expect(triggerFileSelection).not.toBeNull();
 
-        const replacementFile = {name: 'replacement-receipt.png', type: 'image/png', size: 100} as FileObject;
+        const replacementFile = {name: 'replacement-receipt.png', type: 'image/png', size: 100, uri: 'file://replacement-receipt.png'} as FileObject;
         await act(async () => {
             if (!triggerFileSelection) {
                 return;
@@ -214,7 +215,7 @@ describe('IOURequestStepScan', () => {
 
         expect(triggerFileSelection).not.toBeNull();
 
-        const secondFile = {name: 'second-receipt.png', type: 'image/png', size: 200} as FileObject;
+        const secondFile = {name: 'second-receipt.png', type: 'image/png', size: 200, uri: 'file://second-receipt.png'} as FileObject;
         await act(async () => {
             if (!triggerFileSelection) {
                 return;

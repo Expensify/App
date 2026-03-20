@@ -5,6 +5,7 @@ import type {FullPageNotFoundViewProps} from '@components/BlockingViews/FullPage
 import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useOnyx from '@hooks/useOnyx';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import Navigation from '@navigation/Navigation';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -26,9 +27,8 @@ type DomainNotFoundPageWrapperProps = {
 } & Pick<FullPageNotFoundViewProps, 'subtitleKey' | 'onLinkPress'>;
 
 function DomainNotFoundPageWrapper({domainAccountID, shouldBeBlocked, fullPageNotFoundViewProps, ...props}: DomainNotFoundPageWrapperProps) {
-    const [domain, domainMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {canBeMissing: true});
+    const [domain, domainMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`);
     const [adminAccountIDs] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {
-        canBeMissing: true,
         selector: adminAccountIDsSelector,
     });
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
@@ -47,7 +47,11 @@ function DomainNotFoundPageWrapper({domainAccountID, shouldBeBlocked, fullPageNo
     }, [domain, isAdmin, shouldShowFullScreenLoadingIndicator]);
 
     if (shouldShowFullScreenLoadingIndicator) {
-        return <FullscreenLoadingIndicator />;
+        const reasonAttributes: SkeletonSpanReasonAttributes = {
+            context: 'DomainNotFoundPageWrapper',
+            shouldShowFullScreenLoadingIndicator,
+        };
+        return <FullscreenLoadingIndicator reasonAttributes={reasonAttributes} />;
     }
 
     if (shouldShowNotFoundPage) {

@@ -2,16 +2,16 @@ import type {Report, ReportAction} from '@src/types/onyx';
 import BrowserNotifications from './BrowserNotifications';
 import type {LocalNotificationClickHandler, LocalNotificationModifiedExpenseParams, LocalNotificationModule} from './types';
 
-function showCommentNotification(report: Report, reportAction: ReportAction, onClick: LocalNotificationClickHandler) {
-    BrowserNotifications.pushReportCommentNotification(report, reportAction, onClick, true);
+function showCommentNotification(report: Report, reportAction: ReportAction, onClick: LocalNotificationClickHandler, conciergeReportID: string | undefined) {
+    BrowserNotifications.pushReportCommentNotification(report, reportAction, onClick, conciergeReportID, true);
 }
 
 function showUpdateAvailableNotification() {
     BrowserNotifications.pushUpdateAvailableNotification();
 }
 
-function showModifiedExpenseNotification({report, reportAction, movedFromReport, movedToReport, onClick}: LocalNotificationModifiedExpenseParams) {
-    BrowserNotifications.pushModifiedExpenseNotification({report, reportAction, movedFromReport, movedToReport, onClick, usesIcon: true});
+function showModifiedExpenseNotification({report, reportAction, movedFromReport, movedToReport, currentUserLogin, onClick}: LocalNotificationModifiedExpenseParams) {
+    BrowserNotifications.pushModifiedExpenseNotification({report, reportAction, movedFromReport, movedToReport, onClick, usesIcon: true, currentUserLogin});
 }
 
 function clearReportNotifications(reportID: string | undefined) {

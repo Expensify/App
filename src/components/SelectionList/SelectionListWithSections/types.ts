@@ -46,6 +46,9 @@ type SelectionListWithSectionsProps<TItem extends ListItem> = BaseSelectionListP
 
     /** Callback to fire when the list layout changes */
     onLayout?: (event: LayoutChangeEvent) => void;
+
+    /** Whether product training tooltips can be displayed */
+    canShowProductTrainingTooltip?: boolean;
 };
 
 type SelectionListWithSectionsHandle<TItem extends ListItem = ListItem> = {

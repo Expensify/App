@@ -1,4 +1,5 @@
 /* eslint-disable max-classes-per-file */
+// Polyfill necessary for Onyx.init in jest/setupAfterEnv.ts
 import * as core from '@actions/core';
 import '@shopify/flash-list/jestSetup';
 import type {ReactNode} from 'react';
@@ -11,6 +12,7 @@ import mockStorage from 'react-native-onyx/dist/storage/__mocks__';
 import type Animated from 'react-native-reanimated';
 import 'setimmediate';
 import * as MockedSecureStore from '@src/libs/MultifactorAuthentication/Biometrics/SecureStore/index.web';
+import '@src/polyfills/PromiseWithResolvers';
 import mockFSLibrary from './setupMockFullstoryLib';
 import setupMockImages from './setupMockImages';
 
@@ -224,7 +226,7 @@ jest.mock('../src/components/Icon/ExpensifyIconLoader.ts', () => ({
 }));
 
 jest.mock(
-    '@components/InvertedFlatList/RenderTaskQueue',
+    '@components/FlatList/InvertedFlatList/RenderTaskQueue',
     () =>
         class SyncRenderTaskQueue {
             private handler: (info: unknown) => void = () => {};
@@ -313,3 +315,23 @@ jest.mock('@components/ActionSheetAwareScrollView/index.android');
 jest.mock('@components/ActionSheetAwareScrollView/ActionSheetAwareScrollViewContext');
 
 jest.mock('@src/components/KeyboardDismissibleFlatList/KeyboardDismissibleFlatListContext');
+
+// Mock document title hooks as no-ops in tests. The web implementation of setPageTitle uses
+// setTimeout(fn, 0) which accumulates in the fake timer queue. Combined with lodash debounce
+// in triggerUnreadUpdate (also timer-based), this creates excessive timer churn that causes
+// heavy integration tests like SessionTest to exceed their timeout.
+jest.mock('@src/hooks/useDocumentTitle', () => ({
+    // eslint-disable-next-line @typescript-eslint/naming-convention
+    __esModule: true,
+    default: jest.fn(),
+}));
+jest.mock('@src/hooks/useWorkspaceDocumentTitle', () => ({
+    // eslint-disable-next-line @typescript-eslint/naming-convention
+    __esModule: true,
+    default: jest.fn(),
+}));
+jest.mock('@src/hooks/useDomainDocumentTitle', () => ({
+    // eslint-disable-next-line @typescript-eslint/naming-convention
+    __esModule: true,
+    default: jest.fn(),
+}));

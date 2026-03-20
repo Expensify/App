@@ -6,14 +6,16 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import usePolicyForTransaction from '@hooks/usePolicyForTransaction';
 import useRestartOnReceiptFailure from '@hooks/useRestartOnReceiptFailure';
 import {convertToBackendAmount} from '@libs/CurrencyUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+import {isMovingTransactionFromTrackExpense} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {TaxRatesOption} from '@libs/TaxOptionsListUtils';
-import {calculateTaxAmount, getAmount, getCurrency, getTaxName, getTaxValue} from '@libs/TransactionUtils';
-import {setMoneyRequestTaxAmount, setMoneyRequestTaxRate, updateMoneyRequestTaxRate} from '@userActions/IOU';
+import {calculateTaxAmount, getAmount, getCurrency, getTaxRateTitle, getTaxValue} from '@libs/TransactionUtils';
+import {setMoneyRequestTaxRateValues, updateMoneyRequestTaxRate} from '@userActions/IOU';
 import {setDraftSplitTransaction} from '@userActions/IOU/Split';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -47,12 +49,12 @@ function IOURequestStepTaxRatePage({
     const {getCurrencyDecimals} = useCurrencyListActions();
     const {policy} = usePolicyForTransaction({transaction, reportPolicyID: report?.policyID, action, iouType});
 
-    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policy?.id}`, {canBeMissing: true});
-    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policy?.id}`, {canBeMissing: true});
-    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID)}`, {canBeMissing: true});
-    const [parentReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${getNonEmptyStringOnyxID(report?.parentReportID)}`, {canBeMissing: true});
+    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policy?.id}`);
+    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policy?.id}`);
+    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
+    const [parentReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
 
-    const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`, {canBeMissing: true});
+    const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
     useRestartOnReceiptFailure(transaction, reportIDFromRoute, iouType, action);
 
     const isEditing = action === CONST.IOU.ACTION.EDIT;
@@ -62,6 +64,7 @@ function IOURequestStepTaxRatePage({
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserAccountIDParam = currentUserPersonalDetails.accountID;
     const currentUserEmailParam = currentUserPersonalDetails.login ?? '';
+    const {policyForMovingExpenses} = usePolicyForMovingExpenses();
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
 
@@ -69,7 +72,7 @@ function IOURequestStepTaxRatePage({
         Navigation.goBack(backTo);
     };
 
-    const taxRateTitle = getTaxName(policy, currentTransaction);
+    const taxRateTitle = getTaxRateTitle(policy, currentTransaction, isMovingTransactionFromTrackExpense(action), policyForMovingExpenses);
     const currency = getCurrency(currentTransaction);
     const decimals = getCurrencyDecimals(currency);
 
@@ -86,6 +89,7 @@ function IOURequestStepTaxRatePage({
             setDraftSplitTransaction(currentTransaction.transactionID, splitDraftTransaction, {
                 taxAmount: convertToBackendAmount(taxAmount ?? 0),
                 taxCode: taxes.code,
+                taxValue,
             });
             navigateBack();
             return;
@@ -117,8 +121,8 @@ function IOURequestStepTaxRatePage({
             return;
         }
         const amountInSmallestCurrencyUnits = convertToBackendAmount(taxAmount);
-        setMoneyRequestTaxRate(currentTransaction?.transactionID, taxes?.code ?? '');
-        setMoneyRequestTaxAmount(currentTransaction.transactionID, amountInSmallestCurrencyUnits);
+
+        setMoneyRequestTaxRateValues(currentTransaction.transactionID, {taxCode: taxes?.code ?? '', taxAmount: amountInSmallestCurrencyUnits, taxValue});
 
         navigateBack();
     };
