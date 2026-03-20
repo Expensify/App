@@ -54,6 +54,7 @@ function useSpendOverTimeData() {
             offset: 0,
             isOffline: false,
             isLoading: false,
+            shouldUpdateLastSearchParams: false,
         });
     }, [isOffline]);
 

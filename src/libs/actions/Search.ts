@@ -474,6 +474,7 @@ function search({
     prevReportsLength,
     isOffline = false,
     isLoading,
+    shouldUpdateLastSearchParams = true,
 }: {
     queryJSON: SearchQueryJSON;
     searchKey: SearchKey | undefined;
@@ -482,6 +483,7 @@ function search({
     prevReportsLength?: number;
     isOffline?: boolean;
     isLoading: boolean;
+    shouldUpdateLastSearchParams?: boolean;
 }) {
     if (isLoading || shouldPreventSearchAPI) {
         return;
@@ -500,11 +502,13 @@ function search({
     };
     const jsonQuery = JSON.stringify(query);
 
-    saveLastSearchParams({
-        queryJSON,
-        offset,
-        allowPostSearchRecount: false,
-    });
+    if (shouldUpdateLastSearchParams) {
+        saveLastSearchParams({
+            queryJSON,
+            offset,
+            allowPostSearchRecount: false,
+        });
+    }
 
     return waitForWrites(READ_COMMANDS.SEARCH).then(() => {
         // eslint-disable-next-line rulesdir/no-api-side-effects-method
@@ -513,27 +517,29 @@ function search({
             const reports = Object.keys(response?.data ?? {})
                 .filter((key) => key.startsWith(ONYXKEYS.COLLECTION.REPORT))
                 .map((key) => key.replace(ONYXKEYS.COLLECTION.REPORT, ''));
-            if (response?.search?.offset) {
-                // Indicates that search results are extended from the Report view (with navigation between reports),
-                // using previous results to enable correct counter behavior.
-                if (prevReportsLength) {
+            if (shouldUpdateLastSearchParams) {
+                if (response?.search?.offset) {
+                    // Indicates that search results are extended from the Report view (with navigation between reports),
+                    // using previous results to enable correct counter behavior.
+                    if (prevReportsLength) {
+                        saveLastSearchParams({
+                            queryJSON,
+                            offset,
+                            hasMoreResults: !!response?.search?.hasMoreResults,
+                            previousLengthOfResults: prevReportsLength,
+                            allowPostSearchRecount: false,
+                        });
+                    }
+                } else {
+                    // Applies to all searches from the Search View
                     saveLastSearchParams({
                         queryJSON,
                         offset,
                         hasMoreResults: !!response?.search?.hasMoreResults,
-                        previousLengthOfResults: prevReportsLength,
-                        allowPostSearchRecount: false,
+                        previousLengthOfResults: reports.length,
+                        allowPostSearchRecount: true,
                     });
                 }
-            } else {
-                // Applies to all searches from the Search View
-                saveLastSearchParams({
-                    queryJSON,
-                    offset,
-                    hasMoreResults: !!response?.search?.hasMoreResults,
-                    previousLengthOfResults: reports.length,
-                    allowPostSearchRecount: true,
-                });
             }
 
             return result?.jsonCode;
