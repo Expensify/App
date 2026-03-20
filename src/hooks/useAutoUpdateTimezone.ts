@@ -7,16 +7,18 @@ const useAutoUpdateTimezone = () => {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const timezone = currentUserPersonalDetails?.timezone ?? {};
     // Tracks the timezone value already dispatched to prevent duplicate calls
-    // when intermediate Onyx writes (e.g. HybridApp transition) temporarily
-    // reset timezone.selected before the in-flight request is confirmed.
-    const pendingTimezone = useRef<string | undefined>(undefined);
+    // eg. between OldDot->NewDot transition and two app instances in different timezones
+    // fighting each other
+    const lastTimezone = useRef<string | undefined>(undefined);
 
     useEffect(() => {
         const currentTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone as SelectedTimezone;
         const hasValidCurrentTimezone = typeof currentTimezone === 'string' && currentTimezone.trim().length > 0;
+        const hasTimezoneChangedInOnyx = timezone?.selected !== currentTimezone;
+        const hasTimezoneChanged = lastTimezone.current !== currentTimezone;
 
-        if (hasValidCurrentTimezone && timezone?.automatic && timezone?.selected !== currentTimezone && pendingTimezone.current !== currentTimezone) {
-            pendingTimezone.current = currentTimezone;
+        if (hasValidCurrentTimezone && timezone?.automatic && hasTimezoneChangedInOnyx && hasTimezoneChanged) {
+            lastTimezone.current = currentTimezone;
             updateAutomaticTimezone(
                 {
                     automatic: true,
