@@ -453,6 +453,8 @@ const translations: TranslationDeepObject<typeof en> = {
         downloadAsCSV: 'Scarica come CSV',
         print: 'Stampa',
         help: 'Aiuto',
+        collapsed: 'Comprresso',
+        expanded: 'Espanso',
         expenseReport: 'Nota spese',
         expenseReports: 'Note spese',
         rateOutOfPolicy: 'Tariffa fuori policy',
@@ -525,6 +527,7 @@ const translations: TranslationDeepObject<typeof en> = {
         concierge: {sidePanelGreeting: 'Ciao, come posso aiutarti?', showHistory: 'Mostra cronologia'},
         duplicateReport: 'Report duplicato',
         approver: 'Approvante',
+        copyOfReportName: (reportName: string) => `Copia di ${reportName}`,
     },
     socials: {
         podcast: 'Seguici su Podcast',
