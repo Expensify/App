@@ -12,7 +12,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {updateAdvancedFilters} from '@libs/actions/Search';
+import {openSearchCardFiltersPage, updateAdvancedFilters} from '@libs/actions/Search';
 import type {CardFilterItem} from '@libs/CardFeedUtils';
 import {buildCardFeedsData, buildCardsData, generateSelectedCards, getDomainFeedData, getSelectedCardsFromFeeds} from '@libs/CardFeedUtils';
 import Navigation from '@navigation/Navigation';
@@ -35,6 +35,10 @@ function SearchFiltersCardPage() {
     const personalDetails = usePersonalDetails();
 
     const [selectedCards, setSelectedCards] = useState<string[]>([]);
+
+    useEffect(() => {
+        openSearchCardFiltersPage();
+    }, []);
 
     useEffect(() => {
         const generatedCards = generateSelectedCards(userCardList, workspaceCardFeeds, searchAdvancedFiltersForm?.feed, searchAdvancedFiltersForm?.cardID);
