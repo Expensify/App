@@ -1,4 +1,5 @@
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import {lastWorkspaceNumberSelector} from '@src/selectors/Policy';
 import type {Policy} from '@src/types/onyx';
 
@@ -17,24 +18,24 @@ describe('lastWorkspaceNumberSelector', () => {
 
     it('should return 0 when there is a matching workspace without a number', () => {
         const policies = {
-            policy_1: {name: workspaceName} as Policy,
+            [`${ONYXKEYS.COLLECTION.POLICY}1`]: {name: workspaceName} as Policy,
         };
         expect(lastWorkspaceNumberSelector(policies, email)).toBe(0);
     });
 
     it('should return the number when there is a matching workspace with a number', () => {
         const policies = {
-            policy_1: {name: `${workspaceName} 2`} as Policy,
+            [`${ONYXKEYS.COLLECTION.POLICY}1`]: {name: `${workspaceName} 2`} as Policy,
         };
         expect(lastWorkspaceNumberSelector(policies, email)).toBe(2);
     });
 
     it('should return the maximum number when there are multiple matching workspaces', () => {
         const policies = {
-            policy_1: {name: workspaceName} as Policy,
-            policy_2: {name: `${workspaceName} 2`} as Policy,
-            policy_3: {name: `${workspaceName} 5`} as Policy,
-            policy_4: {name: 'Other Workspace'} as Policy,
+            [`${ONYXKEYS.COLLECTION.POLICY}1`]: {name: workspaceName} as Policy,
+            [`${ONYXKEYS.COLLECTION.POLICY}2`]: {name: `${workspaceName} 2`} as Policy,
+            [`${ONYXKEYS.COLLECTION.POLICY}3`]: {name: `${workspaceName} 5`} as Policy,
+            [`${ONYXKEYS.COLLECTION.POLICY}4`]: {name: 'Other Workspace'} as Policy,
         };
         expect(lastWorkspaceNumberSelector(policies, email)).toBe(5);
     });
@@ -43,16 +44,16 @@ describe('lastWorkspaceNumberSelector', () => {
         const smsEmail = `+15555555555${CONST.SMS.DOMAIN}`;
         const smsDisplayName = 'My Group Workspace';
         const policies = {
-            policy_1: {name: smsDisplayName} as Policy,
-            policy_2: {name: `${smsDisplayName} 3`} as Policy,
+            [`${ONYXKEYS.COLLECTION.POLICY}1`]: {name: smsDisplayName} as Policy,
+            [`${ONYXKEYS.COLLECTION.POLICY}2`]: {name: `${smsDisplayName} 3`} as Policy,
         };
         expect(lastWorkspaceNumberSelector(policies, smsEmail)).toBe(3);
     });
 
     it('should ignore case when matching workspace names', () => {
         const policies = {
-            policy_1: {name: workspaceName.toLowerCase()} as Policy,
-            policy_2: {name: `${workspaceName.toUpperCase()} 4`} as Policy,
+            [`${ONYXKEYS.COLLECTION.POLICY}1`]: {name: workspaceName.toLowerCase()} as Policy,
+            [`${ONYXKEYS.COLLECTION.POLICY}2`]: {name: `${workspaceName.toUpperCase()} 4`} as Policy,
         };
         expect(lastWorkspaceNumberSelector(policies, email)).toBe(4);
     });
