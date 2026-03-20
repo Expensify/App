@@ -5,6 +5,7 @@ import useOnyx from '@hooks/useOnyx';
 import useSubStep from '@hooks/useSubStep';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import getPlaidOAuthReceivedRedirectURI from '@libs/getPlaidOAuthReceivedRedirectURI';
+import {getBankAccountIDAsNumber} from '@libs/ReimbursementAccountUtils';
 import getSubStepValues from '@pages/ReimbursementAccount/utils/getSubStepValues';
 import {connectBankAccountManually, connectBankAccountWithPlaid} from '@userActions/BankAccounts';
 import {hideBankAccountErrors} from '@userActions/ReimbursementAccount';
@@ -51,7 +52,7 @@ function BankInfo({onBackButtonPress, policyID, setUSDBankAccountStep}: BankInfo
         setupType = CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID;
     }
 
-    const bankAccountID = Number(reimbursementAccount?.achData?.bankAccountID ?? CONST.DEFAULT_NUMBER_ID);
+    const bankAccountID = getBankAccountIDAsNumber(reimbursementAccount?.achData);
     const submit = (submitData: unknown) => {
         const data = submitData as ReimbursementAccountForm;
         if (setupType === CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL) {
