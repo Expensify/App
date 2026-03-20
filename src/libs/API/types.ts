@@ -1177,6 +1177,7 @@ const READ_COMMANDS = {
     OPEN_PLAID_CARDS_BANK_LOGIN: 'OpenPlaidCardsBankLogin',
     OPEN_PLAID_BANK_ACCOUNT_SELECTOR: 'OpenPlaidBankAccountSelector',
     OPEN_SEARCH_PAGE: 'OpenSearchPage',
+    OPEN_SEARCH_CARD_FILTERS_PAGE: 'OpenSearchCardFiltersPage',
     SEARCH: 'Search',
     GET_OLDER_ACTIONS: 'GetOlderActions',
     GET_NEWER_ACTIONS: 'GetNewerActions',

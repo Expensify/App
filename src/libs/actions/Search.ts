@@ -444,6 +444,10 @@ function openSearchPage({includePartiallySetupBankAccounts}: OpenSearchPageParam
     API.read(READ_COMMANDS.OPEN_SEARCH_PAGE, {includePartiallySetupBankAccounts});
 }
 
+function openSearchCardFiltersPage() {
+    API.read(READ_COMMANDS.OPEN_SEARCH_CARD_FILTERS_PAGE, {});
+}
+
 // Tracks in-flight search requests by hash+offset to prevent duplicate API calls
 // when both page-level (useSearchPageSetup) and Search-internal (handleSearch) effects
 // fire for the same query. Cleared when the request completes.
@@ -1766,5 +1770,6 @@ export {
     setOptimisticDataForTransactionThreadPreview,
     getPayMoneyOnSearchInvoiceParams,
     handlePreventSearchAPI,
+    openSearchCardFiltersPage,
 };
 export type {TransactionPreviewData};
