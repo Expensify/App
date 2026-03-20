@@ -89,10 +89,6 @@ function getDisplayNameOrDefault(
         displayName = CONST.CONCIERGE_DISPLAY_NAME;
     }
 
-    if (passedPersonalDetails?.accountID === CONST.ACCOUNT_ID.CHRONOS) {
-        displayName = CONST.CHRONOS_DISPLAY_NAME;
-    }
-
     if (displayName) {
         return displayName;
     }
