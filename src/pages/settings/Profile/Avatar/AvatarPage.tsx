@@ -213,6 +213,7 @@ function ProfileAvatar() {
             testID="ProfileAvatar"
             offlineIndicatorStyle={styles.mtAuto}
             shouldShowOfflineIndicatorInWideScreen
+            shouldUseScrollViewInLandscapeMode
         >
             <HeaderWithBackButton title={translate('avatarPage.title')} />
             <View style={[styles.flexColumn, styles.gap5, styles.alignItemsCenter, styles.pb10]}>

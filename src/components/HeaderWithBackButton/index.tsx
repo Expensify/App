@@ -220,7 +220,7 @@ function HeaderWithBackButton({
                 // be falsy, hence using !== undefined explicitly
                 progressBarPercentage !== undefined && styles.pl0,
                 shouldShowBackButton && [styles.pl2],
-                shouldOverlay && StyleSheet.absoluteFillObject,
+                shouldOverlay && StyleSheet.absoluteFill,
                 style,
             ]}
             onTouchStart={isInLandscapeMode ? () => Keyboard.dismiss() : undefined}
