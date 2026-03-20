@@ -8,7 +8,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import {hasDynamicExternalWorkflow} from '@libs/PolicyUtils';
-import {canSubmitAndIsAwaitingForCurrentUser, hasViolations as hasViolationsReportUtils} from '@libs/ReportUtils';
+import {canSubmitAndIsAwaitingForCurrentUser, getReportTransactions, hasViolations as hasViolationsReportUtils} from '@libs/ReportUtils';
 import {submitReport} from '@userActions/IOU';
 import {openOldDotLink} from '@userActions/Link';
 import CONST from '@src/CONST';
@@ -40,9 +40,7 @@ function SubmitActionButton({iouReportID, chatReportID, isSubmittingAnimationRun
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportID}`);
-    const [transactions] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}`, {
-        selector: (allTransactions) => Object.values(allTransactions ?? {}).filter((t): t is NonNullable<typeof t> => t?.reportID === iouReportID),
-    });
+    const transactions = getReportTransactions(iouReportID);
 
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const isDEWBetaEnabled = isBetaEnabled(CONST.BETAS.NEW_DOT_DEW);
@@ -52,7 +50,7 @@ function SubmitActionButton({iouReportID, chatReportID, isSubmittingAnimationRun
         iouReport,
         chatReport,
         policy,
-        transactions ?? [],
+        transactions,
         transactionViolations,
         currentUserEmail,
         currentUserAccountID,
