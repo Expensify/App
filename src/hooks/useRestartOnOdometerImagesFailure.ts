@@ -1,4 +1,5 @@
 import {useEffect} from 'react';
+import {Platform} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {checkIfLocalFileIsAccessible, removeMoneyRequestOdometerImage, setMoneyRequestOdometerReading, setMoneyRequestReceipt} from '@libs/actions/IOU';
 import {removeDraftTransactionsByIDs} from '@libs/actions/TransactionEdit';
@@ -22,7 +23,7 @@ const useRestartOnOdometerImagesFailure = (transaction: OnyxEntry<Transaction>, 
     const [draftTransactionIDs, draftTransactionsMetadata] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
 
     useEffect(() => {
-        if (!transaction || action !== CONST.IOU.ACTION.CREATE || isLoadingOnyxValue(draftTransactionsMetadata)) {
+        if (Platform.OS !== 'web' || !transaction || action !== CONST.IOU.ACTION.CREATE || isLoadingOnyxValue(draftTransactionsMetadata)) {
             return;
         }
 
