@@ -1294,10 +1294,6 @@ type SettingsNavigatorParamList = {
         // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
         backTo?: Routes;
     };
-    [SCREENS.WORKSPACE.COMPANY_CARDS_REFRESH_CARD_FEED_CONNECTION]: {
-        policyID: string;
-        feed: CompanyCardFeedWithDomainID;
-    };
     [SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD_ASSIGNEE]: {
         policyID: string;
         feed: CompanyCardFeedWithDomainID;
@@ -1694,10 +1690,8 @@ type ReportSettingsNavigatorParamList = {
         // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
         backTo?: Routes;
     };
-    [SCREENS.REPORT_SETTINGS.VISIBILITY]: {
+    [SCREENS.REPORT_SETTINGS.DYNAMIC_SETTINGS_VISIBILITY]: {
         reportID: string;
-        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
-        backTo?: Routes;
     };
     [SCREENS.REPORT_SETTINGS.REPORT_LAYOUT]: {
         reportID: string;
