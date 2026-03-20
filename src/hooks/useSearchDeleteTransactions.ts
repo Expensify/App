@@ -83,7 +83,7 @@ function useSearchDeleteTransactions() {
 
             for (const [originalTransactionID, splitTransactionIDs] of Object.entries(splitsByOriginalID)) {
                 const deletingIDs = new Set(splitTransactionIDs);
-                const childTransactions = getChildTransactions(mergedTransactions as OnyxCollection<Transaction>, allReports, originalTransactionID, true).filter(
+                const childTransactions = getChildTransactions(mergedTransactions as OnyxCollection<Transaction>, originalTransactionID).filter(
                     (transaction) => transaction?.transactionID === undefined || !deletingIDs.has(transaction.transactionID),
                 );
                 const reportedChildTransactions = childTransactions.filter((transaction) => transaction?.reportID !== CONST.REPORT.UNREPORTED_REPORT_ID);

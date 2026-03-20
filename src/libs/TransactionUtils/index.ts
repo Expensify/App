@@ -2700,7 +2700,7 @@ function hasMultipleSplitChildren(transactions: OnyxCollection<Transaction>, rep
     if (!originalTransactionID) {
         return false;
     }
-    return getChildTransactions(transactions, reports, originalTransactionID).length > 1;
+    return getChildTransactions(transactions, originalTransactionID).length > 1;
 }
 
 /**
