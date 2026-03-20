@@ -4698,6 +4698,7 @@ describe('actions/Report', () => {
             type: CONST.REPORT.TYPE.CHAT,
         } as OnyxTypes.Report;
         const TEST_USER_ACCOUNT_ID = 1;
+        const TEST_USER_EMAIL = 'test@example.com';
         it('should do nothing when reportAction has no unresolved followups', async () => {
             const htmlMessage = '<p>Just a regular message</p>';
             const reportAction = {
@@ -4717,7 +4718,7 @@ describe('actions/Report', () => {
             });
             await waitForBatchedUpdates();
 
-            resolveSuggestedFollowup(report, undefined, reportAction, {text: 'test question'}, CONST.DEFAULT_TIME_ZONE, TEST_USER_ACCOUNT_ID);
+            resolveSuggestedFollowup(report, undefined, reportAction, {text: 'test question'}, CONST.DEFAULT_TIME_ZONE, TEST_USER_ACCOUNT_ID, TEST_USER_EMAIL);
             await waitForBatchedUpdates();
 
             // The report action should remain unchanged (no followup-list to resolve)
@@ -4745,7 +4746,7 @@ describe('actions/Report', () => {
             });
             await waitForBatchedUpdates();
 
-            resolveSuggestedFollowup(report, undefined, reportAction, {text: 'How do I set up QuickBooks?'}, CONST.DEFAULT_TIME_ZONE, TEST_USER_ACCOUNT_ID);
+            resolveSuggestedFollowup(report, undefined, reportAction, {text: 'How do I set up QuickBooks?'}, CONST.DEFAULT_TIME_ZONE, TEST_USER_ACCOUNT_ID, TEST_USER_EMAIL);
             await waitForBatchedUpdates();
 
             // Verify the followup-list was marked as selected
@@ -4784,6 +4785,7 @@ describe('actions/Report', () => {
                 {text: 'How do I set up QuickBooks?', response: 'To set up QuickBooks, go to Settings...'},
                 CONST.DEFAULT_TIME_ZONE,
                 TEST_USER_ACCOUNT_ID,
+                TEST_USER_EMAIL,
             );
             await waitForBatchedUpdates();
 
