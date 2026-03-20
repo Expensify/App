@@ -183,6 +183,9 @@ function IOURequestStepOdometerImage({
         }
 
         const file = files.at(0);
+        if (!file) {
+            return;
+        }
         const imageUri = (file as {uri?: string}).uri ?? '';
         setMoneyRequestOdometerImage(transactionID, imageType, imageUri, isTransactionDraft, isEditingConfirmation !== 'true');
         navigateBack();
@@ -237,8 +240,19 @@ function IOURequestStepOdometerImage({
                     .then((photo: PhotoFile) => {
                         const imageObject: ImageObject = {file: photo, filename: photo.path, source: getPhotoSource(photo.path)};
                         cropImageToAspectRatio(imageObject, viewfinderLayout.current?.width, viewfinderLayout.current?.height, undefined, photo.orientation)
-                            .then(({source}) => {
-                                setMoneyRequestOdometerImage(transactionID, imageType, source, isTransactionDraft, isEditingConfirmation !== 'true');
+                            .then(({file, filename, source}) => {
+                                setMoneyRequestOdometerImage(
+                                    transactionID,
+                                    imageType,
+                                    {
+                                        uri: source,
+                                        name: filename,
+                                        type: (file as FileObject | undefined)?.type ?? 'image/jpeg',
+                                        size: (file as FileObject | undefined)?.size,
+                                    },
+                                    isTransactionDraft,
+                                    isEditingConfirmation !== 'true',
+                                );
                                 navigateBack();
                             })
                             .catch((error: unknown) => {
