@@ -72,15 +72,6 @@ import type {Waypoint, WaypointCollection} from '@src/types/onyx/Transaction';
 import type TransactionState from '@src/types/utils/TransactionStateType';
 import {getPolicyTags} from './IOU/index';
 
-let allTransactionDrafts: OnyxCollection<Transaction> = {};
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.TRANSACTION_DRAFT,
-    waitForCollectionCallback: true,
-    callback: (value) => {
-        allTransactionDrafts = value ?? {};
-    },
-});
-
 let allReports: OnyxCollection<Report> = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT,
@@ -1656,10 +1647,6 @@ function changeTransactionsReport({
     });
 }
 
-function getDraftTransactions(draftTransactions?: OnyxCollection<Transaction>): Transaction[] {
-    return Object.values(draftTransactions ?? allTransactionDrafts ?? {}).filter((transaction): transaction is Transaction => !!transaction);
-}
-
 function mergeTransactionIdsHighlightOnSearchRoute(type: SearchDataTypes, data: Record<string, boolean> | null) {
     return Onyx.merge(ONYXKEYS.TRANSACTION_IDS_HIGHLIGHT_ON_SEARCH_ROUTE, {[type]: data});
 }
@@ -1685,7 +1672,6 @@ export {
     markAsCash,
     markPendingRTERTransactionsAsCash,
     dismissDuplicateTransactionViolation,
-    getDraftTransactions,
     generateTransactionID,
     setReviewDuplicatesKey,
     abandonReviewDuplicateTransactions,
