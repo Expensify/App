@@ -369,6 +369,7 @@ type BuildOptimisticAddCommentReportActionParams = {
     reportID?: string;
     reportActionID?: string;
     attachmentID?: string;
+    isHTML?: boolean;
 };
 
 type OptimisticReportAction = {
@@ -781,6 +782,7 @@ type TransactionDetails = {
     attendees: Attendee[] | string;
     taxAmount?: number;
     taxCode?: string;
+    taxValue?: string;
     currency: string;
     merchant: string;
     waypoints?: WaypointCollection | string;
@@ -4679,6 +4681,7 @@ function getTransactionDetails(
         attendees: getAttendees(transaction, currentUserDetails),
         taxAmount: getTaxAmount(transaction, isFromExpenseReport),
         taxCode: getTaxCode(transaction),
+        taxValue: transaction.taxValue,
         currency: getCurrency(transaction),
         comment: getDescription(transaction),
         merchant: getMerchant(transaction),
@@ -6188,7 +6191,16 @@ function getParentNavigationSubtitle(
     }
 
     if (isInvoiceReport(report) || isInvoiceRoom(parentReport)) {
-        let reportName = `${getPolicyName({report: parentReport})} & ${getInvoicePayerName(parentReport)}`;
+        const senderWorkspaceName = getPolicyName({report: parentReport});
+        const invoiceReceiverPolicyID = parentReport?.invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS ? parentReport.invoiceReceiver.policyID : undefined;
+        const invoiceReceiverPolicy = invoiceReceiverPolicyID ? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${invoiceReceiverPolicyID}`] : undefined;
+        const isCurrentUserReceiver = isCurrentUserInvoiceReceiver(parentReport);
+        const invoicePayerName = getInvoicePayerName(parentReport, invoiceReceiverPolicy);
+
+        let reportName = senderWorkspaceName;
+        if (!isCurrentUserReceiver && invoicePayerName) {
+            reportName = `${senderWorkspaceName} & ${invoicePayerName}`;
+        }
 
         if (isArchivedNonExpenseReport(parentReport, isParentReportArchived)) {
             // eslint-disable-next-line @typescript-eslint/no-deprecated
@@ -6416,8 +6428,9 @@ function buildOptimisticAddCommentReportAction({
     reportID,
     reportActionID = rand64(),
     attachmentID,
+    isHTML = false,
 }: BuildOptimisticAddCommentReportActionParams): OptimisticReportAction {
-    const commentText = getParsedComment(text ?? '', {reportID});
+    const commentText = isHTML ? (text ?? '') : getParsedComment(text ?? '', {reportID});
     const attachmentHtml = getUploadingAttachmentHtml(file, attachmentID);
 
     const htmlForNewComment = `${commentText}${commentText && attachmentHtml ? '<br /><br />' : ''}${attachmentHtml}`;
@@ -11627,15 +11640,34 @@ type PrepareOnboardingOnyxDataParams = {
     betas?: OnyxEntry<Beta[]>;
 };
 
-function getBespokeWelcomeMessage(userReportedIntegration?: OnboardingAccounting): string {
+function getBespokeWelcomeMessage(companySize: OnboardingCompanySize | undefined, userReportedIntegration?: OnboardingAccounting): string {
     // Use markdown (not HTML) because buildOptimisticAddCommentReportAction -> getParsedComment
     // escapes HTML entities before parsing, so raw HTML tags would render as literal text.
-    let message =
-        "# Your free trial has started! Let's get you set up.\n" +
-        "👋 Hey there! I'm your Expensify setup specialist. " +
-        'For a small team like yours, the fastest way to get value is to set up a few expense categories, ' +
-        'invite your team members, and have them start snapping receipts right away. ' +
-        "I'm here to walk you through each step — just ask!";
+    const welcomeHeader = "# Your free trial has started! Let's get you set up.\n👋 Hey there! I'm your Expensify setup specialist. ";
+
+    let message = welcomeHeader;
+    switch (companySize) {
+        case CONST.ONBOARDING_COMPANY_SIZE.MEDIUM:
+        case CONST.ONBOARDING_COMPANY_SIZE.LARGE:
+            message +=
+                'For an organization your size, the fastest path to value is setting up approval workflows, ' +
+                'connecting your accounting software, and rolling out the Expensify Card to your team. ' +
+                "I'm here to walk you through each step — just ask!";
+            break;
+        case CONST.ONBOARDING_COMPANY_SIZE.SMALL:
+        case CONST.ONBOARDING_COMPANY_SIZE.MEDIUM_SMALL:
+            message +=
+                'For a growing team like yours, the fastest way to get value is to set up expense categories, ' +
+                'configure approval workflows, and invite your team members. ' +
+                "I'm here to walk you through each step — just ask!";
+            break;
+        default:
+            message +=
+                'For a small team like yours, the fastest way to get value is to set up a few expense categories, ' +
+                'invite your team members, and have them start snapping receipts right away. ' +
+                "I'm here to walk you through each step — just ask!";
+            break;
+    }
 
     if (userReportedIntegration && userReportedIntegration !== 'other') {
         const friendlyName = CONST.ONBOARDING_ACCOUNTING_MAPPING[userReportedIntegration as keyof typeof CONST.ONBOARDING_ACCOUNTING_MAPPING];
@@ -11742,14 +11774,14 @@ function prepareOnboardingOnyxData({
         reportComment: textComment.commentText,
     };
 
-    // When the user is MICRO and using followups, generate a bespoke welcome message from Concierge.
+    // When using followups instead of tasks, generate a bespoke welcome message from Concierge.
     // The frontend displays it optimistically; the server uses it to generate suggested followups.
     let bespokeWelcomeMessage: string | undefined;
     let optimisticConciergeReportActionID: string | undefined;
     let bespokeAction: OptimisticReportAction | undefined;
 
-    if (shouldUseFollowupsInsteadOfTasks && companySize === CONST.ONBOARDING_COMPANY_SIZE.MICRO) {
-        bespokeWelcomeMessage = getBespokeWelcomeMessage(userReportedIntegration);
+    if (shouldUseFollowupsInsteadOfTasks) {
+        bespokeWelcomeMessage = getBespokeWelcomeMessage(companySize, userReportedIntegration);
         optimisticConciergeReportActionID = rand64();
         bespokeAction = buildOptimisticAddCommentReportAction({
             text: bespokeWelcomeMessage,

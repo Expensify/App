@@ -142,6 +142,7 @@ export default {
         policyTags,
         policy,
         currentUserLogin,
+        conciergeReportID,
     }: LocalNotificationModifiedExpensePushParams) {
         const title = reportAction.person?.map((f) => f.text).join(', ') ?? '';
         const bodyWithHTML = getForReportAction({
@@ -153,6 +154,7 @@ export default {
             movedToReport,
             policyTags,
             currentUserLogin,
+            conciergeReportID,
         });
         // Strip HTML tags for plain text notification body
         const body = getTextFromHtml(bodyWithHTML);
