@@ -31,7 +31,7 @@ function SearchFiltersCardPage() {
     const illustrations = useThemeIllustrations();
     const companyCardFeedIcons = useCompanyCardFeedIcons();
 
-    const [isLoading] = useOnyx(ONYXKEYS.IS_LOADING_SEARCH_FILTERS_CARD_DATA);
+    const [areCardsLoaded] = useOnyx(ONYXKEYS.IS_SEARCH_FILTERS_CARD_DATA_LOADED);
     const [userCardList, userCardListMetadata] = useOnyx(ONYXKEYS.CARD_LIST);
     const [workspaceCardFeeds, workspaceCardFeedsMetadata] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST);
     const [policies, policiesMetadata] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
@@ -137,7 +137,7 @@ function SearchFiltersCardPage() {
         headerMessage: debouncedSearchTerm.trim() && sections.every((section) => !section.data.length) ? translate('common.noResultsFound') : '',
     };
 
-    const reasonAttributes: SkeletonSpanReasonAttributes = {context: 'SearchFiltersCardPage', isLoadingFromOnyx: !!isLoading};
+    const reasonAttributes: SkeletonSpanReasonAttributes = {context: 'SearchFiltersCardPage', isLoadingFromOnyx: !!areCardsLoaded};
 
     return (
         <ScreenWrapper
@@ -154,7 +154,7 @@ function SearchFiltersCardPage() {
                             Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS.getRoute());
                         }}
                     />
-                    {!!isLoading && (
+                    {!areCardsLoaded && (
                         <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter, styles.alignItemsCenter]}>
                             <ActivityIndicator
                                 color={theme.spinner}
@@ -165,7 +165,7 @@ function SearchFiltersCardPage() {
                         </View>
                     )}
 
-                    {!isLoading && (
+                    {!!areCardsLoaded && (
                         <View style={[styles.flex1]}>
                             <SelectionListWithSections<CardFilterItem>
                                 sections={sections}

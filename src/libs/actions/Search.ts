@@ -445,29 +445,15 @@ function openSearchPage({includePartiallySetupBankAccounts}: OpenSearchPageParam
 }
 
 function openSearchCardFiltersPage() {
-    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.IS_LOADING_SEARCH_FILTERS_CARD_DATA>> = [
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.IS_SEARCH_FILTERS_CARD_DATA_LOADED>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.IS_LOADING_SEARCH_FILTERS_CARD_DATA,
+            key: ONYXKEYS.IS_SEARCH_FILTERS_CARD_DATA_LOADED,
             value: true,
         },
     ];
-    const successData: Array<OnyxUpdate<typeof ONYXKEYS.IS_LOADING_SEARCH_FILTERS_CARD_DATA>> = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.IS_LOADING_SEARCH_FILTERS_CARD_DATA,
-            value: false,
-        },
-    ];
-    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.IS_LOADING_SEARCH_FILTERS_CARD_DATA>> = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.IS_LOADING_SEARCH_FILTERS_CARD_DATA,
-            value: false,
-        },
-    ];
 
-    API.read(READ_COMMANDS.OPEN_SEARCH_CARD_FILTERS_PAGE, {}, {optimisticData, successData, failureData});
+    API.read(READ_COMMANDS.OPEN_SEARCH_CARD_FILTERS_PAGE, {}, {successData});
 }
 
 // Tracks in-flight search requests by hash+offset to prevent duplicate API calls
