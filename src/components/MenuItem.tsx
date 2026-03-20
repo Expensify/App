@@ -16,6 +16,7 @@ import {canUseTouchScreen, hasHoverSupport} from '@libs/DeviceCapabilities';
 import {containsCustomEmoji, containsOnlyCustomEmoji} from '@libs/EmojiUtils';
 import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 import getButtonState from '@libs/getButtonState';
+import getPlatform from '@libs/getPlatform';
 import mergeRefs from '@libs/mergeRefs';
 import Parser from '@libs/Parser';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
@@ -615,6 +616,10 @@ function MenuItem({
 
     const combinedAccessibilityLabel = [enhancedAccessibilityLabel, brickRoadIndicator ? translate('common.yourReviewIsRequired') : ''].filter(Boolean).join('. ');
     const contextMenuHint = shouldShowContextMenuHint ? getContextMenuAccessibilityHint({translate}) : undefined;
+    const platform = getPlatform(true);
+    const shouldMergeContextMenuHintIntoLabel = platform === CONST.PLATFORM.WEB || platform === CONST.PLATFORM.MOBILE_WEB;
+    const accessibilityLabelWithContextMenuHint =
+        shouldMergeContextMenuHintIntoLabel && contextMenuHint ? [combinedAccessibilityLabel, contextMenuHint].filter(Boolean).join('. ') : combinedAccessibilityLabel;
 
     const combinedTitleTextStyle = StyleUtils.combineStyles<TextStyle>(
         [
@@ -802,8 +807,8 @@ function MenuItem({
                                 disabled={disabled || isExecuting}
                                 ref={mergeRefs(ref, popoverAnchor)}
                                 role={interactive ? role : undefined}
-                                accessibilityLabel={combinedAccessibilityLabel}
-                                accessibilityHint={contextMenuHint}
+                                accessibilityLabel={accessibilityLabelWithContextMenuHint}
+                                accessibilityHint={shouldMergeContextMenuHintIntoLabel ? undefined : contextMenuHint}
                                 accessible={shouldBeAccessible}
                                 accessibilityState={role === CONST.ROLE.TAB ? {selected: focused} : undefined}
                                 tabIndex={interactive ? tabIndex : -1}
