@@ -454,7 +454,6 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                 shouldShowRightIcon: true,
                 action: () => {
                     createDraftTransactionAndNavigateToParticipantSelector({
-                        transactionID: iouTransactionID,
                         reportID: actionReportID,
                         actionName: CONST.IOU.ACTION.SUBMIT,
                         reportActionID: actionableWhisperReportActionID,
@@ -478,7 +477,6 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                     shouldShowRightIcon: true,
                     action: () => {
                         createDraftTransactionAndNavigateToParticipantSelector({
-                            transactionID: iouTransactionID,
                             reportID: actionReportID,
                             actionName: CONST.IOU.ACTION.CATEGORIZE,
                             reportActionID: actionableWhisperReportActionID,
@@ -499,7 +497,6 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                     shouldShowRightIcon: true,
                     action: () => {
                         createDraftTransactionAndNavigateToParticipantSelector({
-                            transactionID: iouTransactionID,
                             reportID: actionReportID,
                             actionName: CONST.IOU.ACTION.SHARE,
                             reportActionID: actionableWhisperReportActionID,

@@ -13201,7 +13201,6 @@ describe('ReportUtils', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${1}`, {});
 
             createDraftTransactionAndNavigateToParticipantSelector({
-                transactionID: '1',
                 reportID: '1',
                 actionName: CONST.IOU.ACTION.CATEGORIZE,
                 reportActionID: '1',
@@ -13239,7 +13238,6 @@ describe('ReportUtils', () => {
 
                 // When we call createDraftTransactionAndNavigateToParticipantSelector with the restricted policy
                 createDraftTransactionAndNavigateToParticipantSelector({
-                    transactionID: transaction.transactionID,
                     reportID: '1',
                     actionName: CONST.IOU.ACTION.CATEGORIZE,
                     reportActionID: '1',
@@ -13275,7 +13273,6 @@ describe('ReportUtils', () => {
 
                 // When we call createDraftTransactionAndNavigateToParticipantSelector
                 createDraftTransactionAndNavigateToParticipantSelector({
-                    transactionID: transaction.transactionID,
                     reportID: '1',
                     actionName: CONST.IOU.ACTION.CATEGORIZE,
                     reportActionID: '1',
@@ -13314,7 +13311,6 @@ describe('ReportUtils', () => {
 
                 // When we call createDraftTransactionAndNavigateToParticipantSelector
                 createDraftTransactionAndNavigateToParticipantSelector({
-                    transactionID: transaction.transactionID,
                     reportID: '1',
                     actionName: CONST.IOU.ACTION.CATEGORIZE,
                     reportActionID: '1',
@@ -13355,7 +13351,6 @@ describe('ReportUtils', () => {
 
                 // When we call createDraftTransactionAndNavigateToParticipantSelector with undefined activePolicy
                 createDraftTransactionAndNavigateToParticipantSelector({
-                    transactionID: transaction.transactionID,
                     reportID: '2',
                     actionName: CONST.IOU.ACTION.CATEGORIZE,
                     reportActionID: '2',
@@ -13383,7 +13378,6 @@ describe('ReportUtils', () => {
 
                 // When we call createDraftTransactionAndNavigateToParticipantSelector with undefined activePolicy
                 createDraftTransactionAndNavigateToParticipantSelector({
-                    transactionID: transaction.transactionID,
                     reportID: '1',
                     actionName: CONST.IOU.ACTION.CATEGORIZE,
                     reportActionID: '1',
@@ -13432,7 +13426,6 @@ describe('ReportUtils', () => {
 
                 // When we call createDraftTransactionAndNavigateToParticipantSelector with undefined activePolicy
                 createDraftTransactionAndNavigateToParticipantSelector({
-                    transactionID: transaction.transactionID,
                     reportID: '1',
                     actionName: CONST.IOU.ACTION.CATEGORIZE,
                     reportActionID: '1',
@@ -13477,7 +13470,6 @@ describe('ReportUtils', () => {
 
                 // When we call createDraftTransactionAndNavigateToParticipantSelector
                 createDraftTransactionAndNavigateToParticipantSelector({
-                    transactionID: transaction.transactionID,
                     reportID: '1',
                     actionName: CONST.IOU.ACTION.CATEGORIZE,
                     reportActionID: '1',
@@ -13520,7 +13512,6 @@ describe('ReportUtils', () => {
 
                 // When we call with amountOwed = 0
                 createDraftTransactionAndNavigateToParticipantSelector({
-                    transactionID: transaction.transactionID,
                     reportID: '1',
                     actionName: CONST.IOU.ACTION.CATEGORIZE,
                     reportActionID: '1',
@@ -13555,7 +13546,6 @@ describe('ReportUtils', () => {
 
                 // When we call with amountOwed = 50
                 createDraftTransactionAndNavigateToParticipantSelector({
-                    transactionID: transaction.transactionID,
                     reportID: '1',
                     actionName: CONST.IOU.ACTION.CATEGORIZE,
                     reportActionID: '1',

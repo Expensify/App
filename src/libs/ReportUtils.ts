@@ -11315,7 +11315,6 @@ function createDraftWorkspaceAndNavigateToConfirmationScreen(introSelected: Onyx
 }
 
 type CreateDraftTransactionParams = {
-    transactionID: string | undefined;
     reportID: string | undefined;
     actionName: IOUAction;
     reportActionID: string | undefined;
@@ -11330,7 +11329,6 @@ type CreateDraftTransactionParams = {
 };
 
 function createDraftTransactionAndNavigateToParticipantSelector({
-    transactionID,
     reportID,
     actionName,
     reportActionID,
@@ -11343,13 +11341,14 @@ function createDraftTransactionAndNavigateToParticipantSelector({
     preferredPolicyID,
     transaction,
 }: CreateDraftTransactionParams): void {
+    const transactionID = transaction?.transactionID;
     if (!transactionID || !reportID) {
         return;
     }
 
     const reportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`] ?? ([] as ReportAction[]);
 
-    if (!transaction || !reportActions) {
+    if (!reportActions) {
         return;
     }
 

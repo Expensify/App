@@ -935,14 +935,12 @@ function PureReportActionItem({
 
         const reportActionReportID = originalReportID ?? reportID;
         if (isActionableTrackExpense(action)) {
-            const transactionID = getOriginalMessage(action)?.transactionID;
             const options = [
                 {
                     text: 'actionableMentionTrackExpense.submit',
                     key: `${action.reportActionID}-actionableMentionTrackExpense-submit`,
                     onPress: () => {
                         createDraftTransactionAndNavigateToParticipantSelector({
-                            transactionID,
                             reportID: reportActionReportID,
                             actionName: CONST.IOU.ACTION.SUBMIT,
                             reportActionID: action.reportActionID,
@@ -966,7 +964,6 @@ function PureReportActionItem({
                         key: `${action.reportActionID}-actionableMentionTrackExpense-categorize`,
                         onPress: () => {
                             createDraftTransactionAndNavigateToParticipantSelector({
-                                transactionID,
                                 reportID: reportActionReportID,
                                 actionName: CONST.IOU.ACTION.CATEGORIZE,
                                 reportActionID: action.reportActionID,
@@ -984,7 +981,6 @@ function PureReportActionItem({
                         key: `${action.reportActionID}-actionableMentionTrackExpense-share`,
                         onPress: () => {
                             createDraftTransactionAndNavigateToParticipantSelector({
-                                transactionID,
                                 reportID: reportActionReportID,
                                 actionName: CONST.IOU.ACTION.SHARE,
                                 reportActionID: action.reportActionID,
