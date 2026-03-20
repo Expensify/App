@@ -1,5 +1,7 @@
 import {render} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
+// eslint-disable-next-line rulesdir/no-inline-named-export
+import SignInModal from '@pages/signin/SignInModal';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
@@ -56,9 +58,6 @@ jest.mock('@components/ScreenWrapper', () => {
     const {View} = require('react-native');
     return ({children}: {children: React.ReactNode}) => <View testID="MockScreenWrapper">{children}</View>;
 });
-
-// eslint-disable-next-line rulesdir/no-inline-named-export
-import SignInModal from '@pages/signin/SignInModal';
 
 describe('SignInModal', () => {
     beforeAll(() => {
