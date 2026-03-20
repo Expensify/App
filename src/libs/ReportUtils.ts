@@ -9837,6 +9837,15 @@ function getRouteFromLink(url: string | null): string {
             route = route.replace('/', '');
         }
     }
+
+    // Convert Old Dot report URLs to New Dot format
+    // Old Dot: report.php?reportID=123 or _devreport.php?reportID=123
+    // New Dot: r/123
+    const oldDotReportMatch = route.match(/^(?:_dev)?report\.php\?reportID=(\d+)/);
+    if (oldDotReportMatch) {
+        return `r/${oldDotReportMatch[1]}`;
+    }
+
     return route;
 }
 
