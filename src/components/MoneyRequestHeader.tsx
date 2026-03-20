@@ -4,7 +4,7 @@ import {hasSeenTourSelector} from '@selectors/Onboarding';
 import {validTransactionDraftsSelector} from '@selectors/TransactionDraft';
 import type {ReactNode} from 'react';
 import React, {useCallback, useMemo, useRef, useState} from 'react';
-import {View} from 'react-native';
+import {InteractionManager, View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -624,8 +624,10 @@ function MoneyRequestHeader({reportID: reportIDProp, onBackButtonPress}: MoneyRe
                             currentUserAccountID: accountID,
                         });
                     } else {
-                        deleteTransactions([transaction.transactionID], duplicateTransactions, duplicateTransactionViolations, currentSearchHash, true);
-                        removeTransaction(transaction.transactionID);
+                        InteractionManager.runAfterInteractions(() => {
+                            deleteTransactions([transaction.transactionID], duplicateTransactions, duplicateTransactionViolations, currentSearchHash, true);
+                            removeTransaction(transaction.transactionID);
+                        });
                     }
                     if (isInNarrowPaneModal) {
                         Navigation.navigateBackToLastSuperWideRHPScreen();
