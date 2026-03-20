@@ -363,6 +363,7 @@ type OptimisticAddCommentReportAction = Pick<
 
 type BuildOptimisticAddCommentReportActionParams = {
     currentUserEmail?: string;
+    // TODO: This will be required eventually. Refactor issue: https://github.com/Expensify/App/issues/66412
     currentUserAccountID?: number;
     text?: string;
     file?: FileObject;
@@ -3108,7 +3109,7 @@ function canDeleteCardTransactionByLiabilityType(transaction: OnyxEntry<Transact
 function canDeleteMoneyRequestReport(report: OnyxEntry<Report>, reportTransactions: Transaction[], reportActions: ReportAction[]): boolean {
     const transaction = reportTransactions.at(0);
     const transactionID = transaction?.transactionID;
-    const isOwner = transactionID ? getIOUActionForTransactionID(reportActions, transactionID)?.actorAccountID === (deprecatedCurrentUserAccountID ?? CONST.DEFAULT_NUMBER_ID) : false;
+    const isOwner = transactionID ? getIOUActionForTransactionID(reportActions, transactionID)?.actorAccountID === deprecatedCurrentUserAccountID : false;
     const isReportOpenOrProcessing = isOpenReport(report) || isProcessingReport(report);
     const isSingleTransaction = reportTransactions.length === 1;
 
@@ -7596,7 +7597,7 @@ function buildOptimisticReportPreview(
         created,
         accountID: iouReport?.managerID,
         // The preview is initially whispered if created with a receipt, so the actor is the current user as well
-        actorAccountID: hasReceipt ? (deprecatedCurrentUserAccountID ?? CONST.DEFAULT_NUMBER_ID) : reportActorAccountID,
+        actorAccountID: hasReceipt ? deprecatedCurrentUserAccountID : reportActorAccountID,
         childReportID: childReportID ?? iouReport?.reportID,
         childMoneyRequestCount: 1,
         isOptimisticAction: true,
@@ -8599,7 +8600,7 @@ function buildOptimisticAnnounceChat(policyID: string, accountIDs: number[]): Op
 }
 
 function shouldPinAdminRoomByDefault() {
-    return !isExpensifyTeam(deprecatedCurrentUserEmail ?? '');
+    return !isExpensifyTeam(deprecatedCurrentUserEmail);
 }
 
 function buildOptimisticWorkspaceChats(policyID: string, policyName: string, expenseReportId?: string): OptimisticWorkspaceChats {
@@ -11226,7 +11227,7 @@ function canJoinChat(
     }
 
     // For restricted visibility rooms, the user must be a workspace member to join
-    if (isUserCreatedPolicyRoom(report) && report?.visibility === CONST.REPORT.VISIBILITY.RESTRICTED && !isPolicyMember(policy, deprecatedCurrentUserEmail ?? '')) {
+    if (isUserCreatedPolicyRoom(report) && report?.visibility === CONST.REPORT.VISIBILITY.RESTRICTED && !isPolicyMember(policy, deprecatedCurrentUserEmail)) {
         return false;
     }
 
@@ -11281,7 +11282,7 @@ function canLeaveChat(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>, isRe
 
 function createDraftWorkspaceAndNavigateToConfirmationScreen(introSelected: OnyxEntry<IntroSelected>, transactionID: string, actionName: IOUAction): void {
     const isCategorizing = actionName === CONST.IOU.ACTION.CATEGORIZE;
-    const {expenseChatReportID, policyID, policyName} = createDraftWorkspace(introSelected, deprecatedCurrentUserEmail ?? '');
+    const {expenseChatReportID, policyID, policyName} = createDraftWorkspace(introSelected, deprecatedCurrentUserEmail);
     setMoneyRequestParticipants(transactionID, [
         {
             selected: true,
@@ -11695,8 +11696,8 @@ function prepareOnboardingOnyxData({
         });
     }
     const actorAccountID = shouldPostTasksInAdminsRoom ? assignedGuideAccountID : CONST.ACCOUNT_ID.CONCIERGE;
-    const firstAdminPolicy = getActivePolicies(allPolicies, deprecatedCurrentUserEmail ?? '').find(
-        (policy) => policy.type !== CONST.POLICY.TYPE.PERSONAL && getPolicyRole(policy, deprecatedCurrentUserEmail ?? '') === CONST.POLICY.ROLE.ADMIN,
+    const firstAdminPolicy = getActivePolicies(allPolicies, deprecatedCurrentUserEmail).find(
+        (policy) => policy.type !== CONST.POLICY.TYPE.PERSONAL && getPolicyRole(policy, deprecatedCurrentUserEmail) === CONST.POLICY.ROLE.ADMIN,
     );
 
     const testDriveURL = ROUTES.TEST_DRIVE_DEMO_ROOT;
