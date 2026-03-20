@@ -101,6 +101,7 @@ function BeneficialOwnersStep({onBackButtonPress}: BeneficialOwnersStepProps) {
         setIsEditingCreatedBeneficialOwner(false);
     };
 
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const {
         componentToRender: BeneficialOwnerDetailsForm,
         isEditing,

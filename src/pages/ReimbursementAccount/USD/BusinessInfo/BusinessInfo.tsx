@@ -85,6 +85,7 @@ function BusinessInfo({onBackButtonPress}: BusinessInfoProps) {
     const isBankAccountVerifying = reimbursementAccount?.achData?.state === CONST.BANK_ACCOUNT.STATE.VERIFYING;
     const startFrom = useMemo(() => (isBankAccountVerifying ? 0 : getInitialSubStepForBusinessInfo(values)), [values, isBankAccountVerifying]);
 
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const {
         componentToRender: SubStep,
         isEditing,
