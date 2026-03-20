@@ -16,12 +16,9 @@ import {searchInServer} from '@libs/actions/Report';
 import {search} from '@libs/actions/Search';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
-import shouldRevampSearchActionsBar from '@libs/shouldRevampSearchActionsBar';
 import CONST from '@src/CONST';
 import type SCREENS from '@src/SCREENS';
 import type {SearchResults} from '@src/types/onyx';
-import NewSearchPageNarrow from './NewSearchPageNarrow';
-import NewSearchPageWide from './NewSearchPageWide';
 import SearchPageNarrow from './SearchPageNarrow';
 import SearchPageWide from './SearchPageWide';
 
@@ -132,36 +129,6 @@ function SearchPage({route}: SearchPageProps) {
     const onSortPressedCallback = useCallback(() => {
         setIsSorting(true);
     }, []);
-
-    if (shouldRevampSearchActionsBar()) {
-        return (
-            <Animated.View style={[styles.flex1]}>
-                {shouldUseNarrowLayout ? (
-                    <NewSearchPageNarrow
-                        queryJSON={currentSearchQueryJSON}
-                        metadata={metadata}
-                        searchResults={searchResults}
-                        isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
-                        footerData={footerData}
-                        shouldShowFooter={shouldShowFooter}
-                        onSortPressedCallback={onSortPressedCallback}
-                    />
-                ) : (
-                    <NewSearchPageWide
-                        queryJSON={currentSearchQueryJSON}
-                        searchResults={searchResults}
-                        searchRequestResponseStatusCode={searchRequestResponseStatusCode}
-                        isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
-                        footerData={footerData}
-                        handleSearchAction={handleSearchAction}
-                        onSortPressedCallback={onSortPressedCallback}
-                        route={route}
-                        shouldShowFooter={shouldShowFooter}
-                    />
-                )}
-            </Animated.View>
-        );
-    }
 
     return (
         <Animated.View style={[styles.flex1]}>

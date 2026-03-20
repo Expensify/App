@@ -40,7 +40,7 @@ type SearchPageInputWideProps = {
     queryJSON: SearchQueryJSON;
     handleSearch: (value: string) => void;
 };
-
+// NOTE: This is intentionally unused for now. It will be wired up in https://github.com/Expensify/App/issues/84876
 function SearchPageInputWide({queryJSON, handleSearch}: SearchPageInputWideProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -249,8 +249,8 @@ function SearchPageInputWide({queryJSON, handleSearch}: SearchPageInputWideProps
                     value={textInputValue}
                     onSearchQueryChange={onSearchQueryChange}
                     isFullWidth
-                    inputContainerStyle={isAutocompleteListVisible ? styles.ph3 : styles.ph2}
-                    touchableInputWrapperStyle={isAutocompleteListVisible ? undefined : styles.searchPageInputTouchableWrapper}
+                    // inputContainerStyle={isAutocompleteListVisible ? styles.ph3 : styles.ph2}
+                    // touchableInputWrapperStyle={isAutocompleteListVisible ? undefined : styles.searchPageInputTouchableWrapper}
                     onSubmit={() => {
                         const focusedOption = listRef.current?.getFocusedOption();
                         if (focusedOption) {

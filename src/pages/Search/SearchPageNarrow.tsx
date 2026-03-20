@@ -250,7 +250,7 @@ function SearchPageNarrow({queryJSON, searchResults, isMobileSelectionModeEnable
                         <View style={[styles.flex1]}>
                             {shouldShowLoadingSkeleton ? (
                                 <SearchLoadingSkeleton
-                                    containerStyle={styles.searchListContentContainerStyles(false)}
+                                    containerStyle={styles.searchListContentContainerStyles}
                                     reasonAttributes={{
                                         context: 'SearchPage',
                                         isOffline,
@@ -268,7 +268,7 @@ function SearchPageNarrow({queryJSON, searchResults, isMobileSelectionModeEnable
                                     key={queryJSON.hash}
                                     queryJSON={queryJSON}
                                     onSearchListScroll={scrollHandler}
-                                    contentContainerStyle={!isMobileSelectionModeEnabled ? styles.searchListContentContainerStyles(false) : undefined}
+                                    contentContainerStyle={!isMobileSelectionModeEnabled ? styles.searchListContentContainerStyles : undefined}
                                     handleSearch={handleSearchAction}
                                     isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
                                     isSearchInputVisible={false}

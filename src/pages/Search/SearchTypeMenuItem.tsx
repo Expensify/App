@@ -28,17 +28,15 @@ type SearchTypeMenuItemProps = {
 
     /** Press handler */
     onPress: () => void;
-    onLayout?: (e: LayoutChangeEvent) => void;
 };
 
 /**
  * Menu item row for Search type menu
  */
-function SearchTypeMenuItem({title, icon, badgeText, focused = false, onPress, onLayout}: SearchTypeMenuItemProps) {
+function SearchTypeMenuItem({title, icon, badgeText, focused = false, onPress}: SearchTypeMenuItemProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const iconSize = shouldUseNarrowLayout ? variables.iconSizeSmall : variables.iconSizeNormal;
 
     return (
         <PressableWithoutFeedback
@@ -53,7 +51,6 @@ function SearchTypeMenuItem({title, icon, badgeText, focused = false, onPress, o
                 StyleUtils.getButtonBackgroundColorStyle(getButtonState(focused || hovered, pressed, false, false, true), true),
                 hovered && !focused && !pressed && styles.hoveredComponentBG,
             ]}
-            onLayout={onLayout}
         >
             {({hovered, pressed}) => (
                 <>
@@ -61,8 +58,8 @@ function SearchTypeMenuItem({title, icon, badgeText, focused = false, onPress, o
                         <View style={[styles.popoverMenuIcon, styles.wAuto]}>
                             <Icon
                                 src={icon}
-                                width={iconSize}
-                                height={iconSize}
+                                width={variables.iconSizeNormal}
+                                height={variables.iconSizeNormal}
                                 fill={StyleUtils.getIconFillColor(getButtonState(focused || hovered, pressed, false, false, true), true, true)}
                             />
                         </View>

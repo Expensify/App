@@ -22,6 +22,7 @@ type SearchActionsBarNarrowProps = {
     onSort: () => void;
 };
 
+// NOTE: This is intentionally unused for now. It will be wired up in https://github.com/Expensify/App/issues/84876
 function SearchActionsBarNarrow({queryJSON, isMobileSelectionModeEnabled, isSearchInputVisible, searchResults, onSearchButtonPress, onSort}: SearchActionsBarNarrowProps) {
     const {hasErrors, shouldShowActionsBarLoading, shouldShowSelectedDropdown, styles} = useSearchActionsBar(queryJSON, isMobileSelectionModeEnabled);
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['MagnifyingGlass']);

@@ -43,7 +43,7 @@ type SearchPageInputNarrowProps = {
     onSearchRouterFocus: () => void;
     handleSearch: (value: string) => void;
 };
-
+// NOTE: This is intentionally unused for now. It will be wired up in https://github.com/Expensify/App/issues/84876
 function SearchPageInputNarrow({queryJSON, searchRouterListVisible, hideSearchRouterList, onSearchRouterFocus, handleSearch}: SearchPageInputNarrowProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();

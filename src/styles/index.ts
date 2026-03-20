@@ -16,7 +16,6 @@ import {ACTIVE_LABEL_SCALE} from '@components/TextInput/styleConst';
 import {animatedReceiptPaneRHPWidth, animatedSuperWideRHPWidth, animatedWideRHPWidth} from '@components/WideRHPContextProvider';
 import {getBrowser, isMobile, isMobileSafari, isSafari} from '@libs/Browser';
 import getPlatform from '@libs/getPlatform';
-import shouldRevampSearchActionsBar from '@libs/shouldRevampSearchActionsBar';
 import CONST from '@src/CONST';
 import type {Dimensions} from '@src/types/utils/Layout';
 import {defaultTheme} from './theme';
@@ -3488,6 +3487,10 @@ const staticStyles = (theme: ThemeColors) =>
             height: 16,
         },
 
+        searchListContentContainerStyles: {
+            paddingTop: variables.searchListContentMarginTop,
+        },
+
         searchListHeaderContainerStyle: {
             width: '100%',
             flexDirection: 'row',
@@ -4764,12 +4767,6 @@ const staticStyles = (theme: ThemeColors) =>
 
         listTableHeader: {
             paddingVertical: 12,
-            paddingHorizontal: 32,
-        },
-
-        newListTableHeader: {
-            paddingTop: 4,
-            paddingBottom: 4,
             paddingHorizontal: 32,
         },
 
@@ -6216,15 +6213,6 @@ const dynamicStyles = (theme: ThemeColors) =>
             maxWidth: shouldUseNarrowLayout ? '100%' : 300,
         }),
 
-        searchListContentContainerStyles: (isSearchInputVisible) => {
-            if (shouldRevampSearchActionsBar()) {
-                return {
-                    paddingTop: isSearchInputVisible ? variables.searchListContentWithInputMarginTop : variables.newSearchListContentMarginTop,
-                };
-            }
-            return {paddingTop: variables.searchListContentMarginTop};
-        },
-
         getForYouSectionContainerStyle: (shouldUseNarrowLayout: boolean): ViewStyle => ({
             flexDirection: 'column',
             marginBottom: shouldUseNarrowLayout ? 8 : 20,
@@ -6310,9 +6298,9 @@ const dynamicStyles = (theme: ThemeColors) =>
         getEmptyStateCompanyCardsIllustration: (shouldUseNarrowLayout: boolean) => (shouldUseNarrowLayout ? {width: 680, height: 220} : {}),
 
         sectionMenuItem: (shouldUseNarrowLayout: boolean) => ({
-            borderRadius: shouldUseNarrowLayout ? variables.buttonBorderRadius : 8,
-            paddingHorizontal: shouldUseNarrowLayout ? 12 : 16,
-            paddingVertical: 10,
+            borderRadius: 8,
+            paddingHorizontal: 16,
+            paddingVertical: shouldUseNarrowLayout ? 8 : 4,
             height: shouldUseNarrowLayout ? variables.sectionMenuItemHeight : variables.sectionMenuItemHeightCompact,
             alignItems: 'center',
         }),

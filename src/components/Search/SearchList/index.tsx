@@ -49,7 +49,6 @@ import {turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import DateUtils from '@libs/DateUtils';
 import navigationRef from '@libs/Navigation/navigationRef';
 import {applySelectionToItem, getTableMinWidth} from '@libs/SearchUIUtils';
-import shouldRevampSearchActionsBar from '@libs/shouldRevampSearchActionsBar';
 import variables from '@styles/variables';
 import type {TransactionPreviewData} from '@userActions/Search';
 import CONST from '@src/CONST';
@@ -501,11 +500,10 @@ function SearchList({
     const selectAllButtonVisible = canSelectMultiple && !SearchTableHeader;
     const isSelectAllChecked = selectedItemsLength > 0 && selectedItemsLength === totalItems && hasLoadedAllTransactions;
 
-    const shouldRevamp = shouldRevampSearchActionsBar();
     const content = (
-        <View style={[styles.flex1, !isKeyboardShown && safeAreaPaddingBottomStyle, shouldRevamp && styles.gap2, containerStyle]}>
+        <View style={[styles.flex1, !isKeyboardShown && safeAreaPaddingBottomStyle, containerStyle]}>
             {tableHeaderVisible && (
-                <View style={[styles.searchListHeaderContainerStyle, shouldRevamp ? styles.newListTableHeader : styles.listTableHeader]}>
+                <View style={[styles.searchListHeaderContainerStyle]}>
                     {canSelectMultiple && (
                         <Checkbox
                             accessibilityLabel={translate('accessibilityHints.selectAllItems')}

@@ -152,7 +152,7 @@ const CHART_VIEW_TO_COMPONENT: Record<ChartView, React.ComponentType<SearchChart
  * Layer 3 component - dispatches to the appropriate chart type based on view parameter
  * and handles navigation/drill-down logic
  */
-function SearchChartView({queryJSON, view, groupBy, data, isLoading, isSearchInputVisible, onScroll, onLayout, title}: SearchChartViewProps) {
+function SearchChartView({queryJSON, view, groupBy, data, isLoading, onScroll, onLayout, title}: SearchChartViewProps) {
     const styles = useThemeStyles();
     const {preferredLocale} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -194,7 +194,7 @@ function SearchChartView({queryJSON, view, groupBy, data, isLoading, isSearchInp
             onLayout={onLayout}
             scrollEventThrottle={CONST.TIMING.MIN_SMOOTH_SCROLL_EVENT_THROTTLE}
         >
-            <View style={[shouldUseNarrowLayout ? styles.searchListContentContainerStyles(isSearchInputVisible) : styles.mt3, styles.mh4, styles.mb4, styles.flex1]}>
+            <View style={[shouldUseNarrowLayout ? styles.searchListContentContainerStyles : styles.mt3, styles.mh4, styles.mb4, styles.flex1]}>
                 <ChartComponent
                     data={data}
                     title={title}
