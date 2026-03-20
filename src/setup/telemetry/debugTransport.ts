@@ -167,15 +167,20 @@ function processEnvelopeItems(items: unknown[]): void {
 }
 
 function makeDebugTransport(options: BaseTransportOptions): Transport {
-    const makeRequest: TransportRequestExecutor = (request: TransportRequest) => {
+    const makeRequest: TransportRequestExecutor = async (request: TransportRequest) => {
         if (isSentryDebugEnabled) {
             const items = parseEnvelopeBody(request.body);
             processEnvelopeItems(items);
         }
 
-        return Promise.resolve({
-            statusCode: 200,
+        const CONTENT_TYPE_HEADER = 'Content-Type';
+        const response = await fetch(options.url, {
+            method: 'POST',
+            headers: {[CONTENT_TYPE_HEADER]: 'application/x-sentry-envelope', ...options.headers},
+            body: typeof request.body === 'string' ? request.body : new TextDecoder().decode(request.body),
         });
+
+        return {statusCode: response.status};
     };
 
     return createTransport(options, makeRequest);

@@ -1,10 +1,11 @@
-import React, {createContext, useCallback, useContext, useEffect, useMemo} from 'react';
+import React, {createContext, useCallback, useContext, useEffect, useMemo, useRef} from 'react';
 import type {ReactNode} from 'react';
 import Onyx from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {MultifactorAuthenticationScenario, MultifactorAuthenticationScenarioParams} from '@components/MultifactorAuthentication/config/types';
 import addMFABreadcrumb from '@components/MultifactorAuthentication/observability/breadcrumbs';
 import trackMFAFlowOutcome from '@components/MultifactorAuthentication/observability/trackMFAFlowOutcome';
+import type {CredentialsState} from '@components/MultifactorAuthentication/observability/trackMFAFlowOutcome';
 import useNetwork from '@hooks/useNetwork';
 import {requestValidateCodeAction} from '@libs/actions/User';
 import getPlatform from '@libs/getPlatform';
@@ -75,6 +76,17 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
     const platform = getPlatform();
     const isWeb = useMemo(() => platform === CONST.PLATFORM.WEB || platform === CONST.PLATFORM.MOBILE_WEB, [platform]);
 
+    const startStateRef = useRef<CredentialsState | undefined>(undefined);
+
+    const captureCredentialsState = useCallback(async (): Promise<CredentialsState> => {
+        const hasLocalCredentials = await biometrics.areLocalCredentialsKnownToServer();
+        return {
+            hasServerCredentials: biometrics.serverKnownCredentialIDs.length > 0,
+            hasLocalCredentials,
+            hasEverAcceptedSoftPrompt: !!deviceBiometricsState?.hasAcceptedSoftPrompt,
+        };
+    }, [biometrics]);
+
     /**
      * Handles the completion of a multifactor authentication scenario.
      * Invokes the scenario's callback function and navigates to the appropriate outcome screen.
@@ -111,6 +123,8 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
                 message: scenarioResponse?.message ?? error?.message,
             });
 
+            const endState = await captureCredentialsState();
+
             trackMFAFlowOutcome({
                 isSuccessful,
                 scenario: state.scenarioName,
@@ -120,6 +134,8 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
                 isRegistrationComplete: state.isRegistrationComplete,
                 isAuthorizationComplete: state.isAuthorizationComplete,
                 softPromptApproved: state.softPromptApproved,
+                startState: startStateRef.current ?? endState,
+                endState,
             });
 
             // If the callback returns SKIP_OUTCOME_SCREEN, the callback handles navigation itself
@@ -136,7 +152,7 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
 
             dispatch({type: 'SET_FLOW_COMPLETE', payload: true});
         },
-        [dispatch, state],
+        [captureCredentialsState, dispatch, state],
     );
 
     /**
@@ -505,13 +521,15 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
      */
     const executeScenario = useCallback(
         async <T extends MultifactorAuthenticationScenario>(scenario: T, params?: ExecuteScenarioParams<T>): Promise<void> => {
+            startStateRef.current = await captureCredentialsState();
+
             addMFABreadcrumb('Flow started', {
                 scenario,
                 hasPayload: params !== undefined && Object.keys(params).length > 0,
                 platform,
                 isOffline,
-                hasAcceptedSoftPrompt: !!deviceBiometricsState?.hasAcceptedSoftPrompt,
-                serverHasAnyCredentials: biometrics.serverKnownCredentialIDs.length > 0,
+                hasAcceptedSoftPrompt: startStateRef.current.hasEverAcceptedSoftPrompt,
+                serverHasAnyCredentials: startStateRef.current.hasServerCredentials,
             });
             dispatch({
                 type: 'INIT',
@@ -521,7 +539,7 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
                 },
             });
         },
-        [biometrics.serverKnownCredentialIDs, dispatch, isOffline, platform],
+        [captureCredentialsState, dispatch, isOffline, platform],
     );
 
     /**

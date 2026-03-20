@@ -2,7 +2,9 @@ import * as Sentry from '@sentry/react-native';
 
 type SentryLogLevel = 'debug' | 'info' | 'warn' | 'error';
 
-const PARAMETERS_WHITELIST = new Set(['timestamp', 'error', 'command', 'isSupportAuthTokenUsed']);
+const PARAMETERS_WHITELIST = new Set(['timestamp', 'error', 'command', 'isSupportAuthTokenUsed', 'mfa']);
+
+const FORWARDED_LOG_PREFIXES = ['[Reauthenticate]', '[MFA]'] as const;
 
 /**
  * Method deciding whether a log packet should be forwarded to Sentry.
@@ -13,10 +15,7 @@ const PARAMETERS_WHITELIST = new Set(['timestamp', 'error', 'command', 'isSuppor
  */
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 function shouldForwardLog(log: {message?: string; parameters?: Record<string, unknown> | undefined}) {
-    if (log.message?.includes('[Reauthenticate]')) {
-        return true;
-    }
-    return false;
+    return FORWARDED_LOG_PREFIXES.some((prefix) => log.message?.includes(prefix));
 }
 
 function mapLogMessageToSentryLevel(message: string): SentryLogLevel {
@@ -32,12 +31,35 @@ function mapLogMessageToSentryLevel(message: string): SentryLogLevel {
     return 'debug';
 }
 
-function filterParameters(parameters: Record<string, unknown> | undefined) {
+function isPlainObject(value: unknown): value is Record<string, unknown> {
+    return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+function filterWhitelistedParameters(parameters: Record<string, unknown>): Record<string, unknown> {
+    return Object.fromEntries(Object.entries(parameters).filter(([key]) => PARAMETERS_WHITELIST.has(key)));
+}
+
+function flattenNestedParameters(parameters: Record<string, unknown>, prefix = ''): Record<string, unknown> {
+    const result: Record<string, unknown> = {};
+
+    for (const [key, value] of Object.entries(parameters)) {
+        const fullKey = prefix ? `${prefix}.${key}` : key;
+        if (isPlainObject(value)) {
+            Object.assign(result, flattenNestedParameters(value, fullKey));
+        } else {
+            result[fullKey] = value;
+        }
+    }
+
+    return result;
+}
+
+function prepareParametersForSentry(parameters: Record<string, unknown> | undefined): Record<string, unknown> | undefined {
     if (!parameters) {
         return undefined;
     }
 
-    return Object.fromEntries(Object.entries(parameters).filter(([key]) => PARAMETERS_WHITELIST.has(key)));
+    return flattenNestedParameters(filterWhitelistedParameters(parameters));
 }
 
 function forwardLogsToSentry(logPacket: string | undefined) {
@@ -72,7 +94,7 @@ function forwardLogsToSentry(logPacket: string | undefined) {
         }
 
         if (logLine.parameters) {
-            logMethod(logLine.message, filterParameters(logLine.parameters));
+            logMethod(logLine.message, prepareParametersForSentry(logLine.parameters));
         } else {
             logMethod(logLine.message);
         }
