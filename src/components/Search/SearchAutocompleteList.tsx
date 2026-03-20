@@ -453,7 +453,7 @@ function SearchAutocompleteList({
     const reasonAttributes: SkeletonSpanReasonAttributes = {
         context: 'SearchAutocompleteList',
         isRecentSearchesDataLoaded,
-        areOptionsInitialized: !isLoading,
+        isLoading,
     };
 
     if (isLoadingFullData) {
