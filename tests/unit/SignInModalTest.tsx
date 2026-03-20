@@ -36,6 +36,7 @@ jest.mock('@libs/Navigation/Navigation', () => ({
 
 jest.mock('@libs/Browser', () => ({
     isMobileSafari: jest.fn(() => false),
+    isSafari: jest.fn(() => false),
 }));
 
 jest.mock('@hooks/useAndroidBackButtonHandler', () => jest.fn());
