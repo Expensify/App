@@ -13213,11 +13213,13 @@ function updateMultipleMoneyRequests({transactionIDs, changes, policy, reports, 
         // Offline-created expenses can be missing a transaction thread until it's opened once.
         // Ensure the thread exists before adding optimistic MODIFIED_EXPENSE actions so
         // bulk-edit comments are visible immediately while still offline.
+        let didCreateThreadInThisIteration = false;
         if (!transactionThreadReportID && iouReport?.reportID) {
             const optimisticTransactionThread = createTransactionThreadReport(undefined, currentUserEmail, userAccountID, iouReport, reportAction, transaction);
             if (optimisticTransactionThread?.reportID) {
                 transactionThreadReportID = optimisticTransactionThread.reportID;
                 transactionThread = optimisticTransactionThread;
+                didCreateThreadInThisIteration = true;
             }
         }
 
@@ -13483,10 +13485,23 @@ function updateMultipleMoneyRequests({transactionIDs, changes, policy, reports, 
 
         // Optimistic report action
         if (transactionThreadReportID) {
+            // Backfill a CREATED action for threads never opened locally so
+            // MoneyRequestView renders and the skeleton doesn't loop offline.
+            // Skip when the thread was just created above (openReport handles it).
+            const threadReportActions = reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`] ?? {};
+            const hasCreatedAction = didCreateThreadInThisIteration || Object.values(threadReportActions).some((action) => action?.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED);
+            const optimisticCreatedValue: Record<string, Partial<OnyxTypes.ReportAction>> = {};
+            if (!hasCreatedAction) {
+                const optimisticCreatedAction = buildOptimisticCreatedReportAction(CONST.REPORT.OWNER_EMAIL_FAKE);
+                optimisticCreatedAction.pendingAction = null;
+                optimisticCreatedValue[optimisticCreatedAction.reportActionID] = optimisticCreatedAction;
+            }
+
             optimisticData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`,
                 value: {
+                    ...optimisticCreatedValue,
                     [modifiedExpenseReportActionID]: {
                         ...optimisticReportAction,
                         reportActionID: modifiedExpenseReportActionID,
