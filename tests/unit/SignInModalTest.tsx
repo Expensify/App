@@ -1,4 +1,7 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import {render} from '@testing-library/react-native';
+import React from 'react';
+import type {View as RNView} from 'react-native';
 import Onyx from 'react-native-onyx';
 // eslint-disable-next-line rulesdir/no-inline-named-export
 import SignInModal from '@pages/signin/SignInModal';
@@ -22,6 +25,7 @@ jest.mock('@libs/Network/SequentialQueue', () => ({
 }));
 
 jest.mock('@libs/Navigation/Navigation', () => ({
+    // eslint-disable-next-line @typescript-eslint/naming-convention -- __esModule is required by Jest to properly mock ES modules with default exports
     __esModule: true,
     default: {
         dismissModal: (...args: unknown[]) => mockDismissModal(...args),
@@ -37,12 +41,12 @@ jest.mock('@libs/Browser', () => ({
 jest.mock('@hooks/useAndroidBackButtonHandler', () => jest.fn());
 
 jest.mock('@pages/signin/SignInPage', () => {
-    // eslint-disable-next-line @typescript-eslint/no-var-requires, rulesdir/no-inline-named-export
-    const React = require('react');
-    const {View} = require('react-native');
-    const MockSignInPage = React.forwardRef((_props: object, _ref: React.Ref<unknown>) => <View testID="MockSignInPage" />);
+    const MockReact = require('react') as typeof React;
+    const {View} = require('react-native') as {View: typeof RNView};
+    const MockSignInPage = MockReact.forwardRef((_, ref: React.Ref<unknown>) => MockReact.createElement(View, {testID: 'MockSignInPage', ref}));
     MockSignInPage.displayName = 'MockSignInPage';
     return {
+        // eslint-disable-next-line @typescript-eslint/naming-convention -- __esModule is required by Jest to properly mock ES modules with default exports
         __esModule: true,
         default: MockSignInPage,
         SignInPage: MockSignInPage,
@@ -50,13 +54,15 @@ jest.mock('@pages/signin/SignInPage', () => {
 });
 
 jest.mock('@components/HeaderWithBackButton', () => {
-    const {View} = require('react-native');
-    return () => <View testID="MockHeaderWithBackButton" />;
+    const MockReact = require('react') as typeof React;
+    const {View} = require('react-native') as {View: typeof RNView};
+    return () => MockReact.createElement(View, {testID: 'MockHeaderWithBackButton'});
 });
 
 jest.mock('@components/ScreenWrapper', () => {
-    const {View} = require('react-native');
-    return ({children}: {children: React.ReactNode}) => <View testID="MockScreenWrapper">{children}</View>;
+    const MockReact = require('react') as typeof React;
+    const {View} = require('react-native') as {View: typeof RNView};
+    return ({children}: {children: React.ReactNode}) => MockReact.createElement(View, {testID: 'MockScreenWrapper'}, children);
 });
 
 describe('SignInModal', () => {
