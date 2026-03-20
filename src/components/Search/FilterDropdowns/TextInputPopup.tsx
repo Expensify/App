@@ -8,7 +8,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 
-type SingleSelectPopupProps = {
+type TextInputPopupProps = {
     style?: StyleProp<ViewStyle>;
     defaultValue: string;
     placeholder?: string;
@@ -16,7 +16,7 @@ type SingleSelectPopupProps = {
     onChange: (value: string) => void;
 };
 
-function TextInputPopup({style, defaultValue, placeholder, closeOverlay, onChange}: SingleSelectPopupProps) {
+function TextInputPopup({style, defaultValue, placeholder, closeOverlay, onChange}: TextInputPopupProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
