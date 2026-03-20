@@ -1,6 +1,7 @@
 import {hasSeenTourSelector} from '@selectors/Onboarding';
 import {useEffect, useRef} from 'react';
 import {useInitialURLActions, useInitialURLState} from '@components/InitialURLContextProvider';
+import useHasActiveAdminPolicies from '@hooks/useHasActiveAdminPolicies';
 import useOnyx from '@hooks/useOnyx';
 import {init, isClientTheLeader} from '@libs/ActiveClientManager';
 import Log from '@libs/Log';
@@ -48,6 +49,7 @@ function AuthScreensInitHandler() {
     const delegatorEmail = getSearchParamFromUrl(currentUrl, 'delegatorEmail');
     const {initialURL, isAuthenticatedAtStartup} = useInitialURLState();
     const {setIsAuthenticatedAtStartup} = useInitialURLActions();
+    const hasActiveAdminPolicies = useHasActiveAdminPolicies();
 
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
@@ -133,7 +135,7 @@ function AuthScreensInitHandler() {
             App.reconnectApp(initialLastUpdateIDAppliedToClient);
         }
 
-        App.setUpPoliciesAndNavigate(session, introSelected, activePolicyID, isSelfTourViewed);
+        App.setUpPoliciesAndNavigate(session, introSelected, activePolicyID, isSelfTourViewed, hasActiveAdminPolicies);
 
         Download.clearDownloads();
 
