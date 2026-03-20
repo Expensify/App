@@ -22,6 +22,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import todosReportCountsSelector from '@src/selectors/Todos';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import SavedSearchList from './SavedSearchList';
 import SearchTypeMenuItem from './SearchTypeMenuItem';
 import SuggestedSearchSkeleton from './SuggestedSearchSkeleton';
@@ -53,7 +54,7 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
         'Folder',
     ] as const);
     const {clearSelectedTransactions} = useSearchActionsContext();
-    const [isSearchDataLoaded] = useOnyx(ONYXKEYS.IS_SEARCH_PAGE_DATA_LOADED);
+    const [isSearchDataLoaded, isSearchDataLoadedResult] = useOnyx(ONYXKEYS.IS_SEARCH_PAGE_DATA_LOADED);
     const [reportCounts = CONST.EMPTY_TODOS_REPORT_COUNTS] = useOnyx(ONYXKEYS.DERIVED.TODOS, {selector: todosReportCountsSelector});
 
     const route = useRoute();
@@ -90,7 +91,7 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
         Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: searchQuery}));
     });
 
-    const areSuggestedSearchesLoading = !isSearchDataLoaded && !isOffline;
+    const areSuggestedSearchesLoading = !isOffline && !isSearchDataLoaded && !isLoadingOnyxValue(isSearchDataLoadedResult);
 
     return (
         <ScrollView
