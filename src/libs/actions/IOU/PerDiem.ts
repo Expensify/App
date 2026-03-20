@@ -235,6 +235,7 @@ type PerDiemExpenseInformation = {
     policyParams?: BasePolicyParams;
     recentlyUsedParams?: RecentlyUsedParams;
     transactionParams: PerDiemExpenseTransactionParams;
+    existingIOUReport?: OnyxEntry<OnyxTypes.Report>;
     isASAPSubmitBetaEnabled: boolean;
     currentUserAccountIDParam: number;
     currentUserEmailParam: string;
@@ -245,6 +246,8 @@ type PerDiemExpenseInformation = {
     customUnitPolicyID?: string;
     personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
     shouldHandleNavigation?: boolean;
+    shouldPlaySound?: boolean;
+    optimisticReportPreviewActionID?: string;
 };
 
 type PerDiemExpenseInformationParams = {
@@ -253,6 +256,7 @@ type PerDiemExpenseInformationParams = {
     participantParams: RequestMoneyParticipantParams;
     policyParams?: BasePolicyParams;
     recentlyUsedParams?: RecentlyUsedParams;
+    existingIOUReport?: OnyxEntry<OnyxTypes.Report>;
     moneyRequestReportID?: string;
     isASAPSubmitBetaEnabled: boolean;
     currentUserAccountIDParam: number;
@@ -261,6 +265,7 @@ type PerDiemExpenseInformationParams = {
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
     policyRecentlyUsedCurrencies: string[];
     betas: OnyxEntry<OnyxTypes.Beta[]>;
+    optimisticReportPreviewActionID?: string;
     personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
 };
 
@@ -299,6 +304,7 @@ function getPerDiemExpenseInformation(perDiemExpenseInformation: PerDiemExpenseI
         participantParams,
         policyParams = {},
         recentlyUsedParams = {},
+        existingIOUReport: existingIOUReportParam,
         moneyRequestReportID = '',
         isASAPSubmitBetaEnabled,
         currentUserAccountIDParam,
@@ -307,6 +313,7 @@ function getPerDiemExpenseInformation(perDiemExpenseInformation: PerDiemExpenseI
         quickAction,
         policyRecentlyUsedCurrencies,
         betas,
+        optimisticReportPreviewActionID,
         personalDetails,
     } = perDiemExpenseInformation;
     const {payeeAccountID = getUserAccountID(), payeeEmail = getCurrentUserEmail(), participant} = participantParams;
@@ -348,10 +355,12 @@ function getPerDiemExpenseInformation(perDiemExpenseInformation: PerDiemExpenseI
         });
     }
 
-    // STEP 2: Get the Expense/IOU report. If the moneyRequestReportID has been provided, we want to add the transaction to this specific report.
+    // STEP 2: Get the Expense/IOU report. If the existingIOUReport or moneyRequestReportID has been provided, we want to add the transaction to this specific report.
     // If no such reportID has been provided, let's use the chatReport.iouReportID property. In case that is not present, build a new optimistic Expense/IOU report.
     let iouReport: OnyxInputValue<OnyxTypes.Report> = null;
-    if (moneyRequestReportID) {
+    if (existingIOUReportParam) {
+        iouReport = existingIOUReportParam;
+    } else if (moneyRequestReportID) {
         iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${moneyRequestReportID}`] ?? null;
     } else {
         iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${chatReport.iouReportID}`] ?? null;
@@ -454,7 +463,7 @@ function getPerDiemExpenseInformation(perDiemExpenseInformation: PerDiemExpenseI
     if (reportPreviewAction) {
         reportPreviewAction = updateReportPreview(iouReport, reportPreviewAction, false, comment, optimisticTransaction);
     } else {
-        reportPreviewAction = buildOptimisticReportPreview(chatReport, iouReport, comment, optimisticTransaction);
+        reportPreviewAction = buildOptimisticReportPreview(chatReport, iouReport, comment, optimisticTransaction, undefined, optimisticReportPreviewActionID);
         chatReport.lastVisibleActionCreated = reportPreviewAction.created;
 
         // Generated ReportPreview action is a parent report action of the iou report.
@@ -881,6 +890,7 @@ function submitPerDiemExpense(submitPerDiemExpenseInformation: PerDiemExpenseInf
         policyParams = {},
         recentlyUsedParams = {},
         transactionParams,
+        existingIOUReport,
         isASAPSubmitBetaEnabled,
         currentUserAccountIDParam,
         currentUserEmailParam,
@@ -891,6 +901,8 @@ function submitPerDiemExpense(submitPerDiemExpenseInformation: PerDiemExpenseInf
         customUnitPolicyID,
         personalDetails,
         shouldHandleNavigation = true,
+        shouldPlaySound: shouldPlaySoundParam = true,
+        optimisticReportPreviewActionID,
     } = submitPerDiemExpenseInformation;
     const {payeeAccountID} = participantParams;
     const {currency, comment = '', category, tag, created, customUnit, attendees, isFromGlobalCreate} = transactionParams;
@@ -930,6 +942,7 @@ function submitPerDiemExpense(submitPerDiemExpenseInformation: PerDiemExpenseInf
         policyParams,
         recentlyUsedParams,
         transactionParams,
+        existingIOUReport,
         moneyRequestReportID,
         isASAPSubmitBetaEnabled,
         currentUserAccountIDParam,
@@ -938,6 +951,7 @@ function submitPerDiemExpense(submitPerDiemExpenseInformation: PerDiemExpenseInf
         quickAction,
         policyRecentlyUsedCurrencies,
         betas,
+        optimisticReportPreviewActionID,
         personalDetails,
     });
 
@@ -978,7 +992,9 @@ function submitPerDiemExpense(submitPerDiemExpenseInformation: PerDiemExpenseInf
         customUnitPolicyID,
     };
 
-    playSound(SOUNDS.DONE);
+    if (shouldPlaySoundParam) {
+        playSound(SOUNDS.DONE);
+    }
     API.write(WRITE_COMMANDS.CREATE_PER_DIEM_REQUEST, parameters, onyxData);
 
     // eslint-disable-next-line @typescript-eslint/no-deprecated
@@ -988,6 +1004,8 @@ function submitPerDiemExpense(submitPerDiemExpenseInformation: PerDiemExpenseInf
     if (activeReportID) {
         notifyNewAction(activeReportID, undefined, payeeAccountID === currentUserAccountIDParam);
     }
+
+    return {iouReport};
 }
 
 /**

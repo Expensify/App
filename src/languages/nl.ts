@@ -452,6 +452,8 @@ const translations: TranslationDeepObject<typeof en> = {
         downloadAsCSV: 'Downloaden als CSV',
         print: 'Afdrukken',
         help: 'Help',
+        collapsed: 'Ingeklapt',
+        expanded: 'Uitgeklapt',
         expenseReport: 'Declaratie',
         expenseReports: 'Declaraties',
         rateOutOfPolicy: 'Tarief buiten beleid',
@@ -524,6 +526,7 @@ const translations: TranslationDeepObject<typeof en> = {
         concierge: {sidePanelGreeting: 'Hoi, waarmee kan ik je helpen?', showHistory: 'Geschiedenis weergeven'},
         duplicateReport: 'Dubbel rapport',
         approver: 'Fiatteur',
+        copyOfReportName: (reportName: string) => `Kopie van ${reportName}`,
     },
     socials: {
         podcast: 'Volg ons op Podcast',
