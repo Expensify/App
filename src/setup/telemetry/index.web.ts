@@ -1,3 +1,4 @@
+import Log from '@libs/Log';
 import {startSpan} from '@libs/telemetry/activeSpans';
 import CONST from '@src/CONST';
 import reportModuleInitTimes from './reportModuleInitTimes';
@@ -25,8 +26,9 @@ export default function (): void {
             .then((moduleNames) => {
                 reportModuleInitTimes(initTimes, moduleNames, 1);
             })
-            .catch(() => {
+            .catch((error: unknown) => {
                 // Map unavailable (e.g. Storybook, local dev without asset) — fall back to numeric IDs.
+                Log.warn('[Telemetry] Failed to fetch module-names.json, falling back to numeric IDs', {error});
                 reportModuleInitTimes(initTimes, undefined, 1);
             });
     });
