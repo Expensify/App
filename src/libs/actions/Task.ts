@@ -222,6 +222,8 @@ function createTaskAndNavigate(params: CreateTaskAndNavigateParams) {
             parentReportID,
             title,
             assigneeChatReport,
+            currentUserEmail,
+            currentUserAccountID,
         );
 
         optimisticData.push(...assigneeChatReportOnyxData.optimisticData);
@@ -719,6 +721,7 @@ function editTaskAssignee(
     parentReport: OnyxEntry<OnyxTypes.Report>,
     sessionAccountID: number,
     assigneeEmail: string,
+    currentUserEmail: string,
     currentUserAccountID: number,
     hasOutstandingChildTask: boolean,
     assigneeAccountID: number | null = 0,
@@ -839,6 +842,8 @@ function editTaskAssignee(
             report.parentReportID,
             reportName ?? '',
             assigneeChatReport,
+            currentUserEmail,
+            currentUserAccountID,
             isOptimisticReport,
         );
 
