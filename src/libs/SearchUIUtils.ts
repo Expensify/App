@@ -157,6 +157,7 @@ import {
     isPending,
     isScanning,
     isViolationDismissed,
+    shouldShowAttendees,
 } from './TransactionUtils';
 import {isInvalidMerchantValue} from './ValidationUtils';
 import ViolationsUtils from './Violations/ViolationsUtils';
@@ -4236,18 +4237,31 @@ function getActionOptions(translate: LocaleContextProps['translate']) {
  * @param isExpenseReportView: true when we are inside an expense report view, false if we're in the Reports page.
  * @returns An ordered array of visible column IDs
  */
-function getColumnsToShow(
-    currentAccountID: number | undefined,
-    data: OnyxTypes.SearchResults['data'] | OnyxTypes.Transaction[],
-    visibleColumns: SearchCustomColumnIds[] = [],
+function getColumnsToShow({
+    currentAccountID,
+    data,
+    visibleColumns = [],
     isExpenseReportView = false,
-    type?: SearchDataTypes,
-    groupBy?: SearchGroupBy,
+    type,
+    groupBy,
     isExpenseReportViewFromIOUReport = false,
     shouldShowBillableColumn = false,
     shouldShowReimbursableColumn = false,
     shouldUseStrictDefaultExpenseColumns = false,
-): SearchColumnType[] {
+    policy,
+}: {
+    currentAccountID: number | undefined;
+    data: OnyxTypes.SearchResults['data'] | OnyxTypes.Transaction[];
+    visibleColumns?: SearchCustomColumnIds[];
+    isExpenseReportView?: boolean;
+    type?: SearchDataTypes;
+    groupBy?: SearchGroupBy;
+    isExpenseReportViewFromIOUReport?: boolean;
+    shouldShowBillableColumn?: boolean;
+    shouldShowReimbursableColumn?: boolean;
+    shouldUseStrictDefaultExpenseColumns?: boolean;
+    policy?: OnyxTypes.Policy;
+}): SearchColumnType[] {
     if (type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT) {
         const defaultReportColumns: SearchColumnType[] = [
             CONST.SEARCH.TABLE_COLUMNS.AVATAR,
@@ -4355,8 +4369,8 @@ function getColumnsToShow(
               [CONST.SEARCH.TABLE_COLUMNS.MERCHANT]: false,
               [CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION]: false,
               [CONST.SEARCH.TABLE_COLUMNS.CATEGORY]: false,
-              [CONST.SEARCH.TABLE_COLUMNS.ATTENDEES]: true,
-              [CONST.SEARCH.TABLE_COLUMNS.TOTAL_PER_ATTENDEE]: true,
+              [CONST.SEARCH.TABLE_COLUMNS.ATTENDEES]: false,
+              [CONST.SEARCH.TABLE_COLUMNS.TOTAL_PER_ATTENDEE]: false,
               [CONST.SEARCH.TABLE_COLUMNS.TAG]: false,
               [CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE]: shouldShowReimbursableColumn,
               [CONST.SEARCH.TABLE_COLUMNS.BILLABLE]: shouldShowBillableColumn,
@@ -4379,8 +4393,8 @@ function getColumnsToShow(
               [CONST.SEARCH.TABLE_COLUMNS.POLICY_NAME]: false,
               [CONST.SEARCH.TABLE_COLUMNS.CARD]: false,
               [CONST.SEARCH.TABLE_COLUMNS.CATEGORY]: false,
-              [CONST.SEARCH.TABLE_COLUMNS.ATTENDEES]: true,
-              [CONST.SEARCH.TABLE_COLUMNS.TOTAL_PER_ATTENDEE]: true,
+              [CONST.SEARCH.TABLE_COLUMNS.ATTENDEES]: false,
+              [CONST.SEARCH.TABLE_COLUMNS.TOTAL_PER_ATTENDEE]: false,
               [CONST.SEARCH.TABLE_COLUMNS.TAG]: false,
               [CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE]: false,
               [CONST.SEARCH.TABLE_COLUMNS.BILLABLE]: false,
@@ -4489,8 +4503,18 @@ function getColumnsToShow(
         for (const item of data) {
             updateColumns(item);
         }
+        if (shouldShowAttendees(CONST.IOU.TYPE.SUBMIT, policy)) {
+            columns[CONST.SEARCH.TABLE_COLUMNS.ATTENDEES] = true;
+            columns[CONST.SEARCH.TABLE_COLUMNS.TOTAL_PER_ATTENDEE] = true;
+        }
     } else {
         for (const key of Object.keys(data)) {
+            if (isPolicyEntry(key)) {
+                if (shouldShowAttendees(CONST.IOU.TYPE.SUBMIT, data[key])) {
+                    columns[CONST.SEARCH.TABLE_COLUMNS.ATTENDEES] = true;
+                    columns[CONST.SEARCH.TABLE_COLUMNS.TOTAL_PER_ATTENDEE] = true;
+                }
+            }
             if (!isTransactionEntry(key)) {
                 continue;
             }
