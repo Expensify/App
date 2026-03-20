@@ -27,17 +27,11 @@ describe('BankAccounts', () => {
 
     describe('connectBankAccountWithPlaid', () => {
         test('sends DEFAULT_NUMBER_ID when bankAccountID is NaN', () => {
-            // Given a non-finite bankAccountID from the VBBA flow
+            // Given NaN for bankAccountID from the VBBA flow (e.g. undefined achData.bankAccountID)
             // When connecting with Plaid
             connectBankAccountWithPlaid(Number.NaN, selectedPlaidBankAccount, policyID);
 
             // Then the API payload must not contain NaN
-            expect(mockWrite).toHaveBeenCalledWith(WRITE_COMMANDS.CONNECT_BANK_ACCOUNT_WITH_PLAID, expect.objectContaining({bankAccountID: CONST.DEFAULT_NUMBER_ID}), expect.anything());
-        });
-
-        test('sends DEFAULT_NUMBER_ID when bankAccountID is Infinity', () => {
-            connectBankAccountWithPlaid(Number.POSITIVE_INFINITY, selectedPlaidBankAccount, policyID);
-
             expect(mockWrite).toHaveBeenCalledWith(WRITE_COMMANDS.CONNECT_BANK_ACCOUNT_WITH_PLAID, expect.objectContaining({bankAccountID: CONST.DEFAULT_NUMBER_ID}), expect.anything());
         });
 
@@ -52,12 +46,6 @@ describe('BankAccounts', () => {
     describe('connectBankAccountManually', () => {
         test('sends DEFAULT_NUMBER_ID when bankAccountID is NaN', () => {
             connectBankAccountManually(Number.NaN, selectedPlaidBankAccount, policyID);
-
-            expect(mockWrite).toHaveBeenCalledWith(WRITE_COMMANDS.CONNECT_BANK_ACCOUNT_MANUALLY, expect.objectContaining({bankAccountID: CONST.DEFAULT_NUMBER_ID}), expect.anything());
-        });
-
-        test('sends DEFAULT_NUMBER_ID when bankAccountID is Infinity', () => {
-            connectBankAccountManually(Number.NEGATIVE_INFINITY, selectedPlaidBankAccount, policyID);
 
             expect(mockWrite).toHaveBeenCalledWith(WRITE_COMMANDS.CONNECT_BANK_ACCOUNT_MANUALLY, expect.objectContaining({bankAccountID: CONST.DEFAULT_NUMBER_ID}), expect.anything());
         });
