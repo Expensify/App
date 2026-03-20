@@ -438,6 +438,73 @@ describe('canEditFieldOfMoneyRequest', () => {
 
                 expect(canEditReceipt).toBe(true);
             });
+
+            it('should return true for isDeleteAction when user is the requestor on an open report', async () => {
+                const openReport = {
+                    ...createExpenseReport(Number(IOU_REPORT_ID)),
+                    policyID: DEW_POLICY_ID,
+                    ownerAccountID: currentUserAccountID,
+                    stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                    statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                };
+
+                const policyCollectionDataSet = toCollectionDataSet(ONYXKEYS.COLLECTION.POLICY, [dewPolicy], (p) => p.id);
+                await Onyx.multiSet({
+                    [ONYXKEYS.SESSION]: {email: currentUserEmail, accountID: currentUserAccountID},
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${IOU_TRANSACTION_ID}`]: dewTransaction,
+                    [`${ONYXKEYS.COLLECTION.REPORT}${IOU_REPORT_ID}`]: openReport,
+                    ...policyCollectionDataSet,
+                });
+                await waitForBatchedUpdates();
+
+                const canDeleteReceipt = canEditFieldOfMoneyRequest({
+                    reportAction: dewReportAction,
+                    fieldToEdit: CONST.EDIT_REQUEST_FIELD.RECEIPT,
+                    isDeleteAction: true,
+                    transaction: dewTransaction,
+                });
+
+                expect(canDeleteReceipt).toBe(true);
+            });
+
+            it('should return false for isDeleteAction when user is admin but not the requestor', async () => {
+                const adminPolicy: Policy = {
+                    ...dewPolicy,
+                    role: CONST.POLICY.ROLE.ADMIN,
+                };
+
+                const nonRequestorReportAction = {
+                    ...dewReportAction,
+                    actorAccountID: secondUserAccountID,
+                };
+
+                const openReport = {
+                    ...createExpenseReport(Number(IOU_REPORT_ID)),
+                    policyID: DEW_POLICY_ID,
+                    ownerAccountID: currentUserAccountID,
+                    managerID: currentUserAccountID,
+                    stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                    statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                };
+
+                const policyCollectionDataSet = toCollectionDataSet(ONYXKEYS.COLLECTION.POLICY, [adminPolicy], (p) => p.id);
+                await Onyx.multiSet({
+                    [ONYXKEYS.SESSION]: {email: currentUserEmail, accountID: currentUserAccountID},
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${IOU_TRANSACTION_ID}`]: dewTransaction,
+                    [`${ONYXKEYS.COLLECTION.REPORT}${IOU_REPORT_ID}`]: openReport,
+                    ...policyCollectionDataSet,
+                });
+                await waitForBatchedUpdates();
+
+                const canDeleteReceipt = canEditFieldOfMoneyRequest({
+                    reportAction: nonRequestorReportAction,
+                    fieldToEdit: CONST.EDIT_REQUEST_FIELD.RECEIPT,
+                    isDeleteAction: true,
+                    transaction: dewTransaction,
+                });
+
+                expect(canDeleteReceipt).toBe(false);
+            });
         });
 
         describe('unreported per diem expense', () => {
