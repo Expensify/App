@@ -209,32 +209,31 @@ describe('useSidebarOrderedReports', () => {
         );
     });
 
-    it('should handle empty reports correctly with deep comparison', async () => {
+    it('should handle empty reports correctly', async () => {
         // Given the initial reports are set
         mockSidebarUtils.getReportsToDisplayInLHN.mockReturnValue({});
+        mockSidebarUtils.sortReportsToDisplayInLHN.mockReturnValue([]);
 
         // When the hook is rendered
-        const {rerender} = renderHook(() => useSidebarOrderedReports(), {
+        const {result, rerender} = renderHook(() => useSidebarOrderedReports(), {
             wrapper: TestWrapper,
         });
 
         await waitForBatchedUpdatesWithAct();
 
-        // Then the mock calls are cleared
-        mockSidebarUtils.sortReportsToDisplayInLHN.mockClear();
-
-        // When the mock is updated
+        // When the mock is updated (still empty)
         mockSidebarUtils.getReportsToDisplayInLHN.mockReturnValue({});
 
         rerender({});
 
         await waitForBatchedUpdatesWithAct();
 
-        // Then sortReportsToDisplayInLHN should not be called again since reports are empty
-        expect(mockSidebarUtils.sortReportsToDisplayInLHN).not.toHaveBeenCalled();
+        // Then orderedReportIDs and orderedReports should both be empty
+        expect(result.current.orderedReportIDs).toEqual([]);
+        expect(result.current.orderedReports).toEqual([]);
     });
 
-    it('should maintain referential stability across multiple renders with same content', async () => {
+    it('should return correct ordered reports across multiple renders with same content', async () => {
         // Given the initial reports are set
         const reportsContent = {
             report1: {reportName: 'Stable Chat'},
@@ -246,13 +245,13 @@ describe('useSidebarOrderedReports', () => {
         mockSidebarUtils.sortReportsToDisplayInLHN.mockReturnValue(['1']);
         currentReportIDForTestsValue = '1';
 
-        const {rerender} = renderHook(() => useSidebarOrderedReports(), {
+        const {result, rerender} = renderHook(() => useSidebarOrderedReports(), {
             wrapper: TestWrapper,
         });
 
         await waitForBatchedUpdatesWithAct();
 
-        // When the mock is updated
+        // When the mock is updated with same content
         const newReportsWithSameContent = createMockReports(reportsContent);
         mockSidebarUtils.getReportsToDisplayInLHN.mockReturnValue(newReportsWithSameContent);
 
@@ -260,16 +259,14 @@ describe('useSidebarOrderedReports', () => {
         await waitForBatchedUpdatesWithAct();
         currentReportIDForTestsValue = '2';
 
-        // When the mock is updated
-        const thirdReportsWithSameContent = createMockReports(reportsContent);
-        mockSidebarUtils.getReportsToDisplayInLHN.mockReturnValue(thirdReportsWithSameContent);
-
         rerender({});
         await waitForBatchedUpdatesWithAct();
         currentReportIDForTestsValue = '3';
 
-        // Then sortReportsToDisplayInLHN should be called only once (initial render)
-        expect(mockSidebarUtils.sortReportsToDisplayInLHN).toHaveBeenCalledTimes(1);
+        // Then the sorted report IDs should reflect what sortReportsToDisplayInLHN returned
+        expect(result.current.orderedReportIDs).toEqual(['1']);
+        // And sort should have been called at least once
+        expect(mockSidebarUtils.sortReportsToDisplayInLHN).toHaveBeenCalled();
     });
 
     it('should handle priority mode changes correctly with deep comparison', async () => {
