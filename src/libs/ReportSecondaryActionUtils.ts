@@ -580,7 +580,7 @@ function isHoldActionForTransaction(report: Report, reportTransaction: Transacti
     return isProcessingReport;
 }
 
-function isChangeWorkspaceAction(report: Report, policies: OnyxCollection<Policy>, reportActions?: ReportAction[]): boolean {
+function isChangeWorkspaceAction(report: Report, policies: OnyxCollection<Policy>, currentUserLogin: string, reportActions?: ReportAction[]): boolean {
     // We can't move the iou report to the workspace if both users from the iou report create the expense
     if (isIOUReportUtils(report) && doesReportContainRequestsFromMultipleUsers(report)) {
         return false;
@@ -594,12 +594,17 @@ function isChangeWorkspaceAction(report: Report, policies: OnyxCollection<Policy
     }
 
     const submitterEmail = getLoginByAccountID(report?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID);
+    const isReportSettled = isSettled(report);
 
     // Find available policies - stop early once we find 2 or after checking all
     let firstAvailablePolicy: Policy | undefined;
     let availablePoliciesCount = 0;
     for (const policy of Object.values(policies ?? {})) {
         if (!policy || !isWorkspaceEligibleForReportChange(submitterEmail, policy, report)) {
+            continue;
+        }
+
+        if (isReportSettled && !isPolicyAdmin(policy, currentUserLogin)) {
             continue;
         }
 
@@ -959,7 +964,7 @@ function getSecondaryReportActions({
     }
 
     if (isDuplicateAction(report, reportTransactions)) {
-        options.push(CONST.REPORT.SECONDARY_ACTIONS.DUPLICATE);
+        options.push(CONST.REPORT.SECONDARY_ACTIONS.DUPLICATE_EXPENSE);
     }
 
     if (isDuplicateReportAction(report)) {
@@ -972,7 +977,7 @@ function getSecondaryReportActions({
 
     options.push(CONST.REPORT.SECONDARY_ACTIONS.PRINT);
 
-    if (isChangeWorkspaceAction(report, policies, reportActions)) {
+    if (isChangeWorkspaceAction(report, policies, currentUserLogin, reportActions)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.CHANGE_WORKSPACE);
     }
 
