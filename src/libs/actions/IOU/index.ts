@@ -237,7 +237,7 @@ import {buildOptimisticPolicyRecentlyUsedTags} from '@userActions/Policy/Tag';
 import type {GuidedSetupData} from '@userActions/Report';
 import {buildInviteToRoomOnyxData, completeOnboarding, notifyNewAction, optimisticReportLastData} from '@userActions/Report';
 import {mergeTransactionIdsHighlightOnSearchRoute, sanitizeWaypointsForAPI, stringifyWaypointsForAPI} from '@userActions/Transaction';
-import {removeDraftTransaction, removeDraftTransactions, removeDraftTransactionsByIDs} from '@userActions/TransactionEdit';
+import {removeDraftTransaction, removeDraftTransactionsByIDs} from '@userActions/TransactionEdit';
 import {getOnboardingMessages} from '@userActions/Welcome/OnboardingFlow';
 import type {OnboardingCompanySize} from '@userActions/Welcome/OnboardingFlow';
 import type {IOUAction, IOUActionParams, IOUType, OdometerImageType} from '@src/CONST';
@@ -261,6 +261,7 @@ import type {OnyxData} from '@src/types/onyx/Request';
 import type {Comment, Receipt, ReceiptSource, Routes, SplitShares, TransactionChanges, TransactionCustomUnit, WaypointCollection} from '@src/types/onyx/Transaction';
 import type {FileObject} from '@src/types/utils/Attachment';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import {resolveDetachReceiptConflicts} from '../RequestConflictUtils';
 
 type IOURequestType = ValueOf<typeof CONST.IOU.REQUEST_TYPE>;
 
@@ -277,6 +278,7 @@ type BaseTransactionParams = {
     tag?: string;
     taxCode?: string;
     taxAmount?: number;
+    taxValue?: string;
     billable?: boolean;
     reimbursable?: boolean;
     customUnitRateID?: string;
@@ -297,7 +299,7 @@ type InitMoneyRequestParams = {
     lastSelectedDistanceRates?: OnyxEntry<OnyxTypes.LastSelectedDistanceRates>;
     currentUserPersonalDetails: CurrentUserPersonalDetails;
     hasOnlyPersonalPolicies: boolean;
-    draftTransactions: OnyxCollection<OnyxTypes.Transaction>;
+    draftTransactionIDs?: string[];
 };
 
 type MoneyRequestInformation = {
@@ -379,13 +381,14 @@ type TrackExpenseInformation = {
     onyxData: OnyxData<BuildOnyxDataForTrackExpenseKeys | BuildPolicyDataKeys | typeof ONYXKEYS.SELF_DM_REPORT_ID>;
 };
 
-type TrackedExpenseTransactionParams = Omit<BaseTransactionParams, 'taxCode' | 'taxAmount'> & {
+type TrackedExpenseTransactionParams = Omit<BaseTransactionParams, 'taxCode' | 'taxAmount' | 'taxValue'> & {
     waypoints?: string;
     distance?: number;
     transactionID: string | undefined;
     receipt?: Receipt;
     taxCode: string;
     taxAmount: number;
+    taxValue?: string;
     attendees?: Attendee[];
 };
 
@@ -680,6 +683,7 @@ type TrackExpenseTransactionParams = {
     tag?: string;
     taxCode?: string;
     taxAmount?: number;
+    taxValue?: string;
     billable?: boolean;
     reimbursable?: boolean;
     validWaypoints?: WaypointCollection;
@@ -735,6 +739,7 @@ type GetTrackExpenseInformationTransactionParams = {
     tag?: string;
     taxCode?: string;
     taxAmount?: number;
+    taxValue?: string;
     billable?: boolean;
     reimbursable?: boolean;
     linkedTrackedExpenseReportAction?: OnyxTypes.ReportAction;
@@ -792,6 +797,7 @@ type StartSplitBilActionParams = {
     currency: string;
     taxCode: string;
     taxAmount: number;
+    taxValue?: string;
     shouldPlaySound?: boolean;
     policyRecentlyUsedCategories?: OnyxEntry<OnyxTypes.RecentlyUsedCategories>;
     policyRecentlyUsedTags: OnyxEntry<RecentlyUsedTags>;
@@ -868,6 +874,35 @@ type PayMoneyRequestFunctionParams = {
     isSelfTourViewed: boolean | undefined;
     amountOwed: OnyxEntry<number>;
     methodID?: number;
+    onPaid?: () => void;
+};
+
+type ApproveMoneyRequestFunctionParams = {
+    expenseReport: OnyxEntry<OnyxTypes.Report>;
+    policy: OnyxEntry<OnyxTypes.Policy>;
+    currentUserAccountIDParam: number;
+    currentUserEmailParam: string;
+    hasViolations: boolean;
+    isASAPSubmitBetaEnabled: boolean;
+    expenseReportCurrentNextStepDeprecated: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>;
+    betas: OnyxEntry<OnyxTypes.Beta[]>;
+    userBillingGraceEndPeriods: OnyxCollection<OnyxTypes.BillingGraceEndPeriod>;
+    amountOwed: OnyxEntry<number>;
+    full?: boolean;
+    onApproved?: () => void;
+};
+
+type SubmitReportFunctionParams = {
+    expenseReport: OnyxEntry<OnyxTypes.Report>;
+    policy: OnyxEntry<OnyxTypes.Policy>;
+    currentUserAccountIDParam: number;
+    currentUserEmailParam: string;
+    hasViolations: boolean;
+    isASAPSubmitBetaEnabled: boolean;
+    expenseReportCurrentNextStepDeprecated: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>;
+    userBillingGraceEndPeriods: OnyxCollection<OnyxTypes.BillingGraceEndPeriod>;
+    amountOwed: OnyxEntry<number>;
+    onSubmitted?: () => void;
 };
 
 let allTransactions: NonNullable<OnyxCollection<OnyxTypes.Transaction>> = {};
@@ -1233,7 +1268,7 @@ function initMoneyRequest({
     lastSelectedDistanceRates,
     currentUserPersonalDetails,
     hasOnlyPersonalPolicies,
-    draftTransactions,
+    draftTransactionIDs,
 }: InitMoneyRequestParams) {
     // Generate a brand new transactionID
     const newTransactionID = CONST.IOU.OPTIMISTIC_TRANSACTION_ID;
@@ -1242,7 +1277,7 @@ function initMoneyRequest({
     const created = currentDate ?? format(new Date(), 'yyyy-MM-dd');
 
     // We remove draft transactions created during multi scanning if there are some
-    removeDraftTransactions(true, draftTransactions);
+    removeDraftTransactionsByIDs(draftTransactionIDs, true);
 
     // in case we have to re-init money request, but the IOU request type is the same with the old draft transaction,
     // we should keep most of the existing data by using the ONYX MERGE operation
@@ -3271,6 +3306,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         tag,
         taxCode,
         taxAmount,
+        taxValue,
         billable,
         reimbursable = true,
         linkedTrackedExpenseReportAction,
@@ -3434,6 +3470,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
             taxCode,
             source,
             taxAmount: isExpenseReport(iouReport) ? -(taxAmount ?? 0) : taxAmount,
+            taxValue,
             billable,
             pendingAction,
             pendingFields: isDistanceRequest && !isManualDistanceRequest ? {waypoints: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD, ...pendingFields} : pendingFields,
@@ -3701,6 +3738,7 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
         tag,
         taxCode,
         taxAmount,
+        taxValue,
         billable,
         reimbursable,
         linkedTrackedExpenseReportAction,
@@ -3912,6 +3950,7 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
             tag,
             taxCode,
             taxAmount: taxAmount ? -taxAmount : undefined,
+            taxValue,
             billable,
             pendingFields: isDistanceRequest && !isManualDistanceRequest ? {waypoints: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD} : undefined,
             reimbursable,
@@ -6626,6 +6665,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
         tag,
         taxCode = '',
         taxAmount = 0,
+        taxValue,
         billable,
         reimbursable,
         gpsPoint,
@@ -6671,6 +6711,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
             tag,
             taxCode,
             taxAmount,
+            taxValue,
             billable,
             reimbursable,
             validWaypoints,
@@ -6724,6 +6765,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
             tag,
             taxCode,
             taxAmount,
+            taxValue,
             billable,
             reimbursable,
             linkedTrackedExpenseReportAction,
@@ -7028,6 +7070,7 @@ function createSplitsAndOnyxData({
         iouRequestType = CONST.IOU.REQUEST_TYPE.MANUAL,
         taxCode = '',
         taxAmount = 0,
+        taxValue,
         attendees,
     },
     policyRecentlyUsedCategories,
@@ -7065,6 +7108,7 @@ function createSplitsAndOnyxData({
             tag,
             taxCode,
             taxAmount,
+            taxValue,
             billable,
             reimbursable,
             pendingFields: isDistanceRequest ? {waypoints: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD} : undefined,
@@ -7369,6 +7413,7 @@ function createSplitsAndOnyxData({
                 tag,
                 taxCode,
                 taxAmount: isExpenseReport(oneOnOneIOUReport) ? -splitTaxAmount : splitTaxAmount,
+                taxValue,
                 billable,
                 source: CONST.IOU.TYPE.SPLIT,
             },
@@ -7565,6 +7610,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
         tag,
         taxAmount,
         taxCode,
+        taxValue,
         merchant,
         modifiedAmount,
         billable,
@@ -7619,6 +7665,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
                 iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE,
                 taxCode,
                 taxAmount,
+                taxValue,
                 attendees,
             },
             policyRecentlyUsedCategories,
@@ -7700,6 +7747,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
                 tag,
                 taxCode,
                 taxAmount,
+                taxValue,
                 billable,
                 reimbursable,
                 attendees,
@@ -9501,7 +9549,7 @@ function getPayMoneyRequestParams({
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport?.reportID}`,
             value: {
                 [optimisticIOUReportAction.reportActionID]: {
-                    errors: getMicroSecondOnyxErrorWithTranslationKey('iou.error.other'),
+                    errors: getMicroSecondOnyxErrorWithTranslationKey('iou.error.other', 0),
                 },
             },
         },
@@ -9829,33 +9877,21 @@ function getReportOriginalCreationTimestamp(expenseReport?: OnyxEntry<OnyxTypes.
     return createdAction?.created ?? expenseReport.created;
 }
 
-type ApproveMoneyRequestParam = {
-    expenseReport: OnyxEntry<OnyxTypes.Report>;
-    policy: OnyxEntry<OnyxTypes.Policy>;
-    currentUserAccountIDParam: number;
-    currentUserEmailParam: string;
-    hasViolations: boolean;
-    isASAPSubmitBetaEnabled: boolean;
-    expenseReportCurrentNextStepDeprecated: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>;
-    betas: OnyxEntry<OnyxTypes.Beta[]>;
-    userBillingGraceEndPeriods: OnyxCollection<OnyxTypes.BillingGraceEndPeriod>;
-    amountOwed: OnyxEntry<number>;
-    full?: boolean;
-};
-
-function approveMoneyRequest({
-    expenseReport,
-    policy,
-    currentUserAccountIDParam,
-    currentUserEmailParam,
-    hasViolations,
-    isASAPSubmitBetaEnabled,
-    expenseReportCurrentNextStepDeprecated,
-    betas,
-    userBillingGraceEndPeriods,
-    amountOwed,
-    full,
-}: ApproveMoneyRequestParam) {
+function approveMoneyRequest(params: ApproveMoneyRequestFunctionParams) {
+    const {
+        expenseReport,
+        policy,
+        currentUserAccountIDParam,
+        currentUserEmailParam,
+        hasViolations,
+        isASAPSubmitBetaEnabled,
+        expenseReportCurrentNextStepDeprecated,
+        betas,
+        userBillingGraceEndPeriods,
+        amountOwed,
+        full,
+        onApproved,
+    } = params;
     if (!expenseReport) {
         return;
     }
@@ -9965,7 +10001,14 @@ function approveMoneyRequest({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.chatReportID}`,
             value: {
-                hasOutstandingChildRequest: hasOutstandingChildRequest(chatReport, updatedExpenseReport, currentUserEmail, currentUserAccountIDParam, allTransactionViolations, undefined),
+                hasOutstandingChildRequest: hasOutstandingChildRequest(
+                    chatReport,
+                    updatedExpenseReport,
+                    currentUserEmailParam,
+                    currentUserAccountIDParam,
+                    allTransactionViolations,
+                    undefined,
+                ),
             },
         });
     }
@@ -10193,6 +10236,7 @@ function approveMoneyRequest({
         optimisticCreatedReportForUnapprovedTransactionsActionID,
     };
 
+    onApproved?.();
     playSound(SOUNDS.SUCCESS);
     API.write(WRITE_COMMANDS.APPROVE_MONEY_REQUEST, parameters, {optimisticData, successData, failureData});
     return optimisticHoldReportID;
@@ -10728,17 +10772,18 @@ function unapproveExpenseReport(
     API.write(WRITE_COMMANDS.UNAPPROVE_EXPENSE_REPORT, parameters, {optimisticData, successData, failureData});
 }
 
-function submitReport(
-    expenseReport: OnyxEntry<OnyxTypes.Report>,
-    policy: OnyxEntry<OnyxTypes.Policy>,
-    currentUserAccountIDParam: number,
-    currentUserEmailParam: string,
-    hasViolations: boolean,
-    isASAPSubmitBetaEnabled: boolean,
-    expenseReportCurrentNextStepDeprecated: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>,
-    userBillingGraceEndPeriods: OnyxCollection<OnyxTypes.BillingGraceEndPeriod>,
-    amountOwed: OnyxEntry<number>,
-) {
+function submitReport({
+    expenseReport,
+    policy,
+    currentUserAccountIDParam,
+    currentUserEmailParam,
+    hasViolations,
+    isASAPSubmitBetaEnabled,
+    expenseReportCurrentNextStepDeprecated,
+    userBillingGraceEndPeriods,
+    amountOwed,
+    onSubmitted,
+}: SubmitReportFunctionParams) {
     if (!expenseReport) {
         return;
     }
@@ -10999,6 +11044,7 @@ function submitReport(
         reportActionID: optimisticSubmittedReportAction.reportActionID,
     };
 
+    onSubmitted?.();
     API.write(WRITE_COMMANDS.SUBMIT_REPORT, parameters, {optimisticData, successData, failureData});
 }
 
@@ -11275,6 +11321,7 @@ function payMoneyRequest(params: PayMoneyRequestFunctionParams) {
         isSelfTourViewed,
         amountOwed,
         methodID,
+        onPaid,
     } = params;
     if (chatReport.policyID && shouldRestrictUserBillableActions(chatReport.policyID, userBillingGraceEndPeriods, amountOwed)) {
         Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(chatReport.policyID));
@@ -11305,6 +11352,7 @@ function payMoneyRequest(params: PayMoneyRequestFunctionParams) {
     // Expensify Wallets.
     const apiCommand = paymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY ? WRITE_COMMANDS.PAY_MONEY_REQUEST_WITH_WALLET : WRITE_COMMANDS.PAY_MONEY_REQUEST;
 
+    onPaid?.();
     playSound(SOUNDS.SUCCESS);
     API.write(apiCommand, payMoneyRequestParams, onyxData);
     notifyNewAction(!full ? (Navigation.getTopmostReportId() ?? iouReport?.reportID) : iouReport?.reportID, undefined, true);
@@ -11519,7 +11567,14 @@ function detachReceipt(transactionID: string | undefined, transactionPolicy: Ony
 
     const parameters: DetachReceiptParams = {transactionID, reportActionID: updatedReportAction.reportActionID};
 
-    API.write(WRITE_COMMANDS.DETACH_RECEIPT, parameters, {optimisticData, successData, failureData});
+    API.write(
+        WRITE_COMMANDS.DETACH_RECEIPT,
+        parameters,
+        {optimisticData, successData, failureData},
+        {
+            checkAndFixConflictingRequest: (persistedRequests) => resolveDetachReceiptConflicts(persistedRequests, parameters),
+        },
+    );
 }
 
 function replaceReceipt({transactionID, file, source, state, transactionPolicy, transactionPolicyCategories, isSameReceipt}: ReplaceReceipt) {
