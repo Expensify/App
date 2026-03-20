@@ -10,10 +10,10 @@ Overall Retrieval Score: 9.3 / 10
 ---
 title: How to manage subscriptions and billing in New Expensify
 description: Step-by-step instructions for billing owners and Workspace Admins to cancel subscriptions, update payment methods, delete workspaces, and transfer billing ownership in New Expensify.
-keywords: [New Expensify, cancel subscription, update payment method, delete workspace, transfer billing ownership, retry billing, subscription management]
+keywords: [New Expensify subscription settings, auto-renew Expensify, auto-increase seats, manage Expensify subscription, New Expensify subscription, subscription renewal]
 internalScope: Step-by-step instructions for managing subscriptions and billing in New Expensify only. Relies on shared conceptual article for billing rules, eligibility, and transfer timing.
 order: 2
-platform: New_Expensify
+platform: new-expensify
 ---
 
 # How to manage subscriptions and billing in New Expensify
