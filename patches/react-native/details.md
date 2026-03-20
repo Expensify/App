@@ -238,3 +238,17 @@
 - Upstream PR/issue: https://github.com/facebook/react-native/pull/55934
 - E/App issue: https://github.com/Expensify/App/issues/75120
 - PR Introducing Patch: https://github.com/Expensify/App/pull/79962
+
+### [react-native+0.83.1+032+fix-hermes-sampling-profiler-disable.patch](react-native+0.83.1+032+fix-hermes-sampling-profiler-disable.patch)
+
+- Reason: Fixes a copy-paste bug in `HermesSamplingProfiler::registerNatives()` where the JNI `"disable"` method was mapped to `HermesSamplingProfiler::enable` instead of `::disable`. This caused Sentry (or any caller of `HermesSamplingProfiler.disable()`) to call `enable()` again, corrupting the sampling thread state and leading to a `SIGABRT` crash (`invalid pthread_t passed to pthread_kill` in the `hermes-sampling` thread).
+- Upstream PR/issue: https://github.com/facebook/react-native/issues/56120
+- E/App issue: [#77171](https://github.com/Expensify/App/issues/77171)
+- PR introducing patch: [#84708](https://github.com/Expensify/App/pull/84708)
+
+### [react-native+0.83.1+033+fix-hermes-sampling-profiler-pthread-kill-crash.patch](react-native+0.83.1+033+fix-hermes-sampling-profiler-pthread-kill-crash.patch)
+
+- Reason: On Android (Bionic libc), `pthread_kill` with an invalid `pthread_t` (e.g., thread has exited) calls `abort()` instead of returning `ESRCH` like glibc. The Hermes sampling profiler's timer thread sends `SIGPROF` via `pthread_kill` to registered runtime threads at ~100Hz. If a runtime's thread exits while profiling is active (e.g., during HybridApp transitions or background/foreground), the stale `pthread_t` triggers `SIGABRT: invalid pthread_t passed to pthread_kill`. This patch adds a `doLast` hook to the `unzipHermes` Gradle task that modifies `SamplingProfilerPosix.cpp` after Hermes source extraction, replacing `pthread_kill` with the `tgkill` syscall on Android, which safely returns `ESRCH` for dead threads. A kernel thread ID (`currentTid_`) is stored alongside the `pthread_t` and kept in sync via `setRuntimeThread()`. The Gradle hook approach is necessary because `unzipHermes` downloads fresh Hermes source, overwriting any direct source patches.
+- Upstream PR/issue: 🛑
+- E/App issue: [#77171](https://github.com/Expensify/App/issues/77171)
+- PR introducing patch: [#84708](https://github.com/Expensify/App/pull/84708)
