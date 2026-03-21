@@ -1795,11 +1795,11 @@ const translations: TranslationDeepObject<typeof en> = {
                 // eslint-disable-next-line default-case
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `This report was rejected. Waiting on <strong>you</strong> to fix the issues and manually resubmit.`;
+                        return `Dieser Bericht wurde abgelehnt. Warten darauf, dass <strong>Sie</strong> die Probleme beheben und den Bericht manuell erneut einreichen.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `This report was rejected. Waiting on <strong>${actor}</strong> to fix the issues and manually resubmit.`;
+                        return `Dieser Bericht wurde abgelehnt. Warten darauf, dass <strong>${actor}</strong> die Probleme behebt und den Bericht manuell erneut einreicht.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `This report was rejected. Waiting on an admin to fix the issues and manually resubmit.`;
+                        return `Dieser Bericht wurde abgelehnt. Warten darauf, dass ein Admin die Probleme behebt und den Bericht manuell erneut einreicht.`;
                 }
             },
         },

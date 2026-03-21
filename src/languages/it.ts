@@ -1793,11 +1793,11 @@ const translations: TranslationDeepObject<typeof en> = {
                 // eslint-disable-next-line default-case
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `This report was rejected. Waiting on <strong>you</strong> to fix the issues and manually resubmit.`;
+                        return `Questo report è stato rifiutato. In attesa che <strong>tu</strong> risolva i problemi e lo invii nuovamente manualmente.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `This report was rejected. Waiting on <strong>${actor}</strong> to fix the issues and manually resubmit.`;
+                        return `Questo report è stato rifiutato. In attesa che <strong>${actor}</strong> risolva i problemi e lo invii nuovamente manualmente.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `This report was rejected. Waiting on an admin to fix the issues and manually resubmit.`;
+                        return `Questo report è stato rifiutato. In attesa che un amministratore risolva i problemi e lo invii nuovamente manualmente.`;
                 }
             },
         },
