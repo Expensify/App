@@ -45,7 +45,7 @@ GEM
       aws-eventstream (~> 1, >= 1.0.2)
     babosa (1.0.4)
     base64 (0.2.0)
-    benchmark (0.3.0)
+    benchmark (0.5.0)
     bigdecimal (4.0.1)
     claide (1.1.0)
     cocoapods (1.16.2)
@@ -336,7 +336,7 @@ DEPENDENCIES
   benchmark
   bigdecimal
   cocoapods (= 1.16.2)
-  fastlane (~> 2, >= 2.229.1)
+  fastlane (~> 2.232.0)
   fastlane-plugin-aws_s3
   fastlane-plugin-firebase_app_distribution
   logger
