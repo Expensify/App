@@ -169,7 +169,7 @@ index 6e9c384..6d09b07 100644
 +
 +  // Process non-text items using the tility
 +  NSArray<NSDictionary<NSString *, SString *> *> *items =
-+      [RCTPasteHandlerUtil temInfosFromPasteboard:clipboard];
++      [RCTPasteHandlerUtil itemInfosFromPasteboard:clipboard];
 +
 +  if (items.count == 0) {
 +    [super paste:sender];
