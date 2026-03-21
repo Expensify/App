@@ -78,7 +78,7 @@ import {
 import shouldAdjustScroll from '@libs/shouldAdjustScroll';
 import {startSpan} from '@libs/telemetry/activeSpans';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
-import {hasPendingUI, isManagedCardTransaction, isPending} from '@libs/TransactionUtils';
+import {hasPendingUI, hasReceiptError, isManagedCardTransaction, isOnHold, isPending} from '@libs/TransactionUtils';
 import colors from '@styles/theme/colors';
 import variables from '@styles/variables';
 import {approveMoneyRequest, canIOUBePaid as canIOUBePaidIOUActions, payInvoice, payMoneyRequest, submitReport} from '@userActions/IOU';
@@ -503,7 +503,23 @@ function MoneyRequestReportPreviewContent({
         thumbsUpScale.set(isApprovedAnimationRunning ? withDelay(CONST.ANIMATION_THUMBS_UP_DELAY, withSpring(1, {duration: CONST.ANIMATION_THUMBS_UP_DURATION})) : 1);
     }, [isApproved, isApprovedAnimationRunning, thumbsUpScale]);
 
-    const carouselTransactions = useMemo(() => (shouldShowAccessPlaceHolder ? [] : transactions.slice(0, 11)), [shouldShowAccessPlaceHolder, transactions]);
+    const carouselTransactions = useMemo(() => {
+        if (shouldShowAccessPlaceHolder) {
+            return [];
+        }
+
+        // Sort RBR-flagged transactions to the front before slicing
+        // This ensures expenses requiring action (holds, receipt errors) are shown first
+        const sortedTransactions = [...transactions].sort((a, b) => {
+            // Check RBR status: on hold or has receipt error
+            const aHasRBR = isOnHold(a) || hasReceiptError(a);
+            const bHasRBR = isOnHold(b) || hasReceiptError(b);
+            // RBR transactions come first (descending order: true before false)
+            return (bHasRBR ? 1 : 0) - (aHasRBR ? 1 : 0);
+        });
+
+        return sortedTransactions.slice(0, 11);
+    }, [shouldShowAccessPlaceHolder, transactions]);
     const prevCarouselTransactionLength = useRef(0);
 
     useEffect(() => {

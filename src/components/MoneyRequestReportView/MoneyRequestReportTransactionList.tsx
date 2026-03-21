@@ -55,7 +55,7 @@ import {
     isIOUReport,
 } from '@libs/ReportUtils';
 import {compareValues, getColumnsToShow, getTableMinWidth, isTransactionAmountTooLong, isTransactionTaxAmountTooLong} from '@libs/SearchUIUtils';
-import {getAmount, getCategory, getCreated, getMerchant, getTag, getTransactionPendingAction, isTransactionPendingDelete, shouldShowExpenseBreakdown} from '@libs/TransactionUtils';
+import {getAmount, getCategory, getCreated, getMerchant, getTag, getTransactionPendingAction, hasReceiptError, isOnHold, isTransactionPendingDelete, shouldShowExpenseBreakdown} from '@libs/TransactionUtils';
 import shouldShowTransactionYear from '@libs/TransactionUtils/shouldShowTransactionYear';
 import Navigation from '@navigation/Navigation';
 import type {ReportsSplitNavigatorParamList} from '@navigation/types';
@@ -267,7 +267,23 @@ function MoneyRequestReportTransactionList({
     const {sortBy, sortOrder} = sortConfig;
 
     const sortedTransactions: TransactionWithOptionalHighlight[] = useMemo(() => {
-        return [...transactions].sort((a, b) => compareValues(getTransactionValue(a, sortBy, report), getTransactionValue(b, sortBy, report), sortOrder, sortBy, localeCompare, true));
+        // Sort RBR-flagged transactions to the front as primary sort key
+        // RBR includes: on hold, receipt errors
+        const rbrSortedTransactions = [...transactions].sort((a, b) => {
+            // Check RBR status: on hold or has receipt error
+            const aHasRBR = isOnHold(a) || hasReceiptError(a);
+            const bHasRBR = isOnHold(b) || hasReceiptError(b);
+            
+            // If RBR status differs, sort by RBR first (RBR transactions come first)
+            if (aHasRBR !== bHasRBR) {
+                return bHasRBR ? 1 : -1;
+            }
+            
+            // Otherwise, use existing sort logic (date, merchant, etc.)
+            return compareValues(getTransactionValue(a, sortBy, report), getTransactionValue(b, sortBy, report), sortOrder, sortBy, localeCompare, true);
+        });
+        
+        return rbrSortedTransactions;
     }, [sortBy, sortOrder, transactions, localeCompare, report]);
 
     const highlightedTransactionIDs = useMemo(() => new Set(newTransactions.map(({transactionID}) => transactionID)), [newTransactions]);
