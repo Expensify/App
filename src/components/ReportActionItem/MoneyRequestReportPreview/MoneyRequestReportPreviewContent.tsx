@@ -503,7 +503,22 @@ function MoneyRequestReportPreviewContent({
         thumbsUpScale.set(isApprovedAnimationRunning ? withDelay(CONST.ANIMATION_THUMBS_UP_DELAY, withSpring(1, {duration: CONST.ANIMATION_THUMBS_UP_DURATION})) : 1);
     }, [isApproved, isApprovedAnimationRunning, thumbsUpScale]);
 
-    const carouselTransactions = useMemo(() => (shouldShowAccessPlaceHolder ? [] : transactions.slice(0, 11)), [shouldShowAccessPlaceHolder, transactions]);
+    const carouselTransactions = useMemo(() => {
+        if (shouldShowAccessPlaceHolder) {
+            return [];
+        }
+        // Sort RBR-actionable expenses to the front so they're not buried
+        // behind the +N overflow when there are more than 11 transactions.
+        const sorted = [...transactions].sort((a, b) => {
+            const aHasViolations = (lastTransactionViolations[a.transactionID]?.length ?? 0) > 0;
+            const bHasViolations = (lastTransactionViolations[b.transactionID]?.length ?? 0) > 0;
+            if (aHasViolations === bHasViolations) {
+                return 0;
+            }
+            return aHasViolations ? -1 : 1;
+        });
+        return sorted.slice(0, 11);
+    }, [shouldShowAccessPlaceHolder, transactions, lastTransactionViolations]);
     const prevCarouselTransactionLength = useRef(0);
 
     useEffect(() => {
