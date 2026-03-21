@@ -90,6 +90,7 @@ import {
     getPolicyName,
     getReasonAndReportActionThatRequiresAttention,
     getReportIDFromLink,
+    getReportFieldMaps,
     getReportName as getReportNameDeprecated,
     getReportNotificationPreference,
     getReportOrDraftReport,
@@ -11958,6 +11959,45 @@ describe('ReportUtils', () => {
                 },
             ] as unknown as PolicyReportField[];
             expect(getAvailableReportFields(report, policyFieldList)).toEqual(expectedFieldList);
+        });
+    });
+
+    describe('getReportFieldMaps', () => {
+        it('should read report field values from report name value pairs keyed by raw field ID', async () => {
+            const reportID = 'getReportFieldMapsRawKey';
+            const report = {
+                reportID,
+                policyID: '1',
+                fieldList: {},
+            } as Report;
+            const policyFieldList = {
+                expensify_field_id_LIST: {
+                    type: 'dropdown',
+                    values: ['policy default'],
+                    disabledOptions: [false],
+                    fieldID: 'field_id_LIST',
+                    name: 'Client',
+                    defaultValue: 'policy default',
+                },
+            } as unknown as Record<string, PolicyReportField>;
+            const reportNameValuePairs = {
+                field_id_LIST: {
+                    type: 'dropdown',
+                    values: ['policy default'],
+                    disabledOptions: [false],
+                    fieldID: 'field_id_LIST',
+                    name: 'Client',
+                    value: 'persisted value',
+                },
+            } as unknown as ReportNameValuePairs;
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, report);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`, reportNameValuePairs);
+
+            const {fieldValues, fieldsByName} = getReportFieldMaps(report, policyFieldList);
+
+            expect(fieldValues.client).toBe('persisted value');
+            expect(fieldsByName.client.value).toBe('persisted value');
         });
     });
 

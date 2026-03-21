@@ -81,16 +81,6 @@ function CreateFieldsPage({policy, policyID, isInvoiceField, listValuesRoute, fe
         [availableListValuesLength, formDraft, isInvoiceField, policy, policyReportIDs],
     );
 
-    const targetFieldList = useMemo(
-        () =>
-            Object.fromEntries(
-                Object.entries(policy?.fieldList ?? {}).filter(([, reportField]) =>
-                    isInvoiceField ? reportField.target === CONST.REPORT_FIELD_TARGETS.INVOICE : !reportField.target || reportField.target === CONST.REPORT_FIELD_TARGETS.EXPENSE,
-                ),
-            ),
-        [isInvoiceField, policy?.fieldList],
-    );
-
     const validateForm = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM> => {
             const {name, type, initialValue: formInitialValue} = values;
@@ -98,7 +88,7 @@ function CreateFieldsPage({policy, policyID, isInvoiceField, listValuesRoute, fe
 
             if (!isRequiredFulfilled(name)) {
                 errors[INPUT_IDS.NAME] = translate('workspace.reportFields.reportFieldNameRequiredError');
-            } else if (isReportFieldNameExisting(targetFieldList, name)) {
+            } else if (isReportFieldNameExisting(policy?.fieldList, name)) {
                 errors[INPUT_IDS.NAME] = translate('workspace.reportFields.existingReportFieldNameError');
             } else if ([...name].length > CONST.WORKSPACE_REPORT_FIELD_POLICY_MAX_LENGTH) {
                 addErrorMessage(errors, INPUT_IDS.NAME, translate('common.error.characterLimitExceedCounter', [...name].length, CONST.WORKSPACE_REPORT_FIELD_POLICY_MAX_LENGTH));
@@ -122,19 +112,19 @@ function CreateFieldsPage({policy, policyID, isInvoiceField, listValuesRoute, fe
 
             return errors;
         },
-        [availableListValuesLength, policy?.fieldList, targetFieldList, translate],
+        [availableListValuesLength, policy?.fieldList, translate],
     );
 
     const validateName = useCallback(
         (values: Record<string, string>) => {
             const errors: Record<string, string> = {};
             const name = values[INPUT_IDS.NAME];
-            if (isReportFieldNameExisting(targetFieldList, name)) {
+            if (isReportFieldNameExisting(policy?.fieldList, name)) {
                 errors[INPUT_IDS.NAME] = translate('workspace.reportFields.existingReportFieldNameError');
             }
             return errors;
         },
-        [targetFieldList, translate],
+        [policy?.fieldList, translate],
     );
 
     const handleOnValueCommitted = useCallback(

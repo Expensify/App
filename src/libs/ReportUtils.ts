@@ -13061,7 +13061,7 @@ function getReportFieldMaps(report: OnyxEntry<Report>, fieldList: Record<string,
     for (const field of fields) {
         if (field.name) {
             const fieldKey = getReportFieldKey(field.fieldID);
-            const reportNameValuePairField = reportNameValuePairs?.[fieldKey];
+            const reportNameValuePairField = reportNameValuePairs?.[fieldKey] ?? reportNameValuePairs?.[field.fieldID];
             const key = field.name.toLowerCase();
             fieldValues[key] = reportNameValuePairField?.value ?? field.value ?? field.defaultValue ?? '';
             fieldsByName[key] = reportNameValuePairField ? {...field, value: reportNameValuePairField.value} : field;
