@@ -7564,7 +7564,6 @@ describe('ReportUtils', () => {
             const isReportArchived = (reportID?: string) => reportID === report.reportID;
             expect(isReportOutstanding(report, policy.id, isReportArchived)).toBe(false);
         });
-
     });
 
     describe('canAddTransaction', () => {

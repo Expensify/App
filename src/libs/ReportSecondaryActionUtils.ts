@@ -1047,19 +1047,31 @@ function getSecondaryExportReportActions(
     return options;
 }
 
-function getSecondaryTransactionThreadActions(
-    currentUserLogin: string,
-    currentUserAccountID: number,
-    parentReport: Report,
-    reportTransaction: Transaction,
-    reportAction: ReportAction | undefined,
-    originalTransaction: OnyxEntry<Transaction>,
-    policy: OnyxEntry<Policy>,
-    transactionThreadReport?: OnyxEntry<Report>,
-    outstandingReportsByPolicyID?: OutstandingReportsByPolicyIDDerivedValue,
-    isChatReportArchived?: boolean,
-    isReportArchived?: (reportID?: string) => boolean,
-): Array<ValueOf<typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS>> {
+function getSecondaryTransactionThreadActions({
+    currentUserLogin,
+    currentUserAccountID,
+    parentReport,
+    reportTransaction,
+    reportAction,
+    originalTransaction,
+    policy,
+    transactionThreadReport,
+    outstandingReportsByPolicyID,
+    isChatReportArchived,
+    isReportArchived,
+}: {
+    currentUserLogin: string;
+    currentUserAccountID: number;
+    parentReport: Report;
+    reportTransaction: Transaction;
+    reportAction: ReportAction | undefined;
+    originalTransaction: OnyxEntry<Transaction>;
+    policy: OnyxEntry<Policy>;
+    transactionThreadReport?: OnyxEntry<Report>;
+    outstandingReportsByPolicyID?: OutstandingReportsByPolicyIDDerivedValue;
+    isChatReportArchived?: boolean;
+    isReportArchived?: (reportID?: string) => boolean;
+}): Array<ValueOf<typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS>> {
     const options: Array<ValueOf<typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS>> = [];
 
     if (!!reportAction && isHoldActionForTransaction(parentReport, reportTransaction, reportAction, policy)) {

@@ -434,19 +434,19 @@ function MoneyRequestHeader({reportID: reportIDProp, onBackButtonPress}: MoneyRe
         if (!transaction || !parentReportAction || !parentReport) {
             return [];
         }
-        return getSecondaryTransactionThreadActions(
-            currentUserLogin ?? '',
-            accountID,
+        return getSecondaryTransactionThreadActions({
+            currentUserLogin: currentUserLogin ?? '',
+            currentUserAccountID: accountID,
             parentReport,
-            transaction,
-            parentReportAction,
+            reportTransaction: transaction,
+            reportAction: parentReportAction,
             originalTransaction,
             policy,
-            report,
+            transactionThreadReport: report,
             outstandingReportsByPolicyID,
-            isChatIOUReportArchived,
+            isChatReportArchived: isChatIOUReportArchived,
             isReportArchived,
-        );
+        });
     }, [parentReport, transaction, parentReportAction, currentUserLogin, policy, report, originalTransaction, accountID, outstandingReportsByPolicyID, isChatIOUReportArchived, isReportArchived]);
 
     const dismissModalAndUpdateUseHold = () => {
