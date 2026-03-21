@@ -52,6 +52,8 @@ type DropdownButtonProps = WithSentryLabel & {
     wrapperStyle?: StyleProp<ViewStyle>;
 };
 
+const PADDING_MODAL = 8;
+
 const ANCHOR_ORIGIN = {
     horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
     vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
@@ -95,7 +97,7 @@ function DropdownButton({label, value, viewportOffsetTop, PopoverComponent, medi
      */
     const calculatePopoverPositionAndToggleOverlay = useCallback(() => {
         calculatePopoverPosition(anchorRef, ANCHOR_ORIGIN).then((pos) => {
-            setPopoverTriggerPosition({...pos, vertical: pos.vertical});
+            setPopoverTriggerPosition({...pos, vertical: pos.vertical + PADDING_MODAL});
             toggleOverlay();
         });
     }, [calculatePopoverPosition, toggleOverlay]);
