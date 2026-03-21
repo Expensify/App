@@ -80,6 +80,7 @@ function TotalCell({shouldShowTooltip, transactionItem, canEdit, onSave}: TotalC
                     shouldShowBigNumberPad={false}
                     shouldWrapInputInContainer={false}
                     shouldApplyPaddingToContainer={false}
+                    shouldRefocusOnScrollViewClick
                     onAmountChange={handleAmountChange}
                     onBlur={handleBlur}
                     // EditableCell is responsible for the cell's hover and focus styles (border, background).

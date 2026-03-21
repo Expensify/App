@@ -71,6 +71,9 @@ type NumberWithSymbolFormProps = {
     /** Style applied to the outer ScrollView */
     scrollViewStyle?: StyleProp<ViewStyle>;
 
+    /** Whether to refocus the input when clicking on the ScrollView empty space */
+    shouldRefocusOnScrollViewClick?: boolean;
+
     /** Whether the amount is negative */
     isNegative?: boolean;
 
@@ -157,6 +160,7 @@ function NumberWithSymbolForm({
     shouldUseDefaultLineHeightForPrefix = true,
     shouldWrapInputInContainer = true,
     scrollViewStyle,
+    shouldRefocusOnScrollViewClick = false,
     isNegative = false,
     allowFlippingAmount = false,
     allowNegativeInput = false,
@@ -496,7 +500,19 @@ function NumberWithSymbolForm({
     return (
         <ScrollView
             contentContainerStyle={[styles.flexGrow1, scrollViewStyle]}
-            style={!shouldWrapInputInContainer && styles.flexGrow0}
+            style={[
+                !shouldWrapInputInContainer && styles.flexGrow0,
+                // Hide pointer cursor when refocus feature is enabled (empty space shouldn't look clickable)
+                shouldRefocusOnScrollViewClick && styles.cursorAuto,
+            ]}
+            onMouseDown={(e) => {
+                if (!shouldRefocusOnScrollViewClick) {
+                    return;
+                }
+                e.preventDefault();
+                e.stopPropagation();
+                textInput.current?.focus();
+            }}
         >
             {shouldWrapInputInContainer ? (
                 <View style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsCenter]}>

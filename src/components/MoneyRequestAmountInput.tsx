@@ -127,6 +127,12 @@ type MoneyRequestAmountInputProps = {
     /** Style applied to the outer ScrollView inside NumberWithSymbolForm */
     scrollViewStyle?: StyleProp<ViewStyle>;
 
+    /**
+     * Whether to refocus the input when clicking on the ScrollView empty space.
+     * Prevents focus loss when clicking empty space left of the right-aligned input.
+     */
+    shouldRefocusOnScrollViewClick?: boolean;
+
     /** Whether the input is disabled or not */
     disabled?: boolean;
 
@@ -173,6 +179,7 @@ function MoneyRequestAmountInput({
     shouldUseDefaultLineHeightForPrefix = true,
     shouldWrapInputInContainer = true,
     scrollViewStyle,
+    shouldRefocusOnScrollViewClick = false,
     isNegative = false,
     allowFlippingAmount = false,
     allowNegativeInput = false,
@@ -262,6 +269,7 @@ function MoneyRequestAmountInput({
             shouldUseDefaultLineHeightForPrefix={shouldUseDefaultLineHeightForPrefix}
             shouldWrapInputInContainer={shouldWrapInputInContainer}
             scrollViewStyle={scrollViewStyle}
+            shouldRefocusOnScrollViewClick={shouldRefocusOnScrollViewClick}
             containerStyle={props.containerStyle}
             prefixStyle={props.prefixStyle}
             prefixContainerStyle={props.prefixContainerStyle}
