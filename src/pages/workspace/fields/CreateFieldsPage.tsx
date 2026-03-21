@@ -44,7 +44,7 @@ function CreateFieldsPage({policy, policyID, isInvoiceField, listValuesRoute, fe
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const formRef = useRef<FormRef>(null);
-    const [formDraft] = useOnyx(ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM_DRAFT, {canBeMissing: true});
+    const [formDraft] = useOnyx(ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM_DRAFT);
 
     const reportTypeForTarget = useMemo(() => (isInvoiceField ? CONST.REPORT.TYPE.INVOICE : CONST.REPORT.TYPE.EXPENSE), [isInvoiceField]);
 
@@ -56,10 +56,7 @@ function CreateFieldsPage({policy, policyID, isInvoiceField, listValuesRoute, fe
         [policyID, reportTypeForTarget],
     );
 
-    const [policyReportIDs] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {
-        canBeMissing: true,
-        selector: policyReportIDsSelector,
-    });
+    const [policyReportIDs] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: policyReportIDsSelector});
 
     const availableListValuesLength = (formDraft?.[INPUT_IDS.DISABLED_LIST_VALUES] ?? []).filter((disabledListValue) => !disabledListValue).length;
 
