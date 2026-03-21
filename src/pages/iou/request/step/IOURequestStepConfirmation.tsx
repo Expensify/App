@@ -79,6 +79,7 @@ import {
     getDefaultTaxCode,
     getRateID,
     getRequestType,
+    getTaxValue,
     getValidWaypoints,
     hasReceipt,
     isDistanceRequest as isDistanceRequestTransactionUtils,
@@ -107,7 +108,7 @@ import {getReceiverType, sendInvoice} from '@userActions/IOU/SendInvoice';
 import {sendMoneyElsewhere, sendMoneyWithWallet} from '@userActions/IOU/SendMoney';
 import {splitBill, splitBillAndOpenReport, startSplitBill} from '@userActions/IOU/Split';
 import {openDraftWorkspaceRequest} from '@userActions/Policy/Policy';
-import {removeDraftTransaction, removeDraftTransactions, replaceDefaultDraftTransaction} from '@userActions/TransactionEdit';
+import {removeDraftTransaction, removeDraftTransactionsByIDs, replaceDefaultDraftTransaction} from '@userActions/TransactionEdit';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -127,6 +128,32 @@ import withWritableReportOrNotFound from './withWritableReportOrNotFound';
 
 type IOURequestStepConfirmationProps = WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_CONFIRMATION> &
     WithFullTransactionOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_CONFIRMATION>;
+
+// Ends the submit expense span, starts a geolocation child span, then calls getCurrentPosition.
+// The expense callback receives GPS coordinates on success or undefined on error.
+// Extracted to avoid duplicating this identical telemetry block across trackExpense and requestMoney paths.
+function getCurrentPositionWithGeolocationSpan(onPosition: (gpsCoords?: {lat: number; long: number}) => void) {
+    const parentSpan = getSpan(CONST.TELEMETRY.SPAN_SUBMIT_EXPENSE);
+    markSubmitExpenseEnd();
+
+    startSpan(CONST.TELEMETRY.SPAN_GEOLOCATION_WAIT, {
+        name: CONST.TELEMETRY.SPAN_GEOLOCATION_WAIT,
+        op: CONST.TELEMETRY.SPAN_GEOLOCATION_WAIT,
+        parentSpan,
+    });
+
+    getCurrentPosition(
+        (successData) => {
+            onPosition({lat: successData.coords.latitude, long: successData.coords.longitude});
+            endSpan(CONST.TELEMETRY.SPAN_GEOLOCATION_WAIT);
+        },
+        (errorData) => {
+            Log.info('[IOURequestStepConfirmation] getCurrentPosition failed', false, errorData);
+            onPosition();
+            endSpan(CONST.TELEMETRY.SPAN_GEOLOCATION_WAIT);
+        },
+    );
+}
 
 function IOURequestStepConfirmation({
     report: reportReal,
@@ -284,6 +311,7 @@ function IOURequestStepConfirmation({
     const defaultTaxCode = getDefaultTaxCode(policy, transaction);
     const transactionTaxCode = (transaction?.taxCode ? transaction?.taxCode : defaultTaxCode) ?? '';
     const transactionTaxAmount = transaction?.taxAmount ?? 0;
+    const transactionTaxValue = transaction?.taxValue ?? getTaxValue(policy, transaction, transactionTaxCode) ?? '';
     const isSharingTrackExpense = action === CONST.IOU.ACTION.SHARE;
     const isCategorizingTrackExpense = action === CONST.IOU.ACTION.CATEGORIZE;
     const isMovingTransactionFromTrackExpense = isMovingTransactionFromTrackExpenseIOUUtils(action);
@@ -700,7 +728,7 @@ function IOURequestStepConfirmation({
                 Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(CONST.IOU.ACTION.CREATE, iouType, initialTransactionID, reportID, Navigation.getActiveRouteWithoutParams()));
                 return;
             }
-            removeDraftTransactions(true);
+            removeDraftTransactionsByIDs(draftTransactionIDs, true);
             navigateToStartMoneyRequestStep(requestType, iouType, initialTransactionID, reportID);
         });
     }, [requestType, iouType, initialTransactionID, reportID, action, report, transactions, participants]);
@@ -796,6 +824,7 @@ function IOURequestStepConfirmation({
                         tag: item.tag,
                         taxCode: transactionTaxCode,
                         taxAmount: transactionTaxAmount,
+                        taxValue: transactionTaxValue,
                         billable: item.billable,
                         reimbursable: item.reimbursable,
                         actionableWhisperReportActionID: item.actionableWhisperReportActionID,
@@ -848,6 +877,7 @@ function IOURequestStepConfirmation({
             isManualDistanceRequest,
             transactionTaxCode,
             transactionTaxAmount,
+            transactionTaxValue,
             customUnitRateID,
             isTimeRequest,
             shouldGenerateTransactionThreadReport,
@@ -1005,6 +1035,7 @@ function IOURequestStepConfirmation({
                         tag: item.tag,
                         taxCode: transactionTaxCode,
                         taxAmount: transactionTaxAmount,
+                        taxValue: transactionTaxValue,
                         billable: item.billable,
                         reimbursable: item.reimbursable,
                         gpsPoint,
@@ -1054,6 +1085,7 @@ function IOURequestStepConfirmation({
             receiptFiles,
             transactionTaxCode,
             transactionTaxAmount,
+            transactionTaxValue,
             customUnitRateID,
             gpsDraftDetails,
             isASAPSubmitBetaEnabled,
@@ -1098,6 +1130,7 @@ function IOURequestStepConfirmation({
                     tag: transaction.tag,
                     taxCode: transactionTaxCode,
                     taxAmount: transactionTaxAmount,
+                    taxValue: transactionTaxValue,
                     customUnitRateID,
                     splitShares: transaction.splitShares,
                     validWaypoints: getValidWaypoints(transaction.comment?.waypoints, true, isGPSDistanceRequest),
@@ -1134,6 +1167,7 @@ function IOURequestStepConfirmation({
             transactionDistance,
             transactionTaxCode,
             transactionTaxAmount,
+            transactionTaxValue,
             customUnitRateID,
             isManualDistanceRequest,
             isOdometerDistanceRequest,
@@ -1250,6 +1284,7 @@ function IOURequestStepConfirmation({
                             currency: item.currency,
                             taxCode: transactionTaxCode,
                             taxAmount: transactionTaxAmount,
+                            taxValue: transactionTaxValue,
                             shouldPlaySound: index === transactions.length - 1,
                             policyRecentlyUsedCategories,
                             policyRecentlyUsedTags,
@@ -1285,6 +1320,7 @@ function IOURequestStepConfirmation({
                         splitShares: transaction.splitShares,
                         taxCode: transactionTaxCode,
                         taxAmount: transactionTaxAmount,
+                        taxValue: transactionTaxValue,
                         policyRecentlyUsedCategories,
                         policyRecentlyUsedTags,
                         isASAPSubmitBetaEnabled,
@@ -1319,6 +1355,7 @@ function IOURequestStepConfirmation({
                         splitShares: transaction.splitShares,
                         taxCode: transactionTaxCode,
                         taxAmount: transactionTaxAmount,
+                        taxValue: transactionTaxValue,
                         policyRecentlyUsedCategories,
                         policyRecentlyUsedTags,
                         isASAPSubmitBetaEnabled,
@@ -1368,21 +1405,7 @@ function IOURequestStepConfirmation({
                             return;
                         }
 
-                        getCurrentPosition(
-                            (successData) => {
-                                trackExpense(selectedParticipants, {
-                                    lat: successData.coords.latitude,
-                                    long: successData.coords.longitude,
-                                });
-                                markSubmitExpenseEnd();
-                            },
-                            (errorData) => {
-                                Log.info('[IOURequestStepConfirmation] getCurrentPosition failed', false, errorData);
-                                // When there is an error, the money can still be requested, it just won't include the GPS coordinates
-                                trackExpense(selectedParticipants);
-                                markSubmitExpenseEnd();
-                            },
-                        );
+                        getCurrentPositionWithGeolocationSpan((gpsCoords) => trackExpense(selectedParticipants, gpsCoords));
                         return;
                     }
 
@@ -1420,21 +1443,7 @@ function IOURequestStepConfirmation({
                         return;
                     }
 
-                    getCurrentPosition(
-                        (successData) => {
-                            requestMoney(selectedParticipants, {
-                                lat: successData.coords.latitude,
-                                long: successData.coords.longitude,
-                            });
-                            markSubmitExpenseEnd();
-                        },
-                        (errorData) => {
-                            Log.info('[IOURequestStepConfirmation] getCurrentPosition failed', false, errorData);
-                            // When there is an error, the money can still be requested, it just won't include the GPS coordinates
-                            requestMoney(selectedParticipants);
-                            markSubmitExpenseEnd();
-                        },
-                    );
+                    getCurrentPositionWithGeolocationSpan((gpsCoords) => requestMoney(selectedParticipants, gpsCoords));
                     return;
                 }
 
@@ -1465,6 +1474,7 @@ function IOURequestStepConfirmation({
             report,
             transactionTaxCode,
             transactionTaxAmount,
+            transactionTaxValue,
             policyRecentlyUsedCategories,
             policyRecentlyUsedTags,
             quickAction,
@@ -1667,7 +1677,7 @@ function IOURequestStepConfirmation({
             shouldEnableMaxHeight={canUseTouchScreen()}
             testID="IOURequestStepConfirmation"
         >
-            <DragAndDropProvider isDisabled={!showReceiptEmptyState}>
+            <DragAndDropProvider isDisabled={!showReceiptEmptyState || isOdometerDistanceRequest}>
                 <View style={styles.flex1}>
                     <HeaderWithBackButton
                         title={headerTitle}

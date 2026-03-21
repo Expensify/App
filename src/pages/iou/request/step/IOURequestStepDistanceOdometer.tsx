@@ -31,6 +31,7 @@ import {handleMoneyRequestStepDistanceNavigation} from '@libs/actions/IOU/MoneyR
 import {setDraftSplitTransaction} from '@libs/actions/IOU/Split';
 import {createBackupTransaction, removeBackupTransactionWithImageCleanup, restoreOriginalTransactionFromBackupWithImageCleanup} from '@libs/actions/TransactionEdit';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
+import {getMimeTypeFromUri} from '@libs/fileDownload/FileUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {shouldUseTransactionDraft} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -317,8 +318,9 @@ function IOURequestStepDistanceOdometer({
         if (!isOdometerInputValid(text, startReading)) {
             return;
         }
-        setStartReading(text);
-        startReadingRef.current = text;
+        const textForDisplay = DistanceRequestUtils.prepareTextForDisplay(text);
+        setStartReading(textForDisplay);
+        startReadingRef.current = textForDisplay;
         if (formError) {
             setFormError('');
         }
@@ -328,8 +330,9 @@ function IOURequestStepDistanceOdometer({
         if (!isOdometerInputValid(text, endReading)) {
             return;
         }
-        setEndReading(text);
-        endReadingRef.current = text;
+        const textForDisplay = DistanceRequestUtils.prepareTextForDisplay(text);
+        setEndReading(textForDisplay);
+        endReadingRef.current = textForDisplay;
         if (formError) {
             setFormError('');
         }

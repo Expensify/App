@@ -16,6 +16,7 @@ import {checkIfLocalFileIsAccessible, replaceReceipt, updateLastLocationPermissi
 import {removeDraftTransactionsByIDs, removeTransactionReceipt} from '@userActions/TransactionEdit';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {validTransactionDraftIDsSelector} from '@src/selectors/TransactionDraft';
 import type {FileObject} from '@src/types/utils/Attachment';
 import DesktopWebUploadView from './components/DesktopWebUploadView';
 import MobileWebCameraView from './components/MobileWebCameraView';
@@ -38,6 +39,7 @@ function IOURequestStepScan({
     const isMobileWeb = isMobile();
     const policy = usePolicy(report?.policyID);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report?.policyID}`);
+    const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
 
     // End the create expense span on mount for web (no camera init tracking needed)
     useEffect(() => {
@@ -120,7 +122,7 @@ function IOURequestStepScan({
             }
             setIsMultiScanEnabled?.(false);
             removeTransactionReceipt(CONST.IOU.OPTIMISTIC_TRANSACTION_ID);
-            removeDraftTransactionsByIDs(transactions.map((t) => t.transactionID));
+            removeDraftTransactionsByIDs(draftTransactionIDs, true);
         });
         // We want this hook to run on mounting only
         // eslint-disable-next-line react-hooks/exhaustive-deps
