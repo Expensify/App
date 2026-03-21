@@ -403,7 +403,6 @@ Onyx.connect({
     },
 });
 
-
 const typingWatchTimers: Record<string, NodeJS.Timeout> = {};
 
 // Track subscriptions to conciergeReasoning Pusher events to avoid duplicates

@@ -39,6 +39,7 @@ import type {
     Beta,
     BetaConfiguration,
     BillingGraceEndPeriod,
+    CurrencyList,
     IntroSelected,
     OnyxInputOrEntry,
     OutstandingReportsByPolicyIDDerivedValue,
@@ -62,7 +63,6 @@ import type {
     TransactionViolation,
     TransactionViolations,
     VisibleReportActionsDerivedValue,
-    CurrencyList,
 } from '@src/types/onyx';
 import type {ReportTransactionsAndViolations} from '@src/types/onyx/DerivedValues';
 import type {Attendee, Participant} from '@src/types/onyx/IOU';

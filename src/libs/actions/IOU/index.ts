@@ -1035,7 +1035,6 @@ function getAllReports(): OnyxCollection<OnyxTypes.Report> {
     return allReports;
 }
 
-
 function getAllReportActionsFromIOU(): OnyxCollection<OnyxTypes.ReportActions> {
     return allReportActions;
 }
