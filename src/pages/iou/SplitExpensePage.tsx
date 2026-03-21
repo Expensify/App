@@ -190,7 +190,6 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
         }
     }
 
-    /* eslint-disable react-hooks/set-state-in-effect */
     useEffect(() => {
         const errorString = getLatestErrorMessage(draftTransaction ?? {});
 
@@ -202,7 +201,6 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
     useEffect(() => {
         setErrorMessage('');
     }, [sumOfSplitExpenses, splitExpenses]);
-    /* eslint-enable react-hooks/set-state-in-effect */
 
     const onAddSplitExpense = () => {
         if (draftTransaction?.errors) {
