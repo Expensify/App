@@ -11578,10 +11578,11 @@ function isReportOutstanding(
         return false;
     }
     const reportNameValuePairsKey = `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${iouReport.reportID}`;
+    const reportNameValuePairs = typeof reportNameValuePairsOrIsReportArchived === 'function' ? undefined : reportNameValuePairsOrIsReportArchived;
     const isArchived =
         typeof reportNameValuePairsOrIsReportArchived === 'function'
             ? reportNameValuePairsOrIsReportArchived(iouReport.reportID)
-            : isArchivedReport(reportNameValuePairsOrIsReportArchived?.[reportNameValuePairsKey]);
+            : isArchivedReport(reportNameValuePairs?.[reportNameValuePairsKey]);
     if (isArchived) {
         return false;
     }

@@ -3,7 +3,7 @@ import {shouldFailAllRequestsSelector} from '@selectors/Network';
 import {hasSeenTourSelector} from '@selectors/Onboarding';
 import {validTransactionDraftsSelector} from '@selectors/TransactionDraft';
 import type {ReactNode} from 'react';
-import React, {useCallback, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useContext, useMemo, useRef, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import useConfirmModal from '@hooks/useConfirmModal';
@@ -46,6 +46,7 @@ import {
     isDM,
     isExpenseReport,
     isOpenReport,
+    isReportArchivedByID,
     isSelfDM,
     navigateToDetailsPage,
     rejectMoneyRequestReason,
@@ -76,6 +77,7 @@ import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {Transaction} from '@src/types/onyx';
 import type IconAsset from '@src/types/utils/IconAsset';
+import {ActionListContext} from '@pages/inbox/ReportScreenContext';
 import BrokenConnectionDescription from './BrokenConnectionDescription';
 import Button from './Button';
 import ButtonWithDropdownMenu from './ButtonWithDropdownMenu';
@@ -197,6 +199,8 @@ function MoneyRequestHeader({reportID: reportIDProp, onBackButtonPress}: MoneyRe
     const shouldDisplayTransactionNavigation = !!(reportID && isReportInRHP);
     const isParentReportArchived = useReportIsArchived(report?.parentReportID);
     const {iouReport, chatReport: chatIOUReport, isChatIOUReportArchived} = useGetIOUReportFromReportAction(parentReportAction);
+    const {archivedReportsIDSet} = useContext(ActionListContext);
+    const isReportArchived = useCallback((targetReportID?: string) => isReportArchivedByID(archivedReportsIDSet, targetReportID), [archivedReportsIDSet]);
 
     const hasPendingRTERViolation = hasPendingRTERViolationTransactionUtils(transactionViolations);
     const hasCustomUnitOutOfPolicyViolation = hasCustomUnitOutOfPolicyViolationTransactionUtils(transactionViolations);
@@ -441,8 +445,9 @@ function MoneyRequestHeader({reportID: reportIDProp, onBackButtonPress}: MoneyRe
             report,
             outstandingReportsByPolicyID,
             isChatIOUReportArchived,
+            isReportArchived,
         );
-    }, [parentReport, transaction, parentReportAction, currentUserLogin, policy, report, originalTransaction, accountID, outstandingReportsByPolicyID, isChatIOUReportArchived]);
+    }, [parentReport, transaction, parentReportAction, currentUserLogin, policy, report, originalTransaction, accountID, outstandingReportsByPolicyID, isChatIOUReportArchived, isReportArchived]);
 
     const dismissModalAndUpdateUseHold = () => {
         setIsHoldEducationalModalVisible(false);

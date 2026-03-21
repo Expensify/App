@@ -855,6 +855,7 @@ function getSecondaryReportActions({
     policies,
     outstandingReportsByPolicyID,
     isChatReportArchived = false,
+    isReportArchived,
 }: {
     currentUserLogin: string;
     currentUserAccountID: number;
@@ -872,6 +873,7 @@ function getSecondaryReportActions({
     outstandingReportsByPolicyID?: OutstandingReportsByPolicyIDDerivedValue;
     canUseNewDotSplits?: boolean;
     isChatReportArchived?: boolean;
+    isReportArchived?: (reportID?: string) => boolean;
 }): Array<ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>> {
     const options: Array<ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>> = [];
 
@@ -985,7 +987,17 @@ function getSecondaryReportActions({
         const transaction = reportTransactions.at(0);
         if (transaction?.transactionID) {
             const iouReportAction = getIOUActionForTransactionID(reportActions, transaction.transactionID);
-            const canMoveExpense = canEditFieldOfMoneyRequest(iouReportAction, CONST.EDIT_REQUEST_FIELD.REPORT, undefined, isChatReportArchived, outstandingReportsByPolicyID);
+            const canMoveExpense = canEditFieldOfMoneyRequest(
+                iouReportAction,
+                CONST.EDIT_REQUEST_FIELD.REPORT,
+                undefined,
+                isChatReportArchived,
+                outstandingReportsByPolicyID,
+                undefined,
+                undefined,
+                undefined,
+                isReportArchived,
+            );
             const canUserPerformWriteAction = canUserPerformWriteActionReportUtils(report, isChatReportArchived);
 
             if (canMoveExpense && canUserPerformWriteAction) {
@@ -1046,6 +1058,7 @@ function getSecondaryTransactionThreadActions(
     transactionThreadReport?: OnyxEntry<Report>,
     outstandingReportsByPolicyID?: OutstandingReportsByPolicyIDDerivedValue,
     isChatReportArchived?: boolean,
+    isReportArchived?: (reportID?: string) => boolean,
 ): Array<ValueOf<typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS>> {
     const options: Array<ValueOf<typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS>> = [];
 
@@ -1076,7 +1089,17 @@ function getSecondaryTransactionThreadActions(
     if (
         reportTransaction?.transactionID &&
         reportAction &&
-        canEditFieldOfMoneyRequest(reportAction, CONST.EDIT_REQUEST_FIELD.REPORT, undefined, isChatReportArchived, outstandingReportsByPolicyID) &&
+        canEditFieldOfMoneyRequest(
+            reportAction,
+            CONST.EDIT_REQUEST_FIELD.REPORT,
+            undefined,
+            isChatReportArchived,
+            outstandingReportsByPolicyID,
+            undefined,
+            undefined,
+            undefined,
+            isReportArchived,
+        ) &&
         canUserPerformWriteActionReportUtils(parentReport, isChatReportArchived)
     ) {
         options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.MOVE_EXPENSE);

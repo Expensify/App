@@ -1,5 +1,5 @@
 import {Str} from 'expensify-common';
-import React, {useMemo, useState} from 'react';
+import React, {useContext, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -71,6 +71,7 @@ import {
     isInvoiceReport,
     isOpenReport,
     isPaidGroupPolicy,
+    isReportArchivedByID,
     isReportApproved,
     isReportInGroupPolicy,
     isSettled as isSettledReportUtils,
@@ -113,6 +114,7 @@ import {
 import {isInvalidMerchantValue} from '@libs/ValidationUtils';
 import ViolationsUtils from '@libs/Violations/ViolationsUtils';
 import Navigation from '@navigation/Navigation';
+import {ActionListContext} from '@pages/inbox/ReportScreenContext';
 import AnimatedEmptyStateBackground from '@pages/inbox/report/AnimatedEmptyStateBackground';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -179,6 +181,7 @@ function MoneyRequestView({
     const {getCurrencySymbol} = useCurrencyListActions();
     const {getReportRHPActiveRoute} = useActiveRoute();
     const [lastVisitedPath] = useOnyx(ONYXKEYS.LAST_VISITED_PATH);
+    const {archivedReportsIDSet} = useContext(ActionListContext);
 
     const {currentSearchResults} = useSearchStateContext();
     const reportAttributes = useReportAttributes();
@@ -375,6 +378,7 @@ function MoneyRequestView({
             transaction,
             moneyRequestReport,
             policy,
+            (reportID) => isReportArchivedByID(archivedReportsIDSet, reportID),
         ) &&
         (!isPerDiemRequest || canSubmitPerDiemExpenseFromWorkspace(policy) || (isExpenseUnreported && !!perDiemOriginalPolicy));
 

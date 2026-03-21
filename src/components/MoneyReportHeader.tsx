@@ -110,6 +110,7 @@ import {
     isOpenExpenseReport,
     isOpenReport,
     isProcessingReport,
+    isReportArchivedByID,
     isReportOwner,
     isSelfDM,
     navigateOnDeleteExpense,
@@ -161,6 +162,7 @@ import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
+import {ActionListContext} from '@pages/inbox/ReportScreenContext';
 import type IconAsset from '@src/types/utils/IconAsset';
 import ActivityIndicator from './ActivityIndicator';
 import AnimatedSubmitButton from './AnimatedSubmitButton';
@@ -481,6 +483,8 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
     const isPayAtEndExpense = isPayAtEndExpenseTransactionUtils(transaction);
     const isArchivedReport = useReportIsArchived(moneyRequestReport?.reportID);
     const isChatReportArchived = useReportIsArchived(chatReport?.reportID);
+    const {archivedReportsIDSet} = useContext(ActionListContext);
+    const isReportArchived = useCallback((reportID?: string) => isReportArchivedByID(archivedReportsIDSet, reportID), [archivedReportsIDSet]);
 
     const canMoveSingleExpense = useMemo(() => {
         if (nonPendingDeleteTransactions.length !== 1) {
@@ -493,12 +497,22 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
         }
 
         const iouReportAction = getIOUActionForTransactionID(reportActions, transactionToMove.transactionID);
-        const canMoveExpense = canEditFieldOfMoneyRequest(iouReportAction, CONST.EDIT_REQUEST_FIELD.REPORT, undefined, isChatReportArchived, outstandingReportsByPolicyID);
+        const canMoveExpense = canEditFieldOfMoneyRequest(
+            iouReportAction,
+            CONST.EDIT_REQUEST_FIELD.REPORT,
+            undefined,
+            isChatReportArchived,
+            outstandingReportsByPolicyID,
+            undefined,
+            undefined,
+            undefined,
+            isReportArchived,
+        );
 
         const canUserPerformWriteAction = canUserPerformWriteActionReportUtils(moneyRequestReport, isChatReportArchived);
 
         return canMoveExpense && canUserPerformWriteAction;
-    }, [nonPendingDeleteTransactions, reportActions, isChatReportArchived, outstandingReportsByPolicyID, moneyRequestReport]);
+    }, [nonPendingDeleteTransactions, reportActions, isChatReportArchived, outstandingReportsByPolicyID, moneyRequestReport, isReportArchived]);
 
     const [archiveReason] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${moneyRequestReport?.reportID}`, {selector: getArchiveReason});
 
@@ -1540,6 +1554,7 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
             policies,
             outstandingReportsByPolicyID,
             isChatReportArchived,
+            isReportArchived,
         });
     }, [
         moneyRequestReport,
@@ -1557,6 +1572,7 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
         isChatReportArchived,
         bankAccountList,
         outstandingReportsByPolicyID,
+        isReportArchived,
     ]);
 
     const secondaryExportActions = useMemo(() => {
