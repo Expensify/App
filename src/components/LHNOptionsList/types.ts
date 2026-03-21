@@ -99,9 +99,6 @@ type OptionRowLHNDataProps = {
     /** Whether a report contains a draft */
     hasDraftComment: boolean;
 
-    /** The receipt transaction from the parent report action */
-    receiptTransactions: OnyxCollection<Transaction>;
-
     /** The reportID of the report */
     reportID: string;
 
@@ -211,6 +208,9 @@ type OptionRowLHNProps = {
 
     /** The testID of the row */
     testID: number;
+
+    /** The concierge report ID from Onyx */
+    conciergeReportID: OnyxEntry<string>;
 };
 
 type RenderItemProps = {item: Report; index: number};

@@ -3,6 +3,7 @@ import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import {useSearchActionsContext, useSearchStateContext} from '@components/Search/SearchContext';
 import useAncestors from '@hooks/useAncestors';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import {clearErrorFields, clearErrors} from '@libs/actions/FormActions';
@@ -26,10 +27,14 @@ function SearchHoldReasonPage({route}: SearchHoldReasonPageProps) {
     const {backTo = '', reportID} = route.params ?? {};
     const {selectedTransactionIDs, selectedTransactions, currentSearchHash} = useSearchStateContext();
     const {clearSelectedTransactions} = useSearchActionsContext();
+    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
-    const ancestors = useAncestors(report);
 
+    const selectedTransactionsList = Object.values(selectedTransactions);
+    const isSubmitter = report ? report.ownerAccountID === currentUserAccountID : selectedTransactionsList.some((t) => t.ownerAccountID === currentUserAccountID);
+
+    const ancestors = useAncestors(report);
     const [allReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
@@ -91,6 +96,7 @@ function SearchHoldReasonPage({route}: SearchHoldReasonPageProps) {
             validate={validate}
             expenseCount={expenseCount}
             backTo={backTo}
+            isSubmitter={isSubmitter}
         />
     );
 }

@@ -15,10 +15,11 @@ function Confirmation({onNext, onMove, isEditing, policyID}: ConfirmationProps) 
 
     const [enterSignerInfoForm] = useOnyx(ONYXKEYS.FORMS.ENTER_SINGER_INFO_FORM);
     const [enterSignerInfoFormDraft] = useOnyx(ONYXKEYS.FORMS.ENTER_SINGER_INFO_FORM_DRAFT);
+    const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
 
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
-    const currency = policy?.outputCurrency ?? '';
-    const country = mapCurrencyToCountry(currency);
+    const currency = policy?.outputCurrency ?? reimbursementAccountDraft?.currency ?? '';
+    const country = mapCurrencyToCountry(currency) ?? reimbursementAccountDraft?.country;
     const isDocumentNeededStatus = getNeededDocumentsStatusForSignerInfo(currency, country);
     const copyOfID = enterSignerInfoFormDraft?.[INPUT_IDS.SIGNER_COPY_OF_ID] ?? [];
     const addressProof = enterSignerInfoFormDraft?.[INPUT_IDS.SIGNER_ADDRESS_PROOF] ?? [];

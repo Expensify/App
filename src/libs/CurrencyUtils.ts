@@ -221,7 +221,6 @@ function getCurrencyKeyByCountryCode(currencies?: CurrencyList, countryCode?: st
     }
     return CONST.CURRENCY.USD;
 }
-
 export {
     getCurrencyDecimals,
     getCurrencyUnit,

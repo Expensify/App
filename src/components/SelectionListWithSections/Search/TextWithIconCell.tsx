@@ -24,7 +24,7 @@ export default function TextWithIconCell({icon, text, showTooltip, textStyle, nu
     }
 
     return (
-        <View style={[styles.flexRow, styles.flexShrink1, styles.gap1]}>
+        <View style={[styles.flexRow, styles.flexShrink1, styles.gap1, styles.alignItemsCenter]}>
             <Icon
                 src={icon}
                 fill={theme.icon}
