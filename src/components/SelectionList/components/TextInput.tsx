@@ -6,7 +6,7 @@ import type {TextInputOptions} from '@components/SelectionList/types';
 import Text from '@components/Text';
 import BaseTextInput from '@components/TextInput';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
-import useAccessibilityAnnouncement from '@hooks/useAccessibilityAnnouncement';
+import useDebouncedAccessibilityAnnouncement from '@hooks/useDebouncedAccessibilityAnnouncement';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import mergeRefs from '@libs/mergeRefs';
@@ -66,14 +66,28 @@ function TextInput({
 }: TextInputProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {label, value, onChangeText, errorText, headerMessage, hint, disableAutoFocus, placeholder, maxLength, inputMode, ref: optionsRef, style, disableAutoCorrect} = options ?? {};
+    const {
+        label,
+        value,
+        onChangeText,
+        errorText,
+        headerMessage,
+        hint,
+        disableAutoFocus,
+        placeholder,
+        maxLength,
+        inputMode,
+        ref: optionsRef,
+        style,
+        disableAutoCorrect,
+        shouldInterceptSwipe,
+    } = options ?? {};
     const noResultsFoundText = translate('common.noResultsFound');
     const isNoResultsFoundMessage = headerMessage === noResultsFoundText;
     const noData = dataLength === 0 && !shouldShowLoadingPlaceholder;
     const shouldShowHeaderMessage = !!shouldShowTextInput && !!headerMessage && (!isLoadingNewOptions || !isNoResultsFoundMessage || noData);
-    const shouldAnnounceNoResults = shouldShowHeaderMessage && isNoResultsFoundMessage;
 
-    useAccessibilityAnnouncement(headerMessage, shouldAnnounceNoResults, {shouldAnnounceOnNative: true});
+    useDebouncedAccessibilityAnnouncement(headerMessage ?? '', shouldShowHeaderMessage, value ?? '');
 
     const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const mergedRef = mergeRefs<BaseTextInputRef>(ref, optionsRef);
@@ -139,13 +153,18 @@ function TextInput({
                     isLoading={isLoading}
                     testID="selection-list-text-input"
                     errorText={errorText}
-                    shouldInterceptSwipe={false}
                     autoCorrect={!disableAutoCorrect}
+                    shouldInterceptSwipe={shouldInterceptSwipe ?? false}
                 />
             </View>
             {shouldShowHeaderMessage && (
                 <View style={[styles.ph5, styles.pb5, style?.headerMessageStyle]}>
-                    <Text style={[styles.textLabel, styles.colorMuted, styles.minHeight5]}>{headerMessage}</Text>
+                    <Text
+                        style={[styles.textLabel, styles.colorMuted, styles.minHeight5]}
+                        aria-hidden
+                    >
+                        {headerMessage}
+                    </Text>
                 </View>
             )}
         </>
