@@ -1,6 +1,6 @@
 import {render, waitFor} from '@testing-library/react-native';
 import React from 'react';
-import {EnvironmentContext, EnvironmentProvider} from '@components/EnvironmentContext';
+import EnvironmentProvider, {EnvironmentActionsContext} from '@components/EnvironmentContextProvider';
 import CONST from '@src/CONST';
 
 // Mock getEnvironment and getEnvironmentURL
@@ -28,12 +28,12 @@ describe('EnvironmentProvider', () => {
 
             render(
                 <EnvironmentProvider>
-                    <EnvironmentContext.Consumer>
+                    <EnvironmentActionsContext.Consumer>
                         {({adjustExpensifyLinksForEnv: fn}) => {
                             adjustExpensifyLinksForEnv = fn;
                             return null;
                         }}
-                    </EnvironmentContext.Consumer>
+                    </EnvironmentActionsContext.Consumer>
                 </EnvironmentProvider>,
             );
 

@@ -33,7 +33,7 @@ function TagGLCodePage({route}: EditTagGLCodePageProps) {
     const policyID = route.params.policyID;
     const policy = usePolicy(policyID);
     const backTo = route.params.backTo;
-    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {canBeMissing: true});
+    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
 
     const tagName = route.params.tagName;
     const orderWeight = route.params.orderWeight;

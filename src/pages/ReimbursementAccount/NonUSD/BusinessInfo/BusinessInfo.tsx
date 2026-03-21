@@ -1,6 +1,6 @@
 import {Str} from 'expensify-common';
 import type {ComponentType} from 'react';
-import React, {useCallback, useEffect, useMemo} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef} from 'react';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
@@ -76,11 +76,11 @@ function BusinessInfo({onBackButtonPress, onSubmit, stepNames}: BusinessInfoProp
     const {translate} = useLocalize();
     const {isProduction} = useEnvironment();
 
-    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: false});
-    const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT, {canBeMissing: true});
+    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
+    const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
     const policyID = reimbursementAccount?.achData?.policyID;
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: false});
-    const currency = policy?.outputCurrency ?? '';
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+    const currency = policy?.outputCurrency ?? reimbursementAccountDraft?.currency ?? '';
     const businessInfoStepValues = useMemo(() => getSubStepValues(INPUT_KEYS, reimbursementAccountDraft, reimbursementAccount), [reimbursementAccount, reimbursementAccountDraft]);
     const bankAccountID = reimbursementAccount?.achData?.bankAccountID ?? CONST.DEFAULT_NUMBER_ID;
 
@@ -88,12 +88,14 @@ function BusinessInfo({onBackButtonPress, onSubmit, stepNames}: BusinessInfoProp
 
     const country = reimbursementAccount?.achData?.[INPUT_IDS.ADDITIONAL_DATA.COUNTRY] ?? reimbursementAccountDraft?.[INPUT_IDS.ADDITIONAL_DATA.COUNTRY] ?? '';
     const isBusinessTypeRequired = country !== CONST.COUNTRY.CA;
+    const isSubmittingRef = useRef(false);
 
     useEffect(() => {
         getCorpayOnboardingFields(country);
     }, [country]);
 
     const submit = useCallback(() => {
+        isSubmittingRef.current = true;
         saveCorpayOnboardingCompanyDetails(
             {
                 ...businessInfoStepValues,
@@ -115,7 +117,9 @@ function BusinessInfo({onBackButtonPress, onSubmit, stepNames}: BusinessInfoProp
             return;
         }
 
-        if (reimbursementAccount?.isSuccess) {
+        // We need to check value of local isSubmittingRef because on initial render reimbursementAccount?.isSuccess is still true after submitting the previous step
+        if (reimbursementAccount?.isSuccess && isSubmittingRef.current) {
+            isSubmittingRef.current = false;
             onSubmit();
             clearReimbursementAccountSaveCorpayOnboardingCompanyDetails();
         }
@@ -125,6 +129,7 @@ function BusinessInfo({onBackButtonPress, onSubmit, stepNames}: BusinessInfoProp
         };
     }, [reimbursementAccount?.errors, reimbursementAccount?.isSavingCorpayOnboardingCompanyFields, reimbursementAccount?.isSuccess, onSubmit]);
 
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const {componentToRender: SubStep, isEditing, screenIndex, nextScreen, prevScreen, moveTo, goToTheLastStep} = useSubStep({bodyContent, startFrom, onFinished: submit});
 
     const handleBackButtonPress = () => {

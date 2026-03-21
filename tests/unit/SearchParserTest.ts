@@ -545,6 +545,126 @@ const tests = [
         },
     },
     {
+        query: 'type:expense group-by:from',
+        expected: {
+            type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+            status: CONST.SEARCH.STATUS.EXPENSE.ALL,
+            sortBy: CONST.SEARCH.TABLE_COLUMNS.GROUP_FROM,
+            sortOrder: CONST.SEARCH.SORT_ORDER.ASC,
+            view: 'table',
+            groupBy: CONST.SEARCH.GROUP_BY.FROM,
+            filters: null,
+        },
+    },
+    {
+        query: 'type:expense group-by:card',
+        expected: {
+            type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+            status: CONST.SEARCH.STATUS.EXPENSE.ALL,
+            sortBy: CONST.SEARCH.TABLE_COLUMNS.GROUP_CARD,
+            sortOrder: CONST.SEARCH.SORT_ORDER.ASC,
+            view: 'table',
+            groupBy: CONST.SEARCH.GROUP_BY.CARD,
+            filters: null,
+        },
+    },
+    {
+        query: 'type:expense group-by:withdrawal-id',
+        expected: {
+            type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+            status: CONST.SEARCH.STATUS.EXPENSE.ALL,
+            sortBy: CONST.SEARCH.TABLE_COLUMNS.GROUP_WITHDRAWN,
+            sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
+            view: 'table',
+            groupBy: CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID,
+            filters: null,
+        },
+    },
+    {
+        query: 'type:expense group-by:category',
+        expected: {
+            type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+            status: CONST.SEARCH.STATUS.EXPENSE.ALL,
+            sortBy: CONST.SEARCH.TABLE_COLUMNS.GROUP_CATEGORY,
+            sortOrder: CONST.SEARCH.SORT_ORDER.ASC,
+            view: 'table',
+            groupBy: CONST.SEARCH.GROUP_BY.CATEGORY,
+            filters: null,
+        },
+    },
+    {
+        query: 'type:expense group-by:tag',
+        expected: {
+            type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+            status: CONST.SEARCH.STATUS.EXPENSE.ALL,
+            sortBy: CONST.SEARCH.TABLE_COLUMNS.GROUP_TAG,
+            sortOrder: CONST.SEARCH.SORT_ORDER.ASC,
+            view: 'table',
+            groupBy: CONST.SEARCH.GROUP_BY.TAG,
+            filters: null,
+        },
+    },
+    {
+        query: 'type:expense group-by:merchant',
+        expected: {
+            type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+            status: CONST.SEARCH.STATUS.EXPENSE.ALL,
+            sortBy: CONST.SEARCH.TABLE_COLUMNS.GROUP_MERCHANT,
+            sortOrder: CONST.SEARCH.SORT_ORDER.ASC,
+            view: 'table',
+            groupBy: CONST.SEARCH.GROUP_BY.MERCHANT,
+            filters: null,
+        },
+    },
+    {
+        query: 'type:expense group-by:month',
+        expected: {
+            type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+            status: CONST.SEARCH.STATUS.EXPENSE.ALL,
+            sortBy: CONST.SEARCH.TABLE_COLUMNS.GROUP_MONTH,
+            sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
+            view: 'table',
+            groupBy: CONST.SEARCH.GROUP_BY.MONTH,
+            filters: null,
+        },
+    },
+    {
+        query: 'type:expense group-by:week',
+        expected: {
+            type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+            status: CONST.SEARCH.STATUS.EXPENSE.ALL,
+            sortBy: CONST.SEARCH.TABLE_COLUMNS.GROUP_WEEK,
+            sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
+            view: 'table',
+            groupBy: CONST.SEARCH.GROUP_BY.WEEK,
+            filters: null,
+        },
+    },
+    {
+        query: 'type:expense group-by:year',
+        expected: {
+            type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+            status: CONST.SEARCH.STATUS.EXPENSE.ALL,
+            sortBy: CONST.SEARCH.TABLE_COLUMNS.GROUP_YEAR,
+            sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
+            view: 'table',
+            groupBy: CONST.SEARCH.GROUP_BY.YEAR,
+            filters: null,
+        },
+    },
+    {
+        query: 'type:expense group-by:quarter',
+        expected: {
+            type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+            status: CONST.SEARCH.STATUS.EXPENSE.ALL,
+            sortBy: CONST.SEARCH.TABLE_COLUMNS.GROUP_QUARTER,
+            sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
+            view: 'table',
+            groupBy: CONST.SEARCH.GROUP_BY.QUARTER,
+            filters: null,
+        },
+    },
+    {
         query: 'type:chat is:read',
         expected: {
             type: CONST.SEARCH.DATA_TYPES.CHAT,
@@ -816,6 +936,44 @@ const keywordTests = [
         },
     },
     {
+        query: 'columns:per-diem,drafts,draft,tax-rate,policy-name,withdrawal-id,bank-account',
+        expected: {
+            type: 'expense',
+            status: CONST.SEARCH.STATUS.EXPENSE.ALL,
+            sortBy: 'date',
+            sortOrder: 'desc',
+            view: 'table',
+            columns: [
+                'perDiem',
+                'drafts',
+                'drafts',
+                CONST.SEARCH.TABLE_COLUMNS.TAX_RATE,
+                CONST.SEARCH.TABLE_COLUMNS.POLICY_NAME,
+                CONST.SEARCH.TABLE_COLUMNS.WITHDRAWAL_ID,
+                CONST.SEARCH.TABLE_COLUMNS.BANK_ACCOUNT,
+            ],
+            filters: null,
+        },
+    },
+    {
+        query: 'columns:long-report-id,exported-to,exchange-rate,reimbursable-total,non-reimbursable-total',
+        expected: {
+            type: 'expense',
+            status: CONST.SEARCH.STATUS.EXPENSE.ALL,
+            sortBy: 'date',
+            sortOrder: 'desc',
+            view: 'table',
+            columns: [
+                CONST.SEARCH.TABLE_COLUMNS.REPORT_ID,
+                CONST.SEARCH.TABLE_COLUMNS.EXPORTED_TO,
+                CONST.SEARCH.TABLE_COLUMNS.EXCHANGE_RATE,
+                CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE_TOTAL,
+                CONST.SEARCH.TABLE_COLUMNS.NON_REIMBURSABLE_TOTAL,
+            ],
+            filters: null,
+        },
+    },
+    {
         query: 'columns:original-amount,tax,report-id',
         expected: {
             type: 'expense',
@@ -823,7 +981,48 @@ const keywordTests = [
             sortBy: 'date',
             sortOrder: 'desc',
             view: 'table',
-            columns: ['originalamount', 'taxAmount', 'base62ReportID'],
+            columns: [CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT, CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT, CONST.SEARCH.TABLE_COLUMNS.BASE_62_REPORT_ID],
+            filters: null,
+        },
+    },
+    {
+        query: 'columns:group-from,group-expenses,group-total,group-card,group-feed,group-bank-account,group-withdrawn,group-withdrawal-id',
+        expected: {
+            type: 'expense',
+            status: CONST.SEARCH.STATUS.EXPENSE.ALL,
+            sortBy: 'date',
+            sortOrder: 'desc',
+            view: 'table',
+            columns: [
+                CONST.SEARCH.TABLE_COLUMNS.GROUP_FROM,
+                CONST.SEARCH.TABLE_COLUMNS.GROUP_EXPENSES,
+                CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL,
+                CONST.SEARCH.TABLE_COLUMNS.GROUP_CARD,
+                CONST.SEARCH.TABLE_COLUMNS.GROUP_FEED,
+                CONST.SEARCH.TABLE_COLUMNS.GROUP_BANK_ACCOUNT,
+                CONST.SEARCH.TABLE_COLUMNS.GROUP_WITHDRAWN,
+                CONST.SEARCH.TABLE_COLUMNS.GROUP_WITHDRAWAL_ID,
+            ],
+            filters: null,
+        },
+    },
+    {
+        query: 'columns:group-category,group-tag,group-merchant,group-month,group-week,group-year,group-quarter',
+        expected: {
+            type: 'expense',
+            status: CONST.SEARCH.STATUS.EXPENSE.ALL,
+            sortBy: 'date',
+            sortOrder: 'desc',
+            view: 'table',
+            columns: [
+                CONST.SEARCH.TABLE_COLUMNS.GROUP_CATEGORY,
+                CONST.SEARCH.TABLE_COLUMNS.GROUP_TAG,
+                CONST.SEARCH.TABLE_COLUMNS.GROUP_MERCHANT,
+                CONST.SEARCH.TABLE_COLUMNS.GROUP_MONTH,
+                CONST.SEARCH.TABLE_COLUMNS.GROUP_WEEK,
+                CONST.SEARCH.TABLE_COLUMNS.GROUP_YEAR,
+                CONST.SEARCH.TABLE_COLUMNS.GROUP_QUARTER,
+            ],
             filters: null,
         },
     },
@@ -870,15 +1069,19 @@ const keywordTests = [
             },
         },
     },
-    // View parameter tests
+];
+
+const viewAndGroupByTests = [
+    // Chart view defaults
     {
         query: 'type:expense view:bar',
         expected: {
             type: 'expense',
             status: CONST.SEARCH.STATUS.EXPENSE.ALL,
-            sortBy: 'date',
-            sortOrder: 'desc',
+            sortBy: CONST.SEARCH.TABLE_COLUMNS.GROUP_CATEGORY,
+            sortOrder: 'asc',
             view: 'bar',
+            groupBy: 'category',
             filters: null,
         },
     },
@@ -894,7 +1097,7 @@ const keywordTests = [
         },
     },
     {
-        query: 'type:expense status:all', // default view should be 'table'
+        query: 'type:expense status:all',
         expected: {
             type: 'expense',
             status: CONST.SEARCH.STATUS.EXPENSE.ALL,
@@ -904,49 +1107,161 @@ const keywordTests = [
             filters: null,
         },
     },
+    // view:line defaults to groupBy:month, sortOrder:asc
     {
-        query: 'type:expense view:bar category:travel',
+        query: 'type:expense view:line',
         expected: {
             type: 'expense',
             status: CONST.SEARCH.STATUS.EXPENSE.ALL,
-            sortBy: 'date',
+            sortBy: CONST.SEARCH.TABLE_COLUMNS.GROUP_MONTH,
+            sortOrder: 'asc',
+            view: 'line',
+            groupBy: 'month',
+            filters: null,
+        },
+    },
+
+    // groupBy in table view uses its natural default sortOrder
+    {
+        query: 'type:expense groupBy:week',
+        expected: {
+            type: 'expense',
+            status: CONST.SEARCH.STATUS.EXPENSE.ALL,
+            sortBy: CONST.SEARCH.TABLE_COLUMNS.GROUP_WEEK,
             sortOrder: 'desc',
-            view: 'bar',
-            filters: {
-                operator: 'eq',
-                left: 'category',
-                right: 'travel',
-            },
+            view: 'table',
+            groupBy: 'week',
+            filters: null,
         },
     },
     {
-        query: 'type:expense view:line category:travel',
+        query: 'type:expense groupBy:category',
         expected: {
             type: 'expense',
             status: CONST.SEARCH.STATUS.EXPENSE.ALL,
-            sortBy: 'date',
+            sortBy: CONST.SEARCH.TABLE_COLUMNS.GROUP_CATEGORY,
+            sortOrder: 'asc',
+            view: 'table',
+            groupBy: 'category',
+            filters: null,
+        },
+    },
+
+    // view:line + groupBy:week
+    {
+        query: 'type:expense view:line groupBy:week',
+        expected: {
+            type: 'expense',
+            status: CONST.SEARCH.STATUS.EXPENSE.ALL,
+            sortBy: CONST.SEARCH.TABLE_COLUMNS.GROUP_WEEK,
+            sortOrder: 'asc',
+            view: 'line',
+            groupBy: 'week',
+            filters: null,
+        },
+    },
+
+    // Non-time groupBy in chart views keeps its natural sortOrder
+    {
+        query: 'type:expense view:line groupBy:category',
+        expected: {
+            type: 'expense',
+            status: CONST.SEARCH.STATUS.EXPENSE.ALL,
+            sortBy: CONST.SEARCH.TABLE_COLUMNS.GROUP_CATEGORY,
+            sortOrder: 'asc',
+            view: 'line',
+            groupBy: 'category',
+            filters: null,
+        },
+    },
+    {
+        query: 'type:expense view:line groupBy:withdrawal-id',
+        expected: {
+            type: 'expense',
+            status: CONST.SEARCH.STATUS.EXPENSE.ALL,
+            sortBy: CONST.SEARCH.TABLE_COLUMNS.GROUP_WITHDRAWN,
             sortOrder: 'desc',
             view: 'line',
-            filters: {
-                operator: 'eq',
-                left: 'category',
-                right: 'travel',
-            },
+            groupBy: 'withdrawal-id',
+            filters: null,
         },
     },
+
+    // Time-based groupBy + view:bar defaults to sortOrder:asc
     {
-        query: 'type:expense view:pie category:travel',
+        query: 'type:expense view:bar groupBy:week',
         expected: {
             type: 'expense',
             status: CONST.SEARCH.STATUS.EXPENSE.ALL,
-            sortBy: 'date',
+            sortBy: CONST.SEARCH.TABLE_COLUMNS.GROUP_WEEK,
+            sortOrder: 'asc',
+            view: 'bar',
+            groupBy: 'week',
+            filters: null,
+        },
+    },
+
+    // Explicit sortOrder:desc is respected even with chart views
+    {
+        query: 'type:expense view:line sortOrder:desc',
+        expected: {
+            type: 'expense',
+            status: CONST.SEARCH.STATUS.EXPENSE.ALL,
+            sortBy: CONST.SEARCH.TABLE_COLUMNS.GROUP_MONTH,
             sortOrder: 'desc',
-            view: 'pie',
-            filters: {
-                operator: 'eq',
-                left: 'category',
-                right: 'travel',
-            },
+            view: 'line',
+            groupBy: 'month',
+            filters: null,
+        },
+    },
+
+    // sortOrder is derived even when sortBy already matches groupBy default (UI loop)
+    {
+        query: 'sortBy:groupCategory type:expense groupBy:category view:line',
+        expected: {
+            type: 'expense',
+            status: CONST.SEARCH.STATUS.EXPENSE.ALL,
+            sortBy: CONST.SEARCH.TABLE_COLUMNS.GROUP_CATEGORY,
+            sortOrder: 'asc',
+            view: 'line',
+            groupBy: 'category',
+            filters: null,
+        },
+    },
+    {
+        query: 'sortBy:groupmonth type:expense groupBy:month view:bar',
+        expected: {
+            type: 'expense',
+            status: CONST.SEARCH.STATUS.EXPENSE.ALL,
+            sortBy: CONST.SEARCH.TABLE_COLUMNS.GROUP_MONTH,
+            sortOrder: 'asc',
+            view: 'bar',
+            groupBy: 'month',
+            filters: null,
+        },
+    },
+    {
+        query: 'sortBy:groupCategory type:expense groupBy:category view:table',
+        expected: {
+            type: 'expense',
+            status: CONST.SEARCH.STATUS.EXPENSE.ALL,
+            sortBy: CONST.SEARCH.TABLE_COLUMNS.GROUP_CATEGORY,
+            sortOrder: 'asc',
+            view: 'table',
+            groupBy: 'category',
+            filters: null,
+        },
+    },
+    {
+        query: 'sortBy:groupmonth type:expense groupBy:month view:table',
+        expected: {
+            type: 'expense',
+            status: CONST.SEARCH.STATUS.EXPENSE.ALL,
+            sortBy: CONST.SEARCH.TABLE_COLUMNS.GROUP_MONTH,
+            sortOrder: 'desc',
+            view: 'table',
+            groupBy: 'month',
+            filters: null,
         },
     },
 ];
@@ -1023,6 +1338,13 @@ describe('search parser', () => {
 
 describe('Testing search parser with special characters and wrapped in quotes.', () => {
     test.each(keywordTests)(`parsing: $query`, ({query, expected}) => {
+        const {rawFilterList, ...resultWithoutRawFilters} = parse(query) as SearchQueryJSON;
+        expect(resultWithoutRawFilters).toEqual(expected);
+    });
+});
+
+describe('search parser - view and groupBy defaults', () => {
+    test.each(viewAndGroupByTests)(`parsing: $query`, ({query, expected}) => {
         const {rawFilterList, ...resultWithoutRawFilters} = parse(query) as SearchQueryJSON;
         expect(resultWithoutRawFilters).toEqual(expected);
     });

@@ -13,6 +13,7 @@ import {setPolicyTimeTrackingDefaultRate} from '@libs/actions/Policy/Policy';
 import {convertToFrontendAmountAsString} from '@libs/CurrencyUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getDefaultTimeTrackingRate} from '@libs/PolicyUtils';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {getFieldRequiredErrors} from '@libs/ValidationUtils';
 import Navigation from '@navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
@@ -34,11 +35,16 @@ function WorkspaceTimeTrackingDefaultRatePage({
     const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
     const styles = useThemeStyles();
-    const [policy, policyFetchStatus] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: true, selector: policyTimeTrackingSelector});
+    const [policy, policyFetchStatus] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {selector: policyTimeTrackingSelector});
     const currency = policy?.outputCurrency ?? CONST.CURRENCY.USD;
 
     if (!policy || isLoadingOnyxValue(policyFetchStatus)) {
-        return <FullScreenLoadingIndicator />;
+        const reasonAttributes: SkeletonSpanReasonAttributes = {
+            context: 'WorkspaceTimeTrackingDefaultRatePage',
+            isPolicyMissing: !policy,
+            isPolicyLoading: isLoadingOnyxValue(policyFetchStatus),
+        };
+        return <FullScreenLoadingIndicator reasonAttributes={reasonAttributes} />;
     }
 
     return (
@@ -58,7 +64,7 @@ function WorkspaceTimeTrackingDefaultRatePage({
                     }}
                     style={[styles.flex1, styles.mh5]}
                     enabledWhenOffline
-                    validate={(values) => getFieldRequiredErrors(values, [INPUT_IDS.RATE])}
+                    validate={(values) => getFieldRequiredErrors(values, [INPUT_IDS.RATE], translate)}
                 >
                     <InputWrapper
                         label={translate('workspace.moreFeatures.timeTracking.defaultHourlyRate')}

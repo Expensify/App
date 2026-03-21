@@ -1,11 +1,11 @@
 import {format} from 'date-fns';
 import Onyx from 'react-native-onyx';
-import type {Connection, OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {Connection, OnyxEntry} from 'react-native-onyx';
 import {formatCurrentUserToAttendee} from '@libs/IOUUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails, Transaction} from '@src/types/onyx';
-import {generateTransactionID, getDraftTransactions} from './Transaction';
+import {generateTransactionID} from './Transaction';
 
 let connection: Connection;
 
@@ -99,14 +99,17 @@ function removeDraftSplitTransaction(transactionID: string | undefined) {
     Onyx.set(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`, null);
 }
 
-function removeDraftTransactions(shouldExcludeInitialTransaction = false, allTransactionDrafts?: OnyxCollection<Transaction>) {
-    const draftTransactions = getDraftTransactions(allTransactionDrafts);
-    const draftTransactionsSet = draftTransactions.reduce(
-        (acc, item) => {
-            if (shouldExcludeInitialTransaction && item.transactionID === CONST.IOU.OPTIMISTIC_TRANSACTION_ID) {
+function removeDraftTransactionsByIDs(transactionIDs: string[] | undefined, shouldExcludeInitialTransaction = false) {
+    if (!transactionIDs?.length) {
+        return;
+    }
+
+    const draftTransactionsSet = transactionIDs.reduce(
+        (acc, transactionID) => {
+            if (shouldExcludeInitialTransaction && transactionID === CONST.IOU.OPTIMISTIC_TRANSACTION_ID) {
                 return acc;
             }
-            acc[`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${item.transactionID}`] = null;
+            acc[`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`] = null;
             return acc;
         },
         {} as Record<string, null>,
@@ -151,7 +154,7 @@ type BuildOptimisticTransactionParams = {
 
 function buildOptimisticTransactionAndCreateDraft({initialTransaction, currentUserPersonalDetails, reportID}: BuildOptimisticTransactionParams): Transaction {
     const newTransactionID = generateTransactionID();
-    const {currency, iouRequestType, isFromGlobalCreate} = initialTransaction ?? {};
+    const {currency, iouRequestType, isFromGlobalCreate, isFromFloatingActionButton} = initialTransaction ?? {};
     const newTransaction = {
         amount: 0,
         created: format(new Date(), 'yyyy-MM-dd'),
@@ -161,6 +164,7 @@ function buildOptimisticTransactionAndCreateDraft({initialTransaction, currentUs
         reportID,
         transactionID: newTransactionID,
         isFromGlobalCreate,
+        isFromFloatingActionButton,
         merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
     } as Transaction;
     createDraftTransaction(newTransaction);
@@ -174,7 +178,7 @@ export {
     createDraftTransaction,
     removeDraftTransaction,
     removeTransactionReceipt,
-    removeDraftTransactions,
+    removeDraftTransactionsByIDs,
     removeDraftSplitTransaction,
     replaceDefaultDraftTransaction,
     buildOptimisticTransactionAndCreateDraft,

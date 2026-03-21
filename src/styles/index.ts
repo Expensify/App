@@ -352,19 +352,6 @@ const staticStyles = (theme: ThemeColors) =>
             ...FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
         },
 
-        reportStatusContainer: {
-            paddingHorizontal: 4,
-            alignItems: 'center',
-            justifyContent: 'center',
-            borderRadius: variables.componentBorderRadiusSmall,
-            height: 16,
-        },
-
-        reportStatusText: {
-            fontSize: variables.fontSizeSmall,
-            fontWeight: FontUtils.fontWeight.normal,
-        },
-
         textSupporting: {
             color: theme.textSupporting,
         },
@@ -931,19 +918,13 @@ const staticStyles = (theme: ThemeColors) =>
         actionableItemButton: {
             paddingTop: 8,
             paddingBottom: 8,
-            backgroundColor: 'transparent',
-            borderWidth: 1,
-            borderColor: theme.border,
             alignItems: 'flex-start',
-            borderRadius: variables.componentBorderRadiusMedium,
+            borderRadius: 20,
         },
 
-        actionableItemButtonBackgroundHovered: {
-            borderColor: theme.buttonPressedBG,
-        },
-
-        actionableItemButtonHovered: {
-            borderWidth: 1,
+        actionableItemButtonText: {
+            textAlign: 'left',
+            ...wordBreak.breakWord,
         },
 
         hoveredComponentBG: {
@@ -990,13 +971,12 @@ const staticStyles = (theme: ThemeColors) =>
             height: 140,
         },
         defaultBadge: {
-            backgroundColor: theme.transparent,
+            backgroundColor: theme.badgeDefaultBG,
             borderWidth: 1,
-            borderRadius: variables.componentBorderRadiusSmall,
-            borderColor: theme.buttonHoveredBG,
-            paddingHorizontal: 12,
-            minHeight: 28,
-            height: variables.iconSizeNormal,
+            borderRadius: variables.componentBorderRadius,
+            borderColor: theme.badgeDefaultBG,
+            paddingHorizontal: 8,
+            minHeight: 24,
             flexDirection: 'row',
             alignItems: 'center',
         },
@@ -1008,6 +988,8 @@ const staticStyles = (theme: ThemeColors) =>
             marginLeft: 0,
             paddingHorizontal: 8,
             minHeight: 20,
+            borderRadius: variables.componentBorderRadiusSmall,
+            backgroundColor: theme.transparent,
             borderColor: colors.productDark500,
         },
 
@@ -1020,15 +1002,22 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         badgeSuccess: {
+            backgroundColor: theme.badgeSuccessBG,
+            borderColor: theme.badgeSuccessBG,
+        },
+
+        badgeSuccessStrong: {
+            backgroundColor: theme.success,
             borderColor: theme.success,
+        },
+
+        badgeSuccessStrongPressed: {
+            backgroundColor: theme.successHover,
+            borderColor: theme.successHover,
         },
 
         badgeEnvironmentSuccess: {
             backgroundColor: theme.success,
-        },
-
-        badgeSuccessPressed: {
-            borderColor: theme.successHover,
         },
 
         badgeAdHocSuccess: {
@@ -1041,30 +1030,53 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         badgeDanger: {
+            backgroundColor: theme.badgeDangerBG,
+            borderColor: theme.badgeDangerBG,
+        },
+
+        badgeDangerStrong: {
+            backgroundColor: theme.danger,
             borderColor: theme.danger,
+        },
+
+        badgeDangerStrongPressed: {
+            backgroundColor: theme.dangerHover,
+            borderColor: theme.dangerHover,
         },
 
         badgeEnvironmentDanger: {
             backgroundColor: theme.danger,
         },
 
-        badgeDangerPressed: {
-            borderColor: theme.dangerPressed,
+        badgeDefaultActive: {
+            backgroundColor: theme.buttonHoveredBG,
+            borderColor: theme.buttonHoveredBG,
         },
 
-        badgeBordered: {
-            backgroundColor: theme.transparent,
-            borderWidth: 1,
-            borderRadius: variables.componentBorderRadiusSmall,
-            borderColor: theme.border,
-            paddingHorizontal: 12,
-            minHeight: 28,
+        condensedBadge: {
+            minHeight: 16,
+            paddingHorizontal: 6,
+            borderRadius: variables.componentBorderRadiusMedium,
         },
 
-        badgeNewFeature: {
-            minHeight: 20,
-            height: 20,
-            paddingHorizontal: 8,
+        condensedBadgeText: {
+            fontSize: variables.fontSizeExtraSmall,
+        },
+
+        badgeDefaultText: {
+            color: theme.text,
+        },
+
+        badgeSuccessText: {
+            color: theme.badgeSuccessText,
+        },
+
+        badgeDangerText: {
+            color: theme.badgeDangerText,
+        },
+
+        badgeStrongText: {
+            color: colors.white,
         },
 
         badgeText: {
@@ -1655,6 +1667,7 @@ const staticStyles = (theme: ThemeColors) =>
             borderRadius: 999,
             alignItems: 'center',
             justifyContent: 'center',
+            boxShadow: theme.shadow,
         },
 
         floatingSecondaryActionButton: {
@@ -1669,16 +1682,10 @@ const staticStyles = (theme: ThemeColors) =>
         floatingActionButtonSmall: {
             width: variables.componentSizeNormal,
             height: variables.componentSizeNormal,
+            boxShadow: 'none',
         },
 
         floatingCameraButton: {
-            position: 'absolute',
-            top: -variables.componentSizeLarge - 16,
-            right: 16,
-            zIndex: 10,
-        },
-
-        floatingCameraButtonAboveFab: {
             position: 'absolute',
             // floatingActionButton top property value (componentSizeLarge + 16) +
             // + floatingCameraButton height (componentSizeLarge) + gap (12) = 2 * componentSizeLarge + 28
@@ -1695,15 +1702,6 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         floatingGpsButton: {
-            position: 'absolute',
-            // floatingCameraButton top property value (componentSizeLarge + 16) +
-            // + floatingGpsButton height (componentSizeLarge) + gap (12) = 2 * componentSizeLarge + 28
-            top: 2 * -variables.componentSizeLarge - 28,
-            right: 16,
-            zIndex: 10,
-        },
-
-        floatingGpsButtonAboveFab: {
             position: 'absolute',
             // floatingActionButton top property value (componentSizeLarge + 16) +
             // + floatingCameraButton height (componentSizeLarge) + gap (12) + floatingGpsButton height (componentSizeLarge) + gap (12) = 3 * variables.componentSizeLarge + 40
@@ -1950,11 +1948,6 @@ const staticStyles = (theme: ThemeColors) =>
             marginBottom: -20,
         },
 
-        emptyWorkspaceListLottieIllustrationStyle: {
-            marginTop: 12,
-            marginBottom: -20,
-            height: '100%',
-        },
         emptyWorkspaceListStaticIllustrationStyle: {
             width: 203,
             height: 166,
@@ -2158,9 +2151,14 @@ const staticStyles = (theme: ThemeColors) =>
                 ...(Platform.OS === 'android' && {
                     height: undefined,
                     lineHeight: undefined,
-                    alignSelf: 'stretch',
                     flexGrow: 1,
                     flexShrink: 1,
+                }),
+
+                // On iOS, negative margin adjusts frame position for correct VoiceOver focus order. See #77499.
+                ...(Platform.OS === 'ios' && {
+                    marginTop: -5,
+                    paddingTop: 5,
                 }),
             },
             0,
@@ -2826,14 +2824,6 @@ const staticStyles = (theme: ThemeColors) =>
             borderRadius: variables.componentBorderRadiusLarge,
         },
 
-        sectionMenuItem: {
-            borderRadius: 8,
-            paddingHorizontal: 16,
-            paddingVertical: 8,
-            height: 52,
-            alignItems: 'center',
-        },
-
         sectionSelectCircle: {
             backgroundColor: theme.cardBG,
         },
@@ -2977,6 +2967,10 @@ const staticStyles = (theme: ThemeColors) =>
 
         detailsPageSectionContainer: {
             alignSelf: 'flex-start',
+        },
+
+        transactionsCarouselGap: {
+            width: variables.spacing2,
         },
 
         attachmentCarouselContainer: {
@@ -3355,11 +3349,6 @@ const staticStyles = (theme: ThemeColors) =>
             marginBottom: variables.bottomTabHeight,
         },
 
-        emptyLHNAnimation: {
-            width: 180,
-            height: 180,
-        },
-
         mfaBlockingViewAnimation: {
             width: 180,
             height: 180,
@@ -3625,8 +3614,38 @@ const staticStyles = (theme: ThemeColors) =>
             right: 20,
         },
 
+        receiptActionButtonsContainer: {
+            position: 'absolute',
+            top: 16,
+            right: 16,
+            flexDirection: 'row',
+            gap: 8,
+        },
+
+        receiptActionButton: {
+            width: 40,
+            height: 40,
+            alignItems: 'center',
+            justifyContent: 'center',
+            backgroundColor: theme.buttonDefaultBG,
+            borderRadius: 20,
+        },
+
         bgGreenSuccess: {
             backgroundColor: colors.green400,
+        },
+
+        odometerPhotoInformationContainer: {
+            ...positioning.pAbsolute,
+            ...flex.flexRow,
+            ...flex.alignItemsCenter,
+            ...spacing.gap4,
+            bottom: variables.bottomPositionOdometerPhotoInformationContainer,
+            left: variables.leftPositionOdometerPhotoInformationContainer,
+            right: variables.rightPositionOdometerPhotoInformationContainer,
+            padding: variables.paddingOdometerPhotoInformationContainer,
+            backgroundColor: theme.componentBG,
+            borderRadius: variables.componentBorderRadiusLarge,
         },
 
         webButtonShadow: {
@@ -3687,9 +3706,69 @@ const staticStyles = (theme: ThemeColors) =>
             overflow: 'hidden',
         },
 
+        widgetItemButton: {
+            minWidth: 68,
+        },
+
+        widgetItemSubtitle: {
+            ...FontUtils.fontFamily.platform.EXP_NEUE,
+            fontSize: variables.fontSizeLabel,
+            lineHeight: 16,
+            color: theme.textSupporting,
+        },
+
+        widgetItemTitle: {
+            ...FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
+            fontSize: variables.fontSizeNormal,
+            lineHeight: variables.fontSizeNormalHeight,
+            color: theme.text,
+        },
+
+        forYouEmptyStateContainer: {
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: 20,
+            marginTop: 20,
+            marginBottom: 52,
+        },
+
+        forYouEmptyStateTextContainer: {
+            alignItems: 'center',
+            gap: 8,
+            width: '100%',
+            paddingHorizontal: 20,
+        },
+
+        forYouEmptyStateTitle: {
+            ...FontUtils.fontFamily.platform.EXP_NEW_KANSAS_MEDIUM,
+            fontSize: variables.fontSizeXLarge,
+            lineHeight: variables.lineHeightXXLarge,
+            textAlign: 'center',
+            color: theme.text,
+        },
+
+        forYouEmptyStateDescription: {
+            ...FontUtils.fontFamily.platform.EXP_NEUE,
+            fontSize: variables.fontSizeNormal,
+            lineHeight: variables.fontSizeNormalHeight,
+            textAlign: 'center',
+            color: theme.textSupporting,
+        },
+
+        quickCreationActionsBarButton: {
+            borderRadius: variables.buttonBorderRadius,
+        },
+
+        quickCreationActionsBarButtonText: {
+            fontSize: variables.fontSizeSmall,
+            lineHeight: 14,
+        },
+
         homePageContentContainer: {
             flexGrow: 1,
-            padding: 20,
+            paddingTop: 0,
+            paddingHorizontal: 20,
+            paddingBottom: 20,
         },
 
         cardSectionIllustration: {
@@ -4224,12 +4303,23 @@ const staticStyles = (theme: ThemeColors) =>
             alignItems: 'center',
             justifyContent: 'center',
             borderRadius: variables.buttonBorderRadius,
+            scrollMarginInline: variables.tabSelectorScrollMarginInline,
         },
 
         tabSelector: {
             flexDirection: 'row',
             paddingHorizontal: 20,
             paddingBottom: 12,
+        },
+
+        tabSelectorContentContainer: {
+            flexGrow: 1,
+            paddingBottom: 12,
+            paddingHorizontal: 20,
+        },
+
+        scrollableTabSelector: {
+            flexGrow: 0,
         },
 
         dualColorOverscrollSpacer: {
@@ -4303,7 +4393,6 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         moneyRequestImage: {
-            height: 200,
             borderRadius: 16,
             marginHorizontal: 20,
             overflow: 'hidden',
@@ -4321,6 +4410,10 @@ const staticStyles = (theme: ThemeColors) =>
         reportPreviewBoxHoverBorder: {
             borderColor: theme.cardBG,
             backgroundColor: theme.cardBG,
+        },
+
+        reportPreviewBoxHoverBorderColor: {
+            borderColor: theme.cardBG,
         },
 
         reportContainerBorderRadius: {
@@ -4499,7 +4592,7 @@ const staticStyles = (theme: ThemeColors) =>
             height: 'auto',
         },
         expenseViewImageSmall: {
-            maxWidth: 440,
+            maxWidth: variables.receiptPreviewMaxWidth,
             aspectRatio: 16 / 9,
             height: 'auto',
         },
@@ -4682,6 +4775,12 @@ const staticStyles = (theme: ThemeColors) =>
             backgroundColor: theme.componentBG,
         },
 
+        baseListHeaderWrapperStyle: {
+            ...spacing.ph9,
+            ...spacing.pv3,
+            ...spacing.pb5,
+        },
+
         selectionListStickyHeader: {
             backgroundColor: theme.appBG,
         },
@@ -4761,6 +4860,11 @@ const staticStyles = (theme: ThemeColors) =>
             marginTop: 8,
             flexDirection: 'row',
             alignItems: 'center',
+        },
+
+        searchFiltersBarCreateButton: {
+            marginLeft: 'auto',
+            alignSelf: 'flex-start',
         },
 
         walletStaticIllustration: {
@@ -4908,7 +5012,7 @@ const staticStyles = (theme: ThemeColors) =>
         headerProgressBarContainer: {
             position: 'absolute',
             width: '100%',
-            zIndex: -1,
+            pointerEvents: 'none',
         },
 
         headerProgressBar: {
@@ -5148,18 +5252,12 @@ const staticStyles = (theme: ThemeColors) =>
             height: 220,
         },
 
-        uberConfirmationIllustrationContainer: {
-            width: 260,
-            height: 172,
-        },
-
-        gpsWebIllustrationContainer: {
-            width: 286,
-            height: 188,
+        toddInCarIllustrationContainer: {
+            width: 256,
+            height: 144,
         },
 
         emptyStateCardIllustrationContainer: {
-            height: 220,
             ...flex.alignItemsCenter,
             ...flex.justifyContentCenter,
         },
@@ -5169,9 +5267,9 @@ const staticStyles = (theme: ThemeColors) =>
             height: 190,
         },
 
-        emptyStateCardIllustration: {
-            width: 164,
-            height: 190,
+        expensifyCardEmptyIllustration: {
+            width: 280,
+            height: 172,
         },
 
         errorStateCardIllustration: {
@@ -5183,6 +5281,16 @@ const staticStyles = (theme: ThemeColors) =>
         travelCardIllustration: {
             width: 191,
             height: 170,
+        },
+
+        travelCCVIllustration: {
+            width: 240,
+            height: 100,
+        },
+
+        travelInvoicingIcon: {
+            backgroundColor: colors.productLight700,
+            borderRadius: variables.componentBorderRadiusNormal,
         },
 
         successBankSharedCardIllustration: {
@@ -5245,15 +5353,6 @@ const staticStyles = (theme: ThemeColors) =>
             textDecorationLine: 'line-through',
         },
 
-        skeletonBackground: {
-            flex: 1,
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            width: '100%',
-            height: '100%',
-        },
-
         emptyStateForeground: {
             margin: 32,
             justifyContent: 'center',
@@ -5262,24 +5361,7 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         emptyStateContent: {
-            backgroundColor: theme.cardBG,
-            borderRadius: variables.componentBorderRadiusLarge,
-            maxWidth: 400,
             width: '100%',
-        },
-
-        emptyFolderBG: {
-            backgroundColor: theme.emptyFolderBG,
-        },
-
-        emptyFolderDarkBG: {
-            backgroundColor: '#782c04',
-            height: 220,
-        },
-
-        emptyStateVideo: {
-            borderTopLeftRadius: variables.componentBorderRadiusLarge,
-            borderTopRightRadius: variables.componentBorderRadiusLarge,
         },
 
         emptyStateFolderWithPaperIconSize: {
@@ -5287,24 +5369,9 @@ const staticStyles = (theme: ThemeColors) =>
             height: 100,
         },
 
-        emptyStateFolderWebStyles: {
-            ...sizing.w100,
-            minWidth: 400,
-            ...flex.alignItemsCenter,
-            ...flex.justifyContentCenter,
-            ...display.dFlex,
-        },
-
         emptyStateFolderStaticIllustration: {
             width: 184,
             height: 112,
-        },
-
-        emptyStateFireworksWebStyles: {
-            width: 250,
-            ...flex.alignItemsCenter,
-            ...flex.justifyContentCenter,
-            ...display.dFlex,
         },
 
         emptyStateFireworksStaticIllustration: {
@@ -5312,9 +5379,14 @@ const staticStyles = (theme: ThemeColors) =>
             height: 148,
         },
 
-        tripEmptyStateLottieWebView: {
-            width: 335,
-            height: 220,
+        tripEmptyStateIllustration: {
+            width: 190,
+            height: 170,
+        },
+
+        emptyShelvesIllustration: {
+            width: 178,
+            height: 219,
         },
 
         offlineFeedbackDeleted: {
@@ -5441,11 +5513,8 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         todoBadge: {
-            width: variables.w36,
             alignItems: 'center',
             justifyContent: 'center',
-            paddingLeft: 0,
-            paddingRight: 0,
         },
 
         stickToBottom: {
@@ -5569,6 +5638,11 @@ const staticStyles = (theme: ThemeColors) =>
             borderColor: theme.border,
         },
 
+        wideRHPDropZoneContainer: {
+            width: animatedReceiptPaneRHPWidth,
+            height: '100%',
+        },
+
         wideRHPMoneyRequestReceiptViewScrollViewContainer: {
             ...spacing.pt3,
             ...spacing.pb2,
@@ -5622,6 +5696,10 @@ const staticStyles = (theme: ThemeColors) =>
             borderRadius: 16,
             marginTop: 32,
         },
+        twoFactorAuthSecretBox: {
+            backgroundColor: theme.highlightBG,
+            borderRadius: 16,
+        },
         anonymousRoomFooter: {
             padding: 20,
             backgroundColor: theme.cardBG,
@@ -5646,9 +5724,9 @@ const staticStyles = (theme: ThemeColors) =>
             right: 0,
         },
         emptyStateHeader: {
-            borderTopLeftRadius: variables.componentBorderRadiusLarge,
-            borderTopRightRadius: variables.componentBorderRadiusLarge,
-            minHeight: 200,
+            alignItems: 'center',
+            justifyContent: 'center',
+            marginBottom: 24,
         },
         sidePanelOverlay: {
             ...positioning.pFixed,
@@ -5728,10 +5806,93 @@ const staticStyles = (theme: ThemeColors) =>
         paymentMethodErrorRow: {
             paddingHorizontal: variables.iconSizeMenuItem + variables.iconSizeNormal / 2,
         },
+        transactionReceiptButton: {
+            minWidth: variables.transactionReceiptButtonWidth,
+        },
+        chartHeader: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            gap: variables.componentBorderRadius,
+            marginBottom: variables.sectionMargin,
+        },
+        chartTitle: {
+            ...FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
+            fontSize: variables.fontSizeNormal,
+            lineHeight: variables.fontSizeNormalHeight,
+            color: theme.text,
+        },
+        chartTooltipWrapper: {
+            alignItems: 'center',
+        },
+        chartTooltipBox: {
+            backgroundColor: theme.heading,
+            borderRadius: variables.componentBorderRadiusSmall,
+            paddingVertical: 4,
+            paddingHorizontal: 8,
+        },
+        chartTooltipText: {
+            color: theme.textReversed,
+            fontSize: variables.fontSizeSmall,
+            lineHeight: variables.lineHeightSmall,
+            whiteSpace: 'nowrap',
+        },
+        chartTooltipPointer: {
+            width: 0,
+            height: 0,
+            backgroundColor: theme.transparent,
+            borderStyle: 'solid',
+        },
+        barChartContainer: {
+            borderRadius: variables.componentBorderRadiusLarge,
+        },
+        barChartChartContainer: {
+            minHeight: 250,
+        },
+        lineChartContainer: {
+            borderRadius: variables.componentBorderRadiusLarge,
+            paddingTop: variables.qrShareHorizontalPadding,
+            paddingHorizontal: variables.qrShareHorizontalPadding,
+        },
+        lineChartChartContainer: {
+            minHeight: 250,
+        },
+        pieChartContainer: {
+            borderRadius: variables.componentBorderRadiusLarge,
+            padding: variables.qrShareHorizontalPadding,
+        },
+        pieChartChartContainer: {
+            height: 250,
+            position: 'relative',
+        },
+        pieChartLegendContainer: {
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            marginHorizontal: variables.qrShareHorizontalPadding,
+            marginTop: variables.qrShareHorizontalPadding,
+            flexDirection: 'row',
+            flexWrap: 'wrap',
+        },
+        pieChartLegendDot: {
+            borderRadius: '50%',
+            width: 12,
+            height: 12,
+        },
         discoverSectionImage: {
             width: '100%',
             height: undefined,
             aspectRatio: 2.2,
+        },
+        dateIconSize: {
+            width: variables.iconSizeExtraLarge,
+            height: variables.iconSizeExtraLarge,
+        },
+        homeWidgetIconContainer: {
+            width: variables.iconSizeExtraLarge,
+            height: variables.iconSizeExtraLarge,
+            borderRadius: 8,
+            alignItems: 'center',
+            justifyContent: 'center',
         },
     }) satisfies StaticStyles;
 
@@ -6001,11 +6162,6 @@ const dynamicStyles = (theme: ThemeColors) =>
 
         colorSchemeStyle: (colorScheme: ColorScheme) => ({colorScheme}),
 
-        emptyStateHeaderPosition: (isIllustration: boolean) => ({
-            alignItems: isIllustration ? 'center' : undefined,
-            justifyContent: isIllustration ? 'center' : undefined,
-        }),
-
         emojiHeaderContainerWidth: (isSmallScreenWidth: boolean, windowWidth: number) =>
             ({
                 width: isSmallScreenWidth ? windowWidth - 32 : CONST.EMOJI_PICKER_SIZE.WIDTH - 32,
@@ -6025,13 +6181,19 @@ const dynamicStyles = (theme: ThemeColors) =>
             maxWidth: shouldUseNarrowLayout ? '100%' : 300,
         }),
 
+        getForYouSectionContainerStyle: (shouldUseNarrowLayout: boolean): ViewStyle => ({
+            flexDirection: 'column',
+            marginBottom: shouldUseNarrowLayout ? 8 : 20,
+        }),
+
         getSelectionListPopoverHeight: (itemCount: number, windowHeight: number, isSearchable: boolean) => {
             const SEARCHBAR_HEIGHT = isSearchable ? 52 : 0;
             const SEARCHBAR_PADDING = isSearchable ? 12 : 0;
             const PADDING = 32;
+            const LIST_BOTTOM_PADDING = 12;
             const GAP = 8;
             const BUTTON_HEIGHT = 40;
-            const ESTIMATED_LIST_HEIGHT = itemCount * variables.optionRowHeightCompact + SEARCHBAR_HEIGHT + SEARCHBAR_PADDING;
+            const ESTIMATED_LIST_HEIGHT = itemCount * variables.optionRowHeightCompact + SEARCHBAR_HEIGHT + SEARCHBAR_PADDING + LIST_BOTTOM_PADDING;
             const MAX_HEIGHT = CONST.POPOVER_DROPDOWN_MAX_HEIGHT - (PADDING + GAP + BUTTON_HEIGHT);
 
             // Native platforms don't support maxHeight in the way thats expected, so lets manually set the height to either
@@ -6098,6 +6260,18 @@ const dynamicStyles = (theme: ThemeColors) =>
                 overflow: 'hidden',
             };
         },
+
+        getEmptyStateCompanyCardsIllustrationContainer: (shouldUseNarrowLayout: boolean) => (shouldUseNarrowLayout ? {height: 220} : {aspectRatio: 680 / 220}),
+
+        getEmptyStateCompanyCardsIllustration: (shouldUseNarrowLayout: boolean) => (shouldUseNarrowLayout ? {width: 680, height: 220} : {}),
+
+        sectionMenuItem: (shouldUseNarrowLayout: boolean) => ({
+            borderRadius: 8,
+            paddingHorizontal: 16,
+            paddingVertical: shouldUseNarrowLayout ? 8 : 4,
+            height: shouldUseNarrowLayout ? variables.sectionMenuItemHeight : variables.sectionMenuItemHeightCompact,
+            alignItems: 'center',
+        }),
     }) satisfies DynamicStyles;
 
 // Styles that cannot be wrapped in StyleSheet.create because they eg. must be passed to 3rd party libraries as JS objects
@@ -6236,6 +6410,25 @@ const plainStyles = (theme: ThemeColors) =>
                 color,
             }) satisfies TextStyle,
 
+        getWidgetContainerHeaderStyle: (shouldUseNarrowLayout: boolean) =>
+            ({
+                flexDirection: 'row',
+                alignItems: 'flex-start',
+                marginBottom: 20,
+                marginHorizontal: shouldUseNarrowLayout ? 20 : 32,
+                marginTop: shouldUseNarrowLayout ? 20 : 32,
+            }) satisfies ViewStyle,
+
+        getWidgetItemIconContainerStyle: (backgroundColor: string) =>
+            ({
+                alignItems: 'center',
+                justifyContent: 'center',
+                borderRadius: variables.componentBorderRadiusNormal,
+                width: variables.componentSizeNormal,
+                height: variables.componentSizeNormal,
+                backgroundColor,
+            }) satisfies ViewStyle,
+
         homePageMainLayout: (shouldUseNarrowLayout: boolean) =>
             ({
                 flexDirection: shouldUseNarrowLayout ? 'column' : 'row',
@@ -6246,10 +6439,12 @@ const plainStyles = (theme: ThemeColors) =>
         homePageLeftColumn: (shouldUseNarrowLayout: boolean) =>
             shouldUseNarrowLayout
                 ? ({width: '100%', flexDirection: 'column', gap: 20} satisfies ViewStyle)
-                : ({flex: 2, flexBasis: '66.666%', maxWidth: variables.homePageLeftColumnMaxWidth, flexDirection: 'column', gap: 20} satisfies ViewStyle),
+                : ({flex: 7, flexBasis: '58.333%', maxWidth: variables.homePageLeftColumnMaxWidth, flexDirection: 'column', gap: 20} satisfies ViewStyle),
 
         homePageRightColumn: (shouldUseNarrowLayout: boolean) =>
-            shouldUseNarrowLayout ? ({width: '100%'} satisfies ViewStyle) : ({flex: 1, flexBasis: '33.333%', maxWidth: variables.homePageRightColumnMaxWidth} satisfies ViewStyle),
+            shouldUseNarrowLayout
+                ? ({width: '100%', flexDirection: 'column', gap: 20} satisfies ViewStyle)
+                : ({flex: 5, flexBasis: '41.667%', maxWidth: variables.homePageRightColumnMaxWidth, flexDirection: 'column', gap: 20} satisfies ViewStyle),
     }) satisfies Styles;
 
 const styles = (theme: ThemeColors) =>

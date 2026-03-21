@@ -8,8 +8,6 @@ import DateUtils from '@libs/DateUtils';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import Log from '@libs/Log';
-import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
-import Navigation from '@libs/Navigation/Navigation';
 import {getReportActionHtml, getReportActionText} from '@libs/ReportActionsUtils';
 import type {OptimisticChatReport, OptimisticCreatedReportAction, OptimisticIOUReportAction} from '@libs/ReportUtils';
 import {
@@ -17,11 +15,11 @@ import {
     buildOptimisticInvoiceReport,
     buildOptimisticMoneyRequestEntities,
     buildOptimisticReportPreview,
-    doesReportReceiverMatchParticipant,
     getParsedComment,
     getPersonalDetailsForAccountID,
 } from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
+import {startSpan} from '@libs/telemetry/activeSpans';
 import {buildOptimisticTransaction} from '@libs/TransactionUtils';
 import {buildOptimisticPolicyRecentlyUsedTags} from '@userActions/Policy/Tag';
 import {notifyNewAction} from '@userActions/Report';
@@ -34,7 +32,15 @@ import type {InvoiceReceiver, InvoiceReceiverType} from '@src/types/onyx/Report'
 import type {OnyxData} from '@src/types/onyx/Request';
 import type {Receipt} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import {getAllPersonalDetails, getPolicyTags, getReceiptError, getSearchOnyxUpdate, mergePolicyRecentlyUsedCategories, mergePolicyRecentlyUsedCurrencies} from '.';
+import {
+    getAllPersonalDetails,
+    getPolicyTags,
+    getReceiptError,
+    getSearchOnyxUpdate,
+    handleNavigateAfterExpenseCreate,
+    mergePolicyRecentlyUsedCategories,
+    mergePolicyRecentlyUsedCurrencies,
+} from '.';
 import type {BasePolicyParams} from '.';
 
 type SendInvoiceInformation = {
@@ -77,6 +83,7 @@ type SendInvoiceOptions = {
     companyWebsite?: string;
     policyRecentlyUsedCategories?: OnyxEntry<OnyxTypes.RecentlyUsedCategories>;
     policyRecentlyUsedTags?: OnyxEntry<OnyxTypes.RecentlyUsedTags>;
+    isFromGlobalCreate?: boolean;
 };
 
 type BuildOnyxDataForInvoiceParams = {
@@ -590,19 +597,18 @@ function getSendInvoiceInformation({
     policyRecentlyUsedCategories,
     policyRecentlyUsedTags,
 }: SendInvoiceOptions): SendInvoiceInformation {
-    const {amount = 0, currency = '', created = '', merchant = '', category = '', tag = '', taxCode = '', taxAmount = 0, billable, comment, participants} = transaction ?? {};
+    const {amount = 0, currency = '', created = '', merchant = '', category = '', tag = '', taxCode = '', taxAmount = 0, taxValue, billable, comment, participants} = transaction ?? {};
     const trimmedComment = (comment?.comment ?? '').trim();
     const senderWorkspaceID = participants?.find((participant) => participant?.isSender)?.policyID;
     const receiverParticipant: Participant | InvoiceReceiver | undefined =
         participants?.find((participant) => participant?.accountID && !participant?.isSender) ?? invoiceChatReport?.invoiceReceiver;
     const receiverAccountID = receiverParticipant && 'accountID' in receiverParticipant && receiverParticipant.accountID ? receiverParticipant.accountID : CONST.DEFAULT_NUMBER_ID;
-    const invoiceChatReportReceiverMatches = doesReportReceiverMatchParticipant(invoiceChatReport, receiverAccountID);
     let receiver = getPersonalDetailsForAccountID(receiverAccountID);
     let optimisticPersonalDetailListAction = {};
 
     // STEP 1: Get existing chat report OR build a new optimistic one
     let isNewChatReport = false;
-    let chatReport = !isEmptyObject(invoiceChatReport) && invoiceChatReport?.reportID && invoiceChatReportReceiverMatches ? invoiceChatReport : null;
+    let chatReport = !isEmptyObject(invoiceChatReport) && invoiceChatReport?.reportID ? invoiceChatReport : null;
 
     if (!chatReport) {
         isNewChatReport = true;
@@ -638,6 +644,7 @@ function getSendInvoiceInformation({
             tag,
             taxCode,
             taxAmount,
+            taxValue,
             billable,
             reimbursable: true,
         },
@@ -734,6 +741,7 @@ function sendInvoice({
     companyWebsite,
     policyRecentlyUsedCategories,
     policyRecentlyUsedTags,
+    isFromGlobalCreate,
 }: SendInvoiceOptions) {
     const parsedComment = getParsedComment(transaction?.comment?.comment?.trim() ?? '');
     if (transaction?.comment) {
@@ -793,18 +801,31 @@ function sendInvoice({
         ...(invoiceChatReport?.reportID ? {receiverInvoiceRoomID: invoiceChatReport.reportID} : {receiverEmail: receiver.login ?? ''}),
     };
 
+    startSpan(CONST.TELEMETRY.SPAN_SUBMIT_TO_DESTINATION_VISIBLE, {
+        name: 'submit-to-destination-visible',
+        op: CONST.TELEMETRY.SPAN_SUBMIT_TO_DESTINATION_VISIBLE,
+        attributes: {
+            [CONST.TELEMETRY.ATTRIBUTE_SCENARIO]: CONST.TELEMETRY.SUBMIT_EXPENSE_SCENARIO.INVOICE,
+            [CONST.TELEMETRY.ATTRIBUTE_HAS_RECEIPT]: !!receiptFile,
+            [CONST.TELEMETRY.ATTRIBUTE_IS_FROM_GLOBAL_CREATE]: isFromGlobalCreate,
+            [CONST.TELEMETRY.ATTRIBUTE_IOU_TYPE]: CONST.IOU.TYPE.INVOICE,
+            [CONST.TELEMETRY.ATTRIBUTE_IOU_REQUEST_TYPE]: 'invoice',
+        },
+    });
+
     playSound(SOUNDS.DONE);
     API.write(WRITE_COMMANDS.SEND_INVOICE, parameters, onyxData);
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     InteractionManager.runAfterInteractions(() => removeDraftTransaction(CONST.IOU.OPTIMISTIC_TRANSACTION_ID));
 
-    if (isSearchTopmostFullScreenRoute()) {
-        Navigation.dismissModal();
-    } else {
-        Navigation.dismissModalWithReport({reportID: invoiceRoom.reportID});
-    }
+    handleNavigateAfterExpenseCreate({
+        activeReportID: invoiceRoom.reportID,
+        transactionID,
+        isFromGlobalCreate,
+        isInvoice: true,
+    });
 
-    notifyNewAction(invoiceRoom.reportID, currentUserAccountID);
+    notifyNewAction(invoiceRoom.reportID, undefined, true);
 }
 
 export {getReceiverType, getSendInvoiceInformation, sendInvoice};

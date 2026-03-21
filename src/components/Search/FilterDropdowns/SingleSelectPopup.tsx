@@ -3,13 +3,14 @@ import {View} from 'react-native';
 import Button from '@components/Button';
 import SelectionList from '@components/SelectionList';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
-import type {ListItem} from '@components/SelectionList/types';
+import type {ListItem, SelectionListStyle} from '@components/SelectionList/types';
 import Text from '@components/Text';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import CONST from '@src/CONST';
 
 type SingleSelectItem<T> = {
     text: string;
@@ -40,9 +41,12 @@ type SingleSelectPopupProps<T> = {
 
     /** The default value to set when reset is clicked */
     defaultValue?: string;
+
+    /** Custom styles for the SelectionList */
+    selectionListStyle?: SelectionListStyle;
 };
 
-function SingleSelectPopup<T extends string>({label, value, items, closeOverlay, onChange, isSearchable, searchPlaceholder, defaultValue}: SingleSelectPopupProps<T>) {
+function SingleSelectPopup<T extends string>({label, value, items, closeOverlay, onChange, isSearchable, searchPlaceholder, defaultValue, selectionListStyle}: SingleSelectPopupProps<T>) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
@@ -123,9 +127,10 @@ function SingleSelectPopup<T extends string>({label, value, items, closeOverlay,
                     ListItem={SingleSelectListItem}
                     onSelectRow={updateSelectedItem}
                     textInputOptions={textInputOptions}
+                    style={selectionListStyle}
                     shouldUpdateFocusedIndex={isSearchable}
                     initiallyFocusedItemKey={isSearchable ? value?.value : undefined}
-                    showLoadingPlaceholder={!noResultsFound}
+                    shouldShowLoadingPlaceholder={!noResultsFound}
                 />
             </View>
             <View style={[styles.flexRow, styles.gap2, styles.ph5]}>
@@ -134,6 +139,7 @@ function SingleSelectPopup<T extends string>({label, value, items, closeOverlay,
                     style={[styles.flex1]}
                     text={translate('common.reset')}
                     onPress={resetChanges}
+                    sentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_RESET_SINGLE_SELECT}
                 />
                 <Button
                     success
@@ -141,6 +147,7 @@ function SingleSelectPopup<T extends string>({label, value, items, closeOverlay,
                     style={[styles.flex1]}
                     text={translate('common.apply')}
                     onPress={applyChanges}
+                    sentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_APPLY_SINGLE_SELECT}
                 />
             </View>
         </View>

@@ -19,6 +19,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {cleanFileName, resizeImageIfNeeded, showCameraPermissionsAlert, verifyFileFormat} from '@libs/fileDownload/FileUtils';
+import Log from '@libs/Log';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type {FileObject, ImagePickerResponse as FileResponse} from '@src/types/utils/Attachment';
@@ -219,7 +220,9 @@ function AttachmentPicker({
                                                 checkAllProcessed();
                                             })
                                             .catch((error: Error) => {
-                                                showGeneralAlert(error.message ?? 'An unknown error occurred');
+                                                Log.warn('Failed to convert HEIC image, falling back to original', {error: error.message});
+                                                const fallbackAsset = processAssetWithFallbacks(asset);
+                                                processedAssets.push(fallbackAsset);
                                                 checkAllProcessed();
                                             });
                                     } else {
@@ -315,6 +318,25 @@ function AttachmentPicker({
     }, [translate]);
 
     /**
+     * Handles errors during image processing (resize, dimension check, etc.)
+     */
+    const handleImageProcessingError = useCallback(
+        (error: unknown) => {
+            const errorMessage = error instanceof Error ? error.message : undefined;
+
+            if (errorMessage === CONST.FILE_VALIDATION_ERRORS.IMAGE_DIMENSIONS_TOO_LARGE) {
+                showGeneralAlert(translate('attachmentPicker.imageDimensionsTooLarge'));
+            } else if (errorMessage) {
+                showGeneralAlert(errorMessage);
+            } else {
+                showImageCorruptionAlert();
+            }
+            return null;
+        },
+        [showGeneralAlert, showImageCorruptionAlert, translate],
+    );
+
+    /**
      * Opens the attachment modal
      *
      * @param onPickedHandler A callback that will be called with the selected attachment
@@ -373,10 +395,7 @@ function AttachmentPicker({
                                 height,
                             })),
                         )
-                        .catch(() => {
-                            showImageCorruptionAlert();
-                            return null;
-                        });
+                        .catch(handleImageProcessingError);
                 }
 
                 if (fileDataName && Str.isImage(fileDataName)) {
@@ -396,10 +415,7 @@ function AttachmentPicker({
                                 };
                             }),
                         )
-                        .catch(() => {
-                            showImageCorruptionAlert();
-                            return null;
-                        });
+                        .catch(handleImageProcessingError);
                 }
 
                 return getDataForUpload(fileDataObject).catch((error: Error) => {
@@ -425,7 +441,7 @@ function AttachmentPicker({
                     }
                 });
         },
-        [shouldValidateImage, showGeneralAlert, showImageCorruptionAlert],
+        [handleImageProcessingError, shouldValidateImage, showGeneralAlert, showImageCorruptionAlert],
     );
 
     /**

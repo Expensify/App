@@ -33,6 +33,7 @@ function TextSelectorModal({
     customValidate,
     enabledWhenOffline = true,
     allowHTML,
+    shouldUseStrictHtmlTagValidation = false,
     autoGrowHeight,
     ...rest
 }: TextSelectorModalProps) {
@@ -64,7 +65,7 @@ function TextSelectorModal({
             const formValue = values[rest.inputID];
 
             if (required) {
-                errors = getFieldRequiredErrors(values, [rest.inputID]);
+                errors = getFieldRequiredErrors(values, [rest.inputID], translate);
             }
 
             if (formValue.length > maxLength) {
@@ -164,6 +165,7 @@ function TextSelectorModal({
                     addBottomSafeAreaPadding
                     enterKeyEventListenerPriority={0}
                     allowHTML={allowHTML}
+                    shouldUseStrictHtmlTagValidation={shouldUseStrictHtmlTagValidation}
                     shouldValidateOnBlur={!isClosing}
                 >
                     {!!subtitle && (

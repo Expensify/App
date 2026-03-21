@@ -17,7 +17,7 @@ import KeyboardUtils from '@src/utils/keyboard';
 function PaymentCurrencyPage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID, {canBeMissing: true});
+    const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID);
     const personalPolicy = usePolicy(personalPolicyID);
 
     const paymentCurrency = personalPolicy?.outputCurrency ?? CONST.CURRENCY.USD;
@@ -48,7 +48,7 @@ function PaymentCurrencyPage() {
                         searchInputLabel={translate('common.search')}
                         onSelect={(option: CurrencyListItem) => {
                             if (option.currencyCode !== paymentCurrency) {
-                                updateGeneralSettings(personalPolicyID, personalPolicy?.name ?? '', option.currencyCode);
+                                updateGeneralSettings(personalPolicy, personalPolicy?.name ?? '', option.currencyCode);
                             }
                             handleDismissKeyboardAndGoBack();
                         }}

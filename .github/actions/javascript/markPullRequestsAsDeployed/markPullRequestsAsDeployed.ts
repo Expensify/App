@@ -43,9 +43,9 @@ const workflowURL = `${process.env.GITHUB_SERVER_URL}/${process.env.GITHUB_REPOS
 const getCommit = memoize(GithubUtils.octokit.git.getCommit);
 
 /**
- * Process staging deploy comments for a list of PRs
+ * Process deploy checklist comments for a list of PRs
  */
-async function commentStagingDeployPRs(
+async function commentOnDeployChecklistPRs(
     prList: number[],
     repoName: string,
     recentTags: Awaited<ReturnType<typeof GithubUtils.octokit.repos.listTags>>['data'],
@@ -108,6 +108,8 @@ async function run() {
 
     const date = core.getInput('DATE');
     const note = core.getInput('NOTE');
+    const androidSentryUrl = core.getInput('ANDROID_SENTRY_URL');
+    const iosSentryUrl = core.getInput('IOS_SENTRY_URL');
 
     function getDeployMessage(deployer: string, deployVerb: string): string {
         let message = `🚀 [${deployVerb}](${workflowURL}) to ${isProd ? 'production' : 'staging'}`;
@@ -122,6 +124,16 @@ async function run() {
 
         if (note) {
             message += `\n\n_Note:_ ${note}`;
+        }
+
+        if (androidSentryUrl || iosSentryUrl) {
+            message += `\n\n**Bundle Size Analysis (Sentry):**`;
+            if (androidSentryUrl) {
+                message += `\n- [Android](${androidSentryUrl})`;
+            }
+            if (iosSentryUrl) {
+                message += `\n- [iOS](${iosSentryUrl})`;
+            }
         }
 
         return message;
@@ -186,11 +198,11 @@ async function run() {
     }
 
     // Comment on the PRs
-    await commentStagingDeployPRs(prList, CONST.APP_REPO, appRecentTags, getDeployMessage);
+    await commentOnDeployChecklistPRs(prList, CONST.APP_REPO, appRecentTags, getDeployMessage);
     console.log(`✅ Added staging deploy comment ${prList.length} App PRs`);
 
     if (mobileExpensifyPRList.length > 0) {
-        await commentStagingDeployPRs(mobileExpensifyPRList, CONST.MOBILE_EXPENSIFY_REPO, mobileExpensifyRecentTags, getDeployMessage);
+        await commentOnDeployChecklistPRs(mobileExpensifyPRList, CONST.MOBILE_EXPENSIFY_REPO, mobileExpensifyRecentTags, getDeployMessage);
         console.log(`✅ Completed staging deploy comment on ${mobileExpensifyPRList.length} Mobile-Expensify PRs`);
     }
 }

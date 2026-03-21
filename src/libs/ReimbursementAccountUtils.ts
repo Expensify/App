@@ -43,18 +43,29 @@ const hasInProgressUSDVBBA = (achData?: ACHDataReimbursementAccount): boolean =>
 };
 
 /** Returns true if user passed first step of flow for non USD VBBA */
-const hasInProgressNonUSDVBBA = (achData?: ACHDataReimbursementAccount, nonUSDCountryDraftValue?: string): boolean => {
-    return (!!achData?.bankAccountID && !!achData?.created) || nonUSDCountryDraftValue !== '';
+const hasInProgressNonUSDVBBA = (achData?: ACHDataReimbursementAccount): boolean => {
+    return !!achData?.bankAccountID && !!achData?.created;
 };
 
+/**
+ * Returns achData.bankAccountID coerced to a number, defaulting to 0 when missing so VBBA API calls avoid NaN from undefined.
+ */
+function getBankAccountIDAsNumber(achData?: ACHDataReimbursementAccount): number {
+    return Number(achData?.bankAccountID ?? CONST.DEFAULT_NUMBER_ID);
+}
+
 /** Returns true if VBBA flow is in progress */
-const hasInProgressVBBA = (achData?: ACHDataReimbursementAccount, isNonUSDWorkspace?: boolean, nonUSDCountryDraftValue?: string) => {
+const hasInProgressVBBA = (achData?: ACHDataReimbursementAccount, isNonUSDWorkspace?: boolean, policyID?: string) => {
+    if (achData?.policyID !== policyID) {
+        return false;
+    }
+
     if (isNonUSDWorkspace) {
-        return hasInProgressNonUSDVBBA(achData, nonUSDCountryDraftValue);
+        return hasInProgressNonUSDVBBA(achData);
     }
 
     return hasInProgressUSDVBBA(achData);
 };
 
-export {getRouteForCurrentStep, REIMBURSEMENT_ACCOUNT_ROUTE_NAMES, hasInProgressUSDVBBA, hasInProgressVBBA, hasInProgressNonUSDVBBA};
+export {getBankAccountIDAsNumber, getRouteForCurrentStep, hasInProgressUSDVBBA, hasInProgressNonUSDVBBA, hasInProgressVBBA, REIMBURSEMENT_ACCOUNT_ROUTE_NAMES};
 export type {ReimbursementAccountStepToOpen};

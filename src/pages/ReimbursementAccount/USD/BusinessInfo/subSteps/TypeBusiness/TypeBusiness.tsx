@@ -9,6 +9,7 @@ import useOnyx from '@hooks/useOnyx';
 import useReimbursementAccountStepFormSubmit from '@hooks/useReimbursementAccountStepFormSubmit';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {getFieldRequiredErrors} from '@libs/ValidationUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
@@ -26,7 +27,7 @@ function TypeBusiness({onNext, isEditing}: SubStepProps) {
     const isLoadingReimbursementAccount = isLoadingOnyxValue(reimbursementAccountResult);
 
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> =>
-        getFieldRequiredErrors(values, STEP_FIELDS);
+        getFieldRequiredErrors(values, STEP_FIELDS, translate);
 
     const defaultIncorporationType = reimbursementAccount?.achData?.incorporationType ?? '';
 
@@ -37,7 +38,11 @@ function TypeBusiness({onNext, isEditing}: SubStepProps) {
     });
 
     if (isLoadingReimbursementAccount) {
-        return <FullScreenLoadingIndicator />;
+        const reasonAttributes: SkeletonSpanReasonAttributes = {
+            context: 'TypeBusiness',
+            isLoadingReimbursementAccount,
+        };
+        return <FullScreenLoadingIndicator reasonAttributes={reasonAttributes} />;
     }
 
     return (

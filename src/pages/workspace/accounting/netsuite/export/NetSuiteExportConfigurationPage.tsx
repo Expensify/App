@@ -62,9 +62,7 @@ function NetSuiteExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
 
     const {subsidiaryList, receivableList, taxAccountsList, items} = policy?.connections?.netsuite?.options?.data ?? {};
     const selectedSubsidiary = (subsidiaryList ?? []).find((subsidiary) => subsidiary.internalID === config?.subsidiaryID);
-
     const selectedReceivable = findSelectedBankAccountWithDefaultSelect(receivableList, config?.receivableAccount);
-
     const selectedItem = findSelectedInvoiceItemWithDefaultSelect(items, config?.invoiceItem);
 
     let invoiceItemValue = translate('workspace.netsuite.invoiceItem.values.create.label');
@@ -76,9 +74,9 @@ function NetSuiteExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
         invoiceItemValue = translate('workspace.netsuite.invoiceItem.values.select.label');
     }
 
-    const selectedTaxPostingAccount = findSelectedTaxAccountWithDefaultSelect(taxAccountsList, config?.taxPostingAccount);
-
-    const selectedProvTaxPostingAccount = findSelectedTaxAccountWithDefaultSelect(taxAccountsList, config?.provincialTaxPostingAccount);
+    const filteredTaxAccountsList = (taxAccountsList ?? []).filter(({country}) => country === selectedSubsidiary?.country);
+    const selectedTaxPostingAccount = findSelectedTaxAccountWithDefaultSelect(filteredTaxAccountsList, config?.taxPostingAccount);
+    const selectedProvTaxPostingAccount = findSelectedTaxAccountWithDefaultSelect(filteredTaxAccountsList, config?.provincialTaxPostingAccount);
 
     const menuItems: Array<MenuItemWithSubscribedSettings | ToggleItem | DividerLineItem> = [
         {

@@ -42,7 +42,6 @@ let youTranslation = '';
 
 Onyx.connect({
     key: ONYXKEYS.ARE_TRANSLATIONS_LOADING,
-    initWithStoredValues: false,
     callback: (value) => {
         if (value ?? true) {
             return;
@@ -450,6 +449,13 @@ function arePersonalDetailsMissing(privatePersonalDetails: OnyxEntry<PrivatePers
     );
 }
 
+/**
+ * Checks if the user has a legal first and last name.
+ */
+function areTravelPersonalDetailsMissing(privatePersonalDetails: OnyxEntry<PrivatePersonalDetails>): boolean {
+    return !privatePersonalDetails?.legalFirstName || !privatePersonalDetails?.legalLastName;
+}
+
 export {
     getDisplayNameOrDefault,
     getPersonalDetailsByIDs,
@@ -470,5 +476,6 @@ export {
     getLoginByAccountID,
     getPhoneNumber,
     arePersonalDetailsMissing,
+    areTravelPersonalDetailsMissing,
     createPersonalDetailsLookupByAccountID,
 };

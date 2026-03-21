@@ -15,12 +15,13 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {PolicyTagLists} from '@src/types/onyx';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 function SearchFiltersTagPage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {canBeMissing: true});
+    const [searchAdvancedFiltersForm, searchAdvancedFiltersFormResult] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
     const selectedTagsItems = searchAdvancedFiltersForm?.tag?.map((tag) => {
         if (tag === CONST.SEARCH.TAG_EMPTY_VALUE) {
             return {name: translate('search.noTag'), value: tag};
@@ -28,7 +29,7 @@ function SearchFiltersTagPage() {
         return {name: getCleanedTagName(tag), value: tag};
     });
     const policyIDs = searchAdvancedFiltersForm?.policyID ?? [];
-    const [allPolicyTagLists = getEmptyObject<NonNullable<OnyxCollection<PolicyTagLists>>>()] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS, {canBeMissing: true});
+    const [allPolicyTagLists = getEmptyObject<NonNullable<OnyxCollection<PolicyTagLists>>>()] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
     const selectedPoliciesTagLists = Object.keys(allPolicyTagLists ?? {})
         .filter((key) => policyIDs?.map((policyID) => `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`)?.includes(key))
         ?.map((key) => getTagNamesFromTagsLists(allPolicyTagLists?.[key] ?? {}))
@@ -69,11 +70,14 @@ function SearchFiltersTagPage() {
                 }}
             />
             <View style={[styles.flex1]}>
-                <SearchMultipleSelectionPicker
-                    items={tagItems}
-                    initiallySelectedItems={selectedTagsItems}
-                    onSaveSelection={updateTagFilter}
-                />
+                {!isLoadingOnyxValue(searchAdvancedFiltersFormResult) && (
+                    <SearchMultipleSelectionPicker
+                        items={tagItems}
+                        initiallySelectedItems={selectedTagsItems}
+                        onSaveSelection={updateTagFilter}
+                        shouldShowTextInput={tagItems.length >= CONST.STANDARD_LIST_ITEM_LIMIT}
+                    />
+                )}
             </View>
         </ScreenWrapper>
     );
