@@ -14,10 +14,12 @@ import isSidePanelReportSupported from '@components/SidePanel/isSidePanelReportS
 import Text from '@components/Text';
 import useArchivedReportsIdSet from '@hooks/useArchivedReportsIdSet';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useHasActiveAdminPolicies from '@hooks/useHasActiveAdminPolicies';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnboardingMessages from '@hooks/useOnboardingMessages';
+import useOnboardingStepCounter from '@hooks/useOnboardingStepCounter';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -33,7 +35,7 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {OnboardingRHPVariant} from '@src/types/onyx';
+import SCREENS from '@src/SCREENS';
 import type {BaseOnboardingInterestedFeaturesProps, Feature, SectionObject} from './types';
 
 function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardingInterestedFeaturesProps) {
@@ -46,6 +48,7 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {onboardingIsMediumOrLargerScreenWidth, isSmallScreenWidth} = useResponsiveLayout();
     const [onboardingPurposeSelected] = useOnyx(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED);
+    const onboardingStep = useOnboardingStepCounter(SCREENS.ONBOARDING.INTERESTED_FEATURES);
     const [onboardingPolicyID] = useOnyx(ONYXKEYS.ONBOARDING_POLICY_ID);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
@@ -61,6 +64,7 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [conciergeReportID = ''] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const archivedReportsIdSet = useArchivedReportsIdSet();
+    const hasActiveAdminPolicies = useHasActiveAdminPolicies();
 
     const paidGroupPolicy = Object.values(allPolicies ?? {}).find((policy) => isPaidGroupPolicy(policy) && isPolicyAdmin(policy, session?.email));
     const {isOffline} = useNetwork();
@@ -206,6 +210,7 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
                       shouldAddGuideWelcomeMessage: false,
                       betas,
                       isSelfTourViewed,
+                      hasActiveAdminPolicies,
                   })
                 : {adminsChatReportID: onboardingAdminsChatReportID, policyID: onboardingPolicyID};
 
@@ -214,7 +219,7 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
                 setOnboardingPolicyID(policyID);
             }
 
-            const response = await completeOnboarding({
+            await completeOnboarding({
                 engagementChoice: onboardingPurposeSelected,
                 onboardingMessage: onboardingMessages[onboardingPurposeSelected],
                 adminsChatReportID,
@@ -229,11 +234,6 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
                 isSelfTourViewed,
                 betas,
             });
-
-            // Extract the RHP variant directly from the API response to avoid a race condition
-            // where the Onyx callback hasn't fired yet when navigateAfterOnboarding is called.
-            const rhpVariantUpdate = (response?.onyxData as Array<{key: string; value: unknown}> | undefined)?.find((update) => update.key === ONYXKEYS.NVP_ONBOARDING_RHP_VARIANT);
-            const rhpVariant = rhpVariantUpdate?.value as OnboardingRHPVariant | undefined;
 
             // Avoid creating new WS because onboardingPolicyID is cleared before unmounting
             // eslint-disable-next-line @typescript-eslint/no-deprecated
@@ -253,7 +253,6 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
                 // Onboarding tasks would show in Concierge instead of admins room for testing accounts, we should open where onboarding tasks are located
                 // See https://github.com/Expensify/App/issues/57167 for more details
                 (session?.email ?? '').includes('+'),
-                rhpVariant,
             );
         } catch (error) {
             Log.warn('[BaseOnboardingInterestedFeatures] Error completing onboarding', {error});
@@ -284,6 +283,7 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
         isSelfTourViewed,
         conciergeReportID,
         betas,
+        hasActiveAdminPolicies,
     ]);
 
     // Create items for enabled features
@@ -385,7 +385,8 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
         >
             <HeaderWithBackButton
                 shouldShowBackButton
-                progressBarPercentage={90}
+                stepCounter={onboardingStep?.stepCounter}
+                progressBarPercentage={onboardingStep?.progressBarPercentage}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.ONBOARDING_ACCOUNTING.getRoute())}
                 shouldDisplayHelpButton={false}
             />
