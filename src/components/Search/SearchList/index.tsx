@@ -34,6 +34,7 @@ import type {
     TransactionWeekGroupListItemType,
     TransactionYearGroupListItemType,
 } from '@components/SelectionListWithSections/types';
+import {getIsEditingCell, getWasRecentlyEditingCell} from '@components/Table/EditableCell';
 import Text from '@components/Text';
 import useKeyboardState from '@hooks/useKeyboardState';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -393,6 +394,12 @@ function SearchList({
             const item = data.at(index);
 
             if (!listRef.current || !item || index === -1) {
+                return;
+            }
+
+            // Don't scroll while a cell is being edited
+            // as it can cause unwanted scrolling when the edit is dismissed
+            if (getIsEditingCell() || getWasRecentlyEditingCell()) {
                 return;
             }
 
