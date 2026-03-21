@@ -1,11 +1,10 @@
-import {findFocusedRoute, getStateFromPath as RNGetStateFromPath} from '@react-navigation/native';
+import {getStateFromPath as RNGetStateFromPath} from '@react-navigation/native';
 import Log from '@libs/Log';
 import getStateForDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/getStateForDynamicRoute';
 import getStateFromPath from '@libs/Navigation/helpers/getStateFromPath';
 import type {Route} from '@src/ROUTES';
 
 jest.mock('@react-navigation/native', () => ({
-    findFocusedRoute: jest.fn(),
     getStateFromPath: jest.fn(),
 }));
 
@@ -17,6 +16,10 @@ jest.mock('@libs/Navigation/linkingConfig', () => ({
     linkingConfig: {
         config: {},
     },
+}));
+
+jest.mock('@libs/Navigation/linkingConfig/config', () => ({
+    screensWithOnyxTabNavigator: new Set(),
 }));
 
 jest.mock('@src/ROUTES', () => ({
@@ -49,17 +52,16 @@ jest.mock('@libs/Navigation/helpers/getRedirectedPath', () => jest.fn((path: str
 jest.mock('@libs/Navigation/helpers/dynamicRoutesUtils/getStateForDynamicRoute', () => jest.fn());
 
 describe('getStateFromPath', () => {
-    const mockFindFocusedRoute = findFocusedRoute as jest.Mock;
     const mockRNGetStateFromPath = RNGetStateFromPath as jest.Mock;
     const mockGetStateForDynamicRoute = getStateForDynamicRoute as jest.Mock;
     const mockLogWarn = jest.spyOn(Log, 'warn');
 
-    const baseRouteState = {routes: [{name: 'BaseScreen'}]};
-    const dynamicSuffixAState = {routes: [{name: 'DynamicSuffixAScreen'}]};
-    const dynamicSuffixBState = {routes: [{name: 'DynamicSuffixBScreen'}]};
-    const dynamicMultiSegState = {routes: [{name: 'DynamicMultiSegScreen'}]};
-    const dynamicMultiSegLayerState = {routes: [{name: 'DynamicMultiSegLayerScreen'}]};
     const focusedRouteParams = {baseParam: '123'};
+    const baseRouteState = {routes: [{name: 'BaseScreen', params: focusedRouteParams}]};
+    const dynamicSuffixAState = {routes: [{name: 'DynamicSuffixAScreen', params: focusedRouteParams}]};
+    const dynamicSuffixBState = {routes: [{name: 'DynamicSuffixBScreen'}]};
+    const dynamicMultiSegState = {routes: [{name: 'DynamicMultiSegScreen', params: focusedRouteParams}]};
+    const dynamicMultiSegLayerState = {routes: [{name: 'DynamicMultiSegLayerScreen'}]};
 
     beforeEach(() => {
         jest.clearAllMocks();
@@ -78,18 +80,6 @@ describe('getStateFromPath', () => {
                 return dynamicMultiSegLayerState;
             }
             return {routes: [{name: 'UnknownDynamic'}]};
-        });
-        mockFindFocusedRoute.mockImplementation((state: unknown) => {
-            if (state === baseRouteState) {
-                return {name: 'BaseScreen', params: focusedRouteParams};
-            }
-            if (state === dynamicSuffixAState) {
-                return {name: 'DynamicSuffixAScreen', params: focusedRouteParams};
-            }
-            if (state === dynamicMultiSegState) {
-                return {name: 'DynamicMultiSegScreen', params: focusedRouteParams};
-            }
-            return undefined;
         });
     });
 
@@ -116,7 +106,6 @@ describe('getStateFromPath', () => {
         const fullPath = '/unknown/suffix-b-unauth';
         const standardState = {routes: [{name: 'FallbackRoute'}]};
         mockRNGetStateFromPath.mockReturnValue(standardState);
-        mockFindFocusedRoute.mockReturnValue({name: 'UnknownScreen'});
 
         const result = getStateFromPath(fullPath as unknown as Route);
 
