@@ -205,6 +205,7 @@
         "ecash",
         "ecconnrefused",
         "econn",
+        "EDDSA",
         "EDIFACT",
         "Egencia",
         "Electromedical",
@@ -862,7 +863,8 @@
         "zoneinfo",
         "zxcv",
         "zxldvw",
-        "مثال"
+        "مثال",
+        "PINATM"
     ],
     "ignorePaths": [
         "src/languages/de.ts",

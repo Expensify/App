@@ -2063,14 +2063,6 @@ function updateWorkspaceClientID(policyID: string, clientID: string, currentClie
     });
 }
 
-function hideWorkspaceAlertMessage(policyID: string) {
-    if (!deprecatedAllPolicies?.[policyID]) {
-        return;
-    }
-
-    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {alertMessage: ''});
-}
-
 function updateAddress(policyID: string, newAddress: CompanyAddress) {
     const parameters: UpdatePolicyAddressParams = {
         policyID,
@@ -3866,7 +3858,6 @@ function setWorkspaceInviteMessageDraft(policyID: string, message: string | null
 
 function clearErrors(policyID: string) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {errors: null});
-    hideWorkspaceAlertMessage(policyID);
 }
 
 /**
@@ -7085,7 +7076,6 @@ export {
     leaveWorkspace,
     addBillingCardAndRequestPolicyOwnerChange,
     hasActiveChatEnabledPolicies,
-    hideWorkspaceAlertMessage,
     deleteWorkspace,
     updateAddress,
     updateLastAccessedWorkspace,
