@@ -3,6 +3,16 @@ import IntlStore from '@src/languages/IntlStore';
 import type {CurrencyList, Locale} from '@src/types/onyx';
 import {format, formatToParts} from './NumberFormatUtils';
 
+let currentCurrencyList: CurrencyList = {};
+
+function getCurrencyList(currencies?: CurrencyList): CurrencyList {
+    return currencies ?? currentCurrencyList;
+}
+
+function setCurrentCurrencyList(currencies?: CurrencyList) {
+    currentCurrencyList = currencies ?? {};
+}
+
 /**
  * Returns the number of digits after the decimal separator for a specific currency.
  * For currencies that have decimal places > 2, floor to 2 instead:
@@ -12,7 +22,7 @@ import {format, formatToParts} from './NumberFormatUtils';
  */
 function getCurrencyDecimals(currency: string = CONST.CURRENCY.USD, currencies?: CurrencyList): number {
     const normalizedCurrency = currency.toUpperCase();
-    const decimals = currencies?.[normalizedCurrency]?.decimals;
+    const decimals = getCurrencyList(currencies)?.[normalizedCurrency]?.decimals;
     if (decimals !== undefined) {
         return decimals;
     }
@@ -45,7 +55,7 @@ function getLocalizedCurrencySymbol(locale: Locale | undefined, currencyCode: st
  * Get the currency symbol for a currency(ISO 4217) Code
  */
 function getCurrencySymbol(currencyCode: string, currencies?: CurrencyList): string | undefined {
-    return currencies?.[currencyCode.toUpperCase()]?.symbol;
+    return getCurrencyList(currencies)?.[currencyCode.toUpperCase()]?.symbol;
 }
 
 /**
@@ -195,15 +205,16 @@ function convertToDisplayStringWithoutCurrency(amountInCents: number, currency: 
 function isValidCurrencyCode(currencyCode: string, currencies?: CurrencyList): boolean {
     const normalizedCurrencyCode = currencyCode.toUpperCase();
 
-    const currency = currencies?.[normalizedCurrencyCode];
+    const currency = getCurrencyList(currencies)?.[normalizedCurrencyCode];
     return !!currency;
 }
 
 function getCurrencyKeyByCountryCode(currencies?: CurrencyList, countryCode?: string): string {
-    if (!currencies || !countryCode) {
+    const currentCurrencies = getCurrencyList(currencies);
+    if (!countryCode || Object.keys(currentCurrencies).length === 0) {
         return CONST.CURRENCY.USD;
     }
-    for (const [key, value] of Object.entries(currencies)) {
+    for (const [key, value] of Object.entries(currentCurrencies)) {
         if (value?.countries?.includes(countryCode)) {
             return key;
         }
@@ -217,6 +228,7 @@ export {
     getLocalizedCurrencySymbol,
     getCurrencySymbol,
     getCurrencyKeyByCountryCode,
+    setCurrentCurrencyList,
     convertToBackendAmount,
     convertToFrontendAmountAsInteger,
     convertToFrontendAmountAsString,
