@@ -1790,6 +1790,7 @@ const translations: TranslationDeepObject<typeof en> = {
             [CONST.NEXT_STEP.MESSAGE_KEY.SUBMITTING_TO_SELF]: (_: NextStepParams) =>
                 `Ops! Sembra che tu stia inviando il report a <strong>te stessə</strong>. L’approvazione dei propri report è <strong>vietata</strong> nel tuo spazio di lavoro. Invia questo report a un’altra persona oppure contatta il tuo amministratore per cambiare la persona a cui lo invii.`,
             [CONST.NEXT_STEP.MESSAGE_KEY.REJECTED_REPORT]: ({actor, actorType}: NextStepParams) => {
+                // All ACTOR_TYPE enum values are explicitly handled
                 // eslint-disable-next-line default-case
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
