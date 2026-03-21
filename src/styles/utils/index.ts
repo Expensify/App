@@ -2200,6 +2200,13 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
                 return {};
         }
     },
+
+    getRootTabBarNarrowStyle: (safeAreaPaddingBottom: number): ViewStyle => ({
+        overflow: 'visible',
+        marginTop: -(variables.bottomTabHeight + safeAreaPaddingBottom),
+        paddingBottom: safeAreaPaddingBottom,
+        backgroundColor: theme.appBG,
+    }),
 });
 
 type StyleUtilsType = ReturnType<typeof createStyleUtils>;

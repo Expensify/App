@@ -12,12 +12,11 @@ import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
-import useTheme from '@hooks/useTheme';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {RootTabNavigatorParamList} from '@libs/Navigation/types';
 import HomePage from '@pages/home/HomePage';
 import WorkspacesListPage from '@pages/workspace/WorkspacesListPage';
-import variables from '@styles/variables';
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
 
@@ -38,8 +37,8 @@ const ROUTE_TO_NAVIGATION_TAB: Record<string, ValueOf<typeof NAVIGATION_TABS>> =
 function RootTabNavigatorTabBar({tabState}: {tabState: BottomTabBarProps['state']}) {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {paddingBottom: safeAreaPaddingBottom} = useSafeAreaPaddings(true);
-    const theme = useTheme();
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const selectedRouteName = tabState.routes[tabState.index]?.name;
     const selectedTab = ROUTE_TO_NAVIGATION_TAB[selectedRouteName ?? ''] ?? NAVIGATION_TABS.HOME;
 
@@ -72,11 +71,7 @@ function RootTabNavigatorTabBar({tabState}: {tabState: BottomTabBarProps['state'
         // Negative marginTop overlays the tab bar on content (zero flex space) to prevent layout shifts.
         return (
             <View
-                style={[
-                    styles.overflowVisible,
-                    {marginTop: -(variables.bottomTabHeight + safeAreaPaddingBottom), paddingBottom: safeAreaPaddingBottom, backgroundColor: theme.appBG},
-                    isHidden && styles.opacity0,
-                ]}
+                style={[StyleUtils.getRootTabBarNarrowStyle(safeAreaPaddingBottom), isHidden && styles.opacity0]}
                 pointerEvents={isHidden ? 'none' : 'auto'}
             >
                 <NavigationTabBar
