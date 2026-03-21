@@ -1729,7 +1729,15 @@ describe('getSecondaryAction', () => {
 
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
 
-        const result = getSecondaryTransactionThreadActions(EMPLOYEE_EMAIL, EMPLOYEE_ACCOUNT_ID, report, {} as Transaction, undefined, {} as Transaction, policy);
+        const result = getSecondaryTransactionThreadActions({
+            currentUserLogin: EMPLOYEE_EMAIL,
+            currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+            parentReport: report,
+            reportTransaction: {} as Transaction,
+            reportAction: undefined,
+            originalTransaction: {} as Transaction,
+            policy,
+        });
 
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.DELETE)).toBe(true);
     });
@@ -2783,7 +2791,17 @@ describe('getSecondaryTransactionThreadActions', () => {
         const policy = {} as unknown as Policy;
 
         const result = [CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.VIEW_DETAILS];
-        expect(getSecondaryTransactionThreadActions(EMPLOYEE_EMAIL, EMPLOYEE_ACCOUNT_ID, report, {} as Transaction, undefined, {} as Transaction, policy)).toEqual(result);
+        expect(
+            getSecondaryTransactionThreadActions({
+                currentUserLogin: EMPLOYEE_EMAIL,
+                currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+                parentReport: report,
+                reportTransaction: {} as Transaction,
+                reportAction: undefined,
+                originalTransaction: {} as Transaction,
+                policy,
+            }),
+        ).toEqual(result);
     });
 
     it('includes HOLD option', () => {
@@ -2803,7 +2821,15 @@ describe('getSecondaryTransactionThreadActions', () => {
 
         jest.spyOn(ReportUtils, 'canHoldUnholdReportAction').mockReturnValueOnce({canHoldRequest: true, canUnholdRequest: true});
         jest.spyOn(ReportUtils, 'isAwaitingFirstLevelApproval').mockReturnValueOnce(true);
-        const result = getSecondaryTransactionThreadActions(EMPLOYEE_EMAIL, EMPLOYEE_ACCOUNT_ID, report, transaction, actionR14932, {} as Transaction, policy);
+        const result = getSecondaryTransactionThreadActions({
+            currentUserLogin: EMPLOYEE_EMAIL,
+            currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+            parentReport: report,
+            reportTransaction: transaction,
+            reportAction: actionR14932,
+            originalTransaction: {} as Transaction,
+            policy,
+        });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.HOLD)).toBe(true);
     });
 
@@ -2820,12 +2846,30 @@ describe('getSecondaryTransactionThreadActions', () => {
         } as unknown as Transaction;
 
         jest.spyOn(ReportUtils, 'isHoldCreator').mockReturnValue(false);
-        const result = getSecondaryTransactionThreadActions(EMPLOYEE_EMAIL, EMPLOYEE_ACCOUNT_ID, report, transaction, undefined, {} as Transaction, policy, transactionThreadReport);
+        const result = getSecondaryTransactionThreadActions({
+            currentUserLogin: EMPLOYEE_EMAIL,
+            currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+            parentReport: report,
+            reportTransaction: transaction,
+            reportAction: undefined,
+            originalTransaction: {} as Transaction,
+            policy,
+            transactionThreadReport,
+        });
         expect(result).toContain(CONST.REPORT.SECONDARY_ACTIONS.REMOVE_HOLD);
 
         // Do not show if admin is the holder
         jest.spyOn(ReportUtils, 'isHoldCreator').mockReturnValue(true);
-        const result2 = getSecondaryTransactionThreadActions(EMPLOYEE_EMAIL, EMPLOYEE_ACCOUNT_ID, report, transaction, undefined, {} as Transaction, policy, transactionThreadReport);
+        const result2 = getSecondaryTransactionThreadActions({
+            currentUserLogin: EMPLOYEE_EMAIL,
+            currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+            parentReport: report,
+            reportTransaction: transaction,
+            reportAction: undefined,
+            originalTransaction: {} as Transaction,
+            policy,
+            transactionThreadReport,
+        });
         expect(result2).not.toContain(CONST.REPORT.SECONDARY_ACTIONS.REMOVE_HOLD);
     });
 
@@ -2842,7 +2886,15 @@ describe('getSecondaryTransactionThreadActions', () => {
 
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
 
-        const result = getSecondaryTransactionThreadActions(EMPLOYEE_EMAIL, EMPLOYEE_ACCOUNT_ID, report, {} as Transaction, undefined, {} as Transaction, policy);
+        const result = getSecondaryTransactionThreadActions({
+            currentUserLogin: EMPLOYEE_EMAIL,
+            currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+            parentReport: report,
+            reportTransaction: {} as Transaction,
+            reportAction: undefined,
+            originalTransaction: {} as Transaction,
+            policy,
+        });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.DELETE)).toBe(true);
     });
 
@@ -2930,7 +2982,15 @@ describe('getSecondaryTransactionThreadActions', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, policy);
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
 
-        const result = getSecondaryTransactionThreadActions(EMPLOYEE_EMAIL, EMPLOYEE_ACCOUNT_ID, report, transaction, actionR14932, {} as Transaction, policy);
+        const result = getSecondaryTransactionThreadActions({
+            currentUserLogin: EMPLOYEE_EMAIL,
+            currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+            parentReport: report,
+            reportTransaction: transaction,
+            reportAction: actionR14932,
+            originalTransaction: {} as Transaction,
+            policy,
+        });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SPLIT)).toBe(true);
     });
 
@@ -2966,7 +3026,15 @@ describe('getSecondaryTransactionThreadActions', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, policy);
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
 
-        const result = getSecondaryTransactionThreadActions(EMPLOYEE_EMAIL, EMPLOYEE_ACCOUNT_ID, report, transaction, actionR14932, {} as Transaction, policy);
+        const result = getSecondaryTransactionThreadActions({
+            currentUserLogin: EMPLOYEE_EMAIL,
+            currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+            parentReport: report,
+            reportTransaction: transaction,
+            reportAction: actionR14932,
+            originalTransaction: {} as Transaction,
+            policy,
+        });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SPLIT)).toBe(false);
     });
 
@@ -3003,7 +3071,15 @@ describe('getSecondaryTransactionThreadActions', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, policy);
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
 
-        const result = getSecondaryTransactionThreadActions(EMPLOYEE_EMAIL, EMPLOYEE_ACCOUNT_ID, report, transaction, actionR14932, {} as Transaction, policy);
+        const result = getSecondaryTransactionThreadActions({
+            currentUserLogin: EMPLOYEE_EMAIL,
+            currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+            parentReport: report,
+            reportTransaction: transaction,
+            reportAction: actionR14932,
+            originalTransaction: {} as Transaction,
+            policy,
+        });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SPLIT)).toBe(false);
     });
 
@@ -3044,7 +3120,15 @@ describe('getSecondaryTransactionThreadActions', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, policy);
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
 
-        const result = getSecondaryTransactionThreadActions(EMPLOYEE_EMAIL, EMPLOYEE_ACCOUNT_ID, report, transaction, actionR14932, {} as Transaction, policy);
+        const result = getSecondaryTransactionThreadActions({
+            currentUserLogin: EMPLOYEE_EMAIL,
+            currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+            parentReport: report,
+            reportTransaction: transaction,
+            reportAction: actionR14932,
+            originalTransaction: {} as Transaction,
+            policy,
+        });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SPLIT)).toBe(false);
     });
 
@@ -3063,18 +3147,16 @@ describe('getSecondaryTransactionThreadActions', () => {
         jest.spyOn(ReportUtils, 'canEditFieldOfMoneyRequest').mockReturnValue(true);
         jest.spyOn(ReportUtils, 'canUserPerformWriteAction').mockReturnValue(true);
 
-        const result = getSecondaryTransactionThreadActions(
-            EMPLOYEE_EMAIL,
-            EMPLOYEE_ACCOUNT_ID,
+        const result = getSecondaryTransactionThreadActions({
+            currentUserLogin: EMPLOYEE_EMAIL,
+            currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             parentReport,
-            transaction,
-            actionR14932,
-            {} as Transaction,
+            reportTransaction: transaction,
+            reportAction: actionR14932,
+            originalTransaction: {} as Transaction,
             policy,
-            undefined,
-            undefined,
-            false,
-        );
+            isChatReportArchived: false,
+        });
         expect(result).toContain(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.MOVE_EXPENSE);
     });
 
@@ -3093,18 +3175,16 @@ describe('getSecondaryTransactionThreadActions', () => {
         jest.spyOn(ReportUtils, 'canEditFieldOfMoneyRequest').mockReturnValue(false);
         jest.spyOn(ReportUtils, 'canUserPerformWriteAction').mockReturnValue(true);
 
-        const result = getSecondaryTransactionThreadActions(
-            EMPLOYEE_EMAIL,
-            EMPLOYEE_ACCOUNT_ID,
+        const result = getSecondaryTransactionThreadActions({
+            currentUserLogin: EMPLOYEE_EMAIL,
+            currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             parentReport,
-            transaction,
-            actionR14932,
-            {} as Transaction,
+            reportTransaction: transaction,
+            reportAction: actionR14932,
+            originalTransaction: {} as Transaction,
             policy,
-            undefined,
-            undefined,
-            false,
-        );
+            isChatReportArchived: false,
+        });
         expect(result).not.toContain(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.MOVE_EXPENSE);
     });
 
