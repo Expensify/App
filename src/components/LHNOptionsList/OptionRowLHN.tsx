@@ -341,7 +341,7 @@ function OptionRowLHN({
                                                             !!optionItem.isThread ||
                                                             !!optionItem.isMoneyRequestReport ||
                                                             !!optionItem.isInvoiceReport ||
-                                                            !!optionItem.private_isArchived ||
+                                                            optionItem.private_isArchived ||
                                                             isGroupChat(report) ||
                                                             isSystemChat(report)
                                                         }

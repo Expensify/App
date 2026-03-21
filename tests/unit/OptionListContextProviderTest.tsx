@@ -186,7 +186,7 @@ describe('OptionListContextProvider', () => {
         };
 
         const archivedKey = `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`;
-        mockUsePrivateIsArchivedMap.mockReturnValue({[archivedKey]: 'true'});
+        mockUsePrivateIsArchivedMap.mockReturnValue({[archivedKey]: true});
 
         const initialPersonalDetails = {[accountID]: {accountID: Number(accountID), firstName: 'John', lastName: 'Doe', login: 'john@test.com', displayName: 'John Doe'}};
         mockUsePersonalDetails.mockReturnValue(initialPersonalDetails);
@@ -223,6 +223,6 @@ describe('OptionListContextProvider', () => {
         mockUsePersonalDetails.mockReturnValue(updatedPersonalDetails);
         rerender({shouldInitialize: false});
 
-        expect(mockCreateOptionFromReport).toHaveBeenCalledWith(report, updatedPersonalDetails, expect.any(Number), 'true', undefined, {showPersonalDetails: true});
+        expect(mockCreateOptionFromReport).toHaveBeenCalledWith(report, updatedPersonalDetails, expect.any(Number), true, undefined, {showPersonalDetails: true});
     });
 });
