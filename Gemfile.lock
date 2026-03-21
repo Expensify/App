@@ -20,6 +20,8 @@ GEM
     algoliasearch (1.27.5)
       httpclient (~> 2.8, >= 2.8.3)
       json (>= 1.5.1)
+    apktools (0.7.5)
+      rubyzip (~> 2.0)
     artifactory (3.0.17)
     atomos (0.1.3)
     aws-eventstream (1.4.0)
@@ -180,6 +182,14 @@ GEM
       xcodeproj (>= 1.13.0, < 2.0.0)
       xcpretty (~> 0.4.1)
       xcpretty-travis-formatter (>= 0.0.3, < 2.0.0)
+    fastlane-plugin-aws_s3 (2.1.0)
+      apktools (~> 0.7)
+      aws-sdk-s3 (~> 1)
+      mime-types (~> 3.3)
+    fastlane-plugin-firebase_app_distribution (1.0.0)
+      fastlane (>= 2.232.0)
+      google-apis-firebaseappdistribution_v1 (>= 0.9.0)
+      google-apis-firebaseappdistribution_v1alpha (>= 0.12.0)
     fastlane-sirp (1.0.0)
       sysrandom (~> 1.0)
     ffi (1.17.2)
@@ -199,6 +209,10 @@ GEM
       mutex_m
       representable (~> 3.0)
       retriable (>= 2.0, < 4.a)
+    google-apis-firebaseappdistribution_v1 (0.17.0)
+      google-apis-core (>= 0.15.0, < 2.a)
+    google-apis-firebaseappdistribution_v1alpha (0.26.0)
+      google-apis-core (>= 0.15.0, < 2.a)
     google-apis-iamcredentials_v1 (0.26.0)
       google-apis-core (>= 0.15.0, < 2.a)
     google-apis-playcustomapp_v1 (0.17.0)
@@ -239,6 +253,10 @@ GEM
     jwt (2.10.2)
       base64
     logger (1.7.0)
+    mime-types (3.7.0)
+      logger
+      mime-types-data (~> 3.2025, >= 3.2025.0507)
+    mime-types-data (3.2026.0317)
     mini_magick (4.13.2)
     mini_mime (1.1.5)
     minitest (5.26.1)
@@ -319,6 +337,8 @@ DEPENDENCIES
   bigdecimal
   cocoapods (= 1.16.2)
   fastlane (~> 2, >= 2.229.1)
+  fastlane-plugin-aws_s3
+  fastlane-plugin-firebase_app_distribution
   logger
   mutex_m
   openssl (>= 3.3.1)
