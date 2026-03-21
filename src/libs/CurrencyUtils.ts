@@ -209,24 +209,11 @@ function isValidCurrencyCode(currencyCode: string, currencies?: CurrencyList): b
     return !!currency;
 }
 
-function getCurrencyKeyByCountryCode(currencies?: CurrencyList, countryCode?: string): string {
-    const currentCurrencies = getCurrencyList(currencies);
-    if (!countryCode || Object.keys(currentCurrencies).length === 0) {
-        return CONST.CURRENCY.USD;
-    }
-    for (const [key, value] of Object.entries(currentCurrencies)) {
-        if (value?.countries?.includes(countryCode)) {
-            return key;
-        }
-    }
-    return CONST.CURRENCY.USD;
-}
 export {
     getCurrencyDecimals,
     getCurrencyUnit,
     getLocalizedCurrencySymbol,
     getCurrencySymbol,
-    getCurrencyKeyByCountryCode,
     setCurrentCurrencyList,
     convertToBackendAmount,
     convertToFrontendAmountAsInteger,
