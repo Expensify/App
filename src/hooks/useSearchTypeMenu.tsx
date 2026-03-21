@@ -23,6 +23,7 @@ import useFeedKeysWithAssignedCards from './useFeedKeysWithAssignedCards';
 import {useMemoizedLazyExpensifyIcons} from './useLazyAsset';
 import useLocalize from './useLocalize';
 import useOnyx from './useOnyx';
+import useReportAttributes from './useReportAttributes';
 import useSearchTypeMenuSections from './useSearchTypeMenuSections';
 import useSingleExecution from './useSingleExecution';
 import useTheme from './useTheme';
@@ -69,6 +70,7 @@ export default function useSearchTypeMenu(queryJSON: SearchQueryJSON) {
 
     const [allFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER);
     const feedKeysWithCards = useFeedKeysWithAssignedCards();
+    const reportAttributes = useReportAttributes();
     const flattenedMenuItems = useMemo(() => typeMenuSections.flatMap((section) => section.menuItems), [typeMenuSections]);
 
     // this is a performance fix, rendering popover menu takes a lot of time and we don't need this component initially, that's why we postpone rendering it until everything else is rendered
@@ -115,6 +117,7 @@ export default function useSearchTypeMenu(queryJSON: SearchQueryJSON) {
                     autoCompleteWithSpace: false,
                     translate,
                     feedKeysWithCards,
+                    reportAttributes,
                 });
             }
 
@@ -164,10 +167,11 @@ export default function useSearchTypeMenu(queryJSON: SearchQueryJSON) {
         taxRates,
         personalAndWorkspaceCards,
         allFeeds,
-        feedKeysWithCards,
         allPolicies,
         currentUserAccountID,
         translate,
+        feedKeysWithCards,
+        reportAttributes,
     ]);
 
     const activeItemIndex = useMemo(() => {

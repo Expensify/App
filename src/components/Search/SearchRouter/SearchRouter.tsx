@@ -1,3 +1,4 @@
+import {hasSeenTourSelector} from '@selectors/Onboarding';
 import {deepEqual} from 'fast-equals';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import type {TextInputProps} from 'react-native';
@@ -63,6 +64,8 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
     const currentUserAccountID = currentUserPersonalDetails.accountID;
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false});
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const personalDetails = usePersonalDetails();
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
@@ -108,8 +111,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                 }
 
                 const privateIsArchived = privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${contextualReportID}`];
-                const chatReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${report.chatReportID}`];
-                const option = createOptionFromReport(report, personalDetails, currentUserAccountID, chatReport, privateIsArchived, undefined, {showPersonalDetails: true});
+                const option = createOptionFromReport(report, personalDetails, currentUserAccountID, privateIsArchived, undefined, {showPersonalDetails: true});
                 reportForContextualSearch = option;
             }
 
@@ -289,13 +291,13 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                     if (item?.reportID) {
                         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(item.reportID));
                     } else if ('login' in item) {
-                        navigateToAndOpenReport(item.login ? [item.login] : [], currentUserAccountID, introSelected, false);
+                        navigateToAndOpenReport(item.login ? [item.login] : [], currentUserAccountID, introSelected, isSelfTourViewed, betas, false);
                     }
                 });
                 onRouterClose();
             }
         },
-        [autocompleteSubstitutions, onRouterClose, onSearchQueryChange, policies, reports, submitSearch, textInputValue, currentUserAccountID, introSelected],
+        [autocompleteSubstitutions, onRouterClose, onSearchQueryChange, policies, reports, submitSearch, textInputValue, currentUserAccountID, introSelected, isSelfTourViewed, betas],
     );
 
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ESCAPE, () => {

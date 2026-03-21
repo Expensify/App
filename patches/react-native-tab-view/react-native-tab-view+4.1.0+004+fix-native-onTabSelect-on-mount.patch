@@ -1,0 +1,26 @@
+diff --git a/node_modules/react-native-tab-view/src/PagerViewAdapter.tsx b/node_modules/react-native-tab-view/src/PagerViewAdapter.tsx
+index d66b0cb..a1b2c3d 100644
+--- a/node_modules/react-native-tab-view/src/PagerViewAdapter.tsx
++++ b/node_modules/react-native-tab-view/src/PagerViewAdapter.tsx
+@@ -57,3 +57,5 @@ export function PagerViewAdapter<T extends Route>({
+   const pagerRef = React.useRef<ViewPager>(null);
+   const indexRef = React.useRef<number>(index);
+   const navigationStateRef = React.useRef(navigationState);
++  const onTabSelectRef = React.useRef(onTabSelect);
++  const hasCalledInitialTabSelectRef = React.useRef(false);
+@@ -64,3 +66,15 @@ export function PagerViewAdapter<T extends Route>({
+   React.useEffect(() => {
+     navigationStateRef.current = navigationState;
++    onTabSelectRef.current = onTabSelect;
+   });
++
++  React.useEffect(() => {
++    if (hasCalledInitialTabSelectRef.current) {
++      return;
++    }
++    hasCalledInitialTabSelectRef.current = true;
++    // Call onTabSelect on initial mount (parity with web PanResponderAdapter patch)
++    requestAnimationFrame(() => {
++      onTabSelectRef.current?.({index: navigationStateRef.current.index});
++    });
++  }, []);

@@ -135,7 +135,6 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
                     return initSplitExpenseItemData(childTransaction, transactionReport);
                 });
 
-                const reportID = report?.reportID ?? String(CONST.DEFAULT_NUMBER_ID);
                 const parentTransactionReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`];
                 const expenseReport = report?.type === CONST.REPORT.TYPE.EXPENSE ? report : parentTransactionReport;
                 const policyTags = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${expenseReport?.policyID}`] ?? {};
@@ -145,7 +144,7 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
                     allReportsList: allReports,
                     allReportNameValuePairsList: allReportNameValuePairs,
                     transactionData: {
-                        reportID,
+                        reportID: report?.reportID ?? String(CONST.DEFAULT_NUMBER_ID),
                         originalTransactionID: transactionID,
                         splitExpenses: remainingSplitExpenses,
                     },
@@ -166,6 +165,8 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
                     betas,
                     policyTags,
                     personalDetails,
+                    transactionReport: report,
+                    expenseReport,
                 });
             }
 

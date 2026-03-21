@@ -32,9 +32,11 @@ function DeepLinkHandler({onInitialUrl}: DeepLinkHandlerProps) {
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const archivedReportsIDSet = useArchivedReportsIDSet();
+    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const allReportsRef = useRef(allReports);
     const onInitialURLRef = useRef(onInitialUrl);
     const archivedReportsIDSetRef = useRef(archivedReportsIDSet);
+    const betasRef = useRef(betas);
     const isAuthenticated = useIsAuthenticated();
     const isAuthenticatedRef = useRef(isAuthenticated);
 
@@ -49,6 +51,10 @@ function DeepLinkHandler({onInitialUrl}: DeepLinkHandlerProps) {
     useEffect(() => {
         archivedReportsIDSetRef.current = archivedReportsIDSet;
     }, [archivedReportsIDSet]);
+
+    useEffect(() => {
+        betasRef.current = betas;
+    }, [betas]);
 
     useEffect(() => {
         isAuthenticatedRef.current = isAuthenticated;
@@ -69,7 +75,7 @@ function DeepLinkHandler({onInitialUrl}: DeepLinkHandlerProps) {
                 if (introSelected === undefined) {
                     Log.info('[Deep link] introSelected is undefined when processing initial URL', false, {url});
                 }
-                openReportFromDeepLink(url, allReportsRef.current, isAuthenticatedRef.current, conciergeReportID, introSelected, archivedReportsIDSetRef.current);
+                openReportFromDeepLink(url, allReportsRef.current, isAuthenticatedRef.current, conciergeReportID, introSelected, archivedReportsIDSetRef.current, betasRef.current);
             } else {
                 Report.doneCheckingPublicRoom();
             }
@@ -86,7 +92,7 @@ function DeepLinkHandler({onInitialUrl}: DeepLinkHandlerProps) {
                 Log.info('[Deep link] introSelected is undefined when processing URL change', false, {url: state.url});
             }
             const isCurrentlyAuthenticated = hasAuthToken();
-            openReportFromDeepLink(state.url, allReportsRef.current, isCurrentlyAuthenticated, conciergeReportID, introSelected, archivedReportsIDSetRef.current);
+            openReportFromDeepLink(state.url, allReportsRef.current, isCurrentlyAuthenticated, conciergeReportID, introSelected, archivedReportsIDSetRef.current, betasRef.current);
         });
 
         return () => {

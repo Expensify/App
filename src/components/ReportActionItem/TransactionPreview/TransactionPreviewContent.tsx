@@ -33,6 +33,7 @@ import {isMarkAsCashActionForTransaction} from '@libs/ReportPrimaryActionUtils';
 import type {TransactionDetails} from '@libs/ReportUtils';
 import {canEditMoneyRequest, getTransactionDetails, isPolicyExpenseChat, isReportApproved, isReportArchivedByID, isSettled} from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import type {TranslationPathOrText} from '@libs/TransactionPreviewUtils';
 import {createTransactionPreviewConditionals, getIOUPayerAndReceiver, getTransactionPreviewTextAndTranslationPaths} from '@libs/TransactionPreviewUtils';
 import {isManagedCardTransaction as isCardTransactionUtils, isGPSDistanceRequest, isMapDistanceRequest, isScanning} from '@libs/TransactionUtils';
@@ -74,7 +75,7 @@ function TransactionPreviewContent({
     const {translate} = useLocalize();
     const {environmentURL} = useEnvironment();
     const {archivedReportsIDSet} = useContext(ActionListContext);
-
+    const [reportViolations] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_VIOLATIONS}${getNonEmptyStringOnyxID(report?.reportID)}`);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`);
     const isParentPolicyExpenseChat = isPolicyExpenseChat(chatReport);
     const transactionDetails = useMemo<Partial<TransactionDetails>>(
@@ -116,8 +117,9 @@ function TransactionPreviewContent({
                 currentUserEmail,
                 currentUserAccountID,
                 reportActions,
+                reportViolations,
             }),
-        [areThereDuplicates, transactionPreviewCommonArguments, isReportAPolicyExpenseChat, currentUserEmail, currentUserAccountID, reportActions],
+        [areThereDuplicates, transactionPreviewCommonArguments, isReportAPolicyExpenseChat, currentUserEmail, currentUserAccountID, reportActions, reportViolations],
     );
 
     const {shouldShowRBR, shouldShowMerchant, shouldShowSplitShare, shouldShowTag, shouldShowCategory, shouldShowSkeleton, shouldShowDescription} = conditionals;
@@ -250,6 +252,11 @@ function TransactionPreviewContent({
 
     const transactionWrapperStyles = [styles.border, styles.moneyRequestPreviewBox, (isIOUSettled || isApproved) && isSettlementOrApprovalPartial && styles.offlineFeedbackPending];
 
+    const skeletonReasonAttributes: SkeletonSpanReasonAttributes = {
+        context: 'TransactionPreviewContent',
+        shouldShowSkeleton,
+    };
+
     return (
         <Animated.View style={[transactionWrapperStyles, containerStyles, animatedHighlightStyle]}>
             <OfflineWithFeedback
@@ -271,7 +278,10 @@ function TransactionPreviewContent({
                         shouldUseAspectRatio={!isMapDistanceRequest(transaction) && !isGPSDistanceRequest(transaction)}
                     />
                     {shouldShowSkeleton ? (
-                        <TransactionPreviewSkeletonView transactionPreviewWidth={transactionPreviewWidth} />
+                        <TransactionPreviewSkeletonView
+                            transactionPreviewWidth={transactionPreviewWidth}
+                            reasonAttributes={skeletonReasonAttributes}
+                        />
                     ) : (
                         <View style={[styles.expenseAndReportPreviewBoxBody, styles.mtn1]}>
                             <View style={styles.gap3}>
@@ -347,7 +357,7 @@ function TransactionPreviewContent({
                                         <View style={[styles.flexRow, styles.justifyContentEnd]}>
                                             {!!splitShare && (
                                                 <Text style={[isDeleted && styles.lineThrough, styles.textLabel, styles.colorMuted, styles.amountSplitPadding]}>
-                                                    {translate('iou.yourSplit', {amount: convertToDisplayString(splitShare, requestCurrency)})}
+                                                    {translate('iou.yourSplit', convertToDisplayString(splitShare, requestCurrency))}
                                                 </Text>
                                             )}
                                         </View>

@@ -29,7 +29,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
-import type {IntroSelected, Report} from '@src/types/onyx';
+import type {Beta, IntroSelected, Report} from '@src/types/onyx';
 import {doneCheckingPublicRoom, navigateToConciergeChat, openReport} from './Report';
 import {canAnonymousUserAccessRoute, isAnonymousUser, signOutAndRedirectToSignIn, waitForUserSignIn} from './Session';
 import {setOnboardingErrorMessage} from './Welcome';
@@ -240,6 +240,7 @@ function openReportFromDeepLink(
     conciergeReportID: string | undefined,
     introSelected: OnyxEntry<IntroSelected>,
     archivedReportsIDSet: ArchivedReportsIDSet,
+    betas: OnyxEntry<Beta[]>,
 ) {
     const reportID = getReportIDFromLink(url);
 
@@ -252,7 +253,7 @@ function openReportFromDeepLink(
         });
 
         // Call the OpenReport command to check in the server if it's a public room. If so, we'll open it as an anonymous user
-        openReport({reportID, introSelected, parentReportActionID: '0', isFromDeepLink: true});
+        openReport({reportID, introSelected, parentReportActionID: '0', isFromDeepLink: true, betas});
 
         // Show the sign-in page if the app is offline
         if (networkStatus === CONST.NETWORK.NETWORK_STATUS.OFFLINE) {

@@ -6,6 +6,7 @@ import useOnyx from '@hooks/useOnyx';
 import useReimbursementAccountStepFormSubmit from '@hooks/useReimbursementAccountStepFormSubmit';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import HelpLinks from '@pages/ReimbursementAccount/USD/Requestor/PersonalInfo/HelpLinks';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -32,7 +33,11 @@ function DateOfBirth({onNext, onMove, isEditing}: SubStepProps) {
     });
 
     if (isLoadingReimbursementAccount) {
-        return <FullScreenLoadingIndicator />;
+        const reasonAttributes: SkeletonSpanReasonAttributes = {
+            context: 'DateOfBirth',
+            isLoadingReimbursementAccount,
+        };
+        return <FullScreenLoadingIndicator reasonAttributes={reasonAttributes} />;
     }
 
     return (

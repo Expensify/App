@@ -1,3 +1,4 @@
+import type {OnyxCollection} from 'react-native-onyx';
 import {useSearchStateContext} from '@components/Search/SearchContext';
 import {getStandardExportTemplateDisplayName} from '@libs/AccountingUtils';
 import {getExportTemplates} from '@libs/actions/Search';
@@ -5,7 +6,7 @@ import {getConnectedIntegrationNamesForPolicies} from '@libs/PolicyUtils';
 import {getAllPolicyValues} from '@libs/SearchQueryUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ExportTemplate} from '@src/types/onyx';
+import type {ExportTemplate, Policy} from '@src/types/onyx';
 import useLocalize from './useLocalize';
 import useOnyx from './useOnyx';
 
@@ -14,6 +15,24 @@ type UseExportedToFilterDataResult = {
     combinedUniqueExportTemplates: ExportTemplate[];
     connectedIntegrationNames: Set<string>;
 };
+
+/**
+ * Extracts only the fields needed for exported-to filter options from each policy.
+ * This prevents re-renders when unrelated policy fields change (e.g., employeeList, taxRates).
+ */
+function exportedToPoliciesSelector(policies: OnyxCollection<Policy>): OnyxCollection<Policy> {
+    if (!policies) {
+        return policies;
+    }
+    const result: OnyxCollection<Policy> = {};
+    for (const [key, policy] of Object.entries(policies)) {
+        if (!policy) {
+            continue;
+        }
+        result[key] = {id: policy.id, name: policy.name, connections: policy.connections, exportLayouts: policy.exportLayouts} as Policy;
+    }
+    return result;
+}
 
 /**
  * Hook that prepares all data needed for the exported to search filter.
@@ -27,7 +46,7 @@ export default function useExportedToFilterOptions(): UseExportedToFilterDataRes
     const {translate} = useLocalize();
     const [integrationsExportTemplates] = useOnyx(ONYXKEYS.NVP_INTEGRATION_SERVER_EXPORT_TEMPLATES);
     const [csvExportLayouts] = useOnyx(ONYXKEYS.NVP_CSV_EXPORT_LAYOUTS);
-    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: exportedToPoliciesSelector});
 
     // When search is scoped to workspaces, use only those policies otherwise use all.
     const policiesToUse = policyIDs !== undefined ? getAllPolicyValues(policyIDs, ONYXKEYS.COLLECTION.POLICY, policies) : Object.values(policies ?? {});
@@ -73,3 +92,5 @@ export default function useExportedToFilterOptions(): UseExportedToFilterDataRes
         connectedIntegrationNames,
     };
 }
+
+export {exportedToPoliciesSelector};
