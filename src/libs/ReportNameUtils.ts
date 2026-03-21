@@ -65,7 +65,6 @@ import {
     getReimburserUpdateMessage,
     getRenamedAction,
     getReportActionMessage as getReportActionMessageFromActionsUtils,
-    getReportActionMessageText,
     getReportActionText,
     getSettlementAccountLockedMessage,
     getSubmitsToUpdateMessage,
@@ -88,7 +87,6 @@ import {
     getWorkspaceUpdateFieldMessage,
     isActionableJoinRequest,
     isActionOfType,
-    isApprovedOrSubmittedReportAction,
     isCardIssuedAction,
     isMarkAsClosedAction,
     isModifiedExpenseAction,
@@ -446,9 +444,6 @@ function computeReportNameBasedOnReportAction(
     }
     if (parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REJECTED_TRANSACTION_MARKASRESOLVED) {
         return translate('iou.reject.reportActions.markedAsResolved');
-    }
-    if (isApprovedOrSubmittedReportAction(parentReportAction) || isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.REIMBURSED)) {
-        return getReportActionMessageText(parentReportAction);
     }
     if (isReimbursementQueuedAction(parentReportAction)) {
         return getReimbursementQueuedActionMessage({
