@@ -1,4 +1,4 @@
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
@@ -44,30 +44,17 @@ function RejectExpenseReportPage({route}: RejectExpenseReportPageProps) {
     const [selectedTargetAccountID, setSelectedTargetAccountID] = useState<string>('');
     const [selectionError, setSelectionError] = useState<string>('');
 
-    const previousApprover = useMemo(() => {
-        if (!policy || !report) {
-            return null;
-        }
-
+    const previousApprover = (() => {
+        if (!policy || !report) return null;
         const approvalChain = getApprovalChain(policy, report);
         const managerEmail = getLoginsByAccountIDs([report.managerID ?? CONST.DEFAULT_NUMBER_ID]).at(0) ?? '';
         const managerIndex = approvalChain.indexOf(managerEmail);
-
-        if (managerIndex <= 0) {
-            return null;
-        }
-
+        if (managerIndex <= 0) return null;
         const previousApproverEmail = approvalChain.at(managerIndex - 1);
         const details = getPersonalDetailByEmail(previousApproverEmail ?? '');
-        if (!details?.accountID) {
-            return null;
-        }
-
-        return {
-            accountID: details.accountID,
-            displayName: getDisplayNameOrDefault(details),
-        };
-    }, [policy, report]);
+        if (!details?.accountID) return null;
+        return {accountID: details.accountID, displayName: getDisplayNameOrDefault(details)};
+    })();
 
     const submitterAccountID = report?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const hasPreviousApprover = previousApprover !== null;
@@ -99,46 +86,31 @@ function RejectExpenseReportPage({route}: RejectExpenseReportPageProps) {
         rightElement: <SelectCircle isChecked={isSubmitterSelected} />,
     });
 
-    const validate = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REPORT_REJECT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REPORT_REJECT_FORM> => {
-            const errors: FormInputErrors<typeof ONYXKEYS.FORMS.REPORT_REJECT_FORM> = {};
-            if (!values[INPUT_IDS.COMMENT]) {
-                errors[INPUT_IDS.COMMENT] = translate('common.error.fieldRequired');
-            }
-            return errors;
-        },
-        [translate],
-    );
+    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REPORT_REJECT_FORM>) => {
+        const errors: FormInputErrors<typeof ONYXKEYS.FORMS.REPORT_REJECT_FORM> = {};
+        if (!values[INPUT_IDS.COMMENT]) {
+            errors[INPUT_IDS.COMMENT] = translate('common.error.fieldRequired');
+        }
+        return errors;
+    };
 
-    const onSubmit = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REPORT_REJECT_FORM>) => {
-            if (hasPreviousApprover && !selectedTargetAccountID) {
-                setSelectionError(translate('iou.rejectReport.selectMemberError'));
-                return;
-            }
+    const onSubmit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REPORT_REJECT_FORM>) => {
+        if (hasPreviousApprover && !selectedTargetAccountID) {
+            setSelectionError(translate('iou.rejectReport.selectMemberError'));
+            return;
+        }
 
-            const targetAccountID = hasPreviousApprover ? Number(selectedTargetAccountID) : submitterAccountID;
-            rejectExpenseReport(
-                reportID,
-                targetAccountID,
-                values[INPUT_IDS.COMMENT],
-                currentUserPersonalDetails?.accountID,
-                currentUserPersonalDetails?.displayName,
-                currentUserPersonalDetails?.avatar,
-            );
-            Navigation.dismissModal();
-        },
-        [
-            hasPreviousApprover,
+        const targetAccountID = hasPreviousApprover ? Number(selectedTargetAccountID) : submitterAccountID;
+        rejectExpenseReport(
             reportID,
-            selectedTargetAccountID,
-            submitterAccountID,
-            translate,
+            targetAccountID,
+            values[INPUT_IDS.COMMENT],
             currentUserPersonalDetails?.accountID,
             currentUserPersonalDetails?.displayName,
             currentUserPersonalDetails?.avatar,
-        ],
-    );
+        );
+        Navigation.dismissModal();
+    };
 
     return (
         <ScreenWrapper
