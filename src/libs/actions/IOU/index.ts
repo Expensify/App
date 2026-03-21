@@ -196,7 +196,6 @@ import {getSuggestedSearches} from '@libs/SearchUIUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {getSpan, startSpan} from '@libs/telemetry/activeSpans';
-import type {AvatarSource} from '@libs/UserAvatarUtils';
 import {endSubmitFollowUpActionSpan, setPendingSubmitFollowUpAction} from '@libs/telemetry/submitFollowUpAction';
 import {
     allHavePendingRTERViolation,
@@ -231,6 +230,7 @@ import {
     isTimeRequest as isTimeRequestTransactionUtils,
     removeTransactionFromDuplicateTransactionViolation,
 } from '@libs/TransactionUtils';
+import type {AvatarSource} from '@libs/UserAvatarUtils';
 import ViolationsUtils from '@libs/Violations/ViolationsUtils';
 import {clearByKey as clearPdfByOnyxKey} from '@userActions/CachedPDFPaths';
 import {clearAllRelatedReportActionErrors} from '@userActions/ClearReportActionErrors';
@@ -13172,7 +13172,14 @@ function addReportApprover(
     API.write(WRITE_COMMANDS.ADD_REPORT_APPROVER, params, onyxData);
 }
 
-function rejectExpenseReport(reportID: string, targetAccountID: number, comment: string, currentUserAccountID: number | undefined, currentUserDisplayName: string | undefined, currentUserAvatarSource: AvatarSource | undefined) {
+function rejectExpenseReport(
+    reportID: string,
+    targetAccountID: number,
+    comment: string,
+    currentUserAccountID: number | undefined,
+    currentUserDisplayName: string | undefined,
+    currentUserAvatarSource: AvatarSource | undefined,
+) {
     const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
     if (!report) {
         return;
@@ -13180,8 +13187,21 @@ function rejectExpenseReport(reportID: string, targetAccountID: number, comment:
 
     const isRejectToSubmitter = targetAccountID === report.ownerAccountID;
     const baseTimestamp = DateUtils.getDBTime();
-    const optimisticRejectAction = buildOptimisticReportLevelRejectAction(isRejectToSubmitter, targetAccountID, currentUserAccountID, currentUserDisplayName, currentUserAvatarSource, baseTimestamp);
-    const optimisticCommentAction = buildOptimisticReportLevelRejectCommentAction(comment, currentUserAccountID, currentUserDisplayName, currentUserAvatarSource, DateUtils.addMillisecondsFromDateTime(baseTimestamp, 1));
+    const optimisticRejectAction = buildOptimisticReportLevelRejectAction(
+        isRejectToSubmitter,
+        targetAccountID,
+        currentUserAccountID,
+        currentUserDisplayName,
+        currentUserAvatarSource,
+        baseTimestamp,
+    );
+    const optimisticCommentAction = buildOptimisticReportLevelRejectCommentAction(
+        comment,
+        currentUserAccountID,
+        currentUserDisplayName,
+        currentUserAvatarSource,
+        DateUtils.addMillisecondsFromDateTime(baseTimestamp, 1),
+    );
 
     const optimisticStateNum = isRejectToSubmitter ? CONST.REPORT.STATE_NUM.OPEN : CONST.REPORT.STATE_NUM.SUBMITTED;
     const optimisticStatusNum = isRejectToSubmitter ? CONST.REPORT.STATUS_NUM.OPEN : CONST.REPORT.STATUS_NUM.SUBMITTED;

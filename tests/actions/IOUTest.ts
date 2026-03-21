@@ -13998,8 +13998,8 @@ describe('actions/IOU', () => {
         const CURRENT_USER_DISPLAY_NAME = 'Test User';
         const CURRENT_USER_AVATAR = 'https://example.com/avatar.png';
 
-        let policy: OnyxEntry<Policy>;
-        let expenseReport: OnyxEntry<Report>;
+        let policy: Policy;
+        let expenseReport: Report;
 
         beforeEach(async () => {
             policy = createRandomPolicy(1);
@@ -14013,11 +14013,11 @@ describe('actions/IOU', () => {
                 currency: CONST.CURRENCY.USD,
                 stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
                 statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
-                policyID: policy?.id,
+                policyID: policy.id,
             };
 
-            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy?.id}`, policy);
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport?.reportID}`, expenseReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport);
             await Onyx.set(ONYXKEYS.SESSION, {accountID: TEST_USER_ACCOUNT_ID});
             await waitForBatchedUpdates();
         });
@@ -14031,13 +14031,13 @@ describe('actions/IOU', () => {
             // eslint-disable-next-line rulesdir/no-multiple-api-calls
             const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
 
-            rejectExpenseReport(expenseReport!.reportID, SUBMITTER_ACCOUNT_ID, comment, TEST_USER_ACCOUNT_ID, CURRENT_USER_DISPLAY_NAME, CURRENT_USER_AVATAR);
+            rejectExpenseReport(expenseReport.reportID, SUBMITTER_ACCOUNT_ID, comment, TEST_USER_ACCOUNT_ID, CURRENT_USER_DISPLAY_NAME, CURRENT_USER_AVATAR);
             await waitForBatchedUpdates();
 
             expect(writeSpy).toHaveBeenCalledWith(
                 WRITE_COMMANDS.REJECT_EXPENSE_REPORT,
                 expect.objectContaining({
-                    reportID: expenseReport!.reportID,
+                    reportID: expenseReport.reportID,
                     targetAccountID: SUBMITTER_ACCOUNT_ID,
                     comment,
                 }),
@@ -14047,30 +14047,30 @@ describe('actions/IOU', () => {
         });
 
         it('should optimistically update the report when rejecting to submitter', async () => {
-            rejectExpenseReport(expenseReport!.reportID, SUBMITTER_ACCOUNT_ID, comment, TEST_USER_ACCOUNT_ID, CURRENT_USER_DISPLAY_NAME, CURRENT_USER_AVATAR);
+            rejectExpenseReport(expenseReport.reportID, SUBMITTER_ACCOUNT_ID, comment, TEST_USER_ACCOUNT_ID, CURRENT_USER_DISPLAY_NAME, CURRENT_USER_AVATAR);
             await waitForBatchedUpdates();
 
-            const updatedReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport!.reportID}`);
+            const updatedReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`);
             expect(updatedReport?.managerID).toBe(SUBMITTER_ACCOUNT_ID);
             expect(updatedReport?.stateNum).toBe(CONST.REPORT.STATE_NUM.OPEN);
             expect(updatedReport?.statusNum).toBe(CONST.REPORT.STATUS_NUM.OPEN);
         });
 
         it('should optimistically update the report when rejecting to a previous approver', async () => {
-            rejectExpenseReport(expenseReport!.reportID, APPROVER_ACCOUNT_ID, comment, TEST_USER_ACCOUNT_ID, CURRENT_USER_DISPLAY_NAME, CURRENT_USER_AVATAR);
+            rejectExpenseReport(expenseReport.reportID, APPROVER_ACCOUNT_ID, comment, TEST_USER_ACCOUNT_ID, CURRENT_USER_DISPLAY_NAME, CURRENT_USER_AVATAR);
             await waitForBatchedUpdates();
 
-            const updatedReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport!.reportID}`);
+            const updatedReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`);
             expect(updatedReport?.managerID).toBe(APPROVER_ACCOUNT_ID);
             expect(updatedReport?.stateNum).toBe(CONST.REPORT.STATE_NUM.SUBMITTED);
             expect(updatedReport?.statusNum).toBe(CONST.REPORT.STATUS_NUM.SUBMITTED);
         });
 
         it('should create optimistic report actions with passed user details', async () => {
-            rejectExpenseReport(expenseReport!.reportID, SUBMITTER_ACCOUNT_ID, comment, TEST_USER_ACCOUNT_ID, CURRENT_USER_DISPLAY_NAME, CURRENT_USER_AVATAR);
+            rejectExpenseReport(expenseReport.reportID, SUBMITTER_ACCOUNT_ID, comment, TEST_USER_ACCOUNT_ID, CURRENT_USER_DISPLAY_NAME, CURRENT_USER_AVATAR);
             await waitForBatchedUpdates();
 
-            const reportActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport!.reportID}`);
+            const reportActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`);
             const actions = Object.values(reportActions ?? {});
 
             const rejectAction = actions.find((action) => action?.actionName === CONST.REPORT.ACTIONS.TYPE.REJECTED_TO_SUBMITTER);

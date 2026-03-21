@@ -1569,7 +1569,7 @@ const translations: TranslationDeepObject<typeof en> = {
             rejectedReportMessage: 'Ce rapport a été rejeté.',
             rejectedNextStep: 'Ce rapport a été rejeté. En attente que vous corrigiez les problèmes et que vous le soumettiez à nouveau manuellement.',
             selectMemberError: 'Sélectionnez un membre à qui renvoyer ce rapport.',
-            couldNotReject: 'Le rapport n\'a pas pu être rejeté. Veuillez réessayer.',
+            couldNotReject: "Le rapport n'a pas pu être rejeté. Veuillez réessayer.",
         },
         moveExpenses: 'Déplacer vers le rapport',
         moveExpensesError:
