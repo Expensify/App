@@ -95,19 +95,19 @@ function handleNavigationGuards(
         }
 
         const redirectRoute = redirectState.routes.at(-1);
-        const focusedRoute = state.routes.at(state.index);
+        const hasExistingFullScreenRoute = state.routes.some((route) => isFullScreenName(route.name));
 
         // If the focused route is already the redirect target (e.g., multiple actions triggered
         // on fresh app open all fire the same guard), don't add it again.
-        if (redirectRoute && focusedRoute?.name === redirectRoute.name) {
+        if (redirectRoute && state.routes.at(-1)?.name === redirectRoute.name) {
             return state;
         }
 
-        // When the current stack already has a focused route (e.g., a deep-linked report),
+        // When the current stack already has a fullscreen route (e.g., a deep-linked report),
         // append only the redirect target on top of the existing routes so the user returns
         // to them after the redirect screen is dismissed. Otherwise (fresh app with no stack),
         // use the full redirect state which includes the base route (e.g., Home).
-        const routes = focusedRoute && redirectRoute ? [...state.routes, redirectRoute] : redirectState.routes;
+        const routes = hasExistingFullScreenRoute && redirectRoute ? [...state.routes, redirectRoute] : redirectState.routes;
 
         const resetAction = CommonActions.reset({
             index: routes.length - 1,
