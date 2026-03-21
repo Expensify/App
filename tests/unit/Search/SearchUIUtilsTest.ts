@@ -7216,13 +7216,14 @@ describe('SearchUIUtils', () => {
             expect(columns).not.toContain(CONST.SEARCH.TABLE_COLUMNS.CARD);
         });
 
-        test('Should show CARD column when transaction has cardID', () => {
+        test('Should show CARD column when transaction has cardName', () => {
             const baseTransaction = searchResults.data[`transactions_${transactionID}`];
             const testTransaction = {
                 ...baseTransaction,
                 transactionID: 'test',
                 merchant: 'Test Merchant',
                 cardID: 12345,
+                cardName: 'Test Card',
             };
 
             const visibleColumns = [CONST.SEARCH.TABLE_COLUMNS.DATE, CONST.SEARCH.TABLE_COLUMNS.CARD, CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT];
@@ -7309,13 +7310,14 @@ describe('SearchUIUtils', () => {
                 transactionID: 'withCard',
                 merchant: 'Test Merchant 2',
                 cardID: 12345,
+                cardName: 'Test Card',
                 taxCode: undefined,
             };
 
             const visibleColumns = [CONST.SEARCH.TABLE_COLUMNS.DATE, CONST.SEARCH.TABLE_COLUMNS.CARD, CONST.SEARCH.TABLE_COLUMNS.TAX_RATE, CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT];
             const columns = SearchUIUtils.getColumnsToShow({currentAccountID: submitterAccountID, data: [emptyTransaction, transactionWithCard], visibleColumns, isExpenseReportView: true});
 
-            // CARD should be shown because one transaction has cardID
+            // CARD should be shown because one transaction has a card name
             expect(columns).toContain(CONST.SEARCH.TABLE_COLUMNS.CARD);
             // TAX_RATE should be hidden because no transaction has taxCode
             expect(columns).not.toContain(CONST.SEARCH.TABLE_COLUMNS.TAX_RATE);

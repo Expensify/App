@@ -4478,26 +4478,36 @@ function getColumnsToShow({
             return tag !== '' && tag !== CONST.SEARCH.TAG_EMPTY_VALUE;
         })();
 
-        // Universal data-presence checks — apply to both expense report view and search page
-        // so that custom columns with no data are hidden regardless of context.
-        if (transaction.cardName && transaction.cardName !== CONST.EXPENSE.TYPE.CASH_CARD_NAME) {
-            columns[CONST.SEARCH.TABLE_COLUMNS.CARD] = true;
+        // Category/tag: set for all paths (default search, custom search, report view).
+        // Will be refined later for search page non-IOU check.
+        if (hasCategory) {
+            columns[CONST.SEARCH.TABLE_COLUMNS.CATEGORY] = !isExpenseReportViewFromIOUReport;
+        }
+        if (hasTag) {
+            columns[CONST.SEARCH.TABLE_COLUMNS.TAG] = !isExpenseReportViewFromIOUReport;
         }
 
-        if (transaction.taxCode) {
-            columns[CONST.SEARCH.TABLE_COLUMNS.TAX_RATE] = true;
-        }
+        // Data-presence checks for columns that are hidden when empty.
+        // Only update when we have custom columns to filter (customResult) or in expense report view,
+        // so that the default search page path doesn't show extra columns.
+        if (customResult || isExpenseReportView) {
+            if (transaction.cardName && transaction.cardName !== CONST.EXPENSE.TYPE.CASH_CARD_NAME) {
+                columns[CONST.SEARCH.TABLE_COLUMNS.CARD] = true;
+            }
 
-        if (transaction.taxAmount) {
-            columns[CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT] = true;
-        }
+            if (transaction.taxCode) {
+                columns[CONST.SEARCH.TABLE_COLUMNS.TAX_RATE] = true;
+            }
 
-        if (transaction.originalAmount) {
-            columns[CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT] = true;
-        }
+            if (transaction.taxAmount) {
+                columns[CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT] = true;
+            }
 
-        if (getExchangeRate(transaction, reportCurrency) !== '') {
-            columns[CONST.SEARCH.TABLE_COLUMNS.EXCHANGE_RATE] = true;
+            const hasExchangeRate = getExchangeRate(transaction, reportCurrency) !== '';
+            if (hasExchangeRate || transaction.originalAmount) {
+                columns[CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT] = true;
+                columns[CONST.SEARCH.TABLE_COLUMNS.EXCHANGE_RATE] = true;
+            }
         }
 
         if (isExpenseReportView) {
