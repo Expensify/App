@@ -157,18 +157,18 @@ index 6e9c384..6d09b07 100644
  {
    _textWasPasted = YES;
 -  [super paste:sender];
-+  UIPasteboard *clipboard = [UIPasteboard eneralPasteboard];
++  UIPasteboard *clipboard = [UIPasteboard generalPasteboard];
 +
-+  // Fast path for plain text - also call uper to insert the text
-+  if (clipboard.hasStrings && clipboard.tring != nil) {
-+    NSDictionary<NSString *, NSString *> stringItem = @{@"type": @"text/plain", "data": clipboard.string};
-+    [_textInputDelegateAdapter didPaste:@stringItem]];
++  // Fast path for plain text - also call super to insert the text
++  if (clipboard.hasStrings && clipboard.string != nil) {
++    NSDictionary<NSString *, NSString *> *stringItem = @{@"type": @"text/plain", @"data": clipboard.string};
++    [_textInputDelegateAdapter didPaste:@[stringItem]];
 +    [super paste:sender];
 +    return;
 +  }
 +
-+  // Process non-text items using the tility
-+  NSArray<NSDictionary<NSString *, SString *> *> *items =
++  // Process non-text items using the utility
++  NSArray<NSDictionary<NSString *, NSString *> *> *items =
 +      [RCTPasteHandlerUtil itemInfosFromPasteboard:clipboard];
 +
 +  if (items.count == 0) {
@@ -185,7 +185,7 @@ index 6e9c384..6d09b07 100644
    }
  
 +  if (action == @selector(paste:)) {
-+    return [RCTPasteHandlerUtil asPasteableContent:[UIPasteboard eneralPasteboard]];
++    return [RCTPasteHandlerUtil hasPasteableContent:[UIPasteboard generalPasteboard]];
 +  }
 +
    return [super canPerformAction:action withSender:sender];
