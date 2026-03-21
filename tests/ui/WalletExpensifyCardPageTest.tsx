@@ -6,6 +6,7 @@ import Onyx from 'react-native-onyx';
 import ComposeProviders from '@components/ComposeProviders';
 import {CurrencyListContextProvider} from '@components/CurrencyListContextProvider';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
+import {MultifactorAuthenticationContextProviders} from '@components/MultifactorAuthentication/Context';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import {CurrentReportIDContextProvider} from '@hooks/useCurrentReportID';
 import * as useResponsiveLayoutModule from '@hooks/useResponsiveLayout';
@@ -31,7 +32,7 @@ const userCardID = '1234';
 // Renders the ExpensifyCardPage inside a navigation container with necessary providers.
 const renderPage = (initialRouteName: typeof SCREENS.SETTINGS.WALLET.DOMAIN_CARD, initialParams: SettingsNavigatorParamList[typeof SCREENS.SETTINGS.WALLET.DOMAIN_CARD]) => {
     return render(
-        <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, CurrentReportIDContextProvider, CurrencyListContextProvider]}>
+        <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, CurrentReportIDContextProvider, CurrencyListContextProvider, MultifactorAuthenticationContextProviders]}>
             <PortalProvider>
                 <NavigationContainer>
                     <Stack.Navigator initialRouteName={initialRouteName}>
@@ -181,6 +182,7 @@ describe('ExpensifyCardPage', () => {
                         isVirtual: false,
                         cardTitle: 'Test Card',
                         feedCountry: CONST.COUNTRY.US,
+                        currency: 'USD',
                     },
                     availableSpend: 50000,
                     fraud: null,
@@ -219,6 +221,7 @@ describe('ExpensifyCardPage', () => {
                         isVirtual: false,
                         cardTitle: 'Test Card',
                         feedCountry: CONST.COUNTRY.GB,
+                        currency: 'GBP',
                     },
                     availableSpend: 50000,
                     fraud: null,
@@ -256,6 +259,7 @@ describe('ExpensifyCardPage', () => {
                         isVirtual: false,
                         cardTitle: 'Combo Physical Card',
                         feedCountry: CONST.COUNTRY.GB,
+                        currency: 'GBP',
                     },
                     availableSpend: 50000,
                     fraud: null,

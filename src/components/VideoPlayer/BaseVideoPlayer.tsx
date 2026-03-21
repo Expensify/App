@@ -6,7 +6,7 @@ import type {RefObject} from 'react';
 import React, {useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
 import type {GestureResponderEvent} from 'react-native';
 import {View} from 'react-native';
-import {useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
+import {cancelAnimation, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import {scheduleOnRN} from 'react-native-worklets';
 import AttachmentOfflineIndicator from '@components/AttachmentOfflineIndicator';
 import Hoverable from '@components/Hoverable';
@@ -15,7 +15,6 @@ import {useSession} from '@components/OnyxListItemProvider';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import {useFullScreenState} from '@components/VideoPlayerContexts/FullScreenContextProvider';
 import {usePlaybackActionsContext, usePlaybackStateContext} from '@components/VideoPlayerContexts/PlaybackContext';
-import type {PlaybackSpeed} from '@components/VideoPlayerContexts/types';
 import {useVideoPopoverMenuActions} from '@components/VideoPlayerContexts/VideoPopoverMenuContext';
 import {useVolumeActions, useVolumeState} from '@components/VideoPlayerContexts/VolumeContext';
 import VideoPopoverMenu from '@components/VideoPopoverMenu';
@@ -75,6 +74,8 @@ function BaseVideoPlayer({
     const controlsAnimatedStyle = useAnimatedStyle(() => ({
         opacity: controlsOpacity.get(),
     }));
+    const [isSeeking, setIsSeeking] = useState(false);
+    const allowSharedAutoPlayRef = useRef(true);
 
     /* eslint-disable no-param-reassign */
     // According to the library docs, the player is configured by mutating the provided instance
@@ -165,7 +166,7 @@ function BaseVideoPlayer({
         isLocalFile: isUploading,
     });
 
-    const {updateVideoPopoverMenuPlayerRef, updatePlaybackSpeed, updateSource: updatePopoverMenuSource} = useVideoPopoverMenuActions();
+    const {updateVideoPopoverMenuPlayerRef, updateSource: updatePopoverMenuSource} = useVideoPopoverMenuActions();
 
     const togglePlayCurrentVideo = useCallback(() => {
         if (!isCurrentlyURLSet) {
@@ -184,20 +185,29 @@ function BaseVideoPlayer({
         }
 
         if (isEnded && currentTime >= duration) {
+            allowSharedAutoPlayRef.current = true;
             replayVideo();
             return;
         }
 
+        allowSharedAutoPlayRef.current = true;
         playVideo();
     }, [isCurrentlyURLSet, isLoading, isEnded, currentTime, duration, playVideo, updateCurrentURLAndReportID, url, reportID, pauseVideo, replayVideo]);
 
     const hideControl = useCallback(() => {
-        if (isEnded) {
+        if (isEnded || isSeeking) {
             return;
         }
 
-        controlsOpacity.set(withTiming(0, {duration: 500}, () => scheduleOnRN(setControlStatusState, CONST.VIDEO_PLAYER.CONTROLS_STATUS.HIDE)));
-    }, [controlsOpacity, isEnded]);
+        controlsOpacity.set(
+            withTiming(0, {duration: 500}, (finished) => {
+                if (!finished) {
+                    return;
+                }
+                scheduleOnRN(setControlStatusState, CONST.VIDEO_PLAYER.CONTROLS_STATUS.HIDE);
+            }),
+        );
+    }, [controlsOpacity, isEnded, isSeeking]);
     const debouncedHideControl = useMemo(() => debounce(hideControl, 1500), [hideControl]);
 
     useEffect(() => {
@@ -217,13 +227,13 @@ function BaseVideoPlayer({
         if (controlStatusState !== CONST.VIDEO_PLAYER.CONTROLS_STATUS.SHOW) {
             return;
         }
-        if (!isPlaying || isPopoverVisible) {
+        if (!isPlaying || isPopoverVisible || isSeeking) {
             debouncedHideControl.cancel();
             return;
         }
 
         debouncedHideControl();
-    }, [isPlaying, debouncedHideControl, controlStatusState, isPopoverVisible, canUseTouchScreen]);
+    }, [isPlaying, debouncedHideControl, controlStatusState, isPopoverVisible, canUseTouchScreen, isSeeking]);
 
     useEffect(() => {
         if (!onTap || !controlStatusState) {
@@ -232,6 +242,14 @@ function BaseVideoPlayer({
         const shouldShowArrows = controlStatusState === CONST.VIDEO_PLAYER.CONTROLS_STATUS.SHOW || controlStatusState === CONST.VIDEO_PLAYER.CONTROLS_STATUS.VOLUME_ONLY;
         onTap(shouldShowArrows);
     }, [controlStatusState, onTap]);
+
+    const restartAutoHide = useCallback(() => {
+        debouncedHideControl.cancel();
+        if (!canUseTouchScreen || !isPlaying || isPopoverVisible || controlStatusState !== CONST.VIDEO_PLAYER.CONTROLS_STATUS.SHOW) {
+            return;
+        }
+        debouncedHideControl();
+    }, [canUseTouchScreen, controlStatusState, debouncedHideControl, isPlaying, isPopoverVisible]);
 
     const stopWheelPropagation = useCallback((ev: WheelEvent) => ev.stopPropagation(), []);
 
@@ -246,10 +264,9 @@ function BaseVideoPlayer({
 
     const showPopoverMenu = (event?: GestureResponderEvent | KeyboardEvent) => {
         updateVideoPopoverMenuPlayerRef(videoPlayerRef.current);
-        if (!videoPlayerRef.current?.playbackRate) {
+        if (!videoPlayerRef.current) {
             return;
         }
-        updatePlaybackSpeed(videoPlayerRef.current.playbackRate as PlaybackSpeed);
         setIsPopoverVisible(true);
 
         updatePopoverMenuSource(url);
@@ -400,7 +417,7 @@ function BaseVideoPlayer({
             videoViewRef.current,
             videoPlayerElementParentRef.current,
             videoPlayerElementRef.current,
-            (isUploading && !isCurrentlyURLSet) || isFullScreenRef.current || !isReadyForDisplayRef.current || hasError,
+            (isUploading && !isCurrentlyURLSet) || isFullScreenRef.current || !isReadyForDisplayRef.current || hasError || isSeeking || !allowSharedAutoPlayRef.current,
             {shouldUseSharedVideoElement, url, reportID},
         );
     }, [
@@ -415,6 +432,7 @@ function BaseVideoPlayer({
         isFullScreenRef,
         hasError,
         isCurrentlyURLSet,
+        isSeeking,
         status,
         updatePlayerStatus,
     ]);
@@ -429,7 +447,10 @@ function BaseVideoPlayer({
 
         if (!shouldUseSharedVideoElement) {
             if (newParentRef && 'childNodes' in newParentRef && newParentRef.childNodes[0]) {
-                newParentRef.childNodes[0]?.remove();
+                const child = newParentRef.childNodes[0];
+                if (child && 'remove' in child) {
+                    child.remove();
+                }
             }
             return;
         }
@@ -462,7 +483,10 @@ function BaseVideoPlayer({
             if (mountedVideoPlayersCurrentRef.current.filter((u) => u === url).length > 0) {
                 return;
             }
-            newParentRef.childNodes[0]?.remove();
+            const child = newParentRef.childNodes[0];
+            if (child && 'remove' in child) {
+                child.remove();
+            }
         };
     }, [currentVideoPlayerRef, currentVideoViewRef, currentlyPlayingURL, isFullScreenRef, mountedVideoPlayersRef, originalParent, reportID, sharedElement, shouldUseSharedVideoElement, url]);
 
@@ -536,8 +560,7 @@ function BaseVideoPlayer({
                                         }}
                                     >
                                         <VideoView
-                                            // has to be switched to fullscreenOptions={{enable: true}} when mobile Safari gets fixed
-                                            allowsFullscreen
+                                            fullscreenOptions={{enable: true}}
                                             player={videoPlayerRef.current}
                                             style={[styles.w100, styles.h100, videoPlayerStyle, hasErrorIconVisible && {opacity: 0}]}
                                             nativeControls={isFullScreenRef.current}
@@ -573,7 +596,6 @@ function BaseVideoPlayer({
                             {shouldShowLoadingIndicator && <LoadingIndicator style={[styles.opacity1, styles.bgTransparent]} />}
                             {shouldShowOfflineIndicator && <AttachmentOfflineIndicator isPreview={isPreview} />}
                             {controlStatusState !== CONST.VIDEO_PLAYER.CONTROLS_STATUS.HIDE &&
-                                !shouldShowLoadingIndicator &&
                                 !shouldShowOfflineIndicator &&
                                 !shouldShowErrorIndicator &&
                                 (isPopoverVisible || isHovered || canUseTouchScreen || isEnded) && (
@@ -590,6 +612,21 @@ function BaseVideoPlayer({
                                         controlsStatus={controlStatusState}
                                         showPopoverMenu={showPopoverMenu}
                                         reportID={reportID}
+                                        onSeekStart={() => {
+                                            allowSharedAutoPlayRef.current = false;
+                                            debouncedHideControl.cancel();
+                                            cancelAnimation(controlsOpacity);
+                                            controlsOpacity.set(1);
+                                            setIsSeeking(true);
+                                        }}
+                                        onSeekEnd={(shouldResumeAfterSeek) => {
+                                            setIsSeeking(false);
+                                            if (shouldResumeAfterSeek) {
+                                                allowSharedAutoPlayRef.current = true;
+                                                playVideo();
+                                            }
+                                            restartAutoHide();
+                                        }}
                                     />
                                 )}
                         </View>

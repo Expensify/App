@@ -111,6 +111,7 @@ const WRITE_COMMANDS = {
     UNLINK_LOGIN: 'UnlinkLogin',
     ENABLE_TWO_FACTOR_AUTH: 'EnableTwoFactorAuth',
     DISABLE_TWO_FACTOR_AUTH: 'DisableTwoFactorAuth',
+    REPLACE_TWO_FACTOR_DEVICE: 'ReplaceTwoFactorDevice',
     ADD_COMMENT: 'AddComment',
     ADD_ATTACHMENT: 'AddAttachment',
     ADD_TEXT_AND_ATTACHMENT: 'AddTextAndAttachment',
@@ -273,7 +274,7 @@ const WRITE_COMMANDS = {
     SET_POLICY_PROHIBITED_EXPENSES: 'SetPolicyProhibitedExpenses',
     SET_POLICY_EXPENSE_MAX_AGE: ' SetPolicyExpenseMaxAge',
     UPDATE_CUSTOM_RULES: 'UpdateCustomRules',
-    SET_POLICY_BILLABLE_MODE: ' SetPolicyBillableMode',
+    SET_POLICY_BILLABLE_MODE: 'SetPolicyBillableMode',
     SET_POLICY_REIMBURSABLE_MODE: 'SetPolicyReimbursableMode',
     DISABLE_POLICY_BILLABLE_MODE: 'DisablePolicyBillableExpenses',
     SET_WORKSPACE_ERECEIPTS_ENABLED: 'SetWorkspaceEReceiptsEnabled',
@@ -375,7 +376,6 @@ const WRITE_COMMANDS = {
     MARK_AS_EXPORTED: 'MarkAsExported',
     UPGRADE_TO_CORPORATE: 'UpgradeToCorporate',
     DOWNGRADE_TO_TEAM: 'Policy_DowngradeToTeam',
-    DELETE_MONEY_REQUEST_ON_SEARCH: 'DeleteMoneyRequestOnSearch',
     REJECT_MONEY_REQUEST_IN_BULK: 'RejectMoneyRequestInBulk',
     HOLD_MONEY_REQUEST_ON_SEARCH: 'HoldMoneyRequestOnSearch',
     APPROVE_MONEY_REQUEST_ON_SEARCH: 'ApproveMoneyRequestOnSearch',
@@ -527,6 +527,7 @@ const WRITE_COMMANDS = {
     GET_CORPAY_BANK_ACCOUNT_FIELDS: 'GetCorpayBankAccountFields',
     BANK_ACCOUNT_CREATE_CORPAY: 'BankAccount_CreateCorpay',
     SHARE_BANK_ACCOUNT: 'ShareBankAccount',
+    SHARE_BANK_ACCOUNT_AND_UPDATE_POLICY_REIMBURSER: 'ShareBankAccountAndUpdatePolicyReimburser',
     UPDATE_WORKSPACE_CUSTOM_UNIT: 'UpdateWorkspaceCustomUnit',
     GET_ACCESSIBLE_POLICIES: 'GetAccessibleDomainPoliciesForOnyx',
     VALIDATE_USER_AND_GET_ACCESSIBLE_POLICIES: 'ValidateUserAndGetAccessiblePolicies',
@@ -671,6 +672,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.UNLINK_LOGIN]: Parameters.UnlinkLoginParams;
     [WRITE_COMMANDS.ENABLE_TWO_FACTOR_AUTH]: null;
     [WRITE_COMMANDS.DISABLE_TWO_FACTOR_AUTH]: Parameters.DisableTwoFactorAuthParams;
+    [WRITE_COMMANDS.REPLACE_TWO_FACTOR_DEVICE]: Parameters.ReplaceTwoFactorDeviceParams;
     [WRITE_COMMANDS.ADD_COMMENT]: Parameters.AddCommentOrAttachmentParams;
     [WRITE_COMMANDS.ADD_ATTACHMENT]: Parameters.AddCommentOrAttachmentParams;
     [WRITE_COMMANDS.CREATE_APP_REPORT]: Parameters.CreateAppReportParams;
@@ -754,6 +756,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.RENAME_POLICY_TAG]: Parameters.RenamePolicyTagsParams;
     [WRITE_COMMANDS.UPDATE_POLICY_TAG_GL_CODE]: Parameters.UpdatePolicyTagGLCodeParams;
     [WRITE_COMMANDS.SHARE_BANK_ACCOUNT]: Parameters.ShareBankAccountParams;
+    [WRITE_COMMANDS.SHARE_BANK_ACCOUNT_AND_UPDATE_POLICY_REIMBURSER]: Parameters.ShareBankAccountAndSetPayerParams;
     [WRITE_COMMANDS.SET_POLICY_TAGS_ENABLED]: Parameters.SetPolicyTagsEnabled;
     [WRITE_COMMANDS.DELETE_POLICY_TAGS]: Parameters.DeletePolicyTagsParams;
     [WRITE_COMMANDS.CREATE_TASK]: Parameters.CreateTaskParams;
@@ -976,7 +979,6 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.REOPEN_REPORT]: Parameters.ReopenReportParams;
     [WRITE_COMMANDS.SEND_SCHEDULE_CALL_NUDGE]: Parameters.SendScheduleCallNudgeParams;
 
-    [WRITE_COMMANDS.DELETE_MONEY_REQUEST_ON_SEARCH]: Parameters.DeleteMoneyRequestOnSearchParams;
     [WRITE_COMMANDS.REJECT_MONEY_REQUEST_IN_BULK]: Parameters.RejectMoneyRequestInBulkParams;
     [WRITE_COMMANDS.HOLD_MONEY_REQUEST_ON_SEARCH]: Parameters.HoldMoneyRequestOnSearchParams;
     [WRITE_COMMANDS.APPROVE_MONEY_REQUEST_ON_SEARCH]: Parameters.ApproveMoneyRequestOnSearchParams;
@@ -1354,7 +1356,6 @@ const SIDE_EFFECT_REQUEST_COMMANDS = {
     OPEN_OLD_DOT_LINK: 'OpenOldDotLink',
     RECONNECT_APP: 'ReconnectApp',
     REVEAL_EXPENSIFY_CARD_DETAILS: 'RevealExpensifyCardDetails',
-    SET_PERSONAL_DETAILS_AND_REVEAL_EXPENSIFY_CARD: 'SetPersonalDetailsAndRevealExpensifyCard',
     TWO_FACTOR_AUTH_VALIDATE: 'TwoFactorAuth_Validate',
     CONNECT_AS_DELEGATE: 'ConnectAsDelegate',
     DISCONNECT_AS_DELEGATE: 'DisconnectAsDelegate',
@@ -1385,6 +1386,8 @@ const SIDE_EFFECT_REQUEST_COMMANDS = {
     AUTHORIZE_TRANSACTION: 'AuthorizeTransaction',
     DENY_TRANSACTION: 'DenyTransaction',
     GET_TRANSACTIONS_PENDING_3DS_REVIEW: 'GetTransactionsPending3DSReview',
+    REVEAL_CARD_PIN: 'RevealCardPIN',
+    CHANGE_CARD_PIN: 'ChangeCardPIN',
 } as const;
 
 type SideEffectRequestCommand = ValueOf<typeof SIDE_EFFECT_REQUEST_COMMANDS>;
@@ -1393,7 +1396,6 @@ type SideEffectRequestCommandParameters = {
     [SIDE_EFFECT_REQUEST_COMMANDS.AUTHENTICATE_PUSHER]: Parameters.AuthenticatePusherParams;
     [SIDE_EFFECT_REQUEST_COMMANDS.OPEN_OLD_DOT_LINK]: Parameters.OpenOldDotLinkParams;
     [SIDE_EFFECT_REQUEST_COMMANDS.REVEAL_EXPENSIFY_CARD_DETAILS]: Parameters.RevealExpensifyCardDetailsParams;
-    [SIDE_EFFECT_REQUEST_COMMANDS.SET_PERSONAL_DETAILS_AND_REVEAL_EXPENSIFY_CARD]: Parameters.SetPersonalDetailsAndRevealExpensifyCardParams;
     [SIDE_EFFECT_REQUEST_COMMANDS.GET_MISSING_ONYX_MESSAGES]: Parameters.GetMissingOnyxMessagesParams;
     [SIDE_EFFECT_REQUEST_COMMANDS.RECONNECT_APP]: Parameters.ReconnectAppParams;
     [SIDE_EFFECT_REQUEST_COMMANDS.GENERATE_SPOTNANA_TOKEN]: Parameters.GenerateSpotnanaTokenParams;
@@ -1422,6 +1424,8 @@ type SideEffectRequestCommandParameters = {
     [SIDE_EFFECT_REQUEST_COMMANDS.AUTHORIZE_TRANSACTION]: Parameters.AuthorizeTransactionParams;
     [SIDE_EFFECT_REQUEST_COMMANDS.DENY_TRANSACTION]: Parameters.DenyTransactionParams;
     [SIDE_EFFECT_REQUEST_COMMANDS.GET_TRANSACTIONS_PENDING_3DS_REVIEW]: null;
+    [SIDE_EFFECT_REQUEST_COMMANDS.REVEAL_CARD_PIN]: Parameters.RevealCardPINParams;
+    [SIDE_EFFECT_REQUEST_COMMANDS.CHANGE_CARD_PIN]: Parameters.ChangeCardPINParams;
 };
 
 type ApiRequestCommandParameters = WriteCommandParameters & ReadCommandParameters & SideEffectRequestCommandParameters;

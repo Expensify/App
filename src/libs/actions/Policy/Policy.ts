@@ -95,7 +95,7 @@ import * as PolicyUtils from '@libs/PolicyUtils';
 import {getCustomUnitsForDuplication, getMemberAccountIDsForWorkspace, goBackWhenEnableFeature, isControlPolicy, navigateToExpensifyCardPage} from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import {hasValidModifiedAmount} from '@libs/TransactionUtils';
-import type {PolicySelector} from '@pages/inbox/sidebar/FloatingActionButtonAndPopover';
+import type {PolicySelector} from '@pages/inbox/sidebar/FABPopoverContent/useRedirectToExpensifyClassic';
 import type {Feature} from '@pages/OnboardingInterestedFeatures/types';
 import * as PaymentMethods from '@userActions/PaymentMethods';
 import * as PersistedRequests from '@userActions/PersistedRequests';
@@ -198,11 +198,14 @@ type BuildPolicyDataOptions = {
     type?: typeof CONST.POLICY.TYPE.TEAM | typeof CONST.POLICY.TYPE.CORPORATE;
     // TODO: Make it required once we complete refactoring the buildPolicyData function to use isSelfTourViewed. Refactor issue: https://github.com/Expensify/App/issues/66424
     isSelfTourViewed?: boolean;
+    // TODO: Remove optional (?) once allBetas Onyx.connect is removed (https://github.com/Expensify/App/issues/66417)
+    betas?: OnyxEntry<Beta[]>;
 };
 
 // TODO: Remove this type once we complete refactoring the buildPolicyData function to use isSelfTourViewed. Refactor issue: https://github.com/Expensify/App/issues/66424
 type CreateWorkspaceDataOptions = Omit<BuildPolicyDataOptions, 'isSelfTourViewed'> & {
     isSelfTourViewed: boolean | undefined;
+    hasActiveAdminPolicies: boolean;
 };
 
 type DuplicatePolicyDataOptions = {
@@ -2061,23 +2064,6 @@ function updateWorkspaceClientID(policyID: string, clientID: string, currentClie
     });
 }
 
-function setWorkspaceErrors(policyID: string, errors: Errors) {
-    if (!deprecatedAllPolicies?.[policyID]) {
-        return;
-    }
-
-    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {errors: null});
-    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {errors});
-}
-
-function hideWorkspaceAlertMessage(policyID: string) {
-    if (!deprecatedAllPolicies?.[policyID]) {
-        return;
-    }
-
-    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {alertMessage: ''});
-}
-
 function updateAddress(policyID: string, newAddress: CompanyAddress) {
     const parameters: UpdatePolicyAddressParams = {
         policyID,
@@ -2389,6 +2375,7 @@ function buildPolicyData(options: BuildPolicyDataOptions): OnyxData<BuildPolicyD
         shouldCreateControlPolicy = false,
         type,
         isSelfTourViewed,
+        betas,
     } = options;
     const workspaceName = policyName || generateDefaultWorkspaceName(policyOwnerEmail);
 
@@ -2854,6 +2841,7 @@ function buildPolicyData(options: BuildPolicyDataOptions): OnyxData<BuildPolicyD
             onboardingPurposeSelected,
             companySize: companySize ?? (introSelected?.companySize as OnboardingCompanySize),
             isSelfTourViewed,
+            betas,
         });
         if (!onboardingData) {
             return {successData, optimisticData, failureData, params};
@@ -2910,7 +2898,7 @@ function createWorkspace(options: CreateWorkspaceDataOptions): CreateWorkspacePa
     API.write(WRITE_COMMANDS.CREATE_WORKSPACE, params, {optimisticData, successData, failureData});
 
     // Publish a workspace created event if this is their first policy
-    if (getAdminPolicies().length === 0) {
+    if (!options.hasActiveAdminPolicies) {
         GoogleTagManager.publishEvent(CONST.ANALYTICS.EVENT.WORKSPACE_CREATED, options.currentUserAccountIDParam ?? CONST.DEFAULT_NUMBER_ID);
     }
 
@@ -3379,7 +3367,7 @@ function duplicateWorkspace(policy: Policy, options: DuplicatePolicyDataOptions)
     return params;
 }
 
-function openPolicyWorkflowsPage(policyID: string) {
+function openPolicyWorkflowsPage(policyID: string, includeAllBankAccounts?: boolean) {
     if (!policyID) {
         Log.warn('openPolicyWorkflowsPage invalid params', {policyID});
         return;
@@ -3415,7 +3403,7 @@ function openPolicyWorkflowsPage(policyID: string) {
         ],
     };
 
-    const params: OpenPolicyWorkflowsPageParams = {policyID};
+    const params: OpenPolicyWorkflowsPageParams = {policyID, includeAllBankAccounts};
 
     API.read(READ_COMMANDS.OPEN_POLICY_WORKFLOWS_PAGE, params, onyxData);
 }
@@ -3871,7 +3859,6 @@ function setWorkspaceInviteMessageDraft(policyID: string, message: string | null
 
 function clearErrors(policyID: string) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {errors: null});
-    hideWorkspaceAlertMessage(policyID);
 }
 
 /**
@@ -6237,14 +6224,6 @@ function getAdminPolicies(): Policy[] {
     );
 }
 
-function getAdminPoliciesConnectedToSageIntacct(): Policy[] {
-    return Object.values(deprecatedAllPolicies ?? {}).filter<Policy>((policy): policy is Policy => !!policy && policy.role === CONST.POLICY.ROLE.ADMIN && !!policy?.connections?.intacct);
-}
-
-function getAdminPoliciesConnectedToNetSuite(): Policy[] {
-    return Object.values(deprecatedAllPolicies ?? {}).filter<Policy>((policy): policy is Policy => !!policy && policy.role === CONST.POLICY.ROLE.ADMIN && !!policy?.connections?.netsuite);
-}
-
 /**
  * Call the API to set default report title pattern for the given policy
  * @param policyID - id of the policy to apply the naming pattern to
@@ -7109,8 +7088,6 @@ export {
     leaveWorkspace,
     addBillingCardAndRequestPolicyOwnerChange,
     hasActiveChatEnabledPolicies,
-    setWorkspaceErrors,
-    hideWorkspaceAlertMessage,
     deleteWorkspace,
     updateAddress,
     updateLastAccessedWorkspace,
@@ -7182,9 +7159,6 @@ export {
     updateMemberCustomField,
     openPolicyEditCardLimitTypePage,
     requestExpensifyCardLimitIncrease,
-    getAdminPolicies,
-    getAdminPoliciesConnectedToNetSuite,
-    getAdminPoliciesConnectedToSageIntacct,
     hasInvoicingDetails,
     clearAllPolicies,
     enablePolicyRules,

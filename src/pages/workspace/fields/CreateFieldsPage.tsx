@@ -180,6 +180,7 @@ function CreateFieldsPage({policy, policyID, isInvoiceField, listValuesRoute, fe
                     enabledWhenOffline
                     shouldValidateOnBlur={false}
                     addBottomSafeAreaPadding
+                    shouldUseStrictHtmlTagValidation
                 >
                     {({inputValues}) => (
                         <View style={styles.mhn5}>
@@ -196,6 +197,7 @@ function CreateFieldsPage({policy, policyID, isInvoiceField, listValuesRoute, fe
                                 role={CONST.ROLE.PRESENTATION}
                                 required
                                 customValidate={validateName}
+                                shouldUseStrictHtmlTagValidation
                             />
                             <InputWrapper
                                 InputComponent={TypeSelector}
