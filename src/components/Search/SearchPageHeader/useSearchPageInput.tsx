@@ -32,12 +32,11 @@ import {accountIDSelector} from '@src/selectors/Session';
 
 type UseSearchPageInputProps = {
     queryJSON: SearchQueryJSON;
-    isNarrowLayout: boolean;
     onSearch: (value: string) => void;
     onSubmit: () => void;
 };
 
-function useSearchPageInput({queryJSON, isNarrowLayout, onSearch, onSubmit}: UseSearchPageInputProps) {
+function useSearchPageInput({queryJSON, onSearch, onSubmit}: UseSearchPageInputProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['MagnifyingGlass']);
@@ -48,11 +47,11 @@ function useSearchPageInput({queryJSON, isNarrowLayout, onSearch, onSubmit}: Use
     const [searchContext] = useOnyx(ONYXKEYS.SEARCH_CONTEXT);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const [currentUserAccountID = -1] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
-    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [personalAndWorkspaceCards] = useOnyx(ONYXKEYS.DERIVED.PERSONAL_AND_WORKSPACE_CARD_LIST);
     const [allFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER);
+    const [betas] = useOnyx(ONYXKEYS.BETAS);
 
     const [autocompleteSubstitutions, setAutocompleteSubstitutions] = useState<SubstitutionMap>({});
     const [textInputValue, setTextInputValue] = useState('');
@@ -78,7 +77,6 @@ function useSearchPageInput({queryJSON, isNarrowLayout, onSearch, onSubmit}: Use
         autoCompleteWithSpace: true,
         translate,
         feedKeysWithCards,
-        conciergeReportID,
     });
 
     useEffect(() => {
@@ -96,10 +94,9 @@ function useSearchPageInput({queryJSON, isNarrowLayout, onSearch, onSubmit}: Use
             policies,
             currentUserAccountID,
             translate,
-            conciergeReportID,
         );
         setAutocompleteSubstitutions(substitutionsMap);
-    }, [allFeeds, personalAndWorkspaceCards, originalInputQuery, personalDetails, reports, taxRates, policies, currentUserAccountID, translate, conciergeReportID]);
+    }, [allFeeds, personalAndWorkspaceCards, originalInputQuery, personalDetails, reports, taxRates, policies, currentUserAccountID, translate]);
 
     useEffect(() => {
         const newValue = shouldShowQuery ? queryText : '';
@@ -183,7 +180,7 @@ function useSearchPageInput({queryJSON, isNarrowLayout, onSearch, onSubmit}: Use
         } else if (item?.reportID) {
             Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(item?.reportID));
         } else if ('login' in item) {
-            navigateToAndOpenReport(item.login ? [item.login] : [], currentUserAccountID, introSelected, isSelfTourViewed, !isNarrowLayout);
+            navigateToAndOpenReport(item.login ? [item.login] : [], currentUserAccountID, introSelected, isSelfTourViewed, betas, false);
         }
     }
 

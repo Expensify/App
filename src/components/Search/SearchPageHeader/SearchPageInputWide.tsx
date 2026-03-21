@@ -43,7 +43,6 @@ function SearchPageInputWide({queryJSON, handleSearch}: SearchPageInputWideProps
         submitSearch,
     } = useSearchPageInput({
         queryJSON,
-        isNarrowLayout: true,
         onSearch: handleSearch,
         onSubmit: () => setIsAutocompleteListVisible(false),
     });

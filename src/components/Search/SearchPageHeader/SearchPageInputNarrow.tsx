@@ -37,7 +37,6 @@ function SearchPageInputNarrow({queryJSON, searchRouterListVisible, hideSearchRo
         submitSearch,
     } = useSearchPageInput({
         queryJSON,
-        isNarrowLayout: true,
         onSearch: handleSearch,
         onSubmit: hideSearchRouterList,
     });
