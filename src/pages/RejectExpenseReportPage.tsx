@@ -48,14 +48,20 @@ function RejectExpenseReportPage({route}: RejectExpenseReportPageProps) {
     const [selectionError, setSelectionError] = useState<string>('');
 
     const previousApprover = (() => {
-        if (!policy || !report) return null;
+        if (!policy || !report) {
+            return null;
+        }
         const approvalChain = getApprovalChain(policy, report);
         const managerEmail = getLoginsByAccountIDs([report.managerID ?? CONST.DEFAULT_NUMBER_ID]).at(0) ?? '';
         const managerIndex = approvalChain.indexOf(managerEmail);
-        if (managerIndex <= 0) return null;
+        if (managerIndex <= 0) {
+            return null;
+        }
         const previousApproverEmail = approvalChain.at(managerIndex - 1);
         const details = getPersonalDetailByEmail(previousApproverEmail ?? '');
-        if (!details?.accountID) return null;
+        if (!details?.accountID) {
+            return null;
+        }
         return {accountID: details.accountID, displayName: getDisplayNameOrDefault(details)};
     })();
 
