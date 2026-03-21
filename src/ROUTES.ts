@@ -99,6 +99,14 @@ const DYNAMIC_ROUTES = {
         path: 'owner-selector',
         entryScreens: [],
     },
+    REPORT_SETTINGS_WRITE_CAPABILITY: {
+        path: 'who-can-post',
+        entryScreens: [SCREENS.REPORT_SETTINGS.ROOT],
+    },
+    REPORT_SETTINGS_VISIBILITY: {
+        path: 'visibility',
+        entryScreens: [SCREENS.REPORT_SETTINGS.ROOT],
+    },
     ADDRESS_COUNTRY: {
         path: 'country',
         entryScreens: [
@@ -137,9 +145,13 @@ const ROUTES = {
     },
     SEARCH_COLUMNS: 'search/columns',
     SEARCH_ADVANCED_FILTERS: {
-        route: 'search/filters/:filterKey?',
-        getRoute: (filterKey?: SearchFilterKey | UserFriendlyKey) => {
-            return `search/filters/${filterKey ?? ''}` as const;
+        route: 'search/filters/:filterKey?/:subPage?',
+        getRoute: (filterKey?: SearchFilterKey | UserFriendlyKey, subPage?: string) => {
+            const baseRoute = `search/filters/${filterKey ?? ''}` as const;
+            if (!subPage || !filterKey) {
+                return baseRoute;
+            }
+            return `${baseRoute}/${subPage}` as const;
         },
     },
     SEARCH_REPORT: {
@@ -507,6 +519,14 @@ const ROUTES = {
         route: 'settings/wallet/card/:cardID/report-card-lost-or-damaged/:reason/confirm-magic-code',
         getRoute: (cardID: string, reason: ReplacementReason) => `settings/wallet/card/${cardID}/report-card-lost-or-damaged/${reason}/confirm-magic-code` as const,
     },
+    SETTINGS_WALLET_CARD_CHANGE_PIN: {
+        route: 'settings/wallet/card/:cardID/change-pin',
+        getRoute: (cardID: string) => `settings/wallet/card/${cardID}/change-pin` as const,
+    },
+    SETTINGS_WALLET_CARD_CHANGE_PIN_ATM: {
+        route: 'settings/wallet/card/:cardID/change-pin-atm',
+        getRoute: (cardID: string) => `settings/wallet/card/${cardID}/change-pin-atm` as const,
+    },
     SETTINGS_WALLET_CARD_ACTIVATE: {
         route: 'settings/wallet/card/:cardID/activate',
         getRoute: (cardID: string) => `settings/wallet/card/${cardID}/activate` as const,
@@ -797,18 +817,6 @@ const ROUTES = {
 
         // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
         getRoute: (reportID: string, backTo?: string) => getUrlWithBackToParam(`r/${reportID}/settings/notification-preferences` as const, backTo),
-    },
-    REPORT_SETTINGS_WRITE_CAPABILITY: {
-        route: 'r/:reportID/settings/who-can-post',
-
-        // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-        getRoute: (reportID: string, backTo?: string) => getUrlWithBackToParam(`r/${reportID}/settings/who-can-post` as const, backTo),
-    },
-    REPORT_SETTINGS_VISIBILITY: {
-        route: 'r/:reportID/settings/visibility',
-
-        // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-        getRoute: (reportID: string, backTo?: string) => getUrlWithBackToParam(`r/${reportID}/settings/visibility` as const, backTo),
     },
     REPORT_CHANGE_APPROVER: {
         route: 'r/:reportID/change-approver',
@@ -2450,10 +2458,6 @@ const ROUTES = {
     WORKSPACE_COMPANY_CARDS_BROKEN_CARD_FEED_CONNECTION: {
         route: 'workspaces/:policyID/company-cards/:feed/broken-card-feed-connection',
         getRoute: (policyID: string, feed: CompanyCardFeedWithDomainID) => `workspaces/${policyID}/company-cards/${encodeURIComponent(feed)}/broken-card-feed-connection` as const,
-    },
-    WORKSPACE_COMPANY_CARDS_REFRESH_CARD_FEED_CONNECTION: {
-        route: 'workspaces/:policyID/company-cards/:feed/refresh-card-feed-connection',
-        getRoute: (policyID: string, feed: CompanyCardFeedWithDomainID) => `workspaces/${policyID}/company-cards/${encodeURIComponent(feed)}/refresh-card-feed-connection` as const,
     },
     WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_ASSIGNEE: {
         route: 'workspaces/:policyID/company-cards/:feed/assign-card/:cardID/assignee',

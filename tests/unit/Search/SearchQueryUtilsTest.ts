@@ -479,7 +479,6 @@ describe('SearchQueryUtils', () => {
                 currentUserAccountID,
                 autoCompleteWithSpace: false,
                 translate: translateLocal,
-                conciergeReportID: 'concierge-report-id',
             });
 
             expect(result).toBe('type:expense date:this-month group-by:from tag:travel');
@@ -510,7 +509,6 @@ describe('SearchQueryUtils', () => {
                 currentUserAccountID,
                 autoCompleteWithSpace: false,
                 translate: translateLocal,
-                conciergeReportID: 'concierge-report-id',
             });
 
             expect(result).toBe('type:expense status:all merchant:Uber');
@@ -546,7 +544,6 @@ describe('SearchQueryUtils', () => {
                 currentUserAccountID,
                 autoCompleteWithSpace: false,
                 translate: translateLocal,
-                conciergeReportID: 'concierge-report-id',
             });
 
             expect(result).toBe('workspace:"Team Space" type:expense merchant:Starbucks');
@@ -585,7 +582,6 @@ describe('SearchQueryUtils', () => {
                 currentUserAccountID,
                 autoCompleteWithSpace: false,
                 translate: translateLocal,
-                conciergeReportID: 'concierge-report-id',
             });
 
             expect(result).toContain('limit:25');
@@ -609,7 +605,6 @@ describe('SearchQueryUtils', () => {
                 currentUserAccountID,
                 autoCompleteWithSpace: false,
                 translate: translateLocal,
-                conciergeReportID: 'concierge-report-id',
             });
 
             expect(result).not.toContain('limit:');
@@ -633,7 +628,6 @@ describe('SearchQueryUtils', () => {
                 currentUserAccountID,
                 autoCompleteWithSpace: false,
                 translate: translateLocal,
-                conciergeReportID: 'concierge-report-id',
             });
 
             expect(result).toContain('limit:50');
@@ -1196,7 +1190,6 @@ describe('SearchQueryUtils', () => {
                 policies: mockPolicies,
                 currentUserAccountID,
                 translate: translateLocal,
-                conciergeReportID: 'concierge-report-id',
             });
 
             expect(result).toBe('+15551234567');
@@ -1222,7 +1215,6 @@ describe('SearchQueryUtils', () => {
                 policies: mockPolicies,
                 currentUserAccountID,
                 translate: translateLocal,
-                conciergeReportID: 'concierge-report-id',
             });
 
             expect(result).toBe('Jane Doe');
@@ -1247,7 +1239,6 @@ describe('SearchQueryUtils', () => {
                 policies: mockPolicies,
                 currentUserAccountID,
                 translate: translateLocal,
-                conciergeReportID: 'concierge-report-id',
             });
 
             expect(result).toBe(CONST.SEARCH.ME);
@@ -1266,7 +1257,6 @@ describe('SearchQueryUtils', () => {
                 policies: mockPolicies,
                 currentUserAccountID,
                 translate: translateLocal,
-                conciergeReportID: 'concierge-report-id',
             });
 
             expect(result).toBe('88888');
@@ -1291,7 +1281,6 @@ describe('SearchQueryUtils', () => {
                 policies: mockPolicies,
                 currentUserAccountID,
                 translate: translateLocal,
-                conciergeReportID: 'concierge-report-id',
             });
 
             expect(result).toBe('Custom Name');
@@ -1317,7 +1306,6 @@ describe('SearchQueryUtils', () => {
                 policies: mockPolicies,
                 currentUserAccountID,
                 translate: translateLocal,
-                conciergeReportID: 'concierge-report-id',
             });
 
             expect(result).toBe('+15551112222');
@@ -1351,7 +1339,6 @@ describe('SearchQueryUtils', () => {
                     policies: mockPolicies,
                     currentUserAccountID,
                     translate: translateLocal,
-                    conciergeReportID: 'concierge-report-id',
                 });
 
                 expect(result).toBe('+15553334444');
@@ -1603,15 +1590,14 @@ describe('SearchQueryUtils', () => {
         });
     });
 
-    describe('getFilterDisplayValue with conciergeReportID', () => {
+    describe('getFilterDisplayValue', () => {
         const mockCardList = {};
         const mockCardFeeds = {};
         const mockPolicies = {};
         const currentUserAccountID = 12345;
 
-        it('should use conciergeReportID when resolving "in" filter with a report', () => {
+        it('should resolve report name for "in" filter with a report', () => {
             const reportID = '999';
-            const conciergeReportID = '999';
             const mockReports: OnyxCollection<OnyxTypes.Report> = {
                 [`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]: {
                     reportID,
@@ -1630,11 +1616,10 @@ describe('SearchQueryUtils', () => {
                 policies: mockPolicies,
                 currentUserAccountID,
                 translate: translateLocal,
-                conciergeReportID,
             });
 
             // The result depends on getReportName internal logic, but
-            // what matters is that conciergeReportID is passed through
+            // what matters is that reportAttributes is passed through
             expect(typeof result).toBe('string');
             expect(result.length).toBeGreaterThan(0);
         });
@@ -1650,13 +1635,12 @@ describe('SearchQueryUtils', () => {
                 policies: mockPolicies,
                 currentUserAccountID,
                 translate: translateLocal,
-                conciergeReportID: 'concierge-123',
             });
 
             expect(result).toBe('nonexistent-report-id');
         });
 
-        it('should handle amount filter correctly regardless of conciergeReportID', () => {
+        it('should handle amount filter correctly regardless of reportAttributes', () => {
             const result = getFilterDisplayValue({
                 filterName: CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT,
                 filterValue: '150000',
@@ -1667,13 +1651,12 @@ describe('SearchQueryUtils', () => {
                 policies: mockPolicies,
                 currentUserAccountID,
                 translate: translateLocal,
-                conciergeReportID: 'concierge-123',
             });
 
             expect(result).toBe('1500');
         });
 
-        it('should handle exported_to filter correctly regardless of conciergeReportID', () => {
+        it('should handle exported_to filter correctly regardless of reportAttributes', () => {
             const result = getFilterDisplayValue({
                 filterName: CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED_TO,
                 filterValue: CONST.REPORT.EXPORT_OPTIONS.REPORT_LEVEL_EXPORT,
@@ -1684,7 +1667,6 @@ describe('SearchQueryUtils', () => {
                 policies: mockPolicies,
                 currentUserAccountID,
                 translate: translateLocal,
-                conciergeReportID: 'concierge-123',
             });
 
             expect(result).toBe(CONST.REPORT.EXPORT_OPTION_LABELS.REPORT_LEVEL_EXPORT);
@@ -1707,7 +1689,6 @@ describe('SearchQueryUtils', () => {
                 policies,
                 currentUserAccountID,
                 translate: translateLocal,
-                conciergeReportID: 'concierge-123',
             });
 
             expect(result).toBe('My Workspace');
@@ -1724,7 +1705,6 @@ describe('SearchQueryUtils', () => {
                 policies: mockPolicies,
                 currentUserAccountID,
                 translate: translateLocal,
-                conciergeReportID: 'concierge-123',
             });
 
             expect(result).toBe('GL:travel');
@@ -1739,7 +1719,6 @@ describe('SearchQueryUtils', () => {
         const emptyPolicies: OnyxCollection<OnyxTypes.Policy> = {};
         const emptyTaxRates: Record<string, string[]> = {};
         const currentUserAccountID = 12345;
-        const conciergeReportID = 'concierge-report-id';
 
         it('should resolve tax rate IDs to human-readable names', () => {
             const taxRates: Record<string, string[]> = {
@@ -1763,7 +1742,6 @@ describe('SearchQueryUtils', () => {
                 emptyPolicies,
                 currentUserAccountID,
                 translateLocal,
-                conciergeReportID,
             );
 
             expect(result).toHaveLength(2);
@@ -1792,7 +1770,6 @@ describe('SearchQueryUtils', () => {
                 emptyPolicies,
                 currentUserAccountID,
                 translateLocal,
-                conciergeReportID,
             );
 
             expect(result).toHaveLength(1);
@@ -1821,7 +1798,6 @@ describe('SearchQueryUtils', () => {
                 emptyPolicies,
                 currentUserAccountID,
                 translateLocal,
-                conciergeReportID,
             );
 
             expect(result).toHaveLength(1);
@@ -1850,7 +1826,6 @@ describe('SearchQueryUtils', () => {
                 emptyPolicies,
                 currentUserAccountID,
                 translateLocal,
-                conciergeReportID,
             );
 
             expect(result).toHaveLength(1);
@@ -1871,14 +1846,13 @@ describe('SearchQueryUtils', () => {
                 emptyPolicies,
                 currentUserAccountID,
                 translateLocal,
-                conciergeReportID,
             );
 
             expect(result).toHaveLength(1);
             expect(result.at(0)?.value).toBe('1500');
         });
 
-        it('should pass conciergeReportID through to getFilterDisplayValue for in filter', () => {
+        it('should resolve report name for in filter', () => {
             const reportID = '555';
             const mockReports: OnyxCollection<OnyxTypes.Report> = {
                 [`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]: {
@@ -1900,7 +1874,6 @@ describe('SearchQueryUtils', () => {
                 emptyPolicies,
                 currentUserAccountID,
                 translateLocal,
-                conciergeReportID,
             );
 
             expect(result).toHaveLength(1);
@@ -1908,16 +1881,15 @@ describe('SearchQueryUtils', () => {
         });
     });
 
-    describe('buildUserReadableQueryString with conciergeReportID', () => {
+    describe('buildUserReadableQueryString', () => {
         const emptyReports: OnyxCollection<OnyxTypes.Report> = {};
         const emptyCardList: OnyxTypes.CardList = {};
         const emptyCardFeeds: OnyxCollection<OnyxTypes.CardFeeds> = {};
         const emptyPolicies: OnyxCollection<OnyxTypes.Policy> = {};
         const emptyTaxRates: Record<string, string[]> = {};
         const currentUserAccountID = 12345;
-        const conciergeReportID = 'concierge-report-id';
 
-        test('passes conciergeReportID through for in-filter queries', () => {
+        test('resolves in-filter queries with report names', () => {
             const reportID = '777';
             const reports: OnyxCollection<OnyxTypes.Report> = {
                 [`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]: {
@@ -1943,14 +1915,13 @@ describe('SearchQueryUtils', () => {
                 currentUserAccountID,
                 autoCompleteWithSpace: false,
                 translate: translateLocal,
-                conciergeReportID,
             });
 
             expect(result).toContain('in:');
             expect(typeof result).toBe('string');
         });
 
-        test('resolves from filter with personal details and conciergeReportID', () => {
+        test('resolves from filter with personal details', () => {
             const personalDetails = {
                 '78901': {
                     accountID: 78901,
@@ -1976,7 +1947,6 @@ describe('SearchQueryUtils', () => {
                 currentUserAccountID,
                 autoCompleteWithSpace: false,
                 translate: translateLocal,
-                conciergeReportID,
             });
 
             expect(result).toContain('from:"Jane Doe"');
@@ -2008,7 +1978,6 @@ describe('SearchQueryUtils', () => {
                 currentUserAccountID,
                 autoCompleteWithSpace: false,
                 translate: translateLocal,
-                conciergeReportID,
             });
 
             expect(result).toContain(`from:${CONST.SEARCH.ME}`);
@@ -2032,7 +2001,6 @@ describe('SearchQueryUtils', () => {
                 currentUserAccountID,
                 autoCompleteWithSpace: true,
                 translate: translateLocal,
-                conciergeReportID,
             });
 
             expect(result.endsWith(' ')).toBe(true);

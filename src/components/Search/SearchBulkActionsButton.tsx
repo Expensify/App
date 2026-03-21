@@ -15,7 +15,6 @@ import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchBulkActions from '@hooks/useSearchBulkActions';
-import useSearchDeleteTransactions from '@hooks/useSearchDeleteTransactions';
 import useSortedActiveAdminPolicies from '@hooks/useSortedActiveAdminPolicies';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {handleBulkPayItemSelected} from '@libs/actions/Search';
@@ -47,7 +46,6 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
     const [userBillingGraceEndPeriods] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isUserValidatedSelector});
     const activeAdminPolicies = useSortedActiveAdminPolicies();
-    const {deleteTransactionsOnSearch} = useSearchDeleteTransactions();
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
 
     const {
@@ -66,7 +64,7 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
         handleDownloadErrorModalClose,
         dismissModalAndUpdateUseHold,
         dismissRejectModalBasedOnAction,
-    } = useSearchBulkActions({queryJSON, deleteTransactionsOnSearch});
+    } = useSearchBulkActions({queryJSON});
 
     const currentSelectedPolicyID = selectedPolicyIDs?.at(0);
     const currentSelectedReportID = selectedTransactionReportIDs?.at(0) ?? selectedReportIDs?.at(0);
