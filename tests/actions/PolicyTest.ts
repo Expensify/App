@@ -188,7 +188,7 @@ describe('actions/Policy', () => {
 
             // After filtering, two actions are added to the list =- signoff message (+1) and default create action (+1)
             const expectedReportActionsOfTypeCreatedCount = 1;
-            const expectedSignOffMessagesCount = 0;
+            const expectedSignOffMessagesCount = 1;
             expect(adminReportActions.length).toBe(expectedManageTeamDefaultTasksCount + expectedReportActionsOfTypeCreatedCount + expectedSignOffMessagesCount);
 
             let reportActionsOfTypeCreatedCount = 0;
