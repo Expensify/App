@@ -849,7 +849,7 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
         };
     }, [report?.reportID, didSubscribeToReportLeavingEvents, reportIDFromRoute, report?.pendingFields, currentUserAccountID]);
 
-    const actionListValue = useActionListContextValue();
+    const actionListValue = useActionListContextValue(archivedReportsIDSet);
 
     // This helps in tracking from the moment 'route' triggers useMemo until isLoadingInitialReportActions becomes true. It prevents blinking when loading reportActions from cache.
     useEffect(() => {

@@ -21,6 +21,7 @@ import {
     canUserPerformWriteAction as canUserPerformWriteActionReportUtils,
     getReportOrDraftReport,
     isInvoiceReport,
+    isReportArchivedByID,
     isMoneyRequestReport as isMoneyRequestReportUtils,
     isTrackExpenseReport,
 } from '@libs/ReportUtils';
@@ -33,7 +34,7 @@ import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import type {Policy, Report, ReportAction, Session, Transaction} from '@src/types/onyx';
 import useAllTransactions from './useAllTransactions';
-import {useIsReportArchivedByID} from './useArchivedReportsIDSet';
+import useArchivedReportsIDSet from './useArchivedReportsIDSet';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useDeleteTransactions from './useDeleteTransactions';
 import useDuplicateTransactionsAndViolations from './useDuplicateTransactionsAndViolations';
@@ -88,7 +89,7 @@ function useSelectedTransactionsActions({
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Stopwatch', 'Trashcan', 'ArrowRight', 'Table', 'DocumentMerge', 'Export', 'ArrowCollapse', 'ArrowSplit', 'ThumbsDown']);
     const {duplicateTransactions, duplicateTransactionViolations} = useDuplicateTransactionsAndViolations(selectedTransactionIDs);
     const isReportArchived = useReportIsArchived(report?.reportID);
-    const isReportArchivedByID = useIsReportArchivedByID();
+    const archivedReportsIDSet = useArchivedReportsIDSet();
     const {deleteTransactions} = useDeleteTransactions({report, reportActions, policy});
     const {login, accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const selectedTransactionsList = selectedTransactionIDs.reduce((acc, transactionID) => {
@@ -340,7 +341,7 @@ function useSelectedTransactionsActions({
                 undefined,
                 undefined,
                 undefined,
-                isReportArchivedByID,
+                (reportID) => isReportArchivedByID(archivedReportsIDSet, reportID),
             );
             return canMoveExpense;
         });

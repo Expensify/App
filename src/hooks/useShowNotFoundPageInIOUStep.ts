@@ -2,13 +2,13 @@ import {useCallback, useMemo} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {isMoneyRequestAction} from '@libs/ReportActionsUtils';
-import {canEditMoneyRequest} from '@libs/ReportUtils';
+import {canEditMoneyRequest, isReportArchivedByID} from '@libs/ReportUtils';
 import {areRequiredFieldsEmpty} from '@libs/TransactionUtils';
 import type {IOUAction, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {OnyxInputOrEntry, Report, ReportAction, ReportActions, Transaction} from '@src/types/onyx';
-import {useIsReportArchivedByID} from './useArchivedReportsIDSet';
+import useArchivedReportsIDSet from './useArchivedReportsIDSet';
 import useOnyx from './useOnyx';
 
 /**
@@ -26,7 +26,7 @@ const useShowNotFoundPageInIOUStep = (action: IOUAction, iouType: IOUType, repor
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`);
     const [iouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(transaction?.reportID)}`);
-    const isReportArchived = useIsReportArchivedByID();
+    const archivedReportsIDSet = useArchivedReportsIDSet();
 
     const reportActionsReportID = useMemo(() => {
         let actionsReportID;
@@ -64,7 +64,9 @@ const useShowNotFoundPageInIOUStep = (action: IOUAction, iouType: IOUType, repor
         } else if (isSplitExpense) {
             shouldShowNotFoundPage = !canEditSplitExpense;
         } else {
-            shouldShowNotFoundPage = !isMoneyRequestAction(reportAction) || !canEditMoneyRequest(reportAction, false, iouReport, policy, transaction, isReportArchived);
+            shouldShowNotFoundPage =
+                !isMoneyRequestAction(reportAction) ||
+                !canEditMoneyRequest(reportAction, false, iouReport, policy, transaction, (reportID) => isReportArchivedByID(archivedReportsIDSet, reportID));
         }
     }
 
