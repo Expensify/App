@@ -617,6 +617,7 @@
         "reimbursible",
         "Reimbursments",
         "REJECTEDTRANSACTION",
+        "REJECTEDTOSUBMITTER",
         "remotedesktop",
         "remotesync",
         "removeHiddenElems",
@@ -926,6 +927,8 @@
         "web/snippets/gib.js",
         "tests/unit/hooks/useLetterAvatars.test.tsx"
     ],
-    "ignoreRegExpList": ["@assets/.*"],
+    "ignoreRegExpList": [
+        "@assets/.*"
+    ],
     "useGitignore": true
 }
