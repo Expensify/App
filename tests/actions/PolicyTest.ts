@@ -3047,7 +3047,7 @@ describe('actions/Policy', () => {
 
             await Onyx.set(ONYXKEYS.COLLECTION.POLICY, existingPolicies);
 
-            const workspaceName = Policy.newGenerateDefaultWorkspaceName(TEST_EMAIL, undefined);
+            const workspaceName = Policy.newGenerateDefaultWorkspaceName(TEST_EMAIL, 1);
             expect(workspaceName).toBe(TestHelper.translateLocal('workspace.new.workspaceName', TEST_DISPLAY_NAME, 2));
         });
 
@@ -3080,7 +3080,7 @@ describe('actions/Policy', () => {
 
             await Onyx.set(ONYXKEYS.COLLECTION.POLICY, existingPolicies);
 
-            const workspaceName = Policy.newGenerateDefaultWorkspaceName(TEST_EMAIL, undefined);
+            const workspaceName = Policy.newGenerateDefaultWorkspaceName(TEST_EMAIL, 1);
             expect(workspaceName).toBe(TestHelper.translateLocal('workspace.new.workspaceName', TEST_DISPLAY_NAME, 2));
         });
     });

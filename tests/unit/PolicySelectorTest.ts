@@ -1,4 +1,5 @@
 import CONST from '@src/CONST';
+import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {lastWorkspaceNumberSelector} from '@src/selectors/Policy';
 import type {Policy} from '@src/types/onyx';
@@ -7,6 +8,8 @@ describe('lastWorkspaceNumberSelector', () => {
     const email = 'jdoe@expensify.com';
     const displayName = 'Expensify';
     const workspaceName = `${displayName} Workspace`;
+
+    beforeAll(() => IntlStore.load(CONST.LOCALES.DEFAULT));
 
     it('should return undefined when there are no policies', () => {
         expect(lastWorkspaceNumberSelector({}, email)).toBeUndefined();
