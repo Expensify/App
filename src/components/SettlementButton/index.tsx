@@ -370,6 +370,7 @@ function SettlementButton({
                     currentUserEmailParam: currentUserPersonalDetails.email ?? '',
                     betas,
                     isSelfTourViewed,
+                    hasActiveAdminPolicies: !!activeAdminPolicies.length,
                 }).policyID;
             };
 
