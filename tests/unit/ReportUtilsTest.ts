@@ -5036,6 +5036,24 @@ describe('ReportUtils', () => {
         const submitterEmail = 'submitter@test.com';
         const policyID = 'approverTestPolicy';
 
+        const policyWithWorkflow = {
+            id: policyID,
+            name: 'Test Workspace',
+            type: CONST.POLICY.TYPE.CORPORATE,
+            role: CONST.POLICY.ROLE.USER,
+            owner: `owner${ownerAccountID}@test.com`,
+            outputCurrency: 'USD',
+            isPolicyExpenseChatEnabled: true,
+            approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+            approver: approverEmail,
+            employeeList: {
+                [submitterEmail]: {
+                    email: submitterEmail,
+                    submitsTo: approverEmail,
+                },
+            },
+        } as unknown as Policy;
+
         afterAll(async () => {
             // Restore global session state for subsequent tests
             await Onyx.merge(ONYXKEYS.SESSION, {email: currentUserEmail, accountID: currentUserAccountID});
@@ -5043,24 +5061,6 @@ describe('ReportUtils', () => {
         });
 
         beforeEach(async () => {
-            const policyWithWorkflow = {
-                id: policyID,
-                name: 'Test Workspace',
-                type: CONST.POLICY.TYPE.CORPORATE,
-                role: CONST.POLICY.ROLE.USER,
-                owner: `owner${ownerAccountID}@test.com`,
-                outputCurrency: 'USD',
-                isPolicyExpenseChatEnabled: true,
-                approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
-                approver: approverEmail,
-                employeeList: {
-                    [submitterEmail]: {
-                        email: submitterEmail,
-                        submitsTo: approverEmail,
-                    },
-                },
-            };
-
             const testPersonalDetails = {
                 [submitterAccountID]: {accountID: submitterAccountID, login: submitterEmail},
                 [approverAccountID]: {accountID: approverAccountID, login: approverEmail},
@@ -5086,17 +5086,7 @@ describe('ReportUtils', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${openExpenseReport.reportID}`, openExpenseReport);
             await waitForBatchedUpdates();
 
-            const testPolicy = await new Promise<OnyxEntry<Policy>>((resolve) => {
-                const connection = Onyx.connect({
-                    key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-                    callback: (val) => {
-                        Onyx.disconnect(connection);
-                        resolve(val);
-                    },
-                });
-            });
-
-            expect(canEditReportPolicy(openExpenseReport, testPolicy)).toBe(false);
+            expect(canEditReportPolicy(openExpenseReport, policyWithWorkflow)).toBe(false);
         });
 
         it('should NOT allow non-workflow user to edit expense report on OPEN report', async () => {
@@ -5143,18 +5133,10 @@ describe('ReportUtils', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
             await waitForBatchedUpdates();
 
-            const testPolicy = await new Promise<OnyxEntry<Policy>>((resolve) => {
-                const connection = Onyx.connect({
-                    key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-                    callback: (val) => {
-                        Onyx.disconnect(connection);
-                        resolve(val);
-                    },
-                });
-            });
-
-            expect(canEditReportPolicy(openExpenseReport, testPolicy)).toBe(false);
-            expect(canEditFieldOfMoneyRequest(moneyRequestAction, CONST.EDIT_REQUEST_FIELD.REIMBURSABLE, false, false, undefined, transaction, openExpenseReport, testPolicy)).toBe(false);
+            expect(canEditReportPolicy(openExpenseReport, policyWithWorkflow)).toBe(false);
+            expect(canEditFieldOfMoneyRequest(moneyRequestAction, CONST.EDIT_REQUEST_FIELD.REIMBURSABLE, false, false, undefined, transaction, openExpenseReport, policyWithWorkflow)).toBe(
+                false,
+            );
         });
 
         it('should allow submitter to edit expense report policy on OPEN report', async () => {
@@ -5171,17 +5153,7 @@ describe('ReportUtils', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${openExpenseReport.reportID}`, openExpenseReport);
             await waitForBatchedUpdates();
 
-            const testPolicy = await new Promise<OnyxEntry<Policy>>((resolve) => {
-                const connection = Onyx.connect({
-                    key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-                    callback: (val) => {
-                        Onyx.disconnect(connection);
-                        resolve(val);
-                    },
-                });
-            });
-
-            expect(canEditReportPolicy(openExpenseReport, testPolicy)).toBe(true);
+            expect(canEditReportPolicy(openExpenseReport, policyWithWorkflow)).toBe(true);
         });
 
         it('should allow workflow approver to edit money request and fields on OPEN expense report', async () => {
@@ -5224,18 +5196,70 @@ describe('ReportUtils', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
             await waitForBatchedUpdates();
 
-            const testPolicy = await new Promise<OnyxEntry<Policy>>((resolve) => {
-                const connection = Onyx.connect({
-                    key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-                    callback: (val) => {
-                        Onyx.disconnect(connection);
-                        resolve(val);
-                    },
-                });
-            });
+            expect(canEditMoneyRequest(moneyRequestAction, false, openExpenseReport, policyWithWorkflow, transaction)).toBe(true);
+            expect(canEditFieldOfMoneyRequest(moneyRequestAction, CONST.EDIT_REQUEST_FIELD.REIMBURSABLE, false, false, undefined, transaction, openExpenseReport, policyWithWorkflow)).toBe(
+                true,
+            );
+            expect(canEditFieldOfMoneyRequest(moneyRequestAction, CONST.EDIT_REQUEST_FIELD.RECEIPT, false, false, undefined, transaction, openExpenseReport, policyWithWorkflow)).toBe(true);
+        });
 
-            expect(canEditMoneyRequest(moneyRequestAction, false, openExpenseReport, testPolicy, transaction)).toBe(true);
-            expect(canEditFieldOfMoneyRequest(moneyRequestAction, CONST.EDIT_REQUEST_FIELD.REIMBURSABLE, false, false, undefined, transaction, openExpenseReport, testPolicy)).toBe(true);
+        it('should NOT allow approver to edit RECEIPT when a non-expense report is passed', async () => {
+            // This tests the bug where passing a workspace chat or transaction thread
+            // instead of the expense report causes isApprover to be false
+            const openExpenseReport: Report = {
+                reportID: '12352',
+                policyID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                ownerAccountID: submitterAccountID,
+                managerID: ownerAccountID,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            };
+
+            const workspaceChat: Report = {
+                reportID: '12353',
+                policyID,
+                type: CONST.REPORT.TYPE.CHAT,
+                ownerAccountID: submitterAccountID,
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+            };
+
+            const transaction: Transaction = {
+                transactionID: 'txn12352',
+                reportID: openExpenseReport.reportID,
+                amount: 1000,
+                currency: CONST.CURRENCY.USD,
+                comment: {comment: 'Test expense'},
+                created: '2025-01-01',
+                merchant: 'Test Merchant',
+            };
+
+            const moneyRequestAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> = {
+                reportActionID: 'action12352',
+                actorAccountID: submitterAccountID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                originalMessage: {
+                    IOUReportID: openExpenseReport.reportID,
+                    IOUTransactionID: transaction.transactionID,
+                    amount: 1000,
+                    currency: CONST.CURRENCY.USD,
+                    type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                },
+                message: [{type: 'COMMENT', html: 'USD 10.00 expense', text: 'USD 10.00 expense', isEdited: false, whisperedTo: [], isDeletedParentAction: false, deleted: ''}],
+                created: '2025-01-01 12:00:00',
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${openExpenseReport.reportID}`, openExpenseReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${workspaceChat.reportID}`, workspaceChat);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
+            await waitForBatchedUpdates();
+
+            // Passing the correct expense report: approver CAN edit receipt
+            expect(canEditFieldOfMoneyRequest(moneyRequestAction, CONST.EDIT_REQUEST_FIELD.RECEIPT, false, false, undefined, transaction, openExpenseReport, policyWithWorkflow)).toBe(true);
+
+            // Passing workspace chat instead of expense report: approver CANNOT edit receipt
+            // because isExpenseReport(workspaceChat) is false, so isApprover is false
+            expect(canEditFieldOfMoneyRequest(moneyRequestAction, CONST.EDIT_REQUEST_FIELD.RECEIPT, false, false, undefined, transaction, workspaceChat, policyWithWorkflow)).toBe(false);
         });
 
         it('should NOT allow workflow approver to edit money request on SUBMITTED expense report', async () => {
@@ -5278,17 +5302,7 @@ describe('ReportUtils', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
             await waitForBatchedUpdates();
 
-            const testPolicy = await new Promise<OnyxEntry<Policy>>((resolve) => {
-                const connection = Onyx.connect({
-                    key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-                    callback: (val) => {
-                        Onyx.disconnect(connection);
-                        resolve(val);
-                    },
-                });
-            });
-
-            expect(canEditMoneyRequest(moneyRequestAction, false, submittedExpenseReport, testPolicy, transaction)).toBe(false);
+            expect(canEditMoneyRequest(moneyRequestAction, false, submittedExpenseReport, policyWithWorkflow, transaction)).toBe(false);
         });
     });
 
