@@ -13,7 +13,7 @@ const AUTHENTICATION_METHOD = {
     /** Voice pattern recognition authentication */
     VOICE_RECOGNITION: 'VOICE_RECOGNITION',
 
-    /** Authentication within the issuer’s mobile application */
+    /** Authentication within the issuer's mobile application */
     IN_APP_LOGIN: 'IN_APP_LOGIN',
 
     /** Voice call with human or automated verification */

@@ -5,15 +5,6 @@ import type {ValueOf} from 'type-fest';
 import {PROMPT_NAMES, SCENARIO_NAMES} from '@components/MultifactorAuthentication/config/scenarios/names';
 
 /**
- * Callback registry for multifactor authentication flow events.
- */
-const MultifactorAuthenticationCallbacks: {
-    onFulfill: Record<string, () => void>;
-} = {
-    onFulfill: {},
-};
-
-/**
  * Backend message strings as returned by the API.
  * Used as keys in API_RESPONSE_MAP for matching against actual backend responses.
  */
@@ -103,6 +94,17 @@ const REASON = {
         KEY_RETRIEVED: 'Key successfully retrieved from SecureStore',
         KEY_NOT_FOUND: 'Key not found in SecureStore',
         UNABLE_TO_RETRIEVE_KEY: 'Failed to retrieve key from SecureStore',
+    },
+    WEBAUTHN: {
+        NOT_ALLOWED: 'NotAllowedError',
+        INVALID_STATE: 'InvalidStateError',
+        SECURITY_ERROR: 'SecurityError',
+        ABORT: 'AbortError',
+        NOT_SUPPORTED: 'NotSupportedError',
+        CONSTRAINT_ERROR: 'ConstraintError',
+        REGISTRATION_REQUIRED: 'No matching passkey credentials found locally',
+        UNEXPECTED_RESPONSE: 'WebAuthn credential response type is unexpected',
+        GENERIC: 'An unknown WebAuthn error occurred',
     },
 } as const;
 
@@ -198,21 +200,6 @@ const API_RESPONSE_MAP = {
     },
 } as const;
 
-/**
- * Expo error message search strings and separator.
- */
-const EXPO_ERRORS = {
-    SEPARATOR: 'Caused by:',
-    SEARCH_STRING: {
-        NOT_IN_FOREGROUND: 'not in the foreground',
-        IN_PROGRESS: 'in progress',
-        CANCELED: 'canceled',
-        EXISTS: 'already exists',
-        NO_AUTHENTICATION: 'No authentication method available',
-        OLD_ANDROID: 'NoSuchMethodError',
-    },
-} as const;
-
 type ReasonValue = ValueOf<{
     [K in keyof typeof REASON]: ValueOf<(typeof REASON)[K]>;
 }>;
@@ -234,6 +221,9 @@ const ROUTINE_FAILURES = new Set<ReasonValue>([
     REASON.BACKEND.ALREADY_DENIED_APPROVE_ATTEMPTED,
     REASON.BACKEND.ALREADY_DENIED_DENY_ATTEMPTED,
     REASON.BACKEND.ALREADY_REVIEWED,
+    REASON.WEBAUTHN.NOT_ALLOWED,
+    REASON.WEBAUTHN.ABORT,
+    REASON.WEBAUTHN.NOT_SUPPORTED,
 ]);
 
 /** Known errors that should rarely happen and may indicate a bug or unexpected state. Logged at 'error' level. Any reason not in either set is treated as UNCLASSIFIED (e.g. 5xx, missing reason). */
@@ -258,44 +248,15 @@ const ANOMALOUS_FAILURES = new Set<ReasonValue>([
     REASON.EXPO.IN_PROGRESS,
     REASON.EXPO.NOT_IN_FOREGROUND,
     REASON.EXPO.GENERIC,
+    REASON.WEBAUTHN.INVALID_STATE,
+    REASON.WEBAUTHN.SECURITY_ERROR,
+    REASON.WEBAUTHN.CONSTRAINT_ERROR,
+    REASON.WEBAUTHN.REGISTRATION_REQUIRED,
+    REASON.WEBAUTHN.UNEXPECTED_RESPONSE,
+    REASON.WEBAUTHN.GENERIC,
 ]);
 
-/**
- * Centralized constants used by the multifactor authentication biometrics flow.
- * It is stored here instead of the CONST file to avoid circular dependencies.
- */
-const MULTIFACTOR_AUTHENTICATION_VALUES = {
-    /**
-     * Keychain service name for secure key storage.
-     */
-    KEYCHAIN_SERVICE: 'Expensify',
-
-    /**
-     * EdDSA key type identifier referred to as EdDSA in the Auth.
-     */
-    ED25519_TYPE: 'biometric',
-
-    /**
-     * Key alias identifiers for secure storage.
-     */
-    KEY_ALIASES: {
-        PUBLIC_KEY: '3DS_SCA_KEY_PUBLIC',
-        PRIVATE_KEY: '3DS_SCA_KEY_PRIVATE',
-    },
-    EXPO_ERRORS,
-
-    /**
-     * Maps authentication Expo errors to appropriate reason messages.
-     */
-    EXPO_ERROR_MAPPINGS: {
-        [EXPO_ERRORS.SEARCH_STRING.CANCELED]: REASON.EXPO.CANCELED,
-        [EXPO_ERRORS.SEARCH_STRING.IN_PROGRESS]: REASON.EXPO.IN_PROGRESS,
-        [EXPO_ERRORS.SEARCH_STRING.NOT_IN_FOREGROUND]: REASON.EXPO.NOT_IN_FOREGROUND,
-        [EXPO_ERRORS.SEARCH_STRING.EXISTS]: REASON.EXPO.KEY_EXISTS,
-        [EXPO_ERRORS.SEARCH_STRING.NO_AUTHENTICATION]: REASON.EXPO.NO_METHOD_AVAILABLE,
-        [EXPO_ERRORS.SEARCH_STRING.OLD_ANDROID]: REASON.EXPO.NOT_SUPPORTED,
-    },
-
+const SHARED_VALUES = {
     /**
      * Scenario name mappings.
      */
@@ -307,10 +268,19 @@ const MULTIFACTOR_AUTHENTICATION_VALUES = {
     PROMPT: PROMPT_NAMES,
 
     /**
+     * Maps authentication type to the corresponding prompt type.
+     */
+    PROMPT_TYPE_MAP: {
+        BIOMETRICS: PROMPT_NAMES.BIOMETRICS,
+        PASSKEYS: PROMPT_NAMES.PASSKEYS,
+    },
+
+    /**
      * Authentication type identifiers.
      */
     TYPE: {
         BIOMETRICS: 'BIOMETRICS',
+        PASSKEYS: 'PASSKEYS',
     },
     CHALLENGE_TYPE: {
         REGISTRATION: 'registration',
@@ -369,5 +339,4 @@ const MULTIFACTOR_AUTHENTICATION_VALUES = {
     },
 } as const;
 
-export {MultifactorAuthenticationCallbacks};
-export default MULTIFACTOR_AUTHENTICATION_VALUES;
+export default SHARED_VALUES;
