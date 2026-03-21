@@ -84,6 +84,7 @@ import {getAllExpensesToHoldIfApplicable, getReportPrimaryAction, isMarkAsResolv
 import {getSecondaryExportReportActions, getSecondaryReportActions} from '@libs/ReportSecondaryActionUtils';
 import {
     canEditFieldOfMoneyRequest,
+    canRejectReportAction,
     canUserPerformWriteAction as canUserPerformWriteActionReportUtils,
     changeMoneyRequestHoldStatus,
     generateReportID,
@@ -2154,7 +2155,7 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
                     setRejectModalAction(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.REJECT);
                 }
             },
-            shouldShow: transactions.length === 1,
+            shouldShow: !!moneyRequestReport && canRejectReportAction(email ?? '', moneyRequestReport),
         },
         [CONST.REPORT.SECONDARY_ACTIONS.ADD_EXPENSE]: {
             text: translate('iou.addExpense'),
