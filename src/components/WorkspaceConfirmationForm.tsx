@@ -115,7 +115,7 @@ function WorkspaceConfirmationForm({onSubmit, policyOwnerEmail = '', onBackButto
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [draftValues] = useOnyx(ONYXKEYS.FORMS.WORKSPACE_CONFIRMATION_FORM_DRAFT);
 
-    const email = policyOwnerEmail || session?.email || '';
+    const email = policyOwnerEmail || (session?.email ?? '');
     const lastWorkspaceNumber = lastWorkspaceNumberSelector(policies, email);
     const defaultWorkspaceName = newGenerateDefaultWorkspaceName(email, lastWorkspaceNumber);
     const [workspaceNameFirstCharacter, setWorkspaceNameFirstCharacter] = useState(defaultWorkspaceName ?? '');
