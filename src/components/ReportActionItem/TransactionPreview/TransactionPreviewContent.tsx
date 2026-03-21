@@ -127,9 +127,7 @@ function TransactionPreviewContent({
     const filteredViolations = filterReceiptViolations(violations);
     const firstViolation = filteredViolations.at(0);
     const isIOUActionType = isMoneyRequestAction(action);
-    const canEdit =
-        isIOUActionType &&
-        canEditMoneyRequest(action, isChatReportArchived, report, policy, transaction, (reportID) => isReportArchivedByID(archivedReportsIDSet, reportID));
+    const canEdit = isIOUActionType && canEditMoneyRequest(action, isChatReportArchived, report, policy, transaction, (reportID) => isReportArchivedByID(archivedReportsIDSet, reportID));
     const companyCardPageURL = `${environmentURL}/${ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(report?.policyID)}`;
     const {personalCardsWithBrokenConnection} = useCardFeedErrors();
     const connectionLink = getBrokenConnectionUrlToFixPersonalCard(personalCardsWithBrokenConnection, environmentURL);

@@ -20,7 +20,14 @@ import {changeTransactionsReport, setTransactionReport} from '@libs/actions/Tran
 import Navigation from '@libs/Navigation/Navigation';
 import {getPerDiemCustomUnit, getPolicyByCustomUnitID} from '@libs/PolicyUtils';
 import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
-import {getPersonalDetailsForAccountID, getReportOrDraftReport, hasViolations as hasViolationsReportUtils, isPolicyExpenseChat, isReportArchivedByID, isReportOutstanding} from '@libs/ReportUtils';
+import {
+    getPersonalDetailsForAccountID,
+    getReportOrDraftReport,
+    hasViolations as hasViolationsReportUtils,
+    isPolicyExpenseChat,
+    isReportArchivedByID,
+    isReportOutstanding,
+} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {isPerDiemRequest, isTimeRequest as isTimeRequestUtil} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
@@ -55,8 +62,7 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
     const participantReportID = transaction?.participants?.at(0)?.reportID;
     const participantReport = Object.values(allReports ?? {}).find((report) => report?.reportID === participantReportID);
     const shouldUseTransactionReport =
-        (!!transactionReport && isReportOutstanding(transactionReport, transactionReport?.policyID, (reportID) => isReportArchivedByID(archivedReportsIDSet, reportID))) ||
-        isUnreported;
+        (!!transactionReport && isReportOutstanding(transactionReport, transactionReport?.policyID, (reportID) => isReportArchivedByID(archivedReportsIDSet, reportID))) || isUnreported;
     const outstandingReportID = isPolicyExpenseChat(participantReport) ? participantReport?.iouReportID : participantReportID;
     const selectedReportID = shouldUseTransactionReport ? transactionReport?.reportID : outstandingReportID;
     const [selectedReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${selectedReportID}`);

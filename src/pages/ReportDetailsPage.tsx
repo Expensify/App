@@ -336,7 +336,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
         }
 
         const isWorkspaceMemberLeavingWorkspaceRoom = isWorkspaceMemberLeavingWorkspaceRoomUtil(report, isPolicyEmployee, isPolicyAdmin);
-        leaveRoom(report, currentUserPersonalDetails.accountID, conciergeReportID, introSelected, archivedReportsIDSet, isWorkspaceMemberLeavingWorkspaceRoom);
+        leaveRoom(report, currentUserPersonalDetails.accountID, conciergeReportID, introSelected, isWorkspaceMemberLeavingWorkspaceRoom, archivedReportsIDSet);
     }, [isRootGroupChat, isPolicyEmployee, isPolicyAdmin, quickAction?.chatReportID, report, currentUserPersonalDetails.accountID, conciergeReportID, introSelected, archivedReportsIDSet]);
 
     const showLastMemberLeavingModal = useCallback(async () => {

@@ -53,8 +53,8 @@ import {
     isConciergeChatReport,
     isGroupChat,
     isInvoiceReport,
-    isReportArchivedByID,
     isReportApproved,
+    isReportArchivedByID,
     isReportTransactionThread,
     isSettled,
     temporary_getMoneyRequestOptions,
@@ -245,16 +245,8 @@ function ReportActionCompose({
     const canUserPerformWriteAction = !!canUserPerformWriteActionReportUtils(report, isReportArchived);
     const canEditReceipt =
         canUserPerformWriteAction &&
-        canEditFieldOfMoneyRequest(
-            parentReportAction,
-            CONST.EDIT_REQUEST_FIELD.RECEIPT,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            (reportID) => isReportArchivedByID(archivedReportsIDSet, reportID),
+        canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.RECEIPT, undefined, undefined, undefined, undefined, undefined, undefined, (reportID) =>
+            isReportArchivedByID(archivedReportsIDSet, reportID),
         ) &&
         !transaction?.receipt?.isTestDriveReceipt;
     const shouldAddOrReplaceReceipt = (isTransactionThreadView || isSingleTransactionView) && canEditReceipt;

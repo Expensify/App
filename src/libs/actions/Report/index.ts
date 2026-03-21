@@ -4428,8 +4428,8 @@ function leaveRoom(
     currentUserAccountID: number,
     conciergeReportID: string | undefined,
     introSelected: OnyxEntry<IntroSelected>,
-    archivedReportsIDSet: ArchivedReportsIDSet = new Set<string>(),
     isWorkspaceMemberLeavingWorkspaceRoom = false,
+    archivedReportsIDSet: ArchivedReportsIDSet = new Set<string>(),
 ) {
     const reportID = report.reportID;
     const isChatThread = isChatThreadReportUtils(report);
