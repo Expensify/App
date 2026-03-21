@@ -1,5 +1,6 @@
 import React, {useState} from 'react';
 import {View} from 'react-native';
+import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
@@ -41,6 +42,8 @@ function RejectExpenseReportPage({route}: RejectExpenseReportPageProps) {
 
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportID)}`);
     const policy = usePolicy(report?.policyID);
+    const {isDelegateAccessRestricted} = useDelegateNoAccessState();
+    const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
     const [selectedTargetAccountID, setSelectedTargetAccountID] = useState<string>('');
     const [selectionError, setSelectionError] = useState<string>('');
 
@@ -95,6 +98,11 @@ function RejectExpenseReportPage({route}: RejectExpenseReportPageProps) {
     };
 
     const onSubmit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REPORT_REJECT_FORM>) => {
+        if (isDelegateAccessRestricted) {
+            showDelegateNoAccessModal();
+            return;
+        }
+
         if (hasPreviousApprover && !selectedTargetAccountID) {
             setSelectionError(translate('iou.rejectReport.selectMemberError'));
             return;
