@@ -221,7 +221,11 @@ function SuggestionMention({
             }
 
             const mentionCode = getMentionCode(mentionObject, suggestionValues.prefixType);
-            const originalMention = getOriginalMentionText(value, suggestionValues.atSignIndex, StringUtils.countWhiteSpaces(suggestionValues.mentionPrefix));
+            // Get the raw original mention text (may extend past cursor if no breaker found)
+            const rawOriginalMention = getOriginalMentionText(value, suggestionValues.atSignIndex, StringUtils.countWhiteSpaces(suggestionValues.mentionPrefix));
+            // Bound by cursor position to avoid replacing content after the cursor (like existing mentions)
+            const cursorPosition = selection.end ?? selection.start;
+            const originalMention = rawOriginalMention.slice(0, cursorPosition - suggestionValues.atSignIndex);
 
             // We split trailing dot from the mention token so selecting `@a.` can become `@adam.`
             // (preserve sentence punctuation) instead of consuming the `.` into the replacement.
@@ -258,7 +262,18 @@ function SuggestionMention({
                 shouldShowSuggestionMenu: false,
             }));
         },
-        [value, suggestionValues.atSignIndex, suggestionValues.suggestedMentions, suggestionValues.prefixType, getMentionCode, updateComment, setSelection, suggestionValues.mentionPrefix],
+        [
+            value,
+            suggestionValues.atSignIndex,
+            suggestionValues.suggestedMentions,
+            suggestionValues.prefixType,
+            getMentionCode,
+            updateComment,
+            setSelection,
+            suggestionValues.mentionPrefix,
+            selection.end,
+            selection.start,
+        ],
     );
 
     /**
