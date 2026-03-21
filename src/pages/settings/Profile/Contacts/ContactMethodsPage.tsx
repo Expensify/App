@@ -31,7 +31,7 @@ type ContactMethodsPageProps = PlatformStackScreenProps<SettingsNavigatorParamLi
 function ContactMethodsPage({route}: ContactMethodsPageProps) {
     const icons = useMemoizedLazyExpensifyIcons(['Copy'] as const);
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, preferredLocale} = useLocalize();
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const navigateBackTo = route?.params?.backTo;
@@ -43,6 +43,8 @@ function ContactMethodsPage({route}: ContactMethodsPageProps) {
     const {showLockedAccountModal} = useLockedAccountActions();
 
     const options = useMemo(() => getContactMethodsOptions(translate, loginList, session?.email), [translate, loginList, session?.email]);
+    const inlineSpacing = preferredLocale === CONST.LOCALES.JA || preferredLocale === CONST.LOCALES.ZH_HANS ? '' : ' ';
+    const receiptsEmailForDisplay = CONST.EMAIL.RECEIPTS.split('').join('\u2060');
 
     const onNewContactMethodButtonPress = useCallback(() => {
         if (isActingAsDelegate) {
@@ -75,22 +77,22 @@ function ContactMethodsPage({route}: ContactMethodsPageProps) {
             <ScrollView contentContainerStyle={styles.flexGrow1}>
                 <View style={[styles.ph5, styles.mv3]}>
                     <Text style={styles.textLabelSupporting}>{translate('contacts.helpText')}</Text>
-                    <View style={[styles.mt4, styles.flexRow, styles.flexWrap, styles.alignItemsCenter, styles.gap1]}>
-                        <Text style={styles.textLabelSupporting}>{translate('contacts.helpTextBeforeEmail')}</Text>
+                    <Text style={[styles.textLabelSupporting, styles.mt4]}>
+                        {translate('contacts.helpTextBeforeEmail')}
+                        {inlineSpacing}
                         <PressableWithDelayToggle
-                            text={CONST.EMAIL.RECEIPTS}
+                            text={receiptsEmailForDisplay}
                             tooltipText=""
                             tooltipTextChecked=""
                             accessibilityLabel={translate('contacts.copyEmailAddress', {email: CONST.EMAIL.RECEIPTS})}
                             icon={icons.Copy}
-                            inline={false}
                             onPress={() => Clipboard.setString(CONST.EMAIL.RECEIPTS)}
-                            styles={styles.flexShrink1}
-                            textStyles={[styles.textLabelSupporting, styles.link, styles.flexShrink1]}
+                            textStyles={[styles.textLabelSupporting, styles.link]}
                             sentryLabel={CONST.SENTRY_LABEL.COPY_TEXT_TO_CLIPBOARD.COPY_BUTTON}
                         />
-                        <Text style={styles.textLabelSupporting}>{translate('contacts.helpTextAfterEmail', {phoneNumber: CONST.SMS.RECEIPTS_PHONE_NUMBER})}</Text>
-                    </View>
+                        {inlineSpacing}
+                        {translate('contacts.helpTextAfterEmail', {phoneNumber: CONST.SMS.RECEIPTS_PHONE_NUMBER})}
+                    </Text>
                 </View>
                 {options.map(
                     (option) =>
