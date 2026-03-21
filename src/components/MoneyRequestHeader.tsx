@@ -67,6 +67,7 @@ import {
     removeSettledAndApprovedTransactions,
     shouldShowBrokenConnectionViolation as shouldShowBrokenConnectionViolationTransactionUtils,
 } from '@libs/TransactionUtils';
+import {ActionListContext} from '@pages/inbox/ReportScreenContext';
 import variables from '@styles/variables';
 import {dismissRejectUseExplanation} from '@userActions/IOU';
 import {setDeleteTransactionNavigateBackUrl} from '@userActions/Report';
@@ -77,7 +78,6 @@ import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {Transaction} from '@src/types/onyx';
 import type IconAsset from '@src/types/utils/IconAsset';
-import {ActionListContext} from '@pages/inbox/ReportScreenContext';
 import BrokenConnectionDescription from './BrokenConnectionDescription';
 import Button from './Button';
 import ButtonWithDropdownMenu from './ButtonWithDropdownMenu';
@@ -447,7 +447,19 @@ function MoneyRequestHeader({reportID: reportIDProp, onBackButtonPress}: MoneyRe
             isChatReportArchived: isChatIOUReportArchived,
             isReportArchived,
         });
-    }, [parentReport, transaction, parentReportAction, currentUserLogin, policy, report, originalTransaction, accountID, outstandingReportsByPolicyID, isChatIOUReportArchived, isReportArchived]);
+    }, [
+        parentReport,
+        transaction,
+        parentReportAction,
+        currentUserLogin,
+        policy,
+        report,
+        originalTransaction,
+        accountID,
+        outstandingReportsByPolicyID,
+        isChatIOUReportArchived,
+        isReportArchived,
+    ]);
 
     const dismissModalAndUpdateUseHold = () => {
         setIsHoldEducationalModalVisible(false);
