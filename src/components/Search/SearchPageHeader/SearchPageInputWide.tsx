@@ -54,7 +54,7 @@ function SearchPageInputWide({queryJSON, handleSearch}: SearchPageInputWideProps
         }
 
         registerSearchPageInput(textInputRef.current);
-    }, [isFocused, registerSearchPageInput]);
+    }, [isFocused, registerSearchPageInput, textInputRef]);
 
     const hideAutocompleteList = () => setIsAutocompleteListVisible(false);
     const showAutocompleteList = () => setIsAutocompleteListVisible(true);

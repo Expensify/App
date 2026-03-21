@@ -1,10 +1,16 @@
 import {deepEqual} from 'fast-equals';
 import isEmpty from 'lodash/isEmpty';
 import {useEffect, useRef, useState} from 'react';
-import {TextInputKeyPressEvent} from 'react-native';
+import type {TextInputKeyPressEvent} from 'react-native';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
-import {AnimatedTextInputRef} from '@components/RNTextInput';
-import {isSearchQueryItem, SearchQueryItem} from '@components/SelectionListWithSections/Search/SearchQueryListItem';
+import type {AnimatedTextInputRef} from '@components/RNTextInput';
+import {buildSubstitutionsMap} from '@components/Search/SearchRouter/buildSubstitutionsMap';
+import {getQueryWithSubstitutions} from '@components/Search/SearchRouter/getQueryWithSubstitutions';
+import type {SubstitutionMap} from '@components/Search/SearchRouter/getQueryWithSubstitutions';
+import {getUpdatedSubstitutionsMap} from '@components/Search/SearchRouter/getUpdatedSubstitutionsMap';
+import type {SearchQueryJSON, SearchQueryString} from '@components/Search/types';
+import {isSearchQueryItem} from '@components/SelectionListWithSections/Search/SearchQueryListItem';
+import type {SearchQueryItem} from '@components/SelectionListWithSections/Search/SearchQueryListItem';
 import useFeedKeysWithAssignedCards from '@hooks/useFeedKeysWithAssignedCards';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -23,10 +29,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {hasSeenTourSelector} from '@src/selectors/Onboarding';
 import {accountIDSelector} from '@src/selectors/Session';
-import {buildSubstitutionsMap} from '../SearchRouter/buildSubstitutionsMap';
-import {getQueryWithSubstitutions, SubstitutionMap} from '../SearchRouter/getQueryWithSubstitutions';
-import {getUpdatedSubstitutionsMap} from '../SearchRouter/getUpdatedSubstitutionsMap';
-import {SearchQueryJSON, SearchQueryString} from '../types';
 
 type UseSearchPageInputProps = {
     queryJSON: SearchQueryJSON;
