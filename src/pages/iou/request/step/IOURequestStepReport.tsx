@@ -250,7 +250,7 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
         handleRegularReportSelection({value: optimisticReport.reportID}, optimisticReport);
     };
 
-    const {handleCreateReport, CreateReportConfirmationModal} = useConditionalCreateEmptyReportConfirmation({
+    const {handleCreateReport} = useConditionalCreateEmptyReportConfirmation({
         policyID: policyForMovingExpensesID,
         policyName: policyForMovingExpenses?.name ?? '',
         onCreateReport: createReportForPolicy,
@@ -285,25 +285,22 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
     }
 
     return (
-        <>
-            {CreateReportConfirmationModal}
-            <IOURequestEditReportCommon
-                backTo={backTo}
-                selectReport={selectReport}
-                transactionIDs={transaction ? [transaction.transactionID] : []}
-                selectedReportID={selectedReportID}
-                selectedPolicyID={selectedPolicyID}
-                transactionPolicyID={transactionPolicyID}
-                removeFromReport={removeFromReport}
-                isEditing={isEditing}
-                isUnreported={isUnreported}
-                shouldShowNotFoundPage={shouldShowNotFoundPage}
-                isPerDiemRequest={transaction ? isPerDiemRequest(transaction) : false}
-                isTimeRequest={transaction ? isTimeRequestUtil(transaction) : false}
-                createReport={policyForMovingExpensesID || shouldSelectPolicy || isPerDiemTransaction ? createReport : undefined}
-                targetOwnerAccountID={ownerAccountID}
-            />
-        </>
+        <IOURequestEditReportCommon
+            backTo={backTo}
+            selectReport={selectReport}
+            transactionIDs={transaction ? [transaction.transactionID] : []}
+            selectedReportID={selectedReportID}
+            selectedPolicyID={selectedPolicyID}
+            transactionPolicyID={transactionPolicyID}
+            removeFromReport={removeFromReport}
+            isEditing={isEditing}
+            isUnreported={isUnreported}
+            shouldShowNotFoundPage={shouldShowNotFoundPage}
+            isPerDiemRequest={transaction ? isPerDiemRequest(transaction) : false}
+            isTimeRequest={transaction ? isTimeRequestUtil(transaction) : false}
+            createReport={policyForMovingExpensesID || shouldSelectPolicy || isPerDiemTransaction ? createReport : undefined}
+            targetOwnerAccountID={ownerAccountID}
+        />
     );
 }
 
