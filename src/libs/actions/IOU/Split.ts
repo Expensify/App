@@ -2003,12 +2003,11 @@ function initSplitExpenseItemData(
 /**
  * Create a draft transaction to set up split expense details for edit split details
  */
-function initDraftSplitExpenseDataForEdit(draftTransaction: OnyxEntry<OnyxTypes.Transaction>, splitExpenseTransactionID: string, reportID: string, transactionID?: string) {
+function initDraftSplitExpenseDataForEdit(draftTransaction: OnyxEntry<OnyxTypes.Transaction>, splitExpenseTransactionID: string, originalTransaction:  OnyxEntry<OnyxTypes.Transaction>, reportID: string, transactionID?: string) {
     if (!draftTransaction || !splitExpenseTransactionID) {
         return;
     }
     const originalTransactionID = draftTransaction?.comment?.originalTransactionID;
-    const originalTransaction = getAllTransactions()?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`];
     const splitTransactionData = draftTransaction?.comment?.splitExpenses?.find((item) => item.transactionID === splitExpenseTransactionID);
 
     const transactionDetails = getTransactionDetails(originalTransaction);

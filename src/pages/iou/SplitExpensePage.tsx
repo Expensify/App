@@ -146,6 +146,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
     const isDistance = isDistanceRequest(transaction);
     const isCard = isManagedCardTransaction(transaction);
     const originalTransactionID = draftTransaction?.comment?.originalTransactionID ?? CONST.IOU.OPTIMISTIC_TRANSACTION_ID;
+    const splitTransactionOriginalTransaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(originalTransactionID)}`];
     const iouActions = getIOUActionForTransactions([originalTransactionID], expenseReport?.reportID);
     const {iouReport} = useGetIOUReportFromReportAction(iouActions.at(0));
     const [iouReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${getNonEmptyStringOnyxID(iouReport?.reportID)}`);
@@ -493,7 +494,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
         Keyboard.dismiss();
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
-            initDraftSplitExpenseDataForEdit(draftTransaction, item.transactionID, item.reportID ?? reportID);
+            initDraftSplitExpenseDataForEdit(draftTransaction, item.transactionID, splitTransactionOriginalTransaction, item.reportID ?? reportID);
             Navigation.navigate(ROUTES.SPLIT_EXPENSE_EDIT.getRoute(item.reportID ?? reportID, originalTransactionID, item.transactionID, Navigation.getActiveRoute()));
         });
     };

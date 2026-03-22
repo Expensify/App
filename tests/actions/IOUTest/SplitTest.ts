@@ -4801,7 +4801,7 @@ describe('initDraftSplitExpenseDataForEdit', () => {
             reportID,
         };
 
-        initDraftSplitExpenseDataForEdit(draftTransaction, splitExpenseTransactionID, reportID);
+        initDraftSplitExpenseDataForEdit(draftTransaction, splitExpenseTransactionID, originalTransaction, reportID);
         await waitForBatchedUpdates();
 
         const editDraftTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`);
@@ -4820,7 +4820,7 @@ describe('initDraftSplitExpenseDataForEdit', () => {
     });
 
     it('should not create draft if draftTransaction or splitExpenseTransactionID is missing', async () => {
-        initDraftSplitExpenseDataForEdit(undefined, 'split-456', 'report-789');
+        initDraftSplitExpenseDataForEdit(undefined, 'split-456', undefined, 'report-789');
         await waitForBatchedUpdates();
 
         const editDraftTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`);
