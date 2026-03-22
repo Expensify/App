@@ -1,4 +1,4 @@
-import MARQETA_VALUES from './MarqetaValues';
+import MARQETA_VALUES from '@libs/MultifactorAuthentication/shared/MarqetaValues';
 import type {SecureStoreMethods, SecureStoreValues} from './types';
 
 /**

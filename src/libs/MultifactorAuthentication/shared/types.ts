@@ -1,26 +1,30 @@
 /**
- * Type definitions for multifactor authentication biometrics operations.
+ * Shared type definitions for multifactor authentication operations.
+ * Technology-agnostic types used across NativeBiometrics and Passkeys.
  */
 import type {ValueOf} from 'type-fest';
 import type {MultifactorAuthenticationScenario, MultifactorAuthenticationScenarioAdditionalParams} from '@components/MultifactorAuthentication/config/types';
-import type {SignedChallenge} from './ED25519/types';
-import type {SECURE_STORE_VALUES} from './SecureStore';
+import type {SECURE_STORE_VALUES} from '@libs/MultifactorAuthentication/NativeBiometrics/SecureStore';
+import type {NativeBiometricsKeyInfo} from '@libs/MultifactorAuthentication/NativeBiometrics/types';
+import type {PasskeyRegistrationKeyInfo} from '@libs/MultifactorAuthentication/Passkeys/types';
+import type {PASSKEY_AUTH_TYPE} from '@libs/MultifactorAuthentication/Passkeys/WebAuthn';
+import type {SignedChallenge} from './challengeTypes';
 import type VALUES from './VALUES';
 
-type MultifactorAuthenticationMethodCode = ValueOf<typeof SECURE_STORE_VALUES.AUTH_TYPE>['CODE'];
-
 /**
- * Authentication type name derived from secure store values.
+ * Authentication type name derived from secure store values and passkey auth type.
  */
-type AuthTypeName = ValueOf<typeof SECURE_STORE_VALUES.AUTH_TYPE>['NAME'];
+type AuthTypeName = ValueOf<typeof SECURE_STORE_VALUES.AUTH_TYPE>['NAME'] | (typeof PASSKEY_AUTH_TYPE)['NAME'];
 
-type MarqetaAuthTypeName = ValueOf<typeof SECURE_STORE_VALUES.AUTH_TYPE>['MARQETA_VALUE'];
+type MarqetaAuthTypeName = ValueOf<typeof SECURE_STORE_VALUES.AUTH_TYPE>['MARQETA_VALUE'] | (typeof PASSKEY_AUTH_TYPE)['MARQETA_VALUE'];
 
 type AuthTypeInfo = {
-    code: MultifactorAuthenticationMethodCode;
+    code?: MultifactorAuthenticationMethodCode;
     name: AuthTypeName;
     marqetaValue: MarqetaAuthTypeName;
 };
+
+type MultifactorAuthenticationMethodCode = ValueOf<typeof SECURE_STORE_VALUES.AUTH_TYPE>['CODE'];
 
 /**
  * Represents the reason for a multifactor authentication response from the backend.
@@ -28,18 +32,6 @@ type AuthTypeInfo = {
 type MultifactorAuthenticationReason = ValueOf<{
     [K in keyof typeof VALUES.REASON]: ValueOf<(typeof VALUES.REASON)[K]>;
 }>;
-
-/**
- * Represents a status result of multifactor authentication keystore operation.
- * Contains the operation result value, reason message and auth type code.
- */
-type MultifactorAuthenticationKeyStoreStatus<T> = {
-    value: T;
-
-    reason: MultifactorAuthenticationReason;
-
-    type?: MultifactorAuthenticationMethodCode;
-};
 
 /**
  * Combined type representing all possible authentication base parameters.
@@ -55,36 +47,12 @@ type AllMultifactorAuthenticationBaseParameters = {
 type MultifactorAuthenticationResponseMap = typeof VALUES.API_RESPONSE_MAP;
 
 /**
- * Identifier for different types of cryptographic keys.
- */
-type MultifactorAuthenticationKeyType = ValueOf<typeof VALUES.KEY_ALIASES>;
-
-/**
  * Parameters for a multifactor authentication action with required authentication factor.
  */
 type MultifactorAuthenticationActionParams<T extends Record<string, unknown>, R extends keyof AllMultifactorAuthenticationBaseParameters> = T &
     Pick<AllMultifactorAuthenticationBaseParameters, R> & {authenticationMethod: MarqetaAuthTypeName};
 
-type MultifactorAuthenticationKeyInfo = {
-    rawId: Base64URLString;
-    type: typeof VALUES.ED25519_TYPE;
-    response: {
-        clientDataJSON: Base64URLString;
-        biometric: {
-            publicKey: Base64URLString;
-            algorithm: -8;
-        };
-    };
-};
-
-/**
- * Configuration options for multifactor key store operations.
- */
-type MultifactorKeyStoreOptions<T extends MultifactorAuthenticationKeyType> = T extends typeof VALUES.KEY_ALIASES.PRIVATE_KEY
-    ? {
-          nativePromptTitle: string;
-      }
-    : void;
+type RegistrationKeyInfo = NativeBiometricsKeyInfo | PasskeyRegistrationKeyInfo;
 
 type ChallengeType = ValueOf<typeof VALUES.CHALLENGE_TYPE>;
 
@@ -121,12 +89,8 @@ type MultifactorAuthenticationScenarioCallback = (
 
 export type {
     MultifactorAuthenticationResponseMap,
-    MultifactorAuthenticationKeyType,
     AllMultifactorAuthenticationBaseParameters,
-    MultifactorAuthenticationKeyStoreStatus,
-    MultifactorAuthenticationKeyInfo,
     MultifactorAuthenticationActionParams,
-    MultifactorKeyStoreOptions,
     MultifactorAuthenticationReason,
     MultifactorAuthenticationMethodCode,
     ChallengeType,
@@ -136,4 +100,5 @@ export type {
     MultifactorAuthenticationCallbackResponse,
     MultifactorAuthenticationCallbackInput,
     MultifactorAuthenticationScenarioCallback,
+    RegistrationKeyInfo,
 };

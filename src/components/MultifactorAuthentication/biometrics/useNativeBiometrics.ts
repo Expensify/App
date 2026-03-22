@@ -1,87 +1,16 @@
-import {useCallback, useMemo} from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
+import {useCallback} from 'react';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
-import useOnyx from '@hooks/useOnyx';
-import {generateKeyPair, signToken as signTokenED25519} from '@libs/MultifactorAuthentication/Biometrics/ED25519';
-import type {AuthenticationChallenge, SignedChallenge} from '@libs/MultifactorAuthentication/Biometrics/ED25519/types';
-import {PrivateKeyStore, PublicKeyStore} from '@libs/MultifactorAuthentication/Biometrics/KeyStore';
-import {SECURE_STORE_VALUES} from '@libs/MultifactorAuthentication/Biometrics/SecureStore';
-import type {AuthTypeInfo, MultifactorAuthenticationReason} from '@libs/MultifactorAuthentication/Biometrics/types';
-import VALUES from '@libs/MultifactorAuthentication/Biometrics/VALUES';
+import {generateKeyPair, signToken as signTokenED25519} from '@libs/MultifactorAuthentication/NativeBiometrics/ED25519';
+import {PrivateKeyStore, PublicKeyStore} from '@libs/MultifactorAuthentication/NativeBiometrics/KeyStore';
+import {SECURE_STORE_VALUES} from '@libs/MultifactorAuthentication/NativeBiometrics/SecureStore';
+import type {NativeBiometricsKeyInfo} from '@libs/MultifactorAuthentication/NativeBiometrics/types';
+import type {RegistrationChallenge} from '@libs/MultifactorAuthentication/shared/challengeTypes';
+import VALUES from '@libs/MultifactorAuthentication/VALUES';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
-import type {Account} from '@src/types/onyx';
-
-type BaseRegisterResult = {
-    privateKey: string;
-    publicKey: string;
-    authenticationMethod: AuthTypeInfo;
-};
-
-type RegisterResult =
-    | ({
-          success: true;
-          reason: MultifactorAuthenticationReason;
-      } & BaseRegisterResult)
-    | ({
-          success: false;
-          reason: MultifactorAuthenticationReason;
-      } & Partial<BaseRegisterResult>);
-
-type AuthorizeParams = {
-    challenge: AuthenticationChallenge;
-};
-
-type AuthorizeResultSuccess = {
-    success: true;
-    reason: MultifactorAuthenticationReason;
-    signedChallenge: SignedChallenge;
-    authenticationMethod: AuthTypeInfo;
-};
-
-type AuthorizeResultFailure = {
-    success: false;
-    reason: MultifactorAuthenticationReason;
-};
-
-type AuthorizeResult = AuthorizeResultSuccess | AuthorizeResultFailure;
-
-// In the 4th release of the Multifactor Authentication this interface will not focus on the Onyx/Auth values.
-// Instead, the providers abstraction will be added.
-// For context, see: https://github.com/Expensify/App/pull/79473#discussion_r2747993460
-type UseNativeBiometricsReturn = {
-    /** List of credential IDs known to server (from Onyx) */
-    serverKnownCredentialIDs: string[];
-
-    /** Whether biometric credentials have ever been configured for this account */
-    haveCredentialsEverBeenConfigured: boolean;
-
-    /** Retrieve the public key stored locally on this device */
-    getLocalPublicKey: () => Promise<string | undefined>;
-
-    /** Check if device supports biometrics */
-    doesDeviceSupportBiometrics: () => boolean;
-
-    /** Check if local credentials are known to server (local credential exists in server's list) */
-    areLocalCredentialsKnownToServer: () => Promise<boolean>;
-
-    /** Register biometrics on device */
-    register: (onResult: (result: RegisterResult) => Promise<void> | void) => Promise<void>;
-
-    /** Authorize using biometrics */
-    authorize: (params: AuthorizeParams, onResult: (result: AuthorizeResult) => Promise<void> | void) => Promise<void>;
-
-    /** Reset keys for account */
-    resetKeysForAccount: () => Promise<void>;
-};
-
-/**
- * Selector to get multifactor authentication public key IDs from Account Onyx state.
- */
-function getMultifactorAuthenticationPublicKeyIDs(data: OnyxEntry<Account>) {
-    return data?.multifactorAuthenticationPublicKeyIDs;
-}
+import Base64URL from '@src/utils/Base64URL';
+import type {AuthorizeParams, AuthorizeResult, RegisterResult, UseBiometricsReturn} from './shared/types';
+import useServerCredentials from './shared/useServerCredentials';
 
 /**
  * Clears local credentials to allow re-registration.
@@ -91,42 +20,39 @@ async function resetKeys(accountID: number) {
     await Promise.all([PrivateKeyStore.delete(accountID), PublicKeyStore.delete(accountID)]);
 }
 
-function useNativeBiometrics(): UseNativeBiometricsReturn {
+function useNativeBiometrics(): UseBiometricsReturn {
     const {accountID} = useCurrentUserPersonalDetails();
     const {translate} = useLocalize();
-
-    const [multifactorAuthenticationPublicKeyIDs] = useOnyx(ONYXKEYS.ACCOUNT, {selector: getMultifactorAuthenticationPublicKeyIDs});
-    const serverKnownCredentialIDs = useMemo(() => multifactorAuthenticationPublicKeyIDs ?? [], [multifactorAuthenticationPublicKeyIDs]);
-    const haveCredentialsEverBeenConfigured = multifactorAuthenticationPublicKeyIDs !== undefined;
+    const {serverKnownCredentialIDs, haveCredentialsEverBeenConfigured} = useServerCredentials();
 
     /**
      * Checks if the device supports biometric authentication methods.
      * Verifies both biometrics and credentials authentication capabilities.
      * @returns True if biometrics or credentials authentication is supported on the device.
      */
-    const doesDeviceSupportBiometrics = useCallback(() => {
+    const doesDeviceSupportAuthenticationMethod = useCallback(() => {
         const {biometrics, credentials} = PublicKeyStore.supportedAuthentication;
         return biometrics || credentials;
     }, []);
 
-    // Only the public key is checked here because reading the private key
+    // Only the credential ID is checked here because reading the private key
     // requires biometric authentication. If the private key is missing, it
     // will be detected during authorize() and trigger re-registration.
-    const getLocalPublicKey = useCallback(async () => {
+    const getLocalCredentialID = useCallback(async () => {
         const {value} = await PublicKeyStore.get(accountID);
         return value ?? undefined;
     }, [accountID]);
 
     const areLocalCredentialsKnownToServer = useCallback(async () => {
-        const key = await getLocalPublicKey();
+        const key = await getLocalCredentialID();
         return !!key && serverKnownCredentialIDs.includes(key);
-    }, [getLocalPublicKey, serverKnownCredentialIDs]);
+    }, [getLocalCredentialID, serverKnownCredentialIDs]);
 
-    const resetKeysForAccount = useCallback(async () => {
+    const deleteLocalKeysForAccount = useCallback(async () => {
         await resetKeys(accountID);
     }, [accountID]);
 
-    const register = async (onResult: (result: RegisterResult) => Promise<void> | void) => {
+    const register = async (onResult: (result: RegisterResult) => Promise<void> | void, registrationChallenge: RegistrationChallenge) => {
         // Generate key pair
         const {privateKey, publicKey} = generateKeyPair();
 
@@ -168,12 +94,23 @@ function useNativeBiometrics(): UseNativeBiometricsReturn {
             return;
         }
 
-        // Return success with keys - challenge is passed from Main.tsx
+        const clientDataJSON = JSON.stringify({challenge: registrationChallenge.challenge});
+        const keyInfo: NativeBiometricsKeyInfo = {
+            rawId: publicKey,
+            type: CONST.MULTIFACTOR_AUTHENTICATION.ED25519_TYPE,
+            response: {
+                clientDataJSON: Base64URL.encode(clientDataJSON),
+                biometric: {
+                    publicKey,
+                    algorithm: CONST.COSE_ALGORITHM.EDDSA,
+                },
+            },
+        };
+
         await onResult({
             success: true,
             reason: CONST.MULTIFACTOR_AUTHENTICATION.REASON.GENERIC.LOCAL_REGISTRATION_COMPLETE,
-            privateKey,
-            publicKey,
+            keyInfo,
             authenticationMethod: authType,
         });
     };
@@ -182,7 +119,7 @@ function useNativeBiometrics(): UseNativeBiometricsReturn {
         const {challenge} = params;
 
         // Extract public keys from challenge.allowCredentials
-        const authPublicKeys = challenge.allowCredentials?.map((cred: {id: string; type: string}) => cred.id) ?? [];
+        const allowedCredentialIDs = challenge.allowCredentials?.map((cred: {id: string; type: string}) => cred.id) ?? [];
 
         // Get private key from SecureStore
         const privateKeyData = await PrivateKeyStore.get(accountID, {nativePromptTitle: translate('multifactorAuthentication.letsVerifyItsYou')});
@@ -195,9 +132,9 @@ function useNativeBiometrics(): UseNativeBiometricsReturn {
             return;
         }
 
-        const publicKey = await getLocalPublicKey();
+        const credentialID = await getLocalCredentialID();
 
-        if (!publicKey || !authPublicKeys.includes(publicKey)) {
+        if (!credentialID || !allowedCredentialIDs.includes(credentialID)) {
             await resetKeys(accountID);
             onResult({
                 success: false,
@@ -207,7 +144,7 @@ function useNativeBiometrics(): UseNativeBiometricsReturn {
         }
 
         // Sign the challenge
-        const signedChallenge = signTokenED25519(challenge, privateKeyData.value, publicKey);
+        const signedChallenge = signTokenED25519(challenge, privateKeyData.value, credentialID);
         const authenticationMethodCode = privateKeyData.type;
         const authTypeEntry = Object.values(SECURE_STORE_VALUES.AUTH_TYPE).find(({CODE}) => CODE === authenticationMethodCode);
 
@@ -236,17 +173,20 @@ function useNativeBiometrics(): UseNativeBiometricsReturn {
         });
     };
 
+    const hasLocalCredentials = async () => !!(await getLocalCredentialID());
+
     return {
+        deviceVerificationType: CONST.MULTIFACTOR_AUTHENTICATION.TYPE.BIOMETRICS,
         serverKnownCredentialIDs,
         haveCredentialsEverBeenConfigured,
-        getLocalPublicKey,
-        doesDeviceSupportBiometrics,
+        getLocalCredentialID,
+        doesDeviceSupportAuthenticationMethod,
+        hasLocalCredentials,
         areLocalCredentialsKnownToServer,
         register,
         authorize,
-        resetKeysForAccount,
+        deleteLocalKeysForAccount,
     };
 }
 
 export default useNativeBiometrics;
-export type {RegisterResult, AuthorizeParams, AuthorizeResult, UseNativeBiometricsReturn};

@@ -1,5 +1,5 @@
 import * as SecureStore from 'expo-secure-store';
-import MARQETA_VALUES from './MarqetaValues';
+import MARQETA_VALUES from '@libs/MultifactorAuthentication/shared/MarqetaValues';
 import type {SecureStoreMethods, SecureStoreValues} from './types';
 
 /**
