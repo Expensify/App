@@ -159,6 +159,9 @@ describe('ContactMethodsPage', () => {
         await waitForBatchedUpdatesWithAct();
 
         expect(screen.getByText('Add more ways to log in and send receipts to Expensify.')).toBeOnTheScreen();
+        expect(screen.getByText('Add an email address to forward receipts to')).toBeOnTheScreen();
+        expect(screen.getByText('or add a phone number to text receipts to 47777 (US numbers only).')).toBeOnTheScreen();
+        expect(screen.getByText(CONST.EMAIL.RECEIPTS)).toBeOnTheScreen();
 
         const copyButton = screen.getByLabelText(`Copy email address, ${CONST.EMAIL.RECEIPTS}`);
         fireEvent.press(copyButton);
@@ -203,13 +206,16 @@ describe('ContactMethodsPage', () => {
             helpTextAfterEmail: `，或者添加一个电话号码，以短信方式将收据发送到 ${CONST.SMS.RECEIPTS_PHONE_NUMBER}（仅限美国号码）。`,
             copyLabel: `复制电子邮箱地址，${CONST.EMAIL.RECEIPTS}`,
         },
-    ])('renders localized help copy for $locale', async ({locale, helpText, copyLabel}) => {
+    ])('renders localized help copy for $locale', async ({locale, helpText, helpTextBeforeEmail, helpTextAfterEmail, copyLabel}) => {
         await setPreferredLocale(locale);
 
         renderPage();
         await waitForBatchedUpdatesWithAct();
 
         expect(screen.getByText(helpText)).toBeOnTheScreen();
+        expect(screen.getByText(helpTextBeforeEmail)).toBeOnTheScreen();
+        expect(screen.getByText(helpTextAfterEmail)).toBeOnTheScreen();
+        expect(screen.getByText(CONST.EMAIL.RECEIPTS)).toBeOnTheScreen();
         expect(screen.getByLabelText(copyLabel)).toBeOnTheScreen();
     });
 });
