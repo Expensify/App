@@ -38,13 +38,17 @@ function getCategoryOptionTree(options: Record<string, Category> | Category[], s
         // Process the split to handle trailing colon (e.g., "A: B:")
         const array: string[] = [];
         for (let i = 0; i < parts.length; i++) {
-            if (parts[i] === '' && i === parts.length - 1) {
+            const part = parts.at(i);
+            if (part === undefined) {
+                continue;
+            }
+            if (part === '' && i === parts.length - 1) {
                 // Trailing colon: merge the colon back to the last part
                 if (array.length > 0) {
-                    array[array.length - 1] = array[array.length - 1] + CONST.PARENT_CHILD_SEPARATOR;
+                    array[array.length - 1] = array.at(array.length - 1) + CONST.PARENT_CHILD_SEPARATOR;
                 }
             } else {
-                array.push(parts[i]);
+                array.push(part);
             }
         }
         for (let index = 0; index < array.length; index++) {
@@ -155,9 +159,9 @@ function getCategoryListSections({
         // Step 4: Re-sort to restore hierarchical grouping
         // Convert back to Record format expected by sortCategories
         const categoriesRecord: Record<string, Category> = {};
-        searchCategories.forEach((category) => {
+        for (const category of searchCategories) {
             categoriesRecord[category.name] = category;
-        });
+        }
         const sortedCategories = sortCategories(categoriesRecord, localeCompare);
 
         // Step 5: Re-apply the isSelected flag (lost during sortCategories)
@@ -268,12 +272,17 @@ function sortCategories(categories: Record<string, Category>, localeCompare: Loc
         // Process the split to handle trailing colon
         const path: string[] = [];
         for (let i = 0; i < parts.length; i++) {
-            if (parts[i] === '' && i === parts.length - 1) {
+            const part = parts.at(i);
+            if (part === undefined) {
+                continue;
+            }
+            if (part === '' && i === parts.length - 1) {
+                // trailing colon: merge the colon back to the last part
                 if (path.length > 0) {
-                    path[path.length - 1] = path[path.length - 1] + CONST.PARENT_CHILD_SEPARATOR;
+                    path[path.length - 1] = path.at(path.length - 1) + CONST.PARENT_CHILD_SEPARATOR;
                 }
             } else {
-                path.push(parts[i]);
+                path.push(part);
             }
         }
         const existedValue = lodashGet(hierarchy, path, {}) as Hierarchy;
