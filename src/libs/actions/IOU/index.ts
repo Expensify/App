@@ -834,7 +834,7 @@ type GetSearchOnyxUpdateParams = {
 type DeleteTrackExpenseParams = {
     chatReportID: string | undefined;
     chatReport: OnyxEntry<OnyxTypes.Report> | undefined;
-    transactionID: string | undefined;
+    transaction: OnyxEntry<OnyxTypes.Transaction>;
     reportAction: OnyxTypes.ReportAction;
     iouReport: OnyxEntry<OnyxTypes.Report>;
     chatIOUReport: OnyxEntry<OnyxTypes.Report>;
@@ -8817,7 +8817,7 @@ function deleteMoneyRequest({
 function deleteTrackExpense({
     chatReportID,
     chatReport,
-    transactionID,
+    transaction,
     reportAction,
     iouReport,
     chatIOUReport,
@@ -8829,14 +8829,14 @@ function deleteTrackExpense({
     allTransactionViolationsParam,
     currentUserAccountID,
 }: DeleteTrackExpenseParams) {
-    if (!chatReportID || !transactionID) {
+    if (!chatReportID || !transaction?.transactionID) {
         return;
     }
 
     const urlToNavigateBack = getNavigationUrlAfterTrackExpenseDelete(
         chatReportID,
         chatReport,
-        transactionID,
+        transaction?.transactionID,
         reportAction,
         iouReport,
         chatIOUReport,
@@ -8847,7 +8847,7 @@ function deleteTrackExpense({
     // STEP 1: Get all collections we're updating
     if (!isSelfDM(chatReport)) {
         deleteMoneyRequest({
-            transactionID,
+            transactionID: transaction?.transactionID,
             reportAction,
             transactions,
             violations,
@@ -8861,9 +8861,8 @@ function deleteTrackExpense({
         return urlToNavigateBack;
     }
 
-    const whisperAction = getTrackExpenseActionableWhisper(transactionID, chatReportID);
+    const whisperAction = getTrackExpenseActionableWhisper(transaction?.transactionID, chatReportID);
     const actionableWhisperReportActionID = whisperAction?.reportActionID;
-    const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
     const {parameters, optimisticData, successData, failureData} = getDeleteTrackExpenseInformation(
         chatReport,
         transaction,
@@ -8878,7 +8877,7 @@ function deleteTrackExpense({
 
     // STEP 6: Make the API request
     API.write(WRITE_COMMANDS.DELETE_MONEY_REQUEST, parameters, {optimisticData, successData, failureData});
-    clearPdfByOnyxKey(transactionID);
+    clearPdfByOnyxKey(transaction?.transactionID);
 
     // STEP 7: Navigate the user depending on which page they are on and which resources were deleted
     return urlToNavigateBack;
