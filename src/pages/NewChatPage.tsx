@@ -46,10 +46,8 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type * as OnyxTypes from '@src/types/onyx';
 import type {ReportAttributesDerivedValue} from '@src/types/onyx/DerivedValues';
 import type {SelectedParticipant} from '@src/types/onyx/NewGroupChatDraft';
-import {getEmptyObject} from '@src/types/utils/EmptyObject';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
 import KeyboardUtils from '@src/utils/keyboard';
 
@@ -77,7 +75,8 @@ function useOptions(reportAttributesDerived: ReportAttributesDerivedValue['repor
     const allPersonalDetails = usePersonalDetails();
     const isScreenFocusedRef = useIsFocusedRef();
     const [allPolicyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
-    const [{sortedActions} = getEmptyObject<OnyxTypes.SortedReportActionsDerivedValue>()] = useOnyx(ONYXKEYS.DERIVED.SORTED_REPORT_ACTIONS);
+    const [sortedReportActionsData] = useOnyx(ONYXKEYS.DERIVED.SORTED_REPORT_ACTIONS);
+    const sortedActions = sortedReportActionsData?.sortedActions;
 
     const {
         options: listOptions,

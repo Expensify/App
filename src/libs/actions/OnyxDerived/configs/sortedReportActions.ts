@@ -1,23 +1,86 @@
+import type {OnyxCollection} from 'react-native-onyx';
 import {getCombinedReportActions, getOneTransactionThreadReportID, getSortedReportActions, withDEWRoutedActionsArray} from '@libs/ReportActionsUtils';
 import createOnyxDerivedValueConfig from '@userActions/OnyxDerived/createOnyxDerivedValueConfig';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Report, ReportAction, ReportActions} from '@src/types/onyx';
 import type {SortedReportActionsDerivedValue} from '@src/types/onyx/DerivedValues';
 
 const EMPTY_VALUE: SortedReportActionsDerivedValue = {sortedActions: {}, lastActions: {}, transactionThreadIDs: {}};
 
+function computeForReport(
+    reportID: string,
+    actions: ReportActions,
+    allReportActions: OnyxCollection<ReportActions>,
+    allReports: OnyxCollection<Report>,
+): {sortedReportActions: ReportAction[]; transactionThreadReportID: string | undefined; lastAction: ReportAction | undefined} {
+    const reportActionsArray = Object.values(actions);
+    let sortedReportActions = getSortedReportActions(withDEWRoutedActionsArray(reportActionsArray), true);
+
+    const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+    const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.chatReportID}`];
+
+    const transactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, actions);
+
+    if (transactionThreadReportID && allReportActions) {
+        const transactionThreadReportActionsArray = Object.values(allReportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`] ?? {});
+        sortedReportActions = getCombinedReportActions(sortedReportActions, transactionThreadReportID, transactionThreadReportActionsArray, reportID);
+    }
+
+    return {
+        sortedReportActions,
+        transactionThreadReportID,
+        lastAction: sortedReportActions.at(0),
+    };
+}
+
 export default createOnyxDerivedValueConfig({
     key: ONYXKEYS.DERIVED.SORTED_REPORT_ACTIONS,
     dependencies: [ONYXKEYS.COLLECTION.REPORT_ACTIONS, ONYXKEYS.COLLECTION.REPORT],
-    compute: ([allReportActions, allReports]): SortedReportActionsDerivedValue => {
+    compute: ([allReportActions, allReports], {sourceValues, currentValue}): SortedReportActionsDerivedValue => {
         if (!allReportActions) {
             return EMPTY_VALUE;
         }
 
+        const reportActionsUpdates = sourceValues?.[ONYXKEYS.COLLECTION.REPORT_ACTIONS];
+
+        // Incremental update: only recompute reports whose actions changed
+        if (reportActionsUpdates && currentValue) {
+            const sortedActions = {...currentValue.sortedActions};
+            const lastActions = {...currentValue.lastActions};
+            const transactionThreadIDs = {...currentValue.transactionThreadIDs};
+
+            for (const reportActionsKey of Object.keys(reportActionsUpdates)) {
+                const reportID = reportActionsKey.replace(ONYXKEYS.COLLECTION.REPORT_ACTIONS, '');
+                if (!reportID) {
+                    continue;
+                }
+
+                const actions = allReportActions[reportActionsKey];
+                if (!actions) {
+                    delete sortedActions[reportID];
+                    delete lastActions[reportID];
+                    delete transactionThreadIDs[reportID];
+                    continue;
+                }
+
+                const result = computeForReport(reportID, actions, allReportActions, allReports);
+                sortedActions[reportID] = result.sortedReportActions;
+                transactionThreadIDs[reportID] = result.transactionThreadReportID;
+                if (result.lastAction) {
+                    lastActions[reportID] = result.lastAction;
+                } else {
+                    delete lastActions[reportID];
+                }
+            }
+
+            return {sortedActions, lastActions, transactionThreadIDs};
+        }
+
+        // Full recompute on first load or when reports change
         const sortedActions: SortedReportActionsDerivedValue['sortedActions'] = {};
         const lastActions: SortedReportActionsDerivedValue['lastActions'] = {};
         const transactionThreadIDs: SortedReportActionsDerivedValue['transactionThreadIDs'] = {};
 
-        // Iterate over the report actions to build the sorted report actions objects
         for (const [key, actions] of Object.entries(allReportActions)) {
             if (!actions) {
                 continue;
@@ -28,27 +91,13 @@ export default createOnyxDerivedValueConfig({
                 continue;
             }
 
-            const reportActionsArray = Object.values(actions);
-            let sortedReportActions = getSortedReportActions(withDEWRoutedActionsArray(reportActionsArray), true);
-            sortedActions[reportID] = sortedReportActions;
-
-            const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
-            const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.chatReportID}`];
-
-            // If the report is a one-transaction report, we need to return the combined reportActions so that the LHN can display modifications
-            // to the transaction thread or the report itself.
-            // Cache the result for O(1) lookup in renderItem.
-            const transactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, actions);
-            transactionThreadIDs[reportID] = transactionThreadReportID;
-
-            if (transactionThreadReportID) {
-                const transactionThreadReportActionsArray = Object.values(allReportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`] ?? {});
-                sortedReportActions = getCombinedReportActions(sortedReportActions, transactionThreadReportID, transactionThreadReportActionsArray, reportID);
-            }
-
-            const firstReportAction = sortedReportActions.at(0);
-            if (firstReportAction) {
-                lastActions[reportID] = firstReportAction;
+            const result = computeForReport(reportID, actions, allReportActions, allReports);
+            sortedActions[reportID] = result.sortedReportActions;
+            transactionThreadIDs[reportID] = result.transactionThreadReportID;
+            if (result.lastAction) {
+                lastActions[reportID] = result.lastAction;
+            } else {
+                delete lastActions[reportID];
             }
         }
 
