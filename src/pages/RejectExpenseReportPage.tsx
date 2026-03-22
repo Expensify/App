@@ -115,8 +115,11 @@ function RejectExpenseReportPage({route}: RejectExpenseReportPageProps) {
         }
 
         const targetAccountID = hasPreviousApprover ? Number(selectedTargetAccountID) : submitterAccountID;
+        if (!report) {
+            return;
+        }
         rejectExpenseReport(
-            reportID,
+            report,
             targetAccountID,
             values[INPUT_IDS.COMMENT],
             currentUserPersonalDetails?.accountID,

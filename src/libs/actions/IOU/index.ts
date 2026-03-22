@@ -13173,28 +13173,17 @@ function addReportApprover(
 }
 
 function rejectExpenseReport(
-    reportID: string,
+    report: OnyxTypes.Report,
     targetAccountID: number,
     comment: string,
     currentUserAccountID: number | undefined,
     currentUserDisplayName: string | undefined,
     currentUserAvatarSource: AvatarSource | undefined,
 ) {
-    const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
-    if (!report) {
-        return;
-    }
-
+    const {reportID} = report;
     const isRejectToSubmitter = targetAccountID === report.ownerAccountID;
     const baseTimestamp = DateUtils.getDBTime();
-    const optimisticRejectAction = buildOptimisticReportLevelRejectAction(
-        isRejectToSubmitter,
-        targetAccountID,
-        currentUserAccountID,
-        currentUserDisplayName,
-        currentUserAvatarSource,
-        baseTimestamp,
-    );
+    const optimisticRejectAction = buildOptimisticReportLevelRejectAction(isRejectToSubmitter, currentUserAccountID, currentUserDisplayName, currentUserAvatarSource, baseTimestamp);
     const optimisticCommentAction = buildOptimisticReportLevelRejectCommentAction(
         comment,
         currentUserAccountID,

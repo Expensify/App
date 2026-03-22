@@ -13052,7 +13052,6 @@ function buildOptimisticRejectReportActionComment(comment: string, created = Dat
  */
 function buildOptimisticReportLevelRejectAction(
     isRejectToSubmitter: boolean,
-    targetAccountID: number,
     actorAccountID: number | undefined,
     currentUserDisplayName: string | undefined,
     currentUserAvatarSource: AvatarSource | undefined,
