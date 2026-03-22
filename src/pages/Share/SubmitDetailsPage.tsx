@@ -32,7 +32,7 @@ import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
 import {hasOnlyPersonalPolicies as hasOnlyPersonalPoliciesUtil} from '@libs/PolicyUtils';
 import {shouldValidateFile} from '@libs/ReceiptUtils';
 import {getReportOrDraftReport, isSelfDM} from '@libs/ReportUtils';
-import {getDefaultTaxCode} from '@libs/TransactionUtils';
+import {getDefaultTaxCode, getTaxValue} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
@@ -91,6 +91,7 @@ function SubmitDetailsPage({
     const fileName = shouldUsePreValidatedFile ? getFileName(validFilesToUpload?.uri ?? CONST.ATTACHMENT_IMAGE_DEFAULT_NAME) : getFileName(currentAttachment?.content ?? '');
     const fileType = shouldUsePreValidatedFile ? (validFilesToUpload?.type ?? CONST.RECEIPT_ALLOWED_FILE_TYPES.JPEG) : (currentAttachment?.mimeType ?? '');
     const [hasOnlyPersonalPolicies = false] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: hasOnlyPersonalPoliciesUtil});
+
     useEffect(() => {
         if (!errorTitle || !errorMessage) {
             return;
@@ -129,6 +130,7 @@ function SubmitDetailsPage({
     const transactionTaxAmount = transaction?.taxAmount ?? 0;
     const defaultTaxCode = getDefaultTaxCode(policy, transaction);
     const transactionTaxCode = (transaction?.taxCode ? transaction?.taxCode : defaultTaxCode) ?? '';
+    const transactionTaxValue = transaction?.taxValue ?? getTaxValue(policy, transaction, transactionTaxCode) ?? '';
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const [recentWaypoints] = useOnyx(ONYXKEYS.NVP_RECENT_WAYPOINTS);
 
@@ -153,6 +155,7 @@ function SubmitDetailsPage({
                     tag: transaction.tag,
                     taxCode: transactionTaxCode,
                     taxAmount: transactionTaxAmount,
+                    taxValue: transactionTaxValue,
                     billable: transaction.billable,
                     reimbursable: transaction.reimbursable,
                     merchant: transaction.merchant ?? '',
@@ -193,6 +196,7 @@ function SubmitDetailsPage({
                     tag: transaction.tag,
                     taxCode: transactionTaxCode,
                     taxAmount: transactionTaxAmount,
+                    taxValue: transactionTaxValue,
                     billable: transaction.billable,
                     reimbursable: transaction.reimbursable,
                     merchant: transaction.merchant ?? '',
