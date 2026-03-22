@@ -22,7 +22,7 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {MoneyRequestNavigatorParamList} from '@libs/Navigation/types';
-import {getDisplayNameOrDefault, getLoginsByAccountIDs, getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
+import {getDisplayNameOrDefault, getLoginByAccountID, getLoginsByAccountIDs, getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import {getApprovalChain} from '@libs/ReportUtils';
 import variables from '@styles/variables';
 import {rejectExpenseReport} from '@userActions/IOU';
@@ -52,7 +52,7 @@ function RejectExpenseReportPage({route}: RejectExpenseReportPageProps) {
             return null;
         }
         const approvalChain = getApprovalChain(policy, report);
-        const managerEmail = getLoginsByAccountIDs([report.managerID ?? CONST.DEFAULT_NUMBER_ID]).at(0) ?? '';
+        const managerEmail = getLoginByAccountID(report.managerID ?? CONST.DEFAULT_NUMBER_ID) ?? '';
         const managerIndex = approvalChain.indexOf(managerEmail);
         if (managerIndex <= 0) {
             return null;
