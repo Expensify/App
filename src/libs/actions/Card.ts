@@ -1567,7 +1567,7 @@ function resolveFraudAlert(cardID: number | undefined, isFraud: boolean, reportI
 
     const resolution = isFraud ? CONST.CARD_FRAUD_ALERT_RESOLUTION.FRAUD : CONST.CARD_FRAUD_ALERT_RESOLUTION.RECOGNIZED;
 
-    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.CARD_LIST>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
@@ -1577,6 +1577,18 @@ function resolveFraudAlert(cardID: number | undefined, isFraud: boolean, reportI
                         resolution,
                     },
                     pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                },
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.CARD_LIST,
+            value: {
+                [cardID]: {
+                    fraud: CONST.EXPENSIFY_CARD.FRAUD_TYPES.NONE,
+                    nameValuePairs: {
+                        possibleFraud: null,
+                    },
                 },
             },
         },
