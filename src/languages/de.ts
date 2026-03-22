@@ -1484,9 +1484,12 @@ const translations: TranslationDeepObject<typeof en> = {
         payOnly: 'Nur zahlen',
         approveOnly: 'Nur genehmigen',
         holdEducationalTitle: 'Soll diese Ausgabe zurückgestellt werden?',
-        whatIsHoldExplain: 'Hold ist wie ein „Pause“-Knopf für eine Ausgabe, bis du bereit bist, sie einzureichen.',
+        whatIsHoldExplain: 'Hold ist wie ein „Pause”-Knopf für eine Ausgabe, bis du bereit bist, sie einzureichen.',
+        whatIsHoldExplainDM: “Hold is like hitting 'pause' on an expense until you're ready to send it.”,
         holdIsLeftBehind: 'Zurückgehaltene Ausgaben werden ausgelassen, selbst wenn du einen gesamten Bericht einreichst.',
+        holdIsLeftBehindDM: “Held expenses won't be sent until you remove the hold.”,
         unholdWhenReady: 'Gib Ausgaben wieder frei, wenn du bereit bist, sie einzureichen.',
+        unholdWhenReadyDM: “Unhold expenses when you're ready to send them.”,
         changePolicyEducational: {
             title: 'Du hast diesen Bericht verschoben!',
             description: 'Überprüfe diese Punkte sorgfältig, da sie sich beim Verschieben von Berichten in einen neuen Workspace häufig ändern.',

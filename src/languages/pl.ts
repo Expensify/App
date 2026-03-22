@@ -1480,8 +1480,11 @@ const translations: TranslationDeepObject<typeof en> = {
         approveOnly: 'Tylko zaakceptuj',
         holdEducationalTitle: 'Czy powinieneś wstrzymać ten wydatek?',
         whatIsHoldExplain: 'Wstrzymanie działa jak naciśnięcie „pauzy” na wydatku, dopóki nie będziesz gotowy, aby go przesłać.',
+        whatIsHoldExplainDM: “Hold is like hitting 'pause' on an expense until you're ready to send it.”,
         holdIsLeftBehind: 'Wstrzymane wydatki pozostają nieprzetworzone, nawet jeśli prześlesz cały raport.',
+        holdIsLeftBehindDM: “Held expenses won't be sent until you remove the hold.”,
         unholdWhenReady: 'Zdejmij wstrzymanie z wydatków, gdy będziesz gotowy(-a) je przesłać.',
+        unholdWhenReadyDM: “Unhold expenses when you're ready to send them.”,
         changePolicyEducational: {
             title: 'Przeniesiono ten raport!',
             description: 'Sprawdź dokładnie te elementy, które zwykle się zmieniają podczas przenoszenia raportów do nowej przestrzeni roboczej.',
