@@ -371,7 +371,12 @@ function AddressSearch({
         return predefinedPlaces?.filter((predefinedPlace) => isPlaceMatchForSearch(searchValue, predefinedPlace)) ?? [];
     }, [predefinedPlaces, searchValue, shouldHidePredefinedPlaces]);
 
-    const listEmptyComponent = isTyping ? <AddressSearchListEmptyComponent searchValue={searchValue} onEmptyChange={setIsListEmpty} /> : undefined;
+    const listEmptyComponent = isTyping ? (
+        <AddressSearchListEmptyComponent
+            searchValue={searchValue}
+            onEmptyChange={setIsListEmpty}
+        />
+    ) : undefined;
 
     const listLoader = useMemo(() => <AddressSearchListLoader onLoadingChange={setIsLoadingResults} />, []);
 
