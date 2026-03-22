@@ -62,7 +62,7 @@ function RejectExpenseReportPage({route}: RejectExpenseReportPageProps) {
         if (!details?.accountID) {
             return null;
         }
-        return {accountID: details.accountID, displayName: getDisplayNameOrDefault(details)};
+        return {accountID: details.accountID, displayName: getDisplayNameOrDefault(details), email: previousApproverEmail ?? ''};
     })();
 
     const submitterAccountID = report?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID;
@@ -71,11 +71,10 @@ function RejectExpenseReportPage({route}: RejectExpenseReportPageProps) {
     const options = [];
 
     if (hasPreviousApprover) {
-        const previousApproverEmail = getLoginsByAccountIDs([previousApprover.accountID]).at(0) ?? '';
         const isPreviousApproverSelected = selectedTargetAccountID === String(previousApprover.accountID);
         options.push({
             text: `${previousApprover.displayName} (${translate('iou.rejectReport.lastApprover')})`,
-            alternateText: previousApproverEmail,
+            alternateText: previousApprover.email,
             keyForList: String(previousApprover.accountID),
             accountID: previousApprover.accountID,
             isSelected: false,
