@@ -166,14 +166,14 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     });
 
     // eslint-disable-next-line rulesdir/no-negated-variables
-    const showCannotDeleteOrDisableLastCategoryModal = useCallback(() => {
+    const showCannotDeleteOrDisableLastCategoryModal = () => {
         showConfirmModal({
             title: translate('workspace.categories.cannotDeleteOrDisableAllCategories.title'),
             prompt: translate('workspace.categories.cannotDeleteOrDisableAllCategories.description'),
             confirmText: translate('common.buttonConfirm'),
             shouldShowCancelButton: false,
         });
-    }, [showConfirmModal, translate]);
+    };
 
     const updateWorkspaceCategoryEnabled = useCallback(
         (value: boolean, categoryName: string) => {
@@ -302,6 +302,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
 
             return acc;
         }, []);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [
         policyCategories,
         isOffline,
@@ -316,7 +317,6 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
         styles.alignItemsCenter,
         styles.flexRow,
         styles.mr3,
-        showCannotDeleteOrDisableLastCategoryModal,
     ]);
 
     const filterCategory = useCallback((categoryOption: ListItem, searchInput: string) => {
@@ -435,16 +435,20 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
 
     const policyHasAccountingConnections = hasAccountingConnections(policy);
 
+    const showOfflineModal = () => {
+        close(() => {
+            showConfirmModal({
+                title: translate('common.youAppearToBeOffline'),
+                prompt: translate('common.thisFeatureRequiresInternet'),
+                confirmText: translate('common.buttonConfirm'),
+                shouldShowCancelButton: false,
+            });
+        });
+    };
+
     const navigateToImportSpreadsheet = useCallback(() => {
         if (isOffline) {
-            close(() => {
-                showConfirmModal({
-                    title: translate('common.youAppearToBeOffline'),
-                    prompt: translate('common.thisFeatureRequiresInternet'),
-                    confirmText: translate('common.buttonConfirm'),
-                    shouldShowCancelButton: false,
-                });
-            });
+            showOfflineModal();
             return;
         }
         Navigation.navigate(
@@ -452,7 +456,8 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                 ? ROUTES.SETTINGS_CATEGORIES_IMPORT.getRoute(policyId, ROUTES.SETTINGS_CATEGORIES_ROOT.getRoute(policyId, backTo))
                 : ROUTES.WORKSPACE_CATEGORIES_IMPORT.getRoute(policyId),
         );
-    }, [backTo, isOffline, isQuickSettingsFlow, policyId, showConfirmModal, translate]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [backTo, isOffline, isQuickSettingsFlow, policyId]);
 
     const secondaryActions = useMemo(() => {
         const menuItems = [];
@@ -476,14 +481,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                 text: translate('spreadsheet.downloadCSV'),
                 onSelected: () => {
                     if (isOffline) {
-                        close(() => {
-                            showConfirmModal({
-                                title: translate('common.youAppearToBeOffline'),
-                                prompt: translate('common.thisFeatureRequiresInternet'),
-                                confirmText: translate('common.buttonConfirm'),
-                                shouldShowCancelButton: false,
-                            });
-                        });
+                        showOfflineModal();
                         return;
                     }
                     close(() => {
@@ -501,6 +499,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
         }
 
         return menuItems;
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [
         icons.Download,
         icons.Gear,
@@ -512,7 +511,6 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
         navigateToImportSpreadsheet,
         isOffline,
         policyId,
-        showConfirmModal,
     ]);
 
     const getHeaderButtons = () => {

@@ -167,15 +167,20 @@ function CategorySettingsPage({
         return policyCategory?.pendingFields?.areCommentsRequired;
     }, [policyCategory?.pendingFields, policy?.isAttendeeTrackingEnabled]);
 
+    // eslint-disable-next-line rulesdir/no-negated-variables
+    const showCannotDeleteOrDisableLastCategoryModal = () => {
+        showConfirmModal({
+            title: translate('workspace.categories.cannotDeleteOrDisableAllCategories.title'),
+            prompt: translate('workspace.categories.cannotDeleteOrDisableAllCategories.description'),
+            confirmText: translate('common.buttonConfirm'),
+            shouldShowCancelButton: false,
+        });
+    };
+
     const updateWorkspaceCategoryEnabled = useCallback(
         (value: boolean) => {
             if (shouldPreventDisableOrDelete) {
-                showConfirmModal({
-                    title: translate('workspace.categories.cannotDeleteOrDisableAllCategories.title'),
-                    prompt: translate('workspace.categories.cannotDeleteOrDisableAllCategories.description'),
-                    confirmText: translate('common.buttonConfirm'),
-                    shouldShowCancelButton: false,
-                });
+                showCannotDeleteOrDisableLastCategoryModal();
                 return;
             }
             setWorkspaceCategoryEnabled({
@@ -195,9 +200,8 @@ function CategorySettingsPage({
                 policyHasTags,
             });
         },
+        // eslint-disable-next-line react-hooks/exhaustive-deps
         [
-            showConfirmModal,
-            translate,
             shouldPreventDisableOrDelete,
             policyData,
             policyCategory?.name,
@@ -351,12 +355,7 @@ function CategorySettingsPage({
                             title={translate('workspace.categories.deleteCategory')}
                             onPress={async () => {
                                 if (shouldPreventDisableOrDelete) {
-                                    showConfirmModal({
-                                        title: translate('workspace.categories.cannotDeleteOrDisableAllCategories.title'),
-                                        prompt: translate('workspace.categories.cannotDeleteOrDisableAllCategories.description'),
-                                        confirmText: translate('common.buttonConfirm'),
-                                        shouldShowCancelButton: false,
-                                    });
+                                    showCannotDeleteOrDisableLastCategoryModal();
                                     return;
                                 }
                                 const {action} = await showConfirmModal({
