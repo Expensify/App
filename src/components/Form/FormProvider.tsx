@@ -6,8 +6,8 @@ import type {StyleProp, TextInputSubmitEditingEvent, ViewStyle} from 'react-nati
 import type {ValueOf} from 'type-fest';
 import {useInputBlurActions} from '@components/InputBlurContext';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
-import useAccessibilityAnnouncement from '@hooks/useAccessibilityAnnouncement';
 import {getIsRestoringKeyboardFocus} from '@components/TextInput';
+import useAccessibilityAnnouncement from '@hooks/useAccessibilityAnnouncement';
 import useDebounceNonReactive from '@hooks/useDebounceNonReactive';
 import useIsFocusedRef from '@hooks/useIsFocusedRef';
 import useLocalize from '@hooks/useLocalize';
