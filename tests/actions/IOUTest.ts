@@ -7309,7 +7309,7 @@ describe('actions/IOU', () => {
             return waitForBatchedUpdates()
                 .then(() => Onyx.multiSet({...transactionCollectionDataSet, ...actionCollectionDataSet}))
                 .then(() => {
-                    putOnHold(transaction1.transactionID, 'comment', iouReport.reportID);
+                    putOnHold(transaction1, 'comment', iouReport.reportID);
                     return waitForBatchedUpdates();
                 })
                 .then(() => {
@@ -13385,14 +13385,15 @@ describe('actions/IOU', () => {
                     },
                 });
 
+                const originalTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`);
+
                 // Put the expense on hold
-                if (originalTransactionID && transactionThreadReportID) {
-                    putOnHold(originalTransactionID, 'Test hold reason', transactionThreadReportID);
+                if (originalTransaction && transactionThreadReportID) {
+                    putOnHold(originalTransaction, 'Test hold reason', transactionThreadReportID);
                 }
                 await waitForBatchedUpdates();
 
                 // Verify the transaction is on hold
-                const originalTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`);
                 expect(originalTransaction?.comment?.hold).toBeDefined();
 
                 // Get the first IOU action for the split flow

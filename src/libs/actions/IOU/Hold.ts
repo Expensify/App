@@ -26,14 +26,13 @@ import {getAmount} from '@libs/TransactionUtils';
 import {notifyNewAction} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, Report, ReportAction} from '@src/types/onyx';
+import type {Policy, Report, ReportAction, Transaction} from '@src/types/onyx';
 import {getAllReports, getAllTransactions, getAllTransactionViolations, getCurrentUserEmail, getUserAccountID} from '.';
 
 /**
  * Put expense on HOLD
  */
-function putOnHold(transactionID: string, comment: string, initialReportID: string | undefined, ancestors: Ancestor[] = []) {
-    const allTransactions = getAllTransactions();
+function putOnHold(transaction: Transaction, comment: string, initialReportID: string | undefined, ancestors: Ancestor[] = []) {
     const allTransactionViolations = getAllTransactionViolations();
     const allReports = getAllReports();
     const userAccountID = getUserAccountID();
@@ -44,11 +43,10 @@ function putOnHold(transactionID: string, comment: string, initialReportID: stri
     const createdReportAction = buildOptimisticHoldReportAction(currentTime);
     const createdReportActionComment = buildOptimisticHoldReportActionComment(comment, DateUtils.addMillisecondsFromDateTime(currentTime, 1));
     const newViolation = {name: CONST.VIOLATIONS.HOLD, type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true};
-    const transactionViolations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`] ?? [];
+    const transactionViolations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`] ?? [];
     const updatedViolations = [...transactionViolations, newViolation];
-    const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
     const iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`];
-    const iouAction = getIOUActionForReportID(transaction?.reportID, transactionID);
+    const iouAction = getIOUActionForReportID(transaction?.reportID, transaction.transactionID);
     let transactionThreadReport: Report;
 
     // If there is no existing transaction thread report, we should create one
@@ -82,7 +80,7 @@ function putOnHold(transactionID: string, comment: string, initialReportID: stri
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
             value: {
                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                 comment: {
@@ -92,7 +90,7 @@ function putOnHold(transactionID: string, comment: string, initialReportID: stri
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`,
             value: updatedViolations,
         },
         {
@@ -125,7 +123,7 @@ function putOnHold(transactionID: string, comment: string, initialReportID: stri
     > = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
             value: {
                 pendingAction: null,
             },
@@ -143,7 +141,7 @@ function putOnHold(transactionID: string, comment: string, initialReportID: stri
     > = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
             value: {
                 pendingAction: null,
                 comment: {
@@ -305,7 +303,7 @@ function putOnHold(transactionID: string, comment: string, initialReportID: stri
     }
 
     const params: HoldMoneyRequestParams = {
-        transactionID,
+        transactionID: transaction.transactionID,
         comment,
         reportActionID: createdReportAction.reportActionID,
         commentReportActionID: createdReportActionComment.reportActionID,
@@ -322,10 +320,10 @@ function putOnHold(transactionID: string, comment: string, initialReportID: stri
     Navigation.setNavigationActionToMicrotaskQueue(() => notifyNewAction(currentReportID, undefined, true));
 }
 
-function putTransactionsOnHold(transactionsID: string[], comment: string, reportID: string, ancestors: Ancestor[] = []) {
-    for (const transactionID of transactionsID) {
-        const {childReportID} = getIOUActionForReportID(reportID, transactionID) ?? {};
-        putOnHold(transactionID, comment, childReportID, ancestors);
+function putTransactionsOnHold(transactions: Transaction[], comment: string, reportID: string, ancestors: Ancestor[] = []) {
+    for (const transaction of transactions) {
+        const {childReportID} = getIOUActionForReportID(reportID, transaction.transactionID) ?? {};
+        putOnHold(transaction, comment, childReportID, ancestors);
     }
 }
 

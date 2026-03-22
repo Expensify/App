@@ -129,7 +129,7 @@ describe('actions/IOU/Hold', () => {
                 .then(() => Onyx.multiSet({...reportCollectionDataSet, ...transactionCollectionDataSet, ...actionCollectionDataSet}))
                 .then(() => {
                     // When an expense is put on hold
-                    putOnHold(transaction.transactionID, comment, transactionThread.reportID);
+                    putOnHold(transaction, comment, transactionThread.reportID);
                     return waitForBatchedUpdates();
                 })
                 .then(() => {
@@ -190,7 +190,7 @@ describe('actions/IOU/Hold', () => {
                 .then(() => Onyx.multiSet({...reportCollectionDataSet, ...transactionCollectionDataSet, ...actionCollectionDataSet}))
                 .then(() => {
                     // When an expense is put on hold without existing transaction thread (undefined initialReportID)
-                    putOnHold(transaction.transactionID, comment, undefined);
+                    putOnHold(transaction, comment, undefined);
                     return waitForBatchedUpdates();
                 })
                 .then(() => {
@@ -252,7 +252,7 @@ describe('actions/IOU/Hold', () => {
             return waitForBatchedUpdates()
                 .then(() => Onyx.multiSet({...reportCollectionDataSet, ...transactionCollectionDataSet, ...actionCollectionDataSet}))
                 .then(() => {
-                    putOnHold(transaction.transactionID, comment, transactionThread.reportID);
+                    putOnHold(transaction, comment, transactionThread.reportID);
                     return waitForBatchedUpdates();
                 })
                 .then(() => {
@@ -325,7 +325,7 @@ describe('actions/IOU/Hold', () => {
             return waitForBatchedUpdates()
                 .then(() => Onyx.multiSet({...reportCollectionDataSet, ...transactionCollectionDataSet, ...actionCollectionDataSet}))
                 .then(() => {
-                    putOnHold(transaction.transactionID, comment, transactionThread.reportID);
+                    putOnHold(transaction, comment, transactionThread.reportID);
                     return waitForBatchedUpdates();
                 })
                 .then(() => {

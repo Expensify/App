@@ -3143,15 +3143,15 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
                 transactionThreadReportID = iouAction?.childReportID;
             },
         });
+        const originalTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`);
 
         // Put the expense on hold
-        if (originalTransactionID && transactionThreadReportID) {
-            putOnHold(originalTransactionID, 'Test hold reason', transactionThreadReportID);
+        if (originalTransaction && transactionThreadReportID) {
+            putOnHold(originalTransaction, 'Test hold reason', transactionThreadReportID);
         }
         await waitForBatchedUpdates();
 
         // Verify the transaction is on hold
-        const originalTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`);
         expect(originalTransaction?.comment?.hold).toBeDefined();
 
         // Get the first IOU action for the split flow
