@@ -154,7 +154,7 @@ function WorkspaceCardListRow({limit, cardholder, lastFourPAN, name, frozenByDis
                     />
                 </View>
             </View>
-            {!shouldUseNarrowLayout && !!frozenByText && (
+            {!!frozenByText && (
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.mt3]}>
                     <Icon
                         src={icons.FreezeCard}
