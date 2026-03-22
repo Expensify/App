@@ -68,8 +68,8 @@ import type {OnyxData} from '@src/types/onyx/Request';
 import type Response from '@src/types/onyx/Response';
 import type Session from '@src/types/onyx/Session';
 import type {AutoAuthState} from '@src/types/onyx/Session';
+import {clearCachedAttachments} from '@userActions/Attachment';
 import pkg from '../../../../package.json';
-import {clearCachedAttachments} from '../Attachment';
 import clearCache from './clearCache';
 import updateSessionAuthTokens from './updateSessionAuthTokens';
 
