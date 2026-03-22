@@ -14085,7 +14085,6 @@ describe('actions/IOU', () => {
             expect(commentAction?.person?.[0]?.text).toBe(CURRENT_USER_DISPLAY_NAME);
             expect(commentAction?.avatar).toBe(CURRENT_USER_AVATAR);
         });
-
     });
 
     describe('markRejectViolationAsResolved', () => {
