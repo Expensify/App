@@ -9,7 +9,7 @@ import CONST from '@src/CONST';
 
 type SearchLoadingSkeletonProps = {
     containerStyle?: StyleProp<ViewStyle>;
-    reasonAttributes?: SkeletonSpanReasonAttributes;
+    reasonAttributes: SkeletonSpanReasonAttributes;
 };
 
 function SearchLoadingSkeleton({containerStyle, reasonAttributes}: SearchLoadingSkeletonProps) {

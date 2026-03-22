@@ -5012,7 +5012,7 @@ const staticStyles = (theme: ThemeColors) =>
         headerProgressBarContainer: {
             position: 'absolute',
             width: '100%',
-            zIndex: -1,
+            pointerEvents: 'none',
         },
 
         headerProgressBar: {
@@ -5695,6 +5695,10 @@ const staticStyles = (theme: ThemeColors) =>
             paddingVertical: 28,
             borderRadius: 16,
             marginTop: 32,
+        },
+        twoFactorAuthSecretBox: {
+            backgroundColor: theme.highlightBG,
+            borderRadius: 16,
         },
         anonymousRoomFooter: {
             padding: 20,

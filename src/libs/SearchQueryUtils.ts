@@ -46,7 +46,7 @@ import navigationRef from './Navigation/navigationRef';
 import type {SearchFullscreenNavigatorParamList} from './Navigation/types';
 import {getDisplayNameOrDefault, getPersonalDetailByEmail} from './PersonalDetailsUtils';
 import {getCleanedTagName} from './PolicyUtils';
-import {getReportName} from './ReportUtils';
+import {getReportName} from './ReportNameUtils';
 import {parse as parseSearchQuery} from './SearchParser/searchParser';
 import StringUtils from './StringUtils';
 import {hashText} from './UserUtils';
@@ -1271,7 +1271,7 @@ type GetFilterDisplayValueParams = {
     policies: OnyxCollection<OnyxTypes.Policy>;
     currentUserAccountID: number;
     translate: LocalizedTranslate;
-    conciergeReportID: string | undefined;
+    reportAttributes?: OnyxTypes.ReportAttributesDerivedValue['reports'];
     feedKeysWithCards?: FeedKeysWithAssignedCards;
 };
 
@@ -1288,7 +1288,7 @@ function getFilterDisplayValue({
     policies,
     currentUserAccountID,
     translate,
-    conciergeReportID,
+    reportAttributes,
     feedKeysWithCards,
 }: GetFilterDisplayValueParams) {
     if (
@@ -1309,8 +1309,7 @@ function getFilterDisplayValue({
         return getCardDescription(cardList?.[cardID], translate) || filterValue;
     }
     if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.IN) {
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        return getReportName({report: reports?.[`${ONYXKEYS.COLLECTION.REPORT}${filterValue}`], conciergeReportID}) || filterValue;
+        return getReportName(reports?.[`${ONYXKEYS.COLLECTION.REPORT}${filterValue}`], reportAttributes) || filterValue;
     }
     if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT || filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.TOTAL || filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_AMOUNT) {
         const frontendAmount = convertToFrontendAmountAsInteger(Number(filterValue));
@@ -1350,7 +1349,7 @@ function getDisplayQueryFiltersForKey(
     policies: OnyxCollection<OnyxTypes.Policy>,
     currentUserAccountID: number,
     translate: LocalizedTranslate,
-    conciergeReportID: string | undefined,
+    reportAttributes?: OnyxTypes.ReportAttributesDerivedValue['reports'],
     feedKeysWithCards?: FeedKeysWithAssignedCards,
 ) {
     if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE) {
@@ -1416,7 +1415,7 @@ function getDisplayQueryFiltersForKey(
             policies,
             currentUserAccountID,
             translate,
-            conciergeReportID,
+            reportAttributes,
             feedKeysWithCards,
         }),
     }));
@@ -1496,7 +1495,7 @@ function buildUserReadableQueryString({
     autoCompleteWithSpace = false,
     translate,
     feedKeysWithCards,
-    conciergeReportID,
+    reportAttributes,
 }: {
     queryJSON: SearchQueryJSON;
     PersonalDetails: OnyxTypes.PersonalDetailsList | undefined;
@@ -1509,7 +1508,7 @@ function buildUserReadableQueryString({
     autoCompleteWithSpace: boolean;
     translate: LocalizedTranslate;
     feedKeysWithCards?: FeedKeysWithAssignedCards;
-    conciergeReportID: string | undefined;
+    reportAttributes?: OnyxTypes.ReportAttributesDerivedValue['reports'];
 }) {
     const {type, status, groupBy, columns, policyID, rawFilterList, flatFilters: filters = [], limit} = queryJSON;
 
@@ -1553,7 +1552,7 @@ function buildUserReadableQueryString({
                 policies,
                 currentUserAccountID,
                 translate,
-                conciergeReportID,
+                reportAttributes,
                 feedKeysWithCards,
             );
 
@@ -1603,7 +1602,7 @@ function buildUserReadableQueryString({
             policies,
             currentUserAccountID,
             translate,
-            conciergeReportID,
+            reportAttributes,
             feedKeysWithCards,
         );
 
