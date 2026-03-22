@@ -27,7 +27,7 @@ import {notifyNewAction} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report, ReportAction, Transaction} from '@src/types/onyx';
-import {getAllReports, getAllTransactions, getAllTransactionViolations, getCurrentUserEmail, getUserAccountID} from '.';
+import {getAllReports, getAllTransactionViolations, getCurrentUserEmail, getUserAccountID} from '.';
 
 /**
  * Put expense on HOLD
@@ -330,17 +330,15 @@ function putTransactionsOnHold(transactions: Transaction[], comment: string, rep
 /**
  * Remove expense from HOLD
  */
-function unholdRequest(transactionID: string, reportID: string, policy: OnyxEntry<Policy>) {
-    const allTransactions = getAllTransactions();
+function unholdRequest(transaction: Transaction, reportID: string, policy: OnyxEntry<Policy>) {
     const allTransactionViolations = getAllTransactionViolations();
     const allReports = getAllReports();
     const userAccountID = getUserAccountID();
     const currentUserEmail = getCurrentUserEmail();
 
     const createdReportAction = buildOptimisticUnHoldReportAction();
-    const transactionViolations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`];
+    const transactionViolations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`];
     const updatedTransactionViolations = transactionViolations?.filter((violation) => violation.name !== CONST.VIOLATIONS.HOLD) ?? [];
-    const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
     const iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`];
     const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
 
@@ -362,7 +360,7 @@ function unholdRequest(transactionID: string, reportID: string, policy: OnyxEntr
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
             value: {
                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                 comment: {
@@ -372,7 +370,7 @@ function unholdRequest(transactionID: string, reportID: string, policy: OnyxEntr
         },
         {
             onyxMethod: Onyx.METHOD.SET,
-            key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`,
             value: updatedTransactionViolations,
         },
         {
@@ -401,7 +399,7 @@ function unholdRequest(transactionID: string, reportID: string, policy: OnyxEntr
     const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION | typeof ONYXKEYS.COLLECTION.REPORT>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
             value: {
                 pendingAction: null,
                 comment: {
@@ -429,7 +427,7 @@ function unholdRequest(transactionID: string, reportID: string, policy: OnyxEntr
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
             value: {
                 pendingAction: null,
                 errors: getMicroSecondOnyxErrorWithTranslationKey('iou.error.genericUnholdExpenseFailureMessage'),
@@ -440,7 +438,7 @@ function unholdRequest(transactionID: string, reportID: string, policy: OnyxEntr
         },
         {
             onyxMethod: Onyx.METHOD.SET,
-            key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`,
             value: transactionViolations ?? null,
         },
         {
@@ -518,7 +516,7 @@ function unholdRequest(transactionID: string, reportID: string, policy: OnyxEntr
     API.write(
         WRITE_COMMANDS.UNHOLD_MONEY_REQUEST,
         {
-            transactionID,
+            transactionID: transaction.transactionID,
             reportActionID: createdReportAction.reportActionID,
         },
         {optimisticData, successData, failureData},
