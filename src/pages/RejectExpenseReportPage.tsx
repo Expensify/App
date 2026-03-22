@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useCallback, useRef, useState} from 'react';
 import {View} from 'react-native';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import FormProvider from '@components/Form/FormProvider';
@@ -46,6 +46,7 @@ function RejectExpenseReportPage({route}: RejectExpenseReportPageProps) {
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
     const [selectedTargetAccountID, setSelectedTargetAccountID] = useState<string>('');
     const [selectionError, setSelectionError] = useState<string>('');
+    const isSubmitAttempt = useRef(false);
 
     const previousApprover = (() => {
         if (!policy || !report) {
@@ -94,22 +95,31 @@ function RejectExpenseReportPage({route}: RejectExpenseReportPageProps) {
         rightElement: <SelectCircle isChecked={isSubmitterSelected} />,
     });
 
-    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REPORT_REJECT_FORM>) => {
-        const errors: FormInputErrors<typeof ONYXKEYS.FORMS.REPORT_REJECT_FORM> = {};
-        if (!values[INPUT_IDS.COMMENT]) {
-            errors[INPUT_IDS.COMMENT] = translate('common.error.fieldRequired');
-        }
-        return errors;
-    };
+    const validate = useCallback(
+        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REPORT_REJECT_FORM>) => {
+            const errors: FormInputErrors<typeof ONYXKEYS.FORMS.REPORT_REJECT_FORM> = {};
+            if (!values[INPUT_IDS.COMMENT]) {
+                errors[INPUT_IDS.COMMENT] = translate('common.error.fieldRequired');
+            }
+            if (isSubmitAttempt.current && hasPreviousApprover && !selectedTargetAccountID) {
+                setSelectionError(translate('iou.rejectReport.selectMemberError'));
+                errors[INPUT_IDS.COMMENT] = errors[INPUT_IDS.COMMENT] ?? undefined;
+            } else if (isSubmitAttempt.current) {
+                setSelectionError('');
+            }
+            isSubmitAttempt.current = false;
+            return errors;
+        },
+        [translate, hasPreviousApprover, selectedTargetAccountID],
+    );
+
+    const handleBeforeSubmit = useCallback(() => {
+        isSubmitAttempt.current = true;
+    }, []);
 
     const onSubmit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REPORT_REJECT_FORM>) => {
         if (isDelegateAccessRestricted) {
             showDelegateNoAccessModal();
-            return;
-        }
-
-        if (hasPreviousApprover && !selectedTargetAccountID) {
-            setSelectionError(translate('iou.rejectReport.selectMemberError'));
             return;
         }
 
@@ -144,6 +154,7 @@ function RejectExpenseReportPage({route}: RejectExpenseReportPageProps) {
                 style={[styles.flexGrow1, styles.ph5]}
                 onSubmit={onSubmit}
                 validate={validate}
+                onBeforeSubmit={handleBeforeSubmit}
                 enabledWhenOffline
                 shouldHideFixErrorsAlert
                 isSubmitActionDangerous
