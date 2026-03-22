@@ -887,8 +887,8 @@ function MenuItem({
                                                         <Text
                                                             style={descriptionTextStyles}
                                                             numberOfLines={numberOfLinesDescription}
-                                                            accessible={interactive}
-                                                            aria-hidden={!interactive}
+                                                            accessible={!interactive ? false : undefined}
+                                                            aria-hidden={!interactive ? true : undefined}
                                                         >
                                                             {description}
                                                         </Text>
@@ -909,8 +909,8 @@ function MenuItem({
                                                                     numberOfLines={numberOfLinesTitle || undefined}
                                                                     dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: interactive && disabled}}
                                                                     accessibilityRole={titleAccessibilityRole}
-                                                                    accessible={interactive}
-                                                                    aria-hidden={!interactive}
+                                                                    accessible={!interactive ? false : undefined}
+                                                                    aria-hidden={!interactive ? true : undefined}
                                                                 >
                                                                     {renderTitleContent()}
                                                                 </Text>
@@ -929,8 +929,8 @@ function MenuItem({
                                                         <Text
                                                             style={descriptionTextStyles}
                                                             numberOfLines={numberOfLinesDescription}
-                                                            accessible={interactive}
-                                                            aria-hidden={!interactive}
+                                                            accessible={!interactive ? false : undefined}
+                                                            aria-hidden={!interactive ? true : undefined}
                                                         >
                                                             {description}
                                                         </Text>
