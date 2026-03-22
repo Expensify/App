@@ -1,4 +1,5 @@
 import {StackActions} from '@react-navigation/native';
+import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
 import React, {useCallback, useEffect, useMemo} from 'react';
 import {InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -191,7 +192,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
     const [isDebugModeEnabled = false] = useOnyx(ONYXKEYS.IS_DEBUG_MODE_ENABLED);
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [allTransactionDrafts] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT);
+    const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {showConfirmModal} = useConfirmModal();
@@ -453,17 +454,17 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                 shouldShowRightIcon: true,
                 action: () => {
                     createDraftTransactionAndNavigateToParticipantSelector({
-                        transactionID: iouTransactionID,
                         reportID: actionReportID,
                         actionName: CONST.IOU.ACTION.SUBMIT,
                         reportActionID: actionableWhisperReportActionID,
                         introSelected,
-                        allTransactionDrafts,
+                        draftTransactionIDs,
                         activePolicy,
                         userBillingGraceEndPeriods,
                         amountOwed,
                         isRestrictedToPreferredPolicy,
                         preferredPolicyID,
+                        transaction: iouTransaction,
                     });
                 },
             });
@@ -476,15 +477,15 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                     shouldShowRightIcon: true,
                     action: () => {
                         createDraftTransactionAndNavigateToParticipantSelector({
-                            transactionID: iouTransactionID,
                             reportID: actionReportID,
                             actionName: CONST.IOU.ACTION.CATEGORIZE,
                             reportActionID: actionableWhisperReportActionID,
                             introSelected,
-                            allTransactionDrafts,
+                            draftTransactionIDs,
                             activePolicy,
                             userBillingGraceEndPeriods,
                             amountOwed,
+                            transaction: iouTransaction,
                         });
                     },
                 });
@@ -496,15 +497,15 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                     shouldShowRightIcon: true,
                     action: () => {
                         createDraftTransactionAndNavigateToParticipantSelector({
-                            transactionID: iouTransactionID,
                             reportID: actionReportID,
                             actionName: CONST.IOU.ACTION.SHARE,
                             reportActionID: actionableWhisperReportActionID,
                             introSelected,
-                            allTransactionDrafts,
+                            draftTransactionIDs,
                             activePolicy,
                             userBillingGraceEndPeriods,
                             amountOwed,
+                            transaction: iouTransaction,
                         });
                     },
                 });
@@ -627,12 +628,13 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
         isRestrictedToPreferredPolicy,
         preferredPolicyID,
         introSelected,
-        allTransactionDrafts,
+        draftTransactionIDs,
         activePolicy,
         parentReport,
         reportActionsForOriginalReportID,
         userBillingGraceEndPeriods,
         amountOwed,
+        iouTransaction,
     ]);
 
     const displayNamesWithTooltips = useMemo(() => {
