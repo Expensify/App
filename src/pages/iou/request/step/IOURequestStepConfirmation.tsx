@@ -115,6 +115,7 @@ import type {Receipt} from '@src/types/onyx/Transaction';
 import type {FileObject} from '@src/types/utils/Attachment';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+import useTransactionsByID from '@hooks/useTransactionsByID';
 import type {WithFullTransactionOrNotFoundProps} from './withFullTransactionOrNotFound';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
@@ -162,15 +163,16 @@ function IOURequestStepConfirmation({
     const personalDetails = usePersonalDetails();
     const allPolicyCategories = usePolicyCategories();
 
-    const [transactions] = useOptimisticDraftTransactions(initialTransaction);
-    const hasMultipleTransactions = transactions.length > 1;
+    const [transactionDrafts] = useOptimisticDraftTransactions(initialTransaction);
+    const hasMultipleTransactions = transactionDrafts.length > 1;
     // Depend on transactions.length to avoid updating transactionIDs when only the transaction details change
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    const transactionIDs = useMemo(() => transactions?.map((transaction) => transaction.transactionID), [transactions.length]);
+    const transactionIDs = useMemo(() => transactionDrafts?.map((transaction) => transaction.transactionID), [transactionDrafts.length]);
+    const [transactions] = useTransactionsByID(transactionIDs);
     // We will use setCurrentTransactionID later to switch between transactions
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [currentTransactionID, setCurrentTransactionID] = useState<string>(initialTransactionID);
-    const currentTransactionIndex = useMemo(() => transactions.findIndex((transaction) => transaction.transactionID === currentTransactionID), [transactions, currentTransactionID]);
+    const currentTransactionIndex = useMemo(() => transactionDrafts.findIndex((transaction) => transaction.transactionID === currentTransactionID), [transactionDrafts, currentTransactionID]);
     const [existingTransaction, existingTransactionResult] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(currentTransactionID)}`);
     const [optimisticTransaction, optimisticTransactionResult] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${getNonEmptyStringOnyxID(currentTransactionID)}`);
     const isLoadingCurrentTransaction = isLoadingOnyxValue(existingTransactionResult, optimisticTransactionResult);
@@ -448,7 +450,7 @@ function IOURequestStepConfirmation({
     }, [isLoadingTransaction]);
 
     useEffect(() => {
-        for (const item of transactions) {
+        for (const item of transactionDrafts) {
             if (!item.category) {
                 // If the expense had his category cleared due to unsaved changes (i.e. changing to recipient to one that does not have category)
                 // then we should reset the category to it's last saved value
@@ -464,13 +466,13 @@ function IOURequestStepConfirmation({
         }
         // We don't want to clear out category every time the transactions change
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [policy?.id, policyCategories, transactions.length]);
+    }, [policy?.id, policyCategories, transactionDrafts.length]);
 
     const policyDistance = Object.values(policy?.customUnits ?? {}).find((customUnit) => customUnit.name === CONST.CUSTOM_UNITS.NAME_DISTANCE);
     const defaultCategory = policyDistance?.defaultCategory ?? '';
 
     useEffect(() => {
-        for (const item of transactions) {
+        for (const item of transactionDrafts) {
             if (!isDistanceRequest || !!item?.category) {
                 continue;
             }
@@ -552,7 +554,7 @@ function IOURequestStepConfirmation({
         let isScanFilesCanBeRead = true;
 
         Promise.all(
-            transactions.map((item) => {
+            transactionDrafts.map((item) => {
                 const itemReceiptFilename = item.receipt?.filename;
                 const itemReceiptPath = item.receipt?.source;
                 const itemReceiptType = item.receipt?.type;
@@ -601,11 +603,11 @@ function IOURequestStepConfirmation({
             removeDraftTransactionsByIDs(draftTransactionIDs, true);
             navigateToStartMoneyRequestStep(requestType, iouType, initialTransactionID, reportID);
         });
-    }, [requestType, iouType, initialTransactionID, reportID, action, report, transactions, participants]);
+    }, [requestType, iouType, initialTransactionID, reportID, action, report, transactionDrafts, participants]);
 
     const requestMoney = useCallback(
         (selectedParticipants: Participant[], gpsPoint?: GpsPoint) => {
-            if (!transactions.length) {
+            if (!transactionDrafts.length) {
                 return;
             }
 
@@ -619,7 +621,7 @@ function IOURequestStepConfirmation({
             const optimisticReportPreviewActionID = rand64();
             let existingIOUReport: Report | undefined;
 
-            for (const [index, item] of transactions.entries()) {
+            for (const [index, item] of transactionDrafts.entries()) {
                 const receipt = receiptFiles[item.transactionID];
                 const isTestReceipt = receipt?.isTestReceipt ?? false;
                 const isTestDriveReceipt = receipt?.isTestDriveReceipt ?? false;
@@ -639,7 +641,8 @@ function IOURequestStepConfirmation({
                 }
 
                 const existingTransactionID = getExistingTransactionID(item.linkedTrackedExpenseReportAction);
-                const existingTransactionDraft = transactions.find((tx) => tx.transactionID === existingTransactionID);
+                const existingTransactionDraft = transactionDrafts.find((tx) => tx.transactionID === existingTransactionID);
+                const existingTransaction = existingTransactionID ? transactions?.find((tx) => tx?.transactionID === existingTransactionID) : undefined;
                 let merchantToUse = isTestReceipt ? CONST.TEST_RECEIPT.MERCHANT : item.merchant;
                 if (!isTestReceipt && isManualDistanceRequestTransactionUtils(item)) {
                     const distance = item.comment?.customUnit?.quantity;
@@ -711,7 +714,7 @@ function IOURequestStepConfirmation({
                             ? {type: CONST.TRANSACTION.TYPE.TIME, count: item.comment?.units?.count, rate: item.comment?.units?.rate, unit: CONST.TIME_TRACKING.UNIT.HOUR}
                             : {}),
                     },
-                    shouldHandleNavigation: index === transactions.length - 1,
+                    shouldHandleNavigation: index === transactionDrafts.length - 1,
                     shouldGenerateTransactionThreadReport,
                     backToReport,
                     isASAPSubmitBetaEnabled,
@@ -721,6 +724,7 @@ function IOURequestStepConfirmation({
                     policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
                     quickAction,
                     existingTransactionDraft,
+                    existingTransaction,
                     draftTransactionIDs,
                     isSelfTourViewed,
                     betas,
@@ -729,46 +733,7 @@ function IOURequestStepConfirmation({
                 existingIOUReport = iouReport;
             }
         },
-        [
-            transactionIDs,
-            transactions,
-            receiptFiles,
-            privateIsArchivedMap,
-            report,
-            currentUserPersonalDetails.login,
-            currentUserPersonalDetails.accountID,
-            currentUserPersonalDetails.email,
-            policy,
-            policyTags,
-            policyCategories,
-            policyRecentlyUsedCategories,
-            policyRecentlyUsedTags,
-            action,
-            isManualDistanceRequest,
-            transactionTaxCode,
-            transactionTaxAmount,
-            transactionTaxValue,
-            customUnitRateID,
-            isTimeRequest,
-            shouldGenerateTransactionThreadReport,
-            backToReport,
-            isASAPSubmitBetaEnabled,
-            transactionViolations,
-            policyRecentlyUsedCurrencies,
-            quickAction,
-            isSelfTourViewed,
-            viewTourTaskReport,
-            viewTourTaskParentReport,
-            isViewTourTaskParentReportArchived,
-            hasOutstandingChildTask,
-            parentReportAction,
-            translate,
-            toLocaleDigit,
-            betas,
-            personalDetails,
-            isGPSDistanceRequest,
-            draftTransactionIDs,
-        ],
+        [transactionDrafts, receiptFiles, privateIsArchivedMap, transactions, report, currentUserPersonalDetails.login, currentUserPersonalDetails.accountID, currentUserPersonalDetails.email, policy, policyTags, policyCategories, policyRecentlyUsedCategories, policyRecentlyUsedTags, action, isManualDistanceRequest, transactionTaxCode, transactionTaxAmount, transactionTaxValue, isGPSDistanceRequest, customUnitRateID, isTimeRequest, shouldGenerateTransactionThreadReport, backToReport, isASAPSubmitBetaEnabled, transactionViolations, policyRecentlyUsedCurrencies, quickAction, draftTransactionIDs, isSelfTourViewed, betas, personalDetails, viewTourTaskReport, viewTourTaskParentReport, isViewTourTaskParentReportArchived, hasOutstandingChildTask, parentReportAction, translate, toLocaleDigit],
     );
 
     const submitPerDiemExpense = useCallback(
@@ -867,14 +832,14 @@ function IOURequestStepConfirmation({
 
     const trackExpense = useCallback(
         (selectedParticipants: Participant[], gpsPoint?: GpsPoint) => {
-            if (!transactions.length) {
+            if (!transactionDrafts.length) {
                 return;
             }
             const participant = selectedParticipants.at(0);
             if (!participant) {
                 return;
             }
-            for (const [index, item] of transactions.entries()) {
+            for (const [index, item] of transactionDrafts.entries()) {
                 const isLinkedTrackedExpenseReportArchived =
                     !!item.linkedTrackedExpenseReportID && !!privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${item.linkedTrackedExpenseReportID}`];
                 const itemDistance = isManualDistanceRequest || isOdometerDistanceRequest || isGPSDistanceRequest ? (item.comment?.customUnit?.quantity ?? undefined) : undefined;
@@ -924,7 +889,7 @@ function IOURequestStepConfirmation({
                     accountantParams: {
                         accountant: item.accountant,
                     },
-                    shouldHandleNavigation: index === transactions.length - 1,
+                    shouldHandleNavigation: index === transactionDrafts.length - 1,
                     isASAPSubmitBetaEnabled,
                     currentUserAccountIDParam: currentUserPersonalDetails.accountID,
                     currentUserEmailParam: currentUserPersonalDetails.login ?? '',
@@ -939,7 +904,7 @@ function IOURequestStepConfirmation({
             }
         },
         [
-            transactions,
+            transactionDrafts,
             privateIsArchivedMap,
             isManualDistanceRequest,
             isOdometerDistanceRequest,
@@ -1132,7 +1097,7 @@ function IOURequestStepConfirmation({
             if (iouType === CONST.IOU.TYPE.SPLIT && Object.values(receiptFiles).filter((receipt) => !!receipt).length) {
                 const currentUserLogin = currentUserPersonalDetails.login;
                 if (currentUserLogin) {
-                    for (const [index, item] of transactions.entries()) {
+                    for (const [index, item] of transactionDrafts.entries()) {
                         const transactionReceiptFile = receiptFiles[item.transactionID];
                         if (!transactionReceiptFile) {
                             continue;
@@ -1155,7 +1120,7 @@ function IOURequestStepConfirmation({
                             taxCode: transactionTaxCode,
                             taxAmount: transactionTaxAmount,
                             taxValue: transactionTaxValue,
-                            shouldPlaySound: index === transactions.length - 1,
+                            shouldPlaySound: index === transactionDrafts.length - 1,
                             policyRecentlyUsedCategories,
                             policyRecentlyUsedTags,
                             quickAction,
@@ -1340,7 +1305,7 @@ function IOURequestStepConfirmation({
             createDistanceRequest,
             currentUserPersonalDetails.login,
             currentUserPersonalDetails.accountID,
-            transactions,
+            transactionDrafts,
             report,
             transactionTaxCode,
             transactionTaxAmount,
@@ -1501,14 +1466,14 @@ function IOURequestStepConfirmation({
     }
 
     const showNextTransaction = () => {
-        const nextTransaction = transactions.at(currentTransactionIndex + 1);
+        const nextTransaction = transactionDrafts.at(currentTransactionIndex + 1);
         if (nextTransaction) {
             setCurrentTransactionID(nextTransaction.transactionID);
         }
     };
 
     const showPreviousTransaction = () => {
-        const previousTransaction = transactions.at(currentTransactionIndex - 1);
+        const previousTransaction = transactionDrafts.at(currentTransactionIndex - 1);
         if (previousTransaction) {
             setCurrentTransactionID(previousTransaction.transactionID);
         }
@@ -1516,7 +1481,7 @@ function IOURequestStepConfirmation({
 
     const removeCurrentTransaction = () => {
         if (currentTransactionID === CONST.IOU.OPTIMISTIC_TRANSACTION_ID) {
-            const nextTransaction = transactions.at(currentTransactionIndex + 1);
+            const nextTransaction = transactionDrafts.at(currentTransactionIndex + 1);
             replaceDefaultDraftTransaction(nextTransaction);
             return;
         }
@@ -1551,13 +1516,13 @@ function IOURequestStepConfirmation({
                 <View style={styles.flex1}>
                     <HeaderWithBackButton
                         title={headerTitle}
-                        subtitle={hasMultipleTransactions ? `${currentTransactionIndex + 1} ${translate('common.of')} ${transactions.length}` : undefined}
+                        subtitle={hasMultipleTransactions ? `${currentTransactionIndex + 1} ${translate('common.of')} ${transactionDrafts.length}` : undefined}
                         onBackButtonPress={navigateBack}
                     >
                         {hasMultipleTransactions ? (
                             <PrevNextButtons
                                 isPrevButtonDisabled={currentTransactionIndex === 0}
-                                isNextButtonDisabled={currentTransactionIndex === transactions.length - 1}
+                                isNextButtonDisabled={currentTransactionIndex === transactionDrafts.length - 1}
                                 onNext={showNextTransaction}
                                 onPrevious={showPreviousTransaction}
                             />
@@ -1638,7 +1603,7 @@ function IOURequestStepConfirmation({
                         isConfirming={isConfirming}
                         iouIsReimbursable={transaction?.reimbursable}
                         onToggleReimbursable={setReimbursable}
-                        expensesNumber={transactions.length}
+                        expensesNumber={transactionDrafts.length}
                         isReceiptEditable
                         isTimeRequest={isTimeRequest}
                         iouTimeCount={transaction?.comment?.units?.count}
