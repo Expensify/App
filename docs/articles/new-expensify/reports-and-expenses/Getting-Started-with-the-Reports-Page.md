@@ -60,7 +60,7 @@ Each row represents an expense and includes:
 ## Steps to Move Expenses Between Reports
 
 1. Select the expenses using checkboxes  
-2. Click **Move expense(s)** from the bulk action menu  
+2. Click **Move to report** from the bulk action menu  
 3. In the right-hand panel, select a destination draft report  
 4. Expenses are moved, and a system message logs the action
 

@@ -1,6 +1,7 @@
 import {Str} from 'expensify-common';
 import findLast from 'lodash/findLast';
 import type {OnyxEntry} from 'react-native-onyx';
+import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {ShareTempFile, Transaction} from '@src/types/onyx';
@@ -11,6 +12,7 @@ import {hasReceipt, hasReceiptSource, isFetchingWaypointsFromServer} from './Tra
 type ThumbnailAndImageURI = {
     image?: ReceiptSource;
     thumbnail?: string;
+    thumbnail320?: string;
     transaction?: OnyxEntry<Transaction>;
     isLocalFile?: boolean;
     isThumbnail?: boolean;
@@ -18,6 +20,16 @@ type ThumbnailAndImageURI = {
     fileExtension?: string;
     isEmptyReceipt?: boolean;
 };
+
+/**
+ * Constructs a full receipt source URL from the given filename.
+ *
+ * @param filename - The filename of the receipt (e.g., "w_abcd1234.jpg")
+ * @returns The full URL to the receipt resource
+ */
+function constructReceiptSourceFromFilename(filename: string): string {
+    return `${CONFIG.EXPENSIFY.RECEIPTS_URL}${filename}`;
+}
 
 /**
  * Grab the appropriate receipt image and thumbnail URIs based on file type
@@ -36,9 +48,12 @@ function getThumbnailAndImageURIs(transaction: OnyxEntry<Transaction>, receiptPa
     // If there're errors, we need to display them in preview. We can store many files in errors, but we just need to get the last one
     const errors = findLast(transaction?.errors) as ReceiptError | undefined;
     // URI to image, i.e. blob:new.expensify.com/9ef3a018-4067-47c6-b29f-5f1bd35f213d or expensify.com/receipts/w_e616108497ef940b7210ec6beb5a462d01a878f4.jpg
-    const path = errors?.source ?? transaction?.receipt?.source ?? receiptPath ?? '';
+    // When receipt.source is missing but filename exists (e.g. receipts added via email or billing), fall back to constructing the URL from the filename
+    const receiptFilename = transaction?.receipt?.filename;
+    const fallbackSource = !transaction?.receipt?.source && receiptFilename ? constructReceiptSourceFromFilename(receiptFilename) : undefined;
+    const path = errors?.source ?? transaction?.receipt?.source ?? fallbackSource ?? receiptPath ?? '';
     // filename of uploaded image or last part of remote URI
-    const filename = errors?.filename ?? transaction?.receipt?.filename ?? receiptFileName ?? '';
+    const filename = errors?.filename ?? receiptFilename ?? receiptFileName ?? '';
     const isReceiptImage = Str.isImage(filename);
     const hasEReceipt = !hasReceiptSource(transaction) && transaction?.hasEReceipt;
     const isReceiptPDF = Str.isPDF(filename);
@@ -53,11 +68,21 @@ function getThumbnailAndImageURIs(transaction: OnyxEntry<Transaction>, receiptPa
     }
 
     if (isReceiptImage) {
-        return {thumbnail: `${path}.1024.jpg`, image: path, filename};
+        return {
+            thumbnail: `${path}.1024.jpg`,
+            thumbnail320: `${path}.320.jpg`,
+            image: path,
+            filename,
+        };
     }
 
     if (isReceiptPDF && typeof path === 'string') {
-        return {thumbnail: `${path.substring(0, path.length - 4)}.jpg.1024.jpg`, image: path, filename};
+        return {
+            thumbnail: `${path.substring(0, path.length - 4)}.jpg.1024.jpg`,
+            thumbnail320: `${path.substring(0, path.length - 4)}.jpg.320.jpg`,
+            image: path,
+            filename,
+        };
     }
 
     const isLocalFile = isLocalFileUtils(path);
@@ -70,5 +95,5 @@ const shouldValidateFile = (file: ShareTempFile | undefined) => {
 };
 
 // eslint-disable-next-line import/prefer-default-export
-export {getThumbnailAndImageURIs, shouldValidateFile};
+export {getThumbnailAndImageURIs, shouldValidateFile, constructReceiptSourceFromFilename};
 export type {ThumbnailAndImageURI};

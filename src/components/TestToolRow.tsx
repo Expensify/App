@@ -9,14 +9,22 @@ type TestToolRowProps = {
 
     /** Control component jsx */
     children: React.ReactNode;
+
+    /** Whether the title should be accessible to screen readers */
+    isTitleAccessible?: boolean;
 };
 
-function TestToolRow({title, children}: TestToolRowProps) {
+function TestToolRow({title, children, isTitleAccessible = true}: TestToolRowProps) {
     const styles = useThemeStyles();
     return (
         <View style={styles.testRowContainer}>
             <View style={[styles.flexGrow1, styles.flexShrink1]}>
-                <Text>{title}</Text>
+                <Text
+                    accessible={isTitleAccessible}
+                    aria-hidden={!isTitleAccessible}
+                >
+                    {title}
+                </Text>
             </View>
             <View style={[styles.flexGrow0, styles.flexShrink0, styles.alignItemsEnd]}>{children}</View>
         </View>
