@@ -95,10 +95,6 @@ const useSearchTypeMenuSections = (queryParams?: UseSearchTypeMenuSectionsParams
         openCreateReportConfirmation();
     }, [pendingReportCreation, openCreateReportConfirmation]);
 
-    const isSuggestedSearchDataReady = useMemo(() => {
-        return Object.values(allPolicies ?? {}).some((policy) => policy?.employeeList !== undefined && policy?.exporter !== undefined);
-    }, [allPolicies]);
-
     const typeMenuSections = useMemo(
         () =>
             createTypeMenuSections({
@@ -149,7 +145,6 @@ const useSearchTypeMenuSections = (queryParams?: UseSearchTypeMenuSectionsParams
 
     return {
         typeMenuSections,
-        shouldShowSuggestedSearchSkeleton: !isSuggestedSearchDataReady && !isOffline,
         activeItemIndex,
     };
 };
