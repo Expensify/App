@@ -231,10 +231,10 @@ function CalendarPicker({
     return (
         <View style={[themeStyles.pb4]}>
             <View
-                style={[themeStyles.calendarHeader, themeStyles.flexRow, themeStyles.justifyContentBetween, themeStyles.alignItemsCenter, themeStyles.ph5]}
+                style={[themeStyles.calendarHeader, themeStyles.flexRow, themeStyles.justifyContentBetween, themeStyles.alignItemsCenter, themeStyles.ph5, themeStyles.gap3]}
                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
             >
-                <View style={[themeStyles.alignItemsCenter, themeStyles.flexRow, themeStyles.flex1, themeStyles.justifyContentStart]}>
+                <View style={[themeStyles.alignItemsCenter, themeStyles.flexRow, {flex: 3}]}>
                     <PressableWithFeedback
                         shouldUseAutoHitSlop={false}
                         testID="prev-month-arrow"
@@ -256,8 +256,8 @@ function CalendarPicker({
                             setIsMonthPickerVisible(true);
                         }}
                         ref={monthPressableRef}
-                        style={[themeStyles.alignItemsCenter, themeStyles.flexRow]}
-                        wrapperStyle={[themeStyles.alignItemsCenter]}
+                        style={[themeStyles.alignItemsCenter, {flex: 1}]}
+                        wrapperStyle={[themeStyles.alignItemsCenter, {flex: 1}]}
                         hoverDimmingValue={1}
                         testID="currentMonthButton"
                         accessibilityLabel={`${monthNames.at(currentMonthView)}, ${translate('common.currentMonth')}`}
@@ -267,6 +267,7 @@ function CalendarPicker({
                         <Text
                             style={themeStyles.sidebarLinkTextBold}
                             testID="currentMonthText"
+                            numberOfLines={1}
                         >
                             {monthNames.at(currentMonthView)}
                         </Text>
@@ -284,7 +285,7 @@ function CalendarPicker({
                         <ArrowIcon disabled={!hasAvailableDatesNextMonth} />
                     </PressableWithFeedback>
                 </View>
-                <View style={[themeStyles.alignItemsCenter, themeStyles.flexRow, themeStyles.flex1, themeStyles.justifyContentEnd]}>
+                <View style={[themeStyles.alignItemsCenter, themeStyles.flexRow, {flex: 2}]}>
                     <PressableWithFeedback
                         shouldUseAutoHitSlop={false}
                         testID="prev-year-arrow"
@@ -306,8 +307,8 @@ function CalendarPicker({
                             setIsYearPickerVisible(true);
                         }}
                         ref={pressableRef}
-                        style={[themeStyles.alignItemsCenter, themeStyles.flexRow]}
-                        wrapperStyle={[themeStyles.alignItemsCenter]}
+                        style={[themeStyles.alignItemsCenter, {flex: 1}]}
+                        wrapperStyle={[themeStyles.alignItemsCenter, {flex: 1}]}
                         hoverDimmingValue={1}
                         disabled={years.length <= 1}
                         testID="currentYearButton"
