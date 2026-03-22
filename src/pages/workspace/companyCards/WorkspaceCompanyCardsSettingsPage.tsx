@@ -1,3 +1,4 @@
+import {isUserValidatedSelector} from '@selectors/Account';
 import React, {useMemo, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
 import ConfirmModal from '@components/ConfirmModal';
@@ -17,23 +18,13 @@ import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {deleteWorkspaceCompanyCardFeed, setWorkspaceCompanyCardTransactionLiability} from '@libs/actions/CompanyCards';
-import {
-    getCompanyCardFeed,
-    getCompanyFeeds,
-    getCustomOrFormattedFeedName,
-    getDomainOrWorkspaceAccountID,
-    getPlaidCountry,
-    getPlaidInstitutionId,
-    getSelectedFeed,
-    isDirectFeed,
-} from '@libs/CardUtils';
+import {getCompanyCardFeed, getCompanyFeeds, getCustomOrFormattedFeedName, getDomainOrWorkspaceAccountID, getSelectedFeed, isDirectFeed} from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
-import {isUserValidatedSelector} from '@selectors/Account';
-import {setAddNewCompanyCardStepAndData, setAssignCardStepAndData} from '@userActions/CompanyCards';
+import {startCardFeedRefresh} from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -178,16 +169,7 @@ function WorkspaceCompanyCardsSettingsPage({
                                         Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_VERIFY_ACCOUNT.getRoute(policyID, selectedFeed));
                                         return;
                                     }
-                                    const isPlaid = !!getPlaidInstitutionId(feed);
-                                    const currentStep = isPlaid ? CONST.COMPANY_CARD.STEP.PLAID_CONNECTION : CONST.COMPANY_CARD.STEP.BANK_CONNECTION;
-                                    if (isPlaid) {
-                                        const country = getPlaidCountry(policy?.outputCurrency, currencyList, countryByIp);
-                                        setAddNewCompanyCardStepAndData({data: {selectedCountry: country}});
-                                    }
-                                    setAssignCardStepAndData({currentStep, isRefreshing: true});
-                                    Navigation.setNavigationActionToMicrotaskQueue(() => {
-                                        Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_REFRESH_CARD_FEED_CONNECTION.getRoute(policyID, selectedFeed));
-                                    });
+                                    startCardFeedRefresh(policyID, selectedFeed, policy?.outputCurrency, currencyList, countryByIp);
                                 }}
                             />
                         )}
