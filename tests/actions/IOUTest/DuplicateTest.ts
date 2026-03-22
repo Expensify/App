@@ -157,7 +157,6 @@ describe('actions/Duplicate', () => {
             const mainTransactionID = 'main123';
             const duplicate1ID = 'dup456';
             const duplicate2ID = 'dup789';
-            const duplicateTransactionIDs = [duplicate1ID, duplicate2ID];
             const childReportID = 'child123';
 
             const mainTransaction = createMockTransaction(mainTransactionID, reportID, 150);
@@ -187,8 +186,8 @@ describe('actions/Duplicate', () => {
             await waitForBatchedUpdates();
 
             const mergeParams = {
-                transactionID: mainTransactionID,
-                transactionIDList: duplicateTransactionIDs,
+                transaction: mainTransaction,
+                transactionList: [duplicateTransaction1, duplicateTransaction2],
                 created: '2024-01-01 12:00:00',
                 merchant: 'Updated Merchant',
                 amount: 200,
@@ -268,8 +267,8 @@ describe('actions/Duplicate', () => {
             await waitForBatchedUpdates();
 
             const mergeParams = {
-                transactionID: mainTransactionID,
-                transactionIDList: [],
+                transaction: mainTransaction,
+                transactionList: [],
                 created: '2024-01-01 12:00:00',
                 merchant: 'Updated Merchant',
                 amount: 200,
@@ -306,7 +305,6 @@ describe('actions/Duplicate', () => {
             const reportID = 'report123';
             const mainTransactionID = 'main123';
             const duplicate1ID = 'dup456';
-            const duplicateTransactionIDs = [duplicate1ID];
 
             const mainTransaction = createMockTransaction(mainTransactionID, reportID);
             const duplicateTransaction = createMockTransaction(duplicate1ID, reportID, 50);
@@ -319,8 +317,8 @@ describe('actions/Duplicate', () => {
             await waitForBatchedUpdates();
 
             const mergeParams = {
-                transactionID: mainTransactionID,
-                transactionIDList: duplicateTransactionIDs,
+                transaction: mainTransaction,
+                transactionList: [duplicateTransaction],
                 created: '2024-01-01 12:00:00',
                 merchant: 'Updated Merchant',
                 amount: 200,
@@ -356,7 +354,6 @@ describe('actions/Duplicate', () => {
             const mainTransactionID = 'main123';
             const duplicate1ID = 'dup456';
             const duplicate2ID = 'dup789';
-            const duplicateTransactionIDs = [duplicate1ID, duplicate2ID];
             const previewActionID = 'action123';
             const iouAction1ID = 'action456';
             const iouAction2ID = 'action789';
@@ -511,8 +508,8 @@ describe('actions/Duplicate', () => {
             await waitForBatchedUpdates();
 
             const mergeParams = {
-                transactionID: mainTransactionID,
-                transactionIDList: duplicateTransactionIDs,
+                transaction: mainTransaction,
+                transactionList: [duplicateTransaction1, duplicateTransaction2],
                 created: '2024-01-01 12:00:00',
                 merchant: 'Updated Merchant',
                 amount: 100,
@@ -580,7 +577,6 @@ describe('actions/Duplicate', () => {
             const chatReportID = 'chatReport123';
             const mainTransactionID = 'main123';
             const duplicate1ID = 'dup456';
-            const duplicateTransactionIDs = [duplicate1ID];
             const optimisticTransactionThreadReportID = 'optimisticThread999';
 
             const mainTransaction = createMockTransaction(mainTransactionID, reportID, 150);
@@ -610,8 +606,8 @@ describe('actions/Duplicate', () => {
             await waitForBatchedUpdates();
 
             const mergeParams = {
-                transactionID: mainTransactionID,
-                transactionIDList: duplicateTransactionIDs,
+                transaction: mainTransaction,
+                transactionList: [duplicateTransaction1],
                 transactionThreadReportID: optimisticTransactionThreadReportID,
                 created: '2024-01-01 12:00:00',
                 merchant: 'Updated Merchant',
@@ -925,7 +921,6 @@ describe('actions/Duplicate', () => {
             const reportID = 'report123';
             const mainTransactionID = 'main123';
             const duplicate1ID = 'dup456';
-            const duplicateTransactionIDs = [duplicate1ID];
 
             const mainTransaction = createMockTransaction(mainTransactionID, reportID);
             const duplicateTransaction = createMockTransaction(duplicate1ID, reportID);
