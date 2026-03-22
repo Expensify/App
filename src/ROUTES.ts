@@ -130,6 +130,12 @@ const DYNAMIC_ROUTES = {
         getRoute: (policyID?: string) => (policyID ? `travel/domain-selector?policyID=${policyID}` : 'travel/domain-selector'),
         queryParams: ['policyID'],
     },
+    TRAVEL_PUBLIC_DOMAIN_ERROR: {
+        path: 'travel/public-domain-error',
+        entryScreens: [SCREENS.TRAVEL.MY_TRIPS, SCREENS.SEARCH.ROOT, SCREENS.WORKSPACE.TRAVEL],
+        getRoute: (policyID?: string) => (policyID ? `travel/public-domain-error?policyID=${policyID}` : 'travel/public-domain-error'),
+        queryParams: ['policyID'],
+    },
 } as const satisfies DynamicRoutes;
 
 const ROUTES = {
@@ -3004,12 +3010,7 @@ const ROUTES = {
         // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
         getRoute: (domain?: string, backTo?: string) => getUrlWithBackToParam(`travel/domain-permission/${domain}/info`, backTo),
     },
-    TRAVEL_PUBLIC_DOMAIN_ERROR: {
-        route: 'travel/public-domain-error',
-
-        // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-        getRoute: (policyID?: string, backTo?: string) => getUrlWithBackToParam(`travel/public-domain-error?${policyID ? `policyID=${policyID}` : ''}`, backTo),
-    },
+    TRAVEL_PUBLIC_DOMAIN_ERROR: 'travel/public-domain-error',
     TRAVEL_WORKSPACE_CONFIRMATION: {
         route: 'travel/upgrade/workspace/confirmation',
 
