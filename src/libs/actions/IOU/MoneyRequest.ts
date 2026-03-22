@@ -75,6 +75,8 @@ type CreateTransactionParams = {
     billable?: boolean;
     reimbursable?: boolean;
     allTransactionDrafts: OnyxCollection<Transaction>;
+    linkedTrackedExpenseTransactionDrafts?: Array<OnyxEntry<Transaction>>;
+    linkedTrackedExpenseTransactions?: Array<OnyxEntry<Transaction>>;
     isSelfTourViewed: boolean;
     betas: OnyxEntry<Beta[]>;
     personalDetails: OnyxEntry<PersonalDetailsList>;
@@ -122,6 +124,8 @@ type MoneyRequestStepScanParticipantsFlowParams = {
     selfDMReport: OnyxEntry<Report>;
     isSelfTourViewed: boolean;
     allTransactionDrafts: OnyxCollection<Transaction>;
+    linkedTrackedExpenseTransactionDrafts?: Array<OnyxEntry<Transaction>>;
+    linkedTrackedExpenseTransactions?: Array<OnyxEntry<Transaction>>;
     betas: OnyxEntry<Beta[]>;
     recentWaypoints: OnyxEntry<RecentWaypoint[]>;
     participants: Participant[];
@@ -196,6 +200,8 @@ function createTransaction({
     billable,
     reimbursable = true,
     allTransactionDrafts,
+    linkedTrackedExpenseTransactionDrafts,
+    linkedTrackedExpenseTransactions,
     isSelfTourViewed,
     betas,
     personalDetails,
@@ -241,7 +247,8 @@ function createTransaction({
             });
         } else {
             const existingTransactionID = getExistingTransactionID(transaction?.linkedTrackedExpenseReportAction);
-            const existingTransactionDraft = existingTransactionID ? allTransactionDrafts?.[existingTransactionID] : undefined;
+            const existingTransactionDraft = existingTransactionID ? linkedTrackedExpenseTransactionDrafts?.find((draft) => draft?.transactionID === existingTransactionID) : undefined;
+            const existingTransaction = existingTransactionID ? linkedTrackedExpenseTransactions?.find((txn) => txn?.transactionID === existingTransactionID) : undefined;
 
             requestMoney({
                 report,
@@ -273,6 +280,7 @@ function createTransaction({
                 quickAction,
                 policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
                 existingTransactionDraft,
+                existingTransaction,
                 draftTransactionIDs,
                 isSelfTourViewed,
                 personalDetails,
@@ -328,6 +336,8 @@ function handleMoneyRequestStepScanParticipants({
     selfDMReport,
     isSelfTourViewed,
     allTransactionDrafts,
+    linkedTrackedExpenseTransactionDrafts,
+    linkedTrackedExpenseTransactions,
     betas,
     recentWaypoints,
     participants,
@@ -441,6 +451,8 @@ function handleMoneyRequestStepScanParticipants({
                             reimbursable: defaultReimbursable,
                             isSelfTourViewed,
                             allTransactionDrafts,
+                            linkedTrackedExpenseTransactionDrafts,
+                            linkedTrackedExpenseTransactions,
                             betas,
                             personalDetails,
                             recentWaypoints,
@@ -468,6 +480,8 @@ function handleMoneyRequestStepScanParticipants({
                             reimbursable: defaultReimbursable,
                             isSelfTourViewed,
                             allTransactionDrafts,
+                            linkedTrackedExpenseTransactionDrafts,
+                            linkedTrackedExpenseTransactions,
                             betas,
                             personalDetails,
                             recentWaypoints,
@@ -495,6 +509,8 @@ function handleMoneyRequestStepScanParticipants({
                 reimbursable: defaultReimbursable,
                 isSelfTourViewed,
                 allTransactionDrafts,
+                linkedTrackedExpenseTransactionDrafts,
+                linkedTrackedExpenseTransactions,
                 betas,
                 personalDetails,
                 recentWaypoints,
