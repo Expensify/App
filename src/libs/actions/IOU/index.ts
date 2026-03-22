@@ -1174,14 +1174,11 @@ function handleNavigateAfterExpenseCreate({
         return;
     }
 
-    const type = isInvoice ? CONST.SEARCH.DATA_TYPES.INVOICE : CONST.SEARCH.DATA_TYPES.EXPENSE;
-
-    // We mark this transaction to be highlighted when opening the expense search route page
-    mergeTransactionIdsHighlightOnSearchRoute(type, {[transactionID]: true});
-
     if (!shouldHandleNavigation) {
         return;
     }
+
+    const type = isInvoice ? CONST.SEARCH.DATA_TYPES.INVOICE : CONST.SEARCH.DATA_TYPES.EXPENSE;
 
     // When already on Search ROOT with the same type (expense vs invoice), we navigate to the same screen (no-op or refresh); record as dismiss_modal_only.
     // When on another Search sub-tab (e.g. Chats), or on Search with a different type (e.g. on Invoice, submitting expense), record as navigate_to_search.
@@ -6607,6 +6604,10 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
     }
 
     if (!requestMoneyInformation.isRetry) {
+        if (isFromGlobalCreate && !isReportTopmostSplitNavigator() && transaction.transactionID) {
+            mergeTransactionIdsHighlightOnSearchRoute(CONST.SEARCH.DATA_TYPES.EXPENSE, {[transaction.transactionID]: true});
+        }
+
         handleNavigateAfterExpenseCreate({
             activeReportID: backToReport ?? activeReportID,
             transactionID: transaction.transactionID,
@@ -6991,6 +6992,10 @@ function trackExpense(params: CreateTrackExpenseParams) {
     }
 
     if (!params.isRetry) {
+        if (isFromGlobalCreate && !isReportTopmostSplitNavigator() && transaction?.transactionID) {
+            mergeTransactionIdsHighlightOnSearchRoute(CONST.SEARCH.DATA_TYPES.EXPENSE, {[transaction.transactionID]: true});
+        }
+
         handleNavigateAfterExpenseCreate({
             activeReportID,
             transactionID: transaction?.transactionID,
@@ -7849,6 +7854,10 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     InteractionManager.runAfterInteractions(() => removeDraftTransaction(CONST.IOU.OPTIMISTIC_TRANSACTION_ID));
     const activeReportID = isMoneyRequestReport && report?.reportID ? report.reportID : parameters.chatReportID;
+
+    if (isFromGlobalCreate && !isReportTopmostSplitNavigator() && parameters.transactionID) {
+        mergeTransactionIdsHighlightOnSearchRoute(CONST.SEARCH.DATA_TYPES.EXPENSE, {[parameters.transactionID]: true});
+    }
 
     if (shouldHandleNavigation) {
         handleNavigateAfterExpenseCreate({activeReportID: backToReport ?? activeReportID, isFromGlobalCreate, transactionID: parameters.transactionID});
