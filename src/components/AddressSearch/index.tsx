@@ -115,6 +115,9 @@ function AddressSearch({
     const shouldTriggerGeolocationCallbacks = useRef(true);
     const [shouldHidePredefinedPlaces, setShouldHidePredefinedPlaces] = useState(false);
     const containerRef = useRef<View>(null);
+
+    useDebouncedAccessibilityAnnouncement(translate('common.suggestionsAvailable'), displayListViewBorder && isTyping, searchValue);
+
     const query = useMemo(
         () => ({
             language: preferredLocale,

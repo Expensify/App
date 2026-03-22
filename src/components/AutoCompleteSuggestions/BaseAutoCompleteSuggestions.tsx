@@ -4,8 +4,6 @@ import {FlatList} from 'react-native-gesture-handler';
 import Animated, {Easing, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import ColorSchemeWrapper from '@components/ColorSchemeWrapper';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
-import useAccessibilityAnnouncement from '@hooks/useAccessibilityAnnouncement';
-import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {hasHoverSupport} from '@libs/DeviceCapabilities';
@@ -25,17 +23,11 @@ function BaseAutoCompleteSuggestions<TSuggestion>({
     measuredHeightOfSuggestionRows,
 }: ExternalProps<TSuggestion>) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
     const StyleUtils = useStyleUtils();
     const rowHeight = useSharedValue(0);
     const prevRowHeightRef = useRef<number>(measuredHeightOfSuggestionRows);
     const fadeInOpacity = useSharedValue(0);
     const scrollRef = useRef<FlatList<TSuggestion>>(null);
-
-    useAccessibilityAnnouncement(translate('common.suggestionsAvailable', {count: suggestions.length}), suggestions.length > 0, {
-        shouldAnnounceOnNative: true,
-        shouldAnnounceOnWeb: true,
-    });
     /**
      * Render a suggestion menu item component.
      */
@@ -48,7 +40,6 @@ function BaseAutoCompleteSuggestions<TSuggestion>({
                 onPress={() => onSelect(index)}
                 onLongPress={() => {}}
                 accessibilityLabel={accessibilityLabelExtractor(item, index)}
-                sentryLabel="BaseAutoCompleteSuggestions-suggestionItem"
                 role={CONST.ROLE.MENUITEM}
             >
                 {renderSuggestionMenuItem(item, index)}

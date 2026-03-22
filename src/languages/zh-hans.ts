@@ -250,14 +250,7 @@ const translations: TranslationDeepObject<typeof en> = {
         na: '不适用',
         noResultsFound: '未找到结果',
         noResultsFoundMatching: (searchString: string) => `未找到与”${searchString}”匹配的结果`,
-        resultsAvailable: () => ({
-            one: '1个结果可用',
-            other: (count: number) => `${count}个结果可用`,
-        }),
-        suggestionsAvailable: () => ({
-            one: '1个建议可用',
-            other: (count: number) => `${count}个建议可用`,
-        }),
+        suggestionsAvailable: '建议可用',
         recentDestinations: '最近目的地',
         timePrefix: '它是',
         conjunctionFor: '用于',
@@ -530,6 +523,7 @@ const translations: TranslationDeepObject<typeof en> = {
         concierge: {sidePanelGreeting: '你好，我能帮你做什么？', showHistory: '显示历史'},
         duplicateReport: '重复报销单',
         approver: '审批人',
+        copyOfReportName: (reportName: string) => `${reportName} 的副本`,
     },
     socials: {
         podcast: '在播客上关注我们',
@@ -665,15 +659,7 @@ const translations: TranslationDeepObject<typeof en> = {
             rejectAuthentication: '拒绝认证',
             test: '测试',
             biometricsAuthentication: '生物识别认证',
-            authType: {
-                unknown: '未知',
-                none: '无',
-                credentials: '凭据',
-                biometrics: '生物识别',
-                faceId: 'Face ID',
-                touchId: 'Touch ID',
-                opticId: 'Optic ID',
-            },
+            authType: {unknown: '未知', none: '无', credentials: '凭据', biometrics: '生物识别', faceId: 'Face ID', touchId: 'Touch ID', opticId: 'Optic ID', passkey: 'Passkey'},
             statusNeverRegistered: '从未注册',
             statusNotRegistered: '未注册',
             statusRegisteredThisDevice: '已注册',
@@ -690,12 +676,8 @@ const translations: TranslationDeepObject<typeof en> = {
         letsVerifyItsYou: '让我们验证一下您的身份',
         nowLetsAuthenticateYou: '现在，让我们为你进行身份验证…',
         letsAuthenticateYou: '正在验证您的身份…',
-        verifyYourself: {
-            biometrics: '使用面部或指纹验证您的身份',
-        },
-        enableQuickVerification: {
-            biometrics: '使用面部或指纹即可进行快速、安全的验证，无需密码或验证码。',
-        },
+        verifyYourself: {biometrics: '使用面部或指纹验证您的身份', passkeys: '使用通行密钥验证您的身份'},
+        enableQuickVerification: {biometrics: '使用面部或指纹即可进行快速、安全的验证，无需密码或验证码。', passkeys: '启用使用通行密钥进行快速、安全的验证，无需密码或验证码。'},
         revoke: {
             title: '面容/指纹和通行密钥',
             explanation: '一个或多个设备已启用面容/指纹或通行密钥验证。撤销访问权限后，该设备下次验证时将需要输入魔法验证码。',
