@@ -49,12 +49,17 @@ function isPlaceMatchForSearch(search: string, place: PredefinedPlace): boolean 
 // VirtualizedList component with a VirtualizedList-backed instead
 LogBox.ignoreLogs(['VirtualizedLists should never be nested']);
 
-function AddressSearchListEmptyComponent({searchValue}: {searchValue: string}) {
+function AddressSearchListEmptyComponent({searchValue, onEmptyChange}: {searchValue: string; onEmptyChange: (isEmpty: boolean) => void}) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const noResultsFoundText = translate('common.noResultsFound');
 
     useDebouncedAccessibilityAnnouncement(noResultsFoundText, true, searchValue);
+
+    useEffect(() => {
+        onEmptyChange(true);
+        return () => onEmptyChange(false);
+    }, [onEmptyChange]);
 
     return (
         <Text
@@ -129,11 +134,12 @@ function AddressSearch({
     const [locationErrorCode, setLocationErrorCode] = useState<GeolocationErrorCodeType>(null);
     const [isFetchingCurrentLocation, setIsFetchingCurrentLocation] = useState(false);
     const [isLoadingResults, setIsLoadingResults] = useState(false);
+    const [isListEmpty, setIsListEmpty] = useState(false);
     const shouldTriggerGeolocationCallbacks = useRef(true);
     const [shouldHidePredefinedPlaces, setShouldHidePredefinedPlaces] = useState(false);
     const containerRef = useRef<View>(null);
 
-    useDebouncedAccessibilityAnnouncement(translate('common.suggestionsAvailableFor', searchValue), displayListViewBorder && isTyping && !isLoadingResults, searchValue);
+    useDebouncedAccessibilityAnnouncement(translate('common.suggestionsAvailableFor', searchValue), displayListViewBorder && isTyping && !isLoadingResults && !isListEmpty, searchValue);
 
     const query = useMemo(
         () => ({
@@ -365,7 +371,7 @@ function AddressSearch({
         return predefinedPlaces?.filter((predefinedPlace) => isPlaceMatchForSearch(searchValue, predefinedPlace)) ?? [];
     }, [predefinedPlaces, searchValue, shouldHidePredefinedPlaces]);
 
-    const listEmptyComponent = isTyping ? <AddressSearchListEmptyComponent searchValue={searchValue} /> : undefined;
+    const listEmptyComponent = isTyping ? <AddressSearchListEmptyComponent searchValue={searchValue} onEmptyChange={setIsListEmpty} /> : undefined;
 
     const listLoader = useMemo(() => <AddressSearchListLoader onLoadingChange={setIsLoadingResults} />, []);
 
