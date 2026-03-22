@@ -97,6 +97,7 @@ function useInvoicePaymentOptions({data, checkForNecessaryAction, onPress, forma
                 currentUserEmailParam: currentUserPersonalDetails.email ?? '',
                 betas,
                 isSelfTourViewed,
+                hasActiveAdminPolicies: !!data.activeAdminPolicies.length,
             }).policyID;
         };
 
