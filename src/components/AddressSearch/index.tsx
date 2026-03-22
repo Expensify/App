@@ -66,6 +66,22 @@ function AddressSearchListEmptyComponent({searchValue}: {searchValue: string}) {
     );
 }
 
+function AddressSearchListLoader({onLoadingChange}: {onLoadingChange: (isLoading: boolean) => void}) {
+    const styles = useThemeStyles();
+    const reasonAttributes: SkeletonSpanReasonAttributes = {context: 'AddressSearch.listLoader'};
+
+    useEffect(() => {
+        onLoadingChange(true);
+        return () => onLoadingChange(false);
+    }, [onLoadingChange]);
+
+    return (
+        <View style={[styles.pv4]}>
+            <ActivityIndicator reasonAttributes={reasonAttributes} />
+        </View>
+    );
+}
+
 function AddressSearch({
     canUseCurrentLocation = false,
     containerStyles,
@@ -112,11 +128,12 @@ function AddressSearch({
     const [searchValue, setSearchValue] = useState('');
     const [locationErrorCode, setLocationErrorCode] = useState<GeolocationErrorCodeType>(null);
     const [isFetchingCurrentLocation, setIsFetchingCurrentLocation] = useState(false);
+    const [isLoadingResults, setIsLoadingResults] = useState(false);
     const shouldTriggerGeolocationCallbacks = useRef(true);
     const [shouldHidePredefinedPlaces, setShouldHidePredefinedPlaces] = useState(false);
     const containerRef = useRef<View>(null);
 
-    useDebouncedAccessibilityAnnouncement(translate('common.suggestionsAvailableFor', searchValue), displayListViewBorder && isTyping, searchValue);
+    useDebouncedAccessibilityAnnouncement(translate('common.suggestionsAvailableFor', searchValue), displayListViewBorder && isTyping && !isLoadingResults, searchValue);
 
     const query = useMemo(
         () => ({
@@ -350,14 +367,7 @@ function AddressSearch({
 
     const listEmptyComponent = isTyping ? <AddressSearchListEmptyComponent searchValue={searchValue} /> : undefined;
 
-    const listLoader = useMemo(() => {
-        const reasonAttributes: SkeletonSpanReasonAttributes = {context: 'AddressSearch.listLoader'};
-        return (
-            <View style={[styles.pv4]}>
-                <ActivityIndicator reasonAttributes={reasonAttributes} />
-            </View>
-        );
-    }, [styles.pv4]);
+    const listLoader = useMemo(() => <AddressSearchListLoader onLoadingChange={setIsLoadingResults} />, []);
 
     const fetchingLocationReasonAttributes: SkeletonSpanReasonAttributes = {
         context: 'AddressSearch.isFetchingCurrentLocation',
