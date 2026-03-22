@@ -1,6 +1,7 @@
 import React, {useEffect} from 'react';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePrevious from '@hooks/usePrevious';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
@@ -26,6 +27,7 @@ function RefreshCardFeedConnectionPage({route, policy}: RefreshCardFeedConnectio
     const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD);
     const currentStep = assignCard?.currentStep;
     const isRefreshing = assignCard?.isRefreshing;
+    const prevIsRefreshing = usePrevious(isRefreshing);
 
     useEffect(() => {
         return () => {
@@ -34,11 +36,10 @@ function RefreshCardFeedConnectionPage({route, policy}: RefreshCardFeedConnectio
     }, []);
 
     useEffect(() => {
-        if (isRefreshing) {
-            return;
+        if (prevIsRefreshing === true && !isRefreshing) {
+            Navigation.closeRHPFlow();
         }
-        Navigation.closeRHPFlow();
-    }, [isRefreshing]);
+    }, [prevIsRefreshing, isRefreshing]);
 
     switch (currentStep) {
         case CONST.COMPANY_CARD.STEP.BANK_CONNECTION:
