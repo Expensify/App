@@ -120,6 +120,10 @@ const DYNAMIC_ROUTES = {
         getRoute: (country = '') => `country?country=${country}`,
         queryParams: ['country'],
     },
+    TRAVEL_UPGRADE: {
+        path: 'travel/upgrade',
+        entryScreens: [SCREENS.TRAVEL.MY_TRIPS, SCREENS.SEARCH.ROOT, SCREENS.WORKSPACE.TRAVEL],
+    },
 } as const satisfies DynamicRoutes;
 
 const ROUTES = {
@@ -2963,12 +2967,7 @@ const ROUTES = {
         // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
         getRoute: (domain: string, policyID?: string, backTo?: string) => getUrlWithBackToParam(`travel/terms/${domain}/accept?${policyID ? `policyID=${policyID}` : ''}`, backTo),
     },
-    TRAVEL_UPGRADE: {
-        route: 'travel/upgrade',
-
-        // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-        getRoute: (backTo?: string) => getUrlWithBackToParam('travel/upgrade', backTo),
-    },
+    TRAVEL_UPGRADE: 'travel/upgrade',
     TRACK_TRAINING_MODAL: 'track-training',
     TRAVEL_TRIP_SUMMARY: {
         route: 'r/:reportID/trip/:transactionID',
