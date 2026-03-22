@@ -22,6 +22,32 @@ import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct'
 
 jest.mock('@src/components/ConfirmedRoute.tsx');
 
+// ReanimatedModal calls onModalHide via the native Modal's onDismiss callback,
+// which doesn't fire in tests because animations are disabled.
+// This mock simulates that behavior synchronously so that the showConfirmModal
+// promise resolves correctly in tests.
+jest.mock('@components/Modal/ReanimatedModal', () => {
+    const React = require('react');
+    const {useEffect, useRef} = React;
+
+    return function MockReanimatedModal({isVisible, onModalHide, children}: {isVisible: boolean; onModalHide?: () => void; children: React.ReactNode}) {
+        const wasVisible = useRef(isVisible);
+
+        useEffect(() => {
+            if (wasVisible.current && !isVisible) {
+                onModalHide?.();
+            }
+            wasVisible.current = isVisible;
+        }, [isVisible, onModalHide]);
+
+        if (!isVisible) {
+            return null;
+        }
+
+        return children as React.ReactElement;
+    };
+});
+
 TestHelper.setupGlobalFetchMock();
 
 const Stack = createPlatformStackNavigator<WorkspaceSplitNavigatorParamList>();
