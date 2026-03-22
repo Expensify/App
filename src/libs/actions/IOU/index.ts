@@ -3041,7 +3041,7 @@ function buildOnyxDataForTrackExpense({
 
 function getDeleteTrackExpenseInformation(
     chatReport: OnyxEntry<OnyxTypes.Report>,
-    transactionID: string | undefined,
+    transaction: OnyxEntry<OnyxTypes.Transaction>,
     reportAction: OnyxTypes.ReportAction,
     isChatReportArchived: boolean | undefined,
     shouldDeleteTransactionFromOnyx = true,
@@ -3051,7 +3051,7 @@ function getDeleteTrackExpenseInformation(
     shouldRemoveIOUTransaction = true,
 ) {
     // STEP 1: Get all collections we're updating
-    const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
+    const transactionID = transaction?.transactionID;
     const transactionViolations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`];
     const transactionThreadID = reportAction.childReportID;
 
@@ -5605,7 +5605,7 @@ const getConvertTrackedExpenseInformation = (
     const failureData: Array<
         OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS | typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>
     > = [];
-
+    const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
     // Delete the transaction from the track expense report
     const {
         optimisticData: deleteOptimisticData,
@@ -5613,7 +5613,7 @@ const getConvertTrackedExpenseInformation = (
         failureData: deleteFailureData,
     } = getDeleteTrackExpenseInformation(
         allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${linkedTrackedExpenseReportID}`],
-        transactionID,
+        transaction,
         linkedTrackedExpenseReportAction,
         isLinkedTrackedExpenseReportArchived,
         false,
@@ -8863,9 +8863,10 @@ function deleteTrackExpense({
 
     const whisperAction = getTrackExpenseActionableWhisper(transactionID, chatReportID);
     const actionableWhisperReportActionID = whisperAction?.reportActionID;
+    const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
     const {parameters, optimisticData, successData, failureData} = getDeleteTrackExpenseInformation(
         chatReport,
-        transactionID,
+        transaction,
         reportAction,
         isChatReportArchived,
         undefined,
