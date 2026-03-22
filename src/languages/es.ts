@@ -419,6 +419,7 @@ const translations: TranslationDeepObject<typeof en> = {
         duplicated: 'Duplicado',
         duplicateExpense: 'Duplicar gasto',
         duplicateReport: 'Duplicar informe',
+        copyOfReportName: (reportName: string) => `Copia de ${reportName}`,
         exchangeRate: 'Tipo de cambio',
         reimbursableTotal: 'Total reembolsable',
         nonReimbursableTotal: 'Total no reembolsable',
@@ -588,6 +589,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 faceId: 'Face ID',
                 touchId: 'Touch ID',
                 opticId: 'Optic ID',
+                passkey: 'Passkey',
             },
         },
         verificationFailed: 'Verificación fallida',
@@ -602,11 +604,10 @@ const translations: TranslationDeepObject<typeof en> = {
         letsVerifyItsYou: 'Verifiquemos que eres tú',
         nowLetsAuthenticateYou: 'Vamos a validarte...',
         letsAuthenticateYou: 'Validando...',
-        verifyYourself: {
-            biometrics: 'Verifícate con tu rostro o huella dactilar',
-        },
+        verifyYourself: {biometrics: 'Verifícate con tu rostro o huella dactilar', passkeys: 'Verifícate con una passkey'},
         enableQuickVerification: {
             biometrics: 'Activa la verificación rápida y segura usando tu rostro o huella dactilar. No se requieren contraseñas ni códigos.',
+            passkeys: 'Habilita una verificación rápida y segura usando una passkey. No se requieren contraseñas ni códigos.',
         },
         revoke: {
             revoke: 'Revocar',
