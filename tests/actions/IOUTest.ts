@@ -9323,7 +9323,7 @@ describe('actions/IOU', () => {
             // When deleting expense
             const {optimisticData, successData, shouldDeleteTransactionThread} = getDeleteTrackExpenseInformation(
                 selfDMReport,
-                transaction?.transactionID,
+                transaction,
                 // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
                 createIOUAction!,
                 false,
@@ -9379,7 +9379,7 @@ describe('actions/IOU', () => {
             // When deleting expense
             const {optimisticData, successData, shouldDeleteTransactionThread} = getDeleteTrackExpenseInformation(
                 selfDMReport,
-                transaction?.transactionID,
+                transaction,
                 // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
                 createIOUAction!,
                 false,
