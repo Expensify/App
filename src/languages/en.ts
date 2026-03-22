@@ -1531,8 +1531,11 @@ const translations = {
         approveOnly: 'Approve only',
         holdEducationalTitle: 'Should you hold this expense?',
         whatIsHoldExplain: "Hold is like hitting “pause” on an expense until you're ready to submit it.",
+        whatIsHoldExplainDM: "Hold is like hitting 'pause' on an expense until you're ready to send it.",
         holdIsLeftBehind: 'Held expenses are left behind even if you submit an entire report.',
+        holdIsLeftBehindDM: "Held expenses won't be sent until you remove the hold.",
         unholdWhenReady: "Unhold expenses when you're ready to submit them.",
+        unholdWhenReadyDM: "Unhold expenses when you're ready to send them.",
         changePolicyEducational: {
             title: 'You moved this report!',
             description: 'Double-check these items, which tend to change when moving reports to a new workspace.',
