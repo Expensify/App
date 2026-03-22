@@ -19,7 +19,6 @@ import {
 } from 'date-fns';
 import {Str} from 'expensify-common';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
-import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import Animated, {useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
@@ -55,9 +54,6 @@ type CalendarPickerProps = {
 
     /** A function called when the date is selected */
     onSelected?: (selectedDate: string) => void;
-
-    /** Optional style override for the header container */
-    headerContainerStyle?: StyleProp<ViewStyle>;
 };
 
 function getInitialCurrentDateView(value: Date | string, minDate: Date, maxDate: Date) {
@@ -79,7 +75,6 @@ function CalendarPicker({
     onSelected,
     DayComponent = Day,
     selectableDates,
-    headerContainerStyle,
 }: CalendarPickerProps) {
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
@@ -230,14 +225,13 @@ function CalendarPicker({
 
     const webOnlyMarginStyle = isSmallScreenWidth ? {} : styles.mh1;
     const calendarContainerStyle = isSmallScreenWidth ? [webOnlyMarginStyle, themeStyles.calendarBodyContainer] : [webOnlyMarginStyle, animatedStyle];
-    const headerPaddingStyle = headerContainerStyle ?? themeStyles.ph5;
 
     const getAccessibilityState = useCallback((isSelected: boolean) => ({selected: isSelected}), []);
 
     return (
         <View style={[themeStyles.pb4]}>
             <View
-                style={[themeStyles.calendarHeader, themeStyles.flexRow, themeStyles.justifyContentBetween, themeStyles.alignItemsCenter, headerPaddingStyle]}
+                style={[themeStyles.calendarHeader, themeStyles.flexRow, themeStyles.justifyContentBetween, themeStyles.alignItemsCenter, themeStyles.ph5]}
                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
             >
                 <View style={[themeStyles.alignItemsCenter, themeStyles.flexRow, themeStyles.flex1, themeStyles.justifyContentStart]}>

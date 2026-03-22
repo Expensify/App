@@ -81,7 +81,7 @@ const useSearchTypeMenuSections = (queryParams?: UseSearchTypeMenuSectionsParams
         setPendingReportCreation(null);
     }, [setPendingReportCreation]);
 
-    const {openCreateReportConfirmation, CreateReportConfirmationModal} = useCreateEmptyReportConfirmation({
+    const {openCreateReportConfirmation} = useCreateEmptyReportConfirmation({
         policyID: pendingReportCreation?.policyID,
         policyName: pendingReportCreation?.policyName ?? '',
         onConfirm: handlePendingConfirm,
@@ -94,10 +94,6 @@ const useSearchTypeMenuSections = (queryParams?: UseSearchTypeMenuSectionsParams
         }
         openCreateReportConfirmation();
     }, [pendingReportCreation, openCreateReportConfirmation]);
-
-    const isSuggestedSearchDataReady = useMemo(() => {
-        return Object.values(allPolicies ?? {}).some((policy) => policy?.employeeList !== undefined && policy?.exporter !== undefined);
-    }, [allPolicies]);
 
     const typeMenuSections = useMemo(
         () =>
@@ -149,8 +145,6 @@ const useSearchTypeMenuSections = (queryParams?: UseSearchTypeMenuSectionsParams
 
     return {
         typeMenuSections,
-        CreateReportConfirmationModal,
-        shouldShowSuggestedSearchSkeleton: !isSuggestedSearchDataReady && !isOffline,
         activeItemIndex,
     };
 };

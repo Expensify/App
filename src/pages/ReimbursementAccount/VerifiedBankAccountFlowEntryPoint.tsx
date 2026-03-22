@@ -26,7 +26,7 @@ import {hasActiveAdminWorkspaces} from '@libs/PolicyUtils';
 import WorkspaceResetBankAccountModal from '@pages/workspace/WorkspaceResetBankAccountModal';
 import {goToWithdrawalAccountSetupStep, openPlaidView, updateReimbursementAccountDraft} from '@userActions/BankAccounts';
 import {openExternalLink} from '@userActions/Link';
-import {requestResetBankAccount, resetReimbursementAccount, setBankAccountSubStep, setReimbursementAccountOptionPressed} from '@userActions/ReimbursementAccount';
+import {requestResetBankAccount, resetReimbursementAccount, setBankAccountSubStep, setReimbursementAccountOptionPressed, updateReimbursementAccount} from '@userActions/ReimbursementAccount';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
@@ -106,7 +106,7 @@ function VerifiedBankAccountFlowEntryPoint({
 
     const personalBankAccounts = bankAccountList ? Object.keys(bankAccountList).filter((key) => bankAccountList[key].accountType === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT) : [];
 
-    const removeExistingBankAccountDetails = () => {
+    const removeExistingBankAccountDetails = useCallback(() => {
         const bankAccountData: Partial<ReimbursementAccountForm> = {
             [bankInfoStepKeys.ROUTING_NUMBER]: '',
             [bankInfoStepKeys.ACCOUNT_NUMBER]: '',
@@ -117,7 +117,8 @@ function VerifiedBankAccountFlowEntryPoint({
             [bankInfoStepKeys.PLAID_ACCESS_TOKEN]: '',
         };
         updateReimbursementAccountDraft(bankAccountData);
-    };
+        updateReimbursementAccount({bankAccountID: 0});
+    }, []);
 
     /**
      * Prepares and redirects user to next step in the USD flow
@@ -148,14 +149,16 @@ function VerifiedBankAccountFlowEntryPoint({
                 return;
             }
 
+            removeExistingBankAccountDetails();
             prepareNextStep(CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL);
             setReimbursementAccountOptionPressed(CONST.BANK_ACCOUNT.SETUP_TYPE.NONE);
         } else if (reimbursementAccountOptionPressed === CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID) {
+            removeExistingBankAccountDetails();
             openPlaidView();
             prepareNextStep(CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID);
             setReimbursementAccountOptionPressed(CONST.BANK_ACCOUNT.SETUP_TYPE.NONE);
         }
-    }, [isAccountValidated, isNonUSDWorkspace, prepareNextStep, reimbursementAccountOptionPressed, setNonUSDBankAccountStep]);
+    }, [isAccountValidated, isNonUSDWorkspace, prepareNextStep, reimbursementAccountOptionPressed, removeExistingBankAccountDetails, setNonUSDBankAccountStep]);
 
     const handleConnectManually = () => {
         if (!isAccountValidated) {
