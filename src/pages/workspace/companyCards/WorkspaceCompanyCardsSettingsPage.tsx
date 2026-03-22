@@ -1,4 +1,3 @@
-import {isUserValidatedSelector} from '@selectors/Account';
 import React, {useMemo, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
 import ConfirmModal from '@components/ConfirmModal';
@@ -30,6 +29,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {CompanyCardFeedWithDomainID} from '@src/types/onyx';
+import {isUserValidatedSelector} from '@selectors/Account';
 
 type WorkspaceCompanyCardsSettingsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS_SETTINGS>;
 

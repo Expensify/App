@@ -43,16 +43,18 @@ function RefreshCardFeedConnectionPage({route, policy}: RefreshCardFeedConnectio
 
     // Plaid feeds: isRefreshing is cleared by importPlaidAccounts successData
     useEffect(() => {
-        if (prevIsRefreshing === true && !isRefreshing) {
-            Navigation.closeRHPFlow();
+        if (prevIsRefreshing !== true || isRefreshing) {
+            return;
         }
+        Navigation.closeRHPFlow();
     }, [prevIsRefreshing, isRefreshing]);
 
     // OAuth feeds: expiration updates after bank re-authentication completes
     useEffect(() => {
-        if (prevFeedExpiration !== undefined && prevFeedExpiration !== feedExpiration && isRefreshing) {
-            setFeedRefreshComplete();
+        if (prevFeedExpiration === undefined || prevFeedExpiration === feedExpiration || !isRefreshing) {
+            return;
         }
+        setFeedRefreshComplete();
     }, [prevFeedExpiration, feedExpiration, isRefreshing]);
 
     switch (currentStep) {
