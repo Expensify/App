@@ -28,6 +28,7 @@ function RefreshCardFeedConnectionPage({route, policy}: RefreshCardFeedConnectio
     const currentStep = assignCard?.currentStep;
     const isRefreshing = assignCard?.isRefreshing;
     const prevIsRefreshing = usePrevious(isRefreshing);
+    const title = translate('workspace.companyCards.assignNewCards.title');
 
     useEffect(() => {
         return () => {
@@ -47,6 +48,7 @@ function RefreshCardFeedConnectionPage({route, policy}: RefreshCardFeedConnectio
                 <BankConnection
                     policyID={policyID}
                     feed={feed}
+                    title={title}
                 />
             );
         case CONST.COMPANY_CARD.STEP.PLAID_CONNECTION:
@@ -54,10 +56,11 @@ function RefreshCardFeedConnectionPage({route, policy}: RefreshCardFeedConnectio
                 <PlaidConnectionStep
                     feed={feed}
                     policyID={policyID}
+                    title={title}
                 />
             );
         default:
-            return <LoadingPage title={translate('workspace.companyCards.assignNewCards.title')} />;
+            return <LoadingPage title={title} />;
     }
 }
 
