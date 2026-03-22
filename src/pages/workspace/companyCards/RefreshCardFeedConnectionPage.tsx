@@ -1,14 +1,15 @@
 import React, {useEffect} from 'react';
+import useCardFeeds from '@hooks/useCardFeeds';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
-import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import Navigation from '@libs/Navigation/Navigation';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import LoadingPage from '@pages/LoadingPage';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
-import {clearAssignCardStepAndData} from '@userActions/CompanyCards';
+import {clearAssignCardStepAndData, setFeedRefreshComplete} from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
@@ -30,17 +31,29 @@ function RefreshCardFeedConnectionPage({route, policy}: RefreshCardFeedConnectio
     const prevIsRefreshing = usePrevious(isRefreshing);
     const title = translate('workspace.companyCards.assignNewCards.title');
 
+    const [cardFeeds] = useCardFeeds(policyID);
+    const feedExpiration = feed ? cardFeeds?.[feed]?.expiration : undefined;
+    const prevFeedExpiration = usePrevious(feedExpiration);
+
     useEffect(() => {
         return () => {
             clearAssignCardStepAndData();
         };
     }, []);
 
+    // Plaid feeds: isRefreshing is cleared by importPlaidAccounts successData
     useEffect(() => {
         if (prevIsRefreshing === true && !isRefreshing) {
             Navigation.closeRHPFlow();
         }
     }, [prevIsRefreshing, isRefreshing]);
+
+    // OAuth feeds: expiration updates after bank re-authentication completes
+    useEffect(() => {
+        if (prevFeedExpiration !== undefined && prevFeedExpiration !== feedExpiration && isRefreshing) {
+            setFeedRefreshComplete();
+        }
+    }, [prevFeedExpiration, feedExpiration, isRefreshing]);
 
     switch (currentStep) {
         case CONST.COMPANY_CARD.STEP.BANK_CONNECTION:
