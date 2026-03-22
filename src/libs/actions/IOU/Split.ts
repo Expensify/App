@@ -733,18 +733,29 @@ function startSplitBill({
  * @param sessionAccountID - accountID of the current user
  * @param sessionEmail - email of the current user
  */
-function completeSplitBill(
-    chatReportID: string,
-    reportAction: OnyxEntry<OnyxTypes.ReportAction>,
-    updatedTransaction: OnyxEntry<OnyxTypes.Transaction>,
-    sessionAccountID: number,
-    isASAPSubmitBetaEnabled: boolean,
-    quickAction: OnyxEntry<OnyxTypes.QuickAction>,
-    transactionViolations: OnyxCollection<OnyxTypes.TransactionViolation[]>,
-    betas: OnyxEntry<OnyxTypes.Beta[]>,
-    personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>,
-    sessionEmail?: string,
-) {
+function completeSplitBill({
+    chatReportID,
+    reportAction,
+    updatedTransaction,
+    sessionAccountID,
+    isASAPSubmitBetaEnabled,
+    quickAction,
+    transactionViolations,
+    betas,
+    personalDetails,
+    sessionEmail,
+}: {
+    chatReportID: string;
+    reportAction: OnyxEntry<OnyxTypes.ReportAction>;
+    updatedTransaction: OnyxEntry<OnyxTypes.Transaction>;
+    sessionAccountID: number;
+    isASAPSubmitBetaEnabled: boolean;
+    quickAction: OnyxEntry<OnyxTypes.QuickAction>;
+    transactionViolations: OnyxCollection<OnyxTypes.TransactionViolation[]>;
+    betas: OnyxEntry<OnyxTypes.Beta[]>;
+    personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
+    sessionEmail?: string;
+}) {
     if (!reportAction) {
         return;
     }
