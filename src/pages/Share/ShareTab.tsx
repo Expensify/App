@@ -66,7 +66,7 @@ function ShareTab({ref}: ShareTabProps) {
     const {options: listOptions, isLoading} = useFilteredOptions({
         enabled: didScreenTransitionEnd,
         betas: betas ?? [],
-        isSearching: !!debouncedTextInputValue,
+        isSearching: !!debouncedTextInputValue.trim(),
     });
     const areOptionsInitialized = !isLoading;
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false});

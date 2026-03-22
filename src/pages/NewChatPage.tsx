@@ -87,7 +87,7 @@ function useOptions(reportAttributesDerived: ReportAttributesDerivedValue['repor
         includeP2P: true,
         batchSize: 100,
         enablePagination: true,
-        isSearching: !!debouncedSearchTerm,
+        isSearching: !!debouncedSearchTerm.trim(),
         betas,
     });
 
