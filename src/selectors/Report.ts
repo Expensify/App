@@ -19,4 +19,8 @@ function getReportPolicyID(report: OnyxEntry<Report>) {
     return report?.policyID;
 }
 
-export {getArchiveReason, getReportPolicyID};
+function getReportOwnerAccountID(report: OnyxEntry<Report>) {
+    return report?.ownerAccountID;
+}
+
+export {getArchiveReason, getReportOwnerAccountID, getReportPolicyID};

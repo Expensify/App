@@ -227,11 +227,12 @@ async function signInAndGetApp(): Promise<void> {
     await waitForBatchedUpdatesWithAct();
 
     // Start listening for pusher events after navigation settles.
-    subscribeToUserEvents(USER_A_ACCOUNT_ID);
+    subscribeToUserEvents(USER_A_ACCOUNT_ID, undefined);
     await waitForBatchedUpdates();
 
     await act(async () => {
         await Promise.all([
+            Onyx.merge(ONYXKEYS.IS_LOADING_APP, false),
             // Simulate setting an unread report and personal details
             Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {
                 reportID: REPORT_ID,

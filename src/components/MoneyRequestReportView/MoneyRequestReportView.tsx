@@ -4,6 +4,7 @@ import React, {useCallback, useEffect, useMemo} from 'react';
 // to interact with react-navigation components (e.g., CardContainer, interpolator), which also use Animated.
 // eslint-disable-next-line no-restricted-imports
 import {Animated, InteractionManager, ScrollView, View} from 'react-native';
+import type {LayoutChangeEvent} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import MoneyReportHeader from '@components/MoneyReportHeader';
 import MoneyRequestHeader from '@components/MoneyRequestHeader';
@@ -29,6 +30,7 @@ import {canEditReportAction, getReportOfflinePendingActionAndErrors, isReportTra
 import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
 import {cancelSpan} from '@libs/telemetry/activeSpans';
 import markOpenReportEnd from '@libs/telemetry/markOpenReportEnd';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import Navigation from '@navigation/Navigation';
 import ReportActionsView from '@pages/inbox/report/ReportActionsView';
 import ReportFooter from '@pages/inbox/report/ReportFooter';
@@ -40,6 +42,8 @@ import ROUTES from '@src/ROUTES';
 import type {ThemeStyles} from '@src/styles';
 import type * as OnyxTypes from '@src/types/onyx';
 import MoneyRequestReportActionsList from './MoneyRequestReportActionsList';
+
+const loadingAppReasonAttributes: SkeletonSpanReasonAttributes = {context: 'MoneyRequestReportView.isLoadingApp'};
 
 type MoneyRequestReportViewProps = {
     /** The report */
@@ -56,6 +60,9 @@ type MoneyRequestReportViewProps = {
 
     /** The `backTo` route that should be used when clicking back button */
     backToRoute: Route | undefined;
+
+    /** Callback executed on layout */
+    onLayout?: (event: LayoutChangeEvent) => void;
 };
 
 function goBackFromSearchMoneyRequest() {
@@ -85,18 +92,24 @@ function goBackFromSearchMoneyRequest() {
     Navigation.goBack(ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery()}));
 }
 
-function InitialLoadingSkeleton({styles}: {styles: ThemeStyles}) {
+function InitialLoadingSkeleton({styles, onLayout, reasonAttributes}: {styles: ThemeStyles; onLayout?: (event: LayoutChangeEvent) => void; reasonAttributes: SkeletonSpanReasonAttributes}) {
     return (
-        <View style={[styles.flex1]}>
+        <View
+            style={[styles.flex1]}
+            onLayout={onLayout}
+        >
             <View style={[styles.appContentHeader, styles.borderBottom]}>
-                <ReportHeaderSkeletonView onBackButtonPress={() => {}} />
+                <ReportHeaderSkeletonView
+                    onBackButtonPress={() => {}}
+                    reasonAttributes={reasonAttributes}
+                />
             </View>
             <ReportActionsSkeletonView />
         </View>
     );
 }
 
-function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayReportFooter, backToRoute}: MoneyRequestReportViewProps) {
+function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayReportFooter, backToRoute, onLayout}: MoneyRequestReportViewProps) {
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
 
@@ -167,9 +180,7 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
         () =>
             isTransactionThreadView ? (
                 <MoneyRequestHeader
-                    report={report}
-                    policy={policy}
-                    parentReportAction={parentReportAction}
+                    reportID={report?.reportID}
                     onBackButtonPress={() => {
                         if (!backToRoute) {
                             goBackFromSearchMoneyRequest();
@@ -180,11 +191,7 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
                 />
             ) : (
                 <MoneyReportHeader
-                    report={report}
-                    policy={policy}
-                    reportActions={reportActions}
-                    transactionThreadReportID={transactionThreadReportID}
-                    isLoadingInitialReportActions={isLoadingInitialReportActions}
+                    reportID={report?.reportID}
                     shouldDisplayBackButton
                     onBackButtonPress={() => {
                         if (!backToRoute) {
@@ -195,7 +202,7 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
                     }}
                 />
             ),
-        [backToRoute, isLoadingInitialReportActions, isTransactionThreadView, parentReportAction, policy, report, reportActions, transactionThreadReportID],
+        [backToRoute, isTransactionThreadView, report?.reportID],
     );
 
     // We need to cancel telemetry span when user leaves the screen before full report data is loaded
@@ -213,7 +220,17 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
     }, [report, shouldShowOpenReportLoadingSkeleton]);
 
     if (shouldShowOpenReportLoadingSkeleton) {
-        return <InitialLoadingSkeleton styles={styles} />;
+        const skeletonReasonAttributes: SkeletonSpanReasonAttributes = {
+            context: 'MoneyRequestReportView.InitialLoadingSkeleton',
+            isLoadingInitialReportActions: !!isLoadingInitialReportActions,
+            shouldWaitForTransactions,
+        };
+        return (
+            <InitialLoadingSkeleton
+                styles={styles}
+                reasonAttributes={skeletonReasonAttributes}
+            />
+        );
     }
 
     if (reportActions.length === 0) {
@@ -227,7 +244,7 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
     if (isLoadingApp) {
         return (
             <View style={styles.flex1}>
-                <ReportHeaderSkeletonView />
+                <ReportHeaderSkeletonView reasonAttributes={loadingAppReasonAttributes} />
                 <ReportActionsSkeletonView />
                 {shouldDisplayReportFooter ? (
                     <ReportFooter
@@ -268,6 +285,7 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
                                     report={transactionThreadReport}
                                     fillSpace
                                     isDisplayedInWideRHP
+                                    hasParentPendingAction={!!reportPendingAction}
                                 />
                             </ScrollView>
                         </Animated.View>
@@ -282,6 +300,7 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
                                 newTransactions={newTransactions}
                                 reportActions={reportActions}
                                 hasOlderActions={hasOlderActions}
+                                onLayout={onLayout}
                                 hasNewerActions={hasNewerActions}
                                 showReportActionsLoadingState={isLoadingInitialReportActions && !reportMetadata?.hasOnceLoadedReportActions}
                                 reportPendingAction={reportPendingAction}
@@ -294,6 +313,7 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
                                 hasNewerActions={hasNewerActions}
                                 hasOlderActions={hasOlderActions}
                                 parentReportAction={parentReportAction}
+                                onLayout={onLayout}
                                 transactionThreadReportID={transactionThreadReportID}
                             />
                         )}

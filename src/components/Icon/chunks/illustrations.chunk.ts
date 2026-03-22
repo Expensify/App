@@ -49,7 +49,8 @@ import ApprovedTransactionHand from '@assets/images/multifactorAuthentication/ap
 import DeniedTransactionHand from '@assets/images/multifactorAuthentication/denied-transaction-hand.svg';
 import EncryptionMan from '@assets/images/multifactorAuthentication/encryption-man.svg';
 import HumptyDumpty from '@assets/images/multifactorAuthentication/humpty-dumpty.svg';
-import MagnifyingGlassSpyMouthClosed from '@assets/images/multifactorAuthentication/magnifying-glass-spy-mouth-closed.svg';
+import MagnifyingGlassSpyMouthClosed from '@assets/images/multifactorAuthentication/magnifying-glass-spy-mouth-closed-cropped.svg';
+import OpenPadlockGreen from '@assets/images/multifactorAuthentication/open-padlock-green.svg';
 import OpenPadlock from '@assets/images/multifactorAuthentication/open-padlock.svg';
 import RunOutOfTime from '@assets/images/multifactorAuthentication/running-out-of-time.svg';
 import PendingTravel from '@assets/images/pending-travel.svg';
@@ -86,6 +87,7 @@ import TiltedCoinExpensify from '@assets/images/product-illustrations/tilted-coi
 import ToddBehindCloud from '@assets/images/product-illustrations/todd-behind-cloud.svg';
 import ToddInCar from '@assets/images/product-illustrations/todd-in-car.svg';
 import ToddWithPhones from '@assets/images/product-illustrations/todd-with-phones.svg';
+import UpgradeRocket from '@assets/images/product-illustrations/upgrade-rocket.svg';
 import WorkspaceScene from '@assets/images/product-illustrations/workspace-scene.svg';
 import ReceiptStack from '@assets/images/receipt-upload.svg';
 import RunningTurtle from '@assets/images/running-turtle.svg';
@@ -157,6 +159,7 @@ import PiggyBank from '@assets/images/simple-illustrations/simple-illustration__
 import Pillow from '@assets/images/simple-illustrations/simple-illustration__pillow.svg';
 import Profile from '@assets/images/simple-illustrations/simple-illustration__profile.svg';
 import QRCode from '@assets/images/simple-illustrations/simple-illustration__qr-code.svg';
+import QuestionMark from '@assets/images/simple-illustrations/simple-illustration__question-mark.svg';
 import RealtimeReport from '@assets/images/simple-illustrations/simple-illustration__realtimereports.svg';
 import ReceiptLocationMarker from '@assets/images/simple-illustrations/simple-illustration__receipt-location-marker.svg';
 import ReceiptWrangler from '@assets/images/simple-illustrations/simple-illustration__receipt-wrangler.svg';
@@ -185,6 +188,7 @@ import Trophy1 from '@assets/images/simple-illustrations/simple-illustration__tr
 import Trophy from '@assets/images/simple-illustrations/simple-illustration__trophy.svg';
 import CompanyCard from '@assets/images/simple-illustrations/simple-illustration__twocards-horizontal.svg';
 import UserShield from '@assets/images/simple-illustrations/simple-illustration__user-shield.svg';
+import VerticalCreditCards from '@assets/images/simple-illustrations/simple-illustration__vertical-credit-cards.svg';
 import VirtualCard from '@assets/images/simple-illustrations/simple-illustration__virtualcard.svg';
 import WalletAlt2 from '@assets/images/simple-illustrations/simple-illustration__wallet-alt2.svg';
 import Workflows from '@assets/images/simple-illustrations/simple-illustration__workflows.svg';
@@ -260,9 +264,11 @@ const Illustrations = {
     ReceiptsStackedOnPin,
     RocketBlue,
     RocketDude,
+    VerticalCreditCards,
     Safe,
     SaveTheWorldScale,
     SewerDino,
+    QuestionMark,
     SmartScan,
     TeleScope,
     Telescope: TeleScope, // Alias for consistency
@@ -272,6 +278,7 @@ const Illustrations = {
     ToddInCar,
     ToddWithPhones,
     WorkspaceScene,
+    UpgradeRocket,
 
     // Educational Illustrations
     MultiScan,
@@ -387,6 +394,7 @@ const Illustrations = {
     // Multifactor Authentication Illustrations
     MagnifyingGlassSpyMouthClosed,
     OpenPadlock,
+    OpenPadlockGreen,
     ApprovedTransactionHand,
     DeniedTransactionHand,
     RunOutOfTime,

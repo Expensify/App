@@ -1,3 +1,4 @@
+import {hasSeenTourSelector} from '@selectors/Onboarding';
 import React, {useMemo} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -40,6 +41,9 @@ type ProcessMoneyReportHoldMenuProps = {
     /** Type of payment */
     paymentType?: PaymentMethodType;
 
+    /** Selected VBBA ID for payment */
+    methodID?: number;
+
     /** Type of action handled */
     requestType?: ActionHandledType;
 
@@ -60,6 +64,7 @@ function ProcessMoneyReportHoldMenu({
     onClose,
     isVisible,
     paymentType,
+    methodID,
     chatReport,
     moneyRequestReport,
     transactionCount,
@@ -73,10 +78,12 @@ function ProcessMoneyReportHoldMenu({
     const {isSmallScreenWidth} = useResponsiveLayout();
     const [userBillingGraceEndPeriods] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
+    const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const activePolicy = usePolicy(activePolicyID);
     const policy = usePolicy(moneyRequestReport?.policyID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const [moneyRequestReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${moneyRequestReport?.reportID}`);
     const {isBetaEnabled} = usePermissions();
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
@@ -93,25 +100,21 @@ function ProcessMoneyReportHoldMenu({
         }
 
         if (isApprove) {
-            if (startAnimation) {
-                startAnimation();
-            }
-            approveMoneyRequest(
-                moneyRequestReport,
-                activePolicy,
-                currentUserDetails.accountID,
-                currentUserDetails.email ?? '',
+            approveMoneyRequest({
+                expenseReport: moneyRequestReport,
+                policy: activePolicy,
+                currentUserAccountIDParam: currentUserDetails.accountID,
+                currentUserEmailParam: currentUserDetails.email ?? '',
                 hasViolations,
                 isASAPSubmitBetaEnabled,
-                moneyRequestReportNextStep,
+                expenseReportCurrentNextStepDeprecated: moneyRequestReportNextStep,
                 betas,
                 userBillingGraceEndPeriods,
+                amountOwed,
                 full,
-            );
+                onApproved: startAnimation,
+            });
         } else if (chatReport && paymentType) {
-            if (startAnimation) {
-                startAnimation();
-            }
             payMoneyRequest({
                 paymentType,
                 chatReport,
@@ -123,7 +126,11 @@ function ProcessMoneyReportHoldMenu({
                 activePolicy,
                 policy,
                 betas,
+                isSelfTourViewed,
                 userBillingGraceEndPeriods,
+                amountOwed,
+                methodID,
+                onPaid: startAnimation,
             });
         }
         onClose();

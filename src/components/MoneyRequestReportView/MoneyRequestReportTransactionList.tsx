@@ -1,10 +1,11 @@
 import {findFocusedRoute, useFocusEffect} from '@react-navigation/native';
+import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
 import isEmpty from 'lodash/isEmpty';
 import React, {memo, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 // ScrollView type is needed for the horizontal scroll ref; the project ScrollView component is used for rendering.
 // eslint-disable-next-line no-restricted-imports
-import type {NativeScrollEvent, NativeSyntheticEvent, ScrollView as RNScrollView} from 'react-native';
+import type {LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent, ScrollView as RNScrollView} from 'react-native';
 import type {TupleToUnion} from 'type-fest';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import Checkbox from '@components/Checkbox';
@@ -101,6 +102,9 @@ type MoneyRequestReportTransactionListProps = {
 
     /** Whether the report actions are being loaded, used to show 'Comments' during loading state */
     isLoadingInitialReportActions?: boolean;
+
+    /** Callback executed on layout */
+    onLayout?: (event: LayoutChangeEvent) => void;
 };
 
 type TransactionWithOptionalHighlight = OnyxTypes.Transaction & {
@@ -156,6 +160,7 @@ function MoneyRequestReportTransactionList({
     scrollToNewTransaction,
     policy,
     hasComments,
+    onLayout,
     isLoadingInitialReportActions = false,
 }: MoneyRequestReportTransactionListProps) {
     useCopySelectionHelper();
@@ -184,19 +189,31 @@ function MoneyRequestReportTransactionList({
     const currentUserDetails = useCurrentUserPersonalDetails();
     const isReportArchived = useReportIsArchived(report?.reportID);
     const shouldShowAddExpenseButton = canAddTransaction(report, isReportArchived) && isCurrentUserSubmitter(report);
-    const [userBillingGraceEndPeriodCollection] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
+    const [userBillingGraceEndPeriods] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
+    const [ownerBillingGraceEndPeriod] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const [lastDistanceExpenseType] = useOnyx(ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE);
     const [reportLayoutGroupBy] = useOnyx(ONYXKEYS.NVP_REPORT_LAYOUT_GROUP_BY);
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const [reportDetailsColumns] = useOnyx(ONYXKEYS.NVP_REPORT_DETAILS_COLUMNS);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
 
     const shouldShowGroupedTransactions = isExpenseReport(report) && !isIOUReport(report);
 
     const addExpenseDropdownOptions = useMemo(
         () =>
-            getAddExpenseDropdownOptions(translate, expensifyIcons, report?.reportID, policy, userBillingGraceEndPeriodCollection, amountOwed, undefined, undefined, lastDistanceExpenseType),
-        [translate, expensifyIcons, report?.reportID, policy, userBillingGraceEndPeriodCollection, amountOwed, lastDistanceExpenseType],
+            getAddExpenseDropdownOptions({
+                translate,
+                icons: expensifyIcons,
+                iouReportID: report?.reportID,
+                policy,
+                userBillingGraceEndPeriods,
+                draftTransactionIDs,
+                amountOwed,
+                ownerBillingGraceEndPeriod,
+                lastDistanceExpenseType,
+            }),
+        [translate, expensifyIcons, report?.reportID, policy, userBillingGraceEndPeriods, amountOwed, lastDistanceExpenseType, ownerBillingGraceEndPeriod, draftTransactionIDs],
     );
 
     const hasPendingAction = useMemo(() => {
@@ -312,19 +329,24 @@ function MoneyRequestReportTransactionList({
         return groupedTransactions.flatMap((group) => group.transactions.filter((transaction) => !isTransactionPendingDelete(transaction)).map((transaction) => transaction.transactionID));
     }, [groupedTransactions, sortedTransactions, shouldShowGroupedTransactions]);
 
+    // Primitive proxy for visualOrderTransactionIDs used as the effect dependency below.
+    // Other callers (e.g. TransactionDuplicateReview.onPreviewPressed) can write to the same
+    // Onyx key with a different ordering. Using the raw array reference would cause the effect
+    // to re-fire on every referential change and overwrite those IDs. The joined string ensures
+    // the effect only re-fires when the actual content changes.
+    const visualOrderTransactionIDsKey = useMemo(() => visualOrderTransactionIDs.join(','), [visualOrderTransactionIDs]);
+
     useEffect(() => {
         const focusedRoute = findFocusedRoute(navigationRef.getRootState());
         if (focusedRoute?.name !== SCREENS.RIGHT_MODAL.SEARCH_REPORT) {
             return;
         }
         setActiveTransactionIDs(visualOrderTransactionIDs);
-    }, [visualOrderTransactionIDs]);
-
-    useEffect(() => {
         return () => {
             clearActiveTransactionIDs();
         };
-    }, []);
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- visualOrderTransactionIDsKey is a primitive proxy for the array to avoid re-firing on referential-only changes
+    }, [visualOrderTransactionIDsKey]);
 
     const groupSelectionState = useMemo(() => {
         const state = new Map<string, {isSelected: boolean; isIndeterminate: boolean; isDisabled: boolean; pendingAction?: PendingAction}>();
@@ -505,7 +527,10 @@ function MoneyRequestReportTransactionList({
     );
 
     const transactionListContent = (
-        <View style={[listHorizontalPadding, styles.gap2, styles.pb4, styles.mb2]}>
+        <View
+            style={[listHorizontalPadding, styles.gap2, styles.pb4, styles.mb2]}
+            onLayout={onLayout}
+        >
             {shouldShowGroupedTransactions
                 ? groupedTransactions.map((group) => {
                       const selectionState = groupSelectionState.get(group.groupKey) ?? {
@@ -624,6 +649,7 @@ function MoneyRequestReportTransactionList({
         return (
             <>
                 <SearchMoneyRequestReportEmptyState
+                    onLayout={onLayout}
                     report={report}
                     policy={policy}
                 />
@@ -659,7 +685,8 @@ function MoneyRequestReportTransactionList({
                     style={styles.flex1}
                     contentContainerStyle={{width: minTableWidth}}
                     onScroll={handleHorizontalScroll}
-                    scrollEventThrottle={16}
+                    scrollEventThrottle={CONST.TIMING.MIN_SMOOTH_SCROLL_EVENT_THROTTLE}
+                    onLayout={onLayout}
                 >
                     <View style={[styles.flex1]}>
                         {tableHeaderContent}
@@ -703,8 +730,8 @@ function MoneyRequestReportTransactionList({
                     {shouldShowBreakdown && (
                         <View style={[styles.dFlex, styles.alignItemsEnd, styles.gap2, styles.mb2, styles.flex1]}>
                             {[
-                                {text: 'cardTransactions.outOfPocket', value: formattedOutOfPocketAmount, shouldShow: shouldShowExpenseReportBreakDown},
-                                {text: 'cardTransactions.companySpend', value: formattedCompanySpendAmount, shouldShow: shouldShowExpenseReportBreakDown},
+                                {text: 'cardTransactions.outOfPocket', value: formattedOutOfPocketAmount, shouldShow: !!nonReimbursableSpend},
+                                {text: 'cardTransactions.companySpend', value: formattedCompanySpendAmount, shouldShow: !!nonReimbursableSpend},
                                 {text: 'common.billable', value: formattedBillableAmount, shouldShow: !!billableTotal},
                                 {text: 'common.tax', value: formattedTaxAmount, shouldShow: !!taxTotal && isTaxEnabled},
                             ]

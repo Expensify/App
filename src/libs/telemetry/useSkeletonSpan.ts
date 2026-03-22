@@ -27,7 +27,7 @@ type SkeletonSpanReasonAttributes = {
  * Pass the @reasonAttributes parameter to add additional context about why the skeleton is rendered.
  * All attributes will be namespaced with a 'skeleton.' prefix for easy querying in Sentry.
  */
-function useSkeletonSpan(component: string, reasonAttributes?: SkeletonSpanReasonAttributes) {
+function useSkeletonSpan(component: string, reasonAttributes: SkeletonSpanReasonAttributes) {
     const reactId = useId();
     const spanId = `${CONST.TELEMETRY.SPAN_SKELETON}_${component}_${reactId}`;
 

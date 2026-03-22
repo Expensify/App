@@ -1,4 +1,4 @@
-import {hasDomainAdminsErrors, hasDomainAdminsSettingsErrors, hasDomainErrors, hasDomainMembersErrors} from '@libs/DomainUtils';
+import {hasDomainAdminsErrors, hasDomainAdminsSettingsErrors, hasDomainErrors, hasDomainMembersErrors, hasDomainMembersSettingsErrors} from '@libs/DomainUtils';
 import type DomainErrors from '@src/types/onyx/DomainErrors';
 
 const adminID = 1;
@@ -194,6 +194,41 @@ describe('DomainUtils', () => {
                 },
             };
             expect(hasDomainMembersErrors(domainErrors)).toBe(false);
+        });
+
+        it('should return true when there are members settings errors', () => {
+            const domainErrors: DomainErrors = {
+                errors: {},
+                setTwoFactorAuthRequiredError: {timestamp1: '2FA toggle error'},
+            };
+            expect(hasDomainMembersErrors(domainErrors)).toBe(true);
+        });
+    });
+
+    describe('hasDomainMembersSettingsErrors', () => {
+        it('should return false when domainErrors is undefined', () => {
+            expect(hasDomainMembersSettingsErrors(undefined)).toBe(false);
+        });
+
+        it('should return false when there are no settings errors', () => {
+            const domainErrors: DomainErrors = {errors: {}};
+            expect(hasDomainMembersSettingsErrors(domainErrors)).toBe(false);
+        });
+
+        it('should return true when there are two factor auth required errors', () => {
+            const domainErrors: DomainErrors = {
+                errors: {},
+                setTwoFactorAuthRequiredError: {timestamp1: '2FA toggle error'},
+            };
+            expect(hasDomainMembersSettingsErrors(domainErrors)).toBe(true);
+        });
+
+        it('should return false when setTwoFactorAuthRequiredError is empty', () => {
+            const domainErrors: DomainErrors = {
+                errors: {},
+                setTwoFactorAuthRequiredError: {},
+            };
+            expect(hasDomainMembersSettingsErrors(domainErrors)).toBe(false);
         });
     });
 });
