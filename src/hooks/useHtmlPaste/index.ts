@@ -4,6 +4,33 @@ import Parser from '@libs/Parser';
 import CONST from '@src/CONST';
 import type UseHtmlPaste from './types';
 
+/**
+ * Replaces emoji <img> tags with their alt text (the actual unicode emoji character).
+ * This handles emoji images from Slack and other apps that encode emojis as <img> tags
+ * with the emoji character in the alt attribute.
+ *
+ * Slack uses: <img data-stringify-type="emoji" alt="😊" ...>
+ * Some apps use: <img data-stringify-emoji="..." alt="😊" ...>
+ */
+const replaceEmojiImagesWithAltText = (html: string): string => {
+    const domParser = new DOMParser();
+    const doc = domParser.parseFromString(html, 'text/html');
+    const images = doc.querySelectorAll('img');
+
+    for (const img of images) {
+        // Check if this is an emoji image (Slack and other apps mark them with data-stringify-type="emoji" or data-stringify-emoji)
+        const isEmojiImage = img.dataset.stringifyType === 'emoji' || img.hasAttribute('data-stringify-emoji');
+
+        if (isEmojiImage && img.alt) {
+            // Replace the img element with a text node containing the emoji
+            const textNode = doc.createTextNode(img.alt);
+            img.parentNode?.replaceChild(textNode, img);
+        }
+    }
+
+    return doc.body.innerHTML;
+};
+
 const insertAtCaret = (target: HTMLElement, insertedText: string, maxLength: number) => {
     const currentText = target.textContent ?? '';
 
@@ -95,7 +122,10 @@ const useHtmlPaste: UseHtmlPaste = (textInputRef, preHtmlPasteCallback, isActive
      */
     const handlePastedHTML = useCallback(
         (html: string) => {
-            paste(Parser.htmlToMarkdown(html, {}));
+            // Replace emoji <img> tags with their alt text before converting to markdown
+            // This handles emojis from Slack and other apps that encode them as <img> tags
+            const processedHtml = replaceEmojiImagesWithAltText(html);
+            paste(Parser.htmlToMarkdown(processedHtml, {}));
         },
         [paste],
     );
@@ -149,17 +179,6 @@ const useHtmlPaste: UseHtmlPaste = (textInputRef, preHtmlPasteCallback, isActive
             if (event.clipboardData?.types?.includes(TEXT_HTML)) {
                 const pastedHTML = event.clipboardData.getData(TEXT_HTML);
 
-                const domparser = new DOMParser();
-                const embeddedImages = domparser.parseFromString(pastedHTML, TEXT_HTML).images;
-
-                // Exclude parsing img tags in the HTML, as fetching the image via fetch triggers a connect-src Content-Security-Policy error.
-                if (embeddedImages.length > 0 && embeddedImages[0].src) {
-                    // If HTML has emoji, then treat this as plain text.
-                    if (embeddedImages[0].dataset && embeddedImages[0].dataset.stringifyType === 'emoji') {
-                        handlePastePlainText(event);
-                        return;
-                    }
-                }
                 // If HTML starts with <p dir="ltr">, it means that the text was copied from the markdown input from the native app
                 // and was saved to clipboard with additional styling, so we need to treat this as plain text to avoid adding unnecessary characters.
                 if (pastedHTML.startsWith('<p dir="ltr">')) {
@@ -202,3 +221,4 @@ const useHtmlPaste: UseHtmlPaste = (textInputRef, preHtmlPasteCallback, isActive
 };
 
 export default useHtmlPaste;
+export {replaceEmojiImagesWithAltText};
