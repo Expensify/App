@@ -15,6 +15,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+import variables from '@styles/variables';
 import {setWorkspaceCategoryDescriptionHint} from '@userActions/Policy/Category';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -75,6 +76,9 @@ function CategoryDescriptionHintPage({
                             label={translate('workspace.rules.categoryRules.descriptionHintLabel')}
                             aria-label={translate('workspace.rules.categoryRules.descriptionHintLabel')}
                             ref={inputCallbackRef}
+                            type="markdown"
+                            autoGrowHeight
+                            maxAutoGrowHeight={variables.textInputAutoGrowMaxHeight}
                         />
                         <Text style={[styles.mutedTextLabel, styles.mt2]}>{translate('workspace.rules.categoryRules.descriptionHintSubtitle')}</Text>
                     </View>
