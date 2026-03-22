@@ -1025,10 +1025,6 @@ function getAllPersonalDetails(): OnyxTypes.PersonalDetailsList {
     return allPersonalDetails;
 }
 
-function getAllTransactions(): NonNullable<OnyxCollection<OnyxTypes.Transaction>> {
-    return allTransactions;
-}
-
 function getAllTransactionViolations(): NonNullable<OnyxCollection<OnyxTypes.TransactionViolations>> {
     return allTransactionViolations;
 }
