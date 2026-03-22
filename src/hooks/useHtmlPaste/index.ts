@@ -150,14 +150,27 @@ const useHtmlPaste: UseHtmlPaste = (textInputRef, preHtmlPasteCallback, isActive
                 const pastedHTML = event.clipboardData.getData(TEXT_HTML);
 
                 const domparser = new DOMParser();
-                const embeddedImages = domparser.parseFromString(pastedHTML, TEXT_HTML).images;
+                const doc = domparser.parseFromString(pastedHTML, TEXT_HTML);
+                const embeddedImages = doc.images;
 
-                // Exclude parsing img tags in the HTML, as fetching the image via fetch triggers a connect-src Content-Security-Policy error.
+                // Check if ALL embedded images are Slack emoji images. If so, treat as plain text
+                // to preserve the original behavior for emoji-only pastes from Slack.
                 if (embeddedImages.length > 0 && embeddedImages[0].src) {
-                    // If HTML has emoji, then treat this as plain text.
-                    if (embeddedImages[0].dataset && embeddedImages[0].dataset.stringifyType === 'emoji') {
+                    const allImagesAreSlackEmoji = Array.from(embeddedImages).every((img) => img.dataset?.stringifyType === 'emoji');
+                    if (allImagesAreSlackEmoji) {
                         handlePastePlainText(event);
                         return;
+                    }
+
+                    // For mixed content (some emoji images, some regular images), replace Slack emoji
+                    // <img> tags with their alt text (Unicode emoji) so they don't render as broken images.
+                    // We iterate in reverse to safely modify the DOM while iterating.
+                    const images = Array.from(embeddedImages);
+                    for (let i = images.length - 1; i >= 0; i--) {
+                        const img = images[i];
+                        if (img.dataset?.stringifyType === 'emoji' && img.alt) {
+                            img.replaceWith(document.createTextNode(img.alt));
+                        }
                     }
                 }
                 // If HTML starts with <p dir="ltr">, it means that the text was copied from the markdown input from the native app
@@ -166,7 +179,7 @@ const useHtmlPaste: UseHtmlPaste = (textInputRef, preHtmlPasteCallback, isActive
                     handlePastePlainText(event);
                     return;
                 }
-                handlePastedHTML(pastedHTML);
+                handlePastedHTML(doc.body.innerHTML);
                 return;
             }
             handlePastePlainText(event);
