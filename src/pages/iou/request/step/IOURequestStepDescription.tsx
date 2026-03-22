@@ -149,7 +149,7 @@ function IOURequestStepDescription({
         }
 
         if (isEditingSplit) {
-            setDraftSplitTransaction(transaction?.transactionID, splitDraftTransaction, {comment: newComment});
+            setDraftSplitTransaction(transaction?.transactionID, splitDraftTransaction ?? transaction, {comment: newComment});
             setIsSaved(true);
             shouldNavigateAfterSaveRef.current = true;
             return;

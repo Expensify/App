@@ -1850,15 +1850,10 @@ function setDraftSplitTransaction(
     if (!transactionID) {
         return undefined;
     }
-    let draftSplitTransaction = splitTransactionDraft;
 
-    if (!draftSplitTransaction) {
-        draftSplitTransaction = getAllTransactions()?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
-    }
-
-    const updatedTransaction = draftSplitTransaction
+    const updatedTransaction = splitTransactionDraft
         ? getUpdatedTransaction({
-              transaction: draftSplitTransaction,
+              transaction: splitTransactionDraft,
               transactionChanges,
               isFromExpenseReport: false,
               shouldUpdateReceiptState: false,

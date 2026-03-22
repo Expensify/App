@@ -111,7 +111,7 @@ function IOURequestStepMerchant({
         const newMerchant = value.moneyRequestMerchant?.trim();
 
         if (isEditingSplitBill) {
-            setDraftSplitTransaction(transactionID, splitDraftTransaction, {merchant: newMerchant});
+            setDraftSplitTransaction(transactionID, splitDraftTransaction ?? transaction, {merchant: newMerchant});
             setIsSaved(true);
             shouldNavigateAfterSaveRef.current = true;
             return;

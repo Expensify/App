@@ -453,7 +453,7 @@ function IOURequestStepDistance({
             if (isEditingSplit && originalSplitTransactionDraft) {
                 setDraftSplitTransaction(
                     CONST.IOU.OPTIMISTIC_TRANSACTION_ID,
-                    originalSplitTransactionDraft,
+                    originalSplitTransactionDraft ?? transaction,
                     {waypoints: currentTransaction?.comment?.waypoints, routes: currentTransaction?.routes},
                     policy,
                 );

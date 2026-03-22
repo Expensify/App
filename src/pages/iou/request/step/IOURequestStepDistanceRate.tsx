@@ -155,7 +155,7 @@ function IOURequestStepDistanceRate({
         if (currentRateID !== customUnitRateID) {
             // In the split flow, when editing we use SPLIT_TRANSACTION_DRAFT to save draft value
             if (isEditingSplit && transaction) {
-                setDraftSplitTransaction(transaction.transactionID, splitDraftTransaction, {customUnitRateID}, policy);
+                setDraftSplitTransaction(transaction.transactionID, splitDraftTransaction ?? transaction, {customUnitRateID}, policy);
                 navigateBack();
                 return;
             }

@@ -174,7 +174,7 @@ function IOURequestStepDistanceManual({
             if (action === CONST.IOU.ACTION.EDIT) {
                 // In the split flow, when editing we use SPLIT_TRANSACTION_DRAFT to save draft value
                 if (isEditingSplit && transaction) {
-                    setDraftSplitTransaction(transaction.transactionID, splitDraftTransaction, {distance: distanceAsFloat}, policy);
+                    setDraftSplitTransaction(transaction.transactionID, splitDraftTransaction ?? transaction, {distance: distanceAsFloat}, policy);
                     Navigation.goBack(backTo);
                     return;
                 }
