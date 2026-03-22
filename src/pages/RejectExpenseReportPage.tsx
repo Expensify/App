@@ -1,4 +1,4 @@
-import React, {useCallback, useRef, useState} from 'react';
+import React, {useCallback, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import FormProvider from '@components/Form/FormProvider';
@@ -16,14 +16,13 @@ import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {MoneyRequestNavigatorParamList} from '@libs/Navigation/types';
 import {getDisplayNameOrDefault, getLoginByAccountID, getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
-import {getApprovalChain} from '@libs/ReportUtils';
+import {getSortedReportActions} from '@libs/ReportActionsUtils';
 import variables from '@styles/variables';
 import {rejectExpenseReport} from '@userActions/IOU';
 import CONST from '@src/CONST';
@@ -41,30 +40,46 @@ function RejectExpenseReportPage({route}: RejectExpenseReportPageProps) {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportID)}`);
-    const policy = usePolicy(report?.policyID);
+    const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(reportID)}`);
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
     const [selectedTargetAccountID, setSelectedTargetAccountID] = useState<string>('');
     const [selectionError, setSelectionError] = useState<string>('');
     const isSubmitAttempt = useRef(false);
 
-    const previousApprover = (() => {
-        if (!policy || !report) {
+    const previousApprover = useMemo(() => {
+        if (!reportActions) {
             return null;
         }
-        const approvalChain = getApprovalChain(policy, report);
-        const managerEmail = getLoginByAccountID(report.managerID ?? CONST.DEFAULT_NUMBER_ID) ?? '';
-        const managerIndex = approvalChain.indexOf(managerEmail);
-        if (managerIndex <= 0) {
+
+        const sortedActions = getSortedReportActions(Object.values(reportActions), true);
+
+        // Walk reverse chronologically. A SUBMITTED action marks the start of the current
+        // approval cycle — any FORWARDED actions older than that are stale (from a prior
+        // submit→approve→reject→resubmit cycle) and must be ignored.
+        let lastForwardedActorAccountID: number | undefined;
+        for (const action of sortedActions) {
+            if (action.actionName === CONST.REPORT.ACTIONS.TYPE.SUBMITTED) {
+                break;
+            }
+            if (action.actionName === CONST.REPORT.ACTIONS.TYPE.FORWARDED && action.actorAccountID) {
+                lastForwardedActorAccountID = action.actorAccountID;
+                break;
+            }
+        }
+
+        if (!lastForwardedActorAccountID) {
             return null;
         }
-        const previousApproverEmail = approvalChain.at(managerIndex - 1);
-        const details = getPersonalDetailByEmail(previousApproverEmail ?? '');
+
+        const email = getLoginByAccountID(lastForwardedActorAccountID) ?? '';
+        const details = getPersonalDetailByEmail(email);
         if (!details?.accountID) {
             return null;
         }
-        return {accountID: details.accountID, displayName: getDisplayNameOrDefault(details), email: previousApproverEmail ?? ''};
-    })();
+
+        return {accountID: details.accountID, displayName: getDisplayNameOrDefault(details), email};
+    }, [reportActions]);
 
     const submitterAccountID = report?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const hasPreviousApprover = previousApprover !== null;
