@@ -144,7 +144,7 @@ describe('Split Expense Auto-Adjustment', () => {
             await waitForBatchedUpdates();
 
             // Action: Remove split 3
-            removeSplitExpenseField(mockTransaction, 'split3');
+            removeSplitExpenseField(mockTransaction, 'split3', undefined);
             await waitForBatchedUpdates();
 
             // Verify: Should be 2 splits at $5/$5 (50/50)
@@ -184,7 +184,7 @@ describe('Split Expense Auto-Adjustment', () => {
             await waitForBatchedUpdates();
 
             // Action: Remove split 3
-            removeSplitExpenseField(mockTransaction, 'split3');
+            removeSplitExpenseField(mockTransaction, 'split3', undefined);
             await waitForBatchedUpdates();
 
             // Verify: 2 splits
@@ -229,7 +229,7 @@ describe('Split Expense Auto-Adjustment', () => {
             await waitForBatchedUpdates();
 
             // Action: Remove split 1 (the edited one)
-            removeSplitExpenseField(mockTransaction, 'split1');
+            removeSplitExpenseField(mockTransaction, 'split1', undefined);
             await waitForBatchedUpdates();
 
             // Verify: 2 unedited splits remain
@@ -266,7 +266,7 @@ describe('Split Expense Auto-Adjustment', () => {
             await waitForBatchedUpdates();
 
             // Action: Edit split1 to $3.00
-            updateSplitExpenseAmountField(mockTransaction, 'split1', 300);
+            updateSplitExpenseAmountField(mockTransaction, 'split1', undefined, 300);
             await waitForBatchedUpdates();
 
             // Verify
@@ -308,7 +308,7 @@ describe('Split Expense Auto-Adjustment', () => {
             await waitForBatchedUpdates();
 
             // Action: Edit split1 to $5.00
-            updateSplitExpenseAmountField(mockTransaction, 'split1', 500);
+            updateSplitExpenseAmountField(mockTransaction, 'split1', undefined, 500);
             await waitForBatchedUpdates();
 
             // Verify: split2 should remain unchanged
@@ -342,7 +342,7 @@ describe('Split Expense Auto-Adjustment', () => {
             await waitForBatchedUpdates();
 
             // Action: Try to update with NaN amount (simulates user entering just "-")
-            updateSplitExpenseAmountField(mockTransaction, 'split1', NaN);
+            updateSplitExpenseAmountField(mockTransaction, 'split1', undefined, NaN);
             await waitForBatchedUpdates();
 
             // Verify: Splits should remain unchanged

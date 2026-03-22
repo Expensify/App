@@ -2288,7 +2288,7 @@ function resetSplitExpensesByDateRange(
     });
 }
 
-function removeSplitExpenseField(draftTransaction: OnyxEntry<OnyxTypes.Transaction>, splitExpenseTransactionID: string) {
+function removeSplitExpenseField(draftTransaction: OnyxEntry<OnyxTypes.Transaction>, splitExpenseTransactionID: string, originalTransaction: OnyxEntry<OnyxTypes.Transaction>) {
     if (!draftTransaction || !splitExpenseTransactionID) {
         return;
     }
@@ -2299,7 +2299,6 @@ function removeSplitExpenseField(draftTransaction: OnyxEntry<OnyxTypes.Transacti
     const total = getAmount(draftTransaction, undefined, undefined, true, true);
     const currency = getCurrency(draftTransaction);
 
-    const originalTransaction = getAllTransactions()?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`];
     const isDistanceRequest = originalTransaction && isDistanceRequestTransactionUtils(originalTransaction);
 
     let redistributedSplitExpenses = splitExpenses;
@@ -2410,13 +2409,12 @@ function updateSplitExpenseField(
     });
 }
 
-function updateSplitExpenseAmountField(draftTransaction: OnyxEntry<OnyxTypes.Transaction>, currentItemTransactionID: string, amount: number, policy?: OnyxEntry<OnyxTypes.Policy>) {
+function updateSplitExpenseAmountField(draftTransaction: OnyxEntry<OnyxTypes.Transaction>, currentItemTransactionID: string, originalTransaction:  OnyxEntry<OnyxTypes.Transaction>, amount: number, policy?: OnyxEntry<OnyxTypes.Policy>) {
     if (!draftTransaction?.transactionID || !currentItemTransactionID || Number.isNaN(amount)) {
         return;
     }
 
     const originalTransactionID = draftTransaction?.comment?.originalTransactionID;
-    const originalTransaction = getAllTransactions()?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`];
     const isDistanceRequest = originalTransaction && isDistanceRequestTransactionUtils(originalTransaction);
     const splitExpenses = draftTransaction.comment?.splitExpenses ?? [];
     const total = getAmount(draftTransaction, undefined, undefined, true, true);
