@@ -1629,19 +1629,13 @@ function setGPSTransactionDraftData(transactionID: string, gpsDraftDetails: Onyx
 /**
  * Revert custom unit of the draft transaction to the original transaction's value
  */
-function resetDraftTransactionsCustomUnit(transactionID: string | undefined) {
-    if (!transactionID) {
+function resetDraftTransactionsCustomUnit(transaction: OnyxEntry<OnyxTypes.Transaction>) {
+    if (!transaction?.transactionID) {
         return;
     }
-
-    const originalTransaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
-    if (!originalTransaction) {
-        return;
-    }
-
-    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transaction?.transactionID}`, {
         comment: {
-            customUnit: originalTransaction.comment?.customUnit ?? {},
+            customUnit: transaction.comment?.customUnit ?? {},
         },
     });
 }
