@@ -223,7 +223,7 @@ function getRulesModifiedMessage(
         }
         // The backend saves the description field as `comment` key, but we need to display it as `description` key.
         if (key === 'comment') {
-            return translate('iou.rulesModifiedFields.common', 'description', Parser.htmlToMarkdown(updatedValue), isFirst);
+            return translate('iou.rulesModifiedFields.common', 'description', Parser.htmlToText(updatedValue), isFirst);
         }
 
         return translate('iou.rulesModifiedFields.common', key, updatedValue, isFirst);
@@ -317,8 +317,8 @@ function getForReportAction({
 
         buildMessageFragmentForValue(
             translate,
-            Parser.htmlToMarkdown(reportActionOriginalMessage?.newComment ?? ''),
-            Parser.htmlToMarkdown(reportActionOriginalMessage?.oldComment ?? ''),
+            Parser.htmlToText(reportActionOriginalMessage?.newComment ?? ''),
+            Parser.htmlToText(reportActionOriginalMessage?.oldComment ?? ''),
             descriptionLabel,
             true,
             setFragments,
