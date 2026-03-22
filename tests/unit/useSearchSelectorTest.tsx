@@ -1,7 +1,8 @@
 import {act, renderHook} from '@testing-library/react-native';
 import type {OnyxMultiSetInput} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
-import * as OptionsListUtils from '@libs/OptionsListUtils';
+import useSearchSelectorBase from '@hooks/useSearchSelector.base';
+import {getSearchOptions, getValidOptions} from '@libs/OptionsListUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportAction} from '@src/types/onyx';
@@ -10,24 +11,31 @@ import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct'
 
 jest.mock('@components/ConfirmedRoute.tsx');
 
+// eslint-disable-next-line @typescript-eslint/no-unsafe-return
+jest.mock('@libs/OptionsListUtils', () => ({
+    // eslint-disable-next-line @typescript-eslint/naming-convention
+    __esModule: true,
+    ...jest.requireActual('@libs/OptionsListUtils'),
+    getValidOptions: jest.fn(),
+    getSearchOptions: jest.fn(),
+}));
+
 const MOCK_ACCOUNT_ID = 12345;
 const MOCK_EMAIL = 'test@expensify.com';
 
-const mockGetValidOptions = jest.spyOn(OptionsListUtils, 'getValidOptions');
-const mockGetSearchOptions = jest.spyOn(OptionsListUtils, 'getSearchOptions');
+const mockGetValidOptions = jest.mocked(getValidOptions);
+const mockGetSearchOptions = jest.mocked(getSearchOptions);
 
-jest.mock('@components/OptionListContextProvider', () => {
-    const actual = jest.requireActual<typeof import('@components/OptionListContextProvider')>('@components/OptionListContextProvider');
-    return {
-        ...actual,
-        useOptionsList: () => ({
-            options: {reports: [], personalDetails: []},
-            areOptionsInitialized: true,
-            initializeOptions: jest.fn(),
-            resetOptions: jest.fn(),
-        }),
-    };
-});
+// eslint-disable-next-line @typescript-eslint/no-unsafe-return
+jest.mock('@components/OptionListContextProvider', () => ({
+    ...jest.requireActual('@components/OptionListContextProvider'),
+    useOptionsList: () => ({
+        options: {reports: [], personalDetails: []},
+        areOptionsInitialized: true,
+        initializeOptions: jest.fn(),
+        resetOptions: jest.fn(),
+    }),
+}));
 
 jest.mock('@components/OnyxListItemProvider', () => ({
     usePersonalDetails: () => ({}),
@@ -37,9 +45,6 @@ jest.mock('@hooks/useCurrentUserPersonalDetails', () => () => ({
     accountID: MOCK_ACCOUNT_ID,
     email: MOCK_EMAIL,
 }));
-
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-const useSearchSelectorBase = require('@hooks/useSearchSelector.base').default;
 
 function buildMockSortedActions(reportIDs: string[]): SortedReportActionsDerivedValue {
     const sortedActions: Record<string, ReportAction[]> = {};
