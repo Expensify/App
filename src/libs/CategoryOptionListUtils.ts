@@ -162,10 +162,10 @@ function getCategoryListSections({
         for (const category of searchCategories) {
             categoriesRecord[category.name] = category;
         }
-        const sortedCategories = sortCategories(categoriesRecord, localeCompare);
+        const searchSortedCategories = sortCategories(categoriesRecord, localeCompare);
 
         // Step 5: Re-apply the isSelected flag (lost during sortCategories)
-        const finalSearchCategories: Category[] = sortedCategories.map((category) => ({
+        const finalSearchCategories: Category[] = searchSortedCategories.map((category) => ({
             ...category,
             isSelected: selectedOptions.some((selectedOption) => selectedOption.name === category.name),
         }));
