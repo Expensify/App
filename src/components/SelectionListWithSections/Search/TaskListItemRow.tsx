@@ -115,7 +115,7 @@ function ActionCell({taskItem, isLargeScreenWidth}: TaskCellProps) {
 }
 
 function TaskListItemRow({item, containerStyle, showTooltip}: TaskListItemRowProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['ArrowRightLong'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['ArrowRightLong']);
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const theme = useTheme();

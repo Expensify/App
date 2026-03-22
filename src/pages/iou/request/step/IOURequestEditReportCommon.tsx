@@ -66,7 +66,7 @@ function IOURequestEditReportCommon({
     isPerDiemRequest,
     isTimeRequest = false,
 }: Props) {
-    const icons = useMemoizedLazyExpensifyIcons(['Close', 'Document'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Close', 'Document']);
     const {translate, localeCompare} = useLocalize();
     const personalDetails = usePersonalDetails();
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);

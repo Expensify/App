@@ -28,7 +28,7 @@ type HelpHeaderProps = {
 };
 
 function HelpHeader({title, onBackButtonPress, onCloseButtonPress, shouldShowBackButton = true, shouldShowCloseButton = false}: HelpHeaderProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['BackArrow', 'Close'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['BackArrow', 'Close']);
     const styles = useThemeStyles();
     const theme = useTheme();
 

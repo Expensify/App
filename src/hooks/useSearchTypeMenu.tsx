@@ -64,7 +64,7 @@ export default function useSearchTypeMenu(queryJSON: SearchQueryJSON) {
         'Bank',
         'User',
         'Folder',
-    ] as const);
+    ]);
 
     const [isPopoverVisible, setIsPopoverVisible] = useState(false);
 

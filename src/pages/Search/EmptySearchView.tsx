@@ -124,7 +124,7 @@ function EmptySearchViewContent({
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
-    const illustrations = useMemoizedLazyIllustrations(['EmptyStateTravel'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['EmptyStateTravel']);
     const {showConfirmModal} = useConfirmModal();
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const {isBetaEnabled} = usePermissions();

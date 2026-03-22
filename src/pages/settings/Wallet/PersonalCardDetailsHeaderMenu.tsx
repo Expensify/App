@@ -54,7 +54,7 @@ function PersonalCardDetailsHeaderMenu({
 }: PersonalCardDetailsHeaderMenuProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const icons = useMemoizedLazyExpensifyIcons(['Hourglass', 'Trashcan'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Hourglass', 'Trashcan']);
     const isLoadingLastUpdatedReasonAttributes: SkeletonSpanReasonAttributes = {context: 'PersonalCardDetailsHeaderMenu', isLoadingLastUpdated: !!card?.isLoadingLastUpdated};
 
     return (

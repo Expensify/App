@@ -18,7 +18,7 @@ function FloatingGpsButton() {
     const [gpsDraftDetails] = useOnyx(ONYXKEYS.GPS_DRAFT_DETAILS);
     const {translate} = useLocalize();
 
-    const icons = useMemoizedLazyExpensifyIcons(['Location'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Location']);
     const {textMutedReversed} = useTheme();
     const styles = useThemeStyles();
 

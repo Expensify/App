@@ -52,7 +52,7 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
         'Bank',
         'User',
         'Folder',
-    ] as const);
+    ]);
     const {clearSelectedTransactions} = useSearchActionsContext();
     const [isSearchDataLoaded, isSearchDataLoadedResult] = useOnyx(ONYXKEYS.IS_SEARCH_PAGE_DATA_LOADED);
     const [reportCounts = CONST.EMPTY_TODOS_REPORT_COUNTS] = useOnyx(ONYXKEYS.DERIVED.TODOS, {selector: todosReportCountsSelector});

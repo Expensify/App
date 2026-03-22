@@ -152,7 +152,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         'QBDSquare',
         'CertiniaSquare',
         'Pencil',
-    ] as const);
+    ]);
 
     const selectedTransactionReportIDs = useMemo(
         () => [

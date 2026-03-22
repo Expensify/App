@@ -168,7 +168,7 @@ function DebugReportPage({
         translate,
     ]);
 
-    const icons = useMemoizedLazyExpensifyIcons(['Eye'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Eye']);
 
     const DebugDetailsTab = useCallback(
         () => (

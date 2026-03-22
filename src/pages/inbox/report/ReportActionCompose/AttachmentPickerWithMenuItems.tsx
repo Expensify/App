@@ -149,7 +149,7 @@ function AttachmentPickerWithMenuItems({
         'Receipt',
         'Task',
         'Transfer',
-    ] as const);
+    ]);
     const isFocused = useIsFocused();
     const theme = useTheme();
     const styles = useThemeStyles();
