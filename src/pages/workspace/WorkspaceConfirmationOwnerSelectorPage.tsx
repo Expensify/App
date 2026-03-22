@@ -1,13 +1,13 @@
 import React, {useCallback, useEffect, useMemo} from 'react';
 import {View} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import {FallbackAvatar} from '@components/Icon/Expensicons';
 import ScreenWrapper from '@components/ScreenWrapper';
 // eslint-disable-next-line no-restricted-imports -- SelectionListWithSections required for section-based user list display
 import SelectionList from '@components/SelectionListWithSections';
 import UserListItem from '@components/SelectionListWithSections/UserListItem';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useSearchSelector from '@hooks/useSearchSelector';
@@ -24,11 +24,12 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/WorkspaceConfirmationForm';
 import type {Participant} from '@src/types/onyx/IOU';
+import type IconAsset from '@src/types/utils/IconAsset';
 
 /**
  * Helper function to create a formatted user list item
  */
-function createUserListItem(personalDetails: ReturnType<typeof getPersonalDetailByEmail>, login: string, keyPrefix: string, isSelected = false) {
+function createUserListItem(personalDetails: ReturnType<typeof getPersonalDetailByEmail>, login: string, keyPrefix: string, isSelected: boolean, fallBackAvatarIcon: IconAsset) {
     const accountID = personalDetails?.accountID ?? generateAccountID(login);
     return {
         ...(personalDetails ?? {}),
@@ -41,7 +42,7 @@ function createUserListItem(personalDetails: ReturnType<typeof getPersonalDetail
         shouldShowSubscript: undefined,
         icons: [
             {
-                source: personalDetails?.avatar ?? FallbackAvatar,
+                source: personalDetails?.avatar ?? fallBackAvatarIcon,
                 name: formatPhoneNumber(personalDetails?.login ?? login),
                 type: CONST.ICON_TYPE_AVATAR,
                 id: accountID,
@@ -53,6 +54,7 @@ function createUserListItem(personalDetails: ReturnType<typeof getPersonalDetail
 function WorkspaceConfirmationOwnerSelectorPage() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar']);
     const {login: currentUserLogin} = useCurrentUserPersonalDetails();
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
 
@@ -95,7 +97,7 @@ function WorkspaceConfirmationOwnerSelectorPage() {
         const currentUserPersonalDetails = getPersonalDetailByEmail(currentUserLogin ?? '');
 
         if (currentOwner) {
-            const ownerItem = createUserListItem(ownerPersonalDetails, currentOwner, 'currentOwner', true);
+            const ownerItem = createUserListItem(ownerPersonalDetails, currentOwner, 'currentOwner', true, icons.FallbackAvatar);
             sectionsList.push({
                 title: undefined,
                 data: [ownerItem],
@@ -104,7 +106,7 @@ function WorkspaceConfirmationOwnerSelectorPage() {
         }
 
         if (currentUserLogin && currentUserLogin !== currentOwner) {
-            const currentUserItem = createUserListItem(currentUserPersonalDetails, currentUserLogin, 'currentUser', false);
+            const currentUserItem = createUserListItem(currentUserPersonalDetails, currentUserLogin, 'currentUser', false, icons.FallbackAvatar);
             sectionsList.push({
                 title: undefined,
                 data: [currentUserItem],
@@ -139,7 +141,16 @@ function WorkspaceConfirmationOwnerSelectorPage() {
         }
 
         return sectionsList;
-    }, [currentOwner, currentUserLogin, ownerPersonalDetails, translate, availableOptions.recentReports, availableOptions.personalDetails, availableOptions.userToInvite]);
+    }, [
+        currentOwner,
+        currentUserLogin,
+        ownerPersonalDetails,
+        translate,
+        availableOptions.recentReports,
+        availableOptions.personalDetails,
+        availableOptions.userToInvite,
+        icons.FallbackAvatar,
+    ]);
 
     const onSelectRow = useCallback(
         (option: Participant) => {

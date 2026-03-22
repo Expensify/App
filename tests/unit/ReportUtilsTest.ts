@@ -14394,6 +14394,7 @@ describe('ReportUtils', () => {
         const mockIcons = {
             Location: jest.fn() as unknown as IconAsset,
             ReceiptPlus: jest.fn() as unknown as IconAsset,
+            Plus: jest.fn() as unknown as IconAsset,
         };
         const mockIouReportID = '12345';
 
@@ -14708,7 +14709,7 @@ describe('ReportUtils', () => {
     });
     describe('getAddExpenseDropdownOptions', () => {
         const mockTranslate: LocaleContextProps['translate'] = (path, ...params) => translate(CONST.LOCALES.EN, path, ...params);
-        const mockIcons = {Location: jest.fn(), ReceiptPlus: jest.fn()} as unknown as Record<'Location' | 'ReceiptPlus', IconAsset>;
+        const mockIcons = {Location: jest.fn(), ReceiptPlus: jest.fn(), Plus: jest.fn()} as unknown as Record<'Location' | 'ReceiptPlus' | 'Plus', IconAsset>;
         const policyID = '5001';
         const iouReportID = 'reportABC';
         const ownerAccountID = 999;
