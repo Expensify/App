@@ -751,8 +751,8 @@ describe('actions/Duplicate', () => {
             await waitForBatchedUpdates();
 
             const resolveParams = {
-                transactionID: mainTransactionID,
-                transactionIDList: duplicateTransactionIDs,
+                transaction: mainTransaction,
+                transactionList: [duplicateTransaction1, duplicateTransaction2],
                 created: '2024-01-01 12:00:00',
                 merchant: 'Updated Merchant',
                 amount: 200,
@@ -842,8 +842,8 @@ describe('actions/Duplicate', () => {
         it('should return early when transactionID is undefined', async () => {
             // Given: Params with undefined transactionID
             const resolveParams = {
-                transactionID: undefined,
-                transactionIDList: ['dup456'],
+                transaction: undefined,
+                transactionList: [],
                 created: '2024-01-01 12:00:00',
                 merchant: 'Updated Merchant',
                 amount: 200,
@@ -884,8 +884,8 @@ describe('actions/Duplicate', () => {
             await waitForBatchedUpdates();
 
             const resolveParams = {
-                transactionID: mainTransactionID,
-                transactionIDList: [],
+                transaction: mainTransaction,
+                transactionList: [],
                 created: '2024-01-01 12:00:00',
                 merchant: 'Updated Merchant',
                 amount: 200,
@@ -940,8 +940,8 @@ describe('actions/Duplicate', () => {
             await waitForBatchedUpdates();
 
             const resolveParams = {
-                transactionID: mainTransactionID,
-                transactionIDList: duplicateTransactionIDs,
+                transaction: mainTransaction,
+                transactionList: [duplicateTransaction],
                 created: '2024-01-01 12:00:00',
                 merchant: 'Updated Merchant',
                 amount: 200,
@@ -1016,8 +1016,8 @@ describe('actions/Duplicate', () => {
             await waitForBatchedUpdates();
 
             const resolveParams = {
-                transactionID: mainTransactionID,
-                transactionIDList: [crossReportDuplicateID],
+                transaction: mainTransaction,
+                transactionList: [crossDuplicateTransaction],
                 created: '2024-01-01 12:00:00',
                 merchant: 'Updated Merchant',
                 amount: 100,
@@ -1829,7 +1829,8 @@ describe('actions/Duplicate', () => {
                         billable: false,
                         reimbursable: true,
                         tag: '',
-                        transactionIDList: [transaction2.transactionID],
+                        transaction: transaction1,
+                        transactionList: [transaction2],
                     });
                     return waitForBatchedUpdates();
                 })
