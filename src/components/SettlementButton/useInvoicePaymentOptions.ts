@@ -1,6 +1,8 @@
 import {hasSeenTourSelector} from '@selectors/Onboarding';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import type useSettlementData from '@hooks/useSettlementData';
@@ -29,7 +31,9 @@ type InvoicePaymentOptionsParams = {
  * Only produces options when the report is an invoice report.
  */
 function useInvoicePaymentOptions({data, checkForNecessaryAction, onPress, formattedAmount, lastPaymentMethod, hasIntentToPay}: InvoicePaymentOptionsParams) {
-    const {icons, translate, chatReport, showPayViaExpensifyOptions, getFilteredBankItems} = data;
+    const icons = useMemoizedLazyExpensifyIcons(['User', 'Building', 'Bank', 'Cash'] as const);
+    const {translate} = useLocalize();
+    const {chatReport, showPayViaExpensifyOptions, getFilteredBankItems} = data;
 
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
@@ -43,63 +47,63 @@ function useInvoicePaymentOptions({data, checkForNecessaryAction, onPress, forma
     const personalPolicy = usePolicy(personalPolicyID);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
+    const hasActivePolicyAsAdmin = !!activePolicy && isPolicyAdmin(activePolicy) && isPaidGroupPolicy(activePolicy);
+    const isActivePolicyCurrencySupported = isCurrencySupportedForDirectReimbursement(activePolicy?.outputCurrency ?? '');
+    const isUserCurrencySupported = isCurrencySupportedForDirectReimbursement(personalPolicy?.outputCurrency ?? CONST.CURRENCY.USD);
+    const isInvoiceReceiverPolicyCurrencySupported = isCurrencySupportedForDirectReimbursement(invoiceReceiverPolicy?.outputCurrency ?? '');
+
+    const canUseActivePolicy = hasActivePolicyAsAdmin && isActivePolicyCurrencySupported;
+    // For business invoice receivers, we use the receiver policy to pay, so validate the receiver policy's currency
+    // For individual receivers, allow if user has an active admin policy with supported currency OR user's local currency is supported
+    const isPolicyCurrencySupported = invoiceReceiverPolicy ? isInvoiceReceiverPolicyCurrencySupported : canUseActivePolicy || isUserCurrencySupported;
+
+    const getPaymentSubItems = (payAsBusiness: boolean) => {
+        return getFilteredBankItems(payAsBusiness, (formattedPaymentMethod) => ({
+            text: formattedPaymentMethod?.title ?? '',
+            description: formattedPaymentMethod?.description ?? '',
+            icon: formattedPaymentMethod?.icon,
+            shouldUpdateSelectedIndex: true,
+            onSelected: () => {
+                if (checkForNecessaryAction()) {
+                    return;
+                }
+                onPress({
+                    paymentType: CONST.IOU.PAYMENT_TYPE.EXPENSIFY,
+                    payAsBusiness,
+                    methodID: formattedPaymentMethod.methodID,
+                    paymentMethod: formattedPaymentMethod.accountType,
+                });
+            },
+            iconStyles: formattedPaymentMethod?.iconStyles,
+            iconHeight: formattedPaymentMethod?.iconSize,
+            iconWidth: formattedPaymentMethod?.iconSize,
+            value: CONST.IOU.PAYMENT_TYPE.EXPENSIFY,
+        }));
+    };
+
+    // MUST remain lazy — called only in onSelected handlers. Eager evaluation causes createWorkspace() on every render (#79953).
+    const getPolicyID = () => {
+        if (chatReport?.invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS) {
+            return chatReport?.invoiceReceiver?.policyID;
+        }
+
+        if (canUseActivePolicy) {
+            return activePolicy.id;
+        }
+
+        return createWorkspace({
+            introSelected,
+            activePolicyID,
+            currentUserAccountIDParam: currentUserPersonalDetails.accountID,
+            currentUserEmailParam: currentUserPersonalDetails.email ?? '',
+            betas,
+            isSelfTourViewed,
+            hasActiveAdminPolicies: !!data.activeAdminPolicies.length,
+        }).policyID;
+    };
+
     const buildInvoiceOptions = (): Array<DropdownOption<string>> => {
         const buttonOptions: Array<DropdownOption<string>> = [];
-
-        const hasActivePolicyAsAdmin = !!activePolicy && isPolicyAdmin(activePolicy) && isPaidGroupPolicy(activePolicy);
-        const isActivePolicyCurrencySupported = isCurrencySupportedForDirectReimbursement(activePolicy?.outputCurrency ?? '');
-        const isUserCurrencySupported = isCurrencySupportedForDirectReimbursement(personalPolicy?.outputCurrency ?? CONST.CURRENCY.USD);
-        const isInvoiceReceiverPolicyCurrencySupported = isCurrencySupportedForDirectReimbursement(invoiceReceiverPolicy?.outputCurrency ?? '');
-
-        const canUseActivePolicy = hasActivePolicyAsAdmin && isActivePolicyCurrencySupported;
-        // For business invoice receivers, we use the receiver policy to pay, so validate the receiver policy's currency
-        // For individual receivers, allow if user has an active admin policy with supported currency OR user's local currency is supported
-        const isPolicyCurrencySupported = invoiceReceiverPolicy ? isInvoiceReceiverPolicyCurrencySupported : canUseActivePolicy || isUserCurrencySupported;
-
-        const getPaymentSubItems = (payAsBusiness: boolean) => {
-            return getFilteredBankItems(payAsBusiness, (formattedPaymentMethod) => ({
-                text: formattedPaymentMethod?.title ?? '',
-                description: formattedPaymentMethod?.description ?? '',
-                icon: formattedPaymentMethod?.icon,
-                shouldUpdateSelectedIndex: true,
-                onSelected: () => {
-                    if (checkForNecessaryAction()) {
-                        return;
-                    }
-                    onPress({
-                        paymentType: CONST.IOU.PAYMENT_TYPE.EXPENSIFY,
-                        payAsBusiness,
-                        methodID: formattedPaymentMethod.methodID,
-                        paymentMethod: formattedPaymentMethod.accountType,
-                    });
-                },
-                iconStyles: formattedPaymentMethod?.iconStyles,
-                iconHeight: formattedPaymentMethod?.iconSize,
-                iconWidth: formattedPaymentMethod?.iconSize,
-                value: CONST.IOU.PAYMENT_TYPE.EXPENSIFY,
-            }));
-        };
-
-        // MUST remain lazy — called only in onSelected handlers. Eager evaluation causes createWorkspace() on every render (#79953).
-        const getPolicyID = () => {
-            if (chatReport?.invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS) {
-                return chatReport?.invoiceReceiver?.policyID;
-            }
-
-            if (canUseActivePolicy) {
-                return activePolicy.id;
-            }
-
-            return createWorkspace({
-                introSelected,
-                activePolicyID,
-                currentUserAccountIDParam: currentUserPersonalDetails.accountID,
-                currentUserEmailParam: currentUserPersonalDetails.email ?? '',
-                betas,
-                isSelfTourViewed,
-                hasActiveAdminPolicies: !!data.activeAdminPolicies.length,
-            }).policyID;
-        };
 
         const getInvoicesOptions = (payAsBusiness: boolean) => {
             const addBankAccountItem = {

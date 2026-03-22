@@ -2,9 +2,14 @@ import React, {useContext} from 'react';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import KYCWall from '@components/KYCWall';
 import {KYCWallContext} from '@components/KYCWall/KYCWallContext';
+import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
+import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
+import {isExpenseReport as isExpenseReportUtil, isInvoiceReport as isInvoiceReportUtil} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type SettlementButtonProps from './types';
 import useSettlementButtonOptions from './useSettlementButtonOptions';
 
@@ -48,6 +53,12 @@ function SettlementButton({
     hasOnlyHeldExpenses = false,
     sentryLabel,
 }: SettlementButtonProps) {
+    const styles = useThemeStyles();
+    const {translate} = useLocalize();
+    const {isOffline} = useNetwork();
+    const isExpenseReport = isExpenseReportUtil(iouReport);
+    const isInvoiceReport = (!isEmptyObject(iouReport) && isInvoiceReportUtil(iouReport)) || false;
+
     const kycWallRef = useContext(KYCWallContext);
     const {
         paymentButtonOptions,
@@ -58,12 +69,7 @@ function SettlementButton({
         shouldLimitWidth,
         shouldPopoverUseScrollView,
         handlePaymentSelection,
-        isExpenseReport,
-        isInvoiceReport,
-        isOffline,
         lastPaymentPolicy,
-        styles,
-        translate,
     } = useSettlementButtonOptions({
         chatReportID,
         currency,

@@ -8,6 +8,8 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {LastPaymentMethod} from '@src/types/onyx';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+import {useMemoizedLazyExpensifyIcons} from './useLazyAsset';
+import useLocalize from './useLocalize';
 import useOnyx from './useOnyx';
 import useSettlementData from './useSettlementData';
 
@@ -42,10 +44,11 @@ function usePaymentOptions({
     shouldDisableApproveButton = false,
     onlyShowPayElsewhere,
 }: UsePaymentOptionsProps): PaymentOrApproveOption[] {
+    const icons = useMemoizedLazyExpensifyIcons(['Building', 'User', 'ThumbsUp', 'Bank', 'Wallet', 'Cash', 'CheckCircle']);
+    const {translate} = useLocalize();
+
     const data = useSettlementData({chatReportID, iouReport, policyID, currency, shouldHidePaymentOptions, shouldUseFakePolicyFallback: true});
     const {
-        icons,
-        translate,
         chatReport,
         policyIDKey,
         isExpenseReport,

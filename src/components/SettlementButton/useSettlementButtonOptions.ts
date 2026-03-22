@@ -2,7 +2,8 @@ import truncate from 'lodash/truncate';
 import type {GestureResponderEvent} from 'react-native';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import type {ContinueActionParams, PaymentMethod} from '@components/KYCWall/types';
-import useNetwork from '@hooks/useNetwork';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useSettlementData from '@hooks/useSettlementData';
@@ -57,12 +58,12 @@ function useSettlementButtonOptions({
     shouldUseShortForm = false,
     confirmApproval,
 }: UseSettlementButtonOptionsProps) {
+    const icons = useMemoizedLazyExpensifyIcons(['CheckCircle', 'ThumbsUp', 'Bank', 'Cash', 'Wallet', 'Building', 'User'] as const);
+    const {translate, localeCompare} = useLocalize();
+    const policy = usePolicy(policyID);
+
     const data = useSettlementData({chatReportID, iouReport, policyID, currency, shouldHidePaymentOptions, shouldShowPersonalBankAccountOption});
     const {
-        icons,
-        translate,
-        localeCompare,
-        policy,
         chatReport,
         reportID,
         policyIDKey,
@@ -83,8 +84,6 @@ function useSettlementButtonOptions({
         paymentMethods,
     } = data;
 
-    const {isOffline} = useNetwork();
-
     const [lastPaymentMethods] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD);
     const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID);
     const lastPaymentMethod = iouReport?.type
@@ -97,7 +96,7 @@ function useSettlementButtonOptions({
     const hasIntentToPay = ((formattedPaymentMethods.length === 1 && isIOUReport(iouReport)) || policy?.achAccount?.state === CONST.BANK_ACCOUNT.STATE.OPEN) && !lastPaymentMethod;
 
     const {checkForNecessaryAction, userBillingGraceEndPeriods} = usePaymentGuard(chatReportID, reportID, policy);
-    const {approveButtonOption, handleApprove} = useApproveAction({data, iouReport, formattedAmount, shouldDisableApproveButton, confirmApproval, userBillingGraceEndPeriods});
+    const {approveButtonOption, handleApprove} = useApproveAction({iouReport, policyID, formattedAmount, shouldDisableApproveButton, confirmApproval, userBillingGraceEndPeriods});
     const {buildInvoiceOptions} = useInvoicePaymentOptions({data, checkForNecessaryAction, onPress, formattedAmount, lastPaymentMethod, hasIntentToPay});
 
     const businessBankAccountOptions =
@@ -350,11 +349,7 @@ function useSettlementButtonOptions({
         handlePaymentSelection,
         isExpenseReport,
         isInvoiceReport,
-        isOffline,
         lastPaymentPolicy,
-        styles: data.styles,
-        translate,
-        onPress,
     };
 }
 

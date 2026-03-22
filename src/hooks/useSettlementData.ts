@@ -13,7 +13,6 @@ import type PaymentMethod from '@src/types/onyx/PaymentMethod';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import useActiveAdminPolicies from './useActiveAdminPolicies';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
-import {useMemoizedLazyExpensifyIcons} from './useLazyAsset';
 import useLocalize from './useLocalize';
 import useOnyx from './useOnyx';
 import usePermissions from './usePermissions';
@@ -48,9 +47,8 @@ function useSettlementData({
     shouldShowPersonalBankAccountOption = false,
     shouldUseFakePolicyFallback = false,
 }: UseSettlementDataProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['CheckCircle', 'ThumbsUp', 'Bank', 'Cash', 'Wallet', 'Building', 'User'] as const);
     const styles = useThemeStyles();
-    const {translate, localeCompare} = useLocalize();
+    const {translate} = useLocalize();
     const policy = usePolicy(policyID);
     const {accountID} = useCurrentUserPersonalDetails();
 
@@ -115,12 +113,6 @@ function useSettlementData({
     };
 
     return {
-        icons,
-        styles,
-        translate,
-        localeCompare,
-        policy,
-        accountID,
         chatReport,
         reportID,
         policyIDKey,

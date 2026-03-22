@@ -13,6 +13,9 @@ import {
 } from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
+import {useMemoizedLazyExpensifyIcons} from './useLazyAsset';
+import useLocalize from './useLocalize';
 import useOnyx from './useOnyx';
 import useSettlementData from './useSettlementData';
 
@@ -43,6 +46,10 @@ function useBulkPayOptions({
     formattedAmount,
     onlyShowPayElsewhere,
 }: UseBulkPayOptionProps): UseBulkPayOptionReturnType {
+    const icons = useMemoizedLazyExpensifyIcons(['Building', 'User', 'Bank', 'Cash', 'Wallet']);
+    const {translate, localeCompare} = useLocalize();
+    const {accountID} = useCurrentUserPersonalDetails();
+
     const [iouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${selectedReportID}`);
 
     const data = useSettlementData({
@@ -51,19 +58,7 @@ function useBulkPayOptions({
         policyID: selectedPolicyID,
         currency,
     });
-    const {
-        icons,
-        translate,
-        localeCompare,
-        accountID,
-        chatReport,
-        personalBankAccountList,
-        businessBankAccountOptionList,
-        activeAdminPolicies,
-        paymentMethods,
-        showPayViaExpensifyOptions,
-        getFilteredBankItems,
-    } = data;
+    const {chatReport, personalBankAccountList, businessBankAccountOptionList, activeAdminPolicies, paymentMethods, showPayViaExpensifyOptions, getFilteredBankItems} = data;
 
     const isIOUReport = isIOUReportUtil(selectedReportID);
     const isExpenseReport = isExpenseReportUtil(selectedReportID);

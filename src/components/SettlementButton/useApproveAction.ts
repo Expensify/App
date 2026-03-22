@@ -1,9 +1,11 @@
 import type {OnyxCollection} from 'react-native-onyx';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
-import type useSettlementData from '@hooks/useSettlementData';
+import usePolicy from '@hooks/usePolicy';
 import {hasViolations as hasViolationsReportUtils} from '@libs/ReportUtils';
 import {approveMoneyRequest} from '@userActions/IOU';
 import CONST from '@src/CONST';
@@ -11,8 +13,8 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {BillingGraceEndPeriod, Report, TransactionViolation} from '@src/types/onyx';
 
 type ApproveActionParams = {
-    data: ReturnType<typeof useSettlementData>;
     iouReport: Report | undefined;
+    policyID: string;
     formattedAmount: string;
     shouldDisableApproveButton: boolean;
     confirmApproval?: () => void;
@@ -23,9 +25,11 @@ type ApproveActionParams = {
  * Handles the approve action: builds the approve button option and provides
  * the handler that calls approveMoneyRequest with all required parameters.
  */
-function useApproveAction({data, iouReport, formattedAmount, shouldDisableApproveButton, confirmApproval, userBillingGraceEndPeriods}: ApproveActionParams) {
-    const {icons, translate, policy, accountID} = data;
-    const {email} = useCurrentUserPersonalDetails();
+function useApproveAction({iouReport, policyID, formattedAmount, shouldDisableApproveButton, confirmApproval, userBillingGraceEndPeriods}: ApproveActionParams) {
+    const icons = useMemoizedLazyExpensifyIcons(['ThumbsUp'] as const);
+    const {translate} = useLocalize();
+    const policy = usePolicy(policyID);
+    const {accountID, email} = useCurrentUserPersonalDetails();
 
     const [iouReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${iouReport?.reportID}`);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
