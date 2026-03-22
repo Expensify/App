@@ -258,6 +258,7 @@ import type RecentlyUsedTags from '@src/types/onyx/RecentlyUsedTags';
 import type {ReportNextStep} from '@src/types/onyx/Report';
 import type ReportAction from '@src/types/onyx/ReportAction';
 import type {OnyxData} from '@src/types/onyx/Request';
+import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 import type {Comment, Receipt, ReceiptSource, Routes, SplitShares, TransactionChanges, TransactionCustomUnit, WaypointCollection} from '@src/types/onyx/Transaction';
 import type {FileObject} from '@src/types/utils/Attachment';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -1140,6 +1141,17 @@ function dismissModalAndOpenReportInInboxTab(reportID?: string, isInvoice?: bool
     } else {
         Navigation.dismissModalWithReport({reportID});
     }
+}
+
+/**
+ * Marks a transaction for highlight on the Search page when the expense was created
+ * from the global create button and the user is not on the Inbox tab.
+ */
+function highlightTransactionOnSearchRouteIfNeeded(isFromGlobalCreate: boolean | undefined, transactionID: string | undefined, dataType: SearchDataTypes) {
+    if (!isFromGlobalCreate || isReportTopmostSplitNavigator() || !transactionID) {
+        return;
+    }
+    mergeTransactionIdsHighlightOnSearchRoute(dataType, {[transactionID]: true});
 }
 
 /**
@@ -6604,9 +6616,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
     }
 
     if (!requestMoneyInformation.isRetry) {
-        if (isFromGlobalCreate && !isReportTopmostSplitNavigator() && transaction.transactionID) {
-            mergeTransactionIdsHighlightOnSearchRoute(CONST.SEARCH.DATA_TYPES.EXPENSE, {[transaction.transactionID]: true});
-        }
+        highlightTransactionOnSearchRouteIfNeeded(isFromGlobalCreate, transaction.transactionID, CONST.SEARCH.DATA_TYPES.EXPENSE);
 
         handleNavigateAfterExpenseCreate({
             activeReportID: backToReport ?? activeReportID,
@@ -6992,9 +7002,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
     }
 
     if (!params.isRetry) {
-        if (isFromGlobalCreate && !isReportTopmostSplitNavigator() && transaction?.transactionID) {
-            mergeTransactionIdsHighlightOnSearchRoute(CONST.SEARCH.DATA_TYPES.EXPENSE, {[transaction.transactionID]: true});
-        }
+        highlightTransactionOnSearchRouteIfNeeded(isFromGlobalCreate, transaction?.transactionID, CONST.SEARCH.DATA_TYPES.EXPENSE);
 
         handleNavigateAfterExpenseCreate({
             activeReportID,
@@ -7855,9 +7863,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
     InteractionManager.runAfterInteractions(() => removeDraftTransaction(CONST.IOU.OPTIMISTIC_TRANSACTION_ID));
     const activeReportID = isMoneyRequestReport && report?.reportID ? report.reportID : parameters.chatReportID;
 
-    if (isFromGlobalCreate && !isReportTopmostSplitNavigator() && parameters.transactionID) {
-        mergeTransactionIdsHighlightOnSearchRoute(CONST.SEARCH.DATA_TYPES.EXPENSE, {[parameters.transactionID]: true});
-    }
+    highlightTransactionOnSearchRouteIfNeeded(isFromGlobalCreate, parameters.transactionID, CONST.SEARCH.DATA_TYPES.EXPENSE);
 
     if (shouldHandleNavigation) {
         handleNavigateAfterExpenseCreate({activeReportID: backToReport ?? activeReportID, isFromGlobalCreate, transactionID: parameters.transactionID});
@@ -13288,6 +13294,7 @@ export {
     setMoneyRequestTimeCount,
     getCleanUpTransactionThreadReportOnyxData,
     handleNavigateAfterExpenseCreate,
+    highlightTransactionOnSearchRouteIfNeeded,
     buildMinimalTransactionForFormula,
     buildOnyxDataForMoneyRequest,
     createSplitsAndOnyxData,
