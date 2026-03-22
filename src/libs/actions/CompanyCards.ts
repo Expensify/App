@@ -48,8 +48,8 @@ type AddNewCompanyCardFlowData = {
     data?: Partial<AddNewCardFeedData>;
 };
 
-function setAssignCardStepAndData({cardToAssign, isEditing, currentStep}: Partial<AssignCard>) {
-    Onyx.merge(ONYXKEYS.ASSIGN_CARD, {cardToAssign, isEditing, currentStep});
+function setAssignCardStepAndData({cardToAssign, isEditing, currentStep, isRefreshing}: Partial<AssignCard>) {
+    Onyx.merge(ONYXKEYS.ASSIGN_CARD, {cardToAssign, isEditing, currentStep, isRefreshing});
 }
 
 function setTransactionStartDate(startDate: string) {
@@ -62,6 +62,10 @@ function clearAssignCardStepAndData() {
 
 function clearAssignCardErrors() {
     Onyx.merge(ONYXKEYS.ASSIGN_CARD, {errors: null});
+}
+
+function setFeedRefreshComplete() {
+    Onyx.merge(ONYXKEYS.ASSIGN_CARD, {isRefreshing: false});
 }
 
 function setAddNewCompanyCardStepAndData({data, isEditing, step}: NullishDeep<AddNewCompanyCardFlowData>) {
@@ -1080,4 +1084,5 @@ export {
     setFeedStatementPeriodEndDay,
     clearErrorField,
     clearAssignCardErrors,
+    setFeedRefreshComplete,
 };

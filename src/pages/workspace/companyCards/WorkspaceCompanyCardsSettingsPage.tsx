@@ -164,12 +164,12 @@ function WorkspaceCompanyCardsSettingsPage({
                                         return;
                                     }
                                     const isPlaid = !!getPlaidInstitutionId(feed);
-                                    const initialStep = isPlaid ? CONST.COMPANY_CARD.STEP.PLAID_CONNECTION : CONST.COMPANY_CARD.STEP.BANK_CONNECTION;
+                                    const currentStep = isPlaid ? CONST.COMPANY_CARD.STEP.PLAID_CONNECTION : CONST.COMPANY_CARD.STEP.BANK_CONNECTION;
                                     if (isPlaid) {
                                         const country = getPlaidCountry(policy?.outputCurrency, currencyList, countryByIp);
                                         setAddNewCompanyCardStepAndData({data: {selectedCountry: country}});
                                     }
-                                    setAssignCardStepAndData({currentStep: initialStep});
+                                    setAssignCardStepAndData({currentStep, isRefreshing: true});
                                     Navigation.setNavigationActionToMicrotaskQueue(() => {
                                         Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_REFRESH_CARD_FEED_CONNECTION.getRoute(policyID, selectedFeed));
                                     });

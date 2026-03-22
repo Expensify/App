@@ -25,6 +25,7 @@ function RefreshCardFeedConnectionPage({route, policy}: RefreshCardFeedConnectio
 
     const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD);
     const currentStep = assignCard?.currentStep;
+    const isRefreshing = assignCard?.isRefreshing;
 
     useEffect(() => {
         return () => {
@@ -33,11 +34,11 @@ function RefreshCardFeedConnectionPage({route, policy}: RefreshCardFeedConnectio
     }, []);
 
     useEffect(() => {
-        const isConnectionStep = currentStep === CONST.COMPANY_CARD.STEP.BANK_CONNECTION || currentStep === CONST.COMPANY_CARD.STEP.PLAID_CONNECTION;
-        if (currentStep && !isConnectionStep) {
-            Navigation.closeRHPFlow();
+        if (isRefreshing) {
+            return;
         }
-    }, [currentStep]);
+        Navigation.closeRHPFlow();
+    }, [isRefreshing]);
 
     switch (currentStep) {
         case CONST.COMPANY_CARD.STEP.BANK_CONNECTION:
