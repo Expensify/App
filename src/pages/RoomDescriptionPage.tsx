@@ -1,5 +1,5 @@
-import {useFocusEffect, useRoute} from '@react-navigation/native';
-import React, {useCallback, useRef, useState} from 'react';
+import {useRoute} from '@react-navigation/native';
+import React, {useCallback, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
@@ -11,7 +11,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
-import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
+import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useReportIsArchived from '@hooks/useReportIsArchived';
@@ -21,7 +21,6 @@ import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigat
 import type {ReportDescriptionNavigatorParamList} from '@libs/Navigation/types';
 import Parser from '@libs/Parser';
 import {canEditReportDescription, getReportDescription} from '@libs/ReportUtils';
-import updateMultilineInputRange from '@libs/updateMultilineInputRange';
 import variables from '@styles/variables';
 import {updateDescription} from '@userActions/Report';
 import CONST from '@src/CONST';
@@ -45,8 +44,7 @@ function RoomDescriptionPage({report, policy}: RoomDescriptionPageProps) {
     const backTo = route.params.backTo;
     const styles = useThemeStyles();
     const [description, setDescription] = useState(() => Parser.htmlToMarkdown(getReportDescription(report)));
-    const reportDescriptionInputRef = useRef<BaseTextInputRef | null>(null);
-    const focusTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const {inputCallbackRef} = useAutoFocusInput();
     const {translate} = useLocalize();
     const reportIsArchived = useReportIsArchived(report?.reportID);
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
@@ -76,20 +74,6 @@ function RoomDescriptionPage({report, policy}: RoomDescriptionPageProps) {
             return errors;
         },
         [translate],
-    );
-
-    useFocusEffect(
-        useCallback(() => {
-            focusTimeoutRef.current = setTimeout(() => {
-                reportDescriptionInputRef.current?.focus();
-                return () => {
-                    if (!focusTimeoutRef.current) {
-                        return;
-                    }
-                    clearTimeout(focusTimeoutRef.current);
-                };
-            }, CONST.ANIMATED_TRANSITION);
-        }, []),
     );
 
     const canEdit = canEditReportDescription(report, policy, reportIsArchived);
@@ -123,15 +107,7 @@ function RoomDescriptionPage({report, policy}: RoomDescriptionPageProps) {
                             role={CONST.ROLE.PRESENTATION}
                             autoGrowHeight
                             maxAutoGrowHeight={variables.textInputAutoGrowMaxHeight}
-                            ref={(el: BaseTextInputRef | null): void => {
-                                if (!el) {
-                                    return;
-                                }
-                                if (!reportDescriptionInputRef.current) {
-                                    updateMultilineInputRange(el, false);
-                                }
-                                reportDescriptionInputRef.current = el;
-                            }}
+                            ref={inputCallbackRef}
                             value={description}
                             onChangeText={handleReportDescriptionChange}
                             autoCapitalize="none"

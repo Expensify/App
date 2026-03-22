@@ -1,16 +1,16 @@
-import {useFocusEffect, useRoute} from '@react-navigation/native';
-import React, {useCallback, useRef} from 'react';
+import {useRoute} from '@react-navigation/native';
+import React, {useCallback} from 'react';
 import {View} from 'react-native';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TextInput from '@components/TextInput';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
+import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -20,7 +20,6 @@ import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigat
 import type {ReportDescriptionNavigatorParamList} from '@libs/Navigation/types';
 import Parser from '@libs/Parser';
 import {getCommentLength, isOpenTaskReport, isTaskReport} from '@libs/ReportUtils';
-import updateMultilineInputRange from '@libs/updateMultilineInputRange';
 import withReportOrNotFound from '@pages/inbox/report/withReportOrNotFound';
 import type {WithReportOrNotFoundProps} from '@pages/inbox/report/withReportOrNotFound';
 import variables from '@styles/variables';
@@ -69,29 +68,12 @@ function TaskDescriptionPage({report, currentUserPersonalDetails}: TaskDescripti
             Navigation.dismissModalWithReport({reportID: report?.reportID});
         });
     }
-    const inputRef = useRef<AnimatedTextInputRef | null>(null);
-    const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+    const {inputCallbackRef} = useAutoFocusInput();
 
     const isOpen = isOpenTaskReport(report);
     const isParentReportArchived = useReportIsArchived(report?.parentReportID);
     const canActuallyModifyTask = canModifyTask(report, currentUserPersonalDetails.accountID, isParentReportArchived);
     const isTaskNonEditable = isTaskReport(report) && (!canActuallyModifyTask || !isOpen);
-
-    useFocusEffect(
-        useCallback(() => {
-            focusTimeoutRef.current = setTimeout(() => {
-                if (inputRef.current) {
-                    inputRef.current.focus();
-                }
-                return () => {
-                    if (!focusTimeoutRef.current) {
-                        return;
-                    }
-                    clearTimeout(focusTimeoutRef.current);
-                };
-            }, CONST.ANIMATED_TRANSITION);
-        }, []),
-    );
 
     return (
         <ScreenWrapper
@@ -122,15 +104,7 @@ function TaskDescriptionPage({report, currentUserPersonalDetails}: TaskDescripti
                             label={translate('newTaskPage.descriptionOptional')}
                             accessibilityLabel={translate('newTaskPage.descriptionOptional')}
                             defaultValue={Parser.htmlToMarkdown(report?.description ?? '')}
-                            ref={(element: AnimatedTextInputRef | null) => {
-                                if (!element) {
-                                    return;
-                                }
-                                if (!inputRef.current) {
-                                    updateMultilineInputRange(inputRef.current);
-                                }
-                                inputRef.current = element;
-                            }}
+                            ref={inputCallbackRef}
                             autoGrowHeight
                             maxAutoGrowHeight={variables.textInputAutoGrowMaxHeight}
                             shouldSubmitForm
