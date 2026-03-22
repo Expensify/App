@@ -1,8 +1,8 @@
 import {act, cleanup, render, screen} from '@testing-library/react-native';
 import React from 'react';
+import {View} from 'react-native';
 import Onyx from 'react-native-onyx';
-import * as CompanyCardsActions from '@libs/actions/CompanyCards';
-import * as Navigation from '@libs/Navigation/Navigation';
+import {clearAssignCardStepAndData, setFeedRefreshComplete} from '@libs/actions/CompanyCards';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
@@ -10,70 +10,61 @@ import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 // Bypass the HOC and render the inner component directly
 jest.mock('@pages/workspace/withPolicyAndFullscreenLoading', () => (Component: React.ComponentType) => Component);
 
+const mockCloseRHPFlow = jest.fn();
+
 jest.mock('@hooks/useCardFeeds', () => ({
+    // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     default: jest.fn(),
 }));
 
 jest.mock('@pages/workspace/companyCards/BankConnection', () => ({
+    // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     // eslint-disable-next-line react/display-name
-    default: () => {
-        const {View} = require('react-native');
-        return <View testID="BankConnection" />;
-    },
+    default: () => <View testID="BankConnection" />,
 }));
 
 jest.mock('@pages/workspace/companyCards/addNew/PlaidConnectionStep', () => ({
+    // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     // eslint-disable-next-line react/display-name
-    default: () => {
-        const {View} = require('react-native');
-        return <View testID="PlaidConnectionStep" />;
-    },
+    default: () => <View testID="PlaidConnectionStep" />,
 }));
 
 jest.mock('@pages/LoadingPage', () => ({
+    // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     // eslint-disable-next-line react/display-name
-    default: () => {
-        const {View} = require('react-native');
-        return <View testID="LoadingPage" />;
-    },
+    default: () => <View testID="LoadingPage" />,
 }));
 
 jest.mock('@libs/Navigation/Navigation', () => ({
-    closeRHPFlow: jest.fn(),
+    closeRHPFlow: mockCloseRHPFlow,
     navigate: jest.fn(),
     goBack: jest.fn(),
     setNavigationActionToMicrotaskQueue: jest.fn(),
 }));
 
 jest.mock('@libs/actions/CompanyCards', () => ({
-    ...jest.requireActual<typeof import('@libs/actions/CompanyCards')>('@libs/actions/CompanyCards'),
     clearAssignCardStepAndData: jest.fn(),
     setFeedRefreshComplete: jest.fn(),
 }));
 
 jest.mock('@hooks/useLocalize', () => ({
+    // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     default: () => ({translate: (key: string) => key}),
 }));
 
-// eslint-disable-next-line @typescript-eslint/no-var-requires
+// eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-unsafe-member-access
 const useCardFeeds = require('@hooks/useCardFeeds').default as jest.Mock;
-// eslint-disable-next-line @typescript-eslint/no-var-requires
+// eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
 const RefreshCardFeedConnectionPage = require('@pages/workspace/companyCards/RefreshCardFeedConnectionPage').default;
 
 const MOCK_FEED = 'oauth.chase_bank_card_99999' as const;
-
-function buildProps(overrides = {}) {
-    return {
-        policy: {id: 'policy1'},
-        route: {params: {feed: MOCK_FEED}},
-        ...overrides,
-    };
-}
+const MOCK_POLICY = {id: 'policy1'};
+const MOCK_ROUTE = {params: {feed: MOCK_FEED}};
 
 describe('RefreshCardFeedConnectionPage', () => {
     beforeAll(() => {
@@ -92,7 +83,12 @@ describe('RefreshCardFeedConnectionPage', () => {
     });
 
     it('renders LoadingPage while currentStep is not set', async () => {
-        render(<RefreshCardFeedConnectionPage {...buildProps()} />);
+        render(
+            <RefreshCardFeedConnectionPage
+                policy={MOCK_POLICY}
+                route={MOCK_ROUTE}
+            />,
+        );
         await act(async () => {
             await waitForBatchedUpdates();
         });
@@ -107,7 +103,12 @@ describe('RefreshCardFeedConnectionPage', () => {
             isRefreshing: true,
         });
 
-        render(<RefreshCardFeedConnectionPage {...buildProps()} />);
+        render(
+            <RefreshCardFeedConnectionPage
+                policy={MOCK_POLICY}
+                route={MOCK_ROUTE}
+            />,
+        );
         await act(async () => {
             await waitForBatchedUpdates();
         });
@@ -121,7 +122,12 @@ describe('RefreshCardFeedConnectionPage', () => {
             isRefreshing: true,
         });
 
-        render(<RefreshCardFeedConnectionPage {...buildProps()} />);
+        render(
+            <RefreshCardFeedConnectionPage
+                policy={MOCK_POLICY}
+                route={MOCK_ROUTE}
+            />,
+        );
         await act(async () => {
             await waitForBatchedUpdates();
         });
@@ -135,7 +141,12 @@ describe('RefreshCardFeedConnectionPage', () => {
             isRefreshing: true,
         });
 
-        render(<RefreshCardFeedConnectionPage {...buildProps()} />);
+        render(
+            <RefreshCardFeedConnectionPage
+                policy={MOCK_POLICY}
+                route={MOCK_ROUTE}
+            />,
+        );
         await act(async () => {
             await waitForBatchedUpdates();
         });
@@ -146,7 +157,7 @@ describe('RefreshCardFeedConnectionPage', () => {
             await waitForBatchedUpdates();
         });
 
-        expect(Navigation.closeRHPFlow).toHaveBeenCalledTimes(1);
+        expect(mockCloseRHPFlow).toHaveBeenCalledTimes(1);
     });
 
     it('calls setFeedRefreshComplete when OAuth feed expiration updates while refreshing', async () => {
@@ -155,32 +166,44 @@ describe('RefreshCardFeedConnectionPage', () => {
             isRefreshing: true,
         });
 
-        const props = buildProps();
-        const {rerender} = render(<RefreshCardFeedConnectionPage {...props} />);
+        const {rerender} = render(
+            <RefreshCardFeedConnectionPage
+                policy={MOCK_POLICY}
+                route={MOCK_ROUTE}
+            />,
+        );
         await act(async () => {
             await waitForBatchedUpdates();
         });
 
         // Simulate bank re-authentication updating the feed expiration (OAuth path).
         // Re-render is needed to propagate the new mock return value.
-        await act(async () => {
-            useCardFeeds.mockReturnValue([{[MOCK_FEED]: {expiration: '2025-01-01'}}, {status: 'loaded'}]);
-            rerender(<RefreshCardFeedConnectionPage {...props} />);
-            await waitForBatchedUpdates();
-        });
+        useCardFeeds.mockReturnValue([{[MOCK_FEED]: {expiration: '2025-01-01'}}, {status: 'loaded'}]);
+        rerender(
+            <RefreshCardFeedConnectionPage
+                policy={MOCK_POLICY}
+                route={MOCK_ROUTE}
+            />,
+        );
+        await waitForBatchedUpdates();
 
-        expect(CompanyCardsActions.setFeedRefreshComplete).toHaveBeenCalledTimes(1);
+        expect(setFeedRefreshComplete).toHaveBeenCalledTimes(1);
     });
 
     it('calls clearAssignCardStepAndData on unmount', async () => {
-        const {unmount} = render(<RefreshCardFeedConnectionPage {...buildProps()} />);
+        const {unmount} = render(
+            <RefreshCardFeedConnectionPage
+                policy={MOCK_POLICY}
+                route={MOCK_ROUTE}
+            />,
+        );
         await act(async () => {
             await waitForBatchedUpdates();
         });
 
         unmount();
 
-        expect(CompanyCardsActions.clearAssignCardStepAndData).toHaveBeenCalledTimes(1);
+        expect(clearAssignCardStepAndData).toHaveBeenCalledTimes(1);
     });
 });
 
@@ -207,8 +230,9 @@ describe('setFeedRefreshComplete action', () => {
         await waitForBatchedUpdates();
         expect(assignCard?.isRefreshing).toBe(true);
 
-        const {setFeedRefreshComplete} = jest.requireActual<typeof import('@libs/actions/CompanyCards')>('@libs/actions/CompanyCards');
-        setFeedRefreshComplete();
+        // eslint-disable-next-line @typescript-eslint/consistent-type-imports
+        const {setFeedRefreshComplete: actualSetFeedRefreshComplete} = jest.requireActual<typeof import('@libs/actions/CompanyCards')>('@libs/actions/CompanyCards');
+        actualSetFeedRefreshComplete();
         await waitForBatchedUpdates();
 
         // Onyx removes the key when merging null, so isRefreshing becomes falsy
@@ -216,8 +240,9 @@ describe('setFeedRefreshComplete action', () => {
     });
 
     it('sets isRefreshing and currentStep when starting a feed refresh', async () => {
-        const {setAssignCardStepAndData} = jest.requireActual<typeof import('@libs/actions/CompanyCards')>('@libs/actions/CompanyCards');
-        setAssignCardStepAndData({currentStep: CONST.COMPANY_CARD.STEP.BANK_CONNECTION, isRefreshing: true});
+        // eslint-disable-next-line @typescript-eslint/consistent-type-imports
+        const {setAssignCardStepAndData: actualSetAssignCardStepAndData} = jest.requireActual<typeof import('@libs/actions/CompanyCards')>('@libs/actions/CompanyCards');
+        actualSetAssignCardStepAndData({currentStep: CONST.COMPANY_CARD.STEP.BANK_CONNECTION, isRefreshing: true});
         await waitForBatchedUpdates();
 
         expect(assignCard?.isRefreshing).toBe(true);
