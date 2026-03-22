@@ -15074,7 +15074,7 @@ describe('actions/IOU', () => {
 
             // When updating the money request with distance and waypoints
             updateMoneyRequestDistance({
-                transactionID,
+                transaction: fakeTransaction,
                 transactionThreadReport,
                 parentReport,
                 waypoints: fakeWaypoints,
@@ -15159,7 +15159,7 @@ describe('actions/IOU', () => {
 
             // When updating the money request WITHOUT distance (only waypoints)
             updateMoneyRequestDistance({
-                transactionID,
+                transaction: fakeTransaction,
                 transactionThreadReport,
                 parentReport,
                 waypoints: {
@@ -15238,7 +15238,7 @@ describe('actions/IOU', () => {
 
             // First update: Add more waypoints to the expense
             updateMoneyRequestDistance({
-                transactionID,
+                transaction: fakeTransaction,
                 transactionThreadReport,
                 parentReport,
                 waypoints: updatedWaypoints,
@@ -15305,7 +15305,7 @@ describe('actions/IOU', () => {
 
             // Call with empty waypoints - should not crash
             updateMoneyRequestDistance({
-                transactionID,
+                transaction: fakeTransaction,
                 transactionThreadReport,
                 parentReport,
                 waypoints: emptyWaypoints,
@@ -15349,7 +15349,7 @@ describe('actions/IOU', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID2}`, fakeTransaction2);
 
             updateMoneyRequestDistance({
-                transactionID: transactionID2,
+                transaction: fakeTransaction2,
                 transactionThreadReport,
                 parentReport,
                 waypoints: {
