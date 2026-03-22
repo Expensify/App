@@ -89,6 +89,7 @@ import {
 } from '@libs/ReportUtils';
 import {cancelSpan, cancelSpansByPrefix} from '@libs/telemetry/activeSpans';
 import {getParentReportActionDeletionStatus} from '@libs/TransactionNavigationUtils';
+import {isExpensifyCardTransaction, isPending} from '@libs/TransactionUtils';
 import {isNumeric} from '@libs/ValidationUtils';
 import type {ReportsSplitNavigatorParamList, RightModalNavigatorParamList} from '@navigation/types';
 import {setShouldShowComposeInput} from '@userActions/Composer';
@@ -470,7 +471,9 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
         parentReportMetadata,
         isOffline,
     });
-    const isDeletedTransactionThread = isReportTransactionThread(report) && (isParentActionDeleted || isParentActionMissingAfterLoad);
+    // Pending Expensify card transactions may not have a parent IOU action yet, so don't treat them as deleted
+    const hasPendingCardTransaction = Object.values(allReportTransactions ?? {}).some((transaction) => transaction && isExpensifyCardTransaction(transaction) && isPending(transaction));
+    const isDeletedTransactionThread = isReportTransactionThread(report) && (isParentActionDeleted || (isParentActionMissingAfterLoad && !hasPendingCardTransaction));
     const [deleteTransactionNavigateBackUrl] = useOnyx(ONYXKEYS.NVP_DELETE_TRANSACTION_NAVIGATE_BACK_URL);
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundLinkedAction =
