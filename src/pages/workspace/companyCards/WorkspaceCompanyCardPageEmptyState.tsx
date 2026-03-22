@@ -12,6 +12,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {hasIssuedExpensifyCard} from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import {isUserValidatedSelector} from '@selectors/Account';
 import colors from '@styles/theme/colors';
 import {clearAddNewCardFlow} from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
@@ -31,6 +32,7 @@ function WorkspaceCompanyCardPageEmptyState({policyID, shouldShowGBDisclaimer}: 
     const {isActingAsDelegate} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
     const [allWorkspaceCards] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST);
+    const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isUserValidatedSelector});
 
     const policy = usePolicy(policyID);
     const workspaceAccountID = policy?.workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID;
@@ -88,6 +90,10 @@ function WorkspaceCompanyCardPageEmptyState({policyID, shouldShowGBDisclaimer}: 
         }
         if (isActingAsDelegate) {
             showDelegateNoAccessModal();
+            return;
+        }
+        if (!isUserValidated) {
+            Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_VERIFY_ACCOUNT.getRoute(policy.id));
             return;
         }
         clearAddNewCardFlow();

@@ -1306,6 +1306,12 @@ type SettingsNavigatorParamList = {
         policyID: string;
         feed: CompanyCardFeedWithDomainID;
     };
+    [SCREENS.WORKSPACE.COMPANY_CARDS_VERIFY_ACCOUNT]: {
+        policyID: string;
+
+        /** Present when verifying before a feed refresh; absent when verifying before adding a new feed */
+        feed?: CompanyCardFeedWithDomainID;
+    };
     [SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD_ASSIGNEE]: {
         policyID: string;
         feed: CompanyCardFeedWithDomainID;

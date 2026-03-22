@@ -32,6 +32,7 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
+import {isUserValidatedSelector} from '@selectors/Account';
 import {setAddNewCompanyCardStepAndData, setAssignCardStepAndData} from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -55,6 +56,7 @@ function WorkspaceCompanyCardsSettingsPage({
     const [cardFeeds] = useCardFeeds(policyID);
     const [lastSelectedFeed] = useOnyx(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${policyID}`);
     const [countryByIp] = useOnyx(ONYXKEYS.COUNTRY);
+    const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isUserValidatedSelector});
     const {currencyList} = useCurrencyListState();
 
     const selectedFeed = useMemo(() => getSelectedFeed(lastSelectedFeed, cardFeeds), [cardFeeds, lastSelectedFeed]);
@@ -170,6 +172,10 @@ function WorkspaceCompanyCardsSettingsPage({
                                 description={translate('workspace.companyCards.assignNewCards.description')}
                                 onPress={() => {
                                     if (!selectedFeed) {
+                                        return;
+                                    }
+                                    if (!isUserValidated) {
+                                        Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_VERIFY_ACCOUNT.getRoute(policyID, selectedFeed));
                                         return;
                                     }
                                     const isPlaid = !!getPlaidInstitutionId(feed);
