@@ -118,7 +118,7 @@ function useOptions(reportAttributesDerived: ReportAttributesDerivedValue['repor
             allPolicyTags,
             countryCode,
             reportAttributesDerived,
-            sortedActions,
+            sortedActions: {},
         },
     );
 
