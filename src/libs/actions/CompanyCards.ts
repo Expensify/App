@@ -65,7 +65,7 @@ function clearAssignCardErrors() {
 }
 
 function setFeedRefreshComplete() {
-    Onyx.merge(ONYXKEYS.ASSIGN_CARD, {isRefreshing: false});
+    Onyx.merge(ONYXKEYS.ASSIGN_CARD, {isRefreshing: null});
 }
 
 function setAddNewCompanyCardStepAndData({data, isEditing, step}: NullishDeep<AddNewCompanyCardFlowData>) {
