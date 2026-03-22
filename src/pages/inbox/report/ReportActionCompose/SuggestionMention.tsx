@@ -226,10 +226,8 @@ function SuggestionMention({
             // We split trailing dot from the mention token so selecting `@a.` can become `@adam.`
             // (preserve sentence punctuation) instead of consuming the `.` into the replacement.
             let trailingDot = '';
-            let mentionToReplace = originalMention;
             if (suggestionValues.prefixType === '@' && suggestionValues.mentionPrefix.endsWith('.')) {
                 trailingDot = originalMention.match(CONST.REGEX.TRAILING_DOTS)?.[0] ?? '';
-                mentionToReplace = originalMention.slice(0, originalMention.length - trailingDot.length);
             }
 
             // Append a preserved trailing dot only when it is sentence punctuation, not part of the selected mention match.
@@ -238,9 +236,7 @@ function SuggestionMention({
                     ? trailingDot
                     : '';
 
-            const commentAfterMention = value.slice(
-                suggestionValues.atSignIndex + Math.max(mentionToReplace.length, suggestionValues.mentionPrefix.length + suggestionValues.prefixType.length),
-            );
+            const commentAfterMention = value.slice(suggestionValues.atSignIndex + suggestionValues.mentionPrefix.length + suggestionValues.prefixType.length);
 
             const trimmedCommentAfterMention = trimLeadingSpace(commentAfterMention);
             const spacer = !trimmedCommentAfterMention || !CONST.REGEX.STARTS_WITH_PUNCTUATION.test(trimmedCommentAfterMention) ? ' ' : '';

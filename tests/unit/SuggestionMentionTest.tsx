@@ -244,4 +244,27 @@ describe('SuggestionMention', () => {
         expect(updateComment).toHaveBeenCalledWith('@adam@example.com thanks', true);
         expect(setSelection).toHaveBeenCalledWith({start: 18, end: 18});
     });
+
+    it('preserves existing mention when adding a new mention at the beginning', async () => {
+        mockPersonalDetails = {};
+        mockPersonalDetails[2] = {
+            accountID: 2,
+            login: 'adam@example.com',
+            firstName: 'Adam',
+            lastName: 'Tester',
+        };
+
+        const updateComment = jest.fn();
+        // User typed @a at the beginning of an existing mention @john@example.com
+        const {setSelection} = renderSuggestionMention('@a@john@example.com ', updateComment, {start: 2, end: 2});
+
+        await waitFor(() => expect(mockMentionSuggestionsSpy).toHaveBeenCalled());
+        const {onSelect} = getLastMentionSuggestionsProps();
+
+        act(() => onSelect(0));
+
+        // The existing mention should be preserved after the new mention
+        expect(updateComment).toHaveBeenCalledWith('@adam@example.com @john@example.com ', true);
+        expect(setSelection).toHaveBeenCalledWith({start: 18, end: 18});
+    });
 });
