@@ -13201,7 +13201,11 @@ function rejectExpenseReport(
               predictedNextStatus: CONST.REPORT.STATUS_NUM.OPEN,
               isRejectedReport: true,
           })
-        : undefined;
+        : buildOptimisticNextStep({
+              report,
+              predictedNextStatus: CONST.REPORT.STATUS_NUM.SUBMITTED,
+              bypassNextApproverID: targetAccountID,
+          });
 
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.NEXT_STEP>> = [
         {
@@ -13213,9 +13217,9 @@ function rejectExpenseReport(
                 statusNum: optimisticStatusNum,
                 pendingFields: {
                     partial: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-                    ...(isRejectToSubmitter ? {nextStep: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE} : {}),
+                    nextStep: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                 },
-                ...(isRejectToSubmitter ? {nextStep: optimisticNextStep} : {}),
+                nextStep: optimisticNextStep,
             },
         },
         {
@@ -13234,19 +13238,25 @@ function rejectExpenseReport(
         },
     ];
 
-    if (isRejectToSubmitter) {
-        optimisticData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${reportID}`,
-            // buildOptimisticNextStep is used in parallel
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            value: buildNextStepNew({
-                report,
-                predictedNextStatus: CONST.REPORT.STATUS_NUM.OPEN,
-                isRejectedReport: true,
-            }),
-        });
-    }
+    optimisticData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${reportID}`,
+        // buildOptimisticNextStep is used in parallel
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        value: isRejectToSubmitter
+            ? buildNextStepNew({
+                  report,
+                  predictedNextStatus: CONST.REPORT.STATUS_NUM.OPEN,
+                  isRejectedReport: true,
+              })
+            : // buildOptimisticNextStep is used in parallel
+              // eslint-disable-next-line @typescript-eslint/no-deprecated
+              buildNextStepNew({
+                  report,
+                  predictedNextStatus: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                  bypassNextApproverID: targetAccountID,
+              }),
+    });
 
     if (report.parentReportID && report.parentReportActionID) {
         optimisticData.push({
@@ -13268,7 +13278,7 @@ function rejectExpenseReport(
             value: {
                 pendingFields: {
                     partial: null,
-                    ...(isRejectToSubmitter ? {nextStep: null} : {}),
+                    nextStep: null,
                 },
                 errorFields: {
                     partial: null,
@@ -13299,12 +13309,12 @@ function rejectExpenseReport(
                 statusNum: report.statusNum,
                 pendingFields: {
                     partial: null,
-                    ...(isRejectToSubmitter ? {nextStep: null} : {}),
+                    nextStep: null,
                 },
                 errorFields: {
                     partial: getMicroSecondOnyxErrorWithTranslationKey('iou.rejectReport.couldNotReject'),
                 },
-                ...(isRejectToSubmitter ? {nextStep: report.nextStep ?? null} : {}),
+                nextStep: report.nextStep ?? null,
             },
         },
         {
@@ -13321,13 +13331,11 @@ function rejectExpenseReport(
         },
     ];
 
-    if (isRejectToSubmitter) {
-        failureData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${reportID}`,
-            value: null,
-        });
-    }
+    failureData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${reportID}`,
+        value: null,
+    });
 
     if (report.parentReportID && report.parentReportActionID) {
         failureData.push({
