@@ -188,7 +188,7 @@ function IOURequestStepDistanceManual({
 
                 if (shouldUpdateTransaction) {
                     updateMoneyRequestDistance({
-                        transactionID: transaction?.transactionID,
+                        transaction,
                         transactionThreadReport: report,
                         parentReport,
                         distance: distanceAsFloat,
