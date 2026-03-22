@@ -409,11 +409,11 @@ function MoneyRequestReceiptView({
 
         const file = files.at(0);
 
-        if (!file || !linkedTransactionID) {
+        if (!file || !transaction) {
             return;
         }
         const source = URL.createObjectURL(file as Blob);
-        replaceReceipt({transactionID: linkedTransactionID, file: file as File, source, transactionPolicy: policy, transactionPolicyCategories: policyCategories});
+        replaceReceipt({transaction, file: file as File, source, transactionPolicy: policy, transactionPolicyCategories: policyCategories});
     };
 
     // For empty receipt should be fullHeight

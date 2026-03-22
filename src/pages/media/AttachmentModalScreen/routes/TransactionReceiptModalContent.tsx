@@ -309,7 +309,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
                     setMoneyRequestReceipt(transaction.transactionID, imageUriResult, rotatedFilename, isDraftTransaction, fileType);
                 } else {
                     replaceReceipt({
-                        transactionID: transaction.transactionID,
+                        transaction,
                         file,
                         source: imageUriResult,
                         state: transaction.receipt?.state,
@@ -323,7 +323,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
             .catch(() => {
                 setIsRotating(false);
             });
-    }, [transaction?.transactionID, isDraftTransaction, isOdometerImage, imageType, sourceUri, isImage, receiptFilename, fileName, fileType, policyCategories, transaction?.receipt, policy]);
+    }, [transaction, isDraftTransaction, isOdometerImage, imageType, sourceUri, isImage, receiptFilename, fileName, fileType, policyCategories, transaction?.receipt, policy]);
 
     const shouldShowRotateAndCropReceiptButton = useMemo(
         () =>
@@ -396,7 +396,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
                     setMoneyRequestReceipt(transaction.transactionID, imageUriResult, croppedFilename, isDraftTransaction, fileType);
                 } else {
                     replaceReceipt({
-                        transactionID: transaction.transactionID,
+                        transaction,
                         file,
                         source: imageUriResult,
                         transactionPolicyCategories: policyCategories,
@@ -410,7 +410,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
                 setIsCropSaving(false);
             });
     }, [
-        transaction?.transactionID,
+        transaction,
         isDraftTransaction,
         isOdometerImage,
         imageType,

@@ -12253,7 +12253,7 @@ describe('actions/IOU', () => {
 
             try {
                 // When the receipt is replaced
-                replaceReceipt({transactionID, file, source, transactionPolicy: undefined});
+                replaceReceipt({transaction, file, source, transactionPolicy: undefined});
                 await waitForBatchedUpdates();
 
                 // Then the transaction should have the new receipt source
@@ -12312,7 +12312,7 @@ describe('actions/IOU', () => {
 
             try {
                 // When the receipt is replaced with the state preserved (e.g. rotating receipt)
-                replaceReceipt({transactionID, file, source, state: CONST.IOU.RECEIPT_STATE.SCAN_READY, transactionPolicy: undefined});
+                replaceReceipt({transaction, file, source, state: CONST.IOU.RECEIPT_STATE.SCAN_READY, transactionPolicy: undefined});
                 await waitForBatchedUpdates();
 
                 // Then the transaction should have the new receipt source but preserve the state
@@ -12367,7 +12367,7 @@ describe('actions/IOU', () => {
 
             try {
                 // When the receipt is replaced
-                replaceReceipt({transactionID, file, source, transactionPolicy: undefined});
+                replaceReceipt({transaction, file, source, transactionPolicy: undefined});
                 await waitForBatchedUpdates();
 
                 // Then the transaction should have the new receipt source
