@@ -139,7 +139,11 @@ function AddressSearch({
     const [shouldHidePredefinedPlaces, setShouldHidePredefinedPlaces] = useState(false);
     const containerRef = useRef<View>(null);
 
-    useDebouncedAccessibilityAnnouncement(translate('common.suggestionsAvailableFor', searchValue.trim()), displayListViewBorder && isTyping && !isLoadingResults && !isListEmpty, searchValue);
+    useDebouncedAccessibilityAnnouncement(
+        translate('common.suggestionsAvailableFor', searchValue.trim()),
+        displayListViewBorder && isTyping && !isLoadingResults && !isListEmpty,
+        searchValue,
+    );
 
     const query = useMemo(
         () => ({
