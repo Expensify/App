@@ -420,6 +420,7 @@ type TrackedExpenseParams = {
     >;
     reportInformation: TrackedExpenseReportInformation;
     transactionParams: TrackedExpenseTransactionParams;
+    onyxTransaction: OnyxEntry<OnyxTypes.Transaction>;
     policyParams: TrackedExpensePolicyParams;
     createdWorkspaceParams?: CreateWorkspaceParams;
     accountantParams?: TrackExpenseAccountantParams;
@@ -5589,7 +5590,7 @@ function updateMoneyRequestDistanceRate({
 }
 
 const getConvertTrackedExpenseInformation = (
-    transactionID: string | undefined,
+    transaction: OnyxEntry<OnyxTypes.Transaction>,
     actionableWhisperReportActionID: string | undefined,
     moneyRequestReportID: string | undefined,
     linkedTrackedExpenseReportAction: OnyxTypes.ReportAction,
@@ -5605,7 +5606,6 @@ const getConvertTrackedExpenseInformation = (
     const failureData: Array<
         OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS | typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>
     > = [];
-    const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
     // Delete the transaction from the track expense report
     const {
         optimisticData: deleteOptimisticData,
@@ -5834,6 +5834,7 @@ type ConvertTrackedExpenseToRequestParams = {
     };
     onyxData: OnyxData<BuildOnyxDataForMoneyRequestKeys>;
     workspaceParams?: ConvertTrackedWorkspaceParams;
+    onyxTransaction: OnyxEntry<OnyxTypes.Transaction>;
 };
 
 function addTrackedExpenseToPolicy(parameters: AddTrackedExpenseToPolicyParam, onyxData: OnyxData<BuildOnyxDataForMoneyRequestKeys>) {
@@ -5841,7 +5842,7 @@ function addTrackedExpenseToPolicy(parameters: AddTrackedExpenseToPolicyParam, o
 }
 
 function convertTrackedExpenseToRequest(convertTrackedExpenseParams: ConvertTrackedExpenseToRequestParams) {
-    const {payerParams, transactionParams, chatParams, iouParams, onyxData, workspaceParams} = convertTrackedExpenseParams;
+    const {payerParams, transactionParams, chatParams, iouParams, onyxData, workspaceParams, onyxTransaction} = convertTrackedExpenseParams;
     const {accountID: payerAccountID, email: payerEmail} = payerParams;
     const {
         transactionID,
@@ -5870,7 +5871,7 @@ function convertTrackedExpenseToRequest(convertTrackedExpenseParams: ConvertTrac
     failureData?.push(...(onyxData.failureData ?? []));
 
     const convertTrackedExpenseInformation = getConvertTrackedExpenseInformation(
-        transactionID,
+        onyxTransaction,
         actionableWhisperReportActionID,
         iouParams.reportID,
         linkedTrackedExpenseReportAction,
@@ -6156,6 +6157,7 @@ function convertBulkTrackedExpensesToIOU({
                 reportActionID: iouAction.reportActionID,
             },
             onyxData,
+            onyxTransaction: moneyRequestTransaction,
         };
 
         convertTrackedExpenseToRequest(convertParams);
@@ -6163,9 +6165,8 @@ function convertBulkTrackedExpensesToIOU({
 }
 
 function categorizeTrackedExpense(trackedExpenseParams: TrackedExpenseParams) {
-    const {onyxData, reportInformation, transactionParams, policyParams, createdWorkspaceParams} = trackedExpenseParams;
+    const {onyxData, reportInformation, transactionParams, policyParams, createdWorkspaceParams, onyxTransaction} = trackedExpenseParams;
     const {optimisticData, successData, failureData} = onyxData ?? {};
-    const {transactionID} = transactionParams;
     const {isDraftPolicy} = policyParams;
     const {
         actionableWhisperReportActionID,
@@ -6181,7 +6182,7 @@ function categorizeTrackedExpense(trackedExpenseParams: TrackedExpenseParams) {
         failureData: moveTransactionFailureData,
         modifiedExpenseReportActionID,
     } = getConvertTrackedExpenseInformation(
-        transactionID,
+        onyxTransaction,
         actionableWhisperReportActionID,
         moneyRequestReportID,
         linkedTrackedExpenseReportAction,
@@ -6225,7 +6226,7 @@ function categorizeTrackedExpense(trackedExpenseParams: TrackedExpenseParams) {
 }
 
 function shareTrackedExpense(trackedExpenseParams: TrackedExpenseParams) {
-    const {onyxData: trackedExpenseOnyxData, reportInformation, transactionParams, policyParams, createdWorkspaceParams, accountantParams} = trackedExpenseParams;
+    const {onyxData: trackedExpenseOnyxData, reportInformation, transactionParams, policyParams, createdWorkspaceParams, accountantParams, onyxTransaction} = trackedExpenseParams;
 
     const policyID = policyParams?.policyID;
     const chatReportID = reportInformation?.chatReportID;
@@ -6249,7 +6250,6 @@ function shareTrackedExpense(trackedExpenseParams: TrackedExpenseParams) {
         failureData: trackedExpenseOnyxData?.failureData ?? [],
     };
 
-    const {transactionID} = transactionParams;
     const {
         actionableWhisperReportActionID,
         moneyRequestPreviewReportActionID,
@@ -6263,7 +6263,7 @@ function shareTrackedExpense(trackedExpenseParams: TrackedExpenseParams) {
     } = reportInformation;
 
     const convertTrackedExpenseInformation = getConvertTrackedExpenseInformation(
-        transactionID,
+        onyxTransaction,
         actionableWhisperReportActionID,
         moneyRequestReportID,
         linkedTrackedExpenseReportAction,
@@ -6522,6 +6522,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
                     customUnitRateID: isDistanceRequest ? customUnitRateID : undefined,
                     waypoints: isDistanceRequest ? sanitizedWaypoints : undefined,
                 },
+                onyxTransaction: transaction,
                 chatParams: {
                     reportID: chatReport.reportID,
                     createdReportActionID: createdChatReportActionID,
@@ -6868,6 +6869,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
                 transactionParams,
                 policyParams,
                 createdWorkspaceParams,
+                onyxTransaction: transaction,
             };
 
             categorizeTrackedExpense(trackedExpenseParams);
@@ -6919,6 +6921,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
                 policyParams,
                 createdWorkspaceParams,
                 accountantParams,
+                onyxTransaction: transaction,
             };
             shareTrackedExpense(trackedExpenseParams);
             break;
