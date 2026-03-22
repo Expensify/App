@@ -253,7 +253,7 @@ const translations = {
         na: 'N/A',
         noResultsFound: 'No results found',
         noResultsFoundMatching: (searchString: string) => `No results found matching "${searchString}"`,
-        suggestionsAvailable: 'Suggestions available',
+        suggestionsAvailableFor: (searchString: string) => `Suggestions available for "${searchString}".`,
         recentDestinations: 'Recent destinations',
         timePrefix: "It's",
         conjunctionFor: 'for',

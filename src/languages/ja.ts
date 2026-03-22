@@ -250,7 +250,7 @@ const translations: TranslationDeepObject<typeof en> = {
         na: '該当なし',
         noResultsFound: '結果が見つかりません',
         noResultsFoundMatching: (searchString: string) => `"${searchString}" に一致する結果は見つかりませんでした`,
-        suggestionsAvailable: '候補が利用可能',
+        suggestionsAvailableFor: (searchString: string) => `「${searchString}」の候補が利用可能です。`,
         recentDestinations: '最近の宛先',
         timePrefix: 'それは',
         conjunctionFor: '〜用',

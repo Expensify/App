@@ -250,7 +250,7 @@ const translations: TranslationDeepObject<typeof en> = {
         na: 'n.v.t.',
         noResultsFound: 'Geen resultaten gevonden',
         noResultsFoundMatching: (searchString: string) => `Geen resultaten gevonden voor "${searchString}"`,
-        suggestionsAvailable: 'Suggesties beschikbaar',
+        suggestionsAvailableFor: (searchString: string) => `Suggesties beschikbaar voor "${searchString}".`,
         recentDestinations: 'Recente bestemmingen',
         timePrefix: 'Het is',
         conjunctionFor: 'voor',
