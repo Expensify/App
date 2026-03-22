@@ -124,6 +124,12 @@ const DYNAMIC_ROUTES = {
         path: 'travel/upgrade',
         entryScreens: [SCREENS.TRAVEL.MY_TRIPS, SCREENS.SEARCH.ROOT, SCREENS.WORKSPACE.TRAVEL],
     },
+    TRAVEL_DOMAIN_SELECTOR: {
+        path: 'travel/domain-selector',
+        entryScreens: [SCREENS.TRAVEL.MY_TRIPS, SCREENS.SEARCH.ROOT, SCREENS.WORKSPACE.TRAVEL],
+        getRoute: (policyID?: string) => (policyID ? `travel/domain-selector?policyID=${policyID}` : 'travel/domain-selector'),
+        queryParams: ['policyID'],
+    },
 } as const satisfies DynamicRoutes;
 
 const ROUTES = {
@@ -2991,12 +2997,7 @@ const ROUTES = {
             return getUrlWithBackToParam(`r/${reportID}/trip/${transactionID}/${pnr}/${sequenceIndex}`, backTo);
         },
     },
-    TRAVEL_DOMAIN_SELECTOR: {
-        route: 'travel/domain-selector',
-
-        // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-        getRoute: (policyID?: string, backTo?: string) => getUrlWithBackToParam(`travel/domain-selector?${policyID ? `policyID=${policyID}` : ''}`, backTo),
-    },
+    TRAVEL_DOMAIN_SELECTOR: 'travel/domain-selector',
     TRAVEL_DOMAIN_PERMISSION_INFO: {
         route: 'travel/domain-permission/:domain/info',
 
