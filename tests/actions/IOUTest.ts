@@ -6078,6 +6078,7 @@ describe('actions/IOU', () => {
                 chatReportID: reportID,
                 reportAction: iouAction,
                 updatedTransaction: updatedSplitTransaction,
+                unmodifiedTransaction: splitTransaction,
                 sessionAccountID: RORY_ACCOUNT_ID,
                 isASAPSubmitBetaEnabled: false,
                 quickAction: undefined,

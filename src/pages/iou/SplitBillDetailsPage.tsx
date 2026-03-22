@@ -111,6 +111,7 @@ function SplitBillDetailsPage({route, report, reportAction}: SplitBillDetailsPag
             chatReportID: reportID,
             reportAction,
             updatedTransaction: draftTransaction,
+            unmodifiedTransaction: transaction,
             sessionAccountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
             isASAPSubmitBetaEnabled,
             quickAction,
@@ -119,7 +120,7 @@ function SplitBillDetailsPage({route, report, reportAction}: SplitBillDetailsPag
             personalDetails,
             sessionEmail: session?.email,
         });
-    }, [reportID, reportAction, draftTransaction, session?.accountID, session?.email, isASAPSubmitBetaEnabled, quickAction, transactionViolations, betas, personalDetails]);
+    }, [reportID, reportAction, draftTransaction, transaction, session?.accountID, session?.email, isASAPSubmitBetaEnabled, quickAction, transactionViolations, betas, personalDetails]);
 
     return (
         <ScreenWrapper testID="SplitBillDetailsPage">
