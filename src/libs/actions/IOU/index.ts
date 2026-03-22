@@ -13195,6 +13195,14 @@ function rejectExpenseReport(
     const optimisticStateNum = isRejectToSubmitter ? CONST.REPORT.STATE_NUM.OPEN : CONST.REPORT.STATE_NUM.SUBMITTED;
     const optimisticStatusNum = isRejectToSubmitter ? CONST.REPORT.STATUS_NUM.OPEN : CONST.REPORT.STATUS_NUM.SUBMITTED;
 
+    const optimisticNextStep = isRejectToSubmitter
+        ? buildOptimisticNextStep({
+              report,
+              predictedNextStatus: CONST.REPORT.STATUS_NUM.OPEN,
+              isRejectedReport: true,
+          })
+        : undefined;
+
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.NEXT_STEP>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -13205,7 +13213,9 @@ function rejectExpenseReport(
                 statusNum: optimisticStatusNum,
                 pendingFields: {
                     partial: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                    ...(isRejectToSubmitter ? {nextStep: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE} : {}),
                 },
+                ...(isRejectToSubmitter ? {nextStep: optimisticNextStep} : {}),
             },
         },
         {
@@ -13228,6 +13238,7 @@ function rejectExpenseReport(
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${reportID}`,
+            // buildOptimisticNextStep is used in parallel
             // eslint-disable-next-line @typescript-eslint/no-deprecated
             value: buildNextStepNew({
                 report,
@@ -13257,6 +13268,7 @@ function rejectExpenseReport(
             value: {
                 pendingFields: {
                     partial: null,
+                    ...(isRejectToSubmitter ? {nextStep: null} : {}),
                 },
                 errorFields: {
                     partial: null,
@@ -13287,10 +13299,12 @@ function rejectExpenseReport(
                 statusNum: report.statusNum,
                 pendingFields: {
                     partial: null,
+                    ...(isRejectToSubmitter ? {nextStep: null} : {}),
                 },
                 errorFields: {
                     partial: getMicroSecondOnyxErrorWithTranslationKey('iou.rejectReport.couldNotReject'),
                 },
+                ...(isRejectToSubmitter ? {nextStep: report.nextStep ?? null} : {}),
             },
         },
         {
