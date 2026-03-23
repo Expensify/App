@@ -89,6 +89,7 @@ function BaseListItem<TItem extends ListItem>({
     shouldShowRightCaret = false,
     accessible,
     accessibilityRole = getButtonRole(true),
+    forwardedFSClass,
 }: BaseListItemProps<TItem>) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -201,6 +202,7 @@ function BaseListItem<TItem extends ListItem>({
                             shouldHighlightSelectedItem &&
                             StyleUtils.getItemBackgroundColorStyle(!!item.isSelected, !!isFocused, !!item.isDisabled, theme.activeComponentBG, theme.hoverComponentBG),
                     ]}
+                    fsClass={forwardedFSClass}
                 >
                     {typeof children === 'function' ? children(hovered) : children}
 

@@ -10,6 +10,30 @@ import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleCon
 import type {MenuItemWithLink} from '@components/MenuItemList';
 import type {MultiSelectItem} from '@components/Search/FilterDropdowns/MultiSelectPopup';
 import type {SingleSelectItem} from '@components/Search/FilterDropdowns/SingleSelectPopup';
+import ChatListItem from '@components/Search/SearchList/ListItem/ChatListItem';
+import ExpenseReportListItem from '@components/Search/SearchList/ListItem/ExpenseReportListItem';
+import TaskListItem from '@components/Search/SearchList/ListItem/TaskListItem';
+import TransactionGroupListItem from '@components/Search/SearchList/ListItem/TransactionGroupListItem';
+import TransactionListItem from '@components/Search/SearchList/ListItem/TransactionListItem';
+import type {
+    ExpenseReportListItemType,
+    ReportActionListItemType,
+    SearchListItem,
+    TaskListItemType,
+    TransactionCardGroupListItemType,
+    TransactionCategoryGroupListItemType,
+    TransactionGroupListItemType,
+    TransactionListItemType,
+    TransactionMemberGroupListItemType,
+    TransactionMerchantGroupListItemType,
+    TransactionMonthGroupListItemType,
+    TransactionQuarterGroupListItemType,
+    TransactionReportGroupListItemType,
+    TransactionTagGroupListItemType,
+    TransactionWeekGroupListItemType,
+    TransactionWithdrawalIDGroupListItemType,
+    TransactionYearGroupListItemType,
+} from '@components/Search/SearchList/ListItem/types';
 import type {
     GroupedItem,
     QueryFilters,
@@ -30,31 +54,7 @@ import type {
     SingularSearchStatus,
     SortOrder,
 } from '@components/Search/types';
-import ChatListItem from '@components/SelectionListWithSections/ChatListItem';
-import ExpenseReportListItem from '@components/SelectionListWithSections/Search/ExpenseReportListItem';
-import TaskListItem from '@components/SelectionListWithSections/Search/TaskListItem';
-import TransactionGroupListItem from '@components/SelectionListWithSections/Search/TransactionGroupListItem';
-import TransactionListItem from '@components/SelectionListWithSections/Search/TransactionListItem';
-import type {
-    ExpenseReportListItemType,
-    ListItem,
-    ReportActionListItemType,
-    SearchListItem,
-    TaskListItemType,
-    TransactionCardGroupListItemType,
-    TransactionCategoryGroupListItemType,
-    TransactionGroupListItemType,
-    TransactionListItemType,
-    TransactionMemberGroupListItemType,
-    TransactionMerchantGroupListItemType,
-    TransactionMonthGroupListItemType,
-    TransactionQuarterGroupListItemType,
-    TransactionReportGroupListItemType,
-    TransactionTagGroupListItemType,
-    TransactionWeekGroupListItemType,
-    TransactionWithdrawalIDGroupListItemType,
-    TransactionYearGroupListItemType,
-} from '@components/SelectionListWithSections/types';
+import type {ListItem} from '@components/SelectionList/types';
 import type {FeedKeysWithAssignedCards} from '@hooks/useFeedKeysWithAssignedCards';
 import type {ThemeColors} from '@styles/theme/types';
 import * as Expensicons from '@src/components/Icon/Expensicons';
@@ -1783,6 +1783,7 @@ function getTransactionsSections({
                 isTaxAmountColumnWide: shouldShowTaxAmountInWideColumn,
                 violations: transactionViolations,
                 category: isIOUReport ? '' : transactionItem?.category,
+                errors: undefined,
             };
 
             transactionsSections.push(transactionSection);
@@ -2459,6 +2460,7 @@ function getReportSections({
                 isAmountColumnWide: shouldShowAmountInWideColumn,
                 isTaxAmountColumnWide: shouldShowTaxAmountInWideColumn,
                 category: isIOUReport ? '' : transactionItem?.category,
+                errors: undefined,
             };
             if (reportIDToTransactions[reportKey]) {
                 const reportSection = reportIDToTransactions[reportKey];
@@ -2524,6 +2526,7 @@ function getMemberSections(
                 ...personalDetails,
                 ...memberGroup,
                 formattedFrom: formatPhoneNumber(getDisplayNameOrDefault(personalDetails)),
+                keyForList: key,
             };
         }
     }
@@ -2588,6 +2591,7 @@ function getCardSections(
                 ...cardGroup,
                 formattedCardName,
                 formattedFeedName: getFeedNameForDisplay(translate, cardGroup.bank as OnyxTypes.CompanyCardFeed, cardFeeds),
+                keyForList: key,
             };
         }
     }
@@ -2621,6 +2625,7 @@ function getWithdrawalIDSections(data: OnyxTypes.SearchResults['data'], queryJSO
                 transactionsQueryJSON,
                 ...withdrawalIDGroup,
                 formattedWithdrawalID: String(withdrawalIDGroup.entryID),
+                keyForList: key,
             };
         }
     }
@@ -2657,6 +2662,7 @@ function getCategorySections(data: OnyxTypes.SearchResults['data'], queryJSON: S
                 transactionsQueryJSON,
                 ...categoryGroup,
                 formattedCategory,
+                keyForList: key,
             };
         }
     }
@@ -2701,6 +2707,7 @@ function getMerchantSections(data: OnyxTypes.SearchResults['data'], queryJSON: S
                 transactionsQueryJSON,
                 ...merchantGroup,
                 formattedMerchant,
+                keyForList: key,
             };
         }
     }
@@ -2742,6 +2749,7 @@ function getTagSections(data: OnyxTypes.SearchResults['data'], queryJSON: Search
                 transactionsQueryJSON,
                 ...tagGroup,
                 formattedTag,
+                keyForList: key,
             };
         }
     }
@@ -2775,6 +2783,7 @@ function getMonthSections(data: OnyxTypes.SearchResults['data'], queryJSON: Sear
                 groupedBy: CONST.SEARCH.GROUP_BY.MONTH,
                 transactions: [],
                 transactionsQueryJSON,
+                keyForList: key,
                 ...monthGroup,
                 formattedMonth,
                 sortKey: monthGroup.year * 100 + monthGroup.month,
@@ -2809,6 +2818,7 @@ function getWeekSections(data: OnyxTypes.SearchResults['data'], queryJSON: Searc
                 transactionsQueryJSON,
                 ...weekGroup,
                 formattedWeek,
+                keyForList: key,
             };
         }
     }
@@ -2840,6 +2850,7 @@ function getYearSections(data: OnyxTypes.SearchResults['data'], queryJSON: Searc
                 ...yearGroup,
                 formattedYear,
                 sortKey: yearGroup.year,
+                keyForList: key,
             };
         }
     }
@@ -2869,6 +2880,7 @@ function getQuarterSections(data: OnyxTypes.SearchResults['data'], queryJSON: Se
                 ...quarterGroup,
                 formattedQuarter,
                 sortKey: quarterGroup.year * 10 + quarterGroup.quarter, // Sort by year*10 + quarter (e.g., 20241, 20242, etc.)
+                keyForList: key,
             };
         }
     }

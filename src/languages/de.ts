@@ -674,6 +674,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 faceId: 'Face ID',
                 touchId: 'Touch ID',
                 opticId: 'Optic ID',
+                passkey: 'Passkey',
             },
             statusNeverRegistered: 'Nie registriert',
             statusNotRegistered: 'Nicht registriert',
@@ -691,11 +692,10 @@ const translations: TranslationDeepObject<typeof en> = {
         letsVerifyItsYou: 'Lass uns bestätigen, dass du es bist',
         nowLetsAuthenticateYou: 'Lassen Sie uns Sie jetzt authentifizieren …',
         letsAuthenticateYou: 'Lass uns dich authentifizieren …',
-        verifyYourself: {
-            biometrics: 'Bestätige dich mit deinem Gesicht oder Fingerabdruck',
-        },
+        verifyYourself: {biometrics: 'Bestätige dich mit deinem Gesicht oder Fingerabdruck', passkeys: 'Bestätigen Sie sich mit einem Passkey'},
         enableQuickVerification: {
             biometrics: 'Aktiviere eine schnelle, sichere Verifizierung mit deinem Gesicht oder Fingerabdruck. Keine Passwörter oder Codes erforderlich.',
+            passkeys: 'Aktivieren Sie eine schnelle, sichere Verifizierung mit einem Passkey. Keine Passwörter oder Codes erforderlich.',
         },
         revoke: {
             title: 'Gesicht/Fingerabdruck & Zugangsschlüssel',
@@ -2683,6 +2683,8 @@ ${amount} für ${merchant} – ${date}`,
         requiredWhen2FAEnabled: 'Erforderlich, wenn 2FA aktiviert ist',
         requestNewCode: ({timeRemaining}: {timeRemaining: string}) => `Fordere einen neuen Code an in <a>${timeRemaining}</a>`,
         requestNewCodeAfterErrorOccurred: 'Neuen Code anfordern',
+        timeRemainingAnnouncement: ({timeRemaining}) => `Verbleibende Zeit: ${timeRemaining} ${timeRemaining === 1 ? 'Sekunde' : 'Sekunden'}`,
+        timeExpiredAnnouncement: 'Die Zeit ist abgelaufen',
         error: {
             pleaseFillMagicCode: 'Bitte gib deinen Magic Code ein',
             incorrectMagicCode: 'Falscher oder ungültiger Magic-Code. Bitte versuche es erneut oder fordere einen neuen Code an.',

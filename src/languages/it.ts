@@ -674,6 +674,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 faceId: 'Face ID',
                 touchId: 'Touch ID',
                 opticId: 'Optic ID',
+                passkey: 'Passkey',
             },
             statusNeverRegistered: 'Mai registrato',
             statusNotRegistered: 'Non registrato',
@@ -691,11 +692,10 @@ const translations: TranslationDeepObject<typeof en> = {
         letsVerifyItsYou: 'Verifichiamo che sia tu',
         nowLetsAuthenticateYou: 'Ora procediamo con l’autenticazione...',
         letsAuthenticateYou: 'Autentichiamo la tua identità...',
-        verifyYourself: {
-            biometrics: 'Verificati con il volto o l’impronta digitale',
-        },
+        verifyYourself: {biometrics: 'Verificati con il volto o l’impronta digitale', passkeys: 'Verificati con una passkey'},
         enableQuickVerification: {
             biometrics: 'Attiva una verifica rapida e sicura utilizzando il volto o l’impronta digitale. Nessuna password o codice richiesto.',
+            passkeys: 'Abilita una verifica rapida e sicura usando una passkey. Nessuna password o codice richiesto.',
         },
         revoke: {
             title: 'Volto/impronta digitale e passkey',
@@ -2679,6 +2679,8 @@ ${amount} per ${merchant} - ${date}`,
         requiredWhen2FAEnabled: 'Obbligatorio quando l’autenticazione a due fattori è abilitata',
         requestNewCode: ({timeRemaining}: {timeRemaining: string}) => `Richiedi un nuovo codice tra <a>${timeRemaining}</a>`,
         requestNewCodeAfterErrorOccurred: 'Richiedi un nuovo codice',
+        timeRemainingAnnouncement: ({timeRemaining}) => `Tempo rimanente: ${timeRemaining} ${timeRemaining === 1 ? 'secondo' : 'secondi'}`,
+        timeExpiredAnnouncement: 'Il tempo è scaduto',
         error: {
             pleaseFillMagicCode: 'Inserisci il tuo codice magico',
             incorrectMagicCode: 'Codice magico errato o non valido. Riprova o richiedi un nuovo codice.',
