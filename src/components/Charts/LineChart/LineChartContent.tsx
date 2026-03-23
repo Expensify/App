@@ -233,6 +233,7 @@ function LineChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUn
                     fontMgr={fontMgr}
                     labelColor={theme.textSupporting}
                     formatValue={formatValue}
+                    leftAlign
                 />
             </>
         );
