@@ -9,21 +9,21 @@ The app uses a two-layer detection model to determine connectivity status. Each 
 ```
 ┌──────────────────────┐
 │ Layer 1: OS Radio    │   NetInfo isConnected
-│ (NetworkConnection)  │──────────────────────────┐
+│ (NetworkState)       │──────────────────────────┐
 └──────────────────────┘                          │
                                                   ▼
                                         ┌──────────────────┐
 ┌──────────────────────┐                │                  │
-│ Layer 2: Sustained   │  FailureTracker│   NetworkState   │──── isOffline ──▶ Onyx / UI
+│ Layer 2: Sustained   │  FailureTracker│   NetworkState   │──── isOffline ──▶ listeners (UI, SQ)
 │ Failures             │───────────────▶│   (hard stop)    │
-│ (FailureTracking MW) │                │                  │──── pause/unpause SequentialQueue
+│ (FailureTracking MW) │                │                  │
 └──────────────────────┘                └──────────────────┘
                                                ▲
                                                │ onReachabilityRestored
                                                │
                                         ┌──────────────────┐
                                         │ NetInfo listener  │──── isInternetReachable
-                                        │ (reachability     │     transitions false→true
+                                        │ (reachability     │     transitions →true
                                         │  polling)         │
                                         └──────────────────┘
                                                │
@@ -47,22 +47,25 @@ Three triggers can activate a hard stop:
 | `shouldForceOffline` | Debug tool | Manually forced offline via TestToolMenu |
 
 When a hard stop activates:
-1. `SequentialQueue` is paused — no outgoing write requests
-2. `isOffline` is set in Onyx — UI reflects offline state
+1. `NetworkState` notifies all subscribers (via `subscribe()`)
+2. `SequentialQueue` sees the offline→online transition and stops flushing
+3. Components using `useNetwork()` re-render with `isOffline: true`
 
 When the hard stop clears:
-1. `SequentialQueue` is unpaused — pending writes flush
-2. `isOffline` is cleared in Onyx — UI reflects online state
+1. `NetworkState` notifies all subscribers
+2. `SequentialQueue` sees the online transition and flushes pending writes
+3. Components using `useNetwork()` re-render with `isOffline: false`
 
 ## Layer 1: OS Radio Detection
 
 **File:** `src/libs/NetworkState.ts`
 
-This layer uses `@react-native-community/netinfo` to detect whether the device has an active network interface.
+This layer uses `@react-native-community/netinfo` to detect whether the device has an active network interface. The NetInfo listener lives inside `NetworkState.ts` — there is no separate module.
 
 - A module-level Onyx connection to `SESSION` triggers `configureAndSubscribe()` whenever accountID changes
-- When `isConnected` is `false`, it calls `NetworkState.setHasRadio(false)`
-- When `isConnected` returns to `true`, it calls `NetworkState.setHasRadio(true)`
+- The NetInfo listener reads `state.isConnected` and calls `setHasRadio()` internally
+- When `isConnected` is `false` → `setHasRadio(false)` → activates the `noRadioActive` hard stop
+- When `isConnected` returns to `true` → `setHasRadio(true)` → clears the `noRadioActive` hard stop
 - Detects: airplane mode, WiFi disabled, no cellular signal
 - Does **not** determine actual server reachability — a device can be connected to WiFi but have no internet
 
@@ -84,10 +87,10 @@ This layer detects connectivity loss through request outcomes, catching cases wh
 
 The middleware observes every API response:
 
-- `jsonCode === 200` → calls `recordSuccess()`
-- `jsonCode >= 500` → calls `recordFailure()`
-- Network errors (caught exceptions) → calls `recordFailure()`
-- **Ignored:** `REQUEST_CANCELLED` and `DUPLICATE_RECORD` — these are not real connectivity failures
+- Any resolved response (server responded at all) → calls `recordSuccess()`
+- `FAILED_TO_FETCH` error → calls `recordFailure()` (DNS failure, no internet, network timeout)
+- `EXPENSIFY_SERVICE_INTERRUPTED` error → calls `recordFailure()` (server down: 500/502/504/520)
+- All other errors (4xx, throttling, etc.) → **not tracked** as connectivity failures
 
 ### FailureTracker
 
@@ -104,44 +107,45 @@ One successful request resets everything — it proves the server is reachable a
 
 **File:** `src/libs/NetworkState.ts`
 
-`NetworkState` is the single source of truth for offline status. It holds three module-level boolean flags. Because the state is module-level (not persisted in Onyx), each browser tab detects connectivity independently. This is intentional — each tab has its own network conditions and should evaluate them on its own.
+`NetworkState` is the single source of truth for offline status. It holds module-level boolean flags and uses a subscriber pattern — components use `useNetwork()` (backed by `useSyncExternalStore`) and `SequentialQueue` subscribes via `subscribe()`. Because the state is module-level (not persisted in Onyx), each browser tab detects connectivity independently. This is intentional — each tab has its own network conditions and should evaluate them on its own.
 
 ```
-noRadioActive          — set by NetworkConnection (Layer 1)
+hasRadio                — set by NetInfo listener (Layer 1), inverted: !hasRadio = noRadio hard stop
 sustainedFailuresActive — set by FailureTracker (Layer 2)
-shouldForceOffline     — set by debug tools
+shouldForceOffline      — set by debug tools (Onyx NETWORK key)
+simulatedOffline        — set by poor connection simulator
 ```
 
 ### Core logic
 
-`updateState()` derives the offline status:
+`getIsOffline()` derives the offline status:
 
 ```typescript
-const offline = noRadioActive || sustainedFailuresActive || shouldForceOffline;
+const offline = !hasRadio || sustainedFailuresActive || shouldForceOffline || simulatedOffline;
 ```
 
-If offline: pause `SequentialQueue`.
-If online: unpause `SequentialQueue`.
+`updateState()` notifies all subscribers when the state changes. `SequentialQueue` subscribes and flushes pending writes on offline→online transitions.
 
 ### Recovery flow
 
 `onReachabilityRestored()`:
-1. Clears `noRadioActive` and `sustainedFailuresActive`
-2. Calls `updateState()` (which clears the hard stop)
-3. Calls `reconnect()` to sync app data
+1. Sets `hasRadio = true` and `sustainedFailuresActive = false`, resets FailureTracker counters
+2. Calls `updateState()` (which notifies subscribers and clears the hard stop)
+3. Calls `notifyReconnectListeners()` — `Reconnect.ts` subscribes to this and triggers app data sync
 
 ### App foreground handling
 
-`initAppForegroundListener()` wires an `AppStateMonitor` callback:
-- If in hard stop → calls `NetInfo.refresh()` to force a fresh native state fetch (bypasses stale `isInternetReachable` cache, see NetInfo issue #326)
+`Reconnect.ts` registers an `AppStateMonitor.addBecameActiveListener` callback:
+- If in hard stop → calls `NetworkState.refresh()` which triggers `NetInfo.refresh()` (bypasses stale `isInternetReachable` cache, see NetInfo issue #326)
 - Always → calls `reconnect()` to catch up on missed Pusher events
 
 ## Recovery & Reconnect
 
 **File:** `src/libs/actions/Reconnect.ts`
 
-Called after reachability is restored or on app foreground. Handles data synchronization:
+Subscribes to `NetworkState.onReachabilityConfirmed()` and `AppStateMonitor.addBecameActiveListener()`. Handles data synchronization:
 
+- Skips reconnection if no active session (`currentAccountID` is undefined)
 - If `isLoadingApp` is true → calls `App.openApp()` (full initial load)
 - Otherwise → calls `App.reconnectApp(lastUpdateIDAppliedToClient)` (incremental sync)
 - Flushes `SequentialQueue` to send any pending write requests
@@ -174,13 +178,13 @@ Two debug options are available via the TestToolMenu (accessible in dev builds):
 
 | File | Role |
 |---|---|
-| `src/libs/NetworkState.ts` | Central hard stop state machine, OS radio detection, and reachability tracking via NetInfo |
-| `src/libs/FailureTracker.ts` | Counts failures, triggers sustained failure hard stop |
-| `src/libs/Middleware/FailureTracking.ts` | Middleware that observes request outcomes |
-| `src/libs/actions/Reconnect.ts` | Syncs app data after recovery |
-| `src/libs/Network/SequentialQueue.ts` | Write request queue (paused/unpaused by hard stop) |
+| `src/libs/NetworkState.ts` | Central hard stop state machine, NetInfo configuration/subscription, OS radio detection, and reachability tracking |
+| `src/libs/FailureTracker.ts` | Counts failures, triggers sustained failure hard stop via listener pattern |
+| `src/libs/Middleware/FailureTracking.ts` | Middleware that observes request outcomes and feeds FailureTracker |
+| `src/libs/actions/Reconnect.ts` | Subscribes to reachability + foreground events, syncs app data after recovery |
+| `src/libs/Network/SequentialQueue.ts` | Write request queue, subscribes to NetworkState and flushes on offline→online |
 | `src/libs/actions/Network.ts` | Onyx actions for debug flags (forceOffline, simulatePoorConnection) |
-| `src/hooks/useNetwork.ts` | Hook for components to read offline status |
+| `src/hooks/useNetwork.ts` | Hook for components — uses `useSyncExternalStore` with `NetworkState.subscribe()` |
 
 ## Relationship to Offline UX Patterns
 
