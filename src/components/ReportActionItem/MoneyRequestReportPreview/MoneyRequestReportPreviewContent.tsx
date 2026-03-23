@@ -133,6 +133,7 @@ function MoneyRequestReportPreviewContent({
     shouldShowBorder = false,
     onPress,
     forwardedFSClass,
+    originalReportID,
 }: MoneyRequestReportPreviewContentProps) {
     const [userBillingGraceEndPeriods] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [chatReportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${chatReportID}`);
@@ -323,6 +324,7 @@ function MoneyRequestReportPreviewContent({
                         isSelfTourViewed,
                         userBillingGraceEndPeriods,
                         amountOwed,
+                        ownerBillingGraceEndPeriod,
                         onPaid: startAnimation,
                     });
                 }
@@ -345,6 +347,7 @@ function MoneyRequestReportPreviewContent({
             isSelfTourViewed,
             userBillingGraceEndPeriods,
             amountOwed,
+            ownerBillingGraceEndPeriod,
         ],
     );
 
@@ -384,6 +387,7 @@ function MoneyRequestReportPreviewContent({
                 betas,
                 userBillingGraceEndPeriods,
                 amountOwed,
+                ownerBillingGraceEndPeriod,
                 full: true,
                 onApproved: startApprovedAnimation,
             });
@@ -786,6 +790,7 @@ function MoneyRequestReportPreviewContent({
                         userBillingGraceEndPeriods,
                         amountOwed,
                         onSubmitted: startSubmittingAnimation,
+                        ownerBillingGraceEndPeriod,
                     });
                 });
             }}
@@ -928,7 +933,7 @@ function MoneyRequestReportPreviewContent({
                             if (!shouldDisplayContextMenu) {
                                 return;
                             }
-                            showContextMenuForReport(event, contextMenuAnchor, chatReportID, action, checkIfContextMenuActive);
+                            showContextMenuForReport(event, contextMenuAnchor, chatReportID, action, checkIfContextMenuActive, false, originalReportID);
                         }}
                         shouldUseHapticsOnLongPress
                         style={[

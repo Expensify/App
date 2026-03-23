@@ -68,7 +68,7 @@ import {
 } from '@libs/NextStepUtils';
 import type {KYCFlowEvent, TriggerKYCFlow} from '@libs/PaymentUtils';
 import {handleUnvalidatedAccount, selectPaymentType} from '@libs/PaymentUtils';
-import {getConnectedIntegration, getValidConnectedIntegration, hasDynamicExternalWorkflow, sortPoliciesByName} from '@libs/PolicyUtils';
+import {getConnectedIntegration, getValidConnectedIntegration, hasDynamicExternalWorkflow, isPolicyAccessible, sortPoliciesByName} from '@libs/PolicyUtils';
 import {
     getFilteredReportActionsForReportView,
     getIOUActionForReportID,
@@ -751,6 +751,7 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
                     isSelfTourViewed,
                     userBillingGraceEndPeriods,
                     amountOwed,
+                    ownerBillingGraceEndPeriod,
                     methodID: type === CONST.IOU.PAYMENT_TYPE.VBBA ? methodID : undefined,
                     onPaid: () => {
                         if (isFromSelectionMode) {
@@ -799,6 +800,7 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
             userBillingGraceEndPeriods,
             clearSelectedTransactions,
             amountOwed,
+            ownerBillingGraceEndPeriod,
         ],
     );
 
@@ -848,6 +850,7 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
                     betas,
                     userBillingGraceEndPeriods,
                     amountOwed,
+                    ownerBillingGraceEndPeriod,
                     full: true,
                     onApproved: () => {
                         if (skipAnimation) {
@@ -879,6 +882,7 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
             userBillingGraceEndPeriods,
             amountOwed,
             clearSelectedTransactions,
+            ownerBillingGraceEndPeriod,
         ],
     );
 
@@ -914,6 +918,7 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
                         }
                         startSubmittingAnimation();
                     },
+                    ownerBillingGraceEndPeriod,
                 });
                 if (currentSearchQueryJSON && !isOffline) {
                     search({
@@ -952,6 +957,7 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
             currentSearchResults?.search?.isLoading,
             clearSelectedTransactions,
             confirmPendingRTERAndProceed,
+            ownerBillingGraceEndPeriod,
         ],
     );
 
@@ -1766,6 +1772,7 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
                         expenseReportCurrentNextStepDeprecated: nextStep,
                         userBillingGraceEndPeriods,
                         amountOwed,
+                        ownerBillingGraceEndPeriod,
                     });
                 });
             },
@@ -1944,8 +1951,9 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
                 temporarilyDisableDuplicateReportAction();
                 wasDuplicateReportTriggered.current = true;
 
-                const targetPolicyForDuplicate = policy ?? defaultExpensePolicy;
-                const targetChatForDuplicate = policy ? chatReport : activePolicyExpenseChat;
+                const isSourcePolicyValid = !!policy && isPolicyAccessible(policy, currentUserLogin ?? '');
+                const targetPolicyForDuplicate = isSourcePolicyValid ? policy : defaultExpensePolicy;
+                const targetChatForDuplicate = isSourcePolicyValid ? chatReport : activePolicyExpenseChat;
                 const activePolicyCategories = allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${targetPolicyForDuplicate?.id}`] ?? {};
 
                 // eslint-disable-next-line @typescript-eslint/no-deprecated
@@ -2372,6 +2380,7 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
                 betas,
                 userBillingGraceEndPeriods,
                 amountOwed,
+                ownerBillingGraceEndPeriod,
             });
         },
         [
@@ -2389,6 +2398,7 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
             betas,
             userBillingGraceEndPeriods,
             amountOwed,
+            ownerBillingGraceEndPeriod,
         ],
     );
 
