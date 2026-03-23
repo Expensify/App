@@ -115,7 +115,11 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
         openPolicyMemberProfilePage(policyID, accountID);
     }, [policyID, accountID]);
 
-    const memberCards = workspaceCards ? Object.values(workspaceCards).filter((card) => card.accountID === accountID) : [];
+    // Filter out travel cards — they should not appear on the member profile page
+    // as they expose card-level controls and data not intended for workspace admin view.
+    const memberCards = workspaceCards
+        ? Object.values(workspaceCards).filter((card) => card.accountID === accountID && card.nameValuePairs?.feedCountry !== CONST.TRAVEL.PROGRAM_TRAVEL_US)
+        : [];
 
     const isApprover = isApproverUserAction(policy, memberLogin);
     const isTechnicalContact = policy?.technicalContact === details?.login;
