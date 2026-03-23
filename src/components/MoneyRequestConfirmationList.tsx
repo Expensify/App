@@ -386,17 +386,9 @@ function MoneyRequestConfirmationList({
 
     const distance = getDistanceInMeters(transaction, unit);
     const prevDistance = usePrevious(distance);
-    // For the new manual expense flow (beta), track the latest amount/currency the user has typed
-    // using refs rather than state to avoid re-rendering 20+ Onyx-watching components on every
-    // keystroke. The refs are only read once on final submission to persist the value to Onyx.
-    const pendingAmountRef = useRef<number | null>(iouAmount);
-    const pendingCurrencyRef = useRef<string>(iouCurrencyCode ?? CONST.CURRENCY.USD);
+    const shouldCalculateDistanceAmount = isDistanceRequest && (iouAmount === 0 || prevRate !== rate || prevDistance !== distance || prevCurrency !== currency || prevUnit !== unit);
 
-    const shouldCalculateDistanceAmount =
-        !pendingAmountRef.current && isDistanceRequest && (iouAmount === 0 || prevRate !== rate || prevDistance !== distance || prevCurrency !== currency || prevUnit !== unit);
-
-    const shouldCalculatePerDiemAmount =
-        !pendingAmountRef.current && isPerDiemRequest && (iouAmount === 0 || JSON.stringify(prevSubRates) !== JSON.stringify(subRates) || prevCurrency !== currency);
+    const shouldCalculatePerDiemAmount = isPerDiemRequest && (iouAmount === 0 || JSON.stringify(prevSubRates) !== JSON.stringify(subRates) || prevCurrency !== currency);
 
     const hasRoute = hasRouteUtil(transaction, isDistanceRequest);
     const isDistanceRequestWithPendingRoute = isDistanceRequest && (!hasRoute || !rate) && !isMovingTransactionFromTrackExpense;
@@ -407,11 +399,9 @@ function MoneyRequestConfirmationList({
 
     if (shouldCalculateDistanceAmount) {
         amountToBeUsed = distanceRequestAmount;
-        pendingCurrencyRef.current = currency;
     } else if (shouldCalculatePerDiemAmount) {
         const perDiemRequestAmount = computePerDiemExpenseAmount({subRates});
         amountToBeUsed = perDiemRequestAmount;
-        pendingCurrencyRef.current = currency;
     }
 
     const formattedAmount = isDistanceRequestWithPendingRoute ? '' : convertToDisplayString(amountToBeUsed, isDistanceRequest ? currency : iouCurrencyCode);
@@ -425,14 +415,6 @@ function MoneyRequestConfirmationList({
     const [didConfirm, setDidConfirm] = useState(isConfirmed);
     const [didConfirmSplit, setDidConfirmSplit] = useState(false);
     const [showMoreFields, setShowMoreFields] = useState(false);
-
-    // Callbacks passed to the footer to capture the user's edits without triggering re-renders
-    const handleAmountChange = useCallback((value: number | null) => {
-        pendingAmountRef.current = value;
-    }, []);
-    const handleCurrencyChange = useCallback((value: string) => {
-        pendingCurrencyRef.current = value;
-    }, []);
 
     useEffect(() => {
         setShowMoreFields(false);
@@ -1016,7 +998,7 @@ function MoneyRequestConfirmationList({
                 return;
             }
 
-            const amountForValidation = isNewManualExpenseFlowEnabled ? pendingAmountRef.current : iouAmount;
+            const amountForValidation = iouAmount;
             const isAmountMissingForManualFlow = amountForValidation === null || amountForValidation === undefined;
 
             if (iouType !== CONST.IOU.TYPE.PAY && isNewManualExpenseFlowEnabled && isAmountMissingForManualFlow) {
@@ -1078,21 +1060,17 @@ function MoneyRequestConfirmationList({
             if (iouType !== CONST.IOU.TYPE.PAY) {
                 // validate the amount for distance expenses
                 const decimals = getCurrencyDecimals(iouCurrencyCode);
-                if (
-                    isDistanceRequest &&
-                    !isDistanceRequestWithPendingRoute &&
-                    !validateAmount(String(isNewManualExpenseFlowEnabled ? pendingAmountRef.current : iouAmount), decimals, CONST.IOU.DISTANCE_REQUEST_AMOUNT_MAX_LENGTH)
-                ) {
+                if (isDistanceRequest && !isDistanceRequestWithPendingRoute && !validateAmount(String(iouAmount), decimals, CONST.IOU.DISTANCE_REQUEST_AMOUNT_MAX_LENGTH)) {
                     setFormError('common.error.invalidAmount');
                     return;
                 }
 
-                if (isDistanceRequest && Math.abs(isNewManualExpenseFlowEnabled ? (pendingAmountRef.current ?? 0) : iouAmount) > CONST.IOU.MAX_SAFE_AMOUNT) {
+                if (isDistanceRequest && Math.abs(iouAmount) > CONST.IOU.MAX_SAFE_AMOUNT) {
                     setFormError('iou.error.distanceAmountTooLarge');
                     return;
                 }
 
-                if (isTimeRequest && !isValidTimeExpenseAmount(isNewManualExpenseFlowEnabled ? (pendingAmountRef.current ?? 0) : iouAmount, iouCurrencyCode, decimals)) {
+                if (isTimeRequest && !isValidTimeExpenseAmount(iouAmount, iouCurrencyCode, decimals)) {
                     setFormError('iou.timeTracking.amountTooLargeError');
                     return;
                 }
@@ -1119,12 +1097,7 @@ function MoneyRequestConfirmationList({
                     return;
                 }
 
-                // For the new manual expense flow (beta) the user edits amount/currency inline.
-                // Pass the pending values directly through the callback so the caller can use
-                // them immediately — bypassing the Onyx → React state propagation delay that
-                // would otherwise cause requestMoney to read the stale draft value.
-                // Non-beta flows leave the refs as null, so the caller falls back to item.amount.
-                onConfirm?.(selectedParticipants, pendingAmountRef.current ?? undefined, pendingCurrencyRef.current ?? undefined);
+                onConfirm?.(selectedParticipants);
             } else {
                 if (!paymentMethod) {
                     return;
@@ -1160,7 +1133,6 @@ function MoneyRequestConfirmationList({
             iouCurrencyCode,
             isDistanceRequest,
             isDistanceRequestWithPendingRoute,
-            isNewManualExpenseFlowEnabled,
             iouAmount,
             formError,
             onConfirm,
@@ -1381,8 +1353,6 @@ function MoneyRequestConfirmationList({
                 isDescriptionRequired={isDescriptionRequired}
                 showMoreFields={showMoreFields}
                 setShowMoreFields={setShowMoreFields}
-                onAmountChange={handleAmountChange}
-                onCurrencyChange={handleCurrencyChange}
             />
         </View>
     );

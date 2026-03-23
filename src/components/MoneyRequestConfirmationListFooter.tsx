@@ -20,6 +20,7 @@ import useReportAttributes from '@hooks/useReportAttributes';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import {setMoneyRequestAmount} from '@libs/actions/IOU';
 import {getDecodedCategoryName} from '@libs/CategoryUtils';
 import {convertToBackendAmount, convertToDisplayString, convertToFrontendAmountAsString, getCurrencyDecimals, getLocalizedCurrencySymbol} from '@libs/CurrencyUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
@@ -255,12 +256,6 @@ type MoneyRequestConfirmationListFooterProps = {
 
     /** Toggles compact mode by showing all fields */
     setShowMoreFields?: (showMoreFields: boolean) => void;
-
-    /** Callback when amount changes in the input */
-    onAmountChange?: (amount: number | null) => void;
-
-    /** Callback when currency changes */
-    onCurrencyChange?: (currency: string) => void;
 };
 
 type ConfirmationField = {
@@ -330,8 +325,6 @@ function MoneyRequestConfirmationListFooter({
     isDescriptionRequired = false,
     showMoreFields = false,
     setShowMoreFields = () => {},
-    onAmountChange,
-    onCurrencyChange,
 }: MoneyRequestConfirmationListFooterProps) {
     const icons = useMemoizedLazyExpensifyIcons(['Stopwatch', 'CalendarSolid', 'Sparkles', 'DownArrow', 'PlusMinus']);
     const styles = useThemeStyles();
@@ -344,14 +337,9 @@ function MoneyRequestConfirmationListFooter({
     const {isBetaEnabled} = usePermissions();
     const isNewManualExpenseFlowEnabled = isBetaEnabled(CONST.BETAS.NEW_MANUAL_EXPENSE_FLOW);
 
-    // Track selected currency separately to allow changing it in the new manual flow
     const currency = isDistanceRequest ? distanceRateCurrency : (iouCurrencyCode ?? CONST.CURRENCY.USD); // TO DO: Unify currency source once we remove the old flow
-    const [selectedCurrency, setSelectedCurrency] = useState(currency);
-    const decimals = getCurrencyDecimals(selectedCurrency);
-
-    // Local state for the new manual expense flow
-    const transactionAmountAsString = convertToFrontendAmountAsString(amount, selectedCurrency);
-    const [transactionAmount, setTransactionAmount] = useState(transactionAmountAsString);
+    const decimals = getCurrencyDecimals(currency);
+    const transactionAmount = convertToFrontendAmountAsString(amount, currency);
     const [isCurrencyPickerVisible, setIsCurrencyPickerVisible] = useState(false);
 
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
@@ -538,43 +526,59 @@ function MoneyRequestConfirmationListFooter({
         setIsCurrencyPickerVisible(false);
     }, []);
 
+    const getBackendAmountFromInput = useCallback((value: string) => {
+        const isNegative = value.startsWith('-');
+        const cleanAmount = value.replace('-', '');
+
+        if (!cleanAmount || cleanAmount.trim() === '') {
+            return null;
+        }
+
+        const numericAmount = Number.parseFloat(cleanAmount);
+        if (Number.isNaN(numericAmount)) {
+            return null;
+        }
+
+        const absoluteBackendAmount = convertToBackendAmount(numericAmount);
+        return isNegative ? -absoluteBackendAmount : absoluteBackendAmount;
+    }, []);
+
     /**
      * Updates the selected currency for the transaction.
-     * Updates local display state and stores the value in the parent ref for use at submission.
+     * Updates local display state and persists the value to draft transaction.
      */
-    const updateSelectedCurrency = useCallback(
+    const updateCurrency = useCallback(
         (value: string) => {
-            setSelectedCurrency(value);
             hideCurrencyPicker();
-            onCurrencyChange?.(value);
+
+            if (!transactionID) {
+                return;
+            }
+
+            const parsedAmount = getBackendAmountFromInput(transactionAmount);
+            setMoneyRequestAmount(transactionID, parsedAmount ?? amount, value);
         },
-        [hideCurrencyPicker, onCurrencyChange],
+        [hideCurrencyPicker, transactionID, getBackendAmountFromInput, transactionAmount, amount],
     );
 
     /**
      * Handles amount changes in the new manual expense flow.
-     * Updates local display state and stores the backend amount (cents) in the parent ref
-     * so it can be used at submission time without triggering Onyx/re-render on every keystroke.
+     * Updates local display state and persists the backend amount (cents) in transaction draft.
      */
     const handleAmountChange = useCallback(
         (newAmount: string) => {
-            setTransactionAmount(newAmount);
-
-            const isNegative = newAmount.startsWith('-');
-            const cleanAmount = newAmount.replace('-', '');
-
-            if (!cleanAmount || cleanAmount.trim() === '') {
-                onAmountChange?.(null);
+            if (!transactionID) {
                 return;
             }
 
-            const numericAmount = Number.parseFloat(cleanAmount);
-            if (!Number.isNaN(numericAmount)) {
-                const absoluteBackendAmount = convertToBackendAmount(numericAmount);
-                onAmountChange?.(isNegative ? -absoluteBackendAmount : absoluteBackendAmount);
+            const parsedAmount = getBackendAmountFromInput(newAmount);
+            if (parsedAmount === null) {
+                return;
             }
+
+            setMoneyRequestAmount(transactionID, parsedAmount, currency);
         },
-        [onAmountChange],
+        [transactionID, getBackendAmountFromInput, currency],
     );
 
     const shouldShowAmountRequiredError = useMemo(() => {
@@ -594,8 +598,8 @@ function MoneyRequestConfirmationListFooter({
                             displayAsTextInput
                             value={transactionAmount}
                             decimals={decimals}
-                            currency={selectedCurrency}
-                            symbol={getLocalizedCurrencySymbol(preferredLocale, selectedCurrency) ?? ''}
+                            currency={currency}
+                            symbol={getLocalizedCurrencySymbol(preferredLocale, currency) ?? ''}
                             label={translate('iou.amount')}
                             errorText={shouldShowAmountRequiredError ? translate('common.error.fieldRequired') : ''}
                             onInputChange={handleAmountChange}
@@ -1314,8 +1318,8 @@ function MoneyRequestConfirmationListFooter({
                 isPickerVisible={isCurrencyPickerVisible}
                 hidePickerModal={hideCurrencyPicker}
                 headerText={translate('common.selectCurrency')}
-                value={selectedCurrency}
-                onInputChange={updateSelectedCurrency}
+                value={currency}
+                onInputChange={updateCurrency}
             />
             <View>
                 {isTypeInvoice && (
