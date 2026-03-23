@@ -180,9 +180,7 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
         () =>
             isTransactionThreadView ? (
                 <MoneyRequestHeader
-                    report={report}
-                    policy={policy}
-                    parentReportAction={parentReportAction}
+                    reportID={report?.reportID}
                     onBackButtonPress={() => {
                         if (!backToRoute) {
                             goBackFromSearchMoneyRequest();
@@ -193,11 +191,7 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
                 />
             ) : (
                 <MoneyReportHeader
-                    report={report}
-                    policy={policy}
-                    reportActions={reportActions}
-                    transactionThreadReportID={transactionThreadReportID}
-                    isLoadingInitialReportActions={isLoadingInitialReportActions}
+                    reportID={report?.reportID}
                     shouldDisplayBackButton
                     onBackButtonPress={() => {
                         if (!backToRoute) {
@@ -208,7 +202,7 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
                     }}
                 />
             ),
-        [backToRoute, isLoadingInitialReportActions, isTransactionThreadView, parentReportAction, policy, report, reportActions, transactionThreadReportID],
+        [backToRoute, isTransactionThreadView, report?.reportID],
     );
 
     // We need to cancel telemetry span when user leaves the screen before full report data is loaded
@@ -291,6 +285,7 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
                                     report={transactionThreadReport}
                                     fillSpace
                                     isDisplayedInWideRHP
+                                    hasParentPendingAction={!!reportPendingAction}
                                 />
                             </ScrollView>
                         </Animated.View>

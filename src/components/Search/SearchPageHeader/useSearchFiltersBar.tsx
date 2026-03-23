@@ -5,6 +5,7 @@ import type {OnyxCollection} from 'react-native-onyx';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import type {SearchDateValues} from '@components/Search/FilterComponents/DatePresetFilterBase';
 import type {PopoverComponentProps} from '@components/Search/FilterDropdowns/DropdownButton';
+import GroupByPopup from '@components/Search/FilterDropdowns/GroupByPopup';
 import type {MultiSelectItem} from '@components/Search/FilterDropdowns/MultiSelectPopup';
 import MultiSelectPopup from '@components/Search/FilterDropdowns/MultiSelectPopup';
 import SingleSelectPopup from '@components/Search/FilterDropdowns/SingleSelectPopup';
@@ -33,6 +34,7 @@ import {
     filterValidHasValues,
     getFeedOptions,
     getGroupByOptions,
+    getGroupBySections,
     getGroupCurrencyOptions,
     getHasOptions,
     getStatusOptions,
@@ -165,6 +167,7 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON, isMobileSelectionModeEn
     const type = typeOptions.find((option) => option.value === unsafeType) ?? null;
 
     const groupByOptions = getGroupByOptions(translate);
+    const groupBySections = getGroupBySections(translate);
     const groupBy = groupByOptions.find((option) => option.value === unsafeGroupBy) ?? null;
 
     const viewOptions = getViewOptions(translate);
@@ -283,9 +286,9 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON, isMobileSelectionModeEn
     );
 
     const groupByComponent = ({closeOverlay}: PopoverComponentProps) => (
-        <SingleSelectPopup
+        <GroupByPopup
             label={translate('search.groupBy')}
-            items={groupByOptions}
+            sections={groupBySections}
             value={groupBy}
             closeOverlay={closeOverlay}
             onChange={(item) => {

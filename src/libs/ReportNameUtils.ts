@@ -27,7 +27,7 @@ import {formatPhoneNumber as formatPhoneNumberPhoneUtils} from './LocalePhoneNum
 // eslint-disable-next-line @typescript-eslint/no-deprecated
 import {translateLocal} from './Localize';
 // eslint-disable-next-line import/no-cycle
-import {getForReportAction, getForReportActionTemp, getMovedReportID} from './ModifiedExpenseMessage';
+import {getForReportAction, getMovedReportID} from './ModifiedExpenseMessage';
 import Parser from './Parser';
 import {getDisplayNameOrDefault} from './PersonalDetailsUtils';
 import {getCleanedTagName, isPolicyAdmin, isPolicyFieldListEmpty} from './PolicyUtils';
@@ -263,7 +263,7 @@ function getGroupChatName(
             .concat(shouldAddEllipsis ? '...' : '');
     }
     // eslint-disable-next-line @typescript-eslint/no-deprecated
-    return translateLocal('groupChat.defaultReportName', {displayName: getDisplayNameForParticipant({accountID: participantAccountIDs.at(0), formatPhoneNumber})});
+    return translateLocal('groupChat.defaultReportName', getDisplayNameForParticipant({accountID: participantAccountIDs.at(0), formatPhoneNumber}));
 }
 
 /**
@@ -747,27 +747,19 @@ function computeChatThreadReportName(
         return generateArchivedReportName(reportActionMessage);
     }
     if (!isEmptyObject(parentReportAction) && isModifiedExpenseAction(parentReportAction)) {
-        const policyID = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.reportID}`]?.policyID;
-
         const movedFromReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${getMovedReportID(parentReportAction, CONST.REPORT.MOVE_TYPE.FROM)}`];
         const movedToReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${getMovedReportID(parentReportAction, CONST.REPORT.MOVE_TYPE.TO)}`];
-        const modifiedMessage = policyTags
-            ? getForReportActionTemp({
-                  translate,
-                  reportAction: parentReportAction,
-                  movedFromReport,
-                  movedToReport,
-                  policyTags,
-                  policy,
-                  currentUserLogin,
-              })
-            : getForReportAction({
-                  reportAction: parentReportAction,
-                  policyID,
-                  movedFromReport,
-                  movedToReport,
-                  currentUserLogin,
-              });
+        const modifiedMessageWithHTML = getForReportAction({
+            translate,
+            reportAction: parentReportAction,
+            movedFromReport,
+            movedToReport,
+            policyTags,
+            policy,
+            currentUserLogin,
+        });
+        // Strip HTML tags for plain text display in report previews
+        const modifiedMessage = Parser.htmlToText(modifiedMessageWithHTML);
         return formatReportLastMessageText(modifiedMessage);
     }
     if (isTripRoom(report) && report?.reportName !== CONST.REPORT.DEFAULT_REPORT_NAME) {
