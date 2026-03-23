@@ -1,9 +1,8 @@
 // eslint-disable-next-line no-restricted-imports
-import type {ScrollView as RNScrollView, View} from 'react-native';
+import type {ScrollView as RNScrollView} from 'react-native';
 
 type ScrollToTabProps = {
     animated?: boolean;
-    tabRef: HTMLDivElement | View | null;
     containerRef: React.RefObject<RNScrollView | null>;
     containerX: number;
     containerWidth: number;

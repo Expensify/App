@@ -18,6 +18,7 @@ import useFeedKeysWithAssignedCards from '@hooks/useFeedKeysWithAssignedCards';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useReportAttributes from '@hooks/useReportAttributes';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import FS from '@libs/Fullstory';
@@ -150,6 +151,7 @@ function SearchAutocompleteList({
 
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const feedKeysWithCards = useFeedKeysWithAssignedCards();
+    const reportAttributes = useReportAttributes();
     const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT);
     const [nvpDismissedProductTraining] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING);
     const [recentSearches, recentSearchesMetadata] = useOnyx(ONYXKEYS.RECENT_SEARCHES);
@@ -241,9 +243,15 @@ function SearchAutocompleteList({
         prevQueryRef.current = autocompleteQueryValue;
 
         if (queryChanged) {
-            // When query changes, focus on the search query item (index 0) and scroll to top
-            // onHighlightFirstItem will switch focus to the first result when there's a good match
-            innerListRef.current?.updateAndScrollToFocusedIndex(0, true);
+            if (autocompleteQueryValue === '') {
+                // When query is cleared, reset the initial focus guard so the initial focus
+                // effect can re-fire and correctly focus the first focusable item (skipping section headers).
+                hasSetInitialFocusRef.current = false;
+            } else {
+                // When query changes to a non-empty value, focus on the search query item (index 0) and scroll to top
+                // onHighlightFirstItem will switch focus to the first result when there's a good match
+                innerListRef.current?.updateAndScrollToFocusedIndex(0, true);
+            }
         }
     }, [autocompleteQueryValue, isInitialRender]);
 
@@ -304,6 +312,7 @@ function SearchAutocompleteList({
                       autoCompleteWithSpace: false,
                       translate,
                       feedKeysWithCards,
+                      reportAttributes,
                   })
                 : query,
             singleIcon: expensifyIcons.History,
