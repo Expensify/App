@@ -14,6 +14,8 @@ type ButtonComposedContextValue = ButtonComposedAppearanceProps & {
     isLoading: boolean;
     iconFill?: string;
     iconHoverFill?: string;
+    hasIconLeft: boolean;
+    hasText: boolean;
 };
 
 const defaultButtonComposedContextValue: ButtonComposedContextValue = {
@@ -23,6 +25,8 @@ const defaultButtonComposedContextValue: ButtonComposedContextValue = {
     size: CONST.DROPDOWN_BUTTON_SIZE.MEDIUM,
     iconFill: undefined,
     iconHoverFill: undefined,
+    hasIconLeft: false,
+    hasText: false,
 };
 
 const ButtonComposedContext = createContext<ButtonComposedContextValue>(defaultButtonComposedContextValue);

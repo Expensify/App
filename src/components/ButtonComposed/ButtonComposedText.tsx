@@ -21,9 +21,8 @@ type ButtonComposedTextProps = {
     hoverStyle?: StyleProp<TextStyle>;
 };
 
-// TODO: resolve !!icon && styles.textAlignLeft style
 function ButtonComposedText({children, numberOfLines = 1, style, hoverStyle}: ButtonComposedTextProps) {
-    const {isLoading, variant, size, isHovered} = useButtonComposedContext();
+    const {isLoading, variant, size, isHovered, hasIconLeft} = useButtonComposedContext();
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -43,8 +42,9 @@ function ButtonComposedText({children, numberOfLines = 1, style, hoverStyle}: Bu
                 variant === 'success' && styles.buttonSuccessText,
                 variant === 'danger' && styles.buttonDangerText,
                 variant === 'link' && [styles.fontWeightNormal, styles.fontSizeLabel, styles.link, isHovered && StyleUtils.getColorStyle(theme.linkHover)],
-                style,
+                hasIconLeft && styles.textAlignLeft,
                 isHovered && hoverStyle,
+                style,
             ]}
             dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
         >

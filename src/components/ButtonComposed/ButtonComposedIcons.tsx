@@ -22,18 +22,14 @@ type ButtonComposedIconProps = {
     fill?: string;
 };
 
-type ButtonIconBaseProps = ButtonComposedIconProps & {
-    marginStyle: StyleProp<ViewStyle>;
-};
-
-function ButtonIconBase({src, style, marginStyle, hoverFill, fill}: ButtonIconBaseProps) {
+function ButtonIconBase({src, style, hoverFill, fill}: ButtonComposedIconProps) {
     const theme = useTheme();
     const {isHovered, variant, size} = useButtonComposedContext();
 
     const defaultFill = variant === 'success' || variant === 'danger' ? theme.textLight : theme.icon;
     const propsFill = isHovered ? hoverFill : fill;
     return (
-        <View style={[marginStyle, style]}>
+        <View style={style}>
             <Icon
                 src={src}
                 fill={propsFill ?? defaultFill}
@@ -47,16 +43,14 @@ function ButtonIconBase({src, style, marginStyle, hoverFill, fill}: ButtonIconBa
     );
 }
 
-// TODO: resolve !text && styles.mr0 styles
 function ButtonComposedIconLeft({src, style, hoverFill, fill}: ButtonComposedIconProps) {
     const styles = useThemeStyles();
-    const {size, isLoading} = useButtonComposedContext();
+    const {size, isLoading, hasText} = useButtonComposedContext();
 
     return (
         <ButtonIconBase
             {...{src, hoverFill, fill}}
-            marginStyle={size === CONST.DROPDOWN_BUTTON_SIZE.EXTRA_SMALL ? styles.mr1 : styles.mr2}
-            style={[isLoading && styles.opacity0, style]}
+            style={[size === CONST.DROPDOWN_BUTTON_SIZE.EXTRA_SMALL ? styles.mr1 : styles.mr2, !hasText && styles.mr0, style, isLoading && styles.opacity0]}
         />
     );
 }
@@ -67,8 +61,8 @@ function ButtonComposedIconRight({src, style, hoverFill, fill}: ButtonComposedIc
 
     return (
         <ButtonIconBase
-            {...{src, style, hoverFill, fill}}
-            marginStyle={[styles.justifyContentCenter, size === CONST.DROPDOWN_BUTTON_SIZE.LARGE ? styles.ml2 : styles.ml1]}
+            {...{src, hoverFill, fill}}
+            style={[styles.justifyContentCenter, size === CONST.DROPDOWN_BUTTON_SIZE.LARGE ? styles.ml2 : styles.ml1, style]}
         />
     );
 }

@@ -10,6 +10,7 @@ import type {PressableRef} from '@components/Pressable/GenericPressable/types';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import useActiveElementRole from '@hooks/useActiveElementRole';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import HapticFeedback from '@libs/HapticFeedback';
@@ -18,6 +19,8 @@ import CONST from '@src/CONST';
 import type WithSentryLabel from '@src/types/utils/SentryLabel';
 import ButtonComposedContext from './ButtonComposedContext';
 import type {ButtonComposedAppearanceProps} from './ButtonComposedContext';
+import {ButtonComposedIconLeft, ButtonComposedIconRight} from './ButtonComposedIcons';
+import ButtonComposedText from './ButtonComposedText';
 
 type ButtonComposedEventsProps = {
     /** A function that is called when the button is clicked on */
@@ -206,10 +209,17 @@ function ButtonComposed({
     const resolvedSize = size ?? CONST.DROPDOWN_BUTTON_SIZE.MEDIUM;
     const theme = useTheme();
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const [isHovered, setIsHovered] = useState(false);
     const buttonLoadingReasonAttributes: SkeletonSpanReasonAttributes = {
         context: 'Button',
     };
+
+    // Detect which sub-components are present in children
+    const childrenArray = React.Children.toArray(children);
+    const hasIconLeft = childrenArray.some((child) => (child as React.ReactElement)?.type === ButtonComposedIconLeft);
+    const hasText = childrenArray.some((child) => (child as React.ReactElement)?.type === ButtonComposedText);
+    const hasIconRight = childrenArray.some((child) => (child as React.ReactElement)?.type === ButtonComposedIconRight);
 
     const contextValue = useMemo(
         () => ({
@@ -217,8 +227,10 @@ function ButtonComposed({
             isLoading,
             variant,
             size: resolvedSize,
+            hasIconLeft,
+            hasText,
         }),
-        [isHovered, isLoading, variant, resolvedSize],
+        [isHovered, isLoading, variant, resolvedSize, hasIconLeft, hasText],
     );
 
     const buttonVariantStyles = useMemo(() => {
@@ -242,16 +254,27 @@ function ButtonComposed({
         return [defaultButtonVariantStyles[variant], shouldUseDisabledStyles && disabledButtonVariantStyles[variant]];
     }, [isDisabled, shouldStayNormalOnDisable, styles, variant]);
 
-    const buttonStyles = useMemo<StyleProp<ViewStyle>>(() => {
-        return [
+    const buttonStyles = useMemo<StyleProp<ViewStyle>>(
+        () => [
             styles.button,
-            styles.buttonMedium,
+            StyleUtils.getButtonStyleWithIcon(
+                styles,
+                size === CONST.DROPDOWN_BUTTON_SIZE.EXTRA_SMALL,
+                size === CONST.DROPDOWN_BUTTON_SIZE.SMALL,
+                size === CONST.DROPDOWN_BUTTON_SIZE.MEDIUM,
+                size === CONST.DROPDOWN_BUTTON_SIZE.LARGE,
+                hasIconLeft,
+                hasText,
+                hasIconRight,
+            ),
             buttonVariantStyles,
             shouldRemoveBorderRadius === 'right' || shouldRemoveBorderRadius === 'all' ? styles.noRightBorderRadius : undefined,
             shouldRemoveBorderRadius === 'left' || shouldRemoveBorderRadius === 'all' ? styles.noLeftBorderRadius : undefined,
+            hasText && hasIconRight ? styles.alignItemsStretch : undefined,
             innerStyles,
-        ];
-    }, [styles, shouldRemoveBorderRadius, innerStyles, buttonVariantStyles]);
+        ],
+        [styles, buttonVariantStyles, shouldRemoveBorderRadius, innerStyles, hasText, hasIconRight, StyleUtils, size, hasIconLeft],
+    );
 
     const buttonContainerStyles = useMemo<StyleProp<ViewStyle>>(
         () => [buttonStyles, shouldBlendOpacity && styles.buttonBlendContainer],
@@ -350,7 +373,7 @@ function ButtonComposed({
             >
                 {shouldBlendOpacity && <View style={[StyleSheet.absoluteFill, buttonBlendForegroundStyle]} />}
                 <ButtonComposedContext.Provider value={contextValue}>
-                    <View style={[styles.mw100, styles.flexRow, styles.flexShrink1, styles.alignItemsCenter, styles.justifyContentBetween, contentContainerStyle]}>{children}</View>
+                    <View style={[styles.justifyContentBetween, styles.flexRow, contentContainerStyle, styles.mw100, styles.alignItemsCenter, styles.flexShrink1]}>{children}</View>
                 </ButtonComposedContext.Provider>
                 {isLoading && (
                     <ActivityIndicator
