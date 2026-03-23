@@ -10,7 +10,7 @@ import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import {PressableWithoutFeedback} from '@components/Pressable';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
-import UserListItem from '@components/SelectionListWithSections/UserListItem';
+import UserListItem from '@components/SelectionList/ListItem/UserListItem';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import useAncestors from '@hooks/useAncestors';
@@ -21,6 +21,7 @@ import useOnyx from '@hooks/useOnyx';
 import useReportAttributes from '@hooks/useReportAttributes';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useThemeStyles from '@hooks/useThemeStyles';
+import type {ParticipantInfo} from '@libs/actions/Report';
 import {addAttachmentWithComment, addComment, openReport} from '@libs/actions/Report';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {getFileName, readFileAsync} from '@libs/fileDownload/FileUtils';
@@ -152,10 +153,19 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
             validateFileName,
             (file) => {
                 if (isDraft) {
+                    const participants: ParticipantInfo[] =
+                        displayReport.participantsList
+                            ?.filter((u) => u.accountID !== personalDetail.accountID)
+                            .map((u) => ({
+                                login: u.login ?? '',
+                                accountID: u.accountID,
+                            })) ?? [];
+
                     openReport({
                         reportID: report.reportID,
                         introSelected,
-                        participantLoginList: displayReport.participantsList?.filter((u) => u.accountID !== personalDetail.accountID).map((u) => u.login ?? '') ?? [],
+                        personalDetails,
+                        participants,
                         newReportObject: report,
                         betas,
                     });
@@ -214,6 +224,7 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
                                 }}
                                 pressableStyle={[styles.flexRow]}
                                 shouldSyncFocus={false}
+                                keyForList={displayReport.keyForList}
                             />
                         </View>
                     )}

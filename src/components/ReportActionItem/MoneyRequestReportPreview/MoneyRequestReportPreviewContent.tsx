@@ -310,6 +310,7 @@ function MoneyRequestReportPreviewContent({
                         isSelfTourViewed,
                         userBillingGraceEndPeriods,
                         amountOwed,
+                        ownerBillingGraceEndPeriod,
                         onPaid: startAnimation,
                     });
                 }
@@ -332,6 +333,7 @@ function MoneyRequestReportPreviewContent({
             isSelfTourViewed,
             userBillingGraceEndPeriods,
             amountOwed,
+            ownerBillingGraceEndPeriod,
         ],
     );
 
@@ -371,6 +373,7 @@ function MoneyRequestReportPreviewContent({
                 betas,
                 userBillingGraceEndPeriods,
                 amountOwed,
+                ownerBillingGraceEndPeriod,
                 full: true,
                 onApproved: startApprovedAnimation,
             });
@@ -772,6 +775,7 @@ function MoneyRequestReportPreviewContent({
                     userBillingGraceEndPeriods,
                     amountOwed,
                     onSubmitted: startSubmittingAnimation,
+                    ownerBillingGraceEndPeriod,
                 });
             }}
             isSubmittingAnimationRunning={isSubmittingAnimationRunning}

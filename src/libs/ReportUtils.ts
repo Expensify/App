@@ -56,7 +56,6 @@ import type {
     ReportMetadata,
     ReportNameValuePairs,
     ReportViolationName,
-    ReportViolations,
     Task,
     Transaction,
     TransactionViolation,
@@ -9229,7 +9228,7 @@ function hasViolations(
     return transactions.some((transaction) => hasViolation(transaction, transactionViolations, currentUserEmailParam ?? '', currentUserAccountIDParam, report, policy, shouldShowInReview));
 }
 
-function hasVisibleReportFieldViolations(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>, reportViolations?: OnyxEntry<ReportViolations>): boolean {
+function hasVisibleReportFieldViolations(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>): boolean {
     if (!report || !policy?.fieldList || !policy?.areReportFieldsEnabled) {
         return false;
     }
@@ -9261,7 +9260,7 @@ function hasVisibleReportFieldViolations(report: OnyxEntry<Report>, policy: Onyx
         if (isReportFieldDisabledForUser(report, field, policy)) {
             return false;
         }
-        return !!getFieldViolation(reportViolations, field);
+        return !!getFieldViolation(field);
     });
 }
 
@@ -9340,13 +9339,6 @@ function hasAnyViolations(
         hasNoticeTypeViolations(reportID, transactionViolations, currentUserAccountIDParam, currentUserEmailParam, true, reportTransactions, report, policy) ||
         hasWarningTypeViolations(reportID, transactionViolations, currentUserAccountIDParam, currentUserEmailParam ?? '', true, reportTransactions, report, policy)
     );
-}
-
-function hasReportViolations(reportViolations: OnyxEntry<ReportViolations>) {
-    if (!reportViolations) {
-        return false;
-    }
-    return Object.values(reportViolations ?? {}).some((violations) => !isEmptyObject(violations));
 }
 
 /**
@@ -11364,6 +11356,7 @@ type CreateDraftTransactionParams = {
     activePolicy: OnyxEntry<Policy>;
     userBillingGraceEndPeriods: OnyxCollection<BillingGraceEndPeriod>;
     amountOwed: OnyxEntry<number>;
+    ownerBillingGraceEndPeriod?: OnyxEntry<number>;
     isRestrictedToPreferredPolicy?: boolean;
     preferredPolicyID?: string;
     transaction: OnyxEntry<Transaction>;
@@ -11378,6 +11371,7 @@ function createDraftTransactionAndNavigateToParticipantSelector({
     activePolicy,
     userBillingGraceEndPeriods,
     amountOwed,
+    ownerBillingGraceEndPeriod,
     isRestrictedToPreferredPolicy = false,
     preferredPolicyID,
     transaction,
@@ -11444,7 +11438,7 @@ function createDraftTransactionAndNavigateToParticipantSelector({
     }
 
     if (actionName === CONST.IOU.ACTION.CATEGORIZE) {
-        if (activePolicy && shouldRestrictUserBillableActions(activePolicy.id, userBillingGraceEndPeriods, amountOwed)) {
+        if (activePolicy && shouldRestrictUserBillableActions(activePolicy.id, userBillingGraceEndPeriods, amountOwed, ownerBillingGraceEndPeriod)) {
             Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(activePolicy.id));
             return;
         }
@@ -12474,23 +12468,12 @@ function getChatUsedForOnboarding(onboardingValue: OnyxEntry<Onboarding>, concie
 /**
  * Checks if given field has any violations and returns name of the first encountered one
  */
-function getFieldViolation(violations: OnyxEntry<ReportViolations>, reportField: PolicyReportField): ReportViolationName | undefined {
+function getFieldViolation(reportField: PolicyReportField): ReportViolationName | undefined {
     if (!reportField) {
         return undefined;
     }
 
-    if (!violations) {
-        return (reportField.value ?? reportField.defaultValue) ? undefined : CONST.REPORT_VIOLATIONS.FIELD_REQUIRED;
-    }
-
-    const fieldViolation = Object.values(CONST.REPORT_VIOLATIONS).find((violation) => !!violations[violation] && violations[violation][reportField.fieldID]);
-
-    // If the field has no value or no violation, we return 'fieldRequired' violation
-    if (!fieldViolation) {
-        return reportField.value ? undefined : CONST.REPORT_VIOLATIONS.FIELD_REQUIRED;
-    }
-
-    return fieldViolation;
+    return (reportField.value ?? reportField.defaultValue) ? undefined : CONST.REPORT_VIOLATIONS.FIELD_REQUIRED;
 }
 
 /**
@@ -13578,7 +13561,6 @@ export {
     getMostRecentlyVisitedReport,
     getSourceIDFromReportAction,
     getIntegrationNameFromExportMessage,
-    hasReportViolations,
     isPayAtEndExpenseReport,
     getApprovalChain,
     isIndividualInvoiceRoom,
