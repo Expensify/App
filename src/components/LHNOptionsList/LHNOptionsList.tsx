@@ -49,7 +49,6 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
     const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
     const [policy] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
-    const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
     const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT);
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
@@ -189,7 +188,6 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
                     policy={itemPolicy}
                     invoiceReceiverPolicy={itemInvoiceReceiverPolicy}
                     personalDetails={personalDetails ?? {}}
-                    receiptTransactions={transactions}
                     viewMode={optionMode}
                     isOptionFocused={!shouldDisableFocusOptions}
                     onSelectRow={onSelectRow}
@@ -216,7 +214,6 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
             reports,
             reportNameValuePairs,
             policy,
-            transactions,
             draftComments,
             personalDetails,
             firstReportIDWithGBRorRBR,
@@ -250,7 +247,6 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
             draftComments,
             optionMode,
             preferredLocale,
-            transactions,
             isOffline,
             isScreenFocused,
             isReportsSplitNavigatorLast,
@@ -266,7 +262,6 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
             draftComments,
             optionMode,
             preferredLocale,
-            transactions,
             isOffline,
             isScreenFocused,
             isReportsSplitNavigatorLast,

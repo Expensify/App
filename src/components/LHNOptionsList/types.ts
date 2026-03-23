@@ -5,7 +5,7 @@ import type {ValueOf} from 'type-fest';
 import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 import type CONST from '@src/CONST';
 import type {OptionData} from '@src/libs/ReportUtils';
-import type {Locale, Onboarding, OnboardingPurpose, PersonalDetailsList, Policy, Report, ReportNameValuePairs, Transaction, TransactionViolation} from '@src/types/onyx';
+import type {Locale, Onboarding, OnboardingPurpose, PersonalDetailsList, Policy, Report, ReportNameValuePairs, TransactionViolation} from '@src/types/onyx';
 import type {ReportAttributes, ReportAttributesDerivedValue} from '@src/types/onyx/DerivedValues';
 
 type OptionMode = ValueOf<typeof CONST.OPTION_MODE>;
@@ -77,9 +77,6 @@ type OptionRowLHNDataProps = {
 
     /** Whether a report contains a draft */
     hasDraftComment: boolean;
-
-    /** The receipt transaction from the parent report action */
-    receiptTransactions: OnyxCollection<Transaction>;
 
     /** The reportID of the report */
     reportID: string;

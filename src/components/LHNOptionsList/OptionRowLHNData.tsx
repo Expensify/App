@@ -38,7 +38,6 @@ function OptionRowLHNData({
     preferredLocale = CONST.LOCALES.DEFAULT,
     policy,
     invoiceReceiverPolicy,
-    receiptTransactions,
     transactionViolations,
     localeCompare,
     translate,
@@ -60,7 +59,7 @@ function OptionRowLHNData({
     const parentReportAction = fullReport?.parentReportActionID ? parentReportActions?.[fullReport.parentReportActionID] : undefined;
 
     const transactionID = isMoneyRequestAction(parentReportAction) ? (getOriginalMessage(parentReportAction)?.IOUTransactionID ?? CONST.DEFAULT_NUMBER_ID) : CONST.DEFAULT_NUMBER_ID;
-    const transaction = receiptTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
+    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID !== CONST.DEFAULT_NUMBER_ID ? String(transactionID) : undefined)}`);
 
     const isReportArchived = !!(reportNameValuePairsEntry ?? reportNameValuePairs)?.private_isArchived;
     const canUserPerformWrite = canUserPerformWriteActionUtil(fullReport, isReportArchived);
@@ -82,17 +81,19 @@ function OptionRowLHNData({
     const [iouReportReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportIDOfLastAction}`);
 
     const lastReportActionTransactionID = isMoneyRequestAction(lastAction) ? (getOriginalMessage(lastAction)?.IOUTransactionID ?? CONST.DEFAULT_NUMBER_ID) : CONST.DEFAULT_NUMBER_ID;
-    const lastReportActionTransaction = receiptTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${lastReportActionTransactionID}`];
+    const [lastReportActionTransaction] = useOnyx(
+        `${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(lastReportActionTransactionID !== CONST.DEFAULT_NUMBER_ID ? String(lastReportActionTransactionID) : undefined)}`,
+    );
+
+    const whisperTransactionID = isActionableTrackExpense(lastAction) ? getOriginalMessage(lastAction)?.transactionID : undefined;
+    const [whisperTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(whisperTransactionID)}`);
 
     const lastMessageTextFromReport = useMemo(() => {
-        if (isActionableTrackExpense(lastAction)) {
-            const whisperTransactionID = getOriginalMessage(lastAction)?.transactionID;
-            if (whisperTransactionID && !receiptTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${whisperTransactionID}`]) {
-                return '';
-            }
+        if (whisperTransactionID && !whisperTransaction) {
+            return '';
         }
         return undefined;
-    }, [lastAction, receiptTransactions]);
+    }, [whisperTransactionID, whisperTransaction]);
 
     const lastActionReportID = useMemo(() => {
         if (isInviteOrRemovedAction(lastAction)) {
@@ -175,7 +176,6 @@ function OptionRowLHNData({
         conciergeReportID,
         iouReportReportActions,
         transaction,
-        receiptTransactions,
         invoiceReceiverPolicy,
         lastMessageTextFromReport,
         card,
