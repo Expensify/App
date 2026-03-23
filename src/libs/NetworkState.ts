@@ -111,6 +111,12 @@ function setSustainedFailures(active: boolean) {
     } else if (wasActive && !active) {
         Log.info('[NetworkState] SUSTAINED_FAILURES cleared');
         updateState();
+
+        // A successful request proved connectivity — trigger reconnect to backfill
+        // missed Onyx updates. Without this, a backend outage recovery (where NetInfo
+        // never transitions false→true) would leave the UI online but stale.
+        // Duplicate reconnectApp() calls are safe — SQ deduplicates them.
+        notifyReconnectListeners();
     }
 }
 

@@ -270,13 +270,16 @@ describe('NetworkState', () => {
             unsubscribe();
         });
 
-        test('reconnect listener is not called by setSustainedFailures clearing', () => {
+        test('reconnect listener IS called when sustained failures clear (backend outage recovery)', () => {
             const reconnectListener = jest.fn();
             const unsubscribe = onReachabilityConfirmed(reconnectListener);
 
             setSustainedFailures(true);
             setSustainedFailures(false);
-            expect(reconnectListener).not.toHaveBeenCalled();
+            // A successful request proved connectivity — reconnect to backfill missed Onyx updates.
+            // Without this, a backend outage recovery (where NetInfo never transitions false→true)
+            // would leave the UI online but stale.
+            expect(reconnectListener).toHaveBeenCalledTimes(1);
 
             unsubscribe();
         });
