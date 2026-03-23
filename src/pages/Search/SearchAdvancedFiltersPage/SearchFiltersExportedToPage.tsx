@@ -29,6 +29,10 @@ const STANDARD_EXPORT_TEMPLATE_ID_TO_DISPLAY_LABEL: Record<string, string> = {
     [CONST.REPORT.EXPORT_OPTIONS.EXPENSE_LEVEL_EXPORT]: CONST.REPORT.EXPORT_OPTION_LABELS.EXPENSE_LEVEL_EXPORT,
 };
 
+function getPickerItemValueKey(value: SearchMultipleSelectionPickerItem['value']): string {
+    return typeof value === 'string' ? value : (value.at(0) ?? '');
+}
+
 function SearchFiltersExportedToPage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -45,8 +49,6 @@ function SearchFiltersExportedToPage() {
     const integrationConnectionNames = Object.values(CONST.POLICY.CONNECTIONS.NAME);
     const selectedExportedToValues = searchAdvancedFiltersForm?.exportedTo ?? [];
     const connectedIntegrationNames = getConnectedIntegrationNamesForPolicies(policies, policyIDs.length > 0 ? policyIDs : undefined);
-
-    const getPickerItemValueKey = (value: SearchMultipleSelectionPickerItem['value']): string => (typeof value === 'string' ? value : (value.at(0) ?? ''));
 
     const tableIconForExportOption = (
         <View style={[styles.mr3, styles.alignItemsCenter, styles.justifyContentCenter, StyleUtils.getWidthAndHeightStyle(variables.w28, variables.h28)]}>
