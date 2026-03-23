@@ -644,6 +644,7 @@ type CreateDistanceRequestInformation = {
     currentUserLogin?: string;
     currentUserAccountID?: number;
     iouType?: ValueOf<typeof CONST.IOU.TYPE>;
+    existingIOUReport?: OnyxEntry<OnyxTypes.Report>;
     existingTransaction?: OnyxEntry<OnyxTypes.Transaction>;
     transactionParams: DistanceRequestTransactionParams;
     policyParams?: BasePolicyParams;
@@ -655,8 +656,10 @@ type CreateDistanceRequestInformation = {
     recentWaypoints: OnyxEntry<OnyxTypes.RecentWaypoint[]>;
     customUnitPolicyID?: string;
     shouldHandleNavigation?: boolean;
+    shouldPlaySound?: boolean;
     personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
     betas: OnyxEntry<OnyxTypes.Beta[]>;
+    optimisticReportPreviewActionID?: string;
 };
 
 type CreateSplitsTransactionParams = Omit<BaseTransactionParams, 'customUnitRateID'> & {
@@ -7763,6 +7766,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
         currentUserLogin = '',
         currentUserAccountID = -1,
         iouType = CONST.IOU.TYPE.SUBMIT,
+        existingIOUReport,
         existingTransaction,
         transactionParams,
         policyParams = {},
@@ -7774,8 +7778,10 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
         recentWaypoints = [],
         customUnitPolicyID,
         shouldHandleNavigation = true,
+        shouldPlaySound: shouldPlaySoundParam = true,
         personalDetails,
         betas,
+        optimisticReportPreviewActionID,
     } = distanceRequestInformation;
     const {policy, policyCategories, policyTagList, policyRecentlyUsedCategories, policyRecentlyUsedTags} = policyParams;
     const parsedComment = getParsedComment(transactionParams.comment);
@@ -7821,6 +7827,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
 
     let parameters: CreateDistanceRequestParams;
     let onyxData: OnyxData<BuildOnyxDataForMoneyRequestKeys | typeof ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE | typeof ONYXKEYS.NVP_RECENT_WAYPOINTS | typeof ONYXKEYS.GPS_DRAFT_DETAILS>;
+    let distanceIouReport: OnyxInputValue<OnyxTypes.Report> = null;
     const sanitizedWaypoints = !isManualDistanceRequest ? sanitizeWaypointsForAPI(validWaypoints) : null;
     if (iouType === CONST.IOU.TYPE.SPLIT) {
         const {
@@ -7901,6 +7908,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
             onyxData: moneyRequestOnyxData,
         } = getMoneyRequestInformation({
             parentChatReport: currentChatReport,
+            existingIOUReport,
             existingTransaction,
             moneyRequestReportID,
             participantParams: {
@@ -7943,9 +7951,11 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
             policyRecentlyUsedCurrencies,
             personalDetails,
             betas,
+            optimisticReportPreviewActionID,
         });
 
         onyxData = moneyRequestOnyxData;
+        distanceIouReport = iouReport;
 
         const isGPSDistanceRequest = transaction.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_GPS;
 
@@ -8011,7 +8021,9 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
         value: recentServerValidatedWaypoints,
     });
 
-    playSound(SOUNDS.DONE);
+    if (shouldPlaySoundParam) {
+        playSound(SOUNDS.DONE);
+    }
 
     API.write(WRITE_COMMANDS.CREATE_DISTANCE_REQUEST, parameters, onyxData);
     // eslint-disable-next-line @typescript-eslint/no-deprecated
@@ -8025,6 +8037,8 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
     if (!isMoneyRequestReport) {
         notifyNewAction(activeReportID, undefined, true);
     }
+
+    return {iouReport: distanceIouReport};
 }
 
 type UpdateMoneyRequestAmountAndCurrencyParams = {
