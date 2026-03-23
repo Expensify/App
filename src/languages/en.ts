@@ -253,6 +253,7 @@ const translations = {
         na: 'N/A',
         noResultsFound: 'No results found',
         noResultsFoundMatching: (searchString: string) => `No results found matching "${searchString}"`,
+        suggestionsAvailableFor: (searchString: string) => (searchString ? `Suggestions available for "${searchString}".` : 'Suggestions available.'),
         recentDestinations: 'Recent destinations',
         timePrefix: "It's",
         conjunctionFor: 'for',
@@ -1038,6 +1039,10 @@ const translations = {
                 title: 'Validate your account to continue using Expensify',
                 subtitle: 'Account',
                 cta: 'Validate',
+            },
+            fixFailedBilling: {
+                title: "We couldn't bill your card on file",
+                subtitle: 'Subscription',
             },
         },
         assignedCards: 'Your Expensify Cards',
@@ -2736,6 +2741,8 @@ const translations = {
         requiredWhen2FAEnabled: 'Required when 2FA is enabled',
         requestNewCode: ({timeRemaining}: {timeRemaining: string}) => `Request a new code in <a>${timeRemaining}</a>`,
         requestNewCodeAfterErrorOccurred: 'Request a new code',
+        timeRemainingAnnouncement: ({timeRemaining}: {timeRemaining: number}) => `Time remaining: ${timeRemaining} ${timeRemaining === 1 ? 'second' : 'seconds'}`,
+        timeExpiredAnnouncement: 'The time has expired',
         error: {
             pleaseFillMagicCode: 'Please enter your magic code',
             incorrectMagicCode: 'Incorrect or invalid magic code. Please try again or request a new code.',
@@ -7805,7 +7812,7 @@ const translations = {
             confirm: 'Open settings',
             prompt: 'Please allow location access in your device settings to start GPS distance tracking.',
         },
-        fabGpsTripExplained: 'Go to GPS screen (Floating action)',
+        gpsFloatingPillText: 'GPS tracking in progress...',
         liveActivity: {
             subtitle: 'Tracking distance',
             button: 'View progress',
