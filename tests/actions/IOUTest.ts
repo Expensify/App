@@ -632,7 +632,6 @@ describe('actions/IOU', () => {
             // When the transaction is saved to draft by selecting a category in the selfDM report
             const reportActionableTrackExpense = Object.values(selfDMReportActions ?? {}).find((reportAction) => isActionableTrackExpense(reportAction));
             createDraftTransactionAndNavigateToParticipantSelector({
-                transactionID: transaction?.transactionID,
                 reportID: selfDMReport.reportID,
                 actionName: CONST.IOU.ACTION.CATEGORIZE,
                 reportActionID: reportActionableTrackExpense?.reportActionID,
@@ -641,6 +640,7 @@ describe('actions/IOU', () => {
                 activePolicy: undefined,
                 userBillingGraceEndPeriods: undefined,
                 amountOwed: 0,
+                transaction,
             });
             await waitForBatchedUpdates();
 
@@ -1205,7 +1205,6 @@ describe('actions/IOU', () => {
 
             // When a draft is created for categorization
             createDraftTransactionAndNavigateToParticipantSelector({
-                transactionID: createdTransaction?.transactionID,
                 reportID: selfDMReport.reportID,
                 actionName: CONST.IOU.ACTION.CATEGORIZE,
                 reportActionID: actionableWhisper?.reportActionID,
@@ -1214,6 +1213,7 @@ describe('actions/IOU', () => {
                 activePolicy: undefined,
                 userBillingGraceEndPeriods: undefined,
                 amountOwed: 0,
+                transaction: createdTransaction,
             });
             await waitForBatchedUpdates();
 
@@ -1847,7 +1847,6 @@ describe('actions/IOU', () => {
 
             // When createDraftTransactionAndNavigateToParticipantSelector is called with draftTransactionIDs
             createDraftTransactionAndNavigateToParticipantSelector({
-                transactionID: transactionToCategorize.transactionID,
                 reportID: selfDMReport.reportID,
                 actionName: CONST.IOU.ACTION.CATEGORIZE,
                 reportActionID,
@@ -1856,6 +1855,7 @@ describe('actions/IOU', () => {
                 activePolicy: undefined,
                 userBillingGraceEndPeriods: undefined,
                 amountOwed: 0,
+                transaction: transactionToCategorize,
             });
             await waitForBatchedUpdates();
 
@@ -1895,7 +1895,6 @@ describe('actions/IOU', () => {
 
             // When createDraftTransactionAndNavigateToParticipantSelector is called with empty allTransactionDrafts
             createDraftTransactionAndNavigateToParticipantSelector({
-                transactionID: originalTransaction.transactionID,
                 reportID: selfDMReport.reportID,
                 actionName: CONST.IOU.ACTION.CATEGORIZE,
                 reportActionID,
@@ -1904,6 +1903,7 @@ describe('actions/IOU', () => {
                 activePolicy: undefined,
                 userBillingGraceEndPeriods: undefined,
                 amountOwed: 0,
+                transaction: originalTransaction,
             });
             await waitForBatchedUpdates();
 
@@ -1925,14 +1925,13 @@ describe('actions/IOU', () => {
             expect(draftTransaction?.linkedTrackedExpenseReportID).toBe(selfDMReport.reportID);
         });
 
-        it('should not create draft transaction when transactionID is undefined', async () => {
+        it('should not create draft transaction when transaction is undefined', async () => {
             // Given a selfDM report
             const selfDMReport = createRandomReport(1, CONST.REPORT.CHAT_TYPE.SELF_DM);
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReport.reportID}`, selfDMReport);
 
-            // When createDraftTransactionAndNavigateToParticipantSelector is called with undefined transactionID
+            // When createDraftTransactionAndNavigateToParticipantSelector is called with undefined transaction
             createDraftTransactionAndNavigateToParticipantSelector({
-                transactionID: undefined,
                 reportID: selfDMReport.reportID,
                 actionName: CONST.IOU.ACTION.CATEGORIZE,
                 reportActionID: 'some-report-action-id',
@@ -1941,6 +1940,7 @@ describe('actions/IOU', () => {
                 activePolicy: undefined,
                 userBillingGraceEndPeriods: undefined,
                 amountOwed: 0,
+                transaction: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -1964,13 +1964,13 @@ describe('actions/IOU', () => {
 
             // When createDraftTransactionAndNavigateToParticipantSelector is called with undefined reportID
             createDraftTransactionAndNavigateToParticipantSelector({
-                transactionID: transaction.transactionID,
                 reportID: undefined,
                 actionName: CONST.IOU.ACTION.CATEGORIZE,
                 reportActionID: 'some-report-action-id',
                 introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
                 draftTransactionIDs: [],
                 activePolicy: undefined,
+                transaction,
                 userBillingGraceEndPeriods: undefined,
                 amountOwed: 0,
             });

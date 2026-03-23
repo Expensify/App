@@ -152,7 +152,7 @@ describe('canEditFieldOfMoneyRequest', () => {
             const randomReportAction = createRandomReportAction(reportActionID);
             const policyID = '11';
 
-            const expensePolicy = {...createRandomPolicy(Number(policyID), CONST.POLICY.TYPE.TEAM), role: CONST.POLICY.ROLE.USER};
+            const expensePolicy = {...createRandomPolicy(Number(policyID), CONST.POLICY.TYPE.TEAM), role: CONST.POLICY.ROLE.USER, approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL};
 
             // Create outstanding expense reports in the same policy (different IDs than our main expense report)
             const outstandingExpenseReport1 = {
