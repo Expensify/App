@@ -1,9 +1,8 @@
 ---
 title: Delegate When Out of Office
 description: Assign a vacation delegate to approve reports on your behalf while you're away.
-keywords: [New Expensify, delegate approvals, out-of-office approver]
+keywords: [New Expensify, delegate approvals, out-of-office approver, vacation, out of office, approval delegation, temporary delegate, vacation delegate, copilot vs delegate]
 ---
-<div id="new-expensify" markdown="1">
 
 If you're out of the office or on vacation, you can assign a **Vacation Delegate** to handle your approvals while you're away.
 
@@ -54,5 +53,3 @@ No. Clearing your status won't affect your delegate. You'll need to manually rem
 ## What if my delegate isn’t in the same workspace?
 
 If your delegate isn’t part of your workspace, Workspace Admins will be notified by email and prompted to add them.
-
-</div>

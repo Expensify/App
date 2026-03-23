@@ -13,6 +13,6 @@
     when setup() eventually calls registerBundleEntryPoints().
     ```
 
-- Upstream PR/issue: TODO
-- E/App issue: TODO
-- PR introducing patch: TODO
+- Upstream PR/issue: https://github.com/expo/expo/pull/43864
+- E/App issue: https://github.com/Expensify/App/issues/75120
+- PR introducing patch: https://github.com/Expensify/App/pull/79962

@@ -72,10 +72,10 @@ Onyx.connect({
     callback: (value) => (ownerBillingGraceEndPeriodDeprecated = value),
 });
 
-let deprecatedUserBillingGraceEndPeriodCollection: OnyxCollection<BillingGraceEndPeriod>;
+let deprecatedUserBillingGraceEndPeriods: OnyxCollection<BillingGraceEndPeriod>;
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END,
-    callback: (value) => (deprecatedUserBillingGraceEndPeriodCollection = value),
+    callback: (value) => (deprecatedUserBillingGraceEndPeriods = value),
     waitForCollectionCallback: true,
 });
 
@@ -470,7 +470,7 @@ function doesUserHavePaymentCardAdded(userBillingFundID: number | undefined): bo
  */
 function shouldRestrictUserBillableActions(
     policyID: string,
-    userBillingGraceEndPeriodCollection: OnyxCollection<BillingGraceEndPeriod> = deprecatedUserBillingGraceEndPeriodCollection,
+    userBillingGraceEndPeriods: OnyxCollection<BillingGraceEndPeriod> = deprecatedUserBillingGraceEndPeriods,
     amountOwed: OnyxEntry<number> = privateAmountOwed,
     ownerBillingGraceEndPeriod: OnyxEntry<number> = ownerBillingGraceEndPeriodDeprecated,
 ): boolean {
@@ -481,7 +481,7 @@ function shouldRestrictUserBillableActions(
     // This logic will be executed if the user is a workspace's non-owner (normal user or admin).
     // We should restrict the workspace's non-owner actions if it's member of a workspace where the owner is
     // past due and is past its grace period end.
-    for (const userBillingGraceEndPeriodEntry of Object.entries(userBillingGraceEndPeriodCollection ?? {})) {
+    for (const userBillingGraceEndPeriodEntry of Object.entries(userBillingGraceEndPeriods ?? {})) {
         const [entryKey, userBillingGracePeriodEnd] = userBillingGraceEndPeriodEntry;
 
         if (userBillingGracePeriodEnd && isAfter(currentDate, fromUnixTime(userBillingGracePeriodEnd.value))) {
@@ -544,14 +544,14 @@ function getSubscriptionPlanInfo(
 
     if (subscriptionPlan === CONST.POLICY.TYPE.TEAM) {
         let subtitle = translate('subscription.yourPlan.customPricing');
-        let note: string | undefined = translate('subscription.yourPlan.asLowAs', {price});
+        let note: string | undefined = translate('subscription.yourPlan.asLowAs', price);
 
         if (hasTeam2025Pricing) {
             if (isFromComparisonModal) {
                 subtitle = price;
                 note = translate('subscription.yourPlan.perMemberMonth');
             } else {
-                subtitle = translate('subscription.yourPlan.pricePerMemberMonth', {price});
+                subtitle = translate('subscription.yourPlan.pricePerMemberMonth', price);
                 note = undefined;
             }
         }
@@ -578,7 +578,7 @@ function getSubscriptionPlanInfo(
     return {
         title: translate('subscription.yourPlan.control.title'),
         subtitle: translate('subscription.yourPlan.customPricing'),
-        note: translate('subscription.yourPlan.asLowAs', {price}),
+        note: translate('subscription.yourPlan.asLowAs', price),
         benefits: [
             translate('subscription.yourPlan.control.benefit1'),
             translate('subscription.yourPlan.control.benefit2'),
@@ -592,6 +592,29 @@ function getSubscriptionPlanInfo(
         src: illustrations.ShieldYellow,
         description: translate('subscription.yourPlan.control.description'),
     };
+}
+
+function shouldShowTrialEndedUI(
+    lastDayFreeTrial: string | undefined,
+    userBillingFundID: number | undefined,
+    policies: OnyxCollection<Policy>,
+    isGrandfatheredFree: boolean | undefined,
+    isFromInternalDomain: boolean | undefined,
+    privateSubscriptionType: SubscriptionType | undefined,
+): boolean {
+    if (!getOwnedPaidPolicies(policies, currentUserAccountID)?.length) {
+        return false;
+    }
+    if (isGrandfatheredFree || isFromInternalDomain) {
+        return false;
+    }
+    if (isSubscriptionTypeOfInvoicing(privateSubscriptionType)) {
+        return false;
+    }
+    if (doesUserHavePaymentCardAdded(userBillingFundID)) {
+        return false;
+    }
+    return hasUserFreeTrialEnded(lastDayFreeTrial);
 }
 
 function isSubscriptionTypeOfInvoicing(privateSubscriptionType: SubscriptionType | undefined) {
@@ -619,6 +642,7 @@ export {
     shouldCalculateBillNewDot,
     getSubscriptionPlanInfo,
     getSubscriptionPrice,
+    shouldShowTrialEndedUI,
     isSubscriptionTypeOfInvoicing,
 };
 
