@@ -4663,7 +4663,7 @@ function enablePolicyTaxes(policyID: string, enabled: boolean, currentTaxRates?:
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 value: {
-                    taxRates: undefined,
+                    taxRates: null,
                 },
             },
         ],

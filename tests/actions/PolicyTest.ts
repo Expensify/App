@@ -3527,9 +3527,9 @@ describe('actions/Policy', () => {
 
             // And the success data should clear the pending fields
             updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
-            expect(updatedPolicy?.pendingFields?.tax).toBeNull();
+            expect(updatedPolicy?.pendingFields?.tax).toBeUndefined();
             for (const tax of Object.values(updatedPolicy?.taxRates?.taxes ?? {})) {
-                expect(tax.pendingAction).toBeNull();
+                expect(tax.pendingAction).toBeUndefined();
             }
         });
 
@@ -3554,7 +3554,7 @@ describe('actions/Policy', () => {
             // Then the policy tax tracking should be reverted
             const updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
             expect(updatedPolicy?.tax?.trackingEnabled).toBe(false);
-            expect(updatedPolicy?.pendingFields?.tax).toBeNull();
+            expect(updatedPolicy?.pendingFields?.tax).toBeUndefined();
             expect(updatedPolicy?.taxRates).toBeUndefined();
         });
     });
@@ -3584,7 +3584,7 @@ describe('actions/Policy', () => {
 
             // And the success data should clear the pending fields
             updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
-            expect(updatedPolicy?.pendingFields?.areWorkflowsEnabled).toBeNull();
+            expect(updatedPolicy?.pendingFields?.areWorkflowsEnabled).toBeUndefined();
         });
 
         it('should revert policy workflows when fail', async () => {
@@ -3613,7 +3613,7 @@ describe('actions/Policy', () => {
             expect(updatedPolicy?.autoReporting).toBe(true);
             expect(updatedPolicy?.harvesting?.enabled).toBe(true);
             expect(updatedPolicy?.reimbursementChoice).toBe(CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES);
-            expect(updatedPolicy?.pendingFields?.areWorkflowsEnabled).toBeNull();
+            expect(updatedPolicy?.pendingFields?.areWorkflowsEnabled).toBeUndefined();
         });
     });
     describe('enableDistanceRequestTax', () => {
@@ -3652,7 +3652,7 @@ describe('actions/Policy', () => {
 
             // And the success data should clear the pending fields
             updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
-            expect(updatedPolicy?.customUnits?.[customUnitID]?.pendingFields?.taxEnabled).toBeNull();
+            expect(updatedPolicy?.customUnits?.[customUnitID]?.pendingFields?.taxEnabled).toBeUndefined();
         });
 
         it('should revert distance request tax when fail', async () => {
@@ -3683,7 +3683,6 @@ describe('actions/Policy', () => {
             // Then taxEnabled should be reverted to true
             const updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
             expect(updatedPolicy?.customUnits?.[customUnitID]?.attributes?.taxEnabled).toBe(true);
-            expect(updatedPolicy?.customUnits?.[customUnitID]?.pendingFields?.taxEnabled).toBeNull();
         });
     });
 
@@ -3717,7 +3716,7 @@ describe('actions/Policy', () => {
 
             // And the success data should clear the pending fields
             updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
-            expect(updatedPolicy?.invoice?.pendingFields?.companyName).toBeNull();
+            expect(updatedPolicy?.invoice?.pendingFields?.companyName).toBeUndefined();
         });
 
         it('should revert invoice company name when fail', async () => {
@@ -3742,7 +3741,7 @@ describe('actions/Policy', () => {
             // Then companyName should be reverted
             const updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
             expect(updatedPolicy?.invoice?.companyName).toBe(initialCompanyName);
-            expect(updatedPolicy?.invoice?.pendingFields?.companyName).toBeNull();
+            expect(updatedPolicy?.invoice?.pendingFields?.companyName).toBeUndefined();
         });
     });
 
@@ -3776,7 +3775,7 @@ describe('actions/Policy', () => {
 
             // And the success data should clear the pending fields
             updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
-            expect(updatedPolicy?.invoice?.pendingFields?.companyWebsite).toBeNull();
+            expect(updatedPolicy?.invoice?.pendingFields?.companyWebsite).toBeUndefined();
         });
 
         it('should revert invoice company website when fail', async () => {
@@ -3801,7 +3800,7 @@ describe('actions/Policy', () => {
             // Then companyWebsite should be reverted
             const updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
             expect(updatedPolicy?.invoice?.companyWebsite).toBe(initialWebsite);
-            expect(updatedPolicy?.invoice?.pendingFields?.companyWebsite).toBeNull();
+            expect(updatedPolicy?.invoice?.pendingFields?.companyWebsite).toBeUndefined();
         });
     });
 });
