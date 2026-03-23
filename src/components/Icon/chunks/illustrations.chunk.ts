@@ -49,7 +49,8 @@ import ApprovedTransactionHand from '@assets/images/multifactorAuthentication/ap
 import DeniedTransactionHand from '@assets/images/multifactorAuthentication/denied-transaction-hand.svg';
 import EncryptionMan from '@assets/images/multifactorAuthentication/encryption-man.svg';
 import HumptyDumpty from '@assets/images/multifactorAuthentication/humpty-dumpty.svg';
-import MagnifyingGlassSpyMouthClosed from '@assets/images/multifactorAuthentication/magnifying-glass-spy-mouth-closed.svg';
+import MagnifyingGlassSpyMouthClosed from '@assets/images/multifactorAuthentication/magnifying-glass-spy-mouth-closed-cropped.svg';
+import OpenPadlockGreen from '@assets/images/multifactorAuthentication/open-padlock-green.svg';
 import OpenPadlock from '@assets/images/multifactorAuthentication/open-padlock.svg';
 import RunOutOfTime from '@assets/images/multifactorAuthentication/running-out-of-time.svg';
 import PendingTravel from '@assets/images/pending-travel.svg';
@@ -86,6 +87,7 @@ import TiltedCoinExpensify from '@assets/images/product-illustrations/tilted-coi
 import ToddBehindCloud from '@assets/images/product-illustrations/todd-behind-cloud.svg';
 import ToddInCar from '@assets/images/product-illustrations/todd-in-car.svg';
 import ToddWithPhones from '@assets/images/product-illustrations/todd-with-phones.svg';
+import UpgradeRocket from '@assets/images/product-illustrations/upgrade-rocket.svg';
 import WorkspaceScene from '@assets/images/product-illustrations/workspace-scene.svg';
 import ReceiptStack from '@assets/images/receipt-upload.svg';
 import RunningTurtle from '@assets/images/running-turtle.svg';
@@ -276,6 +278,7 @@ const Illustrations = {
     ToddInCar,
     ToddWithPhones,
     WorkspaceScene,
+    UpgradeRocket,
 
     // Educational Illustrations
     MultiScan,
@@ -391,6 +394,7 @@ const Illustrations = {
     // Multifactor Authentication Illustrations
     MagnifyingGlassSpyMouthClosed,
     OpenPadlock,
+    OpenPadlockGreen,
     ApprovedTransactionHand,
     DeniedTransactionHand,
     RunOutOfTime,
