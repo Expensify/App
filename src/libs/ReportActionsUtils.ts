@@ -3805,7 +3805,8 @@ function getUpdatedCardFeedLiabilityMessage(translate: LocalizedTranslate, repor
     const originalMessage = getOriginalMessage(reportAction);
     const feedName = originalMessage?.feedName;
     const liabilityType = originalMessage?.liabilityType;
-    return feedName && liabilityType ? translate('workspaceActions.updatedCardFeedLiability', feedName, liabilityType) : getReportActionText(reportAction);
+    const enabled = liabilityType === CONST.TRANSACTION.LIABILITY_TYPE.ALLOW;
+    return feedName && enabled ? translate('workspaceActions.updatedCardFeedLiability', feedName, enabled) : getReportActionText(reportAction);
 }
 
 function formatStatementPeriodEndDay(translate: LocalizedTranslate, value?: string): string | undefined {

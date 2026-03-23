@@ -6849,7 +6849,7 @@ const translations = {
         renamedCardFeed: (newName: string, oldName: string) => `renamed card feed to "${newName}" (previously "${oldName}")`,
         assignedCompanyCard: (email: string, cardLastFour: string) => `assigned ${email} company card ending in ${cardLastFour}`,
         unassignedCompanyCard: (email: string, cardLastFour: string) => `unassigned ${email} company card ending in ${cardLastFour}`,
-        updatedCardFeedLiability: (feedName: string, liabilityType: string) => `changed card feed "${feedName}" transaction liability to ${liabilityType}`,
+        updatedCardFeedLiability: (feedName: string, enabled: boolean) => `${enabled ? 'enabled' : 'disabled'} cardholders to delete card transactions for card feed "${feedName}"`,
         updatedCardFeedStatementPeriod: (feedName: string, newValue?: string, previousValue?: string) =>
             `changed card feed "${feedName}" statement period end day${newValue ? ` to "${newValue}"` : ''}${previousValue ? ` (previously "${previousValue}")` : ''}`,
         preventSelfApproval: ({oldValue, newValue}: UpdatedPolicyPreventSelfApprovalParams) =>
