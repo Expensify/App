@@ -372,10 +372,8 @@ function BaseTextInput({
                                 </View>
                             )}
                             <InputComponent
-                                ref={(element: HTMLFormElement | AnimatedTextInputRef | AnimatedMarkdownTextInputRef | null): void => {
-                                    const ref = element as BaseTextInputRef | null;
-
-                                    const baseTextInputRef = isInLandscapeMode ? getLandscapeTextInputRefProxy(ref) : ref;
+                                ref={(element: BaseTextInputRef | null): void => {
+                                    const baseTextInputRef = isInLandscapeMode ? getLandscapeTextInputRefProxy(element) : element;
 
                                     if (typeof ref === 'function') {
                                         ref(baseTextInputRef);
