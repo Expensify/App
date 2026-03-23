@@ -10,6 +10,7 @@ import type {SearchQueryJSON} from '@components/Search/types';
 import Text from '@components/Text';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useSearchTypeMenuSections from '@hooks/useSearchTypeMenuSections';
 import useSingleExecution from '@hooks/useSingleExecution';
@@ -21,6 +22,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import todosReportCountsSelector from '@src/selectors/Todos';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import SavedSearchList from './SavedSearchList';
 import SearchTypeMenuItem from './SearchTypeMenuItem';
 import SuggestedSearchSkeleton from './SuggestedSearchSkeleton';
@@ -33,9 +35,10 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
     const {hash, similarSearchHash} = queryJSON ?? {};
 
     const styles = useThemeStyles();
-    const {singleExecution} = useSingleExecution();
+    const {isOffline} = useNetwork();
     const {translate} = useLocalize();
-    const {typeMenuSections, shouldShowSuggestedSearchSkeleton, activeItemIndex} = useSearchTypeMenuSections({hash, similarSearchHash});
+    const {singleExecution} = useSingleExecution();
+    const {typeMenuSections, activeItemIndex} = useSearchTypeMenuSections({hash, similarSearchHash});
     const expensifyIcons = useMemoizedLazyExpensifyIcons([
         'Basket',
         'CalendarSolid',
@@ -51,6 +54,7 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
         'Folder',
     ] as const);
     const {clearSelectedTransactions} = useSearchActionsContext();
+    const [isSearchDataLoaded, isSearchDataLoadedResult] = useOnyx(ONYXKEYS.IS_SEARCH_PAGE_DATA_LOADED);
     const [reportCounts = CONST.EMPTY_TODOS_REPORT_COUNTS] = useOnyx(ONYXKEYS.DERIVED.TODOS, {selector: todosReportCountsSelector});
 
     const route = useRoute();
@@ -87,13 +91,15 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
         Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: searchQuery}));
     });
 
+    const areSuggestedSearchesLoading = !isOffline && !isSearchDataLoaded && !isLoadingOnyxValue(isSearchDataLoadedResult);
+
     return (
         <ScrollView
             onScroll={onScroll}
             ref={scrollViewRef}
             showsVerticalScrollIndicator={false}
         >
-            {shouldShowSuggestedSearchSkeleton ? (
+            {areSuggestedSearchesLoading ? (
                 <View style={[styles.pb4, styles.mh3, styles.gap4]}>
                     <SuggestedSearchSkeleton />
                 </View>
