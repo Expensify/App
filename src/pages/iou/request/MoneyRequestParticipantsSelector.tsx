@@ -132,6 +132,7 @@ function MoneyRequestParticipantsSelector({
     const reportAttributesDerived = useReportAttributes();
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
+    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const privateIsArchivedMap = usePrivateIsArchivedMap();
 
     const [textInputAutoFocus, setTextInputAutoFocus] = useState<boolean>(!isNative);
@@ -307,6 +308,7 @@ function MoneyRequestParticipantsSelector({
             true,
             undefined,
             reportAttributesDerived,
+            reports,
         );
         // Just a temporary fix to satisfy the type checker
         // Will be fixed when migrating to use new SelectionListWithSections
@@ -404,6 +406,7 @@ function MoneyRequestParticipantsSelector({
         privateIsArchivedMap,
         currentUserAccountID,
         currentUserEmail,
+        reports,
     ]);
 
     /**

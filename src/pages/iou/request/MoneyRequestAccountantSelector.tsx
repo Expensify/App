@@ -72,6 +72,7 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
     const currentUserEmail = currentUserPersonalDetails.email ?? '';
     const currentUserAccountID = currentUserPersonalDetails.accountID;
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const privateIsArchivedMap = usePrivateIsArchivedMap();
 
     useEffect(() => {
@@ -100,6 +101,7 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
                 action,
                 personalDetails,
                 countryCode,
+                reportsCollection: reports,
             },
         );
 
@@ -124,6 +126,7 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
         currentUserAccountID,
         currentUserEmail,
         personalDetails,
+        reports,
     ]);
 
     const chatOptions = useMemo(() => {
@@ -168,6 +171,7 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
             true,
             undefined,
             reportAttributesDerived,
+            reports,
         );
         newSections.push({...formatResults.section, sectionIndex: 0});
 
@@ -228,6 +232,7 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
         privateIsArchivedMap,
         currentUserAccountID,
         currentUserEmail,
+        reports,
     ]);
 
     const selectAccountant = useCallback(

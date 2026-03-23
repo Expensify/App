@@ -219,6 +219,7 @@ type GetOptionsConfig = {
     includeUserToInvite?: boolean;
     shouldAcceptName?: boolean;
     countryCode?: number;
+    reportsCollection?: OnyxCollection<Report>;
     visibleReportActionsData?: VisibleReportActionsDerivedValue;
     reportAttributesDerived?: ReportAttributesDerivedValue['reports'];
 } & GetValidReportsConfig;
