@@ -673,6 +673,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 faceId: 'Face ID',
                 touchId: 'Touch ID',
                 opticId: 'Optic ID',
+                passkey: 'Passkey',
             },
             statusNeverRegistered: 'Nigdy nie zarejestrowano',
             statusNotRegistered: 'Nie zarejestrowano',
@@ -690,11 +691,10 @@ const translations: TranslationDeepObject<typeof en> = {
         letsVerifyItsYou: 'Zweryfikujmy, czy to na pewno Ty',
         nowLetsAuthenticateYou: 'Teraz Cię uwierzytelnimy…',
         letsAuthenticateYou: 'Uwierzytelnijmy Cię…',
-        verifyYourself: {
-            biometrics: 'Zweryfikuj się za pomocą twarzy lub odcisku palca',
-        },
+        verifyYourself: {biometrics: 'Zweryfikuj się za pomocą twarzy lub odcisku palca', passkeys: 'Zweryfikuj się za pomocą klucza dostępu'},
         enableQuickVerification: {
             biometrics: 'Włącz szybką i bezpieczną weryfikację za pomocą twarzy lub odcisku palca. Bez haseł i kodów.',
+            passkeys: 'Włącz szybką, bezpieczną weryfikację za pomocą klucza dostępu. Nie są wymagane żadne hasła ani kody.',
         },
         revoke: {
             title: 'Face/odcisk palca i klucze dostępu',
@@ -2671,6 +2671,8 @@ ${amount} dla ${merchant} - ${date}`,
         requiredWhen2FAEnabled: 'Wymagane, gdy włączone jest 2FA',
         requestNewCode: ({timeRemaining}: {timeRemaining: string}) => `Poproś o nowy kod za <a>${timeRemaining}</a>`,
         requestNewCodeAfterErrorOccurred: 'Poproś o nowy kod',
+        timeRemainingAnnouncement: ({timeRemaining}) => `Pozostały czas: ${timeRemaining} ${timeRemaining === 1 ? 'sekunda' : 'sekund'}`,
+        timeExpiredAnnouncement: 'Czas minął',
         error: {
             pleaseFillMagicCode: 'Wprowadź swój magiczny kod',
             incorrectMagicCode: 'Nieprawidłowy lub niepoprawny kod magiczny. Spróbuj ponownie lub poproś o nowy kod.',
