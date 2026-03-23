@@ -1040,6 +1040,10 @@ const translations = {
                 subtitle: 'Account',
                 cta: 'Validate',
             },
+            fixFailedBilling: {
+                title: "We couldn't bill your card on file",
+                subtitle: 'Subscription',
+            },
         },
         assignedCards: 'Your Expensify Cards',
         assignedCardsRemaining: ({amount}: {amount: string}) => `${amount} remaining`,
@@ -2732,6 +2736,8 @@ const translations = {
         requiredWhen2FAEnabled: 'Required when 2FA is enabled',
         requestNewCode: ({timeRemaining}: {timeRemaining: string}) => `Request a new code in <a>${timeRemaining}</a>`,
         requestNewCodeAfterErrorOccurred: 'Request a new code',
+        timeRemainingAnnouncement: ({timeRemaining}: {timeRemaining: number}) => `Time remaining: ${timeRemaining} ${timeRemaining === 1 ? 'second' : 'seconds'}`,
+        timeExpiredAnnouncement: 'The time has expired',
         error: {
             pleaseFillMagicCode: 'Please enter your magic code',
             incorrectMagicCode: 'Incorrect or invalid magic code. Please try again or request a new code.',
