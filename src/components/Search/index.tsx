@@ -409,13 +409,13 @@ function Search({
     // Skipping the defer for live data (to-dos) and cached results avoids a
     // flash of the empty state or a blank page caused by a redundant defer cycle.
     useEffect(() => {
-        if (shouldUseLiveData || isDataLoaded) {
+        if (isDataLoaded) {
             setShouldDeferHeavySearchWork(false);
             return;
         }
         return deferHeavySearchWork();
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [hash, deferHeavySearchWork, shouldUseLiveData, isDataLoaded]);
+    }, [hash, deferHeavySearchWork, isDataLoaded]);
 
     useFocusEffect(
         useCallback(() => {
@@ -438,16 +438,16 @@ function Search({
         }, [deferHeavySearchWork]),
     );
 
+    const [skeletonWasDisplayed, setSkeletonWasDisplayed] = useState(false);
+
     // Show a skeleton whenever heavy work is deferred, even for live-data (to-do) searches,
     // so we never fall through to the empty-state check with stale zero-length data.
-    const shouldShowLoadingState =
-        (!isOffline && shouldDeferHeavySearchWork) ||
-        (!shouldUseLiveData &&
-            !isOffline &&
-            (!isDataLoaded ||
-                (!!searchResults?.search.isLoading && Array.isArray(searchResults?.data) && searchResults?.data.length === 0) ||
-                (hasErrors && searchRequestResponseStatusCode === null) ||
-                isCardFeedsLoading));
+    const isDeferringHeavyWork = !isOffline && shouldDeferHeavySearchWork;
+    const isSearchLoadingWithNoResults = !!searchResults?.search.isLoading && Array.isArray(searchResults?.data) && searchResults?.data.length === 0;
+    const hasUnresolvedErrors = hasErrors && searchRequestResponseStatusCode === null;
+    const isWaitingForInitialData = !shouldUseLiveData && !isOffline && (!isDataLoaded || isSearchLoadingWithNoResults || hasUnresolvedErrors || isCardFeedsLoading);
+    const shouldShowLoadingState = isDeferringHeavyWork || isWaitingForInitialData;
+    const shouldShowRowSkeleton = (!skeletonWasDisplayed || shouldShowLoadingState) && hasPendingWriteOnMountRef.current;
 
     const shouldShowLoadingMoreItems = !shouldShowLoadingState && searchResults?.search?.isLoading && searchResults?.search?.offset > 0;
 
@@ -1370,10 +1370,11 @@ function Search({
     // This is a performance optimization for the submit-expense->search path only.
     // The SearchPage skeleton (useSearchLoadingState) doesn't cover this case because
     // Search must mount for its onLayout to flush the deferred CreateMoneyRequest API write, which would block the JS thread causing a slowdown on post expense creation navigation
-    if (shouldShowLoadingState && hasPendingWriteOnMountRef.current) {
+    if (shouldShowRowSkeleton) {
         return (
             <SearchRowSkeleton
                 shouldAnimate
+                onLayout={() => setSkeletonWasDisplayed(true)}
                 containerStyle={shouldUseNarrowLayout ? styles.searchListContentContainerStyles : styles.mt3}
                 reasonAttributes={{context: 'Search.DeferredWork'}}
             />
