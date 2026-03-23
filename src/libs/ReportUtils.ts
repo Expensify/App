@@ -4908,7 +4908,8 @@ function canEditMultipleTransactions(
         const reportActionsKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transaction.reportID}` as const;
         const actionsForReport = {...(searchSnapshotData?.[reportActionsKey] ?? {}), ...(reportActions?.[reportActionsKey] ?? {})};
         const reportAction = getIOUActionForTransactionID(Object.values(actionsForReport), transaction.transactionID);
-        const report = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${transaction.reportID}`];
+        const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${transaction.reportID}` as const;
+        const report = reports?.[reportKey] ?? (searchSnapshotData?.[reportKey] as OnyxEntry<Report>);
         const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
 
         const isApproved = isReportApproved({report});

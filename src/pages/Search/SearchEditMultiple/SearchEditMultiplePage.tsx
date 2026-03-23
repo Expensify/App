@@ -1,6 +1,5 @@
 import React, {useEffect} from 'react';
 import {View} from 'react-native';
-import type {OnyxCollection} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -25,45 +24,8 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
-import type {ReportActions, SearchResults, Transaction} from '@src/types/onyx';
 import type {TransactionChanges} from '@src/types/onyx/Transaction';
-import {getTransactionEditContext} from './SearchEditMultipleUtils';
-
-/**
- * After a hard refresh, invoice transaction and report action data may only exist in the search snapshot,
- * not in the main Onyx collections. These helpers fill gaps from the snapshot so bulk edit can work.
- */
-function withSnapshotTransactions(onyxTransactions: OnyxCollection<Transaction> | undefined, snapshotData: SearchResults['data'] | undefined): OnyxCollection<Transaction> | undefined {
-    if (!snapshotData) {
-        return onyxTransactions;
-    }
-    const merged = {...onyxTransactions};
-    for (const key of Object.keys(snapshotData)) {
-        if (!key.startsWith(ONYXKEYS.COLLECTION.TRANSACTION)) {
-            continue;
-        }
-        const typedKey = key as `${typeof ONYXKEYS.COLLECTION.TRANSACTION}${string}`;
-        if (!merged[typedKey]) {
-            merged[typedKey] = snapshotData[typedKey] ?? null;
-        }
-    }
-    return merged;
-}
-
-function withSnapshotReportActions(onyxReportActions: OnyxCollection<ReportActions> | undefined, snapshotData: SearchResults['data'] | undefined): OnyxCollection<ReportActions> | undefined {
-    if (!snapshotData) {
-        return onyxReportActions;
-    }
-    const merged = {...onyxReportActions};
-    for (const key of Object.keys(snapshotData)) {
-        if (!key.startsWith(ONYXKEYS.COLLECTION.REPORT_ACTIONS)) {
-            continue;
-        }
-        const typedKey = key as `${typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS}${string}`;
-        merged[typedKey] = {...(snapshotData[typedKey] ?? {}), ...(merged[typedKey] ?? {})};
-    }
-    return merged;
-}
+import {getTransactionEditContext, withSnapshotReportActions, withSnapshotTransactions} from './SearchEditMultipleUtils';
 
 function SearchEditMultiplePage() {
     const {translate} = useLocalize();

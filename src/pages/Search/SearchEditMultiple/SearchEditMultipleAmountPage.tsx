@@ -2,6 +2,7 @@ import {useFocusEffect} from '@react-navigation/native';
 import React, {useMemo, useRef, useState} from 'react';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
+import {useSearchStateContext} from '@components/Search/SearchContext';
 import isTextInputFocused from '@components/TextInput/BaseTextInput/isTextInputFocused';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import useLocalize from '@hooks/useLocalize';
@@ -15,23 +16,29 @@ import MoneyRequestAmountForm from '@pages/iou/MoneyRequestAmountForm';
 import IOURequestStepCurrencyModal from '@pages/iou/request/step/IOURequestStepCurrencyModal';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {withSnapshotReports, withSnapshotTransactions} from './SearchEditMultipleUtils';
 
 type CurrentMoney = {amount: string; currency: string};
 
 function SearchEditMultipleAmountPage() {
     const {translate} = useLocalize();
+    const {currentSearchResults} = useSearchStateContext();
     const [draftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_BULK_EDIT_TRANSACTION_ID}`);
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
 
+    const snapshotData = currentSearchResults?.data;
+    const mergedTransactions = withSnapshotTransactions(allTransactions, snapshotData);
+    const mergedReports = withSnapshotReports(allReports, snapshotData);
+
     const textInput = useRef<BaseTextInputRef | null>(null);
     const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
     const selectedTransactionIDs = useMemo(() => draftTransaction?.selectedTransactionIDs ?? [], [draftTransaction?.selectedTransactionIDs]);
 
-    const policyID = getSearchBulkEditPolicyID(selectedTransactionIDs, activePolicyID, allTransactions, allReports);
+    const policyID = getSearchBulkEditPolicyID(selectedTransactionIDs, activePolicyID, mergedTransactions, mergedReports);
     const policy = policyID ? policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`] : undefined;
     const policyCurrency = policy?.outputCurrency ?? CONST.CURRENCY.USD;
 
@@ -59,7 +66,7 @@ function SearchEditMultipleAmountPage() {
         }
 
         return selectedTransactionIDs.every((transactionID) => {
-            const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
+            const transaction = mergedTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
             if (!transaction) {
                 return false;
             }
@@ -69,10 +76,10 @@ function SearchEditMultipleAmountPage() {
                 return true;
             }
 
-            const transactionReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transaction.reportID}`];
+            const transactionReport = mergedReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transaction.reportID}`];
             const iouReport =
                 transactionReport?.type === CONST.REPORT.TYPE.CHAT && transactionReport?.parentReportID
-                    ? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionReport.parentReportID}`]
+                    ? mergedReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionReport.parentReportID}`]
                     : transactionReport;
             if (!iouReport) {
                 return false;
@@ -82,25 +89,25 @@ function SearchEditMultipleAmountPage() {
             const iouType = isInvoiceReport(iouReport) ? CONST.IOU.TYPE.INVOICE : CONST.IOU.TYPE.SUBMIT;
             return shouldEnableNegative(iouReport, transactionPolicy, iouType);
         });
-    }, [selectedTransactionIDs, allTransactions, allReports, policies]);
+    }, [selectedTransactionIDs, mergedTransactions, mergedReports, policies]);
     const isP2P = selectedTransactionIDs.some((transactionID) => {
-        const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
+        const transaction = mergedTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
         if (!transaction) {
             return false;
         }
-        const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transaction.reportID}`];
+        const report = mergedReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transaction.reportID}`];
         return isIOUReport(report);
     });
 
     const isAnyInvoice = selectedTransactionIDs.some((transactionID) => {
-        const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
+        const transaction = mergedTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
         if (!transaction) {
             return false;
         }
-        const transactionReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transaction.reportID}`];
+        const transactionReport = mergedReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transaction.reportID}`];
         const iouReport =
             transactionReport?.type === CONST.REPORT.TYPE.CHAT && transactionReport?.parentReportID
-                ? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionReport.parentReportID}`]
+                ? mergedReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionReport.parentReportID}`]
                 : transactionReport;
         return isInvoiceReport(iouReport);
     });
