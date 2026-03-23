@@ -27,6 +27,12 @@ jest.mock('@hooks/useLocalize', () =>
     })),
 );
 
+jest.mock('@hooks/usePaginatedReportActions', () => jest.fn(() => ({reportActions: [], hasNewerActions: false, hasOlderActions: false})));
+jest.mock('@hooks/useParentReportAction', () => jest.fn(() => null));
+jest.mock('@hooks/useReportTransactionsCollection', () => jest.fn(() => ({})));
+jest.mock('@hooks/useShortMentionsList', () => jest.fn(() => ({availableLoginsList: []})));
+jest.mock('@hooks/useSidePanelState', () => jest.fn(() => ({sessionStartTime: null})));
+
 jest.mock('@react-navigation/native', () => ({
     ...((): typeof NativeNavigation => {
         return jest.requireActual('@react-navigation/native');
@@ -71,6 +77,12 @@ describe('ReportActionCompose Integration Tests', () => {
         Onyx.init({
             keys: ONYXKEYS,
             evictableKeys: [ONYXKEYS.COLLECTION.REPORT_ACTIONS],
+        });
+    });
+
+    beforeEach(async () => {
+        await act(async () => {
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${defaultReport.reportID}`, defaultReport);
         });
     });
 

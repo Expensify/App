@@ -2,11 +2,15 @@ import type * as ReactNavigation from '@react-navigation/native';
 import {render, screen} from '@testing-library/react-native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
-import type {OnyxEntry} from 'react-native-onyx';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useIsInSidePanel from '@hooks/useIsInSidePanel';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
+import useParentReportAction from '@hooks/useParentReportAction';
+import useReportTransactionsCollection from '@hooks/useReportTransactionsCollection';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useSidePanelState from '@hooks/useSidePanelState';
 import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
 import DateUtils from '@libs/DateUtils';
 // eslint-disable-next-line no-restricted-syntax -- disabled because we need ReportActionsUtils to mock
@@ -36,11 +40,22 @@ jest.mock('@hooks/useNetwork', () => jest.fn());
 jest.mock('@hooks/useOnyx', () => jest.fn());
 jest.mock('@hooks/useResponsiveLayout', () => jest.fn());
 jest.mock('@hooks/useTransactionsAndViolationsForReport', () => jest.fn());
+jest.mock('@hooks/usePaginatedReportActions', () => jest.fn());
+jest.mock('@hooks/useParentReportAction', () => jest.fn());
+jest.mock('@hooks/useIsInSidePanel', () => jest.fn());
+jest.mock('@hooks/useSidePanelState', () => jest.fn());
+jest.mock('@hooks/useReportTransactionsCollection', () => jest.fn());
 
 const mockUseNetwork = useNetwork as jest.MockedFunction<typeof useNetwork>;
 const mockUseOnyx = useOnyx as jest.MockedFunction<typeof useOnyx>;
 const mockUseResponsiveLayout = useResponsiveLayout as jest.MockedFunction<typeof useResponsiveLayout>;
 const mockUseTransactionsAndViolationsForReport = useTransactionsAndViolationsForReport as jest.MockedFunction<typeof useTransactionsAndViolationsForReport>;
+const mockUsePaginatedReportActions = usePaginatedReportActions as jest.MockedFunction<typeof usePaginatedReportActions>;
+const mockUseParentReportAction = useParentReportAction as jest.MockedFunction<typeof useParentReportAction>;
+const mockUseIsInSidePanel = useIsInSidePanel as jest.MockedFunction<typeof useIsInSidePanel>;
+const mockUseSidePanelState = useSidePanelState as jest.MockedFunction<typeof useSidePanelState>;
+const mockUseReportTransactionsCollection = useReportTransactionsCollection as jest.MockedFunction<typeof useReportTransactionsCollection>;
+
 jest.mock('@hooks/useCopySelectionHelper', () => jest.fn());
 jest.mock('@hooks/useCurrentUserPersonalDetails', () => jest.fn());
 jest.mock('@hooks/useLoadReportActions', () =>
@@ -108,34 +123,9 @@ const mockReportActions: OnyxTypes.ReportAction[] = [
     },
 ];
 
-const renderReportActionsView = (
-    props: Partial<{
-        report: OnyxTypes.Report;
-        reportActions?: OnyxTypes.ReportAction[];
-        parentReportAction: OnyxEntry<OnyxTypes.ReportAction>;
-        isLoadingInitialReportActions?: boolean;
-        hasOnceLoadedReportActions?: boolean;
-        transactionThreadReportID?: string | null;
-        hasNewerActions: boolean;
-        hasOlderActions: boolean;
-        isConciergeSidePanel?: boolean;
-        hasUserSentMessage?: boolean;
-        sessionStartTime?: string | null;
-    }> = {},
-) => {
-    const defaultProps = {
-        report: mockReport,
-        reportActions: mockReportActions,
-        parentReportAction: null as unknown as OnyxEntry<OnyxTypes.ReportAction>,
-        isLoadingInitialReportActions: false,
-        hasOnceLoadedReportActions: true,
-        hasNewerActions: false,
-        hasOlderActions: false,
-        ...props,
-    };
-
-    // eslint-disable-next-line react/jsx-props-no-spreading
-    return render(<ReportActionsView {...defaultProps} />);
+const renderReportActionsView = (props: {reportID?: string} = {}) => {
+    const reportID = props.reportID ?? mockReport.reportID;
+    return render(<ReportActionsView reportID={reportID} />);
 };
 
 describe('ReportActionsView', () => {
@@ -172,6 +162,17 @@ describe('ReportActionsView', () => {
             violations: {},
         });
 
+        mockUsePaginatedReportActions.mockReturnValue({
+            reportActions: mockReportActions,
+            hasNewerActions: false,
+            hasOlderActions: false,
+        });
+
+        mockUseParentReportAction.mockReturnValue(null);
+        mockUseIsInSidePanel.mockReturnValue(false);
+        mockUseSidePanelState.mockReturnValue({sessionStartTime: null});
+        mockUseReportTransactionsCollection.mockReturnValue({});
+
         mockUseOnyx.mockImplementation((key: string) => {
             if (key === ONYXKEYS.IS_LOADING_APP) {
                 return [false, {status: 'loaded'}];
@@ -179,8 +180,14 @@ describe('ReportActionsView', () => {
             if (key === ONYXKEYS.ARE_TRANSLATIONS_LOADING) {
                 return [false, {status: 'loaded'}];
             }
+            if (key.includes('reportMetadata')) {
+                return [{isLoadingInitialReportActions: false, hasOnceLoadedReportActions: true}, {status: 'loaded'}];
+            }
             if (key.includes('reportActions')) {
                 return [[], {status: 'loaded'}];
+            }
+            if (key === `${ONYXKEYS.COLLECTION.REPORT}${mockReport.reportID}`) {
+                return [mockReport, {status: 'loaded'}];
             }
             if (key.includes('report')) {
                 return [undefined, {status: 'loaded'}];
@@ -207,8 +214,14 @@ describe('ReportActionsView', () => {
                 if (key === ONYXKEYS.ARE_TRANSLATIONS_LOADING) {
                     return [false, {status: 'loaded'}];
                 }
+                if (key.includes('reportMetadata')) {
+                    return [{isLoadingInitialReportActions: false, hasOnceLoadedReportActions: true}, {status: 'loaded'}];
+                }
                 if (key.includes('reportActions')) {
                     return [[], {status: 'loaded'}];
+                }
+                if (key === `${ONYXKEYS.COLLECTION.REPORT}${mockReport.reportID}`) {
+                    return [mockReport, {status: 'loaded'}];
                 }
                 if (key.includes('report')) {
                     return [undefined, {status: 'loaded'}];
@@ -217,9 +230,13 @@ describe('ReportActionsView', () => {
             });
 
             // Empty report actions to trigger isMissingReportActions condition
-            renderReportActionsView({
+            mockUsePaginatedReportActions.mockReturnValue({
                 reportActions: [],
+                hasNewerActions: false,
+                hasOlderActions: false,
             });
+
+            renderReportActionsView();
 
             expect(screen.getByTestId('ReportActionsSkeletonView')).toBeTruthy();
         });
@@ -236,8 +253,14 @@ describe('ReportActionsView', () => {
                 if (key === ONYXKEYS.ARE_TRANSLATIONS_LOADING) {
                     return [false, {status: 'loaded'}];
                 }
+                if (key.includes('reportMetadata')) {
+                    return [{isLoadingInitialReportActions: false, hasOnceLoadedReportActions: true}, {status: 'loaded'}];
+                }
                 if (key.includes('reportActions')) {
                     return [[], {status: 'loaded'}];
+                }
+                if (key === `${ONYXKEYS.COLLECTION.REPORT}${mockReport.reportID}`) {
+                    return [mockReport, {status: 'loaded'}];
                 }
                 if (key.includes('report')) {
                     return [undefined, {status: 'loaded'}];
@@ -262,8 +285,14 @@ describe('ReportActionsView', () => {
                 if (key === ONYXKEYS.ARE_TRANSLATIONS_LOADING) {
                     return [false, {status: 'loaded'}];
                 }
+                if (key.includes('reportMetadata')) {
+                    return [{isLoadingInitialReportActions: false, hasOnceLoadedReportActions: true}, {status: 'loaded'}];
+                }
                 if (key.includes('reportActions')) {
                     return [[], {status: 'loaded'}];
+                }
+                if (key === `${ONYXKEYS.COLLECTION.REPORT}${mockReport.reportID}`) {
+                    return [mockReport, {status: 'loaded'}];
                 }
                 if (key.includes('report')) {
                     return [undefined, {status: 'loaded'}];
@@ -288,8 +317,14 @@ describe('ReportActionsView', () => {
                 if (key === ONYXKEYS.ARE_TRANSLATIONS_LOADING) {
                     return [false, {status: 'loaded'}];
                 }
+                if (key.includes('reportMetadata')) {
+                    return [{isLoadingInitialReportActions: false, hasOnceLoadedReportActions: true}, {status: 'loaded'}];
+                }
                 if (key.includes('reportActions')) {
                     return [[], {status: 'loaded'}];
+                }
+                if (key === `${ONYXKEYS.COLLECTION.REPORT}${mockReport.reportID}`) {
+                    return [mockReport, {status: 'loaded'}];
                 }
                 if (key.includes('report')) {
                     return [undefined, {status: 'loaded'}];
@@ -348,8 +383,14 @@ describe('ReportActionsView', () => {
                 if (key === ONYXKEYS.ARE_TRANSLATIONS_LOADING) {
                     return [false, {status: 'loaded'}];
                 }
+                if (key.includes('reportMetadata')) {
+                    return [{isLoadingInitialReportActions: false, hasOnceLoadedReportActions: true}, {status: 'loaded'}];
+                }
                 if (key.includes('reportActions')) {
                     return [[], {status: 'loaded'}];
+                }
+                if (key === `${ONYXKEYS.COLLECTION.REPORT}${CONCIERGE_REPORT_ID}`) {
+                    return [{...mockReport, reportID: CONCIERGE_REPORT_ID}, {status: 'loaded'}];
                 }
                 if (key.includes('report')) {
                     return [undefined, {status: 'loaded'}];
@@ -361,13 +402,15 @@ describe('ReportActionsView', () => {
         it('should show only greeting and created action when opened in side panel with no user messages', () => {
             setupConciergeMocks();
 
-            renderReportActionsView({
-                report: {...mockReport, reportID: CONCIERGE_REPORT_ID},
+            mockUsePaginatedReportActions.mockReturnValue({
                 reportActions: oldReportActions,
-                isConciergeSidePanel: true,
-                hasUserSentMessage: false,
-                sessionStartTime: DateUtils.getDBTime(),
+                hasNewerActions: false,
+                hasOlderActions: false,
             });
+            mockUseIsInSidePanel.mockReturnValue(true);
+            mockUseSidePanelState.mockReturnValue({sessionStartTime: DateUtils.getDBTime()});
+
+            renderReportActionsView({reportID: CONCIERGE_REPORT_ID});
 
             expect(mockReportActionsList).toHaveBeenCalled();
             const passedActions = (mockReportActionsList.mock.calls.at(0) as [{sortedVisibleReportActions: OnyxTypes.ReportAction[]}]).at(0)?.sortedVisibleReportActions;
@@ -378,11 +421,14 @@ describe('ReportActionsView', () => {
         it('should not show welcome state when not in side panel', () => {
             setupConciergeMocks();
 
-            renderReportActionsView({
-                report: {...mockReport, reportID: CONCIERGE_REPORT_ID},
+            mockUsePaginatedReportActions.mockReturnValue({
                 reportActions: oldReportActions,
-                isConciergeSidePanel: false,
+                hasNewerActions: false,
+                hasOlderActions: false,
             });
+            mockUseIsInSidePanel.mockReturnValue(false);
+
+            renderReportActionsView({reportID: CONCIERGE_REPORT_ID});
 
             expect(mockReportActionItemCreated).not.toHaveBeenCalled();
         });
@@ -390,11 +436,14 @@ describe('ReportActionsView', () => {
         it('should not show welcome state for non-concierge reports in side panel', () => {
             setupConciergeMocks();
 
-            renderReportActionsView({
-                report: {...mockReport, reportID: 'non-concierge-999'},
+            mockUsePaginatedReportActions.mockReturnValue({
                 reportActions: oldReportActions,
-                isConciergeSidePanel: false,
+                hasNewerActions: false,
+                hasOlderActions: false,
             });
+            mockUseIsInSidePanel.mockReturnValue(false);
+
+            renderReportActionsView({reportID: 'non-concierge-999'});
 
             expect(mockReportActionItemCreated).not.toHaveBeenCalled();
         });
@@ -420,13 +469,15 @@ describe('ReportActionsView', () => {
                 },
             ];
 
-            renderReportActionsView({
-                report: {...mockReport, reportID: CONCIERGE_REPORT_ID},
+            mockUsePaginatedReportActions.mockReturnValue({
                 reportActions: actionsWithNewMessage,
-                isConciergeSidePanel: true,
-                hasUserSentMessage: true,
-                sessionStartTime: sessionStart,
+                hasNewerActions: false,
+                hasOlderActions: false,
             });
+            mockUseIsInSidePanel.mockReturnValue(true);
+            mockUseSidePanelState.mockReturnValue({sessionStartTime: sessionStart});
+
+            renderReportActionsView({reportID: CONCIERGE_REPORT_ID});
 
             // Welcome should not be shown since user has sent a message
             expect(mockReportActionItemCreated).not.toHaveBeenCalled();
