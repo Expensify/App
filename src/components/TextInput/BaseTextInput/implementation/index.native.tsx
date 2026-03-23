@@ -26,6 +26,7 @@ import useMarkdownStyle from '@hooks/useMarkdownStyle';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import getLandscapeTextInputRefProxy from '@libs/getLandscapeTextInputRefProxy';
 import isInputAutoFilled from '@libs/isInputAutoFilled';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import variables from '@styles/variables';
@@ -372,28 +373,15 @@ function BaseTextInput({
                             )}
                             <InputComponent
                                 ref={(element: HTMLFormElement | AnimatedTextInputRef | AnimatedMarkdownTextInputRef | null): void => {
-                                    const baseTextInputRef = element as BaseTextInputRef | null;
+                                    const ref = element as BaseTextInputRef | null;
 
-                                    // Wrap the external ref in a Proxy so programmatic focus() calls
-                                    // are suppressed while in landscape mode
-                                    const refWithOptionalProxy =
-                                        baseTextInputRef && isInLandscapeMode
-                                            ? new Proxy(baseTextInputRef, {
-                                                  get(target, prop, receiver) {
-                                                      if (prop !== 'focus') {
-                                                          // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-                                                          return Reflect.get(target, prop, receiver);
-                                                      }
-                                                      return () => {};
-                                                  },
-                                              })
-                                            : baseTextInputRef;
+                                    const baseTextInputRef = isInLandscapeMode ? getLandscapeTextInputRefProxy(ref) : ref;
 
                                     if (typeof ref === 'function') {
-                                        ref(refWithOptionalProxy);
+                                        ref(baseTextInputRef);
                                     } else if (ref && 'current' in ref) {
                                         // eslint-disable-next-line no-param-reassign
-                                        ref.current = refWithOptionalProxy;
+                                        ref.current = baseTextInputRef;
                                     }
 
                                     const elementRef = element as AnimatedTextInputRef | AnimatedMarkdownTextInputRef | null;
