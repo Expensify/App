@@ -1,5 +1,15 @@
 import type {StackNavigationState} from '@react-navigation/native';
 import type {ParamListBase} from '@react-navigation/routers';
+// eslint-disable-next-line import/first
+import RootStackRouter from '@libs/Navigation/AppNavigator/createRootStackNavigator/RootStackRouter';
+// eslint-disable-next-line import/first
+import {evaluateGuards} from '@libs/Navigation/guards';
+// eslint-disable-next-line import/first
+import getAdaptedStateFromPath from '@libs/Navigation/helpers/getAdaptedStateFromPath';
+// eslint-disable-next-line import/first
+import NAVIGATORS from '@src/NAVIGATORS';
+// eslint-disable-next-line import/first
+import SCREENS from '@src/SCREENS';
 
 jest.mock('@libs/Navigation/guards', () => ({
     __esModule: true,
@@ -18,17 +28,6 @@ jest.mock('@libs/Navigation/helpers/getAdaptedStateFromPath', () => ({
     __esModule: true,
     default: jest.fn(),
 }));
-
-// eslint-disable-next-line import/first
-import RootStackRouter from '@libs/Navigation/AppNavigator/createRootStackNavigator/RootStackRouter';
-// eslint-disable-next-line import/first
-import {evaluateGuards} from '@libs/Navigation/guards';
-// eslint-disable-next-line import/first
-import getAdaptedStateFromPath from '@libs/Navigation/helpers/getAdaptedStateFromPath';
-// eslint-disable-next-line import/first
-import NAVIGATORS from '@src/NAVIGATORS';
-// eslint-disable-next-line import/first
-import SCREENS from '@src/SCREENS';
 
 const mockedEvaluateGuards = evaluateGuards as jest.Mock;
 const mockedGetAdaptedStateFromPath = getAdaptedStateFromPath as jest.Mock;
