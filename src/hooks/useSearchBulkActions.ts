@@ -72,14 +72,13 @@ import useThemeStyles from './useThemeStyles';
 
 type UseSearchBulkActionsParams = {
     queryJSON: SearchQueryJSON | undefined;
-    deleteTransactionsOnSearch?: (hash: number, transactionIDs: string[], transactions?: OnyxCollection<Transaction>) => void;
 };
 
 function getRestrictedPolicyID(items: Array<{policyID?: string}>, billingGracePeriods: OnyxCollection<BillingGraceEndPeriod>): string | undefined {
     return items.map((item) => item.policyID).find((policyID): policyID is string => !!policyID && shouldRestrictUserBillableActions(policyID, billingGracePeriods));
 }
 
-function useSearchBulkActions({queryJSON, deleteTransactionsOnSearch}: UseSearchBulkActionsParams) {
+function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     const {translate, localeCompare, formatPhoneNumber, toLocaleDigit} = useLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -92,6 +91,7 @@ function useSearchBulkActions({queryJSON, deleteTransactionsOnSearch}: UseSearch
     const {accountID} = currentUserPersonalDetails;
     const allTransactions = useAllTransactions();
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
+    const [allReportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
     const selfDMReport = useSelfDMReport();
     const [lastPaymentMethods] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD);
     const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID);
@@ -501,7 +501,6 @@ function useSearchBulkActions({queryJSON, deleteTransactionsOnSearch}: UseSearch
                     bulkDeleteReports({
                         reports: allReports,
                         selfDMReport,
-                        hash,
                         selectedTransactions,
                         currentUserEmailParam: currentUserPersonalDetails.email ?? '',
                         currentUserAccountIDParam: accountID,
@@ -512,7 +511,7 @@ function useSearchBulkActions({queryJSON, deleteTransactionsOnSearch}: UseSearch
                         translate,
                         toLocaleDigit,
                         transactions,
-                        deleteTransactionsOnSearch,
+                        allReportNameValuePairs,
                     });
                 }
                 clearSelectedTransactions();
@@ -539,7 +538,7 @@ function useSearchBulkActions({queryJSON, deleteTransactionsOnSearch}: UseSearch
         toLocaleDigit,
         isExpenseReportType,
         selectedReportIDs,
-        deleteTransactionsOnSearch,
+        allReportNameValuePairs,
     ]);
 
     const onBulkPaySelected = useCallback(

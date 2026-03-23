@@ -453,6 +453,8 @@ const translations: TranslationDeepObject<typeof en> = {
         downloadAsCSV: 'Télécharger au format CSV',
         print: 'Imprimer',
         help: 'Aide',
+        collapsed: 'Réduit',
+        expanded: 'Développé',
         expenseReport: 'Note de frais',
         expenseReports: 'Notes de frais',
         rateOutOfPolicy: 'Taux hors politique',
@@ -525,6 +527,7 @@ const translations: TranslationDeepObject<typeof en> = {
         concierge: {sidePanelGreeting: 'Bonjour, comment puis-je vous aider ?', showHistory: 'Afficher l’historique'},
         duplicateReport: 'Note de frais en double',
         approver: 'Approbateur',
+        copyOfReportName: (reportName: string) => `Copie de ${reportName}`,
     },
     socials: {
         podcast: 'Suivez-nous sur Podcast',
@@ -672,6 +675,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 faceId: 'Face ID',
                 touchId: 'Touch ID',
                 opticId: 'Optic ID',
+                passkey: 'Passkey',
             },
             statusNeverRegistered: 'Jamais enregistré',
             statusNotRegistered: 'Non enregistré',
@@ -689,11 +693,10 @@ const translations: TranslationDeepObject<typeof en> = {
         letsVerifyItsYou: 'Vérifions qu’il s’agit bien de vous',
         nowLetsAuthenticateYou: 'Maintenant, procédons à votre authentification…',
         letsAuthenticateYou: 'Authentifions votre identité…',
-        verifyYourself: {
-            biometrics: 'Vérifiez votre identité avec votre visage ou votre empreinte digitale',
-        },
+        verifyYourself: {biometrics: 'Vérifiez votre identité avec votre visage ou votre empreinte digitale', passkeys: 'Vérifiez votre identité avec une clé d’accès'},
         enableQuickVerification: {
             biometrics: 'Activez une vérification rapide et sécurisée à l’aide de votre visage ou de votre empreinte digitale. Aucun mot de passe ni code requis.',
+            passkeys: 'Activez une vérification rapide et sécurisée à l’aide d’une clé d’accès. Aucun mot de passe ni code requis.',
         },
         revoke: {
             title: 'Reconnaissance faciale/empreinte digitale et passkeys',
@@ -8285,6 +8288,8 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
             title: 'Code Expensify',
             discountCode: 'Code de réduction',
             enterCode: 'Saisissez un code Expensify à appliquer à votre abonnement.',
+            discountMessage: (promoDiscount: string, validBillingCycles: string) =>
+                `Vous bénéficierez de ${promoDiscount}% de réduction sur vos ${validBillingCycles ? `${validBillingCycles} ` : ''}prochaines facturations.`,
             apply: 'Appliquer',
             error: {
                 invalid: "Ce code n'est pas valide",
@@ -8312,6 +8317,8 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
                 `<muted-text>En savoir plus sur notre <a href="${CONST.PRICING}">page des tarifs</a> ou discutez avec notre équipe dans votre ${hasAdminsRoom ? `<a href="adminsRoom">Salon #admins.</a>` : 'Salon #admins.'}</muted-text>`,
             estimatedPrice: 'Prix estimé',
             changesBasedOn: 'Cela varie en fonction de votre utilisation de la Carte Expensify et des options d’abonnement ci-dessous.',
+            collectBillingDescription: 'Les espaces de travail Collect sont facturés mensuellement par membre, sans engagement annuel.',
+            pricing: 'Tarification',
         },
         requestEarlyCancellation: {
             title: 'Demander une résiliation anticipée',

@@ -1636,7 +1636,7 @@ const personalDetailsComparator = (personalDetail: SearchOptionData | PersonalDe
  * Sort reports by archived status and last visible action
  */
 const recentReportComparator = (option: SearchOptionData) => {
-    return `${option.private_isArchived ? 0 : 1}_${option.lastVisibleActionCreated ?? ''}`;
+    return `${option.isSelfDM ? 1 : 0}_${option.private_isArchived ? 0 : 1}_${option.lastVisibleActionCreated ?? ''}`;
 };
 
 /**
@@ -2608,7 +2608,8 @@ function getValidOptions(
             if (personalDetailLoginsToExclude[personalDetail.login]) {
                 return false;
             }
-            const searchText = deburr(`${personalDetail.text ?? ''} ${personalDetail.login ?? ''}`.toLocaleLowerCase());
+            const personalDetailSearchTerms = getPersonalDetailSearchTerms(personalDetail, currentUserAccountID);
+            const searchText = deburr(`${personalDetailSearchTerms.join(' ')} ${personalDetail.text ?? ''}`.toLocaleLowerCase());
 
             return searchTerms.every((term) => searchText.includes(term));
         };
@@ -2964,19 +2965,6 @@ function formatSectionsFromSearchTerm(
                 : selectedParticipantsWithoutDetails,
         },
     };
-}
-
-/**
- * Helper method to get the `keyForList` for the first option in the OptionsList
- */
-function getFirstKeyForList(data?: Option[] | null) {
-    if (!data?.length) {
-        return '';
-    }
-
-    const firstNonEmptyDataObj = data.at(0);
-
-    return firstNonEmptyDataObj?.keyForList ? firstNonEmptyDataObj?.keyForList : '';
 }
 
 function getPersonalDetailSearchTerms(item: Partial<SearchOptionData>, currentUserAccountID: number) {
@@ -3376,7 +3364,6 @@ export {
     getFilteredRecentAttendees,
     getCurrentUserSearchTerms,
     getEmptyOptions,
-    getFirstKeyForList,
     getHeaderMessage,
     getHeaderMessageForNonUserList,
     getIOUConfirmationOptionsFromPayeePersonalDetail,

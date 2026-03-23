@@ -452,6 +452,8 @@ const translations: TranslationDeepObject<typeof en> = {
         downloadAsCSV: 'Baixar como CSV',
         print: 'Imprimir',
         help: 'Ajuda',
+        collapsed: 'Recolhido',
+        expanded: 'Expandido',
         expenseReport: 'Relatório de despesas',
         expenseReports: 'Relatórios de despesas',
         rateOutOfPolicy: 'Taxa fora da política',
@@ -523,6 +525,7 @@ const translations: TranslationDeepObject<typeof en> = {
         concierge: {sidePanelGreeting: 'Oi, como posso ajudar?', showHistory: 'Mostrar histórico'},
         duplicateReport: 'Duplicar relatório',
         approver: 'Aprovador',
+        copyOfReportName: (reportName: string) => `Cópia de ${reportName}`,
     },
     socials: {
         podcast: 'Siga-nos no Podcast',
@@ -669,6 +672,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 faceId: 'Face ID',
                 touchId: 'Touch ID',
                 opticId: 'Optic ID',
+                passkey: 'Passkey',
             },
             statusNeverRegistered: 'Nunca registrado',
             statusNotRegistered: 'Não registrado',
@@ -686,11 +690,10 @@ const translations: TranslationDeepObject<typeof en> = {
         letsVerifyItsYou: 'Vamos verificar se é você',
         nowLetsAuthenticateYou: 'Agora, vamos autenticar você...',
         letsAuthenticateYou: 'Vamos autenticar você...',
-        verifyYourself: {
-            biometrics: 'Verifique sua identidade com seu rosto ou impressão digital',
-        },
+        verifyYourself: {biometrics: 'Verifique sua identidade com seu rosto ou impressão digital', passkeys: 'Verifique sua identidade com uma chave de acesso'},
         enableQuickVerification: {
             biometrics: 'Ative uma verificação rápida e segura usando seu rosto ou impressão digital. Nenhuma senha ou código é necessário.',
+            passkeys: 'Ative uma verificação rápida e segura usando uma chave de acesso. Nenhuma senha ou código é necessário.',
         },
         revoke: {
             title: 'Reconhecimento facial/digital e passkeys',
@@ -8217,6 +8220,8 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
             title: 'Código Expensify',
             discountCode: 'Código de desconto',
             enterCode: 'Insira um código Expensify para aplicar à sua assinatura.',
+            discountMessage: (promoDiscount: string, validBillingCycles: string) =>
+                `Você receberá ${promoDiscount}% de desconto nas próximas ${validBillingCycles ? `${validBillingCycles} ` : ''}cobranças de faturamento.`,
             apply: 'Aplicar',
             error: {
                 invalid: 'Este código é inválido',
@@ -8244,6 +8249,8 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
                 `<muted-text>Saiba mais na nossa <a href="${CONST.PRICING}">página de preços</a> ou converse com nossa equipe no seu ${hasAdminsRoom ? `<a href="adminsRoom">Sala #admins.</a>` : 'Sala #admins.'}</muted-text>`,
             estimatedPrice: 'Preço estimado',
             changesBasedOn: 'Isso muda de acordo com o uso do seu Cartão Expensify e as opções de assinatura abaixo.',
+            collectBillingDescription: 'Os espaços de trabalho Collect são cobrados mensalmente por membro, sem compromisso anual.',
+            pricing: 'Preços',
         },
         requestEarlyCancellation: {
             title: 'Solicitar cancelamento antecipado',
