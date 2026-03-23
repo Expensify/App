@@ -97,6 +97,7 @@ function useSelectionModeReportActions({
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [nextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${report?.reportID}`);
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
+    const [ownerBillingGraceEndPeriod] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const [userBillingGraceEndPeriods] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
@@ -358,6 +359,7 @@ function useSelectionModeReportActions({
             expenseReportCurrentNextStepDeprecated: nextStep,
             userBillingGraceEndPeriods,
             amountOwed,
+            ownerBillingGraceEndPeriod,
         });
         if (currentSearchQueryJSON && !isOffline) {
             search({
@@ -383,6 +385,7 @@ function useSelectionModeReportActions({
         nextStep,
         userBillingGraceEndPeriods,
         amountOwed,
+        ownerBillingGraceEndPeriod,
         currentSearchQueryJSON,
         isOffline,
         currentSearchKey,
@@ -413,6 +416,7 @@ function useSelectionModeReportActions({
                 betas,
                 userBillingGraceEndPeriods,
                 amountOwed,
+                ownerBillingGraceEndPeriod,
                 full: true,
             });
             clearSelectedTransactions(true);
@@ -433,6 +437,7 @@ function useSelectionModeReportActions({
         nextStep,
         userBillingGraceEndPeriods,
         amountOwed,
+        ownerBillingGraceEndPeriod,
         clearSelectedTransactions,
     ]);
 
@@ -485,6 +490,7 @@ function useSelectionModeReportActions({
                     isSelfTourViewed,
                     userBillingGraceEndPeriods,
                     amountOwed,
+                    ownerBillingGraceEndPeriod,
                     methodID: type === CONST.IOU.PAYMENT_TYPE.VBBA ? methodID : undefined,
                 });
                 if (currentSearchQueryJSON && !isOffline) {
@@ -524,6 +530,7 @@ function useSelectionModeReportActions({
             userBillingGraceEndPeriods,
             clearSelectedTransactions,
             amountOwed,
+            ownerBillingGraceEndPeriod,
         ],
     );
 
@@ -564,6 +571,7 @@ function useSelectionModeReportActions({
                 betas,
                 userBillingGraceEndPeriods,
                 amountOwed,
+                ownerBillingGraceEndPeriod,
             });
         },
         [
@@ -581,6 +589,7 @@ function useSelectionModeReportActions({
             betas,
             userBillingGraceEndPeriods,
             amountOwed,
+            ownerBillingGraceEndPeriod,
         ],
     );
 
