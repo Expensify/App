@@ -14,7 +14,6 @@ import {
     AXIS_LABEL_GAP,
     CHART_CONTENT_MIN_HEIGHT,
     CHART_PADDING,
-    DIAGONAL_ANGLE_RADIAN_THRESHOLD,
     X_AXIS_LINE_WIDTH,
     Y_AXIS_LINE_WIDTH,
     Y_AXIS_TICK_COUNT,
@@ -22,7 +21,7 @@ import {
 import type {ComputeGeometryFn, HitTestArgs} from '@components/Charts/hooks';
 import {useChartFontManager, useChartInteractions, useChartLabelFormats, useChartLabelLayout, useDynamicYDomain, useLabelHitTesting, useTooltipData} from '@components/Charts/hooks';
 import type {CartesianChartProps, ChartDataPoint} from '@components/Charts/types';
-import {calculateMinDomainPadding, DEFAULT_CHART_COLOR, getChartColor, measureTextWidth, rotatedLabelYOffset} from '@components/Charts/utils';
+import {calculateMinDomainPadding, DEFAULT_CHART_COLOR, getAdditionalOffset, getChartColor, measureTextWidth, rotatedLabelYOffset} from '@components/Charts/utils';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -47,14 +46,8 @@ const computeBarLabelGeometry: ComputeGeometryFn = ({ascent, descent, sinA, angl
     const centeredUpwardOffset = angleRad > 0 ? (maxLabelWidth / 2) * sinA : 0;
     const halfLabelSins = labelWidths.map((w) => (w / 2) * sinA - variables.iconSizeExtraSmall / 3);
     const halfWidths = labelWidths.map((w) => w / 2);
-    let additionalOffset = -variables.iconSizeExtraSmall / 1.5;
-    if (angleRad > 0 && angleRad < DIAGONAL_ANGLE_RADIAN_THRESHOLD) {
-        additionalOffset = variables.iconSizeExtraSmall / 1.5;
-    } else if (angleRad > 1) {
-        additionalOffset = variables.iconSizeExtraSmall / 3;
-    }
+    const additionalOffset = getAdditionalOffset(angleRad);
     return {
-        // variables.iconSizeExtraSmall / 3 is the vertical offset of label from the axis line
         labelYOffset: AXIS_LABEL_GAP + rotatedLabelYOffset(ascent, descent, angleRad) + centeredUpwardOffset - additionalOffset,
         iconSin: variables.iconSizeExtraSmall * sinA,
         labelSins: labelWidths.map((w) => w * sinA),
@@ -246,8 +239,8 @@ function BarChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUni
 
     const labelSpace = AXIS_LABEL_GAP + (xAxisLabelHeight ?? 0);
     const dynamicChartStyle = {height: CHART_CONTENT_MIN_HEIGHT + labelSpace};
-    const dataMax = Math.max(...data.map((p) => p.total), 0);
-    const yAxisLabelWidth = fontMgr ? measureTextWidth(formatValue(dataMax), fontMgr, variables.iconSizeExtraSmall) : 0;
+    const maxYAxisTickValue = Math.max(...data.map((p) => p.total), 0);
+    const yAxisLabelWidth = fontMgr ? measureTextWidth(formatValue(maxYAxisTickValue), fontMgr, variables.iconSizeExtraSmall) : 0;
     const chartPadding = {...CHART_PADDING, bottom: labelSpace + CHART_PADDING.bottom, left: yAxisLabelWidth + AXIS_LABEL_GAP + CHART_PADDING.left};
 
     if (isLoading || !fontMgr) {

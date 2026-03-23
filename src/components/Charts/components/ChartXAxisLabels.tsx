@@ -1,9 +1,9 @@
-import {FontWeight, Group, Paragraph, Skia, vec} from '@shopify/react-native-skia';
+import {Group, Paragraph, vec} from '@shopify/react-native-skia';
 import type {SkParagraph, SkTypefaceFontProvider} from '@shopify/react-native-skia';
 import React, {useMemo} from 'react';
-import {AXIS_LABEL_GAP, CHART_FONT_FAMILIES, MAX_X_AXIS_LABEL_WIDTH} from '@components/Charts/constants';
+import {AXIS_LABEL_GAP, GLYPH_PADDING, MAX_X_AXIS_LABEL_WIDTH} from '@components/Charts/constants';
 import type {LabelRotation} from '@components/Charts/types';
-import {rotatedLabelCenterCorrection, rotatedLabelYOffset} from '@components/Charts/utils';
+import {buildChartParagraph, rotatedLabelCenterCorrection, rotatedLabelYOffset} from '@components/Charts/utils';
 
 type ParagraphWithWidth = {para: SkParagraph; width: number};
 
@@ -47,16 +47,7 @@ function ChartXAxisLabels({labels, labelRotation, labelSkipInterval, fontSize, f
             if (label.length === 0) {
                 return null;
             }
-            const para = Skia.ParagraphBuilder.Make({}, fontMgr)
-                .pushStyle({
-                    color: Skia.Color(labelColor),
-                    fontFamilies: CHART_FONT_FAMILIES,
-                    fontStyle: {weight: FontWeight.Normal},
-                    fontSize,
-                })
-                .addText(label)
-                .pop()
-                .build();
+            const para = buildChartParagraph(label, fontMgr, fontSize, labelColor);
             para.layout(MAX_X_AXIS_LABEL_WIDTH);
             return {para, width: para.getLongestLine()};
         });
@@ -100,7 +91,7 @@ function ChartXAxisLabels({labels, labelRotation, labelSkipInterval, fontSize, f
                     paragraph={paraData.para}
                     x={tickX - renderWidth / 2}
                     y={labelY}
-                    width={renderWidth + 1}
+                    width={renderWidth + GLYPH_PADDING}
                 />
             );
         }
@@ -118,7 +109,7 @@ function ChartXAxisLabels({labels, labelRotation, labelSkipInterval, fontSize, f
                     paragraph={paraData.para}
                     x={textX}
                     y={labelY - ascent}
-                    width={renderWidth + 1}
+                    width={renderWidth + GLYPH_PADDING}
                 />
             </Group>
         );

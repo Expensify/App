@@ -1,7 +1,8 @@
 import {FontWeight, Skia} from '@shopify/react-native-skia';
-import type {SkTypefaceFontProvider} from '@shopify/react-native-skia';
+import type {SkParagraph, SkTypefaceFontProvider} from '@shopify/react-native-skia';
 import colors from '@styles/theme/colors';
-import {CHART_FONT_FAMILIES, ELLIPSIS, LABEL_PADDING, LABEL_ROTATIONS, MAX_X_AXIS_LABEL_WIDTH, PIE_CHART_TOOLTIP_RADIUS_DISTANCE, SIN_45} from './constants';
+import variables from '@styles/variables';
+import {CHART_FONT_FAMILIES, DIAGONAL_ANGLE_RADIAN_THRESHOLD, ELLIPSIS, LABEL_PADDING, LABEL_ROTATIONS, MAX_X_AXIS_LABEL_WIDTH, PIE_CHART_TOOLTIP_RADIUS_DISTANCE, SIN_45} from './constants';
 import type {ChartDataPoint, LabelRotation, PieSlice} from './types';
 
 /**
@@ -46,15 +47,55 @@ function getChartColor(index: number): string {
 const DEFAULT_CHART_COLOR = getChartColor(5);
 
 /**
+ * Builds a Skia paragraph for chart labels.
+ * Encapsulates the shared font configuration (families, weight, size, optional color).
+ * The caller is responsible for calling `para.layout(width)` before measuring or rendering.
+ */
+function buildChartParagraph(text: string, fontMgr: SkTypefaceFontProvider, fontSize: number, color?: string): SkParagraph {
+    return Skia.ParagraphBuilder.Make({}, fontMgr)
+        .pushStyle({
+            fontFamilies: CHART_FONT_FAMILIES,
+            fontStyle: {weight: FontWeight.Normal},
+            fontSize,
+            ...(color !== undefined ? {color: Skia.Color(color)} : {}),
+        })
+        .addText(text)
+        .pop()
+        .build();
+}
+
+/**
+ * Calculates the additional offset to apply to the label to center it on the tick mark.
+ * @param angleRad - The angle of the label in radians.
+ * @returns The additional offset in pixels.
+ *
+ * @description
+ * Skia's paragraph.paint(canvas, x, y) treats `y` as the top of the paragraph bounding box,
+ * not the text baseline. The baseline sits at `LineMetrics.baseline` pixels below `y`, and
+ * the visual top of the glyphs is at `y + baseline - ascent`. When `baseline > ascent` there
+ * is a small gap (leading) between `y` and where the text actually appears.
+ * This offset empirically corrects the hit-area center to match the visual center of the
+ * rendered label. The sign and magnitude differ per rotation because the gap projects
+ * geometrically differently after the transform:
+ * 0°  - shift hit area UP   (top of bounding box is above visual center)
+ * 45° - shift hit area DOWN (rotation flips the projection)
+ * 90° - small downward shift
+ */
+function getAdditionalOffset(angleRad: number): number {
+    if (angleRad === 0) {
+        return -variables.iconSizeExtraSmall / 1.5;
+    }
+    if (angleRad > 0 && angleRad < DIAGONAL_ANGLE_RADIAN_THRESHOLD) {
+        return variables.iconSizeExtraSmall / 1.5;
+    }
+    return variables.iconSizeExtraSmall / 3;
+}
+/**
  * Measures the rendered pixel width of a string using the Paragraph API.
  * Supports multi-font fallback via fontMgr (e.g. NotoSansSymbols for currency glyphs).
  */
 function measureTextWidth(text: string, fontMgr: SkTypefaceFontProvider, fontSize: number): number {
-    const para = Skia.ParagraphBuilder.Make({}, fontMgr)
-        .pushStyle({fontFamilies: CHART_FONT_FAMILIES, fontStyle: {weight: FontWeight.Normal}, fontSize})
-        .addText(text)
-        .pop()
-        .build();
+    const para = buildChartParagraph(text, fontMgr, fontSize);
     para.layout(MAX_X_AXIS_LABEL_WIDTH);
     return para.getLongestLine();
 }
@@ -64,11 +105,7 @@ function measureTextWidth(text: string, fontMgr: SkTypefaceFontProvider, fontSiz
  * Uses a representative string so Skia resolves the actual glyph metrics.
  */
 function getFontLineMetrics(fontMgr: SkTypefaceFontProvider, fontSize: number): {ascent: number; descent: number} {
-    const para = Skia.ParagraphBuilder.Make({}, fontMgr)
-        .pushStyle({fontFamilies: CHART_FONT_FAMILIES, fontStyle: {weight: FontWeight.Normal}, fontSize})
-        .addText('Ag')
-        .pop()
-        .build();
+    const para = buildChartParagraph('Ag', fontMgr, fontSize);
     para.layout(MAX_X_AXIS_LABEL_WIDTH);
     const metrics = para.getLineMetrics().at(0);
     return {
@@ -373,6 +410,8 @@ function isCursorOverChartLabel({cursorX, cursorY, targetX, labelY, angleRad, ha
 export {
     getChartColor,
     DEFAULT_CHART_COLOR,
+    buildChartParagraph,
+    getAdditionalOffset,
     measureTextWidth,
     getFontLineMetrics,
     rotatedLabelCenterCorrection,

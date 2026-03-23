@@ -12,19 +12,11 @@ import ChartXAxisLabels from '@components/Charts/components/ChartXAxisLabels';
 import ChartYAxisLabels from '@components/Charts/components/ChartYAxisLabels';
 import LeftFrameLine from '@components/Charts/components/LeftFrameLine';
 import ScatterPoints from '@components/Charts/components/ScatterPoints';
-import {
-    AXIS_LABEL_GAP,
-    CHART_CONTENT_MIN_HEIGHT,
-    CHART_PADDING,
-    DIAGONAL_ANGLE_RADIAN_THRESHOLD,
-    X_AXIS_LINE_WIDTH,
-    Y_AXIS_LINE_WIDTH,
-    Y_AXIS_TICK_COUNT,
-} from '@components/Charts/constants';
+import {AXIS_LABEL_GAP, CHART_CONTENT_MIN_HEIGHT, CHART_PADDING, X_AXIS_LINE_WIDTH, Y_AXIS_LINE_WIDTH, Y_AXIS_TICK_COUNT} from '@components/Charts/constants';
 import type {ComputeGeometryFn, HitTestArgs} from '@components/Charts/hooks';
 import {useChartFontManager, useChartInteractions, useChartLabelFormats, useChartLabelLayout, useDynamicYDomain, useLabelHitTesting, useTooltipData} from '@components/Charts/hooks';
 import type {CartesianChartProps, ChartDataPoint} from '@components/Charts/types';
-import {calculateMinDomainPadding, DEFAULT_CHART_COLOR, measureTextWidth, rotatedLabelYOffset} from '@components/Charts/utils';
+import {calculateMinDomainPadding, DEFAULT_CHART_COLOR, getAdditionalOffset, measureTextWidth, rotatedLabelYOffset} from '@components/Charts/utils';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -50,12 +42,7 @@ const BASE_DOMAIN_PADDING = {top: 16, bottom: 16, left: 0, right: 0};
  */
 const computeLineLabelGeometry: ComputeGeometryFn = ({ascent, descent, sinA, angleRad, labelWidths, padding}) => {
     const iconThirdSin = (variables.iconSizeExtraSmall / 3) * sinA;
-    let additionalOffset = -variables.iconSizeExtraSmall / 1.5;
-    if (angleRad > 0 && angleRad < DIAGONAL_ANGLE_RADIAN_THRESHOLD) {
-        additionalOffset = variables.iconSizeExtraSmall / 1.5;
-    } else if (angleRad > 1) {
-        additionalOffset = variables.iconSizeExtraSmall / 3;
-    }
+    const additionalOffset = getAdditionalOffset(angleRad);
     return {
         labelYOffset: AXIS_LABEL_GAP + rotatedLabelYOffset(ascent, descent, angleRad) - additionalOffset,
         iconSin: variables.iconSizeExtraSmall * sinA,
@@ -241,8 +228,8 @@ function LineChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUn
 
     const labelSpace = AXIS_LABEL_GAP + (xAxisLabelHeight ?? 0);
     const dynamicChartStyle = {height: CHART_CONTENT_MIN_HEIGHT + labelSpace};
-    const dataMax = Math.max(...data.map((p) => p.total), 0);
-    const yAxisLabelWidth = fontMgr ? measureTextWidth(formatValue(dataMax), fontMgr, variables.iconSizeExtraSmall) : 0;
+    const maxYAxisTickValue = Math.max(...data.map((p) => p.total), 0);
+    const yAxisLabelWidth = fontMgr ? measureTextWidth(formatValue(maxYAxisTickValue), fontMgr, variables.iconSizeExtraSmall) : 0;
     const chartPadding = {...CHART_PADDING, bottom: labelSpace + CHART_PADDING.bottom, left: yAxisLabelWidth + AXIS_LABEL_GAP + CHART_PADDING.left};
 
     if (isLoading || !fontMgr) {

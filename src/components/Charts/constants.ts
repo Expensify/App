@@ -50,6 +50,8 @@ const MAX_Y_AXIS_LABEL_WIDTH = 200;
 // Maximum width for X-axis labels in pixels
 const MAX_X_AXIS_LABEL_WIDTH = 500;
 
+const GLYPH_PADDING = 4;
+
 export {
     CHART_FONT_FAMILIES,
     Y_AXIS_TICK_COUNT,
@@ -68,4 +70,5 @@ export {
     PIE_CHART_TOOLTIP_RADIUS_DISTANCE,
     MAX_X_AXIS_LABEL_WIDTH,
     MAX_Y_AXIS_LABEL_WIDTH,
+    GLYPH_PADDING,
 };
