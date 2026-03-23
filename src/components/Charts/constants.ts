@@ -44,6 +44,12 @@ const DIAGONAL_ANGLE_RADIAN_THRESHOLD = 1;
 
 const PIE_CHART_TOOLTIP_RADIUS_DISTANCE = 2 / 3;
 
+// Maximum width for Y-axis labels in pixels
+const MAX_Y_AXIS_LABEL_WIDTH = 200;
+
+// Maximum width for X-axis labels in pixels
+const MAX_X_AXIS_LABEL_WIDTH = 500;
+
 export {
     CHART_FONT_FAMILIES,
     Y_AXIS_TICK_COUNT,
@@ -60,4 +66,6 @@ export {
     MIN_TRUNCATED_CHARS,
     DIAGONAL_ANGLE_RADIAN_THRESHOLD,
     PIE_CHART_TOOLTIP_RADIUS_DISTANCE,
+    MAX_X_AXIS_LABEL_WIDTH,
+    MAX_Y_AXIS_LABEL_WIDTH,
 };

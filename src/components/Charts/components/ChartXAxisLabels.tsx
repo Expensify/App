@@ -1,7 +1,7 @@
 import {FontWeight, Group, Paragraph, Skia, vec} from '@shopify/react-native-skia';
 import type {SkParagraph, SkTypefaceFontProvider} from '@shopify/react-native-skia';
 import React, {useMemo} from 'react';
-import {AXIS_LABEL_GAP, CHART_FONT_FAMILIES} from '@components/Charts/constants';
+import {AXIS_LABEL_GAP, CHART_FONT_FAMILIES, MAX_X_AXIS_LABEL_WIDTH} from '@components/Charts/constants';
 import type {LabelRotation} from '@components/Charts/types';
 import {rotatedLabelCenterCorrection, rotatedLabelYOffset} from '@components/Charts/utils';
 
@@ -57,7 +57,7 @@ function ChartXAxisLabels({labels, labelRotation, labelSkipInterval, fontSize, f
                 .addText(label)
                 .pop()
                 .build();
-            para.layout(9999);
+            para.layout(MAX_X_AXIS_LABEL_WIDTH);
             return {para, width: para.getLongestLine()};
         });
     }, [fontMgr, labels, labelColor, fontSize]);

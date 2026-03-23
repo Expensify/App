@@ -2,7 +2,7 @@ import {FontWeight, Paragraph, Skia} from '@shopify/react-native-skia';
 import type {SkParagraph, SkTypefaceFontProvider} from '@shopify/react-native-skia';
 import React, {useMemo} from 'react';
 import type {ChartBounds, Scale} from 'victory-native';
-import {AXIS_LABEL_GAP, CHART_FONT_FAMILIES} from '@components/Charts/constants';
+import {AXIS_LABEL_GAP, CHART_FONT_FAMILIES, MAX_Y_AXIS_LABEL_WIDTH} from '@components/Charts/constants';
 
 // Small extra padding so complex glyphs (e.g. Arabic) are not clipped.
 // getLongestLine() can slightly under-report the visual extent of the last glyph.
@@ -52,7 +52,7 @@ function ChartYAxisLabels({yTicks, yScale, chartBounds, fontSize, fontMgr, label
                 .addText(label)
                 .pop()
                 .build();
-            para.layout(100);
+            para.layout(MAX_Y_AXIS_LABEL_WIDTH);
             const width = para.getLongestLine();
             return {para, width};
         });
