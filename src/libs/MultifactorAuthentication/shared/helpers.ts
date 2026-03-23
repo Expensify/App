@@ -1,5 +1,5 @@
 /**
- * Helper utilities for multifactor authentication biometrics operations.
+ * Shared helper utilities for multifactor authentication operations.
  */
 import type {ValueOf} from 'type-fest';
 import type {MultifactorAuthenticationReason, MultifactorAuthenticationResponseMap} from './types';
@@ -73,29 +73,4 @@ function parseHttpRequest(
     };
 }
 
-/**
- * Decodes Expo error messages and maps them to authentication error reasons.
- */
-function decodeExpoMessage(error: unknown): MultifactorAuthenticationReason {
-    const errorString = String(error);
-    const parts = errorString.split(VALUES.EXPO_ERRORS.SEPARATOR);
-    const searchString = parts.length > 1 ? parts.slice(1).join(';').trim() : errorString;
-
-    for (const [searchKey, errorValue] of Object.entries(VALUES.EXPO_ERROR_MAPPINGS)) {
-        if (searchString.includes(searchKey)) {
-            return errorValue;
-        }
-    }
-
-    return VALUES.REASON.EXPO.GENERIC;
-}
-
-/**
- * Decodes an Expo error message with optional fallback for generic errors.
- */
-const decodeMultifactorAuthenticationExpoMessage = (message: unknown, fallback?: MultifactorAuthenticationReason): MultifactorAuthenticationReason => {
-    const decodedMessage = decodeExpoMessage(message);
-    return decodedMessage === VALUES.REASON.EXPO.GENERIC && fallback ? fallback : decodedMessage;
-};
-
-export {decodeMultifactorAuthenticationExpoMessage as decodeExpoMessage, parseHttpRequest};
+export default parseHttpRequest;
