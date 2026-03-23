@@ -1,6 +1,5 @@
 import React from 'react';
 import createScreenWithDefaults from '@components/MultifactorAuthentication/components/OutcomeScreen/createScreenWithDefaults';
-import {DefaultClientFailureScreen} from '@components/MultifactorAuthentication/components/OutcomeScreen/FailureScreen/defaultScreens';
 import DefaultSuccessScreen from '@components/MultifactorAuthentication/components/OutcomeScreen/SuccessScreen/defaultScreens';
 import type {
     MultifactorAuthenticationScenario,
@@ -25,24 +24,18 @@ type Payload = {
  * Type guard to verify the payload is an UnblockCardPIN payload.
  */
 function isUnblockCardPINPayload(payload: MultifactorAuthenticationScenarioAdditionalParams<MultifactorAuthenticationScenario> | undefined): payload is Payload {
-    return !!payload && 'cardID' in payload;
+    return !!payload && 'cardID' in payload && 'isOfflinePINMarket' in payload;
 }
 
 const CardUnlockedSuccessScreen = createScreenWithDefaults(
     DefaultSuccessScreen,
     {
-        title: 'multifactorAuthentication.unblockCardPIN.cardUnlocked',
+        title: 'multifactorAuthentication.unblockCardPIN.cardUnlockedTitle',
+        headerTitle: 'multifactorAuthentication.unblockCardPIN.cardUnlockedHeader',
         subtitle: 'multifactorAuthentication.unblockCardPIN.cardUnlockedSubtitle',
+        illustration: 'Fireworks',
     },
     'CardUnlockedSuccessScreen',
-);
-
-const AuthenticationCanceledFailureScreen = createScreenWithDefaults(
-    DefaultClientFailureScreen,
-    {
-        subtitle: 'multifactorAuthentication.unblockCardPIN.didNotUnlockCard',
-    },
-    'AuthenticationCanceledFailureScreen',
 );
 
 /**
@@ -51,32 +44,24 @@ const AuthenticationCanceledFailureScreen = createScreenWithDefaults(
  *
  * Callback behavior per design doc:
  * - Online market success: Return SHOW_OUTCOME_SCREEN → shows Card Unlocked success screen
- * - Offline market success: Return SKIP_OUTCOME_SCREEN → navigate to ChangePINRequirementPage
+ * - Offline market success: Return SKIP_OUTCOME_SCREEN → navigate to ChangePINATMRequirementPage
  * - Authentication failure: Return SHOW_OUTCOME_SCREEN to show failure screen
  */
 export default {
-    allowedAuthenticationMethods: [CONST.MULTIFACTOR_AUTHENTICATION.TYPE.BIOMETRICS],
+    allowedAuthenticationMethods: [CONST.MULTIFACTOR_AUTHENTICATION.TYPE.BIOMETRICS, CONST.MULTIFACTOR_AUTHENTICATION.TYPE.PASSKEYS],
     action: unblockCardPIN,
-
     callback: async (isSuccessful, _callbackInput, payload) => {
         if (isSuccessful && isUnblockCardPINPayload(payload)) {
             if (payload.isOfflinePINMarket) {
                 Navigation.closeRHPFlow();
-                Navigation.navigate(ROUTES.SETTINGS_WALLET_CARD_CHANGE_PIN_REQUIREMENT.getRoute(payload.cardID));
+                Navigation.navigate(ROUTES.SETTINGS_WALLET_CARD_CHANGE_PIN_ATM_REQUIREMENT.getRoute(payload.cardID));
                 return CONST.MULTIFACTOR_AUTHENTICATION.CALLBACK_RESPONSE.SKIP_OUTCOME_SCREEN;
             }
-
             return CONST.MULTIFACTOR_AUTHENTICATION.CALLBACK_RESPONSE.SHOW_OUTCOME_SCREEN;
         }
-
         return CONST.MULTIFACTOR_AUTHENTICATION.CALLBACK_RESPONSE.SHOW_OUTCOME_SCREEN;
     },
-
     successScreen: <CardUnlockedSuccessScreen />,
-
-    failureScreens: {
-        [CONST.MULTIFACTOR_AUTHENTICATION.REASON.EXPO.CANCELED]: <AuthenticationCanceledFailureScreen />,
-    },
 } as const satisfies MultifactorAuthenticationScenarioCustomConfig<Payload>;
 
 export type {Payload};

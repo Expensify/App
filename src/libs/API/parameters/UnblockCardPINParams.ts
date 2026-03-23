@@ -1,5 +1,5 @@
 import type {MultifactorAuthenticationAPIParams} from '@components/MultifactorAuthentication/config/types';
 
-type UnblockCardPINParams = MultifactorAuthenticationAPIParams<'UNBLOCK-CARD-PIN'>;
+type UnblockCardPINParams = Omit<MultifactorAuthenticationAPIParams<'UNBLOCK-CARD-PIN'>, 'isOfflinePINMarket'>;
 
 export default UnblockCardPINParams;

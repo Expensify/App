@@ -724,6 +724,12 @@ const translations: TranslationDeepObject<typeof en> = {
         setPin: {didNotShipCard: 'Não enviamos seu cartão. Tente novamente.'},
         revealPin: {couldNotReveal: 'Não foi possível revelar seu PIN. Tente novamente.'},
         changePin: {didNotChange: 'Nós não alteramos seu PIN. Tente novamente.'},
+        unblockCardPIN: {
+            cardUnlockedTitle: 'Cartão desbloqueado!',
+            cardUnlockedHeader: 'Cartão desbloqueado',
+            cardUnlockedSubtitle: 'Você já pode usar seu Cartão Expensify novamente.',
+            didNotUnlockCard: 'Não desbloqueamos seu cartão. Tente novamente.',
+        },
     },
     validateCodeModal: {
         successfulSignInTitle: dedent(`
@@ -2358,6 +2364,16 @@ ${amount} para ${merchant} - ${date}`,
         frozen: 'Congelado',
         youFroze: ({date}: {date: string}) => `Você bloqueou este cartão em ${date}.`,
         frozenBy: ({person, date}: {person: string; date: string}) => `${person} bloqueou este cartão em ${date}.`,
+        pinBlocked: {
+            suspendedError: 'Seu cartão foi bloqueado devido a tentativas de PIN incorretas. Desbloqueie seu cartão para usá-lo novamente.',
+            openError: 'Altere seu PIN em qualquer caixa eletrônico para concluir o desbloqueio do seu cartão. Isso é obrigatório na sua região.',
+            unlockCard: 'Desbloquear cartão',
+        },
+        changePINATMRequirement: {
+            title: 'Desbloquear cartão',
+            heading: 'Altere seu PIN em qualquer caixa eletrônico',
+            description: 'Isso é obrigatório na sua região para concluir o desbloqueio do seu cartão. Em caso de dúvidas, <concierge-link>entre em contato com o Concierge</concierge-link>.',
+        },
     },
     workflowsPage: {
         workflowTitle: 'Gastos',

@@ -312,8 +312,8 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                             path: ROUTES.SETTINGS_WALLET_CARD_ACTIVATE.route,
                             exact: true,
                         },
-                        [SCREENS.SETTINGS.WALLET.CARD_CHANGE_PIN_REQUIREMENT]: {
-                            path: ROUTES.SETTINGS_WALLET_CARD_CHANGE_PIN_REQUIREMENT.route,
+                        [SCREENS.SETTINGS.WALLET.CARD_CHANGE_PIN_ATM_REQUIREMENT]: {
+                            path: ROUTES.SETTINGS_WALLET_CARD_CHANGE_PIN_ATM_REQUIREMENT.route,
                             exact: true,
                         },
                         [SCREENS.SETTINGS.WALLET.CARD_CHANGE_PIN]: {

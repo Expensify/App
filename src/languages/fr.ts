@@ -728,6 +728,12 @@ const translations: TranslationDeepObject<typeof en> = {
         setPin: {didNotShipCard: 'Nous n’avons pas envoyé votre carte. Veuillez réessayer.'},
         revealPin: {couldNotReveal: "Nous n'avons pas pu afficher votre code PIN. Veuillez réessayer."},
         changePin: {didNotChange: "Nous n'avons pas modifié votre code PIN. Veuillez réessayer."},
+        unblockCardPIN: {
+            cardUnlockedTitle: 'Carte déverrouillée !',
+            cardUnlockedHeader: 'Carte déverrouillée',
+            cardUnlockedSubtitle: 'Vous êtes prêt à utiliser à nouveau votre Carte Expensify.',
+            didNotUnlockCard: "Nous n'avons pas déverrouillé votre carte. Veuillez réessayer.",
+        },
     },
     validateCodeModal: {
         successfulSignInTitle: dedent(`
@@ -2378,6 +2384,16 @@ ${amount} pour ${merchant} - ${date}`,
         frozen: 'Gelée',
         youFroze: ({date}: {date: string}) => `Vous avez gelé cette carte le ${date}.`,
         frozenBy: ({person, date}: {person: string; date: string}) => `${person} a gelé cette carte le ${date}.`,
+        pinBlocked: {
+            suspendedError: 'Votre carte a été bloquée en raison de saisies de code PIN incorrectes. Débloquez votre carte pour pouvoir l’utiliser à nouveau.',
+            openError: 'Modifiez votre code PIN à n’importe quel DAB pour terminer le déverrouillage de votre carte. Cette étape est obligatoire dans votre région.',
+            unlockCard: 'Déverrouiller la carte',
+        },
+        changePINATMRequirement: {
+            title: 'Débloquer la carte',
+            heading: 'Modifiez votre code PIN à n’importe quel DAB',
+            description: 'Ceci est requis dans votre région pour terminer le déverrouillage de votre carte. Pour toute question, <concierge-link>Contactez Concierge</concierge-link>.',
+        },
     },
     workflowsPage: {
         workflowTitle: 'Dépense',

@@ -26,6 +26,7 @@ import useNetwork from '@hooks/useNetwork';
 import useNonPersonalCardList from '@hooks/useNonPersonalCardList';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {freezeCard, unfreezeCard} from '@libs/actions/Card';
 import {resetValidateActionCodeSent} from '@libs/actions/User';
@@ -87,6 +88,7 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const cardList = useNonPersonalCardList();
     const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${cardList?.[cardID]?.fundID}`);
+    const theme = useTheme();
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
@@ -140,18 +142,16 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
     const shouldShowReportLostCardButton = currentPhysicalCard?.state === CONST.EXPENSIFY_CARD.STATE.NOT_ACTIVATED || currentPhysicalCard?.state === CONST.EXPENSIFY_CARD.STATE.OPEN;
 
     const currency = getCardCurrency(currentCard, cardSettings);
-    const shouldShowPIN = currency !== CONST.CURRENCY.USD;
+    const isPINBlocked = supportsPINManagementFeatures(currentPhysicalCard) && !!currentPhysicalCard?.nameValuePairs?.isPINBlocked;
+    const isCardSuspendedAndPINBlocked = currentPhysicalCard?.state === CONST.EXPENSIFY_CARD.STATE.STATE_SUSPENDED && isPINBlocked;
+    const isCardOpenAndPINBlocked = currentPhysicalCard?.state === CONST.EXPENSIFY_CARD.STATE.OPEN && isPINBlocked;
+    const shouldShowPIN = currency !== CONST.CURRENCY.USD && !isCardSuspendedAndPINBlocked;
     const canChangePIN = supportsPINManagementFeatures(currentPhysicalCard) && currentPhysicalCard?.state === CONST.EXPENSIFY_CARD.STATE.OPEN;
     const canRevealPIN = canChangePIN && revealedPIN === undefined;
     const formattedAvailableSpendAmount = convertToDisplayString(currentCard?.availableSpend, currency);
     const {limitNameKey, limitTitleKey} = getLimitTypeTranslationKeys(currentCard?.nameValuePairs?.limitType);
 
     const isSignedInAsDelegate = !!account?.delegatedAccess?.delegate || false;
-
-    const isPINBlocked = !!currentCard?.nameValuePairs?.isPINBlocked;
-    const isUkEuCard = supportsPINManagementFeatures(currentCard);
-    const isCardSuspendedAndPINBlocked = isUkEuCard && currentCard?.state === CONST.EXPENSIFY_CARD.STATE.STATE_SUSPENDED && isPINBlocked;
-    const isCardOpenAndPINBlocked = isUkEuCard && currentCard?.state === CONST.EXPENSIFY_CARD.STATE.OPEN && isPINBlocked;
 
     const session = useSession();
     const isCardHolder = currentCard?.accountID === session?.accountID;
@@ -172,9 +172,9 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
     const handleUnlockCardPress = useCallback(() => {
         executeScenario(CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.UNBLOCK_CARD_PIN, {
             cardID,
-            isOfflinePINMarket: !!currentCard?.nameValuePairs?.isOfflinePINMarket,
+            isOfflinePINMarket: !!currentPhysicalCard?.isOfflinePINMarket,
         });
-    }, [executeScenario, cardID, currentCard?.nameValuePairs?.isOfflinePINMarket]);
+    }, [executeScenario, cardID, currentPhysicalCard?.isOfflinePINMarket]);
 
     const [isFreezeModalVisible, setIsFreezeModalVisible] = useState(false);
     const [isUnfreezeModalVisible, setIsUnfreezeModalVisible] = useState(false);
@@ -252,13 +252,13 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                     <>
                         <DotIndicatorMessage
                             style={styles.pageWrapper}
-                            textStyles={styles.walletLockedMessage}
+                            textStyles={[styles.walletLockedMessage, {color: theme.danger}]}
                             messages={{error: translate('cardPage.pinBlocked.suspendedError')}}
                             type="error"
                         />
                         <Button
-                            success
                             large
+                            icon={Expensicons.Unlock}
                             style={[styles.mh5, styles.mb5]}
                             text={translate('cardPage.pinBlocked.unlockCard')}
                             onPress={handleUnlockCardPress}
@@ -269,7 +269,7 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                 {isCardOpenAndPINBlocked && (
                     <DotIndicatorMessage
                         style={styles.pageWrapper}
-                        textStyles={styles.walletLockedMessage}
+                        textStyles={[styles.walletLockedMessage, {color: theme.danger}]}
                         messages={{error: translate('cardPage.pinBlocked.openError')}}
                         type="error"
                     />
@@ -453,25 +453,19 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                                     interactive={false}
                                     titleStyle={styles.walletCardNumber}
                                 />
-                                {shouldShowPIN && !isCardSuspendedAndPINBlocked && (
+                                {shouldShowPIN && (
                                     <MenuItemWithTopDescription
                                         description={translate('cardPage.physicalCardPin')}
                                         title={maskPin(revealedPIN)}
-                                        interactive={isCardOpenAndPINBlocked}
+                                        interactive={false}
                                         titleStyle={styles.walletCardNumber}
-                                        shouldShowRightComponent={canRevealPIN && isCardOpenAndPINBlocked}
-                                        brickRoadIndicator={isCardOpenAndPINBlocked ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-
+                                        shouldShowRightComponent={canRevealPIN}
                                         rightComponent={
                                             canRevealPIN ? (
                                                 <Button
                                                     icon={Expensicons.Eye}
                                                     text={translate('cardPage.revealPin')}
                                                     onPress={() => {
-                                                        if (isCardOpenAndPINBlocked) {
-                                                            Navigation.navigate(ROUTES.SETTINGS_WALLET_CARD_CHANGE_PIN_REQUIREMENT.getRoute(cardID))
-                                                            return; 
-                                                        }
                                                         executeScenario(CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.REVEAL_PIN, {
                                                             cardID: String(currentPhysicalCard?.cardID),
                                                         });
@@ -487,8 +481,13 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                                         title={translate('cardPage.changePin')}
                                         icon={expensifyIcons.Key}
                                         shouldShowRightIcon
+                                        brickRoadIndicator={isCardOpenAndPINBlocked ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                                         onPress={() => {
                                             const physicalCardID = String(currentPhysicalCard?.cardID);
+                                            if (isCardOpenAndPINBlocked) {
+                                                Navigation.navigate(ROUTES.SETTINGS_WALLET_CARD_CHANGE_PIN_ATM_REQUIREMENT.getRoute(physicalCardID));
+                                                return;
+                                            }
                                             if (currentPhysicalCard?.isOfflinePINMarket) {
                                                 Navigation.navigate(ROUTES.SETTINGS_WALLET_CARD_CHANGE_PIN_ATM.getRoute(physicalCardID));
                                             } else {

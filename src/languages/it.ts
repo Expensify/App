@@ -727,6 +727,12 @@ const translations: TranslationDeepObject<typeof en> = {
         setPin: {didNotShipCard: 'Non abbiamo spedito la tua carta. Riprova.'},
         revealPin: {couldNotReveal: 'Non siamo riusciti a mostrare il tuo PIN. Riprova.'},
         changePin: {didNotChange: 'Non abbiamo modificato il tuo PIN. Riprova.'},
+        unblockCardPIN: {
+            cardUnlockedTitle: 'Carta sbloccata!',
+            cardUnlockedHeader: 'Carta sbloccata',
+            cardUnlockedSubtitle: 'Sei pronto a usare di nuovo la tua Carta Expensify.',
+            didNotUnlockCard: 'Non abbiamo sbloccato la tua carta. Riprova.',
+        },
     },
     validateCodeModal: {
         successfulSignInTitle: dedent(`
@@ -2367,6 +2373,16 @@ ${amount} per ${merchant} - ${date}`,
         frozen: 'Bloccata',
         youFroze: ({date}: {date: string}) => `Hai bloccato questa carta il ${date}.`,
         frozenBy: ({person, date}: {person: string; date: string}) => `${person} ha bloccato questa carta il ${date}.`,
+        pinBlocked: {
+            suspendedError: 'La tua carta è stata bloccata a causa di PIN errati. Sblocca la carta per poterla usare di nuovo.',
+            openError: 'Cambia il tuo PIN a qualsiasi bancomat per completare lo sblocco della carta. Questo è obbligatorio nella tua regione.',
+            unlockCard: 'Sblocca carta',
+        },
+        changePINATMRequirement: {
+            title: 'Sblocca carta',
+            heading: 'Cambia il tuo PIN in qualsiasi bancomat',
+            description: 'Questo è necessario nella tua regione per completare lo sblocco della tua carta. Per domande, <concierge-link>contatta Concierge</concierge-link>.',
+        },
     },
     workflowsPage: {
         workflowTitle: 'Spesa',

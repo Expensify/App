@@ -726,6 +726,12 @@ const translations: TranslationDeepObject<typeof en> = {
         setPin: {didNotShipCard: 'Wir haben Ihre Karte nicht versendet. Bitte versuchen Sie es erneut.'},
         revealPin: {couldNotReveal: 'Wir konnten Ihre PIN nicht anzeigen. Bitte versuchen Sie es erneut.'},
         changePin: {didNotChange: 'Wir haben Ihre PIN nicht geändert. Bitte versuchen Sie es erneut.'},
+        unblockCardPIN: {
+            cardUnlockedTitle: 'Karte entsperrt!',
+            cardUnlockedHeader: 'Karte entsperrt',
+            cardUnlockedSubtitle: 'Sie können Ihre Expensify Karte wieder verwenden.',
+            didNotUnlockCard: 'Wir haben Ihre Karte nicht entsperrt. Bitte versuchen Sie es erneut.',
+        },
     },
     validateCodeModal: {
         successfulSignInTitle: dedent(`
@@ -2371,6 +2377,17 @@ ${amount} für ${merchant} – ${date}`,
         frozen: 'Gesperrt',
         youFroze: ({date}: {date: string}) => `Du hast diese Karte am ${date} gesperrt.`,
         frozenBy: ({person, date}: {person: string; date: string}) => `${person} hat diese Karte am ${date} gesperrt.`,
+        pinBlocked: {
+            suspendedError: 'Ihre Karte wurde aufgrund falscher PIN-Eingaben gesperrt. Entsperren Sie Ihre Karte, um sie wieder zu verwenden.',
+            openError: 'Ändern Sie Ihre PIN an einem beliebigen Geldautomaten, um die Freischaltung Ihrer Karte abzuschließen. Dies ist in Ihrer Region erforderlich.',
+            unlockCard: 'Karte entsperren',
+        },
+        changePINATMRequirement: {
+            title: 'Karte entsperren',
+            heading: 'Ändern Sie Ihre PIN an jedem Geldautomaten',
+            description:
+                'Dies ist in Ihrer Region erforderlich, um die vollständige Freischaltung Ihrer Karte abzuschließen. Bei Fragen <concierge-link>wenden Sie sich an Concierge</concierge-link>.',
+        },
     },
     workflowsPage: {
         workflowTitle: 'Ausgaben',

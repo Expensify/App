@@ -635,9 +635,11 @@ const translations: TranslationDeepObject<typeof en> = {
             didNotShipCard: 'No enviamos tu tarjeta. Por favor, inténtalo de nuevo.',
         },
         unblockCardPIN: {
-            cardUnlocked: '¡Tarjeta desbloqueada!',
-            cardUnlockedSubtitle: 'Tu tarjeta ha sido desbloqueada y está lista para usar.',
+            cardUnlockedTitle: '¡Tarjeta desbloqueada!',
+            cardUnlockedHeader: 'Tarjeta desbloqueada',
+            cardUnlockedSubtitle: 'Ya puedes volver a usar tu Tarjeta Expensify.',
             didNotUnlockCard: 'No pudimos desbloquear tu tarjeta. Por favor, inténtalo de nuevo.',
+        },
         revealPin: {
             couldNotReveal: 'No pudimos revelar tu PIN. Por favor, inténtalo de nuevo.',
         },
@@ -2279,14 +2281,14 @@ ${amount} para ${merchant} - ${date}`,
         freezeDescription: 'Una tarjeta congelada no se puede usar para compras ni transacciones. Puedes descongelarla en cualquier momento.',
         unfreezeDescription: 'Al descongelar esta tarjeta se volverán a permitir compras y transacciones. Continúa solo si estás seguro de que la tarjeta es segura para usar.',
         pinBlocked: {
-            suspendedError: 'Tu tarjeta está bloqueada debido a demasiados intentos incorrectos de PIN. Toca Desbloquear tarjeta para recuperar el acceso.',
-            openError: 'Necesitas cambiar tu PIN en cualquier cajero automático para terminar de desbloquear tu tarjeta.',
+            suspendedError: 'Tu tarjeta fue bloqueada debido a demasiados intentos incorrectos de PIN. Desbloquea tu tarjeta para volver a usarla.',
+            openError: 'Cambia tu PIN en cualquier cajero automático para terminar de desbloquear tu tarjeta. Esto es obligatorio en tu región.',
             unlockCard: 'Desbloquear tarjeta',
         },
-        changePINRequirement: {
-            title: 'Cambiar PIN',
+        changePINATMRequirement: {
+            title: 'Desbloquear tarjeta',
             heading: 'Cambia tu PIN en cualquier cajero automático',
-            description: 'Tu tarjeta ha sido desbloqueada, pero necesitas cambiar tu PIN en cualquier cajero automático para completar el proceso.',
+            description: 'Esto es necesario en tu región para terminar de desbloquear tu tarjeta. Si tienes preguntas, <concierge-link>contacta a Concierge</concierge-link>.',
         },
         frozen: 'Congelada',
         youFroze: ({date}: {date: string}) => `Congelaste esta tarjeta el ${date}.`,

@@ -725,6 +725,12 @@ const translations: TranslationDeepObject<typeof en> = {
         setPin: {didNotShipCard: 'We hebben je kaart niet verzonden. Probeer het opnieuw.'},
         revealPin: {couldNotReveal: 'We konden je pincode niet tonen. Probeer het opnieuw.'},
         changePin: {didNotChange: 'We hebben je pincode niet gewijzigd. Probeer het opnieuw.'},
+        unblockCardPIN: {
+            cardUnlockedTitle: 'Kaart ontgrendeld!',
+            cardUnlockedHeader: 'Kaart ontgrendeld',
+            cardUnlockedSubtitle: 'Je kunt je Expensify Kaart weer gebruiken.',
+            didNotUnlockCard: 'We hebben je kaart niet gedeblokkeerd. Probeer het opnieuw.',
+        },
     },
     validateCodeModal: {
         successfulSignInTitle: dedent(`
@@ -2365,6 +2371,16 @@ ${amount} voor ${merchant} - ${date}`,
         frozen: 'Geblokkeerd',
         youFroze: ({date}: {date: string}) => `Je hebt deze kaart op ${date} geblokkeerd.`,
         frozenBy: ({person, date}: {person: string; date: string}) => `${person} heeft deze kaart op ${date} geblokkeerd.`,
+        pinBlocked: {
+            suspendedError: 'Je kaart is geblokkeerd vanwege onjuiste pincode-invoer. Deblokkeer je kaart om deze weer te gebruiken.',
+            openError: 'Wijzig je pincode bij een geldautomaat om het ontgrendelen van je kaart te voltooien. Dit is verplicht in jouw regio.',
+            unlockCard: 'Kaart ontgrendelen',
+        },
+        changePINATMRequirement: {
+            title: 'Deblokkeer kaart',
+            heading: 'Wijzig je pincode bij elke geldautomaat',
+            description: 'Dit is in jouw regio vereist om het ontgrendelen van je kaart af te ronden. Voor vragen kun je <concierge-link>contact opnemen met Concierge</concierge-link>.',
+        },
     },
     workflowsPage: {
         workflowTitle: 'Uitgaven',

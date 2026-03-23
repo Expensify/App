@@ -750,9 +750,11 @@ const translations = {
             didNotShipCard: "We didn't ship your card. Please try again.",
         },
         unblockCardPIN: {
-            cardUnlocked: 'Card unlocked!',
-            cardUnlockedSubtitle: 'Your card has been unlocked and is ready to use.',
+            cardUnlockedTitle: 'Card unlocked!',
+            cardUnlockedHeader: 'Card unlocked',
+            cardUnlockedSubtitle: "You're all set to use your Expensify Card again.",
             didNotUnlockCard: "We didn't unlock your card. Please try again.",
+        },
         revealPin: {
             couldNotReveal: "We couldn't reveal your PIN. Please try again.",
         },
@@ -2421,14 +2423,14 @@ const translations = {
         freezeDescription: 'A frozen card cannot be used for purchases and transactions. You can unfreeze it at any time.',
         unfreezeDescription: "Unfreezing this card will start allowing purchases and transactions again. Only proceed if you're sure the card is safe to use.",
         pinBlocked: {
-            suspendedError: 'Your card is locked due to too many incorrect PIN attempts. Tap Unlock Card to regain access.',
-            openError: 'You need to change your PIN at any ATM to finish unlocking your card.',
+            suspendedError: 'Your card was locked due to incorrect PIN entries. Unlock your card to use it again.',
+            openError: 'Change your PIN at any ATM to finish unlocking your card. This is required in your region.',
             unlockCard: 'Unlock card',
         },
-        changePINRequirement: {
-            title: 'Change PIN',
+        changePINATMRequirement: {
+            title: 'Unblock Card',
             heading: 'Change your PIN at any ATM',
-            description: 'Your card has been unlocked, but you need to change your PIN at any ATM to finish the process.',
+            description: 'This is required in your region to finish unlocking your card. For question, <concierge-link>Reach out to Concierge</concierge-link>.',
         },
         frozen: 'Frozen',
         youFroze: ({date}: {date: string}) => `You froze this card on ${date}.`,

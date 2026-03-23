@@ -161,6 +161,7 @@ import ThumbsDown from '@assets/images/thumbs-down.svg';
 import ThumbsUp from '@assets/images/thumbs-up.svg';
 import Transfer from '@assets/images/transfer.svg';
 import Trashcan from '@assets/images/trashcan.svg';
+import Unlock from '@assets/images/unlock.svg';
 import UploadAlt from '@assets/images/upload-alt.svg';
 import Upload from '@assets/images/upload.svg';
 import UserCheck from '@assets/images/user-check.svg';
@@ -337,6 +338,7 @@ export {
     CheckSquare,
     Minus,
     ThumbsDown,
+    Unlock,
     UserLock,
     NetSuiteExport,
     QBOExport,

@@ -185,7 +185,7 @@ type SettingsNavigatorParamList = {
         /** cardID of selected card */
         cardID: string;
     };
-    [SCREENS.SETTINGS.WALLET.CARD_CHANGE_PIN_REQUIREMENT]: {
+    [SCREENS.SETTINGS.WALLET.CARD_CHANGE_PIN_ATM_REQUIREMENT]: {
         /** cardID of the PIN-blocked card */
         cardID: string;
     };

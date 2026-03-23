@@ -531,9 +531,9 @@ const ROUTES = {
         route: 'settings/wallet/card/:cardID/activate',
         getRoute: (cardID: string) => `settings/wallet/card/${cardID}/activate` as const,
     },
-    SETTINGS_WALLET_CARD_CHANGE_PIN_REQUIREMENT: {
-        route: 'settings/wallet/card/:cardID/change-pin-requirement',
-        getRoute: (cardID: string) => `settings/wallet/card/${cardID}/change-pin-requirement` as const,
+    SETTINGS_WALLET_CARD_CHANGE_PIN_ATM_REQUIREMENT: {
+        route: 'settings/wallet/card/:cardID/change-pin-atm-requirement',
+        getRoute: (cardID: string) => `settings/wallet/card/${cardID}/change-pin-atm-requirement` as const,
     },
     SETTINGS_WALLET_TRAVEL_CVV: 'settings/wallet/travel-cvv',
     SETTINGS_WALLET_TRAVEL_CVV_VERIFY_ACCOUNT: `settings/wallet/travel-cvv/${VERIFY_ACCOUNT}`,
