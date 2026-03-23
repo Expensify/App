@@ -2607,6 +2607,8 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         requiredWhen2FAEnabled: '启用双重验证时必填',
         requestNewCode: ({timeRemaining}: {timeRemaining: string}) => `在<a>${timeRemaining}</a>后请求新代码`,
         requestNewCodeAfterErrorOccurred: '请求新验证码',
+        timeRemainingAnnouncement: ({timeRemaining}) => `剩余时间：${timeRemaining}秒`,
+        timeExpiredAnnouncement: '时间已到期',
         error: {
             pleaseFillMagicCode: '请输入你的魔法验证码',
             incorrectMagicCode: '魔术验证码不正确或无效。请重试或请求新的验证码。',
