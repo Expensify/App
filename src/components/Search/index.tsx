@@ -39,6 +39,7 @@ import {canEditFieldOfMoneyRequest, canHoldUnholdReportAction, canRejectReportAc
 import {buildCannedSearchQuery, buildSearchQueryString, isDefaultExpensesQuery} from '@libs/SearchQueryUtils';
 import {
     createAndOpenSearchTransactionThread,
+    doesSearchItemMatchSort,
     getColumnsToShow,
     getListItem,
     getSections,
@@ -1402,7 +1403,11 @@ function Search({
                 chartTitle = savedSearch.name;
             }
         } else if (currentSearchKey && suggestedSearches[currentSearchKey]) {
-            chartTitle = translate(suggestedSearches[currentSearchKey].translationPath);
+            const suggestedSearch = suggestedSearches[currentSearchKey];
+            const sortMatches = doesSearchItemMatchSort(currentSearchKey, suggestedSearch.searchQueryJSON?.sortBy, suggestedSearch.searchQueryJSON?.sortOrder, sortBy, sortOrder);
+            if (sortMatches) {
+                chartTitle = translate(suggestedSearch.translationPath);
+            }
         }
 
         return (

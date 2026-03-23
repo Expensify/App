@@ -500,10 +500,16 @@ type GetSectionsParams = {
     onyxPersonalDetailsList?: OnyxTypes.PersonalDetailsList;
 };
 
-const GROUP_BY_TO_SORT_COLUMN: Partial<Record<ValueOf<typeof CONST.SEARCH.GROUP_BY>, string>> = {
-    [CONST.SEARCH.GROUP_BY.CATEGORY]: CONST.SEARCH.TABLE_COLUMNS.GROUP_CATEGORY,
-    [CONST.SEARCH.GROUP_BY.MERCHANT]: CONST.SEARCH.TABLE_COLUMNS.GROUP_MERCHANT,
-} as const;
+/**
+ * Search keys whose menu items stay selected even when the user manually
+ * changes the sort order.  Every other search key requires the current
+ * sortBy/sortOrder to match the menu item's defaults for it to be active.
+ */
+const GENERIC_SEARCH_KEYS: ReadonlySet<SearchKey> = new Set([CONST.SEARCH.SEARCH_KEYS.EXPENSES, CONST.SEARCH.SEARCH_KEYS.REPORTS, CONST.SEARCH.SEARCH_KEYS.CHATS]);
+
+function doesSearchItemMatchSort(key: SearchKey, itemSortBy: string | undefined, itemSortOrder: string | undefined, currentSortBy: string | undefined, currentSortOrder: string | undefined) {
+    return GENERIC_SEARCH_KEYS.has(key) || (itemSortBy === currentSortBy && itemSortOrder === currentSortOrder);
+}
 
 /**
  * Creates a top search menu item with common structure for TOP_SPENDERS, TOP_CATEGORIES, and TOP_MERCHANTS
@@ -521,8 +527,8 @@ function createTopSearchMenuItem(
     limit?: number,
     view?: ValueOf<typeof CONST.SEARCH.VIEW>,
 ): SearchTypeMenuItem {
-    const defaultSortBy = GROUP_BY_TO_SORT_COLUMN[groupBy] ?? CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL;
-    const defaultSortOrder = GROUP_BY_TO_SORT_COLUMN[groupBy] ? CONST.SEARCH.SORT_ORDER.ASC : CONST.SEARCH.SORT_ORDER.DESC;
+    const defaultSortBy = CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL;
+    const defaultSortOrder = CONST.SEARCH.SORT_ORDER.DESC;
 
     const searchQuery = buildQueryStringFromFilterFormValues(
         {
@@ -4840,5 +4846,7 @@ export {
     adjustTimeRangeToDateFilters,
     isEligibleForApproveSuggestion,
     applySelectionToItem,
+    GENERIC_SEARCH_KEYS,
+    doesSearchItemMatchSort,
 };
 export type {SavedSearchMenuItem, SearchTypeMenuSection, SearchTypeMenuItem, SearchDateModifier, SearchDateModifierLower, SearchKey, ArchivedReportsIDSet, GroupBySection};
