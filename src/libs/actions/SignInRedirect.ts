@@ -54,6 +54,7 @@ function clearStorageAndRedirect(errorMessage?: string): Promise<void> {
     keysToPreserve.push(ONYXKEYS.PREFERRED_THEME);
     keysToPreserve.push(ONYXKEYS.ACTIVE_CLIENTS);
     keysToPreserve.push(ONYXKEYS.DEVICE_ID);
+    keysToPreserve.push(ONYXKEYS.PASSKEY_GROUP_ID);
     keysToPreserve.push(ONYXKEYS.SHOULD_USE_STAGING_SERVER);
     keysToPreserve.push(ONYXKEYS.IS_DEBUG_MODE_ENABLED);
 
