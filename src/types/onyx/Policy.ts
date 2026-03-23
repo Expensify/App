@@ -1548,7 +1548,7 @@ type ProhibitedExpenses = OnyxCommon.OnyxValueWithOfflineFeedback<{
 }>;
 
 /** Day of the month to schedule submission  */
-type AutoReportingOffset = number | ValueOf<typeof CONST.POLICY.AUTO_REPORTING_OFFSET>;
+export type AutoReportingOffset = number | ValueOf<typeof CONST.POLICY.AUTO_REPORTING_OFFSET>;
 
 /** Types of policy report fields */
 type PolicyReportFieldType = 'text' | 'date' | 'dropdown' | 'formula';
