@@ -65,6 +65,7 @@ import useBulkPayOptions from './useBulkPayOptions';
 import useConfirmModal from './useConfirmModal';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useDefaultExpensePolicy from './useDefaultExpensePolicy';
+import useEnvironment from './useEnvironment';
 import {useMemoizedLazyExpensifyIcons} from './useLazyAsset';
 import useLocalize from './useLocalize';
 import useNetwork from './useNetwork';
@@ -171,6 +172,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {isOffline} = useNetwork();
+    const {isProduction} = useEnvironment();
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
     const {selectedTransactions, selectedReports, areAllMatchingItemsSelected, currentSearchResults, currentSearchKey} = useSearchStateContext();
@@ -817,6 +819,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
 
     const isDuplicateOptionVisible = useMemo(
         () =>
+            !isProduction &&
             shouldShowBulkDuplicateOption({
                 selectedTransactionsKeys,
                 selectedTransactions,
@@ -830,6 +833,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 searchData: currentSearchResults?.data,
             }),
         [
+            isProduction,
             selectedTransactionsKeys,
             selectedTransactions,
             allTransactions,
@@ -1261,7 +1265,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
 
         if (isDuplicateOptionVisible) {
             options.push({
-                text: translate('search.bulkActions.duplicateExpense'),
+                text: translate('search.bulkActions.duplicateExpense', {count: selectedTransactionsKeys.length}),
                 icon: expensifyIcons.ExpenseCopy,
                 value: CONST.SEARCH.BULK_ACTION_TYPES.DUPLICATE,
                 shouldCloseModalOnSelect: true,

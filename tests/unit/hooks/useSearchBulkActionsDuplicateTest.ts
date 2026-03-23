@@ -86,6 +86,11 @@ jest.mock('@hooks/useNetwork', () => ({
     default: () => ({isOffline: false}),
 }));
 
+jest.mock('@hooks/useEnvironment', () => ({
+    __esModule: true,
+    default: () => ({isProduction: false, isDevelopment: true, environment: 'development'}),
+}));
+
 jest.mock('@components/DelegateNoAccessModalProvider', () => ({
     useDelegateNoAccessState: () => ({isDelegateAccessRestricted: false}),
     useDelegateNoAccessActions: () => ({showDelegateNoAccessModal: jest.fn()}),

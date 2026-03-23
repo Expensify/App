@@ -26,6 +26,4 @@ function BulkDuplicateHandler({selectedTransactionsKeys, allTransactions, allRep
     return null;
 }
 
-BulkDuplicateHandler.displayName = 'BulkDuplicateHandler';
-
 export default BulkDuplicateHandler;
