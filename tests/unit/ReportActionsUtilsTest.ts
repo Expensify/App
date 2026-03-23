@@ -1516,7 +1516,6 @@ describe('ReportActionsUtils', () => {
                 legalLastName: 'David',
                 phoneNumber: '+162992973',
                 dob: '9-9-2000',
-                hasConfirmedShippingDetails: true,
             };
             const cardState = CONST.EXPENSIFY_CARD.STATE.NOT_ACTIVATED;
             const res = ReportActionsUtils.shouldShowAddMissingDetails(CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS, mockPersonalDetail, cardState);
