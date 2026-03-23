@@ -300,10 +300,12 @@ function WorkspacesListPage() {
                     cancelText: translate('common.cancel'),
                     success: false,
                     shouldShowCancelButton: false,
+                    // eslint-disable-next-line react-hooks/refs
                 }).then(() => {
                     hideDeleteWorkspaceErrorModal();
                 });
             } else {
+                // eslint-disable-next-line react-hooks/refs
                 hideDeleteWorkspaceErrorModal();
             }
         }

@@ -15,6 +15,7 @@ function usePayAndDowngrade(continueAction: () => void) {
     }, []);
 
     const continueActionRef = useRef(continueAction);
+    // eslint-disable-next-line react-hooks/refs
     continueActionRef.current = continueAction;
 
     useEffect(() => {
