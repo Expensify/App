@@ -111,8 +111,8 @@ describe('PureReportActionItem', () => {
                                 linkedReport={undefined}
                                 iouReportOfLinkedReport={undefined}
                                 currentUserAccountID={ACTOR_ACCOUNT_ID}
-                                allTransactionDrafts={undefined}
-                                userBillingGraceEndPeriodCollection={undefined}
+                                draftTransactionIDs={[]}
+                                userBillingGraceEndPeriods={undefined}
                             />
                         </PortalProvider>
                     </ScreenWrapper>
@@ -172,6 +172,25 @@ describe('PureReportActionItem', () => {
             const {textBeforeLink, linkText} = parsedText;
             expect(screen.getByText(textBeforeLink)).toBeOnTheScreen();
             expect(screen.getByText(linkText)).toBeOnTheScreen();
+        });
+
+        it('APPROVED action via workspace rules shows Explain when reasoning is present', async () => {
+            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.APPROVED, {
+                automaticAction: true,
+                reasoning: 'This report met the workspace auto-approval criteria.',
+            });
+            renderItemWithAction(action);
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByText('Explain')).toBeOnTheScreen();
+        });
+
+        it('APPROVED action via workspace rules does not show Explain when reasoning is absent', async () => {
+            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.APPROVED, {automaticAction: true});
+            renderItemWithAction(action);
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.queryByText('Explain')).not.toBeOnTheScreen();
         });
 
         it('CREATED_REPORT_FOR_UNAPPROVED_TRANSACTIONS action', async () => {
@@ -317,8 +336,8 @@ describe('PureReportActionItem', () => {
                                     iouReportOfLinkedReport={undefined}
                                     reportMetadata={reportMetadata}
                                     currentUserAccountID={ACTOR_ACCOUNT_ID}
-                                    allTransactionDrafts={undefined}
-                                    userBillingGraceEndPeriodCollection={undefined}
+                                    draftTransactionIDs={[]}
+                                    userBillingGraceEndPeriods={undefined}
                                 />
                             </PortalProvider>
                         </ScreenWrapper>
@@ -374,8 +393,8 @@ describe('PureReportActionItem', () => {
                                     linkedReport={undefined}
                                     iouReportOfLinkedReport={undefined}
                                     currentUserAccountID={ACTOR_ACCOUNT_ID}
-                                    allTransactionDrafts={undefined}
-                                    userBillingGraceEndPeriodCollection={undefined}
+                                    draftTransactionIDs={[]}
+                                    userBillingGraceEndPeriods={undefined}
                                 />
                             </PortalProvider>
                         </ScreenWrapper>
@@ -443,8 +462,8 @@ describe('PureReportActionItem', () => {
                                     linkedReport={undefined}
                                     iouReportOfLinkedReport={undefined}
                                     currentUserAccountID={ACTOR_ACCOUNT_ID}
-                                    allTransactionDrafts={undefined}
-                                    userBillingGraceEndPeriodCollection={undefined}
+                                    draftTransactionIDs={[]}
+                                    userBillingGraceEndPeriods={undefined}
                                 />
                             </PortalProvider>
                         </ScreenWrapper>
@@ -507,8 +526,8 @@ describe('PureReportActionItem', () => {
                                     linkedReport={undefined}
                                     iouReportOfLinkedReport={undefined}
                                     currentUserAccountID={ACTOR_ACCOUNT_ID}
-                                    allTransactionDrafts={undefined}
-                                    userBillingGraceEndPeriodCollection={undefined}
+                                    draftTransactionIDs={[]}
+                                    userBillingGraceEndPeriods={undefined}
                                 />
                             </PortalProvider>
                         </ScreenWrapper>
@@ -557,9 +576,9 @@ describe('PureReportActionItem', () => {
                                     linkedReport={undefined}
                                     iouReportOfLinkedReport={undefined}
                                     currentUserAccountID={ACTOR_ACCOUNT_ID}
-                                    allTransactionDrafts={undefined}
+                                    draftTransactionIDs={[]}
                                     modifiedExpenseMessage={modifiedExpenseMessage}
-                                    userBillingGraceEndPeriodCollection={undefined}
+                                    userBillingGraceEndPeriods={undefined}
                                 />
                             </PortalProvider>
                         </ScreenWrapper>

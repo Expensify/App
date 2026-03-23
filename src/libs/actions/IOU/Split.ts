@@ -55,13 +55,14 @@ import {
     isPerDiemRequest as isPerDiemRequestTransactionUtils,
 } from '@libs/TransactionUtils';
 import {buildOptimisticPolicyRecentlyUsedTags} from '@userActions/Policy/Tag';
-import {notifyNewAction} from '@userActions/Report';
+import {notifyNewAction, setDeleteTransactionNavigateBackUrl} from '@userActions/Report';
 import {removeDraftSplitTransaction, removeDraftTransaction} from '@userActions/TransactionEdit';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import DistanceRequestUtils from '@src/libs/DistanceRequestUtils';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Attendee, Participant, Split, SplitExpense} from '@src/types/onyx/IOU';
@@ -142,6 +143,7 @@ type SplitBillActionsParams = {
     splitShares?: SplitShares;
     taxCode?: string;
     taxAmount?: number;
+    taxValue?: string;
     isRetry?: boolean;
     policyRecentlyUsedCategories?: OnyxEntry<OnyxTypes.RecentlyUsedCategories>;
     policyRecentlyUsedTags: OnyxEntry<RecentlyUsedTags>;
@@ -175,6 +177,7 @@ function splitBill({
     splitShares = {},
     taxCode = '',
     taxAmount = 0,
+    taxValue,
     policyRecentlyUsedCategories,
     isASAPSubmitBetaEnabled,
     transactionViolations,
@@ -204,6 +207,7 @@ function splitBill({
             iouRequestType,
             taxCode,
             taxAmount,
+            taxValue,
         },
         policyRecentlyUsedCategories,
         policyRecentlyUsedTags,
@@ -267,6 +271,7 @@ function splitBillAndOpenReport({
     splitShares = {},
     taxCode = '',
     taxAmount = 0,
+    taxValue,
     existingSplitChatReportID,
     policyRecentlyUsedCategories,
     policyRecentlyUsedTags,
@@ -298,6 +303,7 @@ function splitBillAndOpenReport({
             iouRequestType,
             taxCode,
             taxAmount,
+            taxValue,
         },
         policyRecentlyUsedCategories,
         policyRecentlyUsedTags,
@@ -358,6 +364,7 @@ function startSplitBill({
     currency,
     taxCode = '',
     taxAmount = 0,
+    taxValue,
     shouldPlaySound = true,
     policyRecentlyUsedCategories,
     policyRecentlyUsedTags,
@@ -384,6 +391,7 @@ function startSplitBill({
             tag,
             taxCode,
             taxAmount,
+            taxValue,
             billable,
             reimbursable,
         },
@@ -544,6 +552,7 @@ function startSplitBill({
         currency,
         taxCode,
         taxAmount,
+        taxValue,
         quickAction,
         policyRecentlyUsedCurrencies,
         policyRecentlyUsedTags,
@@ -906,6 +915,7 @@ function completeSplitBill(
                 tag: updatedTransaction?.tag,
                 taxCode: updatedTransaction?.taxCode,
                 taxAmount: isPolicyExpenseChat ? -splitTaxAmount : splitAmount,
+                taxValue: updatedTransaction?.taxValue,
                 billable: updatedTransaction?.billable,
                 reimbursable: updatedTransaction?.reimbursable,
                 source: CONST.IOU.TYPE.SPLIT,
@@ -1182,6 +1192,7 @@ function updateSplitTransactions({
                 reimbursable: originalTransactionDetails?.reimbursable,
                 taxCode: originalTransactionDetails?.taxCode,
                 taxAmount: calculateIOUAmount(splitExpenses.length - 1, originalTransactionDetails?.taxAmount ?? 0, originalTransactionDetails?.currency ?? CONST.CURRENCY.USD, false),
+                taxValue: originalTransactionDetails?.taxValue,
                 billable: originalTransactionDetails?.billable,
                 waypoints: splitExpense.waypoints,
                 customUnit: splitExpense.customUnit,
@@ -1215,6 +1226,7 @@ function updateSplitTransactions({
                 linkedTrackedExpenseReportAction: currentReportAction,
                 taxCode: originalTransactionDetails?.taxCode,
                 taxAmount: calculateIOUAmount(splitExpenses.length - 1, originalTransactionDetails?.taxAmount ?? 0, originalTransactionDetails?.currency ?? CONST.CURRENCY.USD, false),
+                taxValue: originalTransactionDetails?.taxValue,
                 billable: originalTransactionDetails?.billable,
                 waypoints: splitExpense.waypoints,
                 customUnit: splitExpense.customUnit,
@@ -1691,6 +1703,26 @@ function updateSplitTransactions({
 }
 
 function updateSplitTransactionsFromSplitExpensesFlow(params: UpdateSplitTransactionsParams) {
+    // Detect if this will be a reverse split that deletes the expense report.
+    // When splits are reduced to 1, updateSplitTransactions performs a reverse split which
+    // optimistically deletes the expense report if it's the last transaction. We need to
+    // set the navigate-back URL before the deletion to prevent the "Not Found" page.
+    const splitExpenses = params.transactionData?.splitExpenses ?? [];
+    const originalTransactionID = params.transactionData?.originalTransactionID ?? CONST.IOU.OPTIMISTIC_TRANSACTION_ID;
+    const allChildTransactions = getChildTransactions(params.allTransactionsList, params.allReportsList, originalTransactionID, true);
+    const originalChildTransactions = allChildTransactions.filter((tx) => tx?.reportID !== CONST.REPORT.UNREPORTED_REPORT_ID);
+    const hasEditableSplitExpensesLeft = splitExpenses.some((expense) => (expense.statusNum ?? 0) < CONST.REPORT.STATUS_NUM.SUBMITTED);
+    const isReverseSplitOperation =
+        splitExpenses.length === 1 && originalChildTransactions.length > 0 && hasEditableSplitExpensesLeft && allChildTransactions.length === originalChildTransactions.length;
+    const expenseReportID = params.expenseReport?.reportID;
+    const isLastTransactionInReport =
+        isReverseSplitOperation && Object.values(params.allTransactionsList ?? {}).filter((itemTransaction) => itemTransaction?.reportID === expenseReportID).length === 1;
+    const fallbackReportID = params.expenseReport?.chatReportID ?? params.expenseReport?.parentReportID;
+
+    if (isLastTransactionInReport && fallbackReportID) {
+        setDeleteTransactionNavigateBackUrl(ROUTES.REPORT_WITH_ID.getRoute(fallbackReportID));
+    }
+
     updateSplitTransactions({...params, isFromSplitExpensesFlow: true});
     const isSearchPageTopmostFullScreenRoute = isSearchTopmostFullScreenRoute();
     const transactionThreadReportID = params.firstIOU?.childReportID;
@@ -1721,10 +1753,14 @@ function updateSplitTransactionsFromSplitExpensesFlow(params: UpdateSplitTransac
 
         return;
     }
+
+    // If the expense report was deleted by the reverse split, navigate to the parent chat instead
+    const targetReportID = isLastTransactionInReport && fallbackReportID ? fallbackReportID : (params.expenseReport?.reportID ?? String(CONST.DEFAULT_NUMBER_ID));
+
     if (getSpan(CONST.TELEMETRY.SPAN_SUBMIT_TO_DESTINATION_VISIBLE)) {
-        setPendingSubmitFollowUpAction(CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_AND_OPEN_REPORT, params.expenseReport?.reportID ?? String(CONST.DEFAULT_NUMBER_ID));
+        setPendingSubmitFollowUpAction(CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_AND_OPEN_REPORT, targetReportID);
     }
-    Navigation.dismissModalWithReport({reportID: params.expenseReport?.reportID ?? String(CONST.DEFAULT_NUMBER_ID)});
+    Navigation.dismissModalWithReport({reportID: targetReportID});
 
     // After the modal is dismissed, remove the transaction thread report screen
     // to avoid navigating back to a report removed by the split transaction.
@@ -2342,7 +2378,8 @@ function updateSplitExpenseField(
                     if (distanceInUnits !== undefined) {
                         // Calculate amount from distance and rate: amount = distance * rate
                         // Both amount and rate are in cents, distance is in units
-                        const calculatedAmount = distanceInUnits > 0 ? Math.round(distanceInUnits * rate) : 0;
+                        const sign = item.amount < 0 ? -1 : 1;
+                        const calculatedAmount = distanceInUnits > 0 ? Math.round(distanceInUnits * rate) * sign : 0;
                         updatedItem.amount = calculatedAmount;
 
                         // Update merchant for distance transactions

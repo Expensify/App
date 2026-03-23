@@ -1,4 +1,5 @@
 import Airship from '@ua/react-native-airship';
+import type {JsonObject} from '@ua/react-native-airship';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import CONST from '@src/CONST';
@@ -8,21 +9,45 @@ import type {Unit} from '@src/types/onyx/Policy';
 const ATTRIBUTES_TYPE = 'GpsTripAttributes';
 
 let activityId: string | null = null;
-let lastDistanceUnit: Unit | null = null;
-let lastDistanceUnitLong: string | null = null;
-let lastDistanceInMeters: number | null = null;
 
-function getDistanceUnitLong(translate: LocalizedTranslate, unit: Unit) {
+type GpsLiveActivityState = {
+    distanceUnit: Unit;
+    distanceUnitFull: string;
+    distanceUnitAbbreviated: string;
+    buttonText: string;
+    subtitle: string;
+    distanceInMeters: number;
+};
+
+let liveActivityState: GpsLiveActivityState | null = null;
+
+function getDistanceUnitFull(translate: LocalizedTranslate, unit: Unit) {
     return unit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES ? translate('common.miles') : translate('common.kilometers');
 }
 
-function startGpsTripNotification(translate: LocalizedTranslate, reportID: string, unit: Unit, distanceInMeters = 0) {
-    const subtitle = translate('gps.liveActivity.subtitle');
-    const buttonText = translate('gps.liveActivity.button');
+function getDistanceUnitAbbreviated(translate: LocalizedTranslate, unit: Unit) {
+    return unit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES ? translate('common.milesAbbreviated') : translate('common.kilometersAbbreviated');
+}
 
-    lastDistanceUnitLong = getDistanceUnitLong(translate, unit);
-    lastDistanceUnit = unit;
-    lastDistanceInMeters = distanceInMeters;
+function getLiveActivityUpdateState(distance: number, state: GpsLiveActivityState): JsonObject {
+    return {
+        distance,
+        distanceUnit: state.distanceUnitAbbreviated,
+        distanceUnitLong: state.distanceUnitFull,
+        subtitle: state.subtitle,
+        buttonText: state.buttonText,
+    };
+}
+
+function startGpsTripNotification(translate: LocalizedTranslate, reportID: string, unit: Unit, distanceInMeters = 0) {
+    liveActivityState = {
+        subtitle: translate('gps.liveActivity.subtitle'),
+        buttonText: translate('gps.liveActivity.button'),
+        distanceUnit: unit,
+        distanceUnitFull: getDistanceUnitFull(translate, unit),
+        distanceUnitAbbreviated: getDistanceUnitAbbreviated(translate, unit),
+        distanceInMeters,
+    };
 
     const deepLink = ROUTES.DISTANCE_REQUEST_CREATE_TAB_GPS.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.CREATE, CONST.IOU.OPTIMISTIC_TRANSACTION_ID, reportID);
 
@@ -32,10 +57,10 @@ function startGpsTripNotification(translate: LocalizedTranslate, reportID: strin
         .start({
             attributesType: ATTRIBUTES_TYPE,
             content: {
-                state: {distance, distanceUnit: unit, distanceUnitLong: lastDistanceUnitLong},
+                state: getLiveActivityUpdateState(distance, liveActivityState),
                 relevanceScore: 100,
             },
-            attributes: {deepLink, subtitle, buttonText},
+            attributes: {deepLink},
         })
         .then((activity) => {
             activityId = activity.id;
@@ -43,13 +68,13 @@ function startGpsTripNotification(translate: LocalizedTranslate, reportID: strin
         .catch((error: unknown) => console.error('[GPS Live Activity] Failed to start', error));
 }
 
-function updateGpsTripNotification(nonNullActivityId: string, distance: number, distanceUnit: Unit, distanceUnitLong: string) {
+function updateGpsTripNotification(nonNullActivityId: string, distance: number, state: GpsLiveActivityState) {
     Airship.iOS.liveActivityManager
         .update({
             attributesType: ATTRIBUTES_TYPE,
             activityId: nonNullActivityId,
             content: {
-                state: {distance, distanceUnit, distanceUnitLong},
+                state: getLiveActivityUpdateState(distance, state),
                 relevanceScore: 100,
             },
         })
@@ -57,35 +82,54 @@ function updateGpsTripNotification(nonNullActivityId: string, distance: number, 
 }
 
 function updateGpsTripNotificationDistance(distanceInMeters: number) {
-    if (activityId === null || lastDistanceUnit === null || lastDistanceUnitLong === null) {
-        console.error('[GPS Live Activity] Failed to start update: activityId or lastDistanceUnit/lastDistanceUnitLong is null');
+    if (activityId === null || liveActivityState === null) {
+        console.error('[GPS Live Activity] Failed to start update: activityId or liveActivityState is null');
         return;
     }
 
-    lastDistanceInMeters = distanceInMeters;
+    liveActivityState.distanceInMeters = distanceInMeters;
 
-    const distance = DistanceRequestUtils.convertDistanceUnit(distanceInMeters, lastDistanceUnit);
+    const distance = DistanceRequestUtils.convertDistanceUnit(distanceInMeters, liveActivityState.distanceUnit);
 
-    updateGpsTripNotification(activityId, distance, lastDistanceUnit, lastDistanceUnitLong);
+    updateGpsTripNotification(activityId, distance, liveActivityState);
 }
 
 function updateGpsTripNotificationUnit(translate: LocalizedTranslate, unit: Unit) {
-    if (activityId === null || lastDistanceInMeters === null) {
-        console.error('[GPS Live Activity] Failed to start update: activityId or lastDistanceInMeters is null');
+    if (activityId === null || liveActivityState === null) {
+        console.error('[GPS Live Activity] Failed to start update: activityId or liveActivityState is null');
         return;
     }
 
     // Update is not needed if the distance unit will stay the same
-    if (lastDistanceUnit === unit) {
+    if (liveActivityState.distanceUnit === unit) {
         return;
     }
 
-    lastDistanceUnitLong = getDistanceUnitLong(translate, unit);
-    lastDistanceUnit = unit;
+    liveActivityState.distanceUnit = unit;
+    liveActivityState.distanceUnitAbbreviated = getDistanceUnitAbbreviated(translate, unit);
+    liveActivityState.distanceUnitFull = getDistanceUnitFull(translate, unit);
 
-    const distance = DistanceRequestUtils.convertDistanceUnit(lastDistanceInMeters, unit);
+    const distance = DistanceRequestUtils.convertDistanceUnit(liveActivityState.distanceInMeters, unit);
 
-    updateGpsTripNotification(activityId, distance, lastDistanceUnit, lastDistanceUnitLong);
+    updateGpsTripNotification(activityId, distance, liveActivityState);
+}
+
+function updateGpsTripNotificationLanguage(translate: LocalizedTranslate) {
+    if (activityId === null || liveActivityState === null) {
+        console.error('[GPS Live Activity] Failed to start update: activityId or liveActivityState is null');
+        return;
+    }
+
+    const unit = liveActivityState.distanceUnit;
+
+    liveActivityState.distanceUnitAbbreviated = getDistanceUnitAbbreviated(translate, unit);
+    liveActivityState.distanceUnitFull = getDistanceUnitFull(translate, unit);
+    liveActivityState.subtitle = translate('gps.liveActivity.subtitle');
+    liveActivityState.buttonText = translate('gps.liveActivity.button');
+
+    const distance = DistanceRequestUtils.convertDistanceUnit(liveActivityState.distanceInMeters, unit);
+
+    updateGpsTripNotification(activityId, distance, liveActivityState);
 }
 
 function stopGpsTripNotification() {
@@ -102,9 +146,7 @@ function stopGpsTripNotification() {
         .catch((error: unknown) => console.error('[GPS Live Activity] Failed to end', error));
 
     activityId = null;
-    lastDistanceUnit = null;
-    lastDistanceInMeters = null;
-    lastDistanceUnitLong = null;
+    liveActivityState = null;
 }
 
 async function checkAndCleanGpsNotification() {
@@ -129,4 +171,12 @@ function shouldUpdateGpsNotificationUnit() {
     return activityId !== null;
 }
 
-export {startGpsTripNotification, updateGpsTripNotificationDistance, updateGpsTripNotificationUnit, stopGpsTripNotification, checkAndCleanGpsNotification, shouldUpdateGpsNotificationUnit};
+export {
+    startGpsTripNotification,
+    updateGpsTripNotificationDistance,
+    updateGpsTripNotificationUnit,
+    updateGpsTripNotificationLanguage,
+    stopGpsTripNotification,
+    checkAndCleanGpsNotification,
+    shouldUpdateGpsNotificationUnit,
+};

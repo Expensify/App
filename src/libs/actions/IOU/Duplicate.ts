@@ -1,7 +1,8 @@
 import {format} from 'date-fns';
-import type {NullishDeep, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {PartialDeep} from 'type-fest';
+import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import * as API from '@libs/API';
 import type {MergeDuplicatesParams, ResolveDuplicatesParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
@@ -18,11 +19,25 @@ import {
     buildTransactionThread,
     getTransactionDetails,
 } from '@libs/ReportUtils';
-import {getRequestType, getTransactionType, isDistanceRequest, isExpenseSplit} from '@libs/TransactionUtils';
+import playSound, {SOUNDS} from '@libs/Sound';
+import {
+    getRequestType,
+    getTransactionType,
+    hasCustomUnitOutOfPolicyViolation,
+    isDistanceRequest,
+    isExpenseSplit,
+    isFromCreditCardImport,
+    isOdometerDistanceRequest,
+    isPartialTransaction,
+    isPerDiemRequest,
+    isScanning,
+} from '@libs/TransactionUtils';
+import {createNewReport} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
-import type {Attendee} from '@src/types/onyx/IOU';
+import type {Attendee, Participant} from '@src/types/onyx/IOU';
+import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 import type {WaypointCollection} from '@src/types/onyx/Transaction';
 import type {CreateDistanceRequestInformation, CreateTrackExpenseParams, RequestMoneyInformation} from '.';
 import {
@@ -384,24 +399,41 @@ function resolveDuplicates(params: MergeDuplicatesParams) {
         };
     });
 
-    const iouActionList = params.reportID ? getIOUActionForTransactions(params.transactionIDList, params.reportID) : [];
-    const orderedTransactionIDList = iouActionList
-        .map((action) => {
-            const message = getOriginalMessage(action);
-            return message?.IOUTransactionID;
-        })
-        .filter((id): id is string => !!id);
-
     const optimisticHoldActions: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [];
     const failureHoldActions: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [];
     const reportActionIDList: string[] = [];
+    const resolvedTransactionIDList: string[] = [];
     const optimisticHoldTransactionActions: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION>> = [];
     const failureHoldTransactionActions: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION>> = [];
-    for (const action of iouActionList) {
-        const transactionThreadReportID = action?.childReportID;
+    const allReportActions = getAllReportActionsFromIOU();
+
+    // For each duplicate transaction, find its IOU action and create hold actions
+    // This handles cross-report duplicates by searching across all reports
+    for (const transactionID of params.transactionIDList) {
+        const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
+        if (!transaction) {
+            continue;
+        }
+
+        // Find the IOU action for this transaction in its own report
+        const transactionReportID = transaction.reportID;
+        const reportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionReportID}`];
+        const iouAction = Object.values(reportActions ?? {}).find((action): action is OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> => {
+            if (!isMoneyRequestAction(action)) {
+                return false;
+            }
+            const message = getOriginalMessage(action);
+            return message?.IOUTransactionID === transactionID;
+        });
+
+        if (!iouAction) {
+            continue;
+        }
+
+        const transactionThreadReportID = iouAction.childReportID;
         const createdReportAction = buildOptimisticHoldReportAction();
         reportActionIDList.push(createdReportAction.reportActionID);
-        const transactionID = isMoneyRequestAction(action) ? (getOriginalMessage(action)?.IOUTransactionID ?? CONST.DEFAULT_NUMBER_ID) : CONST.DEFAULT_NUMBER_ID;
+        resolvedTransactionIDList.push(transactionID);
         optimisticHoldTransactionActions.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
@@ -471,11 +503,135 @@ function resolveDuplicates(params: MergeDuplicatesParams) {
         ...otherParams,
         transactionID: params.transactionID,
         reportActionIDList,
-        transactionIDList: orderedTransactionIDList,
+        transactionIDList: resolvedTransactionIDList,
         dismissedViolationReportActionID: optimisticReportAction.reportActionID,
     };
 
     API.write(WRITE_COMMANDS.RESOLVE_DUPLICATES, parameters, {optimisticData, failureData});
+}
+
+/**
+ * Builds the transactionParams object and computes waypoints used when duplicating a transaction.
+ * Shared between duplicateExpenseTransaction and duplicateReport.
+ */
+function buildDuplicateTransactionParams(transaction: OnyxTypes.Transaction, transactionDetails: ReturnType<typeof getTransactionDetails>) {
+    const {linkedTrackedExpenseReportAction, ...transactionWithoutLinkedAction} = transaction;
+    const waypoints = !isExpenseSplit(transaction) ? (transactionDetails?.waypoints as WaypointCollection | undefined) : undefined;
+
+    const transactionParams = {
+        ...transactionWithoutLinkedAction,
+        ...transactionDetails,
+        amount: Math.abs(transactionDetails?.amount ?? 0),
+        taxAmount: Math.abs(transactionDetails?.taxAmount ?? 0),
+        convertedAmount: undefined,
+        originalAmount: undefined,
+        actionableWhisperReportActionID: undefined,
+        attendees: transactionDetails?.attendees as Attendee[] | undefined,
+        comment: Parser.htmlToMarkdown(transactionDetails?.comment ?? ''),
+        created: format(new Date(), CONST.DATE.FNS_FORMAT_STRING),
+        customUnitRateID: transaction.comment?.customUnit?.customUnitRateID,
+        isFromGlobalCreate: undefined,
+        isLinkedTrackedExpenseReportArchived: undefined,
+        isTestDrive: transaction.receipt?.isTestDriveReceipt,
+        linkedTrackedExpenseReportID: undefined,
+        merchant: transaction.modifiedMerchant ? transaction.modifiedMerchant : (transaction.merchant ?? ''),
+        modifiedAmount: undefined,
+        originalTransactionID: undefined,
+        odometerStart: transaction.comment?.odometerStart ?? undefined,
+        odometerEnd: transaction.comment?.odometerEnd ?? undefined,
+        receipt: undefined,
+        source: undefined,
+        waypoints,
+        type: transaction.comment?.type,
+        count: transaction.comment?.units?.count,
+        rate: transaction.comment?.units?.rate,
+        unit: transaction.comment?.units?.unit,
+    };
+
+    if (isDistanceRequest(transaction) && (isExpenseSplit(transaction) || isOdometerDistanceRequest(transaction))) {
+        transactionParams.distance = transaction.comment?.customUnit?.quantity ?? undefined;
+    }
+
+    return {transactionParams, waypoints};
+}
+
+/**
+ * Routes a duplicate expense to the correct creation function based on transaction type.
+ * Shared between duplicateExpenseTransaction and duplicateReport.
+ */
+function createExpenseByType({
+    transactionType,
+    params,
+    transaction,
+    transactionDetails,
+    waypoints,
+    participants,
+    policyRecentlyUsedCurrencies,
+    quickAction,
+    customUnitPolicyID,
+    personalDetails,
+    recentWaypoints,
+}: {
+    transactionType: string;
+    params: RequestMoneyInformation;
+    transaction: OnyxTypes.Transaction;
+    transactionDetails: ReturnType<typeof getTransactionDetails>;
+    waypoints: WaypointCollection | undefined;
+    participants: Participant[];
+    policyRecentlyUsedCurrencies: string[];
+    quickAction: OnyxEntry<OnyxTypes.QuickAction>;
+    customUnitPolicyID?: string;
+    personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
+    recentWaypoints: OnyxEntry<OnyxTypes.RecentWaypoint[]>;
+}) {
+    switch (transactionType) {
+        case CONST.SEARCH.TRANSACTION_TYPE.DISTANCE: {
+            const distanceParams: CreateDistanceRequestInformation = {
+                ...params,
+                participants,
+                existingTransaction: {
+                    ...(params.transactionParams ?? {}),
+                    comment: {
+                        ...transaction.comment,
+                        originalTransactionID: undefined,
+                        source: undefined,
+                        waypoints,
+                    },
+                    iouRequestType: getRequestType(transaction),
+                    modifiedCreated: '',
+                    reportID: '1',
+                    transactionID: '1',
+                },
+                transactionParams: {
+                    ...(params.transactionParams ?? {}),
+                    comment: Parser.htmlToMarkdown(transactionDetails?.comment ?? ''),
+                    validWaypoints: waypoints,
+                    modifiedAmount: transactionDetails?.amount,
+                },
+                policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
+                quickAction,
+                customUnitPolicyID,
+                personalDetails,
+                recentWaypoints,
+            };
+            return createDistanceRequest(distanceParams);
+        }
+        case CONST.SEARCH.TRANSACTION_TYPE.PER_DIEM: {
+            const perDiemParams: PerDiemExpenseInformation = {
+                ...params,
+                transactionParams: {
+                    ...(params.transactionParams ?? {}),
+                    comment: transactionDetails?.comment ?? '',
+                    customUnit: transaction.comment?.customUnit ?? {},
+                },
+                hasViolations: false,
+                customUnitPolicyID,
+            };
+            return submitPerDiemExpense(perDiemParams);
+        }
+        default:
+            return requestMoney(params);
+    }
 }
 
 type DuplicateExpenseTransactionParams = {
@@ -530,15 +686,7 @@ function duplicateExpenseTransaction({
 
     const participants = getMoneyRequestParticipantsFromReport(targetReport, userAccountID);
     const transactionDetails = getTransactionDetails(transaction);
-
-    // Exclude linkedTrackedExpenseReportAction from the original transaction to avoid reportID collisions
-    // when duplicating split expenses that were removed from a report. linkedTrackedExpenseReportAction.childReportID
-    // gets used as existingTransactionThreadReportID in getMoneyRequestInformation, which would cause the backend
-    // to try to create a transaction thread report with an ID that already exists.
-    const {linkedTrackedExpenseReportAction, ...transactionWithoutLinkedAction} = transaction;
-
-    // We remove waypoints for split distance expenses in order to preserve the split's amount and distance.
-    const waypoints = !isExpenseSplit(transaction) ? (transactionDetails?.waypoints as WaypointCollection) : undefined;
+    const {transactionParams, waypoints} = buildDuplicateTransactionParams(transaction, transactionDetails);
 
     const params: RequestMoneyInformation = {
         report: targetReport,
@@ -553,25 +701,7 @@ function duplicateExpenseTransaction({
         },
         gpsPoint: undefined,
         action: CONST.IOU.ACTION.CREATE,
-        transactionParams: {
-            ...transactionWithoutLinkedAction,
-            ...transactionDetails,
-            attendees: transactionDetails?.attendees as Attendee[] | undefined,
-            comment: Parser.htmlToMarkdown(transactionDetails?.comment ?? ''),
-            created: format(new Date(), CONST.DATE.FNS_FORMAT_STRING),
-            customUnitRateID: transaction?.comment?.customUnit?.customUnitRateID,
-            isTestDrive: transaction?.receipt?.isTestDriveReceipt,
-            merchant: transaction?.modifiedMerchant ? transaction.modifiedMerchant : (transaction?.merchant ?? ''),
-            modifiedAmount: undefined,
-            originalTransactionID: undefined,
-            receipt: undefined,
-            source: undefined,
-            waypoints,
-            type: transaction?.comment?.type,
-            count: transaction?.comment?.units?.count,
-            rate: transaction?.comment?.units?.rate,
-            unit: transaction?.comment?.units?.unit,
-        },
+        transactionParams,
         shouldHandleNavigation: false,
         shouldGenerateTransactionThreadReport: true,
         isASAPSubmitBetaEnabled,
@@ -587,11 +717,6 @@ function duplicateExpenseTransaction({
         personalDetails,
     };
 
-    // Since we remove waypoints for split distance expenses, we need to re-add the distance param here
-    if (isExpenseSplit(transaction) && isDistanceRequest(transaction)) {
-        params.transactionParams.distance = transaction.comment?.customUnit?.quantity ?? undefined;
-    }
-
     // If no workspace is provided the expense should be unreported
     if (!targetPolicy) {
         const trackExpenseParams: CreateTrackExpenseParams = {
@@ -606,6 +731,7 @@ function duplicateExpenseTransaction({
                     ...transaction.comment,
                     originalTransactionID: undefined,
                     source: undefined,
+                    waypoints,
                 },
                 iouRequestType: getRequestType(transaction),
                 modifiedCreated: '',
@@ -623,6 +749,7 @@ function duplicateExpenseTransaction({
             quickAction,
             recentWaypoints,
             betas,
+            draftTransactionIDs,
             isSelfTourViewed,
         };
         return trackExpense(trackExpenseParams);
@@ -634,55 +761,164 @@ function duplicateExpenseTransaction({
         policyCategories: targetPolicyCategories ?? {},
     };
 
-    const transactionType = getTransactionType(transaction);
-
-    switch (transactionType) {
-        case CONST.SEARCH.TRANSACTION_TYPE.DISTANCE: {
-            const distanceParams: CreateDistanceRequestInformation = {
-                ...params,
-                participants,
-                existingTransaction: {
-                    ...(params.transactionParams ?? {}),
-                    comment: {
-                        ...transaction.comment,
-                        originalTransactionID: undefined,
-                        source: undefined,
-                    },
-                    iouRequestType: getRequestType(transaction),
-                    modifiedCreated: '',
-                    reportID: '1',
-                    transactionID: '1',
-                },
-                transactionParams: {
-                    ...(params.transactionParams ?? {}),
-                    comment: Parser.htmlToMarkdown(transactionDetails?.comment ?? ''),
-                    validWaypoints: waypoints,
-                },
-                policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
-                quickAction,
-                customUnitPolicyID,
-                personalDetails,
-                recentWaypoints,
-            };
-            return createDistanceRequest(distanceParams);
-        }
-        case CONST.SEARCH.TRANSACTION_TYPE.PER_DIEM: {
-            const perDiemParams: PerDiemExpenseInformation = {
-                ...params,
-                transactionParams: {
-                    ...(params.transactionParams ?? {}),
-                    comment: transactionDetails?.comment ?? '',
-                    customUnit: transaction?.comment?.customUnit ?? {},
-                },
-                hasViolations: false,
-                customUnitPolicyID,
-            };
-            return submitPerDiemExpense(perDiemParams);
-        }
-        default:
-            return requestMoney(params);
-    }
+    return createExpenseByType({
+        transactionType: getTransactionType(transaction),
+        params,
+        transaction,
+        transactionDetails,
+        waypoints,
+        participants,
+        policyRecentlyUsedCurrencies,
+        quickAction,
+        customUnitPolicyID,
+        personalDetails,
+        recentWaypoints,
+    });
 }
 
-export {getIOUActionForTransactions, mergeDuplicates, resolveDuplicates, duplicateExpenseTransaction};
-export type {DuplicateExpenseTransactionParams};
+type DuplicateReportParams = {
+    sourceReport: OnyxEntry<OnyxTypes.Report>;
+    sourceReportTransactions: OnyxTypes.Transaction[];
+    sourceReportName: string;
+    targetPolicy: OnyxEntry<OnyxTypes.Policy>;
+    targetPolicyCategories: OnyxEntry<OnyxTypes.PolicyCategories>;
+    targetPolicyTags: OnyxEntry<OnyxTypes.PolicyTagLists>;
+    parentChatReport: OnyxEntry<OnyxTypes.Report>;
+    ownerPersonalDetails: CurrentUserPersonalDetails;
+    isASAPSubmitBetaEnabled: boolean;
+    betas: OnyxEntry<OnyxTypes.Beta[]>;
+    personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
+    quickAction: OnyxEntry<OnyxTypes.QuickAction>;
+    policyRecentlyUsedCurrencies: string[];
+    draftTransactionIDs: string[];
+    isSelfTourViewed: boolean;
+    transactionViolations: OnyxCollection<OnyxTypes.TransactionViolation[]>;
+    translate: LocalizedTranslate;
+    recentWaypoints: OnyxEntry<OnyxTypes.RecentWaypoint[]>;
+};
+
+function duplicateReport({
+    sourceReport,
+    sourceReportTransactions,
+    sourceReportName,
+    targetPolicy,
+    targetPolicyCategories,
+    targetPolicyTags,
+    parentChatReport,
+    ownerPersonalDetails,
+    isASAPSubmitBetaEnabled,
+    betas,
+    personalDetails,
+    quickAction,
+    policyRecentlyUsedCurrencies,
+    draftTransactionIDs,
+    isSelfTourViewed,
+    transactionViolations,
+    translate,
+    recentWaypoints,
+}: DuplicateReportParams) {
+    if (!targetPolicy || !parentChatReport) {
+        return;
+    }
+
+    const userAccountID = getUserAccountID();
+    const currentUserEmailValue = getCurrentUserEmail();
+
+    const newReportName = translate('common.copyOfReportName', sourceReportName);
+    const {reportPreviewReportActionID, ...newReport} = createNewReport(ownerPersonalDetails, false, isASAPSubmitBetaEnabled, targetPolicy, betas, false, undefined, newReportName);
+
+    const isCrossWorkspace = !!sourceReport && sourceReport.policyID !== targetPolicy.id;
+
+    const eligibleTransactions = sourceReportTransactions.filter((transaction) => {
+        if (isFromCreditCardImport(transaction)) {
+            return false;
+        }
+        if (transaction.accountant) {
+            return false;
+        }
+        if (isPartialTransaction(transaction) || isScanning(transaction)) {
+            return false;
+        }
+        const txnViolations = transactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`];
+        if (hasCustomUnitOutOfPolicyViolation(txnViolations)) {
+            return false;
+        }
+        if (isCrossWorkspace && (isPerDiemRequest(transaction) || isDistanceRequest(transaction))) {
+            return false;
+        }
+        return true;
+    });
+
+    const participants = getMoneyRequestParticipantsFromReport(parentChatReport, userAccountID);
+
+    const policyParams = targetPolicy
+        ? {
+              policy: targetPolicy,
+              policyTagList: targetPolicyTags,
+              policyCategories: targetPolicyCategories ?? {},
+          }
+        : undefined;
+
+    let currentIOUReport = newReport as OnyxEntry<OnyxTypes.Report>;
+
+    for (const transaction of eligibleTransactions) {
+        const transactionDetails = getTransactionDetails(transaction);
+        if (!transactionDetails) {
+            continue;
+        }
+
+        const {transactionParams, waypoints} = buildDuplicateTransactionParams(transaction, transactionDetails);
+
+        const params: RequestMoneyInformation = {
+            report: parentChatReport,
+            existingIOUReport: currentIOUReport,
+            optimisticReportPreviewActionID: reportPreviewReportActionID,
+            participantParams: {
+                payeeAccountID: userAccountID,
+                payeeEmail: currentUserEmailValue,
+                participant: participants.at(0) ?? {},
+            },
+            policyParams,
+            gpsPoint: undefined,
+            action: CONST.IOU.ACTION.CREATE,
+            transactionParams,
+            shouldHandleNavigation: false,
+            shouldPlaySound: false,
+            shouldGenerateTransactionThreadReport: true,
+            isASAPSubmitBetaEnabled,
+            currentUserAccountIDParam: userAccountID,
+            currentUserEmailParam: currentUserEmailValue,
+            transactionViolations: transactionViolations ?? {},
+            quickAction,
+            policyRecentlyUsedCurrencies,
+            existingTransactionDraft: undefined,
+            draftTransactionIDs,
+            isSelfTourViewed,
+            betas,
+            personalDetails,
+        };
+
+        const result = createExpenseByType({
+            transactionType: getTransactionType(transaction),
+            params,
+            transaction,
+            transactionDetails,
+            waypoints,
+            participants,
+            policyRecentlyUsedCurrencies,
+            quickAction,
+            customUnitPolicyID: targetPolicy?.id,
+            personalDetails,
+            recentWaypoints,
+        });
+
+        if (result?.iouReport) {
+            currentIOUReport = result.iouReport;
+        }
+    }
+
+    playSound(SOUNDS.DONE);
+}
+
+export {getIOUActionForTransactions, mergeDuplicates, resolveDuplicates, duplicateExpenseTransaction, duplicateReport};
+export type {DuplicateExpenseTransactionParams, DuplicateReportParams};

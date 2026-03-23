@@ -39,9 +39,11 @@ import type {
     CompanyFeeds,
     NonConnectableBankName,
 } from '@src/types/onyx/CardFeeds';
+import type {SelectedTimezone} from '@src/types/onyx/PersonalDetails';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
 import {isBankAccountPartiallySetup} from './BankAccountUtils';
+import DateUtils from './DateUtils';
 import {filterObject} from './ObjectUtils';
 import {arePersonalDetailsMissing, getDisplayNameOrDefault} from './PersonalDetailsUtils';
 import StringUtils from './StringUtils';
@@ -141,6 +143,16 @@ function isExpensifyCard(card?: Card) {
         return false;
     }
     return card.bank === CONST.EXPENSIFY_CARD.BANK;
+}
+
+/**
+ * Checks if the card supports PIN management features.
+ * @param card - The card to check.
+ * @returns boolean
+ */
+function supportsPINManagementFeatures(card: Card | undefined): boolean {
+    //  Use of PINs is based on card program. UK/EU (feedCountry GB) are the only program currently that supports these features.
+    return isExpensifyCard(card) && card?.nameValuePairs?.feedCountry === CONST.COUNTRY.GB;
 }
 
 /**
@@ -382,8 +394,8 @@ function getTranslationKeyForLimitType(limitType: ValueOf<typeof CONST.EXPENSIFY
     }
 }
 
-function maskPin(pin = ''): string {
-    if (!pin) {
+function maskPin(pin: string | undefined): string {
+    if (pin === undefined) {
         return '••••';
     }
     return pin;
@@ -1091,37 +1103,64 @@ function hasIssuedExpensifyCard(workspaceAccountID: number, allCardList: OnyxCol
  * Check if the Expensify Card is fully set up and a new card can be issued
  */
 function isExpensifyCardFullySetUp(policy?: OnyxEntry<Policy>, cardSettings?: OnyxEntry<ExpensifyCardSettings>): boolean {
-    return !!(policy?.areExpensifyCardsEnabled && cardSettings?.paymentBankAccountID);
+    return !!(policy?.areExpensifyCardsEnabled && getCardSettings(cardSettings)?.paymentBankAccountID);
 }
 
-function getCardSettings(cardSettings: OnyxEntry<ExpensifyCardSettings>, feedCountry?: string): ExpensifyCardSettingsBase | undefined {
+/**
+ * The set of valid card program keys used to key nested settings in ExpensifyCardSettings.
+ * 'US' and 'GB' are geo-based programs, 'CURRENT' is the legacy pre-2024 US program,
+ * and 'TRAVEL_US' is the travel invoicing program. These map directly to the keys
+ * the backend nests card settings under.
+ */
+type CardProgramKey = typeof CONST.COUNTRY.US | typeof CONST.EXPENSIFY_CARD.CARD_PROGRAM.CURRENT | typeof CONST.COUNTRY.GB | typeof CONST.TRAVEL.PROGRAM_TRAVEL_US;
+
+/**
+ * Detects which card program key exists in the card settings object.
+ * Returns the first matching program key (US, CURRENT, or GB), or undefined if none found.
+ * Used to determine the correct nested key for optimistic writes.
+ */
+function getCardProgramKey(cardSettings: OnyxEntry<ExpensifyCardSettings>): CardProgramKey | undefined {
     if (!cardSettings) {
         return undefined;
     }
 
-    const getMergedProgramSettings = (programKey: string): ExpensifyCardSettingsBase | undefined => {
-        const programSettings = cardSettings[programKey as keyof typeof cardSettings];
+    const programKeys: CardProgramKey[] = [CONST.COUNTRY.US, CONST.EXPENSIFY_CARD.CARD_PROGRAM.CURRENT, CONST.COUNTRY.GB];
+    return programKeys.find((key) => {
+        const value = cardSettings[key];
+        return value !== null && typeof value === 'object' && !Array.isArray(value);
+    });
+}
+
+function getCardSettings(cardSettings: OnyxEntry<ExpensifyCardSettings>, programKey?: CardProgramKey): ExpensifyCardSettingsBase | undefined {
+    if (!cardSettings) {
+        return undefined;
+    }
+
+    const getMergedProgramSettings = (key: CardProgramKey): ExpensifyCardSettingsBase | undefined => {
+        const programSettings = cardSettings[key];
         if (programSettings && typeof programSettings === 'object' && !Array.isArray(programSettings)) {
             // Nested program values take precedence — they are the authoritative source for
-            // program-specific fields once the backend sends the full nested format (Phase 2).
-            return {...cardSettings, ...(programSettings as ExpensifyCardSettingsBase)} as ExpensifyCardSettingsBase;
+            // program-specific fields (e.g. paymentBankAccountID, monthlySettlementDate).
+            return {...cardSettings, ...programSettings} as ExpensifyCardSettingsBase;
         }
         return undefined;
     };
 
-    if (feedCountry) {
-        return getMergedProgramSettings(feedCountry) ?? cardSettings;
+    if (programKey) {
+        return getMergedProgramSettings(programKey);
     }
 
-    // Auto-detect: try known card programs in priority order so callers that
-    // don't pass feedCountry still get the right program sub-object when the
-    // backend sends nested settings (Phase 2 of fixing shared Onyx key).
-    const result = getMergedProgramSettings(CONST.COUNTRY.US) ?? getMergedProgramSettings(CONST.EXPENSIFY_CARD.CARD_PROGRAM.CURRENT) ?? getMergedProgramSettings(CONST.COUNTRY.GB);
-    if (result) {
-        return result;
-    }
-
-    return cardSettings;
+    // Auto-detect: try known card programs in priority order.
+    // Newer domains nest settings under US/GB, legacy ones under CURRENT.
+    // The flat root fallback supports domains that the backend still sends without nesting
+    // (e.g. older accounts that haven't been migrated). Writes always go to the nested key
+    // (via getCardProgramKey), so this flat path is read-only display fallback only.
+    return (
+        getMergedProgramSettings(CONST.COUNTRY.US) ??
+        getMergedProgramSettings(CONST.EXPENSIFY_CARD.CARD_PROGRAM.CURRENT) ??
+        getMergedProgramSettings(CONST.COUNTRY.GB) ??
+        (cardSettings as ExpensifyCardSettingsBase)
+    );
 }
 
 function isCardPendingIssue(card?: Card) {
@@ -1200,7 +1239,7 @@ function getFeedConnectionBrokenCard(feedCards: CardList | undefined, feedToExcl
         return undefined;
     }
 
-    return Object.values(feedCards).find((card) => !isEmptyObject(card) && card.bank !== feedToExclude && card.lastScrapeResult !== 200);
+    return Object.values(feedCards).find((card) => !isEmptyObject(card) && card.bank !== feedToExclude && isCardConnectionBroken(card));
 }
 
 /** Extract feed from feed with domainID */
@@ -1315,6 +1354,17 @@ function generateCardID(): number {
 }
 
 /**
+ * Check if the card has expired
+ */
+function isExpiredCard(card: Card): boolean {
+    if (!card.nameValuePairs?.validThru) {
+        return false;
+    }
+    const currentTime = DateUtils.getDBTime();
+    return card.nameValuePairs.validThru < currentTime;
+}
+
+/**
  * Check if there are any assigned cards that should be displayed in the wallet page.
  * This includes active Expensify cards, company cards (domain), and personal cards.
  */
@@ -1327,7 +1377,8 @@ function hasDisplayableAssignedCards(cardList: CardList | undefined): boolean {
         (card) =>
             CONST.EXPENSIFY_CARD.ACTIVE_STATES.includes(card.state ?? 0) &&
             (isExpensifyCard(card) || !!card.domainName || isPersonalCard(card)) &&
-            card.cardName !== CONST.COMPANY_CARDS.CARD_NAME.CASH,
+            card.cardName !== CONST.COMPANY_CARDS.CARD_NAME.CASH &&
+            (!isExpensifyCard(card) || !isExpiredCard(card)),
     );
 }
 
@@ -1367,7 +1418,7 @@ function getDisplayableExpensifyCards(cardList: CardList | undefined): Card[] {
     }
 
     const activeCards = filterAllInactiveCards(cardList);
-    const activeExpensifyCards = Object.values(activeCards).filter((card) => isExpensifyCard(card) && card.cardName !== CONST.COMPANY_CARDS.CARD_NAME.CASH);
+    const activeExpensifyCards = Object.values(activeCards).filter((card) => isExpensifyCard(card) && !isExpiredCard(card) && card.cardName !== CONST.COMPANY_CARDS.CARD_NAME.CASH);
 
     const sortedCards = lodashSortBy(activeExpensifyCards, getAssignedCardSortKey);
     const seenDomains = new Set<string>();
@@ -1392,10 +1443,62 @@ function getDisplayableExpensifyCards(cardList: CardList | undefined): Card[] {
     });
 }
 
+function getCardCurrency(card?: OnyxEntry<Card>, cardSettings?: OnyxEntry<ExpensifyCardSettings>): string {
+    // If currency is set on the card itself, use it.
+    if (card?.nameValuePairs?.currency) {
+        return card.nameValuePairs.currency;
+    }
+
+    // If not, attempt to get currency from the card settings.
+    const programKey = card?.nameValuePairs?.feedCountry as CardProgramKey | undefined;
+    const settings = getCardSettings(cardSettings, programKey);
+    if (settings?.currency) {
+        return settings.currency;
+    }
+
+    // Fall back to the program and country to try to determine the correct currency.
+    // US programs are always USD
+    if (programKey === CONST.COUNTRY.US || programKey === CONST.EXPENSIFY_CARD.CARD_PROGRAM.CURRENT) {
+        return CONST.CURRENCY.USD;
+    }
+
+    // For UK/EU cards, determine currency by country
+    const country = card?.nameValuePairs?.country;
+    if (programKey === CONST.COUNTRY.GB) {
+        // Only Gibraltar and UK use GBP. If country is not set at all, also assume GBP.
+        if (!country || country === CONST.COUNTRY.GB || country === CONST.COUNTRY.GI) {
+            return CONST.CURRENCY.GBP;
+        }
+
+        // All other countries on this program use EUR
+        return CONST.CURRENCY.EUR;
+    }
+
+    // Finally if all else fails, default to USD
+    return CONST.CURRENCY.USD;
+}
+
+function getCardHintText(validFrom: string | undefined, validThru: string | undefined, assigneeTimeZone: SelectedTimezone | undefined, translate: LocalizedTranslate) {
+    if (!validFrom || !validThru) {
+        return;
+    }
+    const formatDateForDisplay = (utcDateTime: string): string => {
+        const dateInTimezone = DateUtils.formatUTCDateTimeToDateInTimezone(utcDateTime, assigneeTimeZone);
+        return dateInTimezone ? DateUtils.formatToReadableString(dateInTimezone) : '';
+    };
+    const startDate = formatDateForDisplay(validFrom);
+    const endDate = formatDateForDisplay(validThru);
+    if (!startDate || !endDate) {
+        return;
+    }
+    return translate('workspace.card.issueNewCard.validFromTo', {startDate, endDate});
+}
+
 export {
     getAssignedCardSortKey,
     getDefaultExpensifyCardLimitType,
     isExpensifyCard,
+    supportsPINManagementFeatures,
     getDomainCards,
     formatCardExpiration,
     getMonthFromExpirationDateString,
@@ -1449,6 +1552,7 @@ export {
     hasIssuedExpensifyCard,
     isExpensifyCardFullySetUp,
     getCardSettings,
+    getCardProgramKey,
     filterAllInactiveCards,
     filterInactiveCards,
     isCardPendingIssue,
@@ -1482,6 +1586,9 @@ export {
     isCardFrozen,
     isCardWithPotentialFraud,
     getDisplayableExpensifyCards,
+    isExpiredCard,
+    getCardCurrency,
+    getCardHintText,
 };
 
-export type {CompanyCardFeedIcons, CompanyCardBankIcons};
+export type {CompanyCardFeedIcons, CompanyCardBankIcons, CardProgramKey};
