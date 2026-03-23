@@ -44,8 +44,12 @@ function SearchFiltersCardPage() {
     const [selectedCards, setSelectedCards] = useState<string[]>([]);
 
     useEffect(() => {
+        if (isOffline) {
+            return;
+        }
+
         openSearchCardFiltersPage();
-    }, []);
+    }, [isOffline]);
 
     useEffect(() => {
         const generatedCards = generateSelectedCards(userCardList, workspaceCardFeeds, searchAdvancedFiltersForm?.feed, searchAdvancedFiltersForm?.cardID);
