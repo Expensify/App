@@ -454,7 +454,6 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                 shouldShowRightIcon: true,
                 action: () => {
                     createDraftTransactionAndNavigateToParticipantSelector({
-                        transactionID: iouTransactionID,
                         reportID: actionReportID,
                         actionName: CONST.IOU.ACTION.SUBMIT,
                         reportActionID: actionableWhisperReportActionID,
@@ -465,6 +464,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                         amountOwed,
                         isRestrictedToPreferredPolicy,
                         preferredPolicyID,
+                        transaction: iouTransaction,
                     });
                 },
             });
@@ -477,7 +477,6 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                     shouldShowRightIcon: true,
                     action: () => {
                         createDraftTransactionAndNavigateToParticipantSelector({
-                            transactionID: iouTransactionID,
                             reportID: actionReportID,
                             actionName: CONST.IOU.ACTION.CATEGORIZE,
                             reportActionID: actionableWhisperReportActionID,
@@ -486,6 +485,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                             activePolicy,
                             userBillingGraceEndPeriods,
                             amountOwed,
+                            transaction: iouTransaction,
                         });
                     },
                 });
@@ -497,7 +497,6 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                     shouldShowRightIcon: true,
                     action: () => {
                         createDraftTransactionAndNavigateToParticipantSelector({
-                            transactionID: iouTransactionID,
                             reportID: actionReportID,
                             actionName: CONST.IOU.ACTION.SHARE,
                             reportActionID: actionableWhisperReportActionID,
@@ -506,6 +505,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                             activePolicy,
                             userBillingGraceEndPeriods,
                             amountOwed,
+                            transaction: iouTransaction,
                         });
                     },
                 });
@@ -634,6 +634,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
         reportActionsForOriginalReportID,
         userBillingGraceEndPeriods,
         amountOwed,
+        iouTransaction,
     ]);
 
     const displayNamesWithTooltips = useMemo(() => {
