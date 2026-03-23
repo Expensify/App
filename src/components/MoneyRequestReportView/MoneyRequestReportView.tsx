@@ -32,7 +32,7 @@ import markOpenReportEnd from '@libs/telemetry/markOpenReportEnd';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import Navigation from '@navigation/Navigation';
 import ReportActionsView from '@pages/inbox/report/ReportActionsView';
-import ReportFooter from '@pages/inbox/report/ReportFooter';
+import ReportFooter from '@pages/inbox/ReportFooter';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -240,7 +240,7 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
             <View style={styles.flex1}>
                 <ReportHeaderSkeletonView reasonAttributes={loadingAppReasonAttributes} />
                 <ReportActionsSkeletonView />
-                {shouldDisplayReportFooter ? <ReportFooter report={report} /> : null}
+                {shouldDisplayReportFooter ? <ReportFooter reportID={report?.reportID ?? ''} /> : null}
             </View>
         );
     }
@@ -300,7 +300,7 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
                         )}
                         {shouldDisplayReportFooter ? (
                             <>
-                                <ReportFooter report={report} />
+                                <ReportFooter reportID={report?.reportID ?? ''} />
                                 <PortalHost name="suggestions" />
                             </>
                         ) : null}

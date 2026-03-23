@@ -27,18 +27,18 @@ import {
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
-import ReportActionCompose from './ReportActionCompose/ReportActionCompose';
-import SystemChatReportFooterMessage from './SystemChatReportFooterMessage';
+import ReportActionCompose from './report/ReportActionCompose/ReportActionCompose';
+import SystemChatReportFooterMessage from './report/SystemChatReportFooterMessage';
 
 const policyRoleSelector = (policy: OnyxEntry<OnyxTypes.Policy>) => policy?.role;
 const isLoadingInitialReportActionsSelector = (reportMetadata: OnyxEntry<OnyxTypes.ReportMetadata>) => reportMetadata?.isLoadingInitialReportActions;
 
 type ReportFooterProps = {
-    /** Report object for the current report */
-    report?: OnyxTypes.Report;
+    /** The ID of the report */
+    reportID: string;
 };
 
-function ReportFooter({report = {reportID: '-1'}}: ReportFooterProps) {
+function ReportFooter({reportID}: ReportFooterProps) {
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
@@ -46,22 +46,27 @@ function ReportFooter({report = {reportID: '-1'}}: ReportFooterProps) {
     const {isSmallScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Lightbulb']);
 
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [shouldShowComposeInput = false] = useOnyx(ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT);
     const isAnonymousUser = useIsAnonymousUser();
     const [isBlockedFromChat] = useOnyx(ONYXKEYS.NVP_BLOCKED_FROM_CHAT, {
         selector: isBlockedFromChatSelector,
     });
-    const [isComposerFullSize = false] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${report.reportID}`);
-    const [policyRole] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`, {
+    const [isComposerFullSize = false] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${reportID}`);
+    const [policyRole] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`, {
         selector: policyRoleSelector,
     });
-    const [isLoadingInitialReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report.reportID}`, {
+    const [isLoadingInitialReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`, {
         selector: isLoadingInitialReportActionsSelector,
     });
+    const isReportArchived = useReportIsArchived(reportID);
+
+    if (!report) {
+        return null;
+    }
 
     const isUserPolicyAdmin = policyRole === CONST.POLICY.ROLE.ADMIN;
     const chatFooterStyles = {...styles.chatFooter, minHeight: !isOffline ? CONST.CHAT_FOOTER_MIN_HEIGHT : 0};
-    const isReportArchived = useReportIsArchived(report?.reportID);
     const isArchivedRoom = isArchivedNonExpenseReport(report, isReportArchived);
 
     // If a user just signed in and is viewing a public report, optimistically show the composer while loading the report, since they will have write access when the response comes back.
@@ -82,8 +87,8 @@ function ReportFooter({report = {reportID: '-1'}}: ReportFooterProps) {
                         shouldUseNarrowLayout ? styles.mb5 : null,
                     ]}
                 >
-                    {isAnonymousUser && !isArchivedRoom && <AnonymousReportFooter reportID={report.reportID} />}
-                    {isArchivedRoom && <ArchivedReportFooter reportID={report.reportID} />}
+                    {isAnonymousUser && !isArchivedRoom && <AnonymousReportFooter reportID={reportID} />}
+                    {isArchivedRoom && <ArchivedReportFooter reportID={reportID} />}
                     {!isArchivedRoom && !!isBlockedFromChat && <BlockedReportFooter />}
                     {!isAnonymousUser && !canWriteInReport && isSystemChat && <SystemChatReportFooterMessage />}
                     {isAdminsOnlyPostingRoom && !isUserPolicyAdmin && !isArchivedRoom && !isAnonymousUser && !isBlockedFromChat && (
@@ -102,7 +107,7 @@ function ReportFooter({report = {reportID: '-1'}}: ReportFooterProps) {
             {!shouldHideComposer && (!!shouldShowComposeInput || !isSmallScreenWidth) && (
                 <View style={[chatFooterStyles, isComposerFullSize && styles.chatFooterFullCompose]}>
                     <SwipeableView onSwipeDown={Keyboard.dismiss}>
-                        <ReportActionCompose reportID={report.reportID} />
+                        <ReportActionCompose reportID={reportID} />
                     </SwipeableView>
                 </View>
             )}

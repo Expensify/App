@@ -109,7 +109,7 @@ import HeaderView from './HeaderView';
 import useReportWasDeleted from './hooks/useReportWasDeleted';
 import ReactionListWrapper from './ReactionListWrapper';
 import ReportActionsView from './report/ReportActionsView';
-import ReportFooter from './report/ReportFooter';
+import ReportFooter from './ReportFooter';
 import {ActionListContext} from './ReportScreenContext';
 
 type ReportScreenNavigationProps =
@@ -1049,7 +1049,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
                                                     reportPendingAction={reportPendingAction}
                                                 />
                                             ) : null}
-                                            {isCurrentReportLoadedFromOnyx ? <ReportFooter report={report} /> : null}
+                                            {isCurrentReportLoadedFromOnyx ? <ReportFooter reportID={reportIDFromRoute ?? ''} /> : null}
                                         </View>
                                     </AgentZeroStatusProvider>
                                 </View>
