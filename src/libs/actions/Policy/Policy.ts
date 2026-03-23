@@ -6812,11 +6812,7 @@ function clearAllPolicies() {
     }
 }
 
-function updateInvoiceCompanyName(policyID: string, companyName: string) {
-    // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const policy = getPolicy(policyID);
-
+function updateInvoiceCompanyName(policyID: string, companyName: string, currentCompanyName: string | undefined) {
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -6852,7 +6848,7 @@ function updateInvoiceCompanyName(policyID: string, companyName: string) {
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 invoice: {
-                    companyName: policy?.invoice?.companyName,
+                    companyName: currentCompanyName,
                     pendingFields: {
                         companyName: null,
                     },
@@ -6869,11 +6865,7 @@ function updateInvoiceCompanyName(policyID: string, companyName: string) {
     API.write(WRITE_COMMANDS.UPDATE_INVOICE_COMPANY_NAME, parameters, {optimisticData, successData, failureData});
 }
 
-function updateInvoiceCompanyWebsite(policyID: string, companyWebsite: string) {
-    // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const policy = getPolicy(policyID);
-
+function updateInvoiceCompanyWebsite(policyID: string, companyWebsite: string, currentCompanyWebsite: string | undefined) {
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -6909,7 +6901,7 @@ function updateInvoiceCompanyWebsite(policyID: string, companyWebsite: string) {
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 invoice: {
-                    companyWebsite: policy?.invoice?.companyWebsite,
+                    companyWebsite: currentCompanyWebsite,
                     pendingFields: {
                         companyWebsite: null,
                     },
