@@ -108,7 +108,7 @@ describe('MultifactorAuthentication Scenarios Config', () => {
             const setPinScenario = config[CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.SET_PIN_ORDER_CARD];
 
             expect(setPinScenario).toBeDefined();
-            expect(setPinScenario.allowedAuthenticationMethods).toStrictEqual([CONST.MULTIFACTOR_AUTHENTICATION.TYPE.BIOMETRICS]);
+            expect(setPinScenario.allowedAuthenticationMethods).toStrictEqual([CONST.MULTIFACTOR_AUTHENTICATION.TYPE.BIOMETRICS, CONST.MULTIFACTOR_AUTHENTICATION.TYPE.PASSKEYS]);
             expect(setPinScenario.action).toBeDefined();
             expect(setPinScenario.callback).toBeDefined();
             expect(typeof setPinScenario.callback).toBe('function');
