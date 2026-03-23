@@ -1694,7 +1694,8 @@ function exportMembersToCSV(domainAccountID: number, onDownloadFailed: () => voi
 }
 
 /**
- * Updates the name of a domain security group
+ * Updates a setting of a domain security group
+ *
  * @param domainAccountID - The account ID of the domain
  * @param groupID - The ID of the security group
  * @param currentSecurityGroup - The current security group data
