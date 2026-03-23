@@ -125,6 +125,17 @@ function ChartXAxisLabels({labels, labelRotation, labelSkipInterval, fontSize, f
     });
 }
 
+/**
+ * Custom comparator for React.memo.
+ *
+ * Victory-native's `renderOutside` callback is invoked on every pointer/hover event and always
+ * passes freshly-created objects for `xScale` and `chartBounds`, even when the underlying chart
+ * geometry has not changed. Without this comparator, `ChartXAxisLabels` would re-render on every
+ * mouse move, triggering expensive Skia paragraph re-builds for every label.
+ *
+ * Instead of relying on reference equality, we compare the values that actually affect rendering:
+ * label strings, rotation, font settings, and a sampled scale output.
+ */
 function arePropsEqual(prev: ChartXAxisLabelsProps, next: ChartXAxisLabelsProps): boolean {
     return (
         prev.labels.length === next.labels.length &&

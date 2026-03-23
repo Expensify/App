@@ -88,6 +88,17 @@ function ChartYAxisLabels({yTicks, yScale, chartBounds, fontSize, fontMgr, label
     });
 }
 
+/**
+ * Custom comparator for React.memo.
+ *
+ * Victory-native's `renderOutside` callback is invoked on every pointer/hover event and always
+ * passes freshly-created objects for `yScale` and `chartBounds`, even when the underlying chart
+ * geometry has not changed. Without this comparator, `ChartYAxisLabels` would re-render on every
+ * mouse move, triggering expensive Skia paragraph re-builds for every label.
+ *
+ * Instead of relying on reference equality, we compare the values that actually affect rendering:
+ * tick values, bounds coordinates, font settings, and a sampled scale output.
+ */
 function arePropsEqual(prev: ChartYAxisLabelsProps, next: ChartYAxisLabelsProps): boolean {
     return (
         prev.yTicks.length === next.yTicks.length &&
