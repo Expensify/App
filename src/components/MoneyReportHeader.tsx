@@ -118,6 +118,7 @@ import {
     rejectMoneyRequestReason,
     shouldBlockSubmitDueToStrictPolicyRules,
 } from '@libs/ReportUtils';
+import shouldPopoverUseScrollView from '@libs/shouldPopoverUseScrollView';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {
@@ -2342,6 +2343,7 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
     ]);
 
     const shouldShowSelectedTransactionsButton = !!selectedTransactionsOptions.length && !transactionThreadReportID;
+    const popoverUseScrollView = shouldPopoverUseScrollView(selectedTransactionsOptions);
 
     const hasPayInSelectionMode = allExpensesSelected && hasPayAction;
 
@@ -2423,6 +2425,7 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
                     customText={translate('workspace.common.selected', {count: selectedTransactionIDs.length})}
                     isSplitButton={false}
                     shouldAlwaysShowDropdownMenu
+                    shouldPopoverUseScrollView={popoverUseScrollView}
                     wrapperStyle={wrapperStyle}
                 />
             ),
@@ -2437,6 +2440,7 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
             translate,
             selectedTransactionIDs.length,
             kycWallRef,
+            popoverUseScrollView,
         ],
     );
 
