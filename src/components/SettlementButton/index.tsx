@@ -3,6 +3,7 @@ import {hasSeenTourSelector} from '@selectors/Onboarding';
 import truncate from 'lodash/truncate';
 import React, {useCallback, useContext} from 'react';
 import type {GestureResponderEvent} from 'react-native';
+import {View} from 'react-native';
 import type {TupleToUnion} from 'type-fest';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
@@ -200,7 +201,11 @@ function SettlementButton({
         if (isBankAccountLocked) {
             showConfirmModal({
                 title: translate('bankAccount.lockedBankAccount'),
-                prompt: <RenderHTML html={translate('bankAccount.youCantPayThis')} />,
+                prompt: (
+                    <View style={[styles.renderHTML, styles.flexRow]}>
+                        <RenderHTML html={translate('bankAccount.youCantPayThis')} />
+                    </View>
+                ),
                 confirmText: translate('bankAccount.unlockBankAccount'),
                 cancelText: translate('common.cancel'),
             }).then(({action}) => {
@@ -239,6 +244,8 @@ function SettlementButton({
         conciergeReportID,
         introSelected,
         currentUserAccountID,
+        styles.renderHTML,
+        styles.flexRow,
     ]);
 
     const shortFormPayElsewhereButton = {
