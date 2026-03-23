@@ -4611,7 +4611,9 @@ function enablePolicyReportFields(policyID: string, enabled: boolean) {
     API.writeWithNoDuplicatesEnableFeatureConflicts(WRITE_COMMANDS.ENABLE_POLICY_REPORT_FIELDS, parameters, onyxData);
 }
 
-function enablePolicyTaxes(policyID: string, enabled: boolean) {
+function enablePolicyTaxes(policyID: string, enabled: true, currentTaxRates: TaxRatesWithDefault | undefined): void;
+function enablePolicyTaxes(policyID: string, enabled: false): void;
+function enablePolicyTaxes(policyID: string, enabled: boolean, currentTaxRates?: TaxRatesWithDefault) {
     const defaultTaxRates: TaxRatesWithDefault = CONST.DEFAULT_TAX;
     const taxRatesData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> = {
         optimisticData: [
@@ -4666,10 +4668,7 @@ function enablePolicyTaxes(policyID: string, enabled: boolean) {
             },
         ],
     };
-    // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const policy = getPolicy(policyID);
-    const shouldAddDefaultTaxRatesData = (!policy?.taxRates || isEmptyObject(policy.taxRates)) && enabled;
+    const shouldAddDefaultTaxRatesData = (!currentTaxRates || isEmptyObject(currentTaxRates)) && enabled;
 
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
@@ -4733,10 +4732,14 @@ function enablePolicyTaxes(policyID: string, enabled: boolean) {
     }
 }
 
-function enablePolicyWorkflows(policyID: string, enabled: boolean) {
-    // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const policy = getPolicy(policyID);
+function enablePolicyWorkflows(
+    policyID: string,
+    enabled: boolean,
+    currentApprovalMode: Policy['approvalMode'],
+    currentAutoReporting: Policy['autoReporting'],
+    currentHarvesting: Policy['harvesting'],
+    currentReimbursementChoice: Policy['reimbursementChoice'],
+) {
     const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> = {
         optimisticData: [
             {
@@ -4795,10 +4798,10 @@ function enablePolicyWorkflows(policyID: string, enabled: boolean) {
                     areWorkflowsEnabled: !enabled,
                     ...(!enabled
                         ? {
-                              approvalMode: policy?.approvalMode,
-                              autoReporting: policy?.autoReporting,
-                              harvesting: policy?.harvesting,
-                              reimbursementChoice: policy?.reimbursementChoice,
+                              approvalMode: currentApprovalMode,
+                              autoReporting: currentAutoReporting,
+                              harvesting: currentHarvesting,
+                              reimbursementChoice: currentReimbursementChoice,
                           }
                         : {}),
                     pendingFields: {
@@ -4834,10 +4837,12 @@ const DISABLED_MAX_EXPENSE_VALUES: Pick<Policy, 'maxExpenseAmountNoReceipt' | 'm
     maxExpenseAge: CONST.DISABLED_MAX_EXPENSE_VALUE,
 };
 
-function enablePolicyRules(policyID: string, enabled: boolean, shouldGoBack = true, policyData?: PolicyData) {
-    // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const policy = getPolicy(policyID);
+function enablePolicyRules(policy: OnyxEntry<Policy>, enabled: boolean, shouldGoBack = true, policyData?: PolicyData) {
+    if (!policy) {
+        return;
+    }
+
+    const policyID = policy.id;
     const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> = {
         optimisticData: [
             {
@@ -4912,10 +4917,7 @@ function enablePolicyRules(policyID: string, enabled: boolean, shouldGoBack = tr
     }
 }
 
-function enableDistanceRequestTax(policyID: string, customUnitName: string, customUnitID: string, attributes: Attributes) {
-    // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const policy = getPolicy(policyID);
+function enableDistanceRequestTax(policyID: string, customUnitName: string, customUnitID: string, attributes: Attributes, currentAttributes: Attributes | undefined) {
     const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> = {
         optimisticData: [
             {
@@ -4955,7 +4957,7 @@ function enableDistanceRequestTax(policyID: string, customUnitName: string, cust
                 value: {
                     customUnits: {
                         [customUnitID]: {
-                            attributes: policy?.customUnits ? policy?.customUnits[customUnitID].attributes : null,
+                            attributes: currentAttributes ?? null,
                             errorFields: {
                                 taxEnabled: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
                             },
@@ -5306,10 +5308,12 @@ function setForeignCurrencyDefault(policyID: string, taxCode: string) {
     API.write(WRITE_COMMANDS.SET_POLICY_TAXES_FOREIGN_CURRENCY_DEFAULT, parameters, onyxData);
 }
 
-function upgradeToCorporate(policyID: string, featureName?: string) {
-    // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const policy = getPolicy(policyID);
+function upgradeToCorporate(policy: OnyxEntry<Policy>, featureName?: string) {
+    if (!policy) {
+        return;
+    }
+
+    const policyID = policy.id;
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -5365,10 +5369,7 @@ function upgradeToCorporate(policyID: string, featureName?: string) {
     API.write(WRITE_COMMANDS.UPGRADE_TO_CORPORATE, parameters, {optimisticData, successData, failureData});
 }
 
-function downgradeToTeam(policyID: string) {
-    // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const policy = getPolicy(policyID);
+function downgradeToTeam(policyID: string, currentType: Policy['type'], currentIsAttendeeTrackingEnabled: Policy['isAttendeeTrackingEnabled']) {
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -5397,8 +5398,8 @@ function downgradeToTeam(policyID: string) {
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 isPendingDowngrade: false,
-                type: policy?.type,
-                isAttendeeTrackingEnabled: policy?.isAttendeeTrackingEnabled,
+                type: currentType,
+                isAttendeeTrackingEnabled: currentIsAttendeeTrackingEnabled,
             },
         },
     ];
