@@ -1039,6 +1039,10 @@ const translations = {
                 subtitle: 'Account',
                 cta: 'Validate',
             },
+            fixFailedBilling: {
+                title: "We couldn't bill your card on file",
+                subtitle: 'Subscription',
+            },
         },
         assignedCards: 'Your Expensify Cards',
         assignedCardsRemaining: ({amount}: {amount: string}) => `${amount} remaining`,

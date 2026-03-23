@@ -995,6 +995,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 subtitle: 'Portfel',
             },
             validateAccount: {title: 'Zweryfikuj swoje konto, aby dalej korzystać z Expensify', subtitle: 'Konto', cta: 'Zatwierdź'},
+            fixFailedBilling: {title: 'Nie mogliśmy obciążyć zapisanej karty', subtitle: 'Subskrypcja'},
         },
         assignedCards: 'Twoje Karty Expensify',
         assignedCardsRemaining: ({amount}: {amount: string}) => `Pozostało ${amount}`,
