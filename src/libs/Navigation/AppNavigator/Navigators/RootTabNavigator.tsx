@@ -34,7 +34,7 @@ const ROUTE_TO_NAVIGATION_TAB: Record<string, ValueOf<typeof NAVIGATION_TABS>> =
  * full BottomTabBarProps) to avoid `descriptors` thrashing memoization.
  * Wrapped in overflow:'visible' so floating buttons (FAB, GPS, Camera) aren't clipped.
  */
-function RootTabNavigatorTabBar({tabState}: {tabState: BottomTabBarProps['state']}) {
+function RootTabNavigatorBar({tabState}: {tabState: BottomTabBarProps['state']}) {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {paddingBottom: safeAreaPaddingBottom} = useSafeAreaPaddings(true);
     const styles = useThemeStyles();
@@ -89,7 +89,7 @@ function RootTabNavigatorTabBar({tabState}: {tabState: BottomTabBarProps['state'
     );
 }
 
-const renderTabBar = ({state}: BottomTabBarProps) => <RootTabNavigatorTabBar tabState={state} />;
+const renderTabBar = ({state}: BottomTabBarProps) => <RootTabNavigatorBar tabState={state} />;
 
 const LazyReportsSplitNavigator = lazy(() => import('./ReportsSplitNavigator'));
 const LazySearchFullscreenNavigator = lazy(() => import('./SearchFullscreenNavigator'));
