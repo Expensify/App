@@ -205,6 +205,7 @@
         "ecash",
         "ecconnrefused",
         "econn",
+        "EDDSA",
         "EDIFACT",
         "Egencia",
         "Electromedical",
@@ -303,6 +304,7 @@
         "gradlew",
         "Grantmaking",
         "groupmonth",
+        "groupweek",
         "gscb",
         "gsib",
         "gsst",
@@ -861,7 +863,8 @@
         "zoneinfo",
         "zxcv",
         "zxldvw",
-        "مثال"
+        "مثال",
+        "PINATM"
     ],
     "ignorePaths": [
         "src/languages/de.ts",
