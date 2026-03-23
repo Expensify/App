@@ -263,6 +263,7 @@ const translations = {
         conjunctionTo: 'to',
         genericErrorMessage: 'Oops... something went wrong and your request could not be completed. Please try again later.',
         percentage: 'Percentage',
+        progressBarLabel: 'Onboarding progress',
         converted: 'Converted',
         error: {
             invalidAmount: 'Invalid amount',
@@ -471,6 +472,8 @@ const translations = {
         downloadAsCSV: 'Download as CSV',
         print: 'Print',
         help: 'Help',
+        collapsed: 'Collapsed',
+        expanded: 'Expanded',
         expenseReport: 'Expense Report',
         expenseReports: 'Expense Reports',
         // @context Rate as a noun, not a verb
@@ -529,6 +532,7 @@ const translations = {
         duplicated: 'Duplicated',
         duplicateExpense: 'Duplicate expense',
         duplicateReport: 'Duplicate report',
+        copyOfReportName: (reportName: string) => `Copy of ${reportName}`,
         exchangeRate: 'Exchange rate',
         reimbursableTotal: 'Reimbursable total',
         nonReimbursableTotal: 'Non-reimbursable total',
@@ -699,6 +703,7 @@ const translations = {
                 faceId: 'Face ID',
                 touchId: 'Touch ID',
                 opticId: 'Optic ID',
+                passkey: 'Passkey',
             },
         },
         pleaseEnableInSystemSettings: {
@@ -715,9 +720,11 @@ const translations = {
         letsAuthenticateYou: "Let's authenticate you...",
         verifyYourself: {
             biometrics: 'Verify yourself with your face or fingerprint',
+            passkeys: 'Verify yourself with a passkey',
         },
         enableQuickVerification: {
             biometrics: 'Enable quick, secure verification using your face or fingerprint. No passwords or codes required.',
+            passkeys: 'Enable quick, secure verification using a passkey. No passwords or codes required.',
         },
         revoke: {
             revoke: 'Revoke',
@@ -741,6 +748,12 @@ const translations = {
         },
         setPin: {
             didNotShipCard: "We didn't ship your card. Please try again.",
+        },
+        revealPin: {
+            couldNotReveal: "We couldn't reveal your PIN. Please try again.",
+        },
+        changePin: {
+            didNotChange: "We didn't change your PIN. Please try again.",
         },
     },
     validateCodeModal: {
@@ -1020,6 +1033,11 @@ const translations = {
                 titleWithDetails: ({amount, merchant}: {amount: string; merchant: string}) => `Review ${amount} in potential fraud at ${merchant}`,
                 subtitle: 'Expensify Card',
                 cta: 'Review',
+            },
+            validateAccount: {
+                title: 'Validate your account to continue using Expensify',
+                subtitle: 'Account',
+                cta: 'Validate',
             },
         },
         assignedCards: 'Your Expensify Cards',
@@ -2379,12 +2397,20 @@ const translations = {
         },
         setYourPin: 'Set the PIN for your card.',
         confirmYourPin: 'Enter your PIN again to confirm.',
+        changeYourPin: 'Enter a new PIN for your card.',
+        confirmYourChangedPin: 'Confirm your new PIN.',
         pinMustBeFourDigits: 'PIN must be exactly 4 digits.',
         invalidPin: 'Please choose a more secure PIN.',
         pinMismatch: 'PINs do not match. Please try again.',
         revealPin: 'Reveal PIN',
         hidePin: 'Hide PIN',
         pin: 'PIN',
+        pinChanged: 'PIN changed!',
+        pinChangedHeader: 'PIN changed',
+        pinChangedDescription: "You're all set to use your PIN now.",
+        changePin: 'Change PIN',
+        changePinAtATM: 'Change your PIN at any ATM',
+        changePinAtATMDescription: 'This is required in your region. <concierge-link>Reach out to Concierge</concierge-link> if you have any questions.',
         freezeCard: 'Freeze card',
         unfreeze: 'Unfreeze',
         unfreezeCard: 'Unfreeze card',
@@ -5373,10 +5399,6 @@ const translations = {
                 removeCardFeed: 'Remove card feed',
                 removeCardFeedTitle: (feedName: string) => `Remove ${feedName} feed`,
                 removeCardFeedDescription: 'Are you sure you want to remove this card feed? This will unassign all cards.',
-                assignNewCards: 'Assign new cards',
-                assignNewCardsDescription: 'Get the latest cards to assign from your bank',
-                refreshConnectionSuccess: 'Connection refreshed',
-                refreshConnectionSuccessDescription: 'Your bank connection has been re-authenticated successfully. You can now assign new cards.',
                 error: {
                     feedNameRequired: 'Card feed name is required',
                     statementCloseDateRequired: 'Please select a statement close date.',
@@ -7506,7 +7528,8 @@ const translations = {
                     `The ${feedName} connection is broken. To restore card imports, <a href='${workspaceCompanyCardRoute}'>log into your bank</a>.`,
                 plaidBalanceFailure: ({maskedAccountNumber, walletRoute}: {maskedAccountNumber: string; walletRoute: string}) =>
                     `the Plaid connection to your business bank account is broken. Please <a href='${walletRoute}'>reconnect your bank account ${maskedAccountNumber}</a> so you can continue to use your Expensify Cards.`,
-                addEmployee: (email: string, role: string) => `added ${email} as ${role === 'member' ? 'a' : 'an'} ${role}`,
+                addEmployee: (email: string, role: string, didJoinPolicy?: boolean) =>
+                    didJoinPolicy ? `${email} joined via the workspace invite link` : `added ${email} as ${role === 'member' ? 'a' : 'an'} ${role}`,
                 updateRole: ({email, currentRole, newRole}: UpdateRoleParams) => `updated the role of ${email} to ${newRole} (previously ${currentRole})`,
                 updatedCustomField1: (email: string, newValue: string, previousValue: string) => {
                     if (!newValue) {
@@ -7809,11 +7832,13 @@ const translations = {
         [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.START_CHAT]: {
             buttonText: 'Start a chat, <success><strong>refer a friend</strong></success>.',
             header: 'Start a chat, refer a friend',
+            closeAccessibilityLabel: 'Close, start a chat, refer a friend, banner',
             body: "Want your friends to use Expensify, too? Just start a chat with them and we'll take care of the rest.",
         },
         [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SUBMIT_EXPENSE]: {
             buttonText: 'Submit an expense, <success><strong>refer your team</strong></success>.',
             header: 'Submit an expense, refer your team',
+            closeAccessibilityLabel: 'Close, submit an expense, refer your team, banner',
             body: "Want your team to use Expensify, too? Just submit an expense to them and we'll take care of the rest.",
         },
         [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.REFER_FRIEND]: {
@@ -8219,6 +8244,8 @@ const translations = {
             title: 'Expensify code',
             discountCode: 'Discount code',
             enterCode: 'Enter an Expensify code to apply to your subscription.',
+            discountMessage: (promoDiscount: string, validBillingCycles: string) =>
+                `You will get a ${promoDiscount}% discount on your next ${validBillingCycles ? `${validBillingCycles} ` : ''}billing charges.`,
             apply: 'Apply',
             error: {
                 invalid: 'This code is invalid',
@@ -8246,6 +8273,8 @@ const translations = {
                 `<muted-text>Learn more on our <a href="${CONST.PRICING}">pricing page</a> or chat with our team in your ${hasAdminsRoom ? `<a href="adminsRoom">#admins room.</a>` : '#admins room.'}</muted-text>`,
             estimatedPrice: 'Estimated price',
             changesBasedOn: 'This changes based on your Expensify Card usage and the subscription options below.',
+            collectBillingDescription: 'Collect workspaces are billed monthly per member, with no annual commitment.',
+            pricing: 'Pricing',
         },
         requestEarlyCancellation: {
             title: 'Request early cancellation',
