@@ -98,7 +98,7 @@ function handleNavigationGuards(
 
         // If the focused route is already the redirect target (e.g., multiple actions triggered
         // on fresh app open all fire the same guard), don't add it again.
-        if (redirectRoute && state.routes.at(-1)?.name === redirectRoute.name) {
+        if (redirectRoute && state.routes[state.index]?.name === redirectRoute.name) {
             return state;
         }
 
