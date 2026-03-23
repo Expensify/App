@@ -297,7 +297,7 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
                         </View>
                     ) : (
                         <ButtonComposed.Text style={isTextTooLong && shouldUseShortForm ? {...styles.textExtraSmall, ...styles.textBold} : {}}>
-                            {customText ?? selectedItem?.text ?? ''}
+                            {selectedItem?.text ?? ''}
                         </ButtonComposed.Text>
                     )}
                     {shouldShowButtonRightIcon && !!firstOptionIcon && (
