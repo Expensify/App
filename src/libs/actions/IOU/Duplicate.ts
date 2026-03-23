@@ -521,8 +521,8 @@ function buildDuplicateTransactionParams(transaction: OnyxTypes.Transaction, tra
     const transactionParams = {
         ...transactionWithoutLinkedAction,
         ...transactionDetails,
-        amount: Math.abs(transactionDetails?.amount ?? 0),
-        taxAmount: Math.abs(transactionDetails?.taxAmount ?? 0),
+        amount: transactionDetails?.amount ?? 0,
+        taxAmount: transactionDetails?.taxAmount ?? 0,
         convertedAmount: undefined,
         originalAmount: undefined,
         actionableWhisperReportActionID: undefined,
