@@ -3,10 +3,12 @@
 import type {OnyxEntry, OnyxInputValue} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import {getReportPreviewAction} from '@libs/actions/IOU';
-import {duplicateExpenseTransaction, mergeDuplicates, resolveDuplicates} from '@libs/actions/IOU/Duplicate';
+import {duplicateExpenseTransaction, duplicateReport, mergeDuplicates, resolveDuplicates} from '@libs/actions/IOU/Duplicate';
+import type {DuplicateReportParams} from '@libs/actions/IOU/Duplicate';
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
 import {addComment, openReport} from '@libs/actions/Report';
 import {WRITE_COMMANDS} from '@libs/API/types';
+import Navigation from '@libs/Navigation/Navigation';
 import {getLoginsByAccountIDs} from '@libs/PersonalDetailsUtils';
 import {getOriginalMessage, getReportAction} from '@libs/ReportActionsUtils';
 import {buildOptimisticIOUReport, buildOptimisticIOUReportAction, buildTransactionThread} from '@libs/ReportUtils';
@@ -976,6 +978,94 @@ describe('actions/Duplicate', () => {
             // Then: Verify API was called
             expect(writeSpy).toHaveBeenCalledWith(WRITE_COMMANDS.RESOLVE_DUPLICATES, expect.objectContaining({}), expect.objectContaining({}));
         });
+
+        it('should handle cross-report duplicates by finding IOU actions in each transaction own report', async () => {
+            // Given: Duplicate transactions that belong to different reports
+            const reportA = 'reportA';
+            const reportB = 'reportB';
+            const mainTransactionID = 'mainTx';
+            const crossReportDuplicateID = 'crossDupTx';
+            const childReportIDMain = 'childMain';
+            const childReportIDCross = 'childCross';
+
+            // Main transaction lives in reportA
+            const mainTransaction = createMockTransaction(mainTransactionID, reportA, 100);
+            // Duplicate transaction lives in reportB (cross-report duplicate)
+            const crossDuplicateTransaction = createMockTransaction(crossReportDuplicateID, reportB, 100);
+
+            const mainViolations = createMockViolations();
+            const crossDuplicateViolations = createMockViolations();
+
+            // IOU actions live in their respective transaction reports
+            const mainIouAction = createMockIouAction(mainTransactionID, 'actionMain', childReportIDMain);
+            const crossIouAction = createMockIouAction(crossReportDuplicateID, 'actionCross', childReportIDCross);
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${mainTransactionID}`, mainTransaction);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${crossReportDuplicateID}`, crossDuplicateTransaction);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${mainTransactionID}`, mainViolations);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${crossReportDuplicateID}`, crossDuplicateViolations);
+            // Each IOU action is stored under its own report's report actions
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportA}`, {
+                actionMain: mainIouAction,
+            });
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportB}`, {
+                actionCross: crossIouAction,
+            });
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${childReportIDCross}`, {});
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${childReportIDMain}`, {});
+            await waitForBatchedUpdates();
+
+            const resolveParams = {
+                transactionID: mainTransactionID,
+                transactionIDList: [crossReportDuplicateID],
+                created: '2024-01-01 12:00:00',
+                merchant: 'Updated Merchant',
+                amount: 100,
+                currency: CONST.CURRENCY.EUR,
+                category: 'Travel',
+                comment: 'Updated comment',
+                billable: true,
+                reimbursable: false,
+                tag: 'UpdatedProject',
+                receiptID: 123,
+                reportID: reportA,
+            };
+
+            // When: Call resolveDuplicates with cross-report duplicates
+            resolveDuplicates(resolveParams);
+            await waitForBatchedUpdates();
+
+            // Then: The cross-report duplicate transaction should be put on hold
+            const updatedCrossDuplicate = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${crossReportDuplicateID}`);
+            expect(updatedCrossDuplicate?.comment?.hold).toBeDefined();
+
+            // Then: Hold report action should be created in the cross-report duplicate's child report thread
+            const crossChildReportActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${childReportIDCross}`);
+            expect(Object.keys(crossChildReportActions ?? {})).toHaveLength(1);
+
+            // Then: The cross-report duplicate should have HOLD violation but no DUPLICATED_TRANSACTION
+            const updatedCrossViolations = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${crossReportDuplicateID}`);
+            expect(updatedCrossViolations).toEqual(
+                expect.arrayContaining([
+                    {name: CONST.VIOLATIONS.HOLD, type: CONST.VIOLATION_TYPES.VIOLATION},
+                    {name: CONST.VIOLATIONS.MISSING_CATEGORY, type: CONST.VIOLATION_TYPES.VIOLATION},
+                ]),
+            );
+            expect(updatedCrossViolations).not.toEqual(expect.arrayContaining([{name: CONST.VIOLATIONS.DUPLICATED_TRANSACTION, type: CONST.VIOLATION_TYPES.VIOLATION}]));
+
+            // Then: Verify API was called with correct parameters
+            expect(writeSpy).toHaveBeenCalledWith(
+                WRITE_COMMANDS.RESOLVE_DUPLICATES,
+                expect.objectContaining({
+                    transactionID: mainTransactionID,
+                    transactionIDList: [crossReportDuplicateID],
+                }),
+                expect.objectContaining({
+                    optimisticData: expect.arrayContaining([]),
+                    failureData: expect.arrayContaining([]),
+                }),
+            );
+        });
     });
 
     describe('duplicateExpenseTransaction', () => {
@@ -1744,6 +1834,532 @@ describe('actions/Duplicate', () => {
                         });
                     });
                 });
+        });
+    });
+
+    describe('duplicateReport', () => {
+        let writeSpy: jest.SpyInstance;
+
+        const mockPolicy = createRandomPolicy(1);
+        const mockPolicyCategories = createRandomPolicyCategories(3);
+        const mockPersonalDetails = {
+            [RORY_ACCOUNT_ID]: {
+                accountID: RORY_ACCOUNT_ID,
+                login: RORY_EMAIL,
+                displayName: 'Rory',
+            },
+        };
+        const mockOwnerPersonalDetails = {
+            accountID: RORY_ACCOUNT_ID,
+            login: RORY_EMAIL,
+            displayName: 'Rory',
+        };
+
+        const mockTranslate = ((path: string, ...args: string[]) => {
+            if (path === 'common.copyOfReportName') {
+                return `Copy of ${args.at(0)}`;
+            }
+            return path;
+        }) as DuplicateReportParams['translate'];
+
+        const createCashTransaction = (id: string, overrides: Partial<Transaction> = {}): Transaction => ({
+            ...createRandomTransaction(Number(id)),
+            transactionID: id,
+            amount: -500,
+            merchant: 'Test Merchant',
+            modifiedMerchant: '',
+            currency: CONST.CURRENCY.USD,
+            cardNumber: '',
+            cardName: CONST.EXPENSE.TYPE.CASH_CARD_NAME,
+            managedCard: false,
+            bank: '',
+            receipt: {},
+            ...overrides,
+        });
+
+        const POLICY_EXPENSE_CHAT_REPORT_ID = 'policyExpenseChatReport';
+
+        const getDefaultParams = (sourceTransactions: Transaction[], overrides: Partial<DuplicateReportParams> = {}): DuplicateReportParams => ({
+            sourceReport: undefined,
+            sourceReportTransactions: sourceTransactions,
+            sourceReportName: 'Original Report',
+            targetPolicy: mockPolicy,
+            targetPolicyCategories: mockPolicyCategories,
+            targetPolicyTags: {},
+            parentChatReport: {
+                reportID: POLICY_EXPENSE_CHAT_REPORT_ID,
+                policyID: mockPolicy.id,
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                ownerAccountID: RORY_ACCOUNT_ID,
+                type: CONST.REPORT.TYPE.CHAT,
+            },
+            ownerPersonalDetails: mockOwnerPersonalDetails,
+            isASAPSubmitBetaEnabled: false,
+            betas: [CONST.BETAS.ALL],
+            personalDetails: mockPersonalDetails,
+            quickAction: undefined,
+            policyRecentlyUsedCurrencies: [],
+            draftTransactionIDs: [],
+            isSelfTourViewed: false,
+            transactionViolations: {},
+            translate: mockTranslate,
+            recentWaypoints: [],
+            ...overrides,
+        });
+
+        const countWriteCommandCalls = (command: string) => writeSpy.mock.calls.filter((call: unknown[]) => call.at(0) === command).length;
+
+        beforeEach(async () => {
+            jest.clearAllMocks();
+            global.fetch = getGlobalFetchMock();
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls
+            writeSpy = jest.spyOn(API, 'write').mockImplementation((command, params, options) => {
+                if (options?.optimisticData) {
+                    for (const update of options.optimisticData) {
+                        if (update.onyxMethod === Onyx.METHOD.MERGE) {
+                            Onyx.merge(update.key, update.value);
+                        } else if (update.onyxMethod === Onyx.METHOD.SET) {
+                            Onyx.set(update.key, update.value);
+                        }
+                    }
+                }
+                return Promise.resolve();
+            });
+            await Onyx.clear();
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${POLICY_EXPENSE_CHAT_REPORT_ID}`, {
+                reportID: POLICY_EXPENSE_CHAT_REPORT_ID,
+                policyID: mockPolicy.id,
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                ownerAccountID: RORY_ACCOUNT_ID,
+                type: CONST.REPORT.TYPE.CHAT,
+            });
+            await waitForBatchedUpdates();
+        });
+
+        afterEach(() => {
+            writeSpy.mockRestore();
+        });
+
+        it('should create a new report and duplicate all eligible transactions', async () => {
+            const tx1 = createCashTransaction('tx1');
+            const tx2 = createCashTransaction('tx2', {merchant: 'Coffee Shop'});
+
+            duplicateReport(getDefaultParams([tx1, tx2]));
+            await waitForBatchedUpdates();
+
+            expect(countWriteCommandCalls(WRITE_COMMANDS.CREATE_APP_REPORT)).toBe(1);
+            expect(countWriteCommandCalls(WRITE_COMMANDS.REQUEST_MONEY)).toBe(2);
+
+            const createReportCall = writeSpy.mock.calls.find((call: unknown[]) => call.at(0) === WRITE_COMMANDS.CREATE_APP_REPORT) as unknown[] | undefined;
+            expect(createReportCall?.at(1)).toEqual(expect.objectContaining({reportName: 'Copy of Original Report'}));
+
+            expect(Navigation.navigate).not.toHaveBeenCalled();
+        });
+
+        it('should filter out credit card import transactions', async () => {
+            const cashTx = createCashTransaction('cash1');
+            const cardTx = createCashTransaction('card1', {
+                transactionType: CONST.SEARCH.TRANSACTION_TYPE.CARD,
+            });
+            const cashTx2 = createCashTransaction('cash2');
+
+            duplicateReport(getDefaultParams([cashTx, cardTx, cashTx2]));
+            await waitForBatchedUpdates();
+
+            expect(countWriteCommandCalls(WRITE_COMMANDS.CREATE_APP_REPORT)).toBe(1);
+            expect(countWriteCommandCalls(WRITE_COMMANDS.REQUEST_MONEY)).toBe(2);
+        });
+
+        it('should filter out accountant (Expensiworks) transactions', async () => {
+            const normalTx = createCashTransaction('normal1');
+            const accountantTx = createCashTransaction('acct1', {
+                accountant: {accountID: 999, login: 'accountant@test.com'},
+            });
+
+            duplicateReport(getDefaultParams([normalTx, accountantTx]));
+            await waitForBatchedUpdates();
+
+            expect(countWriteCommandCalls(WRITE_COMMANDS.CREATE_APP_REPORT)).toBe(1);
+            expect(countWriteCommandCalls(WRITE_COMMANDS.REQUEST_MONEY)).toBe(1);
+        });
+
+        it('should filter out scanning transactions', async () => {
+            const normalTx = createCashTransaction('normal1');
+            const scanningTx = createCashTransaction('scan1', {
+                merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
+                receipt: {
+                    source: 'receipt.jpg',
+                    state: CONST.IOU.RECEIPT_STATE.SCANNING,
+                },
+            });
+
+            duplicateReport(getDefaultParams([normalTx, scanningTx]));
+            await waitForBatchedUpdates();
+
+            expect(countWriteCommandCalls(WRITE_COMMANDS.CREATE_APP_REPORT)).toBe(1);
+            expect(countWriteCommandCalls(WRITE_COMMANDS.REQUEST_MONEY)).toBe(1);
+        });
+
+        it('should route distance transactions through createDistanceRequest', async () => {
+            const cashTx = createCashTransaction('cash1');
+            const distanceTx = createCashTransaction('dist1', {
+                iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE,
+                comment: {
+                    type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
+                    customUnit: {
+                        distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                        name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                    },
+                },
+            });
+
+            duplicateReport(getDefaultParams([cashTx, distanceTx]));
+            await waitForBatchedUpdates();
+
+            expect(countWriteCommandCalls(WRITE_COMMANDS.CREATE_APP_REPORT)).toBe(1);
+            expect(countWriteCommandCalls(WRITE_COMMANDS.REQUEST_MONEY)).toBe(1);
+            expect(countWriteCommandCalls(WRITE_COMMANDS.CREATE_DISTANCE_REQUEST)).toBe(1);
+        });
+
+        it('should route per diem transactions through submitPerDiemExpense', async () => {
+            const cashTx = createCashTransaction('cash1');
+            const perDiemTx = createCashTransaction('pd1', {
+                iouRequestType: CONST.IOU.REQUEST_TYPE.PER_DIEM,
+                comment: {
+                    type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
+                    customUnit: {
+                        name: CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL,
+                        customUnitID: 'unit1',
+                        customUnitRateID: 'rate1',
+                        subRates: [{id: 'sub1', quantity: 1, name: 'Full Day', rate: 100}],
+                        attributes: {dates: {start: '2024-01-01', end: '2024-01-02'}},
+                    },
+                },
+            });
+
+            duplicateReport(getDefaultParams([cashTx, perDiemTx]));
+            await waitForBatchedUpdates();
+
+            expect(countWriteCommandCalls(WRITE_COMMANDS.CREATE_APP_REPORT)).toBe(1);
+            expect(countWriteCommandCalls(WRITE_COMMANDS.REQUEST_MONEY)).toBe(1);
+            expect(countWriteCommandCalls(WRITE_COMMANDS.CREATE_PER_DIEM_REQUEST)).toBe(1);
+        });
+
+        it('should not duplicate expenses when no target policy exists', async () => {
+            const tx1 = createCashTransaction('tx1');
+            const tx2 = createCashTransaction('tx2');
+
+            duplicateReport(getDefaultParams([tx1, tx2], {targetPolicy: undefined}));
+            await waitForBatchedUpdates();
+
+            expect(countWriteCommandCalls(WRITE_COMMANDS.CREATE_APP_REPORT)).toBe(0);
+            expect(countWriteCommandCalls(WRITE_COMMANDS.REQUEST_MONEY)).toBe(0);
+
+            expect(Navigation.navigate).not.toHaveBeenCalled();
+        });
+
+        it('should still create the report when all transactions are ineligible', async () => {
+            const cardTx = createCashTransaction('card1', {
+                transactionType: CONST.SEARCH.TRANSACTION_TYPE.CARD,
+            });
+            const accountantTx = createCashTransaction('acct1', {
+                accountant: {accountID: 999, login: 'accountant@test.com'},
+            });
+
+            duplicateReport(getDefaultParams([cardTx, accountantTx]));
+            await waitForBatchedUpdates();
+
+            expect(countWriteCommandCalls(WRITE_COMMANDS.CREATE_APP_REPORT)).toBe(1);
+            expect(countWriteCommandCalls(WRITE_COMMANDS.REQUEST_MONEY)).toBe(0);
+
+            expect(Navigation.navigate).not.toHaveBeenCalled();
+        });
+
+        it('should set duplicated transaction dates to today', async () => {
+            const oldDate = '2023-06-15';
+            const tx = createCashTransaction('tx1', {created: oldDate});
+
+            duplicateReport(getDefaultParams([tx]));
+            await waitForBatchedUpdates();
+
+            const requestMoneyCall = writeSpy.mock.calls.find((call: unknown[]) => call.at(0) === WRITE_COMMANDS.REQUEST_MONEY) as [string, Record<string, unknown>] | undefined;
+            expect(requestMoneyCall).toBeDefined();
+
+            const today = new Date().toISOString().slice(0, 10);
+            expect(requestMoneyCall?.at(1)).toEqual(expect.objectContaining({created: today}));
+        });
+
+        it('should clear receipt data from duplicated transactions', async () => {
+            const txWithReceipt = createCashTransaction('tx1', {
+                receipt: {source: 'https://example.com/receipt.jpg', state: CONST.IOU.RECEIPT_STATE.OPEN},
+            });
+
+            duplicateReport(getDefaultParams([txWithReceipt]));
+            await waitForBatchedUpdates();
+
+            const requestMoneyCall = writeSpy.mock.calls.find((call: unknown[]) => call.at(0) === WRITE_COMMANDS.REQUEST_MONEY) as [string, Record<string, unknown>] | undefined;
+            expect(requestMoneyCall).toBeDefined();
+            expect(requestMoneyCall?.at(1)).toEqual(expect.objectContaining({receipt: undefined}));
+        });
+
+        it('should use modifiedMerchant when available', async () => {
+            const tx = createCashTransaction('tx1', {
+                merchant: 'Original Merchant',
+                modifiedMerchant: 'Modified Merchant',
+            });
+
+            duplicateReport(getDefaultParams([tx]));
+            await waitForBatchedUpdates();
+
+            const requestMoneyCall = writeSpy.mock.calls.find((call: unknown[]) => call.at(0) === WRITE_COMMANDS.REQUEST_MONEY) as [string, Record<string, unknown>] | undefined;
+            expect(requestMoneyCall).toBeDefined();
+            expect(requestMoneyCall?.at(1)).toEqual(expect.objectContaining({merchant: 'Modified Merchant'}));
+        });
+
+        it('should pass the same reportPreviewReportActionID to all expense calls', async () => {
+            const tx1 = createCashTransaction('tx1');
+            const tx2 = createCashTransaction('tx2');
+            const tx3 = createCashTransaction('tx3');
+
+            duplicateReport(getDefaultParams([tx1, tx2, tx3]));
+            await waitForBatchedUpdates();
+
+            const requestMoneyCalls = writeSpy.mock.calls.filter((call: unknown[]) => call.at(0) === WRITE_COMMANDS.REQUEST_MONEY) as Array<[string, Record<string, unknown>]>;
+            expect(requestMoneyCalls).toHaveLength(3);
+
+            const firstPreviewID = requestMoneyCalls.at(0)?.[1]?.reportPreviewReportActionID;
+            expect(firstPreviewID).toBeDefined();
+            for (const call of requestMoneyCalls) {
+                expect(call[1].reportPreviewReportActionID).toBe(firstPreviewID);
+            }
+        });
+
+        it('should target the same chat report for all expense calls', async () => {
+            const tx1 = createCashTransaction('tx1');
+            const tx2 = createCashTransaction('tx2');
+
+            duplicateReport(getDefaultParams([tx1, tx2]));
+            await waitForBatchedUpdates();
+
+            const requestMoneyCalls = writeSpy.mock.calls.filter((call: unknown[]) => call.at(0) === WRITE_COMMANDS.REQUEST_MONEY) as Array<[string, Record<string, unknown>]>;
+            expect(requestMoneyCalls).toHaveLength(2);
+
+            const firstChatReportID = requestMoneyCalls.at(0)?.[1]?.chatReportID;
+            const secondChatReportID = requestMoneyCalls.at(1)?.[1]?.chatReportID;
+            expect(firstChatReportID).toBeDefined();
+            expect(firstChatReportID).toBe(secondChatReportID);
+        });
+
+        it('should filter out partial (incomplete) transactions', async () => {
+            const normalTx = createCashTransaction('normal1');
+            const partialTx = createCashTransaction('partial1', {
+                amount: 0,
+                merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
+            });
+
+            duplicateReport(getDefaultParams([normalTx, partialTx]));
+            await waitForBatchedUpdates();
+
+            expect(countWriteCommandCalls(WRITE_COMMANDS.CREATE_APP_REPORT)).toBe(1);
+            expect(countWriteCommandCalls(WRITE_COMMANDS.REQUEST_MONEY)).toBe(1);
+        });
+
+        it('should handle mixed eligible and ineligible transactions correctly', async () => {
+            const cashTx = createCashTransaction('cash1');
+            const cardTx = createCashTransaction('card1', {transactionType: CONST.SEARCH.TRANSACTION_TYPE.CARD});
+            const accountantTx = createCashTransaction('acct1', {accountant: {accountID: 999, login: 'a@test.com'}});
+            const cashTx2 = createCashTransaction('cash2');
+            const scanningTx = createCashTransaction('scan1', {
+                merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
+                receipt: {source: 'r.jpg', state: CONST.IOU.RECEIPT_STATE.SCANNING},
+            });
+
+            duplicateReport(getDefaultParams([cashTx, cardTx, accountantTx, cashTx2, scanningTx]));
+            await waitForBatchedUpdates();
+
+            expect(countWriteCommandCalls(WRITE_COMMANDS.CREATE_APP_REPORT)).toBe(1);
+            expect(countWriteCommandCalls(WRITE_COMMANDS.REQUEST_MONEY)).toBe(2);
+        });
+
+        it('should strip waypoints and use stored distance for split distance expenses', async () => {
+            const splitDistanceTx = createCashTransaction('splitDist1', {
+                iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE,
+                comment: {
+                    originalTransactionID: 'origTx1',
+                    source: 'split',
+                    type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
+                    customUnit: {
+                        distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                        name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                        quantity: 42,
+                    },
+                },
+            });
+
+            duplicateReport(getDefaultParams([splitDistanceTx]));
+            await waitForBatchedUpdates();
+
+            const distanceCall = writeSpy.mock.calls.find((call: unknown[]) => call.at(0) === WRITE_COMMANDS.CREATE_DISTANCE_REQUEST) as [string, Record<string, unknown>] | undefined;
+            expect(distanceCall).toBeDefined();
+            expect(distanceCall?.at(1)).toEqual(expect.objectContaining({waypoints: 'null'}));
+        });
+
+        it('should preserve waypoints for non-split distance expenses', async () => {
+            const distanceTx = createCashTransaction('dist1', {
+                iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE,
+                comment: {
+                    type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
+                    customUnit: {
+                        distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                        name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                    },
+                    waypoints: {
+                        waypoint0: {lat: 37.7749, lng: -122.4194, address: 'San Francisco'},
+                        waypoint1: {lat: 34.0522, lng: -118.2437, address: 'Los Angeles'},
+                    },
+                },
+            });
+
+            duplicateReport(getDefaultParams([distanceTx]));
+            await waitForBatchedUpdates();
+
+            const distanceCall = writeSpy.mock.calls.find((call: unknown[]) => call.at(0) === WRITE_COMMANDS.CREATE_DISTANCE_REQUEST) as [string, Record<string, unknown>] | undefined;
+            expect(distanceCall).toBeDefined();
+
+            const waypoints = distanceCall?.[1]?.waypoints;
+            expect(waypoints).toBeDefined();
+            expect(waypoints).not.toBe('null');
+        });
+
+        it('should correctly route a report with mixed cash, distance, and per diem transactions', async () => {
+            const cashTx = createCashTransaction('cash1');
+            const distanceTx = createCashTransaction('dist1', {
+                iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE,
+                comment: {
+                    type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
+                    customUnit: {
+                        distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                        name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                    },
+                },
+            });
+            const perDiemTx = createCashTransaction('pd1', {
+                iouRequestType: CONST.IOU.REQUEST_TYPE.PER_DIEM,
+                comment: {
+                    type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
+                    customUnit: {
+                        name: CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL,
+                        customUnitID: 'unit1',
+                        customUnitRateID: 'rate1',
+                        subRates: [{id: 'sub1', quantity: 1, name: 'Full Day', rate: 100}],
+                        attributes: {dates: {start: '2024-01-01', end: '2024-01-02'}},
+                    },
+                },
+            });
+            const cashTx2 = createCashTransaction('cash2');
+
+            duplicateReport(getDefaultParams([cashTx, distanceTx, perDiemTx, cashTx2]));
+            await waitForBatchedUpdates();
+
+            expect(countWriteCommandCalls(WRITE_COMMANDS.CREATE_APP_REPORT)).toBe(1);
+            expect(countWriteCommandCalls(WRITE_COMMANDS.REQUEST_MONEY)).toBe(2);
+            expect(countWriteCommandCalls(WRITE_COMMANDS.CREATE_DISTANCE_REQUEST)).toBe(1);
+            expect(countWriteCommandCalls(WRITE_COMMANDS.CREATE_PER_DIEM_REQUEST)).toBe(1);
+        });
+
+        it('should preserve transaction fields like category, tag, and currency', async () => {
+            const tx = createCashTransaction('tx1', {
+                category: 'Travel',
+                tag: 'Business',
+                currency: 'EUR',
+                amount: -1500,
+                billable: true,
+            });
+
+            duplicateReport(getDefaultParams([tx]));
+            await waitForBatchedUpdates();
+
+            const requestMoneyCall = writeSpy.mock.calls.find((call: unknown[]) => call.at(0) === WRITE_COMMANDS.REQUEST_MONEY) as [string, Record<string, unknown>] | undefined;
+            expect(requestMoneyCall).toBeDefined();
+            expect(requestMoneyCall?.at(1)).toEqual(
+                expect.objectContaining({
+                    category: 'Travel',
+                    tag: 'Business',
+                    currency: 'EUR',
+                    amount: 1500,
+                    billable: true,
+                }),
+            );
+        });
+
+        it('should strip originalTransactionID and source when duplicating split distance expenses', async () => {
+            const splitDistanceTx = createCashTransaction('splitDist1', {
+                iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE,
+                comment: {
+                    originalTransactionID: 'origParent123',
+                    source: 'split',
+                    type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
+                    customUnit: {
+                        distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                        name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                        quantity: 10,
+                    },
+                },
+            });
+
+            duplicateReport(getDefaultParams([splitDistanceTx]));
+            await waitForBatchedUpdates();
+
+            const distanceCall = writeSpy.mock.calls.find((call: unknown[]) => call.at(0) === WRITE_COMMANDS.CREATE_DISTANCE_REQUEST) as [string, Record<string, unknown>] | undefined;
+            expect(distanceCall).toBeDefined();
+
+            const allTransactions = await getOnyxValue(ONYXKEYS.COLLECTION.TRANSACTION);
+            const duplicatedTransactions = (Object.values(allTransactions ?? {}) as Array<Transaction | null>).filter(
+                (tx): tx is Transaction => !!tx && tx.transactionID !== splitDistanceTx.transactionID,
+            );
+            expect(duplicatedTransactions.length).toBeGreaterThan(0);
+            for (const tx of duplicatedTransactions) {
+                expect(tx.comment?.originalTransactionID).toBeFalsy();
+                expect(tx.comment?.source).not.toBe('split');
+            }
+        });
+
+        it('should clear modifiedAmount from duplicated transactions', async () => {
+            const tx = createCashTransaction('tx1', {
+                modifiedAmount: 999,
+            });
+
+            duplicateReport(getDefaultParams([tx]));
+            await waitForBatchedUpdates();
+
+            const requestMoneyCall = writeSpy.mock.calls.find((call: unknown[]) => call.at(0) === WRITE_COMMANDS.REQUEST_MONEY) as [string, Record<string, unknown>] | undefined;
+            expect(requestMoneyCall).toBeDefined();
+            expect(requestMoneyCall?.[1]?.modifiedAmount).toBeUndefined();
+        });
+
+        it('should not create any expense calls for an empty transactions array', async () => {
+            duplicateReport(getDefaultParams([]));
+            await waitForBatchedUpdates();
+
+            expect(countWriteCommandCalls(WRITE_COMMANDS.CREATE_APP_REPORT)).toBe(1);
+            expect(countWriteCommandCalls(WRITE_COMMANDS.REQUEST_MONEY)).toBe(0);
+            expect(countWriteCommandCalls(WRITE_COMMANDS.CREATE_DISTANCE_REQUEST)).toBe(0);
+            expect(countWriteCommandCalls(WRITE_COMMANDS.CREATE_PER_DIEM_REQUEST)).toBe(0);
+        });
+
+        it('should pass shouldPlaySound false to individual expense calls', async () => {
+            const tx1 = createCashTransaction('tx1');
+            const tx2 = createCashTransaction('tx2');
+
+            duplicateReport(getDefaultParams([tx1, tx2]));
+            await waitForBatchedUpdates();
+
+            const requestMoneyCalls = writeSpy.mock.calls.filter((call: unknown[]) => call.at(0) === WRITE_COMMANDS.REQUEST_MONEY) as Array<[string, Record<string, unknown>]>;
+            expect(requestMoneyCalls).toHaveLength(2);
+
+            for (const call of requestMoneyCalls) {
+                expect(call[1]).not.toEqual(expect.objectContaining({shouldPlaySound: true}));
+            }
         });
     });
 });

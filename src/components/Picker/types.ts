@@ -1,9 +1,9 @@
-import type {ChangeEvent, Component, ForwardedRef, ReactElement} from 'react';
-import type {MeasureLayoutOnSuccessCallback, NativeMethods, StyleProp, ViewStyle} from 'react-native';
+import type {ChangeEvent, ForwardedRef, ReactElement} from 'react';
+import type {MeasureLayoutOnSuccessCallback, ReactNativeElement, StyleProp, ViewStyle} from 'react-native';
 
 type MeasureLayoutOnFailCallback = () => void;
 
-type RelativeToNativeComponentRef = (Component<unknown> & Readonly<NativeMethods>) | number;
+type RelativeToNativeComponentRef = ReactNativeElement | number;
 
 type BasePickerHandle = {
     focus: () => void;

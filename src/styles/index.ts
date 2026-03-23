@@ -3627,6 +3627,8 @@ const staticStyles = (theme: ThemeColors) =>
             height: 40,
             alignItems: 'center',
             justifyContent: 'center',
+            backgroundColor: theme.buttonDefaultBG,
+            borderRadius: 20,
         },
 
         bgGreenSuccess: {
@@ -3751,6 +3753,15 @@ const staticStyles = (theme: ThemeColors) =>
             lineHeight: variables.fontSizeNormalHeight,
             textAlign: 'center',
             color: theme.textSupporting,
+        },
+
+        quickCreationActionsBarButton: {
+            borderRadius: variables.buttonBorderRadius,
+        },
+
+        quickCreationActionsBarButtonText: {
+            fontSize: variables.fontSizeSmall,
+            lineHeight: 14,
         },
 
         homePageContentContainer: {
@@ -5001,7 +5012,7 @@ const staticStyles = (theme: ThemeColors) =>
         headerProgressBarContainer: {
             position: 'absolute',
             width: '100%',
-            zIndex: -1,
+            pointerEvents: 'none',
         },
 
         headerProgressBar: {
@@ -5685,6 +5696,10 @@ const staticStyles = (theme: ThemeColors) =>
             borderRadius: 16,
             marginTop: 32,
         },
+        twoFactorAuthSecretBox: {
+            backgroundColor: theme.highlightBG,
+            borderRadius: 16,
+        },
         anonymousRoomFooter: {
             padding: 20,
             backgroundColor: theme.cardBG,
@@ -5792,7 +5807,7 @@ const staticStyles = (theme: ThemeColors) =>
             paddingHorizontal: variables.iconSizeMenuItem + variables.iconSizeNormal / 2,
         },
         transactionReceiptButton: {
-            width: variables.transactionReceiptButtonWidth,
+            minWidth: variables.transactionReceiptButtonWidth,
         },
         chartHeader: {
             flexDirection: 'row',

@@ -140,6 +140,9 @@ type ListItem<K extends string | number = string> = {
 
     /** Used to initiate payment from search page */
     hash?: number;
+
+    /** BCP 47 language tag for screen reader pronunciation (maps to HTML lang attribute on web) */
+    lang?: string;
 };
 
 type CommonListItemProps<TItem extends ListItem> = {

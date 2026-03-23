@@ -8,7 +8,6 @@ import truncate from 'lodash/truncate';
 import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {InteractionManager, View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import useActiveAdminPolicies from '@hooks/useActiveAdminPolicies';
 import useConfirmModal from '@hooks/useConfirmModal';
@@ -23,6 +22,7 @@ import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
 import useParticipantsInvoiceReport from '@hooks/useParticipantsInvoiceReport';
 import usePaymentAnimations from '@hooks/usePaymentAnimations';
 import usePaymentOptions from '@hooks/usePaymentOptions';
@@ -30,6 +30,7 @@ import usePermissions from '@hooks/usePermissions';
 import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import usePolicy from '@hooks/usePolicy';
 import useReportIsArchived from '@hooks/useReportIsArchived';
+import useReportTransactionsCollection from '@hooks/useReportTransactionsCollection';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useResponsiveLayoutOnWideRHP from '@hooks/useResponsiveLayoutOnWideRHP';
 import useSearchShouldCalculateTotals from '@hooks/useSearchShouldCalculateTotals';
@@ -40,7 +41,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useThrottledButtonState from '@hooks/useThrottledButtonState';
 import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
 import useTransactionViolations from '@hooks/useTransactionViolations';
-import {duplicateExpenseTransaction as duplicateTransactionAction} from '@libs/actions/IOU/Duplicate';
+import {duplicateReport as duplicateReportAction, duplicateExpenseTransaction as duplicateTransactionAction} from '@libs/actions/IOU/Duplicate';
 import {openOldDotLink} from '@libs/actions/Link';
 import {setupMergeTransactionDataAndNavigate} from '@libs/actions/MergeTransaction';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
@@ -53,7 +54,7 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import getPlatform from '@libs/getPlatform';
 import {getExistingTransactionID} from '@libs/IOUUtils';
 import Log from '@libs/Log';
-import {getThreadReportIDsForTransactions, getTotalAmountForIOUReportPreviewButton} from '@libs/MoneyRequestReportUtils';
+import {getAllNonDeletedTransactions, getThreadReportIDsForTransactions, getTotalAmountForIOUReportPreviewButton} from '@libs/MoneyRequestReportUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReportsSplitNavigatorParamList, RightModalNavigatorParamList} from '@libs/Navigation/types';
@@ -68,7 +69,10 @@ import type {KYCFlowEvent, TriggerKYCFlow} from '@libs/PaymentUtils';
 import {handleUnvalidatedAccount, selectPaymentType} from '@libs/PaymentUtils';
 import {getConnectedIntegration, getValidConnectedIntegration, hasDynamicExternalWorkflow, sortPoliciesByName} from '@libs/PolicyUtils';
 import {
+    getFilteredReportActionsForReportView,
     getIOUActionForReportID,
+    getIOUActionForTransactionID,
+    getOneTransactionThreadReportID,
     getOriginalMessage,
     getReportAction,
     hasPendingDEWApprove,
@@ -79,6 +83,8 @@ import {
 import {getAllExpensesToHoldIfApplicable, getReportPrimaryAction, isMarkAsResolvedAction} from '@libs/ReportPrimaryActionUtils';
 import {getSecondaryExportReportActions, getSecondaryReportActions} from '@libs/ReportSecondaryActionUtils';
 import {
+    canEditFieldOfMoneyRequest,
+    canUserPerformWriteAction as canUserPerformWriteActionReportUtils,
     changeMoneyRequestHoldStatus,
     generateReportID,
     getAddExpenseDropdownOptions,
@@ -192,21 +198,8 @@ import type {PaymentActionParams} from './SettlementButton/types';
 import Text from './Text';
 
 type MoneyReportHeaderProps = {
-    /** The report currently being looked at */
-    report: OnyxEntry<OnyxTypes.Report>;
-
-    /** The policy tied to the expense report */
-    policy: OnyxEntry<OnyxTypes.Policy>;
-
-    /** Array of report actions for the report */
-    reportActions: OnyxTypes.ReportAction[];
-
-    /** The reportID of the transaction thread report associated with this current report, if any */
-    // eslint-disable-next-line react/no-unused-prop-types
-    transactionThreadReportID: string | undefined;
-
-    /** whether we are loading report data in openReport command */
-    isLoadingInitialReportActions?: boolean;
+    /** The reportID of the report currently being looked at */
+    reportID: string | undefined;
 
     /** Whether back button should be displayed in header */
     shouldDisplayBackButton?: boolean;
@@ -215,15 +208,14 @@ type MoneyReportHeaderProps = {
     onBackButtonPress: () => void;
 };
 
-function MoneyReportHeader({
-    policy,
-    report: moneyRequestReport,
-    transactionThreadReportID,
-    reportActions,
-    isLoadingInitialReportActions,
-    shouldDisplayBackButton = false,
-    onBackButtonPress,
-}: MoneyReportHeaderProps) {
+function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = false, onBackButtonPress}: MoneyReportHeaderProps) {
+    const [moneyRequestReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportIDProp}`);
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(moneyRequestReport?.policyID)}`);
+    const [reportMetadataInternal] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportIDProp}`);
+    const isLoadingInitialReportActions = reportMetadataInternal?.isLoadingInitialReportActions;
+    const {reportActions: unfilteredReportActions} = usePaginatedReportActions(moneyRequestReport?.reportID);
+    const reportActions = getFilteredReportActionsForReportView(unfilteredReportActions);
+
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to use a correct layout for the hold expense modal https://github.com/Expensify/App/pull/47990#issuecomment-2362382026
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {shouldUseNarrowLayout, isSmallScreenWidth, isMediumScreenWidth} = useResponsiveLayout();
@@ -234,13 +226,20 @@ function MoneyReportHeader({
         | PlatformStackRouteProp<RightModalNavigatorParamList, typeof SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT>
         | PlatformStackRouteProp<RightModalNavigatorParamList, typeof SCREENS.RIGHT_MODAL.SEARCH_REPORT>
     >();
-    const {login: currentUserLogin, accountID, email} = useCurrentUserPersonalDetails();
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const {login: currentUserLogin, accountID, email} = currentUserPersonalDetails;
     const personalDetails = usePersonalDetails();
     const defaultExpensePolicy = useDefaultExpensePolicy();
     const activePolicyExpenseChat = getPolicyExpenseChat(accountID, defaultExpensePolicy?.id);
     const [ownerBillingGraceEndPeriod] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const [userBillingGraceEndPeriods] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${moneyRequestReport?.chatReportID}`);
+    const {isOffline} = useNetwork();
+    const allReportTransactions = useReportTransactionsCollection(reportIDProp);
+    const nonDeletedTransactions = getAllNonDeletedTransactions(allReportTransactions, reportActions, isOffline, true);
+    const visibleTransactionsForThreadID = nonDeletedTransactions?.filter((t) => isOffline || t.pendingAction !== 'delete');
+    const reportTransactionIDs = visibleTransactionsForThreadID?.map((t) => t.transactionID);
+    const transactionThreadReportID = getOneTransactionThreadReportID(moneyRequestReport, chatReport, reportActions ?? [], isOffline, reportTransactionIDs);
     const [nextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${moneyRequestReport?.reportID}`);
     const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {
         selector: isUserValidatedSelector,
@@ -298,6 +297,7 @@ function MoneyReportHeader({
         'Checkmark',
         'ReportCopy',
         'Printer',
+        'DocumentMerge',
     ] as const);
     const [lastDistanceExpenseType] = useOnyx(ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE);
     const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${moneyRequestReport?.reportID}`);
@@ -382,6 +382,7 @@ function MoneyReportHeader({
     const [downloadErrorModalVisible, setDownloadErrorModalVisible] = useState(false);
     const [isPDFModalVisible, setIsPDFModalVisible] = useState(false);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const [outstandingReportsByPolicyID] = useOnyx(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID);
     const currentTransaction = transactions.at(0);
     const [originalIOUTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(currentTransaction?.comment?.originalTransactionID)}`);
     const [originalTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transaction?.comment?.originalTransactionID)}`);
@@ -401,7 +402,6 @@ function MoneyReportHeader({
         usePaymentAnimations();
     const styles = useThemeStyles();
     const theme = useTheme();
-    const {isOffline} = useNetwork();
     const {isExpenseSplit} = getOriginalTransactionWithSplitInfo(transaction, originalTransaction);
     const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
@@ -416,7 +416,21 @@ function MoneyReportHeader({
     const shouldShowSplitIndicator = isExpenseSplit && (hasMultipleSplits || isReportOpen);
 
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [isDuplicateReportActive, temporarilyDisableDuplicateReportAction] = useThrottledButtonState();
     const dropdownMenuRef = useRef<ButtonWithDropdownMenuRef>(null);
+    const wasDuplicateReportTriggered = useRef(false);
+
+    const handleOptionsMenuHide = useCallback(() => {
+        wasDuplicateReportTriggered.current = false;
+    }, []);
+
+    useEffect(() => {
+        if (!isDuplicateReportActive || !wasDuplicateReportTriggered.current) {
+            return;
+        }
+        wasDuplicateReportTriggered.current = false;
+        dropdownMenuRef.current?.setIsMenuVisible(false);
+    }, [isDuplicateReportActive]);
 
     const [isHoldMenuVisible, setIsHoldMenuVisible] = useState(false);
     const [paymentType, setPaymentType] = useState<PaymentMethodType>();
@@ -467,6 +481,24 @@ function MoneyReportHeader({
     const isPayAtEndExpense = isPayAtEndExpenseTransactionUtils(transaction);
     const isArchivedReport = useReportIsArchived(moneyRequestReport?.reportID);
     const isChatReportArchived = useReportIsArchived(chatReport?.reportID);
+
+    const canMoveSingleExpense = useMemo(() => {
+        if (nonPendingDeleteTransactions.length !== 1) {
+            return false;
+        }
+
+        const transactionToMove = nonPendingDeleteTransactions.at(0);
+        if (!transactionToMove) {
+            return false;
+        }
+
+        const iouReportAction = getIOUActionForTransactionID(reportActions, transactionToMove.transactionID);
+        const canMoveExpense = canEditFieldOfMoneyRequest(iouReportAction, CONST.EDIT_REQUEST_FIELD.REPORT, undefined, isChatReportArchived, outstandingReportsByPolicyID);
+
+        const canUserPerformWriteAction = canUserPerformWriteActionReportUtils(moneyRequestReport, isChatReportArchived);
+
+        return canMoveExpense && canUserPerformWriteAction;
+    }, [nonPendingDeleteTransactions, reportActions, isChatReportArchived, outstandingReportsByPolicyID, moneyRequestReport]);
 
     const [archiveReason] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${moneyRequestReport?.reportID}`, {selector: getArchiveReason});
 
@@ -711,6 +743,12 @@ function MoneyReportHeader({
                     userBillingGraceEndPeriods,
                     amountOwed,
                     methodID: type === CONST.IOU.PAYMENT_TYPE.VBBA ? methodID : undefined,
+                    onPaid: () => {
+                        if (isFromSelectionMode) {
+                            return;
+                        }
+                        startAnimation();
+                    },
                 });
                 if (currentSearchQueryJSON && !isOffline) {
                     search({
@@ -802,6 +840,12 @@ function MoneyReportHeader({
                     userBillingGraceEndPeriods,
                     amountOwed,
                     full: true,
+                    onApproved: () => {
+                        if (skipAnimation) {
+                            return;
+                        }
+                        startApprovedAnimation();
+                    },
                 });
                 if (skipAnimation) {
                     clearSelectedTransactions(true);
@@ -838,10 +882,23 @@ function MoneyReportHeader({
                 showDWEModal();
                 return;
             }
-            if (!skipAnimation) {
-                startSubmittingAnimation();
-            }
-            submitReport(moneyRequestReport, policy, accountID, email ?? '', hasViolations, isASAPSubmitBetaEnabled, nextStep, userBillingGraceEndPeriods, amountOwed);
+            submitReport({
+                expenseReport: moneyRequestReport,
+                policy,
+                currentUserAccountIDParam: accountID,
+                currentUserEmailParam: email ?? '',
+                hasViolations,
+                isASAPSubmitBetaEnabled,
+                expenseReportCurrentNextStepDeprecated: nextStep,
+                userBillingGraceEndPeriods,
+                amountOwed,
+                onSubmitted: () => {
+                    if (skipAnimation) {
+                        return;
+                    }
+                    startSubmittingAnimation();
+                },
+            });
             if (currentSearchQueryJSON && !isOffline) {
                 search({
                     searchKey: currentSearchKey,
@@ -1215,7 +1272,7 @@ function MoneyReportHeader({
                 icons: expensifyIcons,
                 iouReportID: moneyRequestReport?.reportID,
                 policy,
-                userBillingGraceEndPeriodCollection: userBillingGraceEndPeriods,
+                userBillingGraceEndPeriods,
                 draftTransactionIDs,
                 amountOwed,
                 ownerBillingGraceEndPeriod,
@@ -1481,6 +1538,7 @@ function MoneyReportHeader({
             reportActions,
             reportMetadata,
             policies,
+            outstandingReportsByPolicyID,
             isChatReportArchived,
         });
     }, [
@@ -1498,6 +1556,7 @@ function MoneyReportHeader({
         policies,
         isChatReportArchived,
         bankAccountList,
+        outstandingReportsByPolicyID,
     ]);
 
     const secondaryExportActions = useMemo(() => {
@@ -1677,7 +1736,17 @@ function MoneyReportHeader({
                     showDWEModal();
                     return;
                 }
-                submitReport(moneyRequestReport, policy, accountID, email ?? '', hasViolations, isASAPSubmitBetaEnabled, nextStep, userBillingGraceEndPeriods, amountOwed);
+                submitReport({
+                    expenseReport: moneyRequestReport,
+                    policy,
+                    currentUserAccountIDParam: accountID,
+                    currentUserEmailParam: email ?? '',
+                    hasViolations,
+                    isASAPSubmitBetaEnabled,
+                    expenseReportCurrentNextStepDeprecated: nextStep,
+                    userBillingGraceEndPeriods,
+                    amountOwed,
+                });
             },
         },
         [CONST.REPORT.SECONDARY_ACTIONS.APPROVE]: {
@@ -1807,11 +1876,11 @@ function MoneyReportHeader({
                 setupMergeTransactionDataAndNavigate(currentTransaction.transactionID, [currentTransaction], localeCompare);
             },
         },
-        [CONST.REPORT.SECONDARY_ACTIONS.DUPLICATE]: {
+        [CONST.REPORT.SECONDARY_ACTIONS.DUPLICATE_EXPENSE]: {
             text: isDuplicateActive ? translate('common.duplicateExpense') : translate('common.duplicated'),
             icon: isDuplicateActive ? expensifyIcons.ExpenseCopy : expensifyIcons.Checkmark,
             iconFill: isDuplicateActive ? undefined : theme.icon,
-            value: CONST.REPORT.SECONDARY_ACTIONS.DUPLICATE,
+            value: CONST.REPORT.SECONDARY_ACTIONS.DUPLICATE_EXPENSE,
             onSelected: () => {
                 if (hasCustomUnitOutOfPolicyViolation) {
                     setRateErrorModalVisible(true);
@@ -1839,15 +1908,49 @@ function MoneyReportHeader({
             shouldCloseModalOnSelect: shouldDuplicateCloseModalOnSelect,
         },
         [CONST.REPORT.SECONDARY_ACTIONS.DUPLICATE_REPORT]: {
-            text: translate('common.duplicateReport'),
-            icon: expensifyIcons.ReportCopy,
+            text: isDuplicateReportActive ? translate('common.duplicateReport') : translate('common.duplicated'),
+            icon: isDuplicateReportActive ? expensifyIcons.ReportCopy : expensifyIcons.Checkmark,
+            iconFill: isDuplicateReportActive ? undefined : theme.icon,
             value: CONST.REPORT.SECONDARY_ACTIONS.DUPLICATE_REPORT,
             sentryLabel: CONST.SENTRY_LABEL.MORE_MENU.DUPLICATE_REPORT,
-            //  To be implemented in https://github.com/Expensify/App/issues/82153
-            // onSelected: () => {
-            // },
-            // Remove after implementation
-            shouldShow: false,
+            shouldShow: !!defaultExpensePolicy,
+            shouldCloseModalOnSelect: false,
+            onSelected: () => {
+                if (!isDuplicateReportActive) {
+                    return;
+                }
+
+                temporarilyDisableDuplicateReportAction();
+                wasDuplicateReportTriggered.current = true;
+
+                const targetPolicyForDuplicate = policy ?? defaultExpensePolicy;
+                const targetChatForDuplicate = policy ? chatReport : activePolicyExpenseChat;
+                const activePolicyCategories = allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${targetPolicyForDuplicate?.id}`] ?? {};
+
+                // eslint-disable-next-line @typescript-eslint/no-deprecated
+                InteractionManager.runAfterInteractions(() => {
+                    duplicateReportAction({
+                        sourceReport: moneyRequestReport,
+                        sourceReportTransactions: nonPendingDeleteTransactions,
+                        sourceReportName: moneyRequestReport?.reportName ?? '',
+                        targetPolicy: targetPolicyForDuplicate ?? undefined,
+                        targetPolicyCategories: activePolicyCategories,
+                        targetPolicyTags: allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${targetPolicyForDuplicate?.id}`] ?? {},
+                        parentChatReport: targetChatForDuplicate,
+                        ownerPersonalDetails: currentUserPersonalDetails,
+                        isASAPSubmitBetaEnabled,
+                        betas,
+                        personalDetails,
+                        quickAction,
+                        policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
+                        draftTransactionIDs,
+                        isSelfTourViewed,
+                        transactionViolations: allTransactionViolations,
+                        translate,
+                        recentWaypoints: recentWaypoints ?? [],
+                    });
+                });
+            },
         },
         [CONST.REPORT.SECONDARY_ACTIONS.CHANGE_WORKSPACE]: {
             text: translate('iou.changeWorkspace'),
@@ -1860,6 +1963,32 @@ function MoneyReportHeader({
                     return;
                 }
                 Navigation.navigate(ROUTES.REPORT_WITH_ID_CHANGE_WORKSPACE.getRoute(moneyRequestReport.reportID, Navigation.getActiveRoute()));
+            },
+        },
+        [CONST.REPORT.SECONDARY_ACTIONS.MOVE_EXPENSE]: {
+            text: translate('iou.moveExpenses'),
+            icon: expensifyIcons.DocumentMerge,
+            value: CONST.REPORT.SECONDARY_ACTIONS.MOVE_EXPENSE,
+            sentryLabel: CONST.SENTRY_LABEL.MORE_MENU.MOVE_EXPENSE,
+            shouldShow: canMoveSingleExpense,
+            onSelected: () => {
+                if (!moneyRequestReport || nonPendingDeleteTransactions.length !== 1) {
+                    return;
+                }
+                const transactionToMove = nonPendingDeleteTransactions.at(0);
+                if (!transactionToMove?.transactionID) {
+                    return;
+                }
+                Navigation.navigate(
+                    ROUTES.MONEY_REQUEST_EDIT_REPORT.getRoute(
+                        CONST.IOU.ACTION.EDIT,
+                        CONST.IOU.TYPE.SUBMIT,
+                        moneyRequestReport.reportID,
+                        true,
+                        Navigation.getActiveRoute(),
+                        transactionToMove.transactionID,
+                    ),
+                );
             },
         },
         [CONST.REPORT.SECONDARY_ACTIONS.CHANGE_APPROVER]: {
@@ -1963,7 +2092,22 @@ function MoneyReportHeader({
             icon: expensifyIcons.CircularArrowBackwards,
             value: CONST.REPORT.SECONDARY_ACTIONS.RETRACT,
             sentryLabel: CONST.SENTRY_LABEL.MORE_MENU.RETRACT,
-            onSelected: () => {
+            onSelected: async () => {
+                if (isExported) {
+                    const result = await showConfirmModal({
+                        title: translate('iou.reopenReport'),
+                        prompt: reopenExportedReportWarningText,
+                        confirmText: translate('iou.reopenReport'),
+                        cancelText: translate('common.cancel'),
+                        danger: true,
+                    });
+
+                    if (result.action !== ModalActions.CONFIRM) {
+                        return;
+                    }
+                    retractReport(moneyRequestReport, chatReport, policy, accountID, email ?? '', hasViolations, isASAPSubmitBetaEnabled, nextStep);
+                    return;
+                }
                 retractReport(moneyRequestReport, chatReport, policy, accountID, email ?? '', hasViolations, isASAPSubmitBetaEnabled, nextStep);
             },
         },
@@ -2338,6 +2482,7 @@ function MoneyReportHeader({
                                 primaryAction={primaryAction}
                                 applicableSecondaryActions={applicableSecondaryActions}
                                 dropdownMenuRef={dropdownMenuRef}
+                                onOptionsMenuHide={handleOptionsMenuHide}
                                 ref={kycWallRef}
                             />
                         )}
@@ -2360,6 +2505,7 @@ function MoneyReportHeader({
                                 primaryAction={primaryAction}
                                 applicableSecondaryActions={applicableSecondaryActions}
                                 dropdownMenuRef={dropdownMenuRef}
+                                onOptionsMenuHide={handleOptionsMenuHide}
                                 ref={kycWallRef}
                             />
                         )}

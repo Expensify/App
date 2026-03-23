@@ -6,16 +6,13 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import type {SearchTransactionAction} from '@src/types/onyx/SearchResults';
 import actionTranslationsMap from './actionTranslationsMap';
-import BadgeActionCell from './BadgeActionCell';
 import PayActionCell from './PayActionCell';
 
 type ActionCellProps = {
     action?: SearchTransactionAction;
-    isLargeScreenWidth?: boolean;
     isSelected?: boolean;
     goToItem: () => void;
     isChildListItem?: boolean;
-    parentAction?: string;
     isLoading?: boolean;
     policyID?: string;
     reportID?: string;
@@ -27,11 +24,9 @@ type ActionCellProps = {
 
 function ActionCell({
     action = CONST.SEARCH.ACTION_TYPES.VIEW,
-    isLargeScreenWidth = true,
     isSelected = false,
     goToItem,
     isChildListItem = false,
-    parentAction = '',
     isLoading = false,
     policyID = '',
     reportID = '',
@@ -44,24 +39,13 @@ function ActionCell({
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
 
-    const shouldUseViewAction = action === CONST.SEARCH.ACTION_TYPES.VIEW || (parentAction === CONST.SEARCH.ACTION_TYPES.PAID && action === CONST.SEARCH.ACTION_TYPES.PAID);
-    const isBadgeAction = !isChildListItem && ((parentAction !== CONST.SEARCH.ACTION_TYPES.PAID && action === CONST.SEARCH.ACTION_TYPES.PAID) || action === CONST.SEARCH.ACTION_TYPES.DONE);
+    const shouldUseViewAction = action === CONST.SEARCH.ACTION_TYPES.VIEW || action === CONST.SEARCH.ACTION_TYPES.PAID || action === CONST.SEARCH.ACTION_TYPES.DONE;
 
-    if (isBadgeAction) {
-        return (
-            <BadgeActionCell
-                action={action}
-                isLargeScreenWidth={isLargeScreenWidth}
-                shouldDisablePointerEvents={shouldDisablePointerEvents}
-            />
-        );
-    }
-
-    if (action === CONST.SEARCH.ACTION_TYPES.VIEW || shouldUseViewAction || isChildListItem) {
-        const text = isChildListItem ? translate(actionTranslationsMap[CONST.SEARCH.ACTION_TYPES.VIEW]) : translate(actionTranslationsMap[action]);
+    if (shouldUseViewAction || isChildListItem) {
+        const text = translate(actionTranslationsMap[CONST.SEARCH.ACTION_TYPES.VIEW]);
         const buttonInnerStyles = isSelected ? styles.buttonDefaultSelected : {};
 
-        return isLargeScreenWidth ? (
+        return (
             <Button
                 testID="ActionCell"
                 text={text}
@@ -77,7 +61,7 @@ function ActionCell({
                 isNested
                 sentryLabel={CONST.SENTRY_LABEL.SEARCH.ACTION_CELL_VIEW}
             />
-        ) : null;
+        );
     }
 
     if (action === CONST.SEARCH.ACTION_TYPES.PAY) {
