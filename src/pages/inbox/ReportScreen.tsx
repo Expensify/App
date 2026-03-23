@@ -39,7 +39,6 @@ import useReportIsArchived from '@hooks/useReportIsArchived';
 import useReportTransactionsCollection from '@hooks/useReportTransactionsCollection';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSidePanelActions from '@hooks/useSidePanelActions';
-import useSidePanelState from '@hooks/useSidePanelState';
 import useSubmitToDestinationVisible from '@hooks/useSubmitToDestinationVisible';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useViewportOffsetTop from '@hooks/useViewportOffsetTop';
@@ -73,7 +72,6 @@ import {
     isAdminRoom,
     isAnnounceRoom,
     isChatThread,
-    isConciergeChatReport,
     isGroupChat,
     isHiddenForCurrentUser,
     isInvoiceReport,
@@ -302,16 +300,6 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     const reportActions = useMemo(() => getFilteredReportActionsForReportView(unfilteredReportActions), [unfilteredReportActions]);
     const [childReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${linkedAction?.childReportID}`);
 
-    const isConciergeSidePanel = useMemo(() => isInSidePanel && isConciergeChatReport(report, conciergeReportID), [isInSidePanel, report, conciergeReportID]);
-
-    const {sessionStartTime} = useSidePanelState();
-
-    const hasUserSentMessage = useMemo(() => {
-        if (!isConciergeSidePanel || !sessionStartTime) {
-            return false;
-        }
-        return reportActions.some((action) => !isCreatedAction(action) && action.actorAccountID === currentUserAccountID && action.created >= sessionStartTime);
-    }, [isConciergeSidePanel, reportActions, currentUserAccountID, sessionStartTime]);
     const viewportOffsetTop = useViewportOffsetTop();
 
     const {reportPendingAction, reportErrors} = getReportOfflinePendingActionAndErrors(report);
@@ -1054,22 +1042,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
                                             testID="report-actions-view-wrapper"
                                         >
                                             {(!report || shouldWaitForTransactions) && <ReportActionsSkeletonView />}
-                                            {!!report && !shouldDisplayMoneyRequestActionsList && !shouldWaitForTransactions ? (
-                                                <ReportActionsView
-                                                    report={report}
-                                                    reportActions={reportActions}
-                                                    isLoadingInitialReportActions={reportMetadata?.isLoadingInitialReportActions}
-                                                    hasOnceLoadedReportActions={reportMetadata?.hasOnceLoadedReportActions}
-                                                    hasNewerActions={hasNewerActions}
-                                                    hasOlderActions={hasOlderActions}
-                                                    parentReportAction={parentReportAction}
-                                                    transactionThreadReportID={transactionThreadReportID}
-                                                    isReportTransactionThread={isTransactionThreadView}
-                                                    isConciergeSidePanel={isConciergeSidePanel}
-                                                    hasUserSentMessage={hasUserSentMessage}
-                                                    sessionStartTime={sessionStartTime}
-                                                />
-                                            ) : null}
+                                            {!!report && !shouldDisplayMoneyRequestActionsList && !shouldWaitForTransactions ? <ReportActionsView reportID={report.reportID} /> : null}
                                             {!!report && shouldDisplayMoneyRequestActionsList && !shouldWaitForTransactions ? (
                                                 <MoneyRequestReportActionsList
                                                     report={report}

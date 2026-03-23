@@ -307,14 +307,8 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
                             />
                         ) : (
                             <ReportActionsView
-                                report={report}
-                                reportActions={reportActions}
-                                isLoadingInitialReportActions={reportMetadata?.isLoadingInitialReportActions}
-                                hasNewerActions={hasNewerActions}
-                                hasOlderActions={hasOlderActions}
-                                parentReportAction={parentReportAction}
+                                reportID={reportID ?? ''}
                                 onLayout={onLayout}
-                                transactionThreadReportID={transactionThreadReportID}
                             />
                         )}
                         {shouldDisplayReportFooter ? (
