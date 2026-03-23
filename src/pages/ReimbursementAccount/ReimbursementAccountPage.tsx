@@ -30,6 +30,7 @@ import type {ReimbursementAccountNavigatorParamList} from '@libs/Navigation/type
 import {goBackFromInvalidPolicy, isPendingDeletePolicy, isPolicyAdmin} from '@libs/PolicyUtils';
 import {getRouteForCurrentStep, hasInProgressUSDVBBA, hasInProgressVBBA} from '@libs/ReimbursementAccountUtils';
 import shouldReopenOnfido from '@libs/shouldReopenOnfido';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {isFullScreenName} from '@navigation/helpers/isNavigatorName';
 import type {WithPolicyOnyxProps} from '@pages/workspace/withPolicy';
 import withPolicy from '@pages/workspace/withPolicy';
@@ -487,7 +488,11 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: 
     }
 
     if (isLoadingPolicy) {
-        return <FullScreenLoadingIndicator />;
+        const loadingPolicyReasonAttributes: SkeletonSpanReasonAttributes = {
+            context: 'ReimbursementAccountPage',
+            isLoadingPolicy,
+        };
+        return <FullScreenLoadingIndicator reasonAttributes={loadingPolicyReasonAttributes} />;
     }
 
     // Show loading indicator when page is first time being opened and props.reimbursementAccount yet to be loaded from the server
@@ -524,7 +529,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: 
     } else if (throttledDate) {
         errorText = <Text>{translate('bankAccount.hasBeenThrottledError')}</Text>;
     } else if (hasUnsupportedCurrency) {
-        errorText = <RenderHTML html={translate('bankAccount.hasCurrencyError', {workspaceRoute})} />;
+        errorText = <RenderHTML html={translate('bankAccount.hasCurrencyError', workspaceRoute)} />;
     }
 
     if (errorText) {

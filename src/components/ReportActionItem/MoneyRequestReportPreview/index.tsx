@@ -12,6 +12,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionViolations from '@hooks/useTransactionViolations';
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getIOUActionForReportID, isSplitBillAction as isSplitBillActionReportActionsUtils, isTrackExpenseAction as isTrackExpenseActionReportActionsUtils} from '@libs/ReportActionsUtils';
 import {isIOUReport} from '@libs/ReportUtils';
 import {startSpan} from '@libs/telemetry/activeSpans';
@@ -26,7 +27,6 @@ import MoneyRequestReportPreviewContent from './MoneyRequestReportPreviewContent
 import type {MoneyRequestReportPreviewProps} from './types';
 
 function MoneyRequestReportPreview({
-    policies,
     iouReportID,
     policyID,
     chatReportID,
@@ -46,8 +46,8 @@ function MoneyRequestReportPreview({
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
     const personalDetailsList = usePersonalDetails();
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`);
-    const invoiceReceiverPolicy =
-        policies?.[`${ONYXKEYS.COLLECTION.POLICY}${chatReport?.invoiceReceiver && 'policyID' in chatReport.invoiceReceiver ? chatReport.invoiceReceiver.policyID : undefined}`];
+    const invoiceReceiverPolicyID = chatReport?.invoiceReceiver && 'policyID' in chatReport.invoiceReceiver ? chatReport.invoiceReceiver.policyID : undefined;
+    const [invoiceReceiverPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(invoiceReceiverPolicyID)}`);
     const invoiceReceiverPersonalDetail = chatReport?.invoiceReceiver && 'accountID' in chatReport.invoiceReceiver ? personalDetailsList?.[chatReport.invoiceReceiver.accountID] : null;
     const [iouReport, transactions] = useReportWithTransactionsAndViolations(iouReportID);
     const policy = usePolicy(policyID);

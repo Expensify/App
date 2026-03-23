@@ -1,5 +1,5 @@
 import {useFocusEffect} from '@react-navigation/native';
-import {toZonedTime} from 'date-fns-tz';
+import {format, toZonedTime} from 'date-fns-tz';
 import React, {useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
@@ -86,10 +86,10 @@ function WorkspaceEditCardLimitTypePage({route}: WorkspaceEditCardLimitTypePageP
     const validFromDefaultValue = useMemo(() => {
         const validFrom = card?.nameValuePairs?.validFrom;
         if (!validFrom) {
-            return undefined;
+            return format(minDate, CONST.DATE.FNS_FORMAT_STRING);
         }
         return DateUtils.formatUTCDateTimeToDateInTimezone(validFrom, assigneeTimeZone);
-    }, [card?.nameValuePairs?.validFrom, assigneeTimeZone]);
+    }, [card?.nameValuePairs?.validFrom, assigneeTimeZone, minDate]);
 
     const validThruDefaultValue = useMemo(() => {
         const validThru = card?.nameValuePairs?.validThru;
@@ -199,7 +199,7 @@ function WorkspaceEditCardLimitTypePage({route}: WorkspaceEditCardLimitTypePageP
             });
         }
 
-        if (card?.nameValuePairs?.isVirtual && isBetaEnabled(CONST.BETAS.SINGLE_USE_AND_EXPIRE_BY_CARDS)) {
+        if (card?.nameValuePairs?.isVirtual) {
             options.push({
                 value: CONST.EXPENSIFY_CARD.LIMIT_TYPES.SINGLE_USE,
                 label: translate('workspace.card.issueNewCard.singleUse'),
@@ -278,7 +278,7 @@ function WorkspaceEditCardLimitTypePage({route}: WorkspaceEditCardLimitTypePageP
                             alternateNumberOfSupportedLines={2}
                         />
 
-                        {!!card?.nameValuePairs?.isVirtual && isBetaEnabled(CONST.BETAS.SINGLE_USE_AND_EXPIRE_BY_CARDS) && (
+                        {!!card?.nameValuePairs?.isVirtual && (
                             <>
                                 <View style={[styles.threadDividerLine, styles.flexGrow0, styles.ml5, styles.mr5, styles.mv3]} />
                                 <View style={[styles.ph5]}>

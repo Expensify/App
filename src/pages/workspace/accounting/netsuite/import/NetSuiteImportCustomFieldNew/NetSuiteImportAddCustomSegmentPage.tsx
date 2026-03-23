@@ -12,7 +12,7 @@ function NetSuiteImportAddCustomSegmentPage({policy, route}: WithPolicyConnectio
     const isLoading = isLoadingOnyxValue(draftValuesMetadata);
 
     if (isLoading) {
-        return <FullScreenLoadingIndicator />;
+        return <FullScreenLoadingIndicator reasonAttributes={{context: 'NetSuiteImportAddCustomSegmentPage'}} />;
     }
 
     return (
