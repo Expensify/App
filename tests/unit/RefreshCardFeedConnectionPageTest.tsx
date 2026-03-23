@@ -2,7 +2,7 @@ import {act, cleanup, render, screen} from '@testing-library/react-native';
 import React from 'react';
 import {View} from 'react-native';
 import Onyx from 'react-native-onyx';
-import {clearAssignCardStepAndData, setFeedRefreshComplete} from '@libs/actions/CompanyCards';
+import {clearAssignCardStepAndData} from '@libs/actions/CompanyCards';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
@@ -48,7 +48,6 @@ jest.mock('@libs/Navigation/Navigation', () => ({
 
 jest.mock('@libs/actions/CompanyCards', () => ({
     clearAssignCardStepAndData: jest.fn(),
-    setFeedRefreshComplete: jest.fn(),
 }));
 
 jest.mock('@hooks/useLocalize', () => ({
@@ -160,7 +159,7 @@ describe('RefreshCardFeedConnectionPage', () => {
         expect(mockCloseRHPFlow).toHaveBeenCalledTimes(1);
     });
 
-    it('calls setFeedRefreshComplete when OAuth feed expiration updates while refreshing', async () => {
+    it('closes RHP flow when OAuth feed expiration updates while refreshing', async () => {
         await Onyx.merge(ONYXKEYS.ASSIGN_CARD, {
             currentStep: CONST.COMPANY_CARD.STEP.BANK_CONNECTION,
             isRefreshing: true,
@@ -187,7 +186,7 @@ describe('RefreshCardFeedConnectionPage', () => {
         );
         await waitForBatchedUpdates();
 
-        expect(setFeedRefreshComplete).toHaveBeenCalledTimes(1);
+        expect(mockCloseRHPFlow).toHaveBeenCalledTimes(1);
     });
 
     it('calls clearAssignCardStepAndData on unmount', async () => {
@@ -204,48 +203,5 @@ describe('RefreshCardFeedConnectionPage', () => {
         unmount();
 
         expect(clearAssignCardStepAndData).toHaveBeenCalledTimes(1);
-    });
-});
-
-describe('setFeedRefreshComplete action', () => {
-    let assignCard: Record<string, unknown> | undefined;
-
-    beforeAll(() => {
-        Onyx.init({keys: ONYXKEYS});
-        Onyx.connect({
-            key: ONYXKEYS.ASSIGN_CARD,
-            callback: (val) => {
-                assignCard = val as Record<string, unknown>;
-            },
-        });
-    });
-
-    beforeEach(async () => {
-        await Onyx.clear();
-        await waitForBatchedUpdates();
-    });
-
-    it('clears isRefreshing when OAuth feed connection refreshes', async () => {
-        await Onyx.merge(ONYXKEYS.ASSIGN_CARD, {isRefreshing: true, currentStep: CONST.COMPANY_CARD.STEP.BANK_CONNECTION});
-        await waitForBatchedUpdates();
-        expect(assignCard?.isRefreshing).toBe(true);
-
-        // eslint-disable-next-line @typescript-eslint/consistent-type-imports
-        const {setFeedRefreshComplete: actualSetFeedRefreshComplete} = jest.requireActual<typeof import('@libs/actions/CompanyCards')>('@libs/actions/CompanyCards');
-        actualSetFeedRefreshComplete();
-        await waitForBatchedUpdates();
-
-        // Onyx removes the key when merging null, so isRefreshing becomes falsy
-        expect(assignCard?.isRefreshing).toBeFalsy();
-    });
-
-    it('sets isRefreshing and currentStep when starting a feed refresh', async () => {
-        // eslint-disable-next-line @typescript-eslint/consistent-type-imports
-        const {setAssignCardStepAndData: actualSetAssignCardStepAndData} = jest.requireActual<typeof import('@libs/actions/CompanyCards')>('@libs/actions/CompanyCards');
-        actualSetAssignCardStepAndData({currentStep: CONST.COMPANY_CARD.STEP.BANK_CONNECTION, isRefreshing: true});
-        await waitForBatchedUpdates();
-
-        expect(assignCard?.isRefreshing).toBe(true);
-        expect(assignCard?.currentStep).toBe(CONST.COMPANY_CARD.STEP.BANK_CONNECTION);
     });
 });
