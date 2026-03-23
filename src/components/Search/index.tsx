@@ -100,6 +100,8 @@ type SearchProps = {
     onDEWModalOpen?: () => void;
 };
 
+const hashToString = (queryHash?: number) => (queryHash || queryHash === 0 ? String(queryHash) : undefined);
+
 function mapTransactionItemToSelectedEntry(
     item: TransactionListItemType,
     itemTransaction: OnyxEntry<Transaction>,
@@ -258,6 +260,7 @@ function Search({
     const [visibleColumns] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {selector: columnsSelector});
     const [customCardNames] = useOnyx(ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES);
     const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
 
     const isExpenseReportType = type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
     const {markReportIDAsMultiTransactionExpense, unmarkReportIDAsMultiTransactionExpense} = useWideRHPActions();
@@ -481,6 +484,7 @@ function Search({
             customCardNames,
             allReportMetadata,
             cardList,
+            conciergeReportID,
             onyxPersonalDetailsList,
         });
         return [filteredData1, filteredData1.length, allLength];
@@ -507,6 +511,7 @@ function Search({
         customCardNames,
         allReportMetadata,
         cardList,
+        conciergeReportID,
         onyxPersonalDetailsList,
     ]);
 
@@ -516,9 +521,7 @@ function Search({
         if (!validGroupBy) {
             return [];
         }
-        return (baseFilteredData as TransactionGroupListItemType[])
-            .map((item) => (item.transactionsQueryJSON?.hash ? String(item.transactionsQueryJSON.hash) : undefined))
-            .filter((hashValue): hashValue is string => !!hashValue);
+        return (baseFilteredData as TransactionGroupListItemType[]).map((item) => hashToString(item.transactionsQueryJSON?.hash)).filter((hashValue): hashValue is string => !!hashValue);
     }, [validGroupBy, baseFilteredData]);
 
     const groupByTransactionSnapshots = useMultipleSnapshots(groupByTransactionHashes);
@@ -529,7 +532,7 @@ function Search({
         }
 
         const enriched = (baseFilteredData as TransactionGroupListItemType[]).map((item) => {
-            const snapshot = item.transactionsQueryJSON?.hash ? groupByTransactionSnapshots[String(item.transactionsQueryJSON.hash)] : undefined;
+            const snapshot = groupByTransactionSnapshots[hashToString(item.transactionsQueryJSON?.hash) ?? ''];
             if (!snapshot?.data) {
                 return item;
             }
@@ -546,6 +549,7 @@ function Search({
                 cardFeeds,
                 allReportMetadata,
                 cardList,
+                conciergeReportID,
             });
             return {
                 ...item,
@@ -569,6 +573,7 @@ function Search({
         bankAccountList,
         allReportMetadata,
         cardList,
+        conciergeReportID,
     ]);
 
     const hasLoadedAllTransactions = useMemo(() => {
