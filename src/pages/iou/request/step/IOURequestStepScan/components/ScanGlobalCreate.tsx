@@ -53,6 +53,7 @@ function ScanGlobalCreate() {
     const personalPolicy = usePersonalPolicy();
     const selfDMReport = useSelfDMReport();
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
+    const [ownerBillingGraceEndPeriod] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const {isMultiScanEnabled, canUseMultiScan} = useMultiScanState();
 
     const isEditing = action === CONST.IOU.ACTION.EDIT;
@@ -99,7 +100,7 @@ function ScanGlobalCreate() {
             return;
         }
 
-        if (!shouldUseDefaultExpensePolicy(iouType, defaultExpensePolicy, amountOwed)) {
+        if (!shouldUseDefaultExpensePolicy(iouType, defaultExpensePolicy, amountOwed, ownerBillingGraceEndPeriod)) {
             navigateToParticipantPage(iouType, initialTransactionID, reportID);
             return;
         }
