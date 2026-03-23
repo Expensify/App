@@ -53,7 +53,7 @@ Create new page describing expense icons and what they mean. WIP here: https://g
 ## How to merge duplicate expenses from the Expenses page
 
 Use this method when you already see both duplicate expenses on the Expenses page. 
-
+1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Reports > Expenses**
 1. In the navigation tabs (on the left on web, and at the bottom on mobile), select **Reports > Expenses**
 2. Select two expenses to merge.
 3. Choose **Selected**, then select **Merge**.
