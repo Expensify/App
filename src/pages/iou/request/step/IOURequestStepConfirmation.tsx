@@ -473,7 +473,7 @@ function IOURequestStepConfirmation({
         return () => {
             ignore = true;
         };
-    }, [isOdometerDistanceRequest, currentTransactionID, odometerStartImage, odometerEndImage, action, translate]);
+    }, [isOdometerDistanceRequest, currentTransactionID, odometerStartImage, odometerEndImage, action, translate, iouType]);
 
     const defaultBillable = !!policy?.defaultBillable;
     useEffect(() => {
