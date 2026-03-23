@@ -420,7 +420,12 @@
         "expo-file-system",
         "@react-native-google-signin/google-signin",
         "expo-keep-awake"
-      ]
+      ],
+      "android": {
+        "buildFromSource": [
+          "expo-secure-store"
+        ]
+      }
     }
   },
   "engines": {
