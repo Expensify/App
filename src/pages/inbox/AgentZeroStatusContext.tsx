@@ -23,13 +23,21 @@ type ReasoningEntry = {
 };
 
 type AgentZeroStatusState = {
+    /** Whether AgentZero is actively working — true when the server sent a processing label or we're optimistically waiting */
     isProcessing: boolean;
+
+    /** Chronological list of reasoning steps streamed via Pusher during the current processing request */
     reasoningHistory: ReasoningEntry[];
+
+    /** Debounced label shown in the thinking bubble (e.g. "Looking up categories...") */
     statusLabel: string;
+
+    /** When true, thinking bubble and typing indicator should be hidden (side-panel welcome state before user sends a message) */
     shouldSuppressIndicators: boolean;
 };
 
 type AgentZeroStatusActions = {
+    /** Sets optimistic "thinking" state immediately after the user sends a message, before the server responds */
     kickoffWaitingIndicator: () => void;
 };
 
@@ -72,8 +80,10 @@ function AgentZeroStatusProvider({reportID, chatType, children}: React.PropsWith
  * Only mounted when reportID matches the Concierge report.
  */
 function AgentZeroStatusGate({reportID, children}: React.PropsWithChildren<{reportID: string}>) {
+    // Server-driven processing label from report name-value pairs (e.g. "Looking up categories...")
     const [serverLabel] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`, {selector: agentZeroProcessingIndicatorSelector});
 
+    // Side-panel suppression: hide thinking/typing indicators until the user sends a message in this session
     const isInSidePanel = useIsInSidePanel();
     const {sessionStartTime} = useSidePanelState();
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
@@ -89,12 +99,18 @@ function AgentZeroStatusGate({reportID, children}: React.PropsWithChildren<{repo
         selector: hasUserSentMessageSelector,
     });
 
+    // Timestamp set when the user sends a message, before the server label arrives — shows "Concierge is thinking..."
     const [optimisticStartTime, setOptimisticStartTime] = useState<number | null>(null);
+    // Debounced label shown to the user — smooths rapid server label changes
     const [displayedLabel, setDisplayedLabel] = useState<string>('');
+    // Chronological list of reasoning steps streamed via Pusher during a single processing request
     const [reasoningHistory, setReasoningHistory] = useState<ReasoningEntry[]>([]);
     const {translate} = useLocalize();
+    // Tracks the previous server label to detect transitions (appeared → cleared)
     const prevServerLabelRef = useRef<string>(serverLabel);
+    // Timer for debounced label updates — ensures a minimum display time before switching
     const updateTimerRef = useRef<NodeJS.Timeout | null>(null);
+    // Timestamp of the last label update — used to enforce MIN_DISPLAY_TIME
     const lastUpdateTimeRef = useRef<number>(0);
     const {isOffline} = useNetwork();
 
@@ -106,6 +122,7 @@ function AgentZeroStatusGate({reportID, children}: React.PropsWithChildren<{repo
     // Debounce delay for server label updates
     const DEBOUNCE_DELAY = 150; // ms
 
+    /** Appends a reasoning entry from Pusher. Resets history when a new request ID is detected; skips duplicates. */
     const addReasoning = (data: {reasoning: string; agentZeroRequestID: string; loopCount: number}) => {
         if (!data.reasoning.trim()) {
             return;
@@ -136,14 +153,14 @@ function AgentZeroStatusGate({reportID, children}: React.PropsWithChildren<{repo
         });
     };
 
-    // Reset state when reportID changes
+    // Reset all transient state when the viewed report changes
     useEffect(() => {
         setOptimisticStartTime(null);
         setReasoningHistory([]);
         agentZeroRequestIDRef.current = '';
     }, [reportID]);
 
-    // Pusher subscription lifecycle
+    // Subscribe to Pusher reasoning events for this report's channel
     useEffect(() => {
         const channelName = getReportChannelName(reportID);
 
@@ -161,6 +178,7 @@ function AgentZeroStatusGate({reportID, children}: React.PropsWithChildren<{repo
         // eslint-disable-next-line react-hooks/exhaustive-deps -- addReasoning is stable (uses only refs + functional updater)
     }, [reportID]);
 
+    // Synchronize the displayed label with the server label, applying debounce and minimum display time
     useEffect(() => {
         const hadServerLabel = !!prevServerLabelRef.current;
         const hasServerLabel = !!serverLabel;
@@ -227,6 +245,7 @@ function AgentZeroStatusGate({reportID, children}: React.PropsWithChildren<{repo
         };
     }, [serverLabel, reasoningHistory.length, reportID, optimisticStartTime, translate, displayedLabel]);
 
+    // Clear optimistic state when the network comes back online
     useEffect(() => {
         if (isOffline) {
             return;
