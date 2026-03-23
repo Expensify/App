@@ -43,6 +43,7 @@ import {
     getAutoPayApprovedReportsEnabledMessage,
     getAutoReimbursementMessage,
     getChangedApproverActionMessage,
+    getCombinedReportActions,
     getCurrencyDefaultTaxUpdateMessage,
     getCustomTaxNameUpdateMessage,
     getDynamicExternalWorkflowRoutedMessage,
@@ -443,12 +444,24 @@ type GetAlternateTextConfig = {
 /**
  * Update alternate text for the option when applicable
  */
-// eslint-disable-next-line @typescript-eslint/max-params
+/* eslint-disable @typescript-eslint/max-params, @typescript-eslint/default-param-last */
 function getAlternateText(
     option: OptionData,
     {showChatPreviewLine = false, forcePolicyNamePreview = false}: PreviewConfig,
-    {isReportArchived, policy, lastActorDetails = {}, visibleReportActionsData = {}, translate, reportAttributesDerived, policyTags, conciergeReportID, reportParam, chatReportParam}: GetAlternateTextConfig,
+    {
+        isReportArchived,
+        policy,
+        lastActorDetails = {},
+        visibleReportActionsData = {},
+        translate,
+        reportAttributesDerived,
+        policyTags,
+        conciergeReportID,
+        reportParam,
+        chatReportParam,
+    }: GetAlternateTextConfig,
 ) {
+    /* eslint-enable @typescript-eslint/max-params, @typescript-eslint/default-param-last */
     const report = reportParam ?? getReportOrDraftReport(option.reportID);
     const isAdminRoom = reportUtilsIsAdminRoom(report);
     const isAnnounceRoom = reportUtilsIsAnnounceRoom(report);
@@ -1095,6 +1108,7 @@ function createOption({
             report,
             lastActorDetails,
             isReportArchived: result.private_isArchived,
+            chatReport: allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.chatReportID}`] ?? undefined,
             visibleReportActionsDataParam: visibleReportActionsData,
             reportAttributesDerived,
             policyTags,
@@ -1116,6 +1130,7 @@ function createOption({
                           policyTags,
                           conciergeReportID,
                           reportParam: report,
+                          chatReportParam: allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.chatReportID}`] ?? undefined,
                       },
                   );
 
@@ -1162,6 +1177,7 @@ function createOption({
 /**
  * Get the option for a given report.
  */
+/* eslint-disable @typescript-eslint/default-param-last */
 function getReportOption(
     participant: Participant,
     privateIsArchived: boolean | undefined,
@@ -1174,6 +1190,7 @@ function getReportOption(
     visibleReportActionsData: VisibleReportActionsDerivedValue = {},
     reportParam?: OnyxEntry<Report>,
 ): OptionData {
+    /* eslint-enable @typescript-eslint/default-param-last */
     const report = reportParam ?? getReportOrDraftReport(participant.reportID, undefined, undefined, reportDrafts);
     const visibleParticipantAccountIDs = getParticipantsAccountIDsForDisplay(report, true);
     const reportPolicyTags = policyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(report?.policyID)}`];

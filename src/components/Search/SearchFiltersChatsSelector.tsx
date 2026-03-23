@@ -77,7 +77,11 @@ function SearchFiltersChatsSelector({initialReportIDs, onFiltersUpdate, isScreen
         const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${reportData?.policyID}`];
         const reportPolicyTags = policyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(report?.policyID)}`];
         const chatReport = reportData?.chatReportID ? reports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportData.chatReportID}`] : undefined;
-        const alternateText = getAlternateText(report, {}, {isReportArchived: privateIsArchived, policy, reportAttributesDerived, policyTags: reportPolicyTags, conciergeReportID, reportParam: reportData, chatReportParam: chatReport});
+        const alternateText = getAlternateText(
+            report,
+            {},
+            {isReportArchived: privateIsArchived, policy, reportAttributesDerived, policyTags: reportPolicyTags, conciergeReportID, reportParam: reportData, chatReportParam: chatReport},
+        );
         return {...report, alternateText};
     });
 
