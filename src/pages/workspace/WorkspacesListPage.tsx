@@ -172,6 +172,9 @@ function WorkspacesListPage() {
     const [policyIDToDelete, setPolicyIDToDelete] = useState<string>();
     // The workspace was deleted in this page
     const [policyNameToDelete, setPolicyNameToDelete] = useState<string>();
+    // Refs to avoid stale closures in continueDeleteWorkspace callback
+    const policyIDToDeleteRef = useRef<string | undefined>(undefined);
+    const policyNameToDeleteRef = useRef<string | undefined>(undefined);
     const {reportsToArchive, transactionViolations} = useTransactionViolationOfWorkspace(policyIDToDelete);
 
     const [loadingSpinnerIconIndex, setLoadingSpinnerIconIndex] = useState<number | null>(null);
@@ -209,6 +212,10 @@ function WorkspacesListPage() {
     const [prevIsPendingDelete, setPrevIsPendingDelete] = useState(isPendingDelete);
 
     const continueDeleteWorkspace = useCallback(() => {
+        // Read from refs to avoid stale closures when called from usePayAndDowngrade
+        const policyID = policyIDToDeleteRef.current;
+        const policyName = policyNameToDeleteRef.current;
+
         showConfirmModal({
             title: translate('workspace.common.delete'),
             prompt: hasCardFeedOrExpensifyCard ? translate('workspace.common.deleteWithCardsConfirmation') : translate('workspace.common.deleteConfirmation'),
@@ -217,15 +224,15 @@ function WorkspacesListPage() {
             danger: true,
             isConfirmLoading: isPendingDelete,
         }).then((result) => {
-            if (!policyIDToDelete || !policyNameToDelete || result.action !== ModalActions.CONFIRM) {
+            if (!policyID || !policyName || result.action !== ModalActions.CONFIRM) {
                 return;
             }
 
             deleteWorkspace({
                 policies,
-                policyID: policyIDToDelete,
+                policyID,
                 activePolicyID,
-                policyName: policyNameToDelete,
+                policyName,
                 lastAccessedWorkspacePolicyID,
                 policyCardFeeds: defaultCardFeeds,
                 reportsToArchive,
@@ -238,6 +245,8 @@ function WorkspacesListPage() {
             if (isOffline) {
                 setPolicyIDToDelete(undefined);
                 setPolicyNameToDelete(undefined);
+                policyIDToDeleteRef.current = undefined;
+                policyNameToDeleteRef.current = undefined;
             }
         });
     }, [
@@ -250,8 +259,6 @@ function WorkspacesListPage() {
         isPendingDelete,
         policies,
         localeCompare,
-        policyIDToDelete,
-        policyNameToDelete,
         reimbursementAccountError,
         reportsToArchive,
         showConfirmModal,
@@ -265,6 +272,9 @@ function WorkspacesListPage() {
 
     const hideDeleteWorkspaceErrorModal = () => {
         setPolicyIDToDelete(undefined);
+        setPolicyNameToDelete(undefined);
+        policyIDToDeleteRef.current = undefined;
+        policyNameToDeleteRef.current = undefined;
         if (!policyToDelete) {
             return;
         }
@@ -454,6 +464,9 @@ function WorkspacesListPage() {
 
                     setPolicyIDToDelete(item.policyID);
                     setPolicyNameToDelete(item.title);
+                    // Also update refs for the callback to have fresh values
+                    policyIDToDeleteRef.current = item.policyID;
+                    policyNameToDeleteRef.current = item.title;
 
                     if (shouldBlockDeletion()) {
                         return;
