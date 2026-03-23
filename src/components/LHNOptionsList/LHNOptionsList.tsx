@@ -56,7 +56,6 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
     const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT);
-    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [onboarding] = useOnyx(ONYXKEYS.NVP_ONBOARDING);
@@ -244,7 +243,6 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
                     onSelectRow={onSelectRow}
                     preferredLocale={preferredLocale}
                     hasDraftComment={hasDraftComment}
-                    transactionViolations={transactionViolations}
                     onLayout={onLayoutItem}
                     shouldShowRBRorGBRTooltip={shouldShowRBRorGBRTooltip}
                     activePolicyID={activePolicyID}
@@ -278,7 +276,6 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
             shouldDisableFocusOptions,
             onSelectRow,
             preferredLocale,
-            transactionViolations,
             onLayoutItem,
             activePolicyID,
             introSelected?.choice,
@@ -298,7 +295,6 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
             reports,
             reportAttributes,
             reportNameValuePairs,
-            transactionViolations,
             policy,
             personalDetails,
             data.length,
@@ -316,7 +312,6 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
             reports,
             reportAttributes,
             reportNameValuePairs,
-            transactionViolations,
             policy,
             personalDetails,
             data.length,

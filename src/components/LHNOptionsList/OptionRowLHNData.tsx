@@ -38,7 +38,6 @@ function OptionRowLHNData({
     iouReportReportActions,
     transaction,
     lastReportActionTransaction,
-    transactionViolations,
     lastMessageTextFromReport,
     localeCompare,
     translate,
