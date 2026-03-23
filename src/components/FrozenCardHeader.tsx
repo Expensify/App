@@ -1,4 +1,4 @@
-import React, {useMemo} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -43,16 +43,15 @@ function FrozenCardHeader({cardPreview, onUnfreezePress, onAskToUnfreezePress, c
     const frozenNeedsUnfreezePrefix = translate('cardPage.frozenByAdminNeedsUnfreezePrefix');
     const frozenNeedsUnfreezeSuffix = translate('cardPage.frozenByAdminNeedsUnfreezeSuffix');
 
-    const statusText = useMemo(() => {
-        if (isCurrentUser) {
-            return translate('cardPage.youFroze', {date: formattedDate});
-        }
-        if (isWorkspaceAdmin) {
-            if (!frozenByAccountID || !frozenByName) {
-                return `${adminFrozenTextPrefix}${translate('common.someone')}`;
-            }
+    let statusText: React.ReactNode;
 
-            return (
+    if (isCurrentUser) {
+        statusText = translate('cardPage.youFroze', {date: formattedDate});
+    } else if (isWorkspaceAdmin) {
+        if (!frozenByAccountID || !frozenByName) {
+            statusText = `${adminFrozenTextPrefix}${translate('common.someone')}`;
+        } else {
+            statusText = (
                 <>
                     {adminFrozenTextPrefix}
                     <TextLink
@@ -64,11 +63,10 @@ function FrozenCardHeader({cardPreview, onUnfreezePress, onAskToUnfreezePress, c
                 </>
             );
         }
-        if (!frozenByAccountID || !frozenByName) {
-            return translate('cardPage.frozenByAdminNeedsUnfreeze', {person: frozenByName || translate('common.someone')});
-        }
-
-        return (
+    } else if (!frozenByAccountID || !frozenByName) {
+        statusText = translate('cardPage.frozenByAdminNeedsUnfreeze', {person: frozenByName || translate('common.someone')});
+    } else {
+        statusText = (
             <>
                 {frozenNeedsUnfreezePrefix}
                 <TextLink
@@ -80,7 +78,7 @@ function FrozenCardHeader({cardPreview, onUnfreezePress, onAskToUnfreezePress, c
                 {frozenNeedsUnfreezeSuffix}
             </>
         );
-    }, [adminFrozenTextPrefix, frozenByAccountID, frozenByName, frozenNeedsUnfreezePrefix, frozenNeedsUnfreezeSuffix, isCurrentUser, isWorkspaceAdmin, styles.link, translate]);
+    }
 
     return (
         <View style={[styles.ph5, styles.pb5]}>
