@@ -4,29 +4,22 @@ import React, {useCallback, useEffect, useLayoutEffect, useRef, useState} from '
 import type {NativeEventSubscription} from 'react-native';
 import {AppState, Platform} from 'react-native';
 import Onyx from 'react-native-onyx';
-import DelegateNoAccessModalProvider from './components/DelegateNoAccessModalProvider';
-import EmojiPicker from './components/EmojiPicker/EmojiPicker';
-import GrowlNotification from './components/GrowlNotification';
 import {useInitialURLActions} from './components/InitialURLContextProvider';
-import ProactiveAppReviewModalManager from './components/ProactiveAppReviewModalManager';
-import ScreenShareRequestModal from './components/ScreenShareRequestModal';
 import AppleAuthWrapper from './components/SignInButtons/AppleAuthWrapper';
 import SplashScreenHider from './components/SplashScreenHider';
-import UpdateAppModal from './components/UpdateAppModal';
 import CONFIG from './CONFIG';
 import CONST from './CONST';
 import DeepLinkHandler from './DeepLinkHandler';
 import DelegateAccessHandler from './DelegateAccessHandler';
 import FullstoryInitHandler from './FullstoryInitHandler';
+import GlobalModals from './GlobalModals';
 import useDebugShortcut from './hooks/useDebugShortcut';
 import useIsAuthenticated from './hooks/useIsAuthenticated';
 import useLocalize from './hooks/useLocalize';
 import useOnyx from './hooks/useOnyx';
 import {updateLastRoute} from './libs/actions/App';
-import * as EmojiPickerAction from './libs/actions/EmojiPickerAction';
 import * as ActiveClientManager from './libs/ActiveClientManager';
 import {isSafari} from './libs/Browser';
-import {growlRef} from './libs/Growl';
 import Log from './libs/Log';
 import migrateOnyx from './libs/migrateOnyx';
 import Navigation from './libs/Navigation/Navigation';
@@ -37,8 +30,6 @@ import {endSpan, getSpan, startSpan} from './libs/telemetry/activeSpans';
 import {cleanupMemoryTrackingTelemetry, initializeMemoryTrackingTelemetry} from './libs/telemetry/TelemetrySynchronizer';
 import Visibility from './libs/Visibility';
 import ONYXKEYS from './ONYXKEYS';
-import PopoverReportActionContextMenu from './pages/inbox/report/ContextMenu/PopoverReportActionContextMenu';
-import * as ReportActionContextMenu from './pages/inbox/report/ContextMenu/ReportActionContextMenu';
 import PriorityModeHandler from './PriorityModeHandler';
 import type {Route} from './ROUTES';
 import {accountIDSelector} from './selectors/Session';
@@ -65,9 +56,8 @@ function Expensify() {
     const {preferredLocale} = useLocalize();
     const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
     const [lastRoute] = useOnyx(ONYXKEYS.LAST_ROUTE);
-    const [isCheckingPublicRoom = true] = useOnyx(ONYXKEYS.RAM_ONLY_IS_CHECKING_PUBLIC_ROOM);
-    const [updateAvailable] = useOnyx(ONYXKEYS.RAM_ONLY_UPDATE_AVAILABLE);
-    const [updateRequired] = useOnyx(ONYXKEYS.RAM_ONLY_UPDATE_REQUIRED);
+    const [isCheckingPublicRoom = true] = useOnyx(ONYXKEYS.IS_CHECKING_PUBLIC_ROOM, {initWithStoredValues: false});
+    const [updateRequired] = useOnyx(ONYXKEYS.UPDATE_REQUIRED, {initWithStoredValues: false});
     const [lastVisitedPath] = useOnyx(ONYXKEYS.LAST_VISITED_PATH);
 
     useDebugShortcut();
@@ -81,7 +71,7 @@ function Expensify() {
 
     const bootsplashSpan = useRef<Sentry.Span>(null);
 
-    const [initialUrl, setInitialUrl] = useState<Route | null | undefined>(undefined);
+    const [initialUrl, setInitialUrl] = useState<Route | null>(null);
     const {setIsAuthenticatedAtStartup} = useInitialURLActions();
 
     useEffect(() => {
@@ -223,7 +213,6 @@ function Expensify() {
                 const propsToLog = {
                     isCheckingPublicRoom,
                     updateRequired,
-                    updateAvailable,
                     isAuthenticated,
                     lastVisitedPath,
                 };
@@ -282,27 +271,13 @@ function Expensify() {
 
     return (
         <>
-            {shouldInit && (
-                <>
-                    <GrowlNotification ref={growlRef} />
-                    <DelegateNoAccessModalProvider>
-                        <PopoverReportActionContextMenu ref={ReportActionContextMenu.contextMenuRef} />
-                    </DelegateNoAccessModalProvider>
-                    <EmojiPicker ref={EmojiPickerAction.emojiPickerRef} />
-                    {/* We include the modal for showing a new update at the top level so the option is always present. */}
-                    {updateAvailable && !updateRequired ? <UpdateAppModal /> : null}
-                    {/* Proactive app review modal shown when user has completed a trigger action */}
-                    <ProactiveAppReviewModalManager />
-                    <ScreenShareRequestModal />
-                </>
-            )}
-
+            {shouldInit && <GlobalModals />}
             <PriorityModeHandler />
             <DelegateAccessHandler />
             <FullstoryInitHandler />
             <DeepLinkHandler onInitialUrl={setInitialUrl} />
             <AppleAuthWrapper />
-            {hasAttemptedToOpenPublicRoom && initialUrl !== undefined && (
+            {hasAttemptedToOpenPublicRoom && (
                 <NavigationRoot
                     onReady={setNavigationReady}
                     authenticated={isAuthenticated}
