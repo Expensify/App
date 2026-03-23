@@ -180,7 +180,7 @@ function handleActionButtonPress({
                 onDEWModalOpen?.();
                 return;
             }
-            approveMoneyRequestOnSearch(hash, item.reportID ? [item.reportID] : [], currentSearchKey);
+            approveMoneyRequestOnSearch(hash, item.reportID ? [item.reportID] : []);
             return;
         case CONST.SEARCH.ACTION_TYPES.SUBMIT: {
             if (snapshotReport.policyID && shouldRestrictUserBillableActions(snapshotReport.policyID, userBillingGraceEndPeriods)) {
@@ -648,7 +648,7 @@ function submitMoneyRequestOnSearch(hash: number, reportList: Report[], policy: 
     API.write(WRITE_COMMANDS.SUBMIT_REPORT, parameters, {optimisticData, successData, failureData});
 }
 
-function approveMoneyRequestOnSearch(hash: number, reportIDList: string[], currentSearchKey?: SearchKey) {
+function approveMoneyRequestOnSearch(hash: number, reportIDList: string[]) {
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_METADATA>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE_COLLECTION,
