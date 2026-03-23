@@ -28,13 +28,29 @@ type UseLoadReportActionsArguments = {
 
     /** If the report has older actions to load */
     hasOlderActions: boolean;
+
+    /** Enables newer pagination without a linked reportActionID and allows repeated scroll-based calls */
+    enableNewerPagination?: boolean;
+
+    /** Newest action ID from the last pagination response, used as cursor to avoid Pusher-delivered actions skipping gaps */
+    newestFetchedReportActionID?: string;
 };
 
 /**
  * Provides reusable logic to get the functions for loading older/newer reportActions.
  * Used in the report displaying components
  */
-function useLoadReportActions({reportID, reportActionID, reportActions, allReportActionIDs, transactionThreadReport, hasOlderActions, hasNewerActions}: UseLoadReportActionsArguments) {
+function useLoadReportActions({
+    reportID,
+    reportActionID,
+    reportActions,
+    allReportActionIDs,
+    transactionThreadReport,
+    hasOlderActions,
+    hasNewerActions,
+    enableNewerPagination = false,
+    newestFetchedReportActionID,
+}: UseLoadReportActionsArguments) {
     const didLoadOlderChats = useRef(false);
     const didLoadNewerChats = useRef(false);
 
@@ -115,14 +131,14 @@ function useLoadReportActions({reportID, reportActionID, reportActions, allRepor
         (force = false) => {
             if (
                 !force &&
-                (!reportActionID ||
+                ((!reportActionID && !enableNewerPagination) ||
                     !isFocused ||
                     !newestReportAction ||
                     !hasNewerActions ||
                     isOffline ||
                     // If there was an error only try again once on initial mount. We should also still load
                     // more in case we have cached messages.
-                    didLoadNewerChats.current ||
+                    (!enableNewerPagination && didLoadNewerChats.current) ||
                     newestReportAction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
             ) {
                 return;
@@ -130,15 +146,21 @@ function useLoadReportActions({reportID, reportActionID, reportActions, allRepor
 
             didLoadNewerChats.current = true;
 
+            // When enableNewerPagination is true, use the newest action from the pagination
+            // response asand it survives the merge even after fixing the middleware logic cursor (not newestReportAction which may include Pusher actions).
+            const newerCursorID = enableNewerPagination && newestFetchedReportActionID ? newestFetchedReportActionID : undefined;
+
             if (!isEmptyObject(transactionThreadReport)) {
-                getNewerActions(reportID, currentReportNewest?.reportActionID);
+                getNewerActions(reportID, newerCursorID ?? currentReportNewest?.reportActionID);
                 getNewerActions(transactionThreadReport.reportID, transactionThreadNewest?.reportActionID);
-            } else if (newestReportAction) {
-                getNewerActions(reportID, newestReportAction.reportActionID);
+            } else {
+                getNewerActions(reportID, newerCursorID ?? newestReportAction?.reportActionID);
             }
         },
         [
             reportActionID,
+            enableNewerPagination,
+            newestFetchedReportActionID,
             isFocused,
             newestReportAction,
             hasNewerActions,
