@@ -231,7 +231,7 @@ function CalendarPicker({
     return (
         <View style={[themeStyles.pb4]}>
             <View
-                style={[themeStyles.calendarHeader, themeStyles.flexRow, themeStyles.justifyContentBetween, themeStyles.alignItemsCenter, themeStyles.ph5, themeStyles.gap3]}
+                style={[themeStyles.calendarHeader, themeStyles.flexRow, themeStyles.justifyContentBetween, themeStyles.alignItemsCenter, themeStyles.ph3, themeStyles.gap3]}
                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
             >
                 <View style={[themeStyles.alignItemsCenter, themeStyles.flexRow, {flex: 3}]}>
