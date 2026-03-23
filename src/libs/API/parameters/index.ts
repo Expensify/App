@@ -301,7 +301,6 @@ export type {default as ReportExportParams} from './ReportExportParams';
 export type {default as MarkAsExportedParams} from './MarkAsExportedParams';
 export type {default as UpgradeToCorporateParams} from './UpgradeToCorporateParams';
 export type {default as DowngradeToTeamParams} from './DowngradeToTeamParams';
-export type {default as DeleteMoneyRequestOnSearchParams} from './DeleteMoneyRequestOnSearchParams';
 export type {default as RejectMoneyRequestInBulkParams} from './RejectMoneyRequestInBulkParams';
 export type {default as HoldMoneyRequestOnSearchParams} from './HoldMoneyRequestOnSearchParams';
 export type {default as ApproveMoneyRequestOnSearchParams} from './ApproveMoneyRequestOnSearchParams';
@@ -500,5 +499,7 @@ export type {default as DeleteVacationDelegateParams} from './DeleteVacationDele
 export type {default as SetTwoFactorAuthExemptEmailForDomainParams} from './SetTwoFactorAuthExemptEmailForDomainParams';
 export type {default as ResetDomainMemberTwoFactorAuthParams} from './ResetDomainMemberTwoFactorAuthParams';
 export type {default as AuthorizeTransactionParams} from './AuthorizeTransactionParams';
+export type {default as RevealCardPINParams} from './RevealCardPINParams';
 export type {default as DenyTransactionParams} from './DenyTransactionParams';
+export type {default as ChangeCardPINParams} from './ChangeCardPINParams';
 export type {default as ExportDomainMembersCSVParams} from './ExportDomainMembersCSVParams';

@@ -11,6 +11,8 @@ const SCENARIO_NAMES = {
     SET_PIN_ORDER_CARD: 'SET-PIN-ORDER-CARD',
     AUTHORIZE_TRANSACTION: 'AUTHORIZE-TRANSACTION',
     UNBLOCK_CARD_PIN: 'UNBLOCK-CARD-PIN',
+    REVEAL_PIN: 'REVEAL-PIN',
+    CHANGE_PIN: 'CHANGE-PIN',
 } as const;
 
 /**
@@ -18,6 +20,7 @@ const SCENARIO_NAMES = {
  */
 const PROMPT_NAMES = {
     BIOMETRICS: 'biometrics',
-};
+    PASSKEYS: 'passkeys',
+} as const;
 
 export {SCENARIO_NAMES, PROMPT_NAMES};
