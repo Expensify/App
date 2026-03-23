@@ -1,3 +1,4 @@
+import {useRoute} from '@react-navigation/native';
 import {Str} from 'expensify-common';
 import lodashDebounce from 'lodash/debounce';
 import noop from 'lodash/noop';
@@ -28,8 +29,11 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
+import useParentReportAction from '@hooks/useParentReportAction';
 import usePreferredPolicy from '@hooks/usePreferredPolicy';
 import useReportIsArchived from '@hooks/useReportIsArchived';
+import useReportTransactionsCollection from '@hooks/useReportTransactionsCollection';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useShortMentionsList from '@hooks/useShortMentionsList';
 import useShouldSuppressConciergeIndicators from '@hooks/useShouldSuppressConciergeIndicators';
@@ -44,16 +48,29 @@ import DomUtils from '@libs/DomUtils';
 import FS from '@libs/Fullstory';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {isEmailPublicDomain} from '@libs/LoginUtils';
+import {getAllNonDeletedTransactions} from '@libs/MoneyRequestReportUtils';
+import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {ReportsSplitNavigatorParamList} from '@libs/Navigation/types';
 import {rand64} from '@libs/NumberUtils';
 import {addDomainToShortMention} from '@libs/ParsingUtils';
-import {getLinkedTransactionID, getReportAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
+import {
+    getCombinedReportActions,
+    getFilteredReportActionsForReportView,
+    getLinkedTransactionID,
+    getOneTransactionThreadReportID,
+    getReportAction,
+    isMoneyRequestAction,
+    isSentMoneyReportAction,
+} from '@libs/ReportActionsUtils';
 import {
     canEditFieldOfMoneyRequest,
+    canEditReportAction,
     canShowReportRecipientLocalTime,
     canUserPerformWriteAction as canUserPerformWriteActionReportUtils,
     chatIncludesChronos,
     chatIncludesConcierge,
     getParentReport,
+    getReportOfflinePendingActionAndErrors,
     getReportRecipientAccountIDs,
     isChatRoom,
     isGroupChat,
@@ -76,13 +93,13 @@ import {addAttachmentWithComment, setIsComposerFullSize} from '@userActions/Repo
 import {isBlockedFromConcierge as isBlockedFromConciergeUserAction} from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
-import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import type {FileObject} from '@src/types/utils/Attachment';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import AttachmentPickerWithMenuItems from './AttachmentPickerWithMenuItems';
 import ComposerWithSuggestions from './ComposerWithSuggestions';
-import type {ComposerRef, ComposerWithSuggestionsProps} from './ComposerWithSuggestions/ComposerWithSuggestions';
+import type {ComposerRef} from './ComposerWithSuggestions/ComposerWithSuggestions';
 import SendButton from './SendButton';
 import useAttachmentUploadValidation from './useAttachmentUploadValidation';
 
@@ -96,24 +113,9 @@ type SuggestionsRef = {
     getIsSuggestionsMenuVisible: () => boolean;
 };
 
-type ReportActionComposeProps = Pick<ComposerWithSuggestionsProps, 'reportID' | 'isComposerFullSize' | 'lastReportAction'> & {
-    /** The report currently being looked at */
-    report: OnyxEntry<OnyxTypes.Report>;
-
-    /** The ID of the transaction thread report if there is a single transaction */
-    transactionThreadReportID?: string;
-
-    /** Report transactions */
-    reportTransactions?: OnyxEntry<OnyxTypes.Transaction[]>;
-
-    /** The type of action that's pending  */
-    pendingAction?: OnyxCommon.PendingAction;
-
-    /** A method to call when the input is focus */
-    onComposerFocus?: () => void;
-
-    /** A method to call when the input is blur */
-    onComposerBlur?: () => void;
+type ReportActionComposeProps = {
+    /** The ID of the report this composer is for */
+    reportID: string;
 };
 
 function AgentZeroAwareTypingIndicator({reportID}: {reportID: string}) {
@@ -133,17 +135,7 @@ const willBlurTextInputOnTapOutside = willBlurTextInputOnTapOutsideFunc();
 // eslint-disable-next-line import/no-mutable-exports
 let onSubmitAction = noop;
 
-function ReportActionCompose({
-    isComposerFullSize = false,
-    pendingAction,
-    report,
-    reportID,
-    lastReportAction,
-    onComposerFocus,
-    onComposerBlur,
-    reportTransactions,
-    transactionThreadReportID,
-}: ReportActionComposeProps) {
+function ReportActionCompose({reportID}: ReportActionComposeProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
@@ -163,6 +155,32 @@ function ReportActionCompose({
     const {availableLoginsList} = useShortMentionsList();
     const currentUserEmail = currentUserPersonalDetails.email ?? '';
     const {isRestrictedToPreferredPolicy} = usePreferredPolicy();
+
+    const route = useRoute<PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>>();
+    const reportActionIDFromRoute = route?.params?.reportActionID;
+
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+    const [isComposerFullSize = false] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${reportID}`);
+
+    const {reportActions: unfilteredReportActions} = usePaginatedReportActions(reportID, reportActionIDFromRoute);
+    const filteredReportActions = getFilteredReportActionsForReportView(unfilteredReportActions);
+
+    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.chatReportID}`);
+    const allReportTransactions = useReportTransactionsCollection(reportID);
+    const reportTransactions = getAllNonDeletedTransactions(allReportTransactions, filteredReportActions, isOffline, true);
+    const visibleTransactions = reportTransactions?.filter((transaction) => isOffline || transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+    const reportTransactionIDs = visibleTransactions?.map((t) => t.transactionID);
+    const isSentMoneyReport = filteredReportActions.some((action) => isSentMoneyReportAction(action));
+    const transactionThreadReportID = isSentMoneyReport ? undefined : getOneTransactionThreadReportID(report, chatReport, filteredReportActions, isOffline, reportTransactionIDs);
+
+    const parentReportActionForEdit = useParentReportAction(report);
+    const [transactionThreadReportActionsRaw] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`);
+    const transactionThreadReportActions = transactionThreadReportActionsRaw ? Object.values(transactionThreadReportActionsRaw) : [];
+    const combinedReportActions = getCombinedReportActions(filteredReportActions, transactionThreadReportID ?? null, transactionThreadReportActions);
+    const lastReportAction = [...combinedReportActions, parentReportActionForEdit].find((action) => canEditReportAction(action) && !isMoneyRequestAction(action));
+
+    const {reportPendingAction: pendingAction} = getReportOfflinePendingActionAndErrors(report);
+
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`);
     const [initialModalState] = useOnyx(ONYXKEYS.MODAL);
     const [newParentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`);
@@ -450,25 +468,20 @@ function ReportActionCompose({
         isKeyboardVisibleWhenShowingModalRef.current = true;
     }, []);
 
-    const onBlur = useCallback(
-        (event: BlurEvent) => {
-            const webEvent = event as unknown as FocusEvent;
-            setIsFocused(false);
-            onComposerBlur?.();
-            if (suggestionsRef.current) {
-                suggestionsRef.current.resetSuggestions();
-            }
-            if (webEvent.relatedTarget && webEvent.relatedTarget === actionButtonRef.current) {
-                isKeyboardVisibleWhenShowingModalRef.current = true;
-            }
-        },
-        [onComposerBlur],
-    );
+    const onBlur = useCallback((event: BlurEvent) => {
+        const webEvent = event as unknown as FocusEvent;
+        setIsFocused(false);
+        if (suggestionsRef.current) {
+            suggestionsRef.current.resetSuggestions();
+        }
+        if (webEvent.relatedTarget && webEvent.relatedTarget === actionButtonRef.current) {
+            isKeyboardVisibleWhenShowingModalRef.current = true;
+        }
+    }, []);
 
     const onFocus = useCallback(() => {
         setIsFocused(true);
-        onComposerFocus?.();
-    }, [onComposerFocus]);
+    }, []);
 
     useEffect(() => {
         if (hasExceededMaxTaskTitleLength) {
@@ -609,6 +622,10 @@ function ReportActionCompose({
         isAttachmentPreviewActive,
         setIsAttachmentPreviewActive,
     });
+
+    if (!report) {
+        return null;
+    }
 
     const fsClass = FS.getChatFSClass(report);
 

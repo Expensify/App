@@ -43,9 +43,7 @@ TestHelper.setupGlobalFetchMock();
 
 const defaultReport = LHNTestUtils.getFakeReport();
 const defaultProps: ReportActionComposeProps = {
-    isComposerFullSize: false,
     reportID: defaultReport.reportID,
-    report: defaultReport,
 };
 
 const renderReportActionCompose = (props?: Partial<ReportActionComposeProps>) => {

@@ -50,21 +50,17 @@ import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import clearReportNotifications from '@libs/Notification/clearReportNotifications';
 import {
-    getCombinedReportActions,
     getFilteredReportActionsForReportView,
     getIOUActionForReportID,
     getOneTransactionThreadReportID,
     isCreatedAction,
     isDeletedParentAction,
-    isMoneyRequestAction,
     isReportActionVisible,
-    isSentMoneyReportAction,
     isTransactionThread,
     isWhisperAction,
 } from '@libs/ReportActionsUtils';
 import {getReportName} from '@libs/ReportNameUtils';
 import {
-    canEditReportAction,
     canUserPerformWriteAction,
     findLastAccessedReport,
     getReportOfflinePendingActionAndErrors,
@@ -105,7 +101,7 @@ import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import {reportByIDsSelector} from '@src/selectors/Attributes';
 import type * as OnyxTypes from '@src/types/onyx';
-import {getEmptyObject, isEmptyObject} from '@src/types/utils/EmptyObject';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import AccountManagerBanner from './AccountManagerBanner';
 import {AgentZeroStatusProvider} from './AgentZeroStatusContext';
 import DeleteTransactionNavigateBackHandler from './DeleteTransactionNavigateBackHandler';
@@ -333,10 +329,6 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
 
     const transactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, reportActions ?? [], isOffline, reportTransactionIDs);
     const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`);
-    const [transactionThreadReportActions = getEmptyObject<OnyxTypes.ReportActions>()] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`);
-    const combinedReportActions = getCombinedReportActions(reportActions, transactionThreadReportID ?? null, Object.values(transactionThreadReportActions));
-    const isSentMoneyReport = useMemo(() => reportActions.some((action) => isSentMoneyReportAction(action)), [reportActions]);
-    const lastReportAction = [...combinedReportActions, parentReportAction].find((action) => canEditReportAction(action) && !isMoneyRequestAction(action));
     const isTopMostReportId = currentReportIDValue === reportIDFromRoute;
     const didSubscribeToReportLeavingEvents = useRef(false);
     const isTransactionThreadView = isReportTransactionThread(report);
@@ -1057,15 +1049,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
                                                     reportPendingAction={reportPendingAction}
                                                 />
                                             ) : null}
-                                            {isCurrentReportLoadedFromOnyx ? (
-                                                <ReportFooter
-                                                    report={report}
-                                                    lastReportAction={lastReportAction}
-                                                    reportTransactions={reportTransactions}
-                                                    // If the report is from the 'Send Money' flow, we add the comment to the `iou` report because for these we don't combine reportActions even if there is a single transaction (they always have a single transaction)
-                                                    transactionThreadReportID={isSentMoneyReport ? undefined : transactionThreadReportID}
-                                                />
-                                            ) : null}
+                                            {isCurrentReportLoadedFromOnyx ? <ReportFooter report={report} /> : null}
                                         </View>
                                     </AgentZeroStatusProvider>
                                 </View>

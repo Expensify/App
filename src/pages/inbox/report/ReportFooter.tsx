@@ -19,7 +19,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {
     canUserPerformWriteAction,
     canWriteInReport as canWriteInReportUtil,
-    getReportOfflinePendingActionAndErrors,
     isAdminsOnlyPostingRoom as isAdminsOnlyPostingRoomUtil,
     isArchivedNonExpenseReport,
     isPublicRoom,
@@ -37,24 +36,9 @@ const isLoadingInitialReportActionsSelector = (reportMetadata: OnyxEntry<OnyxTyp
 type ReportFooterProps = {
     /** Report object for the current report */
     report?: OnyxTypes.Report;
-
-    /** Report transactions */
-    reportTransactions?: OnyxEntry<OnyxTypes.Transaction[]>;
-
-    /** The ID of the transaction thread report if there is a single transaction */
-    transactionThreadReportID?: string;
-
-    /** The last report action */
-    lastReportAction?: OnyxEntry<OnyxTypes.ReportAction>;
-
-    /** A method to call when the input is focus */
-    onComposerFocus?: () => void;
-
-    /** A method to call when the input is blur */
-    onComposerBlur?: () => void;
 };
 
-function ReportFooter({lastReportAction, report = {reportID: '-1'}, onComposerBlur, onComposerFocus, reportTransactions, transactionThreadReportID}: ReportFooterProps) {
+function ReportFooter({report = {reportID: '-1'}}: ReportFooterProps) {
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
@@ -75,7 +59,6 @@ function ReportFooter({lastReportAction, report = {reportID: '-1'}, onComposerBl
         selector: isLoadingInitialReportActionsSelector,
     });
 
-    const {reportPendingAction} = getReportOfflinePendingActionAndErrors(report);
     const isUserPolicyAdmin = policyRole === CONST.POLICY.ROLE.ADMIN;
     const chatFooterStyles = {...styles.chatFooter, minHeight: !isOffline ? CONST.CHAT_FOOTER_MIN_HEIGHT : 0};
     const isReportArchived = useReportIsArchived(report?.reportID);
@@ -119,17 +102,7 @@ function ReportFooter({lastReportAction, report = {reportID: '-1'}, onComposerBl
             {!shouldHideComposer && (!!shouldShowComposeInput || !isSmallScreenWidth) && (
                 <View style={[chatFooterStyles, isComposerFullSize && styles.chatFooterFullCompose]}>
                     <SwipeableView onSwipeDown={Keyboard.dismiss}>
-                        <ReportActionCompose
-                            onComposerFocus={onComposerFocus}
-                            onComposerBlur={onComposerBlur}
-                            reportID={report.reportID}
-                            report={report}
-                            lastReportAction={lastReportAction}
-                            pendingAction={reportPendingAction}
-                            isComposerFullSize={isComposerFullSize}
-                            reportTransactions={reportTransactions}
-                            transactionThreadReportID={transactionThreadReportID}
-                        />
+                        <ReportActionCompose reportID={report.reportID} />
                     </SwipeableView>
                 </View>
             )}
