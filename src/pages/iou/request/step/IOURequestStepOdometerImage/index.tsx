@@ -94,9 +94,6 @@ function IOURequestStepOdometerImage({
     };
 
     const {validateFiles, ErrorModal} = useFilesValidation((files: FileObject[]) => {
-        if (files.length === 0) {
-            return;
-        }
         const file = files.at(0);
         if (!file) {
             return;
@@ -229,11 +226,11 @@ function IOURequestStepOdometerImage({
         const viewFinderHeight = viewfinderLayout.current?.height ?? NaN;
         const shouldAlignTop = videoHeight > viewFinderHeight;
         cropImageToAspectRatio(imageObject, viewfinderLayout.current?.width, viewfinderLayout.current?.height, shouldAlignTop)
-            .then(({source}) => {
+            .then(({file, source}) => {
                 if (source !== imageObject.source) {
                     URL.revokeObjectURL(imageObject.source);
                 }
-                setMoneyRequestOdometerImage(transactionID, imageType, source, isTransactionDraft);
+                setMoneyRequestOdometerImage(transactionID, imageType, file ?? source, isTransactionDraft);
                 navigateBack();
             })
             .catch((error: unknown) => {

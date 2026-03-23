@@ -13,7 +13,6 @@ import Checkbox from '@components/Checkbox';
 import DecisionModal from '@components/DecisionModal';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import FlatListWithScrollKey from '@components/FlatList/FlatListWithScrollKey';
-import {AUTOSCROLL_TO_TOP_THRESHOLD} from '@components/FlatList/hooks/useFlatListScrollKey';
 import HoldOrRejectEducationalModal from '@components/HoldOrRejectEducationalModal';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -35,6 +34,7 @@ import usePrevious from '@hooks/usePrevious';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useReportScrollManager from '@hooks/useReportScrollManager';
 import useResponsiveLayoutOnWideRHP from '@hooks/useResponsiveLayoutOnWideRHP';
+import useScrollToEndOnNewMessageReceived from '@hooks/useScrollToEndOnNewMessageReceived';
 import useSelectedTransactionsActions from '@hooks/useSelectedTransactionsActions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -59,6 +59,7 @@ import {
     wasMessageReceivedWhileOffline,
 } from '@libs/ReportActionsUtils';
 import {canUserPerformWriteAction, chatIncludesChronosWithID, getOriginalReportID, getReportLastVisibleActionCreated, isHarvestCreatedExpenseReport, isUnread} from '@libs/ReportUtils';
+import shouldPopoverUseScrollView from '@libs/shouldPopoverUseScrollView';
 import markOpenReportEnd from '@libs/telemetry/markOpenReportEnd';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {isTransactionPendingDelete} from '@libs/TransactionUtils';
@@ -158,15 +159,18 @@ function MoneyRequestReportActionsList({
 
     const parentReportAction = useParentReportAction(report);
 
-    const [userWalletTierName] = useOnyx(ONYXKEYS.USER_WALLET, {selector: tierNameSelector});
-    const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isUserValidatedSelector});
+    const [userWalletTierName] = useOnyx(ONYXKEYS.USER_WALLET, {
+        selector: tierNameSelector,
+    });
+    const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {
+        selector: isUserValidatedSelector,
+    });
     const [userBillingFundID] = useOnyx(ONYXKEYS.NVP_BILLING_FUND_ID);
     const personalDetails = usePersonalDetails();
-    const [emojiReactions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}`);
-    const [draftMessage] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}`);
     const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT);
     const isTryNewDotNVPDismissed = !!tryNewDot?.classicRedirect?.dismissed;
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
 
@@ -245,8 +249,12 @@ function MoneyRequestReportActionsList({
     const onDeleteSelected = useCallback(
         (handleDeleteTransactions: () => void, handleDeleteTransactionsWithNavigation: (backToRoute?: Route) => void) => {
             showConfirmModal({
-                title: translate('iou.deleteExpense', {count: selectedTransactionIDs.length}),
-                prompt: translate('iou.deleteConfirmation', {count: selectedTransactionIDs.length}),
+                title: translate('iou.deleteExpense', {
+                    count: selectedTransactionIDs.length,
+                }),
+                prompt: translate('iou.deleteConfirmation', {
+                    count: selectedTransactionIDs.length,
+                }),
                 confirmText: translate('common.delete'),
                 cancelText: translate('common.cancel'),
                 danger: true,
@@ -306,11 +314,17 @@ function MoneyRequestReportActionsList({
         });
     }, [originalSelectedTransactionsOptions, dismissedRejectUseExplanation, isDelegateAccessRestricted, showDelegateNoAccessModal]);
 
+    const popoverUseScrollView = shouldPopoverUseScrollView(selectedTransactionsOptions);
+
     const dismissRejectModalBasedOnAction = useCallback(() => {
         if (rejectModalAction === CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.REJECT_BULK) {
             dismissRejectUseExplanation();
             if (report?.reportID) {
-                Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT_REJECT_TRANSACTIONS.getRoute({reportID: report.reportID}));
+                Navigation.navigate(
+                    ROUTES.SEARCH_MONEY_REQUEST_REPORT_REJECT_TRANSACTIONS.getRoute({
+                        reportID: report.reportID,
+                    }),
+                );
             }
         }
         setRejectModalAction(null);
@@ -357,10 +371,7 @@ function MoneyRequestReportActionsList({
         markOpenReportEnd(report, {warm: false});
     }, [report, shouldShowOpenReportLoadingSkeleton]);
 
-    const reportActionSize = useRef(visibleReportActions.length);
     const lastAction = visibleReportActions.at(-1);
-    const lastActionIndex = lastAction?.reportActionID;
-    const previousLastIndex = useRef(lastActionIndex);
 
     const {scrollOffsetRef} = useContext(ActionListContext);
     const scrollingVerticalBottomOffset = useRef(0);
@@ -369,7 +380,6 @@ function MoneyRequestReportActionsList({
     const readActionSkipped = useRef(false);
     const lastVisibleActionCreated = getReportLastVisibleActionCreated(report, transactionThreadReport);
     const hasNewestReportAction = lastAction?.created === lastVisibleActionCreated;
-    const hasNewestReportActionRef = useRef(hasNewestReportAction);
     const userActiveSince = useRef<string>(DateUtils.getDBTime());
 
     const reportActionIDs = useMemo(() => {
@@ -403,7 +413,9 @@ function MoneyRequestReportActionsList({
 
     const visibleActionsMap = useMemo(() => {
         return visibleReportActions.reduce((actionsMap, reportAction) => {
-            Object.assign(actionsMap, {[reportAction.reportActionID]: reportAction});
+            Object.assign(actionsMap, {
+                [reportAction.reportActionID]: reportAction,
+            });
             return actionsMap;
         }, {} as OnyxTypes.ReportActions);
     }, [visibleReportActions]);
@@ -560,21 +572,16 @@ function MoneyRequestReportActionsList({
         hasOnceLoadedReportActions: !!reportMetadata?.hasOnceLoadedReportActions,
     });
 
-    useEffect(() => {
-        if (
-            scrollingVerticalBottomOffset.current < AUTOSCROLL_TO_TOP_THRESHOLD &&
-            previousLastIndex.current !== lastActionIndex &&
-            reportActionSize.current > reportActions.length &&
-            hasNewestReportAction
-        ) {
-            setIsFloatingMessageCounterVisible(false);
-            reportScrollManager.scrollToEnd();
-        }
-
-        previousLastIndex.current = lastActionIndex;
-        reportActionSize.current = visibleReportActions.length;
-        hasNewestReportActionRef.current = hasNewestReportAction;
-    }, [lastActionIndex, reportActions.length, reportScrollManager, hasNewestReportAction, visibleReportActions.length, setIsFloatingMessageCounterVisible]);
+    useScrollToEndOnNewMessageReceived({
+        sizeChangeType: 'grewFromReportActions',
+        scrollOffsetRef,
+        lastActionID: lastAction?.reportActionID,
+        visibleActionsLength: visibleReportActions.length,
+        reportActionsLength: reportActions.length,
+        hasNewestReportAction,
+        setIsFloatingMessageCounterVisible,
+        scrollToEnd: reportScrollManager.scrollToEnd,
+    });
 
     /**
      * Subscribe to read/unread events and update our unreadMarkerTime
@@ -668,14 +675,10 @@ function MoneyRequestReportActionsList({
     const renderItem = useCallback(
         ({item: reportAction, index}: ListRenderItemInfo<OnyxTypes.ReportAction>) => {
             const displayAsGroup =
-                !isConsecutiveChronosAutomaticTimerAction(visibleReportActions, index, chatIncludesChronosWithID(reportAction?.reportID)) &&
-                hasNextActionMadeBySameActor(visibleReportActions, index);
+                !isConsecutiveChronosAutomaticTimerAction(visibleReportActions, index, chatIncludesChronosWithID(reportAction?.reportID), isOffline) &&
+                hasNextActionMadeBySameActor(visibleReportActions, index, isOffline);
 
-            const actionEmojiReactions = emojiReactions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${reportAction.reportActionID}`];
             const originalReportID = getOriginalReportID(report.reportID, reportAction, reportActionsObject);
-            const reportDraftMessages = draftMessage?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${originalReportID}`];
-            const matchingDraftMessage = reportDraftMessages?.[reportAction.reportActionID];
-            const matchingDraftMessageString = matchingDraftMessage?.message;
 
             return (
                 <ReportActionsListItemRenderer
@@ -696,9 +699,8 @@ function MoneyRequestReportActionsList({
                     isUserValidated={isUserValidated}
                     personalDetails={personalDetails}
                     userBillingFundID={userBillingFundID}
-                    emojiReactions={actionEmojiReactions}
+                    originalReportID={originalReportID}
                     isReportArchived={isReportArchived}
-                    draftMessage={matchingDraftMessageString}
                     isTryNewDotNVPDismissed={isTryNewDotNVPDismissed}
                     reportNameValuePairsOrigin={reportNameValuePairs?.origin}
                     reportNameValuePairsOriginalID={reportNameValuePairs?.originalID}
@@ -710,6 +712,7 @@ function MoneyRequestReportActionsList({
             reportActionsObject,
             parentReportAction,
             report,
+            isOffline,
             transactionThreadReport,
             mostRecentIOUReportActionID,
             unreadMarkerReportActionID,
@@ -719,8 +722,6 @@ function MoneyRequestReportActionsList({
             isUserValidated,
             personalDetails,
             userBillingFundID,
-            emojiReactions,
-            draftMessage,
             isTryNewDotNVPDismissed,
             isReportArchived,
             reportNameValuePairs?.origin,
@@ -732,7 +733,7 @@ function MoneyRequestReportActionsList({
         setIsFloatingMessageCounterVisible(false);
 
         if (!hasNewestReportAction) {
-            openReport({reportID: report.reportID, introSelected});
+            openReport({reportID: report.reportID, introSelected, betas});
             reportScrollManager.scrollToEnd();
             return;
         }
@@ -740,7 +741,7 @@ function MoneyRequestReportActionsList({
         reportScrollManager.scrollToEnd();
         readActionSkipped.current = false;
         readNewestAction(report.reportID, !!reportMetadata?.hasOnceLoadedReportActions);
-    }, [setIsFloatingMessageCounterVisible, hasNewestReportAction, reportScrollManager, report.reportID, reportMetadata?.hasOnceLoadedReportActions]);
+    }, [setIsFloatingMessageCounterVisible, hasNewestReportAction, reportScrollManager, report.reportID, reportMetadata?.hasOnceLoadedReportActions, introSelected, betas]);
 
     const scrollToNewTransaction = useCallback(
         (pageY: number) => {
@@ -797,9 +798,12 @@ function MoneyRequestReportActionsList({
                     <ButtonWithDropdownMenu
                         onPress={() => null}
                         options={selectedTransactionsOptions}
-                        customText={translate('workspace.common.selected', {count: selectedTransactionIDs.length})}
+                        customText={translate('workspace.common.selected', {
+                            count: selectedTransactionIDs.length,
+                        })}
                         isSplitButton={false}
                         shouldAlwaysShowDropdownMenu
+                        shouldPopoverUseScrollView={popoverUseScrollView}
                         wrapperStyle={[styles.w100, styles.ph5]}
                     />
                     <View style={[styles.alignItemsCenter, styles.userSelectNone, styles.flexRow, styles.pt6, styles.ph8, styles.pb3]}>

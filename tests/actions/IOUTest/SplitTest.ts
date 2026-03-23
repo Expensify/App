@@ -31,6 +31,7 @@ import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import DateUtils from '@src/libs/DateUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type {Policy, PolicyTagLists, RecentlyUsedTags, Report, ReportNameValuePairs, SearchResults} from '@src/types/onyx';
 import type {Participant as IOUParticipant, SplitExpense} from '@src/types/onyx/IOU';
 import type {CurrentUserPersonalDetails, PersonalDetailsList} from '@src/types/onyx/PersonalDetails';
@@ -79,6 +80,7 @@ jest.mock('@src/libs/actions/Report', () => {
     return {
         ...originalModule,
         notifyNewAction: jest.fn(),
+        setDeleteTransactionNavigateBackUrl: jest.fn(),
     };
 });
 
@@ -2063,6 +2065,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
             currentUserEmailParam: CARLOS_EMAIL,
             isSelfTourViewed: false,
+            hasActiveAdminPolicies: false,
         });
         setWorkspaceApprovalMode(policyID, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC);
         await waitForBatchedUpdates();
@@ -2264,6 +2267,256 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
         const isDeleted = report === null || report === undefined || report?.pendingFields?.preview === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
         expect(isDeleted).toBe(true);
     });
+
+    it('should set navigate-back URL and navigate to parent chat when reverse-split deletes the last transaction in expense report', async () => {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+        const Navigation = jest.requireMock('@src/libs/Navigation/Navigation');
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+        const Report = jest.requireMock('@src/libs/actions/Report');
+
+        // Given an expense report that is the only transaction in its parent chat,
+        // with an existing child transaction from a previous split (in a different report),
+        // so the expense report will be deleted when the reverse split happens
+        const chatReport: Report = {
+            ...createRandomReport(10, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
+        };
+        const expenseReport: Report = {
+            ...createRandomReport(11, undefined),
+            type: CONST.REPORT.TYPE.EXPENSE,
+            chatReportID: chatReport.reportID,
+            parentReportID: chatReport.reportID,
+        };
+        const originalTransaction: Transaction = {
+            amount: 10000,
+            currency: 'USD',
+            transactionID: 'orig-nav-1',
+            reportID: expenseReport.reportID,
+            created: DateUtils.getDBTime(),
+            merchant: 'test',
+        };
+        const childReport: Report = {
+            ...createRandomReport(12, undefined),
+            type: CONST.REPORT.TYPE.EXPENSE,
+        };
+        const childTransaction: Transaction = {
+            amount: 5000,
+            currency: 'USD',
+            transactionID: 'child-nav-1',
+            reportID: childReport.reportID,
+            created: DateUtils.getDBTime(),
+            merchant: 'test',
+            comment: {
+                originalTransactionID: originalTransaction.transactionID,
+                source: CONST.IOU.TYPE.SPLIT,
+            },
+        };
+
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`, chatReport);
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport);
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${childReport.reportID}`, childReport);
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransaction.transactionID}`, originalTransaction);
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${childTransaction.transactionID}`, childTransaction);
+
+        let allTransactions: OnyxCollection<Transaction>;
+        let allReports: OnyxCollection<Report>;
+        let allReportNameValuePairs: OnyxCollection<ReportNameValuePairs>;
+        await getOnyxData({
+            key: ONYXKEYS.COLLECTION.TRANSACTION,
+            waitForCollectionCallback: true,
+            callback: (value) => {
+                allTransactions = value;
+            },
+        });
+        await getOnyxData({
+            key: ONYXKEYS.COLLECTION.REPORT,
+            waitForCollectionCallback: true,
+            callback: (value) => {
+                allReports = value;
+            },
+        });
+        await getOnyxData({
+            key: ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS,
+            waitForCollectionCallback: true,
+            callback: (value) => {
+                allReportNameValuePairs = value;
+            },
+        });
+
+        const reportID1 = expenseReport.reportID;
+        const policyTags1 = await getPolicyTags(reportID1);
+        const reports1 = getTransactionAndExpenseReports(reportID1);
+
+        // When the user reduces splits to 1 (triggering a reverse-split that will delete the expense report)
+        updateSplitTransactionsFromSplitExpensesFlow({
+            allTransactionsList: allTransactions,
+            allReportsList: allReports,
+            allReportNameValuePairsList: allReportNameValuePairs,
+            transactionData: {
+                reportID: reportID1,
+                originalTransactionID: originalTransaction.transactionID,
+                splitExpenses: [{transactionID: childTransaction.transactionID, amount: 10000, created: DateUtils.getDBTime()}],
+            },
+            searchContext: {
+                currentSearchHash: -2,
+            },
+            policyCategories: undefined,
+            policy: undefined,
+            policyRecentlyUsedCategories: [],
+            iouReport: expenseReport,
+            firstIOU: undefined,
+            isASAPSubmitBetaEnabled: false,
+            currentUserPersonalDetails,
+            transactionViolations: {},
+            policyRecentlyUsedCurrencies: [],
+            quickAction: undefined,
+            iouReportNextStep: undefined,
+            betas: [CONST.BETAS.ALL],
+            policyTags: policyTags1,
+            personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
+            transactionReport: reports1.transactionReport,
+            expenseReport: reports1.expenseReport,
+        });
+
+        await waitForBatchedUpdates();
+
+        // Then setDeleteTransactionNavigateBackUrl should be called with the parent chat route
+        // because the expense report is being deleted and we need to suppress the "Not here" page
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+        expect(Report.setDeleteTransactionNavigateBackUrl).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(chatReport.reportID));
+
+        // Then navigation should go to the parent chat report instead of the deleted expense report
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+        expect(Navigation.dismissModalWithReport).toHaveBeenCalledWith({reportID: chatReport.reportID});
+    });
+
+    it('should navigate to expense report normally when reverse-split is not the last transaction', async () => {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+        const Navigation = jest.requireMock('@src/libs/Navigation/Navigation');
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+        const Report = jest.requireMock('@src/libs/actions/Report');
+
+        // Given an expense report with two transactions (so it won't be deleted by the reverse split),
+        // and one of those transactions has an existing child from a previous split
+        const chatReport: Report = {
+            ...createRandomReport(20, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
+        };
+        const expenseReport: Report = {
+            ...createRandomReport(21, undefined),
+            type: CONST.REPORT.TYPE.EXPENSE,
+            chatReportID: chatReport.reportID,
+            parentReportID: chatReport.reportID,
+        };
+        const originalTransaction: Transaction = {
+            amount: 10000,
+            currency: 'USD',
+            transactionID: 'orig-nav-2',
+            reportID: expenseReport.reportID,
+            created: DateUtils.getDBTime(),
+            merchant: 'test',
+        };
+        const otherTransaction: Transaction = {
+            amount: 5000,
+            currency: 'USD',
+            transactionID: 'other-nav-2',
+            reportID: expenseReport.reportID,
+            created: DateUtils.getDBTime(),
+            merchant: 'other test',
+        };
+        const childReport: Report = {
+            ...createRandomReport(22, undefined),
+            type: CONST.REPORT.TYPE.EXPENSE,
+        };
+        const childTransaction: Transaction = {
+            amount: 5000,
+            currency: 'USD',
+            transactionID: 'child-nav-2',
+            reportID: childReport.reportID,
+            created: DateUtils.getDBTime(),
+            merchant: 'test',
+            comment: {
+                originalTransactionID: originalTransaction.transactionID,
+                source: CONST.IOU.TYPE.SPLIT,
+            },
+        };
+
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`, chatReport);
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport);
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${childReport.reportID}`, childReport);
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransaction.transactionID}`, originalTransaction);
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${otherTransaction.transactionID}`, otherTransaction);
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${childTransaction.transactionID}`, childTransaction);
+
+        let allTransactions: OnyxCollection<Transaction>;
+        let allReports: OnyxCollection<Report>;
+        let allReportNameValuePairs: OnyxCollection<ReportNameValuePairs>;
+        await getOnyxData({
+            key: ONYXKEYS.COLLECTION.TRANSACTION,
+            waitForCollectionCallback: true,
+            callback: (value) => {
+                allTransactions = value;
+            },
+        });
+        await getOnyxData({
+            key: ONYXKEYS.COLLECTION.REPORT,
+            waitForCollectionCallback: true,
+            callback: (value) => {
+                allReports = value;
+            },
+        });
+        await getOnyxData({
+            key: ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS,
+            waitForCollectionCallback: true,
+            callback: (value) => {
+                allReportNameValuePairs = value;
+            },
+        });
+
+        const reportID2 = expenseReport.reportID;
+        const policyTags2 = await getPolicyTags(reportID2);
+        const reports2 = getTransactionAndExpenseReports(reportID2);
+
+        // When the user reduces splits to 1 (triggering a reverse-split, but the expense report still has another transaction)
+        updateSplitTransactionsFromSplitExpensesFlow({
+            allTransactionsList: allTransactions,
+            allReportsList: allReports,
+            allReportNameValuePairsList: allReportNameValuePairs,
+            transactionData: {
+                reportID: reportID2,
+                originalTransactionID: originalTransaction.transactionID,
+                splitExpenses: [{transactionID: childTransaction.transactionID, amount: 10000, created: DateUtils.getDBTime()}],
+            },
+            searchContext: {
+                currentSearchHash: -2,
+            },
+            policyCategories: undefined,
+            policy: undefined,
+            policyRecentlyUsedCategories: [],
+            iouReport: expenseReport,
+            firstIOU: undefined,
+            isASAPSubmitBetaEnabled: false,
+            currentUserPersonalDetails,
+            transactionViolations: {},
+            policyRecentlyUsedCurrencies: [],
+            quickAction: undefined,
+            iouReportNextStep: undefined,
+            betas: [CONST.BETAS.ALL],
+            policyTags: policyTags2,
+            personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
+            transactionReport: reports2.transactionReport,
+            expenseReport: reports2.expenseReport,
+        });
+
+        await waitForBatchedUpdates();
+
+        // Then setDeleteTransactionNavigateBackUrl should not be called because the expense report
+        // still has other transactions and won't be deleted
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+        expect(Report.setDeleteTransactionNavigateBackUrl).not.toHaveBeenCalled();
+
+        // Then navigation should go to the expense report since it still exists
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+        expect(Navigation.dismissModalWithReport).toHaveBeenCalledWith({reportID: expenseReport.reportID});
+    });
 });
 
 describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
@@ -2283,6 +2536,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
             currentUserEmailParam: CARLOS_EMAIL,
             isSelfTourViewed: false,
+            hasActiveAdminPolicies: false,
         });
 
         // Change the approval mode for the policy since default is Submit and Close
@@ -2456,6 +2710,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             currentUserAccountIDParam: RORY_ACCOUNT_ID,
             currentUserEmailParam: RORY_EMAIL,
             isSelfTourViewed: false,
+            hasActiveAdminPolicies: false,
         });
 
         // Change the approval mode for the policy since default is Submit and Close
@@ -2633,6 +2888,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
             currentUserEmailParam: CARLOS_EMAIL,
             isSelfTourViewed: false,
+            hasActiveAdminPolicies: false,
         });
 
         setWorkspaceApprovalMode(policyID, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC);
@@ -2819,6 +3075,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
             currentUserEmailParam: CARLOS_EMAIL,
             isSelfTourViewed: false,
+            hasActiveAdminPolicies: false,
         });
 
         // Change the approval mode for the policy since default is Submit and Close
@@ -3082,6 +3339,7 @@ describe('updateSplitTransactions', () => {
             currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
             currentUserEmailParam: CARLOS_EMAIL,
             isSelfTourViewed: false,
+            hasActiveAdminPolicies: false,
         });
         setWorkspaceApprovalMode(policyID, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC);
         await waitForBatchedUpdates();
@@ -3209,6 +3467,7 @@ describe('updateSplitTransactions', () => {
             currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
             currentUserEmailParam: CARLOS_EMAIL,
             isSelfTourViewed: false,
+            hasActiveAdminPolicies: false,
         });
         setWorkspaceApprovalMode(policyID, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC);
         await waitForBatchedUpdates();

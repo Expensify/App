@@ -32,10 +32,14 @@ import {
     getSortedReportActions,
     getSortedReportActionsForDisplay,
     getUpdateACHAccountMessage,
+    hasNextActionMadeBySameActor,
     hasReasoning,
+    isConsecutiveActionMadeByPreviousActor,
+    isConsecutiveChronosAutomaticTimerAction,
     isIOUActionMatchingTransactionList,
     isNewerReportAction,
     isReportActionVisibleAsLastAction,
+    isResolvedActionableWhisper,
 } from '../../src/libs/ReportActionsUtils';
 import {buildOptimisticCreatedReportForUnapprovedAction} from '../../src/libs/ReportUtils';
 import ONYXKEYS from '../../src/ONYXKEYS';
@@ -44,6 +48,7 @@ import createRandomReportAction from '../utils/collections/reportActions';
 import {createRandomReport} from '../utils/collections/reports';
 import createRandomTransaction from '../utils/collections/transaction';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
+import {getFakeReportAction} from '../utils/ReportTestUtils';
 import {translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatchedUpdates';
@@ -976,6 +981,117 @@ describe('ReportActionsUtils', () => {
 
             expect(result).toStrictEqual(expectedOutput);
         });
+
+        it('should filter out ACTIONABLE_MENTION_WHISPER when originalMessage.deleted is set', () => {
+            // Given an ADD_COMMENT and an ACTIONABLE_MENTION_WHISPER whose originalMessage.deleted is set.
+            // The backend sets this field when the parent comment is deleted (cascade deletion).
+            // This test verifies that the frontend correctly hides the whisper when it receives that field.
+            const input: ReportAction[] = [
+                {
+                    created: '2024-11-19 08:04:13.728',
+                    reportActionID: '1607371725956675966',
+                    reportID: '1',
+                    actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                    originalMessage: {
+                        html: '<mention-user accountID="18414674"/>',
+                        whisperedTo: [],
+                        lastModified: '2024-11-19 08:04:13.728',
+                    },
+                    message: [
+                        {
+                            html: '<mention-user accountID="18414674"/>',
+                            text: '@someone',
+                            type: 'COMMENT',
+                            whisperedTo: [],
+                        },
+                    ],
+                },
+                {
+                    created: '2024-11-19 08:04:13.730',
+                    reportActionID: '6401435781022176',
+                    reportID: '1',
+                    actionName: CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_MENTION_WHISPER,
+                    originalMessage: {
+                        inviteeAccountIDs: [18414674],
+                        lastModified: '2024-11-19 08:04:25.813',
+                        whisperedTo: [18301266],
+                        deleted: '2024-11-19 08:04:27.000',
+                    },
+                    message: [
+                        {
+                            html: "Heads up, <mention-user accountID=18414674></mention-user> isn't a member of this room.",
+                            text: "Heads up,  isn't a member of this room.",
+                            type: 'COMMENT',
+                        },
+                    ],
+                },
+            ];
+
+            // When sorted for display with write access enabled
+            const result = ReportActionsUtils.getSortedReportActionsForDisplay(input, true);
+
+            // Then the whisper with deleted set should be filtered out, leaving only the ADD_COMMENT
+            expect(result).toStrictEqual([input.at(0)]);
+        });
+
+        it('should keep ACTIONABLE_MENTION_WHISPER visible when deleted is set but parent comment is not deleted', () => {
+            // Given a parent ADD_COMMENT (ID N) and an ACTIONABLE_MENTION_WHISPER (ID N+1) whose
+            // originalMessage.deleted is set (e.g. from the backend one-per-user cleanup rule).
+            // Use sequential IDs so the parent check can find the parent via whisperID - 1.
+            const parentID = '1000000000000000';
+            const whisperID = '1000000000000001';
+
+            const parentAction: ReportAction = {
+                created: '2024-11-19 08:04:13.728',
+                reportActionID: parentID,
+                reportID: '1',
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                originalMessage: {
+                    html: '<mention-user accountID="18414674"/>',
+                    whisperedTo: [],
+                    lastModified: '2024-11-19 08:04:13.728',
+                },
+                message: [
+                    {
+                        html: '<mention-user accountID="18414674"/>',
+                        text: '@someone',
+                        type: 'COMMENT',
+                        whisperedTo: [],
+                    },
+                ],
+            };
+
+            const whisperAction: ReportAction = {
+                created: '2024-11-19 08:04:13.730',
+                reportActionID: whisperID,
+                reportID: '1',
+                actionName: CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_MENTION_WHISPER,
+                originalMessage: {
+                    inviteeAccountIDs: [18414674],
+                    lastModified: '2024-11-19 08:04:25.813',
+                    whisperedTo: [18301266],
+                    deleted: '2024-11-19 08:04:27.000',
+                },
+                message: [
+                    {
+                        html: "Heads up, <mention-user accountID=18414674></mention-user> isn't a member of this room.",
+                        text: "Heads up,  isn't a member of this room.",
+                        type: 'COMMENT',
+                    },
+                ],
+            };
+
+            const allActionsForReport: ReportActions = {
+                [parentID]: parentAction,
+                [whisperID]: whisperAction,
+            };
+
+            // When checking whether the whisper is resolved, providing the full action set
+            const result = isResolvedActionableWhisper(whisperAction, allActionsForReport);
+
+            // Then the whisper should NOT be treated as resolved because its parent is still present and not deleted
+            expect(result).toBe(false);
+        });
     });
 
     describe('hasRequestFromCurrentAccount', () => {
@@ -1261,6 +1377,35 @@ describe('ReportActionsUtils', () => {
             const expectedText = translateLocal('iou.failedToApproveViaDEW', errorMessage);
             const expectedHtml = `<muted-text>${expectedText}</muted-text>`;
             expect(fragments).toEqual([{text: expectedText, html: expectedHtml, type: 'COMMENT'}]);
+        });
+    });
+
+    describe('getMessageOfOldDotReportAction', () => {
+        it('should return the ACH bounce message with return reason when provided', () => {
+            const returnReason = 'R03 - No Account/Unable to Locate Account';
+            const action: Parameters<typeof ReportActionsUtils.getMessageOfOldDotReportAction>[1] = {
+                reportActionID: '1',
+                created: '2024-01-01 00:00:00.000',
+                actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_ACH_BOUNCE,
+                originalMessage: {returnReason},
+            };
+
+            const message = ReportActionsUtils.getMessageOfOldDotReportAction(translateLocal, action);
+
+            expect(message).toBe(translateLocal('report.actions.type.reimbursementACHBounceWithReason', {returnReason}));
+        });
+
+        it('should return the default ACH bounce message when return reason is missing', () => {
+            const action: Parameters<typeof ReportActionsUtils.getMessageOfOldDotReportAction>[1] = {
+                reportActionID: '1',
+                created: '2024-01-01 00:00:00.000',
+                actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_ACH_BOUNCE,
+                originalMessage: {},
+            };
+
+            const message = ReportActionsUtils.getMessageOfOldDotReportAction(translateLocal, action);
+
+            expect(message).toBe(translateLocal('report.actions.type.reimbursementACHBounceDefault'));
         });
     });
 
@@ -3073,6 +3218,72 @@ describe('ReportActionsUtils', () => {
             // The new line should be replaced with a comma
             expect(result).toBe('set the company address to "123 Main St, Suite 500, New York, NY 10001"');
         });
+
+        it('should handle address with separate addressStreet2 field', () => {
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_ADDRESS,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    newAddress: {
+                        addressStreet: '123 Main St',
+                        addressStreet2: 'Suite 500',
+                        city: 'New York',
+                        state: 'NY',
+                        zipCode: '10001',
+                        country: 'US',
+                    },
+                    oldAddress: null,
+                },
+            } as ReportAction;
+
+            const result = getCompanyAddressUpdateMessage(translateLocal, action);
+            expect(result).toBe('set the company address to "123 Main St, Suite 500, New York, NY 10001"');
+        });
+
+        it('should prefer addressStreet2 over newline-split second line when both are present', () => {
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_ADDRESS,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    newAddress: {
+                        addressStreet: '123 Main St\nOld Unit',
+                        addressStreet2: 'Suite 500',
+                        city: 'New York',
+                        state: 'NY',
+                        zipCode: '10001',
+                        country: 'US',
+                    },
+                    oldAddress: null,
+                },
+            } as ReportAction;
+
+            const result = getCompanyAddressUpdateMessage(translateLocal, action);
+            expect(result).toBe('set the company address to "123 Main St, Suite 500, New York, NY 10001"');
+        });
+
+        it('should fallback to newline-split second line when addressStreet2 is empty', () => {
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_ADDRESS,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    newAddress: {
+                        addressStreet: '123 Main St\nSuite 500',
+                        addressStreet2: '   ',
+                        city: 'New York',
+                        state: 'NY',
+                        zipCode: '10001',
+                        country: 'US',
+                    },
+                    oldAddress: null,
+                },
+            } as ReportAction;
+
+            const result = getCompanyAddressUpdateMessage(translateLocal, action);
+            expect(result).toBe('set the company address to "123 Main St, Suite 500, New York, NY 10001"');
+        });
     });
 
     describe('getUpdateACHAccountMessage', () => {
@@ -4058,6 +4269,119 @@ describe('ReportActionsUtils', () => {
         it('should return false when the action is null or undefined', () => {
             expect(hasReasoning(null)).toBe(false);
             expect(hasReasoning(undefined)).toBe(false);
+        });
+    });
+
+    describe('isConsecutiveActionMadeByPreviousActor', () => {
+        const accountID = 1;
+
+        it('returns false if current action is missing', () => {
+            expect(isConsecutiveActionMadeByPreviousActor([getFakeReportAction(accountID)], 0, false)).toBe(false);
+        });
+
+        it('returns false if actions are more than 5 minutes apart', () => {
+            const actions = [getFakeReportAction(accountID, {created: '2025-01-01T02:00:00Z'}), getFakeReportAction(accountID, {created: '2025-01-01T01:01:00Z'})];
+            expect(isConsecutiveActionMadeByPreviousActor(actions, 0, false)).toBe(false);
+        });
+
+        it('returns true when same actor and within 5 minutes', () => {
+            const actions = [
+                getFakeReportAction(accountID, {actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT}),
+                getFakeReportAction(accountID, {actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT}),
+            ];
+            expect(isConsecutiveActionMadeByPreviousActor(actions, 0, false)).toBe(true);
+        });
+
+        it('skips pending-delete actions when online', () => {
+            const actions = [getFakeReportAction(accountID), getFakeReportAction(accountID, {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}), getFakeReportAction(accountID)];
+            expect(isConsecutiveActionMadeByPreviousActor(actions, 0, false)).toBe(true);
+        });
+
+        it('does not skip pending-delete actions when offline', () => {
+            const actions = [getFakeReportAction(accountID), getFakeReportAction(2, {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}), getFakeReportAction(accountID)];
+            expect(isConsecutiveActionMadeByPreviousActor(actions, 0, true)).toBe(false);
+        });
+    });
+
+    describe('hasNextActionMadeBySameActor', () => {
+        const accountID = 1;
+
+        it('returns false if inspecting first item on the list', () => {
+            expect(hasNextActionMadeBySameActor([], 0, false)).toBe(false);
+        });
+
+        it('returns false if actions are more than 5 minutes apart', () => {
+            const actions = [getFakeReportAction(accountID, {created: '2025-01-01T01:01:00Z'}), getFakeReportAction(accountID, {created: '2025-01-01T02:00:00Z'})];
+            expect(hasNextActionMadeBySameActor(actions, 1, false)).toBe(false);
+        });
+
+        it('returns true when same actor and within 5 minutes', () => {
+            const actions = [
+                getFakeReportAction(accountID, {actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT}),
+                getFakeReportAction(accountID, {actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT}),
+            ];
+            expect(hasNextActionMadeBySameActor(actions, 1, false)).toBe(true);
+        });
+
+        it('skips pending-delete actions when online', () => {
+            const actions = [getFakeReportAction(accountID), getFakeReportAction(accountID, {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}), getFakeReportAction(accountID)];
+            expect(hasNextActionMadeBySameActor(actions, 2, false)).toBe(true);
+        });
+
+        it('does not skip pending-delete actions when offline', () => {
+            const actions = [getFakeReportAction(accountID), getFakeReportAction(2, {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}), getFakeReportAction(accountID)];
+            expect(hasNextActionMadeBySameActor(actions, 2, true)).toBe(false);
+        });
+    });
+
+    describe('isConsecutiveChronosAutomaticTimerAction', () => {
+        const accountID = 1;
+
+        function makeChronosAction(text: string, overrides: Parameters<typeof getFakeReportAction>[1] = {}) {
+            return getFakeReportAction(accountID, {
+                message: [{html: text, isDeletedParentAction: false, isEdited: false, text, type: 'TEXT', whisperedTo: []}],
+                ...overrides,
+            });
+        }
+
+        it('returns false when isChronosReport is false', () => {
+            const actions = [makeChronosAction('started'), makeChronosAction('started')];
+            expect(isConsecutiveChronosAutomaticTimerAction(actions, 0, false, false)).toBe(false);
+        });
+
+        it('returns false when current action is not a timer action', () => {
+            const actions = [makeChronosAction('hello'), makeChronosAction('started')];
+            expect(isConsecutiveChronosAutomaticTimerAction(actions, 0, true, false)).toBe(false);
+        });
+
+        it('returns false when previous action is not a timer action', () => {
+            const actions = [makeChronosAction('started'), makeChronosAction('hello')];
+            expect(isConsecutiveChronosAutomaticTimerAction(actions, 0, true, false)).toBe(false);
+        });
+
+        it('returns true when both current and previous are timer actions', () => {
+            const actions = [makeChronosAction('started'), makeChronosAction('stopped')];
+            expect(isConsecutiveChronosAutomaticTimerAction(actions, 0, true, false)).toBe(true);
+        });
+
+        it('returns false when there is no previous action', () => {
+            const actions = [makeChronosAction('started')];
+            expect(isConsecutiveChronosAutomaticTimerAction(actions, 0, true, false)).toBe(false);
+        });
+
+        it('skips pending-delete previous action when online', () => {
+            const actions = [makeChronosAction('started'), makeChronosAction('stopped', {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}), makeChronosAction('started')];
+            expect(isConsecutiveChronosAutomaticTimerAction(actions, 0, true, false)).toBe(true);
+        });
+
+        it('does not skip pending-delete previous action when offline', () => {
+            const actions = [makeChronosAction('hello'), makeChronosAction('stopped', {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}), makeChronosAction('started')];
+            expect(isConsecutiveChronosAutomaticTimerAction(actions, 0, true, true)).toBe(false);
+        });
+
+        it('includes pending-delete timer action as previous when offline', () => {
+            const actions = [makeChronosAction('started'), makeChronosAction('stopped', {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}), makeChronosAction('started')];
+            expect(isConsecutiveChronosAutomaticTimerAction(actions, 0, true, true)).toBe(true);
         });
     });
 });

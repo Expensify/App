@@ -266,16 +266,13 @@ function WorkspacesListRow({
                 <PressableWithoutFeedback
                     accessible
                     accessibilityLabel={accessibilityLabel}
-                    role={isWide ? CONST.ROLE.ROW : CONST.ROLE.BUTTON}
+                    role={CONST.ROLE.LINK}
                     onPress={onPress}
                     disabled={disabled}
                     style={[isWide ? styles.flexRow : styles.flexColumn, styles.flex1, isWide && styles.gap5]}
                     sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.LIST.ROW}
                 >
-                    <View
-                        role={isWide ? CONST.ROLE.CELL : undefined}
-                        style={[styles.flexRow, styles.justifyContentBetween, styles.flex2, isNarrow && styles.mb3, styles.alignItemsCenter]}
-                    >
+                    <View style={[styles.flexRow, styles.justifyContentBetween, styles.flex2, isNarrow && styles.mb3, styles.alignItemsCenter]}>
                         <View style={[styles.flexRow, styles.gap3, styles.flex1, styles.alignItemsCenter]}>
                             <Avatar
                                 imageStyles={[styles.alignSelfCenter]}
@@ -294,10 +291,7 @@ function WorkspacesListRow({
                         </View>
                         {isNarrow && NarrowBadges}
                     </View>
-                    <View
-                        role={isWide ? CONST.ROLE.CELL : undefined}
-                        style={[styles.flexRow, isWide && styles.flex1, isWide && styles.workspaceOwnerSectionMinWidth, styles.gap2, styles.alignItemsCenter]}
-                    >
+                    <View style={[styles.flexRow, isWide && styles.flex1, isWide && styles.workspaceOwnerSectionMinWidth, styles.gap2, styles.alignItemsCenter]}>
                         {!!ownerDetails && (
                             <>
                                 <Avatar
@@ -322,10 +316,7 @@ function WorkspacesListRow({
                             </>
                         )}
                     </View>
-                    <View
-                        role={isWide ? CONST.ROLE.CELL : undefined}
-                        style={[styles.flexRow, isWide && styles.flex1, styles.gap2, styles.alignItemsCenter]}
-                    >
+                    <View style={[styles.flexRow, isWide && styles.flex1, styles.gap2, styles.alignItemsCenter]}>
                         <Icon
                             src={workspaceTypeIcon(workspaceType)}
                             width={variables.workspaceTypeIconWidth}

@@ -205,6 +205,7 @@
         "ecash",
         "ecconnrefused",
         "econn",
+        "EDDSA",
         "EDIFACT",
         "Egencia",
         "Electromedical",
@@ -667,6 +668,8 @@
         "setuptools",
         "shareeEmail",
         "Sharees",
+        "sharee",
+        "sharees",
         "Sharons",
         "shellcheck",
         "shellenv",
@@ -843,6 +846,7 @@
         "xmlgateway",
         "Xours",
         "Xtheirs",
+        "XYWH",
         "yalc",
         "Yapl",
         "YAPL",
@@ -858,7 +862,8 @@
         "zoneinfo",
         "zxcv",
         "zxldvw",
-        "مثال"
+        "مثال",
+        "PINATM"
     ],
     "ignorePaths": [
         "src/languages/de.ts",

@@ -76,7 +76,7 @@ function findColumnName(header: string): string {
         case 'reporttotal':
         case 'reporttotalthreshold':
         case 'approvallimit':
-            attribute = CONST.CSV_IMPORT_COLUMNS.REPORT_THRESHHOLD;
+            attribute = CONST.CSV_IMPORT_COLUMNS.REPORT_THRESHOLD;
             break;
 
         case 'alternate':
@@ -235,6 +235,7 @@ function ImportColumn({column, columnName, columnRoles, columnIndex, shouldShowD
                             defaultSelectedIndex={selectedIndex}
                             options={options}
                             success={false}
+                            shouldPopoverUseScrollView={options.length >= CONST.DROPDOWN_SCROLL_THRESHOLD}
                         />
                     </View>
                 )}
