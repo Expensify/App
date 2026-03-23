@@ -2278,6 +2278,7 @@ const connectingAirPnrData = asDefined(airPnrConnecting.data.airPnr);
 const hotelPnrData = asDefined(hotelPnr.data.hotelPnr);
 const carPnrData = asDefined(carPnr.data.carPnr);
 const railPnrData = asDefined(railPnr.data.railPnr);
+const railInwardJourney = asDefined(railPnrData.inwardJourney);
 
 describe('TripReservationUtils', () => {
     describe('getAirReservations', () => {
@@ -2828,7 +2829,7 @@ describe('TripReservationUtils', () => {
                             journeyStatus: CONST.PNR_STATUS.CANCELLED,
                         },
                         inwardJourney: {
-                            ...railPnrData.inwardJourney,
+                            ...railInwardJourney,
                             journeyStatus: CONST.PNR_STATUS.CANCELLED,
                         },
                     },
@@ -2849,7 +2850,7 @@ describe('TripReservationUtils', () => {
                             journeyStatus: CONST.PNR_STATUS.CANCELLED,
                         },
                         inwardJourney: {
-                            ...railPnrData.inwardJourney,
+                            ...railInwardJourney,
                             journeyStatus: 'CONFIRMED',
                         },
                     },
@@ -2889,6 +2890,38 @@ describe('TripReservationUtils', () => {
             expect(isPnrCancelled(carPnr)).toBe(false);
             expect(isPnrCancelled(airPnrDirect)).toBe(false);
             expect(isPnrCancelled(railPnr)).toBe(false);
+        });
+
+        it('should not crash when rail PNR has undefined inwardJourney (one-way trip)', () => {
+            const oneWayRail: Pnr = {
+                ...railPnr,
+                data: {
+                    ...railPnr.data,
+                    railPnr: {
+                        ...railPnrData,
+                        inwardJourney: undefined,
+                    },
+                },
+            };
+            expect(isPnrCancelled(oneWayRail)).toBe(false);
+        });
+
+        it('should return true when rail PNR has undefined inwardJourney and outwardJourney is cancelled', () => {
+            const cancelledOneWayRail: Pnr = {
+                ...railPnr,
+                data: {
+                    ...railPnr.data,
+                    railPnr: {
+                        ...railPnrData,
+                        inwardJourney: undefined,
+                        outwardJourney: {
+                            ...railPnrData.outwardJourney,
+                            journeyStatus: CONST.PNR_STATUS.CANCELLED,
+                        },
+                    },
+                },
+            };
+            expect(isPnrCancelled(cancelledOneWayRail)).toBe(true);
         });
     });
 });

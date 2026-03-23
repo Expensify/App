@@ -9,8 +9,7 @@ import type {Attendee} from '@src/types/onyx/IOU';
 import type {CustomUnit, Rate} from '@src/types/onyx/Policy';
 import type {TransactionCustomUnit} from '@src/types/onyx/Transaction';
 import * as TransactionUtils from '../../src/libs/TransactionUtils';
-import type {Policy, Report, Transaction} from '../../src/types/onyx';
-import type {CardList} from '../../src/types/onyx/Card';
+import type {Card, Policy, Report, Transaction} from '../../src/types/onyx';
 import createRandomPolicy, {createCategoryTaxExpenseRules} from '../utils/collections/policies';
 import {createRandomReport} from '../utils/collections/reports';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
@@ -451,6 +450,73 @@ describe('TransactionUtils', () => {
 
             expect(updatedTransaction.modifiedAmount).toBe(newAmount);
         });
+
+        it('should update taxValue when taxValue and taxCode are both in transactionChanges', () => {
+            const transaction = generateTransaction();
+
+            const updatedTransaction = TransactionUtils.getUpdatedTransaction({
+                transaction,
+                isFromExpenseReport: true,
+                transactionChanges: {taxCode: 'id_TAX_RATE_1', taxAmount: 50, taxValue: '5%'},
+            });
+
+            expect(updatedTransaction.taxValue).toBe('5%');
+            expect(updatedTransaction.taxCode).toBe('id_TAX_RATE_1');
+            expect(updatedTransaction.taxAmount).toBe(-50);
+        });
+
+        it('should not update taxValue when taxCode is not in transactionChanges', () => {
+            const transaction = generateTransaction({taxValue: '10%'});
+
+            const updatedTransaction = TransactionUtils.getUpdatedTransaction({
+                transaction,
+                isFromExpenseReport: false,
+                transactionChanges: {taxValue: '5%'},
+            });
+
+            expect(updatedTransaction.taxValue).toBe('10%');
+        });
+    });
+
+    describe('isScanning', () => {
+        it('returns true for a scan-eligible transaction without a manual amount override', () => {
+            const transaction = generateTransaction({
+                merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
+                amount: 0,
+                modifiedAmount: '',
+                receipt: {
+                    state: CONST.IOU.RECEIPT_STATE.SCANNING,
+                },
+            });
+
+            expect(TransactionUtils.isScanning(transaction)).toBe(true);
+        });
+
+        it('returns false when a scan-eligible transaction has a manual amount override', () => {
+            const transaction = generateTransaction({
+                merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
+                amount: 0,
+                modifiedAmount: 1234,
+                receipt: {
+                    state: CONST.IOU.RECEIPT_STATE.SCAN_READY,
+                },
+            });
+
+            expect(TransactionUtils.isScanning(transaction)).toBe(false);
+        });
+
+        it('returns false when the receipt is not in a scanning state', () => {
+            const transaction = generateTransaction({
+                merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
+                amount: 0,
+                modifiedAmount: '',
+                receipt: {
+                    state: CONST.IOU.RECEIPT_STATE.OPEN,
+                },
+            });
+
+            expect(TransactionUtils.isScanning(transaction)).toBe(false);
+        });
     });
 
     describe('getTransactionType', () => {
@@ -485,18 +551,15 @@ describe('TransactionUtils', () => {
             expect(TransactionUtils.getTransactionType(transaction)).toBe(CONST.SEARCH.TRANSACTION_TYPE.PER_DIEM);
         });
 
-        it('returns cash when the transaction cardID maps to a cash card in the card list', () => {
-            const cardID = 101;
-            const cardList = {
-                [cardID]: {
-                    cardName: '__CASH__',
-                },
-            } as unknown as CardList;
+        it('returns cash when the card has a cash card name', () => {
+            const card = {
+                cardName: CONST.COMPANY_CARDS.CARD_NAME.CASH,
+            } as Card;
             const transaction = generateTransaction({
-                cardID,
+                cardID: 101,
             });
 
-            expect(TransactionUtils.getTransactionType(transaction, cardList)).toBe(CONST.SEARCH.TRANSACTION_TYPE.CASH);
+            expect(TransactionUtils.getTransactionType(transaction, card)).toBe(CONST.SEARCH.TRANSACTION_TYPE.CASH);
         });
 
         it('returns cash when the transaction card name includes the cash card name substring', () => {
@@ -2264,8 +2327,8 @@ describe('TransactionUtils', () => {
 
                 const result = TransactionUtils.compareDuplicateTransactionFields({}, reviewingTransaction, duplicates, mockReport, undefined, policy, policyCategories);
 
-                // When only one valid category exists and fields differ, neither keep nor change is set
-                expect(result.keep.category).toBeUndefined();
+                // When only one valid category exists and fields differ, keep preserves the first transaction's category
+                expect(result.keep.category).toBe('Travel');
                 expect(result.change.category).toBeUndefined();
             });
 
@@ -2299,8 +2362,8 @@ describe('TransactionUtils', () => {
 
                 const result = TransactionUtils.compareDuplicateTransactionFields({}, reviewingTransaction, duplicates, mockReport, undefined, policy, policyCategories);
 
-                // When only one valid category exists and fields differ, neither keep nor change is set
-                expect(result.keep.category).toBeUndefined();
+                // When only one valid category exists and fields differ, keep preserves the first transaction's category
+                expect(result.keep.category).toBe('Travel');
                 expect(result.change.category).toBeUndefined();
             });
 
@@ -2322,8 +2385,8 @@ describe('TransactionUtils', () => {
 
                 const result = TransactionUtils.compareDuplicateTransactionFields({}, reviewingTransaction, duplicates, mockReport, undefined, policy, undefined);
 
-                // When categories are not enabled and fields differ, neither keep nor change is set
-                expect(result.keep.category).toBeUndefined();
+                // When categories are not enabled and fields differ, keep preserves the first transaction's category
+                expect(result.keep.category).toBe('Travel');
                 expect(result.change.category).toBeUndefined();
             });
 
@@ -2595,8 +2658,8 @@ describe('TransactionUtils', () => {
 
                 const result = TransactionUtils.compareDuplicateTransactionFields({}, reviewingTransaction, duplicates, mockReport, undefined, policy, undefined);
 
-                // When only one valid tax exists and fields differ, neither keep nor change is set
-                expect(result.keep.taxCode).toBeUndefined();
+                // When only one valid tax exists and fields differ, keep preserves the first transaction's taxCode
+                expect(result.keep.taxCode).toBe('id_TAX_EXEMPT');
                 expect(result.change.taxCode).toBeUndefined();
             });
 
@@ -2636,8 +2699,8 @@ describe('TransactionUtils', () => {
 
                 const result = TransactionUtils.compareDuplicateTransactionFields({}, reviewingTransaction, duplicates, mockReport, undefined, policy, undefined);
 
-                // When only one valid tax exists and fields differ, neither keep nor change is set
-                expect(result.keep.taxCode).toBeUndefined();
+                // When only one valid tax exists and fields differ, keep preserves the first transaction's taxCode
+                expect(result.keep.taxCode).toBe('id_TAX_EXEMPT');
                 expect(result.change.taxCode).toBeUndefined();
             });
         });

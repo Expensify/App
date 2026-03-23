@@ -48,7 +48,6 @@ function DebugReportActionCreatePage({
 }: DebugReportActionCreatePageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [personalDetailsList] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [userWalletTierName] = useOnyx(ONYXKEYS.USER_WALLET, {selector: tierNameSelector});
@@ -115,7 +114,6 @@ function DebugReportActionCreatePage({
                             <Text style={[styles.textLabelSupporting, styles.mb2]}>{translate('debug.preview')}</Text>
                             {!error ? (
                                 <ReportActionItem
-                                    policies={policies}
                                     action={JSON.parse(draftReportAction.replaceAll('\n', '')) as ReportAction}
                                     report={{reportID}}
                                     parentReportAction={undefined}

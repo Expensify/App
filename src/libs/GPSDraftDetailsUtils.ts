@@ -1,6 +1,7 @@
 import {hasStartedLocationUpdatesAsync, reverseGeocodeAsync, stopLocationUpdatesAsync} from 'expo-location';
 import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
 import {BACKGROUND_LOCATION_TRACKING_TASK_NAME} from '@pages/iou/request/step/IOURequestStepDistanceGPS/const';
+import {stopGpsTripNotification} from '@pages/iou/request/step/IOURequestStepDistanceGPS/GPSNotifications';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {GpsDraftDetails} from '@src/types/onyx';
 import type {Unit} from '@src/types/onyx/Policy';
@@ -99,6 +100,8 @@ async function stopGpsTrip(isOffline: boolean) {
     }
 
     setIsTracking(false);
+
+    stopGpsTripNotification();
 
     const gpsTrip = await OnyxUtils.get(ONYXKEYS.GPS_DRAFT_DETAILS);
 
