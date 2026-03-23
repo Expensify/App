@@ -279,4 +279,4 @@ function refresh() {
     NetInfo.refresh();
 }
 
-export {getIsOffline, getLastOfflineAt, subscribe, onReachabilityConfirmed, setHasRadio, setSustainedFailures, setForceOffline, onReachabilityRestored, getDBTimeWithSkew, refresh};
+export {getIsOffline, getLastOfflineAt, subscribe, onReachabilityConfirmed, setHasRadio, setSustainedFailures, setForceOffline, getDBTimeWithSkew, refresh};
