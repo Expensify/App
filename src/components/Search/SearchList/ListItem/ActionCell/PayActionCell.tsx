@@ -40,7 +40,8 @@ function PayActionCell({isLoading, policyID, reportID, hash, amount, extraSmall,
     const invoiceReceiverPolicy = usePolicy(invoiceReceiverPolicyID);
     const canBePaid = canIOUBePaid(iouReport, chatReport, policy, bankAccountList, transactions, false, undefined, invoiceReceiverPolicy);
     const isExpenseReportWithNoReimbursementAccount = isExpenseReport(iouReport) && !policy?.achAccount?.bankAccountID;
-    const shouldOnlyShowElsewhere = isExpenseReportWithNoReimbursementAccount || (!canBePaid && canIOUBePaid(iouReport, chatReport, policy, bankAccountList, transactions, true, undefined, invoiceReceiverPolicy));
+    const shouldOnlyShowElsewhere =
+        isExpenseReportWithNoReimbursementAccount || (!canBePaid && canIOUBePaid(iouReport, chatReport, policy, bankAccountList, transactions, true, undefined, invoiceReceiverPolicy));
 
     const {currency} = iouReport ?? {};
 
