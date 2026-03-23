@@ -7269,7 +7269,7 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
             hold: 'Vasthouden',
             unhold: 'Blokkering opheffen',
             reject: 'Afwijzen',
-            duplicateExpense: ({count}: {count: number}) => `${count === 1 ? 'Uitgave' : 'Uitgaven'} dupliceren`,
+            duplicateExpense: ({count}: {count: number}) => `${count === 1 ? 'Declaratie' : 'Declaraties'} dupliceren`,
             noOptionsAvailable: 'Geen opties beschikbaar voor de geselecteerde groep onkosten.',
         },
         filtersHeader: 'Filters',
