@@ -1,5 +1,5 @@
 import type {ForwardedRef, RefObject} from 'react';
-import React, {useContext, useEffect, useRef, useState} from 'react';
+import React, {useContext, useEffect, useMemo, useRef, useState} from 'react';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {OptionsListStateContext, useOptionsList} from '@components/OptionListContextProvider';
 import OptionsListSkeletonView from '@components/OptionsListSkeletonView';
@@ -14,6 +14,7 @@ import SearchQueryListItem, {isSearchQueryItem} from '@components/SelectionListW
 import useAutocompleteSuggestions from '@hooks/useAutocompleteSuggestions';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebounce from '@hooks/useDebounce';
+import useDebouncedValue from '@hooks/useDebouncedValue';
 import useFeedKeysWithAssignedCards from '@hooks/useFeedKeysWithAssignedCards';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -166,6 +167,7 @@ function SearchAutocompleteList({
     const taxRates = getAllTaxRates(policies);
 
     const {options, areOptionsInitialized} = useOptionsList();
+    const debouncedAutocompleteQueryValue = useDebouncedValue(autocompleteQueryValue, 150) ?? autocompleteQueryValue;
 
     const isRecentSearchesDataLoaded = !isLoadingOnyxValue(recentSearchesMetadata);
 
@@ -188,7 +190,7 @@ function SearchAutocompleteList({
         }
     }, [contextAreOptionsInitialized]);
 
-    const searchOptions = (() => {
+    const searchOptions = useMemo(() => {
         if (!areOptionsInitialized) {
             return defaultListOptions;
         }
@@ -199,7 +201,7 @@ function SearchAutocompleteList({
             betas: betas ?? [],
             isUsedInChatFinder: true,
             includeReadOnly: true,
-            searchQuery: autocompleteQueryValue,
+            searchQuery: debouncedAutocompleteQueryValue,
             maxResults: CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_SUGGESTIONS,
             includeUserToInvite: true,
             includeRecentReports: true,
@@ -214,7 +216,7 @@ function SearchAutocompleteList({
             policyCollection: policies,
             personalDetails,
         });
-    })();
+    }, [areOptionsInitialized, options, draftComments, nvpDismissedProductTraining, betas, debouncedAutocompleteQueryValue, countryCode, loginList, visibleReportActionsData, currentUserAccountID, currentUserEmail, policies, personalDetails]);
 
     const [isInitialRender, setIsInitialRender] = useState(true);
     const prevQueryRef = useRef(autocompleteQueryValue);
@@ -292,7 +294,7 @@ function SearchAutocompleteList({
         translate,
     });
 
-    const autocompleteQueryWithoutFilters = getQueryWithoutFilters(autocompleteQueryValue);
+    const autocompleteQueryWithoutFilters = getQueryWithoutFilters(debouncedAutocompleteQueryValue);
 
     const sortedRecentSearches = Object.values(recentSearches ?? {}).sort((a, b) => localeCompare(b.timestamp, a.timestamp));
 
@@ -323,11 +325,11 @@ function SearchAutocompleteList({
     });
 
     const recentReportsOptions = (() => {
-        if (autocompleteQueryValue.trim() === '') {
+        if (debouncedAutocompleteQueryValue.trim() === '') {
             return searchOptions.recentReports;
         }
 
-        const orderedOptions = combineOrderingOfReportsAndPersonalDetails(searchOptions, autocompleteQueryValue, {
+        const orderedOptions = combineOrderingOfReportsAndPersonalDetails(searchOptions, debouncedAutocompleteQueryValue, {
             sortByReportTypeInSearch: true,
             preferChatRoomsOverThreads: true,
         });
