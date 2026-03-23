@@ -155,7 +155,7 @@ function WorkspacesListPage() {
     const {isRestrictedToPreferredPolicy, preferredPolicyID, isRestrictedPolicyCreation} = usePreferredPolicy();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [reimbursementAccountError] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {selector: reimbursementAccountErrorSelector});
-    const {showConfirmModal} = useConfirmModal();
+    const {showConfirmModal, closeModal} = useConfirmModal();
 
     const [allDomains] = useOnyx(ONYXKEYS.COLLECTION.DOMAIN);
     const [allDomainErrors] = useOnyx(ONYXKEYS.COLLECTION.DOMAIN_ERRORS);
@@ -170,8 +170,6 @@ function WorkspacesListPage() {
     const {shouldBlockDeletion, wouldBlockDeletion, outstandingBalanceModal} = useOutstandingBalanceGuard(activeOwnedPaidPoliciesCount);
 
     const [policyIDToDelete, setPolicyIDToDelete] = useState<string>();
-    // The workspace was deleted in this page
-    const [policyNameToDelete, setPolicyNameToDelete] = useState<string>();
     // Refs to avoid stale closures in continueDeleteWorkspace callback
     const policyIDToDeleteRef = useRef<string | undefined>(undefined);
     const policyNameToDeleteRef = useRef<string | undefined>(undefined);
@@ -243,14 +241,15 @@ function WorkspacesListPage() {
                 personalPolicyID,
             });
             if (isOffline) {
+                closeModal();
                 setPolicyIDToDelete(undefined);
-                setPolicyNameToDelete(undefined);
                 policyIDToDeleteRef.current = undefined;
                 policyNameToDeleteRef.current = undefined;
             }
         });
     }, [
         activePolicyID,
+        closeModal,
         defaultCardFeeds,
         hasCardFeedOrExpensifyCard,
         isOffline,
@@ -272,7 +271,6 @@ function WorkspacesListPage() {
 
     const hideDeleteWorkspaceErrorModal = () => {
         setPolicyIDToDelete(undefined);
-        setPolicyNameToDelete(undefined);
         policyIDToDeleteRef.current = undefined;
         policyNameToDeleteRef.current = undefined;
         if (!policyToDelete) {
@@ -292,6 +290,8 @@ function WorkspacesListPage() {
     if (prevIsPendingDelete !== isPendingDelete) {
         setPrevIsPendingDelete(isPendingDelete);
         if (prevIsPendingDelete && !isPendingDelete && policyIDToDelete) {
+            closeModal();
+
             if (isFocused && policyToDeleteLatestErrorMessage) {
                 showConfirmModal({
                     title: translate('workspace.common.delete'),
@@ -303,6 +303,8 @@ function WorkspacesListPage() {
                 }).then(() => {
                     hideDeleteWorkspaceErrorModal();
                 });
+            } else {
+                hideDeleteWorkspaceErrorModal();
             }
         }
     }
@@ -463,8 +465,6 @@ function WorkspacesListPage() {
                     }
 
                     setPolicyIDToDelete(item.policyID);
-                    setPolicyNameToDelete(item.title);
-                    // Also update refs for the callback to have fresh values
                     policyIDToDeleteRef.current = item.policyID;
                     policyNameToDeleteRef.current = item.title;
 
