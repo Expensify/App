@@ -3495,7 +3495,7 @@ describe('actions/Policy', () => {
 
             // When setting auto reporting frequency to monthly but fail
             mockFetch.fail();
-            Policy.setWorkspaceAutoReportingFrequency(policy.id, CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MONTHLY, policy.autoReportingFrequency, policy.harvesting.enabled);
+            Policy.setWorkspaceAutoReportingFrequency(policy.id, CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MONTHLY, policy.autoReportingFrequency, policy.harvesting);
             await waitForBatchedUpdates();
 
             // Then the frequency should be reverted
