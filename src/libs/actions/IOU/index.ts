@@ -6620,15 +6620,8 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
         }
     }
 
-    if (!requestMoneyInformation.isRetry) {
-        handleNavigateAfterExpenseCreate({
-            activeReportID: backToReport ?? activeReportID,
-            transactionID: transaction.transactionID,
-            isFromGlobalCreate,
-            shouldHandleNavigation,
-        });
-    }
-
+    // Register the deferred write BEFORE navigation so the Search component's
+    // hasDeferredWrite() check on mount always sees the pending channel.
     if (deferredAPIWrite) {
         if (shouldHandleNavigation && !requestMoneyInformation.isRetry) {
             registerDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH, deferredAPIWrite, {
@@ -6637,6 +6630,15 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
         } else {
             deferredAPIWrite();
         }
+    }
+
+    if (!requestMoneyInformation.isRetry) {
+        handleNavigateAfterExpenseCreate({
+            activeReportID: backToReport ?? activeReportID,
+            transactionID: transaction.transactionID,
+            isFromGlobalCreate,
+            shouldHandleNavigation,
+        });
     }
 
     if (activeReportID && !isMoneyRequestReport) {

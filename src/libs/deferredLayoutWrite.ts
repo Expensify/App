@@ -8,8 +8,14 @@
  *
  * Solution: The action registers its write via `registerDeferredWrite(key, cb)`;
  * the target component flushes it from its content onLayout callback via `flushDeferredWrite(key)`.
- * A per-channel safety timeout ensures the write always fires even if the target
- * screen never mounts or the user navigates elsewhere.
+ * A per-channel safety timeout (default 5s) ensures the write always fires even if
+ * the target screen never mounts or the user navigates elsewhere.
+ *
+ * Note: The Search component has its own 10s safety timeout (clearOptimisticTracking)
+ * for the UI-level optimistic item cache. The two timeouts serve different layers:
+ *   - 5s (here): guarantees the API.write() executes.
+ *   - 10s (Search): guarantees the skeleton/ghost-row UI clears if the optimistic
+ *     item never reaches sortedData (e.g. empty list, API failure, offline).
  */
 import type {OnyxKey} from 'react-native-onyx';
 import Log from './Log';
@@ -76,6 +82,19 @@ function flushDeferredWrite(key: string) {
     channel.write();
 }
 
+/**
+ * Cancel a pending deferred write without executing the callback.
+ * Clears the safety timeout. No-op if no channel is registered for the key.
+ */
+function cancelDeferredWrite(key: string) {
+    const channel = channels.get(key);
+    if (!channel) {
+        return;
+    }
+    clearChannelTimeout(channel);
+    channels.delete(key);
+}
+
 function hasDeferredWrite(key: string): boolean {
     return channels.has(key);
 }
@@ -89,4 +108,4 @@ function getOptimisticWatchKey(key: string): OnyxKey | undefined {
     return channels.get(key)?.optimisticWatchKey;
 }
 
-export {registerDeferredWrite, flushDeferredWrite, hasDeferredWrite, getOptimisticWatchKey};
+export {registerDeferredWrite, flushDeferredWrite, cancelDeferredWrite, hasDeferredWrite, getOptimisticWatchKey};

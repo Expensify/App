@@ -101,6 +101,11 @@ type SearchProps = {
     onDEWModalOpen?: () => void;
 };
 
+// Max time (ms) to keep the optimistic item cache/skeleton alive before
+// clearing all tracking state. Must be longer than deferredLayoutWrite's
+// 5s safety timeout so the API.write() has time to apply optimistic data.
+const OPTIMISTIC_TRACKING_TIMEOUT_MS = 10_000;
+
 const hashToString = (queryHash?: number) => (queryHash || queryHash === 0 ? String(queryHash) : undefined);
 
 function mapTransactionItemToSelectedEntry(
@@ -251,9 +256,19 @@ function Search({
         if (!hasPendingWriteOnMountRef.current || !optimisticWatchKeyRef.current) {
             return;
         }
-        const id = setTimeout(clearOptimisticTracking, 10000);
+        const id = setTimeout(clearOptimisticTracking, OPTIMISTIC_TRACKING_TIMEOUT_MS);
         return () => clearTimeout(id);
     }, [clearOptimisticTracking]);
+
+    // Flush (not cancel) on unmount so the API.write() still executes if the
+    // user navigates away before onLayout fires. This also clears the channel,
+    // preventing a stale hasDeferredWrite() on the next mount.
+    useEffect(
+        () => () => {
+            flushDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH);
+        },
+        [],
+    );
 
     const {isOffline} = useNetwork();
     const prevIsOffline = usePrevious(isOffline);
@@ -469,6 +484,9 @@ function Search({
     );
 
     const [skeletonWasDisplayed, setSkeletonWasDisplayed] = useState(false);
+    const onSkeletonLayout = useCallback(() => setSkeletonWasDisplayed(true), []);
+    const deferredWorkReasonAttributes = useMemo(() => ({context: 'Search.DeferredWork'}) as const, []);
+    const pendingExpenseReasonAttributes = useMemo(() => ({context: 'Search.PendingExpensePlaceholder'}) as const, []);
 
     // Show a skeleton whenever heavy work is deferred, even for live-data (to-do) searches,
     // so we never fall through to the empty-state check with stale zero-length data.
@@ -477,7 +495,7 @@ function Search({
     const hasUnresolvedErrors = hasErrors && searchRequestResponseStatusCode === null;
     const isWaitingForInitialData = !shouldUseLiveData && !isOffline && (!isDataLoaded || isSearchLoadingWithNoResults || hasUnresolvedErrors || isCardFeedsLoading);
     const shouldShowLoadingState = isDeferringHeavyWork || isWaitingForInitialData;
-    const shouldShowRowSkeleton = (!skeletonWasDisplayed || shouldShowLoadingState) && hasPendingWriteOnMountRef.current;
+    const shouldShowRowSkeleton = (!skeletonWasDisplayed || shouldShowLoadingState) && hasPendingWriteOnMountRef.current && !hasErrors;
 
     const shouldShowLoadingMoreItems = !shouldShowLoadingState && searchResults?.search?.isLoading && searchResults?.search?.offset > 0;
 
@@ -1258,7 +1276,11 @@ function Search({
     }, [sortedData, clearOptimisticTracking]);
 
     // Re-inject the cached optimistic item when a stale snapshot temporarily removes it
-    // from sortedData (timeline step 4). Once the item is back (real data), this is a no-op.
+    // from sortedData. Once the item is back (real data), this is a no-op.
+    // Refs are intentionally excluded from deps. The memo doesn't need the cached
+    // value during the render where the item IS in sortedData (it passes through).
+    // When sortedData later changes (item removed by snapshot), the preceding tracking
+    // effect has already populated the ref, so the memo picks up the cached value.
     const stableSortedData = useMemo(() => {
         if (!cachedOptimisticItemRef.current || !optimisticWatchKeyRef.current) {
             return sortedData;
@@ -1378,6 +1400,8 @@ function Search({
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
+    // Must be a ref, not state: cancelNavigationSpans is called during render
+    // (inside conditional returns), so using setState would trigger infinite re-renders.
     const didBailToFallbackState = useRef(false);
 
     const cancelNavigationSpans = useCallback(() => {
@@ -1388,13 +1412,14 @@ function Search({
             cancelSubmitFollowUpActionSpan();
         }
         spanExistedOnMount.current = false;
-        // Signal the post-commit effect that the list won't render, so onLayout won't flush.
         didBailToFallbackState.current = true;
     }, []);
 
     // When the render bails to an error/empty state, the SelectionList never mounts
     // so its onLayout callback (the primary flush site) never fires. This effect
-    // catches that case and flushes immediately after commit.
+    // catches that case and flushes immediately after commit. No dependency array
+    // is intentional — we need to check after every render since bail-outs happen
+    // in conditional returns that can't trigger state-based effects.
     useEffect(() => {
         if (!didBailToFallbackState.current || !hasDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH)) {
             return;
@@ -1429,7 +1454,9 @@ function Search({
         }, [shouldShowLoadingState]),
     );
 
-    // Reset before conditional returns. Only cancelNavigationSpans (error/empty paths) sets it to true.
+    // Reset before conditional returns. Only cancelNavigationSpans (error/empty paths)
+    // sets it to true. Must happen during render since it coordinates with the
+    // dep-free useEffect above — see comment on didBailToFallbackState.
     didBailToFallbackState.current = false;
 
     // This is a performance optimization for the submit-expense->search path only.
@@ -1439,9 +1466,9 @@ function Search({
         return (
             <SearchRowSkeleton
                 shouldAnimate
-                onLayout={() => setSkeletonWasDisplayed(true)}
+                onLayout={onSkeletonLayout}
                 containerStyle={shouldUseNarrowLayout ? styles.searchListContentContainerStyles : styles.mt3}
-                reasonAttributes={{context: 'Search.DeferredWork'}}
+                reasonAttributes={deferredWorkReasonAttributes}
             />
         );
     }
@@ -1599,7 +1626,7 @@ function Search({
                             <SearchRowSkeleton
                                 shouldAnimate
                                 fixedNumItems={shouldShowLoadingMoreItems ? 5 : 1}
-                                reasonAttributes={showPendingExpensePlaceholder ? {context: 'Search.PendingExpensePlaceholder'} : loadMoreSkeletonReasonAttributes}
+                                reasonAttributes={showPendingExpensePlaceholder ? pendingExpenseReasonAttributes : loadMoreSkeletonReasonAttributes}
                             />
                         ) : undefined
                     }

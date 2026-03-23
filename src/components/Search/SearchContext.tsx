@@ -77,24 +77,21 @@ const defaultSearchActionsContext: SearchActionsContextValue = {
 const SearchStateContext = React.createContext<SearchStateContextValue>(defaultSearchStateContext);
 const SearchActionsContext = React.createContext<SearchActionsContextValue>(defaultSearchActionsContext);
 
+function selectSearchQueryParam(state: Parameters<Parameters<typeof useNavigationState>[0]>[0]) {
+    const focused = getDeepestFocusedScreen(state);
+    return focused?.name === SCREENS.SEARCH.ROOT ? (focused.params?.q as string | undefined) : undefined;
+}
+
+function selectSearchRawQueryParam(state: Parameters<Parameters<typeof useNavigationState>[0]>[0]) {
+    const focused = getDeepestFocusedScreen(state);
+    return focused?.name === SCREENS.SEARCH.ROOT ? (focused.params?.rawQuery as string | undefined) : undefined;
+}
+
 function SearchContextProvider({children}: SearchContextProps) {
     // Extract only the primitive values we need from the focused screen to avoid
     // re-renders from new object references returned by getDeepestFocusedScreen.
-    const queryParam = useNavigationState((state) => {
-        const focused = getDeepestFocusedScreen(state);
-        if (focused?.name !== SCREENS.SEARCH.ROOT) {
-            return undefined;
-        }
-        return focused.params?.q as string | undefined;
-    });
-
-    const rawQueryParam = useNavigationState((state) => {
-        const focused = getDeepestFocusedScreen(state);
-        if (focused?.name !== SCREENS.SEARCH.ROOT) {
-            return undefined;
-        }
-        return focused.params?.rawQuery as string | undefined;
-    });
+    const queryParam = useNavigationState(selectSearchQueryParam);
+    const rawQueryParam = useNavigationState(selectSearchRawQueryParam);
     const definedQueryParam = usePreviousDefined(queryParam) ?? buildSearchQueryString();
     const currentSearchQueryJSON = useMemo(() => buildSearchQueryJSON(definedQueryParam, rawQueryParam), [definedQueryParam, rawQueryParam]);
 
@@ -159,8 +156,7 @@ function SearchContextProvider({children}: SearchContextProps) {
             }));
         }
 
-        // When selecting transactions, we also need to manage the reports to which these
-        // transactions belong. This is done to ensure proper exporting to CSV.
+        // When selecting transactions, we also need to manage the reports to which these transactions belong. This is done to ensure proper exporting to CSV.
         let matchingReports: SearchStateContextValue['selectedReports'] = [];
 
         if (data.length && data.every(isTransactionReportGroupListItemType)) {
@@ -241,6 +237,8 @@ function SearchContextProvider({children}: SearchContextProps) {
             setShouldShowSelectAllMatchingItems(false);
             selectAllMatchingItems(false);
         },
+        // currentSearchHash is read via currentSearchHashRef to keep this callback stable.
+        // setShouldShowSelectAllMatchingItems and selectAllMatchingItems are stable useState setters.
         [setSelectedTransactions],
     );
 
@@ -324,6 +322,8 @@ function SearchContextProvider({children}: SearchContextProps) {
             selectAllMatchingItems,
             setShouldResetSearchQuery,
         }),
+        // setShouldShowFiltersBarLoading, setLastSearchType, setShouldShowSelectAllMatchingItems,
+        // and selectAllMatchingItems are stable useState setters — excluded from deps intentionally.
         [removeTransaction, setSelectedTransactions, clearSelectedTransactions, setShouldResetSearchQuery],
     );
 
