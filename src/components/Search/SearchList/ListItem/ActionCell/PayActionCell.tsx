@@ -12,7 +12,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {canIOUBePaid} from '@libs/actions/IOU';
 import {getPayMoneyOnSearchInvoiceParams, payMoneyRequestOnSearch} from '@libs/actions/Search';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
-import {isInvoiceReport} from '@libs/ReportUtils';
+import {isExpenseReport, isInvoiceReport} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -39,7 +39,8 @@ function PayActionCell({isLoading, policyID, reportID, hash, amount, extraSmall,
     const invoiceReceiverPolicyID = chatReport?.invoiceReceiver && 'policyID' in chatReport.invoiceReceiver ? chatReport.invoiceReceiver.policyID : undefined;
     const invoiceReceiverPolicy = usePolicy(invoiceReceiverPolicyID);
     const canBePaid = canIOUBePaid(iouReport, chatReport, policy, bankAccountList, transactions, false, undefined, invoiceReceiverPolicy);
-    const shouldOnlyShowElsewhere = !canBePaid && canIOUBePaid(iouReport, chatReport, policy, bankAccountList, transactions, true, undefined, invoiceReceiverPolicy);
+    const isExpenseReportWithNoReimbursementAccount = isExpenseReport(iouReport) && !policy?.achAccount?.bankAccountID;
+    const shouldOnlyShowElsewhere = isExpenseReportWithNoReimbursementAccount || (!canBePaid && canIOUBePaid(iouReport, chatReport, policy, bankAccountList, transactions, true, undefined, invoiceReceiverPolicy));
 
     const {currency} = iouReport ?? {};
 
