@@ -5,7 +5,7 @@ import type {ChartBounds, Scale} from 'victory-native';
 import {AXIS_LABEL_GAP, CHART_FONT_FAMILIES} from '@components/Charts/constants';
 
 // Small extra padding so complex glyphs (e.g. Arabic) are not clipped.
-// getLongestLine() can slightly underreport the visual extent of the last glyph.
+// getLongestLine() can slightly under-report the visual extent of the last glyph.
 const GLYPH_PADDING = 4;
 
 type ChartYAxisLabelsProps = {
