@@ -6,7 +6,7 @@ const darkContrastTheme = {
     ...darkTheme,
     border: colors.productDark500,
     icon: colors.productDark700,
-    textSupporting: colors.productDark700,
+    textSupporting: colors.productDark800,
     buttonSuccessText: colors.productLight900,
     bordersBold: colors.productDark700,
     buttonIcon: colors.productDark900,
