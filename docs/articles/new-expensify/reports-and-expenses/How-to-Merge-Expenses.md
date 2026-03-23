@@ -5,7 +5,7 @@ keywords: [New Expensify, merge expenses, combine expenses, merge duplicate expe
 internalScope: Audience is all members. Covers manually merging duplicate expenses and eligibility rules. Does not cover automatic duplicate detection, resolving flagged duplicates, or SmartScan merge logic.
 ---
 
-# How to Merge Duplicate Expenses
+# How to merge duplicate expenses
 
 You can manually merge duplicate expenses when two expenses represent the same purchase. This is useful when a receipt and its matching card transaction were not automatically combined.
 
@@ -22,7 +22,7 @@ If you want to learn why duplicate expenses happen, see [Why Expenses Duplicate]
 
 ---
 
-## Who Can Merge Duplicate Expenses
+## Who can merge duplicate expenses
 
 You can merge duplicate expenses if you can edit both expenses.
 
@@ -33,7 +33,7 @@ You can't merge expenses that are Approved or Paid. Learn more about [expense st
 
 ---
 
-## What Types of Expenses Can Be Merged in Expensify
+## What types of expenses can be merged
 
 You can merge:
 
@@ -50,7 +50,7 @@ Create new page describing expense icons and what they mean. WIP here: https://g
 
 ---
 
-## How to Merge Duplicate Expenses from the Expenses Page
+## How to merge duplicate expenses from the Expenses page
 
 Use this method when you already see both duplicate expenses on the Expenses page. 
 
@@ -63,7 +63,7 @@ Use this method when you already see both duplicate expenses on the Expenses pag
 
 ---
 
-## How to Merge Duplicate Expenses From a Report
+## How to merge duplicate expenses from a report
 
 Use this method when both expenses are inside the same report.
 
@@ -84,7 +84,7 @@ Design request:https://github.com/Expensify/Expensify/issues/614048
 
 ---
 
-## How to Merge Duplicate Expenses from an Individual Expense
+## How to merge duplicate expenses from an individual expense
 
 1. In the navigation tabs (on the left on web, and at the bottom on mobile), select **Reports > Expenses**
 2. Click on the expense you want to merge to open it. 
@@ -103,7 +103,7 @@ Design request:https://github.com/Expensify/Expensify/issues/614048
 
 ---
 
-## What Happens After You Merge Duplicate Expenses
+## What happens after you merge duplicate expenses
 
 After you merge duplicate expenses:
 
