@@ -1275,7 +1275,7 @@ function startIssueNewCardFlow(policyID: string | undefined) {
         policyID,
     };
 
-    API.read(READ_COMMANDS.START_ISSUE_NEW_CARD_FLOW, parameters);
+    API.read(READ_COMMANDS.START_ISSUE_NEW_CARD_FLOW, parameters, {failureData: []});
 }
 
 function configureExpensifyCardsForPolicy(policyID: string, workspaceAccountID: number, bankAccountID?: number) {
@@ -1442,7 +1442,7 @@ function openCardDetailsPage(cardID: number) {
         cardID,
     };
 
-    API.read(READ_COMMANDS.OPEN_CARD_DETAILS_PAGE, parameters);
+    API.read(READ_COMMANDS.OPEN_CARD_DETAILS_PAGE, parameters, {failureData: []});
 }
 
 function toggleContinuousReconciliation(workspaceAccountID: number, shouldUseContinuousReconciliation: boolean, connectionName: ConnectionName, oldConnectionName?: ConnectionName) {
@@ -1552,7 +1552,7 @@ function queueExpensifyCardForBilling(feedCountry: string, domainAccountID: numb
         domainAccountID,
     };
 
-    API.write(WRITE_COMMANDS.QUEUE_EXPENSIFY_CARD_FOR_BILLING, parameters);
+    API.write(WRITE_COMMANDS.QUEUE_EXPENSIFY_CARD_FOR_BILLING, parameters, {failureData: []});
 }
 
 /**

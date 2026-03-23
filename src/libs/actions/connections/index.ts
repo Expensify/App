@@ -334,7 +334,7 @@ function copyExistingPolicyConnection(connectedPolicyID: string, targetPolicyID:
             targetPolicyID,
             connectionName,
         },
-        {optimisticData},
+        {optimisticData, failureData: []},
     );
 }
 

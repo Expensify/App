@@ -211,7 +211,7 @@ function setLocale(locale: Locale, currentPreferredLocale: Locale | undefined) {
         value: locale,
     };
 
-    API.write(WRITE_COMMANDS.UPDATE_PREFERRED_LOCALE, parameters, {optimisticData});
+    API.write(WRITE_COMMANDS.UPDATE_PREFERRED_LOCALE, parameters, {optimisticData, failureData: []});
 }
 
 function setSidebarLoaded() {
@@ -336,6 +336,7 @@ function getOnyxDataForOpenOrReconnect(
             },
         ],
         successData: [],
+        failureData: [],
         finallyData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -800,7 +801,7 @@ function setUpPoliciesAndNavigate(
 function handleRestrictedEvent(eventName: string) {
     const parameters: HandleRestrictedEventParams = {eventName};
 
-    API.write(WRITE_COMMANDS.HANDLE_RESTRICTED_EVENT, parameters);
+    API.write(WRITE_COMMANDS.HANDLE_RESTRICTED_EVENT, parameters, {failureData: []});
 }
 
 function updateLastVisitedPath(path: string) {

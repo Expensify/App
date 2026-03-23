@@ -110,7 +110,7 @@ function resetDomainValidationError(accountID: number) {
  * when accessing the domain initial page
  */
 function openDomainInitialPage(domainName: string) {
-    API.read(READ_COMMANDS.OPEN_DOMAIN_INITIAL_PAGE, {domainName});
+    API.read(READ_COMMANDS.OPEN_DOMAIN_INITIAL_PAGE, {domainName}, {failureData: []});
 }
 
 /**
@@ -317,7 +317,7 @@ async function getScimToken(domainName: string): Promise<ScimTokenWithState> {
 
     try {
         // eslint-disable-next-line rulesdir/no-api-side-effects-method -- we cannot store the token in onyx for security reasons
-        const response = await API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.GET_SCIM_TOKEN, {domain: domainName});
+        const response = await API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.GET_SCIM_TOKEN, {domain: domainName}, {failureData: []});
 
         if (response?.jsonCode !== CONST.JSON_CODE.SUCCESS) {
             return {
@@ -1688,7 +1688,7 @@ function exportMembersToCSV(domainAccountID: number, onDownloadFailed: () => voi
         formData.append(key, String(value));
     }
 
-    fileDownload(translate, getCommandURL({command: WRITE_COMMANDS.EXPORT_DOMAIN_MEMBERS_CSV}), fileName, '', false, formData, CONST.NETWORK.METHOD.POST, onDownloadFailed);
+    fileDownload(translate, getCommandURL({command: WRITE_COMMANDS.EXPORT_DOMAIN_MEMBERS_CSV, failureData: []}), fileName, '', false, formData, CONST.NETWORK.METHOD.POST, onDownloadFailed);
 }
 
 export {

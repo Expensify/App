@@ -44,7 +44,7 @@ function openPolicyDistanceRatesPage(policyID?: string) {
 
     const params: OpenPolicyDistanceRatesPageParams = {policyID};
 
-    API.read(READ_COMMANDS.OPEN_POLICY_DISTANCE_RATES_PAGE, params);
+    API.read(READ_COMMANDS.OPEN_POLICY_DISTANCE_RATES_PAGE, params, {failureData: []});
 }
 
 function enablePolicyDistanceRates(policyID: string, enabled: boolean, customUnit: CustomUnit | undefined) {

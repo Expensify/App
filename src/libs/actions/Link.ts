@@ -95,7 +95,7 @@ function openOldDotLink(url: string, shouldOpenInSameTab = false) {
     // If shortLivedAuthToken is not accessible, fallback to opening the link without the token.
     asyncOpenURL(
         // eslint-disable-next-line rulesdir/no-api-side-effects-method
-        API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.OPEN_OLD_DOT_LINK, {}, {})
+        API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.OPEN_OLD_DOT_LINK, {}, {failureData: []})
             .then((response) => (response ? buildOldDotURL(url, response.shortLivedAuthToken) : buildOldDotURL(url)))
             .catch(() => buildOldDotURL(url)),
         (oldDotURL) => oldDotURL,
@@ -135,7 +135,7 @@ function openTravelDotLink(policyID: OnyxEntry<string>, postLoginPath?: string) 
 
         asyncOpenURL(
             // eslint-disable-next-line rulesdir/no-api-side-effects-method
-            API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.GENERATE_SPOTNANA_TOKEN, parameters, {})
+            API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.GENERATE_SPOTNANA_TOKEN, parameters, {failureData: []})
                 .then((response) => {
                     if (!response?.spotnanaToken) {
                         reject(error);
@@ -393,7 +393,7 @@ function getTravelDotLink(policyID: OnyxEntry<string>) {
     };
 
     // eslint-disable-next-line rulesdir/no-api-side-effects-method
-    return API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.GENERATE_SPOTNANA_TOKEN, parameters, {}).then((response) => {
+    return API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.GENERATE_SPOTNANA_TOKEN, parameters, {failureData: []}).then((response) => {
         if (!response?.spotnanaToken) {
             throw new Error('Failed to generate spotnana token.');
         }

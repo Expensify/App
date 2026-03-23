@@ -39,6 +39,7 @@ describe('SequentialQueue', () => {
         const requestWithConflictResolution: Request<never> = {
             command: 'ReconnectApp',
             data: {accountID: 56789},
+            failureData: [],
             checkAndFixConflictingRequest: (persistedRequests) => {
                 // should be one instance of ReconnectApp, get the index to replace it later
                 const index = persistedRequests.findIndex((r) => r.command === 'ReconnectApp');
@@ -64,6 +65,7 @@ describe('SequentialQueue', () => {
         const requestWithConflictResolution: Request<never> = {
             command: 'ReconnectApp',
             data: {accountID: 56789},
+            failureData: [],
             checkAndFixConflictingRequest: () => {
                 return {conflictAction: {type: 'push'}};
             },
@@ -77,6 +79,7 @@ describe('SequentialQueue', () => {
         const requestWithConflictResolution: Request<never> = {
             command: 'ReconnectApp',
             data: {accountID: 56789},
+            failureData: [],
             checkAndFixConflictingRequest: () => {
                 return {conflictAction: {type: 'noAction'}};
             },
@@ -95,6 +98,7 @@ describe('SequentialQueue', () => {
         const requestWithConflictResolution: Request<never> = {
             command: 'ReconnectApp',
             data: {accountID: 56789},
+            failureData: [],
             checkAndFixConflictingRequest: (persistedRequests) => {
                 // should be one instance of ReconnectApp, get the index to replace it later
                 const index = persistedRequests.findIndex((r) => r.command === 'ReconnectApp');
@@ -134,12 +138,14 @@ describe('SequentialQueue', () => {
         const requestWithConflictResolution: Request<never> = {
             command: 'ReconnectApp',
             data: {accountID: 56789},
+            failureData: [],
             checkAndFixConflictingRequest: conflictResolver,
         };
 
         const requestWithConflictResolution2: Request<never> = {
             command: 'ReconnectApp',
             data: {accountID: 56789},
+            failureData: [],
             checkAndFixConflictingRequest: conflictResolver,
         };
 
@@ -150,12 +156,13 @@ describe('SequentialQueue', () => {
     });
 
     it('should replace request request in queue while a similar one is ongoing and keep the same index', () => {
-        SequentialQueue.push({command: 'OpenReport'});
+        SequentialQueue.push({command: 'OpenReport', failureData: []});
         SequentialQueue.push(request);
 
         const requestWithConflictResolution: Request<never> = {
             command: 'ReconnectApp',
             data: {accountID: 56789},
+            failureData: [],
             checkAndFixConflictingRequest: (persistedRequests) => {
                 // should be one instance of ReconnectApp, get the index to replace it later
                 const index = persistedRequests.findIndex((r) => r.command === 'ReconnectApp');
@@ -170,8 +177,8 @@ describe('SequentialQueue', () => {
         };
 
         SequentialQueue.push(requestWithConflictResolution);
-        SequentialQueue.push({command: 'AddComment'});
-        SequentialQueue.push({command: 'OpenReport'});
+        SequentialQueue.push({command: 'AddComment', failureData: []});
+        SequentialQueue.push({command: 'OpenReport', failureData: []});
 
         expect(getLength()).toBe(4);
         const persistedRequests = getAll();
@@ -184,17 +191,18 @@ describe('SequentialQueue', () => {
     it('should resolve the conflict and replace the correct request in the queue while a new request is picked up after unpausing', async () => {
         SequentialQueue.pause();
         for (let i = 0; i < 5; i++) {
-            SequentialQueue.push({command: `OpenReport${i}`});
-            SequentialQueue.push({command: `AddComment${i}`});
+            SequentialQueue.push({command: `OpenReport${i}`, failureData: []});
+            SequentialQueue.push({command: `AddComment${i}`, failureData: []});
         }
         SequentialQueue.push(request);
-        SequentialQueue.push({command: 'AddComment6'});
-        SequentialQueue.push({command: 'OpenReport6'});
+        SequentialQueue.push({command: 'AddComment6', failureData: []});
+        SequentialQueue.push({command: 'OpenReport6', failureData: []});
         // wait for Onyx.connect execute the callback and start processing the queue
         await Promise.resolve();
         const requestWithConflictResolution: Request<never> = {
             command: 'ReconnectApp-replaced',
             data: {accountID: 56789},
+            failureData: [],
             checkAndFixConflictingRequest: (persistedRequests) => {
                 // should be one instance of ReconnectApp, get the index to replace it later
                 const index = persistedRequests.findIndex((r) => r.command === 'ReconnectApp');
@@ -248,7 +256,7 @@ describe('SequentialQueue', () => {
     it('should get the ongoing request from onyx and start processing it', async () => {
         const persistedRequest = {...request, persistWhenOngoing: true, initiatedOffline: false};
         Onyx.set<typeof ONYXKEYS.PERSISTED_ONGOING_REQUESTS>(ONYXKEYS.PERSISTED_ONGOING_REQUESTS, persistedRequest as AnyRequest);
-        SequentialQueue.push({command: 'OpenReport'});
+        SequentialQueue.push({command: 'OpenReport', failureData: []});
 
         await Promise.resolve();
 

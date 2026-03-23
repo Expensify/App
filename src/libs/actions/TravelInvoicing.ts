@@ -476,7 +476,7 @@ function exportTravelInvoiceStatementCSV(policyID: string, startDate: string, en
         formData.append(key, String(value));
     }
 
-    const commandURL = ApiUtils.getCommandURL({command: READ_COMMANDS.EXPORT_TRAVEL_INVOICE_STATEMENT_CSV});
+    const commandURL = ApiUtils.getCommandURL({command: READ_COMMANDS.EXPORT_TRAVEL_INVOICE_STATEMENT_CSV, failureData: []});
     const filename = `Travel_Statement_${startDate}_${endDate}.csv`;
 
     const onDownloadFailed = () => {

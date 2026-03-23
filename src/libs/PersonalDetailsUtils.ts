@@ -254,6 +254,7 @@ function getPersonalDetailsOnyxDataForOptimisticUsers(
     return {
         optimisticData,
         finallyData,
+        failureData: [],
     };
 }
 

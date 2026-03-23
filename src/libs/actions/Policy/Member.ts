@@ -1197,7 +1197,7 @@ function openWorkspaceMembersPage(policyID: string, clientMemberEmails: string[]
         clientMemberEmails: JSON.stringify(clientMemberEmails),
     };
 
-    API.read(READ_COMMANDS.OPEN_WORKSPACE_MEMBERS_PAGE, params);
+    API.read(READ_COMMANDS.OPEN_WORKSPACE_MEMBERS_PAGE, params, {failureData: []});
 }
 
 function openPolicyMemberProfilePage(policyID: string, accountID: number) {
@@ -1206,7 +1206,7 @@ function openPolicyMemberProfilePage(policyID: string, accountID: number) {
         accountID,
     };
 
-    API.read(READ_COMMANDS.OPEN_POLICY_MEMBER_PROFILE_PAGE, params);
+    API.read(READ_COMMANDS.OPEN_POLICY_MEMBER_PROFILE_PAGE, params, {failureData: []});
 }
 
 function setWorkspaceInviteMembersDraft(policyID: string, invitedEmailsToAccountIDs: InvitedEmailsToAccountIDs) {
@@ -1358,7 +1358,16 @@ function downloadMembersCSV(policyID: string, onDownloadFailed: () => void, tran
         formData.append(key, String(value));
     }
 
-    fileDownload(translate, ApiUtils.getCommandURL({command: WRITE_COMMANDS.EXPORT_MEMBERS_CSV}), fileName, '', false, formData, CONST.NETWORK.METHOD.POST, onDownloadFailed);
+    fileDownload(
+        translate,
+        ApiUtils.getCommandURL({command: WRITE_COMMANDS.EXPORT_MEMBERS_CSV, failureData: []}),
+        fileName,
+        '',
+        false,
+        formData,
+        CONST.NETWORK.METHOD.POST,
+        onDownloadFailed,
+    );
 }
 
 function clearInviteDraft(policyID: string) {

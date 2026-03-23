@@ -331,7 +331,7 @@ function clearDelegatorErrors({delegatedAccess}: ClearDelegatorErrorsParams) {
 }
 
 function requestValidationCode() {
-    API.write(WRITE_COMMANDS.RESEND_VALIDATE_CODE, null);
+    API.write(WRITE_COMMANDS.RESEND_VALIDATE_CODE, null, {failureData: []});
 }
 
 function addDelegate({email, role, validateCode, delegatedAccess}: AddDelegateParams) {
@@ -709,7 +709,7 @@ function restoreDelegateSession<TKey extends OnyxKey>(authenticateResponse: Resp
 }
 
 function openSecuritySettingsPage() {
-    API.read(READ_COMMANDS.OPEN_SECURITY_SETTINGS_PAGE, null);
+    API.read(READ_COMMANDS.OPEN_SECURITY_SETTINGS_PAGE, null, {failureData: []});
 }
 
 export {

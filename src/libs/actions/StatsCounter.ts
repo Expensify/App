@@ -27,7 +27,7 @@ const StatsCounter = (eventName: string, value = 1) => {
             value,
         };
 
-        API.read(READ_COMMANDS.GRAPHITE, parameters, {});
+        API.read(READ_COMMANDS.GRAPHITE, parameters, {failureData: []});
     });
 };
 

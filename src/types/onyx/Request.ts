@@ -13,21 +13,33 @@ type ExpandOnyxKeys<TKey extends OnyxKey> = TKey extends OnyxCollectionKey ? NoI
  * It should only be used in legacy code where providing exact key types would require major restructuring.
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-type AnyOnyxUpdate<TKey extends OnyxKey = any> = {
+type AnyOnyxUpdateWithValue<TKey extends OnyxKey = any> = {
     /** The Onyx method to perform */
     onyxMethod:
         | typeof OnyxUtils.METHOD.SET
         | typeof OnyxUtils.METHOD.MULTI_SET
         | typeof OnyxUtils.METHOD.MERGE
-        | typeof OnyxUtils.METHOD.CLEAR
         | typeof OnyxUtils.METHOD.MERGE_COLLECTION
         | typeof OnyxUtils.METHOD.SET_COLLECTION;
     /** The Onyx key to update */
     key: ExpandOnyxKeys<TKey>;
     /** The data to be written to Onyx. Typed as `any` to allow flexibility */
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    value?: any;
+    value: any;
 };
+
+/** OnyxUpdate variant for CLEAR operations, which do not require a value */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type AnyOnyxUpdateClear<TKey extends OnyxKey = any> = {
+    /** The Onyx method to perform */
+    onyxMethod: typeof OnyxUtils.METHOD.CLEAR;
+    /** The Onyx key to update */
+    key: ExpandOnyxKeys<TKey>;
+};
+
+/** Loosely typed OnyxUpdate — discriminated union requiring `value` for all methods except CLEAR */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type AnyOnyxUpdate<TKey extends OnyxKey = any> = AnyOnyxUpdateWithValue<TKey> | AnyOnyxUpdateClear<TKey>;
 
 /** Generic base for types of onyx requests model sent to the API */
 type OnyxDataBase<TOnyxUpdate> = {
@@ -35,7 +47,7 @@ type OnyxDataBase<TOnyxUpdate> = {
     successData?: TOnyxUpdate[];
 
     /** Onyx instructions that are executed after getting response from server with jsonCode !== 200 */
-    failureData?: TOnyxUpdate[];
+    failureData: TOnyxUpdate[];
 
     /** Onyx instructions that are executed after getting any response from server */
     finallyData?: TOnyxUpdate[];

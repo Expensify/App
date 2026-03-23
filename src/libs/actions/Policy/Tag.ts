@@ -54,7 +54,7 @@ function openPolicyTagsPage(policyID: string) {
         policyID,
     };
 
-    API.read(READ_COMMANDS.OPEN_POLICY_TAGS_PAGE, params);
+    API.read(READ_COMMANDS.OPEN_POLICY_TAGS_PAGE, params, {failureData: []});
 }
 
 type BuildOptimisticPolicyRecentlyUsedTagsProps = {
@@ -817,7 +817,7 @@ function enablePolicyTags(policyData: PolicyData, enabled: boolean) {
 
 function cleanPolicyTags(policyID: string) {
     // We do not have any optimistic data or success data for this command as this action cannot be done offline
-    API.write(WRITE_COMMANDS.CLEAN_POLICY_TAGS, {policyID});
+    API.write(WRITE_COMMANDS.CLEAN_POLICY_TAGS, {policyID}, {failureData: []});
 }
 
 function setImportedSpreadsheetIsImportingMultiLevelTags(isImportingMultiLevelTags: boolean) {
@@ -1263,7 +1263,7 @@ function downloadTagsCSV(policyID: string, onDownloadFailed: () => void, transla
         formData.append(key, String(value));
     }
 
-    fileDownload(translate, ApiUtils.getCommandURL({command: WRITE_COMMANDS.EXPORT_TAGS_CSV}), fileName, '', false, formData, CONST.NETWORK.METHOD.POST, onDownloadFailed);
+    fileDownload(translate, ApiUtils.getCommandURL({command: WRITE_COMMANDS.EXPORT_TAGS_CSV, failureData: []}), fileName, '', false, formData, CONST.NETWORK.METHOD.POST, onDownloadFailed);
 }
 
 function downloadMultiLevelTagsCSV(policyID: string, onDownloadFailed: () => void, hasDependentTags: boolean, translate: LocalizedTranslate) {
@@ -1279,7 +1279,7 @@ function downloadMultiLevelTagsCSV(policyID: string, onDownloadFailed: () => voi
         formData.append(key, String(value));
     }
 
-    fileDownload(translate, ApiUtils.getCommandURL({command}), fileName, '', false, formData, CONST.NETWORK.METHOD.POST, onDownloadFailed);
+    fileDownload(translate, ApiUtils.getCommandURL({command, failureData: []}), fileName, '', false, formData, CONST.NETWORK.METHOD.POST, onDownloadFailed);
 }
 
 export {

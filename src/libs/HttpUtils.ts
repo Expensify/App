@@ -175,7 +175,7 @@ function xhr<TKey extends OnyxKey>(
     initiatedOffline = false,
 ): Promise<Response<TKey>> {
     return prepareRequestPayload(command, data, initiatedOffline).then((formData) => {
-        const url = getCommandURL({shouldUseSecure, command});
+        const url = getCommandURL({shouldUseSecure, command, failureData: []});
         const abortSignalController = data.canCancel ? (abortControllerMap.get(command as AbortCommand) ?? abortControllerMap.get(ABORT_COMMANDS.All)) : undefined;
 
         return processHTTPRequest(url, type, formData, abortSignalController?.signal);

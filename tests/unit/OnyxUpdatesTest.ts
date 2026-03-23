@@ -91,6 +91,7 @@ describe('OnyxUpdatesTest', () => {
             request: {
                 command: 'GetTransactionsPending3DSReview',
                 data: {},
+                failureData: [],
             },
             response: mockResponse,
         });
@@ -115,6 +116,7 @@ describe('OnyxUpdatesTest', () => {
                 data: {
                     updateIDFrom: null,
                 },
+                failureData: [],
             },
             response: {
                 onyxData: [

@@ -81,6 +81,7 @@ function updatePronouns(pronouns: string, currentUserAccountID: number) {
                 },
             },
         ],
+        failureData: [],
     });
 }
 
@@ -133,6 +134,7 @@ function updateDisplayName(firstName: string, lastName: string, formatPhoneNumbe
                 },
             },
         ],
+        failureData: [],
     });
 }
 
@@ -176,6 +178,7 @@ function updateLegalName(
     }
     API.write(WRITE_COMMANDS.UPDATE_LEGAL_NAME, parameters, {
         optimisticData,
+        failureData: [],
     });
     Navigation.goBack();
 }
@@ -196,6 +199,7 @@ function updateDateOfBirth({dob}: DateOfBirthForm) {
                 },
             },
         ],
+        failureData: [],
     });
 
     Navigation.goBack();
@@ -275,6 +279,7 @@ function updateAddress(addresses: Address[], street: string, street2: string, ci
                 },
             },
         ],
+        failureData: [],
     });
 
     Navigation.goBack();
@@ -306,6 +311,7 @@ function updateAutomaticTimezone(timezone: Timezone, currentUserAccountID: numbe
                 },
             },
         ],
+        failureData: [],
     });
 }
 
@@ -335,6 +341,7 @@ function updateSelectedTimezone(selectedTimezone: SelectedTimezone, currentUserA
                     },
                 },
             ],
+            failureData: [],
         });
     }
 
@@ -557,6 +564,7 @@ function updatePersonalDetailsAndShipExpensifyCards(values: FormOnyxValues<typeo
                 },
             },
         ],
+        failureData: [],
     });
 }
 

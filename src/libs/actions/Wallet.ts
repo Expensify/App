@@ -44,7 +44,7 @@ function openOnfidoFlow() {
         },
     ];
 
-    API.read(READ_COMMANDS.OPEN_ONFIDO_FLOW, null, {optimisticData, finallyData});
+    API.read(READ_COMMANDS.OPEN_ONFIDO_FLOW, null, {optimisticData, finallyData, failureData: []});
 }
 
 function setAdditionalDetailsQuestions(questions: WalletAdditionalQuestionDetails[] | null, idNumber?: string) {
@@ -87,6 +87,7 @@ function updatePersonalDetails(personalDetails: UpdatePersonalDetailsForWalletPa
     API.write(WRITE_COMMANDS.UPDATE_PERSONAL_DETAILS_FOR_WALLET, personalDetails, {
         optimisticData,
         finallyData,
+        failureData: [],
     });
 }
 
@@ -198,14 +199,14 @@ function acceptWalletTerms(parameters: AcceptWalletTermsParams) {
  * Fetches data when the user opens the InitialSettingsPage
  */
 function openInitialSettingsPage() {
-    API.read(READ_COMMANDS.OPEN_INITIAL_SETTINGS_PAGE, null);
+    API.read(READ_COMMANDS.OPEN_INITIAL_SETTINGS_PAGE, null, {failureData: []});
 }
 
 /**
  * Fetches data when the user opens the EnablePaymentsPage
  */
 function openEnablePaymentsPage() {
-    API.read(READ_COMMANDS.OPEN_ENABLE_PAYMENTS_PAGE, null);
+    API.read(READ_COMMANDS.OPEN_ENABLE_PAYMENTS_PAGE, null, {failureData: []});
 }
 
 function updateCurrentStep(currentStep: ValueOf<typeof CONST.WALLET.STEP> | null) {
@@ -243,6 +244,7 @@ function answerQuestionsForWallet(answers: WalletQuestionAnswer[], idNumber: str
     API.write(WRITE_COMMANDS.ANSWER_QUESTIONS_FOR_WALLET, requestParams, {
         optimisticData,
         finallyData,
+        failureData: [],
     });
 }
 
@@ -252,14 +254,18 @@ function resetWalletAdditionalDetailsDraft() {
 
 function issuerEncryptPayloadCallback(nonce: string, nonceSignature: string, certificates: string[], cardID: number): Promise<IOSEncryptPayload> {
     // eslint-disable-next-line rulesdir/no-api-side-effects-method, rulesdir/no-api-in-views
-    return API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.CREATE_DIGITAL_WALLET, {
-        platform: 'ios',
-        appVersion: pkg.version,
-        certificates: JSON.stringify({certificates}),
-        nonce,
-        nonceSignature,
-        cardID,
-    })
+    return API.makeRequestWithSideEffects(
+        SIDE_EFFECT_REQUEST_COMMANDS.CREATE_DIGITAL_WALLET,
+        {
+            platform: 'ios',
+            appVersion: pkg.version,
+            certificates: JSON.stringify({certificates}),
+            nonce,
+            nonceSignature,
+            cardID,
+        },
+        {failureData: []},
+    )
         .then((response) => {
             const data = response as unknown as IOSEncryptPayload;
             return {
@@ -292,13 +298,17 @@ function createDigitalGoogleWallet({
     cardHolderName: string;
 }): Promise<AndroidCardData> {
     // eslint-disable-next-line rulesdir/no-api-side-effects-method
-    return API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.CREATE_DIGITAL_WALLET, {
-        platform: 'android',
-        appVersion: pkg.version,
-        walletAccountID,
-        deviceID,
-        cardID,
-    })
+    return API.makeRequestWithSideEffects(
+        SIDE_EFFECT_REQUEST_COMMANDS.CREATE_DIGITAL_WALLET,
+        {
+            platform: 'android',
+            appVersion: pkg.version,
+            walletAccountID,
+            deviceID,
+            cardID,
+        },
+        {failureData: []},
+    )
         .then((response) => {
             const data = response as unknown as ProvisioningCardData;
             return {

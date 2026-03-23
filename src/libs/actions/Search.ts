@@ -449,7 +449,7 @@ function openSearchPage({includePartiallySetupBankAccounts}: OpenSearchPageParam
         },
     ];
 
-    API.read(READ_COMMANDS.OPEN_SEARCH_PAGE, {includePartiallySetupBankAccounts}, {successData});
+    API.read(READ_COMMANDS.OPEN_SEARCH_PAGE, {includePartiallySetupBankAccounts}, {successData, failureData: []});
 }
 
 // Tracks in-flight search requests by hash+offset to prevent duplicate API calls
@@ -590,7 +590,7 @@ function holdMoneyRequestOnSearch(hash: number, transactionIDList: string[], com
         }
     }
 
-    API.write(WRITE_COMMANDS.HOLD_MONEY_REQUEST_ON_SEARCH, {hash, transactionIDList, comment}, {optimisticData, finallyData});
+    API.write(WRITE_COMMANDS.HOLD_MONEY_REQUEST_ON_SEARCH, {hash, transactionIDList, comment}, {optimisticData, finallyData, failureData: []});
 }
 
 function submitMoneyRequestOnSearch(hash: number, reportList: Report[], policy: Policy[], currentSearchKey?: SearchKey) {
@@ -879,7 +879,7 @@ function payMoneyRequestOnSearch(hash: number, paymentData: PaymentData[], curre
 function unholdMoneyRequestOnSearch(hash: number, transactionIDList: string[]) {
     const {optimisticData, finallyData} = getOnyxLoadingData(hash);
 
-    API.write(WRITE_COMMANDS.UNHOLD_MONEY_REQUEST_ON_SEARCH, {hash, transactionIDList}, {optimisticData, finallyData});
+    API.write(WRITE_COMMANDS.UNHOLD_MONEY_REQUEST_ON_SEARCH, {hash, transactionIDList}, {optimisticData, finallyData, failureData: []});
 }
 
 function bulkDeleteReports({
@@ -1300,7 +1300,16 @@ function exportSearchItemsToCSV({query, jsonQuery, reportIDList, transactionIDLi
         }
     }
 
-    return fileDownload(translate, getCommandURL({command: WRITE_COMMANDS.EXPORT_SEARCH_ITEMS_TO_CSV}), 'Expensify.csv', '', false, formData, CONST.NETWORK.METHOD.POST, onDownloadFailed);
+    return fileDownload(
+        translate,
+        getCommandURL({command: WRITE_COMMANDS.EXPORT_SEARCH_ITEMS_TO_CSV, failureData: []}),
+        'Expensify.csv',
+        '',
+        false,
+        formData,
+        CONST.NETWORK.METHOD.POST,
+        onDownloadFailed,
+    );
 }
 
 function queueExportSearchItemsToCSV({query, jsonQuery, reportIDList, transactionIDList}: ExportSearchItemsToCSVParams) {
@@ -1311,7 +1320,7 @@ function queueExportSearchItemsToCSV({query, jsonQuery, reportIDList, transactio
         transactionIDList,
     }) as ExportSearchItemsToCSVParams;
 
-    API.write(WRITE_COMMANDS.QUEUE_EXPORT_SEARCH_ITEMS_TO_CSV, finalParameters);
+    API.write(WRITE_COMMANDS.QUEUE_EXPORT_SEARCH_ITEMS_TO_CSV, finalParameters, {failureData: []});
 }
 
 function queueExportSearchWithTemplate({templateName, templateType, jsonQuery, reportIDList, transactionIDList, policyID}: ExportSearchWithTemplateParams) {
@@ -1324,7 +1333,7 @@ function queueExportSearchWithTemplate({templateName, templateType, jsonQuery, r
         policyID,
     }) as ExportSearchWithTemplateParams;
 
-    API.write(WRITE_COMMANDS.QUEUE_EXPORT_SEARCH_WITH_TEMPLATE, finalParameters);
+    API.write(WRITE_COMMANDS.QUEUE_EXPORT_SEARCH_WITH_TEMPLATE, finalParameters, {failureData: []});
 }
 
 /**

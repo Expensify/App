@@ -1271,7 +1271,7 @@ function updateSplitTransactions({
             personalDetails,
         });
 
-        let updateMoneyRequestParamsOnyxData: OnyxData<UpdateMoneyRequestDataKeys> = {};
+        let updateMoneyRequestParamsOnyxData: OnyxData<UpdateMoneyRequestDataKeys> = {failureData: []};
         const currentSplit = splits.at(index);
 
         // For existing split transactions, update the field change messages

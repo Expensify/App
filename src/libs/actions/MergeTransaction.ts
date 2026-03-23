@@ -116,7 +116,7 @@ function getTransactionsForMergingFromAPI(transactionID: string) {
         transactionID,
     };
 
-    API.read(READ_COMMANDS.GET_TRANSACTIONS_FOR_MERGING, parameters);
+    API.read(READ_COMMANDS.GET_TRANSACTIONS_FOR_MERGING, parameters, {failureData: []});
 }
 
 /**

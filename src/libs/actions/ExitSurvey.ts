@@ -32,7 +32,7 @@ function switchToOldDot(exitSurveyResponse: string | undefined) {
         {
             surveyResponse: exitSurveyResponse,
         },
-        {optimisticData},
+        {optimisticData, failureData: []},
     );
 }
 

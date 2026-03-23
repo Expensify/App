@@ -43,7 +43,7 @@ function openPlaidBankLogin(allowDebit: boolean, bankAccountID: number) {
         },
     ];
 
-    API.read(READ_COMMANDS.OPEN_PLAID_BANK_LOGIN, params, {optimisticData});
+    API.read(READ_COMMANDS.OPEN_PLAID_BANK_LOGIN, params, {optimisticData, failureData: []});
 }
 
 /**
@@ -73,7 +73,7 @@ function openPlaidCompanyCardLogin(country: string, domain?: string, feed?: Card
         },
     ];
 
-    API.read(READ_COMMANDS.OPEN_PLAID_CARDS_BANK_LOGIN, params, {optimisticData});
+    API.read(READ_COMMANDS.OPEN_PLAID_CARDS_BANK_LOGIN, params, {optimisticData, failureData: []});
 }
 
 function openPlaidBankAccountSelector(publicToken: string, bankName: string, allowDebit: boolean, bankAccountID: number) {
@@ -141,7 +141,7 @@ function importPlaidAccounts(
         plaidAccessToken,
     };
 
-    API.write(WRITE_COMMANDS.IMPORT_PLAID_ACCOUNTS, parameters);
+    API.write(WRITE_COMMANDS.IMPORT_PLAID_ACCOUNTS, parameters, {failureData: []});
 }
 
 export {openPlaidBankAccountSelector, openPlaidBankLogin, openPlaidCompanyCardLogin, importPlaidAccounts};

@@ -78,7 +78,7 @@ function requestTravelAccess() {
             },
         },
     ];
-    API.write(WRITE_COMMANDS.TRAVEL_SIGNUP_REQUEST, null, {optimisticData});
+    API.write(WRITE_COMMANDS.TRAVEL_SIGNUP_REQUEST, null, {optimisticData, failureData: []});
 }
 
 function setTravelProvisioningNextStep(nextStepRoute?: Route) {
