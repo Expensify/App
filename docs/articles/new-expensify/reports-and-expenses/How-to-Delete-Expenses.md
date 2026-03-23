@@ -62,7 +62,7 @@ https://github.com/Expensify/Expensify/issues/614406
  - The workspace setting **Allow deleting transactions** was enabled at the time the expense was imported
  - The expense is Unreported or on a Draft or Outstanding report
 
-If an expense can't be deleted, you can [move the expense to your personal space instead](https://help.expensify.com/articles/new-expensify/reports-and-expenses/Delete-Expenses#deleting-company-card-expenses). 
+If an expense can't be deleted, you can [remove the expense from the report](https://help.expensify.com/articles/new-expensify/reports-and-expenses/Managing-Expenses-in-a-Report#how-to-move-or-remove-expenses-from-a-report) and move it to your personal space instead. 
 
 ---
  
