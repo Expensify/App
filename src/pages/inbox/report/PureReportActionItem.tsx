@@ -269,8 +269,8 @@ type PureReportActionItemProps = {
     /** Model of onboarding selected */
     introSelected?: OnyxEntry<OnyxTypes.IntroSelected>;
 
-    /** All transaction drafts */
-    allTransactionDrafts: OnyxCollection<OnyxTypes.Transaction>;
+    /** All transaction draft IDs */
+    draftTransactionIDs: string[] | undefined;
 
     /** Report for this action */
     report: OnyxEntry<OnyxTypes.Report>;
@@ -480,7 +480,7 @@ const isEmptyHTML = <T extends React.JSX.Element>({props: {html}}: T): boolean =
 function PureReportActionItem({
     personalPolicyID,
     introSelected,
-    allTransactionDrafts,
+    draftTransactionIDs,
     action,
     report,
     policy,
@@ -543,6 +543,7 @@ function PureReportActionItem({
     const shouldDisplayContextMenuValue = shouldDisplayContextMenu && !isConciergeGreeting;
 
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
+    const [ownerBillingGraceEndPeriod] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const {transitionActionSheetState} = ActionSheetAwareScrollView.useActionSheetAwareScrollViewActions();
     const {translate, formatPhoneNumber, localeCompare, formatTravelDate, getLocalDateFromDatetime, datetimeToCalendarTime} = useLocalize();
     const {showConfirmModal} = useConfirmModal();
@@ -579,6 +580,8 @@ function PureReportActionItem({
 
     const [childReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(action.childReportID)}`);
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.chatReportID)}`);
+    const trackExpenseTransactionID = isActionableTrackExpense(action) ? getOriginalMessage(action)?.transactionID : undefined;
+    const [trackExpenseTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(trackExpenseTransactionID)}`);
 
     const highlightedBackgroundColorIfNeeded = useMemo(
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
@@ -933,24 +936,24 @@ function PureReportActionItem({
 
         const reportActionReportID = originalReportID ?? reportID;
         if (isActionableTrackExpense(action)) {
-            const transactionID = getOriginalMessage(action)?.transactionID;
             const options = [
                 {
                     text: 'actionableMentionTrackExpense.submit',
                     key: `${action.reportActionID}-actionableMentionTrackExpense-submit`,
                     onPress: () => {
                         createDraftTransactionAndNavigateToParticipantSelector({
-                            transactionID,
                             reportID: reportActionReportID,
                             actionName: CONST.IOU.ACTION.SUBMIT,
                             reportActionID: action.reportActionID,
                             introSelected,
-                            allTransactionDrafts,
+                            draftTransactionIDs,
                             activePolicy,
                             userBillingGraceEndPeriods,
                             amountOwed,
+                            ownerBillingGraceEndPeriod,
                             isRestrictedToPreferredPolicy,
                             preferredPolicyID,
+                            transaction: trackExpenseTransaction,
                         });
                     },
                 },
@@ -963,15 +966,16 @@ function PureReportActionItem({
                         key: `${action.reportActionID}-actionableMentionTrackExpense-categorize`,
                         onPress: () => {
                             createDraftTransactionAndNavigateToParticipantSelector({
-                                transactionID,
                                 reportID: reportActionReportID,
                                 actionName: CONST.IOU.ACTION.CATEGORIZE,
                                 reportActionID: action.reportActionID,
                                 introSelected,
-                                allTransactionDrafts,
+                                draftTransactionIDs,
                                 activePolicy,
                                 userBillingGraceEndPeriods,
                                 amountOwed,
+                                ownerBillingGraceEndPeriod,
+                                transaction: trackExpenseTransaction,
                             });
                         },
                     },
@@ -980,15 +984,16 @@ function PureReportActionItem({
                         key: `${action.reportActionID}-actionableMentionTrackExpense-share`,
                         onPress: () => {
                             createDraftTransactionAndNavigateToParticipantSelector({
-                                transactionID,
                                 reportID: reportActionReportID,
                                 actionName: CONST.IOU.ACTION.SHARE,
                                 reportActionID: action.reportActionID,
                                 introSelected,
-                                allTransactionDrafts,
+                                draftTransactionIDs,
                                 activePolicy,
                                 userBillingGraceEndPeriods,
                                 amountOwed,
+                                ownerBillingGraceEndPeriod,
+                                transaction: trackExpenseTransaction,
                             });
                         },
                     },
@@ -1128,13 +1133,15 @@ function PureReportActionItem({
         isOriginalReportArchived,
         resolveActionableMentionWhisper,
         introSelected,
-        allTransactionDrafts,
+        draftTransactionIDs,
         activePolicy,
         report,
         originalReport,
         personalPolicyID,
         userBillingGraceEndPeriods,
         amountOwed,
+        ownerBillingGraceEndPeriod,
+        trackExpenseTransaction,
     ]);
 
     /**

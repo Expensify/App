@@ -2,7 +2,16 @@ import {useIsFocused, useNavigation, useRoute} from '@react-navigation/native';
 import lodashDebounce from 'lodash/debounce';
 import type {Ref, RefObject} from 'react';
 import React, {memo, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
-import type {BlurEvent, LayoutChangeEvent, MeasureInWindowOnSuccessCallback, TextInput, TextInputContentSizeChangeEvent, TextInputKeyPressEvent, TextInputScrollEvent} from 'react-native';
+import type {
+    BlurEvent,
+    LayoutChangeEvent,
+    MeasureInWindowOnSuccessCallback,
+    NativeMethods,
+    TextInput,
+    TextInputContentSizeChangeEvent,
+    TextInputKeyPressEvent,
+    TextInputScrollEvent,
+} from 'react-native';
 import {DeviceEventEmitter, InteractionManager, NativeModules, StyleSheet, View} from 'react-native';
 import {useFocusedInputHandler} from 'react-native-keyboard-controller';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -308,7 +317,7 @@ function ComposerWithSuggestions({
         isTransitioningToPreExistingReport.current = false;
     }, []);
 
-    const animatedRef = useAnimatedRef();
+    const animatedRef = useAnimatedRef<NativeMethods>();
     /**
      * Set the TextInput Ref
      */
