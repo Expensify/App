@@ -99,6 +99,10 @@ const DYNAMIC_ROUTES = {
         path: 'owner-selector',
         entryScreens: [],
     },
+    REPORT_SETTINGS_WRITE_CAPABILITY: {
+        path: 'who-can-post',
+        entryScreens: [SCREENS.REPORT_SETTINGS.ROOT],
+    },
     REPORT_SETTINGS_VISIBILITY: {
         path: 'visibility',
         entryScreens: [SCREENS.REPORT_SETTINGS.ROOT],
@@ -531,6 +535,14 @@ const ROUTES = {
         route: 'settings/wallet/card/:cardID/report-card-lost-or-damaged/:reason/confirm-magic-code',
         getRoute: (cardID: string, reason: ReplacementReason) => `settings/wallet/card/${cardID}/report-card-lost-or-damaged/${reason}/confirm-magic-code` as const,
     },
+    SETTINGS_WALLET_CARD_CHANGE_PIN: {
+        route: 'settings/wallet/card/:cardID/change-pin',
+        getRoute: (cardID: string) => `settings/wallet/card/${cardID}/change-pin` as const,
+    },
+    SETTINGS_WALLET_CARD_CHANGE_PIN_ATM: {
+        route: 'settings/wallet/card/:cardID/change-pin-atm',
+        getRoute: (cardID: string) => `settings/wallet/card/${cardID}/change-pin-atm` as const,
+    },
     SETTINGS_WALLET_CARD_ACTIVATE: {
         route: 'settings/wallet/card/:cardID/activate',
         getRoute: (cardID: string) => `settings/wallet/card/${cardID}/activate` as const,
@@ -821,12 +833,6 @@ const ROUTES = {
 
         // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
         getRoute: (reportID: string, backTo?: string) => getUrlWithBackToParam(`r/${reportID}/settings/notification-preferences` as const, backTo),
-    },
-    REPORT_SETTINGS_WRITE_CAPABILITY: {
-        route: 'r/:reportID/settings/who-can-post',
-
-        // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-        getRoute: (reportID: string, backTo?: string) => getUrlWithBackToParam(`r/${reportID}/settings/who-can-post` as const, backTo),
     },
     REPORT_CHANGE_APPROVER: {
         route: 'r/:reportID/change-approver',
