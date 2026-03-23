@@ -1,6 +1,5 @@
 import {isBlockedFromChatSelector} from '@selectors/BlockedFromChat';
-import {Str} from 'expensify-common';
-import React, {useEffect, useState} from 'react';
+import React from 'react';
 import {Keyboard, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import AnonymousReportFooter from '@components/AnonymousReportFooter';
@@ -8,24 +7,15 @@ import ArchivedReportFooter from '@components/ArchivedReportFooter';
 import Banner from '@components/Banner';
 import BlockedReportFooter from '@components/BlockedReportFooter';
 import OfflineIndicator from '@components/OfflineIndicator';
-import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import SwipeableView from '@components/SwipeableView';
-import useAncestors from '@hooks/useAncestors';
-import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useIsAnonymousUser from '@hooks/useIsAnonymousUser';
-import useIsInSidePanel from '@hooks/useIsInSidePanel';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useShortMentionsList from '@hooks/useShortMentionsList';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {addComment} from '@libs/actions/Report';
-import {createTaskAndNavigate, setNewOptimisticAssignee} from '@libs/actions/Task';
-import {isEmailPublicDomain} from '@libs/LoginUtils';
-import {addDomainToShortMention} from '@libs/ParsingUtils';
 import {
     canUserPerformWriteAction,
     canWriteInReport as canWriteInReportUtil,
@@ -35,7 +25,6 @@ import {
     isPublicRoom,
     isSystemChat as isSystemChatUtil,
 } from '@libs/ReportUtils';
-import {generateAccountID} from '@libs/UserUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -69,14 +58,11 @@ function ReportFooter({lastReportAction, report = {reportID: '-1'}, onComposerBl
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
-    const isInSidePanel = useIsInSidePanel();
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
-    const personalDetail = useCurrentUserPersonalDetails();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Lightbulb']);
 
     const [shouldShowComposeInput = false] = useOnyx(ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT);
-    const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
     const isAnonymousUser = useIsAnonymousUser();
     const [isBlockedFromChat] = useOnyx(ONYXKEYS.NVP_BLOCKED_FROM_CHAT, {
         selector: isBlockedFromChatSelector,
@@ -93,7 +79,6 @@ function ReportFooter({lastReportAction, report = {reportID: '-1'}, onComposerBl
     const isUserPolicyAdmin = policyRole === CONST.POLICY.ROLE.ADMIN;
     const chatFooterStyles = {...styles.chatFooter, minHeight: !isOffline ? CONST.CHAT_FOOTER_MIN_HEIGHT : 0};
     const isReportArchived = useReportIsArchived(report?.reportID);
-    const ancestors = useAncestors(report);
     const isArchivedRoom = isArchivedNonExpenseReport(report, isReportArchived);
 
     // If a user just signed in and is viewing a public report, optimistically show the composer while loading the report, since they will have write access when the response comes back.
@@ -103,95 +88,6 @@ function ReportFooter({lastReportAction, report = {reportID: '-1'}, onComposerBl
     const canWriteInReport = canWriteInReportUtil(report);
     const isSystemChat = isSystemChatUtil(report);
     const isAdminsOnlyPostingRoom = isAdminsOnlyPostingRoomUtil(report);
-
-    const allPersonalDetails = usePersonalDetails();
-    const {availableLoginsList} = useShortMentionsList();
-    const currentUserEmail = personalDetail.email ?? '';
-
-    const handleCreateTask = (text: string): boolean => {
-        const match = text.match(CONST.REGEX.TASK_TITLE_WITH_OPTIONAL_SHORT_MENTION);
-        if (!match) {
-            return false;
-        }
-        let title = match[3] ? match[3].trim().replaceAll('\n', ' ') : undefined;
-        if (!title) {
-            return false;
-        }
-
-        const mention = match[1] ? match[1].trim() : '';
-        const currentUserPrivateDomain = isEmailPublicDomain(currentUserEmail ?? '') ? '' : Str.extractEmailDomain(currentUserEmail ?? '');
-        const mentionWithDomain = addDomainToShortMention(mention, availableLoginsList, currentUserPrivateDomain) ?? mention;
-        const isValidMention = Str.isValidEmail(mentionWithDomain);
-
-        let assignee: OnyxEntry<OnyxTypes.PersonalDetails>;
-        let assigneeChatReport;
-        if (mentionWithDomain) {
-            if (isValidMention) {
-                assignee = Object.values(allPersonalDetails ?? {}).find((value) => value?.login === mentionWithDomain) ?? undefined;
-                if (!Object.keys(assignee ?? {}).length) {
-                    const optimisticDataForNewAssignee = setNewOptimisticAssignee(personalDetail.accountID, {
-                        accountID: generateAccountID(mentionWithDomain),
-                        login: mentionWithDomain,
-                    });
-                    assignee = optimisticDataForNewAssignee.assignee;
-                    assigneeChatReport = optimisticDataForNewAssignee.assigneeReport;
-                }
-            } else {
-                // If the mention is not valid, include it on the title.
-                // The mention could be invalid if it's a short mention and failed to be converted to a full mention.
-                title = `@${mentionWithDomain} ${title}`;
-            }
-        }
-        createTaskAndNavigate({
-            parentReport: report,
-            title,
-            description: '',
-            assigneeEmail: assignee?.login ?? '',
-            currentUserAccountID: personalDetail.accountID,
-            currentUserEmail,
-            assigneeAccountID: assignee?.accountID,
-            assigneeChatReport,
-            policyID: report.policyID,
-            isCreatedUsingMarkdown: true,
-            quickAction,
-            ancestors,
-        });
-        return true;
-    };
-
-    const [targetReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID ?? report.reportID}`);
-    const targetReportAncestors = useAncestors(targetReport);
-
-    const onSubmitComment = (text: string, reportActionID?: string) => {
-        const isTaskCreated = handleCreateTask(text);
-        if (isTaskCreated) {
-            return;
-        }
-        // If we are adding an action on an expense report that only has a single transaction thread child report, we need to add the action to the transaction thread instead.
-        // This is because we need it to be associated with the transaction thread and not the expense report in order for conversational corrections to work as expected.
-        addComment({
-            report: targetReport,
-            notifyReportID: report.reportID,
-            ancestors: targetReportAncestors,
-            text,
-            timezoneParam: personalDetail.timezone ?? CONST.DEFAULT_TIME_ZONE,
-            currentUserAccountID: personalDetail.accountID,
-            shouldPlaySound: true,
-            isInSidePanel,
-            reportActionID,
-        });
-    };
-
-    const [didHideComposerInput, setDidHideComposerInput] = useState(!shouldShowComposeInput);
-
-    useEffect(() => {
-        if (didHideComposerInput || shouldShowComposeInput) {
-            return;
-        }
-        // This is an intentional one-way latch: once the composer input has been hidden, it stays hidden.
-        // eslint-disable-next-line react-hooks/set-state-in-effect
-        setDidHideComposerInput(true);
-    }, [shouldShowComposeInput, didHideComposerInput]);
 
     return (
         <>
@@ -224,7 +120,6 @@ function ReportFooter({lastReportAction, report = {reportID: '-1'}, onComposerBl
                 <View style={[chatFooterStyles, isComposerFullSize && styles.chatFooterFullCompose]}>
                     <SwipeableView onSwipeDown={Keyboard.dismiss}>
                         <ReportActionCompose
-                            onSubmit={onSubmitComment}
                             onComposerFocus={onComposerFocus}
                             onComposerBlur={onComposerBlur}
                             reportID={report.reportID}
@@ -232,7 +127,6 @@ function ReportFooter({lastReportAction, report = {reportID: '-1'}, onComposerBl
                             lastReportAction={lastReportAction}
                             pendingAction={reportPendingAction}
                             isComposerFullSize={isComposerFullSize}
-                            didHideComposerInput={didHideComposerInput}
                             reportTransactions={reportTransactions}
                             transactionThreadReportID={transactionThreadReportID}
                         />

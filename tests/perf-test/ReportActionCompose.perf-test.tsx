@@ -83,7 +83,6 @@ function ReportActionComposeWrapper() {
     return (
         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, KeyboardStateProvider]}>
             <ReportActionCompose
-                onSubmit={() => jest.fn()}
                 reportID="1"
                 report={LHNTestUtils.getFakeReport()}
                 isComposerFullSize

@@ -1,3 +1,4 @@
+import {Str} from 'expensify-common';
 import lodashDebounce from 'lodash/debounce';
 import noop from 'lodash/noop';
 import React, {memo, useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
@@ -30,16 +31,21 @@ import useOnyx from '@hooks/useOnyx';
 import usePreferredPolicy from '@hooks/usePreferredPolicy';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useShortMentionsList from '@hooks/useShortMentionsList';
 import useShouldSuppressConciergeIndicators from '@hooks/useShouldSuppressConciergeIndicators';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {addComment} from '@libs/actions/Report';
+import {createTaskAndNavigate, setNewOptimisticAssignee} from '@libs/actions/Task';
 import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
 import ComposerFocusManager from '@libs/ComposerFocusManager';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import DomUtils from '@libs/DomUtils';
 import FS from '@libs/Fullstory';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+import {isEmailPublicDomain} from '@libs/LoginUtils';
 import {rand64} from '@libs/NumberUtils';
+import {addDomainToShortMention} from '@libs/ParsingUtils';
 import {getLinkedTransactionID, getReportAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {
     canEditFieldOfMoneyRequest,
@@ -59,6 +65,7 @@ import {
 } from '@libs/ReportUtils';
 import {startSpan} from '@libs/telemetry/activeSpans';
 import {getTransactionID, hasReceipt as hasReceiptTransactionUtils} from '@libs/TransactionUtils';
+import {generateAccountID} from '@libs/UserUtils';
 import willBlurTextInputOnTapOutsideFunc from '@libs/willBlurTextInputOnTapOutside';
 import {useAgentZeroStatusActions} from '@pages/inbox/AgentZeroStatusContext';
 import ParticipantLocalTime from '@pages/inbox/report/ParticipantLocalTime';
@@ -90,9 +97,6 @@ type SuggestionsRef = {
 };
 
 type ReportActionComposeProps = Pick<ComposerWithSuggestionsProps, 'reportID' | 'isComposerFullSize' | 'lastReportAction'> & {
-    /** A method to call when the form is submitted */
-    onSubmit: (newComment: string, reportActionID?: string) => void;
-
     /** The report currently being looked at */
     report: OnyxEntry<OnyxTypes.Report>;
 
@@ -110,9 +114,6 @@ type ReportActionComposeProps = Pick<ComposerWithSuggestionsProps, 'reportID' | 
 
     /** A method to call when the input is blur */
     onComposerBlur?: () => void;
-
-    /** Whether the main composer was hidden */
-    didHideComposerInput?: boolean;
 };
 
 function AgentZeroAwareTypingIndicator({reportID}: {reportID: string}) {
@@ -134,14 +135,12 @@ let onSubmitAction = noop;
 
 function ReportActionCompose({
     isComposerFullSize = false,
-    onSubmit,
     pendingAction,
     report,
     reportID,
     lastReportAction,
     onComposerFocus,
     onComposerBlur,
-    didHideComposerInput,
     reportTransactions,
     transactionThreadReportID,
 }: ReportActionComposeProps) {
@@ -159,6 +158,10 @@ function ReportActionCompose({
     const [blockedFromConcierge] = useOnyx(ONYXKEYS.NVP_BLOCKED_FROM_CONCIERGE);
     const [currentDate] = useOnyx(ONYXKEYS.CURRENT_DATE);
     const [shouldShowComposeInput = true] = useOnyx(ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT);
+    const [shouldShowComposeInputForLatch = false] = useOnyx(ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT);
+    const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
+    const {availableLoginsList} = useShortMentionsList();
+    const currentUserEmail = currentUserPersonalDetails.email ?? '';
     const {isRestrictedToPreferredPolicy} = usePreferredPolicy();
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`);
     const [initialModalState] = useOnyx(ONYXKEYS.MODAL);
@@ -192,6 +195,7 @@ function ReportActionCompose({
      */
     const [isMenuVisible, setMenuVisibility] = useState(false);
     const [isAttachmentPreviewActive, setIsAttachmentPreviewActive] = useState(false);
+    const [didHideComposerInput, setDidHideComposerInput] = useState(!shouldShowComposeInputForLatch);
 
     /**
      * Updates the composer when the comment length is exceeded
@@ -351,6 +355,50 @@ function ReportActionCompose({
                 });
                 attachmentFileRef.current = null;
             } else {
+                const taskMatch = newCommentTrimmed.match(CONST.REGEX.TASK_TITLE_WITH_OPTIONAL_SHORT_MENTION);
+                if (taskMatch) {
+                    let taskTitle = taskMatch[3] ? taskMatch[3].trim().replaceAll('\n', ' ') : undefined;
+                    if (taskTitle) {
+                        const mention = taskMatch[1] ? taskMatch[1].trim() : '';
+                        const currentUserPrivateDomain = isEmailPublicDomain(currentUserEmail) ? '' : Str.extractEmailDomain(currentUserEmail);
+                        const mentionWithDomain = addDomainToShortMention(mention, availableLoginsList, currentUserPrivateDomain) ?? mention;
+                        const isValidMention = Str.isValidEmail(mentionWithDomain);
+
+                        let assignee: OnyxEntry<OnyxTypes.PersonalDetails>;
+                        let assigneeChatReport;
+                        if (mentionWithDomain) {
+                            if (isValidMention) {
+                                assignee = Object.values(personalDetails ?? {}).find((value) => value?.login === mentionWithDomain) ?? undefined;
+                                if (!Object.keys(assignee ?? {}).length) {
+                                    const optimisticDataForNewAssignee = setNewOptimisticAssignee(currentUserPersonalDetails.accountID, {
+                                        accountID: generateAccountID(mentionWithDomain),
+                                        login: mentionWithDomain,
+                                    });
+                                    assignee = optimisticDataForNewAssignee.assignee;
+                                    assigneeChatReport = optimisticDataForNewAssignee.assigneeReport;
+                                }
+                            } else {
+                                taskTitle = `@${mentionWithDomain} ${taskTitle}`;
+                            }
+                        }
+                        createTaskAndNavigate({
+                            parentReport: report,
+                            title: taskTitle,
+                            description: '',
+                            assigneeEmail: assignee?.login ?? '',
+                            currentUserAccountID: currentUserPersonalDetails.accountID,
+                            currentUserEmail,
+                            assigneeAccountID: assignee?.accountID,
+                            assigneeChatReport,
+                            policyID: report?.policyID,
+                            isCreatedUsingMarkdown: true,
+                            quickAction,
+                            ancestors,
+                        });
+                        return;
+                    }
+                }
+
                 // Pre-generate the reportActionID so we can correlate the Sentry send-message span with the exact message
                 const optimisticReportActionID = rand64();
 
@@ -366,7 +414,17 @@ function ReportActionCompose({
                         },
                     });
                 }
-                onSubmit(newCommentTrimmed, optimisticReportActionID);
+                addComment({
+                    report: transactionThreadReport ?? report,
+                    notifyReportID: reportID,
+                    ancestors,
+                    text: newCommentTrimmed,
+                    timezoneParam: currentUserPersonalDetails.timezone ?? CONST.DEFAULT_TIME_ZONE,
+                    currentUserAccountID: currentUserPersonalDetails.accountID,
+                    shouldPlaySound: true,
+                    isInSidePanel,
+                    reportActionID: optimisticReportActionID,
+                });
             }
         },
         [
@@ -376,9 +434,13 @@ function ReportActionCompose({
             reportID,
             ancestors,
             currentUserPersonalDetails.accountID,
+            currentUserPersonalDetails.timezone,
             personalDetail.timezone,
             isInSidePanel,
-            onSubmit,
+            currentUserEmail,
+            availableLoginsList,
+            personalDetails,
+            quickAction,
             scrollOffsetRef,
         ],
     );
@@ -417,6 +479,15 @@ function ReportActionCompose({
             setExceededMaxLength(null);
         }
     }, [hasExceededMaxTaskTitleLength, hasExceededMaxCommentLength]);
+
+    useEffect(() => {
+        if (didHideComposerInput || shouldShowComposeInputForLatch) {
+            return;
+        }
+        // This is an intentional one-way latch: once the composer input has been hidden, it stays hidden.
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        setDidHideComposerInput(true);
+    }, [shouldShowComposeInputForLatch, didHideComposerInput]);
 
     // We are returning a callback here as we want to invoke the method on unmount only
     useEffect(
