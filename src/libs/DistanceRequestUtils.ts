@@ -277,44 +277,30 @@ function getDistanceMerchant(
     return `${distanceInUnits} ${CONST.DISTANCE_MERCHANT_SEPARATOR} ${ratePerUnit}`;
 }
 
-function ensureRateDefined(rate: number | undefined): asserts rate is number {
-    if (rate !== undefined) {
-        return;
-    }
-    throw new Error('All default P2P rates should have a rate defined');
-}
-
 /**
- * Returns the default P2P mileage rate, preferring the server-fetched rate (from Auth)
- * over the hardcoded CURRENCY_TO_DEFAULT_MILEAGE_RATE constant.
+ * Returns the default P2P mileage rate from Auth (stored in Onyx).
+ * Falls back to USD defaults if the server-fetched rate hasn't loaded yet.
  */
+// `currency` is unused; kept for call-site compatibility while the rate comes from Onyx (or USD fallback).
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function getDefaultP2PMileageRate(currency: string): {rate: number; unit: Unit} {
     if (defaultP2PMileageRate) {
         return defaultP2PMileageRate;
     }
-    const fallbackRate = CONST.CURRENCY_TO_DEFAULT_MILEAGE_RATE[currency] ?? CONST.CURRENCY_TO_DEFAULT_MILEAGE_RATE.USD;
-    ensureRateDefined(fallbackRate?.rate);
-    return {rate: fallbackRate.rate, unit: fallbackRate.unit};
+    return {rate: 72.5, unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES as Unit};
 }
 
 /**
- * Retrieves the rate and unit for a P2P distance expense for a given currency.
- *
- * Let's ensure this logic is consistent with the logic in the backend (Auth), since we're using the same method to calculate the rate value in distance requests created via Concierge.
- *
- * @param currency
- * @returns The rate and unit in MileageRate object.
+ * Retrieves the rate and unit for a P2P distance expense.
  */
 function getRateForP2P(currency: string, transaction: OnyxEntry<Transaction>): MileageRate {
-    const currencyWithExistingRate = defaultP2PMileageRate || CONST.CURRENCY_TO_DEFAULT_MILEAGE_RATE[currency] ? currency : CONST.CURRENCY.USD;
-    const mileageRate = getDefaultP2PMileageRate(currencyWithExistingRate);
-    ensureRateDefined(mileageRate.rate);
+    const mileageRate = getDefaultP2PMileageRate(currency);
 
     // Ensure the rate is updated when the currency changes, otherwise use the stored rate
     const rate = getCurrency(transaction) === currency ? (transaction?.comment?.customUnit?.defaultP2PRate ?? mileageRate.rate) : mileageRate.rate;
     return {
         ...mileageRate,
-        currency: currencyWithExistingRate,
+        currency,
         rate,
     };
 }
