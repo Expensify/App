@@ -56,6 +56,28 @@ const mockUseIsInSidePanel = useIsInSidePanel as jest.MockedFunction<typeof useI
 const mockUseSidePanelState = useSidePanelState as jest.MockedFunction<typeof useSidePanelState>;
 const mockUseReportTransactionsCollection = useReportTransactionsCollection as jest.MockedFunction<typeof useReportTransactionsCollection>;
 
+const defaultPaginatedReportActionsResult: ReturnType<typeof usePaginatedReportActions> = {
+    reportActions: [],
+    linkedAction: undefined,
+    oldestUnreadReportAction: undefined,
+    sortedAllReportActions: undefined,
+    hasNewerActions: false,
+    hasOlderActions: false,
+    report: undefined,
+};
+
+const defaultSidePanelState: ReturnType<typeof useSidePanelState> = {
+    sessionStartTime: null,
+    isSidePanelTransitionEnded: false,
+    isSidePanelHiddenOrLargeScreen: true,
+    shouldHideSidePanel: true,
+    shouldHideSidePanelBackdrop: true,
+    shouldHideHelpButton: false,
+    shouldHideToolTip: false,
+    sidePanelOffset: {current: null} as React.RefObject<never>,
+    sidePanelTranslateX: {current: null} as React.RefObject<never>,
+};
+
 jest.mock('@hooks/useCopySelectionHelper', () => jest.fn());
 jest.mock('@hooks/useCurrentUserPersonalDetails', () => jest.fn());
 jest.mock('@hooks/useLoadReportActions', () =>
@@ -163,14 +185,13 @@ describe('ReportActionsView', () => {
         });
 
         mockUsePaginatedReportActions.mockReturnValue({
+            ...defaultPaginatedReportActionsResult,
             reportActions: mockReportActions,
-            hasNewerActions: false,
-            hasOlderActions: false,
         });
 
-        mockUseParentReportAction.mockReturnValue(null);
+        mockUseParentReportAction.mockReturnValue(undefined as ReturnType<typeof useParentReportAction>);
         mockUseIsInSidePanel.mockReturnValue(false);
-        mockUseSidePanelState.mockReturnValue({sessionStartTime: null});
+        mockUseSidePanelState.mockReturnValue(defaultSidePanelState);
         mockUseReportTransactionsCollection.mockReturnValue({});
 
         mockUseOnyx.mockImplementation((key: string) => {
@@ -231,9 +252,7 @@ describe('ReportActionsView', () => {
 
             // Empty report actions to trigger isMissingReportActions condition
             mockUsePaginatedReportActions.mockReturnValue({
-                reportActions: [],
-                hasNewerActions: false,
-                hasOlderActions: false,
+                ...defaultPaginatedReportActionsResult,
             });
 
             renderReportActionsView();
@@ -403,12 +422,11 @@ describe('ReportActionsView', () => {
             setupConciergeMocks();
 
             mockUsePaginatedReportActions.mockReturnValue({
+                ...defaultPaginatedReportActionsResult,
                 reportActions: oldReportActions,
-                hasNewerActions: false,
-                hasOlderActions: false,
             });
             mockUseIsInSidePanel.mockReturnValue(true);
-            mockUseSidePanelState.mockReturnValue({sessionStartTime: DateUtils.getDBTime()});
+            mockUseSidePanelState.mockReturnValue({...defaultSidePanelState, sessionStartTime: DateUtils.getDBTime()});
 
             renderReportActionsView({reportID: CONCIERGE_REPORT_ID});
 
@@ -422,9 +440,8 @@ describe('ReportActionsView', () => {
             setupConciergeMocks();
 
             mockUsePaginatedReportActions.mockReturnValue({
+                ...defaultPaginatedReportActionsResult,
                 reportActions: oldReportActions,
-                hasNewerActions: false,
-                hasOlderActions: false,
             });
             mockUseIsInSidePanel.mockReturnValue(false);
 
@@ -437,9 +454,8 @@ describe('ReportActionsView', () => {
             setupConciergeMocks();
 
             mockUsePaginatedReportActions.mockReturnValue({
+                ...defaultPaginatedReportActionsResult,
                 reportActions: oldReportActions,
-                hasNewerActions: false,
-                hasOlderActions: false,
             });
             mockUseIsInSidePanel.mockReturnValue(false);
 
@@ -470,12 +486,11 @@ describe('ReportActionsView', () => {
             ];
 
             mockUsePaginatedReportActions.mockReturnValue({
+                ...defaultPaginatedReportActionsResult,
                 reportActions: actionsWithNewMessage,
-                hasNewerActions: false,
-                hasOlderActions: false,
             });
             mockUseIsInSidePanel.mockReturnValue(true);
-            mockUseSidePanelState.mockReturnValue({sessionStartTime: sessionStart});
+            mockUseSidePanelState.mockReturnValue({...defaultSidePanelState, sessionStartTime: sessionStart});
 
             renderReportActionsView({reportID: CONCIERGE_REPORT_ID});
 
