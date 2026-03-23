@@ -5,6 +5,7 @@ import React, {useCallback, useLayoutEffect, useMemo, useState} from 'react';
 import {StyleSheet, View} from 'react-native';
 import type {GestureResponderEvent, LayoutChangeEvent, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
+import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -295,7 +296,7 @@ function BasePopoverMenu({
     innerContainerStyle,
     scrollContainerStyle,
     shouldUseScrollView = false,
-    shouldEnableMaxHeight = true,
+    shouldEnableMaxHeight: shouldEnableMaxHeightProp = true,
     shouldUpdateFocusedIndex = true,
     shouldUseModalPaddingStyle,
     shouldAvoidSafariException = false,
@@ -317,6 +318,9 @@ function BasePopoverMenu({
     const [focusedIndex, setFocusedIndex] = useArrowKeyFocusManager({initialFocusedIndex: currentMenuItemsFocusedIndex, maxIndex: currentMenuItems.length - 1, isActive: isVisible});
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['BackArrow', 'ReceiptScan', 'MoneyCircle']);
     const prevMenuItems = usePrevious(menuItems);
+    const isInLandscapeMode = useIsInLandscapeMode();
+
+    const shouldEnableMaxHeight = shouldEnableMaxHeightProp && !isInLandscapeMode;
 
     const selectItem = (index: number, event?: GestureResponderEvent | KeyboardEvent) => {
         const selectedItem = currentMenuItems.at(index);
