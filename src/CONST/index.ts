@@ -7849,6 +7849,7 @@ const CONST = {
             ON: 'on',
             AFTER: 'after',
             BEFORE: 'before',
+            RANGE: 'range',
         },
         AMOUNT_MODIFIERS: {
             LESS_THAN: 'LessThan',

@@ -16,7 +16,7 @@ import ROUTES from '@src/ROUTES';
 import type {SearchAdvancedFiltersKey} from '@src/types/form/SearchAdvancedFiltersForm';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import DateFilterBase from './FilterComponents/DateFilterBase';
-import type {ReportFieldDateKey, SearchDateFilterKeys, SearchFilterKey} from './types';
+import type {SearchDateFilterKeys, SearchFilterKey} from './types';
 
 type SearchDatePresetFilterBasePageProps = {
     /** Key used for the date filter */
@@ -76,6 +76,8 @@ function SearchDatePresetFilterBasePage({dateKey, titleKey}: SearchDatePresetFil
         selectedDateModifier = CONST.SEARCH.DATE_MODIFIERS.AFTER;
     } else if (params?.subPage === CONST.SEARCH.DATE_FILTER_SUB_PAGE.BEFORE) {
         selectedDateModifier = CONST.SEARCH.DATE_MODIFIERS.BEFORE;
+    } else if (params?.subPage === CONST.SEARCH.DATE_FILTER_SUB_PAGE.RANGE) {
+        selectedDateModifier = CONST.SEARCH.DATE_MODIFIERS.RANGE;
     }
 
     const selectDateModifier = useCallback(
@@ -85,19 +87,28 @@ function SearchDatePresetFilterBasePage({dateKey, titleKey}: SearchDatePresetFil
                 return;
             }
 
+            let newSubPage: string;
             if (dateModifier === CONST.SEARCH.DATE_MODIFIERS.ON) {
-                Navigation.navigate(buildSubPageRoute(CONST.SEARCH.DATE_FILTER_SUB_PAGE.ON));
+                newSubPage = CONST.SEARCH.DATE_FILTER_SUB_PAGE.ON;
+            } else if (dateModifier === CONST.SEARCH.DATE_MODIFIERS.AFTER) {
+                newSubPage = CONST.SEARCH.DATE_FILTER_SUB_PAGE.AFTER;
+            } else if (dateModifier === CONST.SEARCH.DATE_MODIFIERS.RANGE) {
+                newSubPage = CONST.SEARCH.DATE_FILTER_SUB_PAGE.RANGE;
+            } else {
+                newSubPage = CONST.SEARCH.DATE_FILTER_SUB_PAGE.BEFORE;
+            }
+
+            // When already on a date modifier subPage, update route params in-place instead of
+            // pushing a new screen. This avoids a side-by-side slide animation and preserves
+            // ephemeral date state (the calendar value) across modifier switches.
+            if (params?.subPage) {
+                Navigation.setParams({subPage: newSubPage});
                 return;
             }
 
-            if (dateModifier === CONST.SEARCH.DATE_MODIFIERS.AFTER) {
-                Navigation.navigate(buildSubPageRoute(CONST.SEARCH.DATE_FILTER_SUB_PAGE.AFTER));
-                return;
-            }
-
-            Navigation.navigate(buildSubPageRoute(CONST.SEARCH.DATE_FILTER_SUB_PAGE.BEFORE));
+            Navigation.navigate(buildSubPageRoute(newSubPage));
         },
-        [buildSubPageRoute],
+        [buildSubPageRoute, params?.subPage],
     );
 
     const defaultDateValues = getDefaultDateValues();

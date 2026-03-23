@@ -298,7 +298,7 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON, isMobileSelectionModeEn
     };
 
     const openAdvancedFilters = () => {
-        updateAdvancedFilters(filterFormValues);
+        updateAdvancedFilters(filterFormValues, true);
         Navigation.navigate(ROUTES.SEARCH_ADVANCED_FILTERS.getRoute());
     };
 
