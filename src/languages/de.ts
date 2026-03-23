@@ -7819,6 +7819,11 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
             prompt: 'Sind Sie sicher, dass Sie die GPS-Verfolgung beenden und zu Expensify Classic wechseln möchten?',
             confirm: 'Anhalten und wechseln',
         },
+        switchAccountWarningTripInProgress: {
+            title: 'GPS-Tracking läuft',
+            prompt: 'Sind Sie sicher, dass Sie die GPS-Verfolgung beenden und das Konto wechseln möchten?',
+            confirm: 'Anhalten und wechseln',
+        },
         locationServicesRequiredModal: {
             title: 'Standortzugriff erforderlich',
             confirm: 'Einstellungen öffnen',

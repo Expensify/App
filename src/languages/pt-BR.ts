@@ -7777,6 +7777,11 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
             prompt: 'Tem certeza de que deseja parar o rastreamento por GPS e mudar para o Expensify Classic?',
             confirm: 'Parar e mudar',
         },
+        switchAccountWarningTripInProgress: {
+            title: 'Rastreamento por GPS em andamento',
+            prompt: 'Tem certeza de que quer parar o rastreamento por GPS e mudar de conta?',
+            confirm: 'Parar e trocar',
+        },
         locationServicesRequiredModal: {
             title: 'Acesso à localização necessário',
             confirm: 'Abrir configurações',

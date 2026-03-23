@@ -51,6 +51,9 @@ type TripRoomPreviewProps = {
     /** Whether the corresponding report action item is hovered */
     isHovered?: boolean;
 
+    /** ID of the original report from which the given reportAction is first created */
+    originalReportID?: string;
+
     /** Whether  context menu should be shown on press */
     shouldDisplayContextMenu?: boolean;
 };
@@ -123,6 +126,7 @@ function TripRoomPreview({
     isHovered = false,
     checkIfContextMenuActive = () => {},
     shouldDisplayContextMenu = true,
+    originalReportID,
 }: TripRoomPreviewProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -172,9 +176,10 @@ function TripRoomPreview({
                         if (!shouldDisplayContextMenu) {
                             return;
                         }
-                        showContextMenuForReport(event, contextMenuAnchor, chatReportID, action, checkIfContextMenuActive);
+                        showContextMenuForReport(event, contextMenuAnchor, chatReportID, action, checkIfContextMenuActive, false, originalReportID);
                     }}
                     shouldUseHapticsOnLongPress
+                    sentryLabel={CONST.SENTRY_LABEL.TRIP_ROOM_PREVIEW.CARD}
                     style={[styles.flexRow, styles.justifyContentBetween, styles.reportPreviewBox]}
                     role={CONST.ROLE.BUTTON}
                     accessibilityLabel={translate('iou.viewDetails')}
