@@ -452,6 +452,8 @@ const translations: TranslationDeepObject<typeof en> = {
         downloadAsCSV: 'CSVとしてダウンロード',
         print: '印刷',
         help: 'ヘルプ',
+        collapsed: '折りたたみ',
+        expanded: '展開',
         expenseReport: '経費精算書',
         expenseReports: '経費レポート',
         rateOutOfPolicy: 'ポリシー対象外のレート',
@@ -524,6 +526,7 @@ const translations: TranslationDeepObject<typeof en> = {
         concierge: {sidePanelGreeting: 'こんにちは、どのようにお手伝いできますか？', showHistory: '履歴を表示'},
         duplicateReport: 'レポートを複製',
         approver: '承認者',
+        copyOfReportName: (reportName: string) => `${reportName} のコピー`,
     },
     socials: {
         podcast: 'ポッドキャストでフォロー',
@@ -662,15 +665,7 @@ const translations: TranslationDeepObject<typeof en> = {
             rejectAuthentication: '認証を拒否',
             test: 'テスト',
             biometricsAuthentication: '生体認証',
-            authType: {
-                unknown: '不明',
-                none: 'なし',
-                credentials: '資格情報',
-                biometrics: '生体認証',
-                faceId: 'Face ID',
-                touchId: 'Touch ID',
-                opticId: 'Optic ID',
-            },
+            authType: {unknown: '不明', none: 'なし', credentials: '資格情報', biometrics: '生体認証', faceId: 'Face ID', touchId: 'Touch ID', opticId: 'Optic ID', passkey: 'Passkey'},
             statusNeverRegistered: '未登録',
             statusNotRegistered: '未登録',
             statusRegisteredThisDevice: '登録済み',
@@ -687,11 +682,10 @@ const translations: TranslationDeepObject<typeof en> = {
         letsVerifyItsYou: 'ご本人確認を行いましょう',
         nowLetsAuthenticateYou: 'では、ご本人確認を行いましょう…',
         letsAuthenticateYou: '認証を行っています…',
-        verifyYourself: {
-            biometrics: '顔または指紋で本人確認を行ってください',
-        },
+        verifyYourself: {biometrics: '顔または指紋で本人確認を行ってください', passkeys: 'パスキーで本人確認を行います'},
         enableQuickVerification: {
             biometrics: '顔や指紋を使って、素早く安全に認証できます。パスワードやコードは不要です。',
+            passkeys: 'パスキーを使って、素早く安全に認証できるようにします。パスワードやコードは不要です。',
         },
         revoke: {
             title: '顔／指紋 & パスキー',

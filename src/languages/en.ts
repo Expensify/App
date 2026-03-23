@@ -472,6 +472,8 @@ const translations = {
         downloadAsCSV: 'Download as CSV',
         print: 'Print',
         help: 'Help',
+        collapsed: 'Collapsed',
+        expanded: 'Expanded',
         expenseReport: 'Expense Report',
         expenseReports: 'Expense Reports',
         // @context Rate as a noun, not a verb
@@ -530,6 +532,7 @@ const translations = {
         duplicated: 'Duplicated',
         duplicateExpense: 'Duplicate expense',
         duplicateReport: 'Duplicate report',
+        copyOfReportName: (reportName: string) => `Copy of ${reportName}`,
         exchangeRate: 'Exchange rate',
         reimbursableTotal: 'Reimbursable total',
         nonReimbursableTotal: 'Non-reimbursable total',
@@ -700,6 +703,7 @@ const translations = {
                 faceId: 'Face ID',
                 touchId: 'Touch ID',
                 opticId: 'Optic ID',
+                passkey: 'Passkey',
             },
         },
         pleaseEnableInSystemSettings: {
@@ -716,9 +720,11 @@ const translations = {
         letsAuthenticateYou: "Let's authenticate you...",
         verifyYourself: {
             biometrics: 'Verify yourself with your face or fingerprint',
+            passkeys: 'Verify yourself with a passkey',
         },
         enableQuickVerification: {
             biometrics: 'Enable quick, secure verification using your face or fingerprint. No passwords or codes required.',
+            passkeys: 'Enable quick, secure verification using a passkey. No passwords or codes required.',
         },
         revoke: {
             revoke: 'Revoke',
