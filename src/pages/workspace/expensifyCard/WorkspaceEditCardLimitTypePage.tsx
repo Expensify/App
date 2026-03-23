@@ -199,7 +199,7 @@ function WorkspaceEditCardLimitTypePage({route}: WorkspaceEditCardLimitTypePageP
             });
         }
 
-        if (card?.nameValuePairs?.isVirtual && isBetaEnabled(CONST.BETAS.SINGLE_USE_AND_EXPIRE_BY_CARDS)) {
+        if (card?.nameValuePairs?.isVirtual) {
             options.push({
                 value: CONST.EXPENSIFY_CARD.LIMIT_TYPES.SINGLE_USE,
                 label: translate('workspace.card.issueNewCard.singleUse'),
@@ -278,7 +278,7 @@ function WorkspaceEditCardLimitTypePage({route}: WorkspaceEditCardLimitTypePageP
                             alternateNumberOfSupportedLines={2}
                         />
 
-                        {!!card?.nameValuePairs?.isVirtual && isBetaEnabled(CONST.BETAS.SINGLE_USE_AND_EXPIRE_BY_CARDS) && (
+                        {!!card?.nameValuePairs?.isVirtual && (
                             <>
                                 <View style={[styles.threadDividerLine, styles.flexGrow0, styles.ml5, styles.mr5, styles.mv3]} />
                                 <View style={[styles.ph5]}>
