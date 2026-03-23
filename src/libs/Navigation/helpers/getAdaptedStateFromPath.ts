@@ -1,5 +1,4 @@
 import type {NavigationState, PartialState, getStateFromPath as RNGetStateFromPath, Route} from '@react-navigation/native';
-import {findFocusedRoute} from '@react-navigation/native';
 import pick from 'lodash/pick';
 import getInitialSplitNavigatorState from '@libs/Navigation/AppNavigator/createSplitNavigator/getInitialSplitNavigatorState';
 import {RHP_TO_DOMAIN, RHP_TO_HOME, RHP_TO_SEARCH, RHP_TO_SETTINGS, RHP_TO_SIDEBAR, RHP_TO_WORKSPACE, RHP_TO_WORKSPACES_LIST} from '@libs/Navigation/linkingConfig/RELATIONS';
@@ -11,12 +10,13 @@ import NAVIGATORS from '@src/NAVIGATORS';
 import type {Route as RoutePath} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
-import getLastSuffixFromPath from './getLastSuffixFromPath';
+import findMatchingDynamicSuffix from './dynamicRoutesUtils/findMatchingDynamicSuffix';
+import getPathWithoutDynamicSuffix from './dynamicRoutesUtils/getPathWithoutDynamicSuffix';
+import findFocusedRouteWithOnyxTabGuard from './findFocusedRouteWithOnyxTabGuard';
 import getMatchingNewRoute from './getMatchingNewRoute';
 import getParamsFromRoute from './getParamsFromRoute';
 import getRedirectedPath from './getRedirectedPath';
 import getStateFromPath from './getStateFromPath';
-import isDynamicRouteSuffix from './isDynamicRouteSuffix';
 import {isFullScreenName} from './isNavigatorName';
 import normalizePath from './normalizePath';
 import replacePathInNestedState from './replacePathInNestedState';
@@ -71,7 +71,7 @@ function getMatchingFullScreenRoute(route: NavigationPartialRoute) {
             return lastRoute;
         }
 
-        const focusedStateForBackToRoute = findFocusedRoute(stateForBackTo);
+        const focusedStateForBackToRoute = findFocusedRouteWithOnyxTabGuard(stateForBackTo);
 
         if (!focusedStateForBackToRoute) {
             return undefined;
@@ -170,13 +170,16 @@ function getMatchingFullScreenRoute(route: NavigationPartialRoute) {
 
     // Handle dynamic routes: find the appropriate full screen route
     if (route.path) {
-        const dynamicRouteSuffix = getLastSuffixFromPath(route.path);
-        if (isDynamicRouteSuffix(dynamicRouteSuffix)) {
-            // Remove dynamic suffix to get the base path
-            const pathWithoutDynamicSuffix = route.path?.replace(`/${dynamicRouteSuffix}`, '');
+        const dynamicRouteSuffix = findMatchingDynamicSuffix(route.path);
+        if (dynamicRouteSuffix) {
+            const pathWithoutDynamicSuffix = getPathWithoutDynamicSuffix(route.path, dynamicRouteSuffix);
+
+            if (!pathWithoutDynamicSuffix) {
+                return undefined;
+            }
 
             // Get navigation state for the base path without dynamic suffix
-            const stateUnderDynamicRoute = getStateFromPath(pathWithoutDynamicSuffix as RoutePath);
+            const stateUnderDynamicRoute = getStateFromPath(pathWithoutDynamicSuffix);
             const lastRoute = stateUnderDynamicRoute?.routes.at(-1);
 
             if (!stateUnderDynamicRoute || !lastRoute || lastRoute.name === SCREENS.NOT_FOUND) {
@@ -189,14 +192,14 @@ function getMatchingFullScreenRoute(route: NavigationPartialRoute) {
                 return lastRoute;
             }
 
-            const focusedStateForDynamicRoute = findFocusedRoute(stateUnderDynamicRoute);
+            const focusedRouteUnderDynamicRoute = findFocusedRouteWithOnyxTabGuard(stateUnderDynamicRoute);
 
-            if (!focusedStateForDynamicRoute) {
+            if (!focusedRouteUnderDynamicRoute) {
                 return undefined;
             }
 
             // Recursively find the matching full screen route for the focused dynamic route
-            return getMatchingFullScreenRoute(focusedStateForDynamicRoute);
+            return getMatchingFullScreenRoute(focusedRouteUnderDynamicRoute);
         }
     }
 
@@ -257,7 +260,7 @@ function getAdaptedState(state: PartialState<NavigationState<RootNavigatorParamL
 
     // If there is no full screen route in the root, we want to add it.
     if (!fullScreenRoute) {
-        const focusedRoute = findFocusedRoute(state);
+        const focusedRoute = findFocusedRouteWithOnyxTabGuard(state);
 
         if (focusedRoute) {
             const matchingRootRoute = getMatchingFullScreenRoute(focusedRoute);

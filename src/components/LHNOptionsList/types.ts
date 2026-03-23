@@ -99,9 +99,6 @@ type OptionRowLHNDataProps = {
     /** Whether a report contains a draft */
     hasDraftComment: boolean;
 
-    /** The receipt transaction from the parent report action */
-    receiptTransactions: OnyxCollection<Transaction>;
-
     /** The reportID of the report */
     reportID: string;
 
@@ -123,7 +120,7 @@ type OptionRowLHNDataProps = {
     viewMode?: OptionMode;
 
     /** The last message text from the report */
-    lastMessageTextFromReport: string;
+    lastMessageTextFromReport?: string;
 
     /** A function that is called when an option is selected. Selected option is passed as a param */
     onSelectRow?: (optionItem: OptionData, popoverAnchor: RefObject<View | null>) => void;
@@ -211,6 +208,9 @@ type OptionRowLHNProps = {
 
     /** The testID of the row */
     testID: number;
+
+    /** The concierge report ID from Onyx */
+    conciergeReportID: OnyxEntry<string>;
 };
 
 type RenderItemProps = {item: Report; index: number};

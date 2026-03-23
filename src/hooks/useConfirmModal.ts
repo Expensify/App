@@ -19,6 +19,7 @@ const useConfirmModal = () => {
 
     return {
         ...context,
+        closeModal: () => context.closeModal(),
         showConfirmModal,
     };
 };

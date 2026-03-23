@@ -1,14 +1,20 @@
 import type {ReactNode} from 'react';
-import React, {createContext, useContext, useMemo, useState} from 'react';
+import React, {createContext, useContext, useState} from 'react';
 
-type MouseContextProps = {
+type MouseStateContextProps = {
     isMouseDownOnInput: boolean;
+};
+
+type MouseActionsContextProps = {
     setMouseDown: () => void;
     setMouseUp: () => void;
 };
 
-const MouseContext = createContext<MouseContextProps>({
+const MouseStateContext = createContext<MouseStateContextProps>({
     isMouseDownOnInput: false,
+});
+
+const MouseActionsContext = createContext<MouseActionsContextProps>({
     setMouseDown: () => {},
     setMouseUp: () => {},
 });
@@ -23,11 +29,24 @@ function MouseProvider({children}: MouseProviderProps) {
     const setMouseDown = () => setIsMouseDownOnInput(true);
     const setMouseUp = () => setIsMouseDownOnInput(false);
 
-    const value = useMemo(() => ({isMouseDownOnInput, setMouseDown, setMouseUp}), [isMouseDownOnInput]);
+    const stateValue = {isMouseDownOnInput};
+    const actionsValue = {setMouseDown, setMouseUp};
 
-    return <MouseContext.Provider value={value}>{children}</MouseContext.Provider>;
+    return (
+        <MouseStateContext.Provider value={stateValue}>
+            <MouseActionsContext.Provider value={actionsValue}>{children}</MouseActionsContext.Provider>
+        </MouseStateContext.Provider>
+    );
 }
 
-const useMouseContext = () => useContext(MouseContext);
+const useMouseState = () => useContext(MouseStateContext);
 
-export {MouseProvider, useMouseContext};
+const useMouseActions = () => useContext(MouseActionsContext);
+
+const useMouseContext = () => {
+    const state = useMouseState();
+    const actions = useMouseActions();
+    return {...state, ...actions};
+};
+
+export {MouseProvider, useMouseContext, useMouseState, useMouseActions};

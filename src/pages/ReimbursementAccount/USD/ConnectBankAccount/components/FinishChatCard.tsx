@@ -1,10 +1,9 @@
 import React from 'react';
-// eslint-disable-next-line no-restricted-imports
-import {RotateLeft} from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import Text from '@components/Text';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -34,11 +33,15 @@ function FinishChatCard({requiresTwoFactorAuth, reimbursementAccount, setUSDBank
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const policyID = reimbursementAccount?.achData?.policyID;
     const shouldShowResetModal = reimbursementAccount?.shouldShowResetModal ?? false;
-    const handleNavigateToConciergeChat = () => navigateToConciergeChat(conciergeReportID, true, undefined, undefined, reimbursementAccount?.achData?.ACHRequestReportActionID);
 
-    const icons = useMemoizedLazyExpensifyIcons(['Pencil', 'ChatBubble']);
+    const handleNavigateToConciergeChat = () =>
+        navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, true, undefined, undefined, reimbursementAccount?.achData?.ACHRequestReportActionID);
+
+    const icons = useMemoizedLazyExpensifyIcons(['ChatBubble', 'Pencil', 'RotateLeft'] as const);
     const illustrations = useMemoizedLazyIllustrations(['ConciergeBubble']);
 
     return (
@@ -70,7 +73,7 @@ function FinishChatCard({requiresTwoFactorAuth, reimbursementAccount, setUSDBank
                     shouldShowRightIcon
                 />
                 <MenuItem
-                    icon={RotateLeft}
+                    icon={icons.RotateLeft}
                     title={translate('workspace.bankAccount.startOver')}
                     onPress={requestResetBankAccount}
                     outerWrapperStyle={shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8}

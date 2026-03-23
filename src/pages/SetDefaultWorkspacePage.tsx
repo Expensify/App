@@ -92,14 +92,17 @@ function SetDefaultWorkspacePage({route}: SetDefaultWorkspacePageProps) {
                         onBackButtonPress={Navigation.goBack}
                     />
                     {shouldShowLoadingIndicator ? (
-                        <FullScreenLoadingIndicator style={[styles.flex1, styles.pRelative]} />
+                        <FullScreenLoadingIndicator
+                            style={[styles.flex1, styles.pRelative]}
+                            reasonAttributes={{context: 'SetDefaultWorkspacePage', isLoadingApp: !!isLoadingApp}}
+                        />
                     ) : (
                         <SelectionList<WorkspaceListItemType>
                             data={data}
                             ListItem={UserListItem}
                             textInputOptions={textInputOptions}
                             onSelectRow={(option) => selectPolicy(option.policyID)}
-                            showLoadingPlaceholder={fetchStatus.status === 'loading' || !didScreenTransitionEnd}
+                            shouldShowLoadingPlaceholder={fetchStatus.status === 'loading' || !didScreenTransitionEnd}
                             disableMaintainingScrollPosition
                         />
                     )}

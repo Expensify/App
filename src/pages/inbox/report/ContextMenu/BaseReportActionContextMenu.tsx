@@ -1,3 +1,4 @@
+import {hasSeenTourSelector} from '@selectors/Onboarding';
 import {deepEqual} from 'fast-equals';
 import type {RefObject} from 'react';
 import React, {memo, useMemo, useRef, useState} from 'react';
@@ -9,6 +10,7 @@ import * as ActionSheetAwareScrollView from '@components/ActionSheetAwareScrollV
 import ContextMenuItem from '@components/ContextMenuItem';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import FocusTrapForModal from '@components/FocusTrap/FocusTrapForModal';
+import {useSession} from '@components/OnyxListItemProvider';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useEnvironment from '@hooks/useEnvironment';
@@ -133,22 +135,23 @@ function BaseReportActionContextMenu({
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
     const icons = useMemoizedLazyExpensifyIcons([
-        'Download',
-        'ThreeDots',
+        'Bell',
+        'Bug',
         'ChatBubbleReply',
         'ChatBubbleUnread',
-        'Mail',
-        'Pencil',
-        'Stopwatch',
-        'Bell',
-        'Copy',
-        'LinkCopy',
-        'Pin',
-        'Flag',
-        'Bug',
-        'Trashcan',
         'Checkmark',
         'Concierge',
+        'Copy',
+        'Download',
+        'Exit',
+        'Flag',
+        'LinkCopy',
+        'Mail',
+        'Pencil',
+        'Pin',
+        'Stopwatch',
+        'ThreeDots',
+        'Trashcan',
     ] as const);
     const StyleUtils = useStyleUtils();
     const {translate, getLocalDateFromDatetime} = useLocalize();
@@ -238,8 +241,12 @@ function BaseReportActionContextMenu({
     const {transactions} = useTransactionsAndViolationsForReport(childReport?.reportID);
     const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
 
     const isTryNewDotNVPDismissed = !!tryNewDot?.classicRedirect?.dismissed;
+    const session = useSession();
+    const encryptedAuthToken = session?.encryptedAuthToken ?? '';
 
     const isMoneyRequest = useMemo(() => ReportUtilsIsMoneyRequest(childReport), [childReport]);
     const isTrackExpenseReport = ReportUtilsIsTrackExpenseReport(childReport);
@@ -397,10 +404,15 @@ function BaseReportActionContextMenu({
                             translate,
                             harvestReport,
                             introSelected,
+                            isSelfTourViewed,
+                            betas,
                             isDelegateAccessRestricted,
                             showDelegateNoAccessModal,
                             currentUserAccountID: currentUserPersonalDetails?.accountID,
                             currentUserPersonalDetails,
+                            encryptedAuthToken,
+                            iouTransaction,
+                            bankAccountList,
                         };
 
                         if ('renderContent' in contextAction) {
