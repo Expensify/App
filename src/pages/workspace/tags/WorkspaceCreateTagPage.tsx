@@ -35,10 +35,6 @@ function WorkspaceCreateTagPage({route}: WorkspaceCreateTagPageProps) {
     const {policyID, backTo} = route.params;
     const policyData = usePolicyData(policyID);
     const {tags: policyTagLists, categories: policyCategories} = policyData;
-    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const setupTagsTaskReportID = introSelected?.setupTags;
-    const [setupTagsTaskReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${setupTagsTaskReportID}`);
-    const {taskReport: setupCategoriesAndTagsTaskReport} = useOnboardingTaskInformation(CONST.ONBOARDING_TASK_TYPE.SETUP_CATEGORIES_AND_TAGS);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
@@ -68,6 +64,7 @@ function WorkspaceCreateTagPage({route}: WorkspaceCreateTagPageProps) {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
     const {
+        taskReport: setupTagsTaskReport,
         taskParentReport: setupTagsTaskParentReport,
         isOnboardingTaskParentReportArchived: isSetupTagsTaskParentReportArchived,
         hasOutstandingChildTask: setupTagsHasOutstandingChildTask,
@@ -75,6 +72,7 @@ function WorkspaceCreateTagPage({route}: WorkspaceCreateTagPageProps) {
     } = useOnboardingTaskInformation(CONST.ONBOARDING_TASK_TYPE.SETUP_TAGS);
 
     const {
+        taskReport: setupCategoriesAndTagsTaskReport,
         taskParentReport: setupCategoriesAndTagsTaskParentReport,
         isOnboardingTaskParentReportArchived: isSetupCategoriesAndTagsTaskParentReportArchived,
         hasOutstandingChildTask: setupCategoriesAndTagsHasOutstandingChildTask,
