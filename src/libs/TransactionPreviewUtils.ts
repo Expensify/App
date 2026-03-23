@@ -11,16 +11,7 @@ import {convertToDisplayString} from './CurrencyUtils';
 import DateUtils from './DateUtils';
 import {hasDynamicExternalWorkflow} from './PolicyUtils';
 import {getMostRecentActiveDEWSubmitFailedAction, getOriginalMessage, isDynamicExternalWorkflowSubmitFailedAction, isMessageDeleted, isMoneyRequestAction} from './ReportActionsUtils';
-import {
-    hasActionWithErrorsForTransaction,
-    hasReceiptError,
-    hasReportViolations,
-    isPaidGroupPolicyExpenseReport,
-    isPaidGroupPolicy as isPaidGroupPolicyUtil,
-    isReportApproved,
-    isReportOwner,
-    isSettled,
-} from './ReportUtils';
+import {hasActionWithErrorsForTransaction, hasReceiptError, isPaidGroupPolicyExpenseReport, isPaidGroupPolicy as isPaidGroupPolicyUtil, isReportApproved, isSettled} from './ReportUtils';
 import type {TransactionDetails} from './ReportUtils';
 import StringUtils from './StringUtils';
 import {
@@ -368,7 +359,6 @@ function getTransactionPreviewTextAndTranslationPaths({
 }
 
 function createTransactionPreviewConditionals({
-    reportViolations,
     iouReport,
     policy,
     transaction,
@@ -382,7 +372,6 @@ function createTransactionPreviewConditionals({
     currentUserAccountID,
     reportActions,
 }: {
-    reportViolations: OnyxEntry<OnyxTypes.ReportViolations>;
     iouReport: OnyxEntry<OnyxTypes.Report>;
     policy: OnyxEntry<OnyxTypes.Policy>;
     transaction: OnyxEntry<OnyxTypes.Transaction> | undefined;
@@ -433,8 +422,7 @@ function createTransactionPreviewConditionals({
                 (violation) => violation.name === CONST.VIOLATIONS.MODIFIED_AMOUNT && (violation.type === CONST.VIOLATION_TYPES.VIOLATION || violation.type === CONST.VIOLATION_TYPES.NOTICE),
             ));
     const hasErrorOrOnHold = hasFieldErrors || (!isFullySettled && !isFullyApproved && isTransactionOnHold);
-    const hasReportViolationsOrActionErrors =
-        (isReportOwner(iouReport) && hasReportViolations(reportViolations)) || hasActionWithErrorsForTransaction(iouReport?.reportID, transaction, reportActions);
+    const hasReportViolationsOrActionErrors = hasActionWithErrorsForTransaction(iouReport?.reportID, transaction, reportActions);
     const isDEWSubmitFailed = hasDynamicExternalWorkflow(policy) && !!getMostRecentActiveDEWSubmitFailedAction(reportActions);
     const shouldShowRBR = hasAnyViolations || hasErrorOrOnHold || hasReportViolationsOrActionErrors || hasReceiptError(transaction) || isDEWSubmitFailed;
 
