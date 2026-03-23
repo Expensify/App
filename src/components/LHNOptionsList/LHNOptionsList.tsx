@@ -238,7 +238,6 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
                     personalDetails={personalDetails ?? {}}
                     transaction={itemTransaction}
                     lastReportActionTransaction={lastReportActionTransaction}
-                    receiptTransactions={transactions}
                     viewMode={optionMode}
                     isOptionFocused={!shouldDisableFocusOptions}
                     lastMessageTextFromReport={lastMessageTextFromReport}

@@ -42,7 +42,6 @@ import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 import getPlatform from '@libs/getPlatform';
 import {addKeyDownPressListener, removeKeyDownPressListener} from '@libs/KeyboardShortcut/KeyDownPressListener';
 import {detectAndRewritePaste} from '@libs/MarkdownLinkHelpers';
-import NavigationFocusManager from '@libs/NavigationFocusManager';
 import Parser from '@libs/Parser';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import {isValidReportIDFromPath, shouldAutoFocusOnKeyPress} from '@libs/ReportUtils';
@@ -810,24 +809,10 @@ function ComposerWithSuggestions({
             return;
         }
 
-        // Skip auto-focus for keyboard navigation returns
-        // This allows FocusTrapForScreen to restore focus to the original element
-        // Must check BOTH scenarios:
-        //   - Screen focus change (!prevIsFocused) - e.g., navigating between screens
-        //   - Modal/RHP close (!!prevIsModalVisible) - e.g., closing RHP overlay
-        // Note: RHP doesn't change isFocused, it triggers prevIsModalVisible change
-        const isScreenFocusChange = !prevIsFocused;
-        const isModalClose = !!prevIsModalVisible;
-        if ((isScreenFocusChange || isModalClose) && NavigationFocusManager.wasRecentKeyboardInteraction()) {
-            NavigationFocusManager.clearKeyboardInteractionFlag();
-            return;
-        }
-
         if (editFocused) {
             inputFocusChange(false);
             return;
         }
-
         focus(true);
     }, [focus, prevIsFocused, editFocused, prevIsModalVisible, isFocused, modal?.isVisible, isNextModalWillOpenRef, shouldAutoFocus, isSidePanelHiddenOrLargeScreen]);
 
