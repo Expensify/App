@@ -37,7 +37,7 @@ import {openOldDotLink} from '@libs/actions/Link';
 import {turnOffMobileSelectionMode, turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import type {TransactionPreviewData} from '@libs/actions/Search';
 import {setOptimisticDataForTransactionThreadPreview} from '@libs/actions/Search';
-import {flushDeferredWrite, hasDeferredWrite} from '@libs/deferredLayoutWrite';
+import {flushDeferredWrite, getOptimisticWatchKey, hasDeferredWrite} from '@libs/deferredLayoutWrite';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import Log from '@libs/Log';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
@@ -221,9 +221,19 @@ function Search({
     // On the submit-expense->search path a deferred API write is pending.
     // Force the skeleton so the user gets instant first paint while heavy work is deferred for performance reasons.
     const hasPendingWriteOnMountRef = useRef(hasDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH));
+    const optimisticWatchKeyRef = useRef(getOptimisticWatchKey(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH));
     const skipDeferralOnFocusRef = useRef(isSearchDataLoaded(searchResults, queryJSON) && !hasPendingWriteOnMountRef.current);
 
     const [shouldDeferHeavySearchWork, setShouldDeferHeavySearchWork] = useState(() => !isSearchDataLoaded(searchResults, queryJSON) || hasPendingWriteOnMountRef.current);
+
+    const watchOnyxKey = optimisticWatchKeyRef.current ?? `${ONYXKEYS.COLLECTION.TRANSACTION}${CONST.DEFAULT_NUMBER_ID}`;
+    const [optimisticWatchedValue] = useOnyx(watchOnyxKey);
+    useEffect(() => {
+        if (!optimisticWatchKeyRef.current) {
+            return;
+        }
+        Log.info(`[DeferredLayoutWrite] Optimistic watch key "${optimisticWatchKeyRef.current}" value exists: ${optimisticWatchedValue != null}`);
+    }, [optimisticWatchedValue]);
 
     const {isOffline} = useNetwork();
     const prevIsOffline = usePrevious(isOffline);

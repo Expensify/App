@@ -6631,7 +6631,9 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
 
     if (deferredAPIWrite) {
         if (shouldHandleNavigation && !requestMoneyInformation.isRetry) {
-            registerDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH, deferredAPIWrite);
+            registerDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH, deferredAPIWrite, {
+                optimisticWatchKey: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
+            });
         } else {
             deferredAPIWrite();
         }

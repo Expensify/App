@@ -11,6 +11,7 @@
  * A per-channel safety timeout ensures the write always fires even if the target
  * screen never mounts or the user navigates elsewhere.
  */
+import type {OnyxKey} from 'react-native-onyx';
 import Log from './Log';
 
 const DEFAULT_SAFETY_TIMEOUT_MS = 5000;
@@ -18,6 +19,13 @@ const DEFAULT_SAFETY_TIMEOUT_MS = 5000;
 type DeferredChannel = {
     write: () => void;
     safetyTimeoutId: ReturnType<typeof setTimeout>;
+
+    /**
+     * An Onyx key that the deferred write will create via optimistic data.
+     * Consumer components can subscribe to this key with useOnyx to know
+     * when the optimistic updates have been applied.
+     */
+    optimisticWatchKey?: OnyxKey;
 };
 
 const channels = new Map<string, DeferredChannel>();
@@ -26,12 +34,19 @@ function clearChannelTimeout(channel: DeferredChannel) {
     clearTimeout(channel.safetyTimeoutId);
 }
 
+type DeferredWriteOptions = {
+    safetyTimeoutMs?: number;
+    optimisticWatchKey?: OnyxKey;
+};
+
 /**
  * Register a callback to be executed when the target component lays out.
  * If a previous write for the same key is still pending it is flushed
  * immediately before registering the new one.
  */
-function registerDeferredWrite(key: string, callback: () => void, safetyTimeoutMs: number = DEFAULT_SAFETY_TIMEOUT_MS) {
+function registerDeferredWrite(key: string, callback: () => void, options: DeferredWriteOptions = {}) {
+    const {safetyTimeoutMs = DEFAULT_SAFETY_TIMEOUT_MS, optimisticWatchKey} = options;
+
     const existing = channels.get(key);
     if (existing) {
         Log.warn(`[DeferredLayoutWrite] Overwriting unflushed deferred write for key "${key}" - flushing the pending one first`);
@@ -43,7 +58,7 @@ function registerDeferredWrite(key: string, callback: () => void, safetyTimeoutM
         flushDeferredWrite(key);
     }, safetyTimeoutMs);
 
-    channels.set(key, {write: callback, safetyTimeoutId});
+    channels.set(key, {write: callback, safetyTimeoutId, optimisticWatchKey});
 }
 
 /**
@@ -65,4 +80,13 @@ function hasDeferredWrite(key: string): boolean {
     return channels.has(key);
 }
 
-export {registerDeferredWrite, flushDeferredWrite, hasDeferredWrite};
+/**
+ * Returns the Onyx key that the deferred write for the given channel will
+ * create via optimistic data. Returns undefined when no channel is registered
+ * or the channel was registered without a watch key.
+ */
+function getOptimisticWatchKey(key: string): OnyxKey | undefined {
+    return channels.get(key)?.optimisticWatchKey;
+}
+
+export {registerDeferredWrite, flushDeferredWrite, hasDeferredWrite, getOptimisticWatchKey};
