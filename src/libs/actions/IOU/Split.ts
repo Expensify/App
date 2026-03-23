@@ -33,6 +33,7 @@ import {
     generateReportID,
     getChatByParticipants,
     getParsedComment,
+    getPolicyExpenseChat,
     getReportOrDraftReport,
     getTransactionDetails,
     hasViolations as hasViolationsReportUtils,
@@ -1188,8 +1189,21 @@ function updateSplitTransactions({
             selfDMReportID = foundSelfDMReport?.reportID;
         }
 
-        // If not already determined as selfDM, check the report hierarchy
-        if (!isSelfDMSplit) {
+        // If the existing transaction already lives in a real workspace report, it is NOT a selfDM split.
+        // splitExpense.reportID may have been set to the selfDM report ID for navigation purposes
+        // (see initSplitExpense), so we must not rely on it to detect workspace splits.
+        const existingTransactionReport =
+            splitTransaction?.reportID && splitTransaction.reportID !== CONST.REPORT.UNREPORTED_REPORT_ID ? getReportOrDraftReport(splitTransaction.reportID) : undefined;
+        const isConfirmedWorkspaceTransaction = !!existingTransactionReport && !isSelfDM(existingTransactionReport);
+        if (isConfirmedWorkspaceTransaction) {
+            isSelfDMSplit = false;
+            selfDMReportID = undefined;
+        }
+
+        // If not already determined as selfDM and not a confirmed workspace transaction,
+        // check the report hierarchy. Skip this check for confirmed workspace transactions
+        // because splitExpense.reportID may point to selfDM for navigation reasons only.
+        if (!isSelfDMSplit && !isConfirmedWorkspaceTransaction) {
             const splitExpenseReport = getReportOrDraftReport(splitExpense.reportID);
             const splitExpenseParentReport = getReportOrDraftReport(splitExpenseReport?.parentReportID);
             const splitExpenseChatReport = getReportOrDraftReport(splitExpenseReport?.chatReportID);
@@ -1309,12 +1323,38 @@ function updateSplitTransactions({
             requestMoneyInformation.existingTransaction = undefined;
         }
 
+        // For confirmed workspace transactions, override participant and parentChatReport.
+        // When viewing from selfDM context, participants and expenseReport are null/selfDM-based,
+        // so we must derive the correct workspace expense chat from the existing transaction data.
+        const workspaceChatReport = isConfirmedWorkspaceTransaction
+            ? getPolicyExpenseChat(currentUserPersonalDetails.accountID, existingTransactionReport?.policyID, allReportsList)
+            : undefined;
+        if (isConfirmedWorkspaceTransaction && workspaceChatReport) {
+            requestMoneyInformation.participantParams.participant = {
+                accountID: 0,
+                reportID: workspaceChatReport.reportID,
+                isPolicyExpenseChat: true,
+                selected: true,
+                policyID: existingTransactionReport?.policyID,
+            };
+            requestMoneyInformation.parentChatReport = workspaceChatReport;
+        }
+
         const {participantParams, policyParams, transactionParams, parentChatReport, existingTransaction} = requestMoneyInformation;
         const parsedComment = getParsedComment(Parser.htmlToMarkdown(transactionParams.comment ?? ''));
         transactionParams.comment = parsedComment;
 
-        // For selfDM, use UNREPORTED_REPORT_ID for moneyRequestReportID
-        const moneyRequestReportIDForSplit = isSelfDMSplit ? CONST.REPORT.UNREPORTED_REPORT_ID : splitExpense?.reportID;
+        // For selfDM, use UNREPORTED_REPORT_ID for moneyRequestReportID.
+        // For confirmed workspace transactions, use splitTransaction.reportID directly because
+        // splitExpense.reportID may be set to selfDMReportID for navigation purposes.
+        let moneyRequestReportIDForSplit: string | undefined;
+        if (isSelfDMSplit) {
+            moneyRequestReportIDForSplit = CONST.REPORT.UNREPORTED_REPORT_ID;
+        } else if (isConfirmedWorkspaceTransaction) {
+            moneyRequestReportIDForSplit = splitTransaction?.reportID;
+        } else {
+            moneyRequestReportIDForSplit = splitExpense?.reportID;
+        }
 
         const {
             transactionThreadReportID,
@@ -1391,8 +1431,14 @@ function updateSplitTransactions({
             }
 
             if (Object.keys(transactionChanges).length > 0) {
-                const transactionThreadReport = getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${isReverseSplitOperation ? splitExpense?.reportID : transactionThreadReportID}`];
-                const transactionIOUReport = getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${splitExpense?.reportID ?? transactionThreadReport?.parentReportID}`];
+                // For confirmed workspace transactions viewed from selfDM context, we must use the
+                // real workspace reports instead of splitExpense.reportID (which points to selfDM).
+                const existingTransactionThreadID = isConfirmedWorkspaceTransaction ? currentReportAction?.childReportID : undefined;
+                const workspaceExpenseReportID = isConfirmedWorkspaceTransaction ? (workspaceChatReport?.iouReportID ?? splitTransaction?.reportID) : undefined;
+                const transactionThreadReportKey = isReverseSplitOperation ? splitExpense?.reportID : (existingTransactionThreadID ?? transactionThreadReportID);
+                const transactionThreadReport = getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportKey}`];
+                const iouReportID = workspaceExpenseReportID ?? splitExpense?.reportID ?? transactionThreadReport?.parentReportID;
+                const transactionIOUReport = getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`];
                 const {onyxData: moneyRequestParamsOnyxData, params} = getUpdateMoneyRequestParams({
                     transactionID: existingTransactionID,
                     transactionThreadReport,
@@ -1401,7 +1447,7 @@ function updateSplitTransactions({
                     policy,
                     policyTagList: policyTags ?? null,
                     policyCategories: policyCategories ?? null,
-                    newTransactionReportID: splitExpense?.reportID,
+                    newTransactionReportID: workspaceExpenseReportID ?? splitExpense?.reportID,
                     policyRecentlyUsedCategories,
                     currentUserAccountIDParam: currentUserPersonalDetails?.accountID,
                     currentUserEmailParam: currentUserPersonalDetails?.login ?? '',
