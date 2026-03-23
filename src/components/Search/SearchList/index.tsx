@@ -424,6 +424,7 @@ function SearchList({
             const newTransactionID = item.keyForList ? newTransactionIDByItemKey.get(item.keyForList) : undefined;
             // Apply selection lazily per row so we don't rebuild a list-wide wrapper structure on every render.
             const {itemWithSelection} = applySelectionToItem(item, canSelectMultiple, selectedTransactions);
+            const isLastItem = index === data.length - 1;
 
             return (
                 <Animated.View
@@ -440,6 +441,7 @@ function SearchList({
                         onCheckboxPress={onCheckboxPress}
                         canSelectMultiple={canSelectMultiple}
                         item={itemWithSelection}
+                        isLastItem={isLastItem}
                         shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
                         queryJSONHash={hash}
                         columns={columns}
@@ -503,7 +505,7 @@ function SearchList({
     const content = (
         <View style={[styles.flex1, !isKeyboardShown && safeAreaPaddingBottomStyle, containerStyle]}>
             {tableHeaderVisible && (
-                <View style={[styles.searchListHeaderContainerStyle, styles.listTableHeader]}>
+                <View style={[styles.searchListHeaderContainerStyle, styles.mh5, styles.ph3]}>
                     {canSelectMultiple && (
                         <Checkbox
                             accessibilityLabel={translate('accessibilityHints.selectAllItems')}

@@ -326,6 +326,103 @@ function WorkspacesListPage() {
         );
     };
 
+    const navigateToWorkspace = (policyID: string) => {
+        if (shouldUseNarrowLayout) {
+            Navigation.navigate(ROUTES.WORKSPACE_INITIAL.getRoute(policyID));
+            return;
+        }
+        Navigation.navigate(ROUTES.WORKSPACE_OVERVIEW.getRoute(policyID));
+    };
+
+    const navigateToDomain = ({domainAccountID, isAdmin}: {domainAccountID: number; isAdmin: boolean}) => {
+        if (!isAdmin) {
+            return Navigation.navigate(ROUTES.WORKSPACES_DOMAIN_ACCESS_RESTRICTED.getRoute(domainAccountID));
+        }
+        Navigation.navigate(ROUTES.DOMAIN_INITIAL.getRoute(domainAccountID));
+    };
+
+    const {policiesWithCardFeedErrors} = usePoliciesWithCardFeedErrors();
+
+    /**
+     * Add free policies (workspaces) to the list of menu items and returns the list of menu items
+     */
+    const workspaces: WorkspaceItem[] = [];
+    if (!isEmptyObject(policies)) {
+        const reimbursementAccountBrickRoadIndicator = !isEmptyObject(reimbursementAccount?.errors) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined;
+
+        for (const policy of Object.values(policies)) {
+            if (!policy || !shouldShowPolicy(policy, true, session?.email)) {
+                continue;
+            }
+
+            const receiptUberBrickRoadIndicator = getUberConnectionErrorDirectlyFromPolicy(policy as OnyxEntry<PolicyType>) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined;
+
+            let brickRoadIndicator: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS> | undefined;
+            if (isPolicyAdmin(policy, session?.email)) {
+                const indicator = reimbursementAccountBrickRoadIndicator ?? receiptUberBrickRoadIndicator;
+
+                if (indicator) {
+                    brickRoadIndicator = indicator;
+                } else if (policiesWithCardFeedErrors.find((p) => p.id === policy.id)) {
+                    brickRoadIndicator = CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
+                } else if (shouldShowEmployeeListError(policy)) {
+                    brickRoadIndicator = CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
+                } else {
+                    brickRoadIndicator = getPolicyBrickRoadIndicatorStatus(
+                        policy,
+                        isConnectionInProgress(allConnectionSyncProgresses?.[`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policy.id}`], policy),
+                    );
+                }
+            }
+
+            if (policy?.isJoinRequestPending && policy?.policyDetailsForNonMembers) {
+                const policyInfo = Object.values(policy.policyDetailsForNonMembers).at(0) as PolicyDetailsForNonMembers;
+                const id = Object.keys(policy.policyDetailsForNonMembers).at(0);
+                workspaces.push({
+                    listItemType: 'workspace',
+                    title: policyInfo.name,
+                    icon: policyInfo?.avatar ? policyInfo.avatar : getDefaultWorkspaceAvatar(policy.name),
+                    disabled: true,
+                    ownerAccountID: policyInfo.ownerAccountID,
+                    type: policyInfo.type,
+                    iconType: policyInfo?.avatar ? CONST.ICON_TYPE_AVATAR : CONST.ICON_TYPE_ICON,
+                    iconFill: theme.textLight,
+                    fallbackIcon: icons.FallbackWorkspaceAvatar,
+                    policyID: id,
+                    role: CONST.POLICY.ROLE.USER,
+                    errors: undefined,
+                    action: () => null,
+                    dismissError: () => null,
+                    isJoinRequestPending: true,
+                });
+            } else {
+                workspaces.push({
+                    listItemType: 'workspace',
+                    title: policy.name,
+                    icon: policy.avatarURL ? policy.avatarURL : getDefaultWorkspaceAvatar(policy.name),
+                    action: () => navigateToWorkspace(policy.id),
+                    brickRoadIndicator,
+                    pendingAction: policy.pendingAction,
+                    errors: policy.errors,
+                    dismissError: () => dismissWorkspaceError(policy.id, policy.pendingAction),
+                    disabled: policy.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                    iconType: policy.avatarURL ? CONST.ICON_TYPE_AVATAR : CONST.ICON_TYPE_ICON,
+                    iconFill: theme.textLight,
+                    fallbackIcon: icons.FallbackWorkspaceAvatar,
+                    policyID: policy.id,
+                    ownerAccountID: policy.ownerAccountID,
+                    role: policy.role,
+                    type: policy.type,
+                    employeeList: policy.employeeList,
+                });
+            }
+        }
+    }
+
+    const filterWorkspace = (workspace: WorkspaceItem, inputValue: string) => workspace.title.toLowerCase().includes(inputValue);
+    const sortWorkspace = (workspaceItems: WorkspaceItem[]) => workspaceItems.sort((a, b) => localeCompare(a.title, b.title));
+    const [inputValue, setInputValue, filteredWorkspaces] = useSearchResults(workspaces, filterWorkspace, sortWorkspace);
+
     /**
      * Gets the menu item for each workspace
      */
@@ -442,7 +539,7 @@ function WorkspacesListPage() {
                 errorRowStyles={[styles.ph5, styles.mt3]}
                 onClose={item.dismissError}
                 errors={item.errors}
-                style={styles.mb2}
+                style={!isLessThanMediumScreen ? undefined : styles.mb1}
                 shouldShowErrorMessages={item.policyID !== policyIDToDelete}
                 shouldHideOnDelete={false}
             >
@@ -474,109 +571,13 @@ function WorkspacesListPage() {
                             isHovered={hovered}
                             disabled={item.disabled}
                             onPress={item.action}
+                            isLastItem={index === filteredWorkspaces.length - 1}
                         />
                     )}
                 </PressableWithoutFeedback>
             </OfflineWithFeedback>
         );
     };
-
-    const navigateToWorkspace = (policyID: string) => {
-        if (shouldUseNarrowLayout) {
-            Navigation.navigate(ROUTES.WORKSPACE_INITIAL.getRoute(policyID));
-            return;
-        }
-        Navigation.navigate(ROUTES.WORKSPACE_OVERVIEW.getRoute(policyID));
-    };
-
-    const navigateToDomain = ({domainAccountID, isAdmin}: {domainAccountID: number; isAdmin: boolean}) => {
-        if (!isAdmin) {
-            return Navigation.navigate(ROUTES.WORKSPACES_DOMAIN_ACCESS_RESTRICTED.getRoute(domainAccountID));
-        }
-        Navigation.navigate(ROUTES.DOMAIN_INITIAL.getRoute(domainAccountID));
-    };
-
-    const {policiesWithCardFeedErrors} = usePoliciesWithCardFeedErrors();
-
-    /**
-     * Add free policies (workspaces) to the list of menu items and returns the list of menu items
-     */
-    const workspaces: WorkspaceItem[] = [];
-    if (!isEmptyObject(policies)) {
-        const reimbursementAccountBrickRoadIndicator = !isEmptyObject(reimbursementAccount?.errors) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined;
-
-        for (const policy of Object.values(policies)) {
-            if (!policy || !shouldShowPolicy(policy, true, session?.email)) {
-                continue;
-            }
-
-            const receiptUberBrickRoadIndicator = getUberConnectionErrorDirectlyFromPolicy(policy as OnyxEntry<PolicyType>) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined;
-
-            let brickRoadIndicator: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS> | undefined;
-            if (isPolicyAdmin(policy, session?.email)) {
-                const indicator = reimbursementAccountBrickRoadIndicator ?? receiptUberBrickRoadIndicator;
-
-                if (indicator) {
-                    brickRoadIndicator = indicator;
-                } else if (policiesWithCardFeedErrors.find((p) => p.id === policy.id)) {
-                    brickRoadIndicator = CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
-                } else if (shouldShowEmployeeListError(policy)) {
-                    brickRoadIndicator = CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
-                } else {
-                    brickRoadIndicator = getPolicyBrickRoadIndicatorStatus(
-                        policy,
-                        isConnectionInProgress(allConnectionSyncProgresses?.[`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policy.id}`], policy),
-                    );
-                }
-            }
-
-            if (policy?.isJoinRequestPending && policy?.policyDetailsForNonMembers) {
-                const policyInfo = Object.values(policy.policyDetailsForNonMembers).at(0) as PolicyDetailsForNonMembers;
-                const id = Object.keys(policy.policyDetailsForNonMembers).at(0);
-                workspaces.push({
-                    listItemType: 'workspace',
-                    title: policyInfo.name,
-                    icon: policyInfo?.avatar ? policyInfo.avatar : getDefaultWorkspaceAvatar(policy.name),
-                    disabled: true,
-                    ownerAccountID: policyInfo.ownerAccountID,
-                    type: policyInfo.type,
-                    iconType: policyInfo?.avatar ? CONST.ICON_TYPE_AVATAR : CONST.ICON_TYPE_ICON,
-                    iconFill: theme.textLight,
-                    fallbackIcon: icons.FallbackWorkspaceAvatar,
-                    policyID: id,
-                    role: CONST.POLICY.ROLE.USER,
-                    errors: undefined,
-                    action: () => null,
-                    dismissError: () => null,
-                    isJoinRequestPending: true,
-                });
-            } else {
-                workspaces.push({
-                    listItemType: 'workspace',
-                    title: policy.name,
-                    icon: policy.avatarURL ? policy.avatarURL : getDefaultWorkspaceAvatar(policy.name),
-                    action: () => navigateToWorkspace(policy.id),
-                    brickRoadIndicator,
-                    pendingAction: policy.pendingAction,
-                    errors: policy.errors,
-                    dismissError: () => dismissWorkspaceError(policy.id, policy.pendingAction),
-                    disabled: policy.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-                    iconType: policy.avatarURL ? CONST.ICON_TYPE_AVATAR : CONST.ICON_TYPE_ICON,
-                    iconFill: theme.textLight,
-                    fallbackIcon: icons.FallbackWorkspaceAvatar,
-                    policyID: policy.id,
-                    ownerAccountID: policy.ownerAccountID,
-                    role: policy.role,
-                    type: policy.type,
-                    employeeList: policy.employeeList,
-                });
-            }
-        }
-    }
-
-    const filterWorkspace = (workspace: WorkspaceItem, inputValue: string) => workspace.title.toLowerCase().includes(inputValue);
-    const sortWorkspace = (workspaceItems: WorkspaceItem[]) => workspaceItems.sort((a, b) => localeCompare(a.title, b.title));
-    const [inputValue, setInputValue, filteredWorkspaces] = useSearchResults(workspaces, filterWorkspace, sortWorkspace);
 
     const domains = allDomains
         ? Object.values(allDomains).reduce<DomainItem[]>((domainItems, domain) => {
@@ -628,7 +629,20 @@ function WorkspacesListPage() {
                 />
             )}
             {!isLessThanMediumScreen && filteredWorkspaces.length > 0 && (
-                <View style={[styles.flexRow, styles.gap5, styles.pt2, styles.pb3, styles.pr5, styles.pl10, styles.appBG]}>
+                <View
+                    style={[
+                        styles.flexRow,
+                        styles.gap5,
+                        styles.pv2,
+                        styles.pl4,
+                        styles.pr2,
+                        styles.mh5,
+                        styles.mnh40,
+                        styles.highlightBG,
+                        styles.alignItemsCenter,
+                        {borderBottomWidth: 1, borderColor: theme.border, borderTopLeftRadius: 8, borderTopRightRadius: 8},
+                    ]}
+                >
                     <View style={[styles.flexRow, styles.flex2]}>
                         <Text
                             numberOfLines={1}
@@ -688,14 +702,35 @@ function WorkspacesListPage() {
                 return getWorkspaceMenuItem({item, index});
             }
             case 'domain': {
+                const isLastDomain = domains.indexOf(item) === domains.length - 1;
                 return (
                     <DomainMenuItem
                         item={item}
                         index={index}
+                        isLastItem={isLastDomain}
                     />
                 );
             }
             case 'domains-header': {
+                if (!isLessThanMediumScreen) {
+                    return (
+                        <View
+                            style={[
+                                styles.flexRow,
+                                styles.pv2,
+                                styles.ph3,
+                                styles.mh5,
+                                styles.mnh40,
+                                styles.highlightBG,
+                                styles.alignItemsCenter,
+                                styles.mt5,
+                                {borderBottomWidth: 1, borderColor: theme.border, borderTopLeftRadius: 8, borderTopRightRadius: 8},
+                            ]}
+                        >
+                            <Text style={styles.textLabelSupporting}>{translate('common.domains')}</Text>
+                        </View>
+                    );
+                }
                 return (
                     <View style={[styles.optionsListSectionHeader, styles.justifyContentCenter, styles.ph5, styles.pv3, styles.mt0, styles.mb0]}>
                         <Text style={[styles.ph5, styles.textLabelSupporting]}>{translate('common.domains')}</Text>

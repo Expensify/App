@@ -30,7 +30,7 @@ import useOnyx from '@hooks/useOnyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useResponsiveLayoutOnWideRHP from '@hooks/useResponsiveLayoutOnWideRHP';
-import useStyleUtils from '@hooks/useStyleUtils';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
@@ -59,7 +59,6 @@ import {getAmount, getCategory, getCreated, getMerchant, getTag, getTransactionP
 import shouldShowTransactionYear from '@libs/TransactionUtils/shouldShowTransactionYear';
 import Navigation from '@navigation/Navigation';
 import type {ReportsSplitNavigatorParamList} from '@navigation/types';
-import variables from '@styles/variables';
 import {createTransactionThreadReport} from '@userActions/Report';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -165,11 +164,11 @@ function MoneyRequestReportTransactionList({
 }: MoneyRequestReportTransactionListProps) {
     useCopySelectionHelper();
     const styles = useThemeStyles();
-    const StyleUtils = useStyleUtils();
+    const theme = useTheme();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Location', 'CheckSquare', 'ReceiptPlus', 'Columns']);
     const {translate, localeCompare} = useLocalize();
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
-    const {isSmallScreenWidth, isMediumScreenWidth} = useResponsiveLayout();
+    const {isSmallScreenWidth, isMediumScreenWidth, isLargeScreenWidth} = useResponsiveLayout();
     const {shouldUseNarrowLayout} = useResponsiveLayoutOnWideRHP();
     const {markReportIDAsExpense} = useWideRHPActions();
     const [isModalVisible, setIsModalVisible] = useState(false);
@@ -528,22 +527,23 @@ function MoneyRequestReportTransactionList({
 
     const transactionListContent = (
         <View
-            style={[listHorizontalPadding, styles.gap2, styles.pb4, styles.mb2]}
+            style={[listHorizontalPadding, !isLargeScreenWidth && styles.gap2]}
             onLayout={onLayout}
         >
             {shouldShowGroupedTransactions
-                ? groupedTransactions.map((group) => {
+                ? groupedTransactions.map((group, groupIndex) => {
                       const selectionState = groupSelectionState.get(group.groupKey) ?? {
                           isSelected: false,
                           isIndeterminate: false,
                           isDisabled: false,
                           pendingAction: undefined,
                       };
+                      const isLastGroup = groupIndex === groupedTransactions.length - 1;
 
                       return (
                           <View
                               key={group.groupKey}
-                              style={styles.gap2}
+                              style={!isLargeScreenWidth ? styles.gap2 : undefined}
                           >
                               <MoneyRequestReportGroupHeader
                                   group={group}
@@ -557,7 +557,7 @@ function MoneyRequestReportTransactionList({
                                   onToggleSelection={toggleGroupSelection}
                                   pendingAction={selectionState.pendingAction}
                               />
-                              {group.transactions.map((transaction) => {
+                              {group.transactions.map((transaction, transactionIndex) => {
                                   return (
                                       <MoneyRequestReportTransactionItem
                                           key={transaction.transactionID}
@@ -576,13 +576,14 @@ function MoneyRequestReportTransactionList({
                                           taxAmountColumnSize={taxAmountColumnSize}
                                           scrollToNewTransaction={transaction.transactionID === newTransactions?.at(0)?.transactionID ? scrollToNewTransaction : undefined}
                                           onArrowRightPress={handleArrowRightPress}
+                                          isLastItem={isLastGroup && transactionIndex === group.transactions.length - 1}
                                       />
                                   );
                               })}
                           </View>
                       );
                   })
-                : sortedTransactions.map((transaction) => (
+                : sortedTransactions.map((transaction, index) => (
                       <MoneyRequestReportTransactionItem
                           key={transaction.transactionID}
                           transaction={transaction}
@@ -600,6 +601,7 @@ function MoneyRequestReportTransactionList({
                           taxAmountColumnSize={taxAmountColumnSize}
                           scrollToNewTransaction={transaction.transactionID === newTransactions?.at(0)?.transactionID ? scrollToNewTransaction : undefined}
                           onArrowRightPress={handleArrowRightPress}
+                          isLastItem={index === sortedTransactions.length - 1}
                       />
                   ))}
         </View>
@@ -607,8 +609,22 @@ function MoneyRequestReportTransactionList({
 
     const tableHeaderContent = (
         <OfflineWithFeedback pendingAction={reportPendingAction}>
-            <View style={[styles.dFlex, styles.flexRow, styles.pl5, styles.pr16, styles.alignItemsCenter]}>
-                <View style={[styles.dFlex, styles.flexRow, styles.pv2, styles.pr4, StyleUtils.getPaddingLeft(variables.w12)]}>
+            <View
+                style={[
+                    styles.dFlex,
+                    styles.flexRow,
+                    styles.mh5,
+                    styles.pv2,
+                    styles.pl3,
+                    styles.pr11,
+                    styles.mnh40,
+                    styles.alignItemsCenter,
+                    styles.gap3,
+                    styles.highlightBG,
+                    {borderTopLeftRadius: 8, borderTopRightRadius: 8, borderBottomWidth: 1, borderColor: theme.border},
+                ]}
+            >
+                <View style={[styles.dFlex, styles.flexRow]}>
                     <Checkbox
                         onPress={() => {
                             if (selectedTransactionIDs.length !== 0) {

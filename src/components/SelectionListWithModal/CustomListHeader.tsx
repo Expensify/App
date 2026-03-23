@@ -4,6 +4,7 @@ import {View} from 'react-native';
 import Text from '@components/Text';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 type CustomListHeaderProps = {
@@ -30,7 +31,8 @@ function CustomListHeader({
 }: CustomListHeaderProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const theme = useTheme();
+    const {isLargeScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
 
     const header = (
         <View
@@ -56,7 +58,32 @@ function CustomListHeader({
     if (canSelectMultiple) {
         return header;
     }
-    return <View style={[styles.flexRow, styles.baseListHeaderWrapperStyle]}>{header}</View>;
+    return (
+        <View
+            style={[
+                styles.flexRow,
+                isLargeScreenWidth
+                    ? [
+                          styles.mh5,
+                          styles.pv2,
+                          styles.mnh40,
+                          styles.alignItemsCenter,
+                          {
+                              paddingLeft: 12,
+                              paddingRight: 8,
+                              borderBottomWidth: 1,
+                              borderColor: theme.border,
+                              borderTopLeftRadius: 8,
+                              borderTopRightRadius: 8,
+                              backgroundColor: theme.highlightBG,
+                          },
+                      ]
+                    : styles.baseListHeaderWrapperStyle,
+            ]}
+        >
+            {header}
+        </View>
+    );
 }
 
 export default CustomListHeader;

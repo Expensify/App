@@ -59,7 +59,16 @@ function ListHeader<TItem extends ListItem>({
 
     return (
         <View
-            style={[styles.userSelectNone, styles.peopleRow, styles.ph5, styles.pb3, headerStyle, styles.selectionListStickyHeader]}
+            style={[
+                styles.userSelectNone,
+                // When headerStyle is provided (e.g., desktop workspace table headers), avoid peopleRow's
+                // width: '100%' which conflicts with headerStyle's marginHorizontal. Use individual flex
+                // styles instead and let headerStyle control padding.
+                headerStyle ? [styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter] : [styles.peopleRow, styles.ph5],
+                styles.pb3,
+                styles.selectionListStickyHeader,
+                headerStyle,
+            ]}
             accessibilityRole={CONST.ROLE.HEADER}
         >
             <View style={[styles.flexRow, styles.alignItemsCenter]}>

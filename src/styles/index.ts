@@ -374,9 +374,8 @@ const staticStyles = (theme: ThemeColors) =>
 
         reportLayoutGroupHeader: {
             paddingHorizontal: 12,
-            marginTop: 16,
-            marginBottom: 8,
-            backgroundColor: theme.appBG,
+            paddingVertical: 8,
+            backgroundColor: theme.highlightBG,
             justifyContent: 'center',
         },
 
@@ -3482,18 +3481,26 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         searchListHeaderContainerStyle: {
-            width: '100%',
             flexDirection: 'row',
             alignItems: 'center',
             ...userSelect.userSelectNone,
-            paddingBottom: 12,
-            backgroundColor: theme.appBG,
+            minHeight: 40,
+            paddingTop: 8,
+            paddingBottom: 8,
+            backgroundColor: theme.highlightBG,
             justifyContent: 'flex-start',
+            borderTopLeftRadius: 8,
+            borderTopRightRadius: 8,
+            borderBottomWidth: 1,
+            borderColor: theme.border,
         },
 
         groupSearchListTableContainerStyle: {
             minHeight: variables.h28,
             paddingBottom: 0,
+            borderTopLeftRadius: 0,
+            borderTopRightRadius: 0,
+            borderBottomWidth: 0,
         },
 
         narrowSearchRouterInactiveStyle: {
@@ -4744,7 +4751,7 @@ const staticStyles = (theme: ThemeColors) =>
             justifyContent: 'space-between',
             overflow: 'hidden',
             flexDirection: 'row',
-            paddingVertical: 6,
+            paddingVertical: 4,
         },
 
         searchQueryListItemStyle: {
@@ -4756,7 +4763,6 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         listTableHeader: {
-            paddingVertical: 12,
             paddingHorizontal: 32,
         },
 

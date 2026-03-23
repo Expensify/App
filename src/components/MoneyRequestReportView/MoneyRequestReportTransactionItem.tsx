@@ -66,6 +66,9 @@ type MoneyRequestReportTransactionItemProps = {
 
     /** Whether this transaction should be highlighted as newly added */
     shouldBeHighlighted: boolean;
+
+    /** Whether this is the last item in the list (used for bottom border radius) */
+    isLastItem?: boolean;
 };
 
 function MoneyRequestReportTransactionItem({
@@ -84,11 +87,12 @@ function MoneyRequestReportTransactionItem({
     scrollToNewTransaction,
     onArrowRightPress,
     shouldBeHighlighted,
+    isLastItem,
 }: MoneyRequestReportTransactionItemProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
-    const {isSmallScreenWidth, isMediumScreenWidth} = useResponsiveLayout();
+    const {isSmallScreenWidth, isMediumScreenWidth, isLargeScreenWidth} = useResponsiveLayout();
     const {shouldUseNarrowLayout} = useResponsiveLayoutOnWideRHP();
     const theme = useTheme();
     const isPendingDelete = isTransactionPendingDelete(transaction);
@@ -127,7 +131,10 @@ function MoneyRequestReportTransactionItem({
                 role={getButtonRole(true)}
                 isNested
                 id={transaction.transactionID}
-                style={[styles.transactionListItemStyle]}
+                style={[
+                    styles.transactionListItemStyle,
+                    isLargeScreenWidth && {minHeight: variables.tableRowHeight, borderRadius: 0, ...(isLastItem ? {borderBottomLeftRadius: 8, borderBottomRightRadius: 8} : {})},
+                ]}
                 hoverStyle={[!isPendingDelete && styles.hoveredComponentBG, isSelected && styles.activeComponentBG]}
                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
                 onPressIn={() => canUseTouchScreen() && ControlSelection.block()}
@@ -137,7 +144,12 @@ function MoneyRequestReportTransactionItem({
                 }}
                 disabled={isTransactionPendingDelete(transaction)}
                 ref={viewRef}
-                wrapperStyle={[animatedHighlightStyle, styles.userSelectNone]}
+                wrapperStyle={[
+                    animatedHighlightStyle,
+                    styles.userSelectNone,
+                    isLargeScreenWidth && {borderRadius: 0, borderBottomWidth: isLastItem ? 0 : 1, borderColor: theme.border},
+                    isLargeScreenWidth && isLastItem && {borderBottomLeftRadius: 8, borderBottomRightRadius: 8},
+                ]}
             >
                 {({hovered}) => (
                     <TransactionItemRow
@@ -155,7 +167,12 @@ function MoneyRequestReportTransactionItem({
                         onCheckboxPress={toggleTransaction}
                         columns={columns}
                         isDisabled={isPendingDelete}
-                        style={[styles.p3]}
+                        style={[
+                            styles.p3,
+                            isLargeScreenWidth && styles.pv2,
+                            isLargeScreenWidth && styles.noBorderRadius,
+                            isLargeScreenWidth && isLastItem && {borderBottomLeftRadius: 8, borderBottomRightRadius: 8},
+                        ]}
                         onButtonPress={() => {
                             handleOnPress(transaction.transactionID);
                         }}

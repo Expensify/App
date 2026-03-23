@@ -102,7 +102,8 @@ function CardListItem<TItem extends ListItem>({
                                 >
                                     <View>
                                         <Avatar
-                                            containerStyles={StyleUtils.getWidthAndHeightStyle(StyleUtils.getAvatarSize(CONST.AVATAR_SIZE.DEFAULT))}
+                                            containerStyles={StyleUtils.getWidthAndHeightStyle(StyleUtils.getAvatarSize(CONST.AVATAR_SIZE.SMALL))}
+                                            size={CONST.AVATAR_SIZE.SMALL}
                                             source={ownersAvatar.source}
                                             name={ownersAvatar.name}
                                             avatarID={ownersAvatar.id}

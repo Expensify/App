@@ -52,6 +52,7 @@ function TransactionListItem<TItem extends ListItem>({
     isDEWBetaEnabled,
     lastPaymentMethod,
     personalPolicyID,
+    isLastItem,
 }: TransactionListItemProps<TItem>) {
     const transactionItem = item as unknown as TransactionListItemType;
     const styles = useThemeStyles();
@@ -100,12 +101,13 @@ function TransactionListItem<TItem extends ListItem>({
     const pressableStyle = [
         styles.transactionListItemStyle,
         !isLargeScreenWidth && styles.pt3,
+        isLargeScreenWidth && {minHeight: variables.tableRowHeight, borderRadius: 0, ...(isLastItem ? {borderBottomLeftRadius: 8, borderBottomRightRadius: 8} : {})},
         item.isSelected && styles.activeComponentBG,
         isLargeScreenWidth ? {...styles.flexRow, ...styles.justifyContentBetween, ...styles.alignItemsCenter} : {...styles.flexColumn, ...styles.alignItemsStretch},
     ];
 
     const animatedHighlightStyle = useAnimatedHighlightStyle({
-        borderRadius: variables.componentBorderRadius,
+        borderRadius: isLargeScreenWidth ? 0 : variables.componentBorderRadius,
         shouldHighlight: item?.shouldAnimateInHighlight ?? false,
         highlightColor: theme.messageHighlightBG,
         backgroundColor: theme.highlightBG,
@@ -194,7 +196,15 @@ function TransactionListItem<TItem extends ListItem>({
                     isFocused && StyleUtils.getItemBackgroundColorStyle(!!item.isSelected, !!isFocused, !!item.isDisabled, theme.activeComponentBG, theme.hoverComponentBG),
                 ]}
                 onFocus={onFocus}
-                wrapperStyle={[styles.mb2, styles.mh5, styles.flex1, animatedHighlightStyle, styles.userSelectNone]}
+                wrapperStyle={[
+                    !isLargeScreenWidth && styles.mb2,
+                    styles.mh5,
+                    styles.flex1,
+                    animatedHighlightStyle,
+                    styles.userSelectNone,
+                    isLargeScreenWidth && {borderRadius: 0, borderBottomWidth: isLastItem ? 0 : 1, borderColor: item.isSelected ? theme.buttonHoveredBG : theme.border},
+                    isLargeScreenWidth && isLastItem && {borderBottomLeftRadius: 8, borderBottomRightRadius: 8},
+                ]}
             >
                 {({hovered}) => (
                     <>
@@ -228,7 +238,13 @@ function TransactionListItem<TItem extends ListItem>({
                             taxAmountColumnSize={taxAmountColumnSize}
                             shouldShowCheckbox={!!canSelectMultiple}
                             checkboxSentryLabel={CONST.SENTRY_LABEL.SEARCH.TRANSACTION_LIST_ITEM_CHECKBOX}
-                            style={[styles.p3, styles.pv2, shouldUseNarrowLayout ? styles.pt2 : {}]}
+                            style={[
+                                styles.p3,
+                                isLargeScreenWidth && styles.noBorderRadius,
+                                styles.pv2,
+                                shouldUseNarrowLayout ? styles.pt2 : {},
+                                isLargeScreenWidth && isLastItem && {borderBottomLeftRadius: 8, borderBottomRightRadius: 8},
+                            ]}
                             violations={transactionViolations}
                             onArrowRightPress={() => onSelectRow(item, transactionPreviewData)}
                             isHover={hovered}

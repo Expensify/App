@@ -47,6 +47,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
     isDEWBetaEnabled,
     lastPaymentMethod,
     personalPolicyID,
+    isLastItem,
 }: ExpenseReportListItemProps<TItem>) {
     const reportItem = item as unknown as ExpenseReportListItemType;
     const styles = useThemeStyles();
@@ -161,14 +162,15 @@ function ExpenseReportListItem<TItem extends ListItem>({
     const listItemPressableStyle = useMemo(
         () => [
             styles.selectionListPressableItemWrapper,
-            styles.pv3,
+            isLargeScreenWidth ? styles.pv2 : styles.pv3,
             styles.ph3,
+            isLargeScreenWidth && {minHeight: variables.tableRowHeight, borderRadius: 0, ...(isLastItem ? {borderBottomLeftRadius: 8, borderBottomRightRadius: 8} : {})},
             // Removing background style because they are added to the parent OpacityView via animatedHighlightStyle
             styles.bgTransparent,
             item.isSelected && styles.activeComponentBG,
             styles.mh0,
         ],
-        [styles, item.isSelected],
+        [styles, item.isSelected, isLargeScreenWidth, isLastItem],
     );
 
     const listItemWrapperStyle = useMemo(
@@ -181,7 +183,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
     );
 
     const animatedHighlightStyle = useAnimatedHighlightStyle({
-        borderRadius: variables.componentBorderRadius,
+        borderRadius: isLargeScreenWidth ? 0 : variables.componentBorderRadius,
         shouldHighlight: item?.shouldAnimateInHighlight ?? false,
         highlightColor: theme.messageHighlightBG,
         backgroundColor: theme.highlightBG,
@@ -231,7 +233,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
             item={item}
             pressableStyle={listItemPressableStyle}
             wrapperStyle={listItemWrapperStyle}
-            containerStyle={[styles.mb2]}
+            containerStyle={!isLargeScreenWidth ? [styles.mb2] : undefined}
             isFocused={isFocused}
             showTooltip={showTooltip}
             canSelectMultiple={canSelectMultiple}
@@ -242,7 +244,12 @@ function ExpenseReportListItem<TItem extends ListItem>({
             onLongPressRow={onLongPressRow}
             shouldSyncFocus={shouldSyncFocus}
             hoverStyle={item.isSelected && styles.activeComponentBG}
-            pressableWrapperStyle={[styles.mh5, animatedHighlightStyle]}
+            pressableWrapperStyle={[
+                styles.mh5,
+                animatedHighlightStyle,
+                isLargeScreenWidth && {borderRadius: 0, borderBottomWidth: isLastItem ? 0 : 1, borderColor: item.isSelected ? theme.buttonHoveredBG : theme.border},
+                isLargeScreenWidth && isLastItem && {borderBottomLeftRadius: 8, borderBottomRightRadius: 8},
+            ]}
             accessible={false}
             shouldShowRightCaret={false}
             shouldUseDefaultRightHandSideCheckmark={false}

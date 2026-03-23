@@ -31,8 +31,9 @@ function TaskListItem<TItem extends ListItem>({
 
     const listItemPressableStyle = [
         styles.selectionListPressableItemWrapper,
-        styles.pv3,
+        isLargeScreenWidth ? styles.pv2 : styles.pv3,
         styles.ph3,
+        isLargeScreenWidth && {minHeight: variables.tableRowHeight, borderRadius: 0},
         // Removing background style because they are added to the parent OpacityView via animatedHighlightStyle
         styles.bgTransparent,
         item.isSelected && styles.activeComponentBG,
@@ -46,7 +47,7 @@ function TaskListItem<TItem extends ListItem>({
     ];
 
     const animatedHighlightStyle = useAnimatedHighlightStyle({
-        borderRadius: variables.componentBorderRadius,
+        borderRadius: isLargeScreenWidth ? 0 : variables.componentBorderRadius,
         shouldHighlight: item?.shouldAnimateInHighlight ?? false,
         highlightColor: theme.messageHighlightBG,
         backgroundColor: theme.highlightBG,
@@ -59,7 +60,7 @@ function TaskListItem<TItem extends ListItem>({
             item={item}
             pressableStyle={listItemPressableStyle}
             wrapperStyle={listItemWrapperStyle}
-            containerStyle={[styles.mb2]}
+            containerStyle={!isLargeScreenWidth ? [styles.mb2] : undefined}
             isFocused={isFocused}
             isDisabled={isDisabled}
             showTooltip={showTooltip}
@@ -71,7 +72,11 @@ function TaskListItem<TItem extends ListItem>({
             onLongPressRow={onLongPressRow}
             shouldSyncFocus={shouldSyncFocus}
             hoverStyle={item.isSelected && styles.activeComponentBG}
-            pressableWrapperStyle={[styles.mh5, animatedHighlightStyle]}
+            pressableWrapperStyle={[
+                styles.mh5,
+                animatedHighlightStyle,
+                isLargeScreenWidth && {borderRadius: 0, borderBottomWidth: 1, borderColor: item.isSelected ? theme.buttonHoveredBG : theme.border},
+            ]}
             forwardedFSClass={fsClass}
         >
             <TaskListItemRow

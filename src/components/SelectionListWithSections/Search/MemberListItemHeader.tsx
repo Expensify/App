@@ -104,16 +104,18 @@ function MemberListItemHeader<TItem extends ListItem>({
 
     return (
         <View>
-            <View style={[styles.pv1Half, styles.pl3, styles.flexRow, styles.alignItemsCenter, isLargeScreenWidth ? styles.gap3 : styles.justifyContentStart]}>
+            <View style={[styles.pv1, styles.pl3, styles.flexRow, styles.alignItemsCenter, isLargeScreenWidth ? styles.gap3 : styles.justifyContentStart]}>
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.mnh40, styles.flex1, styles.gap3]}>
                     {!!canSelectMultiple && (
                         <Checkbox
                             onPress={() => onCheckboxPress?.(memberItem as unknown as TItem)}
                             isChecked={isSelectAllChecked}
                             isIndeterminate={isIndeterminate}
+                            containerStyle={[StyleUtils.getCheckboxContainerStyle(20)]}
                             disabled={!!isDisabled || memberItem.isDisabledCheckbox}
                             accessibilityLabel={translate('common.select')}
-                            style={isLargeScreenWidth && styles.mr1}
+                            shouldStopMouseDownPropagation
+                            style={[styles.cursorUnset, StyleUtils.getCheckboxPressableStyle()]}
                         />
                     )}
                     {!isLargeScreenWidth && (
@@ -125,6 +127,7 @@ function MemberListItemHeader<TItem extends ListItem>({
                                         type={CONST.ICON_TYPE_AVATAR}
                                         name={formattedDisplayName}
                                         avatarID={memberItem.accountID}
+                                        size={CONST.AVATAR_SIZE.SMALL}
                                     />
                                 </View>
                             </UserDetailsTooltip>
@@ -150,6 +153,7 @@ function MemberListItemHeader<TItem extends ListItem>({
                                             type={CONST.ICON_TYPE_AVATAR}
                                             name={formattedDisplayName}
                                             avatarID={memberItem.accountID}
+                                            size={CONST.AVATAR_SIZE.SMALL}
                                         />
                                     </View>
                                 </UserDetailsTooltip>

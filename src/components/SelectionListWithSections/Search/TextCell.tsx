@@ -14,8 +14,8 @@ function TextCell({text = '', isLargeScreenWidth = true}: TextCellProps) {
         <TextWithTooltip
             text={text}
             shouldShowTooltip
-            numberOfLines={2}
-            style={[isLargeScreenWidth ? styles.lineHeightLarge : styles.lh20, styles.preWrap, styles.justifyContentCenter]}
+            numberOfLines={1}
+            style={[isLargeScreenWidth ? styles.lineHeightLarge : styles.lh20, styles.pre, styles.justifyContentCenter]}
         />
     );
 }

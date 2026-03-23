@@ -50,6 +50,7 @@ type TableHeaderProps = ViewProps & {
  */
 function TableHeader<T, ColumnKey extends string = string>({style, shouldHideHeaderWhenEmptySearch = true, ...props}: TableHeaderProps) {
     const styles = useThemeStyles();
+    const theme = useTheme();
     const {columns, isEmptyResult} = useTableContext<T, ColumnKey>();
 
     if (shouldHideHeaderWhenEmptySearch && isEmptyResult) {
@@ -59,9 +60,11 @@ function TableHeader<T, ColumnKey extends string = string>({style, shouldHideHea
     return (
         <View
             style={[
-                styles.appBG,
+                styles.highlightBG,
                 styles.mh5,
-                styles.p4,
+                styles.pv2,
+                styles.mnh40,
+                {paddingLeft: 12, paddingRight: 8, borderBottomWidth: 1, borderColor: theme.border, borderTopLeftRadius: 8, borderTopRightRadius: 8},
                 // Flexbox fallback for browsers / native devices wider than 1024px which don't support grid
                 styles.dFlex,
                 styles.flexRow,
@@ -127,6 +130,7 @@ function TableHeaderColumn<T, ColumnKey extends string = string>({column}: {colu
             accessible
             accessibilityLabel={column.label}
             accessibilityRole="button"
+            sentryLabel={`TableHeader-${column.key}`}
             style={[styles.flexRow, styles.alignItemsCenter, column.styling?.flex ? {flex: column.styling.flex} : styles.flex1, column.styling?.containerStyles]}
             onPress={() => toggleSorting(column.key)}
         >

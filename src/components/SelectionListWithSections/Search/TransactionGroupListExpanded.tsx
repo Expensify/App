@@ -207,7 +207,7 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
                 </View>
             )}
             {visibleTransactions.map((transaction, index) => {
-                const shouldShowBottomBorder = !isLastTransaction(index) && !isLargeScreenWidth;
+                const shouldShowBottomBorder = !isLastTransaction(index);
                 const exportedReportActions = Object.values(transactionsSnapshot?.data?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transaction?.reportID}`] ?? {});
 
                 const transactionRow = (
@@ -229,7 +229,13 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
                         onButtonPress={() => {
                             openReportInRHP(transaction);
                         }}
-                        style={[styles.noBorderRadius, styles.p3, isLargeScreenWidth && [styles.pv1Half], styles.flex1]}
+                        style={[
+                            styles.noBorderRadius,
+                            styles.p3,
+                            isLargeScreenWidth && styles.pv1,
+                            styles.flex1,
+                            isLargeScreenWidth && isLastTransaction(index) && {borderBottomLeftRadius: 8, borderBottomRightRadius: 8},
+                        ]}
                         isReportItemChild
                         isInSingleTransactionReport={isInSingleTransactionReport}
                         shouldShowBottomBorder={shouldShowBottomBorder}

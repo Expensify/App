@@ -139,7 +139,7 @@ function AnimatedCollapsible({
                     <PressableWithFeedback
                         onPress={onPress}
                         disabled={disabled}
-                        style={[styles.p3Half, styles.justifyContentCenter, styles.alignItemsCenter, expandButtonStyle]}
+                        style={[{paddingHorizontal: 14, paddingVertical: 14}, styles.justifyContentCenter, styles.alignItemsCenter, expandButtonStyle]}
                         accessibilityRole={CONST.ROLE.BUTTON}
                         accessibilityLabel={isExpanded ? CONST.ACCESSIBILITY_LABELS.COLLAPSE : CONST.ACCESSIBILITY_LABELS.EXPAND}
                         sentryLabel={sentryLabel}

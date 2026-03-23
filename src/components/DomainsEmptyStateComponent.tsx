@@ -21,7 +21,7 @@ function DomainsEmptyStateComponent() {
                 title={translate('domain.enhancedSecurity.title')}
                 subtitle={translate('domain.enhancedSecurity.subtitle')}
                 subtitleStyle={[styles.textLabelSupporting, styles.pt1]}
-                style={[styles.borderRadiusComponentLarge, styles.highlightBG]}
+                style={[{borderTopLeftRadius: 0, borderTopRightRadius: 0, borderBottomLeftRadius: 8, borderBottomRightRadius: 8}, styles.highlightBG]}
                 rightComponent={
                     <Button
                         text={translate('domain.enhancedSecurity.enable')}

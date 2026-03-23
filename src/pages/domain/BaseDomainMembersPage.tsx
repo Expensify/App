@@ -274,7 +274,6 @@ function BaseDomainMembersPage({
                     shouldShowRightCaret
                     style={{
                         containerStyle: styles.flex1,
-                        listHeaderWrapperStyle: styles.baseListHeaderWrapperStyle,
                         listItemTitleContainerStyles: shouldUseNarrowLayout ? undefined : styles.pr3,
                         listItemErrorRowStyles: [styles.ph4, styles.pb2],
                         contentContainerStyle: shouldShowEmptyPreFilterState ? [styles.flex1, styles.mh100] : undefined,

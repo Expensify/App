@@ -6,6 +6,7 @@ import type {PopoverMenuItem} from '@components/PopoverMenu';
 import {PressableWithoutFeedback} from '@components/Pressable';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
@@ -21,6 +22,9 @@ type DomainMenuItemProps = {
 
     /** Row index in the menu */
     index: number;
+
+    /** Whether this is the last domain in the list */
+    isLastItem?: boolean;
 };
 
 type DomainItem = {
@@ -50,9 +54,10 @@ type DomainItem = {
 } & Pick<OfflineWithFeedbackProps, 'pendingAction'> &
     WithSentryLabel;
 
-function DomainMenuItem({item, index}: DomainMenuItemProps) {
+function DomainMenuItem({item, index, isLastItem}: DomainMenuItemProps) {
     const icons = useMemoizedLazyExpensifyIcons(['Globe']);
     const styles = useThemeStyles();
+    const {isLargeScreenWidth} = useResponsiveLayout();
     const {translate} = useLocalize();
     const {isAdmin, isValidated, action} = item;
 
@@ -79,7 +84,7 @@ function DomainMenuItem({item, index}: DomainMenuItemProps) {
         <OfflineWithFeedback
             key={`domain_${item.title}_${index}`}
             pendingAction={item.pendingAction}
-            style={[styles.mb2, styles.mh5]}
+            style={[!isLargeScreenWidth && styles.mb2, styles.mh5]}
             contentContainerStyle={item.errors ? styles.mb2 : undefined}
             errors={item?.errors}
             onClose={() => clearDomainErrors(item.accountID)}
@@ -97,6 +102,7 @@ function DomainMenuItem({item, index}: DomainMenuItemProps) {
                         isHovered={hovered}
                         menuItems={threeDotsMenuItems}
                         brickRoadIndicator={item.brickRoadIndicator}
+                        isLastItem={isLastItem}
                     />
                 )}
             </PressableWithoutFeedback>

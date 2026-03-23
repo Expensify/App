@@ -165,15 +165,18 @@ function WithdrawalIDListItemHeader<TItem extends ListItem>({
 
     return (
         <View>
-            <View style={[styles.pv1Half, styles.pl3, styles.flexRow, styles.alignItemsCenter, isLargeScreenWidth ? styles.gap3 : styles.justifyContentStart]}>
+            <View style={[styles.pv1, styles.pl3, styles.flexRow, styles.alignItemsCenter, isLargeScreenWidth ? styles.gap3 : styles.justifyContentStart]}>
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.mnh40, styles.flex1, styles.gap3]}>
                     {!!canSelectMultiple && (
                         <Checkbox
                             onPress={() => onCheckboxPress?.(withdrawalIDItem as unknown as TItem)}
                             isChecked={isSelectAllChecked}
+                            containerStyle={[StyleUtils.getCheckboxContainerStyle(20)]}
                             disabled={!!isDisabled || withdrawalIDItem.isDisabledCheckbox}
                             accessibilityLabel={translate('common.select')}
                             isIndeterminate={isIndeterminate}
+                            shouldStopMouseDownPropagation
+                            style={[styles.cursorUnset, StyleUtils.getCheckboxPressableStyle()]}
                         />
                     )}
                     {!isLargeScreenWidth && (
