@@ -31,7 +31,13 @@ function isWebAuthnSupported(): boolean {
 }
 
 /** Builds WebAuthn credential creation options from a backend registration challenge. */
-function buildPublicKeyCredentialCreationOptions(challenge: RegistrationChallenge, credentials: Array<{id: string; transports?: SupportedTransport[]}>): PublicKeyCredentialCreationOptions {
+function buildPublicKeyCredentialCreationOptions(
+    challenge: RegistrationChallenge,
+    credentials: Array<{id: string; transports?: SupportedTransport[]}>,
+    passkeyGroupId: string,
+): PublicKeyCredentialCreationOptions {
+    const userId = base64URLToArrayBuffer(`${challenge.user.id}${passkeyGroupId}`);
+
     return {
         challenge: base64URLToArrayBuffer(challenge.challenge),
         rp: {
@@ -39,7 +45,7 @@ function buildPublicKeyCredentialCreationOptions(challenge: RegistrationChalleng
             name: VALUES.RELYING_PARTY_NAME,
         },
         user: {
-            id: base64URLToArrayBuffer(challenge.user.id),
+            id: userId,
             name: challenge.user.displayName,
             displayName: challenge.user.displayName,
         },

@@ -1,3 +1,4 @@
+import {Str} from 'expensify-common';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useOnyx from '@hooks/useOnyx';
 import {
@@ -14,8 +15,9 @@ import {
 } from '@libs/MultifactorAuthentication/Passkeys/WebAuthn';
 import type {RegistrationChallenge} from '@libs/MultifactorAuthentication/shared/challengeTypes';
 import VALUES from '@libs/MultifactorAuthentication/VALUES';
-import {addLocalPasskeyCredential, deleteLocalPasskeyCredentials, getPasskeyOnyxKey, reconcileLocalPasskeysWithBackend} from '@userActions/Passkey';
+import {addLocalPasskeyCredential, deleteLocalPasskeyCredentials, getPasskeyOnyxKey, reconcileLocalPasskeysWithBackend, setPasskeyGroupId} from '@userActions/Passkey';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {AuthorizeParams, AuthorizeResult, RegisterResult, UseBiometricsReturn} from './shared/types';
 import useServerCredentials from './shared/useServerCredentials';
 
@@ -24,6 +26,7 @@ function usePasskeys(): UseBiometricsReturn {
     const userId = String(accountID);
     const {serverKnownCredentialIDs, haveCredentialsEverBeenConfigured} = useServerCredentials();
     const [localPasskeyCredentials] = useOnyx(getPasskeyOnyxKey(userId));
+    const [passkeyGroupId] = useOnyx(ONYXKEYS.PASSKEY_GROUP_ID);
 
     const doesDeviceSupportAuthenticationMethod = () => isWebAuthnSupported();
 
@@ -49,7 +52,12 @@ function usePasskeys(): UseBiometricsReturn {
             backendCredentials,
             localCredentials: localPasskeyCredentials ?? null,
         });
-        const publicKeyOptions = buildPublicKeyCredentialCreationOptions(registrationChallenge, reconciledExisting);
+        let groupId = passkeyGroupId;
+        if (!groupId) {
+            groupId = Str.guid();
+            setPasskeyGroupId(groupId);
+        }
+        const publicKeyOptions = buildPublicKeyCredentialCreationOptions(registrationChallenge, reconciledExisting, groupId);
 
         let credential: PublicKeyCredential;
         try {

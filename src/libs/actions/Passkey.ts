@@ -84,5 +84,9 @@ function reconcileLocalPasskeysWithBackend({userId, backendCredentials, localCre
     return matchedCredentials;
 }
 
-export {getPasskeyOnyxKey, addLocalPasskeyCredential, deleteLocalPasskeyCredentials, reconcileLocalPasskeysWithBackend};
+function setPasskeyGroupId(id: string): void {
+    Onyx.set(ONYXKEYS.PASSKEY_GROUP_ID, id);
+}
+
+export {getPasskeyOnyxKey, addLocalPasskeyCredential, deleteLocalPasskeyCredentials, reconcileLocalPasskeysWithBackend, setPasskeyGroupId};
 export type {BackendPasskeyCredential};

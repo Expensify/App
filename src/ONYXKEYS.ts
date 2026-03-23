@@ -38,6 +38,10 @@ const ONYXKEYS = {
      */
     DEVICE_BIOMETRICS: 'deviceBiometrics',
 
+    /** A unique UUID per browser/device used to namespace passkey user.id so shared authenticators
+     *  (e.g. iCloud Keychain) store separate credentials per browser. */
+    PASSKEY_GROUP_ID: 'passkeyGroupID',
+
     /** Boolean flag set whenever the sidebar has loaded */
     IS_SIDEBAR_LOADED: 'isSidebarLoaded',
 
@@ -1262,6 +1266,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.RECENTLY_USED_CURRENCIES]: string[];
     [ONYXKEYS.ACTIVE_CLIENTS]: string[];
     [ONYXKEYS.DEVICE_ID]: string;
+    [ONYXKEYS.PASSKEY_GROUP_ID]: string;
     [ONYXKEYS.IS_SIDEBAR_LOADED]: boolean;
     [ONYXKEYS.PERSISTED_REQUESTS]: OnyxTypes.AnyRequest[];
     [ONYXKEYS.PERSISTED_ONGOING_REQUESTS]: OnyxTypes.AnyRequest;
