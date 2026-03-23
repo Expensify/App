@@ -14,11 +14,11 @@ import {replaceAllDigits} from './MoneyRequestUtils';
 import {getDistanceRateCustomUnit, getDistanceRateCustomUnitRate, getPersonalPolicy, getUnitRateValue} from './PolicyUtils';
 import {getCurrency, getRateID, isCustomUnitRateIDForP2P, isExpenseUnreported} from './TransactionUtils';
 
-let defaultMileageRatesFromServer: Record<string, DefaultMileageRate> | undefined;
+let defaultP2PMileageRate: DefaultMileageRate | undefined;
 Onyx.connect({
     key: ONYXKEYS.DEFAULT_MILEAGE_RATES,
     callback: (value) => {
-        defaultMileageRatesFromServer = value ?? undefined;
+        defaultP2PMileageRate = value ?? undefined;
     },
 });
 
@@ -285,33 +285,16 @@ function ensureRateDefined(rate: number | undefined): asserts rate is number {
 }
 
 /**
- * Returns true if a default mileage rate exists for the given currency in either the server-fetched rates or the hardcoded constant.
+ * Returns the default P2P mileage rate, preferring the server-fetched rate (from Auth)
+ * over the hardcoded CURRENCY_TO_DEFAULT_MILEAGE_RATE constant.
  */
-function hasDefaultMileageRateForCurrency(currency: string): boolean {
-    return !!(defaultMileageRatesFromServer?.[currency] ?? CONST.CURRENCY_TO_DEFAULT_MILEAGE_RATE[currency]);
-}
-
-/**
- * Returns the default mileage rate for the given currency, preferring rates fetched from the server
- * (stored in Onyx) over the hardcoded CURRENCY_TO_DEFAULT_MILEAGE_RATE constant.
- */
-function getDefaultMileageRateForCurrency(currency: string): {rate: number; unit: Unit} {
-    const serverRate = defaultMileageRatesFromServer?.[currency];
-    if (serverRate) {
-        return serverRate;
+function getDefaultP2PMileageRate(currency: string): {rate: number; unit: Unit} {
+    if (defaultP2PMileageRate) {
+        return defaultP2PMileageRate;
     }
-    const fallbackRate = CONST.CURRENCY_TO_DEFAULT_MILEAGE_RATE[currency];
-    if (fallbackRate?.rate !== undefined) {
-        return {rate: fallbackRate.rate, unit: fallbackRate.unit};
-    }
-    // Fall back to USD if the currency isn't found in either source
-    const usdServerRate = defaultMileageRatesFromServer?.USD;
-    if (usdServerRate) {
-        return usdServerRate;
-    }
-    const usdFallbackRate = CONST.CURRENCY_TO_DEFAULT_MILEAGE_RATE.USD;
-    ensureRateDefined(usdFallbackRate?.rate);
-    return {rate: usdFallbackRate.rate, unit: usdFallbackRate.unit};
+    const fallbackRate = CONST.CURRENCY_TO_DEFAULT_MILEAGE_RATE[currency] ?? CONST.CURRENCY_TO_DEFAULT_MILEAGE_RATE.USD;
+    ensureRateDefined(fallbackRate?.rate);
+    return {rate: fallbackRate.rate, unit: fallbackRate.unit};
 }
 
 /**
@@ -323,8 +306,8 @@ function getDefaultMileageRateForCurrency(currency: string): {rate: number; unit
  * @returns The rate and unit in MileageRate object.
  */
 function getRateForP2P(currency: string, transaction: OnyxEntry<Transaction>): MileageRate {
-    const currencyWithExistingRate = hasDefaultMileageRateForCurrency(currency) ? currency : CONST.CURRENCY.USD;
-    const mileageRate = getDefaultMileageRateForCurrency(currencyWithExistingRate);
+    const currencyWithExistingRate = defaultP2PMileageRate || CONST.CURRENCY_TO_DEFAULT_MILEAGE_RATE[currency] ? currency : CONST.CURRENCY.USD;
+    const mileageRate = getDefaultP2PMileageRate(currencyWithExistingRate);
     ensureRateDefined(mileageRate.rate);
 
     // Ensure the rate is updated when the currency changes, otherwise use the stored rate
@@ -531,8 +514,7 @@ export default {
     getDistanceForDisplay,
     getRoundedDistanceInUnits,
     getRateForP2P,
-    getDefaultMileageRateForCurrency,
-    hasDefaultMileageRateForCurrency,
+    getDefaultP2PMileageRate,
     getCustomUnitRateID,
     convertToDistanceInMeters,
     getTaxableAmount,
