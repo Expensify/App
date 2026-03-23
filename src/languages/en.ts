@@ -6846,9 +6846,9 @@ const translations = {
         deleteReportField: ({fieldType, fieldName}: {fieldType: string; fieldName?: string}) => `removed ${fieldType} Report Field "${fieldName}"`,
         addedCardFeed: (feedName: string) => `added card feed "${feedName}"`,
         removedCardFeed: (feedName: string) => `removed card feed "${feedName}"`,
-        renamedCardFeed: (oldName: string, newName: string) => `renamed card feed "${oldName}" to "${newName}"`,
-        assignedCompanyCard: (cardLastFour: string, email: string) => `assigned a company card ending in ${cardLastFour} to ${email}`,
-        unassignedCompanyCard: (cardLastFour: string, email: string) => `unassigned a company card ending in ${cardLastFour} from ${email}`,
+        renamedCardFeed: (newName: string, oldName: string) => `renamed card feed to "${newName}" (previously "${oldName}")`,
+        assignedCompanyCard: (email: string, cardLastFour: string) => `assigned ${email} company card ending in ${cardLastFour}`,
+        unassignedCompanyCard: (email: string, cardLastFour: string) => `unassigned ${email} company card ending in ${cardLastFour}`,
         updatedCardFeedLiability: (feedName: string, liabilityType: string) => `changed card feed "${feedName}" transaction liability to ${liabilityType}`,
         updatedCardFeedStatementPeriod: (feedName: string, newValue?: string, previousValue?: string) =>
             `changed card feed "${feedName}" statement period end day${newValue ? ` to "${newValue}"` : ''}${previousValue ? ` (previously "${previousValue}")` : ''}`,
