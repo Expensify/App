@@ -401,21 +401,22 @@ function shouldShowLastActorDisplayName(
 /**
  * Update alternate text for the option when applicable
  */
-// eslint-disable-next-line @typescript-eslint/max-params
+/* eslint-disable @typescript-eslint/max-params, @typescript-eslint/default-param-last */
 function getAlternateText(
     option: OptionData,
     {showChatPreviewLine = false, forcePolicyNamePreview = false}: PreviewConfig,
     isReportArchived: boolean | undefined,
     currentUserAccountID: number,
-    policy?: OnyxEntry<Policy>,
+    policy: OnyxEntry<Policy> | undefined,
     lastActorDetails: Partial<PersonalDetails> | null = {},
     visibleReportActionsData: VisibleReportActionsDerivedValue = {},
-    translate?: LocalizedTranslate,
-    reportAttributesDerived?: ReportAttributesDerivedValue['reports'],
-    policyTags?: OnyxEntry<PolicyTagLists>,
-    reportParam?: OnyxEntry<Report>,
-    chatReportParam?: OnyxEntry<Report>,
+    translate: LocalizedTranslate | undefined,
+    reportAttributesDerived: ReportAttributesDerivedValue['reports'] | undefined,
+    policyTags: OnyxEntry<PolicyTagLists> | undefined,
+    reportParam: OnyxEntry<Report>,
+    chatReportParam: OnyxEntry<Report>,
 ) {
+    /* eslint-enable @typescript-eslint/max-params, @typescript-eslint/default-param-last */
     const report = reportParam ?? getReportOrDraftReport(option.reportID);
     const isAdminRoom = reportUtilsIsAdminRoom(report);
     const isAnnounceRoom = reportUtilsIsAnnounceRoom(report);
@@ -596,7 +597,7 @@ function getLastMessageTextForReport({
     policy?: OnyxEntry<Policy>;
     isReportArchived?: boolean;
     policyForMovingExpensesID?: string;
-    chatReport?: OnyxEntry<Report>;
+    chatReport: OnyxEntry<Report>;
     reportMetadata?: OnyxEntry<ReportMetadata>;
     visibleReportActionsDataParam?: VisibleReportActionsDerivedValue;
     lastAction?: OnyxEntry<ReportAction>;
@@ -1018,6 +1019,7 @@ function createOption(
             report,
             lastActorDetails,
             isReportArchived: !!result.private_isArchived,
+            chatReport: allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.chatReportID}`] ?? undefined,
             visibleReportActionsDataParam: visibleReportActionsData,
             reportAttributesDerived,
             policyTags,
@@ -1037,6 +1039,7 @@ function createOption(
                       reportAttributesDerived,
                       policyTags,
                       report,
+                      allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.chatReportID}`] ?? undefined,
                   );
 
         const computedReportName = getReportName(report, reportAttributesDerived);
@@ -1082,18 +1085,20 @@ function createOption(
 /**
  * Get the option for a given report.
  */
+/* eslint-disable @typescript-eslint/default-param-last */
 function getReportOption(
     participant: Participant,
     privateIsArchived: string | undefined,
     policy: OnyxEntry<Policy>,
     currentUserAccountID: number,
     personalDetails: OnyxEntry<PersonalDetailsList>,
-    reportAttributesDerived?: ReportAttributesDerivedValue['reports'],
-    reportDrafts?: OnyxCollection<Report>,
-    policyTags?: OnyxCollection<PolicyTagLists>,
+    reportAttributesDerived: ReportAttributesDerivedValue['reports'] | undefined,
+    reportDrafts: OnyxCollection<Report> | undefined,
+    policyTags: OnyxCollection<PolicyTagLists> | undefined,
     visibleReportActionsData: VisibleReportActionsDerivedValue = {},
-    reportParam?: OnyxEntry<Report>,
+    reportParam: OnyxEntry<Report>,
 ): OptionData {
+    /* eslint-enable @typescript-eslint/default-param-last */
     const report = reportParam ?? getReportOrDraftReport(participant.reportID, undefined, undefined, reportDrafts);
     const visibleParticipantAccountIDs = getParticipantsAccountIDsForDisplay(report, true);
     const reportPolicyTags = policyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(report?.policyID)}`];
@@ -2216,7 +2221,7 @@ function prepareReportOptionsForDisplay(
     policiesCollection: OnyxCollection<Policy>,
     currentUserAccountID: number,
     config: GetValidReportsConfig,
-    reports?: OnyxCollection<Report>,
+    reports: OnyxCollection<Report>,
     visibleReportActionsData: VisibleReportActionsDerivedValue = {},
     reportAttributesDerived?: ReportAttributesDerivedValue['reports'],
     policyTags?: OnyxCollection<PolicyTagLists>,
@@ -2901,7 +2906,7 @@ function shouldOptionShowTooltip(option: SearchOptionData): boolean {
 /**
  * Handles the logic for displaying selected participants from the search term
  */
-// eslint-disable-next-line @typescript-eslint/max-params
+/* eslint-disable @typescript-eslint/max-params, @typescript-eslint/default-param-last */
 function formatSectionsFromSearchTerm(
     searchTerm: string,
     selectedOptions: SearchOptionData[],
@@ -2912,9 +2917,10 @@ function formatSectionsFromSearchTerm(
     personalDetails: OnyxEntry<PersonalDetailsList> = {},
     shouldGetOptionDetails = false,
     filteredWorkspaceChats: SearchOptionData[] = [],
-    reportAttributesDerived?: ReportAttributesDerivedValue['reports'],
-    reportsParam?: OnyxCollection<Report>,
+    reportAttributesDerived: ReportAttributesDerivedValue['reports'] | undefined,
+    reportsParam: OnyxCollection<Report>,
 ): SectionForSearchTerm {
+    /* eslint-enable @typescript-eslint/max-params, @typescript-eslint/default-param-last */
     // We show the selected participants at the top of the list when there is no search term or maximum number of participants has already been selected
     // However, if there is a search term we remove the selected participants from the top of the list unless they are part of the search results
     // This clears up space on mobile views, where if you create a group with 4+ people you can't see the selected participants and the search results at the same time

@@ -4064,6 +4064,7 @@ describe('OptionsListUtils', () => {
                 lastActorDetails: null,
                 policy: undefined,
                 isReportArchived: false,
+                chatReport: undefined,
 
                 currentUserLogin: CURRENT_USER_EMAIL,
             });
@@ -4090,6 +4091,7 @@ describe('OptionsListUtils', () => {
                     lastActorDetails: null,
                     policy: undefined,
                     isReportArchived: false,
+                    chatReport: undefined,
 
                     currentUserLogin: CURRENT_USER_EMAIL,
                 });
@@ -4117,6 +4119,7 @@ describe('OptionsListUtils', () => {
                     lastActorDetails: null,
                     policy: undefined,
                     isReportArchived: false,
+                    chatReport: undefined,
 
                     currentUserLogin: CURRENT_USER_EMAIL,
                 });
@@ -4144,6 +4147,7 @@ describe('OptionsListUtils', () => {
                     lastActorDetails: null,
                     policy: undefined,
                     isReportArchived: false,
+                    chatReport: undefined,
 
                     currentUserLogin: CURRENT_USER_EMAIL,
                 });
@@ -4168,6 +4172,7 @@ describe('OptionsListUtils', () => {
                     lastActorDetails: null,
                     policy: undefined,
                     isReportArchived: false,
+                    chatReport: undefined,
 
                     currentUserLogin: CURRENT_USER_EMAIL,
                 });
@@ -4191,6 +4196,7 @@ describe('OptionsListUtils', () => {
                 lastActorDetails: null,
                 policy: undefined,
                 isReportArchived: false,
+                chatReport: undefined,
 
                 currentUserLogin: CURRENT_USER_EMAIL,
             });
@@ -4213,6 +4219,7 @@ describe('OptionsListUtils', () => {
                 lastActorDetails: null,
                 policy: undefined,
                 isReportArchived: false,
+                chatReport: undefined,
 
                 currentUserLogin: CURRENT_USER_EMAIL,
             });
@@ -4235,6 +4242,7 @@ describe('OptionsListUtils', () => {
                 lastActorDetails: null,
                 policy: undefined,
                 isReportArchived: false,
+                chatReport: undefined,
 
                 currentUserLogin: CURRENT_USER_EMAIL,
             });
@@ -4257,6 +4265,7 @@ describe('OptionsListUtils', () => {
                 lastActorDetails: null,
                 policy: undefined,
                 isReportArchived: false,
+                chatReport: undefined,
 
                 currentUserLogin: CURRENT_USER_EMAIL,
             });
@@ -4279,6 +4288,7 @@ describe('OptionsListUtils', () => {
                 lastActorDetails: null,
                 policy: undefined,
                 isReportArchived: false,
+                chatReport: undefined,
 
                 currentUserLogin: CURRENT_USER_EMAIL,
             });
@@ -4301,6 +4311,7 @@ describe('OptionsListUtils', () => {
                 lastActorDetails: null,
                 policy: undefined,
                 isReportArchived: false,
+                chatReport: undefined,
 
                 currentUserLogin: CURRENT_USER_EMAIL,
             });
@@ -4327,6 +4338,7 @@ describe('OptionsListUtils', () => {
                 lastActorDetails: null,
                 policy: undefined,
                 isReportArchived: false,
+                chatReport: undefined,
 
                 currentUserLogin: CURRENT_USER_EMAIL,
             });
@@ -4355,6 +4367,7 @@ describe('OptionsListUtils', () => {
                 lastActorDetails: null,
                 policy: undefined,
                 isReportArchived: false,
+                chatReport: undefined,
 
                 currentUserLogin: CURRENT_USER_EMAIL,
             });
@@ -4374,6 +4387,7 @@ describe('OptionsListUtils', () => {
                 lastActorDetails: null,
                 policy: undefined,
                 isReportArchived: false,
+                chatReport: undefined,
 
                 currentUserLogin: CURRENT_USER_EMAIL,
             });
@@ -4405,6 +4419,7 @@ describe('OptionsListUtils', () => {
                 lastActorDetails: null,
                 policy: undefined,
                 isReportArchived: false,
+                chatReport: undefined,
 
                 currentUserLogin: CURRENT_USER_EMAIL,
             });
@@ -4445,6 +4460,7 @@ describe('OptionsListUtils', () => {
                 lastActorDetails: null,
                 policy: undefined,
                 isReportArchived: false,
+                chatReport: undefined,
 
                 currentUserLogin: CURRENT_USER_EMAIL,
             });
@@ -4495,6 +4511,7 @@ describe('OptionsListUtils', () => {
                     report,
                     lastActorDetails: null,
                     isReportArchived: false,
+                    chatReport: undefined,
                     policy,
                     reportMetadata,
 
@@ -4531,6 +4548,7 @@ describe('OptionsListUtils', () => {
                     lastActorDetails: null,
                     policy: undefined,
                     isReportArchived: false,
+                    chatReport: undefined,
 
                     currentUserLogin: CURRENT_USER_EMAIL,
                 });
@@ -4562,6 +4580,7 @@ describe('OptionsListUtils', () => {
                     lastActorDetails: null,
                     policy: undefined,
                     isReportArchived: false,
+                    chatReport: undefined,
 
                     currentUserLogin: CURRENT_USER_EMAIL,
                 });
@@ -4600,6 +4619,7 @@ describe('OptionsListUtils', () => {
                     lastActorDetails: null,
                     policy,
                     isReportArchived: true,
+                    chatReport: undefined,
 
                     currentUserLogin: '',
                 });
@@ -4641,6 +4661,7 @@ describe('OptionsListUtils', () => {
                     lastActorDetails: null,
                     policy,
                     isReportArchived: true,
+                    chatReport: undefined,
 
                     currentUserLogin: '',
                 });
@@ -5146,7 +5167,7 @@ describe('OptionsListUtils', () => {
                 isPolicyExpenseChat: true,
             };
 
-            const option = getReportOption(participant, undefined, policy, CURRENT_USER_ACCOUNT_ID, {});
+            const option = getReportOption(participant, undefined, policy, CURRENT_USER_ACCOUNT_ID, {}, undefined, undefined, undefined, {}, undefined);
 
             expect(option.text).toBe('Test Workspace');
             expect(option.alternateText).toBe(translateLocal('workspace.common.workspace'));
@@ -5201,7 +5222,7 @@ describe('OptionsListUtils', () => {
                 isPolicyExpenseChat: true,
             };
 
-            const option = getReportOption(participant, undefined, policy, CURRENT_USER_ACCOUNT_ID, {});
+            const option = getReportOption(participant, undefined, policy, CURRENT_USER_ACCOUNT_ID, {}, undefined, undefined, undefined, {}, undefined);
 
             expect(option.text).toBe('Test Workspace with Submit');
             // The submitsTo logic may or may not apply depending on complex approval rules
@@ -5224,7 +5245,7 @@ describe('OptionsListUtils', () => {
                 reportID,
             };
 
-            const option = getReportOption(participant, undefined, POLICY, CURRENT_USER_ACCOUNT_ID, {});
+            const option = getReportOption(participant, undefined, POLICY, CURRENT_USER_ACCOUNT_ID, {}, undefined, undefined, undefined, {}, undefined);
 
             expect(option.isDisabled).toBe(true);
         });
@@ -5260,7 +5281,7 @@ describe('OptionsListUtils', () => {
                 isSelfDM: true,
             };
 
-            const option = getReportOption(participant, undefined, POLICY, CURRENT_USER_ACCOUNT_ID, personalDetails);
+            const option = getReportOption(participant, undefined, POLICY, CURRENT_USER_ACCOUNT_ID, personalDetails, undefined, undefined, undefined, {}, undefined);
 
             // The option.isSelfDM is set by createOption based on the report type
             // Just verify the alternateText is correct for self DM
@@ -5295,7 +5316,7 @@ describe('OptionsListUtils', () => {
                 isInvoiceRoom: true,
             };
 
-            const option = getReportOption(participant, undefined, POLICY, CURRENT_USER_ACCOUNT_ID, {});
+            const option = getReportOption(participant, undefined, POLICY, CURRENT_USER_ACCOUNT_ID, {}, undefined, undefined, undefined, {}, undefined);
 
             expect(option.isInvoiceRoom).toBe(true);
             expect(option.alternateText).toBe(translateLocal('workspace.common.invoices'));
@@ -5336,7 +5357,7 @@ describe('OptionsListUtils', () => {
             });
             await waitForBatchedUpdates();
 
-            const option = getReportOption(participant, reportNameValuePair?.private_isArchived, POLICY, CURRENT_USER_ACCOUNT_ID, {});
+            const option = getReportOption(participant, reportNameValuePair?.private_isArchived, POLICY, CURRENT_USER_ACCOUNT_ID, {}, undefined, undefined, undefined, {}, undefined);
 
             expect(option.text).toBe(POLICY.name);
             expect(option.alternateText).toBeTruthy();
@@ -5380,7 +5401,7 @@ describe('OptionsListUtils', () => {
             });
             await waitForBatchedUpdates();
 
-            const option = getReportOption(participant, reportNameValuePair?.private_isArchived, POLICY, CURRENT_USER_ACCOUNT_ID, {}, undefined, draftReports);
+            const option = getReportOption(participant, reportNameValuePair?.private_isArchived, POLICY, CURRENT_USER_ACCOUNT_ID, {}, undefined, draftReports, undefined, {}, undefined);
 
             expect(option.isDisabled).toBe(true);
         });
@@ -5516,7 +5537,7 @@ describe('OptionsListUtils', () => {
                 selected: true,
             };
 
-            const option = getReportOption(participant, undefined, POLICY, CURRENT_USER_ACCOUNT_ID, {});
+            const option = getReportOption(participant, undefined, POLICY, CURRENT_USER_ACCOUNT_ID, {}, undefined, undefined, undefined, {}, undefined);
 
             expect(option.isSelected).toBe(true);
             expect(option.selected).toBe(true);
@@ -5537,7 +5558,7 @@ describe('OptionsListUtils', () => {
                 reportID,
             };
 
-            const option = getReportOption(participant, undefined, undefined, CURRENT_USER_ACCOUNT_ID, {});
+            const option = getReportOption(participant, undefined, undefined, CURRENT_USER_ACCOUNT_ID, {}, undefined, undefined, undefined, {}, undefined);
 
             expect(option).toBeDefined();
             expect(option.text).toBeDefined();
@@ -5559,7 +5580,7 @@ describe('OptionsListUtils', () => {
             };
 
             // Test that the function works with reportAttributesDerived parameter (optional)
-            const option = getReportOption(participant, undefined, POLICY, CURRENT_USER_ACCOUNT_ID, {});
+            const option = getReportOption(participant, undefined, POLICY, CURRENT_USER_ACCOUNT_ID, {}, undefined, undefined, undefined, {}, undefined);
 
             expect(option).toBeDefined();
         });
@@ -5593,7 +5614,7 @@ describe('OptionsListUtils', () => {
                 reportID,
             };
 
-            const option = getReportOption(participant, undefined, POLICY, CURRENT_USER_ACCOUNT_ID, testPersonalDetails);
+            const option = getReportOption(participant, undefined, POLICY, CURRENT_USER_ACCOUNT_ID, testPersonalDetails, undefined, undefined, undefined, {}, undefined);
 
             expect(option).toBeDefined();
             // The createOption function uses personalDetails to build display names
@@ -5654,7 +5675,7 @@ describe('OptionsListUtils', () => {
                 isPolicyExpenseChat: true,
             };
 
-            const option = getReportOption(participant, undefined, policy, CURRENT_USER_ACCOUNT_ID, testPersonalDetails);
+            const option = getReportOption(participant, undefined, policy, CURRENT_USER_ACCOUNT_ID, testPersonalDetails, undefined, undefined, undefined, {}, undefined);
 
             expect(option).toBeDefined();
             expect(option.text).toBe('Test Workspace with Approver');
@@ -5679,7 +5700,7 @@ describe('OptionsListUtils', () => {
             };
 
             // Pass empty personalDetails
-            const option = getReportOption(participant, undefined, POLICY, CURRENT_USER_ACCOUNT_ID, {});
+            const option = getReportOption(participant, undefined, POLICY, CURRENT_USER_ACCOUNT_ID, {}, undefined, undefined, undefined, {}, undefined);
 
             expect(option).toBeDefined();
             expect(option.text).toBeDefined();
@@ -5701,7 +5722,7 @@ describe('OptionsListUtils', () => {
             };
 
             // Pass undefined personalDetails
-            const option = getReportOption(participant, undefined, POLICY, CURRENT_USER_ACCOUNT_ID, undefined);
+            const option = getReportOption(participant, undefined, POLICY, CURRENT_USER_ACCOUNT_ID, undefined, undefined, undefined, undefined, {}, undefined);
 
             expect(option).toBeDefined();
             expect(option.text).toBeDefined();
@@ -5747,7 +5768,7 @@ describe('OptionsListUtils', () => {
                 isInvoiceRoom: true,
             };
 
-            const option = getReportOption(participant, undefined, POLICY, CURRENT_USER_ACCOUNT_ID, testPersonalDetails);
+            const option = getReportOption(participant, undefined, POLICY, CURRENT_USER_ACCOUNT_ID, testPersonalDetails, undefined, undefined, undefined, {}, undefined);
 
             expect(option).toBeDefined();
             expect(option.isInvoiceRoom).toBe(true);
@@ -6196,7 +6217,19 @@ describe('OptionsListUtils', () => {
                 } as SearchOptionData,
             ];
 
-            const result = formatSectionsFromSearchTerm('', selectedOptions, [], [], privateIsArchivedMap, CURRENT_USER_ACCOUNT_ID, formatPersonalDetails, true);
+            const result = formatSectionsFromSearchTerm(
+                '',
+                selectedOptions,
+                [],
+                [],
+                privateIsArchivedMap,
+                CURRENT_USER_ACCOUNT_ID,
+                formatPersonalDetails,
+                true,
+                undefined,
+                undefined,
+                undefined,
+            );
 
             expect(result.section.data).toHaveLength(1);
 
@@ -6218,7 +6251,19 @@ describe('OptionsListUtils', () => {
                 } as SearchOptionData,
             ];
 
-            const result = formatSectionsFromSearchTerm('', selectedOptions, [], [], privateIsArchivedMap, CURRENT_USER_ACCOUNT_ID, formatPersonalDetails, true);
+            const result = formatSectionsFromSearchTerm(
+                '',
+                selectedOptions,
+                [],
+                [],
+                privateIsArchivedMap,
+                CURRENT_USER_ACCOUNT_ID,
+                formatPersonalDetails,
+                true,
+                undefined,
+                undefined,
+                undefined,
+            );
 
             expect(result.section.data).toHaveLength(1);
 
@@ -6251,7 +6296,19 @@ describe('OptionsListUtils', () => {
                 } as SearchOptionData,
             ];
 
-            const result = formatSectionsFromSearchTerm('', selectedOptions, [], [], privateIsArchivedMap, CURRENT_USER_ACCOUNT_ID, formatPersonalDetails, true);
+            const result = formatSectionsFromSearchTerm(
+                '',
+                selectedOptions,
+                [],
+                [],
+                privateIsArchivedMap,
+                CURRENT_USER_ACCOUNT_ID,
+                formatPersonalDetails,
+                true,
+                undefined,
+                undefined,
+                undefined,
+            );
 
             expect(result.section.data).toHaveLength(2);
 
@@ -6278,7 +6335,19 @@ describe('OptionsListUtils', () => {
                 } as SearchOptionData,
             ];
 
-            const result = formatSectionsFromSearchTerm('', selectedOptions, [], [], privateIsArchivedMap, CURRENT_USER_ACCOUNT_ID, formatPersonalDetails, false);
+            const result = formatSectionsFromSearchTerm(
+                '',
+                selectedOptions,
+                [],
+                [],
+                privateIsArchivedMap,
+                CURRENT_USER_ACCOUNT_ID,
+                formatPersonalDetails,
+                false,
+                undefined,
+                undefined,
+                undefined,
+            );
 
             expect(result.section.data).toHaveLength(1);
             // When shouldGetOptionDetails is false, the original selectedOptions are returned unchanged
@@ -6306,7 +6375,19 @@ describe('OptionsListUtils', () => {
             ];
 
             // Pass empty filtered lists so the selected option is not deduplicated
-            const result = formatSectionsFromSearchTerm('format', selectedOptions, [], [], privateIsArchivedMap, CURRENT_USER_ACCOUNT_ID, formatPersonalDetails, true);
+            const result = formatSectionsFromSearchTerm(
+                'format',
+                selectedOptions,
+                [],
+                [],
+                privateIsArchivedMap,
+                CURRENT_USER_ACCOUNT_ID,
+                formatPersonalDetails,
+                true,
+                undefined,
+                undefined,
+                undefined,
+            );
 
             expect(result.section.data).toHaveLength(1);
 
@@ -6334,7 +6415,19 @@ describe('OptionsListUtils', () => {
                 } as SearchOptionData,
             ];
 
-            const result = formatSectionsFromSearchTerm('', selectedOptions, [], [], privateIsArchivedMap, CURRENT_USER_ACCOUNT_ID, formatPersonalDetails, true);
+            const result = formatSectionsFromSearchTerm(
+                '',
+                selectedOptions,
+                [],
+                [],
+                privateIsArchivedMap,
+                CURRENT_USER_ACCOUNT_ID,
+                formatPersonalDetails,
+                true,
+                undefined,
+                undefined,
+                undefined,
+            );
 
             expect(result.section.data).toHaveLength(1);
 
@@ -6346,7 +6439,7 @@ describe('OptionsListUtils', () => {
         });
 
         it('should return empty section when no selectedOptions are provided', () => {
-            const result = formatSectionsFromSearchTerm('', [], [], [], {}, CURRENT_USER_ACCOUNT_ID, formatPersonalDetails, true);
+            const result = formatSectionsFromSearchTerm('', [], [], [], {}, CURRENT_USER_ACCOUNT_ID, formatPersonalDetails, true, undefined, undefined, undefined);
 
             expect(result.section.data).toHaveLength(0);
         });
