@@ -127,7 +127,6 @@ import {
     getChatByParticipants,
     getChildReportNotificationPreference,
     getDefaultNotificationPreferenceForReport,
-    getFieldViolation,
     getLastVisibleMessage,
     getNextApproverAccountID,
     getOptimisticDataForAncestors,
@@ -212,7 +211,6 @@ import type {
     ReportAttributesDerivedValue,
     ReportNextStepDeprecated,
     ReportUserIsTyping,
-    ReportViolations,
     Transaction,
     TransactionViolations,
     VisibleReportActionsDerivedValue,
@@ -3178,7 +3176,6 @@ function updateReportField({
     email,
     hasViolationsParam,
     recentlyUsedReportFields,
-    reportViolations,
     shouldFixViolations = false,
 }: {
     report: Report;
@@ -3190,12 +3187,10 @@ function updateReportField({
     email: string;
     hasViolationsParam: boolean;
     recentlyUsedReportFields: OnyxEntry<RecentlyUsedReportFields>;
-    reportViolations: OnyxEntry<ReportViolations>;
     shouldFixViolations: boolean | undefined;
 }) {
     const reportID = report.reportID;
     const fieldKey = getReportFieldKey(reportField.fieldID);
-    const fieldViolation = getFieldViolation(reportViolations, reportField);
     const recentlyUsedValues = recentlyUsedReportFields?.[fieldKey] ?? [];
 
     const optimisticChangeFieldAction = buildOptimisticChangeFieldAction(reportField, previousReportField);
@@ -3225,13 +3220,7 @@ function updateReportField({
     });
 
     const optimisticData: Array<
-        OnyxUpdate<
-            | typeof ONYXKEYS.COLLECTION.REPORT
-            | typeof ONYXKEYS.COLLECTION.NEXT_STEP
-            | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
-            | typeof ONYXKEYS.COLLECTION.REPORT_VIOLATIONS
-            | typeof ONYXKEYS.RECENTLY_USED_REPORT_FIELDS
-        >
+        OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.NEXT_STEP | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.RECENTLY_USED_REPORT_FIELDS>
     > = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -3260,18 +3249,6 @@ function updateReportField({
             },
         },
     ];
-
-    if (fieldViolation) {
-        optimisticData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_VIOLATIONS}${reportID}`,
-            value: {
-                [fieldViolation]: {
-                    [reportField.fieldID]: null,
-                },
-            },
-        });
-    }
 
     if (reportField.type === 'dropdown' && reportField.value) {
         optimisticData.push({
