@@ -626,7 +626,7 @@ function PureReportActionItem({
             clearError(transactionID);
         }
         clearAllRelatedReportActionErrors(reportID, action, originalReportID);
-    }, [action, isSendingMoney, reportID, clearAllRelatedReportActionErrors, report, chatReport, clearError]);
+    }, [action, isSendingMoney, reportID, clearAllRelatedReportActionErrors, report, chatReport, clearError, originalReportID]);
 
     const showDismissReceiptErrorModal = useCallback(async () => {
         const result = await showConfirmModal({
@@ -835,8 +835,9 @@ function PureReportActionItem({
             transactionThreadReport,
             isDisabled: false,
             shouldDisplayContextMenu: shouldDisplayContextMenuValue,
+            originalReportID,
         }),
-        [report, action, transactionThreadReport, shouldDisplayContextMenuValue, isReportArchived],
+        [report, action, transactionThreadReport, shouldDisplayContextMenuValue, isReportArchived, originalReportID],
     );
 
     const contextMenuActionsValue = useMemo(
@@ -1176,6 +1177,7 @@ function PureReportActionItem({
                     style={displayAsGroup ? [] : [styles.mt2]}
                     isWhisper={isWhisper}
                     shouldDisplayContextMenu={shouldDisplayContextMenuValue}
+                    originalReportID={originalReportID}
                 />
             );
 
@@ -1220,6 +1222,7 @@ function PureReportActionItem({
                                     Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(action.childReportID, undefined, undefined, Navigation.getActiveRoute()));
                                 }}
                                 isTrackExpense={isTrackExpenseActionReportActionsUtils(action)}
+                                originalReportID={originalReportID}
                             />
                         </View>
                     );
@@ -1238,6 +1241,7 @@ function PureReportActionItem({
                     containerStyles={displayAsGroup ? [] : [styles.mt2]}
                     checkIfContextMenuActive={toggleContextMenuFromActiveReportAction}
                     shouldDisplayContextMenu={shouldDisplayContextMenuValue}
+                    originalReportID={originalReportID}
                 />
             );
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW && isClosedExpenseReportWithNoExpenses) {
@@ -1257,6 +1261,7 @@ function PureReportActionItem({
                     onPaymentOptionsHide={() => setIsPaymentMethodPopoverActive(false)}
                     shouldDisplayContextMenu={shouldDisplayContextMenuValue}
                     shouldShowBorder={shouldShowBorder}
+                    originalReportID={originalReportID}
                 />
             );
         } else if (isTaskAction(action)) {
