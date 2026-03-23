@@ -245,7 +245,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
 
     const dropdownMenuRef = useRef<{setIsMenuVisible: (visible: boolean) => void} | null>(null);
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
-    const hasDeleteOpenExpensifyCardsError = !!hasExpensifyCard && !!isOffline;
+    const hasDeleteWorkspaceExpensifyCardsError = !!hasExpensifyCard && !!isOffline;
 
     const confirmDelete = () => {
         if (!policyID || !policyName) {
@@ -265,12 +265,12 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
             lastUsedPaymentMethods: lastPaymentMethod,
             localeCompare,
             personalPolicyID,
-            hasDeleteOpenExpensifyCardsError,
+            hasDeleteWorkspaceExpensifyCardsError,
         });
         if (isOffline) {
             setIsDeleteModalOpen(false);
 
-            if (hasDeleteOpenExpensifyCardsError) {
+            if (hasDeleteWorkspaceExpensifyCardsError) {
                 return;
             }
 

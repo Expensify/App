@@ -212,7 +212,7 @@ function WorkspacesListPage() {
 
     const policyToDeleteLatestErrorMessage = getLatestErrorMessage(policyToDelete);
     const isPendingDelete = isPendingDeletePolicy(policyToDelete);
-    const hasDeleteOpenExpensifyCardsError = !!hasExpensifyCard && !!isOffline;
+    const hasDeleteWorkspaceExpensifyCardsError = !!hasExpensifyCard && !!isOffline;
 
     const [prevIsPendingDelete, setPrevIsPendingDelete] = useState(isPendingDelete);
     if (prevIsPendingDelete !== isPendingDelete) {
@@ -243,11 +243,11 @@ function WorkspacesListPage() {
             lastUsedPaymentMethods: lastPaymentMethod,
             localeCompare,
             personalPolicyID,
-            hasDeleteOpenExpensifyCardsError,
+            hasDeleteWorkspaceExpensifyCardsError,
         });
         if (isOffline) {
             setIsDeleteModalOpen(false);
-            if (!hasDeleteOpenExpensifyCardsError) {
+            if (!hasDeleteWorkspaceExpensifyCardsError) {
                 setPolicyIDToDelete(undefined);
             }
             setPolicyNameToDelete(undefined);

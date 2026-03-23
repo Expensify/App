@@ -369,7 +369,7 @@ type DeleteWorkspaceActionParams = {
     reimbursementAccountError: Errors | undefined;
     lastUsedPaymentMethods?: LastPaymentMethod;
     localeCompare: LocaleContextProps['localeCompare'];
-    hasDeleteOpenExpensifyCardsError?: boolean;
+    hasDeleteWorkspaceExpensifyCardsError?: boolean;
 };
 
 /**
@@ -389,7 +389,7 @@ function deleteWorkspace(params: DeleteWorkspaceActionParams) {
         lastUsedPaymentMethods,
         localeCompare,
         personalPolicyID,
-        hasDeleteOpenExpensifyCardsError,
+        hasDeleteWorkspaceExpensifyCardsError,
     } = params;
 
     const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
@@ -416,7 +416,7 @@ function deleteWorkspace(params: DeleteWorkspaceActionParams) {
             value: {
                 avatarURL: '',
                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-                errors: hasDeleteOpenExpensifyCardsError ? ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.common.deleteOpenExpensifyCardsError') : null,
+                errors: hasDeleteWorkspaceExpensifyCardsError ? ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.common.deleteOpenExpensifyCardsError') : null,
             },
         },
         {
@@ -569,7 +569,7 @@ function deleteWorkspace(params: DeleteWorkspaceActionParams) {
             },
         });
 
-        if (hasDeleteOpenExpensifyCardsError) {
+        if (hasDeleteWorkspaceExpensifyCardsError) {
             failureData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
