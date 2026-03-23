@@ -191,6 +191,9 @@ type TransactionGroupListItemType = ListItem & {
 
     /** Whether the report has visible violations for user */
     hasVisibleViolations?: boolean;
+
+    /** Whether the report was rejected (REJECTED or REJECTEDTOSUBMITTER) */
+    isRejectedReport?: boolean;
 };
 
 type ExpenseReportListItemType = TransactionReportGroupListItemType;
