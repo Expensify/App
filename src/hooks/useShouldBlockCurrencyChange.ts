@@ -2,15 +2,22 @@ import type {OnyxEntry} from 'react-native-onyx';
 import {doesPolicyHavePartiallySetupBankAccount} from '@libs/BankAccountUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ReimbursementAccount} from '@src/types/onyx';
+import type {Policy, ReimbursementAccount} from '@src/types/onyx';
 import useOnyx from './useOnyx';
 
-const hasVBASelector = (reimbursementAccount: OnyxEntry<ReimbursementAccount>) => reimbursementAccount?.achData?.state === CONST.BANK_ACCOUNT.STATE.OPEN;
+const reimbursementAccountAchStateSelector = (reimbursementAccount: OnyxEntry<ReimbursementAccount>) => reimbursementAccount?.achData?.state;
+
+const policyAchStateSelector = (policy: OnyxEntry<Policy>) => policy?.achAccount?.state;
 
 function useShouldBlockCurrencyChange(policyID: string | undefined): boolean {
-    const [hasVBA = false] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {selector: hasVBASelector});
-    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
-    const hasPartiallySetupBankAccount = !!policyID && doesPolicyHavePartiallySetupBankAccount(bankAccountList, policyID);
+    const [policyAchState] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {selector: policyAchStateSelector});
+    const [reimbursementAccountAchState] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {selector: reimbursementAccountAchStateSelector});
+    const [hasPartiallySetupBankAccount = false] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {
+        selector: (bankAccountList) => !!policyID && doesPolicyHavePartiallySetupBankAccount(bankAccountList, policyID),
+    });
+
+    const achState = policyAchState ?? reimbursementAccountAchState;
+    const hasVBA = achState === CONST.BANK_ACCOUNT.STATE.OPEN;
 
     return hasVBA || hasPartiallySetupBankAccount;
 }
