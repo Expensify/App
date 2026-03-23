@@ -14,6 +14,7 @@ import NetworkConnection from '@libs/NetworkConnection';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
+import {getReportName} from '@libs/ReportNameUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import {buildOptimisticSnapshotData} from '@libs/SearchQueryUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
@@ -219,13 +220,7 @@ function createTaskAndNavigate(params: CreateTaskAndNavigateParams) {
     // task report/action on API failure so the task stays visible until the user dismiss the
     // error from chat.
     const failureData: Array<
-        OnyxUpdate<
-            | typeof ONYXKEYS.COLLECTION.REPORT
-            | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
-            | typeof ONYXKEYS.PERSONAL_DETAILS_LIST
-            | typeof ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE
-            | typeof ONYXKEYS.COLLECTION.SNAPSHOT
-        >
+        OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.PERSONAL_DETAILS_LIST | typeof ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE>
     > = [];
 
     if (assigneeChatReport && assigneeChatReportID) {
@@ -237,6 +232,8 @@ function createTaskAndNavigate(params: CreateTaskAndNavigateParams) {
             parentReportID,
             title,
             assigneeChatReport,
+            currentUserEmail,
+            currentUserAccountID,
         );
 
         optimisticData.push(...assigneeChatReportOnyxData.optimisticData);
@@ -433,12 +430,15 @@ function buildTaskData(
         },
     ];
 
-    if (parentReportAction) {
+    const parentReportID = taskReport?.parentReportID;
+    const parentReportActionID = parentReportAction?.reportActionID ?? taskReport?.parentReportActionID;
+
+    if (parentReportID && parentReportActionID) {
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${taskReport?.parentReportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`,
             value: {
-                [parentReportAction.reportActionID]: {
+                [parentReportActionID]: {
                     childStateNum: CONST.REPORT.STATE_NUM.APPROVED,
                     childStatusNum: CONST.REPORT.STATUS_NUM.APPROVED,
                 },
@@ -447,9 +447,9 @@ function buildTaskData(
 
         failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${taskReport?.parentReportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`,
             value: {
-                [parentReportAction.reportActionID]: {
+                [parentReportActionID]: {
                     childStateNum: CONST.REPORT.STATE_NUM.OPEN,
                     childStatusNum: CONST.REPORT.STATUS_NUM.OPEN,
                 },
@@ -550,6 +550,19 @@ function reopenTask(taskReport: OnyxEntry<OnyxTypes.Report>, parentReport: OnyxE
         },
     ];
 
+    if (taskReport?.parentReportID && taskReport?.parentReportActionID) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${taskReport.parentReportID}`,
+            value: {
+                [taskReport.parentReportActionID]: {
+                    childStateNum: CONST.REPORT.STATE_NUM.OPEN,
+                    childStatusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                },
+            },
+        });
+    }
+
     const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -587,6 +600,19 @@ function reopenTask(taskReport: OnyxEntry<OnyxTypes.Report>, parentReport: OnyxE
             },
         },
     ];
+
+    if (taskReport?.parentReportID && taskReport?.parentReportActionID) {
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${taskReport.parentReportID}`,
+            value: {
+                [taskReport.parentReportActionID]: {
+                    childStateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                    childStatusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+                },
+            },
+        });
+    }
 
     const parameters: ReopenTaskParams = {
         taskReportID,
@@ -630,6 +656,18 @@ function editTask(report: OnyxTypes.Report, {title, description}: OnyxTypes.Task
         },
     ];
 
+    if (title && report.parentReportID && report.parentReportActionID) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`,
+            value: {
+                [report.parentReportActionID]: {
+                    childReportName: parsedTitle,
+                },
+            },
+        });
+    }
+
     const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.REPORT>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -666,6 +704,18 @@ function editTask(report: OnyxTypes.Report, {title, description}: OnyxTypes.Task
         },
     ];
 
+    if (title && report.parentReportID && report.parentReportActionID) {
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`,
+            value: {
+                [report.parentReportActionID]: {
+                    childReportName: report.reportName,
+                },
+            },
+        });
+    }
+
     const parameters: EditTaskParams = {
         taskReportID: report.reportID,
         htmlTitle: parsedTitle,
@@ -681,6 +731,7 @@ function editTaskAssignee(
     parentReport: OnyxEntry<OnyxTypes.Report>,
     sessionAccountID: number,
     assigneeEmail: string,
+    currentUserEmail: string,
     currentUserAccountID: number,
     hasOutstandingChildTask: boolean,
     assigneeAccountID: number | null = 0,
@@ -801,6 +852,8 @@ function editTaskAssignee(
             report.parentReportID,
             reportName ?? '',
             assigneeChatReport,
+            currentUserEmail,
+            currentUserAccountID,
             isOptimisticReport,
         );
 
@@ -1030,6 +1083,7 @@ function getShareDestination(
     reports: OnyxCollection<OnyxTypes.Report>,
     personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>,
     localeCompare: LocaleContextProps['localeCompare'],
+    reportAttributes?: OnyxTypes.ReportAttributesDerivedValue['reports'],
 ): ShareDestination {
     const report = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
 
@@ -1057,9 +1111,7 @@ function getShareDestination(
     }
     return {
         icons: ReportUtils.getIcons(report, LocalePhoneNumber.formatPhoneNumber, personalDetails, Expensicons.FallbackAvatar),
-        // Will be fixed in https://github.com/Expensify/App/issues/76852
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        displayName: ReportUtils.getReportName({report}),
+        displayName: getReportName(report, reportAttributes),
         subtitle,
         displayNamesWithTooltips,
         shouldUseFullTitleToDisplay: ReportUtils.shouldUseFullTitleToDisplay(report),

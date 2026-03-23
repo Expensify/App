@@ -10,7 +10,7 @@ import SkeletonViewContentLoader from './SkeletonViewContentLoader';
 
 type TransactionPreviewSkeletonViewProps = {
     transactionPreviewWidth: number | string;
-    reasonAttributes?: SkeletonSpanReasonAttributes;
+    reasonAttributes: SkeletonSpanReasonAttributes;
 };
 
 function TransactionPreviewSkeletonView({transactionPreviewWidth, reasonAttributes}: TransactionPreviewSkeletonViewProps) {
