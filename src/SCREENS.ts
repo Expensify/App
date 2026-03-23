@@ -262,6 +262,7 @@ const SCREENS = {
     },
     RIGHT_MODAL: {
         SETTINGS: 'Settings',
+        WORKSPACE: 'Workspace',
         TWO_FACTOR_AUTH: 'TwoFactorAuth',
         SEARCH_ROUTER: 'Search_Router',
         NEW_CHAT: 'NewChat',
