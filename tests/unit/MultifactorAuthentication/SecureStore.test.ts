@@ -1,4 +1,4 @@
-import {SECURE_STORE_METHODS, SECURE_STORE_VALUES} from '@libs/MultifactorAuthentication/Biometrics/SecureStore';
+import {SECURE_STORE_METHODS, SECURE_STORE_VALUES} from '@libs/MultifactorAuthentication/NativeBiometrics/SecureStore';
 
 describe('MultifactorAuthentication Biometrics SecureStore (native)', () => {
     it('exposes stable AUTH_TYPE mapping', () => {
