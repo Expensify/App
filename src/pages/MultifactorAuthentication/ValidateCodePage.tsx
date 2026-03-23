@@ -18,7 +18,7 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import AccountUtils from '@libs/AccountUtils';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
-import VALUES from '@libs/MultifactorAuthentication/Biometrics/VALUES';
+import VALUES from '@libs/MultifactorAuthentication/VALUES';
 import {isValidValidateCode} from '@libs/ValidationUtils';
 import Navigation from '@navigation/Navigation';
 import {clearAccountMessages} from '@userActions/Session';

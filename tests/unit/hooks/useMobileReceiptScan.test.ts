@@ -18,7 +18,7 @@ jest.mock('@libs/actions/Welcome', () => ({
 
 jest.mock('@userActions/TransactionEdit', () => ({
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-    removeDraftTransactions: (...args: unknown[]) => mockRemoveDraftTransactions(...args),
+    removeDraftTransactionsByIDs: (...args: unknown[]) => mockRemoveDraftTransactions(...args),
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     removeTransactionReceipt: (...args: unknown[]) => mockRemoveTransactionReceipt(...args),
 }));
@@ -103,7 +103,7 @@ describe('useMobileReceiptScan', () => {
             expect(result.current.shouldShowMultiScanEducationalPopup).toBe(true);
             expect(setIsMultiScanEnabled).toHaveBeenCalledWith(true);
             expect(mockRemoveTransactionReceipt).toHaveBeenCalledWith(CONST.IOU.OPTIMISTIC_TRANSACTION_ID);
-            expect(mockRemoveDraftTransactions).toHaveBeenCalledWith(true);
+            expect(mockRemoveDraftTransactions).toHaveBeenCalledWith(expect.anything(), true);
         });
 
         it('should not set shouldShowMultiScanEducationalPopup to true after the modal is dismissed', async () => {
@@ -127,7 +127,7 @@ describe('useMobileReceiptScan', () => {
             expect(result.current.shouldShowMultiScanEducationalPopup).toBe(false);
             expect(setIsMultiScanEnabled).toHaveBeenCalledWith(true);
             expect(mockRemoveTransactionReceipt).toHaveBeenCalledWith(CONST.IOU.OPTIMISTIC_TRANSACTION_ID);
-            expect(mockRemoveDraftTransactions).toHaveBeenCalledWith(true);
+            expect(mockRemoveDraftTransactions).toHaveBeenCalledWith(expect.anything(), true);
         });
     });
 
