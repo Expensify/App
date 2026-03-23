@@ -149,7 +149,7 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFloatin
                 >
                     <View style={styles.flex1}>
                         <PressableWithFeedback
-                            accessibilityRole={CONST.ROLE.BUTTON}
+                            role={CONST.ROLE.LINK}
                             accessibilityLabel={translate('common.home')}
                             accessible
                             testID="ExpensifyLogoButton"
@@ -160,6 +160,7 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFloatin
                             <ImageSVG
                                 style={StyleUtils.getAvatarStyle(CONST.AVATAR_SIZE.DEFAULT)}
                                 src={expensifyIcons.ExpensifyAppIcon}
+                                aria-hidden
                             />
                         </PressableWithFeedback>
                         <PressableWithFeedback
