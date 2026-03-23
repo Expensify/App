@@ -23,7 +23,7 @@ Most expenses can be deleted directly. If an expense is on a submitted report or
 
 ## How to delete multiple expenses
 
-1. In the navigation tabs (on the left on Web, on the bottom on Mobile) select **Reports** > **Expenses**.
+1. In the navigation tabs (on the left on web, on the bottom on mobile) select **Reports** > **Expenses**.
 2. Select the expenses you want to delete.
 3. Choose **Selected**, then **Delete**.
 
@@ -33,7 +33,7 @@ Most expenses can be deleted directly. If an expense is on a submitted report or
 
 ## How to delete an expense from a report 
 
-1. In the navigation tabs (on the left on Web, on the bottom on Mobile) select **Reports** > **Expenses**.
+1. In the navigation tabs (on the left on web, on the bottom on mobile) select **Reports** > **Expenses**.
 2. Open the report that contains the expense.
 3. Select the expense you want to delete.
 4. Choose **Selected**, then **Delete**.
@@ -80,7 +80,7 @@ Workspace Admins can allow deletion of future imported company card expenses by 
 
 To enable this setting on a Workspace feed: 
 
-1. In the navigation tabs (on the left on Web, on the bottom on Mobile), select **Workspaces > [Workspace Name] > Company cards**.
+1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Workspaces > [Workspace Name] > Company cards**.
 2. Click **Settings**.
 3. Enable **Allow deleting transactions**.
 
@@ -92,7 +92,7 @@ Workspace Admins can remove certain imported expenses by unassigning a card.
 
 To unassign a company card on a workspace feed: 
 
-1. In the navigation tabs (on the left on Web, on the bottom on Mobile) select **Workspaces > [Workspace Name] > Company cards**.
+1. In the navigation tabs (on the left on web, on the bottom on mobile) select **Workspaces > [Workspace Name] > Company cards**.
 2. Select the card. 
 3. Click **Unassign Card**. 
 
