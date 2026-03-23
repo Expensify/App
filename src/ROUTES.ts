@@ -55,7 +55,7 @@ const VERIFY_ACCOUNT = 'verify-account';
 
 type DynamicRouteConfig = {
     path: string;
-    entryScreens: Screen[];
+    entryScreens: ReadonlyArray<Screen | '*'>;
     getRoute?: (...args: never[]) => string;
     queryParams?: readonly string[];
 };

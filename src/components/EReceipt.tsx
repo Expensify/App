@@ -22,7 +22,7 @@ import type IconAsset from '@src/types/utils/IconAsset';
 import EReceiptBody from './EReceiptBody';
 import Icon from './Icon';
 import ImageSVG from './ImageSVG';
-import type {TransactionListItemType} from './SelectionListWithSections/types';
+import type {TransactionListItemType} from './Search/SearchList/ListItem/types';
 import Text from './Text';
 
 type OverrideThemeProps = {
