@@ -5,7 +5,7 @@ keywords: [New Expensify, duplicate expense, review duplicates, expense on hold,
 internalScope: Audience is members and approvers on Collect or Control plans. Covers how to locate reports with duplicate expense violations and resolve flagged duplicates. Does not cover manually merging expenses or preventing duplicates.
 ---
 
-# How to Find and Resolve Flagged Duplicate Expenses
+# How to find and resolve flagged duplicate expenses
 
 Expensify automatically detects potential duplicate expenses by flagging entries that share the same date and amount. When a duplicate is detected, the expense is placed on hold and marked with a red dot.
 
@@ -13,7 +13,7 @@ You can locate and resolve these duplicates directly from the report or chat whe
 
 **Note:** Duplicate detection is available on Collect and Control plans only.
 
-If you have two expenses that were not automatically flagged but should be combined, you can [learn how to merge them manually](/articles/new-expensify/reports-and-expenses/Merging-expenses).
+If you have two expenses that were not automatically flagged but should be combined, you can [learn how to merge them manually](/articles/new-expensify/reports-and-expenses/How-to-merge-expenses).
 
 ---
 
@@ -23,9 +23,9 @@ Duplicate detection is available to all members on Collect and Control plans. Bo
 
 ---
 
-## How to Find Duplicate Expenses in the Inbox Using the Red Dot Indicator
+## How to find duplicate expenses using the red dot indicator
 
-1. In the navigation tabs (on the left on web and at the bottom on mobile), select **Inbox**.
+1. In the navigation tabs (on the left on web, at the bottom on mobile), select **Inbox**.
 2. Look for chats with a red dot. 
 3. Click the chat to open it and review the flagged expense. 
 
@@ -42,7 +42,7 @@ Design request:https://github.com/Expensify/Expensify/issues/614048
 
 ---
 
-## How to Resolve a Flagged Duplicate Expense
+## How to resolve a flagged duplicate expense
 
 1. Open the report or chat with the red dot.
 2. Click the expense labeled **Potential duplicate**.
@@ -63,7 +63,7 @@ Design request:https://github.com/Expensify/Expensify/issues/614048
 
 ---
 
-## What Happens After You Resolve a Flagged Duplicate
+## What happenys after you resolve a flagged duplicate
 
 The hold is removed from the expense. Depending on your choice:
 
