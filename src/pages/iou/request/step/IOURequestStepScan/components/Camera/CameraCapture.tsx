@@ -292,6 +292,7 @@ function CameraCapture({onCapture, shouldAcceptMultipleFiles = false, onLayout}:
                             size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
                             style={[styles.flex1]}
                             color={theme.textSupporting}
+                            reasonAttributes={{context: 'CameraCapture', cameraPermissionState, videoConstraintsReady: !isEmptyObject(videoConstraints)}}
                         />
                     )}
                     {cameraPermissionState !== 'granted' && isQueriedPermissionState && (
@@ -362,7 +363,7 @@ function CameraCapture({onCapture, shouldAcceptMultipleFiles = false, onLayout}:
                             ) : null}
                             <Animated.View
                                 pointerEvents="none"
-                                style={[StyleSheet.absoluteFillObject, styles.backgroundWhite, blinkStyle, styles.zIndex10]}
+                                style={[StyleSheet.absoluteFill, styles.backgroundWhite, blinkStyle, styles.zIndex10]}
                             />
                         </View>
                     )}

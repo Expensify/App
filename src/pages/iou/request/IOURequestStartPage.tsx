@@ -259,7 +259,7 @@ function IOURequestStartPage({
     }, [headerWithBackBtnContainerElement, tabBarContainerElement, activeTabContainerElement]);
 
     const {isBetaEnabled} = usePermissions();
-    const transactionID = route?.params.transactionID ?? '';
+    const transactionID = route?.params.transactionID;
     const {shouldShowProductTrainingTooltip, renderProductTrainingTooltip} = useProductTrainingContext(
         CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_TOOLTIP,
         // The test receipt image is served via our server on web so it requires internet connection
