@@ -67,7 +67,7 @@ import isSearchTopmostFullScreenRoute from '@navigation/helpers/isSearchTopmostF
 import FloatingMessageCounter from '@pages/inbox/report/FloatingMessageCounter';
 import getInitialNumToRender from '@pages/inbox/report/getInitialNumReportActionsToRender';
 import ReportActionsListItemRenderer from '@pages/inbox/report/ReportActionsListItemRenderer';
-import shouldDisplayNewMarkerOnReportAction from '@pages/inbox/report/shouldDisplayNewMarkerOnReportAction';
+import {getUnreadMarkerReportAction} from '@pages/inbox/report/shouldDisplayNewMarkerOnReportAction';
 import useReportUnreadMessageScrollTracking from '@pages/inbox/report/useReportUnreadMessageScrollTracking';
 import {ActionListContext} from '@pages/inbox/ReportScreenContext';
 import variables from '@styles/variables';
@@ -516,39 +516,17 @@ function MoneyRequestReportActionsList({
     /**
      * The reportActionID the unread marker should display above
      */
-    const [unreadMarkerReportActionID, unreadMarkerReportActionIndex] = useMemo(() => {
-        // If there are message that were received while offline,
-        // we can skip checking all messages later than the earliest received offline message.
-        const startIndex = visibleReportActions.length - 1;
-        const endIndex = earliestReceivedOfflineMessageIndex ?? 0;
-
-        // Scan through each visible report action until we find the appropriate action to show the unread marker
-        for (let index = startIndex; index >= endIndex; index--) {
-            const reportAction = visibleReportActions.at(index);
-            const nextAction = index > 0 ? visibleReportActions.at(index - 1) : undefined;
-            const isEarliestReceivedOfflineMessage = index === earliestReceivedOfflineMessageIndex;
-
-            const shouldDisplayNewMarker =
-                reportAction &&
-                shouldDisplayNewMarkerOnReportAction({
-                    message: reportAction,
-                    nextMessage: nextAction,
-                    isEarliestReceivedOfflineMessage,
-                    currentUserAccountID,
-                    prevSortedVisibleReportActionsObjects: prevVisibleActionsMap,
-                    unreadMarkerTime,
-                    scrollingVerticalOffset: scrollingVerticalBottomOffset.current,
-                    prevUnreadMarkerReportActionID: prevUnreadMarkerReportActionID.current,
-                    isOffline,
-                });
-
-            if (shouldDisplayNewMarker) {
-                return [reportAction.reportActionID, index];
-            }
-        }
-
-        return [null, -1];
-    }, [currentUserAccountID, earliestReceivedOfflineMessageIndex, prevVisibleActionsMap, visibleReportActions, unreadMarkerTime]);
+    const [unreadMarkerReportActionID, unreadMarkerReportActionIndex] = getUnreadMarkerReportAction({
+        visibleReportActions,
+        earliestReceivedOfflineMessageIndex,
+        currentUserAccountID,
+        prevSortedVisibleReportActionsObjects: prevVisibleActionsMap,
+        unreadMarkerTime,
+        scrollingVerticalOffset: scrollingVerticalBottomOffset.current,
+        prevUnreadMarkerReportActionID: prevUnreadMarkerReportActionID.current,
+        isOffline,
+        isReversed: true,
+    });
     prevUnreadMarkerReportActionID.current = unreadMarkerReportActionID;
 
     const {isFloatingMessageCounterVisible, setIsFloatingMessageCounterVisible, trackVerticalScrolling, onViewableItemsChanged} = useReportUnreadMessageScrollTracking({

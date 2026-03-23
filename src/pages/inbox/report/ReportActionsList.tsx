@@ -75,7 +75,7 @@ import FloatingMessageCounter from './FloatingMessageCounter';
 import getInitialNumToRender from './getInitialNumReportActionsToRender';
 import ListBoundaryLoader from './ListBoundaryLoader';
 import ReportActionsListItemRenderer from './ReportActionsListItemRenderer';
-import shouldDisplayNewMarkerOnReportAction from './shouldDisplayNewMarkerOnReportAction';
+import {getUnreadMarkerReportAction} from './shouldDisplayNewMarkerOnReportAction';
 import StaticReportActionsPreview from './StaticReportActionsPreview';
 import useReportUnreadMessageScrollTracking from './useReportUnreadMessageScrollTracking';
 
@@ -301,49 +301,18 @@ function ReportActionsList({
     /**
      * The reportActionID the unread marker should display above
      */
-    const [unreadMarkerReportActionID, unreadMarkerReportActionIndex] = useMemo(() => {
-        if (isAnonymousUser) {
-            return [null, -1];
-        }
-
-        // If there are message that were received while offline,
-        // we can skip checking all messages later than the earliest received offline message.
-        const startIndex = earliestReceivedOfflineMessageIndex ?? 0;
-
-        // Scan through each visible report action until we find the appropriate action to show the unread marker
-        for (let index = startIndex; index < sortedVisibleReportActions.length; index++) {
-            const reportAction = sortedVisibleReportActions.at(index);
-
-            if (reportAction?.reportActionID === CONST.CONCIERGE_GREETING_ACTION_ID) {
-                continue;
-            }
-
-            let nextAction = sortedVisibleReportActions.at(index + 1);
-            if (nextAction?.reportActionID === CONST.CONCIERGE_GREETING_ACTION_ID) {
-                nextAction = sortedVisibleReportActions.at(index + 2);
-            }
-            const isEarliestReceivedOfflineMessage = index === earliestReceivedOfflineMessageIndex;
-
-            const shouldDisplayNewMarker =
-                reportAction &&
-                shouldDisplayNewMarkerOnReportAction({
-                    message: reportAction,
-                    nextMessage: nextAction,
-                    isEarliestReceivedOfflineMessage,
-                    currentUserAccountID,
-                    prevSortedVisibleReportActionsObjects,
-                    unreadMarkerTime,
-                    scrollingVerticalOffset: scrollOffsetRef.current,
-                    prevUnreadMarkerReportActionID: prevUnreadMarkerReportActionID.current,
-                    isOffline,
-                });
-            if (shouldDisplayNewMarker) {
-                return [reportAction.reportActionID, index];
-            }
-        }
-
-        return [null, -1];
-    }, [currentUserAccountID, isAnonymousUser, earliestReceivedOfflineMessageIndex, prevSortedVisibleReportActionsObjects, scrollOffsetRef, sortedVisibleReportActions, unreadMarkerTime]);
+    const [unreadMarkerReportActionID, unreadMarkerReportActionIndex] = getUnreadMarkerReportAction({
+        visibleReportActions: sortedVisibleReportActions,
+        earliestReceivedOfflineMessageIndex,
+        currentUserAccountID,
+        prevSortedVisibleReportActionsObjects,
+        unreadMarkerTime,
+        scrollingVerticalOffset: scrollOffsetRef.current,
+        prevUnreadMarkerReportActionID: prevUnreadMarkerReportActionID.current,
+        isOffline,
+        isReversed: false,
+        isAnonymousUser,
+    });
     prevUnreadMarkerReportActionID.current = unreadMarkerReportActionID;
 
     /**
