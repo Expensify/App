@@ -7303,7 +7303,7 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
             hold: 'Warteschleife',
             unhold: 'Zurückhalten aufheben',
             reject: 'Ablehnen',
-            duplicateExpense: 'Doppelte Ausgabe',
+            duplicateExpense: ({count}: {count: number}) => `${count === 1 ? 'Ausgabe' : 'Ausgaben'} duplizieren`,
             noOptionsAvailable: 'Für die ausgewählte Ausgabengruppe sind keine Optionen verfügbar.',
         },
         filtersHeader: 'Filter',

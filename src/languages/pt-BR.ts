@@ -7261,7 +7261,7 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
             hold: 'Reter',
             unhold: 'Remover bloqueio',
             reject: 'Rejeitar',
-            duplicateExpense: 'Duplicar despesa',
+            duplicateExpense: ({count}: {count: number}) => `Duplicar ${count === 1 ? 'despesa' : 'despesas'}`,
             noOptionsAvailable: 'Nenhuma opção disponível para o grupo de despesas selecionado.',
         },
         filtersHeader: 'Filtros',

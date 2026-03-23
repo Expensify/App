@@ -7258,7 +7258,7 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
             hold: 'Wstrzymaj',
             unhold: 'Usuń blokadę',
             reject: 'Odrzuć',
-            duplicateExpense: 'Zduplikowany wydatek',
+            duplicateExpense: ({count}: {count: number}) => `Duplikuj ${count === 1 ? 'wydatek' : 'wydatki'}`,
             noOptionsAvailable: 'Brak opcji dostępnych dla wybranej grupy wydatków.',
         },
         filtersHeader: 'Filtry',

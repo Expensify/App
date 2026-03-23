@@ -7291,7 +7291,7 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
             hold: 'Metti in attesa',
             unhold: 'Rimuovi blocco',
             reject: 'Rifiuta',
-            duplicateExpense: 'Spesa duplicata',
+            duplicateExpense: ({count}: {count: number}) => `Duplica ${count === 1 ? 'spesa' : 'spese'}`,
             noOptionsAvailable: 'Nessuna opzione disponibile per il gruppo di spese selezionato.',
         },
         filtersHeader: 'Filtri',

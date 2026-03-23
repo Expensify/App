@@ -7080,7 +7080,7 @@ ${reportName}
             hold: '暂挂',
             unhold: '解除保留',
             reject: '拒绝',
-            duplicateExpense: '重复报销',
+            duplicateExpense: ({count}: {count: number}) => `复制${count === 1 ? '报销' : '报销'}`,
             noOptionsAvailable: '所选报销的费用组没有可用选项。',
         },
         filtersHeader: '筛选器',
