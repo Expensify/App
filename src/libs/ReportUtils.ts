@@ -4895,7 +4895,7 @@ function canEditMultipleTransactions(
     for (const transaction of selectedTransactions) {
         const isUnreportedExpense = !transaction.reportID || transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
         if (isUnreportedExpense) {
-            return true;
+            continue;
         }
 
         // Do not allow editing split expenses in bulk
