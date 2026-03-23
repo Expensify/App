@@ -1,4 +1,6 @@
 import type {LinkingOptions} from '@react-navigation/native';
+import collectScreensWithTabNavigator from '@libs/Navigation/helpers/collectScreensWithTabNavigator';
+import type {ScreenConfigEntry} from '@libs/Navigation/helpers/collectScreensWithTabNavigator';
 import type {RouteConfig} from '@libs/Navigation/helpers/createNormalizedConfigs';
 import createNormalizedConfigs from '@libs/Navigation/helpers/createNormalizedConfigs';
 import type {RootNavigatorParamList} from '@navigation/types';
@@ -2316,4 +2318,6 @@ const normalizedConfigs = Object.keys(config.screens)
         {} as Record<Screen, RouteConfig>,
     );
 
-export {normalizedConfigs, config};
+const screensWithOnyxTabNavigator = collectScreensWithTabNavigator(config.screens as Record<string, ScreenConfigEntry>);
+
+export {normalizedConfigs, config, screensWithOnyxTabNavigator};
