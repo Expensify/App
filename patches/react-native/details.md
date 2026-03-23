@@ -267,5 +267,5 @@
     ```
 
 - Upstream PR/issue: 🛑
-- E/App issue: 🛑
-- PR introducing patch: 🛑
+- E/App issue: https://github.com/Expensify/App/issues/78873
+- PR introducing patch: https://github.com/Expensify/App/pull/84556/changes
