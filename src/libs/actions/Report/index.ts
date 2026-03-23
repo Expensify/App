@@ -5228,8 +5228,8 @@ function searchUserInServer(searchInput: string) {
     performServerSearch(searchInput, undefined, true);
 }
 
-function setCurrentOpenedReportID(reportID: string | null) {
-    Onyx.set(ONYXKEYS.CURRENT_OPENED_REPORT_ID, reportID);
+function setActiveReportID(reportID: string | null) {
+    Onyx.set(ONYXKEYS.ACTIVE_REPORT_ID, reportID);
 }
 
 function updateLastVisitTime(reportID: string) {
@@ -7388,7 +7388,7 @@ export {
     updatePolicyRoomAvatar,
     updateGroupChatMemberRoles,
     updateChatName,
-    setCurrentOpenedReportID,
+    setActiveReportID,
     updateLastVisitTime,
     updateLoadingInitialReportAction,
     updateNotificationPreference,
