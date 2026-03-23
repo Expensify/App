@@ -5073,7 +5073,15 @@ function canModifyHoldStatus(report: Report, reportAction: ReportAction): boolea
         return isActionOwner || isManager;
     }
 
-    return isAdmin || isActionOwner || isManager;
+    if (isOpenExpenseReport(report)) {
+        return isAdmin || isActionOwner || isManager;
+    }
+
+    if (isActionOwner && !isAdmin) {
+        return isAwaitingFirstLevelApproval(report);
+    }
+
+    return (isAdmin || isManager) && isProcessingReport(report);
 }
 
 function canHoldUnholdReportAction(
@@ -5098,13 +5106,12 @@ function canHoldUnholdReportAction(
     const isAdmin = isPolicyAdminPolicyUtils(policy);
     const isOnHold = isOnHoldTransactionUtils(transaction);
     const isClosed = isClosedReport(report);
-    const isSubmitted = isProcessingReport(report);
 
     const canModifyStatus = canModifyHoldStatus(report, reportAction);
     const canModifyUnholdStatus = !isTrackExpenseMoneyReport && (isAdmin || (isActionOwner && isHoldActionCreator) || isApprover);
 
     const canHoldOrUnholdRequest = !isRequestSettled && !isApproved && !isClosed && !isDeletedParentAction(reportAction);
-    const canHoldRequest = canHoldOrUnholdRequest && !isOnHold && canModifyStatus && !isScanning(transaction) && (isSubmitted || isActionOwner);
+    const canHoldRequest = canHoldOrUnholdRequest && !isOnHold && canModifyStatus && !isScanning(transaction);
 
     const canUnholdRequest = !!(canHoldOrUnholdRequest && isOnHold && (isRequestIOU ? isHoldActionCreator : canModifyUnholdStatus));
 
