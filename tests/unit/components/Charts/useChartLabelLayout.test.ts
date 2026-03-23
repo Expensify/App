@@ -3,6 +3,7 @@ import {renderHook} from '@testing-library/react-native';
 import {SIN_45} from '@components/Charts/constants';
 import {useChartLabelLayout} from '@components/Charts/hooks/useChartLabelLayout';
 import type {ChartDataPoint} from '@components/Charts/types';
+import type * as ChartUtils from '@components/Charts/utils';
 
 /**
  * Each glyph = PX_PER_CHAR wide. This gives deterministic widths:
@@ -12,11 +13,17 @@ const PX_PER_CHAR = 7;
 const MOCK_ASCENT = 12;
 const MOCK_DESCENT = 4;
 
-jest.mock('@components/Charts/utils', () => ({
-    ...jest.requireActual('@components/Charts/utils'),
-    measureTextWidth: (text: string) => text.length * PX_PER_CHAR,
-    getFontLineMetrics: () => ({ascent: MOCK_ASCENT, descent: MOCK_DESCENT}),
-}));
+jest.mock('@components/Charts/utils', () => {
+    const actual = jest.requireActual<typeof ChartUtils>('@components/Charts/utils');
+    return {
+        ...actual,
+        measureTextWidth: (text: string, ...rest: [SkTypefaceFontProvider, number]): number => text.length * PX_PER_CHAR + 0 * rest.length,
+        getFontLineMetrics: (...args: [SkTypefaceFontProvider, number]): {ascent: number; descent: number} => ({
+            ascent: MOCK_ASCENT + 0 * args.length,
+            descent: MOCK_DESCENT,
+        }),
+    };
+});
 
 const mockFontMgr = {} as SkTypefaceFontProvider;
 const FONT_SIZE = 12;
