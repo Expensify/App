@@ -12,6 +12,7 @@ import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
 
 jest.mock('@libs/Navigation/guards', () => ({
+    // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     createGuardContext: jest.fn(() => ({
         isAuthenticated: true,
@@ -25,6 +26,7 @@ jest.mock('@libs/Navigation/guards', () => ({
 }));
 
 jest.mock('@libs/Navigation/helpers/getAdaptedStateFromPath', () => ({
+    // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     default: jest.fn(),
 }));
@@ -39,7 +41,7 @@ describe('handleNavigationGuards - REDIRECT stack preservation', () => {
 
     const configOptions = {
         routeNames,
-        routeParamList: {} as Record<string, object | undefined>,
+        routeParamList: {} as ParamListBase,
         routeGetIdList: {} as Record<string, ((params: Record<string, unknown>) => string) | undefined>,
     };
 
@@ -62,6 +64,7 @@ describe('handleNavigationGuards - REDIRECT stack preservation', () => {
             routes: [{key: 'report-1', name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR, params: undefined}],
             stale: false,
             type: 'stack',
+            preloadedRoutes: [],
         };
 
         // When the guard returns REDIRECT to onboarding and getAdaptedStateFromPath returns a state with Home + OnboardingModalNavigator
@@ -92,6 +95,7 @@ describe('handleNavigationGuards - REDIRECT stack preservation', () => {
             routes: [{key: 'other-1', name: 'SomeNonFullScreenRoute', params: undefined}],
             stale: false,
             type: 'stack',
+            preloadedRoutes: [],
         };
 
         // When the guard returns REDIRECT to onboarding
@@ -125,6 +129,7 @@ describe('handleNavigationGuards - REDIRECT stack preservation', () => {
             ],
             stale: false,
             type: 'stack',
+            preloadedRoutes: [],
         };
 
         // When the guard fires the same REDIRECT again
@@ -151,6 +156,7 @@ describe('handleNavigationGuards - REDIRECT stack preservation', () => {
             routes: [{key: 'home-1', name: SCREENS.HOME, params: undefined}],
             stale: false,
             type: 'stack',
+            preloadedRoutes: [],
         };
 
         mockedEvaluateGuards.mockReturnValue({type: 'ALLOW'});
@@ -175,6 +181,7 @@ describe('handleNavigationGuards - REDIRECT stack preservation', () => {
             routes: [{key: 'home-1', name: SCREENS.HOME, params: undefined}],
             stale: false,
             type: 'stack',
+            preloadedRoutes: [],
         };
 
         mockedEvaluateGuards.mockReturnValue({type: 'BLOCK', reason: 'Test block'});
