@@ -37,7 +37,7 @@ import type * as OnyxTypes from '@src/types/onyx';
 function QuickCreationActionsBar() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const icons = useMemoizedLazyExpensifyIcons(['ReceiptPlus', 'DocumentPlus', 'CarPlus', 'LuggageWithLines']);
+    const icons = useMemoizedLazyExpensifyIcons(['ReceiptPlus', 'DocumentPlus', 'CarPlus', 'LuggageWithLinesPlus']);
 
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [email] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector});
@@ -48,6 +48,7 @@ function QuickCreationActionsBar() {
     const [lastDistanceExpenseType] = useOnyx(ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE);
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`);
+    const [userBillingGraceEndPeriods] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [ownerBillingGraceEndPeriod] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const [primaryLogin] = useOnyx(ONYXKEYS.ACCOUNT, {selector: primaryLoginSelector});
     const [travelSettings] = useOnyx(ONYXKEYS.NVP_TRAVEL_SETTINGS);
@@ -129,7 +130,7 @@ function QuickCreationActionsBar() {
         [currentUserPersonalDetails, hasViolations, defaultChatEnabledPolicy, isASAPSubmitBetaEnabled, allBetas],
     );
 
-    const {openCreateReportConfirmation, CreateReportConfirmationModal} = useCreateEmptyReportConfirmation({
+    const {openCreateReportConfirmation} = useCreateEmptyReportConfirmation({
         policyID: defaultChatEnabledPolicyID,
         policyName: defaultChatEnabledPolicy?.name ?? '',
         onConfirm: handleCreateWorkspaceReport,
@@ -174,13 +175,14 @@ function QuickCreationActionsBar() {
 
                 if (
                     !workspaceIDForReportCreation ||
-                    (shouldRestrictUserBillableActions(workspaceIDForReportCreation, undefined, undefined, ownerBillingGraceEndPeriod) && groupPoliciesWithChatEnabled.length > 1)
+                    (shouldRestrictUserBillableActions(workspaceIDForReportCreation, userBillingGraceEndPeriods, undefined, ownerBillingGraceEndPeriod) &&
+                        groupPoliciesWithChatEnabled.length > 1)
                 ) {
                     Navigation.navigate(ROUTES.NEW_REPORT_WORKSPACE_SELECTION.getRoute());
                     return;
                 }
 
-                if (!shouldRestrictUserBillableActions(workspaceIDForReportCreation, undefined, undefined, ownerBillingGraceEndPeriod)) {
+                if (!shouldRestrictUserBillableActions(workspaceIDForReportCreation, userBillingGraceEndPeriods, undefined, ownerBillingGraceEndPeriod)) {
                     if (shouldShowEmptyReportConfirmationForDefaultChatEnabledPolicy) {
                         openCreateReportConfirmation();
                     } else {
@@ -196,6 +198,7 @@ function QuickCreationActionsBar() {
             showRedirectToExpensifyClassicModal,
             shouldNavigateToUpgradePath,
             defaultChatEnabledPolicyID,
+            userBillingGraceEndPeriods,
             ownerBillingGraceEndPeriod,
             groupPoliciesWithChatEnabled.length,
             shouldShowEmptyReportConfirmationForDefaultChatEnabledPolicy,
@@ -229,45 +232,42 @@ function QuickCreationActionsBar() {
     );
 
     return (
-        <>
-            {CreateReportConfirmationModal}
-            <View style={[styles.flexRow, styles.gap2, styles.pt1, styles.pb5]}>
+        <View style={[styles.flexRow, styles.gap2, styles.pt1, styles.pb5]}>
+            <Button
+                small
+                icon={icons.ReceiptPlus}
+                text={translate('common.expense')}
+                onPress={handleExpense}
+                style={styles.quickCreationActionsBarButton}
+                textStyles={styles.quickCreationActionsBarButtonText}
+            />
+            <Button
+                small
+                icon={icons.DocumentPlus}
+                text={translate('common.report')}
+                onPress={handleReport}
+                style={styles.quickCreationActionsBarButton}
+                textStyles={styles.quickCreationActionsBarButtonText}
+            />
+            <Button
+                small
+                icon={icons.CarPlus}
+                text={translate('common.distance')}
+                onPress={handleDistance}
+                style={styles.quickCreationActionsBarButton}
+                textStyles={styles.quickCreationActionsBarButtonText}
+            />
+            {shouldShowBookTravel && (
                 <Button
                     small
-                    icon={icons.ReceiptPlus}
-                    text={translate('common.expense')}
-                    onPress={handleExpense}
+                    icon={icons.LuggageWithLinesPlus}
+                    text={translate('workspace.common.travel')}
+                    onPress={handleBookTravel}
                     style={styles.quickCreationActionsBarButton}
                     textStyles={styles.quickCreationActionsBarButtonText}
                 />
-                <Button
-                    small
-                    icon={icons.DocumentPlus}
-                    text={translate('common.report')}
-                    onPress={handleReport}
-                    style={styles.quickCreationActionsBarButton}
-                    textStyles={styles.quickCreationActionsBarButtonText}
-                />
-                <Button
-                    small
-                    icon={icons.CarPlus}
-                    text={translate('common.distance')}
-                    onPress={handleDistance}
-                    style={styles.quickCreationActionsBarButton}
-                    textStyles={styles.quickCreationActionsBarButtonText}
-                />
-                {shouldShowBookTravel && (
-                    <Button
-                        small
-                        icon={icons.LuggageWithLines}
-                        text={translate('travel.bookTravel')}
-                        onPress={handleBookTravel}
-                        style={styles.quickCreationActionsBarButton}
-                        textStyles={styles.quickCreationActionsBarButtonText}
-                    />
-                )}
-            </View>
-        </>
+            )}
+        </View>
     );
 }
 

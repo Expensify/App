@@ -1,8 +1,11 @@
 import {useEffect} from 'react';
+import useOnyx from '@hooks/useOnyx';
 import {isLocalFile as isLocalFileFileUtils} from '@libs/fileDownload/FileUtils';
 import {checkIfScanFileCanBeRead} from '@userActions/IOU';
-import {removeDraftTransactions, removeTransactionReceipt} from '@userActions/TransactionEdit';
+import {removeDraftTransactionsByIDs, removeTransactionReceipt} from '@userActions/TransactionEdit';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import {validTransactionDraftIDsSelector} from '@src/selectors/TransactionDraft';
 import type Transaction from '@src/types/onyx/Transaction';
 
 /**
@@ -10,6 +13,8 @@ import type Transaction from '@src/types/onyx/Transaction';
  * If any local file is unreadable, removes the transaction receipt and draft transactions.
  */
 function useScanFileReadabilityCheck(transactions: Transaction[]) {
+    const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
+
     useEffect(() => {
         let isAllScanFilesCanBeRead = true;
 
@@ -33,7 +38,7 @@ function useScanFileReadabilityCheck(transactions: Transaction[]) {
                 return;
             }
             removeTransactionReceipt(CONST.IOU.OPTIMISTIC_TRANSACTION_ID);
-            removeDraftTransactions(true);
+            removeDraftTransactionsByIDs(draftTransactionIDs, true);
         });
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);

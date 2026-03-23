@@ -25,7 +25,7 @@ import type {MoneyRequestNavigatorParamList} from '@libs/Navigation/types';
 import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
 import {isPolicyExpenseChat} from '@libs/ReportUtils';
 import {cancelSpan, endSpan} from '@libs/telemetry/activeSpans';
-import {getDefaultTaxCode} from '@libs/TransactionUtils';
+import {getDefaultTaxCode, getTaxValue} from '@libs/TransactionUtils';
 import {getLocationPermission} from '@pages/iou/request/step/IOURequestStepScan/LocationPermission';
 import type {ReceiptFile} from '@pages/iou/request/step/IOURequestStepScan/types';
 import buildReceiptFiles from '@pages/iou/request/step/IOURequestStepScan/utils/buildReceiptFiles';
@@ -93,6 +93,7 @@ function ScanSkipConfirmation() {
     const defaultTaxCode = getDefaultTaxCode(policy, initialTransaction);
     const transactionTaxCode = (initialTransaction?.taxCode ? initialTransaction?.taxCode : defaultTaxCode) ?? '';
     const transactionTaxAmount = initialTransaction?.taxAmount ?? 0;
+    const transactionTaxValue = initialTransaction?.taxValue ?? getTaxValue(policy, initialTransaction, transactionTaxCode) ?? '';
 
     // For quick button actions, we'll skip the confirmation page unless the report is archived or this is a workspace
     // request and the workspace requires a category or a tag
@@ -156,6 +157,7 @@ function ScanSkipConfirmation() {
                 currency: initialTransaction?.currency ?? 'USD',
                 taxCode: transactionTaxCode,
                 taxAmount: transactionTaxAmount,
+                taxValue: transactionTaxValue,
                 quickAction,
                 policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
                 policyRecentlyUsedTags: undefined,
