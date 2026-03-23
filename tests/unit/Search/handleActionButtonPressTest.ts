@@ -395,6 +395,7 @@ describe('handleBulkPayItemSelected', () => {
             ...baseParams,
             policy,
             amountOwed: 100,
+            ownerBillingGraceEndPeriod: pastDate,
         });
 
         expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.RESTRICTED_ACTION.getRoute(policyID));
