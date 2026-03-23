@@ -13,6 +13,7 @@ import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
 import {useSearchStateContext} from '@components/Search/SearchContext';
 import Switch from '@components/Switch';
 import Text from '@components/Text';
+import UserPills from '@components/UserPills';
 import ViolationMessages from '@components/ViolationMessages';
 import {useWideRHPState} from '@components/WideRHPContextProvider';
 import useActiveRoute from '@hooks/useActiveRoute';
@@ -1062,12 +1063,22 @@ function MoneyRequestView({
                     <OfflineWithFeedback pendingAction={getPendingFieldAction('attendees')}>
                         <MenuItemWithTopDescription
                             key="attendees"
-                            title={getAttendeesTitle}
                             description={`${translate('iou.attendees')} ${
                                 Array.isArray(actualAttendees) && actualAttendees.length > 1 && formattedPerAttendeeAmount
                                     ? `${CONST.DOT_SEPARATOR} ${formattedPerAttendeeAmount} ${translate('common.perPerson')}`
                                     : ''
                             }`}
+                            titleComponent={
+                                Array.isArray(actualAttendees) ? (
+                                    <UserPills
+                                        users={actualAttendees.map((a) => ({
+                                            avatar: a?.avatarUrl,
+                                            accountID: a?.accountID,
+                                            displayName: a?.displayName ?? a?.login ?? a?.email ?? '',
+                                        }))}
+                                    />
+                                ) : undefined
+                            }
                             style={[styles.moneyRequestMenuItem]}
                             titleStyle={styles.flex1}
                             onPress={() => {
@@ -1077,7 +1088,6 @@ function MoneyRequestView({
                             errorText={getErrorForField('attendees')}
                             interactive={canEdit}
                             shouldShowRightIcon={canEdit}
-                            shouldRenderAsHTML
                             copyValue={attendeesCopyValue}
                             copyable={!!attendeesCopyValue}
                         />
