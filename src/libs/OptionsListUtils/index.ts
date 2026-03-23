@@ -2913,6 +2913,7 @@ function shouldOptionShowTooltip(option: SearchOptionData): boolean {
 /**
  * Handles the logic for displaying selected participants from the search term
  */
+// We'll refactor this function to have less parameters in the future (https://github.com/Expensify/App/issues/66415)
 // eslint-disable-next-line @typescript-eslint/max-params
 function formatSectionsFromSearchTerm(
     searchTerm: string,
