@@ -184,6 +184,7 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
                                 limit={item.nameValuePairs?.unapprovedExpenseLimit ?? 0}
                                 name={item.nameValuePairs?.cardTitle ?? ''}
                                 frozenByDisplayName={frozenByDisplayName}
+                                frozenByAccountID={item.nameValuePairs?.frozen?.byAccountID}
                                 frozenDate={item.nameValuePairs?.frozen?.date}
                                 currency={settlementCurrency}
                                 isVirtual={!!item.nameValuePairs?.isVirtual}
