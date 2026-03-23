@@ -173,7 +173,6 @@ function setWorkspaceCompanyCardFeedName(policyID: string, domainOrWorkspaceAcco
                 },
             },
         ],
-        failureData: [],
     };
 
     const parameters = {
@@ -201,7 +200,6 @@ function setWorkspaceCompanyCardTransactionLiability(domainOrWorkspaceAccountID:
                 },
             },
         ],
-        failureData: [],
     };
 
     const parameters = {
@@ -947,7 +945,7 @@ function openAssignFeedCardPage(policyID: string, feed: CompanyCardFeedWithNumbe
         },
     ];
 
-    API.read(READ_COMMANDS.OPEN_ASSIGN_FEED_CARD_PAGE, parameters, {optimisticData, finallyData, failureData: []});
+    API.read(READ_COMMANDS.OPEN_ASSIGN_FEED_CARD_PAGE, parameters, {optimisticData, finallyData});
 }
 
 function openPolicyAddCardFeedPage(policyID: string | undefined) {
@@ -959,7 +957,7 @@ function openPolicyAddCardFeedPage(policyID: string | undefined) {
         policyID,
     };
 
-    API.write(WRITE_COMMANDS.OPEN_POLICY_ADD_CARD_FEED_PAGE, parameters, {failureData: []});
+    API.write(WRITE_COMMANDS.OPEN_POLICY_ADD_CARD_FEED_PAGE, parameters);
 }
 
 function setFeedStatementPeriodEndDay(

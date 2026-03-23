@@ -349,7 +349,7 @@ function openPolicyCategoriesPage(policyID: string) {
         policyID,
     };
 
-    API.read(READ_COMMANDS.OPEN_POLICY_CATEGORIES_PAGE, params, {failureData: []});
+    API.read(READ_COMMANDS.OPEN_POLICY_CATEGORIES_PAGE, params);
 }
 
 function getPolicyCategories(policyID: string) {
@@ -362,7 +362,7 @@ function getPolicyCategories(policyID: string) {
         policyID,
     };
 
-    API.read(READ_COMMANDS.GET_POLICY_CATEGORIES, params, {failureData: []});
+    API.read(READ_COMMANDS.GET_POLICY_CATEGORIES, params);
 }
 
 function setWorkspaceCategoryEnabled({
@@ -1519,16 +1519,7 @@ function downloadCategoriesCSV(policyID: string, onDownloadFailed: () => void, t
         formData.append(key, String(value));
     }
 
-    fileDownload(
-        translate,
-        ApiUtils.getCommandURL({command: WRITE_COMMANDS.EXPORT_CATEGORIES_CSV, failureData: []}),
-        fileName,
-        '',
-        false,
-        formData,
-        CONST.NETWORK.METHOD.POST,
-        onDownloadFailed,
-    );
+    fileDownload(translate, ApiUtils.getCommandURL({command: WRITE_COMMANDS.EXPORT_CATEGORIES_CSV}), fileName, '', false, formData, CONST.NETWORK.METHOD.POST, onDownloadFailed);
 }
 
 function setWorkspaceCategoryDescriptionHint(policyID: string, categoryName: string, commentHint: string, policyCategories: PolicyCategories = {}) {

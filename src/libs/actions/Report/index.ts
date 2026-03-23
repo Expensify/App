@@ -2371,7 +2371,7 @@ function expandURLPreview(reportID: string | undefined, reportActionID: string) 
         reportActionID,
     };
 
-    API.read(READ_COMMANDS.EXPAND_URL_PREVIEW, parameters, {failureData: []});
+    API.read(READ_COMMANDS.EXPAND_URL_PREVIEW, parameters);
 }
 
 /** Marks the new report actions as read
@@ -2410,7 +2410,7 @@ function readNewestAction(reportID: string | undefined, hasOnceLoadedReportActio
     API.writeWithNoDuplicatesConflictAction(
         WRITE_COMMANDS.READ_NEWEST_ACTION,
         parameters,
-        {optimisticData, failureData: []},
+        {optimisticData},
         (request) => request.command === WRITE_COMMANDS.READ_NEWEST_ACTION && request.data?.reportID === parameters.reportID,
     );
 
@@ -2472,7 +2472,7 @@ function markCommentAsUnread(reportID: string | undefined, reportActions: OnyxEn
         reportActionID: reportAction?.reportActionID,
     };
 
-    API.write(WRITE_COMMANDS.MARK_AS_UNREAD, parameters, {optimisticData, failureData: []});
+    API.write(WRITE_COMMANDS.MARK_AS_UNREAD, parameters, {optimisticData});
     DeviceEventEmitter.emit(`unreadAction_${reportID}`, lastReadTime);
 }
 
@@ -2498,7 +2498,7 @@ function togglePinnedState(reportID: string | undefined, isPinnedChat: boolean) 
         pinnedValue,
     };
 
-    API.write(WRITE_COMMANDS.TOGGLE_PINNED_CHAT, parameters, {optimisticData, failureData: []});
+    API.write(WRITE_COMMANDS.TOGGLE_PINNED_CHAT, parameters, {optimisticData});
 }
 
 /** Saves the report draft to Onyx */
@@ -4292,7 +4292,7 @@ function removeEmojiReaction(reportID: string, reportActionID: string, emoji: Em
         emojiCode: emoji.name,
     };
 
-    API.write(WRITE_COMMANDS.REMOVE_EMOJI_REACTION, parameters, {optimisticData, failureData: []});
+    API.write(WRITE_COMMANDS.REMOVE_EMOJI_REACTION, parameters, {optimisticData});
 }
 
 /**
@@ -4732,7 +4732,7 @@ function updateGroupChatMemberRoles(reportID: string, accountIDList: number[], r
         },
     ];
     const parameters: UpdateGroupChatMemberRolesParams = {reportID, memberRoles: JSON.stringify(memberRoles)};
-    API.write(WRITE_COMMANDS.UPDATE_GROUP_CHAT_MEMBER_ROLES, parameters, {optimisticData, successData, failureData: []});
+    API.write(WRITE_COMMANDS.UPDATE_GROUP_CHAT_MEMBER_ROLES, parameters, {optimisticData, successData});
 }
 
 /** Invites people to a group chat */
@@ -5141,7 +5141,7 @@ async function completeOnboarding({
 function openRoomMembersPage(reportID: string) {
     const parameters: OpenRoomMembersPageParams = {reportID};
 
-    API.read(READ_COMMANDS.OPEN_ROOM_MEMBERS_PAGE, parameters, {failureData: []});
+    API.read(READ_COMMANDS.OPEN_ROOM_MEMBERS_PAGE, parameters);
 }
 
 /**
@@ -5632,16 +5632,7 @@ function exportReportToCSV({reportID, transactionIDList}: ExportReportCSVParams,
         }
     }
 
-    fileDownload(
-        translate,
-        ApiUtils.getCommandURL({command: WRITE_COMMANDS.EXPORT_REPORT_TO_CSV, failureData: []}),
-        'Expensify.csv',
-        '',
-        false,
-        formData,
-        CONST.NETWORK.METHOD.POST,
-        onDownloadFailed,
-    );
+    fileDownload(translate, ApiUtils.getCommandURL({command: WRITE_COMMANDS.EXPORT_REPORT_TO_CSV}), 'Expensify.csv', '', false, formData, CONST.NETWORK.METHOD.POST, onDownloadFailed);
 }
 
 function exportReportToPDF({reportID}: ExportReportPDFParams) {

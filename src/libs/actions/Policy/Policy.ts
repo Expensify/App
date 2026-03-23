@@ -2103,7 +2103,6 @@ function updateAddress(policyID: string, newAddress: CompanyAddress) {
     API.write(WRITE_COMMANDS.UPDATE_POLICY_ADDRESS, parameters, {
         optimisticData,
         finallyData,
-        failureData: [],
     });
 }
 
@@ -3708,7 +3707,7 @@ function openWorkspace(policyID: string, clientMemberAccountIDs: number[]) {
         clientMemberAccountIDs: JSON.stringify(clientMemberAccountIDs),
     };
 
-    API.read(READ_COMMANDS.OPEN_WORKSPACE, params, {failureData: []});
+    API.read(READ_COMMANDS.OPEN_WORKSPACE, params);
 }
 
 function openPolicyTaxesPage(policyID: string) {
@@ -3721,7 +3720,7 @@ function openPolicyTaxesPage(policyID: string) {
         policyID,
     };
 
-    API.read(READ_COMMANDS.OPEN_POLICY_TAXES_PAGE, params, {failureData: []});
+    API.read(READ_COMMANDS.OPEN_POLICY_TAXES_PAGE, params);
 }
 
 function openPolicyExpensifyCardsPage(policyID: string, workspaceAccountID: number) {
@@ -3769,7 +3768,7 @@ function openPolicyEditCardLimitTypePage(policyID: string, cardID: number) {
         cardID,
     };
 
-    API.read(READ_COMMANDS.OPEN_POLICY_EDIT_CARD_LIMIT_TYPE_PAGE, params, {failureData: []});
+    API.read(READ_COMMANDS.OPEN_POLICY_EDIT_CARD_LIMIT_TYPE_PAGE, params);
 }
 
 function openWorkspaceInvitePage(policyID: string, clientMemberEmails: string[]) {
@@ -3783,7 +3782,7 @@ function openWorkspaceInvitePage(policyID: string, clientMemberEmails: string[])
         clientMemberEmails: JSON.stringify(clientMemberEmails),
     };
 
-    API.read(READ_COMMANDS.OPEN_WORKSPACE_INVITE_PAGE, params, {failureData: []});
+    API.read(READ_COMMANDS.OPEN_WORKSPACE_INVITE_PAGE, params);
 }
 
 function openDraftWorkspaceRequest(policyID: string) {
@@ -3794,7 +3793,7 @@ function openDraftWorkspaceRequest(policyID: string) {
 
     const params: OpenDraftWorkspaceRequestParams = {policyID};
 
-    API.read(READ_COMMANDS.OPEN_DRAFT_WORKSPACE_REQUEST, params, {failureData: []});
+    API.read(READ_COMMANDS.OPEN_DRAFT_WORKSPACE_REQUEST, params);
 }
 
 function requestExpensifyCardLimitIncrease(settlementBankAccountID?: number) {
@@ -3806,7 +3805,7 @@ function requestExpensifyCardLimitIncrease(settlementBankAccountID?: number) {
         settlementBankAccountID,
     };
 
-    API.write(WRITE_COMMANDS.REQUEST_EXPENSIFY_CARD_LIMIT_INCREASE, params, {failureData: []});
+    API.write(WRITE_COMMANDS.REQUEST_EXPENSIFY_CARD_LIMIT_INCREASE, params);
 }
 
 function updateMemberCustomField(policyID: string, login: string, customFieldType: CustomFieldType, value: string) {
@@ -5116,7 +5115,6 @@ function setPolicyTimeTrackingDefaultRate(policyID: string, rate: number) {
                 },
             },
         ],
-        failureData: [],
     };
 
     API.write(WRITE_COMMANDS.SET_POLICY_TIME_TRACKING_DEFAULT_RATE, {policyID, defaultRate: rate}, onyxData);
@@ -5125,25 +5123,25 @@ function setPolicyTimeTrackingDefaultRate(policyID: string, rate: number) {
 function openPolicyMoreFeaturesPage(policyID: string) {
     const params: OpenPolicyMoreFeaturesPageParams = {policyID};
 
-    API.read(READ_COMMANDS.OPEN_POLICY_MORE_FEATURES_PAGE, params, {failureData: []});
+    API.read(READ_COMMANDS.OPEN_POLICY_MORE_FEATURES_PAGE, params);
 }
 
 function openPolicyProfilePage(policyID: string) {
     const params: OpenPolicyProfilePageParams = {policyID};
 
-    API.read(READ_COMMANDS.OPEN_POLICY_PROFILE_PAGE, params, {failureData: []});
+    API.read(READ_COMMANDS.OPEN_POLICY_PROFILE_PAGE, params);
 }
 
 function openDuplicatePolicyPage(policyID: string) {
     const params: OpenDuplicatePolicyPageParams = {policyID};
 
-    API.read(READ_COMMANDS.OPEN_DUPLICATE_POLICY_PAGE, params, {failureData: []});
+    API.read(READ_COMMANDS.OPEN_DUPLICATE_POLICY_PAGE, params);
 }
 
 function openPolicyInitialPage(policyID: string) {
     const params: OpenPolicyInitialPageParams = {policyID};
 
-    API.read(READ_COMMANDS.OPEN_POLICY_INITIAL_PAGE, params, {failureData: []});
+    API.read(READ_COMMANDS.OPEN_POLICY_INITIAL_PAGE, params);
 }
 
 function setPolicyCustomTaxName(policyID: string, customTaxName: string) {

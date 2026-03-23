@@ -6149,7 +6149,7 @@ function categorizeTrackedExpense(trackedExpenseParams: TrackedExpenseParams) {
         attendees: transactionParams.attendees ? JSON.stringify(transactionParams.attendees) : undefined,
     };
 
-    API.write(WRITE_COMMANDS.CATEGORIZE_TRACKED_EXPENSE, parameters, {optimisticData, successData, failureData: failureData ?? []});
+    API.write(WRITE_COMMANDS.CATEGORIZE_TRACKED_EXPENSE, parameters, {optimisticData, successData, failureData});
 
     // If a draft policy was used, then the CategorizeTrackedExpense command will create a real one
     // so let's track that conversion here
@@ -11992,7 +11992,6 @@ function getSearchOnyxUpdate({
             return {
                 optimisticData,
                 successData,
-                failureData: [],
             };
         }
     }
@@ -12014,7 +12013,6 @@ function dismissRejectUseExplanation() {
 
     API.write(WRITE_COMMANDS.SET_NAME_VALUE_PAIR, parameters, {
         optimisticData,
-        failureData: [],
     });
 }
 

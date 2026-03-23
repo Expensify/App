@@ -39,7 +39,6 @@ function post<TKey extends OnyxKey>(command: string, data: Record<string, unknow
             data,
             type,
             shouldUseSecure,
-            failureData: [],
         };
 
         // By default, request are retry-able and cancellable

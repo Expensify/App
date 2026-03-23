@@ -793,7 +793,6 @@ function openDraftDistanceExpense() {
                 value: [],
             },
         ],
-        failureData: [],
     };
     API.read(READ_COMMANDS.OPEN_DRAFT_DISTANCE_EXPENSE, null, onyxData);
 }
@@ -1627,7 +1626,7 @@ function getDuplicateTransactionDetails(transactionID?: string) {
         transactionID,
     };
 
-    API.read(READ_COMMANDS.GET_DUPLICATE_TRANSACTION_DETAILS, parameters, {failureData: []});
+    API.read(READ_COMMANDS.GET_DUPLICATE_TRANSACTION_DETAILS, parameters);
 }
 
 export {

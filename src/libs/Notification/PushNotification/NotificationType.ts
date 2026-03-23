@@ -24,7 +24,7 @@ type AnyPushNotificationData = ReportActionPushNotificationData<AnyOnyxServerUpd
 
 type PushNotificationData<TKey extends OnyxKey> = ReportActionPushNotificationData<OnyxServerUpdate<TKey>> | TransactionPushNotificationData<OnyxServerUpdate<TKey>>;
 
-type BasePushNotificationData<TUpdate> = {
+type BasePushNotificationData<TUpdate extends AnyOnyxServerUpdate> = {
     title: string;
     subtitle: string;
     type: ValueOf<typeof NotificationType>;
@@ -34,12 +34,12 @@ type BasePushNotificationData<TUpdate> = {
     hasPendingOnyxUpdates?: boolean;
 };
 
-type ReportActionPushNotificationData<TUpdate> = BasePushNotificationData<TUpdate> & {
+type ReportActionPushNotificationData<TUpdate extends AnyOnyxServerUpdate> = BasePushNotificationData<TUpdate> & {
     reportID: number;
     reportActionID: string;
 };
 
-type TransactionPushNotificationData<TUpdate> = BasePushNotificationData<TUpdate> & {
+type TransactionPushNotificationData<TUpdate extends AnyOnyxServerUpdate> = BasePushNotificationData<TUpdate> & {
     reportID: number;
     transactionID: number;
 };

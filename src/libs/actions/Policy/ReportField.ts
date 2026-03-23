@@ -95,7 +95,7 @@ function openPolicyReportFieldsPage(policyID: string) {
         policyID,
     };
 
-    API.read(READ_COMMANDS.OPEN_POLICY_REPORT_FIELDS_PAGE, params, {failureData: []});
+    API.read(READ_COMMANDS.OPEN_POLICY_REPORT_FIELDS_PAGE, params);
 }
 
 /**
@@ -442,7 +442,6 @@ function updateReportFieldListValueEnabled({policy, reportFieldID, valueIndexes,
                 },
             },
         ],
-        failureData: [],
     };
 
     const parameters: EnableWorkspaceReportFieldListValueParams = {
@@ -483,7 +482,6 @@ function addReportFieldListValue({policy, reportFieldID, valueName}: AddReportFi
                 },
             },
         ],
-        failureData: [],
     };
 
     const parameters: CreateWorkspaceReportFieldListValueParams = {
@@ -532,7 +530,6 @@ function removeReportFieldListValue({policy, reportFieldID, valueIndexes}: Remov
                 },
             },
         ],
-        failureData: [],
     };
 
     const parameters: RemoveWorkspaceReportFieldListValueParams = {

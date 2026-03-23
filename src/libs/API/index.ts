@@ -62,7 +62,7 @@ function prepareRequest<TCommand extends ApiCommand, TKey extends OnyxKey>(
     command: TCommand,
     type: ApiRequestType,
     params: ApiRequestCommandParameters[TCommand],
-    onyxData: OnyxData<TKey>,
+    onyxData: OnyxData<TKey> = {},
     conflictResolver: RequestConflictResolver<TKey> = {},
 ): OnyxRequest<TKey> {
     Log.info('[API] Preparing request', false, {command, type});
@@ -147,10 +147,19 @@ function processRequest<TKey extends OnyxKey>(request: OnyxRequest<TKey>, type: 
  * All calls to API.write() will be persisted to disk as JSON with the params, successData, and failureData (or finallyData, if included in place of the former two values).
  * This is so that if the network is unavailable or the app is closed, we can send the WRITE request later.
  */
+function write<TCommand extends WriteCommand>(command: TCommand, apiCommandParameters: ApiRequestCommandParameters[TCommand]): Promise<void | Response<never>>;
+
 function write<TCommand extends WriteCommand, TKey extends OnyxKey>(
     command: TCommand,
     apiCommandParameters: ApiRequestCommandParameters[TCommand],
-    onyxData: OnyxData<TKey>,
+    onyxData?: OnyxData<TKey>,
+    conflictResolver?: RequestConflictResolver<TKey>,
+): Promise<void | Response<TKey>>;
+
+function write<TCommand extends WriteCommand, TKey extends OnyxKey>(
+    command: TCommand,
+    apiCommandParameters: ApiRequestCommandParameters[TCommand],
+    onyxData: OnyxData<TKey> = {},
     conflictResolver: RequestConflictResolver<TKey> = {},
 ): Promise<void | Response<TKey>> {
     Log.info('[API] Called API write', false, {command, ...apiCommandParameters});
@@ -165,7 +174,7 @@ function write<TCommand extends WriteCommand, TKey extends OnyxKey>(
 function writeWithNoDuplicatesConflictAction<TCommand extends WriteCommand, TKey extends OnyxKey>(
     command: TCommand,
     apiCommandParameters: ApiRequestCommandParameters[TCommand],
-    onyxData: OnyxData<TKey>,
+    onyxData: OnyxData<TKey> = {},
     requestMatcher: AnyRequestMatcher = (request) => request.command === command,
 ): Promise<void | Response<TKey>> {
     const conflictResolver = {
@@ -182,7 +191,7 @@ function writeWithNoDuplicatesConflictAction<TCommand extends WriteCommand, TKey
 function writeWithNoDuplicatesEnableFeatureConflicts<TCommand extends EnablePolicyFeatureCommand, TKey extends OnyxKey>(
     command: TCommand,
     apiCommandParameters: ApiRequestCommandParameters[TCommand],
-    onyxData: OnyxData<TKey>,
+    onyxData: OnyxData<TKey> = {},
 ): Promise<void | Response<TKey>> {
     const conflictResolver = {
         checkAndFixConflictingRequest: (persistedRequests: Array<OnyxRequest<TKey>>) => resolveEnableFeatureConflicts(command, persistedRequests, apiCommandParameters),
@@ -202,7 +211,7 @@ function writeWithNoDuplicatesEnableFeatureConflicts<TCommand extends EnablePoli
 function makeRequestWithSideEffects<TCommand extends SideEffectRequestCommand, TKey extends OnyxKey>(
     command: TCommand,
     apiCommandParameters: ApiRequestCommandParameters[TCommand],
-    onyxData: OnyxData<TKey>,
+    onyxData: OnyxData<TKey> = {},
 ): Promise<void | Response<TKey>> {
     Log.info('[API] Called API makeRequestWithSideEffects', false, {command, ...apiCommandParameters});
     const request = prepareRequest(command, CONST.API_REQUEST_TYPE.MAKE_REQUEST_WITH_SIDE_EFFECTS, apiCommandParameters, onyxData);
@@ -225,7 +234,11 @@ function waitForWrites<TCommand extends ReadCommand | WriteCommand | SideEffectR
 /**
  * Requests made with this method are not be persisted to disk. If there is no network connectivity, the request is ignored and discarded.
  */
-function read<TCommand extends ReadCommand, TKey extends OnyxKey>(command: TCommand, apiCommandParameters: ApiRequestCommandParameters[TCommand], onyxData: OnyxData<TKey>): void {
+function read<TCommand extends ReadCommand>(command: TCommand, apiCommandParameters: ApiRequestCommandParameters[TCommand]): void;
+
+function read<TCommand extends ReadCommand, TKey extends OnyxKey>(command: TCommand, apiCommandParameters: ApiRequestCommandParameters[TCommand], onyxData: OnyxData<TKey>): void;
+
+function read<TCommand extends ReadCommand, TKey extends OnyxKey>(command: TCommand, apiCommandParameters: ApiRequestCommandParameters[TCommand], onyxData: OnyxData<TKey> = {}): void {
     Log.info('[API] Called API.read', false, {command, ...apiCommandParameters});
 
     // Apply optimistic updates of read requests immediately

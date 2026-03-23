@@ -86,7 +86,7 @@ describe('actions/connections/NetSuite', () => {
 
             expect(optimisticUpdate?.onyxMethod).toBe(Onyx.METHOD.MERGE);
             expect(optimisticUpdate?.key).toBe(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${MOCK_POLICY_ID}`);
-            expect(optimisticUpdate && 'value' in optimisticUpdate ? optimisticUpdate.value : undefined).toEqual(
+            expect(optimisticUpdate?.value).toEqual(
                 expect.objectContaining({
                     stageInProgress: CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.NETSUITE_SYNC_CONNECTION,
                     connectionName: CONST.POLICY.CONNECTIONS.NAME.NETSUITE,
@@ -123,7 +123,7 @@ describe('actions/connections/NetSuite', () => {
 
             expect(optimisticUpdate?.onyxMethod).toBe(Onyx.METHOD.MERGE);
             expect(optimisticUpdate?.key).toBe(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${MOCK_POLICY_ID}`);
-            expect(optimisticUpdate && 'value' in optimisticUpdate ? optimisticUpdate.value : undefined).toEqual(
+            expect(optimisticUpdate?.value).toEqual(
                 expect.objectContaining({
                     stageInProgress: CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.NETSUITE_SYNC_CONNECTION,
                     connectionName: CONST.POLICY.CONNECTIONS.NAME.NETSUITE,

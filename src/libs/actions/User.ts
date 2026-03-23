@@ -788,7 +788,7 @@ function pingPusher() {
     lastPingSentTimestamp = pingTimestamp;
 
     const parameters: PusherPingParams = {pingID, pingTimestamp};
-    API.writeWithNoDuplicatesConflictAction(WRITE_COMMANDS.PUSHER_PING, parameters, {failureData: []});
+    API.writeWithNoDuplicatesConflictAction(WRITE_COMMANDS.PUSHER_PING, parameters);
     Log.info(`[Pusher PINGPONG] Sending a PING to the server: ${pingID} timestamp: ${pingTimestamp}`);
 }
 
@@ -945,7 +945,7 @@ function updatePreferredSkinTone(skinTone: number) {
 
     const parameters: UpdatePreferredEmojiSkinToneParams = {value: skinTone};
 
-    API.write(WRITE_COMMANDS.UPDATE_PREFERRED_EMOJI_SKIN_TONE, parameters, {optimisticData, failureData: []});
+    API.write(WRITE_COMMANDS.UPDATE_PREFERRED_EMOJI_SKIN_TONE, parameters, {optimisticData});
 }
 
 /**
@@ -974,7 +974,7 @@ function updateChatPriorityMode(mode: ValueOf<typeof CONST.PRIORITY_MODE>, autom
         automatic,
     };
 
-    API.write(WRITE_COMMANDS.UPDATE_CHAT_PRIORITY_MODE, parameters, {optimisticData, failureData: []});
+    API.write(WRITE_COMMANDS.UPDATE_CHAT_PRIORITY_MODE, parameters, {optimisticData});
 
     if (!autoSwitchedToFocusMode) {
         Navigation.goBack();
@@ -1045,7 +1045,7 @@ function generateStatementPDF(period: string) {
     // There's a loading spinner that stays visible not only until the statement is generated, but also until the statement is downloaded.
     // Therefore, it doesn't make sense to rely on the UI layer and unnecessary re-renders to trigger the subsequent network request.
     // eslint-disable-next-line rulesdir/no-api-side-effects-method
-    return API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.GET_STATEMENT_PDF, parameters, {failureData: []});
+    return API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.GET_STATEMENT_PDF, parameters);
 }
 
 /**
@@ -1227,7 +1227,7 @@ function updateTheme(theme: ValueOf<typeof CONST.THEME>) {
         value: theme,
     };
 
-    API.write(WRITE_COMMANDS.UPDATE_THEME, parameters, {optimisticData, failureData: []});
+    API.write(WRITE_COMMANDS.UPDATE_THEME, parameters, {optimisticData});
 
     Navigation.goBack();
 }
@@ -1252,7 +1252,6 @@ function updateCustomStatus(status: Status) {
 
     API.write(WRITE_COMMANDS.UPDATE_STATUS, parameters, {
         optimisticData,
-        failureData: [],
     });
 }
 
@@ -1271,7 +1270,7 @@ function clearCustomStatus() {
             },
         },
     ];
-    API.write(WRITE_COMMANDS.CLEAR_STATUS, null, {optimisticData, failureData: []});
+    API.write(WRITE_COMMANDS.CLEAR_STATUS, null, {optimisticData});
 }
 
 /**
@@ -1315,7 +1314,6 @@ function dismissReferralBanner(type: ValueOf<typeof CONST.REFERRAL_PROGRAM.CONTE
         {type},
         {
             optimisticData,
-            failureData: [],
         },
     );
 }
@@ -1348,7 +1346,7 @@ function setNameValuePair(name: OnyxKey, value: SetNameValuePairParams['value'],
 
     API.write(WRITE_COMMANDS.SET_NAME_VALUE_PAIR, parameters, {
         optimisticData,
-        failureData: failureData ?? [],
+        failureData,
     });
 }
 
@@ -1361,7 +1359,7 @@ function dismissASAPSubmitExplanation(shouldDismiss: boolean) {
 }
 
 function requestRefund() {
-    API.write(WRITE_COMMANDS.REQUEST_REFUND, null, {failureData: []});
+    API.write(WRITE_COMMANDS.REQUEST_REFUND, null);
 }
 
 function setIsDebugModeEnabled(isDebugModeEnabled: boolean) {
@@ -1516,7 +1514,7 @@ function requestUnlockAccount(accountID?: number) {
         accountID: accountID ?? currentUserAccountID,
     };
 
-    API.write(WRITE_COMMANDS.REQUEST_UNLOCK_ACCOUNT, params, {failureData: []});
+    API.write(WRITE_COMMANDS.REQUEST_UNLOCK_ACCOUNT, params);
 }
 
 type RespondToProactiveAppReviewParams = {
@@ -1833,11 +1831,11 @@ function setDraftRule(ruleData: Partial<ExpenseRuleForm>) {
 }
 
 function openTroubleshootSettingsPage() {
-    API.read(READ_COMMANDS.OPEN_TROUBLESHOOT_SETTINGS_PAGE, null, {failureData: []});
+    API.read(READ_COMMANDS.OPEN_TROUBLESHOOT_SETTINGS_PAGE, null);
 }
 
 function openMultifactorAuthenticationRevokePage() {
-    API.read(READ_COMMANDS.OPEN_MULTIFACTOR_AUTHENTICATION_REVOKE_PAGE, null, {failureData: []});
+    API.read(READ_COMMANDS.OPEN_MULTIFACTOR_AUTHENTICATION_REVOKE_PAGE, null);
 }
 
 function updateDraftRule(ruleData: Partial<ExpenseRuleForm>) {

@@ -15,7 +15,6 @@ beforeEach(() => {
 const request: OnyxTypes.AnyRequest = {
     command: 'MockCommand',
     data: {authToken: 'testToken'},
-    failureData: [],
 };
 
 test('Request.addMiddleware() can register a middleware and it will run', () => {

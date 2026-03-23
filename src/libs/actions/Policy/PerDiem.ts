@@ -122,7 +122,7 @@ function openPolicyPerDiemPage(policyID?: string) {
 
     const params = {policyID};
 
-    API.read(READ_COMMANDS.OPEN_POLICY_PER_DIEM_RATES_PAGE, params, {failureData: []});
+    API.read(READ_COMMANDS.OPEN_POLICY_PER_DIEM_RATES_PAGE, params);
 }
 
 function updateImportSpreadsheetData(ratesLength: number) {
@@ -186,7 +186,7 @@ function downloadPerDiemCSV(policyID: string, onDownloadFailed: () => void, tran
         formData.append(key, String(value));
     }
 
-    fileDownload(translate, getCommandURL({command: WRITE_COMMANDS.EXPORT_PER_DIEM_CSV, failureData: []}), fileName, '', false, formData, CONST.NETWORK.METHOD.POST, onDownloadFailed);
+    fileDownload(translate, getCommandURL({command: WRITE_COMMANDS.EXPORT_PER_DIEM_CSV}), fileName, '', false, formData, CONST.NETWORK.METHOD.POST, onDownloadFailed);
 }
 
 function clearPolicyPerDiemRatesErrorFields(policyID: string, customUnitID: string, updatedErrorFields: ErrorFields) {
@@ -253,7 +253,6 @@ function deleteWorkspacePerDiemRates(policyID: string, customUnit: CustomUnit | 
                 },
             },
         ],
-        failureData: [],
     };
 
     const parameters = {
@@ -284,7 +283,6 @@ function editPerDiemRateDestination(policyID: string, rateID: string, customUnit
                 },
             },
         ],
-        failureData: [],
     };
 
     const parameters = {
@@ -320,7 +318,6 @@ function editPerDiemRateSubrate(policyID: string, rateID: string, subRateID: str
                 },
             },
         ],
-        failureData: [],
     };
 
     const parameters = {
@@ -356,7 +353,6 @@ function editPerDiemRateAmount(policyID: string, rateID: string, subRateID: stri
                 },
             },
         ],
-        failureData: [],
     };
 
     const parameters = {
@@ -387,7 +383,6 @@ function editPerDiemRateCurrency(policyID: string, rateID: string, customUnit: C
                 },
             },
         ],
-        failureData: [],
     };
 
     const parameters = {
@@ -405,7 +400,7 @@ function fetchPerDiemRates(policyID: string | undefined) {
     const parameters = {
         policyID,
     };
-    API.read(READ_COMMANDS.OPEN_DRAFT_PER_DIEM_EXPENSE, parameters, {failureData: []});
+    API.read(READ_COMMANDS.OPEN_DRAFT_PER_DIEM_EXPENSE, parameters);
 }
 
 export {

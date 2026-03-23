@@ -99,7 +99,7 @@ function sendScheduleCallNudge(accountID: number, reportID: string) {
         accountID,
         reportID,
     };
-    API.write(WRITE_COMMANDS.SEND_SCHEDULE_CALL_NUDGE, params, {failureData: []});
+    API.write(WRITE_COMMANDS.SEND_SCHEDULE_CALL_NUDGE, params);
 }
 
 export {getGuideCallAvailabilitySchedule, saveBookingDraft, clearBookingDraft, confirmBooking, rescheduleBooking, cancelBooking, sendScheduleCallNudge};

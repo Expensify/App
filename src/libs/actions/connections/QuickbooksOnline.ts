@@ -21,7 +21,6 @@ function getQuickbooksOnlineSetupLink(policyID: string) {
     const commandURL = getCommandURL({
         command: READ_COMMANDS.CONNECT_POLICY_TO_QUICKBOOKS_ONLINE,
         shouldSkipWebProxy: true,
-        failureData: [],
     });
     return commandURL + new URLSearchParams(params).toString();
 }

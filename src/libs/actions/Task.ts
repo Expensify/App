@@ -486,7 +486,7 @@ function completeTask(
     const taskReportID = taskReport?.reportID ?? reportIDFromAction;
 
     if (!taskReportID) {
-        return {failureData: []};
+        return {};
     }
 
     const {optimisticData, successData, failureData, parameters} = buildTaskData(
@@ -1399,7 +1399,7 @@ function getFinishOnboardingTaskOnyxData(
         }
     }
 
-    return {failureData: []};
+    return {};
 }
 function completeTestDriveTask(
     viewTourTaskReport: OnyxEntry<OnyxTypes.Report>,

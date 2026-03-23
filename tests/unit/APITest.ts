@@ -1,5 +1,4 @@
 import MockedOnyx from 'react-native-onyx';
-import type {OnyxKey} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {EnablePolicyFeatureCommand} from '@libs/actions/RequestConflictUtils';
 import type {ApiRequestCommandParameters, ReadCommand, WriteCommand} from '@libs/API/types';
@@ -13,7 +12,6 @@ import * as SequentialQueue from '@src/libs/Network/SequentialQueue';
 import {sequentialQueueRequestThrottle} from '@src/libs/Network/SequentialQueue';
 import * as Request from '@src/libs/Request';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {OnyxData} from '@src/types/onyx/Request';
 import type ReactNativeOnyxMock from '../../__mocks__/react-native-onyx';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
@@ -76,9 +74,9 @@ describe('APITests', () => {
         return Onyx.set(ONYXKEYS.NETWORK, {isOffline: true})
             .then(() => {
                 // When API Writes and Reads are called
-                API.write<WriteCommand, OnyxKey>('mock command' as WriteCommand, {param1: 'value1'} as ApiRequestCommandParameters[WriteCommand], {failureData: []});
-                API.read<ReadCommand, OnyxKey>('mock command' as ReadCommand, {param2: 'value2'} as unknown as ApiRequestCommandParameters[ReadCommand], {failureData: []});
-                API.write<WriteCommand, OnyxKey>('mock command' as WriteCommand, {param3: 'value3'} as ApiRequestCommandParameters[WriteCommand], {failureData: []});
+                API.write<WriteCommand>('mock command' as WriteCommand, {param1: 'value1'} as ApiRequestCommandParameters[WriteCommand]);
+                API.read<ReadCommand>('mock command' as ReadCommand, {param2: 'value2'} as unknown as ApiRequestCommandParameters[ReadCommand]);
+                API.write<WriteCommand>('mock command' as WriteCommand, {param3: 'value3'} as ApiRequestCommandParameters[WriteCommand]);
                 return waitForBatchedUpdates();
             })
             .then(() => {
@@ -112,8 +110,8 @@ describe('APITests', () => {
             })
                 .then(() => {
                     // When API Write commands are made
-                    API.write<WriteCommand, OnyxKey>('mock command' as WriteCommand, {param1: 'value1'} as ApiRequestCommandParameters[WriteCommand], {failureData: []});
-                    API.write<WriteCommand, OnyxKey>('mock command' as WriteCommand, {param2: 'value2'} as ApiRequestCommandParameters[WriteCommand], {failureData: []});
+                    API.write<WriteCommand>('mock command' as WriteCommand, {param1: 'value1'} as ApiRequestCommandParameters[WriteCommand]);
+                    API.write<WriteCommand>('mock command' as WriteCommand, {param2: 'value2'} as ApiRequestCommandParameters[WriteCommand]);
                     return waitForBatchedUpdates();
                 })
                 .then(() => {
@@ -165,8 +163,8 @@ describe('APITests', () => {
             Onyx.set(ONYXKEYS.NETWORK, {isOffline: true})
                 .then(() => {
                     // When API Write commands are made
-                    API.write<WriteCommand, OnyxKey>('mock command' as WriteCommand, {param1: 'value1'} as ApiRequestCommandParameters[WriteCommand], {failureData: []});
-                    API.write<WriteCommand, OnyxKey>('mock command' as WriteCommand, {param2: 'value2'} as ApiRequestCommandParameters[WriteCommand], {failureData: []});
+                    API.write<WriteCommand>('mock command' as WriteCommand, {param1: 'value1'} as ApiRequestCommandParameters[WriteCommand]);
+                    API.write<WriteCommand>('mock command' as WriteCommand, {param2: 'value2'} as ApiRequestCommandParameters[WriteCommand]);
                     return waitForBatchedUpdates();
                 })
 
@@ -229,7 +227,7 @@ describe('APITests', () => {
             Onyx.set(ONYXKEYS.NETWORK, {isOffline: true})
                 .then(() => {
                     // When API Write commands are made
-                    API.write<WriteCommand, OnyxKey>('mock command' as WriteCommand, {param1: 'value1'} as ApiRequestCommandParameters[WriteCommand], {failureData: []});
+                    API.write<WriteCommand>('mock command' as WriteCommand, {param1: 'value1'} as ApiRequestCommandParameters[WriteCommand]);
                     return waitForNetworkPromises();
                 })
 
@@ -315,7 +313,7 @@ describe('APITests', () => {
             waitForBatchedUpdates()
                 .then(() => Onyx.set(ONYXKEYS.NETWORK, {isOffline: true}))
                 .then(() => {
-                    API.write<WriteCommand, OnyxKey>('Mock' as WriteCommand, {param1: 'value1'} as ApiRequestCommandParameters[WriteCommand], {failureData: []});
+                    API.write<WriteCommand>('Mock' as WriteCommand, {param1: 'value1'} as ApiRequestCommandParameters[WriteCommand]);
                     return waitForBatchedUpdates();
                 })
 
@@ -348,13 +346,13 @@ describe('APITests', () => {
         })
             .then(() => {
                 // When we queue 6 persistable commands and one not persistable
-                API.write<WriteCommand, OnyxKey>('MockCommand' as WriteCommand, {content: 'value1'} as ApiRequestCommandParameters[WriteCommand], {failureData: []});
-                API.write<WriteCommand, OnyxKey>('MockCommand' as WriteCommand, {content: 'value2'} as ApiRequestCommandParameters[WriteCommand], {failureData: []});
-                API.write<WriteCommand, OnyxKey>('MockCommand' as WriteCommand, {content: 'value3'} as ApiRequestCommandParameters[WriteCommand], {failureData: []});
-                API.read<ReadCommand, OnyxKey>('MockCommand' as ReadCommand, {content: 'not-persisted'} as unknown as ApiRequestCommandParameters[ReadCommand], {failureData: []});
-                API.write<WriteCommand, OnyxKey>('MockCommand' as WriteCommand, {content: 'value4'} as ApiRequestCommandParameters[WriteCommand], {failureData: []});
-                API.write<WriteCommand, OnyxKey>('MockCommand' as WriteCommand, {content: 'value5'} as ApiRequestCommandParameters[WriteCommand], {failureData: []});
-                API.write<WriteCommand, OnyxKey>('MockCommand' as WriteCommand, {content: 'value6'} as ApiRequestCommandParameters[WriteCommand], {failureData: []});
+                API.write<WriteCommand>('MockCommand' as WriteCommand, {content: 'value1'} as ApiRequestCommandParameters[WriteCommand]);
+                API.write<WriteCommand>('MockCommand' as WriteCommand, {content: 'value2'} as ApiRequestCommandParameters[WriteCommand]);
+                API.write<WriteCommand>('MockCommand' as WriteCommand, {content: 'value3'} as ApiRequestCommandParameters[WriteCommand]);
+                API.read<ReadCommand>('MockCommand' as ReadCommand, {content: 'not-persisted'} as unknown as ApiRequestCommandParameters[ReadCommand]);
+                API.write<WriteCommand>('MockCommand' as WriteCommand, {content: 'value4'} as ApiRequestCommandParameters[WriteCommand]);
+                API.write<WriteCommand>('MockCommand' as WriteCommand, {content: 'value5'} as ApiRequestCommandParameters[WriteCommand]);
+                API.write<WriteCommand>('MockCommand' as WriteCommand, {content: 'value6'} as ApiRequestCommandParameters[WriteCommand]);
 
                 return waitForBatchedUpdates();
             })
@@ -385,12 +383,12 @@ describe('APITests', () => {
         })
             .then(() => {
                 // When we queue 6 persistable commands
-                API.write<WriteCommand, OnyxKey>('MockCommand' as WriteCommand, {content: 'value1'} as ApiRequestCommandParameters[WriteCommand], {failureData: []});
-                API.write<WriteCommand, OnyxKey>('MockCommand' as WriteCommand, {content: 'value2'} as ApiRequestCommandParameters[WriteCommand], {failureData: []});
-                API.write<WriteCommand, OnyxKey>('MockCommand' as WriteCommand, {content: 'value3'} as ApiRequestCommandParameters[WriteCommand], {failureData: []});
-                API.write<WriteCommand, OnyxKey>('MockCommand' as WriteCommand, {content: 'value4'} as ApiRequestCommandParameters[WriteCommand], {failureData: []});
-                API.write<WriteCommand, OnyxKey>('MockCommand' as WriteCommand, {content: 'value5'} as ApiRequestCommandParameters[WriteCommand], {failureData: []});
-                API.write<WriteCommand, OnyxKey>('MockCommand' as WriteCommand, {content: 'value6'} as ApiRequestCommandParameters[WriteCommand], {failureData: []});
+                API.write<WriteCommand>('MockCommand' as WriteCommand, {content: 'value1'} as ApiRequestCommandParameters[WriteCommand]);
+                API.write<WriteCommand>('MockCommand' as WriteCommand, {content: 'value2'} as ApiRequestCommandParameters[WriteCommand]);
+                API.write<WriteCommand>('MockCommand' as WriteCommand, {content: 'value3'} as ApiRequestCommandParameters[WriteCommand]);
+                API.write<WriteCommand>('MockCommand' as WriteCommand, {content: 'value4'} as ApiRequestCommandParameters[WriteCommand]);
+                API.write<WriteCommand>('MockCommand' as WriteCommand, {content: 'value5'} as ApiRequestCommandParameters[WriteCommand]);
+                API.write<WriteCommand>('MockCommand' as WriteCommand, {content: 'value6'} as ApiRequestCommandParameters[WriteCommand]);
                 return waitForBatchedUpdates();
             })
             .then(() => Onyx.set(ONYXKEYS.NETWORK, {isOffline: false}))
@@ -428,18 +426,14 @@ describe('APITests', () => {
         })
             .then(() => {
                 // When we queue both non-persistable and persistable commands that will trigger reauthentication and go offline at the same time
-                API.makeRequestWithSideEffects(
-                    'AuthenticatePusher',
-                    {
-                        // eslint-disable-next-line @typescript-eslint/naming-convention
-                        socket_id: 'socket_id',
-                        // eslint-disable-next-line @typescript-eslint/naming-convention
-                        channel_name: 'channel_name',
-                        shouldRetry: false,
-                        forceNetworkRequest: false,
-                    },
-                    {failureData: []},
-                );
+                API.makeRequestWithSideEffects('AuthenticatePusher', {
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    socket_id: 'socket_id',
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    channel_name: 'channel_name',
+                    shouldRetry: false,
+                    forceNetworkRequest: false,
+                });
 
                 Onyx.set(ONYXKEYS.NETWORK, {isOffline: true});
                 expect(NetworkStore.isOffline()).toBe(false);
@@ -447,7 +441,7 @@ describe('APITests', () => {
                 return waitForBatchedUpdates();
             })
             .then(() => {
-                API.write('MockCommand' as WriteCommand, {}, {failureData: []});
+                API.write('MockCommand' as WriteCommand, {});
                 expect(PersistedRequests.getAll().length).toBe(1);
                 expect(NetworkStore.isOffline()).toBe(true);
                 expect(SequentialQueue.isRunning()).toBe(false);
@@ -516,7 +510,7 @@ describe('APITests', () => {
                 NetworkStore.resetHasReadRequiredDataFromStorage();
 
                 // And queue a Write request while offline
-                API.write<WriteCommand, OnyxKey>('MockCommand' as WriteCommand, {content: 'value1'} as ApiRequestCommandParameters[WriteCommand], {failureData: []});
+                API.write<WriteCommand>('MockCommand' as WriteCommand, {content: 'value1'} as ApiRequestCommandParameters[WriteCommand]);
 
                 // Then we should expect the request to get persisted
                 expect(PersistedRequests.getAll().length).toBe(1);
@@ -552,9 +546,9 @@ describe('APITests', () => {
                 expect(NetworkStore.isOffline()).toBe(false);
 
                 // WHEN we make a request that should be retried, one that should not, and another that should
-                API.write('MockCommandOne' as WriteCommand, {}, {failureData: []});
-                API.read<ReadCommand, OnyxKey>('MockCommandTwo' as ReadCommand, {} as ApiRequestCommandParameters[ReadCommand], {failureData: []});
-                API.write('MockCommandThree' as WriteCommand, {}, {failureData: []});
+                API.write('MockCommandOne' as WriteCommand, {});
+                API.read('MockCommandTwo' as ReadCommand, null);
+                API.write('MockCommandThree' as WriteCommand, {});
 
                 // THEN the retryable requests should immediately be added to the persisted requests
                 expect(PersistedRequests.getAll().length).toBe(2);
@@ -598,9 +592,9 @@ describe('APITests', () => {
         })
             .then(() => {
                 // When we queue 3 persistable commands and two of them are the same
-                API.write<WriteCommand, OnyxKey>('MockCommand' as WriteCommand, {content: 'value1'} as ApiRequestCommandParameters[WriteCommand], {failureData: []});
-                API.write<WriteCommand, OnyxKey>('MockCommand' as WriteCommand, {content: 'value2'} as ApiRequestCommandParameters[WriteCommand], {failureData: []});
-                API.write<WriteCommand, OnyxKey>('MockCommand' as WriteCommand, {content: 'value1'} as ApiRequestCommandParameters[WriteCommand], {failureData: []});
+                API.write<WriteCommand>('MockCommand' as WriteCommand, {content: 'value1'} as ApiRequestCommandParameters[WriteCommand]);
+                API.write<WriteCommand>('MockCommand' as WriteCommand, {content: 'value2'} as ApiRequestCommandParameters[WriteCommand]);
+                API.write<WriteCommand>('MockCommand' as WriteCommand, {content: 'value1'} as ApiRequestCommandParameters[WriteCommand]);
 
                 return waitForBatchedUpdates();
             })
@@ -618,9 +612,9 @@ describe('APITests', () => {
     test('Read request should not stuck when SequentialQueue is paused and resumed', async () => {
         // Given 2 WRITE requests and 1 READ request where the first write request pauses the SequentialQueue
         const xhr = jest.spyOn(HttpUtils, 'xhr').mockResolvedValueOnce({previousUpdateID: 1});
-        API.write('MockWriteCommandOne' as WriteCommand, {}, {failureData: []});
-        API.write('MockWriteCommandTwo' as WriteCommand, {}, {failureData: []});
-        API.read<ReadCommand, OnyxKey>('MockReadCommand' as ReadCommand, {} as ApiRequestCommandParameters[ReadCommand], {failureData: []});
+        API.write('MockWriteCommandOne' as WriteCommand, {});
+        API.write('MockWriteCommandTwo' as WriteCommand, {});
+        API.read('MockReadCommand' as ReadCommand, null);
 
         await waitForBatchedUpdates();
 
@@ -643,9 +637,9 @@ describe('APITests', () => {
         })
             .then(() => {
                 // When we queue 3 duplicate persistable commands
-                API.writeWithNoDuplicatesConflictAction('MockCommand' as WriteCommand, {content: 'value1'} as ApiRequestCommandParameters[WriteCommand], {failureData: []});
-                API.writeWithNoDuplicatesConflictAction('MockCommand' as WriteCommand, {content: 'value2'} as ApiRequestCommandParameters[WriteCommand], {failureData: []});
-                API.writeWithNoDuplicatesConflictAction('MockCommand' as WriteCommand, {content: 'value3'} as ApiRequestCommandParameters[WriteCommand], {failureData: []});
+                API.writeWithNoDuplicatesConflictAction('MockCommand' as WriteCommand, {content: 'value1'} as ApiRequestCommandParameters[WriteCommand]);
+                API.writeWithNoDuplicatesConflictAction('MockCommand' as WriteCommand, {content: 'value2'} as ApiRequestCommandParameters[WriteCommand]);
+                API.writeWithNoDuplicatesConflictAction('MockCommand' as WriteCommand, {content: 'value3'} as ApiRequestCommandParameters[WriteCommand]);
                 return waitForBatchedUpdates();
             })
             .then(() => Onyx.set(ONYXKEYS.NETWORK, {isOffline: false}))
@@ -666,9 +660,9 @@ describe('APITests', () => {
         })
             .then(() => {
                 // When we queue 3 different persistable commands
-                API.writeWithNoDuplicatesConflictAction('MockCommandOne' as WriteCommand, {content: 'value1'} as ApiRequestCommandParameters[WriteCommand], {failureData: []});
-                API.writeWithNoDuplicatesConflictAction('MockCommandTwo' as WriteCommand, {content: 'value2'} as ApiRequestCommandParameters[WriteCommand], {failureData: []});
-                API.writeWithNoDuplicatesConflictAction('MockCommandThree' as WriteCommand, {content: 'value3'} as ApiRequestCommandParameters[WriteCommand], {failureData: []});
+                API.writeWithNoDuplicatesConflictAction('MockCommandOne' as WriteCommand, {content: 'value1'} as ApiRequestCommandParameters[WriteCommand]);
+                API.writeWithNoDuplicatesConflictAction('MockCommandTwo' as WriteCommand, {content: 'value2'} as ApiRequestCommandParameters[WriteCommand]);
+                API.writeWithNoDuplicatesConflictAction('MockCommandThree' as WriteCommand, {content: 'value3'} as ApiRequestCommandParameters[WriteCommand]);
                 return waitForBatchedUpdates();
             })
             .then(() => Onyx.set(ONYXKEYS.NETWORK, {isOffline: false}))
@@ -694,17 +688,14 @@ describe('APITests', () => {
                 API.writeWithNoDuplicatesEnableFeatureConflicts(
                     'MockCommand' as EnablePolicyFeatureCommand,
                     {policyID: '1', enabled: true} as ApiRequestCommandParameters[EnablePolicyFeatureCommand],
-                    {failureData: []},
                 );
                 API.writeWithNoDuplicatesEnableFeatureConflicts(
                     'MockCommand' as EnablePolicyFeatureCommand,
                     {policyID: '1', enabled: false} as ApiRequestCommandParameters[EnablePolicyFeatureCommand],
-                    {failureData: []},
                 );
                 API.writeWithNoDuplicatesEnableFeatureConflicts(
                     'MockCommand' as EnablePolicyFeatureCommand,
                     {policyID: '1', enabled: true} as ApiRequestCommandParameters[EnablePolicyFeatureCommand],
-                    {failureData: []},
                 );
                 return waitForBatchedUpdates();
             })
@@ -729,12 +720,10 @@ describe('APITests', () => {
                 API.writeWithNoDuplicatesEnableFeatureConflicts(
                     'MockCommand' as EnablePolicyFeatureCommand,
                     {policyID: '1', enabled: true} as ApiRequestCommandParameters[EnablePolicyFeatureCommand],
-                    {failureData: []},
                 );
                 API.writeWithNoDuplicatesEnableFeatureConflicts(
                     'MockCommand' as EnablePolicyFeatureCommand,
                     {policyID: '1', enabled: false} as ApiRequestCommandParameters[EnablePolicyFeatureCommand],
-                    {failureData: []},
                 );
                 return waitForBatchedUpdates();
             })
@@ -758,17 +747,14 @@ describe('APITests', () => {
                 API.writeWithNoDuplicatesEnableFeatureConflicts(
                     'MockCommand' as EnablePolicyFeatureCommand,
                     {policyID: '1', enabled: true} as ApiRequestCommandParameters[EnablePolicyFeatureCommand],
-                    {failureData: []},
                 );
                 API.writeWithNoDuplicatesEnableFeatureConflicts(
                     'MockCommand' as EnablePolicyFeatureCommand,
                     {policyID: '2', enabled: false} as ApiRequestCommandParameters[EnablePolicyFeatureCommand],
-                    {failureData: []},
                 );
                 API.writeWithNoDuplicatesEnableFeatureConflicts(
                     'MockCommand' as EnablePolicyFeatureCommand,
                     {policyID: '3', enabled: true} as ApiRequestCommandParameters[EnablePolicyFeatureCommand],
-                    {failureData: []},
                 );
                 return waitForBatchedUpdates();
             })
@@ -795,17 +781,14 @@ describe('APITests', () => {
                 API.writeWithNoDuplicatesEnableFeatureConflicts(
                     'MockCommand' as EnablePolicyFeatureCommand,
                     {policyID: '1', enabled: true} as ApiRequestCommandParameters[EnablePolicyFeatureCommand],
-                    {failureData: []},
                 );
                 API.writeWithNoDuplicatesEnableFeatureConflicts(
                     'MockCommand' as EnablePolicyFeatureCommand,
                     {policyID: '2', enabled: false} as ApiRequestCommandParameters[EnablePolicyFeatureCommand],
-                    {failureData: []},
                 );
                 API.writeWithNoDuplicatesEnableFeatureConflicts(
                     'MockCommand' as EnablePolicyFeatureCommand,
                     {policyID: '1', enabled: false} as ApiRequestCommandParameters[EnablePolicyFeatureCommand],
-                    {failureData: []},
                 );
                 return waitForBatchedUpdates();
             })
@@ -837,7 +820,8 @@ describe('APITests', () => {
             [ONYXKEYS.NETWORK]: {isOffline: false},
         })
             .then(() => {
-                API.write<WriteCommand, OnyxKey>('MockCommand' as WriteCommand, {} as ApiRequestCommandParameters[WriteCommand], {failureData} as OnyxData<OnyxKey>);
+                // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
+                API.write<WriteCommand>('MockCommand' as WriteCommand, {} as ApiRequestCommandParameters[WriteCommand], {failureData});
                 return waitForNetworkPromises();
             })
             .then(waitForBatchedUpdates)
@@ -853,7 +837,7 @@ describe('APITests', () => {
                     if (!Array.isArray(updates)) {
                         return false;
                     }
-                    return updates.some((u) => u?.key === ONYXKEYS.ONBOARDING_ERROR_MESSAGE_TRANSLATION_KEY && 'value' in u && u.value === 'onboarding.errorSelection');
+                    return updates.some((u) => u?.key === ONYXKEYS.ONBOARDING_ERROR_MESSAGE_TRANSLATION_KEY && u?.value === 'onboarding.errorSelection');
                 });
                 expect(failureApplied).toBe(true);
 
@@ -905,7 +889,6 @@ describe('API.write() persistence guarantees', () => {
 
             try {
                 API.write('MockCommand' as WriteCommand, {param1: 'value1'} as ApiRequestCommandParameters[WriteCommand], {
-                    failureData: [],
                     optimisticData: [
                         {
                             onyxMethod: Onyx.METHOD.SET,
@@ -958,7 +941,7 @@ describe('API.write() persistence guarantees', () => {
                 return originalSet(key, value);
             });
 
-            API.write('MockCommand' as WriteCommand, {param1: 'value1'} as ApiRequestCommandParameters[WriteCommand], {failureData: []}).then(() => {
+            API.write('MockCommand' as WriteCommand, {param1: 'value1'} as ApiRequestCommandParameters[WriteCommand]).then(() => {
                 writePromiseResolved = true;
             });
 
@@ -1015,9 +998,9 @@ describe('API.write() persistence guarantees', () => {
             // Rapidly write two commands while offline — each save() call updates
             // in-memory state immediately then fires Onyx.set (captured, not resolved).
             // save(CommandA): in-memory = [A], Onyx.set([A]) captured
-            API.write('CommandA' as WriteCommand, {param1: 'value1'} as ApiRequestCommandParameters[WriteCommand], {failureData: []});
+            API.write('CommandA' as WriteCommand, {param1: 'value1'} as ApiRequestCommandParameters[WriteCommand]);
             // save(CommandB): in-memory = [A, B], Onyx.set([A, B]) captured
-            API.write('CommandB' as WriteCommand, {param2: 'value2'} as ApiRequestCommandParameters[WriteCommand], {failureData: []});
+            API.write('CommandB' as WriteCommand, {param2: 'value2'} as ApiRequestCommandParameters[WriteCommand]);
 
             expect(capturedSets).toHaveLength(2);
             expect(PersistedRequests.getAll()).toHaveLength(2);
@@ -1046,7 +1029,7 @@ describe('API.write() persistence guarantees', () => {
             API.write(
                 'CommandC' as WriteCommand,
                 {param3: 'value3'} as ApiRequestCommandParameters[WriteCommand],
-                {failureData: []},
+                {},
                 {
                     checkAndFixConflictingRequest: (requests) => {
                         queueSeenByResolver = requests.map((r) => ({command: r.command}));

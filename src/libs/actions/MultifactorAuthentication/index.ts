@@ -73,11 +73,7 @@ function cleanUpLocallyProcessed3DSTransactionReviews(entriesToDelete: string[])
 
 async function registerAuthenticationKey({keyInfo, authenticationMethod}: MultifactorAuthenticationScenarioParameters['REGISTER-BIOMETRICS']) {
     try {
-        const response = await makeRequestWithSideEffects(
-            SIDE_EFFECT_REQUEST_COMMANDS.REGISTER_AUTHENTICATION_KEY,
-            {keyInfo: JSON.stringify(keyInfo), authenticationMethod},
-            {failureData: []},
-        );
+        const response = await makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.REGISTER_AUTHENTICATION_KEY, {keyInfo: JSON.stringify(keyInfo), authenticationMethod});
 
         const {jsonCode, message} = response ?? {};
         return parseHttpRequest(jsonCode, CONST.MULTIFACTOR_AUTHENTICATION.API_RESPONSE_MAP.REGISTER_AUTHENTICATION_KEY, message);
@@ -131,7 +127,7 @@ async function requestRegistrationChallenge(validateCode: string): Promise<Regis
                 challengeType: 'registration',
                 validateCode,
             },
-            {optimisticData, finallyData, failureData: []},
+            {optimisticData, finallyData},
         );
         const {jsonCode, challenge, publicKeys, message} = response ?? {};
         const parsedResponse = parseHttpRequest(jsonCode, CONST.MULTIFACTOR_AUTHENTICATION.API_RESPONSE_MAP.REQUEST_AUTHENTICATION_CHALLENGE, message);
@@ -158,7 +154,7 @@ async function requestAuthorizationChallenge(): Promise<AuthenticationChallengeR
             {
                 challengeType: 'authentication',
             },
-            {failureData: []},
+            {},
         );
         const {jsonCode, challenge, publicKeys, message} = response ?? {};
         const parsedResponse = parseHttpRequest(jsonCode, CONST.MULTIFACTOR_AUTHENTICATION.API_RESPONSE_MAP.REQUEST_AUTHENTICATION_CHALLENGE, message);
@@ -183,7 +179,7 @@ async function troubleshootMultifactorAuthentication({signedChallenge, authentic
         const response = await makeRequestWithSideEffects(
             SIDE_EFFECT_REQUEST_COMMANDS.TROUBLESHOOT_MULTIFACTOR_AUTHENTICATION,
             {signedChallenge: JSON.stringify(signedChallenge), authenticationMethod},
-            {failureData: []},
+            {},
         );
 
         const {jsonCode, message} = response ?? {};
@@ -197,7 +193,7 @@ async function troubleshootMultifactorAuthentication({signedChallenge, authentic
 
 async function revokeMultifactorAuthenticationCredentials(params: RevokeMultifactorAuthenticationCredentialsParams) {
     try {
-        const response = await makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.REVOKE_MULTIFACTOR_AUTHENTICATION_CREDENTIALS, params ?? {}, {failureData: []});
+        const response = await makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.REVOKE_MULTIFACTOR_AUTHENTICATION_CREDENTIALS, params ?? {}, {});
         const {jsonCode, message} = response ?? {};
 
         return parseHttpRequest(jsonCode, CONST.MULTIFACTOR_AUTHENTICATION.API_RESPONSE_MAP.REVOKE_MULTIFACTOR_AUTHENTICATION_SETUP, message);
@@ -234,7 +230,6 @@ async function setPersonalDetailsAndShipExpensifyCardsWithPIN(params: Multifacto
                         },
                     },
                 ],
-                failureData: [],
             },
         );
 
@@ -247,11 +242,7 @@ async function setPersonalDetailsAndShipExpensifyCardsWithPIN(params: Multifacto
 }
 async function revealPINForCard({cardID, signedChallenge, authenticationMethod}: MultifactorAuthenticationScenarioParameters['REVEAL-PIN']) {
     try {
-        const response = await makeRequestWithSideEffects(
-            SIDE_EFFECT_REQUEST_COMMANDS.REVEAL_CARD_PIN,
-            {cardID, signedChallenge: JSON.stringify(signedChallenge), authenticationMethod},
-            {failureData: []},
-        );
+        const response = await makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.REVEAL_CARD_PIN, {cardID, signedChallenge: JSON.stringify(signedChallenge), authenticationMethod}, {});
 
         const {jsonCode, message, pin} = response ?? {};
         const parsed = parseHttpRequest(jsonCode, CONST.MULTIFACTOR_AUTHENTICATION.API_RESPONSE_MAP.REVEAL_CARD_PIN, message);
@@ -271,7 +262,7 @@ async function changePINForCard({cardID, pin, signedChallenge, authenticationMet
         const response = await makeRequestWithSideEffects(
             SIDE_EFFECT_REQUEST_COMMANDS.CHANGE_CARD_PIN,
             {cardID, pin, signedChallenge: JSON.stringify(signedChallenge), authenticationMethod},
-            {failureData: []},
+            {},
         );
 
         const {jsonCode, message} = response ?? {};
@@ -284,7 +275,7 @@ async function changePINForCard({cardID, pin, signedChallenge, authenticationMet
 
 /** Check whether a given transaction is still pending review and update the transactionsPending3DSReview key in Onyx */
 async function isTransactionStillPending3DSReview(transactionID: string) {
-    const response = await makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.GET_TRANSACTIONS_PENDING_3DS_REVIEW, null, {failureData: []});
+    const response = await makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.GET_TRANSACTIONS_PENDING_3DS_REVIEW, null, {});
     return !!response?.transactionsPending3DSReview?.[transactionID];
 }
 
@@ -303,7 +294,6 @@ async function authorizeTransaction({transactionID, signedChallenge, authenticat
                         },
                     },
                 ],
-                failureData: [],
             },
         );
 
@@ -331,7 +321,6 @@ async function denyTransaction({transactionID}: DenyTransactionParams) {
                         },
                     },
                 ],
-                failureData: [],
             },
         );
 
@@ -359,7 +348,6 @@ async function fireAndForgetDenyTransaction({transactionID}: DenyTransactionPara
                     },
                 },
             ],
-            failureData: [],
         },
     );
 }

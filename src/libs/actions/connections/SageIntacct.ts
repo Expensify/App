@@ -30,7 +30,7 @@ function connectToSageIntacct(policyID: string, credentials: SageIntacctCredenti
         intacctUserID: credentials.userID,
         intacctPassword: credentials.password,
     };
-    API.write(WRITE_COMMANDS.CONNECT_POLICY_TO_SAGE_INTACCT, parameters, {failureData: []});
+    API.write(WRITE_COMMANDS.CONNECT_POLICY_TO_SAGE_INTACCT, parameters, {});
 }
 
 function prepareOnyxDataForMappingUpdate(

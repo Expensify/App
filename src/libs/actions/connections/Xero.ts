@@ -17,7 +17,7 @@ import type {Connections, XeroTrackingCategory} from '@src/types/onyx/Policy';
 
 const getXeroSetupLink = (policyID: string) => {
     const params: ConnectPolicyToAccountingIntegrationParams = {policyID};
-    const commandURL = getCommandURL({command: READ_COMMANDS.CONNECT_POLICY_TO_XERO, shouldSkipWebProxy: true, failureData: []});
+    const commandURL = getCommandURL({command: READ_COMMANDS.CONNECT_POLICY_TO_XERO, shouldSkipWebProxy: true});
     return commandURL + new URLSearchParams(params).toString();
 };
 

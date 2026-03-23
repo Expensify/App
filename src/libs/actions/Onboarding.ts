@@ -34,7 +34,7 @@ function setWorkspaceCurrency(currency: string) {
 
 function verifyTestDriveRecipient(email: string) {
     // eslint-disable-next-line rulesdir/no-api-side-effects-method
-    return API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.VERIFY_TEST_DRIVE_RECIPIENT, {email}, {failureData: []}).then((response) => {
+    return API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.VERIFY_TEST_DRIVE_RECIPIENT, {email}).then((response) => {
         // If accountExists is undefined, it means we couldn't determine the account status due to an unstable internet connection.
         if (response?.accountExists === false) {
             // We can invite this user since they do not have an account yet

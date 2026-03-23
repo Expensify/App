@@ -38,7 +38,7 @@ function writeNetSuiteCredentials(
         policyID,
         ...credentials,
     };
-    API.write(command, parameters, {optimisticData, failureData: []});
+    API.write(command, parameters, {optimisticData});
 }
 
 function connectPolicyToNetSuite(policyID: string, credentials: Omit<ConnectPolicyToNetSuiteParams, 'policyID'>) {

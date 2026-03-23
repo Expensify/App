@@ -56,7 +56,7 @@ function referTeachersUniteVolunteer(partnerUserID: string, firstName: string, l
         partnerUserID,
     };
 
-    API.write(WRITE_COMMANDS.REFER_TEACHERS_UNITE_VOLUNTEER, parameters, {optimisticData, failureData: []});
+    API.write(WRITE_COMMANDS.REFER_TEACHERS_UNITE_VOLUNTEER, parameters, {optimisticData});
     Navigation.dismissModalWithReport({reportID: publicRoomReportID});
 }
 

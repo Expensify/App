@@ -444,7 +444,7 @@ function AddressSearch({
                         query={query}
                         requestUrl={{
                             useOnPlatform: 'all',
-                            url: isOffline ? '' : getCommandURL({command: 'Proxy_GooglePlaces?proxyUrl=', failureData: []}),
+                            url: isOffline ? '' : getCommandURL({command: 'Proxy_GooglePlaces?proxyUrl='}),
                         }}
                         textInputProps={{
                             InputComp: TextInput,

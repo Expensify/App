@@ -310,11 +310,11 @@ function cancelBillingSubscription(cancellationReason: FeedbackSurveyOptionID, c
         cancellationNote,
     };
 
-    API.write(WRITE_COMMANDS.CANCEL_BILLING_SUBSCRIPTION, parameters, {failureData: []});
+    API.write(WRITE_COMMANDS.CANCEL_BILLING_SUBSCRIPTION, parameters);
 }
 
 function requestTaxExempt() {
-    API.write(WRITE_COMMANDS.REQUEST_TAX_EXEMPTION, null, {failureData: []});
+    API.write(WRITE_COMMANDS.REQUEST_TAX_EXEMPTION, null);
 }
 
 function applyExpensifyCode(promoCode: string) {

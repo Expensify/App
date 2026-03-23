@@ -62,7 +62,6 @@ describe('Middleware', () => {
             const result = await Request.processWithMiddleware({
                 command: 'GetTransactionsPending3DSReview',
                 data: {apiRequestType: 'makeRequestWithSideEffects'},
-                failureData: [],
             });
 
             // Then the response should not be undefined — the caller may need the raw response for side effects
@@ -78,12 +77,10 @@ describe('Middleware', () => {
                 {
                     command: 'OpenReport',
                     data: {authToken: 'testToken', reportID: '1234'},
-                    failureData: [],
                 },
                 {
                     command: 'AddComment',
                     data: {authToken: 'testToken', reportID: '1234', reportActionID: '5678'},
-                    failureData: [],
                 },
             ];
             for (const request of requests) {
@@ -115,12 +112,10 @@ describe('Middleware', () => {
                 {
                     command: 'OpenReport',
                     data: {authToken: 'testToken', reportID: '1234'},
-                    failureData: [],
                 },
                 {
                     command: 'AddComment',
                     data: {authToken: 'testToken', reportID: '1234', reportActionID: '5678'},
-                    failureData: [],
                 },
             ];
             for (const request of requests) {
@@ -166,17 +161,14 @@ describe('Middleware', () => {
                 {
                     command: 'RequestMoney',
                     data: {authToken: 'testToken'},
-                    failureData: [],
                 },
                 {
                     command: 'AddComment',
                     data: {authToken: 'testToken', reportID: '1234', reportActionID: '5678'},
-                    failureData: [],
                 },
                 {
                     command: 'OpenReport',
                     data: {authToken: 'testToken', reportID: '2345', reportActionID: undefined, parentReportActionID: undefined},
-                    failureData: [],
                 },
             ];
             for (const request of requests) {
@@ -233,7 +225,6 @@ describe('Middleware', () => {
                 {
                     command: 'MoveIOUReportToExistingPolicy',
                     data: {authToken: 'testToken', optimisticReportID: '1234'},
-                    failureData: [],
                 },
             ];
             for (const request of requests) {
@@ -291,12 +282,10 @@ describe('Middleware', () => {
                 {
                     command: 'OpenReport',
                     data: {authToken: 'testToken', reportID: optimisticReportID, createdReportActionID: '5678'},
-                    failureData: [],
                 },
                 {
                     command: 'OpenReport',
                     data: {authToken: 'testToken', reportID: preexistingReportID},
-                    failureData: [],
                 },
             ];
             for (const request of requests) {
@@ -413,7 +402,6 @@ describe('Middleware', () => {
                 {
                     command: 'OpenReport',
                     data: {authToken: 'testToken', reportID: optimisticReportID, createdReportActionID: '5678'},
-                    failureData: [],
                 },
             ];
             for (const request of requests) {

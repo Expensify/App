@@ -101,7 +101,7 @@ function completeHybridAppOnboarding() {
     ];
 
     // eslint-disable-next-line rulesdir/no-api-side-effects-method
-    API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.COMPLETE_HYBRID_APP_ONBOARDING, {}, {optimisticData, failureData: []}).then((response) => {
+    API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.COMPLETE_HYBRID_APP_ONBOARDING, {}, {optimisticData}).then((response) => {
         if (!response) {
             return;
         }
@@ -146,7 +146,7 @@ function setSelfTourViewed(shouldUpdateOnyxDataOnlyLocally = false) {
         },
     ];
 
-    API.write(WRITE_COMMANDS.SELF_TOUR_VIEWED, null, {optimisticData, failureData: []});
+    API.write(WRITE_COMMANDS.SELF_TOUR_VIEWED, null, {optimisticData});
 }
 
 function dismissProductTraining(elementName: string, isDismissedUsingCloseButton = false) {
@@ -164,7 +164,7 @@ function dismissProductTraining(elementName: string, isDismissedUsingCloseButton
             },
         },
     ];
-    API.write(WRITE_COMMANDS.DISMISS_PRODUCT_TRAINING, {name: elementName, dismissedMethod}, {optimisticData, failureData: []});
+    API.write(WRITE_COMMANDS.DISMISS_PRODUCT_TRAINING, {name: elementName, dismissedMethod}, {optimisticData});
 }
 
 export {

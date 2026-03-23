@@ -721,7 +721,7 @@ function createCorpayBankAccount(fields: ReimbursementAccountForm, policyID: str
 }
 
 function getCorpayOnboardingFields(country: Country | '') {
-    return API.read(READ_COMMANDS.GET_CORPAY_ONBOARDING_FIELDS, {countryISO: country}, {failureData: []});
+    return API.read(READ_COMMANDS.GET_CORPAY_ONBOARDING_FIELDS, {countryISO: country});
 }
 
 function saveCorpayOnboardingCompanyDetails(parameters: SaveCorpayOnboardingCompanyDetails, bankAccountID: number) {
@@ -1251,7 +1251,7 @@ function handlePlaidError(bankAccountID: number, error: string, errorDescription
         plaidRequestID,
     };
 
-    API.write(WRITE_COMMANDS.BANK_ACCOUNT_HANDLE_PLAID_ERROR, parameters, {failureData: []});
+    API.write(WRITE_COMMANDS.BANK_ACCOUNT_HANDLE_PLAID_ERROR, parameters);
 }
 
 /**
@@ -1302,7 +1302,6 @@ function fetchCorpayFields(bankCountry: string, bankCurrency?: string, isWithdra
                     },
                 },
             ],
-            failureData: [],
         },
     );
 }
