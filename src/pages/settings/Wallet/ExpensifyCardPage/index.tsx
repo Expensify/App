@@ -19,6 +19,7 @@ import {useMultifactorAuthentication} from '@components/MultifactorAuthenticatio
 import {usePersonalDetails, useSession} from '@components/OnyxListItemProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
+import {useCurrencyListState} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -107,7 +108,6 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
         return [cardList?.[cardID]];
     }, [shouldDisplayCardDomain, cardList, cardID, domain]);
     const currentCard = useMemo(() => cardsToShow?.find((card) => String(card?.cardID) === cardID) ?? cardsToShow?.at(0), [cardsToShow, cardID]);
-
     const virtualCards = useMemo(() => cardsToShow?.filter((card) => card?.nameValuePairs?.isVirtual && !card?.nameValuePairs?.isTravelCard), [cardsToShow]);
     const travelCards = useMemo(() => cardsToShow?.filter((card) => card?.nameValuePairs?.isVirtual && card?.nameValuePairs?.isTravelCard), [cardsToShow]);
     const physicalCards = useMemo(() => cardsToShow?.filter((card) => !card?.nameValuePairs?.isVirtual), [cardsToShow]);
@@ -132,6 +132,7 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
 
     const {isAccountLocked} = useLockedAccountState();
     const {showLockedAccountModal} = useLockedAccountActions();
+    const {currencyList} = useCurrencyListState();
 
     const hasDetectedDomainFraud = cardsToShow?.some((card) => card?.fraud === CONST.EXPENSIFY_CARD.FRAUD_TYPES.DOMAIN);
     const hasDetectedIndividualFraud = cardsToShow?.some((card) => card?.fraud === CONST.EXPENSIFY_CARD.FRAUD_TYPES.INDIVIDUAL);
@@ -143,7 +144,7 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
     const shouldShowPIN = currency !== CONST.CURRENCY.USD;
     const canChangePIN = supportsPINManagementFeatures(currentPhysicalCard) && currentPhysicalCard?.state === CONST.EXPENSIFY_CARD.STATE.OPEN;
     const canRevealPIN = canChangePIN && revealedPIN === undefined;
-    const formattedAvailableSpendAmount = convertToDisplayString(currentCard?.availableSpend, currency);
+    const formattedAvailableSpendAmount = convertToDisplayString(currentCard?.availableSpend, currency, false, currencyList);
     const {limitNameKey, limitTitleKey} = getLimitTypeTranslationKeys(currentCard?.nameValuePairs?.limitType);
 
     const isSignedInAsDelegate = !!account?.delegatedAccess?.delegate || false;

@@ -5,6 +5,7 @@ import Hoverable from '@components/Hoverable';
 import Icon from '@components/Icon';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import WidgetContainer from '@components/WidgetContainer';
+import {useCurrencyListState} from '@hooks/useCurrencyList';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -28,6 +29,7 @@ function AssignedCardsSection() {
     const StyleUtils = useStyleUtils();
     const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
     const [allCardSettings] = useOnyx(ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS);
+    const {currencyList} = useCurrencyListState();
     const icons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
 
     const displayableCards = useMemo(() => getDisplayableExpensifyCards(cardList), [cardList]);
@@ -45,7 +47,7 @@ function AssignedCardsSection() {
                 const customTitle = card.nameValuePairs?.cardTitle;
                 const description = customTitle && card.lastFourPAN ? `${customTitle} ${CONST.DOT_SEPARATOR} ${card.lastFourPAN}` : (customTitle ?? getCardDescription(card, translate));
                 const currency = getCardCurrency(card, allCardSettings?.[`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${card.fundID}`]);
-                const formattedAvailableSpend = convertToDisplayString(card.availableSpend, currency);
+                const formattedAvailableSpend = convertToDisplayString(card.availableSpend, currency, false, currencyList);
                 const title = translate('homePage.assignedCardsRemaining', {amount: formattedAvailableSpend});
 
                 const unapprovedExpenseLimit = card.nameValuePairs?.unapprovedExpenseLimit;

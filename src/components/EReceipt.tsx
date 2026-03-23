@@ -1,7 +1,7 @@
 import React, {useEffect, useRef} from 'react';
 import {View} from 'react-native';
 import type {SvgProps} from 'react-native-svg';
-import {useCurrencyListActions} from '@hooks/useCurrencyList';
+import {useCurrencyListActions, useCurrencyListState} from '@hooks/useCurrencyList';
 import useEReceipt from '@hooks/useEReceipt';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -72,6 +72,7 @@ function EReceipt({transactionID, transactionItem, onLoad, isThumbnail = false, 
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const {getCurrencySymbol} = useCurrencyListActions();
+    const {currencyList} = useCurrencyListState();
     const theme = useTheme();
     const icons = useMemoizedLazyExpensifyIcons(['ExpensifyWordmark']);
     const cardList = useNonPersonalCardList();
@@ -95,7 +96,7 @@ function EReceipt({transactionID, transactionItem, onLoad, isThumbnail = false, 
         cardID: transactionCardID,
         cardName: transactionCardName,
     } = getTransactionDetails(transactionItem ?? transaction, CONST.DATE.MONTH_DAY_YEAR_FORMAT) ?? {};
-    const formattedAmount = convertToDisplayString(transactionAmount, transactionCurrency);
+    const formattedAmount = convertToDisplayString(transactionAmount, transactionCurrency, false, currencyList);
     const currency = getCurrencySymbol(transactionCurrency ?? '');
     const amount = currency ? formattedAmount.replace(currency, '') : formattedAmount;
     const cardDescription =

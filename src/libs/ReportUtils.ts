@@ -39,6 +39,7 @@ import type {
     Beta,
     BetaConfiguration,
     BillingGraceEndPeriod,
+    CurrencyList,
     IntroSelected,
     OnyxInputOrEntry,
     OutstandingReportsByPolicyIDDerivedValue,
@@ -1010,6 +1011,7 @@ type BuildOptimisticExpenseReportParams = {
     optimisticIOUReportID?: string;
     reportTransactions?: Record<string, Transaction>;
     createdTimestamp?: string;
+    currencyList?: CurrencyList;
 };
 
 type ReportByPolicyMap = Record<string, OnyxCollection<Report>>;
@@ -6775,7 +6777,13 @@ function buildOptimisticInvoiceReport(
 /**
  * Computes the optimistic report name using the policy's title field formula, with a fallback to the default expense report name.
  */
-function computeOptimisticReportName(report: Report, policy: OnyxEntry<Policy>, policyID: string | undefined, reportTransactions: Record<string, Transaction>): string | null {
+function computeOptimisticReportName(
+    report: Report,
+    policy: OnyxEntry<Policy>,
+    policyID: string | undefined,
+    reportTransactions: Record<string, Transaction>,
+    currencyList?: CurrencyList,
+): string | null {
     if (!isGroupPolicy(policy?.type ?? '')) {
         return null;
     }
@@ -6784,6 +6792,7 @@ function computeOptimisticReportName(report: Report, policy: OnyxEntry<Policy>, 
     const formulaContext: FormulaContext = {
         report,
         policy,
+        currencyList,
         allTransactions: reportTransactions,
     };
 
@@ -6856,13 +6865,14 @@ function buildOptimisticExpenseReport({
     optimisticIOUReportID,
     reportTransactions,
     createdTimestamp,
+    currencyList,
 }: BuildOptimisticExpenseReportParams): OptimisticExpenseReport {
     // The amount for Expense reports are stored as negative value in the database
     const storedTotal = total * -1;
     const storedNonReimbursableTotal = nonReimbursableTotal * -1;
     const report = chatReportID ? getReportOrDraftReport(chatReportID) : undefined;
     const policyName = getPolicyName({report});
-    const formattedTotal = convertToDisplayString(storedTotal, currency);
+    const formattedTotal = convertToDisplayString(storedTotal, currency, false, currencyList);
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     const policyReal = getPolicy(policyID);
@@ -6906,7 +6916,7 @@ function buildOptimisticExpenseReport({
     }
 
     // Compute optimistic report name if applicable
-    const computedName = computeOptimisticReportName(expenseReport, policy, policyID, reportTransactions ?? {});
+    const computedName = computeOptimisticReportName(expenseReport, policy, policyID, reportTransactions ?? {}, currencyList);
     if (computedName !== null) {
         expenseReport.reportName = computedName;
     }
@@ -6925,6 +6935,7 @@ function buildOptimisticEmptyReport(
     policy: OnyxEntry<Policy>,
     timeOfCreation: string,
     betas: OnyxEntry<Beta[]>,
+    currencyList?: CurrencyList,
 ) {
     const {stateNum, statusNum} = getExpenseReportStateAndStatus(policy, betas, true);
     const optimisticEmptyReport: OptimisticNewReport = {
@@ -6949,7 +6960,7 @@ function buildOptimisticEmptyReport(
     };
 
     // Compute optimistic report name if applicable
-    const optimisticReportName = computeOptimisticReportName(optimisticEmptyReport as Report, policy, policy?.id, {});
+    const optimisticReportName = computeOptimisticReportName(optimisticEmptyReport as Report, policy, policy?.id, {}, currencyList);
     if (optimisticReportName !== null) {
         optimisticEmptyReport.reportName = optimisticReportName;
     }

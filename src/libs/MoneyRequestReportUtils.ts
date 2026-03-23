@@ -2,7 +2,7 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {TransactionListItemType} from '@components/SelectionListWithSections/types';
 import CONST from '@src/CONST';
-import type {OriginalMessageIOU, Policy, Report, ReportAction, ReportMetadata, Transaction} from '@src/types/onyx';
+import type {CurrencyList, OriginalMessageIOU, Policy, Report, ReportAction, ReportMetadata, Transaction} from '@src/types/onyx';
 import {convertToDisplayString} from './CurrencyUtils';
 import {isPaidGroupPolicy} from './PolicyUtils';
 import {getIOUActionForTransactionID, getOriginalMessage, isDeletedAction, isDeletedParentAction, isMoneyRequestAction} from './ReportActionsUtils';
@@ -152,7 +152,12 @@ function shouldWaitForTransactions(report: OnyxEntry<Report>, transactions: Tran
  * @param reportPreviewAction - The action that will take place when button is clicked which determines how amounts are calculated and displayed.
  * @returns - The total amount to be formatted as a string. Returns an empty string if no amount is applicable.
  */
-const getTotalAmountForIOUReportPreviewButton = (report: OnyxEntry<Report>, policy: OnyxEntry<Policy>, reportPreviewAction: ValueOf<typeof CONST.REPORT.REPORT_PREVIEW_ACTIONS>) => {
+const getTotalAmountForIOUReportPreviewButton = (
+    report: OnyxEntry<Report>,
+    policy: OnyxEntry<Policy>,
+    reportPreviewAction: ValueOf<typeof CONST.REPORT.REPORT_PREVIEW_ACTIONS>,
+    currencyList?: CurrencyList,
+) => {
     // Determine whether the non-held amount is appropriate to display for the PAY button.
     const {nonHeldAmount, hasValidNonHeldAmount} = getNonHeldAndFullAmount(report, reportPreviewAction === CONST.REPORT.REPORT_PREVIEW_ACTIONS.PAY);
     const hasOnlyHeldExpenses = hasOnlyHeldExpensesReportUtils(report?.reportID);
@@ -173,11 +178,11 @@ const getTotalAmountForIOUReportPreviewButton = (report: OnyxEntry<Report>, poli
         }
 
         // Default to reimbursable spend for PAY button if above conditions are not met.
-        return convertToDisplayString(reimbursableSpend, report?.currency);
+        return convertToDisplayString(reimbursableSpend, report?.currency, false, currencyList);
     }
 
     // For all other cases, return the total display spend.
-    return convertToDisplayString(totalDisplaySpend, report?.currency);
+    return convertToDisplayString(totalDisplaySpend, report?.currency, false, currencyList);
 };
 
 export {
