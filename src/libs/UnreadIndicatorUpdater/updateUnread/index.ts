@@ -52,5 +52,14 @@ window.addEventListener('popstate', () => {
     updateUnread(unreadTotalCount);
 });
 
+/**
+ * Clear the page title without triggering a document title update.
+ * Used as cleanup in useDocumentTitle to avoid the "New Expensify" flash
+ * that occurs when setPageTitle('') queues an async updateDocumentTitle().
+ */
+function clearPageTitle() {
+    currentPageTitle = '';
+}
+
 export default updateUnread;
-export {setPageTitle};
+export {clearPageTitle, setPageTitle};
