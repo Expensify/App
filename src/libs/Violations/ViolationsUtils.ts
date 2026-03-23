@@ -647,6 +647,15 @@ const ViolationsUtils = {
         if (isPolicyTrackTaxEnabled && hasTaxOutOfPolicyViolation && isTaxInPolicy) {
             newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.TAX_OUT_OF_POLICY});
         }
+
+        // Handle billableExpense violation
+        // Remove the billableExpense violation when the workspace has billable tracking disabled.
+        // This handles the case where personal expense rules set billable=true on a workspace
+        // that doesn't track billable expenses — the violation is irrelevant in this case.
+        const hasBillableExpenseViolation = transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.BILLABLE_EXPENSE);
+        if (hasBillableExpenseViolation && policy.disabledFields?.defaultBillable) {
+            newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.BILLABLE_EXPENSE});
+        }
         return {
             onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${updatedTransaction.transactionID}`,
@@ -880,3 +889,5 @@ export {getIsViolationFixed};
 export type {ViolationFixParams};
 export default ViolationsUtils;
 export {filterReceiptViolations};
+
+
