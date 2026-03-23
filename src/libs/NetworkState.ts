@@ -238,6 +238,11 @@ function configureAndSubscribe() {
     });
 }
 
+// Subscribe to NetInfo immediately so logged-out screens (login, offline indicator)
+// have network detection from the start. Reconfigure when accountID changes to
+// update the reachability URL.
+configureAndSubscribe();
+
 // --- Onyx subscriptions (inputs for state computation) ---
 
 Onyx.connectWithoutView({
