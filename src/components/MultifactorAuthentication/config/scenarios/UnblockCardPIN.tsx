@@ -1,4 +1,5 @@
 import React from 'react';
+import {DefaultClientFailureScreen, DefaultServerFailureScreen} from '@components/MultifactorAuthentication/components/OutcomeScreen';
 import createScreenWithDefaults from '@components/MultifactorAuthentication/components/OutcomeScreen/createScreenWithDefaults';
 import DefaultSuccessScreen from '@components/MultifactorAuthentication/components/OutcomeScreen/SuccessScreen/defaultScreens';
 import type {
@@ -38,6 +39,22 @@ const CardUnlockedSuccessScreen = createScreenWithDefaults(
     'CardUnlockedSuccessScreen',
 );
 
+const ClientFailureScreen = createScreenWithDefaults(
+    DefaultClientFailureScreen,
+    {
+        subtitle: 'multifactorAuthentication.unblockCardPIN.didNotUnlockCard',
+    },
+    'ClientFailureScreen',
+);
+
+const ServerFailureScreen = createScreenWithDefaults(
+    DefaultServerFailureScreen,
+    {
+        subtitle: 'multifactorAuthentication.unblockCardPIN.didNotUnlockCard',
+    },
+    'ServerFailureScreen',
+);
+
 /**
  * Configuration for the UNBLOCK_CARD_PIN multifactor authentication scenario.
  * This scenario is used when a UK/EU cardholder needs to unlock their PIN-blocked card.
@@ -62,6 +79,8 @@ export default {
         return CONST.MULTIFACTOR_AUTHENTICATION.CALLBACK_RESPONSE.SHOW_OUTCOME_SCREEN;
     },
     successScreen: <CardUnlockedSuccessScreen />,
+    defaultClientFailureScreen: <ClientFailureScreen />,
+    defaultServerFailureScreen: <ServerFailureScreen />,
 } as const satisfies MultifactorAuthenticationScenarioCustomConfig<Payload>;
 
 export type {Payload};
