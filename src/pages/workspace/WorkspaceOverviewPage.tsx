@@ -556,8 +556,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
             headerContent={!shouldUseNarrowLayout && headerButtons}
             modals={modals}
         >
-            {() => (
-                <View style={[styles.flex1, styles.mt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
+            <View style={[styles.flex1, styles.mt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
                     {shouldUseNarrowLayout && <View style={[styles.pl5, styles.pr5, styles.pb5]}>{headerButtons}</View>}
                     <Section
                         isCentralPane
@@ -756,7 +755,6 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                         </Section>
                     ) : null}
                 </View>
-            )}
         </WorkspacePageWithSections>
     );
 }
