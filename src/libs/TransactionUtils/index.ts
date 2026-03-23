@@ -2,9 +2,10 @@ import {format, isValid, parse} from 'date-fns';
 import {deepEqual} from 'fast-equals';
 import lodashDeepClone from 'lodash/cloneDeep';
 import lodashSet from 'lodash/set';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {NullishDeep, OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import type {Coordinate} from '@components/MapView/MapViewTypes';
 import utils from '@components/MapView/utils';
 import type {UnreportedExpenseListItemType} from '@components/SelectionListWithSections/types';
@@ -52,7 +53,7 @@ import IntlStore from '@src/languages/IntlStore';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {
-    CardList,
+    Card,
     OnyxInputOrEntry,
     Policy,
     PolicyCategories,
@@ -100,6 +101,7 @@ type TransactionParams = {
     tag?: string;
     taxCode?: string;
     taxAmount?: number;
+    taxValue?: string;
     billable?: boolean;
     pendingFields?: Partial<Record<TransactionPendingFieldsKey, ValueOf<typeof CONST.RED_BRICK_ROAD_PENDING_ACTION>>>;
     reimbursable?: boolean;
@@ -331,10 +333,10 @@ function getExpenseType(transaction: OnyxEntry<Transaction>): ValueOf<typeof CON
  * 'cash' for cash transactions, or 'card' for card transactions.
  *
  * @param transaction - The transaction to check
- * @param cardList - Optional card list to check for cash transactions
+ * @param card - Optional card to check for cash transactions
  * @returns The transaction type: 'distance', 'perDiem', 'time', 'cash', or 'card'
  */
-function getTransactionType(transaction: OnyxEntry<Transaction>, cardList?: CardList): ValueOf<typeof CONST.SEARCH.TRANSACTION_TYPE> {
+function getTransactionType(transaction: OnyxEntry<Transaction>, card?: Card): ValueOf<typeof CONST.SEARCH.TRANSACTION_TYPE> {
     if (isDistanceRequest(transaction)) {
         return CONST.SEARCH.TRANSACTION_TYPE.DISTANCE;
     }
@@ -351,8 +353,7 @@ function getTransactionType(transaction: OnyxEntry<Transaction>, cardList?: Card
         return CONST.SEARCH.TRANSACTION_TYPE.CARD;
     }
 
-    const cardID = transaction?.cardID;
-    if (cardID && cardList?.[cardID]?.cardName === CONST.COMPANY_CARDS.CARD_NAME.CASH) {
+    if (card?.cardName === CONST.COMPANY_CARDS.CARD_NAME.CASH) {
         return CONST.SEARCH.TRANSACTION_TYPE.CASH;
     }
 
@@ -437,6 +438,7 @@ function buildOptimisticTransaction(params: BuildOptimisticTransactionParams): T
         tag = '',
         taxCode = '',
         taxAmount = 0,
+        taxValue,
         billable = false,
         pendingFields,
         reimbursable = true,
@@ -550,6 +552,7 @@ function buildOptimisticTransaction(params: BuildOptimisticTransactionParams): T
         tag,
         taxCode,
         taxAmount,
+        taxValue,
         modifiedAmount,
         billable,
         reimbursable,
@@ -578,6 +581,21 @@ function hasReceipt(transaction: OnyxInputOrEntry<Transaction> | undefined): boo
 /** Check if the receipt has the source file */
 function hasReceiptSource(transaction: OnyxInputOrEntry<Transaction>): boolean {
     return !!transaction?.receipt?.source;
+}
+
+/** Check if odometer image has the source file */
+function hasOdometerImageSource(transaction: OnyxInputOrEntry<Transaction>, imageType: string): boolean {
+    const odometerImage = imageType === CONST.IOU.ODOMETER_IMAGE_TYPE.START ? transaction?.comment?.odometerStartImage : transaction?.comment?.odometerEndImage;
+    if (!odometerImage) {
+        return false;
+    }
+    if (typeof odometerImage === 'string') {
+        return odometerImage.length > 0;
+    }
+    if ('uri' in odometerImage) {
+        return typeof odometerImage.uri === 'string' && odometerImage.uri.length > 0;
+    }
+    return true;
 }
 
 function isDemoTransaction(transaction: OnyxInputOrEntry<Transaction>): boolean {
@@ -631,7 +649,7 @@ function isCreatedMissing(transaction: OnyxEntry<Transaction>) {
 
 function areRequiredFieldsEmpty(transaction: OnyxEntry<Transaction>, transactionReport: OnyxEntry<Report>): boolean {
     const isFromExpenseReport = transactionReport?.type === CONST.REPORT.TYPE.EXPENSE;
-    return (isFromExpenseReport && isMerchantMissing(transaction)) || isCreatedMissing(transaction);
+    return (isFromExpenseReport && isMerchantMissing(transaction)) || isCreatedMissing(transaction) || (!isFromExpenseReport && getAmount(transaction) === 0);
 }
 
 function getClearedPendingFields(transactionChanges: TransactionChanges) {
@@ -747,6 +765,10 @@ function getUpdatedTransaction({
         }
     }
 
+    if (Object.hasOwn(transactionChanges, 'reportID') && typeof transactionChanges.reportID === 'string') {
+        updatedTransaction.reportID = transactionChanges.reportID;
+    }
+
     if (Object.hasOwn(transactionChanges, 'routes')) {
         updatedTransaction.routes = transactionChanges.routes;
     }
@@ -762,8 +784,9 @@ function getUpdatedTransaction({
         const newDistanceUnit = DistanceRequestUtils.getUpdatedDistanceUnit({transaction: updatedTransaction, policy});
         lodashSet(updatedTransaction, 'comment.customUnit.distanceUnit', newDistanceUnit);
 
-        // If the distanceUnit is set and the rate is changed to one that has a different unit, convert the distance to the new unit
-        if (existingDistanceUnit && newDistanceUnit !== existingDistanceUnit) {
+        // If the distanceUnit is set and the rate is changed to one that has a different unit, convert the distance to the new unit.
+        // Skip conversion for odometer transactions — odometer readings are physical car readings and should be retained as-is.
+        if (existingDistanceUnit && newDistanceUnit !== existingDistanceUnit && !isOdometerDistanceRequest(transaction)) {
             const conversionFactor = existingDistanceUnit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES ? CONST.CUSTOM_UNITS.MILES_TO_KILOMETERS : CONST.CUSTOM_UNITS.KILOMETERS_TO_MILES;
             const distance = roundToTwoDecimalPlaces((transaction?.comment?.customUnit?.quantity ?? 0) * conversionFactor);
             lodashSet(updatedTransaction, 'comment.customUnit.quantity', distance);
@@ -773,11 +796,10 @@ function getUpdatedTransaction({
             // When the waypoints are being fetched from the server, we have no information about the distance, and cannot recalculate the updated amount.
             // Otherwise, recalculate the fields based on the new rate.
 
-            const oldMileageRate = DistanceRequestUtils.getRate({transaction, policy});
             const updatedMileageRate = DistanceRequestUtils.getRate({transaction: updatedTransaction, policy, useTransactionDistanceUnit: false});
             const {unit, rate} = updatedMileageRate;
 
-            const distanceInMeters = getDistanceInMeters(transaction, oldMileageRate?.unit);
+            const distanceInMeters = getDistanceInMeters(updatedTransaction, unit);
             const amount = DistanceRequestUtils.getDistanceRequestAmount(distanceInMeters, unit, rate ?? 0);
             const updatedAmount = isFromExpenseReport || isUnReportedExpense ? -amount : amount;
             const updatedCurrency = updatedMileageRate.currency ?? CONST.CURRENCY.USD;
@@ -1358,13 +1380,14 @@ function isManagedCardTransaction(transaction: OnyxEntry<Transaction>): boolean 
  * This includes managed cards (Expensify/Company cards) and personal cards imported via bank connection.
  */
 function isFromCreditCardImport(transaction: OnyxEntry<Transaction>): boolean {
+    // CSV-imported card transactions (bank === 'upload') must be checked before transactionType to avoid search snapshot inconsistency
+    if (transaction?.bank === CONST.COMPANY_CARD.FEED_BANK_NAME.UPLOAD) {
+        return false;
+    }
+
     // This can be set in transactions found in the search snapshot
     if (transaction?.transactionType === CONST.SEARCH.TRANSACTION_TYPE.CARD) {
         return true;
-    }
-
-    if (transaction?.bank === CONST.COMPANY_CARD.FEED_BANK_NAME.UPLOAD) {
-        return false;
     }
 
     if (transaction?.cardName === CONST.EXPENSE.TYPE.CASH_CARD_NAME) {
@@ -1417,6 +1440,11 @@ function isPosted(transaction: Transaction): boolean {
 function isScanning(transaction: OnyxEntry<Transaction>): boolean {
     // Performance optimization: Check the receipt state first (cheapest check) before doing more expensive checks
     if (!isReceiptBeingScanned(transaction)) {
+        return false;
+    }
+
+    // SmartScan can continue in the background, but a manual amount edit should stop the scanning UI state.
+    if (hasValidModifiedAmount(transaction)) {
         return false;
     }
 
@@ -2411,6 +2439,7 @@ function compareDuplicateTransactionFields(
                     .map((item) => {
                         // Prioritize modifiedMerchant over merchant
                         if (keys.includes('modifiedMerchant' as keyof Transaction) && keys.includes('merchant' as keyof Transaction)) {
+                            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                             return getMerchant(item);
                         }
                         return keys.map((key) => item?.[key]);
@@ -2477,7 +2506,7 @@ function compareDuplicateTransactionFields(
 
                 if (!areAllFieldsEqualForKey && validTaxes.length > 1) {
                     change[fieldName] = validTaxes;
-                } else if (areAllFieldsEqualForKey) {
+                } else {
                     keep[fieldName] = firstTransaction?.[keys[0]] ?? firstTransaction?.[keys[1]];
                 }
             } else if (fieldName === 'category') {
@@ -2488,7 +2517,7 @@ function compareDuplicateTransactionFields(
 
                 if (!areAllFieldsEqualForKey && policy?.areCategoriesEnabled && (availableCategories.length > 1 || (availableCategories.length === 1 && differentValues.includes('')))) {
                     change[fieldName] = [...availableCategories, ...(differentValues.includes('') ? [''] : [])];
-                } else if (areAllFieldsEqualForKey) {
+                } else {
                     keep[fieldName] = firstTransaction?.[keys[0]] ?? firstTransaction?.[keys[1]];
                 }
             } else if (fieldName === 'tag') {
@@ -2507,7 +2536,7 @@ function compareDuplicateTransactionFields(
                         .map((e) => e.name);
                     if (!areAllFieldsEqualForKey && policy?.areTagsEnabled && (availableTags.length > 1 || (availableTags.length === 1 && differentValues.includes('')))) {
                         change[fieldName] = [...availableTags, ...(differentValues.includes('') ? [''] : [])];
-                    } else if (areAllFieldsEqualForKey) {
+                    } else {
                         keep[fieldName] = firstTransaction?.[keys[0]] ?? firstTransaction?.[keys[1]];
                     }
                 }
@@ -2615,6 +2644,7 @@ function isExpenseSplit(transaction: OnyxEntry<Transaction>, originalTransaction
 
     const {originalTransactionID, source, splits} = transaction?.comment ?? {};
 
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     if ((splits && splits.length > 0) || !originalTransactionID || source !== CONST.IOU.TYPE.SPLIT) {
         return false;
     }
@@ -2670,6 +2700,16 @@ function getChildTransactions(transactions: OnyxCollection<Transaction>, reports
         const currentReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${currentTransaction?.reportID}`];
         return !!currentReport || currentTransaction?.comment?.source === CONST.IOU.TYPE.SPLIT;
     });
+}
+
+/**
+ * Checks if a split transaction has more than one child transaction.
+ */
+function hasMultipleSplitChildren(transactions: OnyxCollection<Transaction>, reports: OnyxCollection<Report>, originalTransactionID: string | undefined): boolean {
+    if (!originalTransactionID) {
+        return false;
+    }
+    return getChildTransactions(transactions, reports, originalTransactionID).length > 1;
 }
 
 /**
@@ -2756,6 +2796,67 @@ function shouldReuseInitialTransaction(
     }
 
     return !isMultiScanEnabled || (transactions.length === 1 && (!initialTransaction.receipt?.source || initialTransaction.receipt?.isTestReceipt === true));
+}
+
+/**
+ * A utility that ensures unreported transactions are unheld.
+ * For distance expenses, it also updates the `customUnit` and recalculates the transaction's `amount`, `merchant`, and `currency`
+ */
+function recalculateUnreportedTransactionDetails(
+    transaction: OnyxEntry<Transaction>,
+    destinationCurrency: string | undefined,
+    translateParam: LocaleContextProps['translate'],
+    toLocaleDigitParam: LocaleContextProps['toLocaleDigit'],
+) {
+    // If the transaction is on hold, we need to unhold it because unreported transactions (on selfDM) should never remain on hold.
+    const comment: NullishDeep<Comment> = {
+        hold: null,
+    };
+    let modifiedAmount: number | undefined;
+    let modifiedCurrency: string | undefined;
+    let modifiedMerchant: string | undefined;
+
+    // For distance requests we need to update its custom unit ID to `_FAKE_P2P_ID_` so it's no longer tied to the policy's rate which would cause the "Rate out of policy" violation to appear.
+    // Let's also set the defaultP2PRate and update the distanceUnit, the quantity, the amount, the currency and the merchant to match the P2P rate.
+    if (isDistanceRequest(transaction)) {
+        const currency = destinationCurrency && CONST.CURRENCY_TO_DEFAULT_MILEAGE_RATE[destinationCurrency] ? destinationCurrency : CONST.CURRENCY.USD;
+        const {rate, unit} = CONST.CURRENCY_TO_DEFAULT_MILEAGE_RATE[currency];
+        const distance = parseFloat(
+            DistanceRequestUtils.getRoundedDistanceInUnits(getDistanceInMeters(transaction, transaction?.comment?.customUnit?.distanceUnit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES), unit),
+        );
+        const distanceInMeters = DistanceRequestUtils.convertToDistanceInMeters(distance, unit);
+        comment.customUnit = {
+            customUnitID: CONST.CUSTOM_UNITS.FAKE_P2P_ID,
+            customUnitRateID: CONST.CUSTOM_UNITS.FAKE_P2P_ID,
+            defaultP2PRate: rate,
+            distanceUnit: unit,
+            quantity: distance,
+        };
+        modifiedAmount = -DistanceRequestUtils.getDistanceRequestAmount(distanceInMeters, unit, rate ?? 0);
+        modifiedCurrency = currency;
+        modifiedMerchant = DistanceRequestUtils.getDistanceMerchant(
+            true,
+            distanceInMeters,
+            unit,
+            rate,
+            currency,
+            translateParam,
+            toLocaleDigitParam,
+            getCurrencySymbol,
+            isManualDistanceRequest(transaction),
+        );
+    }
+
+    return {comment, modifiedAmount, modifiedCurrency, modifiedMerchant};
+}
+
+/**
+ * Check if the transaction has a smartscan failed with missing fields before violation is written
+ */
+function hasSmartScanFailedWithMissingFields(transactions: Transaction[], report: OnyxEntry<Report>): boolean {
+    return transactions.some(
+        (transaction) => isScanRequest(transaction) && transaction?.receipt?.state === CONST.IOU.RECEIPT_STATE.SCAN_FAILED && hasMissingSmartscanFields(transaction, report),
+    );
 }
 
 export {
@@ -2856,6 +2957,7 @@ export {
     removeTransactionFromDuplicateTransactionViolation,
     getCardName,
     hasReceiptSource,
+    hasOdometerImageSource,
     shouldShowAttendees,
     getAllSortedTransactions,
     getFormattedPostedDate,
@@ -2872,6 +2974,7 @@ export {
     getTransactionPendingAction,
     isTransactionPendingDelete,
     getChildTransactions,
+    hasMultipleSplitChildren,
     createUnreportedExpenses,
     isDemoTransaction,
     shouldShowViolation,
@@ -2895,6 +2998,8 @@ export {
     isTimeRequest,
     getExpenseTypeTranslationKey,
     isDistanceTypeRequest,
+    recalculateUnreportedTransactionDetails,
+    hasSmartScanFailedWithMissingFields,
 };
 
 export type {TransactionChanges};

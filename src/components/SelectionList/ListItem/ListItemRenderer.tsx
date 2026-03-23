@@ -38,10 +38,12 @@ function ListItemRenderer<TItem extends ListItem>({
     rightHandSideComponent,
     isMultilineSupported,
     isAlternateTextMultilineSupported,
+    shouldUseDefaultRightHandSideComponent,
     alternateTextNumberOfLines,
     shouldIgnoreFocus,
     setFocusedIndex,
     shouldSyncFocus,
+    titleNumberOfLines,
     wrapperStyle,
     titleStyles,
     singleExecution,
@@ -82,10 +84,13 @@ function ListItemRenderer<TItem extends ListItem>({
                 shouldPreventEnterKeySubmit
                 rightHandSideComponent={rightHandSideComponent}
                 keyForList={item.keyForList}
+                shouldUseDefaultRightHandSideComponent={shouldUseDefaultRightHandSideComponent}
                 isMultilineSupported={isMultilineSupported}
                 isAlternateTextMultilineSupported={isAlternateTextMultilineSupported}
                 alternateTextNumberOfLines={alternateTextNumberOfLines}
+                titleNumberOfLines={titleNumberOfLines}
                 onFocus={(event: NativeSyntheticEvent<ExtendedTargetedEvent>) => {
+                    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                     if (shouldIgnoreFocus || isDisabled) {
                         return;
                     }

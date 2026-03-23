@@ -30,6 +30,7 @@ import type {ReimbursementAccountNavigatorParamList} from '@libs/Navigation/type
 import {goBackFromInvalidPolicy, isPendingDeletePolicy, isPolicyAdmin} from '@libs/PolicyUtils';
 import {getRouteForCurrentStep, hasInProgressUSDVBBA, hasInProgressVBBA} from '@libs/ReimbursementAccountUtils';
 import shouldReopenOnfido from '@libs/shouldReopenOnfido';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {isFullScreenName} from '@navigation/helpers/isNavigatorName';
 import type {WithPolicyOnyxProps} from '@pages/workspace/withPolicy';
 import withPolicy from '@pages/workspace/withPolicy';
@@ -155,6 +156,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: 
             clearReimbursementAccount();
             getPaymentMethods(true);
         };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     useEffect(() => {
@@ -260,6 +262,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: 
         // If USD bank account is in pending state, we should navigate straight to the validation step and skip Continue step
         if (policyCurrency === CONST.CURRENCY.USD && achData?.state === CONST.BANK_ACCOUNT.STATE.PENDING) {
             setUSDBankAccountStep(CONST.BANK_ACCOUNT.STEP.VALIDATION);
+            goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.VALIDATION);
             return;
         }
 
@@ -485,13 +488,22 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: 
     }
 
     if (isLoadingPolicy) {
-        return <FullScreenLoadingIndicator />;
+        const loadingPolicyReasonAttributes: SkeletonSpanReasonAttributes = {
+            context: 'ReimbursementAccountPage',
+            isLoadingPolicy,
+        };
+        return <FullScreenLoadingIndicator reasonAttributes={loadingPolicyReasonAttributes} />;
     }
 
     // Show loading indicator when page is first time being opened and props.reimbursementAccount yet to be loaded from the server
     // or when data is being loaded. Don't show the loading indicator if we're offline and restarted the bank account setup process
     // On Android, when we open the app from the background, Onfido activity gets destroyed, so we need to reopen it.
-    if ((!hasACHDataBeenLoaded || isLoading || isLoadingWorkspaceReimbursement) && shouldShowOfflineLoader && (shouldReopenOnfido || !requestorStepRef?.current)) {
+    if (
+        (!!policyIDParam || !!bankAccountIDParam) &&
+        (!hasACHDataBeenLoaded || isLoading || isLoadingWorkspaceReimbursement) &&
+        shouldShowOfflineLoader &&
+        (shouldReopenOnfido || !requestorStepRef?.current)
+    ) {
         return <ReimbursementAccountLoadingIndicator onBackButtonPress={goBack} />;
     }
 
@@ -517,7 +529,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: 
     } else if (throttledDate) {
         errorText = <Text>{translate('bankAccount.hasBeenThrottledError')}</Text>;
     } else if (hasUnsupportedCurrency) {
-        errorText = <RenderHTML html={translate('bankAccount.hasCurrencyError', {workspaceRoute})} />;
+        errorText = <RenderHTML html={translate('bankAccount.hasCurrencyError', workspaceRoute)} />;
     }
 
     if (errorText) {

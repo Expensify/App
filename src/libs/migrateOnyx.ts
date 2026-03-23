@@ -1,7 +1,5 @@
 import CONST from '@src/CONST';
 import Log from './Log';
-import ConvertPolicyChatReportIDsToString from './migrations/ConvertPolicyChatReportIDsToString';
-import RenameEmojiSkinTone from './migrations/RenameEmojiSkinTone';
 import {endSpan, getSpan, startSpan} from './telemetry/activeSpans';
 
 export default function () {
@@ -16,10 +14,11 @@ export default function () {
         });
 
         // Add all migrations to an array so they are executed in order
-        const migrationPromises = [RenameEmojiSkinTone, ConvertPolicyChatReportIDsToString];
+        const migrationPromises: Array<() => Promise<void>> = [];
 
         // Reduce all promises down to a single promise. All promises run in a linear fashion, waiting for the
         // previous promise to finish before moving onto the next one.
+        /* eslint-disable arrow-body-style */
         migrationPromises
             .reduce<Promise<void | void[]>>((previousPromise, migrationPromise) => {
                 return previousPromise.then(() => {

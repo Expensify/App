@@ -4,6 +4,7 @@ import {View} from 'react-native';
 import Icon from '@components/Icon';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import ReportActionAvatars from '@components/ReportActionAvatars';
+import {ListItemFocusContext} from '@components/SelectionList/ListItemFocusContext';
 import Text from '@components/Text';
 import TextWithTooltip from '@components/TextWithTooltip';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -57,6 +58,7 @@ function UserListItem<TItem extends ListItem>({
         }
     }, [item, onCheckboxPress, onSelectRow]);
 
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const [isReportInOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${item.reportID}`, {
         selector: reportExistsSelector,
     });
@@ -69,6 +71,11 @@ function UserListItem<TItem extends ListItem>({
     const shouldUseIconPolicyID = !item.reportID && !item.accountID && !item.policyID;
     const policyID = isThereOnlyWorkspaceIcon && shouldUseIconPolicyID ? String(item.icons?.at(0)?.id) : item.policyID;
 
+    // Disable accessible grouping when a right-side button is visible, so VoiceOver can focus it independently.
+    const renderedRightComponent = typeof rightHandSideComponent === 'function' ? rightHandSideComponent(item, isFocused) : rightHandSideComponent;
+    const shouldDisableAccessibleGrouping = !!renderedRightComponent && !canSelectMultiple;
+    const contactAccessibilityLabel = item.text === item.alternateText ? (item.text ?? '') : [item.text, item.alternateText].filter(Boolean).join(', ');
+
     return (
         <BaseListItem
             item={item}
@@ -80,7 +87,7 @@ function UserListItem<TItem extends ListItem>({
             onSelectRow={onSelectRow}
             onDismissError={onDismissError}
             shouldPreventEnterKeySubmit={shouldPreventEnterKeySubmit}
-            rightHandSideComponent={rightHandSideComponent}
+            rightHandSideComponent={renderedRightComponent}
             errors={item.errors}
             pendingAction={item.pendingAction}
             pressableStyle={pressableStyle}
@@ -92,18 +99,24 @@ function UserListItem<TItem extends ListItem>({
             keyForList={item.keyForList}
             onFocus={onFocus}
             shouldSyncFocus={shouldSyncFocus}
+            accessible={shouldDisableAccessibleGrouping ? false : undefined}
             shouldDisableHoverStyle={shouldDisableHoverStyle}
         >
             {(hovered?: boolean) => {
                 const isHovered = !!hovered && !shouldDisableHoverStyle;
 
                 return (
-                    <>
+                    <View
+                        accessible={shouldDisableAccessibleGrouping || undefined}
+                        accessibilityLabel={shouldDisableAccessibleGrouping ? contactAccessibilityLabel : undefined}
+                        role={shouldDisableAccessibleGrouping ? CONST.ROLE.BUTTON : undefined}
+                        style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}
+                    >
                         {!shouldUseDefaultRightHandSideCheckmark && !!canSelectMultiple && (
                             <PressableWithFeedback
+                                sentryLabel={CONST.SENTRY_LABEL.USER_LIST_ITEM_WITH_SECTIONS.LEFT_CHECKBOX}
                                 accessibilityLabel={item.text ?? ''}
                                 role={CONST.ROLE.BUTTON}
-                                sentryLabel={CONST.SENTRY_LABEL.USER_LIST_ITEM_WITH_SECTIONS.CHECKBOX}
                                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                                 disabled={isDisabled || item.isDisabledCheckbox}
                                 onPress={handleCheckboxPress}
@@ -131,6 +144,7 @@ function UserListItem<TItem extends ListItem>({
                                     isHovered && !isFocused ? StyleUtils.getBackgroundAndBorderStyle(hoveredBackgroundColor) : undefined,
                                 ]}
                                 reportID={reportExists ? item.reportID : undefined}
+                                /* eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing */
                                 accountIDs={!reportExists && !!itemAccountID ? [itemAccountID] : []}
                                 policyID={!reportExists && !!policyID ? policyID : undefined}
                                 singleAvatarContainerStyle={[styles.actionAvatar, styles.mr3]}
@@ -158,7 +172,7 @@ function UserListItem<TItem extends ListItem>({
                                 />
                             )}
                         </View>
-                        {!!item.rightElement && item.rightElement}
+                        {!!item.rightElement && <ListItemFocusContext.Provider value={{isFocused}}>{item.rightElement}</ListItemFocusContext.Provider>}
                         {!!item.shouldShowRightIcon && (
                             <View style={[styles.popoverMenuIcon, styles.pointerEventsAuto, isDisabled && styles.cursorDisabled]}>
                                 <Icon
@@ -169,9 +183,9 @@ function UserListItem<TItem extends ListItem>({
                         )}
                         {!!shouldUseDefaultRightHandSideCheckmark && !!canSelectMultiple && (
                             <PressableWithFeedback
+                                sentryLabel={CONST.SENTRY_LABEL.USER_LIST_ITEM_WITH_SECTIONS.RIGHT_CHECKBOX}
                                 accessibilityLabel={item.text ?? ''}
                                 role={CONST.ROLE.BUTTON}
-                                sentryLabel={CONST.SENTRY_LABEL.USER_LIST_ITEM_WITH_SECTIONS.CHECKBOX_RIGHT}
                                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                                 disabled={isDisabled || item.isDisabledCheckbox}
                                 onPress={handleCheckboxPress}
@@ -189,7 +203,7 @@ function UserListItem<TItem extends ListItem>({
                                 </View>
                             </PressableWithFeedback>
                         )}
-                    </>
+                    </View>
                 );
             }}
         </BaseListItem>

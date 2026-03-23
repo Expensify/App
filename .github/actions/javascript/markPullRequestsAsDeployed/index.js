@@ -12844,6 +12844,8 @@ async function run() {
     const webResult = getDeployTableMessage(core.getInput('WEB', { required: true }));
     const date = core.getInput('DATE');
     const note = core.getInput('NOTE');
+    const androidSentryUrl = core.getInput('ANDROID_SENTRY_URL');
+    const iosSentryUrl = core.getInput('IOS_SENTRY_URL');
     function getDeployMessage(deployer, deployVerb) {
         let message = `🚀 [${deployVerb}](${workflowURL}) to ${isProd ? 'production' : 'staging'}`;
         message += ` by https://github.com/${deployer} in version: ${version} `;
@@ -12856,6 +12858,15 @@ async function run() {
         message += `\n🤖 android 🤖|${androidResult}\n🍎 iOS 🍎|${iOSResult}`;
         if (note) {
             message += `\n\n_Note:_ ${note}`;
+        }
+        if (androidSentryUrl || iosSentryUrl) {
+            message += `\n\n**Bundle Size Analysis (Sentry):**`;
+            if (androidSentryUrl) {
+                message += `\n- [Android](${androidSentryUrl})`;
+            }
+            if (iosSentryUrl) {
+                message += `\n- [iOS](${iosSentryUrl})`;
+            }
         }
         return message;
     }
@@ -13137,7 +13148,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-/* eslint-disable @typescript-eslint/naming-convention */
+/* eslint-disable @typescript-eslint/naming-convention, import/no-import-module-exports */
 const core = __importStar(__nccwpck_require__(2186));
 const utils_1 = __nccwpck_require__(3030);
 const plugin_paginate_rest_1 = __nccwpck_require__(4193);

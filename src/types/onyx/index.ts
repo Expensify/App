@@ -5,6 +5,7 @@ import type AccountData from './AccountData';
 import type AppReview from './AppReview';
 import type {ApprovalWorkflowOnyx} from './ApprovalWorkflow';
 import type {AssignCard, AssignCardData} from './AssignCard';
+import type Attachment from './Attachment';
 import type {BankAccountList} from './BankAccount';
 import type BankAccount from './BankAccount';
 import type BankAccountShareDetails from './BankAccountShareDetails';
@@ -112,6 +113,7 @@ import type PolicyJoinMember from './PolicyJoinMember';
 import type PolicyOwnershipChangeChecks from './PolicyOwnershipChangeChecks';
 import type {PolicyTag, PolicyTagLists, PolicyTags} from './PolicyTag';
 import type PrivatePersonalDetails from './PrivatePersonalDetails';
+import type PrivatePromoDiscount from './PrivatePromoDiscount';
 import type PrivateSubscription from './PrivateSubscription';
 import type PurchaseList from './PurchaseList';
 import type QuickAction from './QuickAction';
@@ -159,6 +161,7 @@ import type TransactionPending3DSReview from './TransactionPending3DSReview';
 import type TransactionsPending3DSReview from './TransactionsPending3DSReview';
 import type {TransactionViolation, ViolationName} from './TransactionViolation';
 import type TransactionViolations from './TransactionViolation';
+import type TravelInvoiceStatement from './TravelInvoiceStatement';
 import type TravelProvisioning from './TravelProvisioning';
 import type {TravelSettings, WorkspaceTravelSettings} from './TravelSettings';
 import type TryNewDot from './TryNewDot';
@@ -180,6 +183,7 @@ import type WalletTransfer from './WalletTransfer';
 export type {
     FileObject,
     TryNewDot,
+    Attachment,
     Account,
     AccountData,
     AssignCard,
@@ -306,6 +310,7 @@ export type {
     WalletAdditionalDetails,
     WalletAdditionalQuestionDetails,
     WalletOnfido,
+    TravelInvoiceStatement,
     WalletStatement,
     WalletTerms,
     WalletTransfer,
@@ -324,6 +329,7 @@ export type {
     SearchResults,
     ReviewDuplicates,
     PrivateSubscription,
+    PrivatePromoDiscount,
     BillingGraceEndPeriod,
     StripeCustomerID,
     BillingStatus,

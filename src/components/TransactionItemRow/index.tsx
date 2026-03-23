@@ -413,7 +413,6 @@ function TransactionItemRow({
                                 action={transactionItem.action}
                                 isSelected={isSelected}
                                 isChildListItem={isReportItemChild}
-                                parentAction={transactionItem.parentTransactionID}
                                 goToItem={onButtonPress}
                                 isLoading={isActionLoading}
                                 reportID={transactionItem.reportID}

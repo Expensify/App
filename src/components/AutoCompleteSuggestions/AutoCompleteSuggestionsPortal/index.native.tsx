@@ -20,7 +20,7 @@ function AutoCompleteSuggestionsPortal<TSuggestion>({left = 0, width = 0, bottom
         <Portal hostName="suggestions">
             <TransparentOverlay onPress={resetSuggestions} />
             <View style={styles}>
-                {}
+                {/* eslint-disable-next-line react/jsx-props-no-spreading */}
                 <BaseAutoCompleteSuggestions<TSuggestion>
                     width={width}
                     // eslint-disable-next-line react/jsx-props-no-spreading

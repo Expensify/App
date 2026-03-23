@@ -8,6 +8,7 @@ import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import ConfirmModal from '@components/ConfirmModal';
+import MentionReportContext from '@components/HTMLEngineProvider/HTMLRenderers/MentionReportRenderer/MentionReportContext';
 import {useLockedAccountActions, useLockedAccountState} from '@components/LockedAccountModalProvider';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -21,6 +22,7 @@ import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hook
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import useOutstandingBalanceGuard from '@hooks/useOutstandingBalanceGuard';
 import usePayAndDowngrade from '@hooks/usePayAndDowngrade';
 import usePermissions from '@hooks/usePermissions';
 import usePrevious from '@hooks/usePrevious';
@@ -28,6 +30,7 @@ import usePrivateSubscription from '@hooks/usePrivateSubscription';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionViolationOfWorkspace from '@hooks/useTransactionViolationOfWorkspace';
+import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
 import {close} from '@libs/actions/Modal';
 import {clearInviteDraft, clearWorkspaceOwnerChangeFlow, isApprover as isApproverUserAction, requestWorkspaceOwnerChange} from '@libs/actions/Policy/Member';
 import {
@@ -57,6 +60,7 @@ import {
     isPolicyOwner,
     shouldBlockWorkspaceDeletionForInvoicifyUser,
 } from '@libs/PolicyUtils';
+import {formatAddressToString} from '@libs/ReportActionsUtils';
 import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
 import shouldRenderTransferOwnerButton from '@libs/shouldRenderTransferOwnerButton';
 import StringUtils from '@libs/StringUtils';
@@ -90,10 +94,10 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
     const [isComingFromGlobalReimbursementsFlow] = useOnyx(ONYXKEYS.IS_COMING_FROM_GLOBAL_REIMBURSEMENTS_FLOW);
     const [lastAccessedWorkspacePolicyID] = useOnyx(ONYXKEYS.LAST_ACCESSED_WORKSPACE_POLICY_ID);
     const [reimbursementAccountError] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {selector: reimbursementAccountErrorSelector});
-    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
 
     // When we create a new workspace, the policy prop will be empty on the first render. Therefore, we have to use policyDraft until policy has been set in Onyx.
     const policy = policyDraft?.id ? policyDraft : policyProp;
+    useWorkspaceDocumentTitle(policy?.name, 'workspace.common.profile');
     const policyID = policy?.id;
     const defaultFundID = useDefaultFundID(policyID);
     const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${defaultFundID}`);
@@ -115,56 +119,52 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         !isEmptyObject(cardFeeds) || !isEmptyObject(cardsList) || ((policy?.areExpensifyCardsEnabled || policy?.areCompanyCardsEnabled) && policy?.workspaceAccountID);
 
-    const [street1, street2] = (policy?.address?.addressStreet ?? '').split('\n');
-    const formattedAddress =
-        !isEmptyObject(policy) && !isEmptyObject(policy.address)
-            ? `${street1?.trim()}, ${street2 ? `${street2.trim()}, ` : ''}${policy.address.city}, ${policy.address.state} ${policy.address.zipCode ?? ''}`
-            : '';
+    const formattedAddress = !isEmptyObject(policy) && !isEmptyObject(policy.address) ? formatAddressToString(policy.address) : '';
 
     const {reportsToArchive, transactionViolations} = useTransactionViolationOfWorkspace(policyID);
 
-    const onPressCurrency = useCallback(() => {
+    const onPressCurrency = () => {
         if (!policyID) {
             return;
         }
         Navigation.navigate(ROUTES.WORKSPACE_OVERVIEW_CURRENCY.getRoute(policyID));
-    }, [policyID]);
-    const onPressAddress = useCallback(() => {
+    };
+    const onPressAddress = () => {
         if (!policyID) {
             return;
         }
         Navigation.navigate(ROUTES.WORKSPACE_OVERVIEW_ADDRESS.getRoute(policyID));
-    }, [policyID]);
-    const onPressName = useCallback(() => {
+    };
+    const onPressName = () => {
         if (!policyID) {
             return;
         }
         Navigation.navigate(ROUTES.WORKSPACE_OVERVIEW_NAME.getRoute(policyID));
-    }, [policyID]);
-    const onPressDescription = useCallback(() => {
+    };
+    const onPressDescription = () => {
         if (!policyID) {
             return;
         }
         Navigation.navigate(ROUTES.WORKSPACE_OVERVIEW_DESCRIPTION.getRoute(policyID));
-    }, [policyID]);
-    const onPressClientID = useCallback(() => {
+    };
+    const onPressClientID = () => {
         if (!policyID) {
             return;
         }
         Navigation.navigate(ROUTES.WORKSPACE_OVERVIEW_CLIENT_ID.getRoute(policyID));
-    }, [policyID]);
-    const onPressShare = useCallback(() => {
+    };
+    const onPressShare = () => {
         if (!policyID) {
             return;
         }
         Navigation.navigate(ROUTES.WORKSPACE_OVERVIEW_SHARE.getRoute(policyID));
-    }, [policyID]);
-    const onPressPlanType = useCallback(() => {
+    };
+    const onPressPlanType = () => {
         if (!policyID) {
             return;
         }
         Navigation.navigate(ROUTES.WORKSPACE_OVERVIEW_PLAN.getRoute(policyID));
-    }, [policyID]);
+    };
     const policyName = policy?.name ?? '';
     const policyDescription = policy?.description ?? translate('workspace.common.defaultDescription');
     const policyCurrency = policy?.outputCurrency ?? '';
@@ -185,6 +185,8 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
 
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const ownerPolicies = ownerPoliciesSelector(policies, accountID);
+    const activeOwnerPoliciesCount = ownerPolicies.filter((p) => !isPendingDeletePolicy(p)).length;
+    const {shouldBlockDeletion, wouldBlockDeletion, outstandingBalanceModal} = useOutstandingBalanceGuard(activeOwnerPoliciesCount);
 
     const isFocused = useIsFocused();
     const isPendingDelete = isPendingDeletePolicy(policy);
@@ -192,12 +194,14 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
     const [isDeleteWorkspaceErrorModalOpen, setIsDeleteWorkspaceErrorModalOpen] = useState(false);
     const policyLastErrorMessage = getLatestErrorMessage(policy);
 
-    const fetchPolicyData = useCallback(() => {
-        if (policyDraft?.id) {
+    const mentionReportContextValue = {policyID: policy?.id, currentReportID: undefined, exactlyMatch: true};
+
+    const fetchPolicyData = () => {
+        if (policyDraft?.id || !isFocused) {
             return;
         }
         openPolicyProfilePage(route.params.policyID);
-    }, [policyDraft?.id, route.params.policyID]);
+    };
 
     const {isOffline} = useNetwork({onReconnect: fetchPolicyData});
 
@@ -230,9 +234,9 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
     );
 
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-    const continueDeleteWorkspace = useCallback(() => {
+    const continueDeleteWorkspace = () => {
         setIsDeleteModalOpen(true);
-    }, []);
+    };
 
     const {setIsDeletingPaidWorkspace, isLoadingBill}: {setIsDeletingPaidWorkspace: (value: boolean) => void; isLoadingBill: boolean | undefined} =
         usePayAndDowngrade(continueDeleteWorkspace);
@@ -240,7 +244,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
     const dropdownMenuRef = useRef<{setIsMenuVisible: (visible: boolean) => void} | null>(null);
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
 
-    const confirmDelete = useCallback(() => {
+    const confirmDelete = () => {
         if (!policyID || !policyName) {
             return;
         }
@@ -255,7 +259,6 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
             reportsToArchive,
             transactionViolations,
             reimbursementAccountError,
-            bankAccountList,
             lastUsedPaymentMethods: lastPaymentMethod,
             localeCompare,
             personalPolicyID,
@@ -264,24 +267,9 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
             setIsDeleteModalOpen(false);
             goBackFromInvalidPolicy();
         }
-    }, [
-        policies,
-        policyID,
-        policyName,
-        lastAccessedWorkspacePolicyID,
-        defaultCardFeeds,
-        reportsToArchive,
-        transactionViolations,
-        reimbursementAccountError,
-        lastPaymentMethod,
-        localeCompare,
-        isOffline,
-        activePolicyID,
-        bankAccountList,
-        personalPolicyID,
-    ]);
+    };
 
-    const handleLeaveWorkspace = useCallback(() => {
+    const handleLeaveWorkspace = () => {
         if (!policy) {
             return;
         }
@@ -289,7 +277,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
         leaveWorkspace(currentUserPersonalDetails.accountID, policy);
         setIsLeaveModalOpen(false);
         goBackFromInvalidPolicy();
-    }, [currentUserPersonalDetails.accountID, policy]);
+    };
 
     const hideDeleteWorkspaceErrorModal = () => {
         setIsDeleteWorkspaceErrorModalOpen(false);
@@ -303,33 +291,37 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
         dropdownMenuRef.current?.setIsMenuVisible(false);
     }, [isLoadingBill]);
 
-    useEffect(() => {
-        if (!isFocused || !prevIsPendingDelete || isPendingDelete) {
-            return;
+    const [prevDeleteState, setPrevDeleteState] = useState({isFocused, isPendingDelete});
+    if (prevDeleteState.isPendingDelete !== isPendingDelete || prevDeleteState.isFocused !== isFocused) {
+        setPrevDeleteState({isFocused, isPendingDelete});
+        if (isFocused && prevDeleteState.isPendingDelete && !isPendingDelete) {
+            if (!policyLastErrorMessage) {
+                goBackFromInvalidPolicy();
+            } else {
+                setIsDeleteModalOpen(false);
+                setIsDeleteWorkspaceErrorModalOpen(true);
+            }
         }
+    }
 
-        if (!policyLastErrorMessage) {
-            goBackFromInvalidPolicy();
-            return;
-        }
-        setIsDeleteModalOpen(false);
-        setIsDeleteWorkspaceErrorModalOpen(true);
-    }, [isFocused, isPendingDelete, prevIsPendingDelete, policyLastErrorMessage]);
-
-    const onDeleteWorkspace = useCallback(() => {
+    const onDeleteWorkspace = () => {
         if (shouldBlockWorkspaceDeletionForInvoicifyUser(isSubscriptionTypeOfInvoicing(subscriptionType), ownerPolicies, policyID)) {
             Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION_DOWNGRADE_BLOCKED.getRoute(Navigation.getActiveRoute()));
             return;
         }
 
-        if (shouldCalculateBillNewDot(canDowngrade)) {
+        if (shouldBlockDeletion()) {
+            return;
+        }
+
+        if (shouldCalculateBillNewDot(canDowngrade, policies)) {
             setIsDeletingPaidWorkspace(true);
             calculateBillNewDot();
             return;
         }
 
         continueDeleteWorkspace();
-    }, [continueDeleteWorkspace, setIsDeletingPaidWorkspace, canDowngrade, policyID, subscriptionType, ownerPolicies]);
+    };
 
     const handleBackButtonPress = () => {
         if (isComingFromGlobalReimbursementsFlow) {
@@ -346,7 +338,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
         Navigation.goBack();
     };
 
-    const startChangeOwnershipFlow = useCallback(() => {
+    const startChangeOwnershipFlow = () => {
         clearWorkspaceOwnerChangeFlow(policyID);
         requestWorkspaceOwnerChange(policy, currentUserPersonalDetails.accountID, currentUserPersonalDetails.login ?? '');
         Navigation.navigate(
@@ -357,9 +349,9 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                 Navigation.getActiveRoute(),
             ),
         );
-    }, [currentUserPersonalDetails.accountID, currentUserPersonalDetails.login, policyID, policy]);
+    };
 
-    const handleLeave = useCallback(() => {
+    const handleLeave = () => {
         const isReimburser = policy?.achAccount?.reimburser === session?.email;
 
         if (isReimburser) {
@@ -368,7 +360,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
         }
 
         setIsLeaveModalOpen(true);
-    }, [policy?.achAccount?.reimburser, session?.email]);
+    };
 
     const confirmModalPrompt = () => {
         const exporters = getConnectionExporters(policy);
@@ -383,21 +375,15 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
         }
 
         if (technicalContact === userEmail) {
-            return translate('common.leaveWorkspaceConfirmationTechContact', {
-                workspaceOwner: policyOwnerDisplayName,
-            });
+            return translate('common.leaveWorkspaceConfirmationTechContact', policyOwnerDisplayName);
         }
 
         if (exporters.some((exporter) => exporter === userEmail)) {
-            return translate('common.leaveWorkspaceConfirmationExporter', {
-                workspaceOwner: policyOwnerDisplayName,
-            });
+            return translate('common.leaveWorkspaceConfirmationExporter', policyOwnerDisplayName);
         }
 
         if (isApprover) {
-            return translate('common.leaveWorkspaceConfirmationApprover', {
-                workspaceOwner: policyOwnerDisplayName,
-            });
+            return translate('common.leaveWorkspaceConfirmationApprover', policyOwnerDisplayName);
         }
 
         if (isPolicyAdminPolicyUtils(policy)) {
@@ -411,46 +397,28 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
         return translate('common.leaveWorkspaceConfirmation');
     };
 
-    const renderDropdownMenu = (options: Array<DropdownOption<string>>) => (
-        <ButtonWithDropdownMenu
-            ref={dropdownMenuRef}
-            success={false}
-            onPress={() => {}}
-            shouldAlwaysShowDropdownMenu
-            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.OVERVIEW.MORE_DROPDOWN}
-            customText={translate('common.more')}
-            options={options}
-            isSplitButton={false}
-            wrapperStyle={isPolicyAdmin ? styles.flexGrow0 : styles.flexGrow1}
-        />
-    );
-
-    const handleInvitePress = useCallback(() => {
+    const handleInvitePress = () => {
         if (isAccountLocked) {
             showLockedAccountModal();
             return;
         }
         clearInviteDraft(route.params.policyID);
         Navigation.navigate(ROUTES.WORKSPACE_INVITE.getRoute(route.params.policyID, Navigation.getActiveRouteWithoutParams()));
-    }, [isAccountLocked, showLockedAccountModal, route.params.policyID]);
+    };
 
-    const getHeaderButtons = () => {
-        const secondaryActions: Array<DropdownOption<string>> = [];
-        const canLeave = !isOwner;
+    const canLeave = !isOwner;
+    const secondaryActions: Array<DropdownOption<string>> = [];
 
-        if (readOnly) {
-            if (canLeave) {
-                secondaryActions.push({
-                    value: 'leave',
-                    text: translate('common.leave'),
-                    icon: expensifyIcons.Exit,
-                    onSelected: () => close(handleLeave),
-                });
-                return renderDropdownMenu(secondaryActions);
-            }
-            return null;
+    if (readOnly) {
+        if (canLeave) {
+            secondaryActions.push({
+                value: 'leave',
+                text: translate('common.leave'),
+                icon: expensifyIcons.Exit,
+                onSelected: () => close(handleLeave),
+            });
         }
-
+    } else {
         secondaryActions.push({
             value: 'share',
             text: translate('common.share'),
@@ -466,7 +434,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                 onSelected: onDeleteWorkspace,
                 disabled: isLoadingBill,
                 shouldShowLoadingSpinnerIcon: isLoadingBill,
-                shouldCloseModalOnSelect: !shouldCalculateBillNewDot(account?.canDowngrade),
+                shouldCloseModalOnSelect: !shouldCalculateBillNewDot(account?.canDowngrade, policies) || wouldBlockDeletion,
             });
         }
         const isCurrentUserAdmin = policy?.employeeList?.[currentUserPersonalDetails?.login ?? '']?.role === CONST.POLICY.ROLE.ADMIN;
@@ -487,25 +455,41 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                 onSelected: () => close(handleLeave),
             });
         }
+    }
 
-        return (
-            <View style={[styles.flexRow, styles.gap2]}>
-                {isPolicyAdmin && (
-                    <Button
-                        success
-                        text={translate('common.invite')}
-                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.OVERVIEW.INVITE_BUTTON}
-                        icon={expensifyIcons.UserPlus}
-                        onPress={handleInvitePress}
-                        medium
-                        innerStyles={[shouldUseNarrowLayout && styles.alignItemsCenter]}
-                        style={[shouldUseNarrowLayout && styles.flexGrow1, shouldUseNarrowLayout && styles.mb3]}
-                    />
-                )}
-                {renderDropdownMenu(secondaryActions)}
-            </View>
-        );
-    };
+    const dropdownMenu = secondaryActions.length > 0 && (
+        <ButtonWithDropdownMenu
+            ref={dropdownMenuRef}
+            success={false}
+            onPress={() => {}}
+            shouldAlwaysShowDropdownMenu
+            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.OVERVIEW.MORE_DROPDOWN}
+            customText={translate('common.more')}
+            options={secondaryActions}
+            isSplitButton={false}
+            wrapperStyle={isPolicyAdmin ? styles.flexGrow0 : styles.flexGrow1}
+        />
+    );
+
+    const headerButtons = readOnly ? (
+        dropdownMenu || null
+    ) : (
+        <View style={[styles.flexRow, styles.gap2]}>
+            {isPolicyAdmin && (
+                <Button
+                    success
+                    text={translate('common.invite')}
+                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.OVERVIEW.INVITE_BUTTON}
+                    icon={expensifyIcons.UserPlus}
+                    onPress={handleInvitePress}
+                    medium
+                    innerStyles={[shouldUseNarrowLayout && styles.alignItemsCenter]}
+                    style={[shouldUseNarrowLayout && styles.flexGrow1, shouldUseNarrowLayout && styles.mb3]}
+                />
+            )}
+            {dropdownMenu}
+        </View>
+    );
 
     const modals = (
         <>
@@ -551,6 +535,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                 shouldShowCancelButton={false}
                 success={false}
             />
+            {outstandingBalanceModal}
         </>
     );
     return (
@@ -566,12 +551,12 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
             shouldShowNotFoundPage={policy === undefined}
             onBackButtonPress={handleBackButtonPress}
             addBottomSafeAreaPadding
-            headerContent={!shouldUseNarrowLayout && getHeaderButtons()}
+            headerContent={!shouldUseNarrowLayout && headerButtons}
             modals={modals}
         >
             {(hasVBA?: boolean) => (
                 <View style={[styles.flex1, styles.mt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
-                    {shouldUseNarrowLayout && <View style={[styles.pl5, styles.pr5, styles.pb5]}>{getHeaderButtons()}</View>}
+                    {shouldUseNarrowLayout && <View style={[styles.pl5, styles.pr5, styles.pb5]}>{headerButtons}</View>}
                     <Section
                         isCentralPane
                         title=""
@@ -647,16 +632,18 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                                     clearPolicyErrorField(policyID, CONST.POLICY.COLLECTION_KEYS.DESCRIPTION);
                                 }}
                             >
-                                <MenuItemWithTopDescription
-                                    title={policyDescription}
-                                    description={translate('workspace.editor.descriptionInputLabel')}
-                                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.OVERVIEW.DESCRIPTION}
-                                    shouldShowRightIcon={!readOnly}
-                                    interactive={!readOnly}
-                                    wrapperStyle={styles.sectionMenuItemTopDescription}
-                                    onPress={onPressDescription}
-                                    shouldRenderAsHTML
-                                />
+                                <MentionReportContext.Provider value={mentionReportContextValue}>
+                                    <MenuItemWithTopDescription
+                                        title={policyDescription}
+                                        description={translate('workspace.editor.descriptionInputLabel')}
+                                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.OVERVIEW.DESCRIPTION}
+                                        shouldShowRightIcon={!readOnly}
+                                        interactive={!readOnly}
+                                        wrapperStyle={styles.sectionMenuItemTopDescription}
+                                        onPress={onPressDescription}
+                                        shouldRenderAsHTML
+                                    />
+                                </MentionReportContext.Provider>
                             </OfflineWithFeedback>
                         )}
                         {!!account?.isApprovedAccountant && (
@@ -701,6 +688,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                                     wrapperStyle={styles.sectionMenuItemTopDescription}
                                     onPress={onPressCurrency}
                                     hintText={
+                                        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                                         hasVBA || isBankAccountVerified
                                             ? translate('workspace.editor.currencyInputDisabledText', policyCurrency)
                                             : translate('workspace.editor.currencyInputHelpText')

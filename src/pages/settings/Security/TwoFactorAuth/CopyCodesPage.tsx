@@ -20,6 +20,7 @@ import {READ_COMMANDS} from '@libs/API/types';
 import Clipboard from '@libs/Clipboard';
 import localFileDownload from '@libs/localFileDownload';
 import Navigation from '@libs/Navigation/Navigation';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {toggleTwoFactorAuth} from '@userActions/Session';
 import {quitAndNavigateBack, setCodesAreCopied} from '@userActions/TwoFactorAuthActions';
 import CONST from '@src/CONST';
@@ -43,12 +44,14 @@ function CopyCodesPage({route}: TwoFactorAuthPageProps) {
 
     const isUserValidated = account?.validated ?? false;
     const {asset: ShieldYellow} = useMemoizedLazyAsset(() => loadIllustration('ShieldYellow' as IllustrationName));
+    const accountLoadingReasonAttributes: SkeletonSpanReasonAttributes = {context: 'CopyCodesPage', isLoading: !!account?.isLoading};
 
     useEffect(() => {
         if (!isUserValidated) {
             Navigation.navigate(ROUTES.SETTINGS_2FA_VERIFY_ACCOUNT.getRoute());
             return;
         }
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         if (isLoadingOnyxValue(accountMetadata) || account?.requiresTwoFactorAuth || account?.recoveryCodes || !isUserValidated) {
             return;
         }
@@ -91,7 +94,7 @@ function CopyCodesPage({route}: TwoFactorAuthPageProps) {
                         <View style={[styles.twoFactorAuthCodesBox, styles.twoFactorAuthCodesBoxPadding({isExtraSmallScreenWidth, isSmallScreenWidth})]}>
                             {account?.isLoading ? (
                                 <View style={styles.twoFactorLoadingContainer}>
-                                    <ActivityIndicator />
+                                    <ActivityIndicator reasonAttributes={accountLoadingReasonAttributes} />
                                 </View>
                             ) : (
                                 <>
@@ -122,9 +125,9 @@ function CopyCodesPage({route}: TwoFactorAuthPageProps) {
                                             }}
                                             styles={[styles.button, styles.buttonMedium, styles.twoFactorAuthCodesButton]}
                                             textStyles={[styles.buttonMediumText]}
-                                            accessible={false}
                                             tooltipText=""
                                             tooltipTextChecked=""
+                                            accessibilityLabel={`${translate('twoFactorAuth.copy')}, ${translate('twoFactorAuth.stepCodes')}`}
                                             sentryLabel={CONST.SENTRY_LABEL.TWO_FACTOR_AUTH.COPY_CODES}
                                         />
                                         <PressableWithDelayToggle
@@ -138,9 +141,9 @@ function CopyCodesPage({route}: TwoFactorAuthPageProps) {
                                             inline={false}
                                             styles={[styles.button, styles.buttonMedium, styles.twoFactorAuthCodesButton]}
                                             textStyles={[styles.buttonMediumText]}
-                                            accessible={false}
                                             tooltipText=""
                                             tooltipTextChecked=""
+                                            accessibilityLabel={`${translate('common.download')}, ${translate('twoFactorAuth.stepCodes')}`}
                                             sentryLabel={CONST.SENTRY_LABEL.TWO_FACTOR_AUTH.DOWNLOAD_CODES}
                                         />
                                     </View>

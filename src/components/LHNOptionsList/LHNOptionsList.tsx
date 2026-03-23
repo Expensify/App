@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import {useIsFocused, useRoute} from '@react-navigation/native';
 import type {FlashListProps, FlashListRef} from '@shopify/flash-list';
 import {FlashList} from '@shopify/flash-list';
@@ -199,7 +200,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
                 itemOneTransactionThreadReport?.reportID,
             );
 
-            const iouReportIDOfLastAction = getIOUReportIDOfLastAction(item, visibleReportActionsData, lastAction);
+            const iouReportIDOfLastAction = getIOUReportIDOfLastAction(item, itemReportNameValuePairs?.private_isArchived, visibleReportActionsData, lastAction);
             const itemIouReportReportActions = iouReportIDOfLastAction ? reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportIDOfLastAction}`] : undefined;
 
             const lastReportActionTransactionID = isMoneyRequestAction(lastAction) ? (getOriginalMessage(lastAction)?.IOUTransactionID ?? CONST.DEFAULT_NUMBER_ID) : CONST.DEFAULT_NUMBER_ID;
@@ -237,7 +238,6 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
                     personalDetails={personalDetails ?? {}}
                     transaction={itemTransaction}
                     lastReportActionTransaction={lastReportActionTransaction}
-                    receiptTransactions={transactions}
                     viewMode={optionMode}
                     isOptionFocused={!shouldDisableFocusOptions}
                     lastMessageTextFromReport={lastMessageTextFromReport}

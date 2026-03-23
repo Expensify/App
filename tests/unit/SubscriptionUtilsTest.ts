@@ -9,7 +9,6 @@ import {
     getSubscriptionStatus,
     hasCardAuthenticatedError,
     hasGracePeriodOverdue,
-    hasOverdueGracePeriod,
     hasSubscriptionGreenDotInfo,
     hasSubscriptionRedDotError,
     hasUserFreeTrialEnded,
@@ -19,10 +18,13 @@ import {
     shouldRestrictUserBillableActions,
     shouldShowDiscountBanner,
     shouldShowPreTrialBillingBanner,
+    shouldShowTrialEndedUI,
 } from '@libs/SubscriptionUtils';
+import {getPrivatePromoDiscountInfo} from '@pages/settings/Subscription/utils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {BillingGraceEndPeriod, BillingStatus, FundList, IntroSelected, StripeCustomerID} from '@src/types/onyx';
+import type PrivatePromoDiscount from '@src/types/onyx/PrivatePromoDiscount';
 import createRandomPolicy from '../utils/collections/policies';
 import {STRIPE_CUSTOMER_ID} from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
@@ -63,6 +65,56 @@ const FUND_LIST: FundList = {
 Onyx.init({keys: ONYXKEYS});
 
 describe('SubscriptionUtils', () => {
+    describe('getPrivatePromoDiscountInfo', () => {
+        it('returns number promo discount value for numeric private promo discount', () => {
+            const result = getPrivatePromoDiscountInfo(3, false);
+
+            expect(result).toEqual({
+                isSecretPromoCode: false,
+                promoDiscountValue: 3,
+            });
+        });
+
+        it('returns empty promo discount info when private promo discount is undefined', () => {
+            const result = getPrivatePromoDiscountInfo(undefined, true);
+
+            expect(result).toEqual({
+                isSecretPromoCode: false,
+                promoDiscountValue: undefined,
+            });
+        });
+
+        it('uses yearly subscription discount for annual subscriptions', () => {
+            const privatePromoDiscount: PrivatePromoDiscount = {
+                monthlySubscriptionDiscount: 1,
+                yearlySubscriptionDiscount: 5,
+                isSecretPromoCode: true,
+            };
+
+            const result = getPrivatePromoDiscountInfo(privatePromoDiscount, true);
+
+            expect(result).toEqual({
+                isSecretPromoCode: true,
+                promoDiscountValue: 5,
+            });
+        });
+
+        it('uses monthly subscription discount for non-annual subscriptions', () => {
+            const privatePromoDiscount: PrivatePromoDiscount = {
+                monthlySubscriptionDiscount: 2,
+                yearlySubscriptionDiscount: 7,
+                isSecretPromoCode: false,
+            };
+
+            const result = getPrivatePromoDiscountInfo(privatePromoDiscount, false);
+
+            expect(result).toEqual({
+                isSecretPromoCode: false,
+                promoDiscountValue: 2,
+            });
+        });
+    });
+
     describe('calculateRemainingFreeTrialDays', () => {
         afterEach(async () => {
             await Onyx.clear();
@@ -209,7 +261,6 @@ describe('SubscriptionUtils', () => {
             await Onyx.multiSet({
                 [ONYXKEYS.SESSION]: null,
                 [ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END]: null,
-                [ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END]: null,
                 [ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED]: null,
                 [ONYXKEYS.COLLECTION.POLICY]: null,
             });
@@ -288,14 +339,13 @@ describe('SubscriptionUtils', () => {
 
             await Onyx.multiSet({
                 [ONYXKEYS.SESSION]: {email: '', accountID},
-                [ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END]: getUnixTime(addDays(new Date(), 3)), // not past due
                 [`${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const]: {
                     ...createRandomPolicy(Number(policyID)),
                     ownerAccountID: accountID,
                 },
             });
 
-            expect(shouldRestrictUserBillableActions(policyID, undefined)).toBeFalsy();
+            expect(shouldRestrictUserBillableActions(policyID, undefined, undefined, getUnixTime(addDays(new Date(), 3)))).toBeFalsy();
         });
 
         it("should return false if the user is the workspace's owner that is past due billing but isn't owning any amount", async () => {
@@ -304,7 +354,6 @@ describe('SubscriptionUtils', () => {
 
             await Onyx.multiSet({
                 [ONYXKEYS.SESSION]: {email: '', accountID},
-                [ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END]: getUnixTime(subDays(new Date(), 3)), // past due
                 [ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED]: 0,
                 [`${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const]: {
                     ...createRandomPolicy(Number(policyID)),
@@ -312,7 +361,7 @@ describe('SubscriptionUtils', () => {
                 },
             });
 
-            expect(shouldRestrictUserBillableActions(policyID, undefined)).toBeFalsy();
+            expect(shouldRestrictUserBillableActions(policyID, undefined, undefined, getUnixTime(subDays(new Date(), 3)))).toBeFalsy();
         });
 
         it("should return true if the user is the workspace's owner that is past due billing and is owning some amount", async () => {
@@ -321,7 +370,6 @@ describe('SubscriptionUtils', () => {
 
             await Onyx.multiSet({
                 [ONYXKEYS.SESSION]: {email: '', accountID},
-                [ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END]: getUnixTime(subDays(new Date(), 3)), // past due
                 [ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED]: 8010,
                 [`${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const]: {
                     ...createRandomPolicy(Number(policyID)),
@@ -329,7 +377,7 @@ describe('SubscriptionUtils', () => {
                 },
             });
 
-            expect(shouldRestrictUserBillableActions(policyID, undefined)).toBeTruthy();
+            expect(shouldRestrictUserBillableActions(policyID, undefined, undefined, getUnixTime(subDays(new Date(), 3)))).toBeTruthy();
         });
 
         it("should return false if the user is past due billing but is not the workspace's owner", async () => {
@@ -338,7 +386,6 @@ describe('SubscriptionUtils', () => {
 
             await Onyx.multiSet({
                 [ONYXKEYS.SESSION]: {email: '', accountID},
-                [ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END]: getUnixTime(subDays(new Date(), 3)), // past due
                 [ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED]: 8010,
                 [`${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const]: {
                     ...createRandomPolicy(Number(policyID)),
@@ -346,7 +393,132 @@ describe('SubscriptionUtils', () => {
                 },
             });
 
-            expect(shouldRestrictUserBillableActions(policyID, undefined)).toBeFalsy();
+            expect(shouldRestrictUserBillableActions(policyID, undefined, undefined, getUnixTime(subDays(new Date(), 3)))).toBeFalsy();
+        });
+
+        it('should restrict when ownerBillingGraceEndPeriod is passed directly as 3rd param and is past due', async () => {
+            const accountID = 1;
+            const policyID = '1001';
+
+            await Onyx.multiSet({
+                [ONYXKEYS.SESSION]: {email: '', accountID},
+                [ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED]: 8010,
+                [`${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const]: {
+                    ...createRandomPolicy(Number(policyID)),
+                    ownerAccountID: accountID,
+                },
+            });
+
+            expect(shouldRestrictUserBillableActions(policyID, undefined, undefined, getUnixTime(subDays(new Date(), 3)))).toBeTruthy();
+        });
+
+        it("should return false if the user is past due billing but is not the workspace's owner", async () => {
+            const accountID = 1;
+            const policyID = '1001';
+
+            await Onyx.multiSet({
+                [ONYXKEYS.SESSION]: {email: '', accountID},
+                [ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED]: 8010,
+                [`${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const]: {
+                    ...createRandomPolicy(Number(policyID)),
+                    ownerAccountID: 2, // not the user
+                },
+            });
+
+            expect(shouldRestrictUserBillableActions(policyID, undefined, undefined, getUnixTime(subDays(new Date(), 3)))).toBeFalsy();
+        });
+
+        it('should restrict when ownerBillingGraceEndPeriod is passed directly as 4th param and is past due', async () => {
+            const accountID = 1;
+            const policyID = '1001';
+
+            await Onyx.multiSet({
+                [ONYXKEYS.SESSION]: {email: '', accountID},
+                [ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED]: 8010,
+                [`${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const]: {
+                    ...createRandomPolicy(Number(policyID)),
+                    ownerAccountID: accountID,
+                },
+            });
+
+            expect(shouldRestrictUserBillableActions(policyID, undefined, undefined, getUnixTime(subDays(new Date(), 3)))).toBeTruthy();
+        });
+
+        it('should not restrict when ownerBillingGraceEndPeriod is passed directly as 4th param but is not past due', async () => {
+            const accountID = 1;
+            const policyID = '1001';
+
+            await Onyx.multiSet({
+                [ONYXKEYS.SESSION]: {email: '', accountID},
+                [ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED]: 8010,
+                [`${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const]: {
+                    ...createRandomPolicy(Number(policyID)),
+                    ownerAccountID: accountID,
+                },
+            });
+
+            expect(shouldRestrictUserBillableActions(policyID, undefined, undefined, getUnixTime(addDays(new Date(), 3)))).toBeFalsy();
+        });
+
+        it('should not restrict when ownerBillingGraceEndPeriod is passed directly as 4th param but amount owed is 0', async () => {
+            const accountID = 1;
+            const policyID = '1001';
+
+            await Onyx.multiSet({
+                [ONYXKEYS.SESSION]: {email: '', accountID},
+                [ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED]: 0,
+                [`${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const]: {
+                    ...createRandomPolicy(Number(policyID)),
+                    ownerAccountID: accountID,
+                },
+            });
+
+            expect(shouldRestrictUserBillableActions(policyID, undefined, undefined, getUnixTime(subDays(new Date(), 3)))).toBeFalsy();
+        });
+
+        it('should restrict when amountOwed is passed directly and is greater than 0', async () => {
+            const accountID = 1;
+            const policyID = '1001';
+
+            await Onyx.multiSet({
+                [ONYXKEYS.SESSION]: {email: '', accountID},
+                [`${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const]: {
+                    ...createRandomPolicy(Number(policyID)),
+                    ownerAccountID: accountID,
+                },
+            });
+
+            expect(shouldRestrictUserBillableActions(policyID, undefined, 500, getUnixTime(subDays(new Date(), 3)))).toBeTruthy();
+        });
+
+        it('should not restrict when amountOwed is passed directly as 0', async () => {
+            const accountID = 1;
+            const policyID = '1001';
+
+            await Onyx.multiSet({
+                [ONYXKEYS.SESSION]: {email: '', accountID},
+                [`${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const]: {
+                    ...createRandomPolicy(Number(policyID)),
+                    ownerAccountID: accountID,
+                },
+            });
+
+            expect(shouldRestrictUserBillableActions(policyID, undefined, 0, getUnixTime(subDays(new Date(), 3)))).toBeFalsy();
+        });
+
+        it('should not restrict when amountOwed is passed directly as undefined', async () => {
+            const accountID = 1;
+            const policyID = '1001';
+
+            await Onyx.multiSet({
+                [ONYXKEYS.SESSION]: {email: '', accountID},
+                [`${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const]: {
+                    ...createRandomPolicy(Number(policyID)),
+                    ownerAccountID: accountID,
+                },
+            });
+
+            expect(shouldRestrictUserBillableActions(policyID, undefined, undefined, getUnixTime(subDays(new Date(), 3)))).toBeFalsy();
         });
     });
 
@@ -368,7 +540,7 @@ describe('SubscriptionUtils', () => {
         it('should return undefined by default', () => {
             const stripeCustomerIdForDefault: Partial<OnyxEntry<StripeCustomerID>> = {};
             // @ts-expect-error - This is a test case
-            expect(getSubscriptionStatus(stripeCustomerIdForDefault, false, undefined, undefined, undefined, undefined, 0)).toBeUndefined();
+            expect(getSubscriptionStatus(stripeCustomerIdForDefault, false, undefined, undefined, undefined, undefined, 0, undefined)).toBeUndefined();
         });
 
         it('should return POLICY_OWNER_WITH_AMOUNT_OWED status', async () => {
@@ -420,7 +592,7 @@ describe('SubscriptionUtils', () => {
                 [ONYXKEYS.NVP_PRIVATE_BILLING_DISPUTE_PENDING]: 1,
             });
 
-            expect(getSubscriptionStatus(stripeCustomerId, false, 1, undefined, undefined, undefined, 0)).toEqual({
+            expect(getSubscriptionStatus(stripeCustomerId, false, 1, undefined, undefined, undefined, 0, undefined)).toEqual({
                 status: PAYMENT_STATUS.BILLING_DISPUTE_PENDING,
                 isError: true,
             });
@@ -433,7 +605,7 @@ describe('SubscriptionUtils', () => {
                 [ONYXKEYS.NVP_PRIVATE_STRIPE_CUSTOMER_ID]: STRIPE_CUSTOMER_ID,
             });
 
-            expect(getSubscriptionStatus(stripeCustomerId, false, 0, undefined, undefined, undefined, 0)).toEqual({
+            expect(getSubscriptionStatus(stripeCustomerId, false, 0, undefined, undefined, undefined, 0, undefined)).toEqual({
                 status: PAYMENT_STATUS.CARD_AUTHENTICATION_REQUIRED,
                 isError: true,
             });
@@ -446,7 +618,7 @@ describe('SubscriptionUtils', () => {
                 [ONYXKEYS.NVP_PRIVATE_BILLING_STATUS]: BILLING_STATUS_INSUFFICIENT_FUNDS,
             });
 
-            expect(getSubscriptionStatus(stripeCustomerId, false, undefined, undefined, undefined, BILLING_STATUS_INSUFFICIENT_FUNDS, AMOUNT_OWED)).toEqual({
+            expect(getSubscriptionStatus(stripeCustomerId, false, undefined, undefined, undefined, BILLING_STATUS_INSUFFICIENT_FUNDS, AMOUNT_OWED, undefined)).toEqual({
                 status: PAYMENT_STATUS.INSUFFICIENT_FUNDS,
                 isError: true,
             });
@@ -465,7 +637,7 @@ describe('SubscriptionUtils', () => {
             };
 
             // @ts-expect-error - This is a test case
-            expect(getSubscriptionStatus(stripeCustomerIdForCardExpired, false, undefined, undefined, undefined, BILLING_STATUS_EXPIRED_CARD, AMOUNT_OWED)).toEqual({
+            expect(getSubscriptionStatus(stripeCustomerIdForCardExpired, false, undefined, undefined, undefined, BILLING_STATUS_EXPIRED_CARD, AMOUNT_OWED, undefined)).toEqual({
                 status: PAYMENT_STATUS.CARD_EXPIRED,
                 isError: true,
             });
@@ -485,7 +657,7 @@ describe('SubscriptionUtils', () => {
             };
 
             // @ts-expect-error - This is a test case
-            expect(getSubscriptionStatus(stripeCustomerIdForCardExpireSoon, false, undefined, undefined, FUND_LIST, {}, 0)).toEqual({
+            expect(getSubscriptionStatus(stripeCustomerIdForCardExpireSoon, false, undefined, undefined, FUND_LIST, {}, 0, undefined)).toEqual({
                 status: PAYMENT_STATUS.CARD_EXPIRE_SOON,
             });
         });
@@ -502,7 +674,7 @@ describe('SubscriptionUtils', () => {
                 currency: 'USD',
             };
             // @ts-expect-error - This is a test case
-            expect(getSubscriptionStatus(stripeCustomerIdForRetryBillingSuccess, true, undefined, undefined, {}, undefined, 0)).toEqual({
+            expect(getSubscriptionStatus(stripeCustomerIdForRetryBillingSuccess, true, undefined, undefined, {}, undefined, 0, undefined)).toEqual({
                 status: PAYMENT_STATUS.RETRY_BILLING_SUCCESS,
                 isError: false,
             });
@@ -521,7 +693,7 @@ describe('SubscriptionUtils', () => {
                 currency: 'USD',
             };
             // @ts-expect-error - This is a test case
-            expect(getSubscriptionStatus(stripeCustomerIdForRetryBillingError, false, undefined, true, {}, undefined, 0)).toEqual({
+            expect(getSubscriptionStatus(stripeCustomerIdForRetryBillingError, false, undefined, true, {}, undefined, 0, undefined)).toEqual({
                 status: PAYMENT_STATUS.RETRY_BILLING_ERROR,
                 isError: true,
             });
@@ -563,11 +735,10 @@ describe('SubscriptionUtils', () => {
 
         it('should return true when there is a subscription status with isError true', async () => {
             await Onyx.multiSet({
-                [ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END]: GRACE_PERIOD_DATE,
                 [ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED]: AMOUNT_OWED,
             });
 
-            expect(hasSubscriptionRedDotError(stripeCustomerId, false, undefined, undefined, undefined, undefined, AMOUNT_OWED)).toBeTruthy();
+            expect(hasSubscriptionRedDotError(stripeCustomerId, false, undefined, undefined, undefined, undefined, AMOUNT_OWED, GRACE_PERIOD_DATE)).toBeTruthy();
         });
 
         it('should return false when there is no subscription status error', () => {
@@ -577,7 +748,7 @@ describe('SubscriptionUtils', () => {
                 currency: 'USD',
                 status: 'succeeded',
             };
-            expect(hasSubscriptionRedDotError(stripeCustomerIdWithNoError, false, undefined, undefined, undefined, undefined, 0)).toBeFalsy();
+            expect(hasSubscriptionRedDotError(stripeCustomerIdWithNoError, false, undefined, undefined, undefined, undefined, 0, undefined)).toBeFalsy();
         });
     });
 
@@ -602,11 +773,11 @@ describe('SubscriptionUtils', () => {
                 currency: 'USD',
             };
             // @ts-expect-error - This is a test case
-            expect(hasSubscriptionGreenDotInfo(stripeCustomerIdForRetryBillingSuccess, true, undefined, undefined, {}, undefined, 0)).toBeTruthy();
+            expect(hasSubscriptionGreenDotInfo(stripeCustomerIdForRetryBillingSuccess, true, undefined, undefined, {}, undefined, 0, undefined)).toBeTruthy();
         });
 
         it('should return false when there is no subscription status or isError is true', () => {
-            expect(hasSubscriptionGreenDotInfo(stripeCustomerId, false, undefined, undefined, undefined, undefined, 0)).toBeFalsy();
+            expect(hasSubscriptionGreenDotInfo(stripeCustomerId, false, undefined, undefined, undefined, undefined, 0, undefined)).toBeFalsy();
         });
     });
 
@@ -653,7 +824,7 @@ describe('SubscriptionUtils', () => {
             // No Onyx value set, no parameter passed
             const stripeCustomerIdForDefault: Partial<OnyxEntry<StripeCustomerID>> = {};
             // @ts-expect-error - This is a test case
-            expect(getSubscriptionStatus(stripeCustomerIdForDefault, false, undefined, undefined, undefined, undefined, 0)).toBeUndefined();
+            expect(getSubscriptionStatus(stripeCustomerIdForDefault, false, undefined, undefined, undefined, undefined, 0, undefined)).toBeUndefined();
         });
     });
 
@@ -691,12 +862,12 @@ describe('SubscriptionUtils', () => {
             // No Onyx value set, no parameter passed
             const stripeCustomerIdForDefault: Partial<OnyxEntry<StripeCustomerID>> = {};
             // @ts-expect-error - This is a test case
-            expect(hasSubscriptionRedDotError(stripeCustomerIdForDefault, false, undefined, undefined, undefined, undefined, 0)).toBe(false);
+            expect(hasSubscriptionRedDotError(stripeCustomerIdForDefault, false, undefined, undefined, undefined, undefined, 0, undefined)).toBe(false);
         });
 
         it('should return true when billing dispute is pending regardless of grace period', async () => {
             // Billing dispute pending should return error
-            expect(hasSubscriptionRedDotError(stripeCustomerId, false, 1, undefined, undefined, undefined, 0)).toBe(true);
+            expect(hasSubscriptionRedDotError(stripeCustomerId, false, 1, undefined, undefined, undefined, 0, undefined)).toBe(true);
         });
     });
 
@@ -718,7 +889,7 @@ describe('SubscriptionUtils', () => {
             // No Onyx value set, no parameter passed - undefined status means not green dot
             const stripeCustomerIdForDefault: Partial<OnyxEntry<StripeCustomerID>> = {};
             // @ts-expect-error - This is a test case
-            expect(hasSubscriptionGreenDotInfo(stripeCustomerIdForDefault, false, undefined, undefined, undefined, undefined, 0)).toBe(false);
+            expect(hasSubscriptionGreenDotInfo(stripeCustomerIdForDefault, false, undefined, undefined, undefined, undefined, 0, undefined)).toBe(false);
         });
 
         it('should return true when retry billing is successful (non-error state)', async () => {
@@ -733,34 +904,12 @@ describe('SubscriptionUtils', () => {
                 currency: 'USD',
             };
             // @ts-expect-error - This is a test case
-            expect(hasSubscriptionGreenDotInfo(stripeCustomerIdForSuccess, true, undefined, undefined, {}, undefined, 0)).toBe(true);
+            expect(hasSubscriptionGreenDotInfo(stripeCustomerIdForSuccess, true, undefined, undefined, {}, undefined, 0, undefined)).toBe(true);
         });
 
         it('should return false when billing dispute is pending (error state)', async () => {
             // Billing dispute pending should return error, not green dot
-            expect(hasSubscriptionGreenDotInfo(stripeCustomerId, false, 1, undefined, undefined, undefined, 0)).toBe(false);
-        });
-    });
-
-    describe('hasOverdueGracePeriod - pure function behavior', () => {
-        beforeEach(async () => {
-            // Clear all Onyx state to ensure we're testing pure function behavior
-            await Onyx.clear();
-        });
-
-        it('should return true when grace period is passed as parameter', () => {
-            // Pass grace period as parameter - should return true
-            expect(hasOverdueGracePeriod(GRACE_PERIOD_DATE)).toBe(true);
-        });
-
-        it('should return true when overdue grace period is passed as parameter', () => {
-            // Pass overdue grace period as parameter - should return true
-            expect(hasOverdueGracePeriod(GRACE_PERIOD_DATE_OVERDUE)).toBe(true);
-        });
-
-        it('should return false when no grace period is passed and none is set in Onyx', () => {
-            // No Onyx value set, no parameter passed
-            expect(hasOverdueGracePeriod(undefined)).toBe(false);
+            expect(hasSubscriptionGreenDotInfo(stripeCustomerId, false, 1, undefined, undefined, undefined, 0, undefined)).toBe(false);
         });
     });
 
@@ -794,61 +943,69 @@ describe('SubscriptionUtils', () => {
         });
 
         it('should return false if the user is not on a free trial', async () => {
-            await Onyx.multiSet({
-                [ONYXKEYS.SESSION]: {accountID: ownerAccountID},
-                [`${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const]: {
+            const policies = {
+                [`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]: {
                     ...createRandomPolicy(Number(policyID)),
                     ownerAccountID,
                     type: CONST.POLICY.TYPE.CORPORATE,
                 },
+            };
+            await Onyx.multiSet({
+                [ONYXKEYS.SESSION]: {accountID: ownerAccountID},
                 [ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL]: null,
                 [ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL]: null,
             });
-            expect(shouldShowDiscountBanner(true, 'corporate', undefined, undefined, undefined)).toBeFalsy();
+            expect(shouldShowDiscountBanner(true, 'corporate', undefined, undefined, undefined, policies)).toBeFalsy();
         });
 
         it(`should return false if user has already added a payment method`, async () => {
-            await Onyx.multiSet({
-                [ONYXKEYS.SESSION]: {accountID: ownerAccountID},
-                [`${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const]: {
+            const policies = {
+                [`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]: {
                     ...createRandomPolicy(Number(policyID)),
                     ownerAccountID,
                     type: CONST.POLICY.TYPE.TEAM,
                 },
+            };
+            await Onyx.multiSet({
+                [ONYXKEYS.SESSION]: {accountID: ownerAccountID},
                 [ONYXKEYS.NVP_BILLING_FUND_ID]: 8010,
             });
-            expect(shouldShowDiscountBanner(true, 'corporate', undefined, undefined, 8010)).toBeFalsy();
+            expect(shouldShowDiscountBanner(true, 'corporate', undefined, undefined, 8010, policies)).toBeFalsy();
         });
 
         it('should return false if the user is on Team plan', async () => {
             const firstDayFreeTrial = formatDate(subDays(new Date(), 1), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING);
-            await Onyx.multiSet({
-                [ONYXKEYS.SESSION]: {accountID: ownerAccountID},
-                [`${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const]: {
+            const policies = {
+                [`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]: {
                     ...createRandomPolicy(Number(policyID)),
                     ownerAccountID,
                     type: CONST.POLICY.TYPE.CORPORATE,
                 },
+            };
+            await Onyx.multiSet({
+                [ONYXKEYS.SESSION]: {accountID: ownerAccountID},
                 [ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL]: firstDayFreeTrial,
                 [ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL]: formatDate(addDays(new Date(), 10), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING),
             });
-            expect(shouldShowDiscountBanner(true, 'team', firstDayFreeTrial, undefined, undefined)).toBeFalsy();
+            expect(shouldShowDiscountBanner(true, 'team', firstDayFreeTrial, undefined, undefined, policies)).toBeFalsy();
         });
 
         it('should return true if the date is before the free trial end date or within the 8 days from the trial start date', async () => {
             const firstDayFreeTrial = formatDate(subDays(new Date(), 1), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING);
             const lastDayFreeTrial = formatDate(addDays(new Date(), 10), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING);
-            await Onyx.multiSet({
-                [ONYXKEYS.SESSION]: {accountID: ownerAccountID},
-                [`${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const]: {
+            const policies = {
+                [`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]: {
                     ...createRandomPolicy(Number(policyID)),
                     ownerAccountID,
                     type: CONST.POLICY.TYPE.CORPORATE,
                 },
+            };
+            await Onyx.multiSet({
+                [ONYXKEYS.SESSION]: {accountID: ownerAccountID},
                 [ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL]: firstDayFreeTrial,
                 [ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL]: lastDayFreeTrial,
             });
-            expect(shouldShowDiscountBanner(true, 'corporate', firstDayFreeTrial, lastDayFreeTrial, undefined)).toBeTruthy();
+            expect(shouldShowDiscountBanner(true, 'corporate', firstDayFreeTrial, lastDayFreeTrial, undefined, policies)).toBeTruthy();
         });
 
         it("should return false if user's trial is during the discount period but has no workspaces", async () => {
@@ -858,7 +1015,7 @@ describe('SubscriptionUtils', () => {
                 [ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL]: firstDayFreeTrial,
                 [ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL]: formatDate(addDays(new Date(), 10), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING),
             });
-            expect(shouldShowDiscountBanner(true, 'corporate', firstDayFreeTrial, undefined, undefined)).toBeFalsy();
+            expect(shouldShowDiscountBanner(true, 'corporate', firstDayFreeTrial, undefined, undefined, {})).toBeFalsy();
         });
     });
 
@@ -959,109 +1116,160 @@ describe('SubscriptionUtils', () => {
             // Clear Onyx and set up session for each test
             await Onyx.clear();
             await Onyx.set(ONYXKEYS.SESSION, {email: 'test@example.com', accountID: testUserAccountID});
-            // Ensure allPolicies is initialized as empty or cleared before each test
-            await Onyx.multiSet({
-                [ONYXKEYS.COLLECTION.POLICY]: null,
-            });
             // Reset the mock for getOwnedPaidPolicies before each test
             jest.clearAllMocks();
         });
 
-        it('should return false if canDowngrade is false (default or explicitly passed)', async () => {
+        it('should return false if canDowngrade is false (default or explicitly passed)', () => {
             // Set up a policy that would normally count as owned and paid
-            await Onyx.multiSet({
-                [`${ONYXKEYS.COLLECTION.POLICY}${paidPolicyID}` as const]: {
+            const policies = {
+                [`${ONYXKEYS.COLLECTION.POLICY}${paidPolicyID}`]: {
                     ...createRandomPolicy(Number(paidPolicyID)),
                     ownerAccountID: testUserAccountID,
                     type: CONST.POLICY.TYPE.CORPORATE,
                 },
-            });
+            };
             // Test with canDowngrade as false (explicitly)
-            expect(shouldCalculateBillNewDot(false)).toBeFalsy();
+            expect(shouldCalculateBillNewDot(false, policies)).toBeFalsy();
             // Test with canDowngrade as undefined (defaults to false in the function signature)
-            expect(shouldCalculateBillNewDot(undefined)).toBeFalsy();
-            // Test without passing canDowngrade (defaults to false)
-            expect(shouldCalculateBillNewDot()).toBeFalsy();
+            expect(shouldCalculateBillNewDot(undefined, policies)).toBeFalsy();
         });
 
-        it('should return false if the user owns zero paid policies', async () => {
+        it('should return false if the user owns zero paid policies', () => {
             // Only free policies or no policies at all
-            await Onyx.multiSet({
-                [`${ONYXKEYS.COLLECTION.POLICY}${freePolicyID}` as const]: {
+            const policies = {
+                [`${ONYXKEYS.COLLECTION.POLICY}${freePolicyID}`]: {
                     ...createRandomPolicy(Number(freePolicyID)),
                     ownerAccountID: testUserAccountID,
                     type: CONST.POLICY.TYPE.PERSONAL,
                 },
-            });
-            expect(shouldCalculateBillNewDot(true)).toBeFalsy();
+            };
+            expect(shouldCalculateBillNewDot(true, policies)).toBeFalsy();
         });
 
-        it('should return false if the user owns more than one paid policy', async () => {
-            await Onyx.multiSet({
-                [`${ONYXKEYS.COLLECTION.POLICY}${paidPolicyID}` as const]: {
+        it('should return false if the user owns more than one paid policy', () => {
+            const policies = {
+                [`${ONYXKEYS.COLLECTION.POLICY}${paidPolicyID}`]: {
                     ...createRandomPolicy(Number(paidPolicyID)),
                     ownerAccountID: testUserAccountID,
                     type: CONST.POLICY.TYPE.CORPORATE,
                 },
-                [`${ONYXKEYS.COLLECTION.POLICY}${secondPaidPolicyID}` as const]: {
+                [`${ONYXKEYS.COLLECTION.POLICY}${secondPaidPolicyID}`]: {
                     ...createRandomPolicy(Number(secondPaidPolicyID)),
                     ownerAccountID: testUserAccountID,
                     type: CONST.POLICY.TYPE.TEAM,
                 },
-            });
-            expect(shouldCalculateBillNewDot(true)).toBeFalsy();
+            };
+            expect(shouldCalculateBillNewDot(true, policies)).toBeFalsy();
         });
 
-        it('should return true if canDowngrade is true and the user owns exactly one paid policy', async () => {
-            await Onyx.multiSet({
-                [`${ONYXKEYS.COLLECTION.POLICY}${paidPolicyID}` as const]: {
+        it('should return true if canDowngrade is true and the user owns exactly one paid policy', () => {
+            const policies = {
+                [`${ONYXKEYS.COLLECTION.POLICY}${paidPolicyID}`]: {
                     ...createRandomPolicy(Number(paidPolicyID)),
                     ownerAccountID: testUserAccountID,
                     type: CONST.POLICY.TYPE.CORPORATE,
                 },
-                [`${ONYXKEYS.COLLECTION.POLICY}${freePolicyID}` as const]: {
+                [`${ONYXKEYS.COLLECTION.POLICY}${freePolicyID}`]: {
                     // Include a free policy to confirm it's correctly ignored
                     ...createRandomPolicy(Number(freePolicyID)),
                     ownerAccountID: testUserAccountID,
                     type: CONST.POLICY.TYPE.PERSONAL,
                 },
-            });
-            expect(shouldCalculateBillNewDot(true)).toBeTruthy();
+            };
+            expect(shouldCalculateBillNewDot(true, policies)).toBeTruthy();
         });
 
-        it('should return false if the user owns exactly one paid policy but is not the owner', async () => {
+        it('should return false if the user owns exactly one paid policy but is not the owner', () => {
             // Set up a paid policy owned by another user
             const thirdUserAccountID = 2;
-            await Onyx.multiSet({
-                [`${ONYXKEYS.COLLECTION.POLICY}${paidPolicyID}` as const]: {
+            const policies = {
+                [`${ONYXKEYS.COLLECTION.POLICY}${paidPolicyID}`]: {
                     ...createRandomPolicy(Number(paidPolicyID)),
                     ownerAccountID: thirdUserAccountID, // Owned by someone else
                     type: CONST.POLICY.TYPE.CORPORATE,
                 },
-            });
-            expect(shouldCalculateBillNewDot(true)).toBeFalsy();
+            };
+            expect(shouldCalculateBillNewDot(true, policies)).toBeFalsy();
         });
 
-        it('should return true if canDowngrade is true and the single paid policy is a team policy', async () => {
-            await Onyx.multiSet({
-                [`${ONYXKEYS.COLLECTION.POLICY}${paidPolicyID}` as const]: {
+        it('should return true if canDowngrade is true and the single paid policy is a team policy', () => {
+            const policies = {
+                [`${ONYXKEYS.COLLECTION.POLICY}${paidPolicyID}`]: {
                     ...createRandomPolicy(Number(paidPolicyID)),
                     ownerAccountID: testUserAccountID,
                     type: CONST.POLICY.TYPE.TEAM,
                 },
-            });
-            expect(shouldCalculateBillNewDot(true)).toBeTruthy();
+            };
+            expect(shouldCalculateBillNewDot(true, policies)).toBeTruthy();
         });
 
-        it('should return true if canDowngrade is true and the single paid policy is a corporate policy', async () => {
-            await Onyx.multiSet({
-                [`${ONYXKEYS.COLLECTION.POLICY}${paidPolicyID}` as const]: {
+        it('should return true if canDowngrade is true and the single paid policy is a corporate policy', () => {
+            const policies = {
+                [`${ONYXKEYS.COLLECTION.POLICY}${paidPolicyID}`]: {
                     ...createRandomPolicy(Number(paidPolicyID)),
                     ownerAccountID: testUserAccountID,
                     type: CONST.POLICY.TYPE.CORPORATE,
                 },
-            });
-            expect(shouldCalculateBillNewDot(true)).toBeTruthy();
+            };
+            expect(shouldCalculateBillNewDot(true, policies)).toBeTruthy();
+        });
+
+        it('should return false when empty policies collection is passed', () => {
+            expect(shouldCalculateBillNewDot(true, {})).toBeFalsy();
+        });
+    });
+
+    describe('shouldShowTrialEndedUI', () => {
+        const ownerAccountID = 345;
+        const policyID = '200012';
+        const lastDayFreeTrialEnded = formatDate(subDays(new Date(), 2), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING);
+        const lastDayFreeTrialActive = formatDate(addDays(new Date(), 5), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING);
+
+        let policies: Record<string, ReturnType<typeof createRandomPolicy>>;
+
+        beforeEach(async () => {
+            await Onyx.clear();
+            policies = {
+                [`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]: {
+                    ...createRandomPolicy(Number(policyID)),
+                    ownerAccountID,
+                    type: CONST.POLICY.TYPE.CORPORATE,
+                },
+            };
+            await Onyx.set(ONYXKEYS.SESSION, {accountID: ownerAccountID});
+        });
+
+        it('should return true for a regular user whose trial ended, no card, with owned workspace', () => {
+            expect(shouldShowTrialEndedUI(lastDayFreeTrialEnded, undefined, policies, undefined, undefined, undefined)).toBeTruthy();
+        });
+
+        it('should return false if the user has no owned paid policies', () => {
+            expect(shouldShowTrialEndedUI(lastDayFreeTrialEnded, undefined, {}, undefined, undefined, undefined)).toBeFalsy();
+        });
+
+        it('should return false if the user is grandfathered free', () => {
+            expect(shouldShowTrialEndedUI(lastDayFreeTrialEnded, undefined, policies, true, undefined, undefined)).toBeFalsy();
+        });
+
+        it('should return false if the user is from an internal domain', () => {
+            expect(shouldShowTrialEndedUI(lastDayFreeTrialEnded, undefined, policies, undefined, true, undefined)).toBeFalsy();
+        });
+
+        it('should return false if the user is on invoiced billing', () => {
+            expect(shouldShowTrialEndedUI(lastDayFreeTrialEnded, undefined, policies, undefined, undefined, CONST.SUBSCRIPTION.TYPE.INVOICING)).toBeFalsy();
+        });
+
+        it('should return false if the user has a payment card added', () => {
+            expect(shouldShowTrialEndedUI(lastDayFreeTrialEnded, 8010, policies, undefined, undefined, undefined)).toBeFalsy();
+        });
+
+        it('should return false if the trial has not ended yet', () => {
+            expect(shouldShowTrialEndedUI(lastDayFreeTrialActive, undefined, policies, undefined, undefined, undefined)).toBeFalsy();
+        });
+
+        it('should return false if lastDayFreeTrial is undefined', () => {
+            expect(shouldShowTrialEndedUI(undefined, undefined, policies, undefined, undefined, undefined)).toBeFalsy();
         });
     });
 });

@@ -3,11 +3,12 @@ import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import type {OnyxValues} from '@src/ONYXKEYS';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {CurrencyList, Locale} from '@src/types/onyx';
+import type {Locale} from '@src/types/onyx';
 import {format, formatToParts} from './NumberFormatUtils';
 
 let currencyList: OnyxValues[typeof ONYXKEYS.CURRENCY_LIST] = {};
 
+/* eslint-disable rulesdir/prefer-onyx-connect-in-libs -- may refactor to useOnyx/connectWithoutView later */
 Onyx.connect({
     key: ONYXKEYS.CURRENCY_LIST,
     callback: (val) => {
@@ -18,6 +19,7 @@ Onyx.connect({
         currencyList = val;
     },
 });
+/* eslint-enable rulesdir/prefer-onyx-connect-in-libs */
 
 /**
  * Returns the number of digits after the decimal separator for a specific currency.
@@ -208,24 +210,11 @@ function isValidCurrencyCode(currencyCode: string): boolean {
     return !!currency;
 }
 
-function getCurrencyKeyByCountryCode(currencies?: CurrencyList, countryCode?: string): string {
-    if (!currencies || !countryCode) {
-        return CONST.CURRENCY.USD;
-    }
-    for (const [key, value] of Object.entries(currencies)) {
-        if (value?.countries?.includes(countryCode)) {
-            return key;
-        }
-    }
-    return CONST.CURRENCY.USD;
-}
-
 export {
     getCurrencyDecimals,
     getCurrencyUnit,
     getLocalizedCurrencySymbol,
     getCurrencySymbol,
-    getCurrencyKeyByCountryCode,
     convertToBackendAmount,
     convertToFrontendAmountAsInteger,
     convertToFrontendAmountAsString,

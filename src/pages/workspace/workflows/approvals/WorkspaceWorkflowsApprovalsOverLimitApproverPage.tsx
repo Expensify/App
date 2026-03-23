@@ -67,6 +67,10 @@ function WorkspaceWorkflowsApprovalsOverLimitApproverPage({policy, personalDetai
                 }
 
                 const accountID = Number(policyMemberEmailsToAccountIDs[email] ?? '');
+                if (!accountID) {
+                    return null;
+                }
+
                 const {avatar, displayName = email, login} = personalDetails?.[accountID] ?? {};
 
                 return {

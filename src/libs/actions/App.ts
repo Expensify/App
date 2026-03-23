@@ -161,6 +161,7 @@ Onyx.connectWithoutView({
             // Set this to false to reset the flag for this client
             Onyx.set(ONYXKEYS.RESET_REQUIRED, false);
 
+            // eslint-disable-next-line @typescript-eslint/no-use-before-define
             openApp();
         });
     },
@@ -267,6 +268,8 @@ AppState.addEventListener('change', (nextAppState) => {
 
     if (nextAppState === 'active' && appState?.match(/inactive|background/)) {
         Log.info('App coming to foreground', false, {previousState: appState, nextState: nextAppState});
+        Log.info('Cancelling telemetry spans as app is coming to foreground', false, {previousState: appState, nextState: nextAppState});
+        cancelAllSpans();
     }
     appState = nextAppState;
 });
@@ -308,6 +311,16 @@ function getOnyxDataForOpenOrReconnect(
     shouldKeepPublicRooms = false,
     allReportsWithDraftComments?: Record<string, string | undefined>,
 ): OnyxData<OnyxDataForOpenOrReconnectKeys> {
+    let commandName: string;
+    if (isOpenApp) {
+        commandName = 'OpenApp';
+    } else if (isFullReconnect) {
+        commandName = 'ReconnectApp (full)';
+    } else {
+        commandName = 'ReconnectApp (partial)';
+    }
+    Log.info(`[App] isLoadingReportData set to true`, false, {command: commandName});
+
     const result: OnyxData<
         | typeof ONYXKEYS.IS_LOADING_REPORT_DATA
         | typeof ONYXKEYS.HAS_LOADED_APP
@@ -554,6 +567,9 @@ type CreateWorkspaceWithPolicyDraftParams = {
     currentUserEmailParam: string;
     shouldCreateControlPolicy?: boolean;
     type?: PolicyType;
+    // TODO: Remove optional (?) once allBetas Onyx.connect is removed (https://github.com/Expensify/App/issues/66417)
+    betas?: OnyxEntry<OnyxTypes.Beta[]>;
+    hasActiveAdminPolicies: boolean;
 };
 
 /**
@@ -578,6 +594,8 @@ function createWorkspaceWithPolicyDraftAndNavigateToIt(params: CreateWorkspaceWi
         shouldCreateControlPolicy,
         type,
         isSelfTourViewed,
+        betas,
+        hasActiveAdminPolicies,
     } = params;
 
     const policyIDWithDefault = policyID || generatePolicyID();
@@ -604,8 +622,50 @@ function createWorkspaceWithPolicyDraftAndNavigateToIt(params: CreateWorkspaceWi
             shouldCreateControlPolicy,
             type,
             isSelfTourViewed,
+            betas,
+            hasActiveAdminPolicies,
         });
         Navigation.navigate(routeToNavigate, {forceReplace: !transitionFromOldDot});
+    });
+}
+
+function createWorkspaceWithPolicyDraft(params: CreateWorkspaceWithPolicyDraftParams) {
+    const {
+        introSelected,
+        policyOwnerEmail = '',
+        policyName = '',
+        makeMeAdmin = false,
+        policyID = '',
+        currency,
+        file,
+        lastUsedPaymentMethod,
+        activePolicyID,
+        currentUserAccountIDParam,
+        currentUserEmailParam,
+        shouldCreateControlPolicy,
+        isSelfTourViewed,
+        betas,
+        hasActiveAdminPolicies,
+    } = params;
+
+    createDraftInitialWorkspace(introSelected, policyOwnerEmail, policyName, policyID, makeMeAdmin, currency, file);
+    savePolicyDraftByNewWorkspace({
+        policyID,
+        policyName,
+        policyOwnerEmail,
+        makeMeAdmin,
+        currency,
+        file,
+        lastUsedPaymentMethod,
+        introSelected,
+        activePolicyID,
+        currentUserAccountIDParam,
+        currentUserEmailParam,
+        allReportsParam: allReports,
+        shouldCreateControlPolicy,
+        isSelfTourViewed,
+        betas,
+        hasActiveAdminPolicies,
     });
 }
 
@@ -625,6 +685,9 @@ type SavePolicyDraftByNewWorkspaceParams = {
     allReportsParam: OnyxCollection<OnyxTypes.Report>;
     shouldCreateControlPolicy?: boolean;
     type?: PolicyType;
+    // TODO: Remove optional (?) once allBetas Onyx.connect is removed (https://github.com/Expensify/App/issues/66417)
+    betas?: OnyxEntry<OnyxTypes.Beta[]>;
+    hasActiveAdminPolicies: boolean;
 };
 
 /**
@@ -646,6 +709,8 @@ function savePolicyDraftByNewWorkspace({
     shouldCreateControlPolicy,
     type,
     isSelfTourViewed,
+    betas,
+    hasActiveAdminPolicies,
 }: SavePolicyDraftByNewWorkspaceParams) {
     createWorkspace({
         policyOwnerEmail,
@@ -664,6 +729,8 @@ function savePolicyDraftByNewWorkspace({
         shouldCreateControlPolicy,
         type,
         isSelfTourViewed,
+        betas,
+        hasActiveAdminPolicies,
     });
 }
 
@@ -687,6 +754,7 @@ function setUpPoliciesAndNavigate(
     introSelected: OnyxEntry<OnyxTypes.IntroSelected>,
     activePolicyID: string | undefined,
     isSelfTourViewed: boolean | undefined,
+    hasActiveAdminPolicies: boolean,
 ) {
     const currentUrl = getCurrentUrl();
     if (!session || !currentUrl?.includes('exitTo')) {
@@ -718,6 +786,7 @@ function setUpPoliciesAndNavigate(
             currentUserAccountIDParam: currentSessionData.accountID ?? CONST.DEFAULT_NUMBER_ID,
             currentUserEmailParam: currentSessionData.email ?? '',
             isSelfTourViewed,
+            hasActiveAdminPolicies,
         });
         return;
     }
@@ -835,6 +904,7 @@ export {
     savePolicyDraftByNewWorkspace,
     createWorkspaceWithPolicyDraftAndNavigateToIt,
     updateLastVisitedPath,
+    createWorkspaceWithPolicyDraft,
     updateLastRoute,
     setIsUsingImportedState,
     clearOnyxAndResetApp,

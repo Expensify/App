@@ -1,4 +1,5 @@
 import {useIsFocused} from '@react-navigation/native';
+import {hasSeenTourSelector} from '@selectors/Onboarding';
 import {accountIDSelector} from '@selectors/Session';
 import {deepEqual} from 'fast-equals';
 import isEmpty from 'lodash/isEmpty';
@@ -24,6 +25,7 @@ import useFeedKeysWithAssignedCards from '@hooks/useFeedKeysWithAssignedCards';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useReportAttributes from '@hooks/useReportAttributes';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -63,6 +65,7 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
     const personalDetails = usePersonalDetails();
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const reportAttributes = useReportAttributes();
     const taxRates = useMemo(() => getAllTaxRates(policies), [policies]);
     const [personalAndWorkspaceCards] = useOnyx(ONYXKEYS.DERIVED.PERSONAL_AND_WORKSPACE_CARD_LIST);
     const [allFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER);
@@ -70,6 +73,8 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
     const {inputQuery: originalInputQuery} = queryJSON;
     const [currentUserAccountID = -1] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const queryText = buildUserReadableQueryString({
         queryJSON,
         PersonalDetails: personalDetails,
@@ -82,6 +87,7 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
         autoCompleteWithSpace: true,
         translate,
         feedKeysWithCards,
+        reportAttributes,
     });
 
     const [searchContext] = useOnyx(ONYXKEYS.SEARCH_CONTEXT);
@@ -139,15 +145,17 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
             policies,
             currentUserAccountID,
             translate,
+            reportAttributes,
         );
         setAutocompleteSubstitutions(substitutionsMap);
-    }, [allFeeds, personalAndWorkspaceCards, originalInputQuery, personalDetails, reports, taxRates, policies, currentUserAccountID, translate]);
+    }, [allFeeds, personalAndWorkspaceCards, originalInputQuery, personalDetails, reports, taxRates, policies, currentUserAccountID, translate, reportAttributes]);
 
     useEffect(() => {
         if (searchRouterListVisible) {
             return;
         }
         setShowPopupButton(true);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [searchRouterListVisible]);
 
     const onFocus = useCallback(() => {
@@ -236,15 +244,15 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
                         setAutocompleteSubstitutions(substitutions);
                     }
                 } else if (item.searchItemType === CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.SEARCH) {
-                    submitSearch(item.searchQuery, item.keyForList !== 'findItem');
+                    submitSearch(item.searchQuery, item.keyForList !== CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.FIND_ITEM);
                 }
             } else if (item?.reportID) {
                 Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(item?.reportID));
             } else if ('login' in item) {
-                navigateToAndOpenReport(item.login ? [item.login] : [], currentUserAccountID, introSelected, false);
+                navigateToAndOpenReport(item.login ? [item.login] : [], currentUserAccountID, introSelected, isSelfTourViewed, betas, false);
             }
         },
-        [autocompleteSubstitutions, onSearchQueryChange, submitSearch, textInputValue, currentUserAccountID, introSelected],
+        [autocompleteSubstitutions, onSearchQueryChange, submitSearch, textInputValue, currentUserAccountID, introSelected, isSelfTourViewed, betas],
     );
 
     const searchQueryItem = useMemo(
@@ -255,7 +263,7 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
                       singleIcon: expensifyIcons.MagnifyingGlass,
                       searchQuery: textInputValue,
                       itemStyle: styles.activeComponentBG,
-                      keyForList: 'findItem',
+                      keyForList: CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.FIND_ITEM,
                       searchItemType: CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.SEARCH,
                   }
                 : undefined,

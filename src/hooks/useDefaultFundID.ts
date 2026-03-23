@@ -20,6 +20,7 @@ function useDefaultFundID(policyID: string | undefined) {
     const getDomainFundID = useCallback(
         (cardSettings: OnyxCollection<ExpensifyCardSettings>) => {
             const matchingKey = Object.entries(cardSettings ?? {}).find(
+                // eslint-disable-next-line @typescript-eslint/no-unused-vars
                 ([key, settings]) => settings?.preferredPolicy && settings.preferredPolicy === policyID && !key.includes(workspaceAccountID.toString()),
             );
 

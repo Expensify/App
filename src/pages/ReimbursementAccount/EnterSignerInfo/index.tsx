@@ -55,6 +55,7 @@ function EnterSignerInfo({route}: EnterSignerInfoProps) {
     } = useSubStep<EnterSignerInfoFormSubStepProps>({bodyContent, startFrom: 0, onFinished: submit});
 
     useEffect(() => {
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         if (enterSignerInfoForm?.errors || enterSignerInfoForm?.isSavingSignerInformation || !enterSignerInfoForm?.isSuccess) {
             return;
         }

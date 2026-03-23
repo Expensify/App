@@ -20,6 +20,7 @@ function Onfido({sdkToken, onUserExit, onSuccess, onError}: OnfidoProps) {
         OnfidoSDK.start({
             sdkToken,
             theme: OnfidoTheme.AUTOMATIC,
+            // eslint-disable-next-line
             nfcOption: OnfidoNFCOptions.DISABLED,
             flowSteps: {
                 welcome: true,
@@ -102,7 +103,7 @@ function Onfido({sdkToken, onUserExit, onSuccess, onError}: OnfidoProps) {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    return <FullscreenLoadingIndicator />;
+    return <FullscreenLoadingIndicator reasonAttributes={{context: 'Onfido'}} />;
 }
 
 export default Onfido;

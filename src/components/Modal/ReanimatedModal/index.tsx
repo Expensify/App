@@ -47,6 +47,7 @@ function ReanimatedModal({
     initialFocus,
     shouldIgnoreBackHandlerDuringTransition = false,
     shouldEnableNewFocusManagement,
+    shouldReturnFocus,
     ...props
 }: ReanimatedModalProps) {
     const [isVisibleState, setIsVisibleState] = useState(isVisible);
@@ -106,17 +107,20 @@ function ReanimatedModal({
             setIsVisibleState(false);
             setIsContainerOpen(false);
         },
+        // eslint-disable-next-line react-hooks/exhaustive-deps
         [],
     );
 
     useEffect(() => {
         if (isVisible && !isContainerOpen && !isTransitioning) {
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             handleRef.current = InteractionManager.createInteractionHandle();
             onModalWillShow();
 
             setIsVisibleState(true);
             setIsTransitioning(true);
         } else if (!isVisible && isContainerOpen && !isTransitioning) {
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             handleRef.current = InteractionManager.createInteractionHandle();
             onModalWillHide();
 
@@ -135,6 +139,7 @@ function ReanimatedModal({
         setIsTransitioning(false);
         setIsContainerOpen(true);
         if (handleRef.current) {
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             InteractionManager.clearInteractionHandle(handleRef.current);
         }
         onModalShow();
@@ -144,6 +149,7 @@ function ReanimatedModal({
         setIsTransitioning(false);
         setIsContainerOpen(false);
         if (handleRef.current) {
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             InteractionManager.clearInteractionHandle(handleRef.current);
         }
 
@@ -209,6 +215,7 @@ function ReanimatedModal({
             <Modal
                 transparent
                 animationType="none"
+                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                 visible={modalVisibility}
                 onRequestClose={onBackButtonPressHandler}
                 statusBarTranslucent={statusBarTranslucent}
@@ -236,7 +243,7 @@ function ReanimatedModal({
                     <FocusTrapForModal
                         active={modalVisibility}
                         initialFocus={initialFocus}
-                        shouldReturnFocus={!shouldEnableNewFocusManagement}
+                        shouldReturnFocus={shouldReturnFocus ?? !shouldEnableNewFocusManagement}
                         shouldPreventScroll={shouldPreventScrollOnFocus}
                     >
                         {isVisibleState && containerView}

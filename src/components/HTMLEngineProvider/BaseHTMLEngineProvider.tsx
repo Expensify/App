@@ -186,6 +186,10 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
                 tagName: 'bullet-item',
                 contentModel: HTMLContentModel.block,
             }),
+            'sparkles-icon': HTMLElementModel.fromCustomModel({
+                tagName: 'sparkles-icon',
+                contentModel: HTMLContentModel.mixed,
+            }),
         }),
         [
             styles.taskTitleMenuItem,
@@ -231,6 +235,7 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
                 recognizeSelfClosing: true,
             }}
             domVisitors={{
+                // eslint-disable-next-line no-param-reassign
                 onText: (text) => {
                     // Avoid injecting LTR controls into whitespace-only nodes.
                     // Doing so turns otherwise ignorable whitespace into visible content in some renderers (Android),

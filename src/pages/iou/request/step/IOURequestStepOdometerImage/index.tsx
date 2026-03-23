@@ -24,9 +24,10 @@ import {base64ToFile} from '@libs/fileDownload/FileUtils';
 import {shouldUseTransactionDraft} from '@libs/IOUUtils';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
+import NavigationAwareCamera from '@pages/iou/request/step/IOURequestStepScan/components/NavigationAwareCamera/WebCamera';
 import {cropImageToAspectRatio} from '@pages/iou/request/step/IOURequestStepScan/cropImageToAspectRatio';
 import type {ImageObject} from '@pages/iou/request/step/IOURequestStepScan/cropImageToAspectRatio';
-import NavigationAwareCamera from '@pages/iou/request/step/IOURequestStepScan/NavigationAwareCamera/WebCamera';
 import StepScreenDragAndDropWrapper from '@pages/iou/request/step/StepScreenDragAndDropWrapper';
 import withFullTransactionOrNotFound from '@pages/iou/request/step/withFullTransactionOrNotFound';
 import type {WithFullTransactionOrNotFoundProps} from '@pages/iou/request/step/withFullTransactionOrNotFound';
@@ -43,7 +44,7 @@ type IOURequestStepOdometerImageProps = WithFullTransactionOrNotFoundProps<typeo
 
 function IOURequestStepOdometerImage({
     route: {
-        params: {action, iouType, transactionID, reportID, imageType},
+        params: {action, iouType, transactionID, reportID, backToReport, imageType, isEditingConfirmation},
     },
 }: IOURequestStepOdometerImageProps) {
     const {translate} = useLocalize();
@@ -77,10 +78,13 @@ function IOURequestStepOdometerImage({
     const icon = imageType === CONST.IOU.ODOMETER_IMAGE_TYPE.START ? lazyIcons.OdometerStart : lazyIcons.OdometerEnd;
     const messageHTML = `<centered-text><muted-text-label>${message}</muted-text-label></centered-text>`;
 
-    const odometerRoute = ROUTES.DISTANCE_REQUEST_CREATE_TAB_ODOMETER.getRoute(action, iouType, transactionID, reportID);
+    const goBackRoute =
+        isEditingConfirmation === 'true'
+            ? ROUTES.MONEY_REQUEST_STEP_DISTANCE_ODOMETER.getRoute(action, iouType, transactionID, reportID)
+            : ROUTES.DISTANCE_REQUEST_CREATE_TAB_ODOMETER.getRoute(action, iouType, transactionID, reportID, backToReport);
 
     const navigateBack = () => {
-        Navigation.goBack(odometerRoute);
+        Navigation.goBack(goBackRoute);
     };
 
     const handleImageSelected = (file: FileObject) => {
@@ -90,9 +94,6 @@ function IOURequestStepOdometerImage({
     };
 
     const {validateFiles, ErrorModal} = useFilesValidation((files: FileObject[]) => {
-        if (files.length === 0) {
-            return;
-        }
         const file = files.at(0);
         if (!file) {
             return;
@@ -225,11 +226,11 @@ function IOURequestStepOdometerImage({
         const viewFinderHeight = viewfinderLayout.current?.height ?? NaN;
         const shouldAlignTop = videoHeight > viewFinderHeight;
         cropImageToAspectRatio(imageObject, viewfinderLayout.current?.width, viewfinderLayout.current?.height, shouldAlignTop)
-            .then(({source}) => {
+            .then(({file, source}) => {
                 if (source !== imageObject.source) {
                     URL.revokeObjectURL(imageObject.source);
                 }
-                setMoneyRequestOdometerImage(transactionID, imageType, source, isTransactionDraft);
+                setMoneyRequestOdometerImage(transactionID, imageType, file ?? source, isTransactionDraft);
                 navigateBack();
             })
             .catch((error: unknown) => {
@@ -274,6 +275,13 @@ function IOURequestStepOdometerImage({
         [],
     );
 
+    const cameraLoadingReasonAttributes: SkeletonSpanReasonAttributes = {
+        context: 'IOURequestStepOdometerImage',
+        cameraPermissionState,
+        isQueriedPermissionState,
+        hasVideoConstraints: !isEmptyObject(videoConstraints),
+    };
+
     const mobileCameraView = () => (
         <>
             <View style={[styles.cameraView]}>
@@ -282,6 +290,7 @@ function IOURequestStepOdometerImage({
                         size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
                         style={[styles.flex1]}
                         color={theme.textSupporting}
+                        reasonAttributes={cameraLoadingReasonAttributes}
                     />
                 )}
                 {cameraPermissionState !== 'granted' && isQueriedPermissionState && (
@@ -423,6 +432,7 @@ function IOURequestStepOdometerImage({
         for (const file of files) {
             const blobUrl = URL.createObjectURL(file);
             blobUrls.push(blobUrl);
+            // eslint-disable-next-line no-param-reassign
             file.uri = blobUrl;
         }
         dropBlobUrlsRef.current = blobUrls;

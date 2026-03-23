@@ -1,15 +1,16 @@
+/* eslint-disable rulesdir/no-api-side-effects-method */
 // These functions use makeRequestWithSideEffects because challenge data must be returned immediately
 // for security and timing requirements (see detailed explanation below)
 import Onyx from 'react-native-onyx';
 import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import type {MultifactorAuthenticationScenarioParameters} from '@components/MultifactorAuthentication/config/types';
 import {makeRequestWithSideEffects} from '@libs/API';
-import type {DenyTransactionParams} from '@libs/API/parameters';
+import type {DenyTransactionParams, RevokeMultifactorAuthenticationCredentialsParams} from '@libs/API/parameters';
 import {SIDE_EFFECT_REQUEST_COMMANDS} from '@libs/API/types';
 import Log from '@libs/Log';
-import type {AuthenticationChallenge, RegistrationChallenge} from '@libs/MultifactorAuthentication/Biometrics/ED25519/types';
-import {parseHttpRequest} from '@libs/MultifactorAuthentication/Biometrics/helpers';
-import type {MultifactorAuthenticationReason} from '@libs/MultifactorAuthentication/Biometrics/types';
+import type {AuthenticationChallenge, RegistrationChallenge} from '@libs/MultifactorAuthentication/shared/challengeTypes';
+import parseHttpRequest from '@libs/MultifactorAuthentication/shared/helpers';
+import type {MultifactorAuthenticationReason} from '@libs/MultifactorAuthentication/shared/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {LocallyProcessed3DSChallengeReviews} from '@src/types/onyx';
@@ -85,6 +86,7 @@ async function registerAuthenticationKey({keyInfo, authenticationMethod}: Multif
 type RegistrationChallengeResponse = {
     httpStatusCode: number;
     reason: MultifactorAuthenticationReason;
+    message: string | undefined;
     challenge: RegistrationChallenge | undefined;
     publicKeys: string[] | undefined;
 };
@@ -92,6 +94,7 @@ type RegistrationChallengeResponse = {
 type AuthenticationChallengeResponse = {
     httpStatusCode: number;
     reason: MultifactorAuthenticationReason;
+    message: string | undefined;
     challenge: AuthenticationChallenge | undefined;
     publicKeys: string[] | undefined;
 };
@@ -188,43 +191,85 @@ async function troubleshootMultifactorAuthentication({signedChallenge, authentic
     }
 }
 
-async function revokeMultifactorAuthenticationCredentials() {
-    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT>> = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.ACCOUNT,
-            value: {
-                isLoading: true,
-            },
-        },
-    ];
-    const successData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT>> = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.ACCOUNT,
-            value: {
-                isLoading: false,
-            },
-        },
-    ];
-    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT>> = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.ACCOUNT,
-            value: {
-                isLoading: false,
-            },
-        },
-    ];
+async function revokeMultifactorAuthenticationCredentials(params: RevokeMultifactorAuthenticationCredentialsParams) {
     try {
-        const response = await makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.REVOKE_MULTIFACTOR_AUTHENTICATION_CREDENTIALS, {}, {optimisticData, successData, failureData});
-
+        const response = await makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.REVOKE_MULTIFACTOR_AUTHENTICATION_CREDENTIALS, params ?? {}, {});
         const {jsonCode, message} = response ?? {};
 
         return parseHttpRequest(jsonCode, CONST.MULTIFACTOR_AUTHENTICATION.API_RESPONSE_MAP.REVOKE_MULTIFACTOR_AUTHENTICATION_SETUP, message);
     } catch (error) {
         Log.hmmm('[MultifactorAuthentication] Failed to revoke multifactor authentication credentials', {error});
         return parseHttpRequest(undefined, CONST.MULTIFACTOR_AUTHENTICATION.API_RESPONSE_MAP.REVOKE_MULTIFACTOR_AUTHENTICATION_SETUP, undefined);
+    }
+}
+
+async function setPersonalDetailsAndShipExpensifyCardsWithPIN(params: MultifactorAuthenticationScenarioParameters['SET-PIN-ORDER-CARD']) {
+    try {
+        const response = await makeRequestWithSideEffects(
+            SIDE_EFFECT_REQUEST_COMMANDS.SET_PERSONAL_DETAILS_AND_SHIP_EXPENSIFY_CARDS_WITH_PIN,
+            {
+                ...params,
+                signedChallenge: JSON.stringify(params.signedChallenge),
+            },
+            {
+                optimisticData: [
+                    {
+                        onyxMethod: Onyx.METHOD.MERGE,
+                        key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
+                        value: {
+                            isLoading: true,
+                        },
+                    },
+                ],
+                finallyData: [
+                    {
+                        onyxMethod: Onyx.METHOD.MERGE,
+                        key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
+                        value: {
+                            isLoading: false,
+                        },
+                    },
+                ],
+            },
+        );
+
+        const {jsonCode, message} = response ?? {};
+        return parseHttpRequest(jsonCode, CONST.MULTIFACTOR_AUTHENTICATION.API_RESPONSE_MAP.SET_PERSONAL_DETAILS_AND_SHIP_EXPENSIFY_CARDS_WITH_PIN, message);
+    } catch (error) {
+        Log.hmmm('[MultifactorAuthentication] Failed to set personal details and ship card with PIN', {error});
+        return parseHttpRequest(undefined, CONST.MULTIFACTOR_AUTHENTICATION.API_RESPONSE_MAP.SET_PERSONAL_DETAILS_AND_SHIP_EXPENSIFY_CARDS_WITH_PIN, undefined);
+    }
+}
+async function revealPINForCard({cardID, signedChallenge, authenticationMethod}: MultifactorAuthenticationScenarioParameters['REVEAL-PIN']) {
+    try {
+        const response = await makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.REVEAL_CARD_PIN, {cardID, signedChallenge: JSON.stringify(signedChallenge), authenticationMethod}, {});
+
+        const {jsonCode, message, pin} = response ?? {};
+        const parsed = parseHttpRequest(jsonCode, CONST.MULTIFACTOR_AUTHENTICATION.API_RESPONSE_MAP.REVEAL_CARD_PIN, message);
+
+        return {
+            ...parsed,
+            body: {pin: String(pin ?? '')},
+        };
+    } catch (error) {
+        Log.hmmm('[MultifactorAuthentication] Failed to reveal PIN for card', {error});
+        return parseHttpRequest(undefined, CONST.MULTIFACTOR_AUTHENTICATION.API_RESPONSE_MAP.REVEAL_CARD_PIN, undefined);
+    }
+}
+
+async function changePINForCard({cardID, pin, signedChallenge, authenticationMethod}: MultifactorAuthenticationScenarioParameters['CHANGE-PIN']) {
+    try {
+        const response = await makeRequestWithSideEffects(
+            SIDE_EFFECT_REQUEST_COMMANDS.CHANGE_CARD_PIN,
+            {cardID, pin, signedChallenge: JSON.stringify(signedChallenge), authenticationMethod},
+            {},
+        );
+
+        const {jsonCode, message} = response ?? {};
+        return parseHttpRequest(jsonCode, CONST.MULTIFACTOR_AUTHENTICATION.API_RESPONSE_MAP.CHANGE_CARD_PIN, message);
+    } catch (error) {
+        Log.hmmm('[MultifactorAuthentication] Failed to change PIN for card', {error});
+        return parseHttpRequest(undefined, CONST.MULTIFACTOR_AUTHENTICATION.API_RESPONSE_MAP.CHANGE_CARD_PIN, undefined);
     }
 }
 
@@ -290,7 +335,21 @@ async function denyTransaction({transactionID}: DenyTransactionParams) {
 
 /** Attempt to deny the transaction without handling errors or waiting for a response. We use this to clean up after something unexpected happened trying to authorize or deny a challenge */
 async function fireAndForgetDenyTransaction({transactionID}: DenyTransactionParams) {
-    makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.DENY_TRANSACTION, {transactionID}, {});
+    makeRequestWithSideEffects(
+        SIDE_EFFECT_REQUEST_COMMANDS.DENY_TRANSACTION,
+        {transactionID},
+        {
+            optimisticData: [
+                {
+                    key: ONYXKEYS.LOCALLY_PROCESSED_3DS_TRANSACTION_REVIEWS,
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    value: {
+                        [transactionID]: CONST.MULTIFACTOR_AUTHENTICATION.LOCALLY_PROCESSED_TRANSACTION_ACTION.DENY,
+                    },
+                },
+            ],
+        },
+    );
 }
 
 function markHasAcceptedSoftPrompt() {
@@ -313,6 +372,9 @@ export {
     revokeMultifactorAuthenticationCredentials,
     markHasAcceptedSoftPrompt,
     clearLocalMFAPublicKeyList,
+    setPersonalDetailsAndShipExpensifyCardsWithPIN,
+    revealPINForCard,
+    changePINForCard,
     isTransactionStillPending3DSReview,
     denyTransaction,
     authorizeTransaction,

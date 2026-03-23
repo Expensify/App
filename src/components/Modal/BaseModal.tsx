@@ -54,6 +54,7 @@ function BaseModal({
     onBackdropPress,
     modalId,
     shouldEnableNewFocusManagement = false,
+    shouldReturnFocus,
     restoreFocusType,
     shouldUseModalPaddingStyle = true,
     initialFocus = false,
@@ -163,6 +164,7 @@ function BaseModal({
             }
             hideModalCallbackRef.current?.(true);
         },
+        // eslint-disable-next-line react-hooks/exhaustive-deps
         [],
     );
 
@@ -367,6 +369,7 @@ function BaseModal({
                         type={type}
                         shouldIgnoreBackHandlerDuringTransition={shouldIgnoreBackHandlerDuringTransition}
                         shouldEnableNewFocusManagement={shouldEnableNewFocusManagement}
+                        shouldReturnFocus={shouldReturnFocus}
                     >
                         <Animated.View
                             onLayout={onViewLayout}

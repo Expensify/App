@@ -37,9 +37,11 @@ import ConnectionComplete from '@assets/images/connection-complete.svg';
 import Copy from '@assets/images/copy.svg';
 import CreditCardExclamation from '@assets/images/credit-card-exclamation.svg';
 import CreditCardHourglass from '@assets/images/credit-card-hourglass.svg';
+import CreditCardLock from '@assets/images/credit-card-lock.svg';
 import CreditCard from '@assets/images/creditcard.svg';
 import Crop from '@assets/images/crop.svg';
 import DocumentMerge from '@assets/images/document-merge.svg';
+import DocumentPlus from '@assets/images/document-plus.svg';
 import Document from '@assets/images/document.svg';
 import DotIndicatorUnfilled from '@assets/images/dot-indicator-unfilled.svg';
 import DotIndicator from '@assets/images/dot-indicator.svg';
@@ -47,10 +49,12 @@ import Download from '@assets/images/download.svg';
 import DragAndDrop from '@assets/images/drag-and-drop.svg';
 import DragHandles from '@assets/images/drag-handles.svg';
 import Emoji from '@assets/images/emoji.svg';
+import EnvelopeOpenStar from '@assets/images/envelope-open-star.svg';
 import EReceiptIcon from '@assets/images/eReceiptIcon.svg';
 import Exclamation from '@assets/images/exclamation.svg';
 import Exit from '@assets/images/exit.svg';
 import ExpenseCopy from '@assets/images/expense-copy.svg';
+import ExpensifyCardHourglass from '@assets/images/expensify-card-hourglass.svg';
 import Export from '@assets/images/export.svg';
 import EyeDisabled from '@assets/images/eye-disabled.svg';
 import Eye from '@assets/images/eye.svg';
@@ -95,8 +99,10 @@ import XeroSquare from '@assets/images/integrationicons/xero-icon-square.svg';
 import ZenefitsSquare from '@assets/images/integrationicons/zenefits-icon-square.svg';
 import InvoiceGeneric from '@assets/images/invoice-generic.svg';
 import Invoice from '@assets/images/invoice.svg';
+import Key from '@assets/images/key.svg';
 import LinkCopy from '@assets/images/link-copy.svg';
 import Link from '@assets/images/link.svg';
+import LuggageWithLinesPlus from '@assets/images/luggage-with-lines-plus.svg';
 import LuggageWithLines from '@assets/images/luggage-with-lines.svg';
 import Mail from '@assets/images/mail.svg';
 import MakeAdmin from '@assets/images/make-admin.svg';
@@ -198,10 +204,13 @@ export {
     CreditCard,
     CreditCardHourglass,
     CreditCardExclamation,
+    CreditCardLock,
+    ExpensifyCardHourglass,
     Crop,
     CircleSlash,
     Document,
     DocumentMerge,
+    DocumentPlus,
     DotIndicator,
     DotIndicatorUnfilled,
     Download,
@@ -209,6 +218,7 @@ export {
     DragHandles,
     EReceiptIcon,
     Emoji,
+    EnvelopeOpenStar,
     ExpenseCopy,
     Exclamation,
     Exit,
@@ -217,6 +227,7 @@ export {
     EyeDisabled,
     FallbackAvatar,
     Flag,
+    Key,
     FlagLevelOne,
     FlagLevelTwo,
     FlagLevelThree,
@@ -332,6 +343,7 @@ export {
     SageIntacctExport,
     XeroExport,
     LuggageWithLines,
+    LuggageWithLinesPlus,
     PlusCircle,
     BillComSquare,
     CertiniaSquare,

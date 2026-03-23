@@ -14,5 +14,6 @@ type PolicyTagNameForm = Form<
     }
 >;
 
+// eslint-disable-next-line import/prefer-default-export
 export type {PolicyTagNameForm};
 export default INPUT_IDS;

@@ -94,6 +94,7 @@ function useWorkletStateMachine<SM extends StateMachine<string, string>, P>(stat
             return;
         }
 
+        // eslint-disable-next-line @typescript-eslint/unbound-method, @typescript-eslint/restrict-template-expressions
         client(`[StateMachine] ${message}. Params: ${JSON.stringify(params)}`);
     }, []);
 

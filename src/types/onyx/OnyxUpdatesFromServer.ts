@@ -78,9 +78,7 @@ type OnyxUpdatesFromServer<TKey extends OnyxKey> = OnyxUpdatesFromServerBase<TKe
  * @param value - represent the onyx update received from the server
  * @returns boolean indicating if the onyx update received from the server is valid
  */
-/**
- *
- */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function isValidOnyxUpdateFromServer(value: unknown): value is AnyOnyxUpdatesFromServer {
     if (!value || typeof value !== 'object') {
         return false;

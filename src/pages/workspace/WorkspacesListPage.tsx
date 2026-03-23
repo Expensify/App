@@ -4,15 +4,15 @@ import React, {useEffect, useRef, useState} from 'react';
 import {FlatList, InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
+import ActivityIndicator from '@components/ActivityIndicator';
 import ConfirmModal from '@components/ConfirmModal';
 import type {DomainItem} from '@components/Domain/DomainMenuItem';
 import DomainMenuItem from '@components/Domain/DomainMenuItem';
 import DomainsEmptyStateComponent from '@components/DomainsEmptyStateComponent';
-import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import type {MenuItemProps} from '@components/MenuItem';
 import NavigationTabBar from '@components/Navigation/NavigationTabBar';
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
-import TopBar from '@components/Navigation/TopBar';
+import TopBarWithLoadingBar from '@components/Navigation/TopBarWithLoadingBar';
 import type {OfflineWithFeedbackProps} from '@components/OfflineWithFeedback';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
@@ -25,10 +25,12 @@ import Text from '@components/Text';
 import useAndroidBackButtonHandler from '@hooks/useAndroidBackButtonHandler';
 import useCardFeeds from '@hooks/useCardFeeds';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDocumentTitle from '@hooks/useDocumentTitle';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import useOutstandingBalanceGuard from '@hooks/useOutstandingBalanceGuard';
 import usePayAndDowngrade from '@hooks/usePayAndDowngrade';
 import usePoliciesWithCardFeedErrors from '@hooks/usePoliciesWithCardFeedErrors';
 import usePreferredPolicy from '@hooks/usePreferredPolicy';
@@ -54,7 +56,6 @@ import {
     getConnectionExporters,
     getPolicyBrickRoadIndicatorStatus,
     getUberConnectionErrorDirectlyFromPolicy,
-    getUserFriendlyWorkspaceType,
     isPendingDeletePolicy,
     isPolicyAdmin,
     isPolicyAuditor,
@@ -65,12 +66,14 @@ import {
 import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
 import shouldRenderTransferOwnerButton from '@libs/shouldRenderTransferOwnerButton';
 import {isSubscriptionTypeOfInvoicing, shouldCalculateBillNewDot as shouldCalculateBillNewDotFn} from '@libs/SubscriptionUtils';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import type {AvatarSource} from '@libs/UserAvatarUtils';
 import {setNameValuePair} from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import {ownerPoliciesSelector} from '@src/selectors/Policy';
 import {reimbursementAccountErrorSelector} from '@src/selectors/ReimbursementAccount';
 import type {Policy as PolicyType} from '@src/types/onyx';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
@@ -131,6 +134,7 @@ function WorkspacesListPage() {
     const styles = useThemeStyles();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Building', 'Exit', 'Copy', 'Star', 'Trashcan', 'Transfer', 'Plus', 'FallbackWorkspaceAvatar']);
     const {translate, localeCompare} = useLocalize();
+    useDocumentTitle(translate('common.workspaces'));
     const {isOffline} = useNetwork();
     const isFocused = useIsFocused();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
@@ -149,7 +153,6 @@ function WorkspacesListPage() {
     const [duplicateWorkspace] = useOnyx(ONYXKEYS.DUPLICATE_WORKSPACE);
     const {isRestrictedToPreferredPolicy, preferredPolicyID, isRestrictedPolicyCreation} = usePreferredPolicy();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
-    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [reimbursementAccountError] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {selector: reimbursementAccountErrorSelector});
 
     const [allDomains] = useOnyx(ONYXKEYS.COLLECTION.DOMAIN);
@@ -159,6 +162,10 @@ function WorkspacesListPage() {
 
     // This hook preloads the screens of adjacent tabs to make changing tabs faster.
     usePreloadFullScreenNavigators();
+
+    const ownedPaidPolicies = ownerPoliciesSelector(policies, currentUserPersonalDetails?.accountID);
+    const activeOwnedPaidPoliciesCount = ownedPaidPolicies.filter((p) => !isPendingDeletePolicy(p)).length;
+    const {shouldBlockDeletion, wouldBlockDeletion, outstandingBalanceModal} = useOutstandingBalanceGuard(activeOwnedPaidPoliciesCount);
 
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [isDeleteWorkspaceErrorModalOpen, setIsDeleteWorkspaceErrorModalOpen] = useState(false);
@@ -232,7 +239,6 @@ function WorkspacesListPage() {
             reportsToArchive,
             transactionViolations,
             reimbursementAccountError,
-            bankAccountList,
             lastUsedPaymentMethods: lastPaymentMethod,
             localeCompare,
             personalPolicyID,
@@ -275,21 +281,15 @@ function WorkspacesListPage() {
         }
 
         if (technicalContact === userEmail) {
-            return translate('common.leaveWorkspaceConfirmationTechContact', {
-                workspaceOwner: policyOwnerDisplayName,
-            });
+            return translate('common.leaveWorkspaceConfirmationTechContact', policyOwnerDisplayName);
         }
 
         if (exporters.some((exporter) => exporter === userEmail)) {
-            return translate('common.leaveWorkspaceConfirmationExporter', {
-                workspaceOwner: policyOwnerDisplayName,
-            });
+            return translate('common.leaveWorkspaceConfirmationExporter', policyOwnerDisplayName);
         }
 
         if (isApprover) {
-            return translate('common.leaveWorkspaceConfirmationApprover', {
-                workspaceOwner: policyOwnerDisplayName,
-            });
+            return translate('common.leaveWorkspaceConfirmationApprover', policyOwnerDisplayName);
         }
 
         if (isPolicyAdmin(policyToLeave)) {
@@ -303,7 +303,7 @@ function WorkspacesListPage() {
         return translate('common.leaveWorkspaceConfirmation');
     };
 
-    const shouldCalculateBillNewDot: boolean = shouldCalculateBillNewDotFn(account?.canDowngrade);
+    const shouldCalculateBillNewDot: boolean = shouldCalculateBillNewDotFn(account?.canDowngrade, policies);
 
     const resetLoadingSpinnerIconIndex = () => {
         setLoadingSpinnerIconIndex(null);
@@ -409,6 +409,10 @@ function WorkspacesListPage() {
                     setPolicyIDToDelete(item.policyID);
                     setPolicyNameToDelete(item.title);
 
+                    if (shouldBlockDeletion()) {
+                        return;
+                    }
+
                     if (shouldCalculateBillNewDot) {
                         setIsDeletingPaidWorkspace(true);
                         calculateBillNewDot();
@@ -418,8 +422,8 @@ function WorkspacesListPage() {
 
                     continueDeleteWorkspace();
                 },
-                shouldKeepModalOpen: shouldCalculateBillNewDot,
-                shouldCallAfterModalHide: !shouldCalculateBillNewDot,
+                shouldKeepModalOpen: shouldCalculateBillNewDot && !wouldBlockDeletion,
+                shouldCallAfterModalHide: !shouldCalculateBillNewDot || wouldBlockDeletion,
             });
         }
 
@@ -430,17 +434,6 @@ function WorkspacesListPage() {
                 onSelected: () => startChangeOwnershipFlow(item.policyID),
             });
         }
-
-        const ownerDisplayName = personalDetails?.[item.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID]?.displayName ?? '';
-        const workspaceType = item.type ? getUserFriendlyWorkspaceType(item.type, translate) : '';
-        const accessibilityLabel = [
-            `${translate('workspace.common.workspace')}: ${item.title}`,
-            isDefault ? translate('common.default') : '',
-            `${translate('workspace.common.workspaceOwner')}: ${ownerDisplayName}`,
-            `${translate('workspace.common.workspaceType')}: ${workspaceType}`,
-        ]
-            .filter(Boolean)
-            .join(', ');
 
         return (
             <OfflineWithFeedback
@@ -454,8 +447,7 @@ function WorkspacesListPage() {
                 shouldHideOnDelete={false}
             >
                 <PressableWithoutFeedback
-                    role={isLessThanMediumScreen ? CONST.ROLE.BUTTON : CONST.ROLE.ROW}
-                    accessibilityLabel={accessibilityLabel}
+                    accessible={false}
                     style={[styles.mh5]}
                     disabled={item.disabled}
                     onPress={item.action}
@@ -480,6 +472,8 @@ function WorkspacesListPage() {
                             isLoadingBill={isLoadingBill}
                             resetLoadingSpinnerIconIndex={resetLoadingSpinnerIconIndex}
                             isHovered={hovered}
+                            disabled={item.disabled}
+                            onPress={item.action}
                         />
                     )}
                 </PressableWithoutFeedback>
@@ -687,6 +681,7 @@ function WorkspacesListPage() {
         shouldShowDomainsSection && !domains.length ? [{listItemType: 'domains-empty-state' as const}] : [],
     ].flat();
 
+    // eslint-disable-next-line react/no-unused-prop-types
     const renderItem = ({item, index}: {item: WorkspaceOrDomainListItem; index: number}) => {
         switch (item.listItemType) {
             case 'workspace': {
@@ -721,6 +716,7 @@ function WorkspacesListPage() {
     return (
         <ScreenWrapper
             shouldEnablePickerAvoiding={false}
+            shouldEnableMaxHeight
             shouldShowOfflineIndicatorInWideScreen
             testID="WorkspacesListPage"
             enableEdgeToEdgeBottomSafeAreaPadding={false}
@@ -734,16 +730,24 @@ function WorkspacesListPage() {
             }
         >
             <View style={styles.flex1}>
-                <TopBar
+                <TopBarWithLoadingBar
                     breadcrumbLabel={translate('common.workspaces')}
                     shouldDisplayHelpButton
                 >
                     {!shouldUseNarrowLayout && <View style={styles.pr2}>{headerButton}</View>}
-                </TopBar>
+                </TopBarWithLoadingBar>
                 {shouldUseNarrowLayout && <View style={[styles.ph5, styles.pt2]}>{headerButton}</View>}
                 {shouldShowLoadingIndicator ? (
-                    <View style={[styles.flex1]}>
-                        <FullScreenLoadingIndicator style={[styles.flex1, styles.pRelative]} />
+                    <View style={[styles.flex1, styles.fullScreenLoading]}>
+                        <ActivityIndicator
+                            size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
+                            reasonAttributes={
+                                {
+                                    context: 'WorkspacesListPage',
+                                    isOffline,
+                                } satisfies SkeletonSpanReasonAttributes
+                            }
+                        />
                     </View>
                 ) : (
                     <FlatList
@@ -802,6 +806,7 @@ function WorkspacesListPage() {
                 shouldShowCancelButton={false}
                 success={false}
             />
+            {outstandingBalanceModal}
             {shouldDisplayLHB && <NavigationTabBar selectedTab={NAVIGATION_TABS.WORKSPACES} />}
         </ScreenWrapper>
     );

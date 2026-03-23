@@ -1,3 +1,4 @@
+/* eslint-disable testing-library/no-node-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import {act, render, screen, waitFor} from '@testing-library/react-native';
@@ -190,13 +191,14 @@ function signInAndGetApp(reportName = '', participantAccountIDs?: number[]): Pro
         })
         .then(async () => TestHelper.signInWithTestUser(USER_A_ACCOUNT_ID, USER_A_EMAIL, undefined, undefined, 'A'))
         .then(() => {
-            subscribeToUserEvents(USER_A_ACCOUNT_ID);
+            subscribeToUserEvents(USER_A_ACCOUNT_ID, undefined);
             return waitForBatchedUpdates();
         })
         .then(async () => {
             // Simulate setting an unread report and personal details
             await act(async () => {
                 await Promise.all([
+                    Onyx.merge(ONYXKEYS.IS_LOADING_APP, false),
                     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {
                         reportID: REPORT_ID,
                         reportName,

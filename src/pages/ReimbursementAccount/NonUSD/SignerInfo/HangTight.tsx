@@ -44,6 +44,7 @@ function HangTight({policyID, bankAccountID}: HangTightProps) {
     };
 
     useEffect(() => {
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         if (reimbursementAccount?.errors || reimbursementAccount?.isSendingReminderForCorpaySignerInformation || !reimbursementAccount?.isSuccess) {
             return;
         }

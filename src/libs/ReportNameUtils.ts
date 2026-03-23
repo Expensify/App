@@ -11,6 +11,7 @@ import type {
     PersonalDetails,
     PersonalDetailsList,
     Policy,
+    PolicyTagLists,
     Report,
     ReportAction,
     ReportActions,
@@ -92,6 +93,7 @@ import {
     isMovedAction,
     isOldDotReportAction,
     isOriginalReportDeleted,
+    isRejectedAction,
     isRenamedAction,
     isReportActionAttachment,
     isTagModificationAction,
@@ -140,8 +142,22 @@ import {
     isUserCreatedPolicyRoom,
 } from './ReportUtils';
 
+type ComputeReportName = {
+    report?: Report;
+    reports?: OnyxCollection<Report>;
+    policies?: OnyxCollection<Policy>;
+    transactions?: OnyxCollection<Transaction>;
+    allReportNameValuePairs?: OnyxCollection<ReportNameValuePairs>;
+    allPolicyTags?: OnyxCollection<PolicyTagLists>;
+    personalDetailsList?: PersonalDetailsList;
+    reportActions?: OnyxCollection<ReportActions>;
+    currentUserAccountID?: number;
+    currentUserLogin: string;
+};
+
 let allPersonalDetails: OnyxEntry<PersonalDetailsList>;
 
+// eslint-disable-next-line rulesdir/no-onyx-connect -- allPersonalDetails is used by the deprecated getReportName function; will be removed as part of the Onyx.connect migration
 Onyx.connect({
     key: ONYXKEYS.PERSONAL_DETAILS_LIST,
     callback: (value) => {
@@ -247,7 +263,7 @@ function getGroupChatName(
             .concat(shouldAddEllipsis ? '...' : '');
     }
     // eslint-disable-next-line @typescript-eslint/no-deprecated
-    return translateLocal('groupChat.defaultReportName', {displayName: getDisplayNameForParticipant({accountID: participantAccountIDs.at(0), formatPhoneNumber})});
+    return translateLocal('groupChat.defaultReportName', getDisplayNameForParticipant({accountID: participantAccountIDs.at(0), formatPhoneNumber}));
 }
 
 /**
@@ -257,9 +273,11 @@ function getPolicyExpenseChatName({report, personalDetailsList}: {report: OnyxEn
     const ownerAccountID = report?.ownerAccountID;
     const personalDetails = ownerAccountID ? personalDetailsList?.[ownerAccountID] : undefined;
     const login = personalDetails ? personalDetails.login : null;
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const reportOwnerDisplayName = getDisplayNameForParticipant({accountID: ownerAccountID, shouldRemoveDomain: true, formatPhoneNumber: formatPhoneNumberPhoneUtils}) || login;
 
     if (reportOwnerDisplayName) {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         return translateLocal('workspace.common.policyExpenseChatName', reportOwnerDisplayName);
     }
 
@@ -349,22 +367,27 @@ function getMoneyRequestReportName({report, policy, invoiceReceiverPolicy}: {rep
     } else {
         payerOrApproverName = getDisplayNameForParticipant({accountID: report?.managerID, formatPhoneNumber: formatPhoneNumberPhoneUtils}) ?? '';
     }
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const payerPaidAmountMessage = translateLocal('iou.payerPaidAmount', formattedAmount, payerOrApproverName);
 
     if (isReportApproved({report})) {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         return translateLocal('iou.managerApprovedAmount', payerOrApproverName, formattedAmount);
     }
 
     if (report?.isWaitingOnBankAccount) {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         return `${payerPaidAmountMessage} ${CONST.DOT_SEPARATOR} ${translateLocal('iou.pending')}`;
     }
 
     if (!isSettled(report?.reportID) && hasNonReimbursableTransactions(report?.reportID)) {
         payerOrApproverName = getDisplayNameForParticipant({accountID: report?.ownerAccountID, formatPhoneNumber: formatPhoneNumberPhoneUtils}) ?? '';
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         return translateLocal('iou.payerSpentAmount', formattedAmount, payerOrApproverName);
     }
 
     if (isProcessingReport(report) || isOpenExpenseReport(report) || isOpenInvoiceReport(report) || moneyRequestTotal === 0) {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         return translateLocal('iou.payerOwesAmount', formattedAmount, payerOrApproverName);
     }
 
@@ -388,7 +411,7 @@ function computeReportNameBasedOnReportAction(
     ) {
         const harvesting = !isMarkAsClosedAction(parentReportAction) ? (getOriginalMessage(parentReportAction)?.harvesting ?? false) : false;
         if (harvesting) {
-            return translate('iou.automaticallySubmitted');
+            return Parser.htmlToText(translate('iou.automaticallySubmitted'));
         }
         return translate('iou.submitted', getOriginalMessage(parentReportAction)?.message);
     }
@@ -396,7 +419,7 @@ function computeReportNameBasedOnReportAction(
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.FORWARDED)) {
         const {automaticAction} = getOriginalMessage(parentReportAction) ?? {};
         if (automaticAction) {
-            return translate('iou.automaticallyForwarded');
+            return Parser.htmlToText(translate('iou.automaticallyForwarded'));
         }
         return translate('iou.forwarded');
     }
@@ -406,7 +429,7 @@ function computeReportNameBasedOnReportAction(
     if (parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.UNHOLD) {
         return translate('iou.unheldExpense');
     }
-    if (parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REJECTED) {
+    if (isRejectedAction(parentReportAction)) {
         return translate('iou.rejectedThisReport');
     }
     if (parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.RETRACTED) {
@@ -567,7 +590,7 @@ function computeReportNameBasedOnReportAction(
     }
 
     if (isMovedAction(parentReportAction)) {
-        return getMovedActionMessage(translate, parentReportAction, parentReport);
+        return Parser.htmlToText(getMovedActionMessage(translate, parentReportAction, parentReport));
     }
 
     if (
@@ -592,13 +615,13 @@ function computeReportNameBasedOnReportAction(
             }
             if (originalMessage.paymentType === CONST.IOU.PAYMENT_TYPE.VBBA) {
                 if (originalMessage.automaticAction) {
-                    return translate('iou.automaticallyPaidWithBusinessBankAccount', undefined, last4Digits);
+                    return Parser.htmlToText(translate('iou.automaticallyPaidWithBusinessBankAccount', undefined, last4Digits));
                 }
                 return translate('iou.businessBankAccount', undefined, last4Digits);
             }
             if (originalMessage.paymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY) {
                 if (originalMessage.automaticAction) {
-                    return translate('iou.automaticallyPaidWithExpensify');
+                    return Parser.htmlToText(translate('iou.automaticallyPaidWithExpensify'));
                 }
                 return translate('iou.paidWithExpensify');
             }
@@ -608,7 +631,7 @@ function computeReportNameBasedOnReportAction(
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.APPROVED)) {
         const {automaticAction} = getOriginalMessage(parentReportAction) ?? {};
         if (automaticAction) {
-            return translate('iou.automaticallyApproved');
+            return Parser.htmlToText(translate('iou.automaticallyApproved'));
         }
         return translate('iou.approvedMessage');
     }
@@ -630,11 +653,11 @@ function computeReportNameBasedOnReportAction(
     }
 
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.COMPANY_CARD_CONNECTION_BROKEN)) {
-        return getCompanyCardConnectionBrokenMessage(translate, parentReportAction);
+        return Parser.htmlToText(getCompanyCardConnectionBrokenMessage(translate, parentReportAction));
     }
 
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.PLAID_BALANCE_FAILURE)) {
-        return getPlaidBalanceFailureMessage(translate, parentReportAction);
+        return Parser.htmlToText(getPlaidBalanceFailureMessage(translate, parentReportAction));
     }
 
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.TRAVEL_UPDATE)) {
@@ -652,7 +675,7 @@ function computeReportNameBasedOnReportAction(
     }
 
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.SETTLEMENT_ACCOUNT_LOCKED)) {
-        return getSettlementAccountLockedMessage(translate, parentReportAction);
+        return Parser.htmlToText(getSettlementAccountLockedMessage(translate, parentReportAction));
     }
 
     return undefined;
@@ -663,7 +686,10 @@ function computeChatThreadReportName(
     isArchived: boolean,
     report: Report,
     reports: OnyxCollection<Report>,
+    currentUserLogin: string,
     parentReportAction?: ReportAction,
+    policyTags?: OnyxEntry<PolicyTagLists>,
+    policy?: OnyxEntry<Policy>,
 ): string | undefined {
     if (!isChatThread(report)) {
         return undefined;
@@ -676,7 +702,7 @@ function computeChatThreadReportName(
     const isArchivedNonExpense = isArchivedNonExpenseReport(report, isArchived);
 
     if (!isEmptyObject(parentReportAction) && isTransactionThread(parentReportAction)) {
-        let formattedName = getTransactionReportName({reportAction: parentReportAction});
+        let formattedName = getTransactionReportName({translate, reportAction: parentReportAction});
 
         if (isArchivedNonExpense) {
             formattedName = generateArchivedReportName(formattedName);
@@ -721,16 +747,19 @@ function computeChatThreadReportName(
         return generateArchivedReportName(reportActionMessage);
     }
     if (!isEmptyObject(parentReportAction) && isModifiedExpenseAction(parentReportAction)) {
-        const policyID = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.reportID}`]?.policyID;
-
         const movedFromReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${getMovedReportID(parentReportAction, CONST.REPORT.MOVE_TYPE.FROM)}`];
         const movedToReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${getMovedReportID(parentReportAction, CONST.REPORT.MOVE_TYPE.TO)}`];
-        const modifiedMessage = getForReportAction({
+        const modifiedMessageWithHTML = getForReportAction({
+            translate,
             reportAction: parentReportAction,
-            policyID,
             movedFromReport,
             movedToReport,
+            policyTags,
+            policy,
+            currentUserLogin,
         });
+        // Strip HTML tags for plain text display in report previews
+        const modifiedMessage = Parser.htmlToText(modifiedMessageWithHTML);
         return formatReportLastMessageText(modifiedMessage);
     }
     if (isTripRoom(report) && report?.reportName !== CONST.REPORT.DEFAULT_REPORT_NAME) {
@@ -746,17 +775,18 @@ function computeChatThreadReportName(
  * @internal Use this only for computation in derived report attributes
  * In all other cases you should use `getReportName`
  */
-function computeReportName(
-    report?: Report,
-    reports?: OnyxCollection<Report>,
-    policies?: OnyxCollection<Policy>,
-    transactions?: OnyxCollection<Transaction>,
-    allReportNameValuePairs?: OnyxCollection<ReportNameValuePairs>,
-    personalDetailsList?: PersonalDetailsList,
-    reportActions?: OnyxCollection<ReportActions>,
-    currentUserAccountID?: number,
-    privateIsArchived?: string,
-): string {
+function computeReportName({
+    report,
+    reports,
+    policies,
+    transactions,
+    allReportNameValuePairs,
+    personalDetailsList,
+    reportActions,
+    currentUserAccountID,
+    currentUserLogin,
+    allPolicyTags,
+}: ComputeReportName): string {
     if (!report || !report.reportID) {
         return '';
     }
@@ -765,6 +795,7 @@ function computeReportName(
     const parentReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`];
     const parentReportAction = isThread(report) ? reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.parentReportID}`]?.[report.parentReportActionID] : undefined;
 
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const parentReportActionBasedName = computeReportNameBasedOnReportAction(translateLocal, parentReportAction, report, reportPolicy, parentReport);
 
     if (parentReportActionBasedName) {
@@ -778,7 +809,18 @@ function computeReportName(
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.CREATED_REPORT_FOR_UNAPPROVED_TRANSACTIONS)) {
         const {originalID} = getOriginalMessage(parentReportAction) ?? {};
         const originalReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${originalID}`];
-        const reportName = computeReportName(originalReport, reports, policies, transactions, allReportNameValuePairs, personalDetailsList, reportActions, currentUserAccountID);
+        const reportName = computeReportName({
+            report: originalReport,
+            reports,
+            policies,
+            transactions,
+            allReportNameValuePairs,
+            personalDetailsList,
+            reportActions,
+            currentUserAccountID,
+            currentUserLogin,
+        });
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         return getCreatedReportForUnapprovedTransactionsMessage(originalID, reportName, isOriginalReportDeleted(parentReportAction, originalReport), translateLocal);
     }
 
@@ -788,15 +830,27 @@ function computeReportName(
         return Parser.isHTML(taskName) ? Parser.htmlToText(taskName).trim() : taskName.trim();
     }
 
-    const privateIsArchivedValue = privateIsArchived ?? allReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`]?.private_isArchived;
+    const privateIsArchivedValue = allReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`]?.private_isArchived;
 
-    const chatThreadReportName = computeChatThreadReportName(translateLocal, !!privateIsArchivedValue, report, reports ?? {}, parentReportAction);
+    const policyTags = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${report.policyID}`];
+    const chatThreadReportName = computeChatThreadReportName(
+        // eslint-disable-next-line @typescript-eslint/no-deprecated -- translateLocal is deprecated; computeReportName is non-React code that cannot use the translate hook
+        translateLocal,
+        !!privateIsArchivedValue,
+        report,
+        reports ?? {},
+        currentUserLogin ?? '',
+        parentReportAction,
+        policyTags,
+        reportPolicy,
+    );
     if (chatThreadReportName) {
         return chatThreadReportName;
     }
 
     const transactionsArray = transactions ? (Object.values(transactions).filter(Boolean) as Array<OnyxEntry<Transaction>>) : undefined;
     if (isClosedExpenseReportWithNoExpenses(report, transactionsArray)) {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         return translateLocal('parentReportAction.deletedReport');
     }
 

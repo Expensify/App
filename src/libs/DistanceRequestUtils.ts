@@ -394,14 +394,7 @@ function getTaxableAmount(policy: OnyxEntry<Policy>, customUnitRateID: string, d
 }
 
 function getDistanceUnit(transaction: OnyxEntry<Transaction>, mileageRate: OnyxEntry<MileageRate>): Unit {
-    const transactionUnit = transaction?.comment?.customUnit?.distanceUnit;
-    const rateUnit = mileageRate?.unit;
-
-    if (transactionUnit && transactionUnit === rateUnit) {
-        return transactionUnit;
-    }
-
-    return rateUnit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES;
+    return transaction?.comment?.customUnit?.distanceUnit ?? mileageRate?.unit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES;
 }
 
 /**
@@ -435,6 +428,7 @@ function getRate({
     const currency = isExpenseUnreported(transaction) ? transactionCurrency : policyCurrency;
     const defaultMileageRate = getDefaultMileageRate(policy);
     const customUnitRateID = getRateID(transaction);
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const customMileageRate = (customUnitRateID && mileageRates?.[customUnitRateID]) || defaultMileageRate;
     const mileageRate = isCustomUnitRateIDForP2P(transaction) ? getRateForP2P(currency, transaction) : customMileageRate;
     const unit = getDistanceUnit(useTransactionDistanceUnit ? transaction : undefined, mileageRate);
@@ -480,12 +474,25 @@ function isDistanceAmountWithinLimit(distance: number, rate: number): boolean {
  * Normalize odometer text by standardizing locale digits and stripping all
  * non-numeric characters except the decimal point. fromLocaleDigit converts
  * each locale character to its standard equivalent (e.g. German ',' → '.'
- * for decimal, German '.' → ',' for group separator), then we keep only
- * digits and the standard decimal point.
+ * for decimal, German '.' → ',' for group separator), so after conversion
+ * dots are always decimals and commas are always group separators.
+ * We then strip everything except digits and the standard decimal point.
  */
 function normalizeOdometerText(text: string, fromLocaleDigit: (char: string) => string): string {
     const standardized = replaceAllDigits(text, fromLocaleDigit);
-    return standardized.replaceAll(/[^0-9.]/g, '');
+    const stripped = standardized.replaceAll(/[^0-9.]/g, '');
+    // Remove redundant leading zeroes (e.g. "007" → "7", "000" → "0") but
+    // keep a single zero before a decimal point (e.g. "0.5" stays "0.5").
+    return stripped.replace(/^0+(?=\d)/, '');
+}
+
+/**
+ * Prepare odometer input text for display by removing non-numeric characters
+ * (except the decimal point, comma, and space — which serve as group or
+ * decimal separators depending on locale) and stripping redundant leading zeroes.
+ */
+function prepareTextForDisplay(text: string): string {
+    return text.replaceAll(/[^0-9., ]/g, '').replace(/^0+(?=\d)/, '');
 }
 
 export default {
@@ -509,6 +516,7 @@ export default {
     getRateForExpenseDisplay,
     isDistanceAmountWithinLimit,
     normalizeOdometerText,
+    prepareTextForDisplay,
 };
 
 export type {MileageRate};

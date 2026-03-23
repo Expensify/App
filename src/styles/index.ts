@@ -99,7 +99,11 @@ type StyleObject = ViewStyle | TextStyle | ImageStyle | WebViewStyle | OfflineFe
 type StyleFunction = (...args: any[]) => StyleObject;
 
 type StaticStyles = Record<string, StyleObject>;
-type DynamicStyles = Record<string, StyleFunction>;
+type DynamicStyles = Record<
+    string,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    StyleFunction
+>;
 type Styles = Record<string, StyleObject | StyleFunction>;
 
 // touchCallout is an iOS safari only property that controls the display of the callout information when you touch and hold a target
@@ -2820,14 +2824,6 @@ const staticStyles = (theme: ThemeColors) =>
             borderRadius: variables.componentBorderRadiusLarge,
         },
 
-        sectionMenuItem: {
-            borderRadius: 8,
-            paddingHorizontal: 16,
-            paddingVertical: 8,
-            height: 52,
-            alignItems: 'center',
-        },
-
         sectionSelectCircle: {
             backgroundColor: theme.cardBG,
         },
@@ -3618,6 +3614,23 @@ const staticStyles = (theme: ThemeColors) =>
             right: 20,
         },
 
+        receiptActionButtonsContainer: {
+            position: 'absolute',
+            top: 16,
+            right: 16,
+            flexDirection: 'row',
+            gap: 8,
+        },
+
+        receiptActionButton: {
+            width: 40,
+            height: 40,
+            alignItems: 'center',
+            justifyContent: 'center',
+            backgroundColor: theme.buttonDefaultBG,
+            borderRadius: 20,
+        },
+
         bgGreenSuccess: {
             backgroundColor: colors.green400,
         },
@@ -3740,6 +3753,15 @@ const staticStyles = (theme: ThemeColors) =>
             lineHeight: variables.fontSizeNormalHeight,
             textAlign: 'center',
             color: theme.textSupporting,
+        },
+
+        quickCreationActionsBarButton: {
+            borderRadius: variables.buttonBorderRadius,
+        },
+
+        quickCreationActionsBarButtonText: {
+            fontSize: variables.fontSizeSmall,
+            lineHeight: 14,
         },
 
         homePageContentContainer: {
@@ -4288,6 +4310,12 @@ const staticStyles = (theme: ThemeColors) =>
             flexDirection: 'row',
             paddingHorizontal: 20,
             paddingBottom: 12,
+        },
+
+        tabSelectorContentContainer: {
+            flexGrow: 1,
+            paddingBottom: 12,
+            paddingHorizontal: 20,
         },
 
         scrollableTabSelector: {
@@ -4984,7 +5012,7 @@ const staticStyles = (theme: ThemeColors) =>
         headerProgressBarContainer: {
             position: 'absolute',
             width: '100%',
-            zIndex: -1,
+            pointerEvents: 'none',
         },
 
         headerProgressBar: {
@@ -5356,6 +5384,11 @@ const staticStyles = (theme: ThemeColors) =>
             height: 170,
         },
 
+        emptyShelvesIllustration: {
+            width: 178,
+            height: 219,
+        },
+
         offlineFeedbackDeleted: {
             textDecorationLine: 'line-through',
             textDecorationStyle: 'solid',
@@ -5663,6 +5696,10 @@ const staticStyles = (theme: ThemeColors) =>
             borderRadius: 16,
             marginTop: 32,
         },
+        twoFactorAuthSecretBox: {
+            backgroundColor: theme.highlightBG,
+            borderRadius: 16,
+        },
         anonymousRoomFooter: {
             padding: 20,
             backgroundColor: theme.cardBG,
@@ -5770,7 +5807,7 @@ const staticStyles = (theme: ThemeColors) =>
             paddingHorizontal: variables.iconSizeMenuItem + variables.iconSizeNormal / 2,
         },
         transactionReceiptButton: {
-            width: variables.transactionReceiptButtonWidth,
+            minWidth: variables.transactionReceiptButtonWidth,
         },
         chartHeader: {
             flexDirection: 'row',
@@ -6227,6 +6264,14 @@ const dynamicStyles = (theme: ThemeColors) =>
         getEmptyStateCompanyCardsIllustrationContainer: (shouldUseNarrowLayout: boolean) => (shouldUseNarrowLayout ? {height: 220} : {aspectRatio: 680 / 220}),
 
         getEmptyStateCompanyCardsIllustration: (shouldUseNarrowLayout: boolean) => (shouldUseNarrowLayout ? {width: 680, height: 220} : {}),
+
+        sectionMenuItem: (shouldUseNarrowLayout: boolean) => ({
+            borderRadius: 8,
+            paddingHorizontal: 16,
+            paddingVertical: shouldUseNarrowLayout ? 8 : 4,
+            height: shouldUseNarrowLayout ? variables.sectionMenuItemHeight : variables.sectionMenuItemHeightCompact,
+            alignItems: 'center',
+        }),
     }) satisfies DynamicStyles;
 
 // Styles that cannot be wrapped in StyleSheet.create because they eg. must be passed to 3rd party libraries as JS objects

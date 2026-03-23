@@ -1,13 +1,14 @@
 import React from 'react';
 import {View} from 'react-native';
+import GenericEmptyStateComponent from '@components/EmptyStateComponent/GenericEmptyStateComponent';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SearchBar from '@components/SearchBar';
 import TableListItem from '@components/SelectionList/ListItem/TableListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import SelectionListWithModal from '@components/SelectionListWithModal';
-import CustomListHeader from '@components/SelectionListWithModal/CustomListHeader';
-import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import Text from '@components/Text';
+import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -41,6 +42,9 @@ type BaseDomainMembersPageProps = {
 
     /** The title of the header */
     headerTitle: string;
+
+    /** Function to render a custom list header row. */
+    getCustomListHeader: () => React.ReactNode;
 
     /** Placeholder text for the search bar */
     searchPlaceholder: string;
@@ -80,12 +84,25 @@ type BaseDomainMembersPageProps = {
 
     /** Weather long press should enable selection mode on mobile */
     turnOnSelectionModeOnLongPress?: boolean;
+
+    /** Optional accessory element to display next to the search bar (e.g., filter dropdown) */
+    searchBarAccessory?: React.ReactNode;
+
+    /** Optional filter applied unconditionally before text search (e.g. group filter). */
+    preFilter?: (item: MemberOption) => boolean;
+
+    /** Title to show in the empty state when the list has no items */
+    emptyStateTitle?: string;
+
+    /** Subtitle to show in the empty state when the list has no items */
+    emptyStateSubtitle?: string;
 };
 
 function BaseDomainMembersPage({
     domainAccountID,
     accountIDs,
     headerTitle,
+    getCustomListHeader,
     searchPlaceholder,
     headerContent,
     onSelectRow,
@@ -99,12 +116,17 @@ function BaseDomainMembersPage({
     useSelectionModeHeader,
     turnOnSelectionModeOnLongPress = false,
     onBackButtonPress,
+    searchBarAccessory,
+    preFilter,
+    emptyStateTitle,
+    emptyStateSubtitle,
 }: BaseDomainMembersPageProps) {
     const {formatPhoneNumber, localeCompare, translate} = useLocalize();
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar']);
+    const illustrations = useMemoizedLazyIllustrations(['EmptyShelves']);
 
     const data: MemberOption[] = accountIDs.map((accountID) => {
         const details = personalDetails?.[accountID];
@@ -143,7 +165,7 @@ function BaseDomainMembersPage({
 
     const sortMembers = (options: MemberOption[]) => sortAlphabetically(options, 'text', localeCompare);
 
-    const [inputValue, setInputValue, filteredData] = useSearchResults(data, filterMember, sortMembers);
+    const [inputValue, setInputValue, filteredData] = useSearchResults(data, filterMember, sortMembers, preFilter);
 
     const isUserToggleEnabled = setSelectedMembers && filteredData.length > 0;
 
@@ -174,35 +196,68 @@ function BaseDomainMembersPage({
           }
         : undefined;
 
-    const getCustomListHeader = () => {
+    const getFilteredListHeader = () => {
         if (filteredData.length === 0) {
             return null;
         }
-        return (
-            <CustomListHeader
-                canSelectMultiple={canSelectMultiple}
-                leftHeaderText={headerTitle}
-            />
-        );
+        return getCustomListHeader();
     };
 
+    const shouldShowSearchBar = data.length > CONST.SEARCH_ITEM_LIMIT;
+    const shouldShowEmptySearchMessage = !!shouldShowSearchBar && inputValue.length !== 0 && filteredData.length === 0;
+    // Show empty pre filter state only if we have data, filtered data is empty, but the search have not been used.
+    const shouldShowEmptyPreFilterState = filteredData.length === 0 && data.length !== 0 && !!emptyStateTitle && inputValue.length === 0;
     const listHeaderContent =
-        data.length > CONST.SEARCH_ITEM_LIMIT ? (
-            <SearchBar
-                inputValue={inputValue}
-                onChangeText={setInputValue}
-                label={searchPlaceholder}
-                shouldShowEmptyState={!filteredData.length}
-            />
+        searchBarAccessory || shouldShowSearchBar ? (
+            <View style={styles.flexColumn}>
+                <View style={[styles.mh5, styles.gap3, styles.mb5, shouldUseNarrowLayout ? styles.flexColumn : styles.flexRow]}>
+                    {!!searchBarAccessory && (
+                        <View
+                            style={[
+                                shouldUseNarrowLayout && styles.w100,
+                                shouldShowSearchBar && !shouldUseNarrowLayout && styles.h13,
+                                shouldShowSearchBar && !shouldUseNarrowLayout && styles.justifyContentCenter,
+                            ]}
+                        >
+                            {searchBarAccessory}
+                        </View>
+                    )}
+                    {shouldShowSearchBar && (
+                        <View style={[shouldUseNarrowLayout && styles.w100]}>
+                            <SearchBar
+                                inputValue={inputValue}
+                                onChangeText={setInputValue}
+                                label={searchPlaceholder}
+                                shouldShowEmptyState={false}
+                                style={[styles.flex1, styles.mh0, styles.mb0]}
+                            />
+                        </View>
+                    )}
+                </View>
+                {shouldShowEmptySearchMessage && (
+                    <View style={[styles.ph5, styles.pb5]}>
+                        <Text style={[styles.textNormal, styles.colorMuted]}>{translate('common.noResultsFoundMatching', inputValue)}</Text>
+                    </View>
+                )}
+            </View>
         ) : null;
 
+    const listFooterContent = shouldShowEmptyPreFilterState ? (
+        <GenericEmptyStateComponent
+            headerMedia={illustrations.EmptyShelves}
+            headerContentStyles={styles.emptyShelvesIllustration}
+            title={emptyStateTitle ?? ''}
+            subtitle={emptyStateSubtitle}
+            headerStyles={styles.emptyStateCardIllustrationContainer}
+        />
+    ) : undefined;
     return (
         <DomainNotFoundPageWrapper domainAccountID={domainAccountID}>
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
                 shouldEnableMaxHeight
                 shouldShowOfflineIndicatorInWideScreen
-                testID={BaseDomainMembersPage.displayName}
+                testID="BaseDomainMembersPage"
             >
                 <HeaderWithBackButton
                     title={useSelectionModeHeader ? translate('common.selectMultiple') : headerTitle}
@@ -213,9 +268,7 @@ function BaseDomainMembersPage({
                 >
                     {!shouldUseNarrowLayout && !!headerContent && <View style={[styles.flexRow, styles.gap2]}>{headerContent}</View>}
                 </HeaderWithBackButton>
-
-                {shouldUseNarrowLayout && !!headerContent && <View style={[styles.pl5, styles.pr5, styles.flexRow, styles.gap2]}>{headerContent}</View>}
-
+                {shouldUseNarrowLayout && !!headerContent && <View style={[styles.ph5, styles.flexRow, styles.gap2]}>{headerContent}</View>}
                 <SelectionListWithModal
                     data={filteredData}
                     shouldShowRightCaret
@@ -224,14 +277,16 @@ function BaseDomainMembersPage({
                         listHeaderWrapperStyle: styles.baseListHeaderWrapperStyle,
                         listItemTitleContainerStyles: shouldUseNarrowLayout ? undefined : styles.pr3,
                         listItemErrorRowStyles: [styles.ph4, styles.pb2],
+                        contentContainerStyle: shouldShowEmptyPreFilterState ? [styles.flex1, styles.mh100] : undefined,
+                        listFooterContentStyle: shouldShowEmptyPreFilterState ? styles.flex1 : undefined,
                     }}
                     ListItem={TableListItem}
                     onSelectRow={onSelectRow}
                     onDismissError={onDismissError}
                     shouldShowListEmptyContent={false}
                     showScrollIndicator={false}
+                    customListHeader={getFilteredListHeader()}
                     shouldHeaderBeInsideList
-                    customListHeader={getCustomListHeader()}
                     customListHeaderContent={listHeaderContent}
                     canSelectMultiple={canSelectMultiple}
                     onSelectAll={toggleAllUsers}
@@ -239,12 +294,12 @@ function BaseDomainMembersPage({
                     selectedItems={selectedMembers}
                     turnOnSelectionModeOnLongPress={turnOnSelectionModeOnLongPress}
                     onTurnOnSelectionMode={(item) => item && toggleUser?.(item)}
+                    listFooterContent={listFooterContent}
                 />
             </ScreenWrapper>
         </DomainNotFoundPageWrapper>
     );
 }
 
-BaseDomainMembersPage.displayName = 'BaseDomainMembersPage';
 export type {MemberOption};
 export default BaseDomainMembersPage;

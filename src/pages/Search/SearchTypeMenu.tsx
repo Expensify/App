@@ -1,9 +1,8 @@
 import {useRoute} from '@react-navigation/native';
-import React, {useCallback, useContext, useLayoutEffect, useMemo, useRef} from 'react';
+import React, {useCallback, useContext, useLayoutEffect, useRef} from 'react';
 import {View} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
 import type {ScrollView as RNScrollView, ScrollViewProps} from 'react-native';
-import MenuItem from '@components/MenuItem';
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
 import ScrollView from '@components/ScrollView';
 import {useSearchActionsContext} from '@components/Search/SearchContext';
@@ -11,21 +10,21 @@ import type {SearchQueryJSON} from '@components/Search/types';
 import Text from '@components/Text';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useSearchTypeMenuSections from '@hooks/useSearchTypeMenuSections';
 import useSingleExecution from '@hooks/useSingleExecution';
-import useSuggestedSearchDefaultNavigation from '@hooks/useSuggestedSearchDefaultNavigation';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setSearchContext} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
-import {shouldSkipSuggestedSearchNavigation as shouldSkipSuggestedSearchNavigationForQuery} from '@libs/SearchQueryUtils';
 import {getItemBadgeText} from '@libs/SearchUIUtils';
-import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import todosReportCountsSelector from '@src/selectors/Todos';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import SavedSearchList from './SavedSearchList';
+import SearchTypeMenuItem from './SearchTypeMenuItem';
 import SuggestedSearchSkeleton from './SuggestedSearchSkeleton';
 
 type SearchTypeMenuProps = {
@@ -34,13 +33,12 @@ type SearchTypeMenuProps = {
 
 function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
     const {hash, similarSearchHash} = queryJSON ?? {};
-    const shouldSkipSuggestedSearchNavigation = useMemo(() => shouldSkipSuggestedSearchNavigationForQuery(queryJSON), [queryJSON]);
 
     const styles = useThemeStyles();
-    const {singleExecution} = useSingleExecution();
+    const {isOffline} = useNetwork();
     const {translate} = useLocalize();
-    const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES);
-    const {typeMenuSections, CreateReportConfirmationModal, shouldShowSuggestedSearchSkeleton} = useSearchTypeMenuSections();
+    const {singleExecution} = useSingleExecution();
+    const {typeMenuSections, activeItemIndex} = useSearchTypeMenuSections({hash, similarSearchHash});
     const expensifyIcons = useMemoizedLazyExpensifyIcons([
         'Basket',
         'CalendarSolid',
@@ -56,19 +54,8 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
         'Folder',
     ] as const);
     const {clearSelectedTransactions} = useSearchActionsContext();
+    const [isSearchDataLoaded, isSearchDataLoadedResult] = useOnyx(ONYXKEYS.IS_SEARCH_PAGE_DATA_LOADED);
     const [reportCounts = CONST.EMPTY_TODOS_REPORT_COUNTS] = useOnyx(ONYXKEYS.DERIVED.TODOS, {selector: todosReportCountsSelector});
-
-    const flattenedMenuItems = useMemo(() => typeMenuSections.flatMap((section) => section.menuItems), [typeMenuSections]);
-
-    useSuggestedSearchDefaultNavigation({
-        shouldShowSkeleton: shouldShowSuggestedSearchSkeleton,
-        flattenedMenuItems,
-        similarSearchHash,
-        clearSelectedTransactions,
-        shouldSkipNavigation: shouldSkipSuggestedSearchNavigation,
-    });
-
-    const isSavedSearchActive = !!savedSearches && Object.keys(savedSearches).some((key) => Number(key) === hash);
 
     const route = useRoute();
     const scrollViewRef = useRef<RNScrollView>(null);
@@ -93,82 +80,67 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
         scrollViewRef.current.scrollTo({y: scrollOffset, animated: false});
     }, [getScrollOffset, route]);
 
-    const activeItemIndex = useMemo(() => {
-        // If we have a suggested search, then none of the menu items are active
-        if (isSavedSearchActive) {
-            return -1;
-        }
+    const sectionStartIndices = [0];
+    for (const section of typeMenuSections) {
+        sectionStartIndices.push((sectionStartIndices.at(-1) ?? 0) + section.menuItems.length);
+    }
 
-        return flattenedMenuItems.findIndex((item) => item.similarSearchHash === similarSearchHash);
-    }, [similarSearchHash, isSavedSearchActive, flattenedMenuItems]);
+    const handleTypeMenuItemPress = singleExecution((searchQuery: string) => {
+        clearSelectedTransactions();
+        setSearchContext(false);
+        Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: searchQuery}));
+    });
+
+    const areSuggestedSearchesLoading = !isOffline && !isSearchDataLoaded && !isLoadingOnyxValue(isSearchDataLoadedResult);
 
     return (
-        <>
-            {CreateReportConfirmationModal}
-            <ScrollView
-                onScroll={onScroll}
-                ref={scrollViewRef}
-                showsVerticalScrollIndicator={false}
-            >
-                {shouldShowSuggestedSearchSkeleton ? (
-                    <View style={[styles.pb4, styles.mh3, styles.gap4]}>
-                        <SuggestedSearchSkeleton />
-                    </View>
-                ) : (
-                    <View style={[styles.pb4, styles.mh3, styles.gap4]}>
-                        {typeMenuSections.map((section, sectionIndex) => (
-                            <View key={section.translationPath}>
-                                <Text
-                                    style={styles.sectionTitle}
-                                    accessibilityRole={CONST.ROLE.HEADER}
-                                >
-                                    {translate(section.translationPath)}
-                                </Text>
+        <ScrollView
+            onScroll={onScroll}
+            ref={scrollViewRef}
+            showsVerticalScrollIndicator={false}
+        >
+            {areSuggestedSearchesLoading ? (
+                <View style={[styles.pb4, styles.mh3, styles.gap4]}>
+                    <SuggestedSearchSkeleton />
+                </View>
+            ) : (
+                <View style={[styles.pb4, styles.mh3, styles.gap4]}>
+                    {typeMenuSections.map((section, sectionIndex) => (
+                        <View key={section.translationPath}>
+                            <Text
+                                style={styles.sectionTitle}
+                                accessibilityRole={CONST.ROLE.HEADER}
+                            >
+                                {translate(section.translationPath)}
+                            </Text>
 
-                                {section.translationPath === 'search.savedSearchesMenuItemTitle' ? (
-                                    <SavedSearchList hash={hash} />
-                                ) : (
-                                    <>
-                                        {section.menuItems.map((item, itemIndex) => {
-                                            const previousItemCount = typeMenuSections.slice(0, sectionIndex).reduce((acc, sec) => acc + sec.menuItems.length, 0);
-                                            const flattenedIndex = previousItemCount + itemIndex;
-                                            const focused = activeItemIndex === flattenedIndex;
-                                            const icon = typeof item.icon === 'string' ? expensifyIcons[item.icon] : item.icon;
+                            {section.translationPath === 'search.savedSearchesMenuItemTitle' ? (
+                                <SavedSearchList hash={hash} />
+                            ) : (
+                                <>
+                                    {section.menuItems.map((item, itemIndex) => {
+                                        const flattenedIndex = (sectionStartIndices?.at(sectionIndex) ?? 0) + itemIndex;
+                                        const focused = activeItemIndex === flattenedIndex;
+                                        const icon = typeof item.icon === 'string' ? expensifyIcons[item.icon] : item.icon;
 
-                                            const onPress = singleExecution(() => {
-                                                clearSelectedTransactions();
-                                                setSearchContext(false);
-                                                Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: item.searchQuery}));
-                                            });
-
-                                            return (
-                                                <MenuItem
-                                                    key={item.key}
-                                                    disabled={false}
-                                                    interactive
-                                                    title={translate(item.translationPath)}
-                                                    badgeStyle={styles.todoBadge}
-                                                    isBadgeSuccess
-                                                    icon={icon}
-                                                    iconWidth={variables.iconSizeNormal}
-                                                    iconHeight={variables.iconSizeNormal}
-                                                    wrapperStyle={styles.sectionMenuItem}
-                                                    badgeText={getItemBadgeText(item.key, reportCounts)}
-                                                    focused={focused}
-                                                    onPress={onPress}
-                                                    shouldIconUseAutoWidthStyle
-                                                    sentryLabel={CONST.SENTRY_LABEL.SEARCH.TYPE_MENU_ITEM}
-                                                />
-                                            );
-                                        })}
-                                    </>
-                                )}
-                            </View>
-                        ))}
-                    </View>
-                )}
-            </ScrollView>
-        </>
+                                        return (
+                                            <SearchTypeMenuItem
+                                                key={item.key}
+                                                title={translate(item.translationPath)}
+                                                icon={icon}
+                                                badgeText={getItemBadgeText(item.key, reportCounts)}
+                                                focused={focused}
+                                                onPress={() => handleTypeMenuItemPress(item.searchQuery)}
+                                            />
+                                        );
+                                    })}
+                                </>
+                            )}
+                        </View>
+                    ))}
+                </View>
+            )}
+        </ScrollView>
     );
 }
 
