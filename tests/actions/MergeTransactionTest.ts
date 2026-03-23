@@ -5,7 +5,7 @@ import {areTransactionsEligibleForMerge, mergeTransactionRequest, setMergeTransa
 import {addComment, openReport} from '@libs/actions/Report';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import {getLoginsByAccountIDs} from '@libs/PersonalDetailsUtils';
-import {getReportAction} from '@libs/ReportActionsUtils';
+import {getOriginalMessage, getReportAction} from '@libs/ReportActionsUtils';
 import {buildTransactionThread} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -729,16 +729,17 @@ describe('mergeTransactionRequest', () => {
 
         const newIOUAction = Object.values(sourceReportActions ?? {}).find((action) => {
             const reportAction = action as OnyxEntry<ReportAction>;
+            const originalMessage = getOriginalMessage(reportAction) as OriginalMessageIOU | undefined;
             return (
                 reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU &&
-                (reportAction.originalMessage as OriginalMessageIOU | undefined)?.type === CONST.IOU.REPORT_ACTION_TYPE.CREATE &&
-                (reportAction.originalMessage as OriginalMessageIOU | undefined)?.IOUTransactionID === targetTransaction.transactionID
+                originalMessage?.type === CONST.IOU.REPORT_ACTION_TYPE.CREATE &&
+                originalMessage?.IOUTransactionID === targetTransaction.transactionID
             );
         }) as OnyxEntry<ReportAction>;
 
         // Verify the new IOU action is created and points to the merged transaction
         expect(newIOUAction).toBeTruthy();
-        expect((newIOUAction?.originalMessage as OriginalMessageIOU | undefined)?.IOUTransactionID).toBe(targetTransaction.transactionID);
+        expect((getOriginalMessage(newIOUAction) as OriginalMessageIOU | undefined)?.IOUTransactionID).toBe(targetTransaction.transactionID);
 
         const updatedSourceTransactionThread = await new Promise<Report | null>((resolve) => {
             const connection = Onyx.connect({
