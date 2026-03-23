@@ -1,7 +1,7 @@
 import {FontWeight, Skia} from '@shopify/react-native-skia';
 import type {SkTypefaceFontProvider} from '@shopify/react-native-skia';
 import colors from '@styles/theme/colors';
-import {CHART_FONT_FAMILIES, ELLIPSIS, LABEL_PADDING, LABEL_ROTATIONS, PIE_CHART_TOOLTIP_RADIUS_DISTANCE, SIN_45} from './constants';
+import {CHART_FONT_FAMILIES, ELLIPSIS, LABEL_PADDING, LABEL_ROTATIONS, MAX_X_AXIS_LABEL_WIDTH, PIE_CHART_TOOLTIP_RADIUS_DISTANCE, SIN_45} from './constants';
 import type {ChartDataPoint, LabelRotation, PieSlice} from './types';
 
 /**
@@ -55,7 +55,7 @@ function measureTextWidth(text: string, fontMgr: SkTypefaceFontProvider, fontSiz
         .addText(text)
         .pop()
         .build();
-    para.layout(9999);
+    para.layout(MAX_X_AXIS_LABEL_WIDTH);
     return para.getLongestLine();
 }
 
@@ -69,7 +69,7 @@ function getFontLineMetrics(fontMgr: SkTypefaceFontProvider, fontSize: number): 
         .addText('Ag')
         .pop()
         .build();
-    para.layout(9999);
+    para.layout(MAX_X_AXIS_LABEL_WIDTH);
     const metrics = para.getLineMetrics().at(0);
     return {
         ascent: metrics ? Math.abs(metrics.ascent) : fontSize,
