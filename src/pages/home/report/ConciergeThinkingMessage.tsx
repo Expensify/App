@@ -36,7 +36,7 @@ type ConciergeThinkingMessageProps = {
 
 function ConciergeThinkingMessage({report, action}: ConciergeThinkingMessageProps) {
     const {isProcessing, reasoningHistory, statusLabel} = useAgentZeroStatus();
-    const shouldSuppress = useShouldSuppressConciergeIndicators(report?.reportID ?? '');
+    const shouldSuppress = useShouldSuppressConciergeIndicators(report?.reportID);
 
     if (!isProcessing || shouldSuppress) {
         return null;

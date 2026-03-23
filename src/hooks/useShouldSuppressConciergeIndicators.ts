@@ -11,7 +11,7 @@ import useSidePanelState from './useSidePanelState';
  * Returns true when thinking/typing indicators should be hidden in the side-panel
  * welcome state — specifically for Concierge DMs before the user sends their first message.
  */
-function useShouldSuppressConciergeIndicators(reportID: string): boolean {
+function useShouldSuppressConciergeIndicators(reportID: string | undefined): boolean {
     const isInSidePanel = useIsInSidePanel();
     const {sessionStartTime} = useSidePanelState();
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
