@@ -2,6 +2,7 @@ import React, {useCallback} from 'react';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import usePolicyData from '@hooks/usePolicyData';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -12,7 +13,7 @@ import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import {renamePolicyCategory} from '@userActions/Policy/Category';
 import CONST from '@src/CONST';
 import type ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import CategoryForm from './CategoryForm';
 
@@ -22,6 +23,7 @@ type EditCategoryPageProps =
 
 function EditCategoryPage({route}: EditCategoryPageProps) {
     const {backTo, policyID, categoryName: currentCategoryName} = route.params;
+    const dynamicBackPath = useDynamicBackPath(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_EDIT.path);
     const policyData = usePolicyData(policyID);
     const {categories: policyCategories} = policyData;
     const styles = useThemeStyles();
@@ -56,15 +58,10 @@ function EditCategoryPage({route}: EditCategoryPageProps) {
 
             // Ensure Onyx.update is executed before navigation to prevent UI blinking issues, affecting the category name and rate.
             Navigation.setNavigationActionToMicrotaskQueue(() => {
-                Navigation.goBack(
-                    isQuickSettingsFlow
-                        ? ROUTES.SETTINGS_CATEGORY_SETTINGS.getRoute(policyID, currentCategoryName, backTo)
-                        : ROUTES.WORKSPACE_CATEGORY_SETTINGS.getRoute(policyID, currentCategoryName),
-                    {compareParams: false},
-                );
+                Navigation.goBack(isQuickSettingsFlow ? ROUTES.SETTINGS_CATEGORY_SETTINGS.getRoute(policyID, currentCategoryName, backTo) : dynamicBackPath, {compareParams: false});
             });
         },
-        [isQuickSettingsFlow, currentCategoryName, policyData, policyID, backTo],
+        [isQuickSettingsFlow, currentCategoryName, dynamicBackPath, policyData, policyID, backTo],
     );
 
     return (
@@ -82,11 +79,7 @@ function EditCategoryPage({route}: EditCategoryPageProps) {
                 <HeaderWithBackButton
                     title={translate('workspace.categories.editCategory')}
                     onBackButtonPress={() =>
-                        Navigation.goBack(
-                            isQuickSettingsFlow
-                                ? ROUTES.SETTINGS_CATEGORY_SETTINGS.getRoute(route.params.policyID, route.params.categoryName, backTo)
-                                : ROUTES.WORKSPACE_CATEGORY_SETTINGS.getRoute(route.params.policyID, route.params.categoryName),
-                        )
+                        Navigation.goBack(isQuickSettingsFlow ? ROUTES.SETTINGS_CATEGORY_SETTINGS.getRoute(route.params.policyID, route.params.categoryName, backTo) : dynamicBackPath)
                     }
                 />
                 <CategoryForm
