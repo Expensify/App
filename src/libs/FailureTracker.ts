@@ -1,5 +1,4 @@
 import CONST from '@src/CONST';
-import Log from './Log';
 
 let failureCount = 0;
 let firstFailureTimestamp = 0;
@@ -23,7 +22,7 @@ function recordSuccess() {
         return;
     }
 
-    Log.info(`[FailureTracker] Success after ${failureCount} failures — resetting tracker`);
+    console.debug(`[FailureTracker] Success after ${failureCount} failures — resetting tracker`);
     failureCount = 0;
     firstFailureTimestamp = 0;
 
@@ -49,11 +48,11 @@ function recordFailure() {
     const thresholdCount = CONST.NETWORK.SUSTAINED_FAILURE_THRESHOLD_COUNT;
     const thresholdWindow = CONST.NETWORK.SUSTAINED_FAILURE_WINDOW_MS;
 
-    Log.info(`[FailureTracker] Failure #${failureCount} (elapsed: ${elapsed}ms, threshold: ${thresholdCount} in ${thresholdWindow}ms)`);
+    console.debug(`[FailureTracker] Failure #${failureCount} (elapsed: ${elapsed}ms, threshold: ${thresholdCount} in ${thresholdWindow}ms)`);
 
     // Only trigger sustained failure when BOTH count AND time thresholds are met
     if (failureCount >= thresholdCount && elapsed >= thresholdWindow) {
-        Log.info('[FailureTracker] Sustained failure threshold reached — triggering hard stop');
+        console.debug('[FailureTracker] Sustained failure threshold reached — triggering hard stop');
         for (const cb of sustainedFailureListeners) {
             cb(true);
         }
@@ -67,7 +66,7 @@ function recordFailure() {
  * if the first reconnect attempt fails.
  */
 function reset() {
-    Log.info(`[FailureTracker] Resetting counters (was: ${failureCount} failures)`);
+    console.debug(`[FailureTracker] Resetting counters (was: ${failureCount} failures)`);
     failureCount = 0;
     firstFailureTimestamp = 0;
 }
