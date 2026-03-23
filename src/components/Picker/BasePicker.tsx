@@ -228,6 +228,7 @@ function BasePicker<TPickerValue>({
                     textInputProps={{
                         allowFontScaling: false,
                     }}
+                    doneText={translate('common.done')}
                     pickerProps={{
                         ref: picker,
                         tabIndex: pickerTabIndex,
