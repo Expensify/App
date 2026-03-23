@@ -260,6 +260,7 @@ const translations: TranslationDeepObject<typeof en> = {
         conjunctionTo: 'bis',
         genericErrorMessage: 'Ups ... etwas ist schiefgelaufen und Ihre Anfrage konnte nicht abgeschlossen werden. Bitte versuchen Sie es später noch einmal.',
         percentage: 'Prozentsatz',
+        progressBarLabel: 'Onboarding-Fortschritt',
         converted: 'Umgewandelt',
         error: {
             invalidAmount: 'Ungültiger Betrag',
@@ -452,6 +453,8 @@ const translations: TranslationDeepObject<typeof en> = {
         downloadAsCSV: 'Als CSV herunterladen',
         print: 'Drucken',
         help: 'Hilfe',
+        collapsed: 'Eingeklappt',
+        expanded: 'Ausgeklappt',
         expenseReport: 'Spesenabrechnung',
         expenseReports: 'Spesenabrechnungen',
         rateOutOfPolicy: 'Satz außerhalb der Richtlinie',
@@ -491,6 +494,8 @@ const translations: TranslationDeepObject<typeof en> = {
         headsUp: 'Achtung!',
         submitTo: 'Einreichen bei',
         forwardTo: 'Weiterleiten an',
+        approvalLimit: 'Genehmigungslimit',
+        overLimitForwardTo: 'Weiterleiten bei Überschreitung',
         merge: 'Zusammenführen',
         none: 'Keine',
         unstableInternetConnection: 'Instabile Internetverbindung. Bitte überprüfe dein Netzwerk und versuche es erneut.',
@@ -522,6 +527,7 @@ const translations: TranslationDeepObject<typeof en> = {
         concierge: {sidePanelGreeting: 'Hallo, wie kann ich helfen?', showHistory: 'Verlauf anzeigen'},
         duplicateReport: 'Duplizierten Bericht',
         approver: 'Genehmiger',
+        copyOfReportName: (reportName: string) => `Kopie von ${reportName}`,
     },
     socials: {
         podcast: 'Folgen Sie uns auf Podcast',
@@ -668,6 +674,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 faceId: 'Face ID',
                 touchId: 'Touch ID',
                 opticId: 'Optic ID',
+                passkey: 'Passkey',
             },
             statusNeverRegistered: 'Nie registriert',
             statusNotRegistered: 'Nicht registriert',
@@ -685,11 +692,10 @@ const translations: TranslationDeepObject<typeof en> = {
         letsVerifyItsYou: 'Lass uns bestätigen, dass du es bist',
         nowLetsAuthenticateYou: 'Lassen Sie uns Sie jetzt authentifizieren …',
         letsAuthenticateYou: 'Lass uns dich authentifizieren …',
-        verifyYourself: {
-            biometrics: 'Bestätige dich mit deinem Gesicht oder Fingerabdruck',
-        },
+        verifyYourself: {biometrics: 'Bestätige dich mit deinem Gesicht oder Fingerabdruck', passkeys: 'Bestätigen Sie sich mit einem Passkey'},
         enableQuickVerification: {
             biometrics: 'Aktiviere eine schnelle, sichere Verifizierung mit deinem Gesicht oder Fingerabdruck. Keine Passwörter oder Codes erforderlich.',
+            passkeys: 'Aktivieren Sie eine schnelle, sichere Verifizierung mit einem Passkey. Keine Passwörter oder Codes erforderlich.',
         },
         revoke: {
             title: 'Gesicht/Fingerabdruck & Zugangsschlüssel',
@@ -718,6 +724,8 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         verificationFailed: 'Überprüfung fehlgeschlagen',
         setPin: {didNotShipCard: 'Wir haben Ihre Karte nicht versendet. Bitte versuchen Sie es erneut.'},
+        revealPin: {couldNotReveal: 'Wir konnten Ihre PIN nicht anzeigen. Bitte versuchen Sie es erneut.'},
+        changePin: {didNotChange: 'Wir haben Ihre PIN nicht geändert. Bitte versuchen Sie es erneut.'},
     },
     validateCodeModal: {
         successfulSignInTitle: dedent(`
@@ -986,6 +994,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 title: ({cardName}: {cardName?: string}) => (cardName ? `Verbindung der persönlichen Karte ${cardName} reparieren` : 'Verbindung der persönlichen Karte reparieren'),
                 subtitle: 'Wallet',
             },
+            validateAccount: {title: 'Bestätigen Sie Ihr Konto, um Expensify weiter zu verwenden', subtitle: 'Konto', cta: 'Bestätigen'},
         },
         assignedCards: 'Ihre Expensify Karten',
         assignedCardsRemaining: ({amount}: {amount: string}) => `${amount} verbleibend`,
@@ -1141,6 +1150,7 @@ const translations: TranslationDeepObject<typeof en> = {
         deleteReceipt: 'Beleg löschen',
         deleteConfirmation: 'Sind Sie sicher, dass Sie diesen Beleg löschen möchten?',
         addReceipt: 'Beleg hinzufügen',
+        addAdditionalReceipt: 'Zusätzlichen Beleg hinzufügen',
         scanFailed: 'Der Beleg konnte nicht gescannt werden, da Händler, Datum oder Betrag fehlen.',
         crop: 'Zuschneiden',
         addAReceipt: {
@@ -2084,6 +2094,12 @@ const translations: TranslationDeepObject<typeof en> = {
         twoFactorAuthIsRequiredCompany: 'Ihr Unternehmen verlangt eine Zwei-Faktor-Authentifizierung.',
         twoFactorAuthCannotDisable: '2FA kann nicht deaktiviert werden',
         twoFactorAuthRequired: 'Die Zwei-Faktor-Authentifizierung (2FA) ist für Ihre Xero-Verbindung erforderlich und kann nicht deaktiviert werden.',
+        replaceDevice: 'Gerät ersetzen',
+        replaceDeviceTitle: 'Zwei-Faktor-Gerät ersetzen',
+        verifyOldDeviceTitle: 'Altes Gerät verifizieren',
+        verifyOldDeviceDescription: 'Geben Sie den sechsstelligen Code aus Ihrer aktuellen Authentifizierungs-App ein, um zu bestätigen, dass Sie Zugriff darauf haben.',
+        verifyNewDeviceTitle: 'Neues Gerät einrichten',
+        verifyNewDeviceDescription: 'Scannen Sie den QR-Code mit Ihrem neuen Gerät und geben Sie dann den Code ein, um die Einrichtung abzuschließen.',
     },
     recoveryCodeForm: {
         error: {
@@ -2311,8 +2327,6 @@ const translations: TranslationDeepObject<typeof en> = {
         validateCardTitle: 'Stellen wir sicher, dass du es bist',
         enterMagicCode: (contactMethod: string) =>
             `Bitte gib den magischen Code ein, der an ${contactMethod} gesendet wurde, um deine Kartendetails anzusehen. Er sollte innerhalb ein bis zwei Minuten ankommen.`,
-        missingPrivateDetails: ({missingDetailsLink}: {missingDetailsLink: string}) =>
-            `Bitte <a href="${missingDetailsLink}">füge deine persönlichen Daten hinzu</a> und versuche es dann erneut.`,
         unexpectedError: 'Beim Abrufen deiner Expensify-Kartendaten ist ein Fehler aufgetreten. Bitte versuche es erneut.',
         cardFraudAlert: {
             confirmButtonText: 'Ja, das tue ich',
@@ -2336,12 +2350,20 @@ ${amount} für ${merchant} – ${date}`,
         },
         setYourPin: 'Legen Sie Ihre PIN fest.',
         confirmYourPin: 'Bestätigen Sie Ihre PIN.',
+        changeYourPin: 'Geben Sie eine neue PIN für Ihre Karte ein.',
+        confirmYourChangedPin: 'Bestätigen Sie Ihre neue PIN.',
         pinMustBeFourDigits: 'Die PIN muss genau 4 Ziffern lang sein.',
         invalidPin: 'Bitte wählen Sie eine sicherere PIN.',
         pinMismatch: 'PINs stimmen nicht überein. Bitte versuchen Sie es erneut.',
         revealPin: 'PIN anzeigen',
         hidePin: 'PIN ausblenden',
         pin: 'PIN',
+        changePin: 'PIN ändern',
+        pinChanged: 'PIN geändert!',
+        pinChangedHeader: 'PIN geändert',
+        pinChangedDescription: 'Sie können Ihre PIN jetzt verwenden.',
+        changePinAtATM: 'Ändern Sie Ihre PIN an jedem Geldautomaten',
+        changePinAtATMDescription: 'Dies ist in Ihrer Region erforderlich. <concierge-link>Kontaktieren Sie Concierge</concierge-link> falls Sie Fragen haben.',
         freezeCard: 'Karte sperren',
         unfreeze: 'Entsperren',
         unfreezeCard: 'Karte entsperren',
@@ -2460,6 +2482,16 @@ ${amount} für ${merchant} – ${date}`,
         admins: 'Admins',
         payer: 'Zahler',
         paymentAccount: 'Zahlungskonto',
+        shareBankAccount: {
+            shareTitle: 'Bankkontozugriff teilen?',
+            shareDescription: ({admin}: {admin: string}) => `Sie müssen ${admin} den Bankkontozugriff gewähren, damit dieser als Zahler eingetragen werden kann.`,
+            validationTitle: 'Bankkonto wartet auf Validierung',
+            validationDescription: ({admin}: {admin: string}) =>
+                `Sie müssen <a href="#">dieses Bankkonto validieren</a>. Anschließend können Sie den Zugriff auf das Bankkonto mit ${admin} teilen, um ihn/sie als Zahler festzulegen.`,
+            errorTitle: 'Zahler kann nicht geändert werden',
+            errorDescription: ({admin, owner}: {admin: string; owner: string}) =>
+                `${admin} hat keinen Zugriff auf dieses Bankkonto, daher kann er nicht als Zahler festgelegt werden. <a href="#">Kontaktieren Sie ${owner}</a>, falls das Bankkonto freigegeben werden soll.`,
+        },
     },
     reportFraudPage: {
         title: 'Virtuelle Kartenbetrugsfälle melden',
@@ -7519,7 +7551,8 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
                 markedReimbursed: (amount: string, currency: string) => `hat ${currency}${amount} anderweitig bezahlt`,
                 markedReimbursedFromIntegration: ({amount, currency}: MarkReimbursedFromIntegrationParams) => `${currency}${amount} über Integration bezahlt`,
                 outdatedBankAccount: `Konnte die Zahlung aufgrund eines Problems mit dem Bankkonto des Zahlenden nicht verarbeiten`,
-                reimbursementACHBounce: `Zahlung konnte aufgrund eines Problems mit dem Bankkonto nicht verarbeitet werden`,
+                reimbursementACHBounceDefault: `Zahlung konnte wegen einer falschen Bankleitzahl/Kontonummer oder eines geschlossenen Kontos nicht verarbeitet werden`,
+                reimbursementACHBounceWithReason: ({returnReason}: {returnReason: string}) => `Die Zahlung konnte nicht verarbeitet werden: ${returnReason}`,
                 reimbursementACHCancelled: `hat die Zahlung storniert`,
                 reimbursementAccountChanged: `Die Zahlung konnte nicht verarbeitet werden, da der Zahlungspflichtige das Bankkonto gewechselt hat`,
                 reimbursementDelayed: `hat die Zahlung verarbeitet, aber sie verzögert sich um weitere 1–2 Werktage`,
@@ -7535,7 +7568,8 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
                     `Die Verbindung für ${feedName} ist unterbrochen. Um Kartenimporte wiederherzustellen, <a href='${workspaceCompanyCardRoute}'>melden Sie sich bei Ihrer Bank an</a>.`,
                 plaidBalanceFailure: ({maskedAccountNumber, walletRoute}: {maskedAccountNumber: string; walletRoute: string}) =>
                     `Die Plaid-Verbindung zu Ihrem Geschäftskonto ist unterbrochen. Bitte <a href='${walletRoute}'>verbinden Sie Ihr Bankkonto ${maskedAccountNumber} erneut</a>, damit Sie Ihre Expensify Karten weiterhin verwenden können.`,
-                addEmployee: (email: string, role: string) => `${email} als ${role === 'member' ? 'a' : 'an'} ${role} hinzugefügt`,
+                addEmployee: (email: string, role: string, didJoinPolicy?: boolean) =>
+                    didJoinPolicy ? `${email} ist über den Arbeitsbereichs-Einladungslink beigetreten` : `${email} als ${role === 'member' ? 'a' : 'an'} ${role} hinzugefügt`,
                 updateRole: ({email, currentRole, newRole}: UpdateRoleParams) => `hat die Rolle von ${email} in ${newRole} geändert (zuvor ${currentRole})`,
                 updatedCustomField1: (email: string, newValue: string, previousValue: string) => {
                     if (!newValue) {
@@ -7841,11 +7875,13 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
         [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.START_CHAT]: {
             buttonText: 'Beginne einen Chat, <success><strong>empfiehl eine:n Freund:in</strong></success>.',
             header: 'Chat starten, Freund empfehlen',
+            closeAccessibilityLabel: 'Schließen, einen Chat starten, einen Freund empfehlen, Banner',
             body: 'Möchtest du, dass deine Freund*innen Expensify auch nutzen? Starte einfach einen Chat mit ihnen, und wir kümmern uns um den Rest.',
         },
         [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SUBMIT_EXPENSE]: {
             buttonText: 'Reiche eine Ausgabe ein, <success><strong>wirb dein Team</strong></success>.',
             header: 'Reiche eine Ausgabe ein, wirb dein Team an',
+            closeAccessibilityLabel: 'Schließen, eine Ausgabe einreichen, dein Team einladen, Banner',
             body: 'Möchtest du, dass dein Team Expensify auch nutzt? Reiche ihnen einfach eine Ausgabe ein und wir kümmern uns um den Rest.',
         },
         [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.REFER_FRIEND]: {
@@ -8253,6 +8289,8 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
             title: 'Expensify-Code',
             discountCode: 'Rabattcode',
             enterCode: 'Geben Sie einen Expensify-Code ein, um ihn auf Ihr Abonnement anzuwenden.',
+            discountMessage: (promoDiscount: string, validBillingCycles: string) =>
+                `Du erhältst ${promoDiscount}% Rabatt auf deine nächsten ${validBillingCycles ? `${validBillingCycles} ` : ''}Abrechnungen.`,
             apply: 'Anwenden',
             error: {
                 invalid: 'Dieser Code ist ungültig',
@@ -8280,6 +8318,8 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
                 `<muted-text>Erfahre mehr auf unserer <a href="${CONST.PRICING}">Preisseite</a> oder chatte mit unserem Team in deinem ${hasAdminsRoom ? `<a href="adminsRoom">#admins-Raum.</a>` : '#admins-Raum.'}</muted-text>`,
             estimatedPrice: 'Geschätzter Preis',
             changesBasedOn: 'Dies ändert sich basierend auf Ihrer Nutzung der Expensify Karte und den untenstehenden Abooptionen.',
+            collectBillingDescription: 'Collect-Arbeitsbereiche werden monatlich pro Mitglied ohne jährliche Verpflichtung abgerechnet.',
+            pricing: 'Preise',
         },
         requestEarlyCancellation: {
             title: 'Frühzeitige Kündigung anfordern',

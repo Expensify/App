@@ -260,6 +260,7 @@ const translations: TranslationDeepObject<typeof en> = {
         conjunctionTo: '至',
         genericErrorMessage: '哎呀……出现问题，无法完成您的请求。请稍后重试。',
         percentage: '百分比',
+        progressBarLabel: '入门进度',
         converted: '已转换',
         error: {
             invalidAmount: '金额无效',
@@ -451,6 +452,8 @@ const translations: TranslationDeepObject<typeof en> = {
         downloadAsCSV: '下载为 CSV',
         print: '打印',
         help: '帮助',
+        collapsed: '已折叠',
+        expanded: '已展开',
         expenseReport: '报销报告',
         expenseReports: '报销报告',
         rateOutOfPolicy: '超出政策的费率',
@@ -486,6 +489,8 @@ const translations: TranslationDeepObject<typeof en> = {
         headsUp: '注意！',
         submitTo: '提交给',
         forwardTo: '转发至',
+        approvalLimit: '审批限额',
+        overLimitForwardTo: '超出限额时转发至',
         merge: '合并',
         none: '无',
         unstableInternetConnection: '网络连接不稳定。请检查您的网络后重试。',
@@ -517,6 +522,7 @@ const translations: TranslationDeepObject<typeof en> = {
         concierge: {sidePanelGreeting: '你好，我能帮你做什么？', showHistory: '显示历史'},
         duplicateReport: '重复报销单',
         approver: '审批人',
+        copyOfReportName: (reportName: string) => `${reportName} 的副本`,
     },
     socials: {
         podcast: '在播客上关注我们',
@@ -652,15 +658,7 @@ const translations: TranslationDeepObject<typeof en> = {
             rejectAuthentication: '拒绝认证',
             test: '测试',
             biometricsAuthentication: '生物识别认证',
-            authType: {
-                unknown: '未知',
-                none: '无',
-                credentials: '凭据',
-                biometrics: '生物识别',
-                faceId: 'Face ID',
-                touchId: 'Touch ID',
-                opticId: 'Optic ID',
-            },
+            authType: {unknown: '未知', none: '无', credentials: '凭据', biometrics: '生物识别', faceId: 'Face ID', touchId: 'Touch ID', opticId: 'Optic ID', passkey: 'Passkey'},
             statusNeverRegistered: '从未注册',
             statusNotRegistered: '未注册',
             statusRegisteredThisDevice: '已注册',
@@ -677,12 +675,8 @@ const translations: TranslationDeepObject<typeof en> = {
         letsVerifyItsYou: '让我们验证一下您的身份',
         nowLetsAuthenticateYou: '现在，让我们为你进行身份验证…',
         letsAuthenticateYou: '正在验证您的身份…',
-        verifyYourself: {
-            biometrics: '使用面部或指纹验证您的身份',
-        },
-        enableQuickVerification: {
-            biometrics: '使用面部或指纹即可进行快速、安全的验证，无需密码或验证码。',
-        },
+        verifyYourself: {biometrics: '使用面部或指纹验证您的身份', passkeys: '使用通行密钥验证您的身份'},
+        enableQuickVerification: {biometrics: '使用面部或指纹即可进行快速、安全的验证，无需密码或验证码。', passkeys: '启用使用通行密钥进行快速、安全的验证，无需密码或验证码。'},
         revoke: {
             title: '面容/指纹和通行密钥',
             explanation: '一个或多个设备已启用面容/指纹或通行密钥验证。撤销访问权限后，该设备下次验证时将需要输入魔法验证码。',
@@ -709,6 +703,8 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         verificationFailed: '验证失败',
         setPin: {didNotShipCard: '我们未能寄出您的卡。请重试。'},
+        revealPin: {couldNotReveal: '我们无法显示您的 PIN。请重试。'},
+        changePin: {didNotChange: '我们未更改您的 PIN。请重试。'},
     },
     validateCodeModal: {
         successfulSignInTitle: dedent(`
@@ -964,6 +960,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 defaultSubtitle: '工作区',
                 subtitle: ({policyName}: {policyName: string}) => `${policyName} > 会计`,
             },
+            validateAccount: {title: '验证您的账户以继续使用 Expensify', subtitle: '账户', cta: '验证'},
         },
         assignedCards: '你的 Expensify 卡',
         assignedCardsRemaining: ({amount}: {amount: string}) => `剩余 ${amount}`,
@@ -1114,6 +1111,7 @@ const translations: TranslationDeepObject<typeof en> = {
         deleteReceipt: '删除收据',
         deleteConfirmation: '确定要删除这张收据吗？',
         addReceipt: '添加收据',
+        addAdditionalReceipt: '添加额外收据',
         scanFailed: '无法扫描此收据，因为缺少商家、日期或金额。',
         crop: '裁剪',
         addAReceipt: {
@@ -2040,6 +2038,12 @@ const translations: TranslationDeepObject<typeof en> = {
         twoFactorAuthIsRequiredCompany: '您的公司要求使用双重身份验证。',
         twoFactorAuthCannotDisable: '无法禁用双重验证',
         twoFactorAuthRequired: '您的 Xero 连接需要启用双重身份验证（2FA），且无法将其禁用。',
+        replaceDevice: '更换设备',
+        replaceDeviceTitle: '更换双重验证设备',
+        verifyOldDeviceTitle: '验证旧设备',
+        verifyOldDeviceDescription: '请输入您当前身份验证器应用中的六位数验证码，以确认您仍可访问该应用。',
+        verifyNewDeviceTitle: '设置新设备',
+        verifyNewDeviceDescription: '使用新设备扫描二维码，然后输入代码完成设置。',
     },
     recoveryCodeForm: {
         error: {
@@ -2255,7 +2259,6 @@ const translations: TranslationDeepObject<typeof en> = {
         cardDetailsLoadingFailure: '加载卡片详情时出错。请检查您的网络连接，然后重试。',
         validateCardTitle: '让我们确认一下是你本人',
         enterMagicCode: (contactMethod: string) => `请输入发送到 ${contactMethod} 的魔法验证码以查看您的卡片详情。验证码应会在一两分钟内送达。`,
-        missingPrivateDetails: ({missingDetailsLink}: {missingDetailsLink: string}) => `请<a href="${missingDetailsLink}">添加您的个人信息</a>，然后重试。`,
         unexpectedError: '尝试获取您的 Expensify 卡片详情时出错。请重试。',
         cardFraudAlert: {
             confirmButtonText: '是的，我愿意',
@@ -2278,12 +2281,20 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         },
         setYourPin: '设置您的 PIN.',
         confirmYourPin: '确认您的 PIN.',
+        changeYourPin: '为您的银行卡输入新 PIN 码。',
+        confirmYourChangedPin: '确认您的新 PIN。',
         pinMustBeFourDigits: 'PIN 必须正好为 4 位数字。',
         invalidPin: '请选择一个更安全的 PIN。',
         pinMismatch: 'PIN 不匹配。请重试。',
         revealPin: '显示 PIN',
         hidePin: '隐藏 PIN',
         pin: 'PIN',
+        changePin: '更改 PIN',
+        pinChanged: 'PIN 已更改！',
+        pinChangedHeader: 'PIN 已更改',
+        pinChangedDescription: '现在您可以开始使用您的 PIN 了。',
+        changePinAtATM: '在任意 ATM 更改您的 PIN',
+        changePinAtATMDescription: '这是您所在地区的必填项。如果你有任何问题，请<concierge-link>联系 Concierge</concierge-link>。',
         freezeCard: '冻结卡片',
         unfreeze: '解冻',
         unfreezeCard: '解冻卡片',
@@ -2397,6 +2408,15 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         admins: '管理员',
         payer: '付款人',
         paymentAccount: '支付账户',
+        shareBankAccount: {
+            shareTitle: '共享银行账户访问权限？',
+            shareDescription: ({admin}: {admin: string}) => `您需要与 ${admin} 共享银行账户访问权限，才能将其设置为付款人。`,
+            validationTitle: '银行账户等待验证',
+            validationDescription: ({admin}: {admin: string}) => `您需要<a href="#">验证此银行账户</a>。验证完成后，您可以将银行账户访问权限分享给 ${admin}，使其成为付款人。`,
+            errorTitle: '无法更改付款人',
+            errorDescription: ({admin, owner}: {admin: string; owner: string}) =>
+                `${admin} 没有此银行账户的访问权限，因此您无法将其设置为付款人。<a href="#">请联系 ${owner}</a> 了解是否需要共享此银行账户。`,
+        },
     },
     reportFraudPage: {
         title: '报告虚拟卡欺诈',
@@ -7298,7 +7318,8 @@ ${reportName}
                 markedReimbursed: (amount: string, currency: string) => `在其他地方已支付${currency}${amount}`,
                 markedReimbursedFromIntegration: ({amount, currency}: MarkReimbursedFromIntegrationParams) => `通过集成支付了 ${currency}${amount}`,
                 outdatedBankAccount: `由于付款方的银行账户出现问题，无法处理该付款`,
-                reimbursementACHBounce: `由于银行账户问题，无法处理付款`,
+                reimbursementACHBounceDefault: `由于路由号/账户号不正确或账户已关闭，无法处理付款`,
+                reimbursementACHBounceWithReason: ({returnReason}: {returnReason: string}) => `无法处理付款：${returnReason}`,
                 reimbursementACHCancelled: `已取消付款`,
                 reimbursementAccountChanged: `由于付款人更换了银行账户，无法处理该付款`,
                 reimbursementDelayed: `已处理付款，但将再延迟 1–2 个工作日`,
@@ -7314,7 +7335,8 @@ ${reportName}
                     `${feedName} 连接已中断。要恢复银行卡导入，请<a href='${workspaceCompanyCardRoute}'>登录您的银行账户</a>。`,
                 plaidBalanceFailure: ({maskedAccountNumber, walletRoute}: {maskedAccountNumber: string; walletRoute: string}) =>
                     `您与企业银行账户的 Plaid 连接已中断。请<a href='${walletRoute}'>重新连接您的银行账户 ${maskedAccountNumber}</a>，以便继续使用 Expensify 卡。`,
-                addEmployee: (email: string, role: string) => `已将 ${email} 添加为 ${role === 'member' ? 'a' : '一个'} 的 ${role}`,
+                addEmployee: (email: string, role: string, didJoinPolicy?: boolean) =>
+                    didJoinPolicy ? `${email} 通过工作区邀请链接加入` : `已将 ${email} 添加为 ${role === 'member' ? '一个' : '一个'} 的 ${role}`,
                 updateRole: ({email, currentRole, newRole}: UpdateRoleParams) => `已将 ${email} 的角色更新为 ${newRole}（先前为 ${currentRole}）`,
                 updatedCustomField1: (email: string, newValue: string, previousValue: string) => {
                     if (!newValue) {
@@ -7603,11 +7625,13 @@ ${reportName}
         [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.START_CHAT]: {
             buttonText: '开始聊天，<success><strong>推荐好友</strong></success>。',
             header: '开始聊天，推荐好友',
+            closeAccessibilityLabel: '关闭、开始聊天、推荐朋友、横幅',
             body: '也想让你的朋友使用 Expensify 吗？只需与他们开始一个聊天，剩下的交给我们。',
         },
         [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SUBMIT_EXPENSE]: {
             buttonText: '提交报销，<success><strong>推荐你的团队</strong></success>。',
             header: '报销一笔费用，推荐你的团队',
+            closeAccessibilityLabel: '关闭、提交费用、邀请团队、横幅',
             body: '也想让你的团队使用 Expensify 吗？只需向他们提交一笔报销，我们会帮你处理剩下的一切。',
         },
         [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.REFER_FRIEND]: {
@@ -8001,6 +8025,8 @@ ${reportName}
             title: 'Expensify代码',
             discountCode: '折扣代码',
             enterCode: '输入Expensify代码以应用于您的订阅。',
+            discountMessage: (promoDiscount: string, validBillingCycles: string) =>
+                `在接下来的${validBillingCycles ? `${validBillingCycles}次` : ''}账单中，你将获得${promoDiscount}%的折扣。`,
             apply: '应用',
             error: {
                 invalid: '此代码无效',
@@ -8027,6 +8053,8 @@ ${reportName}
                 `<muted-text>在我们的<a href="${CONST.PRICING}">定价页面</a>了解更多，或在您的${hasAdminsRoom ? `<a href="adminsRoom">#admins 房间。</a>` : '#admins 房间。'}中与我们的团队聊天</muted-text>`,
             estimatedPrice: '预估价格',
             changesBasedOn: '这会根据你使用 Expensify 卡的情况以及下方的订阅选项而变化。',
+            collectBillingDescription: 'Collect 工作区按每位成员每月计费，无需年度承诺。',
+            pricing: '定价',
         },
         requestEarlyCancellation: {
             title: '请求提前取消',

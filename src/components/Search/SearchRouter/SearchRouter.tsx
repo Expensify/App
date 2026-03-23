@@ -62,8 +62,9 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
     const {setShouldResetSearchQuery} = useSearchActionsContext();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserAccountID = currentUserPersonalDetails.accountID;
-    const [isSearchingForReports] = useOnyx(ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS);
+    const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false});
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const personalDetails = usePersonalDetails();
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
@@ -290,13 +291,13 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                     if (item?.reportID) {
                         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(item.reportID));
                     } else if ('login' in item) {
-                        navigateToAndOpenReport(item.login ? [item.login] : [], currentUserAccountID, introSelected, isSelfTourViewed, false);
+                        navigateToAndOpenReport(item.login ? [item.login] : [], currentUserAccountID, introSelected, isSelfTourViewed, betas, false);
                     }
                 });
                 onRouterClose();
             }
         },
-        [autocompleteSubstitutions, onRouterClose, onSearchQueryChange, policies, reports, submitSearch, textInputValue, currentUserAccountID, introSelected, isSelfTourViewed],
+        [autocompleteSubstitutions, onRouterClose, onSearchQueryChange, policies, reports, submitSearch, textInputValue, currentUserAccountID, introSelected, isSelfTourViewed, betas],
     );
 
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ESCAPE, () => {

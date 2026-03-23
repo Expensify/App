@@ -1,4 +1,4 @@
-import React, {useCallback, useMemo} from 'react';
+import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
@@ -46,9 +46,6 @@ type MissingPersonalDetailsContentProps = {
 
     /** Card ID for the card that the user is adding personal details to */
     cardID: string;
-
-    /** Whether this is the card-ordering flow */
-    isCardOrderFlow?: boolean;
 };
 
 const baseFormPages = [
@@ -61,17 +58,19 @@ const baseFormPages = [
 const PINPage = {pageName: CONST.MISSING_PERSONAL_DETAILS.PAGE_NAME.PIN, component: PINStep};
 const confirmPage = {pageName: CONST.MISSING_PERSONAL_DETAILS.PAGE_NAME.CONFIRM, component: Confirmation};
 
-function MissingPersonalDetailsContent({privatePersonalDetails, draftValues, headerTitle, onComplete, cardID, isCardOrderFlow = false}: MissingPersonalDetailsContentProps) {
+function MissingPersonalDetailsContent({privatePersonalDetails, draftValues, headerTitle, onComplete, cardID}: MissingPersonalDetailsContentProps) {
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const {executeScenario} = useMultifactorAuthentication();
     const {translate} = useLocalize();
-    const isUKEUCardSelector = useCallback((cardList: OnyxEntry<CardList>) => isExpensifyCardUkEuSupportedSelector(cardList, cardID), [cardID]);
-    const [isUKEUCard] = useOnyx(ONYXKEYS.CARD_LIST, {selector: isUKEUCardSelector});
+    const shouldCollectPINSelector = (cardList: OnyxEntry<CardList>) =>
+        !!cardID &&
+        isExpensifyCardUkEuSupportedSelector(cardList, cardID) &&
+        Object.values(cardList ?? {}).some((card) => card?.cardID === Number(cardID) && !card?.nameValuePairs?.isVirtual);
+    const [shouldCollectPIN] = useOnyx(ONYXKEYS.CARD_LIST, {selector: shouldCollectPINSelector});
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
     const {PIN, isConfirmStep} = usePINState();
     const {setIsConfirmStep} = usePINActions();
-    const shouldCollectPIN = isCardOrderFlow && !!isUKEUCard;
 
     // Build form pages dynamically based on whether this is a UK/EU card
     const formPages = useMemo(() => {
@@ -86,6 +85,9 @@ function MissingPersonalDetailsContent({privatePersonalDetails, draftValues, hea
     const values = useMemo(() => normalizeCountryCode(getSubPageValues(privatePersonalDetails, draftValues)) as PersonalDetailsForm, [privatePersonalDetails, draftValues]);
 
     const startFrom = useMemo(() => {
+        if (shouldCollectPIN === undefined) {
+            return -1;
+        }
         const initialPage = getInitialSubPage(values, shouldCollectPIN, PIN);
         return findPageIndex<CustomSubPageProps>(formPages, initialPage);
     }, [formPages, values, shouldCollectPIN, PIN]);
@@ -168,7 +170,7 @@ function MissingPersonalDetailsContent({privatePersonalDetails, draftValues, hea
                 onMove={moveTo}
                 currentPageName={currentPageName}
                 personalDetailsValues={values}
-                shouldCollectPin={shouldCollectPIN}
+                shouldCollectPIN={!!shouldCollectPIN}
             />
         </ScreenWrapper>
     );

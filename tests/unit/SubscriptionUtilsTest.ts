@@ -18,10 +18,13 @@ import {
     shouldRestrictUserBillableActions,
     shouldShowDiscountBanner,
     shouldShowPreTrialBillingBanner,
+    shouldShowTrialEndedUI,
 } from '@libs/SubscriptionUtils';
+import {getPrivatePromoDiscountInfo} from '@pages/settings/Subscription/utils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {BillingGraceEndPeriod, BillingStatus, FundList, IntroSelected, StripeCustomerID} from '@src/types/onyx';
+import type PrivatePromoDiscount from '@src/types/onyx/PrivatePromoDiscount';
 import createRandomPolicy from '../utils/collections/policies';
 import {STRIPE_CUSTOMER_ID} from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
@@ -62,6 +65,56 @@ const FUND_LIST: FundList = {
 Onyx.init({keys: ONYXKEYS});
 
 describe('SubscriptionUtils', () => {
+    describe('getPrivatePromoDiscountInfo', () => {
+        it('returns number promo discount value for numeric private promo discount', () => {
+            const result = getPrivatePromoDiscountInfo(3, false);
+
+            expect(result).toEqual({
+                isSecretPromoCode: false,
+                promoDiscountValue: 3,
+            });
+        });
+
+        it('returns empty promo discount info when private promo discount is undefined', () => {
+            const result = getPrivatePromoDiscountInfo(undefined, true);
+
+            expect(result).toEqual({
+                isSecretPromoCode: false,
+                promoDiscountValue: undefined,
+            });
+        });
+
+        it('uses yearly subscription discount for annual subscriptions', () => {
+            const privatePromoDiscount: PrivatePromoDiscount = {
+                monthlySubscriptionDiscount: 1,
+                yearlySubscriptionDiscount: 5,
+                isSecretPromoCode: true,
+            };
+
+            const result = getPrivatePromoDiscountInfo(privatePromoDiscount, true);
+
+            expect(result).toEqual({
+                isSecretPromoCode: true,
+                promoDiscountValue: 5,
+            });
+        });
+
+        it('uses monthly subscription discount for non-annual subscriptions', () => {
+            const privatePromoDiscount: PrivatePromoDiscount = {
+                monthlySubscriptionDiscount: 2,
+                yearlySubscriptionDiscount: 7,
+                isSecretPromoCode: false,
+            };
+
+            const result = getPrivatePromoDiscountInfo(privatePromoDiscount, false);
+
+            expect(result).toEqual({
+                isSecretPromoCode: false,
+                promoDiscountValue: 2,
+            });
+        });
+    });
+
     describe('calculateRemainingFreeTrialDays', () => {
         afterEach(async () => {
             await Onyx.clear();
@@ -1164,6 +1217,59 @@ describe('SubscriptionUtils', () => {
 
         it('should return false when empty policies collection is passed', () => {
             expect(shouldCalculateBillNewDot(true, {})).toBeFalsy();
+        });
+    });
+
+    describe('shouldShowTrialEndedUI', () => {
+        const ownerAccountID = 345;
+        const policyID = '200012';
+        const lastDayFreeTrialEnded = formatDate(subDays(new Date(), 2), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING);
+        const lastDayFreeTrialActive = formatDate(addDays(new Date(), 5), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING);
+
+        let policies: Record<string, ReturnType<typeof createRandomPolicy>>;
+
+        beforeEach(async () => {
+            await Onyx.clear();
+            policies = {
+                [`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]: {
+                    ...createRandomPolicy(Number(policyID)),
+                    ownerAccountID,
+                    type: CONST.POLICY.TYPE.CORPORATE,
+                },
+            };
+            await Onyx.set(ONYXKEYS.SESSION, {accountID: ownerAccountID});
+        });
+
+        it('should return true for a regular user whose trial ended, no card, with owned workspace', () => {
+            expect(shouldShowTrialEndedUI(lastDayFreeTrialEnded, undefined, policies, undefined, undefined, undefined)).toBeTruthy();
+        });
+
+        it('should return false if the user has no owned paid policies', () => {
+            expect(shouldShowTrialEndedUI(lastDayFreeTrialEnded, undefined, {}, undefined, undefined, undefined)).toBeFalsy();
+        });
+
+        it('should return false if the user is grandfathered free', () => {
+            expect(shouldShowTrialEndedUI(lastDayFreeTrialEnded, undefined, policies, true, undefined, undefined)).toBeFalsy();
+        });
+
+        it('should return false if the user is from an internal domain', () => {
+            expect(shouldShowTrialEndedUI(lastDayFreeTrialEnded, undefined, policies, undefined, true, undefined)).toBeFalsy();
+        });
+
+        it('should return false if the user is on invoiced billing', () => {
+            expect(shouldShowTrialEndedUI(lastDayFreeTrialEnded, undefined, policies, undefined, undefined, CONST.SUBSCRIPTION.TYPE.INVOICING)).toBeFalsy();
+        });
+
+        it('should return false if the user has a payment card added', () => {
+            expect(shouldShowTrialEndedUI(lastDayFreeTrialEnded, 8010, policies, undefined, undefined, undefined)).toBeFalsy();
+        });
+
+        it('should return false if the trial has not ended yet', () => {
+            expect(shouldShowTrialEndedUI(lastDayFreeTrialActive, undefined, policies, undefined, undefined, undefined)).toBeFalsy();
+        });
+
+        it('should return false if lastDayFreeTrial is undefined', () => {
+            expect(shouldShowTrialEndedUI(undefined, undefined, policies, undefined, undefined, undefined)).toBeFalsy();
         });
     });
 });

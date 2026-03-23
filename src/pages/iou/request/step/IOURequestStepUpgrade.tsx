@@ -8,6 +8,7 @@ import ScrollView from '@components/ScrollView';
 import WorkspaceConfirmationForm from '@components/WorkspaceConfirmationForm';
 import type {WorkspaceConfirmationSubmitFunctionParams} from '@components/WorkspaceConfirmationForm';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useHasActiveAdminPolicies from '@hooks/useHasActiveAdminPolicies';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -43,6 +44,7 @@ function IOURequestStepUpgrade({
     const {isOffline} = useNetwork();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const personalDetails = usePersonalDetails();
+    const hasActiveAdminPolicies = useHasActiveAdminPolicies();
 
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`);
     const [onboardingPurposeSelected] = useOnyx(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED);
@@ -167,6 +169,7 @@ function IOURequestStepUpgrade({
             onboardingPurposeSelected,
             betas,
             isSelfTourViewed,
+            hasActiveAdminPolicies,
         });
         setIsUpgraded(true);
         policyDataRef.current = policyData;
@@ -194,6 +197,7 @@ function IOURequestStepUpgrade({
             onboardingPurposeSelected,
             betas,
             isSelfTourViewed,
+            hasActiveAdminPolicies,
         });
         policyDataRef.current = policyData;
         setCreatedPolicyName(params.name);
