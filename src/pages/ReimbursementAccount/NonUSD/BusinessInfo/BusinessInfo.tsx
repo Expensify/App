@@ -160,7 +160,7 @@ function BusinessInfo({onBackButtonPress, onSubmit, policyID: policyIDProp, step
             startStepIndex={2}
         >
             {shouldRedirect ? (
-                <FullScreenLoadingIndicator />
+                <FullScreenLoadingIndicator reasonAttributes={{context: 'BusinessInfo', shouldRedirect}} />
             ) : (
                 <CurrentPage
                     isEditing={isEditing}

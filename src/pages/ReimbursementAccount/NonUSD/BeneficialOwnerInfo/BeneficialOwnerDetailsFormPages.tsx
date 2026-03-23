@@ -125,7 +125,7 @@ function BeneficialOwnerDetailsFormPages({stepNames, policyID, onFinished, backT
     }, [buildRoute, isEditing, isEditingCreatedOwner, pageIndex, prevPage, skipPages]);
 
     if (isRedirecting) {
-        return <FullScreenLoadingIndicator />;
+        return <FullScreenLoadingIndicator reasonAttributes={{context: 'BeneficialOwnerDetailsFormPages', isRedirecting}} />;
     }
 
     return (

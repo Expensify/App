@@ -89,7 +89,7 @@ function SignerDetailsFormPages({onBackToIsDirector, stepNames, policyID, onFini
     }, [buildRoute, isEditing, onBackToIsDirector, pageIndex, prevPage, skipPages]);
 
     if (isRedirecting) {
-        return <FullScreenLoadingIndicator />;
+        return <FullScreenLoadingIndicator reasonAttributes={{context: 'SignerDetailsFormPages', isRedirecting}} />;
     }
 
     return (
