@@ -597,7 +597,7 @@ function getSendInvoiceInformation({
     policyRecentlyUsedCategories,
     policyRecentlyUsedTags,
 }: SendInvoiceOptions): SendInvoiceInformation {
-    const {amount = 0, currency = '', created = '', merchant = '', category = '', tag = '', taxCode = '', taxAmount = 0, billable, comment, participants} = transaction ?? {};
+    const {amount = 0, currency = '', created = '', merchant = '', category = '', tag = '', taxCode = '', taxAmount = 0, taxValue, billable, comment, participants} = transaction ?? {};
     const trimmedComment = (comment?.comment ?? '').trim();
     const senderWorkspaceID = participants?.find((participant) => participant?.isSender)?.policyID;
     const receiverParticipant: Participant | InvoiceReceiver | undefined =
@@ -644,6 +644,7 @@ function getSendInvoiceInformation({
             tag,
             taxCode,
             taxAmount,
+            taxValue,
             billable,
             reimbursable: true,
         },
