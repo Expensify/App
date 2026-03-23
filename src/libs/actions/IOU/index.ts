@@ -13228,11 +13228,23 @@ type UpdateMultipleMoneyRequestsParams = {
     transactions: OnyxCollection<OnyxTypes.Transaction>;
     reportActions: OnyxCollection<OnyxTypes.ReportActions>;
     policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>;
+    policyTags: OnyxCollection<OnyxTypes.PolicyTagLists>;
     hash?: number;
     allPolicies?: OnyxCollection<OnyxTypes.Policy>;
 };
 
-function updateMultipleMoneyRequests({transactionIDs, changes, policy, reports, transactions, reportActions, policyCategories, hash, allPolicies}: UpdateMultipleMoneyRequestsParams) {
+function updateMultipleMoneyRequests({
+    transactionIDs,
+    changes,
+    policy,
+    reports,
+    transactions,
+    reportActions,
+    policyCategories,
+    policyTags,
+    hash,
+    allPolicies,
+}: UpdateMultipleMoneyRequestsParams) {
     // Track running totals per report so multiple edits in the same report compound correctly.
     const optimisticReportsByID: Record<string, OnyxTypes.Report> = {};
     for (const transactionID of transactionIDs) {
@@ -13427,7 +13439,7 @@ function updateMultipleMoneyRequests({transactionIDs, changes, policy, reports, 
                 transactionChanges.category !== undefined && transactionChanges.category === ''
                     ? optimisticViolations.filter((violation) => violation.name !== CONST.VIOLATIONS.CATEGORY_OUT_OF_POLICY)
                     : optimisticViolations;
-            const policyTagList = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${transactionPolicy?.id}`] ?? {};
+            const policyTagList = policyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${transactionPolicy?.id}`] ?? {};
             optimisticViolationsData = ViolationsUtils.getViolationsOnyxData(
                 updatedTransaction,
                 optimisticViolations,

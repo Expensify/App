@@ -38,6 +38,7 @@ function SearchEditMultiplePage() {
     const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [allReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
+    const [allPolicyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
 
     const selectedTransactionIDs = draftTransaction?.selectedTransactionIDs ?? [];
 
@@ -155,6 +156,7 @@ function SearchEditMultiplePage() {
             transactions: allTransactions,
             reportActions: allReportActions,
             policyCategories,
+            policyTags: allPolicyTags,
             hash: currentSearchHash,
             allPolicies: policies,
         });

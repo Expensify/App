@@ -12058,6 +12058,7 @@ describe('actions/IOU', () => {
                 transactions,
                 reportActions: {},
                 policyCategories: undefined,
+                policyTags: {},
                 hash: undefined,
             });
 
@@ -12126,6 +12127,7 @@ describe('actions/IOU', () => {
                 transactions,
                 reportActions: {},
                 policyCategories: undefined,
+                policyTags: {},
                 hash: undefined,
             });
 
@@ -12183,6 +12185,7 @@ describe('actions/IOU', () => {
                 transactions,
                 reportActions: {},
                 policyCategories: undefined,
+                policyTags: {},
                 hash: undefined,
             });
 
@@ -12249,6 +12252,7 @@ describe('actions/IOU', () => {
                 transactions,
                 reportActions: {},
                 policyCategories: undefined,
+                policyTags: {},
                 hash: undefined,
             });
 
@@ -12319,6 +12323,7 @@ describe('actions/IOU', () => {
                 transactions,
                 reportActions: {},
                 policyCategories: undefined,
+                policyTags: {},
                 hash: undefined,
             });
 
@@ -12380,6 +12385,7 @@ describe('actions/IOU', () => {
                 transactions,
                 reportActions: {},
                 policyCategories: undefined,
+                policyTags: {},
                 hash: undefined,
             });
 
@@ -12439,6 +12445,7 @@ describe('actions/IOU', () => {
                 transactions,
                 reportActions: {},
                 policyCategories: undefined,
+                policyTags: {},
                 hash: undefined,
             });
 
@@ -12492,6 +12499,7 @@ describe('actions/IOU', () => {
                 transactions,
                 reportActions: {},
                 policyCategories: undefined,
+                policyTags: {},
                 hash: undefined,
             });
             await waitForBatchedUpdates();
@@ -12546,6 +12554,7 @@ describe('actions/IOU', () => {
                 transactions,
                 reportActions: {},
                 policyCategories: undefined,
+                policyTags: {},
                 hash: undefined,
             });
             await waitForBatchedUpdates();
@@ -12605,6 +12614,7 @@ describe('actions/IOU', () => {
                 transactions,
                 reportActions: {},
                 policyCategories,
+                policyTags: {},
                 hash: undefined,
             });
             await waitForBatchedUpdates();
@@ -12664,6 +12674,7 @@ describe('actions/IOU', () => {
                 transactions,
                 reportActions: {},
                 policyCategories: undefined,
+                policyTags: {},
                 hash: undefined,
                 allPolicies: {
                     [`${ONYXKEYS.COLLECTION.POLICY}${transactionPolicyID}`]: transactionPolicy,
@@ -12675,6 +12686,81 @@ describe('actions/IOU', () => {
             const updatedViolations = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`);
             const violationNames = updatedViolations?.map((v) => v.name) ?? [];
             expect(violationNames).not.toContain(CONST.VIOLATIONS.MISSING_CATEGORY);
+
+            canEditFieldSpy.mockRestore();
+        });
+
+        it('uses passed policyTags to detect tagOutOfPolicy violation during bulk edit', async () => {
+            const transactionID = 'transaction-tag-1';
+            const transactionThreadReportID = 'thread-tag-1';
+            const iouReportID = 'iou-tag-1';
+            const policy = {
+                ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                requiresTag: true,
+                areTagsEnabled: true,
+            };
+
+            const iouReport: Report = {
+                ...createRandomReport(2, undefined),
+                reportID: iouReportID,
+                policyID: policy.id,
+                type: CONST.REPORT.TYPE.EXPENSE,
+            };
+
+            const reports = {
+                [`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`]: iouReport,
+            };
+
+            const transaction: Transaction = {
+                ...createRandomTransaction(1),
+                transactionID,
+                reportID: iouReportID,
+                transactionThreadReportID,
+                amount: 1000,
+                currency: CONST.CURRENCY.USD,
+                tag: 'InvalidTag',
+            };
+            const transactions = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: transaction,
+            };
+
+            // Policy tags that do NOT contain "InvalidTag" — only "ValidTag" is enabled
+            const policyTagsForPolicy = {
+                Department: {
+                    name: 'Department',
+                    required: true,
+                    orderWeight: 0,
+                    tags: {
+                        // eslint-disable-next-line @typescript-eslint/naming-convention
+                        ValidTag: {name: 'ValidTag', enabled: true},
+                    },
+                },
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`, []);
+            await waitForBatchedUpdates();
+
+            const canEditFieldSpy = jest.spyOn(require('@libs/ReportUtils'), 'canEditFieldOfMoneyRequest').mockReturnValue(true);
+
+            updateMultipleMoneyRequests({
+                transactionIDs: [transactionID],
+                changes: {amount: 2000},
+                policy,
+                reports,
+                transactions,
+                reportActions: {},
+                policyCategories: undefined,
+                policyTags: {
+                    [`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policy.id}`]: policyTagsForPolicy,
+                },
+                hash: undefined,
+            });
+            await waitForBatchedUpdates();
+
+            // "InvalidTag" is not in the policy tag list, so tagOutOfPolicy should be added
+            const updatedViolations = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`);
+            const violationNames = updatedViolations?.map((v) => v.name) ?? [];
+            expect(violationNames).toContain(CONST.VIOLATIONS.TAG_OUT_OF_POLICY);
 
             canEditFieldSpy.mockRestore();
         });
@@ -12721,6 +12807,7 @@ describe('actions/IOU', () => {
                 transactions,
                 reportActions: {},
                 policyCategories: undefined,
+                policyTags: {},
                 hash: undefined,
             });
 
