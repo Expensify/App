@@ -14982,14 +14982,13 @@ describe('actions/IOU', () => {
         });
     });
 
-    it('handleNavigateAfterExpenseCreate does not call mergeTransactionIdsHighlightOnSearchRoute (highlight is now inlined in action functions)', async () => {
+    it('handleNavigateAfterExpenseCreate', async () => {
         const mockedIsReportTopmostSplitNavigator = isReportTopmostSplitNavigator as jest.MockedFunction<typeof isReportTopmostSplitNavigator>;
         const spyOnMergeTransactionIdsHighlightOnSearchRoute = jest.spyOn(require('@libs/actions/Transaction'), 'mergeTransactionIdsHighlightOnSearchRoute');
         const activeReportID = '1';
         const transactionID = '1';
         mockedIsReportTopmostSplitNavigator.mockReturnValue(false);
 
-        // Highlight side-effect is now inlined in each action function, not in this helper.
         handleNavigateAfterExpenseCreate({activeReportID, isFromGlobalCreate: false});
         expect(spyOnMergeTransactionIdsHighlightOnSearchRoute).toHaveBeenCalledTimes(0);
 
