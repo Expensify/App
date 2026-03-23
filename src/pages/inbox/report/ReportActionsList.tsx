@@ -766,6 +766,7 @@ function ReportActionsList({
             styles,
             translate,
             expensifyIcons.UpArrow,
+            isOffline,
         ],
     );
 
