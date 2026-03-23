@@ -13255,7 +13255,6 @@ function rejectExpenseReport(
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
             value: {
-                [optimisticRejectAction.reportActionID]: null as unknown as OnyxTypes.ReportAction,
                 [optimisticCommentAction.reportActionID]: {
                     ...(optimisticCommentAction as OnyxTypes.ReportAction),
                     pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
