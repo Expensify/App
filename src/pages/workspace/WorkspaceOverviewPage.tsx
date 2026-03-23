@@ -45,6 +45,7 @@ import {
     setIsComingFromGlobalReimbursementsFlow,
     updateWorkspaceAvatar,
 } from '@libs/actions/Policy/Policy';
+import {doesPolicyHavePartiallySetupBankAccount} from '@libs/BankAccountUtils';
 import {filterInactiveCards, getCardSettings} from '@libs/CardUtils';
 import {getLatestErrorField, getLatestErrorMessage} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -94,6 +95,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
     const [isComingFromGlobalReimbursementsFlow] = useOnyx(ONYXKEYS.IS_COMING_FROM_GLOBAL_REIMBURSEMENTS_FLOW);
     const [lastAccessedWorkspacePolicyID] = useOnyx(ONYXKEYS.LAST_ACCESSED_WORKSPACE_POLICY_ID);
     const [reimbursementAccountError] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {selector: reimbursementAccountErrorSelector});
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
 
     // When we create a new workspace, the policy prop will be empty on the first render. Therefore, we have to use policyDraft until policy has been set in Onyx.
     const policy = policyDraft?.id ? policyDraft : policyProp;
@@ -103,6 +105,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
     const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${defaultFundID}`);
     const settings = getCardSettings(cardSettings);
     const isBankAccountVerified = !!settings?.paymentBankAccountID;
+    const hasPartiallySetupBankAccount = doesPolicyHavePartiallySetupBankAccount(bankAccountList, policyID ?? '');
 
     const isPolicyAdmin = isPolicyAdminPolicyUtils(policy);
     const outputCurrency = policy?.outputCurrency ?? '';
@@ -683,13 +686,13 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                                     title={formattedCurrency}
                                     description={translate('workspace.editor.currencyInputLabel')}
                                     sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.OVERVIEW.CURRENCY}
-                                    shouldShowRightIcon={hasVBA ? false : !currencyReadOnly}
-                                    interactive={hasVBA ? false : !currencyReadOnly}
+                                    shouldShowRightIcon={hasVBA || hasPartiallySetupBankAccount ? false : !currencyReadOnly}
+                                    interactive={hasVBA || hasPartiallySetupBankAccount ? false : !currencyReadOnly}
                                     wrapperStyle={styles.sectionMenuItemTopDescription}
                                     onPress={onPressCurrency}
                                     hintText={
                                         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                                        hasVBA || isBankAccountVerified
+                                        hasVBA || hasPartiallySetupBankAccount || isBankAccountVerified
                                             ? translate('workspace.editor.currencyInputDisabledText', policyCurrency)
                                             : translate('workspace.editor.currencyInputHelpText')
                                     }

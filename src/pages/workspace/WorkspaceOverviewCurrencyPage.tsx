@@ -8,6 +8,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import {doesPolicyHavePartiallySetupBankAccount} from '@libs/BankAccountUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
@@ -38,6 +39,8 @@ function WorkspaceOverviewCurrencyPage({policy}: WorkspaceOverviewCurrencyPagePr
     const isForcedToChangeCurrency = !!route.params?.isForcedToChangeCurrency;
     const [hasVBA = false] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {selector: hasVBASelector});
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
+    const hasPartiallySetupBankAccount = doesPolicyHavePartiallySetupBankAccount(bankAccountList, policy?.id ?? '');
+    const shouldBlockCurrencyChange = hasVBA || hasPartiallySetupBankAccount;
 
     const onSelectCurrency = (item: CurrencyListItem) => {
         if (!policy) {
@@ -65,10 +68,10 @@ function WorkspaceOverviewCurrencyPage({policy}: WorkspaceOverviewCurrencyPagePr
         <AccessOrNotFoundWrapper
             policyID={policy?.id}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
-            shouldBeBlocked={hasVBA}
+            shouldBeBlocked={shouldBlockCurrencyChange}
             fullPageNotFoundViewProps={{
-                onLinkPress: hasVBA ? () => Navigation.goBack() : goBackFromInvalidPolicy,
-                subtitleKey: hasVBA || isEmptyObject(policy) ? undefined : 'workspace.common.notAuthorized',
+                onLinkPress: shouldBlockCurrencyChange ? () => Navigation.goBack() : goBackFromInvalidPolicy,
+                subtitleKey: shouldBlockCurrencyChange || isEmptyObject(policy) ? undefined : 'workspace.common.notAuthorized',
             }}
         >
             <ScreenWrapper
