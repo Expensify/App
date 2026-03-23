@@ -59,6 +59,7 @@ import {
     wasMessageReceivedWhileOffline,
 } from '@libs/ReportActionsUtils';
 import {canUserPerformWriteAction, chatIncludesChronosWithID, getOriginalReportID, getReportLastVisibleActionCreated, isHarvestCreatedExpenseReport, isUnread} from '@libs/ReportUtils';
+import shouldPopoverUseScrollView from '@libs/shouldPopoverUseScrollView';
 import markOpenReportEnd from '@libs/telemetry/markOpenReportEnd';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {isTransactionPendingDelete} from '@libs/TransactionUtils';
@@ -312,6 +313,8 @@ function MoneyRequestReportActionsList({
             return option;
         });
     }, [originalSelectedTransactionsOptions, dismissedRejectUseExplanation, isDelegateAccessRestricted, showDelegateNoAccessModal]);
+
+    const popoverUseScrollView = shouldPopoverUseScrollView(selectedTransactionsOptions);
 
     const dismissRejectModalBasedOnAction = useCallback(() => {
         if (rejectModalAction === CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.REJECT_BULK) {
@@ -808,6 +811,7 @@ function MoneyRequestReportActionsList({
                         })}
                         isSplitButton={false}
                         shouldAlwaysShowDropdownMenu
+                        shouldPopoverUseScrollView={popoverUseScrollView}
                         wrapperStyle={[styles.w100, styles.ph5]}
                     />
                     <View style={[styles.alignItemsCenter, styles.userSelectNone, styles.flexRow, styles.pt6, styles.ph8, styles.pb3]}>

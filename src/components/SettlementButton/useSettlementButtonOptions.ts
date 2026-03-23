@@ -11,6 +11,7 @@ import {getLastPolicyBankAccountID, getLastPolicyPaymentMethod} from '@libs/acti
 import {getActivePaymentType} from '@libs/PaymentUtils';
 import {sortPoliciesByName} from '@libs/PolicyUtils';
 import {isBusinessInvoiceRoom, isExpenseReport as isExpenseReportUtil, isIOUReport} from '@libs/ReportUtils';
+import shouldPopoverUseScrollViewUtil from '@libs/shouldPopoverUseScrollView';
 import {setPersonalBankAccountContinueKYCOnSuccess} from '@userActions/BankAccounts';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -335,8 +336,7 @@ function useSettlementButtonOptions({
 
     const shouldUseSplitButton = hasPreferredPaymentMethod || !!lastPaymentPolicy || ((isExpenseReport || isInvoiceReport) && hasIntentToPay);
     const shouldLimitWidth = shouldUseShortForm && shouldUseSplitButton && !paymentButtonOptions.length;
-    const shouldPopoverUseScrollView =
-        paymentButtonOptions.length >= CONST.DROPDOWN_SCROLL_THRESHOLD || paymentButtonOptions.some((option) => (option.subMenuItems?.length ?? 0) >= CONST.DROPDOWN_SCROLL_THRESHOLD);
+    const shouldPopoverUseScrollView = shouldPopoverUseScrollViewUtil(paymentButtonOptions);
 
     return {
         paymentButtonOptions,
