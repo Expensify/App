@@ -601,7 +601,8 @@ function useSelectionModeReportActions({
         [confirmPayment],
     );
 
-    const hasPayInSelectionMode = allExpensesSelected && hasPayAction;
+    const hasActualPaymentOptions = paymentButtonOptions.some((opt) => Object.values(CONST.IOU.PAYMENT_TYPE).some((type) => type === opt.value));
+    const hasPayInSelectionMode = allExpensesSelected && hasPayAction && hasActualPaymentOptions;
 
     /* eslint-disable react-hooks/refs -- onSelected callbacks are event handlers, not invoked during render */
     const selectionModeReportLevelActions = useMemo(() => {
