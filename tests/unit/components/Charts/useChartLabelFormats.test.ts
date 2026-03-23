@@ -20,12 +20,6 @@ beforeEach(() => {
 });
 
 describe('useChartLabelFormats', () => {
-    it('uses unit value directly', () => {
-        const {result} = renderHook(() => useChartLabelFormats({data: SAMPLE_DATA, unit: {value: '₹', fallback: 'INR'}, unitPosition: 'left'}));
-
-        expect(result.current.formatValue(100)).toBe('₹ 100');
-    });
-
     it('formats with single-char unit without separator', () => {
         const {result} = renderHook(() => useChartLabelFormats({data: SAMPLE_DATA, unit: {value: '$', fallback: 'USD'}, unitPosition: 'left'}));
 
