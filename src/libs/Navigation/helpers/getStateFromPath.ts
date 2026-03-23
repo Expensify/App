@@ -34,11 +34,11 @@ function getStateFromPath(path: Route): PartialState<NavigationState> {
 
         // Get the currently focused route from the base path to check permissions
         const focusedRoute = findFocusedRouteWithOnyxTabGuard(getStateFromPath(pathWithoutDynamicSuffix) ?? {});
-        const entryScreens: Screen[] = DYNAMIC_ROUTES[dynamicRoute as DynamicRouteKey]?.entryScreens ?? [];
+        const entryScreens: ReadonlyArray<Screen | '*'> = DYNAMIC_ROUTES[dynamicRoute as DynamicRouteKey]?.entryScreens ?? [];
 
         // Check if the focused route is allowed to access this dynamic route
         if (focusedRoute?.name) {
-            if (entryScreens.includes(focusedRoute.name as Screen)) {
+            if (entryScreens.some((s) => s === '*' || s === focusedRoute.name)) {
                 // Generate navigation state for the dynamic route
                 const dynamicRouteState = getStateForDynamicRoute(normalizedPath, dynamicRoute as DynamicRouteKey, focusedRoute?.params as Record<string, unknown> | undefined);
                 return dynamicRouteState;
