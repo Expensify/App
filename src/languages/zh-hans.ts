@@ -4978,6 +4978,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                 flipAmountSign: '翻转金额符号',
                 importButton: '导入交易',
             },
+            assignNewCards: {title: '分配新卡', description: '从您的银行获取可分配的最新银行卡'},
         },
         expensifyCard: {
             issueAndManageCards: '发放并管理您的 Expensify 卡',
