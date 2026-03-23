@@ -449,10 +449,14 @@ function openSearchPage(params?: OpenSearchPageParams) {
         },
     ];
 
-    API.read(READ_COMMANDS.OPEN_SEARCH_PAGE, {
-        includePartiallySetupBankAccounts: params?.includePartiallySetupBankAccounts ?? true,
-        includeLockedBankAccounts: params?.includeLockedBankAccounts ?? true,
-    }, {successData});
+    API.read(
+        READ_COMMANDS.OPEN_SEARCH_PAGE,
+        {
+            includePartiallySetupBankAccounts: params?.includePartiallySetupBankAccounts ?? true,
+            includeLockedBankAccounts: params?.includeLockedBankAccounts ?? true,
+        },
+        {successData},
+    );
 }
 
 // Tracks in-flight search requests by hash+offset to prevent duplicate API calls
