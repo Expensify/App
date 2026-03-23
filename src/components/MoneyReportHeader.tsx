@@ -67,7 +67,7 @@ import {
 } from '@libs/NextStepUtils';
 import type {KYCFlowEvent, TriggerKYCFlow} from '@libs/PaymentUtils';
 import {handleUnvalidatedAccount, selectPaymentType} from '@libs/PaymentUtils';
-import {getConnectedIntegration, getValidConnectedIntegration, hasDynamicExternalWorkflow, sortPoliciesByName} from '@libs/PolicyUtils';
+import {getConnectedIntegration, getValidConnectedIntegration, hasDynamicExternalWorkflow, isPolicyAccessible, sortPoliciesByName} from '@libs/PolicyUtils';
 import {
     getFilteredReportActionsForReportView,
     getIOUActionForReportID,
@@ -1923,8 +1923,9 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
                 temporarilyDisableDuplicateReportAction();
                 wasDuplicateReportTriggered.current = true;
 
-                const targetPolicyForDuplicate = policy ?? defaultExpensePolicy;
-                const targetChatForDuplicate = policy ? chatReport : activePolicyExpenseChat;
+                const isSourcePolicyValid = !!policy && isPolicyAccessible(policy, currentUserLogin ?? '');
+                const targetPolicyForDuplicate = isSourcePolicyValid ? policy : defaultExpensePolicy;
+                const targetChatForDuplicate = isSourcePolicyValid ? chatReport : activePolicyExpenseChat;
                 const activePolicyCategories = allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${targetPolicyForDuplicate?.id}`] ?? {};
 
                 // eslint-disable-next-line @typescript-eslint/no-deprecated
