@@ -74,6 +74,7 @@ function useOptions(reportAttributesDerived: ReportAttributesDerivedValue['repor
     const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
     const {contacts} = useContactImport();
     const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT);
+    const [reportsCollection] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const allPersonalDetails = usePersonalDetails();
     const isScreenFocusedRef = useIsFocusedRef();
     const [sortedActions] = useOnyx(ONYXKEYS.DERIVED.RAM_ONLY_SORTED_REPORT_ACTIONS, {selector: sortedActionsSelector});
@@ -98,12 +99,12 @@ function useOptions(reportAttributesDerived: ReportAttributesDerivedValue['repor
     const [nvpDismissedProductTraining] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
 
-    const reports = listOptions?.reports ?? [];
+    const reportOptions = listOptions?.reports ?? [];
     const personalDetails = listOptions?.personalDetails ?? [];
 
     const defaultOptions = getValidOptions(
         {
-            reports,
+            reports: reportOptions,
             personalDetails: personalDetails.concat(contacts),
         },
         allPolicies,
@@ -122,6 +123,7 @@ function useOptions(reportAttributesDerived: ReportAttributesDerivedValue['repor
             countryCode,
             reportAttributesDerived,
             sortedActions,
+            reportsCollection,
         },
     );
 
@@ -227,6 +229,7 @@ function useOptions(reportAttributesDerived: ReportAttributesDerivedValue['repor
         setSelectedOptions,
         headerMessage,
         handleEndReached,
+        reportsCollection,
     };
 }
 
@@ -278,6 +281,7 @@ function NewChatPage({ref}: NewChatPageProps) {
         personalDetails,
         userToInvite,
         areOptionsInitialized,
+        reportsCollection,
     } = useOptions(reportAttributesDerived);
 
     const sections: Array<Section<OptionWithKey>> = [];
@@ -294,6 +298,7 @@ function NewChatPage({ref}: NewChatPageProps) {
         undefined,
         undefined,
         reportAttributesDerived,
+        reportsCollection,
     );
     sections.push({...formatResults.section, title: undefined, sectionIndex: 0});
 

@@ -43,7 +43,6 @@ import {
     getAutoPayApprovedReportsEnabledMessage,
     getAutoReimbursementMessage,
     getChangedApproverActionMessage,
-    getCombinedReportActions,
     getCurrencyDefaultTaxUpdateMessage,
     getCustomTaxNameUpdateMessage,
     getDynamicExternalWorkflowRoutedMessage,
@@ -256,9 +255,6 @@ Onyx.connect({
             const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
             const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.chatReportID}`];
 
-            // If the report is a one-transaction report, we need to return the combined reportActions so that the LHN can display modifications
-            // to the transaction thread or the report itself.
-            // Cache the result for O(1) lookup in renderItem.
             const transactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, actions[reportActions[0]]);
             // eslint-disable-next-line @typescript-eslint/no-deprecated
             deprecatedCachedOneTransactionThreadReportIDs[reportID] = transactionThreadReportID;
@@ -439,18 +435,21 @@ type GetAlternateTextConfig = {
     translate?: LocalizedTranslate;
     reportAttributesDerived?: ReportAttributesDerivedValue['reports'];
     policyTags?: OnyxEntry<PolicyTagLists>;
-    conciergeReportID: string | undefined;
+    conciergeReportID?: string;
+    reportParam?: OnyxEntry<Report>;
+    chatReportParam?: OnyxEntry<Report>;
 };
 
 /**
  * Update alternate text for the option when applicable
  */
+// eslint-disable-next-line @typescript-eslint/max-params
 function getAlternateText(
     option: OptionData,
     {showChatPreviewLine = false, forcePolicyNamePreview = false}: PreviewConfig,
-    {isReportArchived, policy, lastActorDetails = {}, visibleReportActionsData = {}, translate, reportAttributesDerived, policyTags, conciergeReportID}: GetAlternateTextConfig,
+    {isReportArchived, policy, lastActorDetails = {}, visibleReportActionsData = {}, translate, reportAttributesDerived, policyTags, conciergeReportID, reportParam, chatReportParam}: GetAlternateTextConfig,
 ) {
-    const report = getReportOrDraftReport(option.reportID);
+    const report = reportParam ?? getReportOrDraftReport(option.reportID);
     const isAdminRoom = reportUtilsIsAdminRoom(report);
     const isAnnounceRoom = reportUtilsIsAnnounceRoom(report);
     const isGroupChat = reportUtilsIsGroupChat(report);
@@ -465,6 +464,7 @@ function getAlternateText(
             lastActorDetails,
             policy,
             isReportArchived,
+            chatReport: chatReportParam,
             visibleReportActionsDataParam: visibleReportActionsData,
             reportAttributesDerived,
             policyTags,
@@ -612,6 +612,7 @@ function getLastMessageTextForReport({
     movedToReport,
     policy,
     isReportArchived = false,
+    chatReport,
     reportMetadata,
     visibleReportActionsDataParam,
     lastAction,
@@ -628,6 +629,7 @@ function getLastMessageTextForReport({
     policy?: OnyxEntry<Policy>;
     isReportArchived?: boolean;
     policyForMovingExpensesID?: string;
+    chatReport?: OnyxEntry<Report>;
     reportMetadata?: OnyxEntry<ReportMetadata>;
     visibleReportActionsDataParam?: VisibleReportActionsDerivedValue;
     lastAction?: OnyxEntry<ReportAction>;
@@ -641,8 +643,9 @@ function getLastMessageTextForReport({
     const canUserPerformWrite = canUserPerformWriteAction(report, isReportArchived);
     let lastReportAction = lastAction ?? getLastVisibleAction(reportID, canUserPerformWrite, {}, undefined, visibleReportActionsDataParam);
 
+    const resolvedChatReport = chatReport ?? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.chatReportID}`];
     // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const transactionThreadReportID = reportID ? deprecatedCachedOneTransactionThreadReportIDs[reportID] : undefined;
+    const transactionThreadReportID = reportID ? getOneTransactionThreadReportID(report, resolvedChatReport, deprecatedAllSortedReportActions[reportID]) : undefined;
 
     if (reportID && !lastAction && transactionThreadReportID) {
         lastReportAction =
@@ -1112,6 +1115,7 @@ function createOption({
                           reportAttributesDerived,
                           policyTags,
                           conciergeReportID,
+                          reportParam: report,
                       },
                   );
 
@@ -1168,8 +1172,9 @@ function getReportOption(
     reportDrafts?: OnyxCollection<Report>,
     policyTags?: OnyxCollection<PolicyTagLists>,
     visibleReportActionsData: VisibleReportActionsDerivedValue = {},
+    reportParam?: OnyxEntry<Report>,
 ): OptionData {
-    const report = getReportOrDraftReport(participant.reportID, undefined, undefined, reportDrafts);
+    const report = reportParam ?? getReportOrDraftReport(participant.reportID, undefined, undefined, reportDrafts);
     const visibleParticipantAccountIDs = getParticipantsAccountIDsForDisplay(report, true);
     const reportPolicyTags = policyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(report?.policyID)}`];
 
@@ -2275,6 +2280,7 @@ function prepareReportOptionsForDisplay(
     currentUserAccountID: number,
     config: GetValidReportsConfig,
     conciergeReportID: string | undefined,
+    reports?: OnyxCollection<Report>,
     visibleReportActionsData: VisibleReportActionsDerivedValue = {},
     reportAttributesDerived?: ReportAttributesDerivedValue['reports'],
     // eslint-disable-next-line @typescript-eslint/no-deprecated
@@ -2307,6 +2313,8 @@ function prepareReportOptionsForDisplay(
         }
         const report = option.item;
         const policy = policiesCollection?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
+        const reportsCollection = reports ?? allReports;
+        const chatReport = reportsCollection?.[`${ONYXKEYS.COLLECTION.REPORT}${report.chatReportID}`];
         const reportPolicyTags = policyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(report?.policyID)}`];
         /**
          * By default, generated options does not have the chat preview line enabled.
@@ -2323,18 +2331,19 @@ function prepareReportOptionsForDisplay(
                 reportAttributesDerived,
                 policyTags: reportPolicyTags,
                 conciergeReportID,
+                reportParam: report,
+                chatReportParam: chatReport,
             },
         );
         const isSelected = isReportSelected(option, selectedOptions);
 
         let isOptionUnread = option.isUnread;
         if (shouldUnreadBeBold) {
-            const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report.chatReportID}`];
             const oneTransactionThreadReportID =
                 report.type === CONST.REPORT.TYPE.IOU || report.type === CONST.REPORT.TYPE.EXPENSE || report.type === CONST.REPORT.TYPE.INVOICE
                     ? getOneTransactionThreadReportID(report, chatReport, sortedActions[report.reportID])
                     : undefined;
-            const oneTransactionThreadReport = oneTransactionThreadReportID ? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${oneTransactionThreadReportID}`] : undefined;
+            const oneTransactionThreadReport = oneTransactionThreadReportID ? reportsCollection?.[`${ONYXKEYS.COLLECTION.REPORT}${oneTransactionThreadReportID}`] : undefined;
 
             isOptionUnread = isUnread(report, oneTransactionThreadReport, option.private_isArchived) && !!report.lastActorAccountID;
         }
@@ -2466,6 +2475,7 @@ function getValidOptions(
         personalDetails,
         allPolicyTags,
         countryCode = CONST.DEFAULT_COUNTRY_CODE,
+        reportsCollection,
         visibleReportActionsData = {},
         reportAttributesDerived,
         sortedActions,
@@ -2537,8 +2547,8 @@ function getValidOptions(
             }
 
             const draftComment = draftComments?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${report.reportID}`];
-            // TODO: This allReports usage is temporary and will be removed once the full Onyx.connect() refactor is complete (https://github.com/Expensify/App/issues/66378)
-            const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report.item.chatReportID}`];
+            const resolvedReportsMap = reportsCollection ?? allReports;
+            const chatReport = resolvedReportsMap?.[`${ONYXKEYS.COLLECTION.REPORT}${report.item.chatReportID}`];
 
             return isValidReport(
                 report,
@@ -2573,6 +2583,7 @@ function getValidOptions(
                     personalDetails,
                 },
                 conciergeReportID,
+                reportsCollection ?? allReports,
                 visibleReportActionsData,
                 reportAttributesDerived,
                 sortedActions,
@@ -2597,6 +2608,7 @@ function getValidOptions(
                 personalDetails,
             },
             conciergeReportID,
+            reportsCollection ?? allReports,
             visibleReportActionsData,
             reportAttributesDerived,
             sortedActions,
@@ -2617,6 +2629,7 @@ function getValidOptions(
                 personalDetails,
             },
             conciergeReportID,
+            reportsCollection ?? allReports,
             visibleReportActionsData,
             reportAttributesDerived,
             sortedActions,
@@ -2732,6 +2745,7 @@ type SearchOptionsConfig = {
     options: OptionList;
     nvpDismissedProductTraining: OnyxEntry<DismissedProductTraining>;
     draftComments: OnyxCollection<string>;
+    reports?: OnyxCollection<Report>;
     betas?: Beta[];
     isUsedInChatFinder?: boolean;
     includeReadOnly?: boolean;
@@ -2760,6 +2774,7 @@ function getSearchOptions({
     options,
     draftComments,
     nvpDismissedProductTraining,
+    reports: reportsCollection,
     betas,
     isUsedInChatFinder = true,
     includeReadOnly = true,
@@ -2782,6 +2797,7 @@ function getSearchOptions({
 }: SearchOptionsConfig): Options {
     // TODO: We'll pass the conciergeReportID eventually. Refactor issue: https://github.com/Expensify/App/issues/66411
     const optionList = getValidOptions(options, policyCollection, draftComments, nvpDismissedProductTraining, loginList, currentUserAccountID, currentUserEmail, undefined, {
+        reportsCollection,
         betas,
         includeRecentReports,
         includeMultipleParticipantReports: true,
@@ -2977,6 +2993,7 @@ function formatSectionsFromSearchTerm(
     shouldGetOptionDetails = false,
     filteredWorkspaceChats: SearchOptionData[] = [],
     reportAttributesDerived?: ReportAttributesDerivedValue['reports'],
+    reportsParam?: OnyxCollection<Report>,
 ): SectionForSearchTerm {
     // We show the selected participants at the top of the list when there is no search term or maximum number of participants has already been selected
     // However, if there is a search term we remove the selected participants from the top of the list unless they are part of the search results
@@ -2990,8 +3007,8 @@ function formatSectionsFromSearchTerm(
                     ? selectedOptions.map((participant) => {
                           const isReportPolicyExpenseChat = participant.isPolicyExpenseChat ?? false;
                           if (isReportPolicyExpenseChat) {
-                              // TODO: This allReports usage is temporary and will be removed once the full Onyx.connect() refactor is complete (https://github.com/Expensify/App/issues/66378)
-                              const expenseReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${participant.reportID}`];
+                              const resolvedReports = reportsParam ?? allReports;
+                              const expenseReport = resolvedReports?.[`${ONYXKEYS.COLLECTION.REPORT}${participant.reportID}`];
                               const privateIsArchived = privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${expenseReport?.reportID}`];
                               const expenseReportPolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${expenseReport?.policyID}`];
                               return getPolicyExpenseReportOption(participant, privateIsArchived, personalDetails, expenseReport, expenseReportPolicy, reportAttributesDerived);
@@ -3023,8 +3040,8 @@ function formatSectionsFromSearchTerm(
                 ? selectedParticipantsWithoutDetails.map((participant) => {
                       const isReportPolicyExpenseChat = participant.isPolicyExpenseChat ?? false;
                       if (isReportPolicyExpenseChat) {
-                          // TODO: This allReports usage is temporary and will be removed once the full Onyx.connect() refactor is complete (https://github.com/Expensify/App/issues/66378)
-                          const expenseReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${participant.reportID}`];
+                          const resolvedReports = reportsParam ?? allReports;
+                          const expenseReport = resolvedReports?.[`${ONYXKEYS.COLLECTION.REPORT}${participant.reportID}`];
                           const privateIsArchived = privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${expenseReport?.reportID}`];
                           const expenseReportPolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${expenseReport?.policyID}`];
                           return getPolicyExpenseReportOption(participant, privateIsArchived, personalDetails, expenseReport, expenseReportPolicy, reportAttributesDerived);
