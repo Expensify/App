@@ -420,8 +420,8 @@ const ONYXKEYS = {
     // The access token to be used with the Mapbox library
     MAPBOX_ACCESS_TOKEN: 'mapboxAccessToken',
 
-    /** Default mileage rates for P2P distance requests, fetched from Auth */
-    DEFAULT_MILEAGE_RATES: 'defaultMileageRates',
+    /** Default P2P mileage rate fetched from Auth */
+    DEFAULT_P2P_MILEAGE_RATE: 'defaultP2PMileageRate',
 
     // Max area supported for HTML <canvas> element
     MAX_CANVAS_AREA: 'maxCanvasArea',
@@ -1358,7 +1358,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.VERIFY_3DS_SUBSCRIPTION]: string;
     [ONYXKEYS.PREFERRED_THEME]: ValueOf<typeof CONST.THEME>;
     [ONYXKEYS.MAPBOX_ACCESS_TOKEN]: OnyxTypes.MapboxAccessToken;
-    [ONYXKEYS.DEFAULT_MILEAGE_RATES]: OnyxTypes.DefaultMileageRate;
+    [ONYXKEYS.DEFAULT_P2P_MILEAGE_RATE]: OnyxTypes.DefaultP2PMileageRate;
     [ONYXKEYS.ONYX_UPDATES_FROM_SERVER]: OnyxTypes.AnyOnyxUpdatesFromServer;
     [ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT]: number;
     [ONYXKEYS.MAX_CANVAS_AREA]: number;

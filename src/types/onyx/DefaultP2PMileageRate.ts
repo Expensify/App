@@ -1,7 +1,7 @@
 import type {Unit} from './Policy';
 
-/** Model of a default mileage rate fetched from the backend */
-type DefaultMileageRate = {
+/** Model of the default P2P mileage rate fetched from Auth */
+type DefaultP2PMileageRate = {
     /** Rate in cents per unit */
     rate: number;
 
@@ -9,4 +9,4 @@ type DefaultMileageRate = {
     unit: Unit;
 };
 
-export default DefaultMileageRate;
+export default DefaultP2PMileageRate;

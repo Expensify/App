@@ -793,11 +793,11 @@ function openDraftDistanceExpense() {
 }
 
 /**
- * Fetches the default mileage rates from Auth for the given currency.
- * These rates are used for P2P distance requests and stored in Onyx.
+ * Fetches the default P2P mileage rate from Auth for the given currency.
+ * The rate is stored in Onyx via the onyxData returned by Auth.
  */
-function fetchDefaultMileageRates(currency: string) {
-    API.read(READ_COMMANDS.GET_DEFAULT_MILEAGE_RATES, {currency}, {});
+function fetchDefaultP2PMileageRate(currency: string) {
+    API.read(READ_COMMANDS.GET_DEFAULT_P2P_MILEAGE_RATE, {currency}, {});
 }
 
 /**
@@ -1690,7 +1690,7 @@ export {
     setReviewDuplicatesKey,
     abandonReviewDuplicateTransactions,
     openDraftDistanceExpense,
-    fetchDefaultMileageRates,
+    fetchDefaultP2PMileageRate,
     sanitizeRecentWaypoints,
     getLastModifiedExpense,
     revert,

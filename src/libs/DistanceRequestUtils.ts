@@ -4,7 +4,7 @@ import type {CurrencyListActionsContextType} from '@components/CurrencyListConte
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {DefaultMileageRate, LastSelectedDistanceRates, OnyxInputOrEntry, Transaction} from '@src/types/onyx';
+import type {DefaultP2PMileageRate, LastSelectedDistanceRates, OnyxInputOrEntry, Transaction} from '@src/types/onyx';
 import type {Unit} from '@src/types/onyx/Policy';
 import type Policy from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -14,9 +14,9 @@ import {replaceAllDigits} from './MoneyRequestUtils';
 import {getDistanceRateCustomUnit, getDistanceRateCustomUnitRate, getPersonalPolicy, getUnitRateValue} from './PolicyUtils';
 import {getCurrency, getRateID, isCustomUnitRateIDForP2P, isExpenseUnreported} from './TransactionUtils';
 
-let defaultP2PMileageRate: DefaultMileageRate | undefined;
+let defaultP2PMileageRate: DefaultP2PMileageRate | undefined;
 Onyx.connect({
-    key: ONYXKEYS.DEFAULT_MILEAGE_RATES,
+    key: ONYXKEYS.DEFAULT_P2P_MILEAGE_RATE,
     callback: (value) => {
         defaultP2PMileageRate = value ?? undefined;
     },
