@@ -47,7 +47,6 @@ function SearchFiltersCardPage() {
         if (isOffline) {
             return;
         }
-
         openSearchCardFiltersPage();
     }, [isOffline]);
 
