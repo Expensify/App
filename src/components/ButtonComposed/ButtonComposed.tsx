@@ -2,7 +2,7 @@ import {useIsFocused} from '@react-navigation/native';
 import type {ForwardedRef} from 'react';
 import React, {useCallback, useMemo, useState} from 'react';
 import type {GestureResponderEvent, LayoutChangeEvent, StyleProp, ViewStyle} from 'react-native';
-import {View} from 'react-native';
+import {StyleSheet, View} from 'react-native';
 import ActivityIndicator from '@components/ActivityIndicator';
 import {getButtonRole} from '@components/Button/utils';
 import validateSubmitShortcut from '@components/Button/validateSubmitShortcut';
@@ -253,6 +253,24 @@ function ButtonComposed({
         ];
     }, [styles, shouldRemoveBorderRadius, innerStyles, buttonVariantStyles]);
 
+    const buttonContainerStyles = useMemo<StyleProp<ViewStyle>>(
+        () => [buttonStyles, shouldBlendOpacity && styles.buttonBlendContainer],
+        [buttonStyles, shouldBlendOpacity, styles.buttonBlendContainer],
+    );
+
+    const buttonBlendForegroundStyle = useMemo<StyleProp<ViewStyle>>(() => {
+        if (!shouldBlendOpacity) {
+            return undefined;
+        }
+
+        const {backgroundColor, opacity} = StyleSheet.flatten(buttonStyles);
+
+        return {
+            backgroundColor,
+            opacity,
+        };
+    }, [buttonStyles, shouldBlendOpacity]);
+
     return (
         <>
             {pressOnEnter && (
@@ -280,7 +298,7 @@ function ButtonComposed({
                 disabled={isLoading || isDisabled}
                 disabledStyle={!shouldStayNormalOnDisable ? disabledStyle : undefined}
                 shouldBlendOpacity={shouldBlendOpacity}
-                style={buttonStyles}
+                style={buttonContainerStyles}
                 wrapperStyle={[
                     isDisabled && !shouldStayNormalOnDisable ? {...styles.cursorDisabled, ...styles.noSelect} : {},
                     styles.buttonContainer,
@@ -330,6 +348,7 @@ function ButtonComposed({
                     onLongPress(event);
                 }}
             >
+                {shouldBlendOpacity && <View style={[StyleSheet.absoluteFill, buttonBlendForegroundStyle]} />}
                 <ButtonComposedContext.Provider value={contextValue}>
                     <View style={[styles.mw100, styles.flexRow, styles.flexShrink1, styles.alignItemsCenter, styles.justifyContentBetween, contentContainerStyle]}>{children}</View>
                 </ButtonComposedContext.Provider>
