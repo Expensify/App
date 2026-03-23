@@ -7,6 +7,7 @@ import withFullTransactionOrNotFound from '@pages/iou/request/step/withFullTrans
 import withWritableReportOrNotFound from '@pages/iou/request/step/withWritableReportOrNotFound';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {MultiScanGate} from './components/MultiScanContext';
 import ScanEditReceipt from './components/ScanEditReceipt';
 import ScanFromReport from './components/ScanFromReport';
 import ScanGlobalCreate from './components/ScanGlobalCreate';
@@ -40,12 +41,24 @@ function IOURequestStepScan({
 
     if (!isFromGlobalCreate && !isArchived && iouType !== CONST.IOU.TYPE.CREATE) {
         if (shouldSkipConfirmation) {
-            return <ScanSkipConfirmation />;
+            return (
+                <MultiScanGate>
+                    <ScanSkipConfirmation />
+                </MultiScanGate>
+            );
         }
-        return <ScanFromReport />;
+        return (
+            <MultiScanGate>
+                <ScanFromReport />
+            </MultiScanGate>
+        );
     }
 
-    return <ScanGlobalCreate />;
+    return (
+        <MultiScanGate>
+            <ScanGlobalCreate />
+        </MultiScanGate>
+    );
 }
 
 // eslint-disable-next-line rulesdir/no-negated-variables

@@ -33,8 +33,9 @@ import getFileSource from '@pages/iou/request/step/IOURequestStepScan/utils/getF
 import startScanProcessSpan from '@pages/iou/request/step/IOURequestStepScan/utils/startScanProcessSpan';
 import useScanFileReadabilityCheck from '@pages/iou/request/step/IOURequestStepScan/utils/useScanFileReadabilityCheck';
 import StepScreenWrapper from '@pages/iou/request/step/StepScreenWrapper';
-import {getMoneyRequestParticipantsFromReport, getPolicyTags} from '@userActions/IOU';
+import {getMoneyRequestParticipantsFromReport, getPolicyTags, setMoneyRequestReceipt} from '@userActions/IOU';
 import {startSplitBill} from '@userActions/IOU/Split';
+import {buildOptimisticTransactionAndCreateDraft} from '@userActions/TransactionEdit';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
@@ -44,6 +45,9 @@ import type {Receipt} from '@src/types/onyx/Transaction';
 import type {FileObject} from '@src/types/utils/Attachment';
 import Camera from './Camera';
 import GpsPermissionGate from './GpsPermissionGate';
+import {useMultiScanState} from './MultiScanContext';
+import MultiScanEducationalModal from './MultiScanEducationalModal';
+import ReceiptPreviews from './ReceiptPreviews';
 
 /**
  * ScanSkipConfirmation — skip-confirmation variant.
@@ -61,6 +65,7 @@ function ScanSkipConfirmation() {
     const policy = usePolicy(report?.policyID);
     const [initialTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${initialTransactionID}`);
     const [transactions] = useOptimisticDraftTransactions(initialTransaction);
+    const {isMultiScanEnabled, canUseMultiScan} = useMultiScanState();
 
     const {isBetaEnabled} = usePermissions();
     const {policyForMovingExpenses} = usePolicyForMovingExpenses();
@@ -276,6 +281,20 @@ function ScanSkipConfirmation() {
             return;
         }
 
+        // Multi-scan: create draft per capture, accumulate, don't navigate
+        if (isMultiScanEnabled) {
+            for (const file of files) {
+                const source = getFileSource(file);
+                const transaction = initialTransaction?.receipt?.source
+                    ? buildOptimisticTransactionAndCreateDraft({initialTransaction, currentUserPersonalDetails, reportID})
+                    : initialTransaction;
+                const transactionID = transaction?.transactionID ?? initialTransactionID;
+                setMoneyRequestReceipt(transactionID, source, file.name ?? '', true, file.type);
+                setReceiptFiles((prev) => [...prev, {file, source, transactionID}]);
+            }
+            return;
+        }
+
         const newReceiptFiles = buildReceiptFiles({
             files,
             getSource: getFileSource,
@@ -351,8 +370,16 @@ function ScanSkipConfirmation() {
                 <Camera
                     // eslint-disable-next-line react/jsx-no-bind -- React Compiler handles memoization
                     onCapture={onCapture}
+                    onDrop={validateFiles}
                     shouldAcceptMultipleFiles={shouldAcceptMultipleFiles}
                 />
+                {!!canUseMultiScan && (
+                    <ReceiptPreviews
+                        isMultiScanEnabled={!!isMultiScanEnabled}
+                        submit={() => navigateToConfirmationStep(receiptFiles, false)}
+                    />
+                )}
+                <MultiScanEducationalModal />
                 {ErrorModal}
                 <GpsPermissionGate
                     active={showGpsPermission}

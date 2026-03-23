@@ -1,4 +1,5 @@
-import React, {useRef} from 'react';
+import {useRoute} from '@react-navigation/native';
+import React, {useRef, useState} from 'react';
 import {PanResponder, View} from 'react-native';
 import AttachmentPicker from '@components/AttachmentPicker';
 import Button from '@components/Button';
@@ -6,26 +7,33 @@ import DragAndDropConsumer from '@components/DragAndDrop/Consumer';
 import {useDragAndDropState} from '@components/DragAndDrop/Provider';
 import DropZoneUI from '@components/DropZone/DropZoneUI';
 import Icon from '@components/Icon';
+import ReceiptAlternativeMethods from '@components/ReceiptAlternativeMethods';
 import Text from '@components/Text';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {MoneyRequestNavigatorParamList} from '@libs/Navigation/types';
 import CONST from '@src/CONST';
+import type SCREENS from '@src/SCREENS';
 import type {FileObject} from '@src/types/utils/Attachment';
 import type {CameraProps} from './types';
 
 /**
  * FileUpload — desktop web capture variant.
- * Renders a drag-and-drop zone + file picker button.
- * Calls `onCapture(file, source)` for each file dropped or picked.
+ * Renders a drag-and-drop zone + file picker button + receipt alternative methods.
+ * Calls `onCapture(file, source)` for each file picked, or `onDrop(files, items)` for drag-and-drop.
  */
-function FileUpload({onCapture, shouldAcceptMultipleFiles = false, onLayout}: CameraProps) {
+function FileUpload({onCapture, onDrop, shouldAcceptMultipleFiles = false, onLayout}: CameraProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const lazyIllustrations = useMemoizedLazyIllustrations(['ReceiptStack']);
-    const lazyIcons = useMemoizedLazyExpensifyIcons(['SmartScan']);
+    const lazyIcons = useMemoizedLazyExpensifyIcons(['ReplaceReceipt', 'SmartScan']);
+    const route = useRoute<PlatformStackRouteProp<MoneyRequestNavigatorParamList, typeof SCREENS.MONEY_REQUEST.STEP_SCAN>>();
+    const isReplacing = route.params.action === CONST.IOU.ACTION.EDIT;
+
     const panResponderRef = useRef(
         PanResponder.create({
             onPanResponderTerminationRequest: () => false,
@@ -33,6 +41,13 @@ function FileUpload({onCapture, shouldAcceptMultipleFiles = false, onLayout}: Ca
     );
 
     const {isDraggingOver} = useDragAndDropState();
+
+    // Height-based hiding for ReceiptAlternativeMethods
+    const [containerHeight, setContainerHeight] = useState(0);
+    const [uploadViewHeight, setUploadViewHeight] = useState(0);
+    const [altMethodsHeight, setAltMethodsHeight] = useState(0);
+    const chooseFilesPaddingVertical = Number(styles.chooseFilesView(false).paddingVertical);
+    const shouldHideAlternativeMethods = altMethodsHeight + uploadViewHeight + chooseFilesPaddingVertical * 2 > containerHeight;
 
     const emitFiles = (files: FileObject[]) => {
         for (const file of files) {
@@ -51,17 +66,29 @@ function FileUpload({onCapture, shouldAcceptMultipleFiles = false, onLayout}: Ca
             file.uri = URL.createObjectURL(file);
             return file;
         });
+
+        if (onDrop) {
+            onDrop(files, Array.from(e.dataTransfer?.items ?? []));
+            return;
+        }
+
         emitFiles(files);
     };
 
     return (
         <View
-            onLayout={() => onLayout?.()}
+            onLayout={(event) => {
+                setContainerHeight(event.nativeEvent.layout.height);
+                onLayout?.();
+            }}
             style={[styles.flex1, styles.chooseFilesView(false)]}
         >
             <View style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter]}>
                 {!isDraggingOver && (
-                    <View style={[styles.alignItemsCenter, styles.justifyContentCenter]}>
+                    <View
+                        style={[styles.alignItemsCenter, styles.justifyContentCenter]}
+                        onLayout={(e) => setUploadViewHeight(e.nativeEvent.layout.height)}
+                    >
                         <Icon
                             src={lazyIllustrations.ReceiptStack}
                             width={CONST.RECEIPT.ICON_SIZE}
@@ -99,13 +126,14 @@ function FileUpload({onCapture, shouldAcceptMultipleFiles = false, onLayout}: Ca
             </View>
             <DragAndDropConsumer onDrop={handleDrop}>
                 <DropZoneUI
-                    icon={lazyIcons.SmartScan}
+                    icon={isReplacing ? lazyIcons.ReplaceReceipt : lazyIcons.SmartScan}
                     dropStyles={styles.receiptDropOverlay(true)}
-                    dropTitle={translate(shouldAcceptMultipleFiles ? 'dropzone.scanReceipts' : 'quickAction.scanReceipt')}
+                    dropTitle={isReplacing ? translate('dropzone.replaceReceipt') : translate(shouldAcceptMultipleFiles ? 'dropzone.scanReceipts' : 'quickAction.scanReceipt')}
                     dropTextStyles={styles.receiptDropText}
                     dashedBorderStyles={[styles.dropzoneArea, styles.easeInOpacityTransition, styles.activeDropzoneDashedBorder(theme.receiptDropBorderColorActive, true)]}
                 />
             </DragAndDropConsumer>
+            {!shouldHideAlternativeMethods && <ReceiptAlternativeMethods onLayout={(e) => setAltMethodsHeight(e.nativeEvent.layout.height)} />}
         </View>
     );
 }

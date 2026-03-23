@@ -21,14 +21,18 @@ import getFileSource from '@pages/iou/request/step/IOURequestStepScan/utils/getF
 import startScanProcessSpan from '@pages/iou/request/step/IOURequestStepScan/utils/startScanProcessSpan';
 import useScanFileReadabilityCheck from '@pages/iou/request/step/IOURequestStepScan/utils/useScanFileReadabilityCheck';
 import StepScreenWrapper from '@pages/iou/request/step/StepScreenWrapper';
-import {setMoneyRequestParticipants, setMoneyRequestParticipantsFromReport} from '@userActions/IOU';
+import {setMoneyRequestParticipants, setMoneyRequestParticipantsFromReport, setMoneyRequestReceipt} from '@userActions/IOU';
 import {setTransactionReport} from '@userActions/Transaction';
+import {buildOptimisticTransactionAndCreateDraft} from '@userActions/TransactionEdit';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {FileObject} from '@src/types/utils/Attachment';
 import Camera from './Camera';
+import {useMultiScanState} from './MultiScanContext';
+import MultiScanEducationalModal from './MultiScanEducationalModal';
+import ReceiptPreviews from './ReceiptPreviews';
 
 /**
  * ScanGlobalCreate — global create flow.
@@ -49,6 +53,7 @@ function ScanGlobalCreate() {
     const personalPolicy = usePersonalPolicy();
     const selfDMReport = useSelfDMReport();
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
+    const {isMultiScanEnabled, canUseMultiScan} = useMultiScanState();
 
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const shouldAcceptMultipleFiles = !isEditing && !backTo;
@@ -60,6 +65,19 @@ function ScanGlobalCreate() {
 
     function onFilesAccepted(files: FileObject[]) {
         if (files.length === 0) {
+            return;
+        }
+
+        // Multi-scan: create draft per capture, accumulate, don't navigate
+        if (isMultiScanEnabled) {
+            for (const file of files) {
+                const source = getFileSource(file);
+                const transaction = initialTransaction?.receipt?.source
+                    ? buildOptimisticTransactionAndCreateDraft({initialTransaction, currentUserPersonalDetails, reportID})
+                    : initialTransaction;
+                const transactionID = transaction?.transactionID ?? initialTransactionID;
+                setMoneyRequestReceipt(transactionID, source, file.name ?? '', true, file.type);
+            }
             return;
         }
 
@@ -145,8 +163,19 @@ function ScanGlobalCreate() {
                 <Camera
                     // eslint-disable-next-line react/jsx-no-bind -- React Compiler handles memoization
                     onCapture={onCapture}
+                    onDrop={validateFiles}
                     shouldAcceptMultipleFiles={shouldAcceptMultipleFiles}
                 />
+                {!!canUseMultiScan && (
+                    <ReceiptPreviews
+                        isMultiScanEnabled={!!isMultiScanEnabled}
+                        submit={() => {
+                            startScanProcessSpan();
+                            navigateToParticipantPage(iouType, initialTransactionID, reportID);
+                        }}
+                    />
+                )}
+                <MultiScanEducationalModal />
                 {ErrorModal}
             </View>
         </StepScreenWrapper>

@@ -17,7 +17,9 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isMobileWebKit} from '@libs/Browser';
 import {base64ToFile} from '@libs/fileDownload/FileUtils';
+import HapticFeedback from '@libs/HapticFeedback';
 import {cancelSpan, endSpan, getSpan, startSpan} from '@libs/telemetry/activeSpans';
+import {useMultiScanActions, useMultiScanState} from '@pages/iou/request/step/IOURequestStepScan/components/MultiScanContext';
 import NavigationAwareCamera from '@pages/iou/request/step/IOURequestStepScan/components/NavigationAwareCamera/WebCamera';
 import {cropImageToAspectRatio} from '@pages/iou/request/step/IOURequestStepScan/cropImageToAspectRatio';
 import type {ImageObject} from '@pages/iou/request/step/IOURequestStepScan/cropImageToAspectRatio';
@@ -74,7 +76,9 @@ function CameraCapture({onCapture, shouldAcceptMultipleFiles = false, onLayout}:
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const lazyIllustrations = useMemoizedLazyIllustrations(['Hand', 'Shutter']);
-    const lazyIcons = useMemoizedLazyExpensifyIcons(['Bolt', 'Gallery', 'boltSlash']);
+    const lazyIcons = useMemoizedLazyExpensifyIcons(['Bolt', 'Gallery', 'ReceiptMultiple', 'boltSlash']);
+    const {isMultiScanEnabled, canUseMultiScan} = useMultiScanState();
+    const {toggleMultiScan} = useMultiScanActions();
     const isTabActive = useIsFocused();
     const [cameraPermissionState, setCameraPermissionState] = useState<PermissionState | undefined>(() => cachedPermissionState ?? 'prompt');
     const [isFlashLightOn, toggleFlashlight] = useReducer((state: boolean) => !state, false);
@@ -95,6 +99,7 @@ function CameraCapture({onCapture, shouldAcceptMultipleFiles = false, onLayout}:
 
     const showBlink = () => {
         blinkOpacity.set(withSequence(withTiming(1, {duration: BLINK_DURATION_MS}), withTiming(0, {duration: BLINK_DURATION_MS})));
+        HapticFeedback.press();
     };
 
     /**
@@ -211,11 +216,13 @@ function CameraCapture({onCapture, shouldAcceptMultipleFiles = false, onLayout}:
             return;
         }
 
-        startSpan(CONST.TELEMETRY.SPAN_SHUTTER_TO_CONFIRMATION, {
-            name: CONST.TELEMETRY.SPAN_SHUTTER_TO_CONFIRMATION,
-            op: CONST.TELEMETRY.SPAN_SHUTTER_TO_CONFIRMATION,
-            attributes: {[CONST.TELEMETRY.ATTRIBUTE_PLATFORM]: 'web'},
-        });
+        if (!isMultiScanEnabled) {
+            startSpan(CONST.TELEMETRY.SPAN_SHUTTER_TO_CONFIRMATION, {
+                name: CONST.TELEMETRY.SPAN_SHUTTER_TO_CONFIRMATION,
+                op: CONST.TELEMETRY.SPAN_SHUTTER_TO_CONFIRMATION,
+                attributes: {[CONST.TELEMETRY.ATTRIBUTE_PLATFORM]: 'web'},
+            });
+        }
         startSpan(CONST.TELEMETRY.SPAN_RECEIPT_CAPTURE, {
             name: CONST.TELEMETRY.SPAN_RECEIPT_CAPTURE,
             op: CONST.TELEMETRY.SPAN_RECEIPT_CAPTURE,
@@ -335,22 +342,24 @@ function CameraCapture({onCapture, shouldAcceptMultipleFiles = false, onLayout}:
                                 mirrored={false}
                                 screenshotQuality={0}
                             />
-                            <View style={[styles.flashButtonContainer, styles.primaryMediumIcon, isFlashLightOn && styles.bgGreenSuccess, !isTorchAvailable && styles.opacity0]}>
-                                <PressableWithFeedback
-                                    role={CONST.ROLE.BUTTON}
-                                    accessibilityLabel={translate('receipt.flash')}
-                                    disabled={!isTorchAvailable}
-                                    onPress={toggleFlashlight}
-                                    sentryLabel={CONST.SENTRY_LABEL.REQUEST_STEP.SCAN.FLASH}
-                                >
-                                    <Icon
-                                        height={16}
-                                        width={16}
-                                        src={lazyIcons.Bolt}
-                                        fill={isFlashLightOn ? theme.white : theme.icon}
-                                    />
-                                </PressableWithFeedback>
-                            </View>
+                            {canUseMultiScan ? (
+                                <View style={[styles.flashButtonContainer, styles.primaryMediumIcon, isFlashLightOn && styles.bgGreenSuccess, !isTorchAvailable && styles.opacity0]}>
+                                    <PressableWithFeedback
+                                        role={CONST.ROLE.BUTTON}
+                                        accessibilityLabel={translate('receipt.flash')}
+                                        disabled={!isTorchAvailable}
+                                        onPress={toggleFlashlight}
+                                        sentryLabel={CONST.SENTRY_LABEL.REQUEST_STEP.SCAN.FLASH}
+                                    >
+                                        <Icon
+                                            height={16}
+                                            width={16}
+                                            src={lazyIcons.Bolt}
+                                            fill={isFlashLightOn ? theme.white : theme.icon}
+                                        />
+                                    </PressableWithFeedback>
+                                </View>
+                            ) : null}
                             <Animated.View
                                 pointerEvents="none"
                                 style={[StyleSheet.absoluteFillObject, styles.backgroundWhite, blinkStyle, styles.zIndex10]}
@@ -368,6 +377,7 @@ function CameraCapture({onCapture, shouldAcceptMultipleFiles = false, onLayout}:
                             <PressableWithFeedback
                                 accessibilityLabel={translate(shouldAcceptMultipleFiles ? 'common.chooseFiles' : 'common.chooseFile')}
                                 role={CONST.ROLE.BUTTON}
+                                style={isMultiScanEnabled && styles.opacity0}
                                 onPress={() => {
                                     openPicker({
                                         onPicked: (data) => emitPickedFiles(data),
@@ -397,21 +407,39 @@ function CameraCapture({onCapture, shouldAcceptMultipleFiles = false, onLayout}:
                             height={CONST.RECEIPT.SHUTTER_SIZE}
                         />
                     </PressableWithFeedback>
-                    <PressableWithFeedback
-                        role={CONST.ROLE.BUTTON}
-                        accessibilityLabel={translate('receipt.flash')}
-                        style={[styles.alignItemsEnd, !isTorchAvailable && styles.opacity0]}
-                        onPress={toggleFlashlight}
-                        disabled={!isTorchAvailable}
-                        sentryLabel={CONST.SENTRY_LABEL.REQUEST_STEP.SCAN.FLASH}
-                    >
-                        <Icon
-                            height={32}
-                            width={32}
-                            src={isFlashLightOn ? lazyIcons.Bolt : lazyIcons.boltSlash}
-                            fill={theme.textSupporting}
-                        />
-                    </PressableWithFeedback>
+                    {canUseMultiScan ? (
+                        <PressableWithFeedback
+                            accessibilityRole="button"
+                            role={CONST.ROLE.BUTTON}
+                            accessibilityLabel={translate('receipt.multiScan')}
+                            style={styles.alignItemsEnd}
+                            onPress={toggleMultiScan}
+                            sentryLabel={CONST.SENTRY_LABEL.REQUEST_STEP.SCAN.MULTI_SCAN}
+                        >
+                            <Icon
+                                height={32}
+                                width={32}
+                                src={lazyIcons.ReceiptMultiple}
+                                fill={isMultiScanEnabled ? theme.iconMenu : theme.textSupporting}
+                            />
+                        </PressableWithFeedback>
+                    ) : (
+                        <PressableWithFeedback
+                            role={CONST.ROLE.BUTTON}
+                            accessibilityLabel={translate('receipt.flash')}
+                            style={[styles.alignItemsEnd, !isTorchAvailable && styles.opacity0]}
+                            onPress={toggleFlashlight}
+                            disabled={!isTorchAvailable}
+                            sentryLabel={CONST.SENTRY_LABEL.REQUEST_STEP.SCAN.FLASH}
+                        >
+                            <Icon
+                                height={32}
+                                width={32}
+                                src={isFlashLightOn ? lazyIcons.Bolt : lazyIcons.boltSlash}
+                                fill={theme.textSupporting}
+                            />
+                        </PressableWithFeedback>
+                    )}
                 </View>
             </View>
         </View>

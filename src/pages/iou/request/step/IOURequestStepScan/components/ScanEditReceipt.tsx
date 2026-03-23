@@ -36,9 +36,7 @@ function ScanEditReceipt() {
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report?.policyID}`);
     const [initialTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${initialTransactionID}`);
     const [transactions] = useOptimisticDraftTransactions(initialTransaction);
-
     const isEditing = action === CONST.IOU.ACTION.EDIT;
-    const shouldShowWrapper = !!backTo || isEditing;
 
     const navigateBack = () => {
         Navigation.goBack(backTo);
@@ -85,7 +83,7 @@ function ScanEditReceipt() {
         <StepScreenWrapper
             headerTitle={translate('common.receipt')}
             onBackButtonPress={navigateBack}
-            shouldShowWrapper={shouldShowWrapper}
+            shouldShowWrapper
             testID="IOURequestStepScan"
         >
             <View>
@@ -93,6 +91,7 @@ function ScanEditReceipt() {
                 <Camera
                     // eslint-disable-next-line react/jsx-no-bind -- React Compiler handles memoization
                     onCapture={onCapture}
+                    onDrop={validateFiles}
                     shouldAcceptMultipleFiles={false}
                 />
                 {ErrorModal}

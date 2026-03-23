@@ -9,6 +9,9 @@ type CameraProps = {
 
     /** Called when the camera view finishes layout */
     onLayout?: () => void;
+
+    /** Called on desktop drag-and-drop with both files and DataTransferItems (for folder detection) */
+    onDrop?: (files: FileObject[], items: DataTransferItem[]) => void;
 };
 
 export default CameraProps;
