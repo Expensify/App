@@ -202,7 +202,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
     const receiptPath = transaction?.receipt?.source;
 
     useEffect(() => {
-        if (!isDraftTransaction || !iouType || !transaction) {
+        if (!isDraftTransaction || !iouType || !transaction || isOdometerImage) {
             return;
         }
 
@@ -267,8 +267,12 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
             return;
         }
         removeMoneyRequestOdometerImage(transaction.transactionID, imageType, isDraftTransaction, !isEditingConfirmation);
-        navigation.goBack();
-    }, [transaction?.transactionID, imageType, isDraftTransaction, isEditingConfirmation, navigation]);
+        const goBackRoute =
+            isEditingConfirmation === true
+                ? ROUTES.MONEY_REQUEST_STEP_DISTANCE_ODOMETER.getRoute(action ?? CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID)
+                : ROUTES.DISTANCE_REQUEST_CREATE_TAB_ODOMETER.getRoute(action ?? CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID, backToReport);
+        Navigation.goBack(goBackRoute);
+    }, [transaction?.transactionID, imageType, isDraftTransaction, isEditingConfirmation, action, iouType, transactionID, reportID, backToReport]);
 
     const onDownloadAttachment = useDownloadAttachment({
         isAuthTokenRequired,

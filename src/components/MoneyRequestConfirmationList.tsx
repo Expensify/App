@@ -1241,7 +1241,7 @@ function MoneyRequestConfirmationList({
                             enterKeyEventListenerPriority={1}
                             useKeyboardShortcuts
                             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                            isLoading={isConfirmed || isConfirming}
+                            isLoading={isConfirmed || isConfirming || isLoadingReceipt}
                             sentryLabel={CONST.SENTRY_LABEL.MONEY_REQUEST.CONFIRMATION_SUBMIT_BUTTON}
                         />
                     </View>
@@ -1280,6 +1280,7 @@ function MoneyRequestConfirmationList({
         shouldShowProductTrainingTooltip,
         renderProductTrainingTooltip,
         isConfirming,
+        isLoadingReceipt,
         reportID,
     ]);
 

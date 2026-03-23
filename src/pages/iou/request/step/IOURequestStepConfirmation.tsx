@@ -39,7 +39,7 @@ import {getCurrencySymbol} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
-import {isLocalFile as isLocalFileFileUtils} from '@libs/fileDownload/FileUtils';
+import {getMimeTypeFromUri, isLocalFile as isLocalFileFileUtils} from '@libs/fileDownload/FileUtils';
 import validateReceiptFile from '@libs/fileDownload/validateReceiptFile';
 import getCurrentPosition from '@libs/getCurrentPosition';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
@@ -365,7 +365,7 @@ function IOURequestStepConfirmation({
 
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
 
-    useFetchRoute(transaction, transaction?.comment?.waypoints, action, shouldUseTransactionDraft(action) ? CONST.TRANSACTION.STATE.DRAFT : CONST.TRANSACTION.STATE.CURRENT);
+    useFetchRoute(transaction, transaction?.comment?.waypoints, action, shouldUseTransactionDraft(action, iouType) ? CONST.TRANSACTION.STATE.DRAFT : CONST.TRANSACTION.STATE.CURRENT);
 
     useEffect(() => {
         endSpan(CONST.TELEMETRY.SPAN_OPEN_CREATE_EXPENSE);
@@ -442,6 +442,11 @@ function IOURequestStepConfirmation({
             return;
         }
 
+        const getImageUri = (img: FileObject | string | null | undefined): string => (typeof img === 'string' ? img : (img?.uri ?? ''));
+        const getImageName = (img: FileObject | string | null | undefined): string => (typeof img === 'string' ? (img.split('/').pop() ?? '') : (img?.name ?? ''));
+        const getImageType = (img: FileObject | string | null | undefined): string | undefined =>
+            typeof img === 'string' ? getMimeTypeFromUri(img) : (img?.type ?? getMimeTypeFromUri(img?.uri ?? ''));
+
         if (!odometerStartImage || !odometerEndImage) {
             const singleImage = odometerStartImage ?? odometerEndImage;
 
@@ -449,9 +454,7 @@ function IOURequestStepConfirmation({
                 return;
             }
 
-            const getImageName = (img: typeof singleImage): string => (typeof img === 'string' ? (img.split('/').pop() ?? '') : (img.name ?? ''));
-
-            setMoneyRequestReceipt(currentTransactionID, getOdometerImageUri(singleImage) ?? '', getImageName(singleImage), shouldUseTransactionDraft(action));
+            setMoneyRequestReceipt(currentTransactionID, getImageUri(singleImage), getImageName(singleImage), shouldUseTransactionDraft(action, iouType), getImageType(singleImage));
             lastStitchedImages.current = {startImage: odometerStartImage, endImage: odometerEndImage};
             return;
         }
@@ -465,7 +468,13 @@ function IOURequestStepConfirmation({
                 if (ignore || !stitchedImage) {
                     return;
                 }
-                setMoneyRequestReceipt(currentTransactionID, stitchedImage.uri ?? '', stitchedImage.name ?? '', shouldUseTransactionDraft(action));
+                setMoneyRequestReceipt(
+                    currentTransactionID,
+                    getImageUri(stitchedImage),
+                    getImageName(stitchedImage),
+                    shouldUseTransactionDraft(action, iouType),
+                    getImageType(stitchedImage),
+                );
                 lastStitchedImages.current = {startImage: odometerStartImage, endImage: odometerEndImage};
             })
             .catch((error: unknown) => {
@@ -485,7 +494,7 @@ function IOURequestStepConfirmation({
         return () => {
             ignore = true;
         };
-    }, [isOdometerDistanceRequest, isFocused, currentTransactionID, odometerStartImage, odometerEndImage, action, translate]);
+    }, [isOdometerDistanceRequest, isFocused, currentTransactionID, odometerStartImage, odometerEndImage, action, translate, iouType]);
 
     const defaultBillable = !!policy?.defaultBillable;
     useEffect(() => {
@@ -599,7 +608,7 @@ function IOURequestStepConfirmation({
         }
 
         // This has selected the participants from the beginning and the participant field shouldn't be editable.
-        navigateToStartMoneyRequestStep(requestType, iouType, initialTransactionID, reportID, action);
+        navigateToStartMoneyRequestStep(requestType, iouType, initialTransactionID, reportID, action, backToReport);
     }, [
         action,
         isPerDiemRequest,
@@ -617,6 +626,7 @@ function IOURequestStepConfirmation({
         isMovingTransactionFromTrackExpense,
         participantsAutoAssignedFromRoute,
         backTo,
+        backToReport,
     ]);
 
     // When the component mounts, if there is a receipt, see if the image can be read from the disk. If not, redirect the user to the starting step of the flow.
