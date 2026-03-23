@@ -7129,7 +7129,7 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
         }: UpdatedPolicyBudgetNotificationParams) =>
             `Attenzione! Questo spazio di lavoro ha un budget ${budgetFrequency} di "${budgetAmount}" per il ${budgetTypeForNotificationMessage} "${budgetName}". Al momento sei a ${approvedReimbursedClosedSpend}, che supera il ${thresholdPercentage}% del budget. Ci sono anche ${awaitingApprovalSpend} in attesa di approvazione e ${unsubmittedSpend} non ancora inviati, per un totale di ${totalSpend}. ${summaryLink ? `<a href="${summaryLink}">Ecco un resoconto</a> con tutte quelle spese per i tuoi archivi!` : ''}`,
         addedReportField: ({fieldType, fieldName, defaultValue}: AddedOrDeletedPolicyReportFieldParams) =>
-            `aggiunto campo di report ${fieldType} "${fieldName}"${defaultValue ? `con valore predefinito "${defaultValue}"` : ''}`,
+            `aggiunto campo di report ${fieldType} "${fieldName}"${defaultValue ? ` con valore predefinito "${defaultValue}"` : ''}`,
     },
     roomMembersPage: {
         memberNotFound: 'Membro non trovato.',

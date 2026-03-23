@@ -7108,7 +7108,7 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
         }: UpdatedPolicyBudgetNotificationParams) =>
             `Let op! Deze workspace heeft een ${budgetFrequency}-budget van ‘${budgetAmount}’ voor de ${budgetTypeForNotificationMessage} ‘${budgetName}’. Je zit nu op ${approvedReimbursedClosedSpend}, wat meer is dan ${thresholdPercentage}% van het budget. Er staat ook nog ${awaitingApprovalSpend} in afwachting van goedkeuring en ${unsubmittedSpend} is nog niet ingediend, voor een totaal van ${totalSpend}. ${summaryLink ? `<a href="${summaryLink}">Hier is een rapport</a> met al die onkosten voor je administratie!` : ''}`,
         addedReportField: ({fieldType, fieldName, defaultValue}: AddedOrDeletedPolicyReportFieldParams) =>
-            `heeft ${fieldType}-rapportveld "${fieldName}" toegevoegd${defaultValue ? `met standaardwaarde "${defaultValue}"` : ''}`,
+            `heeft ${fieldType}-rapportveld "${fieldName}" toegevoegd${defaultValue ? ` met standaardwaarde "${defaultValue}"` : ''}`,
     },
     roomMembersPage: {
         memberNotFound: 'Lid niet gevonden.',

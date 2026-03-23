@@ -7166,7 +7166,7 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
         }: UpdatedPolicyBudgetNotificationParams) =>
             `Attention ! Cet espace de travail a un budget ${budgetFrequency} de « ${budgetAmount} » pour le/la ${budgetTypeForNotificationMessage} « ${budgetName} ». Vous en êtes actuellement à ${approvedReimbursedClosedSpend}, ce qui dépasse ${thresholdPercentage}% du budget. Il y a aussi ${awaitingApprovalSpend} en attente d’approbation et ${unsubmittedSpend} qui n’a pas encore été soumis, pour un total de ${totalSpend}. ${summaryLink ? `<a href="${summaryLink}">Voici une note de frais</a> avec toutes ces dépenses pour vos dossiers !` : ''}`,
         addedReportField: ({fieldType, fieldName, defaultValue}: AddedOrDeletedPolicyReportFieldParams) =>
-            `a ajouté le champ de note de frais ${fieldType} « ${fieldName} »${defaultValue ? `avec la valeur par défaut « ${defaultValue} »` : ''}`,
+            `a ajouté le champ de note de frais ${fieldType} « ${fieldName} »${defaultValue ? ` avec la valeur par défaut « ${defaultValue} »` : ''}`,
     },
     roomMembersPage: {
         memberNotFound: 'Membre introuvable.',
