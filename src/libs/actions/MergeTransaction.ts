@@ -17,7 +17,7 @@ import {
 import type {MergeFieldKey, MergeTransactionUpdateValues} from '@libs/MergeTransactionUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {isPaidGroupPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
-import {getIOUActionForReportID, getTrackExpenseActionableWhisper} from '@libs/ReportActionsUtils';
+import {getIOUActionForReportID, getReportAction, getTrackExpenseActionableWhisper} from '@libs/ReportActionsUtils';
 import {
     buildOptimisticIOUReportAction,
     getReportOrDraftReport,
@@ -411,7 +411,9 @@ function mergeTransactionRequest({
 
         const transactionToDelete = mergeTransaction.reportID === targetTransaction.reportID ? sourceTransaction : targetTransaction;
         const transactionsOfDeletableReport = getReportTransactions(transactionToDelete.reportID);
-        const optimisticSourceReportData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT>> =
+        const deletableReport = getReportOrDraftReport(transactionToDelete.reportID);
+        const reportPreviewActionIDOfDeletableReport = deletableReport?.parentReportActionID;
+        const optimisticReportDeletionData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> =
             transactionsOfDeletableReport.length === 1
                 ? [
                       {
@@ -423,7 +425,7 @@ function mergeTransactionRequest({
                 : [];
 
         // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
-        const failureSourceReportData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT>> =
+        const failureReportDeletionData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> =
             transactionsOfDeletableReport.length === 1
                 ? [
                       {
@@ -433,6 +435,24 @@ function mergeTransactionRequest({
                       },
                   ]
                 : [];
+
+        if (reportPreviewActionIDOfDeletableReport) {
+            optimisticReportDeletionData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${deletableReport?.parentReportID}`,
+                value: {
+                    [reportPreviewActionIDOfDeletableReport]: null,
+                },
+            });
+
+            failureReportDeletionData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${deletableReport?.parentReportID}`,
+                value: {
+                    [reportPreviewActionIDOfDeletableReport]: getReportAction(deletableReport?.parentReportID, deletableReport?.parentReportActionID),
+                },
+            });
+        }
         const iouActionOfSourceTransaction = getIOUActionForReportID(sourceTransaction.reportID, sourceTransaction.transactionID);
         const optimisticSourceReportActionData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = iouActionOfSourceTransaction
             ? [
@@ -491,9 +511,9 @@ function mergeTransactionRequest({
         }
 
         // Optimistic data
-        sourceTransactionOptimisticData.push(optimisticSourceTransactionData, ...optimisticSourceReportData, ...optimisticSourceReportActionData);
+        sourceTransactionOptimisticData.push(optimisticSourceTransactionData, ...optimisticReportDeletionData, ...optimisticSourceReportActionData);
         // Failure data
-        sourceTransactionFailureData.push(failureSourceTransactionData, ...failureSourceReportData, ...failureSourceReportActionData);
+        sourceTransactionFailureData.push(failureSourceTransactionData, ...failureReportDeletionData, ...failureSourceReportActionData);
         // Success data
         sourceTransactionSuccessData.push(...successSourceReportActionData);
     } else {
@@ -664,14 +684,6 @@ function mergeTransactionRequest({
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetTransaction.reportID}`,
                 value: {
                     [targetIOUAction.reportActionID]: null,
-                },
-            });
-
-            successData.push({
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetTransaction.reportID}`,
-                value: {
-                    [targetIOUAction.reportActionID]: {pendingAction: null},
                 },
             });
 

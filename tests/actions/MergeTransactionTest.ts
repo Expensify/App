@@ -645,11 +645,33 @@ describe('mergeTransactionRequest', () => {
             reportID: 'source-report-123',
         };
         const mergeTransactionID = 'merge789';
+        const sourceIOUActionID = 'source-iou-action-123';
+        const sourceTransactionThreadID = 'source-transaction-thread-123';
+        const sourceIOUAction: ReportAction = {
+            reportActionID: sourceIOUActionID,
+            actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+            created: '2024-01-01 12:00:00',
+            originalMessage: {
+                IOUTransactionID: sourceTransaction.transactionID,
+                type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                IOUReportID: sourceExpenseReport.reportID,
+            } as OriginalMessageIOU,
+            childReportID: sourceTransactionThreadID,
+            message: [{type: 'TEXT', text: 'Source IOU action'}],
+        };
+        const sourceTransactionThread = {
+            ...createRandomReport(3, CONST.REPORT.CHAT_TYPE.INVOICE),
+            reportID: sourceTransactionThreadID,
+            parentReportID: sourceExpenseReport.reportID,
+            parentReportActionID: sourceIOUActionID,
+        };
 
         // Set up initial state in Onyx
         await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${targetTransaction.transactionID}`, targetTransaction);
         await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${sourceTransaction.transactionID}`, sourceTransaction);
         await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${sourceExpenseReport.reportID}`, sourceExpenseReport);
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${sourceExpenseReport.reportID}`, {[sourceIOUAction.reportActionID]: sourceIOUAction});
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${sourceTransactionThread.reportID}`, sourceTransactionThread);
         await Onyx.set(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${mergeTransactionID}`, mergeTransaction);
         await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${targetReport.reportID}`, targetReport);
 
@@ -691,6 +713,46 @@ describe('mergeTransactionRequest', () => {
 
         // Verify target report is deleted (since we selected the source report as the report of merge transaction and the target report only has one transaction)
         expect(updatedTargetReport).toBeNull();
+
+        const sourceReportActions = await new Promise<ReportActions | null>((resolve) => {
+            const connection = Onyx.connect({
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${sourceExpenseReport.reportID}`,
+                callback: (actions) => {
+                    Onyx.disconnect(connection);
+                    resolve(actions ?? null);
+                },
+            });
+        });
+
+        // Verify the source transaction's IOU action is removed from report actions
+        expect(sourceReportActions?.[sourceIOUActionID]).toBeUndefined();
+
+        const newIOUAction = Object.values(sourceReportActions ?? {}).find((action) => {
+            const reportAction = action as OnyxEntry<ReportAction>;
+            return (
+                reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU &&
+                (reportAction.originalMessage as OriginalMessageIOU | undefined)?.type === CONST.IOU.REPORT_ACTION_TYPE.CREATE &&
+                (reportAction.originalMessage as OriginalMessageIOU | undefined)?.IOUTransactionID === targetTransaction.transactionID
+            );
+        }) as OnyxEntry<ReportAction>;
+
+        // Verify the new IOU action is created and points to the merged transaction
+        expect(newIOUAction).toBeTruthy();
+        expect((newIOUAction?.originalMessage as OriginalMessageIOU | undefined)?.IOUTransactionID).toBe(targetTransaction.transactionID);
+
+        const updatedSourceTransactionThread = await new Promise<Report | null>((resolve) => {
+            const connection = Onyx.connect({
+                key: `${ONYXKEYS.COLLECTION.REPORT}${sourceTransactionThreadID}`,
+                callback: (report) => {
+                    Onyx.disconnect(connection);
+                    resolve(report ?? null);
+                },
+            });
+        });
+
+        // Verify transaction thread parent references are rewired to the new IOU action
+        expect(updatedSourceTransactionThread?.parentReportID).toBe(sourceExpenseReport.reportID);
+        expect(updatedSourceTransactionThread?.parentReportActionID).toBe(newIOUAction?.reportActionID);
     });
 
     describe('Report deletion logic', () => {
