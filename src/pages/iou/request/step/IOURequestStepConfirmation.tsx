@@ -349,7 +349,11 @@ function IOURequestStepConfirmation({
     );
     const participantsPolicyTags = useParticipantsPolicyTags(participants ?? []);
     const isPolicyExpenseChat = useMemo(() => participants?.some((participant) => participant.isPolicyExpenseChat), [participants]);
-    const shouldGenerateTransactionThreadReport = !isBetaEnabled(CONST.BETAS.NO_OPTIMISTIC_TRANSACTION_THREADS);
+
+    // For manual expenses (no receipt) without a category, auto-categorization runs immediately,
+    // so we need the thread optimistically to avoid race conditions with the background job.
+    const isEligibleForAgentZeroAutoCategorization = useMemo(() => isPolicyExpenseChat && transactions.some((item) => !item.category), [isPolicyExpenseChat, transactions]);
+    const shouldGenerateTransactionThreadReport = !isBetaEnabled(CONST.BETAS.NO_OPTIMISTIC_TRANSACTION_THREADS) || isEligibleForAgentZeroAutoCategorization;
     const formHasBeenSubmitted = useRef(false);
 
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
