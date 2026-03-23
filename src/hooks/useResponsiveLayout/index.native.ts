@@ -1,7 +1,6 @@
 import {NavigationContainerRefContext, NavigationContext} from '@react-navigation/native';
 import {useContext, useMemo} from 'react';
 import ModalContext from '@components/Modal/ModalContext';
-import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -25,7 +24,7 @@ import type ResponsiveLayoutResult from './types';
  */
 export default function useResponsiveLayout(): ResponsiveLayoutResult {
     const {windowWidth, windowHeight} = useWindowDimensions();
-    const isInLandscapeMode = useIsInLandscapeMode();
+    const isInLandscapeMode = windowWidth > windowHeight;
 
     const isExtraSmallScreenHeight = windowHeight <= variables.extraSmallMobileResponsiveHeightBreakpoint;
     const isSmallScreenWidth = true;
