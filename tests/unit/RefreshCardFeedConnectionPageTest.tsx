@@ -1,6 +1,5 @@
 import {act, cleanup, render, screen} from '@testing-library/react-native';
 import React from 'react';
-import {View} from 'react-native';
 import Onyx from 'react-native-onyx';
 import {clearAssignCardStepAndData} from '@libs/actions/CompanyCards';
 import CONST from '@src/CONST';
@@ -22,21 +21,33 @@ jest.mock('@pages/workspace/companyCards/BankConnection', () => ({
     // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     // eslint-disable-next-line react/display-name
-    default: () => <View testID="BankConnection" />,
+    default: () => {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-var-requires
+        const {View} = require('react-native');
+        return <View testID="BankConnection" />;
+    },
 }));
 
 jest.mock('@pages/workspace/companyCards/addNew/PlaidConnectionStep', () => ({
     // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     // eslint-disable-next-line react/display-name
-    default: () => <View testID="PlaidConnectionStep" />,
+    default: () => {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-var-requires
+        const {View} = require('react-native');
+        return <View testID="PlaidConnectionStep" />;
+    },
 }));
 
 jest.mock('@pages/LoadingPage', () => ({
     // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     // eslint-disable-next-line react/display-name
-    default: () => <View testID="LoadingPage" />,
+    default: () => {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-var-requires
+        const {View} = require('react-native');
+        return <View testID="LoadingPage" />;
+    },
 }));
 
 jest.mock('@libs/Navigation/Navigation', () => ({
