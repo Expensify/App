@@ -2,7 +2,7 @@ import * as Sentry from '@sentry/react-native';
 import type {MultifactorAuthenticationScenarioResponse} from '@components/MultifactorAuthentication/config/types';
 import type {ErrorState} from '@components/MultifactorAuthentication/Context/types';
 import Log from '@libs/Log';
-import type {AuthTypeName, MultifactorAuthenticationReason} from '@libs/MultifactorAuthentication/Biometrics/types';
+import type {AuthTypeName, MultifactorAuthenticationReason} from '@libs/MultifactorAuthentication/shared/types';
 import CONST from '@src/CONST';
 
 type FailureClassification = 'routine' | 'anomalous' | 'unclassified';
