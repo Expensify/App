@@ -29,9 +29,9 @@ function getShouldShowRBR(state: Partial<CardFeedErrorState>): boolean {
 
 export default createOnyxDerivedValueConfig({
     key: ONYXKEYS.DERIVED.CARD_FEED_ERRORS,
-    dependencies: [ONYXKEYS.CARD_LIST, ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER],
-    compute: ([globalCardList, allWorkspaceCards, cardFeeds]) => {
-        const feedKeysWithCards = buildFeedKeysWithAssignedCards(allWorkspaceCards);
+    dependencies: [ONYXKEYS.CARD_LIST, ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER, ONYXKEYS.BETAS],
+    compute: ([globalCardList, allWorkspaceCards, cardFeeds, betas]) => {
+        const feedKeysWithCards = buildFeedKeysWithAssignedCards(allWorkspaceCards, betas);
         const combinedCompanyCardFeeds = getCombinedCardFeedsFromAllFeeds(cardFeeds, undefined, feedKeysWithCards);
         const workspaceCardFeedsStatus = getWorkspaceCardFeedsStatus(cardFeeds);
 
