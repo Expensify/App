@@ -2617,8 +2617,15 @@ const ROUTES = {
     WORKSPACE_EXPENSIFY_CARD_SELECT_FEED: {
         route: 'workspaces/:policyID/expensify-card/select-feed',
 
-        // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-        getRoute: (policyID: string, backTo?: string) => getUrlWithBackToParam(`workspaces/${policyID}/expensify-card/select-feed`, backTo),
+        getRoute: (policyID: string, backTo?: string, exitToIssueNew?: boolean) => {
+            // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
+            const base = getUrlWithBackToParam(`workspaces/${policyID}/expensify-card/select-feed`, backTo);
+            if (!exitToIssueNew) {
+                return base;
+            }
+            const separator = base.includes('?') ? '&' : '?';
+            return `${base}${separator}exitToIssueNew=true` as const;
+        },
     },
     WORKSPACE_EXPENSIFY_CARD_SETTINGS_FREQUENCY: {
         route: 'workspaces/:policyID/expensify-card/settings/frequency',
@@ -4056,6 +4063,7 @@ const ROUTES = {
  */
 const SHARED_ROUTE_PARAMS: Partial<Record<Screen, string[]>> = {
     [SCREENS.WORKSPACE.INITIAL]: ['backTo'],
+    [SCREENS.WORKSPACE.EXPENSIFY_CARD_SELECT_FEED]: ['exitToIssueNew'],
 } as const;
 
 export {PUBLIC_SCREENS_ROUTES, SHARED_ROUTE_PARAMS, VERIFY_ACCOUNT, DYNAMIC_ROUTES};
