@@ -10167,7 +10167,7 @@ describe('actions/IOU', () => {
             });
             return waitForBatchedUpdates()
                 .then(async () => {
-                    const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+                    policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
                     setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL, {});
                     return waitForBatchedUpdates();
                 })
