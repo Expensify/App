@@ -891,7 +891,8 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         const selectedTransactionsList = Object.values(selectedTransactions)
             .map((transaction) => transaction.transaction)
             .filter((transaction): transaction is Transaction => !!transaction);
-        const canEditMultiple = canEditMultipleTransactions(selectedTransactionsList, allReportActions, allReports, policies, isExpenseReportSearch) && isBetaEnabled(CONST.BETAS.BULK_EDIT);
+        const canEditMultiple =
+            canEditMultipleTransactions(selectedTransactionsList, allReportActions, allReports, policies, isExpenseReportSearch, searchResults?.data) && isBetaEnabled(CONST.BETAS.BULK_EDIT);
 
         if (canEditMultiple) {
             options.push({

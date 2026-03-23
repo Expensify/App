@@ -1,5 +1,6 @@
 import React, {useEffect} from 'react';
 import {View} from 'react-native';
+import type {OnyxCollection} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -24,13 +25,50 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
+import type {ReportActions, SearchResults, Transaction} from '@src/types/onyx';
 import type {TransactionChanges} from '@src/types/onyx/Transaction';
 import {getTransactionEditContext} from './SearchEditMultipleUtils';
+
+/**
+ * After a hard refresh, invoice transaction and report action data may only exist in the search snapshot,
+ * not in the main Onyx collections. These helpers fill gaps from the snapshot so bulk edit can work.
+ */
+function withSnapshotTransactions(onyxTransactions: OnyxCollection<Transaction> | undefined, snapshotData: SearchResults['data'] | undefined): OnyxCollection<Transaction> | undefined {
+    if (!snapshotData) {
+        return onyxTransactions;
+    }
+    const merged = {...onyxTransactions};
+    for (const key of Object.keys(snapshotData)) {
+        if (!key.startsWith(ONYXKEYS.COLLECTION.TRANSACTION)) {
+            continue;
+        }
+        const typedKey = key as `${typeof ONYXKEYS.COLLECTION.TRANSACTION}${string}`;
+        if (!merged[typedKey]) {
+            merged[typedKey] = snapshotData[typedKey] ?? null;
+        }
+    }
+    return merged;
+}
+
+function withSnapshotReportActions(onyxReportActions: OnyxCollection<ReportActions> | undefined, snapshotData: SearchResults['data'] | undefined): OnyxCollection<ReportActions> | undefined {
+    if (!snapshotData) {
+        return onyxReportActions;
+    }
+    const merged = {...onyxReportActions};
+    for (const key of Object.keys(snapshotData)) {
+        if (!key.startsWith(ONYXKEYS.COLLECTION.REPORT_ACTIONS)) {
+            continue;
+        }
+        const typedKey = key as `${typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS}${string}`;
+        merged[typedKey] = {...(snapshotData[typedKey] ?? {}), ...(merged[typedKey] ?? {})};
+    }
+    return merged;
+}
 
 function SearchEditMultiplePage() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const {currentSearchHash} = useSearchStateContext();
+    const {currentSearchHash, currentSearchResults} = useSearchStateContext();
     const {clearSelectedTransactions} = useSearchActionsContext();
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
@@ -41,10 +79,14 @@ function SearchEditMultiplePage() {
     const [allPolicyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
     const [allPolicyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
 
+    const snapshotData = currentSearchResults?.data;
+    const mergedTransactions = withSnapshotTransactions(allTransactions, snapshotData);
+    const mergedReportActions = withSnapshotReportActions(allReportActions, snapshotData);
+
     const selectedTransactionIDs = draftTransaction?.selectedTransactionIDs ?? [];
 
     const selectedTransactionContexts = selectedTransactionIDs.flatMap((transactionID) => {
-        const context = getTransactionEditContext(transactionID, allTransactions, allReports, allReportActions, policies);
+        const context = getTransactionEditContext(transactionID, mergedTransactions, allReports, mergedReportActions, policies);
         return context ? [context] : [];
     });
 
@@ -87,7 +129,7 @@ function SearchEditMultiplePage() {
         return !isIOUReport(report) && !isInvoiceReport(report) && transactionPolicy?.disabledFields?.reimbursable === false && !isManagedCardTransaction(transaction);
     });
 
-    const policyID = getSearchBulkEditPolicyID(selectedTransactionIDs, activePolicyID, allTransactions, allReports);
+    const policyID = getSearchBulkEditPolicyID(selectedTransactionIDs, activePolicyID, mergedTransactions, allReports);
 
     const policy = policyID ? policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`] : undefined;
     const policyCategories = allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`];
@@ -154,8 +196,8 @@ function SearchEditMultiplePage() {
             changes,
             policy,
             reports: allReports,
-            transactions: allTransactions,
-            reportActions: allReportActions,
+            transactions: mergedTransactions,
+            reportActions: mergedReportActions,
             policyCategories: allPolicyCategories,
             policyTags: allPolicyTags,
             hash: currentSearchHash,

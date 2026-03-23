@@ -377,12 +377,12 @@ const ViolationsUtils = {
             }
 
             // Remove 'missingCategory' violation if category is valid according to policy
-            if (hasMissingCategoryViolation && (isCategoryInPolicy || isSelfDM)) {
+            if (hasMissingCategoryViolation && (isCategoryInPolicy || isSelfDM || isInvoiceTransaction)) {
                 newTransactionViolations = reject(newTransactionViolations, {name: 'missingCategory'});
             }
 
             // Add 'missingCategory' violation if category is required and not set
-            if (!hasMissingCategoryViolation && policyRequiresCategories && !categoryKey && !isSelfDM) {
+            if (!hasMissingCategoryViolation && policyRequiresCategories && !categoryKey && !isSelfDM && !isInvoiceTransaction) {
                 newTransactionViolations.push({name: 'missingCategory', type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true});
             }
         }

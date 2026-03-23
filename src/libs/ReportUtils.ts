@@ -57,6 +57,7 @@ import type {
     ReportNameValuePairs,
     ReportViolationName,
     ReportViolations,
+    SearchResults,
     Task,
     Transaction,
     TransactionViolation,
@@ -4883,6 +4884,7 @@ function canEditMultipleTransactions(
     reports: OnyxCollection<Report>,
     policies: OnyxCollection<Policy>,
     areReportsSelected = false,
+    searchSnapshotData?: SearchResults['data'],
 ): boolean {
     if (areReportsSelected) {
         return false;
@@ -4903,7 +4905,9 @@ function canEditMultipleTransactions(
             return false;
         }
 
-        const reportAction = getIOUActionForTransactionID(Object.values(reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transaction.reportID}`] ?? {}), transaction.transactionID);
+        const reportActionsKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transaction.reportID}` as const;
+        const actionsForReport = {...(searchSnapshotData?.[reportActionsKey] ?? {}), ...(reportActions?.[reportActionsKey] ?? {})};
+        const reportAction = getIOUActionForTransactionID(Object.values(actionsForReport), transaction.transactionID);
         const report = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${transaction.reportID}`];
         const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
 
