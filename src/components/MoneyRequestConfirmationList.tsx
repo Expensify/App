@@ -1280,6 +1280,7 @@ function MoneyRequestConfirmationList({
         shouldShowProductTrainingTooltip,
         renderProductTrainingTooltip,
         isConfirming,
+        isLoadingReceipt,
         reportID,
     ]);
 
