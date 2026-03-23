@@ -23,6 +23,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useOutstandingBalanceGuard from '@hooks/useOutstandingBalanceGuard';
+import useShouldBlockCurrencyChange from '@hooks/useShouldBlockCurrencyChange';
 import usePayAndDowngrade from '@hooks/usePayAndDowngrade';
 import usePermissions from '@hooks/usePermissions';
 import usePrevious from '@hooks/usePrevious';
@@ -45,7 +46,6 @@ import {
     setIsComingFromGlobalReimbursementsFlow,
     updateWorkspaceAvatar,
 } from '@libs/actions/Policy/Policy';
-import {doesPolicyHavePartiallySetupBankAccount} from '@libs/BankAccountUtils';
 import {filterInactiveCards, getCardSettings} from '@libs/CardUtils';
 import {getLatestErrorField, getLatestErrorMessage} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -95,7 +95,6 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
     const [isComingFromGlobalReimbursementsFlow] = useOnyx(ONYXKEYS.IS_COMING_FROM_GLOBAL_REIMBURSEMENTS_FLOW);
     const [lastAccessedWorkspacePolicyID] = useOnyx(ONYXKEYS.LAST_ACCESSED_WORKSPACE_POLICY_ID);
     const [reimbursementAccountError] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {selector: reimbursementAccountErrorSelector});
-    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
 
     // When we create a new workspace, the policy prop will be empty on the first render. Therefore, we have to use policyDraft until policy has been set in Onyx.
     const policy = policyDraft?.id ? policyDraft : policyProp;
@@ -105,7 +104,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
     const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${defaultFundID}`);
     const settings = getCardSettings(cardSettings);
     const isBankAccountVerified = !!settings?.paymentBankAccountID;
-    const hasPartiallySetupBankAccount = !!policyID && doesPolicyHavePartiallySetupBankAccount(bankAccountList, policyID);
+    const shouldBlockCurrencyChange = useShouldBlockCurrencyChange(policyID);
 
     const isPolicyAdmin = isPolicyAdminPolicyUtils(policy);
     const outputCurrency = policy?.outputCurrency ?? '';
@@ -557,7 +556,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
             headerContent={!shouldUseNarrowLayout && headerButtons}
             modals={modals}
         >
-            {(hasVBA?: boolean) => (
+            {() => (
                 <View style={[styles.flex1, styles.mt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
                     {shouldUseNarrowLayout && <View style={[styles.pl5, styles.pr5, styles.pb5]}>{headerButtons}</View>}
                     <Section
@@ -686,13 +685,13 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                                     title={formattedCurrency}
                                     description={translate('workspace.editor.currencyInputLabel')}
                                     sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.OVERVIEW.CURRENCY}
-                                    shouldShowRightIcon={hasVBA || hasPartiallySetupBankAccount ? false : !currencyReadOnly}
-                                    interactive={hasVBA || hasPartiallySetupBankAccount ? false : !currencyReadOnly}
+                                    shouldShowRightIcon={shouldBlockCurrencyChange ? false : !currencyReadOnly}
+                                    interactive={shouldBlockCurrencyChange ? false : !currencyReadOnly}
                                     wrapperStyle={styles.sectionMenuItemTopDescription}
                                     onPress={onPressCurrency}
                                     hintText={
                                         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                                        hasVBA || hasPartiallySetupBankAccount || isBankAccountVerified
+                                        shouldBlockCurrencyChange || isBankAccountVerified
                                             ? translate('workspace.editor.currencyInputDisabledText', policyCurrency)
                                             : translate('workspace.editor.currencyInputHelpText')
                                     }
