@@ -358,7 +358,7 @@ function IOURequestStepConfirmation({
 
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
 
-    useFetchRoute(transaction, transaction?.comment?.waypoints, action, shouldUseTransactionDraft(action) ? CONST.TRANSACTION.STATE.DRAFT : CONST.TRANSACTION.STATE.CURRENT);
+    useFetchRoute(transaction, transaction?.comment?.waypoints, action, shouldUseTransactionDraft(action, iouType) ? CONST.TRANSACTION.STATE.DRAFT : CONST.TRANSACTION.STATE.CURRENT);
 
     useEffect(() => {
         endSpan(CONST.TELEMETRY.SPAN_OPEN_CREATE_EXPENSE);
@@ -435,7 +435,7 @@ function IOURequestStepConfirmation({
                 return;
             }
 
-            setMoneyRequestReceipt(currentTransactionID, getImageUri(singleImage), getImageName(singleImage), shouldUseTransactionDraft(action), getImageType(singleImage));
+            setMoneyRequestReceipt(currentTransactionID, getImageUri(singleImage), getImageName(singleImage), shouldUseTransactionDraft(action, iouType), getImageType(singleImage));
             return;
         }
 
@@ -448,7 +448,13 @@ function IOURequestStepConfirmation({
                 if (ignore || !stitchedImage) {
                     return;
                 }
-                setMoneyRequestReceipt(currentTransactionID, getImageUri(stitchedImage), getImageName(stitchedImage), shouldUseTransactionDraft(action), getImageType(stitchedImage));
+                setMoneyRequestReceipt(
+                    currentTransactionID,
+                    getImageUri(stitchedImage),
+                    getImageName(stitchedImage),
+                    shouldUseTransactionDraft(action, iouType),
+                    getImageType(stitchedImage),
+                );
             })
             .catch((error: unknown) => {
                 if (ignore) {
