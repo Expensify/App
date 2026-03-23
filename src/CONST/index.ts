@@ -8220,6 +8220,7 @@ const CONST = {
         ORIGINAL_AMOUNT: 'originalAmount',
         ORIGINAL_CURRENCY: 'originalCurrency',
         UNIQUE_ID: 'uniqueID',
+        EXTERNAL_ID: 'externalID',
     },
 
     IMPORT_SPREADSHEET: {
