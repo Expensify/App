@@ -40,9 +40,11 @@ import type {
     ListItem,
     ReportActionListItemType,
     SearchListItem,
+    SearchTransactionTextColumns,
     TaskListItemType,
     TransactionCardGroupListItemType,
     TransactionCategoryGroupListItemType,
+    TransactionColumnMeasurements,
     TransactionGroupListItemType,
     TransactionListItemType,
     TransactionMemberGroupListItemType,
@@ -91,9 +93,10 @@ import {setOptimisticDataForTransactionThreadPreview} from './actions/Search';
 import type {CardFeedForDisplay} from './CardFeedUtils';
 import {getCardFeedsForDisplay} from './CardFeedUtils';
 import {doesCardFeedExist, getCardDescription, getFeedNameForDisplay} from './CardUtils';
-import {getDecodedCategoryName} from './CategoryUtils';
+import {getDecodedCategoryName, isCategoryMissing} from './CategoryUtils';
 import {convertToDisplayString} from './CurrencyUtils';
 import DateUtils from './DateUtils';
+import getBase62ReportID from './getBase62ReportID';
 import interceptAnonymousUser from './interceptAnonymousUser';
 import isSearchTopmostFullScreenRoute from './Navigation/helpers/isSearchTopmostFullScreenRoute';
 import Navigation from './Navigation/Navigation';
@@ -111,6 +114,7 @@ import {
     isResolvedActionableWhisper,
     isWhisperActionTargetedToOthers,
 } from './ReportActionsUtils';
+import {getReportName as getReportNameUtil} from './ReportNameUtils';
 import {isExportAction} from './ReportPrimaryActionUtils';
 import {
     canDeleteMoneyRequestReport,
@@ -131,6 +135,7 @@ import {
     isAllowedToApproveExpenseReport as isAllowedToApproveExpenseReportUtils,
     isArchivedReport,
     isClosedReport,
+    isExpenseReport,
     isInvoiceReport,
     isIOUReport as isIOUReportReportUtil,
     isMoneyRequestReport,
@@ -144,11 +149,16 @@ import {buildCannedSearchQuery, buildQueryStringFromFilterFormValues, buildSearc
 import StringUtils from './StringUtils';
 import {getIOUPayerAndReceiver} from './TransactionPreviewUtils';
 import {
+    getBillable,
     getCategory,
+    getCurrency,
     getDescription,
     getExchangeRate,
     getOriginalAmountForDisplay,
+    getOriginalCurrencyForDisplay,
+    getReimbursable,
     getTag,
+    getTagForDisplay,
     getTaxAmount,
     getTaxName,
     getAmount as getTransactionAmount,
@@ -156,6 +166,7 @@ import {
     getMerchant as getTransactionMerchant,
     isPending,
     isScanning,
+    isTimeRequest,
     isViolationDismissed,
 } from './TransactionUtils';
 import {isInvalidMerchantValue} from './ValidationUtils';
@@ -208,6 +219,7 @@ type GetTransactionSectionsParams = {
     currentSearch: SearchKey;
     currentAccountID: number;
     currentUserEmail: string;
+    translate: LocalizedTranslate;
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
     isActionLoadingSet: ReadonlySet<string> | undefined;
     bankAccountList: OnyxEntry<OnyxTypes.BankAccountList>;
@@ -1116,7 +1128,7 @@ function getTransactionItemCommonFormattedProperties(
 
     const formattedTo = formatPhoneNumber(toName);
     const formattedTotal = getTransactionAmount(transactionItem, isExpenseReport);
-    const date = transactionItem?.modifiedCreated ? transactionItem.modifiedCreated : transactionItem?.created;
+    const date = getTransactionCreatedDate(transactionItem);
     const merchant = getTransactionMerchant(transactionItem);
     const formattedMerchant = isInvalidMerchantValue(merchant) ? '' : merchant;
     const submitted = report?.submitted;
@@ -1666,6 +1678,18 @@ function getToFieldValueForTransaction(
     return emptyPersonalDetails;
 }
 
+function getColumnWidthStyle(currentMaxWidth: number | undefined, columnValue: string | null | undefined): number {
+    const maxColumnWidthPx = 400;
+    // The actual average length, but lets add padding so we're more accurate, we'd
+    // rather go over the actual length, than under and have the text be cut off
+    const averageCharacterPxWithPadding = 8.45;
+    const columnValueCharLength = columnValue?.length ?? 0;
+
+    // The maximum amount of space the column would need for its longest value
+    const columnMaxWidth = Math.round(Math.min(maxColumnWidthPx, Math.max(currentMaxWidth ?? 0, columnValueCharLength * averageCharacterPxWithPadding)));
+    return columnMaxWidth;
+}
+
 /**
  * @private
  * Organizes data into List Sections for display, for the TransactionListItemType of Search Results.
@@ -1677,6 +1701,7 @@ function getTransactionsSections({
     currentSearch,
     currentAccountID,
     currentUserEmail,
+    translate,
     formatPhoneNumber,
     isActionLoadingSet,
     bankAccountList,
@@ -1687,8 +1712,8 @@ function getTransactionsSections({
 }: GetTransactionSectionsParams): [TransactionListItemType[], number] {
     const shouldShowMerchant = getShouldShowMerchant(data);
     const lastExportedActionByReportID = buildLastExportedActionByReportIDMap(data);
-    const {shouldShowYearCreated, shouldShowYearSubmitted, shouldShowYearApproved, shouldShowYearPosted, shouldShowYearExported} = shouldShowYear(data, false, lastExportedActionByReportID);
     const {shouldShowAmountInWideColumn, shouldShowTaxAmountInWideColumn} = getWideAmountIndicators(data);
+    const {shouldShowYearCreated, shouldShowYearSubmitted, shouldShowYearApproved, shouldShowYearPosted, shouldShowYearExported} = shouldShowYear(data, false, lastExportedActionByReportID);
 
     // Pre-filter transaction keys to avoid repeated checks
     const transactionKeys = Object.keys(data).filter(isTransactionEntry);
@@ -1703,91 +1728,215 @@ function getTransactionsSections({
 
     // Use the provided queryJSON if available, otherwise fall back to getCurrentSearchQueryJSON()
     const currentQueryJSON = queryJSON ?? getCurrentSearchQueryJSON();
+    const measurements = {} as Record<SearchTransactionTextColumns, number>;
 
     for (const key of transactionKeys) {
-        const transactionItem = data[key];
-        const report = data[`${ONYXKEYS.COLLECTION.REPORT}${transactionItem.reportID}`];
+        const transaction = data[key];
+        const report = data[`${ONYXKEYS.COLLECTION.REPORT}${transaction.reportID}`];
+        const policy = data[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
+        const actions = reportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transaction.reportID}`] ?? [];
+        const reportMetadata = allReportMetadata?.[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${transaction.reportID}`] ?? {};
 
-        let shouldShow = true;
+        const reportAction = moneyRequestReportActionsByTransactionID.get(transaction.transactionID);
+        const isActionLoading = isActionLoadingSet?.has(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${transaction.reportID}`);
+        const allActions = getActions(data, allViolations, key, currentSearch, currentUserEmail, currentAccountID, bankAccountList, reportMetadata, actions);
 
-        const isActionLoading = isActionLoadingSet?.has(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${transactionItem.reportID}`);
-        if (currentQueryJSON && !isActionLoading) {
+        let shouldShowTransaction = !!transaction.transactionID;
+
+        if (currentQueryJSON && !isActionLoading && shouldShowTransaction) {
             if (currentQueryJSON.type === CONST.SEARCH.DATA_TYPES.EXPENSE) {
                 const status = currentQueryJSON.status;
                 if (Array.isArray(status)) {
-                    shouldShow = status.some((expenseStatus) => {
+                    shouldShowTransaction = status.some((expenseStatus) => {
                         return isValidExpenseStatus(expenseStatus) ? expenseStatusActionMapping[expenseStatus](report) : false;
                     });
                 } else {
-                    shouldShow = isValidExpenseStatus(status) ? expenseStatusActionMapping[status](report) : false;
+                    shouldShowTransaction = isValidExpenseStatus(status) ? expenseStatusActionMapping[status](report) : false;
                 }
             }
         }
 
-        if (!transactionItem.transactionID) {
-            shouldShow = false;
+        if (!shouldShowTransaction || !transaction) {
+            continue;
         }
 
-        if (shouldShow) {
-            const reportAction = moneyRequestReportActionsByTransactionID.get(transactionItem.transactionID);
-            const policy = data[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
-            const shouldShowBlankTo = !report || isOpenExpenseReport(report);
-            const transactionViolations = getTransactionViolations(allViolations, transactionItem, currentUserEmail, currentAccountID ?? CONST.DEFAULT_NUMBER_ID, report, policy);
-            // Use Map.get() for faster lookups with default values
-            const fromAccountID = reportAction?.actorAccountID ?? report?.ownerAccountID;
-            const from = fromAccountID ? (personalDetailsMap.get(fromAccountID.toString()) ?? emptyPersonalDetails) : emptyPersonalDetails;
-            const to = getToFieldValueForTransaction(transactionItem, report, data.personalDetailsList, reportAction);
-            const isIOUReport = report?.type === CONST.REPORT.TYPE.IOU;
-            // Check if the card feed has been deleted. If cardFeeds is still loading (undefined), return undefined to avoid showing incorrect state.
-            const isCardFeedDeleted = cardFeeds === undefined ? undefined : !doesCardFeedExist(transactionItem.bank as OnyxTypes.CompanyCardFeed, cardFeeds);
+        const shouldShowBlankTo = !report || isOpenExpenseReport(report);
+        const transactionViolations = getTransactionViolations(allViolations, transaction, currentUserEmail, currentAccountID ?? CONST.DEFAULT_NUMBER_ID, report, policy);
 
-            const {formattedFrom, formattedTo, formattedTotal, formattedMerchant, date, submitted, approved, posted} = getTransactionItemCommonFormattedProperties(
-                transactionItem,
-                from,
-                to,
-                policy,
-                formatPhoneNumber,
-                report,
-            );
-            const actions = reportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionItem.reportID}`] ?? [];
-            const reportMetadata = allReportMetadata?.[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${transactionItem.reportID}`] ?? {};
-            const allActions = getActions(data, allViolations, key, currentSearch, currentUserEmail, currentAccountID, bankAccountList, reportMetadata, actions);
-            const transactionSection: TransactionListItemType = {
-                ...transactionItem,
-                keyForList: transactionItem.transactionID,
-                action: allActions.at(0) ?? CONST.SEARCH.ACTION_TYPES.VIEW,
-                allActions,
-                report,
-                policy,
-                reportAction,
-                holdReportAction: holdReportActionsByTransactionID.get(transactionItem.transactionID),
-                from,
-                to,
-                formattedFrom,
-                formattedTo: shouldShowBlankTo ? '' : formattedTo,
-                formattedTotal,
-                formattedMerchant,
-                isCardFeedDeleted,
-                date,
-                submitted,
-                approved,
-                posted,
-                exported: transactionItem.reportID ? (lastExportedActionByReportID.get(transactionItem.reportID)?.created ?? '') : '',
-                shouldShowMerchant,
-                shouldShowYear: shouldShowYearCreated,
-                shouldShowYearSubmitted,
-                shouldShowYearApproved,
-                shouldShowYearPosted,
-                shouldShowYearExported,
-                isAmountColumnWide: shouldShowAmountInWideColumn,
-                isTaxAmountColumnWide: shouldShowTaxAmountInWideColumn,
-                violations: transactionViolations,
-                category: isIOUReport ? '' : transactionItem?.category,
-            };
+        const fromAccountID = reportAction?.actorAccountID ?? report?.ownerAccountID;
+        const from = fromAccountID ? (personalDetailsMap.get(fromAccountID.toString()) ?? emptyPersonalDetails) : emptyPersonalDetails;
+        const to = getToFieldValueForTransaction(transaction, report, data.personalDetailsList, reportAction);
 
-            transactionsSections.push(transactionSection);
-        }
+        const isIOUReport = report?.type === CONST.REPORT.TYPE.IOU;
+        const isCardFeedDeleted = cardFeeds === undefined ? undefined : !doesCardFeedExist(transaction.bank as OnyxTypes.CompanyCardFeed, cardFeeds);
+
+        const {formattedFrom, formattedTo, formattedTotal, formattedMerchant, date, submitted, approved, posted} = getTransactionItemCommonFormattedProperties(
+            transaction,
+            from,
+            to,
+            policy,
+            formatPhoneNumber,
+            report,
+        );
+
+        // Compute the maximum size of all of the text fields to determine how much space we need to delegate
+        // Handle the merchant
+        measurements[CONST.SEARCH.TABLE_COLUMNS.MERCHANT] = getColumnWidthStyle(measurements[CONST.SEARCH.TABLE_COLUMNS.MERCHANT], formattedMerchant);
+
+        // Handle the category
+        const formattedCategory = isCategoryMissing(transaction?.category) ? '' : getDecodedCategoryName(transaction?.category ?? '');
+        measurements[CONST.SEARCH.TABLE_COLUMNS.CATEGORY] = getColumnWidthStyle(measurements[CONST.SEARCH.TABLE_COLUMNS.CATEGORY], formattedCategory);
+
+        // Handle the tag
+        const formattedTag = getTagForDisplay(transaction);
+        measurements[CONST.SEARCH.TABLE_COLUMNS.TAG] = getColumnWidthStyle(measurements[CONST.SEARCH.TABLE_COLUMNS.TAG], formattedTag);
+
+        // Handle the amount
+        const transactionCurrency = getOriginalCurrencyForDisplay(transaction);
+        const transactionDisplayAmount = getOriginalAmountForDisplay(transaction, isExpenseReport(report));
+        const formattedAmount = convertToDisplayString(transactionDisplayAmount, transactionCurrency);
+        measurements[CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT] = getColumnWidthStyle(measurements[CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT], formattedAmount);
+
+        // Handle the exchange rate
+        const formattedExchangeRate = getExchangeRate(transaction);
+        measurements[CONST.SEARCH.TABLE_COLUMNS.EXCHANGE_RATE] = getColumnWidthStyle(measurements[CONST.SEARCH.TABLE_COLUMNS.EXCHANGE_RATE], formattedExchangeRate);
+
+        // Handle the description
+        const formattedDescription = getDescription(transaction);
+        measurements[CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION] = getColumnWidthStyle(measurements[CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION], formattedDescription);
+
+        // Handle the card
+        // JACK_TODO: This is missing customCardNames but it doesnt matter for now
+        const deletedFeedCardName = isCardFeedDeleted ? translate('workspace.companyCards.deletedFeed') : null;
+        const cashCardName = transaction.cardName === CONST.EXPENSE.TYPE.CASH_CARD_NAME ? '' : null;
+        const formattedCardName = deletedFeedCardName ?? cashCardName ?? transaction.cardName ?? '';
+        measurements[CONST.SEARCH.TABLE_COLUMNS.CARD] = getColumnWidthStyle(measurements[CONST.SEARCH.TABLE_COLUMNS.CARD], formattedCardName);
+
+        // Handle the billable
+        const formattedBillable = getBillable(transaction) ? translate('common.yes') : translate('common.no');
+        measurements[CONST.SEARCH.TABLE_COLUMNS.BILLABLE] = getColumnWidthStyle(measurements[CONST.SEARCH.TABLE_COLUMNS.BILLABLE], formattedBillable);
+
+        // Handle the reimbursable
+        const formattedReimbursable = getReimbursable(transaction) ? translate('common.yes') : translate('common.no');
+        measurements[CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE] = getColumnWidthStyle(measurements[CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE], formattedReimbursable);
+
+        // Handle the title
+        const formattedTitle = getReportNameUtil(report);
+        measurements[CONST.SEARCH.TABLE_COLUMNS.TITLE] = getColumnWidthStyle(measurements[CONST.SEARCH.TABLE_COLUMNS.TITLE], formattedTitle);
+
+        // Handle the tax rate
+        const formattedTaxRate = !isTimeRequest(transaction) ? (getTaxName(policy, transaction) ?? transaction.taxValue ?? '') : '';
+        measurements[CONST.SEARCH.TABLE_COLUMNS.TAX_RATE] = getColumnWidthStyle(measurements[CONST.SEARCH.TABLE_COLUMNS.TAX_RATE], formattedTaxRate);
+
+        // Handle the tax
+        const transactionTaxAmount = getTaxAmount(transaction, true);
+        const transactionTaxAmountCurrency = getCurrency(transaction);
+        const formattedTaxAmount = !isTimeRequest(transaction) ? convertToDisplayString(transactionTaxAmount, transactionTaxAmountCurrency) : '';
+        measurements[CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT] = getColumnWidthStyle(measurements[CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT], formattedTaxAmount);
+
+        // Handle the report ID
+        const formattedReportID = transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID ? '' : (transaction.reportID?.toString() ?? '');
+        measurements[CONST.SEARCH.TABLE_COLUMNS.REPORT_ID] = getColumnWidthStyle(measurements[CONST.SEARCH.TABLE_COLUMNS.REPORT_ID], formattedReportID);
+
+        // Handle the base62 report ID
+        const formattedBase62ReportID = transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID ? '' : getBase62ReportID(Number(transaction.reportID));
+        measurements[CONST.SEARCH.TABLE_COLUMNS.BASE_62_REPORT_ID] = getColumnWidthStyle(measurements[CONST.SEARCH.TABLE_COLUMNS.BASE_62_REPORT_ID], formattedBase62ReportID);
+
+        // Handle the original amount
+        const originalAmountTotal = getOriginalAmountForDisplay(transaction, isExpenseReport(report));
+        const originalAmountCurrency = getOriginalCurrencyForDisplay(transaction);
+        const formattedOriginalAmount = convertToDisplayString(originalAmountTotal, originalAmountCurrency);
+        measurements[CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT] = getColumnWidthStyle(measurements[CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT], formattedOriginalAmount);
+
+        // Handle the date
+        const createdDate = date ?? '';
+        const isCreatedLastYear = DateUtils.doesDateBelongToAPastYear(createdDate);
+        const formattedDate = DateUtils.formatWithUTCTimeZone(createdDate, isCreatedLastYear ? CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT : CONST.DATE.MONTH_DAY_ABBR_FORMAT);
+        measurements[CONST.SEARCH.TABLE_COLUMNS.DATE] = getColumnWidthStyle(measurements[CONST.SEARCH.TABLE_COLUMNS.DATE], formattedDate);
+
+        // Handle exported date
+        const exportDate = transaction.reportID ? (lastExportedActionByReportID.get(transaction.reportID)?.created ?? '') : '';
+        const isExportedLastYear = DateUtils.doesDateBelongToAPastYear(exportDate);
+        const formattedExportDate = DateUtils.formatWithUTCTimeZone(exportDate, isExportedLastYear ? CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT : CONST.DATE.MONTH_DAY_ABBR_FORMAT);
+        measurements[CONST.SEARCH.TABLE_COLUMNS.EXPORTED] = getColumnWidthStyle(measurements[CONST.SEARCH.TABLE_COLUMNS.EXPORTED], formattedExportDate);
+
+        // Handle submitted date
+        const submittedDate = report.submitted ?? '';
+        const isSubmittedLastYear = DateUtils.doesDateBelongToAPastYear(submittedDate);
+        const formattedSubmittedDate = DateUtils.formatWithUTCTimeZone(submittedDate, isSubmittedLastYear ? CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT : CONST.DATE.MONTH_DAY_ABBR_FORMAT);
+        measurements[CONST.SEARCH.TABLE_COLUMNS.SUBMITTED] = getColumnWidthStyle(measurements[CONST.SEARCH.TABLE_COLUMNS.SUBMITTED], formattedSubmittedDate);
+
+        // Handle approved date
+        const approvedDate = report.approved ?? '';
+        const isApprovedLastYear = DateUtils.doesDateBelongToAPastYear(approvedDate);
+        const formattedApprovedDate = DateUtils.formatWithUTCTimeZone(approvedDate, isApprovedLastYear ? CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT : CONST.DATE.MONTH_DAY_ABBR_FORMAT);
+        measurements[CONST.SEARCH.TABLE_COLUMNS.APPROVED] = getColumnWidthStyle(measurements[CONST.SEARCH.TABLE_COLUMNS.APPROVED], formattedApprovedDate);
+
+        // Handle posted date
+        const postedDate = posted ?? '';
+        const isPostedLastYear = DateUtils.doesDateBelongToAPastYear(postedDate);
+        const formattedPostedDate = DateUtils.formatWithUTCTimeZone(postedDate, isPostedLastYear ? CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT : CONST.DATE.MONTH_DAY_ABBR_FORMAT);
+        measurements[CONST.SEARCH.TABLE_COLUMNS.POSTED] = getColumnWidthStyle(measurements[CONST.SEARCH.TABLE_COLUMNS.POSTED], formattedPostedDate);
+
+        const transactionSection: TransactionListItemType = {
+            ...transaction,
+            measurements,
+            formattedValues: {
+                [CONST.SEARCH.TABLE_COLUMNS.DATE]: formattedDate,
+                [CONST.SEARCH.TABLE_COLUMNS.MERCHANT]: formattedMerchant,
+                [CONST.SEARCH.TABLE_COLUMNS.CATEGORY]: formattedCategory,
+                [CONST.SEARCH.TABLE_COLUMNS.TAG]: formattedTag,
+                [CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT]: formattedAmount,
+                [CONST.SEARCH.TABLE_COLUMNS.EXCHANGE_RATE]: formattedExchangeRate,
+                [CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION]: formattedDescription,
+                [CONST.SEARCH.TABLE_COLUMNS.CARD]: formattedCardName,
+                [CONST.SEARCH.TABLE_COLUMNS.BILLABLE]: formattedBillable,
+                [CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE]: formattedReimbursable,
+                [CONST.SEARCH.TABLE_COLUMNS.TITLE]: formattedTitle,
+                [CONST.SEARCH.TABLE_COLUMNS.TAX_RATE]: formattedTaxRate,
+                [CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT]: formattedTaxAmount,
+                [CONST.SEARCH.TABLE_COLUMNS.REPORT_ID]: formattedReportID,
+                [CONST.SEARCH.TABLE_COLUMNS.BASE_62_REPORT_ID]: formattedBase62ReportID,
+                [CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT]: formattedOriginalAmount,
+                [CONST.SEARCH.TABLE_COLUMNS.EXPORTED]: formattedExportDate,
+                [CONST.SEARCH.TABLE_COLUMNS.SUBMITTED]: formattedSubmittedDate,
+                [CONST.SEARCH.TABLE_COLUMNS.APPROVED]: formattedApprovedDate,
+                [CONST.SEARCH.TABLE_COLUMNS.POSTED]: formattedPostedDate,
+            },
+            keyForList: transaction.transactionID,
+            action: allActions.at(0) ?? CONST.SEARCH.ACTION_TYPES.VIEW,
+            allActions,
+            report,
+            policy,
+            reportAction,
+            holdReportAction: holdReportActionsByTransactionID.get(transaction.transactionID),
+            from,
+            to,
+            formattedFrom,
+            formattedTo: shouldShowBlankTo ? '' : formattedTo,
+            formattedTotal,
+            formattedMerchant,
+            isCardFeedDeleted,
+            date,
+            submitted,
+            approved,
+            posted,
+            exported: transaction.reportID ? (lastExportedActionByReportID.get(transaction.reportID)?.created ?? '') : '',
+            shouldShowMerchant,
+            shouldShowYear: shouldShowYearCreated,
+            shouldShowYearSubmitted,
+            shouldShowYearApproved,
+            shouldShowYearPosted,
+            shouldShowYearExported,
+            isAmountColumnWide: shouldShowAmountInWideColumn,
+            isTaxAmountColumnWide: shouldShowTaxAmountInWideColumn,
+            violations: transactionViolations,
+            category: isIOUReport ? '' : transaction?.category,
+        };
+
+        transactionsSections.push(transactionSection);
     }
+
     return [transactionsSections, transactionsSections.length];
 }
 
@@ -2980,6 +3129,7 @@ function getSections({
 
     return getTransactionsSections({
         data,
+        translate,
         currentSearch,
         currentAccountID,
         currentUserEmail,
