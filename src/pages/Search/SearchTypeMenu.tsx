@@ -93,53 +93,61 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
 
     const areSuggestedSearchesLoading = !isOffline && !isSearchDataLoaded && !isLoadingOnyxValue(isSearchDataLoadedResult);
 
+    // Separate Explore section from other sections. Explore section is always visible
+    // because its items (Reports, Expenses, Chats) are static and don't depend on server data.
+    const exploreSection = typeMenuSections.find((section) => section.translationPath === 'common.explore');
+    const nonExploreSections = typeMenuSections.filter((section) => section.translationPath !== 'common.explore');
+
+    const renderSection = (section: (typeof typeMenuSections)[number], sectionIndex: number) => (
+        <View key={section.translationPath}>
+            <Text
+                style={styles.sectionTitle}
+                accessibilityRole={CONST.ROLE.HEADER}
+            >
+                {translate(section.translationPath)}
+            </Text>
+
+            {section.translationPath === 'search.savedSearchesMenuItemTitle' ? (
+                <SavedSearchList hash={hash} />
+            ) : (
+                <>
+                    {section.menuItems.map((item, itemIndex) => {
+                        const flattenedIndex = (sectionStartIndices?.at(sectionIndex) ?? 0) + itemIndex;
+                        const focused = activeItemIndex === flattenedIndex;
+                        const icon = typeof item.icon === 'string' ? expensifyIcons[item.icon] : item.icon;
+
+                        return (
+                            <SearchTypeMenuItem
+                                key={item.key}
+                                title={translate(item.translationPath)}
+                                icon={icon}
+                                badgeText={getItemBadgeText(item.key, reportCounts)}
+                                focused={focused}
+                                onPress={() => handleTypeMenuItemPress(item.searchQuery)}
+                            />
+                        );
+                    })}
+                </>
+            )}
+        </View>
+    );
+
     return (
         <ScrollView
             onScroll={onScroll}
             ref={scrollViewRef}
             showsVerticalScrollIndicator={false}
         >
-            {areSuggestedSearchesLoading ? (
-                <View style={[styles.pb4, styles.mh3, styles.gap4]}>
-                    <SuggestedSearchSkeleton />
-                </View>
-            ) : (
-                <View style={[styles.pb4, styles.mh3, styles.gap4]}>
-                    {typeMenuSections.map((section, sectionIndex) => (
-                        <View key={section.translationPath}>
-                            <Text
-                                style={styles.sectionTitle}
-                                accessibilityRole={CONST.ROLE.HEADER}
-                            >
-                                {translate(section.translationPath)}
-                            </Text>
+            <View style={[styles.pb4, styles.mh3, styles.gap4]}>
+                {/* Explore section is always visible */}
+                {!!exploreSection && renderSection(exploreSection, 0)}
 
-                            {section.translationPath === 'search.savedSearchesMenuItemTitle' ? (
-                                <SavedSearchList hash={hash} />
-                            ) : (
-                                <>
-                                    {section.menuItems.map((item, itemIndex) => {
-                                        const flattenedIndex = (sectionStartIndices?.at(sectionIndex) ?? 0) + itemIndex;
-                                        const focused = activeItemIndex === flattenedIndex;
-                                        const icon = typeof item.icon === 'string' ? expensifyIcons[item.icon] : item.icon;
-
-                                        return (
-                                            <SearchTypeMenuItem
-                                                key={item.key}
-                                                title={translate(item.translationPath)}
-                                                icon={icon}
-                                                badgeText={getItemBadgeText(item.key, reportCounts)}
-                                                focused={focused}
-                                                onPress={() => handleTypeMenuItemPress(item.searchQuery)}
-                                            />
-                                        );
-                                    })}
-                                </>
-                            )}
-                        </View>
-                    ))}
-                </View>
-            )}
+                {areSuggestedSearchesLoading ? (
+                    <SuggestedSearchSkeleton showExplore={false} />
+                ) : (
+                    nonExploreSections.map((section, index) => renderSection(section, index + (exploreSection ? 1 : 0)))
+                )}
+            </View>
         </ScrollView>
     );
 }

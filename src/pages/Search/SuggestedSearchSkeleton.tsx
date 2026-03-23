@@ -10,6 +10,7 @@ import variables from '@styles/variables';
 
 const SUGGESTED_SEARCH_SKELETON_TEST_ID = 'SuggestedSearchSkeleton';
 const NAV_ITEM_HEIGHT = variables.sectionMenuItemHeightCompact;
+const DEFAULT_SKELETON_GROUPS = 2;
 const SECTION_MENU_ITEM_HORIZONTAL_PADDING = 16;
 const SECTION_HEADER_HEIGHT = 32;
 const SECTION_HEADER_RECT_HEIGHT = 4;
@@ -45,7 +46,12 @@ const LHN = {
     },
 };
 
-function SuggestedSearchSkeleton() {
+type SuggestedSearchSkeletonProps = {
+    /** Whether to show the Explore skeleton group. Defaults to true for backward compatibility. */
+    showExplore?: boolean;
+};
+
+function SuggestedSearchSkeleton({showExplore = true}: SuggestedSearchSkeletonProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -71,6 +77,10 @@ function SuggestedSearchSkeleton() {
     };
 
     const shouldRenderNavigationColumn = !shouldUseNarrowLayout;
+
+    // When Explore section is already rendered, only show 2 skeleton groups (Todo and Saved)
+    // instead of 3 to accurately represent the remaining dynamic sections.
+    const skeletonGroupCount = showExplore ? 3 : DEFAULT_SKELETON_GROUPS;
 
     const navigationColumnGroup = (
         <>
@@ -100,7 +110,7 @@ function SuggestedSearchSkeleton() {
     const navigationColumn = shouldRenderNavigationColumn ? (
         <View>
             <View>
-                {[0, 1, 2].map((i) => (
+                {Array.from({length: skeletonGroupCount}, (_, i) => (
                     <View
                         key={i}
                         style={[styles.mb4]}
