@@ -64,7 +64,7 @@ Each item links you to where you can complete the action, such as a specific rep
 
 If there’s nothing that needs action, the **For you** section may appear empty. This means you’re fully caught up.
 
-![Home > For You on New Expensify]({{site.url}}/assets/images/home-2.png){:width="100%"}
+![]({{site.url}}/assets/images/home2.png){:width="100%"}
 
 ---
 
