@@ -218,22 +218,42 @@ function Search({
     onDEWModalOpen,
 }: SearchProps) {
     const {type, status, sortBy, sortOrder, hash, similarSearchHash, groupBy, view} = queryJSON;
-    // On the submit-expense->search path a deferred API write is pending.
-    // Force the skeleton so the user gets instant first paint while heavy work is deferred for performance reasons.
+    // Deferred write: API.write() is postponed so the skeleton renders instantly.
+    // Once flushed, we cache the optimistic item from sortedData and re-inject it
+    // via stableSortedData if a stale snapshot briefly removes it. The cache is
+    // cleared when the server-confirmed version arrives (pendingAction !== ADD).
     const hasPendingWriteOnMountRef = useRef(hasDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH));
     const optimisticWatchKeyRef = useRef(getOptimisticWatchKey(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH));
     const skipDeferralOnFocusRef = useRef(isSearchDataLoaded(searchResults, queryJSON) && !hasPendingWriteOnMountRef.current);
 
     const [shouldDeferHeavySearchWork, setShouldDeferHeavySearchWork] = useState(() => !isSearchDataLoaded(searchResults, queryJSON) || hasPendingWriteOnMountRef.current);
+    const [showPendingExpensePlaceholder, setShowPendingExpensePlaceholder] = useState(() => hasPendingWriteOnMountRef.current && optimisticWatchKeyRef.current != null);
+    // Caches the optimistic list item once it first appears in sortedData.
+    // Used by stableSortedData to re-inject the row if a stale snapshot temporarily removes it.
+    // Cleared once the server-confirmed (non-optimistic) version arrives.
+    const cachedOptimisticItemRef = useRef<TransactionListItemType | null>(null);
+    const optimisticTrackingCleanedUpRef = useRef(false);
 
-    const watchOnyxKey = optimisticWatchKeyRef.current ?? `${ONYXKEYS.COLLECTION.TRANSACTION}${CONST.DEFAULT_NUMBER_ID}`;
-    const [optimisticWatchedValue] = useOnyx(watchOnyxKey);
-    useEffect(() => {
-        if (!optimisticWatchKeyRef.current) {
+    const clearOptimisticTracking = useCallback(() => {
+        if (optimisticTrackingCleanedUpRef.current) {
             return;
         }
-        Log.info(`[DeferredLayoutWrite] Optimistic watch key "${optimisticWatchKeyRef.current}" value exists: ${optimisticWatchedValue != null}`);
-    }, [optimisticWatchedValue]);
+        optimisticTrackingCleanedUpRef.current = true;
+        cachedOptimisticItemRef.current = null;
+        optimisticWatchKeyRef.current = undefined;
+        setShowPendingExpensePlaceholder(false);
+    }, []);
+
+    // Safety timeout: if the optimistic lifecycle hasn't resolved within 10s
+    // (e.g. API failure, offline, item never reaches sortedData), clear all
+    // tracking state so the UI doesn't get stuck on a skeleton or ghost row.
+    useEffect(() => {
+        if (!hasPendingWriteOnMountRef.current || !optimisticWatchKeyRef.current) {
+            return;
+        }
+        const id = setTimeout(clearOptimisticTracking, 10000);
+        return () => clearTimeout(id);
+    }, [clearOptimisticTracking]);
 
     const {isOffline} = useNetwork();
     const prevIsOffline = usePrevious(isOffline);
@@ -1215,6 +1235,41 @@ function Search({
         [type, status, filteredData, localeCompare, translate, sortBy, sortOrder, validGroupBy, isChat, newSearchResultKeys, hash],
     );
 
+    // Track the optimistic item through its lifecycle in sortedData.
+    // First appearance -> cache it & hide the skeleton.
+    // Server confirmed (pendingAction !== ADD) -> clear all tracking.
+    useEffect(() => {
+        if (!optimisticWatchKeyRef.current) {
+            return;
+        }
+        const optimisticItem = sortedData.find(
+            (item): item is TransactionListItemType => 'transactionID' in item && `${ONYXKEYS.COLLECTION.TRANSACTION}${item.transactionID}` === optimisticWatchKeyRef.current,
+        );
+        if (optimisticItem) {
+            if (!cachedOptimisticItemRef.current) {
+                setShowPendingExpensePlaceholder(false);
+            }
+            cachedOptimisticItemRef.current = optimisticItem;
+
+            if (optimisticItem.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
+                clearOptimisticTracking();
+            }
+        }
+    }, [sortedData, clearOptimisticTracking]);
+
+    // Re-inject the cached optimistic item when a stale snapshot temporarily removes it
+    // from sortedData (timeline step 4). Once the item is back (real data), this is a no-op.
+    const stableSortedData = useMemo(() => {
+        if (!cachedOptimisticItemRef.current || !optimisticWatchKeyRef.current) {
+            return sortedData;
+        }
+        const isStillInList = sortedData.some((item) => 'transactionID' in item && `${ONYXKEYS.COLLECTION.TRANSACTION}${item.transactionID}` === optimisticWatchKeyRef.current);
+        if (isStillInList) {
+            return sortedData;
+        }
+        return [...sortedData, cachedOptimisticItemRef.current];
+    }, [sortedData]);
+
     useEffect(() => {
         const currentRoute = Navigation.getActiveRouteWithoutParams();
         if (hasErrors && (currentRoute === '/' || (shouldResetSearchQuery && currentRoute === '/search'))) {
@@ -1308,9 +1363,9 @@ function Search({
         }
         // Reset the ref after the span is ended so future render-time cancelSpan calls are no longer guarded.
         spanExistedOnMount.current = false;
-        handleSelectionListScroll(sortedData, searchListRef.current);
+        handleSelectionListScroll(stableSortedData, searchListRef.current);
         flushDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH);
-    }, [handleSelectionListScroll, sortedData]);
+    }, [handleSelectionListScroll, stableSortedData]);
 
     useEffect(() => {
         const spanExisted = spanExistedOnMount.current;
@@ -1416,8 +1471,18 @@ function Search({
     }
     const isAnyVisibleActionLoading = filteredData.some((item) => 'reportID' in item && item.reportID && isActionLoadingSet.has(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${item.reportID}`));
     const visibleDataLength = filteredData.filter((item) => item.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || isOffline).length;
-    // Guard: don't render the empty view while heavy work is still deferred - the data is temporarily [] and not truly empty.
-    if (!shouldDeferHeavySearchWork && shouldShowEmptyState(isDataLoaded, visibleDataLength, searchDataType) && !isAnyVisibleActionLoading) {
+    // Guard: don't render the empty view while the data is transiently empty.
+    // - shouldDeferHeavySearchWork: skeleton is still showing, data hasn't been computed yet.
+    // - showPendingExpensePlaceholder: deferred write hasn't produced the optimistic item yet.
+    // - cachedOptimisticItemRef: an optimistic item was seen but a stale snapshot briefly removed it;
+    //   stableSortedData will re-inject it, so the list isn't truly empty.
+    if (
+        !shouldDeferHeavySearchWork &&
+        !showPendingExpensePlaceholder &&
+        !cachedOptimisticItemRef.current &&
+        shouldShowEmptyState(isDataLoaded, visibleDataLength, searchDataType) &&
+        !isAnyVisibleActionLoading
+    ) {
         cancelNavigationSpans();
         return (
             <View style={[shouldUseNarrowLayout ? styles.searchListContentContainerStyles : styles.mt3, styles.flex1]}>
@@ -1453,7 +1518,7 @@ function Search({
 
     const shouldShowChartView = (view === CONST.SEARCH.VIEW.BAR || view === CONST.SEARCH.VIEW.LINE || view === CONST.SEARCH.VIEW.PIE) && !!validGroupBy;
 
-    if (shouldShowChartView && isGroupedItemArray(sortedData)) {
+    if (shouldShowChartView && isGroupedItemArray(stableSortedData)) {
         cancelSpan(CONST.TELEMETRY.SPAN_NAVIGATE_AFTER_EXPENSE_CREATE);
         if (getPendingSubmitFollowUpAction()?.followUpAction === CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.NAVIGATE_TO_SEARCH) {
             cancelSubmitFollowUpActionSpan();
@@ -1473,7 +1538,7 @@ function Search({
                     queryJSON={queryJSON}
                     view={view}
                     groupBy={validGroupBy}
-                    data={sortedData}
+                    data={stableSortedData}
                     isLoading={shouldShowLoadingState}
                     onScroll={onSearchListScroll}
                     onLayout={onLayoutChart}
@@ -1488,7 +1553,7 @@ function Search({
             <Animated.View style={[styles.flex1, animatedStyle]}>
                 <SearchList
                     ref={searchListRef}
-                    data={sortedData}
+                    data={stableSortedData}
                     ListItem={ListItem}
                     onSelectRow={onSelectRow}
                     onCheckboxPress={toggleTransaction}
@@ -1527,12 +1592,14 @@ function Search({
                     onScroll={onSearchListScroll}
                     onEndReachedThreshold={0.75}
                     onEndReached={fetchMoreResults}
+                    // Single-row skeleton while the deferred write's optimistic data hasn't
+                    // appeared in sortedData yet; 5-row skeleton for paginated loading.
                     ListFooterComponent={
-                        shouldShowLoadingMoreItems ? (
+                        shouldShowLoadingMoreItems || showPendingExpensePlaceholder ? (
                             <SearchRowSkeleton
                                 shouldAnimate
-                                fixedNumItems={5}
-                                reasonAttributes={loadMoreSkeletonReasonAttributes}
+                                fixedNumItems={shouldShowLoadingMoreItems ? 5 : 1}
+                                reasonAttributes={showPendingExpensePlaceholder ? {context: 'Search.PendingExpensePlaceholder'} : loadMoreSkeletonReasonAttributes}
                             />
                         ) : undefined
                     }
