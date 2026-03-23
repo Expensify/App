@@ -4999,9 +4999,9 @@ describe('actions/IOU', () => {
             setMoneyRequestDistanceRate(testTransaction, customUnitRateID, policy, false);
             await waitForBatchedUpdates();
             // Then the distance rate should be set in Onyx
-            const lastdistanceRates = (await getOnyxValue(ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES)) as LastSelectedDistanceRates | undefined;
-            expect(lastdistanceRates?.[policy.id]).toBeDefined();
-            expect(lastdistanceRates?.[policy.id]).toBe(customUnitRateID);
+            const lastDistanceRates = (await getOnyxValue(ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES)) as LastSelectedDistanceRates | undefined;
+            expect(lastDistanceRates?.[policy.id]).toBeDefined();
+            expect(lastDistanceRates?.[policy.id]).toBe(customUnitRateID);
         });
 
         it('sets distance rate and distance unit for draft transaction', async () => {
