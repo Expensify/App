@@ -99,6 +99,7 @@ type UpdateSplitTransactionsParams = {
     allTransactionsList: OnyxCollection<OnyxTypes.Transaction>;
     allReportsList: OnyxCollection<OnyxTypes.Report>;
     allReportNameValuePairsList: OnyxCollection<OnyxTypes.ReportNameValuePairs>;
+    allSnapshots?: OnyxCollection<OnyxTypes.SearchResults>;
     transactionData: {
         reportID: string;
         originalTransactionID: string;
@@ -1041,6 +1042,7 @@ function updateSplitTransactions({
     allTransactionsList,
     allReportsList,
     allReportNameValuePairsList,
+    allSnapshots,
     transactionData,
     searchContext,
     policyCategories,
@@ -1420,6 +1422,80 @@ function updateSplitTransactions({
         onyxData.optimisticData?.push(...(deleteExpenseOptimisticData ?? []));
         onyxData.successData?.push(...(deleteExpenseSuccessData ?? []));
         onyxData.failureData?.push(...(deleteExpenseFailureData ?? []));
+    }
+
+    if (isReverseSplitOperation) {
+        const deletedSplitSnapshotKeys = originalChildTransactions.reduce<Array<`${typeof ONYXKEYS.COLLECTION.TRANSACTION}${string}`>>((acc, childTransaction) => {
+            if (!childTransaction?.transactionID) {
+                return acc;
+            }
+
+            acc.push(`${ONYXKEYS.COLLECTION.TRANSACTION}${childTransaction.transactionID}`);
+            return acc;
+        }, []);
+
+        if (deletedSplitSnapshotKeys.length > 0) {
+            const snapshotKeysToUpdate = new Set<`${typeof ONYXKEYS.COLLECTION.SNAPSHOT}${string}`>();
+            const currentSearchHash = searchContext?.currentSearchHash;
+
+            if (currentSearchHash !== undefined && currentSearchHash >= 0) {
+                const currentSearchSnapshotKey = `${ONYXKEYS.COLLECTION.SNAPSHOT}${currentSearchHash}` as const;
+
+                if (allSnapshots?.[currentSearchSnapshotKey]) {
+                    snapshotKeysToUpdate.add(currentSearchSnapshotKey);
+                }
+            }
+
+            for (const [snapshotKey, snapshot] of Object.entries(allSnapshots ?? {})) {
+                if (!snapshot?.data) {
+                    continue;
+                }
+
+                const doesSnapshotContainDeletedSplit = deletedSplitSnapshotKeys.some((deletedSplitSnapshotKey) => Object.hasOwn(snapshot.data, deletedSplitSnapshotKey));
+                if (!doesSnapshotContainDeletedSplit) {
+                    continue;
+                }
+
+                snapshotKeysToUpdate.add(snapshotKey as `${typeof ONYXKEYS.COLLECTION.SNAPSHOT}${string}`);
+            }
+
+            const originalSnapshotTransactionKey = `${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}` as const;
+            const revertedOriginalTransactionUpdate = [...(onyxData.optimisticData ?? [])].reverse().find((update) => {
+                return update.key === originalSnapshotTransactionKey && update.value && typeof update.value === 'object' && 'reportID' in update.value;
+            });
+            const revertedOriginalTransaction = revertedOriginalTransactionUpdate?.value as OnyxTypes.Transaction | undefined;
+
+            for (const snapshotKey of snapshotKeysToUpdate) {
+                const previousSnapshotData = allSnapshots?.[snapshotKey]?.data;
+                const optimisticSnapshotData: Partial<Record<`${typeof ONYXKEYS.COLLECTION.TRANSACTION}${string}`, OnyxTypes.Transaction | null>> = {};
+                const failureSnapshotData: Partial<Record<`${typeof ONYXKEYS.COLLECTION.TRANSACTION}${string}`, OnyxTypes.Transaction | null>> = {};
+
+                for (const deletedSplitSnapshotKey of deletedSplitSnapshotKeys) {
+                    optimisticSnapshotData[deletedSplitSnapshotKey] = null;
+                    failureSnapshotData[deletedSplitSnapshotKey] = previousSnapshotData?.[deletedSplitSnapshotKey] ?? null;
+                }
+
+                if (revertedOriginalTransaction) {
+                    optimisticSnapshotData[originalSnapshotTransactionKey] = revertedOriginalTransaction;
+                    failureSnapshotData[originalSnapshotTransactionKey] = previousSnapshotData?.[originalSnapshotTransactionKey] ?? null;
+                }
+
+                onyxData.optimisticData?.push({
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: snapshotKey,
+                    value: {
+                        data: optimisticSnapshotData,
+                    },
+                });
+                onyxData.failureData?.push({
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: snapshotKey,
+                    value: {
+                        data: failureSnapshotData,
+                    },
+                });
+            }
+        }
     }
 
     if (!isReverseSplitOperation) {

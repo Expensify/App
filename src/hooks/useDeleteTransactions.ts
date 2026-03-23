@@ -33,6 +33,7 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getNonEmptyStringOnyxID(report?.policyID)}`);
     const [allPolicyRecentlyUsedCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES);
     const [allReportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
+    const [allSnapshots] = useOnyx(ONYXKEYS.COLLECTION.SNAPSHOT);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [policyRecentlyUsedCurrencies] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES);
@@ -142,13 +143,14 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
                     allTransactionsList: allTransactions,
                     allReportsList: allReports,
                     allReportNameValuePairsList: allReportNameValuePairs,
+                    allSnapshots,
                     transactionData: {
                         reportID: report?.reportID ?? String(CONST.DEFAULT_NUMBER_ID),
                         originalTransactionID: transactionID,
                         splitExpenses: remainingSplitExpenses,
                     },
                     searchContext: {
-                        currentSearchHash: currentSearchHash ?? 0,
+                        currentSearchHash,
                     },
                     policyCategories,
                     policy,
@@ -204,6 +206,7 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
             allPolicyRecentlyUsedCategories,
             allReportNameValuePairs,
             allReports,
+            allSnapshots,
             allTransactions,
             archivedReportsIdSet,
             currentUserPersonalDetails,

@@ -95,6 +95,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [allReportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
+    const [allSnapshots] = useOnyx(ONYXKEYS.COLLECTION.SNAPSHOT);
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportID)}`);
     const currentReport = report ?? currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportID)}`];
     const [policyRecentlyUsedCurrencies] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES);
@@ -297,6 +298,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
             allTransactionsList: allTransactions,
             allReportsList: allReports,
             allReportNameValuePairsList: allReportNameValuePairs,
+            allSnapshots,
             transactionData: {
                 reportID: draftTransaction?.reportID ?? String(CONST.DEFAULT_NUMBER_ID),
                 originalTransactionID: draftTransaction?.comment?.originalTransactionID ?? String(CONST.DEFAULT_NUMBER_ID),
