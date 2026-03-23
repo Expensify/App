@@ -48,7 +48,11 @@ function useAutoCreateTrackWorkspace() {
     const {isRestrictedPolicyCreation} = usePreferredPolicy();
     const hasActiveAdminPolicies = useHasActiveAdminPolicies();
     const {onboardingMessages} = useOnboardingMessages();
-    // We need to use isSmallScreenWidth, see navigateAfterOnboarding function comment
+
+    // We use isSmallScreenWidth instead of shouldUseNarrowLayout because navigateAfterOnboarding
+    // relies on actual device screen width to handle navigation stack differences: on small screens,
+    // removing OnboardingModalNavigator redirects to HOME, requiring explicit navigation to the last
+    // accessed report. This behavior is tied to screen size, not responsive layout mode.
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
 
