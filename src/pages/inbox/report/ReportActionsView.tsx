@@ -175,19 +175,6 @@ function ReportActionsView({
         updateLoadingInitialReportAction(report.reportID);
     }, [isOffline, report.reportID, reportActionID]);
 
-    const fetchedForStaleReimbursedReportID = useRef<string | null>(null);
-    useEffect(() => {
-        if (fetchedForStaleReimbursedReportID.current === reportID) {
-            return;
-        }
-        const hasStaleReimbursedAction = allReportActions?.some((action) => isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.REIMBURSED) && !getOriginalMessage(action)?.paymentMethod);
-        if (!hasStaleReimbursedAction) {
-            return;
-        }
-        fetchedForStaleReimbursedReportID.current = reportID;
-        openReport({reportID, introSelected: undefined});
-    }, [allReportActions, reportID]);
-
     // Change the list ID only for comment linking to get the positioning right
     const listID = useMemo(() => {
         if (!reportActionID && !prevReportActionID) {
