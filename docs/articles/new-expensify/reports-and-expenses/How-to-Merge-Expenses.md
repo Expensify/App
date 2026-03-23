@@ -53,8 +53,8 @@ Create new page describing expense icons and what they mean. WIP here: https://g
 ## How to merge duplicate expenses from the Expenses page
 
 Use this method when you already see both duplicate expenses on the Expenses page. 
-1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Reports > Expenses**
-1. In the navigation tabs (on the left on web, and at the bottom on mobile), select **Reports > Expenses**
+
+1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Reports > Expenses**.
 2. Select two expenses to merge.
 3. Choose **Selected**, then select **Merge**.
 4. If both expenses have receipts, select the one you want to keep.
@@ -67,7 +67,7 @@ Use this method when you already see both duplicate expenses on the Expenses pag
 
 Use this method when both expenses are inside the same report.
 
-1. In the navigation tabs (on the left on web, and at the bottom on mobile), select **Reports** 
+1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Reports** 
 2. Click the report to open it. 
 3. Select the two expenses you want to merge
 4. Choose **Selected**, then select **Merge**.
@@ -81,8 +81,6 @@ Use this method when both expenses are inside the same report.
 Show 2 expenses selected within a report > Selected button > Merge highlighted
 Design request:https://github.com/Expensify/Expensify/issues/614048
 -->
-
----
 
 ## How to merge duplicate expenses from an individual expense
 
@@ -138,6 +136,6 @@ You won’t see **Merge** if:
 - One or both expenses are Approved or Paid.
 - One or both expenses are no longer editable.
 
-## Can I Undo a Merged Expense?
+## Can I undo a merged expense?
 
 No. Merging expenses can't be undone, so review the details before confirming.
