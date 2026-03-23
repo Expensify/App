@@ -266,7 +266,6 @@ function useSearchSelectorBase({
                 });
             case CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_GENERAL:
                 return getValidOptions(optionsWithContacts, allPolicies, draftComments, nvpDismissedProductTraining, loginList, currentUserAccountID, currentUserEmail, conciergeReportID, {
-                    ...getValidOptionsConfig,
                     reportsCollection: reports,
                     betas: betas ?? [],
                     searchString: computedSearchTerm,
