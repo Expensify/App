@@ -1,6 +1,7 @@
 import React from 'react';
 import {View} from 'react-native';
 import Text from '@components/Text';
+import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
@@ -15,6 +16,7 @@ type DistanceCounterProps = {
 
 function DistanceCounter({unit}: DistanceCounterProps) {
     const styles = useThemeStyles();
+    const isInLandscapeMode = useIsInLandscapeMode();
     const [gpsDraftDetails] = useOnyx(ONYXKEYS.GPS_DRAFT_DETAILS);
 
     const distance = DistanceRequestUtils.convertDistanceUnit(gpsDraftDetails?.distanceInMeters ?? 0, unit).toFixed(1);
@@ -22,7 +24,7 @@ function DistanceCounter({unit}: DistanceCounterProps) {
     const tripInProgressOrStopped = (gpsDraftDetails?.gpsPoints?.length ?? 0) > 0 || gpsDraftDetails?.isTracking;
 
     return (
-        <View style={[styles.flex1, styles.pb40]}>
+        <View style={[styles.flex1, isInLandscapeMode ? [styles.pv6] : styles.pb40]}>
             <View style={[styles.justifyContentCenter, styles.h100, styles.w100]}>
                 <View style={[styles.pRelative, styles.w100, styles.alignItemsCenter]}>
                     <TripStatusIndicator />
