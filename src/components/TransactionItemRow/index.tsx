@@ -551,7 +551,7 @@ function TransactionItemRow({
                                     textStyle: [styles.textMicroBold, styles.buttonSuccessText],
                                     overlayStyle: StyleUtils.getBackgroundColorWithOpacityStyle(colors.productDark400, variables.overlayOpacity),
                                 }}
-                                size={CONST.AVATAR_SIZE.SUBSCRIPT}
+                                size={CONST.AVATAR_SIZE.SMALLER}
                                 isInReportAction
                             />
                         )}
