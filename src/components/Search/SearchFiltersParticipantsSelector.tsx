@@ -68,7 +68,8 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate, 
     const currentUserAccountID = currentUserPersonalDetails.accountID;
     const currentUserEmail = currentUserPersonalDetails.email ?? '';
     const [recentAttendees] = useOnyx(ONYXKEYS.NVP_RECENT_ATTENDEES);
-
+    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    
     // Transform raw recentAttendees into Option[] format for use with getValidOptions (only for attendee filter)
     const recentAttendeeLists = useMemo(
         () => (shouldAllowNameOnlyOptions ? getFilteredRecentAttendees(personalDetails, [], recentAttendees ?? [], currentUserEmail, currentUserAccountID) : []),
