@@ -6500,8 +6500,7 @@ const translations = {
                 eReceiptsHint: `eReceipts are auto-created [for most USD credit transactions](${CONST.DEEP_DIVE_ERECEIPTS}).`,
                 attendeeTracking: 'Attendee tracking',
                 attendeeTrackingHint: 'Track the per-person cost for every expense.',
-                prohibitedDefaultDescription:
-                    'Flag any receipts where alcohol, gambling, or other restricted items appear. Expenses with receipts where these line items appear will require manual review.',
+                prohibitedDefaultDescription: 'Flag receipts with these line items for manual review.',
                 prohibitedExpenses: 'Prohibited expenses',
                 alcohol: 'Alcohol',
                 hotelIncidentals: 'Hotel incidentals',
