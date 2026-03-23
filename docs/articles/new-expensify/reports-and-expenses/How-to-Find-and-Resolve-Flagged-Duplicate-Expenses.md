@@ -61,9 +61,7 @@ Suggestion: Show expense with Review Duplicates at the top
 Design request:https://github.com/Expensify/Expensify/issues/614048
 -->
 
----
-
-## What happenys after you resolve a flagged duplicate
+## What happens after you resolve a flagged duplicate
 
 The hold is removed from the expense. Depending on your choice:
 
