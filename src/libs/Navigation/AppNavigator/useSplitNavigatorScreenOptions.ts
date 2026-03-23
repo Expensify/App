@@ -55,8 +55,7 @@ const useSplitNavigatorScreenOptions = () => {
             animation: shouldUseNarrowLayout && !IS_MOBILE_SAFARI ? Animations.SLIDE_FROM_RIGHT : Animations.NONE,
             animationTypeForReplace: 'pop',
             web: {
-                cardStyleInterpolator: (props: StackCardInterpolationProps) =>
-                    modalCardStyleInterpolator({props, isFullScreenModal: true, shouldAnimateSidePanel: true, animationEnabled: !IS_MOBILE_SAFARI}),
+                cardStyleInterpolator: (props: StackCardInterpolationProps) => modalCardStyleInterpolator({props, isFullScreenModal: true, animationEnabled: !IS_MOBILE_SAFARI}),
                 cardStyle: shouldUseNarrowLayout
                     ? StyleUtils.getNavigationModalCardStyle()
                     : {
