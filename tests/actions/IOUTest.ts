@@ -12457,6 +12457,72 @@ describe('actions/IOU', () => {
             writeSpy.mockRestore();
         });
 
+        it('does not add violations for unreported expenses during bulk edit', async () => {
+            const transactionID = 'transaction-unreported-viol';
+            const transactionThreadReportID = 'thread-unreported-viol';
+            const policy = {...createRandomPolicy(10, CONST.POLICY.TYPE.TEAM), requiresCategory: true, requiresTag: true};
+
+            const transactionThread: Report = {
+                ...createRandomReport(10, undefined),
+                reportID: transactionThreadReportID,
+            };
+
+            const reports = {
+                [`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`]: transactionThread,
+            };
+
+            const transaction: Transaction = {
+                ...createRandomTransaction(10),
+                transactionID,
+                reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+                transactionThreadReportID,
+                amount: 500,
+                currency: CONST.CURRENCY.USD,
+                category: undefined,
+                tag: undefined,
+            };
+            const transactions = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: transaction,
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`, []);
+            await waitForBatchedUpdates();
+
+            updateMultipleMoneyRequests({
+                transactionIDs: [transactionID],
+                changes: {amount: 1000},
+                policy,
+                reports,
+                transactions,
+                reportActions: {},
+                policyCategories: {
+                    [`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policy.id}`]: {
+                        // eslint-disable-next-line @typescript-eslint/naming-convention
+                        Food: {name: 'Food', enabled: true, 'GL Code': '', unencodedName: 'Food', externalID: '', areCommentsRequired: false, origin: ''},
+                    },
+                },
+                policyTags: {
+                    [`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policy.id}`]: {
+                        Department: {
+                            name: 'Department',
+                            required: true,
+                            orderWeight: 0,
+                            tags: {
+                                // eslint-disable-next-line @typescript-eslint/naming-convention
+                                Engineering: {name: 'Engineering', enabled: true},
+                            },
+                        },
+                    },
+                },
+                hash: undefined,
+            });
+            await waitForBatchedUpdates();
+
+            // Unreported expenses should not get any violations (missingCategory, missingTag, etc.)
+            const updatedViolations = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`);
+            expect(updatedViolations ?? []).toHaveLength(0);
+        });
+
         it('removes DUPLICATED_TRANSACTION violation optimistically when amount is changed', async () => {
             const transactionID = 'transaction-1';
             const transactionThreadReportID = 'thread-1';
