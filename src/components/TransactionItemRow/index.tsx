@@ -51,6 +51,7 @@ import {
     isScanning,
     isTimeRequest,
     isUnreportedAndHasInvalidDistanceRateTransaction,
+    shouldShowAttendees as shouldShowAttendeesUtils,
 } from '@libs/TransactionUtils';
 import {getDefaultAvatar} from '@libs/UserAvatarUtils';
 import colors from '@styles/theme/colors';
@@ -292,6 +293,8 @@ function TransactionItemRow({
             })),
         [defaultAvatars, transactionAttendees],
     );
+
+    const shouldShowAttendees = shouldShowAttendeesUtils(CONST.IOU.TYPE.SUBMIT, policy) && attendeeIcons.length > 0;
 
     const totalPerAttendee = useMemo(() => {
         const attendeesCount = transactionAttendees.length ?? 0;
@@ -538,7 +541,7 @@ function TransactionItemRow({
                         key={column}
                         style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.ATTENDEES)]}
                     >
-                        {!!attendeeIcons.length && (
+                        {shouldShowAttendees && (
                             <ReportActionAvatars
                                 customAvatars={attendeeIcons}
                                 customAvatarType={CONST.REPORT_ACTION_AVATARS.TYPE.MULTIPLE_HORIZONTAL}
@@ -597,7 +600,7 @@ function TransactionItemRow({
                         key={column}
                         style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TOTAL_PER_ATTENDEE, undefined, isAmountColumnWide)]}
                     >
-                        {!!attendeeIcons.length && (
+                        {shouldShowAttendees && (
                             <TextWithTooltip
                                 testID="TotalPerAttendeeCell"
                                 shouldShowTooltip
