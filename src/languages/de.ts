@@ -767,11 +767,6 @@ const translations: TranslationDeepObject<typeof en> = {
         searchForSomeone: 'Nach jemandem suchen',
         userSelected: (username: string) => `${username} ausgewählt`,
     },
-    customApprovalWorkflow: {
-        title: 'Benutzerdefinierter Genehmigungsworkflow',
-        description: 'Ihr Unternehmen verwendet in diesem Workspace einen benutzerdefinierten Genehmigungs-Workflow. Bitte führen Sie diese Aktion in Expensify Classic aus',
-        goToExpensifyClassic: 'Zu Expensify Classic wechseln',
-    },
     emptyList: {
         [CONST.IOU.TYPE.CREATE]: {
             title: 'Reiche eine Ausgabe ein, wirb dein Team an',

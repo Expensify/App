@@ -766,11 +766,6 @@ const translations: TranslationDeepObject<typeof en> = {
         searchForSomeone: 'Iemand zoeken',
         userSelected: (username: string) => `${username} geselecteerd`,
     },
-    customApprovalWorkflow: {
-        title: 'Aangepaste goedkeuringsworkflow',
-        description: 'Je bedrijf heeft een aangepast goedkeuringsproces in deze workspace. Voer deze actie uit in Expensify Classic',
-        goToExpensifyClassic: 'Overschakelen naar Expensify Classic',
-    },
     emptyList: {
         [CONST.IOU.TYPE.CREATE]: {
             title: 'Dien een uitgave in, verwijs je team',
