@@ -423,9 +423,6 @@
       ],
       "android": {
         "buildFromSource": [
-          "expo-asset",
-          "expo-audio",
-          "expo-image-manipulator",
           "expo-secure-store"
         ]
       }
