@@ -876,6 +876,7 @@ type PayMoneyRequestFunctionParams = {
     betas: OnyxEntry<OnyxTypes.Beta[]>;
     isSelfTourViewed: boolean | undefined;
     amountOwed: OnyxEntry<number>;
+    ownerBillingGraceEndPeriod?: OnyxEntry<number>;
     methodID?: number;
     onPaid?: () => void;
 };
@@ -893,6 +894,7 @@ type ApproveMoneyRequestFunctionParams = {
     amountOwed: OnyxEntry<number>;
     full?: boolean;
     onApproved?: () => void;
+    ownerBillingGraceEndPeriod: OnyxEntry<number>;
 };
 
 type SubmitReportFunctionParams = {
@@ -906,6 +908,7 @@ type SubmitReportFunctionParams = {
     userBillingGraceEndPeriods: OnyxCollection<OnyxTypes.BillingGraceEndPeriod>;
     amountOwed: OnyxEntry<number>;
     onSubmitted?: () => void;
+    ownerBillingGraceEndPeriod: OnyxEntry<number>;
 };
 
 let allTransactions: NonNullable<OnyxCollection<OnyxTypes.Transaction>> = {};
@@ -9905,12 +9908,13 @@ function approveMoneyRequest(params: ApproveMoneyRequestFunctionParams) {
         amountOwed,
         full,
         onApproved,
+        ownerBillingGraceEndPeriod,
     } = params;
     if (!expenseReport) {
         return;
     }
 
-    if (expenseReport.policyID && shouldRestrictUserBillableActions(expenseReport.policyID, userBillingGraceEndPeriods, amountOwed)) {
+    if (expenseReport.policyID && shouldRestrictUserBillableActions(expenseReport.policyID, userBillingGraceEndPeriods, amountOwed, ownerBillingGraceEndPeriod)) {
         Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(expenseReport.policyID));
         return;
     }
@@ -10797,11 +10801,12 @@ function submitReport({
     userBillingGraceEndPeriods,
     amountOwed,
     onSubmitted,
+    ownerBillingGraceEndPeriod,
 }: SubmitReportFunctionParams) {
     if (!expenseReport) {
         return;
     }
-    if (expenseReport.policyID && shouldRestrictUserBillableActions(expenseReport.policyID, userBillingGraceEndPeriods, amountOwed)) {
+    if (expenseReport.policyID && shouldRestrictUserBillableActions(expenseReport.policyID, userBillingGraceEndPeriods, amountOwed, ownerBillingGraceEndPeriod)) {
         Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(expenseReport.policyID));
         return;
     }
@@ -11334,10 +11339,11 @@ function payMoneyRequest(params: PayMoneyRequestFunctionParams) {
         betas,
         isSelfTourViewed,
         amountOwed,
+        ownerBillingGraceEndPeriod,
         methodID,
         onPaid,
     } = params;
-    if (chatReport.policyID && shouldRestrictUserBillableActions(chatReport.policyID, userBillingGraceEndPeriods, amountOwed)) {
+    if (chatReport.policyID && shouldRestrictUserBillableActions(chatReport.policyID, userBillingGraceEndPeriods, amountOwed, ownerBillingGraceEndPeriod)) {
         Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(chatReport.policyID));
         return;
     }
