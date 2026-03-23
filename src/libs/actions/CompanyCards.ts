@@ -93,7 +93,7 @@ function buildOptimisticCompanyCardCSVTransactions(
     const csvDataWithGeneratedIDs = csvData.map((row) => [...row]);
 
     normalizedColumnMappings.push(CONST.CSV_IMPORT_COLUMNS.EXTERNAL_ID);
-    let externalIDColumnIndex = normalizedColumnMappings.length - 1;
+    const externalIDColumnIndex = normalizedColumnMappings.length - 1;
 
     const cardNumberColumnIndex = getColumnIndex(normalizedColumnMappings, CONST.CSV_IMPORT_COLUMNS.CARD_NUMBER);
     const postedDateColumnIndex = getColumnIndex(normalizedColumnMappings, CONST.CSV_IMPORT_COLUMNS.POSTED_DATE);
