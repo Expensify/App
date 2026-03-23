@@ -8,9 +8,9 @@ import {makeRequestWithSideEffects} from '@libs/API';
 import type {DenyTransactionParams, RevokeMultifactorAuthenticationCredentialsParams} from '@libs/API/parameters';
 import {SIDE_EFFECT_REQUEST_COMMANDS} from '@libs/API/types';
 import Log from '@libs/Log';
-import type {AuthenticationChallenge, RegistrationChallenge} from '@libs/MultifactorAuthentication/Biometrics/ED25519/types';
-import {parseHttpRequest} from '@libs/MultifactorAuthentication/Biometrics/helpers';
-import type {MultifactorAuthenticationReason} from '@libs/MultifactorAuthentication/Biometrics/types';
+import type {AuthenticationChallenge, RegistrationChallenge} from '@libs/MultifactorAuthentication/shared/challengeTypes';
+import parseHttpRequest from '@libs/MultifactorAuthentication/shared/helpers';
+import type {MultifactorAuthenticationReason} from '@libs/MultifactorAuthentication/shared/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {LocallyProcessed3DSChallengeReviews} from '@src/types/onyx';
@@ -335,7 +335,21 @@ async function denyTransaction({transactionID}: DenyTransactionParams) {
 
 /** Attempt to deny the transaction without handling errors or waiting for a response. We use this to clean up after something unexpected happened trying to authorize or deny a challenge */
 async function fireAndForgetDenyTransaction({transactionID}: DenyTransactionParams) {
-    makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.DENY_TRANSACTION, {transactionID}, {});
+    makeRequestWithSideEffects(
+        SIDE_EFFECT_REQUEST_COMMANDS.DENY_TRANSACTION,
+        {transactionID},
+        {
+            optimisticData: [
+                {
+                    key: ONYXKEYS.LOCALLY_PROCESSED_3DS_TRANSACTION_REVIEWS,
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    value: {
+                        [transactionID]: CONST.MULTIFACTOR_AUTHENTICATION.LOCALLY_PROCESSED_TRANSACTION_ACTION.DENY,
+                    },
+                },
+            ],
+        },
+    );
 }
 
 function markHasAcceptedSoftPrompt() {
