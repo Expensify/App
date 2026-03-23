@@ -262,6 +262,7 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                             style={[styles.mh5, styles.mb5]}
                             text={translate('cardPage.pinBlocked.unlockCard')}
                             onPress={handleUnlockCardPress}
+                            isDisabled={isOffline}
                         />
                     </>
                 )}
@@ -480,6 +481,7 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                                     <MenuItem
                                         title={translate('cardPage.changePin')}
                                         icon={expensifyIcons.Key}
+                                        disabled={isOffline}
                                         shouldShowRightIcon
                                         brickRoadIndicator={isCardOpenAndPINBlocked ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                                         onPress={() => {
