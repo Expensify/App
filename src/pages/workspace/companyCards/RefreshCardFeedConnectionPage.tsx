@@ -9,7 +9,7 @@ import type {SettingsNavigatorParamList} from '@navigation/types';
 import LoadingPage from '@pages/LoadingPage';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
-import {clearAssignCardStepAndData, setFeedRefreshComplete} from '@userActions/CompanyCards';
+import {clearAssignCardStepAndData} from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
@@ -54,7 +54,7 @@ function RefreshCardFeedConnectionPage({route, policy}: RefreshCardFeedConnectio
         if (prevFeedExpiration === undefined || prevFeedExpiration === feedExpiration || !isRefreshing) {
             return;
         }
-        setFeedRefreshComplete();
+        Navigation.closeRHPFlow();
     }, [prevFeedExpiration, feedExpiration, isRefreshing]);
 
     switch (currentStep) {

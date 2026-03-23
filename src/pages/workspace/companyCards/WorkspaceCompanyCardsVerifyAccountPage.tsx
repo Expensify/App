@@ -1,4 +1,4 @@
-import React, {useCallback} from 'react';
+import React from 'react';
 import {useCurrencyListState} from '@hooks/useCurrencyList';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
@@ -21,12 +21,12 @@ function WorkspaceCompanyCardsVerifyAccountPage({route}: WorkspaceCompanyCardsVe
     const companyCardsRoute = ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID);
 
     // Seeds Onyx state for the refresh flow; VerifyAccountPageBase handles navigation via navigateForwardTo
-    const onRefreshValidationSuccess = useCallback(() => {
+    const onRefreshValidationSuccess = () => {
         if (!feed) {
             return;
         }
         seedCardFeedRefresh(feed, policy?.outputCurrency, currencyList, countryByIp);
-    }, [feed, policy?.outputCurrency, currencyList, countryByIp]);
+    };
 
     if (feed) {
         return (

@@ -66,10 +66,6 @@ function clearAssignCardErrors() {
     Onyx.merge(ONYXKEYS.ASSIGN_CARD, {errors: null});
 }
 
-function setFeedRefreshComplete() {
-    Onyx.merge(ONYXKEYS.ASSIGN_CARD, {isRefreshing: null});
-}
-
 function setAddNewCompanyCardStepAndData({data, isEditing, step}: NullishDeep<AddNewCompanyCardFlowData>) {
     Onyx.merge(ONYXKEYS.ADD_NEW_COMPANY_CARD, {data, isEditing, currentStep: step});
 }
@@ -1112,7 +1108,6 @@ export {
     setFeedStatementPeriodEndDay,
     clearErrorField,
     clearAssignCardErrors,
-    setFeedRefreshComplete,
     seedCardFeedRefresh,
     startCardFeedRefresh,
 };
