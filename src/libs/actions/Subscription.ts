@@ -44,6 +44,13 @@ function openSubscriptionPage() {
     API.read(READ_COMMANDS.OPEN_SUBSCRIPTION_PAGE, null, {optimisticData, successData, failureData});
 }
 
+/**
+ * Fetches data when the user opens the Save The World page
+ */
+function openSaveTheWorldPage() {
+    API.read(READ_COMMANDS.OPEN_SAVE_THE_WORLD_PAGE, null);
+}
+
 function updateSubscriptionType(type: SubscriptionType) {
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION>> = [
         {
@@ -402,6 +409,7 @@ function applyExpensifyCode(promoCode: string) {
 
 export {
     openSubscriptionPage,
+    openSaveTheWorldPage,
     updateSubscriptionAutoRenew,
     updateSubscriptionAddNewUsersAutomatically,
     updatePersonalKarma,

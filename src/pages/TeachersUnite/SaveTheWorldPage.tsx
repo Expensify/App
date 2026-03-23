@@ -20,7 +20,7 @@ import useWaitForNavigation from '@hooks/useWaitForNavigation';
 import Navigation from '@libs/Navigation/Navigation';
 import {getCardForSubscriptionBilling} from '@libs/SubscriptionUtils';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
-import {updatePersonalKarma} from '@userActions/Subscription';
+import {openSaveTheWorldPage, updatePersonalKarma} from '@userActions/Subscription';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -79,6 +79,10 @@ function SaveTheWorldPage() {
             sentryLabel: item.sentryLabel,
         }));
     }, [translate, waitForNavigate, styles]);
+
+    useEffect(() => {
+        openSaveTheWorldPage();
+    }, []);
 
     useEffect(() => {
         if (!pendingPersonalKarmaEnableRef.current || !billingCard) {
