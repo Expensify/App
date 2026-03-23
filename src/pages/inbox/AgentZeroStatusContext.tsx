@@ -1,20 +1,14 @@
 import {agentZeroProcessingIndicatorSelector} from '@selectors/ReportNameValuePairs';
 import React, {createContext, useContext, useEffect, useRef, useState} from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
-import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import useIsInSidePanel from '@hooks/useIsInSidePanel';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
-import useSidePanelState from '@hooks/useSidePanelState';
 import {getReportChannelName} from '@libs/actions/Report';
 import Log from '@libs/Log';
 import Pusher from '@libs/Pusher';
-import {isCreatedAction} from '@libs/ReportActionsUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ReportActions} from '@src/types/onyx/ReportAction';
 
 type ReasoningEntry = {
     reasoning: string;
@@ -31,9 +25,6 @@ type AgentZeroStatusState = {
 
     /** Debounced label shown in the thinking bubble (e.g. "Looking up categories...") */
     statusLabel: string;
-
-    /** When true, thinking bubble and typing indicator should be hidden (side-panel welcome state before user sends a message) */
-    shouldSuppressIndicators: boolean;
 };
 
 type AgentZeroStatusActions = {
@@ -45,7 +36,6 @@ const defaultState: AgentZeroStatusState = {
     isProcessing: false,
     reasoningHistory: [],
     statusLabel: '',
-    shouldSuppressIndicators: false,
 };
 
 const defaultActions: AgentZeroStatusActions = {
@@ -82,22 +72,6 @@ function AgentZeroStatusProvider({reportID, chatType, children}: React.PropsWith
 function AgentZeroStatusGate({reportID, children}: React.PropsWithChildren<{reportID: string}>) {
     // Server-driven processing label from report name-value pairs (e.g. "Looking up categories...")
     const [serverLabel] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`, {selector: agentZeroProcessingIndicatorSelector});
-
-    // Side-panel suppression: hide thinking/typing indicators until the user sends a message in this session
-    const isInSidePanel = useIsInSidePanel();
-    const {sessionStartTime} = useSidePanelState();
-    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
-
-    const hasUserSentMessageSelector = (actions: OnyxEntry<ReportActions>) => {
-        if (!actions || !isInSidePanel || !sessionStartTime) {
-            return false;
-        }
-        return Object.values(actions).some((action) => !isCreatedAction(action) && action.actorAccountID === currentUserAccountID && action.created >= sessionStartTime);
-    };
-    // eslint-disable-next-line rulesdir/no-inline-useOnyx-selector -- React Compiler handles memoization
-    const [hasUserSentMessage] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
-        selector: hasUserSentMessageSelector,
-    });
 
     // Timestamp set when the user sends a message, before the server label arrives — shows "Concierge is thinking..."
     const [optimisticStartTime, setOptimisticStartTime] = useState<number | null>(null);
@@ -257,15 +231,14 @@ function AgentZeroStatusGate({reportID, children}: React.PropsWithChildren<{repo
         setOptimisticStartTime(Date.now());
     };
 
+    // True when AgentZero is actively working — either the server sent a label or we're optimistically waiting
     const isProcessing = !isOffline && (!!serverLabel || !!optimisticStartTime);
-    const shouldSuppressIndicators = isInSidePanel && !hasUserSentMessage;
 
     // eslint-disable-next-line react/jsx-no-constructed-context-values -- React Compiler handles memoization
     const stateValue: AgentZeroStatusState = {
         isProcessing,
         reasoningHistory,
         statusLabel: displayedLabel,
-        shouldSuppressIndicators,
     };
 
     // eslint-disable-next-line react/jsx-no-constructed-context-values -- React Compiler handles memoization

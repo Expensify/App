@@ -11,6 +11,7 @@ import Text from '@components/Text';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useShouldSuppressConciergeIndicators from '@hooks/useShouldSuppressConciergeIndicators';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -34,9 +35,10 @@ type ConciergeThinkingMessageProps = {
 };
 
 function ConciergeThinkingMessage({report, action}: ConciergeThinkingMessageProps) {
-    const {isProcessing, reasoningHistory, statusLabel, shouldSuppressIndicators} = useAgentZeroStatus();
+    const {isProcessing, reasoningHistory, statusLabel} = useAgentZeroStatus();
+    const shouldSuppress = useShouldSuppressConciergeIndicators(report?.reportID ?? '');
 
-    if (!isProcessing || shouldSuppressIndicators) {
+    if (!isProcessing || shouldSuppress) {
         return null;
     }
 
