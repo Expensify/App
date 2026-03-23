@@ -39,7 +39,7 @@ function WorkspaceOverviewCurrencyPage({policy}: WorkspaceOverviewCurrencyPagePr
     const isForcedToChangeCurrency = !!route.params?.isForcedToChangeCurrency;
     const [hasVBA = false] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {selector: hasVBASelector});
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
-    const hasPartiallySetupBankAccount = doesPolicyHavePartiallySetupBankAccount(bankAccountList, policy?.id ?? '');
+    const hasPartiallySetupBankAccount = !!policy?.id && doesPolicyHavePartiallySetupBankAccount(bankAccountList, policy.id);
     const shouldBlockCurrencyChange = hasVBA || hasPartiallySetupBankAccount;
 
     const onSelectCurrency = (item: CurrencyListItem) => {

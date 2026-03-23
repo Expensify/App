@@ -105,7 +105,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
     const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${defaultFundID}`);
     const settings = getCardSettings(cardSettings);
     const isBankAccountVerified = !!settings?.paymentBankAccountID;
-    const hasPartiallySetupBankAccount = doesPolicyHavePartiallySetupBankAccount(bankAccountList, policyID ?? '');
+    const hasPartiallySetupBankAccount = !!policyID && doesPolicyHavePartiallySetupBankAccount(bankAccountList, policyID);
 
     const isPolicyAdmin = isPolicyAdminPolicyUtils(policy);
     const outputCurrency = policy?.outputCurrency ?? '';
