@@ -118,6 +118,7 @@ function IOURequestStepDistanceOdometer({
     const personalPolicy = usePersonalPolicy();
     const defaultExpensePolicy = useDefaultExpensePolicy();
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
+    const [ownerBillingGraceEndPeriod] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const selfDMReport = useSelfDMReport();
     const {policyForMovingExpenses} = usePolicyForMovingExpenses();
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
@@ -136,7 +137,10 @@ function IOURequestStepDistanceOdometer({
     const currentUserEmailParam = currentUserPersonalDetails.login ?? '';
     const [shouldEnableDiscardConfirmation, setShouldEnableDiscardConfirmation] = useState(!isEditingConfirmation && !isEditing);
 
-    const shouldUseDefaultExpensePolicy = useMemo(() => shouldUseDefaultExpensePolicyUtil(iouType, defaultExpensePolicy, amountOwed), [iouType, defaultExpensePolicy, amountOwed]);
+    const shouldUseDefaultExpensePolicy = useMemo(
+        () => shouldUseDefaultExpensePolicyUtil(iouType, defaultExpensePolicy, amountOwed, ownerBillingGraceEndPeriod),
+        [iouType, defaultExpensePolicy, amountOwed, ownerBillingGraceEndPeriod],
+    );
     const customUnitRateID = getRateID(transaction);
 
     const mileageRate = DistanceRequestUtils.getRate({transaction: currentTransaction, policy: shouldUseDefaultExpensePolicy ? defaultExpensePolicy : policy});
@@ -500,6 +504,7 @@ function IOURequestStepDistanceOdometer({
             draftTransactionIDs,
             isSelfTourViewed: !!isSelfTourViewed,
             amountOwed,
+            ownerBillingGraceEndPeriod,
         });
     };
 
