@@ -8,10 +8,10 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useSidePanelState from '@hooks/useSidePanelState';
+import {getReportChannelName} from '@libs/actions/Report';
 import Log from '@libs/Log';
 import Pusher from '@libs/Pusher';
 import {isCreatedAction} from '@libs/ReportActionsUtils';
-import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportActions} from '@src/types/onyx/ReportAction';
@@ -145,7 +145,7 @@ function AgentZeroStatusGate({reportID, children}: React.PropsWithChildren<{repo
 
     // Pusher subscription lifecycle
     useEffect(() => {
-        const channelName = `${CONST.PUSHER.PRIVATE_REPORT_CHANNEL_PREFIX}${reportID}${CONFIG.PUSHER.SUFFIX}`;
+        const channelName = getReportChannelName(reportID);
 
         const listener = Pusher.subscribe(channelName, Pusher.TYPE.CONCIERGE_REASONING, (data: Record<string, unknown>) => {
             const eventData = data as {reasoning: string; agentZeroRequestID: string; loopCount: number};

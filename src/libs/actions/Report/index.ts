@@ -7329,4 +7329,5 @@ export {
     setOptimisticTransactionThread,
     prepareOnyxDataForCleanUpOptimisticParticipants,
     getGuidedSetupDataForOpenReport,
+    getReportChannelName,
 };
