@@ -71,7 +71,7 @@ This layer uses `@react-native-community/netinfo` to detect whether the device h
 
 ### Reachability tracking
 
-The NetInfo listener also tracks `isInternetReachable` transitions. When `isInternetReachable` changes from `false`/`null` to `true`, it calls `NetworkState.onReachabilityRestored()` to clear the hard stop and trigger reconnection.
+The NetInfo listener also tracks `isInternetReachable` transitions. Only a `false` → `true` transition triggers `onReachabilityRestored()`. The initial event on subscribe (`undefined` → `true`) and indeterminate transitions (`null` → `true`) are **not** treated as recoveries — they indicate "we just started listening and things are fine," not an actual outage recovery. This prevents duplicate `openApp()`/`reconnectApp()` calls on boot.
 
 **Platform behavior:**
 

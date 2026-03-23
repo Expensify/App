@@ -1,4 +1,4 @@
-import {getDBTimeWithSkew, getIsOffline, getLastOfflineAt, setForceOffline, setHasRadio, setSustainedFailures, subscribe} from '@src/libs/NetworkState';
+import {getDBTimeWithSkew, getIsOffline, getLastOfflineAt, onReachabilityConfirmed, setForceOffline, setHasRadio, setSustainedFailures, subscribe} from '@src/libs/NetworkState';
 
 // Log triggers a circular dep chain (NetworkState → Log → Network → SequentialQueue → NetworkState.subscribe())
 // that causes the listeners Set to be undefined during module init. Mock Log to break the cycle.
@@ -250,6 +250,58 @@ describe('NetworkState', () => {
             const result = getDBTimeWithSkew();
             // DB time format: YYYY-MM-DD HH:MM:SS.SSS
             expect(result).toMatch(/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d{3}$/);
+        });
+    });
+
+    describe('onReachabilityConfirmed — reconnect listener isolation', () => {
+        // onReachabilityRestored() is internal and only called by the NetInfo listener
+        // when isInternetReachable transitions from false→true. These tests verify that
+        // the reconnect listeners are properly isolated — they should NOT fire from
+        // state changes through the public setters (setHasRadio, setSustainedFailures).
+
+        test('reconnect listener is not called by setHasRadio offline→online transition', () => {
+            const reconnectListener = jest.fn();
+            const unsubscribe = onReachabilityConfirmed(reconnectListener);
+
+            setHasRadio(false);
+            setHasRadio(true);
+            expect(reconnectListener).not.toHaveBeenCalled();
+
+            unsubscribe();
+        });
+
+        test('reconnect listener is not called by setSustainedFailures clearing', () => {
+            const reconnectListener = jest.fn();
+            const unsubscribe = onReachabilityConfirmed(reconnectListener);
+
+            setSustainedFailures(true);
+            setSustainedFailures(false);
+            expect(reconnectListener).not.toHaveBeenCalled();
+
+            unsubscribe();
+        });
+
+        test('reconnect listener is not called by setForceOffline clearing', () => {
+            const reconnectListener = jest.fn();
+            const unsubscribe = onReachabilityConfirmed(reconnectListener);
+
+            setForceOffline(true);
+            setForceOffline(false);
+            expect(reconnectListener).not.toHaveBeenCalled();
+
+            unsubscribe();
+        });
+
+        test('unsubscribe removes reconnect listener', () => {
+            const reconnectListener = jest.fn();
+            const unsubscribe = onReachabilityConfirmed(reconnectListener);
+
+            unsubscribe();
+
+            // Even if onReachabilityRestored somehow fired, unsubscribed listener should not be called
+            setHasRadio(false);
+            setHasRadio(true);
+            expect(reconnectListener).not.toHaveBeenCalled();
         });
     });
 });

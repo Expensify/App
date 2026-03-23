@@ -230,8 +230,13 @@ function configureAndSubscribe() {
         // when shouldForceOffline is turned off. Only gate the reconnect side effect.
         setHasRadio(radio);
 
-        if (!shouldForceOffline && state.isInternetReachable === true && prevIsInternetReachable !== true) {
-            Log.info('[NetworkState] Internet reachability restored');
+        // Only treat false→true as a genuine recovery. The initial NetInfo event on subscribe
+        // delivers the current state immediately (undefined→true), which is not a recovery —
+        // it just means "we started listening and things are fine." Firing onReachabilityRestored()
+        // on boot would cause a duplicate openApp()/reconnectApp() on top of AuthScreensInitHandler.
+        // Similarly, null→true (NetInfo hasn't determined reachability yet) is not an outage recovery.
+        if (!shouldForceOffline && state.isInternetReachable === true && prevIsInternetReachable === false) {
+            Log.info('[NetworkState] Internet reachability restored (false→true)');
             onReachabilityRestored();
         }
         prevIsInternetReachable = state.isInternetReachable;
