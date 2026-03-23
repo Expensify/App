@@ -411,7 +411,11 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                 if (!policyID) {
                     return;
                 }
-                enablePolicyTaxes(policyID, isEnabled, policy?.taxRates);
+                if (isEnabled) {
+                    enablePolicyTaxes(policyID, true, policy?.taxRates);
+                    return;
+                }
+                enablePolicyTaxes(policyID, false);
             },
             onPress: () => {
                 if (!policyID) {
