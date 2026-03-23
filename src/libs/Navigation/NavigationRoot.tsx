@@ -12,7 +12,6 @@ import useTheme from '@hooks/useTheme';
 import useThemePreference from '@hooks/useThemePreference';
 import FS from '@libs/Fullstory';
 import Log from '@libs/Log';
-import NavigationFocusManager from '@libs/NavigationFocusManager';
 import shouldOpenLastVisitedPath from '@libs/shouldOpenLastVisitedPath';
 import {getPathFromURL} from '@libs/Url';
 import {getBaseTheme} from '@styles/theme/utils';
@@ -242,7 +241,6 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
         // We want to clean saved scroll offsets for screens that aren't anymore in the state.
         cleanStaleScrollOffsets(state);
         cleanPreservedNavigatorStates(state);
-        NavigationFocusManager.cleanupRemovedRoutes(state);
     };
 
     const onReadyWithSentry = useCallback(() => {
