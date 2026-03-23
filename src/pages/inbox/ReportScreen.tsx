@@ -412,9 +412,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
         if (isTransactionThreadView) {
             return (
                 <MoneyRequestHeader
-                    report={report}
-                    policy={policy}
-                    parentReportAction={parentReportAction}
+                    reportID={reportIDFromRoute}
                     onBackButtonPress={onBackButtonPress}
                 />
             );
@@ -423,11 +421,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
         if (isMoneyRequestOrInvoiceReport) {
             return (
                 <MoneyReportHeader
-                    report={report}
-                    policy={policy}
-                    transactionThreadReportID={transactionThreadReportID}
-                    isLoadingInitialReportActions={reportMetadata.isLoadingInitialReportActions}
-                    reportActions={reportActions}
+                    reportID={reportIDFromRoute}
                     onBackButtonPress={onBackButtonPress}
                 />
             );
@@ -437,24 +431,9 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
             <HeaderView
                 reportID={reportIDFromRoute}
                 onNavigationMenuButtonClicked={onBackButtonPress}
-                report={report}
-                parentReportAction={parentReportAction}
-                shouldUseNarrowLayout={shouldUseNarrowLayout}
             />
         );
-    }, [
-        isTransactionThreadView,
-        isMoneyRequestOrInvoiceReport,
-        report,
-        policy,
-        parentReportAction,
-        onBackButtonPress,
-        transactionThreadReportID,
-        reportMetadata.isLoadingInitialReportActions,
-        reportActions,
-        reportIDFromRoute,
-        shouldUseNarrowLayout,
-    ]);
+    }, [isTransactionThreadView, isMoneyRequestOrInvoiceReport, onBackButtonPress, reportIDFromRoute]);
 
     useEffect(() => {
         if (!transactionThreadReportID || !route?.params?.reportActionID || !isOneTransactionThread(childReport, report, linkedAction)) {

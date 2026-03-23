@@ -452,6 +452,8 @@ const translations: TranslationDeepObject<typeof en> = {
         downloadAsCSV: 'Downloaden als CSV',
         print: 'Afdrukken',
         help: 'Help',
+        collapsed: 'Ingeklapt',
+        expanded: 'Uitgeklapt',
         expenseReport: 'Declaratie',
         expenseReports: 'Declaraties',
         rateOutOfPolicy: 'Tarief buiten beleid',
@@ -524,6 +526,7 @@ const translations: TranslationDeepObject<typeof en> = {
         concierge: {sidePanelGreeting: 'Hoi, waarmee kan ik je helpen?', showHistory: 'Geschiedenis weergeven'},
         duplicateReport: 'Dubbel rapport',
         approver: 'Fiatteur',
+        copyOfReportName: (reportName: string) => `Kopie van ${reportName}`,
     },
     socials: {
         podcast: 'Volg ons op Podcast',
@@ -670,6 +673,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 faceId: 'Face ID',
                 touchId: 'Touch ID',
                 opticId: 'Optic ID',
+                passkey: 'Passkey',
             },
             statusNeverRegistered: 'Nooit geregistreerd',
             statusNotRegistered: 'Niet geregistreerd',
@@ -687,11 +691,10 @@ const translations: TranslationDeepObject<typeof en> = {
         letsVerifyItsYou: 'Laten we controleren of jij het bent',
         nowLetsAuthenticateYou: 'Laten we je nu verifiëren...',
         letsAuthenticateYou: 'We gaan je authenticeren...',
-        verifyYourself: {
-            biometrics: 'Verifieer jezelf met je gezicht of vingerafdruk',
-        },
+        verifyYourself: {biometrics: 'Verifieer jezelf met je gezicht of vingerafdruk', passkeys: 'Verifieer jezelf met een toegangssleutel'},
         enableQuickVerification: {
             biometrics: 'Schakel snelle, veilige verificatie in met je gezicht of vingerafdruk. Geen wachtwoorden of codes nodig.',
+            passkeys: 'Schakel snelle, veilige verificatie in met een passkey. Geen wachtwoorden of codes nodig.',
         },
         revoke: {
             title: 'Gezicht/vingerafdruk & passkeys',
@@ -8229,6 +8232,8 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
             title: 'Expensify-code',
             discountCode: 'Kortingscode',
             enterCode: 'Voer een Expensify-code in om toe te passen op je abonnement.',
+            discountMessage: (promoDiscount: string, validBillingCycles: string) =>
+                `Je ontvangt ${promoDiscount}% korting op je volgende ${validBillingCycles ? `${validBillingCycles} ` : ''}factureringskosten.`,
             apply: 'Toepassen',
             error: {
                 invalid: 'Deze code is ongeldig',
@@ -8256,6 +8261,8 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
                 `<muted-text>Lees meer op onze <a href="${CONST.PRICING}">prijspagina</a> of chat met ons team in je ${hasAdminsRoom ? `<a href="adminsRoom">#admins-kamer.</a>` : '#admins-kamer.'}</muted-text>`,
             estimatedPrice: 'Geschatte prijs',
             changesBasedOn: 'Dit verandert op basis van je gebruik van de Expensify Kaart en de abonnementsopties hieronder.',
+            collectBillingDescription: 'Collect-werkruimtes worden maandelijks per lid gefactureerd, zonder jaarlijkse verplichting.',
+            pricing: 'Prijzen',
         },
         requestEarlyCancellation: {
             title: 'Vroegtijdige annulering aanvragen',
