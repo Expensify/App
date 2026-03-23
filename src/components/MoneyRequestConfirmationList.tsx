@@ -87,7 +87,7 @@ import EducationalTooltip from './Tooltip/EducationalTooltip';
 
 type MoneyRequestConfirmationListProps = {
     /** Callback to inform parent modal of success */
-    onConfirm?: (selectedParticipants: Participant[], amount?: number, currency?: string) => void;
+    onConfirm?: (selectedParticipants: Participant[]) => void;
 
     /** Callback to parent modal to pay someone */
     onSendMoney?: (paymentMethod: PaymentMethodType | undefined) => void;
