@@ -127,7 +127,7 @@ This is especially helpful in the EU, where open banking rules often block acces
 
 ## Which banks support direct feeds?
 
-Some examples of supported direct feed banks include:
+Below are examples of banks that support direct feeds. This is not a complete list:
 
 - American Express  
 - Bank of America  
@@ -137,5 +137,5 @@ Some examples of supported direct feed banks include:
 - Citibank  
 - Stripe  
 - Wells Fargo  
-- Plaid enables a connection with hundreds of banks ([Plaid - European Bank Coverage](https://plaid.com/docs/resources/#european-bank-coverage))
+- Plaid enables connections with hundreds of additional banks across the U.S., Canada, and Europe ([Plaid - European Bank Coverage](https://plaid.com/docs/resources/#european-bank-coverage))
 
