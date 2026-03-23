@@ -3347,7 +3347,9 @@ function shallowOptionsListCompare(a: OptionList, b: OptionList): boolean {
         return false;
     }
     for (let i = 0; i < a.reports.length; i++) {
-        if (a.reports.at(i)?.reportID !== b.reports.at(i)?.reportID) {
+        const aReport = a.reports.at(i);
+        const bReport = b.reports.at(i);
+        if (aReport?.reportID !== bReport?.reportID || aReport?.text !== bReport?.text) {
             return false;
         }
     }
