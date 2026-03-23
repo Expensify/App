@@ -47,7 +47,7 @@ import {canEditFieldOfMoneyRequest, canHoldUnholdReportAction, canRejectReportAc
 import {buildCannedSearchQuery, buildSearchQueryString, isDefaultExpensesQuery} from '@libs/SearchQueryUtils';
 import {
     createAndOpenSearchTransactionThread,
-    GENERIC_SEARCH_KEYS,
+    doesSearchItemMatchSort,
     getColumnsToShow,
     getListItem,
     getSections,
@@ -1410,7 +1410,7 @@ function Search({
             }
         } else if (currentSearchKey && suggestedSearches[currentSearchKey]) {
             const suggestedSearch = suggestedSearches[currentSearchKey];
-            const sortMatches = GENERIC_SEARCH_KEYS.has(currentSearchKey) || (suggestedSearch.searchQueryJSON?.sortBy === sortBy && suggestedSearch.searchQueryJSON?.sortOrder === sortOrder);
+            const sortMatches = doesSearchItemMatchSort(currentSearchKey, suggestedSearch.searchQueryJSON?.sortBy, suggestedSearch.searchQueryJSON?.sortOrder, sortBy, sortOrder);
             if (sortMatches) {
                 chartTitle = translate(suggestedSearch.translationPath);
             }

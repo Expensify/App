@@ -3,7 +3,7 @@ import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
 import {useCallback, useEffect, useMemo, useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {areAllGroupPoliciesExpenseChatDisabled} from '@libs/PolicyUtils';
-import {createTypeMenuSections, GENERIC_SEARCH_KEYS} from '@libs/SearchUIUtils';
+import {createTypeMenuSections, doesSearchItemMatchSort} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Session} from '@src/types/onyx';
@@ -142,10 +142,7 @@ const useSearchTypeMenuSections = (queryParams?: UseSearchTypeMenuSectionsParams
                 if (item.similarSearchHash !== similarSearchHash) {
                     return false;
                 }
-                if (!GENERIC_SEARCH_KEYS.has(item.key) && (item.searchQueryJSON?.sortBy !== sortBy || item.searchQueryJSON?.sortOrder !== sortOrder)) {
-                    return false;
-                }
-                return true;
+                return doesSearchItemMatchSort(item.key, item.searchQueryJSON?.sortBy, item.searchQueryJSON?.sortOrder, sortBy, sortOrder);
             });
             if (found !== -1) {
                 return index + found;
