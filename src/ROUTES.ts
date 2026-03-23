@@ -816,12 +816,6 @@ const ROUTES = {
         // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
         getRoute: (reportID: string, backTo?: string) => getUrlWithBackToParam(`r/${reportID}/settings/name` as const, backTo),
     },
-    REPORT_SETTINGS_WRITE_CAPABILITY: {
-        route: 'r/:reportID/settings/who-can-post',
-
-        // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-        getRoute: (reportID: string, backTo?: string) => getUrlWithBackToParam(`r/${reportID}/settings/who-can-post` as const, backTo),
-    },
     REPORT_CHANGE_APPROVER: {
         route: 'r/:reportID/change-approver',
 
