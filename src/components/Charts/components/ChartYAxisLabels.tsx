@@ -2,9 +2,7 @@ import {FontWeight, Paragraph, Skia} from '@shopify/react-native-skia';
 import type {SkParagraph, SkTypefaceFontProvider} from '@shopify/react-native-skia';
 import React, {useMemo} from 'react';
 import type {ChartBounds, Scale} from 'victory-native';
-import {AXIS_LABEL_GAP} from '@components/Charts/constants';
-
-const CHART_FONT_FAMILIES = ['ExpensifyNeue', 'NotoSansSymbols'];
+import {AXIS_LABEL_GAP, CHART_FONT_FAMILIES} from '@components/Charts/constants';
 
 // Small extra padding so complex glyphs (e.g. Arabic) are not clipped.
 // getLongestLine() can slightly underreport the visual extent of the last glyph.
@@ -31,16 +29,19 @@ type ChartYAxisLabelsProps = {
 
     /** Formats a tick value to its display string. */
     formatValue: (value: number) => string;
+
+    /** When true, labels are left-aligned starting at chartBounds.left + AXIS_LABEL_GAP instead of right-aligned. */
+    leftAlign?: boolean;
 };
 
-function ChartYAxisLabels({yTicks, yScale, chartBounds, fontSize, fontMgr, labelColor, formatValue}: ChartYAxisLabelsProps) {
+function ChartYAxisLabels({yTicks, yScale, chartBounds, fontSize, fontMgr, labelColor, formatValue, leftAlign = false}: ChartYAxisLabelsProps) {
     const formattedLabels = useMemo(() => yTicks.map((tick) => formatValue(tick)), [yTicks, formatValue]);
 
-    const paragraphs = useMemo((): Array<{para: SkParagraph; width: number} | null> | null => {
+    const paragraphs = useMemo((): {items: Array<{para: SkParagraph; width: number}>; maxWidth: number} | null => {
         if (!fontMgr) {
             return null;
         }
-        return formattedLabels.map((label) => {
+        const items = formattedLabels.map((label) => {
             const para = Skia.ParagraphBuilder.Make({}, fontMgr)
                 .pushStyle({
                     color: Skia.Color(labelColor),
@@ -51,27 +52,28 @@ function ChartYAxisLabels({yTicks, yScale, chartBounds, fontSize, fontMgr, label
                 .addText(label)
                 .pop()
                 .build();
-            para.layout(9999);
+            para.layout(100);
             const width = para.getLongestLine();
             return {para, width};
         });
+        const maxWidth = Math.max(0, ...items.map((item) => item.width));
+        return {items, maxWidth};
     }, [fontMgr, formattedLabels, labelColor, fontSize]);
 
     // Derive line height from the first available paragraph's line metrics.
     const lineHeight = useMemo(() => {
-        const firstPara = paragraphs?.find((p) => p !== null);
+        const firstPara = paragraphs?.items.at(0);
         const metrics = firstPara?.para.getLineMetrics().at(0);
         return metrics ? Math.abs(metrics.ascent) + Math.abs(metrics.descent) : fontSize;
     }, [paragraphs, fontSize]);
 
     return yTicks.map((tick, i) => {
-        const paraData = paragraphs?.at(i) ?? null;
+        const paraData = paragraphs?.items.at(i) ?? null;
         if (!paraData) {
             return null;
         }
 
-        // Right-align: paragraph left edge so its right edge sits at chartBounds.left - AXIS_LABEL_GAP
-        const x = chartBounds.left - AXIS_LABEL_GAP - paraData.width + 2 * GLYPH_PADDING;
+        const x = chartBounds.left - AXIS_LABEL_GAP - 2 * GLYPH_PADDING - (leftAlign ? (paragraphs?.maxWidth ?? 0) : paraData.width);
         const tickY = yScale(tick);
 
         return (
@@ -86,5 +88,22 @@ function ChartYAxisLabels({yTicks, yScale, chartBounds, fontSize, fontMgr, label
     });
 }
 
-export default ChartYAxisLabels;
+function arePropsEqual(prev: ChartYAxisLabelsProps, next: ChartYAxisLabelsProps): boolean {
+    return (
+        prev.yTicks.length === next.yTicks.length &&
+        prev.yTicks.every((t, i) => t === next.yTicks.at(i)) &&
+        prev.chartBounds.left === next.chartBounds.left &&
+        prev.chartBounds.right === next.chartBounds.right &&
+        prev.chartBounds.top === next.chartBounds.top &&
+        prev.chartBounds.bottom === next.chartBounds.bottom &&
+        prev.fontSize === next.fontSize &&
+        prev.fontMgr === next.fontMgr &&
+        prev.labelColor === next.labelColor &&
+        prev.formatValue === next.formatValue &&
+        prev.leftAlign === next.leftAlign &&
+        (prev.yTicks.length === 0 || prev.yScale(prev.yTicks.at(0) ?? 0) === next.yScale(prev.yTicks.at(0) ?? 0))
+    );
+}
+
+export default React.memo(ChartYAxisLabels, arePropsEqual);
 export type {ChartYAxisLabelsProps};

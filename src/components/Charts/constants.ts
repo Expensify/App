@@ -1,3 +1,6 @@
+/** Font families used by all chart label components (Paragraph API multi-font fallback). */
+const CHART_FONT_FAMILIES = ['ExpensifyNeue', 'NotoSansSymbols'];
+
 /** Number of Y-axis ticks (including zero) */
 const Y_AXIS_TICK_COUNT = 5;
 
@@ -42,6 +45,7 @@ const DIAGONAL_ANGLE_RADIAN_THRESHOLD = 1;
 const PIE_CHART_TOOLTIP_RADIUS_DISTANCE = 2 / 3;
 
 export {
+    CHART_FONT_FAMILIES,
     Y_AXIS_TICK_COUNT,
     AXIS_LABEL_GAP,
     CHART_PADDING,

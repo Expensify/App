@@ -1,13 +1,11 @@
 import {FontWeight, Group, Paragraph, Skia, vec} from '@shopify/react-native-skia';
 import type {SkParagraph, SkTypefaceFontProvider} from '@shopify/react-native-skia';
 import React, {useMemo} from 'react';
-import {AXIS_LABEL_GAP} from '@components/Charts/constants';
+import {AXIS_LABEL_GAP, CHART_FONT_FAMILIES} from '@components/Charts/constants';
 import type {LabelRotation} from '@components/Charts/types';
 import {rotatedLabelCenterCorrection, rotatedLabelYOffset} from '@components/Charts/utils';
 
 type ParagraphWithWidth = {para: SkParagraph; width: number};
-
-const CHART_FONT_FAMILIES = ['ExpensifyNeue', 'NotoSansSymbols'];
 
 type ChartXAxisLabelsProps = {
     /** Processed label strings (already truncated by the layout hook). */
@@ -98,10 +96,10 @@ function ChartXAxisLabels({labels, labelRotation, labelSkipInterval, fontSize, f
         if (angleRad === 0) {
             return (
                 <Paragraph
-                    key={`x-label-${label}`}
+                    key={`x-label-${label.replaceAll(' ', '-')}-${tickX}`}
                     paragraph={paraData.para}
                     x={tickX - renderWidth / 2}
-                    y={labelY + ascent}
+                    y={labelY}
                     width={renderWidth + 1}
                 />
             );
@@ -112,7 +110,7 @@ function ChartXAxisLabels({labels, labelRotation, labelSkipInterval, fontSize, f
 
         return (
             <Group
-                key={`x-label-${label}`}
+                key={`x-label-${label.replaceAll(' ', '-')}-${tickX}`}
                 origin={origin}
                 transform={[{translateX: correction}, {rotate: -angleRad}]}
             >
@@ -127,5 +125,20 @@ function ChartXAxisLabels({labels, labelRotation, labelSkipInterval, fontSize, f
     });
 }
 
-export default ChartXAxisLabels;
+function arePropsEqual(prev: ChartXAxisLabelsProps, next: ChartXAxisLabelsProps): boolean {
+    return (
+        prev.labels.length === next.labels.length &&
+        prev.labels.every((l, i) => l === next.labels.at(i)) &&
+        prev.labelRotation === next.labelRotation &&
+        prev.labelSkipInterval === next.labelSkipInterval &&
+        prev.fontSize === next.fontSize &&
+        prev.fontMgr === next.fontMgr &&
+        prev.labelColor === next.labelColor &&
+        prev.chartBoundsBottom === next.chartBoundsBottom &&
+        prev.centerRotatedLabels === next.centerRotatedLabels &&
+        prev.xScale(0) === next.xScale(0)
+    );
+}
+
+export default React.memo(ChartXAxisLabels, arePropsEqual);
 export type {ChartXAxisLabelsProps};

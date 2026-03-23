@@ -1,6 +1,7 @@
-import type {SkFont} from '@shopify/react-native-skia';
+import {FontWeight, Skia} from '@shopify/react-native-skia';
+import type {SkTypefaceFontProvider} from '@shopify/react-native-skia';
 import colors from '@styles/theme/colors';
-import {ELLIPSIS, LABEL_PADDING, LABEL_ROTATIONS, PIE_CHART_TOOLTIP_RADIUS_DISTANCE, SIN_45} from './constants';
+import {CHART_FONT_FAMILIES, ELLIPSIS, LABEL_PADDING, LABEL_ROTATIONS, PIE_CHART_TOOLTIP_RADIUS_DISTANCE, SIN_45} from './constants';
 import type {ChartDataPoint, LabelRotation, PieSlice} from './types';
 
 /**
@@ -45,12 +46,35 @@ function getChartColor(index: number): string {
 const DEFAULT_CHART_COLOR = getChartColor(5);
 
 /**
- * Measure pixel width of a string via glyph widths.
- * (measureText is not implemented on React Native Web)
+ * Measures the rendered pixel width of a string using the Paragraph API.
+ * Supports multi-font fallback via fontMgr (e.g. NotoSansSymbols for currency glyphs).
  */
-function measureTextWidth(text: string, font: SkFont): number {
-    const glyphIDs = font.getGlyphIDs(text);
-    return font.getGlyphWidths(glyphIDs).reduce((sum, w) => sum + w, 0);
+function measureTextWidth(text: string, fontMgr: SkTypefaceFontProvider, fontSize: number): number {
+    const para = Skia.ParagraphBuilder.Make({}, fontMgr)
+        .pushStyle({fontFamilies: CHART_FONT_FAMILIES, fontStyle: {weight: FontWeight.Normal}, fontSize})
+        .addText(text)
+        .pop()
+        .build();
+    para.layout(9999);
+    return para.getLongestLine();
+}
+
+/**
+ * Returns ascent and descent for the chart font at the given size.
+ * Uses a representative string so Skia resolves the actual glyph metrics.
+ */
+function getFontLineMetrics(fontMgr: SkTypefaceFontProvider, fontSize: number): {ascent: number; descent: number} {
+    const para = Skia.ParagraphBuilder.Make({}, fontMgr)
+        .pushStyle({fontFamilies: CHART_FONT_FAMILIES, fontStyle: {weight: FontWeight.Normal}, fontSize})
+        .addText('Ag')
+        .pop()
+        .build();
+    para.layout(9999);
+    const metrics = para.getLineMetrics().at(0);
+    return {
+        ascent: metrics ? Math.abs(metrics.ascent) : fontSize,
+        descent: metrics ? Math.abs(metrics.descent) : 0,
+    };
 }
 
 /**
@@ -350,6 +374,7 @@ export {
     getChartColor,
     DEFAULT_CHART_COLOR,
     measureTextWidth,
+    getFontLineMetrics,
     rotatedLabelCenterCorrection,
     rotatedLabelYOffset,
     calculateMinDomainPadding,

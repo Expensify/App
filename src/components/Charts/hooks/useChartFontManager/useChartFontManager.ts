@@ -14,7 +14,7 @@ function useChartFontManager(): SkTypefaceFontProvider | null {
             webFont(require('@assets/fonts/web/ExpensifyNeue-Italic.woff2') as string),
             webFont(require('@assets/fonts/web/ExpensifyNeue-BoldItalic.woff2') as string),
         ],
-        NotoSansSymbols: [webFont(require('@assets/fonts/NotoSans-Symbols.woff') as string)],
+        NotoSansSymbols: [webFont(require('@assets/fonts/NotoSans-Symbols.ttf') as string)],
     });
 }
 
