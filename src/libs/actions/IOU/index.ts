@@ -13227,7 +13227,7 @@ type UpdateMultipleMoneyRequestsParams = {
     reports: OnyxCollection<OnyxTypes.Report>;
     transactions: OnyxCollection<OnyxTypes.Transaction>;
     reportActions: OnyxCollection<OnyxTypes.ReportActions>;
-    policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>;
+    policyCategories: OnyxCollection<OnyxTypes.PolicyCategories>;
     policyTags: OnyxCollection<OnyxTypes.PolicyTagLists>;
     hash?: number;
     allPolicies?: OnyxCollection<OnyxTypes.Policy>;
@@ -13439,14 +13439,15 @@ function updateMultipleMoneyRequests({
                 transactionChanges.category !== undefined && transactionChanges.category === ''
                     ? optimisticViolations.filter((violation) => violation.name !== CONST.VIOLATIONS.CATEGORY_OUT_OF_POLICY)
                     : optimisticViolations;
-            const policyTagList = policyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${transactionPolicy?.id}`] ?? {};
+            const transactionPolicyTagList = policyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${transactionPolicy?.id}`] ?? {};
+            const transactionPolicyCategories = policyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${transactionPolicy?.id}`] ?? {};
             optimisticViolationsData = ViolationsUtils.getViolationsOnyxData(
                 updatedTransaction,
                 optimisticViolations,
                 transactionPolicy,
-                policyTagList,
-                policyCategories ?? {},
-                hasDependentTags(transactionPolicy, policyTagList),
+                transactionPolicyTagList,
+                transactionPolicyCategories,
+                hasDependentTags(transactionPolicy, transactionPolicyTagList),
                 isInvoiceReportReportUtils(iouReport),
                 isSelfDM(iouReport),
                 iouReport,

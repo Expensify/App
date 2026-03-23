@@ -12613,7 +12613,9 @@ describe('actions/IOU', () => {
                 reports,
                 transactions,
                 reportActions: {},
-                policyCategories,
+                policyCategories: {
+                    [`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policy.id}`]: policyCategories,
+                },
                 policyTags: {},
                 hash: undefined,
             });
@@ -12686,6 +12688,142 @@ describe('actions/IOU', () => {
             const updatedViolations = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`);
             const violationNames = updatedViolations?.map((v) => v.name) ?? [];
             expect(violationNames).not.toContain(CONST.VIOLATIONS.MISSING_CATEGORY);
+
+            canEditFieldSpy.mockRestore();
+        });
+
+        it('does not add false categoryOutOfPolicy violation in cross-policy bulk edit when category exists in transaction policy', async () => {
+            const transactionID = 'transaction-cross-cat-1';
+            const transactionThreadReportID = 'thread-cross-cat-1';
+            const bulkEditPolicyID = 'bulk-policy';
+            const transactionPolicyID = 'tx-policy';
+
+            // bulkEditPolicy does NOT have "Engineering" category
+            const bulkEditPolicy = {...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM), id: bulkEditPolicyID, requiresCategory: true};
+            // transactionPolicy DOES have "Engineering" category — the transaction's category is valid here
+            const txPolicy = {...createRandomPolicy(2, CONST.POLICY.TYPE.TEAM), id: transactionPolicyID, requiresCategory: true};
+
+            const iouReport: Report = {
+                ...createRandomReport(2, undefined),
+                reportID: 'iou-cross-cat-1',
+                policyID: transactionPolicyID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+            };
+
+            const reports = {
+                [`${ONYXKEYS.COLLECTION.REPORT}iou-cross-cat-1`]: iouReport,
+            };
+
+            const transaction: Transaction = {
+                ...createRandomTransaction(1),
+                transactionID,
+                reportID: 'iou-cross-cat-1',
+                transactionThreadReportID,
+                amount: 1000,
+                currency: CONST.CURRENCY.USD,
+                category: 'Engineering',
+            };
+            const transactions = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: transaction,
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`, []);
+            await waitForBatchedUpdates();
+
+            const canEditFieldSpy = jest.spyOn(require('@libs/ReportUtils'), 'canEditFieldOfMoneyRequest').mockReturnValue(true);
+
+            // Pass categories for BOTH policies — "Engineering" only exists in the transaction's policy
+            updateMultipleMoneyRequests({
+                transactionIDs: [transactionID],
+                changes: {amount: 2000},
+                policy: bulkEditPolicy,
+                reports,
+                transactions,
+                reportActions: {},
+                policyCategories: {
+                    [`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${bulkEditPolicyID}`]: {
+                        // eslint-disable-next-line @typescript-eslint/naming-convention
+                        Marketing: {name: 'Marketing', enabled: true, 'GL Code': '', unencodedName: 'Marketing', externalID: '', areCommentsRequired: false, origin: ''},
+                    },
+                    [`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${transactionPolicyID}`]: {
+                        // eslint-disable-next-line @typescript-eslint/naming-convention
+                        Engineering: {name: 'Engineering', enabled: true, 'GL Code': '', unencodedName: 'Engineering', externalID: '', areCommentsRequired: false, origin: ''},
+                    },
+                },
+                policyTags: {},
+                hash: undefined,
+                allPolicies: {
+                    [`${ONYXKEYS.COLLECTION.POLICY}${transactionPolicyID}`]: txPolicy,
+                },
+            });
+            await waitForBatchedUpdates();
+
+            // "Engineering" exists in the transaction's own policy, so no categoryOutOfPolicy violation
+            const updatedViolations = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`);
+            const violationNames = updatedViolations?.map((v) => v.name) ?? [];
+            expect(violationNames).not.toContain(CONST.VIOLATIONS.CATEGORY_OUT_OF_POLICY);
+
+            canEditFieldSpy.mockRestore();
+        });
+
+        it('adds categoryOutOfPolicy violation when category does not exist in transaction own policy', async () => {
+            const transactionID = 'transaction-bad-cat-1';
+            const transactionThreadReportID = 'thread-bad-cat-1';
+            const policyID = 'cat-policy';
+
+            const policy = {...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM), id: policyID, requiresCategory: true};
+
+            const iouReport: Report = {
+                ...createRandomReport(2, undefined),
+                reportID: 'iou-bad-cat-1',
+                policyID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+            };
+
+            const reports = {
+                [`${ONYXKEYS.COLLECTION.REPORT}iou-bad-cat-1`]: iouReport,
+            };
+
+            const transaction: Transaction = {
+                ...createRandomTransaction(1),
+                transactionID,
+                reportID: 'iou-bad-cat-1',
+                transactionThreadReportID,
+                amount: 1000,
+                currency: CONST.CURRENCY.USD,
+                category: 'NonExistentCategory',
+            };
+            const transactions = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: transaction,
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`, []);
+            await waitForBatchedUpdates();
+
+            const canEditFieldSpy = jest.spyOn(require('@libs/ReportUtils'), 'canEditFieldOfMoneyRequest').mockReturnValue(true);
+
+            updateMultipleMoneyRequests({
+                transactionIDs: [transactionID],
+                changes: {amount: 2000},
+                policy,
+                reports,
+                transactions,
+                reportActions: {},
+                policyCategories: {
+                    [`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`]: {
+                        // eslint-disable-next-line @typescript-eslint/naming-convention
+                        Food: {name: 'Food', enabled: true, 'GL Code': '', unencodedName: 'Food', externalID: '', areCommentsRequired: false, origin: ''},
+                    },
+                },
+                policyTags: {},
+                hash: undefined,
+            });
+            await waitForBatchedUpdates();
+
+            // "NonExistentCategory" is not in the policy categories, so categoryOutOfPolicy should be added
+            const updatedViolations = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`);
+            const violationNames = updatedViolations?.map((v) => v.name) ?? [];
+            expect(violationNames).toContain(CONST.VIOLATIONS.CATEGORY_OUT_OF_POLICY);
 
             canEditFieldSpy.mockRestore();
         });
