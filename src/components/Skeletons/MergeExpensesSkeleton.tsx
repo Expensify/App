@@ -15,7 +15,7 @@ const shortBarWidth = 40;
 type MergeExpensesSkeletonProps = {
     fixedNumItems?: number;
     speed?: number;
-    reasonAttributes?: SkeletonSpanReasonAttributes;
+    reasonAttributes: SkeletonSpanReasonAttributes;
 };
 
 function MergeExpensesSkeleton({fixedNumItems, speed, reasonAttributes}: MergeExpensesSkeletonProps) {
