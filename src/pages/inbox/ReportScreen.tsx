@@ -97,6 +97,7 @@ import {
     navigateToConciergeChat,
     openReport,
     readNewestAction,
+    setCurrentOpenedReportID,
     subscribeToReportLeavingEvents,
     unsubscribeFromLeavingRoomReportChannel,
     updateLastVisitTime,
@@ -376,6 +377,13 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
         }
         hideEmojiPicker(true);
     }, [prevIsFocused, isFocused]);
+
+    useEffect(() => {
+        if (!reportID) {
+            return;
+        }
+        setCurrentOpenedReportID(reportID);
+    }, [reportID]);
 
     const backTo = route?.params?.backTo as string;
     const onBackButtonPress = useCallback(
