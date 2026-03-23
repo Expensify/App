@@ -5,7 +5,7 @@ keywords: [New Expensify, duplicate expenses, SmartScan merge failed, receipt di
 internalScope: Audience is members and approvers managing expenses. Covers all common causes of duplicate expenses, including SmartScan merge failures, duplicate receipt uploads, and duplicate card imports. Does not cover step by step instructions for resolving, merging, or deleting duplicate expenses and instead links out to how-to articles. 
 ---
 
-# Why Expenses Duplicate
+# Why expenses duplicate
 
 Duplicate expenses happen when the same purchase is recorded more than once in Expensify. In most cases, duplicates are caused by one of a few common scenarios.
 
@@ -13,7 +13,7 @@ Understanding these scenarios will help you quickly identify why duplicates happ
 
 ---
 
-## What Causes Duplicate Expenses in Expensify
+## What causes duplicate expenses
 
 Duplicate expenses usually happen for one of three reasons:
 
@@ -25,7 +25,7 @@ Each of these scenarios can result in duplicate expenses for the same purchase.
 
 ---
 
-## Why Your Expenses Did Not Merge
+## Why your expenses did not merge
 
 Expensify automatically merges a SmartScanned receipt with a matching card transaction when key details align. If any of these conditions are not met, the receipt and card transaction will remain as separate expenses.
 
@@ -52,7 +52,7 @@ If expenses do not merge automatically, they will remain separate unless you mer
 
 ---
 
-## Why the Same Receipt Was Uploaded More Than Once
+## Why the same receipt was uploaded more than once
 
 Duplicate expenses can also happen when the same receipt is added multiple times.
 
@@ -66,7 +66,7 @@ Each upload creates a separate expense, even if the receipt details are identica
 
 ---
 
-## Why Card Transactions Import More Than Once
+## Why card transactions import more than once
 
 In some cases, duplicate expenses occur when the same card transaction is imported more than once. 
 
@@ -74,7 +74,9 @@ This most often happens when a card connection is reconnected using a Transactio
 
 As a result, the same transaction appears multiple times as separate expenses.
 
-## What to Do If You Have Duplicate Expenses
+---
+
+## What to do if you have duplicate expenses
 
 If you have duplicate expenses, you can use Review Duplicates to resolve them, or merge them manually: 
 
