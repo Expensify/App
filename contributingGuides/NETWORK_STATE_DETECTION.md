@@ -38,22 +38,23 @@ The app uses a two-layer detection model to determine connectivity status. Each 
 
 A **hard stop** means the app considers itself offline. When at least one trigger is active, the hard stop is ON. When all triggers are cleared, the hard stop is OFF.
 
-Three triggers can activate a hard stop:
+Four triggers can activate a hard stop:
 
 | Trigger | Source | Meaning |
 |---|---|---|
 | `noRadioActive` | OS radio detection | Device has no network interface (airplane mode, WiFi off) |
 | `sustainedFailuresActive` | Failure tracker | Requests have been failing consistently |
 | `shouldForceOffline` | Debug tool | Manually forced offline via TestToolMenu |
+| `simulatedOffline` | Test tool | Poor connection simulator toggling offline randomly |
 
 When a hard stop activates:
 1. `NetworkState` notifies all subscribers (via `subscribe()`)
-2. `SequentialQueue` sees the offline→online transition and stops flushing
+2. `SequentialQueue` guards against processing while offline (reads `getIsOffline()` synchronously)
 3. Components using `useNetwork()` re-render with `isOffline: true`
 
 When the hard stop clears:
 1. `NetworkState` notifies all subscribers
-2. `SequentialQueue` sees the online transition and flushes pending writes
+2. `Reconnect.ts` detects the offline→online transition and calls `SequentialQueue.flush()`
 3. Components using `useNetwork()` re-render with `isOffline: false`
 
 ## Layer 1: OS Radio Detection
@@ -75,7 +76,7 @@ The NetInfo listener also tracks `isInternetReachable` transitions. Only a `fals
 
 **Platform behavior:**
 
-We configure `useNativeReachability: false` so that NetInfo uses JS fetch polling (`api/Ping`) on **all platforms** instead of trusting native OS reachability. This aligns behavior across web and mobile: polls every 60s when reachable, every 5s when unreachable. Recovery is detected when Ping succeeds and `isInternetReachable` flips to `true`.
+We configure `useNativeReachability: false` so that NetInfo uses JS fetch polling (`api/Ping`) on **all platforms** instead of trusting native OS reachability. This aligns behavior across web and mobile. NetInfo's default polling intervals apply (60s when reachable, 5s when unreachable). Recovery is detected when Ping succeeds and `isInternetReachable` flips to `true`.
 
 ## Layer 2: Sustained Failure Detection
 
@@ -124,7 +125,7 @@ simulatedOffline        — set by poor connection simulator
 const offline = !hasRadio || sustainedFailuresActive || shouldForceOffline || simulatedOffline;
 ```
 
-`updateState()` notifies all subscribers when the state changes. `SequentialQueue` subscribes and flushes pending writes on offline→online transitions.
+`updateState()` notifies all subscribers when the state changes. `Reconnect.ts` subscribes and calls `SequentialQueue.flush()` on offline→online transitions. `SequentialQueue` reads `getIsOffline()` synchronously for its guard checks but does not own the transition subscription.
 
 ### Recovery flow
 
@@ -182,7 +183,7 @@ Two debug options are available via the TestToolMenu (accessible in dev builds):
 | `src/libs/FailureTracker.ts` | Counts failures, triggers sustained failure hard stop via listener pattern |
 | `src/libs/Middleware/FailureTracking.ts` | Middleware that observes request outcomes and feeds FailureTracker |
 | `src/libs/actions/Reconnect.ts` | Subscribes to reachability + foreground events, syncs app data after recovery |
-| `src/libs/Network/SequentialQueue.ts` | Write request queue, subscribes to NetworkState and flushes on offline→online |
+| `src/libs/Network/SequentialQueue.ts` | Write request queue, reads `getIsOffline()` synchronously for guard checks |
 | `src/libs/actions/Network.ts` | Onyx actions for debug flags (forceOffline, simulatePoorConnection) |
 | `src/hooks/useNetwork.ts` | Hook for components — uses `useSyncExternalStore` with `NetworkState.subscribe()` |
 
