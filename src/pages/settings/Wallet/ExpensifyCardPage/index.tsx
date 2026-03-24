@@ -9,18 +9,17 @@ import Button from '@components/Button';
 import CardPreview from '@components/CardPreview';
 import ConfirmModal from '@components/ConfirmModal';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
-import FormHelpMessage from '@components/FormHelpMessage';
 import FrozenCardHeader from '@components/FrozenCardHeader';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import type {LocalizedTranslate} from '@components/LocaleContextProvider';
+import * as Expensicons from '@components/Icon/Expensicons';
 import {useLockedAccountActions, useLockedAccountState} from '@components/LockedAccountModalProvider';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import {useMultifactorAuthentication} from '@components/MultifactorAuthentication/Context';
 import {usePersonalDetails, useSession} from '@components/OnyxListItemProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import useEnvironment from '@hooks/useEnvironment';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -30,13 +29,23 @@ import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {freezeCard, unfreezeCard} from '@libs/actions/Card';
 import {resetValidateActionCodeSent} from '@libs/actions/User';
-import {formatCardExpiration, getCardCurrency, getDomainCards, getTranslationKeyForLimitType, isCardFrozen, maskCard, maskPin} from '@libs/CardUtils';
+import {clearRevealedPIN, useRevealedPIN} from '@libs/CardPINStore';
+import {
+    formatCardExpiration,
+    getCardCurrency,
+    getCardHintText,
+    getDomainCards,
+    getTranslationKeyForLimitType,
+    isCardFrozen,
+    isTravelCard,
+    maskCard,
+    maskPin,
+    supportsPINManagementFeatures,
+} from '@libs/CardUtils';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
-import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {DomainCardNavigatorParamList, SettingsNavigatorParamList} from '@libs/Navigation/types';
-import {shouldShowMissingDetailsPage} from '@libs/PersonalDetailsUtils';
 import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import RedDotCardSection from '@pages/settings/Wallet/RedDotCardSection';
@@ -48,7 +57,6 @@ import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
-import type {SelectedTimezone} from '@src/types/onyx/PersonalDetails';
 import {useExpensifyCardActions, useExpensifyCardState} from './ExpensifyCardContextProvider';
 
 type ExpensifyCardPageProps =
@@ -75,40 +83,22 @@ function getLimitTypeTranslationKeys(limitType: ValueOf<typeof CONST.EXPENSIFY_C
     }
 }
 
-const getCardHintText = (validFrom: string | undefined, validThru: string | undefined, assigneeTimeZone: SelectedTimezone | undefined, translate: LocalizedTranslate) => {
-    if (!validFrom || !validThru) {
-        return;
-    }
-    const formatDateForDisplay = (utcDateTime: string): string => {
-        const dateInTimezone = DateUtils.formatUTCDateTimeToDateInTimezone(utcDateTime, assigneeTimeZone);
-        return dateInTimezone ? DateUtils.formatToReadableString(dateInTimezone) : '';
-    };
-    const startDate = formatDateForDisplay(validFrom);
-    const endDate = formatDateForDisplay(validThru);
-    if (!startDate || !endDate) {
-        return;
-    }
-    return translate('workspace.card.issueNewCard.validFromTo', {startDate, endDate});
-};
-
 function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
     const {cardID} = route.params;
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const cardList = useNonPersonalCardList();
-    const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
     const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${cardList?.[cardID]?.fundID}`);
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
-    const {environmentURL} = useEnvironment();
-    const isTravelCard = cardList?.[cardID]?.nameValuePairs?.isTravelCard;
-    const shouldDisplayCardDomain = !isTravelCard && (!cardList?.[cardID]?.nameValuePairs?.issuedBy || !cardList?.[cardID]?.nameValuePairs?.isVirtual);
+    const {executeScenario} = useMultifactorAuthentication();
+    const shouldDisplayCardDomain = !isTravelCard(cardList?.[cardID]) && (!cardList?.[cardID]?.nameValuePairs?.issuedBy || !cardList?.[cardID]?.nameValuePairs?.isVirtual);
     const domain = cardList?.[cardID]?.domainName ?? '';
-    const expensifyCardTitle = isTravelCard ? translate('cardPage.expensifyTravelCard') : translate('cardPage.expensifyCard');
+    const expensifyCardTitle = isTravelCard(cardList?.[cardID]) ? translate('cardPage.expensifyTravelCard') : translate('cardPage.expensifyCard');
     const pageTitle = shouldDisplayCardDomain ? expensifyCardTitle : (cardList?.[cardID]?.nameValuePairs?.cardTitle ?? expensifyCardTitle);
     const {displayName} = useCurrentUserPersonalDetails();
     const personalDetails = usePersonalDetails();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Flag', 'MoneySearch', 'FreezeCard']);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Flag', 'MoneySearch', 'FreezeCard', 'Key']);
 
     const cardsToShow = useMemo(() => {
         if (shouldDisplayCardDomain) {
@@ -118,8 +108,8 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
     }, [shouldDisplayCardDomain, cardList, cardID, domain]);
     const currentCard = useMemo(() => cardsToShow?.find((card) => String(card?.cardID) === cardID) ?? cardsToShow?.at(0), [cardsToShow, cardID]);
 
-    const virtualCards = useMemo(() => cardsToShow?.filter((card) => card?.nameValuePairs?.isVirtual && !card?.nameValuePairs?.isTravelCard), [cardsToShow]);
-    const travelCards = useMemo(() => cardsToShow?.filter((card) => card?.nameValuePairs?.isVirtual && card?.nameValuePairs?.isTravelCard), [cardsToShow]);
+    const virtualCards = useMemo(() => cardsToShow?.filter((card) => card?.nameValuePairs?.isVirtual && !isTravelCard(card)), [cardsToShow]);
+    const travelCards = useMemo(() => cardsToShow?.filter((card) => card?.nameValuePairs?.isVirtual && isTravelCard(card)), [cardsToShow]);
     const physicalCards = useMemo(() => cardsToShow?.filter((card) => !card?.nameValuePairs?.isVirtual), [cardsToShow]);
     const cardToAdd = useMemo(() => {
         return virtualCards?.at(0);
@@ -127,12 +117,15 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
 
     const {cardsDetails, isCardDetailsLoading, cardsDetailsErrors} = useExpensifyCardState();
     const {setCardsDetails} = useExpensifyCardActions();
+    const currentPhysicalCard = useMemo(() => physicalCards?.find((card) => String(card?.cardID) === cardID) ?? physicalCards?.at(0), [physicalCards, cardID]);
+    const revealedPIN = useRevealedPIN(String(currentPhysicalCard?.cardID));
 
-    // Resets card details when navigating away from the page.
+    // Resets card details and revealed PIN when navigating away from the page.
     useFocusEffect(
         useCallback(() => {
             return () => {
                 setCardsDetails((oldCardDetails) => ({...oldCardDetails, [cardID]: null}));
+                clearRevealedPIN();
             };
         }, [cardID, setCardsDetails]),
     );
@@ -142,13 +135,14 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
 
     const hasDetectedDomainFraud = cardsToShow?.some((card) => card?.fraud === CONST.EXPENSIFY_CARD.FRAUD_TYPES.DOMAIN);
     const hasDetectedIndividualFraud = cardsToShow?.some((card) => card?.fraud === CONST.EXPENSIFY_CARD.FRAUD_TYPES.INDIVIDUAL);
-    const currentPhysicalCard = useMemo(() => physicalCards?.find((card) => String(card?.cardID) === cardID) ?? physicalCards?.at(0), [physicalCards, cardID]);
 
     // Cards that are already activated and working (OPEN) and cards shipped but not activated yet can be reported as missing or damaged
     const shouldShowReportLostCardButton = currentPhysicalCard?.state === CONST.EXPENSIFY_CARD.STATE.NOT_ACTIVATED || currentPhysicalCard?.state === CONST.EXPENSIFY_CARD.STATE.OPEN;
 
     const currency = getCardCurrency(currentCard, cardSettings);
     const shouldShowPIN = currency !== CONST.CURRENCY.USD;
+    const canChangePIN = supportsPINManagementFeatures(currentPhysicalCard) && currentPhysicalCard?.state === CONST.EXPENSIFY_CARD.STATE.OPEN;
+    const canRevealPIN = canChangePIN && revealedPIN === undefined;
     const formattedAvailableSpendAmount = convertToDisplayString(currentCard?.availableSpend, currency);
     const {limitNameKey, limitTitleKey} = getLimitTypeTranslationKeys(currentCard?.nameValuePairs?.limitType);
 
@@ -315,11 +309,6 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                                                                 return;
                                                             }
 
-                                                            // Check if user needs to add personal details first (UK/EU cards only)
-                                                            if (shouldShowMissingDetailsPage(card, privatePersonalDetails)) {
-                                                                Navigation.navigate(ROUTES.SETTINGS_WALLET_CARD_MISSING_DETAILS.getRoute(String(card.cardID)));
-                                                                return;
-                                                            }
                                                             resetValidateActionCodeSent();
                                                             if (route.name === SCREENS.DOMAIN_CARD.DOMAIN_CARD_DETAIL) {
                                                                 Navigation.navigate(ROUTES.SETTINGS_DOMAIN_CARD_CONFIRM_MAGIC_CODE.getRoute(String(card.cardID)));
@@ -346,23 +335,11 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                                             )}
                                         />
 
-                                        {cardsDetailsErrors[card.cardID] === 'cardPage.missingPrivateDetails' ? (
-                                            <FormHelpMessage
-                                                isError
-                                                shouldShowRedDotIndicator
-                                                message={translate('cardPage.missingPrivateDetails', {
-                                                    missingDetailsLink: `${environmentURL}/${ROUTES.SETTINGS_WALLET_CARD_MISSING_DETAILS.getRoute(String(card.cardID))}`,
-                                                })}
-                                                style={[styles.ph5, styles.mv2]}
-                                                shouldRenderMessageAsHTML
-                                            />
-                                        ) : (
-                                            <DotIndicatorMessage
-                                                messages={cardsDetailsErrors[card.cardID] ? {error: translate(cardsDetailsErrors[card.cardID] as TranslationPaths)} : {}}
-                                                type="error"
-                                                style={[styles.ph5, styles.mv2]}
-                                            />
-                                        )}
+                                        <DotIndicatorMessage
+                                            messages={cardsDetailsErrors[card.cardID] ? {error: translate(cardsDetailsErrors[card.cardID] as TranslationPaths)} : {}}
+                                            type="error"
+                                            style={[styles.ph5, styles.mv2]}
+                                        />
                                     </>
                                 )}
                                 {!isSignedInAsDelegate && (
@@ -386,7 +363,7 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                                 )}
                             </React.Fragment>
                         ))}
-                        {isTravelCard &&
+                        {isTravelCard(cardList?.[cardID]) &&
                             travelCards.map((card) => (
                                 <React.Fragment key={card.cardID}>
                                     {!!cardsDetails[card.cardID] && cardsDetails[card.cardID]?.cvv ? (
@@ -440,9 +417,39 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                                 {shouldShowPIN && (
                                     <MenuItemWithTopDescription
                                         description={translate('cardPage.physicalCardPin')}
-                                        title={maskPin()}
+                                        title={maskPin(revealedPIN)}
                                         interactive={false}
                                         titleStyle={styles.walletCardNumber}
+                                        shouldShowRightComponent={canRevealPIN}
+                                        rightComponent={
+                                            canRevealPIN ? (
+                                                <Button
+                                                    icon={Expensicons.Eye}
+                                                    text={translate('cardPage.revealPin')}
+                                                    onPress={() => {
+                                                        executeScenario(CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.REVEAL_PIN, {
+                                                            cardID: String(currentPhysicalCard?.cardID),
+                                                        });
+                                                    }}
+                                                    isDisabled={isOffline}
+                                                />
+                                            ) : undefined
+                                        }
+                                    />
+                                )}
+                                {canChangePIN && (
+                                    <MenuItem
+                                        title={translate('cardPage.changePin')}
+                                        icon={expensifyIcons.Key}
+                                        shouldShowRightIcon
+                                        onPress={() => {
+                                            const physicalCardID = String(currentPhysicalCard?.cardID);
+                                            if (currentPhysicalCard?.isOfflinePINMarket) {
+                                                Navigation.navigate(ROUTES.SETTINGS_WALLET_CARD_CHANGE_PIN_ATM.getRoute(physicalCardID));
+                                            } else {
+                                                Navigation.navigate(ROUTES.SETTINGS_WALLET_CARD_CHANGE_PIN.getRoute(physicalCardID));
+                                            }
+                                        }}
                                     />
                                 )}
                                 <MenuItem

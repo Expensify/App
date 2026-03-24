@@ -39,6 +39,7 @@ import type {
     CompanyFeeds,
     NonConnectableBankName,
 } from '@src/types/onyx/CardFeeds';
+import type {SelectedTimezone} from '@src/types/onyx/PersonalDetails';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
 import {isBankAccountPartiallySetup} from './BankAccountUtils';
@@ -393,8 +394,8 @@ function getTranslationKeyForLimitType(limitType: ValueOf<typeof CONST.EXPENSIFY
     }
 }
 
-function maskPin(pin = ''): string {
-    if (!pin) {
+function maskPin(pin: string | undefined): string {
+    if (pin === undefined) {
         return '••••';
     }
     return pin;
@@ -1404,6 +1405,10 @@ function getBrokenConnectionUrlToFixPersonalCard(cards: Record<string, Card>, en
     return `${environmentURL}/${ROUTES.SETTINGS_WALLET}`;
 }
 
+function isTravelCard(card: Card | undefined): boolean {
+    return card?.nameValuePairs?.feedCountry === CONST.TRAVEL.PROGRAM_TRAVEL_US;
+}
+
 /**
  * Gets displayable Expensify cards, filtering out inactive cards and grouping combo cards
  * (physical + virtual pairs) so only the physical card is shown per domain.
@@ -1424,8 +1429,7 @@ function getDisplayableExpensifyCards(cardList: CardList | undefined): Card[] {
 
     return sortedCards.filter((card) => {
         const isAdminIssuedVirtualCard = !!card.nameValuePairs?.issuedBy && !!card.nameValuePairs?.isVirtual;
-        const isTravelCard = !!card.nameValuePairs?.isVirtual && !!card.nameValuePairs?.isTravelCard;
-        const isComboCard = !!card.domainName && !isAdminIssuedVirtualCard && !isTravelCard;
+        const isComboCard = !!card.domainName && !isAdminIssuedVirtualCard && !isTravelCard(card);
 
         // Always show non-combo cards (admin-issued virtual, travel cards, or cards without domain)
         if (!isComboCard) {
@@ -1477,6 +1481,22 @@ function getCardCurrency(card?: OnyxEntry<Card>, cardSettings?: OnyxEntry<Expens
     return CONST.CURRENCY.USD;
 }
 
+function getCardHintText(validFrom: string | undefined, validThru: string | undefined, assigneeTimeZone: SelectedTimezone | undefined, translate: LocalizedTranslate) {
+    if (!validFrom || !validThru) {
+        return;
+    }
+    const formatDateForDisplay = (utcDateTime: string): string => {
+        const dateInTimezone = DateUtils.formatUTCDateTimeToDateInTimezone(utcDateTime, assigneeTimeZone);
+        return dateInTimezone ? DateUtils.formatToReadableString(dateInTimezone) : '';
+    };
+    const startDate = formatDateForDisplay(validFrom);
+    const endDate = formatDateForDisplay(validThru);
+    if (!startDate || !endDate) {
+        return;
+    }
+    return translate('workspace.card.issueNewCard.validFromTo', {startDate, endDate});
+}
+
 export {
     getAssignedCardSortKey,
     getDefaultExpensifyCardLimitType,
@@ -1499,6 +1519,7 @@ export {
     getCardFeedIcon,
     getBankName,
     isSelectedFeedExpired,
+    isTravelCard,
     getCompanyFeeds,
     isPersonalCardBrokenConnection,
     isCustomFeed,
@@ -1571,6 +1592,7 @@ export {
     getDisplayableExpensifyCards,
     isExpiredCard,
     getCardCurrency,
+    getCardHintText,
 };
 
 export type {CompanyCardFeedIcons, CompanyCardBankIcons, CardProgramKey};
