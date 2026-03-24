@@ -99,7 +99,7 @@ import isSearchTopmostFullScreenRoute from './Navigation/helpers/isSearchTopmost
 import Navigation from './Navigation/Navigation';
 import Parser from './Parser';
 import {getDisplayNameOrDefault} from './PersonalDetailsUtils';
-import {arePaymentsEnabled, canSendInvoice, getCommaSeparatedTagNameWithSanitizedColons, getSubmitToAccountID, isPaidGroupPolicy, isPolicyPayer} from './PolicyUtils';
+import {arePaymentsEnabled, canSendInvoice, getCommaSeparatedTagNameWithSanitizedColons, getSubmitToAccountID, isPaidGroupPolicy, isPolicyApprover, isPolicyPayer} from './PolicyUtils';
 import {
     getIOUActionForReportID,
     getOriginalMessage,
@@ -963,6 +963,13 @@ function isEligibleForApproveSuggestion(approvalMode: string | undefined, isAppr
     return isApprovalEnabled && (isApprover || isSubmittedToTarget);
 }
 
+function isPolicyEligibleForSpendOverTime(policy: OnyxTypes.Policy, currentUserEmail: string | undefined): boolean {
+    return (
+        isPaidGroupPolicy(policy) &&
+        (policy.role === CONST.POLICY.ROLE.ADMIN || policy.role === CONST.POLICY.ROLE.AUDITOR || (!!currentUserEmail && isPolicyApprover(policy, currentUserEmail)))
+    );
+}
+
 function getSuggestedSearchesVisibility(
     currentUserEmail: string | undefined,
     cardFeedsByPolicy: Record<string, CardFeedForDisplay[]>,
@@ -995,19 +1002,10 @@ function getSuggestedSearchesVisibility(
         const isPayer = isPolicyPayer(policy, currentUserEmail);
         const isAdmin = policy.role === CONST.POLICY.ROLE.ADMIN;
         const isExporter = policy.exporter === currentUserEmail;
-        let isSubmittedTo = false;
-        let isUserApprover = policy.approver === currentUserEmail;
-        for (const employee of Object.values(policy.employeeList ?? {})) {
-            if (employee?.submitsTo === currentUserEmail || employee?.forwardsTo === currentUserEmail) {
-                isSubmittedTo = true;
-                isUserApprover = true;
-            } else if (employee?.overLimitForwardsTo === currentUserEmail) {
-                isUserApprover = true;
-            }
-            if (isSubmittedTo && isUserApprover) {
-                break;
-            }
-        }
+
+        const isSubmittedTo =
+            !!currentUserEmail && Object.values(policy.employeeList ?? {}).some((employee) => employee.submitsTo === currentUserEmail || employee.forwardsTo === currentUserEmail);
+        const isUserApprover = !!currentUserEmail && isPolicyApprover(policy, currentUserEmail);
         const isApprovalEnabled = policy.approvalMode ? policy.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL : false;
 
         const hasExportError = (Object.keys(policy.connections ?? {}) as ConnectionName[]).some((connection) => {
@@ -1032,7 +1030,6 @@ function getSuggestedSearchesVisibility(
         const isEligibleForTopSpendersSuggestion = isPaidPolicy && (isAdmin || isAuditor || isUserApprover) && memberCount >= 2;
         const isEligibleForTopCategoriesSuggestion = isPaidPolicy && policy.areCategoriesEnabled === true;
         const isEligibleForTopMerchantsSuggestion = isPaidPolicy;
-        const isEligibleForSpendOverTimeSuggestion = isPaidPolicy && (isAdmin || isAuditor || isUserApprover);
 
         shouldShowSubmitSuggestion ||= isEligibleForSubmitSuggestion;
         shouldShowPaySuggestion ||= isEligibleForPaySuggestion;
@@ -1052,7 +1049,7 @@ function getSuggestedSearchesVisibility(
             !policy.isJoinRequestPending &&
             (policy.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || Object.keys(policy.errors ?? {}).length > 0) &&
             !!policy.role;
-        shouldShowSpendOverTimeSuggestion ||= isEligibleForSpendOverTimeSuggestion;
+        shouldShowSpendOverTimeSuggestion ||= isPolicyEligibleForSpendOverTime(policy, currentUserEmail);
 
         // We don't need to check the rest of the policies if we already determined that all suggestions should be displayed
         return (
@@ -4848,5 +4845,6 @@ export {
     applySelectionToItem,
     GENERIC_SEARCH_KEYS,
     doesSearchItemMatchSort,
+    isPolicyEligibleForSpendOverTime,
 };
 export type {SavedSearchMenuItem, SearchTypeMenuSection, SearchTypeMenuItem, SearchDateModifier, SearchDateModifierLower, SearchKey, ArchivedReportsIDSet, GroupBySection};

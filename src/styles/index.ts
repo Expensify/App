@@ -11,6 +11,7 @@ import type {SharedValue} from 'react-native-reanimated';
 import {interpolate} from 'react-native-reanimated';
 import type {MixedStyleDeclaration, MixedStyleRecord} from 'react-native-render-html';
 import type {ValueOf} from 'type-fest';
+import {CHART_CONTENT_MIN_HEIGHT} from '@components/Charts/constants';
 import type DotLottieAnimation from '@components/LottieAnimations/types';
 import {ACTIVE_LABEL_SCALE} from '@components/TextInput/styleConst';
 import {animatedReceiptPaneRHPWidth, animatedSuperWideRHPWidth, animatedWideRHPWidth} from '@components/WideRHPContextProvider';
@@ -5812,6 +5813,15 @@ const staticStyles = (theme: ThemeColors) =>
         transactionReceiptButton: {
             minWidth: variables.transactionReceiptButtonWidth,
         },
+        chartWebFallback: {
+            flex: 1,
+            justifyContent: 'center',
+            alignItems: 'center',
+            backgroundColor: theme.highlightBG,
+            borderRadius: variables.componentBorderRadiusLarge,
+            padding: 20,
+            minHeight: CHART_CONTENT_MIN_HEIGHT,
+        },
         chartHeader: {
             flexDirection: 'row',
             alignItems: 'center',
@@ -5845,27 +5855,16 @@ const staticStyles = (theme: ThemeColors) =>
             backgroundColor: theme.transparent,
             borderStyle: 'solid',
         },
-        barChartContainer: {
+        chartContainer: {
             borderRadius: variables.componentBorderRadiusLarge,
         },
-        barChartChartContainer: {
-            minHeight: 250,
+        chartContent: {
+            minHeight: CHART_CONTENT_MIN_HEIGHT,
         },
-        lineChartContainer: {
-            borderRadius: variables.componentBorderRadiusLarge,
-            paddingTop: variables.qrShareHorizontalPadding,
-            paddingHorizontal: variables.qrShareHorizontalPadding,
-        },
-        lineChartChartContainer: {
-            minHeight: 250,
-        },
-        pieChartContainer: {
-            borderRadius: variables.componentBorderRadiusLarge,
-            padding: variables.qrShareHorizontalPadding,
-        },
-        pieChartChartContainer: {
-            height: 250,
-            position: 'relative',
+        chartActivityIndicator: {
+            minHeight: CHART_CONTENT_MIN_HEIGHT,
+            justifyContent: 'center',
+            alignItems: 'center',
         },
         pieChartLegendContainer: {
             display: 'flex',
@@ -6416,7 +6415,7 @@ const plainStyles = (theme: ThemeColors) =>
         getWidgetContainerHeaderStyle: (shouldUseNarrowLayout: boolean) =>
             ({
                 flexDirection: 'row',
-                alignItems: 'flex-start',
+                alignItems: 'center',
                 marginBottom: 20,
                 marginHorizontal: shouldUseNarrowLayout ? 20 : 32,
                 marginTop: shouldUseNarrowLayout ? 20 : 32,

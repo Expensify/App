@@ -348,12 +348,6 @@ type SearchChartProps = {
     /** Grouped transaction data from search results */
     data: GroupedItem[];
 
-    /** Chart title */
-    title: string;
-
-    /** Chart title icon */
-    titleIcon: IconAsset;
-
     /** Function to extract label from grouped item */
     getLabel: (item: GroupedItem) => string;
 
