@@ -4532,7 +4532,7 @@ function getColumnsToShow({
             }
 
             if (!Array.isArray(data)) {
-                const report = data[`${ONYXKEYS.COLLECTION.REPORT}${transaction.reportID}`] as OnyxTypes.Report | undefined;
+                const report = data[`${ONYXKEYS.COLLECTION.REPORT}${transaction.reportID}`];
 
                 if (report?.submitted) {
                     columns[CONST.SEARCH.TABLE_COLUMNS.SUBMITTED] = true;
@@ -4543,7 +4543,6 @@ function getColumnsToShow({
                 }
 
                 const reportAction = moneyRequestReportActionsByTransactionID?.get(transaction.transactionID);
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 const toFieldValue = getToFieldValueForTransaction(transaction, report, data.personalDetailsList, reportAction);
                 if (toFieldValue.accountID) {
                     columns[CONST.SEARCH.TABLE_COLUMNS.TO] = true;
@@ -4563,7 +4562,7 @@ function getColumnsToShow({
 
         // The From/To columns display logic depends on the passed report/reportAction i.e. if data is SearchResults and not an array (Transaction[])
         if (!Array.isArray(data)) {
-            const report = data[`${ONYXKEYS.COLLECTION.REPORT}${transaction.reportID}`] as OnyxTypes.Report | undefined;
+            const report = data[`${ONYXKEYS.COLLECTION.REPORT}${transaction.reportID}`];
             const reportAction = moneyRequestReportActionsByTransactionID?.get(transaction.transactionID);
 
             // Handle From&To columns that are only shown in the Reports page

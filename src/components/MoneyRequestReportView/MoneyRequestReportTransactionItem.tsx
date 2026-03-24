@@ -67,9 +67,6 @@ type MoneyRequestReportTransactionItemProps = {
     /** Whether this transaction should be highlighted as newly added */
     shouldBeHighlighted: boolean;
 
-    /** Whether the card feed has been deleted */
-    isCardFeedDeleted?: boolean;
-
     /** Custom card names mapping cardID to display name */
     customCardNames?: Record<number, string>;
 };
@@ -90,7 +87,6 @@ function MoneyRequestReportTransactionItem({
     scrollToNewTransaction,
     onArrowRightPress,
     shouldBeHighlighted,
-    isCardFeedDeleted,
     customCardNames,
 }: MoneyRequestReportTransactionItemProps) {
     const {translate} = useLocalize();
@@ -170,7 +166,6 @@ function MoneyRequestReportTransactionItem({
                         onArrowRightPress={() => onArrowRightPress?.(transaction.transactionID)}
                         isHover={hovered}
                         customCardNames={customCardNames}
-                        isCardFeedDeleted={isCardFeedDeleted}
                     />
                 )}
             </PressableWithFeedback>

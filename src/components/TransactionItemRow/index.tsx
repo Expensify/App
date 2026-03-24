@@ -140,9 +140,6 @@ type TransactionItemRowProps = {
     customCardNames?: Record<number, string>;
     reportActions?: ReportAction[];
     checkboxSentryLabel?: string;
-
-    /** Whether the card feed has been deleted */
-    isCardFeedDeleted?: boolean;
 };
 
 const EMPTY_ACTIVE_STYLE: StyleProp<ViewStyle> = [];
@@ -195,7 +192,6 @@ function TransactionItemRow({
     customCardNames,
     reportActions,
     checkboxSentryLabel,
-    isCardFeedDeleted,
 }: TransactionItemRowProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -260,7 +256,7 @@ function TransactionItemRow({
         if (transactionItem.cardName === CONST.EXPENSE.TYPE.CASH_CARD_NAME) {
             return '';
         }
-        if (isCardFeedDeleted && transactionItem.cardID) {
+        if (transactionItem.isCardFeedDeleted && transactionItem.cardID) {
             return translate('workspace.companyCards.deletedCard');
         }
         const cardID = transactionItem.cardID;
@@ -268,7 +264,7 @@ function TransactionItemRow({
             return customCardNames[cardID];
         }
         return transactionItem.cardName;
-    }, [transactionItem.cardID, transactionItem.cardName, isCardFeedDeleted, customCardNames, translate]);
+    }, [transactionItem.cardID, transactionItem.cardName, transactionItem.isCardFeedDeleted, customCardNames, translate]);
 
     const renderColumn = (column: SearchColumnType): React.ReactNode => {
         switch (column) {
