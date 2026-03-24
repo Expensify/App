@@ -529,12 +529,6 @@ const ContextMenuActions: ContextMenuAction[] = [
                 return;
             }
             const editAction = () => {
-                clearReportActionDrafts();
-
-                if (draftMessage) {
-                    return;
-                }
-
                 saveReportActionDraft(reportID, reportAction, Parser.htmlToMarkdown(getActionHtml(reportAction)));
             };
 
