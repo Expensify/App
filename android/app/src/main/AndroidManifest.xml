@@ -114,6 +114,22 @@
                 <data android:scheme="https" android:host="staging.new.expensify.com" android:pathPrefix="/track-expense"/>
                 <data android:scheme="https" android:host="staging.new.expensify.com" android:pathPrefix="/submit-expense"/>
             </intent-filter>
+
+            <!-- OldDot report deep links. Handles expensify.com/r/... URLs so they open in the app
+                 instead of Chrome. Note: autoVerify is intentionally omitted because
+                 expensify.com/.well-known/assetlinks.json currently lists the HybridApp package,
+                 not the standalone NewDot package. Without autoVerify the Android OS will present
+                 the app as a chooser target and the user can choose to always open in the app. -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <!-- OldDot report links -->
+                <data android:scheme="https" android:host="expensify.com" android:pathPrefix="/r"/>
+                <data android:scheme="https" android:host="www.expensify.com" android:pathPrefix="/r"/>
+            </intent-filter>
              <intent-filter>
                 <action android:name="android.intent.action.SEND" />
                 <category android:name="android.intent.category.DEFAULT" />

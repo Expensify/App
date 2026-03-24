@@ -12,6 +12,9 @@ const prefixes: LinkingOptions<RootNavigatorParamList>['prefixes'] = [
     CONST.NEW_EXPENSIFY_URL,
     CONST.STAGING_NEW_EXPENSIFY_URL,
     CONST.PR_TESTING_NEW_EXPENSIFY_URL,
+    // OldDot report deep links (e.g. https://expensify.com/r/<reportID>)
+    'https://expensify.com',
+    'https://www.expensify.com',
 ];
 
 export default prefixes;
