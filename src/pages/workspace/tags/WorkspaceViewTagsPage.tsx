@@ -130,6 +130,7 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
                 errors: tag.errors ?? undefined,
                 enabled: tag.enabled,
                 isDisabled: tag.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                isToggleActive: hasDependentTags ? undefined : tag.enabled,
                 rightElement: hasDependentTags ? (
                     <ListItemRightCaretWithLabel />
                 ) : (
