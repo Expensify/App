@@ -12,7 +12,7 @@ function getContextMenuAccessibilityHint({translate}: GetContextMenuAccessibilit
 
     if (platform === CONST.PLATFORM.WEB) {
         if (getOperatingSystem() === CONST.OS.MAC_OS) {
-            return translate('accessibilityHints.contextMenuAvailable').replace('Shift+F10', 'Control-click');
+            return translate('accessibilityHints.contextMenuAvailableMacOS');
         }
         return translate('accessibilityHints.contextMenuAvailable');
     }

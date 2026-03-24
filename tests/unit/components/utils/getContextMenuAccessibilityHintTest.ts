@@ -14,6 +14,8 @@ const translate = (key: TranslationPaths) => {
     switch (key) {
         case 'accessibilityHints.contextMenuAvailable':
             return 'Context menu available. Press Shift+F10 to open.';
+        case 'accessibilityHints.contextMenuAvailableMacOS':
+            return 'Context menu available. Press VO-Shift-M to open.';
         case 'accessibilityHints.contextMenuAvailableNative':
             return 'Context menu available. Double-tap and hold to open.';
         default:
@@ -39,7 +41,7 @@ describe('getContextMenuAccessibilityHint', () => {
         mockedGetPlatform.mockReturnValue(CONST.PLATFORM.WEB);
         mockedGetOperatingSystem.mockReturnValue(CONST.OS.MAC_OS);
 
-        expect(getContextMenuAccessibilityHint({translate})).toBe('Context menu available. Press Control-click to open.');
+        expect(getContextMenuAccessibilityHint({translate})).toBe('Context menu available. Press VO-Shift-M to open.');
     });
 
     it('returns the native hint on ios', () => {

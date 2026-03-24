@@ -120,6 +120,28 @@ describe('MenuItem', () => {
             expect(screen.queryByAccessibilityHint(contextMenuHint)).not.toBeOnTheScreen();
         });
 
+        it('adds the mac desktop web hint when a context menu is available on macos web', () => {
+            mockedGetPlatform.mockReturnValue(CONST.PLATFORM.WEB);
+            mockedGetOperatingSystem.mockReturnValue(CONST.OS.MAC_OS);
+            const title = 'Help';
+            const contextMenuHint = translateLocal('accessibilityHints.contextMenuAvailableMacOS');
+            const expectedAccessibilityLabel = `${title}. ${contextMenuHint}`;
+
+            render(
+                <Wrapper>
+                    <MenuItem
+                        title={title}
+                        icon={Expensicons.Link}
+                        shouldShowContextMenuHint
+                        onPress={() => {}}
+                    />
+                </Wrapper>,
+            );
+
+            expect(screen.getByLabelText(expectedAccessibilityLabel)).toBeOnTheScreen();
+            expect(screen.queryByAccessibilityHint(contextMenuHint)).not.toBeOnTheScreen();
+        });
+
         it('adds the native hint when a context menu is available on native', () => {
             mockedGetPlatform.mockReturnValue(CONST.PLATFORM.ANDROID);
             const title = 'Help';

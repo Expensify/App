@@ -620,6 +620,7 @@ function MenuItem({
     const shouldMergeContextMenuHintIntoLabel = platform === CONST.PLATFORM.WEB || platform === CONST.PLATFORM.MOBILE_WEB;
     const accessibilityLabelWithContextMenuHint =
         shouldMergeContextMenuHintIntoLabel && contextMenuHint ? [combinedAccessibilityLabel, contextMenuHint].filter(Boolean).join('. ') : combinedAccessibilityLabel;
+    const accessibilityHint = shouldMergeContextMenuHintIntoLabel ? undefined : contextMenuHint;
 
     const combinedTitleTextStyle = StyleUtils.combineStyles<TextStyle>(
         [
@@ -808,7 +809,7 @@ function MenuItem({
                                 ref={mergeRefs(ref, popoverAnchor)}
                                 role={interactive ? role : undefined}
                                 accessibilityLabel={accessibilityLabelWithContextMenuHint}
-                                accessibilityHint={shouldMergeContextMenuHintIntoLabel ? undefined : contextMenuHint}
+                                accessibilityHint={accessibilityHint}
                                 accessible={shouldBeAccessible}
                                 accessibilityState={role === CONST.ROLE.TAB ? {selected: focused} : undefined}
                                 tabIndex={interactive ? tabIndex : -1}
