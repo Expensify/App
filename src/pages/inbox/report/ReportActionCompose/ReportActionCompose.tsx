@@ -163,7 +163,7 @@ function ReportActionCompose({
 }: ReportActionComposeProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
-    const {translate} = useLocalize();
+    const {translate, preferredLocale} = useLocalize();
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth, isMediumScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
     const {isOffline} = useNetwork();
@@ -274,19 +274,21 @@ function ReportActionCompose({
     // Check if this is an expense-related report (IOU, expense report, or transaction thread)
     const isExpenseRelatedReport = useMemo(() => isTransactionThreadView || isMoneyRequestReport(report), [isTransactionThreadView, report]);
 
+    const isEnglishLocale = (preferredLocale ?? CONST.LOCALES.DEFAULT) === CONST.LOCALES.EN;
+
     // Placeholder to display in the chat input.
     const inputPlaceholder = useMemo(() => {
         if (includesConcierge && userBlockedFromConcierge) {
             return translate('reportActionCompose.blockedFromConcierge');
         }
 
-        // Show AI-aware placeholder for expense-related reports where user can write
-        if (isExpenseRelatedReport && canUserPerformWriteAction) {
+        // Only English should get AI-specific ghost text.
+        if (isExpenseRelatedReport && canUserPerformWriteAction && isEnglishLocale) {
             return getRandomPlaceholder(translate);
         }
 
         return translate('reportActionCompose.writeSomething');
-    }, [includesConcierge, translate, userBlockedFromConcierge, isExpenseRelatedReport, canUserPerformWriteAction]);
+    }, [includesConcierge, translate, userBlockedFromConcierge, isExpenseRelatedReport, canUserPerformWriteAction, isEnglishLocale]);
 
     const focus = () => {
         if (composerRef.current === null) {
