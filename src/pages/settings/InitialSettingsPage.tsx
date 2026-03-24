@@ -357,7 +357,9 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                 icon: icons.QuestionMark,
                 screenName: SCREENS.SETTINGS.HELP,
                 sentryLabel: CONST.SENTRY_LABEL.SETTINGS_GENERAL.HELP,
-                action: () => {Navigation.navigate(ROUTES.SETTINGS_HELP)},
+                action: () => {
+                    Navigation.navigate(ROUTES.SETTINGS_HELP);
+                },
             },
             {
                 translationKey: 'initialSettingsPage.whatIsNew',

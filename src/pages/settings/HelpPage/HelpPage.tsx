@@ -1,18 +1,18 @@
 import React from 'react';
-import HeaderWithBackButton from "@components/HeaderWithBackButton";
-import ScreenWrapper from "@components/ScreenWrapper";
-import { useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations } from "@hooks/useLazyAsset";
-import useLocalize from "@hooks/useLocalize";
-import useResponsiveLayout from "@hooks/useResponsiveLayout";
-import Navigation from "@libs/Navigation/Navigation";
-import ScrollView from '@components/ScrollView';
-import useThemeStyles from '@hooks/useThemeStyles';
-import { View } from 'react-native';
-import Section from '@components/Section';
-import colors from '@styles/theme/colors';
-import { openExternalLink } from '@libs/actions/Link';
-import CONST from '@src/CONST';
+import {View} from 'react-native';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemList from '@components/MenuItemList';
+import ScreenWrapper from '@components/ScreenWrapper';
+import ScrollView from '@components/ScrollView';
+import Section from '@components/Section';
+import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
+import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useThemeStyles from '@hooks/useThemeStyles';
+import {openExternalLink} from '@libs/actions/Link';
+import Navigation from '@libs/Navigation/Navigation';
+import colors from '@styles/theme/colors';
+import CONST from '@src/CONST';
 
 function HelpPage() {
     const icons = useMemoizedLazyExpensifyIcons(['NewWindow', 'Monitor']);
@@ -31,8 +31,8 @@ function HelpPage() {
             shouldShowRightIcon: true,
             wrapperStyle: [styles.sectionMenuItemTopDescription],
             sentryLabel: CONST.SENTRY_LABEL.SETTINGS_PREFERENCES.PRIORITY_MODE,
-        }
-    ]
+        },
+    ];
 
     return (
         <ScreenWrapper
@@ -71,9 +71,8 @@ function HelpPage() {
                     </Section>
                 </View>
             </ScrollView>
-            
         </ScreenWrapper>
-    );           
+    );
 }
 
 export default HelpPage;
