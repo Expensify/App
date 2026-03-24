@@ -164,6 +164,9 @@ type MoneyRequestConfirmationListProps = {
     /** Whether the expense is an odometer distance expense */
     isOdometerDistanceRequest?: boolean;
 
+    /** Whether the odometer receipt is currently being stitched */
+    isLoadingReceipt?: boolean;
+
     /** Whether the expense is a GPS distance expense */
     isGPSDistanceRequest: boolean;
 
@@ -237,6 +240,7 @@ function MoneyRequestConfirmationList({
     isDistanceRequest,
     isManualDistanceRequest,
     isOdometerDistanceRequest = false,
+    isLoadingReceipt = false,
     isGPSDistanceRequest,
     isPerDiemRequest = false,
     isPolicyExpenseChat = false,
@@ -295,6 +299,7 @@ function MoneyRequestConfirmationList({
     const [lastSelectedDistanceRates] = useOnyx(ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES);
     const {getCurrencySymbol, getCurrencyDecimals} = useCurrencyListActions();
     const {isBetaEnabled} = usePermissions();
+    const isNewManualExpenseFlowEnabled = isBetaEnabled(CONST.BETAS.NEW_MANUAL_EXPENSE_FLOW);
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
 
@@ -405,7 +410,6 @@ function MoneyRequestConfirmationList({
 
     const distance = getDistanceInMeters(transaction, unit);
     const prevDistance = usePrevious(distance);
-
     const shouldCalculateDistanceAmount = isDistanceRequest && (iouAmount === 0 || prevRate !== rate || prevDistance !== distance || prevCurrency !== currency || prevUnit !== unit);
 
     const shouldCalculatePerDiemAmount = isPerDiemRequest && (iouAmount === 0 || JSON.stringify(prevSubRates) !== JSON.stringify(subRates) || prevCurrency !== currency);
@@ -623,19 +627,21 @@ function MoneyRequestConfirmationList({
             }
         } else if (isTypeTrackExpense) {
             text = translate('iou.createExpense');
-            if (iouAmount !== 0) {
+            if (iouAmount !== 0 && !isNewManualExpenseFlowEnabled) {
                 text = translate('iou.createExpenseWithAmount', {amount: formattedAmount});
             }
         } else if (isTypeSplit && iouAmount === 0) {
             text = translate('iou.splitExpense');
         } else if ((receiptPath && isTypeRequest) || isDistanceRequestWithPendingRoute || isPerDiemRequest) {
             text = translate('iou.createExpense');
-            if (iouAmount !== 0) {
+            if (iouAmount !== 0 && !isNewManualExpenseFlowEnabled) {
                 text = translate('iou.createExpenseWithAmount', {amount: formattedAmount});
             }
         } else if (isTypeSplit) {
             text = translate('iou.splitAmount', formattedAmount);
         } else if (iouAmount === 0) {
+            text = translate('iou.createExpense');
+        } else if (isNewManualExpenseFlowEnabled) {
             text = translate('iou.createExpense');
         } else {
             text = translate('iou.createExpenseWithAmount', {amount: formattedAmount});
@@ -660,6 +666,7 @@ function MoneyRequestConfirmationList({
         policy,
         translate,
         formattedAmount,
+        isNewManualExpenseFlowEnabled,
     ]);
 
     const onSplitShareChange = useCallback(
@@ -723,7 +730,7 @@ function MoneyRequestConfirmationList({
             !isPolicyExpenseChat ||
             !transactionID ||
             !lastSelectedRate ||
-            isMovingTransactionFromTrackExpense ||
+            (isMovingTransactionFromTrackExpense && customUnitRateID === CONST.CUSTOM_UNITS.FAKE_P2P_ID) ||
             !selectedParticipants.some((participant) => participant.policyID === policy?.id)
         ) {
             return;
@@ -1019,6 +1026,15 @@ function MoneyRequestConfirmationList({
                 setFormError('iou.error.noParticipantSelected');
                 return;
             }
+
+            const amountForValidation = iouAmount;
+            const isAmountMissingForManualFlow = amountForValidation === null || amountForValidation === undefined;
+
+            if (iouType !== CONST.IOU.TYPE.PAY && isNewManualExpenseFlowEnabled && isAmountMissingForManualFlow) {
+                setFormError('common.error.invalidAmount');
+                return;
+            }
+
             if (!isEditingSplitBill && isMerchantRequired && (isMerchantEmpty || (shouldDisplayFieldError && isMerchantMissing(transaction)))) {
                 setFormError('iou.error.invalidMerchant');
                 return;
@@ -1251,7 +1267,7 @@ function MoneyRequestConfirmationList({
                             enterKeyEventListenerPriority={1}
                             useKeyboardShortcuts
                             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                            isLoading={isConfirmed || isConfirming}
+                            isLoading={isConfirmed || isConfirming || isLoadingReceipt}
                             sentryLabel={CONST.SENTRY_LABEL.MONEY_REQUEST.CONFIRMATION_SUBMIT_BUTTON}
                         />
                     </View>
@@ -1277,7 +1293,9 @@ function MoneyRequestConfirmationList({
         confirm,
         iouCurrencyCode,
         policyID,
+        reportID,
         isConfirmed,
+        isConfirming,
         splitOrRequestOptions,
         errorMessage,
         expensesNumber,
@@ -1289,8 +1307,7 @@ function MoneyRequestConfirmationList({
         styles.productTrainingTooltipWrapper,
         shouldShowProductTrainingTooltip,
         renderProductTrainingTooltip,
-        isConfirming,
-        reportID,
+        isLoadingReceipt,
     ]);
 
     const isCompactMode = useMemo(() => !showMoreFields && isScanRequest, [isScanRequest, showMoreFields]);
@@ -1307,9 +1324,10 @@ function MoneyRequestConfirmationList({
         <View style={isCompactMode ? styles.flex1 : undefined}>
             <MoneyRequestConfirmationListFooter
                 action={action}
-                currency={currency}
+                distanceRateCurrency={currency}
                 didConfirm={!!didConfirm}
                 distance={distance}
+                amount={amountToBeUsed}
                 formattedAmount={formattedAmount}
                 formattedAmountPerAttendee={formattedAmountPerAttendee}
                 formError={formError}
@@ -1328,6 +1346,7 @@ function MoneyRequestConfirmationList({
                 isDistanceRequest={isDistanceRequest}
                 isManualDistanceRequest={isManualDistanceRequest}
                 isOdometerDistanceRequest={isOdometerDistanceRequest}
+                isLoadingReceipt={isLoadingReceipt}
                 isGPSDistanceRequest={isGPSDistanceRequest}
                 isPerDiemRequest={isPerDiemRequest}
                 isTimeRequest={isTimeRequest}
@@ -1423,5 +1442,6 @@ export default memo(
         prevProps.isTimeRequest === nextProps.isTimeRequest &&
         prevProps.iouTimeCount === nextProps.iouTimeCount &&
         prevProps.iouTimeRate === nextProps.iouTimeRate &&
-        prevProps.shouldHideToSection === nextProps.shouldHideToSection,
+        prevProps.shouldHideToSection === nextProps.shouldHideToSection &&
+        prevProps.isLoadingReceipt === nextProps.isLoadingReceipt,
 );

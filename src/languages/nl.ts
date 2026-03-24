@@ -766,11 +766,6 @@ const translations: TranslationDeepObject<typeof en> = {
         searchForSomeone: 'Iemand zoeken',
         userSelected: (username: string) => `${username} geselecteerd`,
     },
-    customApprovalWorkflow: {
-        title: 'Aangepaste goedkeuringsworkflow',
-        description: 'Je bedrijf heeft een aangepast goedkeuringsproces in deze workspace. Voer deze actie uit in Expensify Classic',
-        goToExpensifyClassic: 'Overschakelen naar Expensify Classic',
-    },
     emptyList: {
         [CONST.IOU.TYPE.CREATE]: {
             title: 'Dien een uitgave in, verwijs je team',
@@ -1246,6 +1241,8 @@ const translations: TranslationDeepObject<typeof en> = {
         pendingMatch: 'Overeenkomst in behandeling',
         pendingMatchWithCreditCardDescription: 'Bon wordt nog gekoppeld aan kaarttransactie. Markeer als contant om te annuleren.',
         markAsCash: 'Markeren als contant',
+        pendingMatchSubmitTitle: 'Rapport indienen',
+        pendingMatchSubmitDescription: 'Sommige uitgaven wachten op koppeling met een creditcardtransactie. Wilt u ze als contant markeren?',
         routePending: 'Routeren in behandeling...',
         automaticallyEnterExpenseDetails: 'Concierge zal automatisch de uitgavendetails voor je invoeren, of je kunt ze handmatig toevoegen.',
         receiptScanning: () => ({
@@ -2671,6 +2668,7 @@ ${amount} voor ${merchant} - ${date}`,
                 label: 'Apparaatinstellingen gebruiken',
             },
         },
+        highContrastMode: 'Hoog contrast',
         chooseThemeBelowOrSync: 'Kies hieronder een thema, of synchroniseer met de instellingen van je apparaat.',
     },
     termsOfUse: {
@@ -7207,6 +7205,7 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
     search: {
         resultsAreLimited: 'Zoekresultaten zijn beperkt.',
         viewResults: 'Resultaten bekijken',
+        appliedFilters: 'Toegepaste filters',
         resetFilters: 'Filters resetten',
         searchResults: {
             emptyResults: {
@@ -7262,6 +7261,7 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
             },
         },
         columns: 'Kolommen',
+        editColumns: 'Kolommen bewerken',
         resetColumns: 'Kolommen opnieuw instellen',
         groupColumns: 'Kolommen groeperen',
         expenseColumns: 'Onkostencolommen',
@@ -7362,8 +7362,13 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
                 [CONST.SEARCH.ACTION_FILTERS.EXPORT]: 'Exporteren',
             },
         },
+        display: {
+            label: 'Weergave',
+            sortBy: 'Sorteren op',
+            groupBy: 'Groeperen op',
+            limitResults: 'Resultaten beperken',
+        },
         has: 'Heeft',
-        groupBy: 'Groeperen op',
         view: {
             label: 'Bekijken',
             table: 'Tabel',
