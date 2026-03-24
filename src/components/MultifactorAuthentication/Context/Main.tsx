@@ -311,9 +311,10 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
             return;
         }
 
-        // Registration isn't required, but they have never seen the soft prompt
-        // this happens on ios if they delete and reinstall the app. Their keys are preserved in the secure store, but
-        // they'll be shown the "do you want to enable FaceID again" system prompt, so we want to show them the soft prompt
+        // Registration isn't required, but they have never seen the soft prompt. This happens on iOS if they
+        // delete and reinstall the app. Their keys are preserved in the secure store, but they'll be shown
+        // the "do you want to enable Face ID" system prompt again, so we want to ensure they see the soft
+        // prompt first.
         if (!deviceBiometricsState?.hasAcceptedSoftPrompt && !softPromptApproved) {
             addMFABreadcrumb('Soft prompt shown', {context: 'authorization-reinstall'});
             Navigation.navigate(ROUTES.MULTIFACTOR_AUTHENTICATION_PROMPT.getRoute(promptType), {forceReplace: true});
