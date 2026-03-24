@@ -7152,6 +7152,15 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
             approvedReimbursedClosedSpend,
         }: UpdatedPolicyBudgetNotificationParams) =>
             `Attenzione! Questo spazio di lavoro ha un budget ${budgetFrequency} di "${budgetAmount}" per il ${budgetTypeForNotificationMessage} "${budgetName}". Al momento sei a ${approvedReimbursedClosedSpend}, che supera il ${thresholdPercentage}% del budget. Ci sono anche ${awaitingApprovalSpend} in attesa di approvazione e ${unsubmittedSpend} non ancora inviati, per un totale di ${totalSpend}. ${summaryLink ? `<a href="${summaryLink}">Ecco un resoconto</a> con tutte quelle spese per i tuoi archivi!` : ''}`,
+        addedCardFeed: (feedName: string) => `ha aggiunto il feed della carta "${feedName}"`,
+        removedCardFeed: (feedName: string) => `ha rimosso il feed carta "${feedName}"`,
+        renamedCardFeed: (newName: string, oldName: string) => `ha rinominato il feed della carta in "${newName}" (precedentemente "${oldName}")`,
+        assignedCompanyCard: (email: string, cardLastFour: string) => `ha assegnato la carta aziendale ${email} terminante in ${cardLastFour}`,
+        unassignedCompanyCard: (email: string, cardLastFour: string) => `carta aziendale non assegnata ${email} che termina con ${cardLastFour}`,
+        updatedCardFeedLiability: (feedName: string, enabled: boolean) =>
+            `${enabled ? 'abilitato' : 'disabilitato'} titolari di carta per eliminare le transazioni della carta per il flusso di carte "${feedName}"`,
+        updatedCardFeedStatementPeriod: (feedName: string, newValue?: string, previousValue?: string) =>
+            `ha modificato il giorno di fine periodo dell’estratto conto del flusso carta "${feedName}"${newValue ? ` a "${newValue}"` : ''}${previousValue ? ` (in precedenza "${previousValue}")` : ''}`,
     },
     roomMembersPage: {
         memberNotFound: 'Membro non trovato.',

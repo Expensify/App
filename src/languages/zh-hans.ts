@@ -6942,6 +6942,14 @@ ${reportName}
             approvedReimbursedClosedSpend,
         }: UpdatedPolicyBudgetNotificationParams) =>
             `提醒！此工作区的${budgetTypeForNotificationMessage}“${budgetName}”设有${budgetFrequency}预算“${budgetAmount}”。你当前已花费${approvedReimbursedClosedSpend}，已超过预算的${thresholdPercentage}%。另外还有${awaitingApprovalSpend}在等待审批，以及${unsubmittedSpend}尚未提交，总计${totalSpend}。${summaryLink ? `<a href="${summaryLink}">这里有一份报表</a>，包含了所有相关报销记录，供你留档保存！` : ''}`,
+        addedCardFeed: (feedName: string) => `已添加卡片流水“${feedName}”`,
+        removedCardFeed: (feedName: string) => `已移除卡片流水 “${feedName}”`,
+        renamedCardFeed: (newName: string, oldName: string) => `已将卡片流水从“${oldName}”重命名为“${newName}”`,
+        assignedCompanyCard: (email: string, cardLastFour: string) => `已分配以 ${cardLastFour} 结尾的公司卡给 ${email}`,
+        unassignedCompanyCard: (email: string, cardLastFour: string) => `未分配的 ${email} 公司卡（末尾为 ${cardLastFour}）`,
+        updatedCardFeedLiability: (feedName: string, enabled: boolean) => `允许 ${enabled ? '已启用' : '已禁用'} 持卡人删除卡片交易（卡片流水来源：“${feedName}”）`,
+        updatedCardFeedStatementPeriod: (feedName: string, newValue?: string, previousValue?: string) =>
+            `已更改卡片流水“${feedName}”的账单周期截止日${newValue ? ` 为“${newValue}”` : ''}${previousValue ? ` （先前为“${previousValue}”）` : ''}`,
     },
     roomMembersPage: {
         memberNotFound: '未找到成员。',
