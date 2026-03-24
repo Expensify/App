@@ -2501,7 +2501,7 @@ describe('CardUtils', () => {
                     state: CONST.EXPENSIFY_CARD.STATE.OPEN,
                     nameValuePairs: {
                         isVirtual: true,
-                        isTravelCard: true,
+                        feedCountry: CONST.TRAVEL.PROGRAM_TRAVEL_US,
                     },
                 },
             } as unknown as CardList;

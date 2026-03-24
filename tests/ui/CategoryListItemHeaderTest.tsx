@@ -5,9 +5,9 @@ import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import {SearchActionsContext, SearchStateContext} from '@components/Search/SearchContext';
+import CategoryListItemHeader from '@components/Search/SearchList/ListItem/CategoryListItemHeader';
+import type {TransactionCategoryGroupListItemType} from '@components/Search/SearchList/ListItem/types';
 import type {SearchActionsContextValue, SearchColumnType, SearchStateContextValue} from '@components/Search/types';
-import CategoryListItemHeader from '@components/SelectionListWithSections/Search/CategoryListItemHeader';
-import type {TransactionCategoryGroupListItemType} from '@components/SelectionListWithSections/types';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -35,7 +35,7 @@ const mockSearchStateContext = {
     lastSearchType: undefined,
     areAllMatchingItemsSelected: false,
     shouldShowSelectAllMatchingItems: false,
-    shouldShowFiltersBarLoading: false,
+    shouldShowActionsBarLoading: false,
     shouldUseLiveData: false,
     currentSimilarSearchHash: -1,
     suggestedSearches: {} as SearchStateContextValue['suggestedSearches'],
@@ -46,7 +46,7 @@ const mockSearchActionsContext = {
     setSelectedTransactions: jest.fn(),
     removeTransaction: jest.fn(),
     clearSelectedTransactions: jest.fn(),
-    setShouldShowFiltersBarLoading: jest.fn(),
+    setShouldShowActionsBarLoading: jest.fn(),
     setShouldShowSelectAllMatchingItems: jest.fn(),
     selectAllMatchingItems: jest.fn(),
     setShouldResetSearchQuery: jest.fn(),

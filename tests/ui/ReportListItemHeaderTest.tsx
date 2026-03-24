@@ -6,9 +6,9 @@ import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import {SearchActionsContext, SearchStateContext} from '@components/Search/SearchContext';
+import ReportListItemHeader from '@components/Search/SearchList/ListItem/ReportListItemHeader';
+import type {TransactionReportGroupListItemType} from '@components/Search/SearchList/ListItem/types';
 import type {SearchActionsContextValue, SearchStateContextValue} from '@components/Search/types';
-import ReportListItemHeader from '@components/SelectionListWithSections/Search/ReportListItemHeader';
-import type {TransactionReportGroupListItemType} from '@components/SelectionListWithSections/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails} from '@src/types/onyx';
@@ -31,7 +31,7 @@ const mockSearchStateContext = {
     currentSearchQueryJSON: undefined,
     currentSearchResults: undefined,
     shouldShowSelectAllMatchingItems: false,
-    shouldShowFiltersBarLoading: false,
+    shouldShowActionsBarLoading: false,
     shouldUseLiveData: false,
     currentSimilarSearchHash: -1,
     suggestedSearches: {} as SearchStateContextValue['suggestedSearches'],
@@ -41,7 +41,7 @@ const mockSearchActionsContext = {
     clearSelectedTransactions: jest.fn(),
     setLastSearchType: jest.fn(),
     setSelectedTransactions: jest.fn(),
-    setShouldShowFiltersBarLoading: jest.fn(),
+    setShouldShowActionsBarLoading: jest.fn(),
     setShouldShowSelectAllMatchingItems: jest.fn(),
     selectAllMatchingItems: jest.fn(),
     setShouldResetSearchQuery: jest.fn(),
