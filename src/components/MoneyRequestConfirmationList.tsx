@@ -24,7 +24,7 @@ import {
     setMoneyRequestPendingFields,
     setMoneyRequestTag,
     setMoneyRequestTaxAmount,
-    setMoneyRequestTaxRate,
+    setMoneyRequestTaxRateValues,
 } from '@libs/actions/IOU';
 import {computePerDiemExpenseAmount, isValidPerDiemExpenseAmount} from '@libs/actions/IOU/PerDiem';
 import {adjustRemainingSplitShares, resetSplitShares, setIndividualShare, setSplitShares} from '@libs/actions/IOU/Split';
@@ -354,6 +354,7 @@ function MoneyRequestConfirmationList({
     const isFromGlobalCreateAndCanEditParticipant = !!transaction?.isFromGlobalCreate && !isPerDiemRequest && !isTimeRequest;
 
     const transactionID = transaction?.transactionID;
+    const previousTransactionCurrency = usePrevious(transaction?.currency);
     const customUnitRateID = getRateID(transaction);
 
     const subRates = transaction?.comment?.customUnit?.subRates ?? [];
@@ -384,14 +385,27 @@ function MoneyRequestConfirmationList({
 
     // Update the tax code when the default changes (for example, because the transaction currency changed)
     const defaultTaxCode = getDefaultTaxCode(policy, transaction) ?? (isMovingTransactionFromTrackExpense ? (getDefaultTaxCode(policyForMovingExpenses, transaction) ?? '') : '');
+    const defaultTaxValue = getTaxValue(policy, transaction, defaultTaxCode) ?? null;
+    const previousDefaultTaxCode = getDefaultTaxCode(policy, transaction, previousTransactionCurrency);
+    const shouldKeepCurrentTaxSelection = hasTaxRateWithMatchingValue(policy, transaction) && transaction?.taxCode !== previousDefaultTaxCode;
 
     useEffect(() => {
         if (!transactionID || isReadOnly || !shouldShowTax || isMovingTransactionFromTrackExpense) {
             return;
         }
-        setMoneyRequestTaxRate(transactionID, defaultTaxCode);
+
+        // Keep the user's current selection when it's still valid for the active policy.
+        if (shouldKeepCurrentTaxSelection) {
+            return;
+        }
+
+        setMoneyRequestTaxRateValues(transactionID, {
+            taxCode: defaultTaxCode,
+            taxValue: defaultTaxValue,
+            taxAmount: transaction?.taxAmount ?? null,
+        });
         // trigger this useEffect also when policyID changes - the defaultTaxCode may stay the same
-    }, [defaultTaxCode, isMovingTransactionFromTrackExpense, isReadOnly, transactionID, policyID, shouldShowTax]);
+    }, [defaultTaxCode, defaultTaxValue, isMovingTransactionFromTrackExpense, isReadOnly, transactionID, policyID, shouldShowTax, shouldKeepCurrentTaxSelection, transaction?.taxAmount]);
 
     const distance = getDistanceInMeters(transaction, unit);
     const prevDistance = usePrevious(distance);
