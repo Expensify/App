@@ -1402,6 +1402,7 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
             expenseReportCurrentNextStepDeprecated: nextStep,
             betas,
             userBillingGraceEndPeriods,
+            ownerBillingGraceEndPeriod,
             amountOwed,
             full: isFullApproval,
         });
