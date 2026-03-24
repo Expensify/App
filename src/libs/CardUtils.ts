@@ -1405,6 +1405,10 @@ function getBrokenConnectionUrlToFixPersonalCard(cards: Record<string, Card>, en
     return `${environmentURL}/${ROUTES.SETTINGS_WALLET}`;
 }
 
+function isTravelCard(card: Card | undefined): boolean {
+    return card?.nameValuePairs?.feedCountry === CONST.TRAVEL.PROGRAM_TRAVEL_US;
+}
+
 /**
  * Gets displayable Expensify cards, filtering out inactive cards and grouping combo cards
  * (physical + virtual pairs) so only the physical card is shown per domain.
@@ -1425,8 +1429,7 @@ function getDisplayableExpensifyCards(cardList: CardList | undefined): Card[] {
 
     return sortedCards.filter((card) => {
         const isAdminIssuedVirtualCard = !!card.nameValuePairs?.issuedBy && !!card.nameValuePairs?.isVirtual;
-        const isTravelCard = !!card.nameValuePairs?.isVirtual && !!card.nameValuePairs?.isTravelCard;
-        const isComboCard = !!card.domainName && !isAdminIssuedVirtualCard && !isTravelCard;
+        const isComboCard = !!card.domainName && !isAdminIssuedVirtualCard && !isTravelCard(card);
 
         // Always show non-combo cards (admin-issued virtual, travel cards, or cards without domain)
         if (!isComboCard) {
@@ -1516,6 +1519,7 @@ export {
     getCardFeedIcon,
     getBankName,
     isSelectedFeedExpired,
+    isTravelCard,
     getCompanyFeeds,
     isPersonalCardBrokenConnection,
     isCustomFeed,
