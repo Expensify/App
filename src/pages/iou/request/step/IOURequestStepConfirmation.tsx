@@ -33,6 +33,7 @@ import useReportAttributes from '@hooks/useReportAttributes';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {completeTestDriveTask} from '@libs/actions/Task';
+import {isMobileSafari} from '@libs/Browser';
 import {getCurrencySymbol} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
@@ -164,6 +165,7 @@ function IOURequestStepConfirmation({
 
     const [transactions] = useOptimisticDraftTransactions(initialTransaction);
     const hasMultipleTransactions = transactions.length > 1;
+
     // Depend on transactions.length to avoid updating transactionIDs when only the transaction details change
     // eslint-disable-next-line react-hooks/exhaustive-deps
     const transactionIDs = useMemo(() => transactions?.map((transaction) => transaction.transactionID), [transactions.length]);
@@ -523,7 +525,7 @@ function IOURequestStepConfirmation({
         }
 
         // This has selected the participants from the beginning and the participant field shouldn't be editable.
-        navigateToStartMoneyRequestStep(requestType, iouType, initialTransactionID, reportID, action);
+        navigateToStartMoneyRequestStep(requestType, iouType, initialTransactionID, reportID, action, backToReport);
     }, [
         action,
         isPerDiemRequest,
@@ -541,6 +543,7 @@ function IOURequestStepConfirmation({
         isMovingTransactionFromTrackExpense,
         participantsAutoAssignedFromRoute,
         backTo,
+        backToReport,
     ]);
 
     // When the component mounts, if there is a receipt, see if the image can be read from the disk. If not, redirect the user to the starting step of the flow.
@@ -626,6 +629,9 @@ function IOURequestStepConfirmation({
                 const isLinkedTrackedExpenseReportArchived =
                     !!item.linkedTrackedExpenseReportID && !!privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${item.linkedTrackedExpenseReportID}`];
 
+                const itemAmount = isTestReceipt ? CONST.TEST_RECEIPT.AMOUNT : item.amount;
+                const itemCurrency = isTestReceipt ? CONST.TEST_RECEIPT.CURRENCY : item.currency;
+
                 if (isTestDriveReceipt) {
                     completeTestDriveTask(
                         viewTourTaskReport,
@@ -682,10 +688,10 @@ function IOURequestStepConfirmation({
                     gpsPoint,
                     action,
                     transactionParams: {
-                        amount: isTestReceipt ? CONST.TEST_RECEIPT.AMOUNT : item.amount,
+                        amount: itemAmount,
                         distance: isManualDistanceRequest && typeof item.comment?.customUnit?.quantity === 'number' ? roundToTwoDecimalPlaces(item.comment.customUnit.quantity) : undefined,
                         attendees: item.comment?.attendees,
-                        currency: isTestReceipt ? CONST.TEST_RECEIPT.CURRENCY : item.currency,
+                        currency: itemCurrency,
                         created: item.created,
                         merchant: merchantToUse,
                         comment: item?.comment?.comment?.trim() ?? '',
@@ -730,7 +736,6 @@ function IOURequestStepConfirmation({
             }
         },
         [
-            transactionIDs,
             transactions,
             receiptFiles,
             privateIsArchivedMap,
@@ -1544,7 +1549,8 @@ function IOURequestStepConfirmation({
     const shouldShowSmartScanFields = !!transaction?.receipt?.isTestDriveReceipt || isMovingTransactionFromTrackExpense || requestType !== CONST.IOU.REQUEST_TYPE.SCAN;
     return (
         <ScreenWrapper
-            shouldEnableMaxHeight={canUseTouchScreen()}
+            shouldEnableMaxHeight={canUseTouchScreen() && !isMobileSafari()}
+            shouldAvoidScrollOnVirtualViewport={!isMobileSafari()}
             testID="IOURequestStepConfirmation"
         >
             <DragAndDropProvider isDisabled={!showReceiptEmptyState || isOdometerDistanceRequest}>

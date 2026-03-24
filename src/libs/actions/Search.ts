@@ -7,8 +7,8 @@ import type {FormOnyxValues} from '@components/Form/types';
 import type {ContinueActionParams, PaymentMethod, PaymentMethodType} from '@components/KYCWall/types';
 import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
+import type {TransactionListItemType, TransactionReportGroupListItemType} from '@components/Search/SearchList/ListItem/types';
 import type {BankAccountMenuItem, BulkPaySelectionData, PaymentData, SearchQueryJSON, SelectedReports, SelectedTransactionInfo, SelectedTransactions} from '@components/Search/types';
-import type {TransactionListItemType, TransactionReportGroupListItemType} from '@components/SelectionListWithSections/types';
 import * as API from '@libs/API';
 import {waitForWrites} from '@libs/API';
 import type {
@@ -30,7 +30,7 @@ import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
 import enhanceParameters from '@libs/Network/enhanceParameters';
 import {rand64} from '@libs/NumberUtils';
 import {getActivePaymentType} from '@libs/PaymentUtils';
-import {getSubmitToAccountID, getValidConnectedIntegration, hasDynamicExternalWorkflow, isDelayedSubmissionEnabled} from '@libs/PolicyUtils';
+import {getSubmitToAccountID, getValidConnectedIntegration, isDelayedSubmissionEnabled} from '@libs/PolicyUtils';
 import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
 import type {OptimisticExportIntegrationAction} from '@libs/ReportUtils';
 import {
@@ -107,8 +107,6 @@ type HandleActionButtonPressParams = {
     lastPaymentMethod: OnyxEntry<LastPaymentMethod>;
     userBillingGraceEndPeriods: OnyxCollection<BillingGraceEndPeriod>;
     currentSearchKey?: SearchKey;
-    onDEWModalOpen?: () => void;
-    isDEWBetaEnabled?: boolean;
     isDelegateAccessRestricted?: boolean;
     onDelegateAccessRestricted?: () => void;
     personalPolicyID: string | undefined;
@@ -139,8 +137,6 @@ function handleActionButtonPress({
     lastPaymentMethod,
     userBillingGraceEndPeriods,
     currentSearchKey,
-    onDEWModalOpen,
-    isDEWBetaEnabled,
     isDelegateAccessRestricted,
     onDelegateAccessRestricted,
     personalPolicyID,
@@ -176,19 +172,11 @@ function handleActionButtonPress({
                 Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(snapshotReport.policyID));
                 return;
             }
-            if (hasDynamicExternalWorkflow(snapshotPolicy) && !isDEWBetaEnabled) {
-                onDEWModalOpen?.();
-                return;
-            }
             approveMoneyRequestOnSearch(hash, item.reportID ? [item.reportID] : [], currentSearchKey);
             return;
         case CONST.SEARCH.ACTION_TYPES.SUBMIT: {
             if (snapshotReport.policyID && shouldRestrictUserBillableActions(snapshotReport.policyID, userBillingGraceEndPeriods)) {
                 Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(snapshotReport.policyID));
-                return;
-            }
-            if (hasDynamicExternalWorkflow(snapshotPolicy) && !isDEWBetaEnabled) {
-                onDEWModalOpen?.();
                 return;
             }
             submitMoneyRequestOnSearch(hash, [item as Report], [snapshotPolicy], currentSearchKey);

@@ -11,10 +11,10 @@ import DeferredAutocompleteList from '@components/Search/DeferredSearchAutocompl
 import type {GetAdditionalSectionsCallback} from '@components/Search/SearchAutocompleteList';
 import {useSearchActionsContext} from '@components/Search/SearchContext';
 import SearchInputSelectionWrapper from '@components/Search/SearchInputSelectionWrapper';
+import type {SearchQueryItem} from '@components/Search/SearchList/ListItem/SearchQueryListItem';
+import {isSearchQueryItem} from '@components/Search/SearchList/ListItem/SearchQueryListItem';
 import type {SearchQueryString} from '@components/Search/types';
 import type {SelectionListWithSectionsHandle} from '@components/SelectionList/SelectionListWithSections/types';
-import type {SearchQueryItem} from '@components/SelectionListWithSections/Search/SearchQueryListItem';
-import {isSearchQueryItem} from '@components/SelectionListWithSections/Search/SearchQueryListItem';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
@@ -111,7 +111,8 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                 }
 
                 const privateIsArchived = privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${contextualReportID}`];
-                const option = createOptionFromReport(report, personalDetails, currentUserAccountID, privateIsArchived, undefined, {showPersonalDetails: true});
+                const reportPolicy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
+                const option = createOptionFromReport(report, personalDetails, currentUserAccountID, privateIsArchived, reportPolicy, undefined, {showPersonalDetails: true});
                 reportForContextualSearch = option;
             }
 
@@ -175,6 +176,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
             personalDetails,
             currentUserAccountID,
             privateIsArchivedMap,
+            policies,
         ],
     );
 

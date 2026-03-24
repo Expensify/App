@@ -34,6 +34,7 @@ function useApproveAction({iouReport, policyID, formattedAmount, shouldDisableAp
     const [iouReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${iouReport?.reportID}`);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
+    const [ownerBillingGraceEndPeriod] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const transactionViolationsSelector = (violations: OnyxCollection<TransactionViolation[]>) => hasViolationsReportUtils(iouReport?.reportID, violations, accountID, email ?? '');
     const [hasViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {selector: transactionViolationsSelector});
 
@@ -62,6 +63,7 @@ function useApproveAction({iouReport, policyID, formattedAmount, shouldDisableAp
                 betas,
                 userBillingGraceEndPeriods,
                 amountOwed,
+                ownerBillingGraceEndPeriod,
                 full: false,
             });
         }
