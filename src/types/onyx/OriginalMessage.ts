@@ -152,8 +152,9 @@ type OriginalMessageActionableMentionWhisper = {
     deleted?: string | null;
 
     /** The reportActionID of the parent comment that triggered this whisper. Used to find the parent when this
-     *  whisper was created during a message edit (and therefore doesn't follow the parentID+1 ID convention). */
-    reportActionID?: number;
+     *  whisper was created during a message edit (and therefore doesn't follow the parentID+1 ID convention).
+     *  Stored as a string by the backend to preserve full int64 precision. */
+    reportActionID?: string;
 };
 
 /** Model of `actionable card fraud alert` report action */
@@ -200,8 +201,9 @@ type OriginalMessageActionableReportMentionWhisper = {
     /** Timestamp of when the whisper was deleted (set by the backend when the parent comment is deleted) */
     deleted?: string | null;
 
-    /** The reportActionID of the parent comment that triggered this whisper */
-    reportActionID?: number;
+    /** The reportActionID of the parent comment that triggered this whisper.
+     *  Stored as a string by the backend to preserve full int64 precision. */
+    reportActionID?: string;
 };
 
 /** Model of `welcome whisper` report action */
