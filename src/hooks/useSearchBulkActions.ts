@@ -81,7 +81,7 @@ function getRestrictedPolicyID(
 ): string | undefined {
     return items
         .map((item) => item.policyID)
-        .find((policyID): policyID is string => !!policyID && shouldRestrictUserBillableActions(policyID, billingGracePeriods, undefined, ownerBillingGraceEndPeriod));
+        .find((policyID): policyID is string => !!policyID && shouldRestrictUserBillableActions(policyID, ownerBillingGraceEndPeriod, billingGracePeriods));
 }
 
 function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
