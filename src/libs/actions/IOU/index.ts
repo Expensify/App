@@ -3446,13 +3446,20 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         if (isSplitExpense) {
             // Preserve merchant from transactionParams (splitExpense.merchant) before merge
             const preservedMerchant = merchant || optimisticTransaction.merchant;
-            const {merchant: omittedMerchant, ...existingTransactionWithoutMerchant} = existingTransaction;
-            optimisticTransaction = fastMerge(existingTransactionWithoutMerchant, optimisticTransaction, false) as OnyxTypes.Transaction;
+            // Exclude receipt from existingTransaction to prevent stale draft receipt (set by setMoneyRequestReceiptState)
+            // from overwriting the optimistic transaction's receipt via fastMerge, which skips undefined source values.
+            const {merchant: omittedMerchant, receipt: omittedReceipt, ...existingTransactionWithoutMerchantAndReceipt} = existingTransaction;
+            optimisticTransaction = fastMerge(existingTransactionWithoutMerchantAndReceipt, optimisticTransaction, false) as OnyxTypes.Transaction;
 
             // Explicitly set merchant from splitExpense to ensure it's not overwritten
             optimisticTransaction.merchant = preservedMerchant;
         } else {
-            optimisticTransaction = fastMerge(existingTransaction, optimisticTransaction, false);
+            // Exclude receipt from existingTransaction to prevent stale draft receipt (set by setMoneyRequestReceiptState)
+            // from overwriting the optimistic transaction's receipt via fastMerge, which skips undefined source values.
+            // For manual/odometer distance requests, buildOptimisticTransaction sets receipt: undefined, but fastMerge would
+            // preserve the draft's receipt: {state: 'OPEN'}, causing a brief receipt placeholder flash. See #85150.
+            const {receipt: omittedReceipt, ...existingTransactionWithoutReceipt} = existingTransaction;
+            optimisticTransaction = fastMerge(existingTransactionWithoutReceipt, optimisticTransaction, false);
         }
     }
 
@@ -3908,7 +3915,12 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
     // I want to clean this up at some point, but it's possible this will live in the code for a while so I've created https://github.com/Expensify/App/issues/25417
     // to remind me to do this.
     if (isDistanceRequest) {
-        optimisticTransaction = fastMerge(existingTransactionData, optimisticTransaction, false);
+        // Exclude receipt from existingTransactionData to prevent stale draft receipt (set by setMoneyRequestReceiptState)
+        // from overwriting the optimistic transaction's receipt via fastMerge, which skips undefined source values.
+        // For manual/odometer distance requests, buildOptimisticTransaction sets receipt: undefined, but fastMerge would
+        // preserve the draft's receipt: {state: 'OPEN'}, causing a brief receipt placeholder flash. See #85150.
+        const {receipt: omittedReceipt, ...existingTransactionDataWithoutReceipt} = existingTransactionData ?? {};
+        optimisticTransaction = fastMerge(existingTransactionDataWithoutReceipt, optimisticTransaction, false);
     }
 
     // STEP 4: Build optimistic reportActions. We need:
