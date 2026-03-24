@@ -6,8 +6,9 @@ import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViol
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getAllNonDeletedTransactions} from '@libs/MoneyRequestReportUtils';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
-import {getOriginalMessage, isMoneyRequestAction, isSentMoneyReportAction} from '@libs/ReportActionsUtils';
+import {getIOUActionForTransactionID, getOriginalMessage, isMoneyRequestAction, isSentMoneyReportAction} from '@libs/ReportActionsUtils';
 import {isDM, isIOUReport} from '@libs/ReportUtils';
+import {isScanRequest} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report, ReportAction, ReportActions, Transaction} from '@src/types/onyx';
@@ -56,13 +57,39 @@ function getReportPreviewSenderID({iouReport, action, chatReport, iouActions, tr
         return currentUserAccountID;
     }
 
-    // 1. If all amounts have the same sign - either all amounts are positive or all amounts are negative.
-    // We have to do it this way because there can be a case when actions are not available
+    // 1. Determine if all transactions were created by the same actor.
+    // When iouActions are available, use actorAccountID (most reliable).
+    // Otherwise, fall back to amount sign comparison with scan-awareness.
     // See: https://github.com/Expensify/App/pull/64802#issuecomment-3008944401
 
-    const areAmountsSignsTheSame = new Set(transactions?.map((tr) => Math.sign(tr.amount))).size < 2;
+    const transactionActors = transactions?.map((tr) => getIOUActionForTransactionID(iouActions ?? [], tr.transactionID)?.actorAccountID);
+    const hasActorForAll = !!iouActions?.length && !!transactionActors?.length && transactionActors.every((id) => id !== undefined);
 
-    if (!areAmountsSignsTheSame) {
+    let areAllTransactionsBySameCreator: boolean;
+    if (hasActorForAll) {
+        areAllTransactionsBySameCreator = new Set(transactionActors).size < 2;
+    } else {
+        // Fallback: compare amount signs. Scan-in-progress transactions (amount=0 with no usable
+        // modifiedAmount) are excluded since their direction is unknown until SmartScan completes or iouActions load.
+        areAllTransactionsBySameCreator =
+            new Set(
+                transactions?.flatMap((tr) => {
+                    if (tr.amount !== 0) {
+                        return [Math.sign(tr.amount)];
+                    }
+                    if (isScanRequest(tr)) {
+                        const modified = Number(tr.modifiedAmount);
+                        if (Number.isFinite(modified) && modified !== 0) {
+                            return [Math.sign(modified)];
+                        }
+                        return [];
+                    }
+                    return [Math.sign(tr.amount)];
+                }),
+            ).size < 2;
+    }
+
+    if (!areAllTransactionsBySameCreator) {
         return undefined;
     }
 
