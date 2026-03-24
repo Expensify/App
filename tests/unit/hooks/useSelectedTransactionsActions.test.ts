@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/naming-convention */
-import {renderHook, waitFor} from '@testing-library/react-native';
+import {act, renderHook, waitFor} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {SelectedTransactions} from '@components/Search/types';
@@ -354,12 +354,45 @@ describe('useSelectedTransactionsActions', () => {
             }),
         );
 
-        result.current.handleDeleteTransactions();
+        act(() => {
+            result.current.handleDeleteTransactions();
+        });
 
-        expect(mockDeleteTransactions).toHaveBeenCalledWith([transactionID], mockDuplicateTransactions, mockDuplicateTransactionViolations, mockCurrentSearchHash, false);
+        expect(mockDeleteTransactions).toHaveBeenCalledWith([transactionID], mockDuplicateTransactions, mockDuplicateTransactionViolations, undefined, false);
         expect(mockClearSelectedTransactions).toHaveBeenCalledWith(true);
         expect(Navigation.removeReportScreen).toHaveBeenCalledWith(new Set(['report1', 'report2']));
         expect(result.current.isDeleteModalVisible).toBe(false);
+    });
+
+    it('should pass currentSearchHash to delete transactions when on search', async () => {
+        const transactionID = '123';
+        const report = createRandomReport(1, undefined);
+        const reportActions: ReportAction[] = [];
+        const transaction = createRandomTransaction(1);
+        transaction.transactionID = transactionID;
+
+        mockSelectedTransactionIDs.push(transactionID);
+        (mockDeleteTransactions as jest.Mock<string[]>).mockReturnValue(['report1']);
+
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction);
+
+        const {result} = renderHook(() =>
+            useSelectedTransactionsActions({
+                report,
+                reportActions,
+                allTransactionsLength: 1,
+                beginExportWithTemplate: mockBeginExportWithTemplate,
+                isOnSearch: true,
+            }),
+        );
+
+        act(() => {
+            result.current.handleDeleteTransactions();
+        });
+
+        expect(mockDeleteTransactions).toHaveBeenCalledWith([transactionID], mockDuplicateTransactions, mockDuplicateTransactionViolations, mockCurrentSearchHash, false);
+        expect(mockClearSelectedTransactions).toHaveBeenCalledWith(true);
+        expect(Navigation.removeReportScreen).toHaveBeenCalledWith(new Set(['report1']));
     });
 
     it('should show and hide delete modal', async () => {
