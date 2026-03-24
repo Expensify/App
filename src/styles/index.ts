@@ -1160,6 +1160,13 @@ const staticStyles = (theme: ThemeColors) =>
             justifyContent: 'center',
         },
 
+        permissionViewLandscape: {
+            paddingVertical: 16,
+            paddingHorizontal: 61,
+            alignItems: 'center',
+            justifyContent: 'center',
+        },
+
         invisiblePDF: {
             position: 'absolute',
             opacity: 0,
