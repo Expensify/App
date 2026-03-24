@@ -125,6 +125,8 @@ function DropdownButton({label, value, viewportOffsetTop, PopoverComponent, medi
         return PopoverComponent({closeOverlay: toggleOverlay});
     }, [PopoverComponent, toggleOverlay]);
 
+    console.log('DropdownButton', buttonText);
+
     return (
         <View
             ref={anchorRef}
@@ -176,6 +178,7 @@ function DropdownButton({label, value, viewportOffsetTop, PopoverComponent, medi
                 }}
                 shouldSkipRemeasurement
                 shouldDisplayBelowModals
+                shouldWrapModalChildrenInScrollViewIfBottomDockedInLandscapeMode={false}
             >
                 {popoverContent}
             </PopoverWithMeasuredContent>
