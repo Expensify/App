@@ -42,7 +42,8 @@ function NewChatListItem<TItem extends ListItem>({
     const subscriptAvatarBorderColor = isFocused ? focusedBackgroundColor : theme.sidebar;
     const hoveredBackgroundColor = !!styles.sidebarLinkHover && 'backgroundColor' in styles.sidebarLinkHover ? styles.sidebarLinkHover.backgroundColor : theme.sidebar;
 
-    const [isReportInOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${item.reportID}`, {
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- some utils that are used to get reportID return empty string "", which would make subscription to the whole collection with nullish coalescing operator, example of this could be found in NewChatPage.tsx where some hooks return reportID as empty strings
+    const [isReportInOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${item.reportID || undefined}`, {
         selector: (report) => !!report,
     });
 
@@ -90,7 +91,6 @@ function NewChatListItem<TItem extends ListItem>({
                                 hovered && !isFocused ? StyleUtils.getBackgroundAndBorderStyle(hoveredBackgroundColor) : undefined,
                             ]}
                             reportID={reportExists ? item.reportID : undefined}
-                            /* eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing */
                             accountIDs={!reportExists && !!itemAccountID ? [itemAccountID] : []}
                             policyID={!reportExists && !!policyID ? policyID : undefined}
                             singleAvatarContainerStyle={[styles.actionAvatar, styles.mr3]}

@@ -62,7 +62,7 @@ function InviteMemberListItem<TItem extends ListItem>({
     const hoveredBackgroundColor = !!styles.sidebarLinkHover && 'backgroundColor' in styles.sidebarLinkHover ? styles.sidebarLinkHover.backgroundColor : theme.sidebar;
 
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- we need to check if the item is disabled and if the checkbox or radio button should be shown
-    const shouldShowCheckBox = !item.isDisabled && (canSelectMultiple || shouldShowRadioButton);
+    const shouldShowCheckbox = !item.isDisabled && (canSelectMultiple || shouldShowRadioButton);
 
     const handleCheckboxPress = useCallback(() => {
         if (onCheckboxPress) {
@@ -98,7 +98,7 @@ function InviteMemberListItem<TItem extends ListItem>({
             keyForList={item.keyForList}
             onFocus={onFocus}
             shouldSyncFocus={shouldSyncFocus}
-            shouldDisplayRBR={!shouldShowCheckBox}
+            shouldDisplayRBR={!shouldShowCheckbox}
             testID={item.text}
         >
             {(hovered?: boolean) => (
@@ -156,7 +156,7 @@ function InviteMemberListItem<TItem extends ListItem>({
                             )}
                         </View>
                         {!!item.rightElement && <ListItemFocusContext.Provider value={{isFocused}}>{item.rightElement}</ListItemFocusContext.Provider>}
-                        {!!shouldShowCheckBox && (
+                        {!!shouldShowCheckbox && (
                             <SelectionCheckbox
                                 item={item}
                                 onSelectRow={handleCheckboxPress}

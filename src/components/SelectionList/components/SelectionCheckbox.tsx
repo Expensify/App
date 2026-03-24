@@ -49,7 +49,7 @@ function SelectionCheckbox<TItem extends ListItem>({
             shouldSelectOnPressEnter
             containerBorderRadius={isCircular ? 999 : undefined}
             accessibilityLabel={accessibilityLabel ?? item.text ?? ''}
-            isChecked={item.isSelected ?? false}
+            isChecked={item.isSelected}
             onPress={() => onSelectRow(item)}
             disabled={disabled}
             style={style}

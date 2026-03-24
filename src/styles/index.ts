@@ -2822,14 +2822,6 @@ const staticStyles = (theme: ThemeColors) =>
             borderRadius: variables.componentBorderRadiusLarge,
         },
 
-        sectionMenuItem: {
-            borderRadius: 8,
-            paddingHorizontal: 16,
-            paddingVertical: 8,
-            height: 52,
-            alignItems: 'center',
-        },
-
         sectionSelectCircle: {
             backgroundColor: theme.cardBG,
         },
