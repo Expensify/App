@@ -1247,6 +1247,8 @@ const translations: TranslationDeepObject<typeof en> = {
         pendingMatch: 'Corrispondenza in sospeso',
         pendingMatchWithCreditCardDescription: 'Ricevuta in attesa di abbinamento con la transazione della carta. Contrassegna come contante per annullare.',
         markAsCash: 'Segna come contante',
+        pendingMatchSubmitTitle: 'Invia report',
+        pendingMatchSubmitDescription: 'Alcune spese sono in attesa di abbinamento con una transazione della carta di credito. Vuoi segnarle come contante?',
         routePending: 'Instradamento in sospeso...',
         automaticallyEnterExpenseDetails: 'Concierge inserirà automaticamente i dettagli della spesa per te, oppure puoi aggiungerli manualmente.',
         receiptScanning: () => ({

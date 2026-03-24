@@ -33,7 +33,7 @@ function Finish() {
     const policyID = reimbursementAccount?.achData?.policyID;
 
     const handleBackButtonPress = () => {
-        Navigation.goBack();
+        Navigation.dismissModal();
     };
     const handleNavigateToConciergeChat = () => navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, true);
 
