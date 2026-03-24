@@ -189,7 +189,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
                 canUserPerformWrite,
                 reportActions,
                 visibleReportActionsData,
-                itemOneTransactionThreadReport?.reportID,
+                reportAttributes?.[reportID]?.oneTransactionThreadReportID,
             );
 
             // Only override lastMessageTextFromReport when a track expense whisper's transaction has been deleted, to prevent showing stale text.
@@ -272,7 +272,6 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
         () => [
             reportActions,
             reports,
-            reportAttributes,
             reportNameValuePairs,
             policy,
             personalDetails,
@@ -288,7 +287,6 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
         [
             reportActions,
             reports,
-            reportAttributes,
             reportNameValuePairs,
             policy,
             personalDetails,
