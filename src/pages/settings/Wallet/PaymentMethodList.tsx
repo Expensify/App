@@ -32,6 +32,7 @@ import {
     isExpensifyCardPendingAction,
     isExpiredCard,
     isPersonalCard,
+    isTravelCard,
     lastFourNumbersFromCardName,
     maskCardNumber,
 } from '@libs/CardUtils';
@@ -313,10 +314,9 @@ function PaymentMethodList({
                 }
 
                 const isAdminIssuedVirtualCard = !!card?.nameValuePairs?.issuedBy && !!card?.nameValuePairs?.isVirtual;
-                const isTravelCard = card?.nameValuePairs?.feedCountry === CONST.TRAVEL.PROGRAM_TRAVEL_US;
 
                 // Travel cards are handled by the dedicated travelCardGrouped section below
-                if (isTravelCard) {
+                if (isTravelCard(card)) {
                     continue;
                 }
 
