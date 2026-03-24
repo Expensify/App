@@ -267,12 +267,13 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
             return;
         }
         removeMoneyRequestOdometerImage(transaction.transactionID, imageType, isDraftTransaction);
-        const goBackRoute =
-            isEditingConfirmation === true
+        const odometerGoBackRoute =
+            isOdometerImage &&
+            (isEditingConfirmation === true
                 ? ROUTES.MONEY_REQUEST_STEP_DISTANCE_ODOMETER.getRoute(action ?? CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID)
-                : ROUTES.DISTANCE_REQUEST_CREATE_TAB_ODOMETER.getRoute(action ?? CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID, backToReport);
-        Navigation.goBack(goBackRoute);
-    }, [transaction?.transactionID, imageType, isDraftTransaction, isEditingConfirmation, action, iouType, transactionID, reportID, backToReport]);
+                : ROUTES.DISTANCE_REQUEST_CREATE_TAB_ODOMETER.getRoute(action ?? CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID, backToReport));
+        Navigation.goBack(odometerGoBackRoute || undefined);
+    }, [transaction?.transactionID, imageType, isOdometerImage, isDraftTransaction, isEditingConfirmation, action, iouType, transactionID, reportID, backToReport]);
 
     const onDownloadAttachment = useDownloadAttachment({
         isAuthTokenRequired,
