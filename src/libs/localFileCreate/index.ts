@@ -1,4 +1,4 @@
-import * as FileUtils from '@libs/fileDownload/FileUtils';
+import {appendTimeToFileName, getMimeType, splitExtensionFromFileName} from '@libs/fileDownload/FileUtils';
 import type LocalFileCreate from './types';
 
 /**
@@ -8,8 +8,10 @@ import type LocalFileCreate from './types';
  * @returns path, filename and size of the newly created file
  */
 const localFileCreate: LocalFileCreate = (fileName, textContent) => {
-    const newFileName = FileUtils.appendTimeToFileName(fileName);
-    const blob = new Blob([textContent], {type: 'text/plain'});
+    const {fileExtension} = splitExtensionFromFileName(fileName);
+    const fileNameWithExtension = fileExtension ? fileName : `${fileName}.txt`;
+    const newFileName = appendTimeToFileName(fileNameWithExtension);
+    const blob = new Blob([textContent], {type: getMimeType(fileExtension)});
     const url = URL.createObjectURL(blob);
 
     return Promise.resolve({path: url, newFileName, size: blob.size});

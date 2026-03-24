@@ -16,6 +16,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import HapticFeedback from '@libs/HapticFeedback';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import CONST from '@src/CONST';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import type IconAsset from '@src/types/utils/IconAsset';
@@ -300,6 +301,10 @@ function Button({
     const StyleUtils = useStyleUtils();
     const [isHovered, setIsHovered] = useState(false);
 
+    const buttonLoadingReasonAttributes: SkeletonSpanReasonAttributes = {
+        context: 'Button',
+    };
+
     const renderContent = () => {
         if ('children' in rest) {
             return rest.children;
@@ -535,6 +540,7 @@ function Button({
                         color={success || danger ? theme.textLight : theme.text}
                         style={[styles.pAbsolute, styles.l0, styles.r0]}
                         size={extraSmall ? 12 : undefined}
+                        reasonAttributes={buttonLoadingReasonAttributes}
                     />
                 )}
             </PressableWithFeedback>

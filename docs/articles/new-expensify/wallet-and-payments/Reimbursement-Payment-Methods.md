@@ -88,7 +88,6 @@ Once confirmed, Expensify processes the transfers and the report statuses update
 ## ACH reimbursement timelines 
 - **Rapid Reimbursement:** Eligible payments are typically received by the member in one business day. Applies to payments under $100 when total withdrawals are under $10,000 in the past 24 hours.
 - **Standard ACH reimbursement:** All other ACH payments are typically received by the member in four to five business days.
- - **Standard ACH reimbursement:** All other ACH payments are typically received by the member in four to five business days.
 
 Rapid Reimbursement is applied automatically when eligibility requirements are met.
 
@@ -103,11 +102,11 @@ Global reimbursement timelines vary by country. However, most reimbursements are
 Workspace business bank accounts can be connected in:
 
 - [USD](https://help.expensify.com/articles/new-expensify/wallet-and-payments/Global-Reimbursement-United-States) (United States)
-- [SGD](https://help.expensify.com/articles/new-expensify/wallet-and-payments/Global-Reimbursement-Singapore) (Singapore)
+- [CAD](https://help.expensify.com/articles/new-expensify/wallet-and-payments/Global-Reimbursement-Canada) (Canada)
 - [GBP](https://help.expensify.com/articles/new-expensify/wallet-and-payments/Global-Reimbursement-United-Kingdom) (United Kingdom)
 - [EUR](https://help.expensify.com/articles/new-expensify/wallet-and-payments/Global-Reimbursement-Europe) (European Union)
 - [AUD](https://help.expensify.com/articles/new-expensify/wallet-and-payments/Global-Reimbursement-Australia) (Australia)
-- [SGD](https://help.expensify.com/articles/new-expensify/wallet-and-payments/Global-Reimbursement--Singapore) (Singapore)
+- [SGD](https://help.expensify.com/articles/new-expensify/wallet-and-payments/Global-Reimbursement-Singapore) (Singapore)
 
 Members can receive funds in 190+ countries after adding a supported personal bank account.
 

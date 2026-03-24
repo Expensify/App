@@ -1,14 +1,13 @@
 import {filterCardsHiddenFromSearch} from '@selectors/Card';
 import {emailSelector} from '@selectors/Session';
 import type {OnyxCollection} from 'react-native-onyx';
-import {getAllTaxRates, getTagNamesFromTagsLists, isPolicyFeatureEnabled} from '@libs/PolicyUtils';
+import {getAllTaxRates, isPolicyFeatureEnabled} from '@libs/PolicyUtils';
 import {getAllPolicyValues} from '@libs/SearchQueryUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
 import type {Policy, PolicyCategories, PolicyTagLists} from '@src/types/onyx';
-import type {PolicyFeatureName} from '@src/types/onyx/Policy';
-import {getEmptyObject, isEmptyObject} from '@src/types/utils/EmptyObject';
+import {getEmptyObject} from '@src/types/utils/EmptyObject';
 import useLocalize from './useLocalize';
 import useOnyx from './useOnyx';
 import useWorkspaceList from './useWorkspaceList';
@@ -55,7 +54,7 @@ const typeFiltersKeys = {
             CONST.SEARCH.SYNTAX_FILTER_KEYS.APPROVED,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED,
-            // CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED_TO, // Temporarily hidden
+            CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED_TO,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_TYPE,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_ID,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWN,
@@ -80,7 +79,7 @@ const typeFiltersKeys = {
             CONST.SEARCH.SYNTAX_FILTER_KEYS.APPROVED,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED,
-            // CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED_TO, // Temporarily hidden
+            CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED_TO,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_TYPE,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_ID,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWN,
@@ -156,7 +155,7 @@ const typeFiltersKeys = {
             CONST.SEARCH.SYNTAX_FILTER_KEYS.APPROVED,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED,
-            // CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED_TO, // Temporarily hidden
+            CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED_TO,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.TITLE,
         ],
     ],
@@ -191,28 +190,118 @@ function shouldDisplayFilter(numberOfFilters: number, isFeatureEnabled: boolean,
     return (numberOfFilters !== 0 || singlePolicyCondition) && isFeatureEnabled;
 }
 
-function isFeatureEnabledInPolicies(policies: OnyxCollection<Policy>, featureName: PolicyFeatureName) {
-    if (isEmptyObject(policies)) {
-        return false;
-    }
-    return Object.values(policies).some((policy) => isPolicyFeatureEnabled(policy, featureName));
-}
-
 const availablePolicyCategoriesSelector = (policyCategories: OnyxCollection<PolicyCategories>) =>
     Object.fromEntries(
-        Object.entries(policyCategories ?? {}).filter(([, categories]) => {
-            const availableCategories = Object.values(categories ?? {}).filter((category) => category.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
-            return availableCategories.length > 0;
-        }),
+        Object.entries(policyCategories ?? {}).filter(([, categories]) =>
+            Object.values(categories ?? {}).some((category) => category.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE),
+        ),
     );
+
+/**
+ * Selector that pre-computes all policy-derived flags in a single pass.
+ * Returns a small object so Onyx's deepEqual comparison is trivially cheap,
+ * preventing re-renders when policy data changes but derived values don't.
+ */
+const policyDerivedSelector = (policies: OnyxCollection<Policy>) => {
+    let areCategoriesEnabled = false;
+    let areTagsEnabled = false;
+    let areTaxEnabled = false;
+    let isAttendeeTrackingEnabled = false;
+    let hasReportFields = false;
+    let hasAnyTaxRates = false;
+    let hasNonPersonalPolicies = false;
+
+    for (const policy of Object.values(policies ?? {})) {
+        if (!policy) {
+            continue;
+        }
+        if (!hasNonPersonalPolicies && policy.type !== CONST.POLICY.TYPE.PERSONAL) {
+            hasNonPersonalPolicies = true;
+        }
+        if (!areCategoriesEnabled) {
+            areCategoriesEnabled = isPolicyFeatureEnabled(policy, CONST.POLICY.MORE_FEATURES.ARE_CATEGORIES_ENABLED);
+        }
+        if (!areTagsEnabled) {
+            areTagsEnabled = isPolicyFeatureEnabled(policy, CONST.POLICY.MORE_FEATURES.ARE_TAGS_ENABLED);
+        }
+        if (!areTaxEnabled) {
+            areTaxEnabled = isPolicyFeatureEnabled(policy, CONST.POLICY.MORE_FEATURES.ARE_TAXES_ENABLED);
+        }
+        if (!isAttendeeTrackingEnabled) {
+            isAttendeeTrackingEnabled = isPolicyFeatureEnabled(policy, CONST.POLICY.MORE_FEATURES.IS_ATTENDEE_TRACKING_ENABLED);
+        }
+        if (!hasReportFields) {
+            hasReportFields = Object.values(policy.fieldList ?? {}).some((val) => val.type !== CONST.POLICY.DEFAULT_FIELD_LIST_TYPE);
+        }
+        if (!hasAnyTaxRates && policy.taxRates?.taxes && Object.keys(policy.taxRates.taxes).length > 0) {
+            hasAnyTaxRates = true;
+        }
+    }
+
+    return {areCategoriesEnabled, areTagsEnabled, areTaxEnabled, isAttendeeTrackingEnabled, hasReportFields, hasAnyTaxRates, hasNonPersonalPolicies};
+};
+
+/**
+ * Extracts only the fields needed for advanced search filter visibility checks.
+ * Strips heavyweight fields like connections, customUnits, rules, exportLayouts, etc.
+ */
+function advancedSearchPoliciesSelector(policies: OnyxCollection<Policy>): OnyxCollection<Policy> {
+    if (!policies) {
+        return policies;
+    }
+    const result: OnyxCollection<Policy> = {};
+    for (const [key, policy] of Object.entries(policies)) {
+        if (!policy) {
+            continue;
+        }
+        result[key] = {
+            id: policy.id,
+            name: policy.name,
+            type: policy.type,
+            role: policy.role,
+            employeeList: policy.employeeList,
+            owner: policy.owner,
+            avatarURL: policy.avatarURL,
+            isJoinRequestPending: policy.isJoinRequestPending,
+            pendingAction: policy.pendingAction,
+            errors: policy.errors,
+            taxRates: policy.taxRates,
+            tax: policy.tax,
+            areCategoriesEnabled: policy.areCategoriesEnabled,
+            areTagsEnabled: policy.areTagsEnabled,
+            areInvoicesEnabled: policy.areInvoicesEnabled,
+            isAttendeeTrackingEnabled: policy.isAttendeeTrackingEnabled,
+            fieldList: policy.fieldList,
+        } as Policy;
+    }
+    return result;
+}
+
+/**
+ * Selector that checks if any tags exist across all policy tag lists.
+ * Returns a boolean with early exit on first tag found.
+ */
+const hasTagsSelector = (allPolicyTagLists: OnyxCollection<PolicyTagLists>) => {
+    for (const policyTagList of Object.values(allPolicyTagLists ?? {})) {
+        if (!policyTagList) {
+            continue;
+        }
+        for (const tagList of Object.values(policyTagList)) {
+            if (Object.keys(tagList.tags ?? {}).length > 0) {
+                return true;
+            }
+        }
+    }
+    return false;
+};
 
 function useAdvancedSearchFilters() {
     const {localeCompare} = useLocalize();
     const [searchAdvancedFilters = getEmptyObject<SearchAdvancedFiltersForm>()] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
     const policyID = searchAdvancedFilters.policyID;
-    const [allSearchCards] = useOnyx(ONYXKEYS.DERIVED.PERSONAL_AND_WORKSPACE_CARD_LIST);
-    const searchCards = filterCardsHiddenFromSearch(allSearchCards);
-    const [policies = getEmptyObject<NonNullable<OnyxCollection<Policy>>>()] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [searchCards] = useOnyx(ONYXKEYS.DERIVED.PERSONAL_AND_WORKSPACE_CARD_LIST, {selector: filterCardsHiddenFromSearch});
+    const [policies = getEmptyObject<NonNullable<OnyxCollection<Policy>>>()] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: advancedSearchPoliciesSelector});
+    const [policyDerived] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: policyDerivedSelector});
     const [allPolicyCategories = getEmptyObject<NonNullable<OnyxCollection<PolicyCategories>>>()] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES, {
         selector: availablePolicyCategoriesSelector,
     });
@@ -220,10 +309,7 @@ function useAdvancedSearchFilters() {
     const selectedPolicyCategories = getAllPolicyValues(policyID, ONYXKEYS.COLLECTION.POLICY_CATEGORIES, allPolicyCategories);
     const [allPolicyTagLists = getEmptyObject<NonNullable<OnyxCollection<PolicyTagLists>>>()] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
     const selectedPolicyTagLists = getAllPolicyValues(policyID, ONYXKEYS.COLLECTION.POLICY_TAGS, allPolicyTagLists);
-    const tagListsUnpacked = Object.values(allPolicyTagLists ?? {})
-        .filter((item): item is NonNullable<PolicyTagLists> => !!item)
-        .map(getTagNamesFromTagsLists)
-        .flat();
+    const [hasTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS, {selector: hasTagsSelector});
 
     const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector});
 
@@ -237,27 +323,19 @@ function useAdvancedSearchFilters() {
     });
 
     // When looking if a user has any categories to display, we want to ignore the policies that are of type PERSONAL
-    const nonPersonalPolicyCategoryIds = new Set(
-        Object.values(policies)
-            .filter((policy): policy is NonNullable<Policy> => !!(policy && policy.type !== CONST.POLICY.TYPE.PERSONAL))
-            .map((policy) => `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policy.id}`),
-    );
-    const nonPersonalPolicyCategoryCount = Object.keys(allPolicyCategories).filter((policyCategoryId) => nonPersonalPolicyCategoryIds.has(policyCategoryId)).length;
+    const hasNonPersonalPolicyCategories = Object.keys(allPolicyCategories).some((policyCategoryId) => {
+        const categoryPolicyID = policyCategoryId.replace(ONYXKEYS.COLLECTION.POLICY_CATEGORIES, '');
+        const policy = policies[`${ONYXKEYS.COLLECTION.POLICY}${categoryPolicyID}`];
+        return !!policy && policy.type !== CONST.POLICY.TYPE.PERSONAL;
+    });
 
-    const areCategoriesEnabled = isFeatureEnabledInPolicies(policies, CONST.POLICY.MORE_FEATURES.ARE_CATEGORIES_ENABLED);
-    const areTagsEnabled = isFeatureEnabledInPolicies(policies, CONST.POLICY.MORE_FEATURES.ARE_TAGS_ENABLED);
-    const areTaxEnabled = isFeatureEnabledInPolicies(policies, CONST.POLICY.MORE_FEATURES.ARE_TAXES_ENABLED);
-    const shouldDisplayAttendeeFilter = isFeatureEnabledInPolicies(policies, CONST.POLICY.MORE_FEATURES.IS_ATTENDEE_TRACKING_ENABLED);
-    const shouldDisplayCategoryFilter = shouldDisplayFilter(nonPersonalPolicyCategoryCount, areCategoriesEnabled, selectedPolicyCategories?.length > 0);
-    const shouldDisplayTagFilter = shouldDisplayFilter(tagListsUnpacked.length, areTagsEnabled, !!selectedPolicyTagLists);
+    const shouldDisplayCategoryFilter = shouldDisplayFilter(hasNonPersonalPolicyCategories ? 1 : 0, policyDerived?.areCategoriesEnabled ?? false, selectedPolicyCategories?.length > 0);
+    const shouldDisplayTagFilter = shouldDisplayFilter(hasTags ? 1 : 0, policyDerived?.areTagsEnabled ?? false, !!selectedPolicyTagLists);
     const shouldDisplayCardFilter = shouldDisplayFilter(Object.keys(searchCards ?? {}).length, true);
-    const shouldDisplayTaxFilter = shouldDisplayFilter(Object.keys(taxRates).length, areTaxEnabled);
+    const shouldDisplayTaxFilter = shouldDisplayFilter(policyDerived?.hasAnyTaxRates ? 1 : 0, policyDerived?.areTaxEnabled ?? false);
     const shouldDisplayWorkspaceFilter = workspaces.some((section) => section.data.length > 1);
     const shouldDisplayGroupCurrencyFilter = !!searchAdvancedFilters.groupBy;
     const shouldDisplayViewFilter = !!searchAdvancedFilters.groupBy;
-    const shouldDisplayReportFieldFilter = Object.values(policies).some((policy): policy is NonNullable<Policy> => {
-        return Object.values(policy?.fieldList ?? {}).some((val) => val.type !== CONST.POLICY.DEFAULT_FIELD_LIST_TYPE);
-    });
 
     let currentType = searchAdvancedFilters?.type ?? CONST.SEARCH.DATA_TYPES.EXPENSE;
 
@@ -269,6 +347,9 @@ function useAdvancedSearchFilters() {
         currentType,
         workspaces,
         shouldShowWorkspaceSearchInput,
+        taxRates,
+        searchCards,
+        policies,
         typeFiltersKeys: typeFiltersKeys[currentType]
             .map((section) =>
                 section
@@ -294,10 +375,10 @@ function useAdvancedSearchFilters() {
                         if (key === CONST.SEARCH.SYNTAX_ROOT_KEYS.VIEW && !shouldDisplayViewFilter) {
                             return;
                         }
-                        if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.ATTENDEE && !shouldDisplayAttendeeFilter) {
+                        if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.ATTENDEE && !(policyDerived?.isAttendeeTrackingEnabled ?? false)) {
                             return;
                         }
-                        if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_FIELD && !shouldDisplayReportFieldFilter) {
+                        if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_FIELD && !(policyDerived?.hasReportFields ?? false)) {
                             return;
                         }
                         return key;
@@ -309,3 +390,4 @@ function useAdvancedSearchFilters() {
 }
 
 export default useAdvancedSearchFilters;
+export {advancedSearchPoliciesSelector};
