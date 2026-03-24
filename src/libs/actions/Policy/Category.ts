@@ -930,7 +930,16 @@ function importPolicyCategories(policyID: string, categories: PolicyCategory[]) 
     const parameters = {
         policyID,
         // eslint-disable-next-line @typescript-eslint/naming-convention
-        categories: JSON.stringify([...categories.map((category) => ({name: category.name, enabled: category.enabled, 'GL Code': String(category['GL Code'])}))]),
+        categories: JSON.stringify([
+            ...categories.map((category) => ({
+                name: category.name,
+                enabled: category.enabled,
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                'GL Code': String(category['GL Code']),
+                ...(category.maxAmountNoReceipt !== undefined && {maxAmountNoReceipt: category.maxAmountNoReceipt}),
+                ...(category.maxAmountNoItemizedReceipt !== undefined && {maxAmountNoItemizedReceipt: category.maxAmountNoItemizedReceipt}),
+            })),
+        ]),
     };
 
     API.write(WRITE_COMMANDS.IMPORT_CATEGORIES_SPREADSHEET, parameters, onyxData);

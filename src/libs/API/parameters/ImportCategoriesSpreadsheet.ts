@@ -4,7 +4,13 @@ type ImportCategoriesSpreadsheetParams = {
 
     /**
      * Stringified JSON object with type of following structure:
-     * Array<{name: string;}>
+     * Array<{
+     *   name: string;
+     *   enabled?: boolean;
+     *   'GL Code'?: string;
+     *   maxAmountNoReceipt?: number;
+     *   maxAmountNoItemizedReceipt?: number;
+     * }>
      */
     categories: string;
 };
