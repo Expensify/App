@@ -93,11 +93,13 @@ jest.mock('@hooks/useReportIsArchived', () => ({
 }));
 
 const mockDeleteTransactions = jest.fn(() => []);
+const mockShouldOpenSplitExpenseEditFlowOnDelete = jest.fn(() => false);
 
 jest.mock('@hooks/useDeleteTransactions', () => ({
     __esModule: true,
     default: () => ({
         deleteTransactions: mockDeleteTransactions,
+        shouldOpenSplitExpenseEditFlowOnDelete: mockShouldOpenSplitExpenseEditFlowOnDelete,
     }),
 }));
 
@@ -139,6 +141,7 @@ describe('useSelectedTransactionsActions', () => {
             delete mockSelectedTransactions[key];
         }
         mockIsOffline = false;
+        mockShouldOpenSplitExpenseEditFlowOnDelete.mockReturnValue(false);
     });
 
     afterEach(async () => {
@@ -360,6 +363,61 @@ describe('useSelectedTransactionsActions', () => {
         expect(mockClearSelectedTransactions).toHaveBeenCalledWith(true);
         expect(Navigation.removeReportScreen).toHaveBeenCalledWith(new Set(['report1', 'report2']));
         expect(result.current.isDeleteModalVisible).toBe(false);
+    });
+
+    it('should show edit split action and delete transactions when deleting redirects to split edit', async () => {
+        const transactionID = '123';
+        const report = createRandomReport(1, undefined);
+        const session: Session = {accountID: 1};
+        const reportActions: ReportAction[] = [
+            {
+                ...createRandomReportAction(1),
+                reportActionID: 'action1',
+                actorAccountID: 1,
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                originalMessage: {
+                    IOUReportID: 'iou123',
+                    type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                    transactionID,
+                },
+            },
+        ];
+        const transaction = createRandomTransaction(1);
+        transaction.transactionID = transactionID;
+        transaction.reportID = report.reportID;
+
+        mockSelectedTransactionIDs.push(transactionID);
+        mockShouldOpenSplitExpenseEditFlowOnDelete.mockReturnValue(true);
+
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction);
+
+        jest.spyOn(require('@libs/ReportUtils'), 'canDeleteCardTransactionByLiabilityType').mockReturnValue(true);
+        jest.spyOn(require('@libs/ReportUtils'), 'canDeleteTransaction').mockReturnValue(true);
+        jest.spyOn(require('@libs/ReportActionsUtils'), 'isDeletedAction').mockReturnValue(false);
+        jest.spyOn(require('@libs/ReportActionsUtils'), 'getIOUActionForTransactionID').mockReturnValue(reportActions.at(0) as OnyxEntry<ReportAction>);
+
+        const {result} = renderHook(() =>
+            useSelectedTransactionsActions({
+                report,
+                reportActions,
+                allTransactionsLength: 1,
+                session,
+                beginExportWithTemplate: mockBeginExportWithTemplate,
+            }),
+        );
+
+        await waitFor(() => {
+            expect(result.current.options.length).toBeGreaterThan(0);
+        });
+
+        const deleteOption = result.current.options.find((option) => option.value === CONST.REPORT.SECONDARY_ACTIONS.DELETE);
+        expect(deleteOption).toBeDefined();
+        expect(deleteOption?.text).toBe('iou.editSplits');
+
+        deleteOption?.onSelected?.();
+
+        expect(mockDeleteTransactions).toHaveBeenCalledWith([transactionID], mockDuplicateTransactions, mockDuplicateTransactionViolations, mockCurrentSearchHash, false);
+        expect(mockClearSelectedTransactions).toHaveBeenCalledWith(true);
     });
 
     it('should show and hide delete modal', async () => {
