@@ -58,14 +58,6 @@ jest.mock('@libs/SessionUtils', () => ({
     didUserLogInDuringSession: jest.fn(() => false),
 }));
 
-jest.mock('@libs/NetworkConnection', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
-    __esModule: true,
-    default: {
-        listenForReconnect: jest.fn(),
-    },
-}));
-
 jest.mock('@libs/ActiveClientManager', () => ({
     isClientTheLeader: jest.fn(() => true),
     init: jest.fn(),

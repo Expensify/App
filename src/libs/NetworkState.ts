@@ -3,7 +3,6 @@ import Onyx from 'react-native-onyx';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import DateUtils from './DateUtils';
 import {onSustainedFailureChange, reset as resetFailureCounters} from './FailureTracker';
 import Log from './Log';
 
@@ -145,14 +144,23 @@ function onReachabilityRestored() {
 }
 
 /**
+ * Formats a Date as "yyyy-MM-dd HH:mm:ss.SSS" (DB format).
+ * Inlined from DateUtils.getDBTime to avoid a circular dependency:
+ * memoize → stats → Log → Network → SequentialQueue → NetworkState → DateUtils → memoize
+ */
+function formatDBTime(date: Date): string {
+    return date.toISOString().replace('T', ' ').replace('Z', '');
+}
+
+/**
  * Returns the current time plus skew in milliseconds in the format expected by the database
  */
 function getDBTimeWithSkew(timestamp: string | number = ''): string {
+    const datetime = timestamp ? new Date(timestamp) : new Date();
     if (networkTimeSkew > 0) {
-        const datetime = timestamp ? new Date(timestamp) : new Date();
-        return DateUtils.getDBTime(datetime.valueOf() + networkTimeSkew);
+        return formatDBTime(new Date(datetime.valueOf() + networkTimeSkew));
     }
-    return DateUtils.getDBTime(timestamp);
+    return formatDBTime(datetime);
 }
 
 // --- Poor connection simulation ---
