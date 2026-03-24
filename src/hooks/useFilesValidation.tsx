@@ -137,7 +137,6 @@ function useFilesValidation(onFilesValidated: (files: FileObject[], dataTransfer
     };
 
     async function validateAndResizeFiles(files: FileObject[], items: DataTransferItem[], validationState: ValidationState) {
-        
         if (files.length === 0) {
             return;
         }
