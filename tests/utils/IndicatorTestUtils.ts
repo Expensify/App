@@ -1,4 +1,4 @@
-import type {IndicatorStatus} from '@hooks/useAccountIndicatorChecks';
+import type IndicatorStatus from '@src/types/utils/IndicatorStatus';
 
 type IndicatorTestCase = {
     name: string;

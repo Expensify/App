@@ -1,5 +1,5 @@
+import type IndicatorStatus from '@src/types/utils/IndicatorStatus';
 import useAccountIndicatorChecks from './useAccountIndicatorChecks';
-import type {IndicatorStatus} from './useAccountIndicatorChecks';
 import useTheme from './useTheme';
 
 type AccountTabIndicatorStatusResult = {

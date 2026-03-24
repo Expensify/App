@@ -1,4 +1,3 @@
-import type {ValueOf} from 'type-fest';
 import {hasPaymentMethodError} from '@libs/actions/PaymentMethods';
 import {hasPartiallySetupBankAccount} from '@libs/BankAccountUtils';
 import {hasPendingExpensifyCardAction} from '@libs/CardUtils';
@@ -6,11 +5,10 @@ import {hasSubscriptionGreenDotInfo, hasSubscriptionRedDotError} from '@libs/Sub
 import {hasLoginListError, hasLoginListInfo} from '@libs/UserUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type IndicatorStatus from '@src/types/utils/IndicatorStatus';
 import useCardFeedErrors from './useCardFeedErrors';
 import useOnyx from './useOnyx';
 import usePoliciesWithCardFeedErrors from './usePoliciesWithCardFeedErrors';
-
-type IndicatorStatus = ValueOf<typeof CONST.INDICATOR_STATUS>;
 
 type AccountIndicatorChecksResult = {
     accountStatus: IndicatorStatus | undefined;
@@ -88,5 +86,3 @@ function useAccountIndicatorChecks(): AccountIndicatorChecksResult {
 }
 
 export default useAccountIndicatorChecks;
-
-export type {IndicatorStatus};

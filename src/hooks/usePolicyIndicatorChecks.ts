@@ -1,4 +1,3 @@
-import type {ValueOf} from 'type-fest';
 import {isConnectionInProgress} from '@libs/actions/connections';
 import {shouldShowQBOReimbursableExportDestinationAccountError} from '@libs/actions/connections/QuickbooksOnline';
 import {hasDomainErrors} from '@libs/DomainUtils';
@@ -6,10 +5,9 @@ import {getUberConnectionErrorDirectlyFromPolicy, shouldShowCustomUnitsError, sh
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy} from '@src/types/onyx';
+import type IndicatorStatus from '@src/types/utils/IndicatorStatus';
 import useOnyx from './useOnyx';
 import usePoliciesWithCardFeedErrors from './usePoliciesWithCardFeedErrors';
-
-type IndicatorStatus = ValueOf<typeof CONST.INDICATOR_STATUS>;
 
 type PolicyIndicatorChecksResult = {
     policyStatus: IndicatorStatus | undefined;

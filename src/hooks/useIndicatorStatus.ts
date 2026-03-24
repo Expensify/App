@@ -1,12 +1,11 @@
-import type {ValueOf} from 'type-fest';
-import type CONST from '@src/CONST';
+import type IndicatorStatus from '@src/types/utils/IndicatorStatus';
 import useAccountIndicatorChecks from './useAccountIndicatorChecks';
 import usePolicyIndicatorChecks from './usePolicyIndicatorChecks';
 import useTheme from './useTheme';
 
 type IndicatorStatusResult = {
     indicatorColor: string;
-    status: ValueOf<typeof CONST.INDICATOR_STATUS> | undefined;
+    status: IndicatorStatus | undefined;
     policyIDWithErrors: string | undefined;
 };
 

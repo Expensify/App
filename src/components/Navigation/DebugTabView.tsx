@@ -5,7 +5,6 @@ import type {ValueOf} from 'type-fest';
 import Button from '@components/Button';
 import Icon from '@components/Icon';
 import Text from '@components/Text';
-import type {IndicatorStatus} from '@hooks/useAccountIndicatorChecks';
 import useIndicatorStatus from '@hooks/useIndicatorStatus';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -25,6 +24,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import type {ReimbursementAccount} from '@src/types/onyx';
+import type IndicatorStatus from '@src/types/utils/IndicatorStatus';
 import NAVIGATION_TABS from './NavigationTabBar/NAVIGATION_TABS';
 
 type DebugTabViewProps = {
