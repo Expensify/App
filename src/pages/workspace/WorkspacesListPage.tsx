@@ -213,7 +213,7 @@ function WorkspacesListPage() {
     );
 
     const flatlistRef = useRef<FlatList | null>(null);
-    const measuredItemHeight = useRef<number>(0);
+    const measuredItemHeight = useRef<number>(getAverageItemLength(route) ?? 0);
 
     useLayoutEffect(() => {
         const scrollOffset = getScrollOffset(route);
@@ -481,8 +481,8 @@ function WorkspacesListPage() {
                     if (height <= 0) {
                         return;
                     }
-                    measuredItemHeight.current = height;
                     if (height !== getAverageItemLength(route)) {
+                        measuredItemHeight.current = height;
                         saveAverageItemLength(route, height);
                     }
                 }}
