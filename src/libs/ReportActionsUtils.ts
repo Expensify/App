@@ -3775,7 +3775,7 @@ function getRenamedCardFeedMessage(translate: LocalizedTranslate, reportAction: 
     const originalMessage = getOriginalMessage(reportAction);
     const oldName = originalMessage?.oldName;
     const newName = originalMessage?.newName;
-    return oldName && newName ? translate('workspaceActions.renamedCardFeed', oldName, newName) : getReportActionText(reportAction);
+    return oldName && newName ? translate('workspaceActions.renamedCardFeed', newName, oldName) : getReportActionText(reportAction);
 }
 
 function getAssignedCompanyCardMessage(translate: LocalizedTranslate, reportAction: OnyxEntry<ReportAction>): string {
