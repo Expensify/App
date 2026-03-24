@@ -13,6 +13,7 @@ import {buildOptimisticTransaction} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
+import Navigation from '@src/libs/Navigation/Navigation';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report} from '@src/types/onyx';
 import type {ReportCollectionDataSet} from '@src/types/onyx/Report';
@@ -359,7 +360,7 @@ describe('actions/IOU/Hold', () => {
             return waitForBatchedUpdates()
                 .then(() => Onyx.multiSet({...reportCollectionDataSet, ...transactionCollectionDataSet, ...actionCollectionDataSet}))
                 .then(() => {
-                    Navigation.setNavigationActionToMicrotaskQueue.mockClear();
+                    jest.mocked(Navigation.setNavigationActionToMicrotaskQueue).mockClear();
                     // When transactions are put on hold while offline (isOffline: true)
                     putTransactionsOnHold([transaction1.transactionID, transaction2.transactionID], comment, iouReport.reportID, true);
                     return waitForBatchedUpdates();
@@ -374,7 +375,6 @@ describe('actions/IOU/Hold', () => {
 
     describe('putOnHold with isOffline', () => {
         test('should pass isOffline to getDisplayedReportID affecting which reportID is used for navigation', () => {
-            const Navigation = require('@src/libs/Navigation/Navigation');
             const iouReport = buildOptimisticIOUReport(1, 2, 100, '1', 'USD');
             const transaction = buildOptimisticTransaction({
                 transactionParams: {
@@ -406,7 +406,7 @@ describe('actions/IOU/Hold', () => {
             return waitForBatchedUpdates()
                 .then(() => Onyx.multiSet({...reportCollectionDataSet, ...transactionCollectionDataSet, ...actionCollectionDataSet}))
                 .then(() => {
-                    Navigation.setNavigationActionToMicrotaskQueue.mockClear();
+                    jest.mocked(Navigation.setNavigationActionToMicrotaskQueue).mockClear();
                     putOnHold(transaction.transactionID, comment, transactionThread.reportID, false);
                     return waitForBatchedUpdates();
                 })
@@ -414,7 +414,7 @@ describe('actions/IOU/Hold', () => {
                     // Navigation should be called for isOffline: false
                     expect(Navigation.setNavigationActionToMicrotaskQueue).toHaveBeenCalledTimes(1);
 
-                    Navigation.setNavigationActionToMicrotaskQueue.mockClear();
+                    jest.mocked(Navigation.setNavigationActionToMicrotaskQueue).mockClear();
                     putOnHold(transaction.transactionID, comment, transactionThread.reportID, true);
                     return waitForBatchedUpdates();
                 })
