@@ -133,19 +133,6 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
         });
     }, [isFocused, deleteTransactionNavigateBackUrl]);
 
-    const snapshotReport = useMemo(() => {
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        return (snapshot?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${reportIDFromRoute}`] ?? {}) as typeof report;
-    }, [snapshot, reportIDFromRoute]);
-
-    // Use snapshot report currency if main collection doesn't have it (for offline mode)
-    const reportToUse = useMemo(() => {
-        if (!report) {
-            return report;
-        }
-        return {...report, currency: report.currency ?? snapshotReport?.currency};
-    }, [report, snapshotReport?.currency]);
-
     const [reportMetadata = defaultReportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportIDFromRoute}`);
     const [policies = getEmptyObject<NonNullable<OnyxCollection<Policy>>>()] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
@@ -428,7 +415,7 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
                         >
                             <DragAndDropProvider isDisabled={isEditingDisabled}>
                                 <MoneyRequestReportView
-                                    report={reportToUse}
+                                    report={report}
                                     reportMetadata={reportMetadata}
                                     policy={policy}
                                     shouldDisplayReportFooter={isCurrentReportLoadedFromOnyx}
