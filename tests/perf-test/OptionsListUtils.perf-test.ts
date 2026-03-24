@@ -255,6 +255,9 @@ describe('OptionsListUtils', () => {
                 MOCK_CURRENT_USER_ACCOUNT_ID,
                 mockedPersonalDetails,
                 true,
+                undefined,
+                undefined,
+                undefined,
             ),
         );
     });
@@ -265,7 +268,9 @@ describe('OptionsListUtils', () => {
         const mockedPersonalDetails = getMockedPersonalDetails(PERSONAL_DETAILS_COUNT);
 
         await waitForBatchedUpdates();
-        await measureFunction(() => formatSectionsFromSearchTerm('', Object.values(selectedOptions), [], [], {}, MOCK_CURRENT_USER_ACCOUNT_ID, mockedPersonalDetails, true));
+        await measureFunction(() =>
+            formatSectionsFromSearchTerm('', Object.values(selectedOptions), [], [], {}, MOCK_CURRENT_USER_ACCOUNT_ID, mockedPersonalDetails, true, undefined, undefined, undefined),
+        );
     });
 
     test('[OptionsListUtils] createFilteredOptionList', async () => {

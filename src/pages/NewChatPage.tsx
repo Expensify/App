@@ -72,6 +72,7 @@ function useOptions(reportAttributesDerived: ReportAttributesDerivedValue['repor
     const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
     const {contacts} = useContactImport();
     const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT);
+    const [reportsCollection] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const allPersonalDetails = usePersonalDetails();
     const isScreenFocusedRef = useIsFocusedRef();
     const [allPolicyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
@@ -94,12 +95,12 @@ function useOptions(reportAttributesDerived: ReportAttributesDerivedValue['repor
     const [nvpDismissedProductTraining] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
 
-    const reports = listOptions?.reports ?? [];
+    const reportOptions = listOptions?.reports ?? [];
     const personalDetails = listOptions?.personalDetails ?? [];
 
     const defaultOptions = getValidOptions(
         {
-            reports,
+            reports: reportOptions,
             personalDetails: personalDetails.concat(contacts),
         },
         allPolicies,
@@ -116,6 +117,7 @@ function useOptions(reportAttributesDerived: ReportAttributesDerivedValue['repor
             allPolicyTags,
             countryCode,
             reportAttributesDerived,
+            reportsCollection,
         },
     );
 
@@ -222,6 +224,7 @@ function useOptions(reportAttributesDerived: ReportAttributesDerivedValue['repor
         setSelectedOptions,
         headerMessage,
         handleEndReached,
+        reportsCollection,
     };
 }
 
@@ -272,6 +275,7 @@ function NewChatPage({ref}: NewChatPageProps) {
         personalDetails,
         userToInvite,
         areOptionsInitialized,
+        reportsCollection,
     } = useOptions(reportAttributesDerived);
 
     const sections: Array<Section<OptionWithKey>> = [];
@@ -287,6 +291,7 @@ function NewChatPage({ref}: NewChatPageProps) {
         undefined,
         undefined,
         reportAttributesDerived,
+        reportsCollection,
     );
     sections.push({...formatResults.section, title: undefined, sectionIndex: 0});
 

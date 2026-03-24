@@ -51,6 +51,7 @@ function ShareTab({ref}: ShareTabProps) {
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT);
     const [nvpDismissedProductTraining] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING);
     const [visibleReportActionsData] = useOnyx(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS);
@@ -79,6 +80,7 @@ function ShareTab({ref}: ShareTabProps) {
               options: listOptions ?? {reports: [], personalDetails: []},
               draftComments,
               nvpDismissedProductTraining,
+              reports,
               betas: betas ?? [],
               isUsedInChatFinder: false,
               includeReadOnly: false,
