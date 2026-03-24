@@ -192,7 +192,6 @@ const SCREENS = {
             ENABLE_PAYMENTS: 'Settings_Wallet_EnablePayments',
             CARD_ACTIVATE: 'Settings_Wallet_Card_Activate',
             CARD_CHANGE_PIN: 'Settings_Wallet_Card_Change_PIN',
-            CARD_CHANGE_PIN_ATM: 'Settings_Wallet_Card_Change_PIN_ATM',
             REPORT_VIRTUAL_CARD_FRAUD: 'Settings_Wallet_ReportVirtualCardFraud',
             REPORT_VIRTUAL_CARD_FRAUD_CONFIRM_MAGIC_CODE: 'Settings_Wallet_ReportVirtualCardFraud_ConfirmMagicCode',
             REPORT_VIRTUAL_CARD_FRAUD_CONFIRMATION: 'Settings_Wallet_ReportVirtualCardFraudConfirmation',

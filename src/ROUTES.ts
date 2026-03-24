@@ -523,10 +523,6 @@ const ROUTES = {
         route: 'settings/wallet/card/:cardID/change-pin',
         getRoute: (cardID: string) => `settings/wallet/card/${cardID}/change-pin` as const,
     },
-    SETTINGS_WALLET_CARD_CHANGE_PIN_ATM: {
-        route: 'settings/wallet/card/:cardID/change-pin-atm',
-        getRoute: (cardID: string) => `settings/wallet/card/${cardID}/change-pin-atm` as const,
-    },
     SETTINGS_WALLET_CARD_ACTIVATE: {
         route: 'settings/wallet/card/:cardID/activate',
         getRoute: (cardID: string) => `settings/wallet/card/${cardID}/activate` as const,
