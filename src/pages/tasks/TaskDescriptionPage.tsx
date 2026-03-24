@@ -39,7 +39,7 @@ function TaskDescriptionPage({report, currentUserPersonalDetails}: TaskDescripti
     const route = useRoute<PlatformStackRouteProp<ReportDescriptionNavigatorParamList, typeof SCREENS.REPORT_DESCRIPTION_ROOT>>();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [delegateEmail = ''] = useOnyx(ONYXKEYS.ACCOUNT, {selector: delegateEmailSelector});
+    const [delegateEmail] = useOnyx(ONYXKEYS.ACCOUNT, {selector: delegateEmailSelector});
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.EDIT_TASK_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.EDIT_TASK_FORM> => {
