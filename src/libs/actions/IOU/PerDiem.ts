@@ -248,6 +248,7 @@ type PerDiemExpenseInformation = {
     shouldHandleNavigation?: boolean;
     shouldPlaySound?: boolean;
     optimisticReportPreviewActionID?: string;
+    shouldDeferAutoSubmit?: boolean;
 };
 
 type PerDiemExpenseInformationParams = {
@@ -903,6 +904,7 @@ function submitPerDiemExpense(submitPerDiemExpenseInformation: PerDiemExpenseInf
         shouldHandleNavigation = true,
         shouldPlaySound: shouldPlaySoundParam = true,
         optimisticReportPreviewActionID,
+        shouldDeferAutoSubmit,
     } = submitPerDiemExpenseInformation;
     const {payeeAccountID} = participantParams;
     const {currency, comment = '', category, tag, created, customUnit, attendees, isFromGlobalCreate} = transactionParams;
@@ -990,6 +992,7 @@ function submitPerDiemExpense(submitPerDiemExpenseInformation: PerDiemExpenseInf
         reimbursable,
         attendees: attendees ? JSON.stringify(attendees) : undefined,
         customUnitPolicyID,
+        shouldDeferAutoSubmit,
     };
 
     if (shouldPlaySoundParam) {
