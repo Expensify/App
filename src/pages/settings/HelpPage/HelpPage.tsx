@@ -56,6 +56,7 @@ function HelpPage() {
                         title={translate('initialSettingsPage.helpPage.title')}
                         subtitle={translate('initialSettingsPage.helpPage.description')}
                         titleStyles={styles.accountSettingsSectionTitle}
+                        subtitleMuted
                         isCentralPane
                         illustrationContainerStyle={styles.cardSectionIllustrationContainer}
                         illustrationBackgroundColor={colors.ice800}
