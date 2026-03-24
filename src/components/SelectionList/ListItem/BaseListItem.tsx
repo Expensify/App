@@ -31,7 +31,12 @@ function getAccessibilityProps<TItem extends ListItem>({
     isFocused,
     canSelectMultiple,
 }: AccessibilityProps & Pick<BaseListItemProps<TItem>, 'item' | 'isFocused' | 'canSelectMultiple'>) {
-    const accessibilityState = role === CONST.ROLE.CHECKBOX || role === CONST.ROLE.RADIO ? {checked: !!item.isSelected, selected: !!isFocused} : {selected: !!item.isSelected};
+    // When rightElement is a Switch (has isOn prop), include its checked state so screen readers announce on/off for the row
+    const rightElementIsOn = React.isValidElement(item.rightElement) ? (item.rightElement.props as {isOn?: boolean}).isOn : undefined;
+    const accessibilityState =
+        role === CONST.ROLE.CHECKBOX || role === CONST.ROLE.RADIO
+            ? {checked: !!item.isSelected, selected: !!isFocused}
+            : {selected: !!item.isSelected, ...(rightElementIsOn != null && {checked: rightElementIsOn})};
 
     if (accessible === false) {
         return {
