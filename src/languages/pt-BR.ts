@@ -2360,6 +2360,9 @@ ${amount} para ${merchant} - ${date}`,
         frozen: 'Congelado',
         youFroze: ({date}: {date: string}) => `Você bloqueou este cartão em ${date}.`,
         frozenBy: ({person, date}: {person: string; date: string}) => `${person} bloqueou este cartão em ${date}.`,
+        changePinATMTitle: 'Visitar um caixa eletrônico',
+        changePinATMDescription:
+            'Use seu cartão em qualquer caixa eletrônico para concluir a alteração do seu PIN. Isso é obrigatório na sua região. <concierge-link>Fale com a Concierge</concierge-link> se tiver alguma dúvida.',
     },
     workflowsPage: {
         workflowTitle: 'Gastos',

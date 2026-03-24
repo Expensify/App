@@ -2380,6 +2380,9 @@ ${amount} pour ${merchant} - ${date}`,
         frozen: 'Gelée',
         youFroze: ({date}: {date: string}) => `Vous avez gelé cette carte le ${date}.`,
         frozenBy: ({person, date}: {person: string; date: string}) => `${person} a gelé cette carte le ${date}.`,
+        changePinATMTitle: 'Aller à un distributeur automatique',
+        changePinATMDescription:
+            "Utilisez votre carte à n'importe quel DAB pour terminer la modification de votre code PIN. Cela est requis dans votre région. <concierge-link>Contactez Concierge</concierge-link> si vous avez des questions.",
     },
     workflowsPage: {
         workflowTitle: 'Dépense',

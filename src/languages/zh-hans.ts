@@ -2304,6 +2304,8 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         frozen: '已冻结',
         youFroze: ({date}: {date: string}) => `你于${date}冻结了此卡。`,
         frozenBy: ({person, date}: {person: string; date: string}) => `${person}于${date}冻结了此卡。`,
+        changePinATMTitle: '前往 ATM',
+        changePinATMDescription: '请在任意 ATM 使用您的银行卡完成 PIN 修改。这是您所在地区的必需步骤。如有任何疑问，请<concierge-link>联系 Concierge</concierge-link>。',
     },
     workflowsPage: {
         workflowTitle: '支出',

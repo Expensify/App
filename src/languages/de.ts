@@ -2373,6 +2373,9 @@ ${amount} für ${merchant} – ${date}`,
         frozen: 'Gesperrt',
         youFroze: ({date}: {date: string}) => `Du hast diese Karte am ${date} gesperrt.`,
         frozenBy: ({person, date}: {person: string; date: string}) => `${person} hat diese Karte am ${date} gesperrt.`,
+        changePinATMTitle: 'Geldautomaten aufsuchen',
+        changePinATMDescription:
+            'Verwenden Sie Ihre Karte an einem beliebigen Geldautomaten, um Ihre PIN-Änderung abzuschließen. Dies ist in Ihrer Region erforderlich. <concierge-link>Wenden Sie sich an Concierge</concierge-link>, wenn Sie Fragen haben.',
     },
     workflowsPage: {
         workflowTitle: 'Ausgaben',

@@ -2344,6 +2344,9 @@ ${date} の ${merchant} への ${amount}`,
         frozen: '凍結中',
         youFroze: ({date}: {date: string}) => `${date}にこのカードを一時停止しました。`,
         frozenBy: ({person, date}: {person: string; date: string}) => `${person}が${date}にこのカードを一時停止しました。`,
+        changePinATMTitle: 'ATM を利用する',
+        changePinATMDescription:
+            'お住まいの地域では、暗証番号の変更を完了するには、任意のATMでカードをご利用いただく必要があります。ご不明な点がありましたら、<concierge-link>Concierge へお問い合わせください</concierge-link>。',
     },
     workflowsPage: {
         workflowTitle: '支出',

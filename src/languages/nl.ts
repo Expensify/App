@@ -2367,6 +2367,9 @@ ${amount} voor ${merchant} - ${date}`,
         frozen: 'Geblokkeerd',
         youFroze: ({date}: {date: string}) => `Je hebt deze kaart op ${date} geblokkeerd.`,
         frozenBy: ({person, date}: {person: string; date: string}) => `${person} heeft deze kaart op ${date} geblokkeerd.`,
+        changePinATMTitle: 'Bezoek een geldautomaat',
+        changePinATMDescription:
+            'Gebruik je kaart bij een willekeurige geldautomaat om je pincodewijziging af te ronden. Dit is verplicht in jouw regio. <concierge-link>Neem contact op met Concierge</concierge-link> als je vragen hebt.',
     },
     workflowsPage: {
         workflowTitle: 'Uitgaven',

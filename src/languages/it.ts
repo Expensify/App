@@ -2369,6 +2369,9 @@ ${amount} per ${merchant} - ${date}`,
         frozen: 'Bloccata',
         youFroze: ({date}: {date: string}) => `Hai bloccato questa carta il ${date}.`,
         frozenBy: ({person, date}: {person: string; date: string}) => `${person} ha bloccato questa carta il ${date}.`,
+        changePinATMTitle: 'Vai a un bancomat',
+        changePinATMDescription:
+            'Usa la tua carta a qualsiasi bancomat per completare il cambio del PIN. Questo è obbligatorio nella tua regione. <concierge-link>Contatta Concierge</concierge-link> se hai domande.',
     },
     workflowsPage: {
         workflowTitle: 'Spesa',

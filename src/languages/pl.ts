@@ -2363,6 +2363,9 @@ ${amount} dla ${merchant} - ${date}`,
         frozen: 'Zamrożona',
         youFroze: ({date}: {date: string}) => `Zamroziłeś tę kartę ${date}.`,
         frozenBy: ({person, date}: {person: string; date: string}) => `${person} zamroził(a) tę kartę ${date}.`,
+        changePinATMTitle: 'Odwiedź bankomat',
+        changePinATMDescription:
+            'Użyj swojej karty w dowolnym bankomacie, aby dokończyć zmianę PIN-u. Jest to wymagane w twoim regionie. <concierge-link>Skontaktuj się z Concierge</concierge-link>, jeśli masz jakiekolwiek pytania.',
     },
     workflowsPage: {
         workflowTitle: 'Wydatki',
