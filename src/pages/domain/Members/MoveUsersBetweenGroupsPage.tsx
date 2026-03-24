@@ -83,7 +83,10 @@ function MoveUsersBetweenGroupsPage({route}: MoveUsersBetweenGroupsPageProps) {
             >
                 <HeaderWithBackButton
                     title={translate('domain.members.moveToGroup')}
-                    onBackButtonPress={() => Navigation.goBack(ROUTES.DOMAIN_MEMBERS.getRoute(domainAccountID))}
+                    onBackButtonPress={() => {
+                        clearDomainMembersSelectedForMove();
+                        Navigation.goBack(ROUTES.DOMAIN_MEMBERS.getRoute(domainAccountID));
+                    }}
                 />
                 <Text style={[styles.ph5, styles.pb3, styles.textSupporting]}>{translate('domain.members.chooseWhereToMove', {count: memberCount})}</Text>
                 <SelectionList<SecurityGroupItem>
