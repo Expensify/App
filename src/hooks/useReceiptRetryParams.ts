@@ -74,6 +74,8 @@ function useReceiptRetryParams(
             quickAction,
             recentWaypoints,
             betas,
+            draftTransactionIDs: [],
+            isSelfTourViewed: false,
         };
         return {action: CONST.IOU.ACTION_PARAMS.TRACK_EXPENSE, retryParams: JSON.stringify(params)};
     }

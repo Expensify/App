@@ -2,18 +2,6 @@ import React from 'react';
 import type {NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
 import {View} from 'react-native';
 import Animated from 'react-native-reanimated';
-import type {
-    TransactionCardGroupListItemType,
-    TransactionCategoryGroupListItemType,
-    TransactionMemberGroupListItemType,
-    TransactionMerchantGroupListItemType,
-    TransactionMonthGroupListItemType,
-    TransactionQuarterGroupListItemType,
-    TransactionTagGroupListItemType,
-    TransactionWeekGroupListItemType,
-    TransactionWithdrawalIDGroupListItemType,
-    TransactionYearGroupListItemType,
-} from '@components/SelectionListWithSections/types';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -27,6 +15,18 @@ import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import SearchBarChart from './SearchBarChart';
 import SearchLineChart from './SearchLineChart';
+import type {
+    TransactionCardGroupListItemType,
+    TransactionCategoryGroupListItemType,
+    TransactionMemberGroupListItemType,
+    TransactionMerchantGroupListItemType,
+    TransactionMonthGroupListItemType,
+    TransactionQuarterGroupListItemType,
+    TransactionTagGroupListItemType,
+    TransactionWeekGroupListItemType,
+    TransactionWithdrawalIDGroupListItemType,
+    TransactionYearGroupListItemType,
+} from './SearchList/ListItem/types';
 import SearchPieChart from './SearchPieChart';
 import type {ChartView, GroupedItem, SearchChartProps, SearchGroupBy, SearchQueryJSON} from './types';
 
@@ -129,6 +129,9 @@ type SearchChartViewProps = {
     /** Scroll handler for hiding the top bar on mobile */
     onScroll?: (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
 
+    /** Layout handler for the root scroll view */
+    onLayout?: () => void;
+
     /** Title to be displayed on the chart */
     title: string;
 };
@@ -146,11 +149,12 @@ const CHART_VIEW_TO_COMPONENT: Record<ChartView, React.ComponentType<SearchChart
  * Layer 3 component - dispatches to the appropriate chart type based on view parameter
  * and handles navigation/drill-down logic
  */
-function SearchChartView({queryJSON, view, groupBy, data, isLoading, onScroll, title}: SearchChartViewProps) {
+function SearchChartView({queryJSON, view, groupBy, data, isLoading, onScroll, onLayout, title}: SearchChartViewProps) {
     const styles = useThemeStyles();
     const {preferredLocale} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const icons = useMemoizedLazyExpensifyIcons(['Users', 'CreditCard', 'Send', 'Folder', 'Basket', 'Tag', 'Calendar']);
+
     const {titleIconName, getLabel, getFilterQuery} = CHART_GROUP_BY_CONFIG[groupBy];
     const titleIcon = icons[titleIconName];
     const ChartComponent = CHART_VIEW_TO_COMPONENT[view];
@@ -184,7 +188,8 @@ function SearchChartView({queryJSON, view, groupBy, data, isLoading, onScroll, t
             style={styles.flex1}
             contentContainerStyle={styles.flexGrow1}
             onScroll={onScroll}
-            scrollEventThrottle={16}
+            onLayout={onLayout}
+            scrollEventThrottle={CONST.TIMING.MIN_SMOOTH_SCROLL_EVENT_THROTTLE}
         >
             <View style={[shouldUseNarrowLayout ? styles.searchListContentContainerStyles : styles.mt3, styles.mh4, styles.mb4, styles.flex1]}>
                 <ChartComponent

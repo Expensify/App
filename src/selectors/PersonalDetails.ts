@@ -3,4 +3,6 @@ import type {PersonalDetailsList} from '@src/types/onyx';
 
 const personalDetailsSelector = (accountID: number) => (personalDetailsList: OnyxEntry<PersonalDetailsList>) => personalDetailsList?.[accountID];
 
-export default personalDetailsSelector;
+const personalDetailsLoginSelector = (accountID: number) => (personalDetailsList: OnyxEntry<PersonalDetailsList>) => personalDetailsList?.[accountID]?.login;
+
+export {personalDetailsSelector, personalDetailsLoginSelector};

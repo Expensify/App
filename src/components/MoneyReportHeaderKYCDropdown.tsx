@@ -10,16 +10,26 @@ import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import ButtonWithDropdownMenu from './ButtonWithDropdownMenu';
-import type {DropdownOption} from './ButtonWithDropdownMenu/types';
+import type {ButtonWithDropdownMenuRef, DropdownOption} from './ButtonWithDropdownMenu/types';
 import KYCWall from './KYCWall';
 import type {KYCWallProps} from './KYCWall/types';
 
 type MoneyReportHeaderKYCDropdownProps = Omit<KYCWallProps, 'children' | 'enablePaymentsRoute'> & {
     primaryAction: ValueOf<typeof CONST.REPORT.PRIMARY_ACTIONS> | '';
 
-    applicableSecondaryActions: Array<DropdownOption<ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>>>;
+    applicableSecondaryActions: Array<DropdownOption<string>>;
 
     onPaymentSelect: (event: KYCFlowEvent, iouPaymentType: PaymentMethodType, triggerKYCFlow: TriggerKYCFlow) => void;
+
+    customText?: string;
+
+    shouldShowSuccessStyle?: boolean;
+
+    /** Ref for the inner ButtonWithDropdownMenu */
+    dropdownMenuRef?: React.Ref<ButtonWithDropdownMenuRef>;
+
+    /** Callback fired when the dropdown menu hides */
+    onOptionsMenuHide?: () => void;
 };
 
 function MoneyReportHeaderKYCDropdown({
@@ -29,6 +39,10 @@ function MoneyReportHeaderKYCDropdown({
     applicableSecondaryActions,
     iouReport,
     onPaymentSelect,
+    customText,
+    shouldShowSuccessStyle,
+    dropdownMenuRef,
+    onOptionsMenuHide,
     ref,
     ...props
 }: MoneyReportHeaderKYCDropdownProps) {
@@ -57,7 +71,8 @@ function MoneyReportHeaderKYCDropdown({
         >
             {(triggerKYCFlow, buttonRef) => (
                 <ButtonWithDropdownMenu
-                    success={false}
+                    ref={dropdownMenuRef}
+                    success={shouldShowSuccessStyle ?? false}
                     onPress={() => {}}
                     onSubItemSelected={(item, index, event) => {
                         if (!isSecondaryActionAPaymentOption(item)) {
@@ -68,11 +83,12 @@ function MoneyReportHeaderKYCDropdown({
                     buttonRef={buttonRef}
                     shouldAlwaysShowDropdownMenu
                     shouldPopoverUseScrollView={applicableSecondaryActions.length >= CONST.DROPDOWN_SCROLL_THRESHOLD}
-                    customText={translate('common.more')}
+                    customText={customText ?? translate('common.more')}
                     options={applicableSecondaryActions}
                     isSplitButton={false}
-                    wrapperStyle={shouldDisplayNarrowVersion && [!primaryAction && styles.flex1]}
+                    wrapperStyle={shouldDisplayNarrowVersion && [!primaryAction && !customText && styles.flex1, !!customText && styles.w100]}
                     shouldUseModalPaddingStyle
+                    onOptionsMenuHide={onOptionsMenuHide}
                     sentryLabel={CONST.SENTRY_LABEL.MORE_MENU.MORE_BUTTON}
                 />
             )}

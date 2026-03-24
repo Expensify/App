@@ -1,9 +1,9 @@
-import {useFocusEffect, useIsFocused} from '@react-navigation/native';
-import reportsSelector from '@selectors/Attributes';
+import {useFocusEffect} from '@react-navigation/native';
+import {hasSeenTourSelector} from '@selectors/Onboarding';
 import reject from 'lodash/reject';
 import type {Ref} from 'react';
-import React, {useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
-import {Keyboard, Platform} from 'react-native';
+import React, {useEffect, useImperativeHandle, useRef, useState} from 'react';
+import {Keyboard} from 'react-native';
 import Button from '@components/Button';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import {PressableWithFeedback} from '@components/Pressable';
@@ -19,9 +19,11 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useDebouncedState from '@hooks/useDebouncedState';
 import useDismissedReferralBanners from '@hooks/useDismissedReferralBanners';
 import useFilteredOptions from '@hooks/useFilteredOptions';
+import useIsFocusedRef from '@hooks/useIsFocusedRef';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePrivateIsArchivedMap from '@hooks/usePrivateIsArchivedMap';
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -71,14 +73,14 @@ function useOptions(reportAttributesDerived: ReportAttributesDerivedValue['repor
     const {contacts} = useContactImport();
     const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT);
     const allPersonalDetails = usePersonalDetails();
-    const isScreenFocused = useIsFocused();
+    const isScreenFocusedRef = useIsFocusedRef();
+    const [allPolicyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
 
     const {
         options: listOptions,
         isLoading,
         loadMore,
         hasMore,
-        isLoadingMore,
     } = useFilteredOptions({
         maxRecentReports: 500,
         enabled: didScreenTransitionEnd,
@@ -111,6 +113,7 @@ function useOptions(reportAttributesDerived: ReportAttributesDerivedValue['repor
             includeSelfDM: true,
             shouldAlwaysIncludeDM: true,
             personalDetails: allPersonalDetails,
+            allPolicyTags,
             countryCode,
             reportAttributesDerived,
         },
@@ -203,7 +206,7 @@ function useOptions(reportAttributesDerived: ReportAttributesDerivedValue['repor
     }, [draftSelectedOptions, setSelectedOptions]);
 
     const handleEndReached = () => {
-        if (!hasMore || isLoadingMore || !areOptionsInitialized || !isScreenFocused) {
+        if (!hasMore || !areOptionsInitialized || !isScreenFocusedRef.current) {
             return;
         }
         loadMore();
@@ -219,7 +222,6 @@ function useOptions(reportAttributesDerived: ReportAttributesDerivedValue['repor
         setSelectedOptions,
         headerMessage,
         handleEndReached,
-        isLoadingMore,
     };
 }
 
@@ -240,11 +242,17 @@ function NewChatPage({ref}: NewChatPageProps) {
     const personalData = useCurrentUserPersonalDetails();
     const currentUserAccountID = personalData.accountID;
     const {top} = useSafeAreaInsets();
+    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false});
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
+    const privateIsArchivedMap = usePrivateIsArchivedMap();
     const selectionListRef = useRef<SelectionListWithSectionsHandle | null>(null);
-    const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {
-        selector: reportsSelector,
-    });
+
+    const [reportAttributesDerivedFull] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
+
+    const reportAttributesDerived = reportAttributesDerivedFull?.reports;
 
     const allPersonalDetails = usePersonalDetails();
     const {singleExecution} = useSingleExecution();
@@ -253,31 +261,11 @@ function NewChatPage({ref}: NewChatPageProps) {
         focus: selectionListRef.current?.focusTextInput,
     }));
 
-    // Opacity toggle to fix FlashList layout issue when navigating back.
-    // FlashList compacts its layout when the screen is hidden but still mounted.
-    // Briefly setting opacity to 0 when the screen regains focus triggers a re-render
-    // that forces FlashList to recalculate its layout without a full remount.
-    const [listOpacity, setListOpacity] = useState(1);
-    const isFirstRender = useRef(true);
-    useFocusEffect(
-        useCallback(() => {
-            if (isFirstRender.current || Platform.OS !== 'web') {
-                isFirstRender.current = false;
-                return;
-            }
-            setListOpacity(0);
-            requestAnimationFrame(() => {
-                setListOpacity(1);
-            });
-        }, []),
-    );
-
     const {
         headerMessage,
         searchTerm,
         debouncedSearchTerm,
         handleEndReached,
-        isLoadingMore,
         setSearchTerm,
         selectedOptions,
         setSelectedOptions,
@@ -294,7 +282,9 @@ function NewChatPage({ref}: NewChatPageProps) {
         selectedOptions as OptionData[],
         recentReports,
         personalDetails,
+        privateIsArchivedMap,
         currentUserAccountID,
+        allPolicies,
         allPersonalDetails,
         undefined,
         undefined,
@@ -372,7 +362,6 @@ function NewChatPage({ref}: NewChatPageProps) {
             Navigation.dismissModalWithReport({reportID: option.reportID});
             return;
         }
-
         if (selectedOptions.length && option) {
             // Prevent excluded emails from being added to groups
             if (option?.login && excludedGroupEmails.has(option.login)) {
@@ -403,7 +392,7 @@ function NewChatPage({ref}: NewChatPageProps) {
             return;
         }
         KeyboardUtils.dismiss().then(() => {
-            singleExecution(() => navigateToAndOpenReport([login], currentUserAccountID))();
+            singleExecution(() => navigateToAndOpenReport([login], allPersonalDetails, currentUserAccountID, introSelected, isSelfTourViewed, betas))();
         });
     };
 
@@ -511,14 +500,13 @@ function NewChatPage({ref}: NewChatPageProps) {
                 }}
                 rightHandSideComponent={itemRightSideComponent}
                 footerContent={footerContent}
-                showLoadingPlaceholder={!areOptionsInitialized}
+                shouldShowLoadingPlaceholder={!areOptionsInitialized}
                 shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
-                isLoadingNewOptions={!!isSearchingForReports || isLoadingMore}
+                isLoadingNewOptions={!!isSearchingForReports}
                 onEndReached={handleEndReached}
                 onEndReachedThreshold={0.75}
                 disableMaintainingScrollPosition
                 addBottomSafeAreaPadding
-                style={{listStyle: {opacity: listOpacity}}}
             />
         </ScreenWrapper>
     );

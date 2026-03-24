@@ -146,6 +146,14 @@ function isNavigatingToOnboardingFlow(action: NavigationAction): boolean {
 }
 
 /**
+ * Check if the navigation action is targeting an onboarding screen.
+ * This handles REPLACE actions that target the OnboardingModalNavigator directly.
+ */
+function isNavigatingToOnboardingFlowWithReplaceAction(action: NavigationAction): boolean {
+    return action.type === CONST.NAVIGATION.ACTION_TYPE.REPLACE && (action.payload as {name?: string} | undefined)?.name === NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR;
+}
+
+/**
  * OnboardingGuard handles ONLY the core NewDot onboarding flow
  */
 const OnboardingGuard: NavigationGuard = {
@@ -166,12 +174,25 @@ const OnboardingGuard: NavigationGuard = {
 
         // Redirect completed users who try to navigate to onboarding routes (e.g. via deep link)
         // The OnboardingModalNavigator is not mounted when onboarding is complete, so the route would silently fail
-        if (isOnboardingCompleted && isNavigatingToOnboardingFlow(action)) {
-            Log.info('[OnboardingGuard] Redirecting completed user away from onboarding route to home');
+        if ((isOnboardingCompleted || CONFIG.SKIP_ONBOARDING) && isNavigatingToOnboardingFlow(action)) {
+            Log.info('[OnboardingGuard] Redirecting user away from onboarding route to home');
             return {type: 'REDIRECT', route: ROUTES.HOME};
         }
 
-        const shouldSkipOnboarding = context.isLoading || isTransitioning || isOnboardingCompleted || isMigratedUser || isSingleEntry || needsExplanationModal || isInvitedOrGroupMember;
+        const skipOnboardingConfig = CONFIG.SKIP_ONBOARDING;
+        const isLoading = context.isLoading;
+        const isNavigatingWithReplace = isNavigatingToOnboardingFlowWithReplaceAction(action);
+
+        const shouldSkipOnboarding =
+            skipOnboardingConfig ||
+            isLoading ||
+            isTransitioning ||
+            isOnboardingCompleted ||
+            isMigratedUser ||
+            isSingleEntry ||
+            needsExplanationModal ||
+            isInvitedOrGroupMember ||
+            isNavigatingWithReplace;
 
         if (shouldSkipOnboarding) {
             return {type: 'ALLOW'};
@@ -180,7 +201,18 @@ const OnboardingGuard: NavigationGuard = {
         // User needs onboarding - calculate the correct step and redirect
         const onboardingRoute = getOnboardingRoute();
 
-        Log.info('[OnboardingGuard] Redirecting to onboarding route', false, {onboardingRoute});
+        Log.info('[OnboardingGuard] Redirecting to onboarding route', false, {
+            onboardingRoute,
+            skipOnboardingConfig,
+            isLoading,
+            isTransitioning,
+            isOnboardingCompleted,
+            isMigratedUser,
+            isSingleEntry,
+            needsExplanationModal,
+            isInvitedOrGroupMember,
+            isNavigatingWithReplace,
+        });
 
         return {
             type: 'REDIRECT',

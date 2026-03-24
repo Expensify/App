@@ -177,6 +177,19 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
                     return isChildOfTaskTitle(tnode as TNode) ? {} : {...styles.blockquote, ...styles.onlyEmojisTextLineHeight};
                 },
             }),
+            'bullet-list': HTMLElementModel.fromCustomModel({
+                tagName: 'bullet-list',
+                contentModel: HTMLContentModel.block,
+                mixedUAStyles: {marginVertical: 12},
+            }),
+            'bullet-item': HTMLElementModel.fromCustomModel({
+                tagName: 'bullet-item',
+                contentModel: HTMLContentModel.block,
+            }),
+            'sparkles-icon': HTMLElementModel.fromCustomModel({
+                tagName: 'sparkles-icon',
+                contentModel: HTMLContentModel.mixed,
+            }),
         }),
         [
             styles.taskTitleMenuItem,
