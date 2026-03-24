@@ -47,10 +47,12 @@ function getAccessibilityProps<TItem extends ListItem>({
 
     const accessibilityLabel = getAccessibilityLabel(item);
 
+    // When the row contains a toggle, use role="switch" so screen readers announce "on"/"off" instead of "checked"/"not checked".
     // For single-select lists, use role="option" with aria-selected so screen readers announce "selected"/"not selected".
     // For multi-select (checkbox/radio), keep existing role and state.
-    const isSelectableOption = !canSelectMultiple && role !== CONST.ROLE.CHECKBOX && role !== CONST.ROLE.RADIO;
-    const effectiveRole = isSelectableOption ? CONST.ROLE.OPTION : role;
+    const hasToggle = item.isToggleActive != null;
+    const isSelectableOption = !hasToggle && !canSelectMultiple && role !== CONST.ROLE.CHECKBOX && role !== CONST.ROLE.RADIO;
+    const effectiveRole = hasToggle ? CONST.ROLE.SWITCH : isSelectableOption ? CONST.ROLE.OPTION : role;
 
     return {
         role: effectiveRole,
