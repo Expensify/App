@@ -3539,7 +3539,7 @@ describe('OptionsListUtils', () => {
 
             // Then the report 7 (most recent) should still have private_isArchived set
             const report7Option = result.reports.find((r) => r.item?.reportID === '7');
-            expect(report7Option?.private_isArchived).toBe('2023-12-31 23:59:59');
+            expect(report7Option?.private_isArchived).toBe(true);
         });
     });
 
