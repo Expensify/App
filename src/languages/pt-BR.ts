@@ -4339,6 +4339,8 @@ ${
                 qboInvoiceCollectionAccount: 'Conta de cobrança de faturas do QuickBooks',
                 accountSelectDescription: 'Escolha de onde pagar as contas e nós criaremos o pagamento no QuickBooks Online.',
                 invoiceAccountSelectorDescription: 'Escolha onde receber os pagamentos de fatura e nós criaremos o pagamento no QuickBooks Online.',
+                autoSyncVBAExportNote:
+                    'Seu espaço de trabalho tem uma Conta Bancária Verificada conectada. Com contabilidade em regime de caixa, as despesas serão exportadas para o QuickBooks Online somente após o pagamento, não quando aprovadas. Mude para regime de competência para exportar na aprovação.',
             },
             accounts: {
                 [CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.DEBIT_CARD]: 'Cartão de débito',

@@ -4377,6 +4377,8 @@ ${
                 qboInvoiceCollectionAccount: 'Compte de recouvrement des factures QuickBooks',
                 accountSelectDescription: 'Choisissez l’endroit depuis lequel payer les factures et nous créerons le paiement dans QuickBooks Online.',
                 invoiceAccountSelectorDescription: 'Choisissez où recevoir les paiements de factures et nous créerons le paiement dans QuickBooks Online.',
+                autoSyncVBAExportNote:
+                    "Votre espace de travail dispose d'un compte bancaire vérifié connecté. Avec la comptabilité en espèces, les dépenses de poche ne seront exportées vers QuickBooks Online qu'après avoir été payées, pas lors de leur approbation. Passez à la comptabilité d'exercice pour exporter à l'approbation.",
             },
             accounts: {
                 [CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.DEBIT_CARD]: 'Carte de débit',

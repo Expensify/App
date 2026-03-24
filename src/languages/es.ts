@@ -4298,6 +4298,8 @@ ${amount} para ${merchant} - ${date}`,
                 qboInvoiceCollectionAccount: 'Cuenta de cobro de las facturas QuickBooks',
                 accountSelectDescription: 'Elige desde dónde pagar las facturas y crearemos el pago en QuickBooks Online.',
                 invoiceAccountSelectorDescription: 'Elige dónde recibir los pagos de facturas y crearemos el pago en QuickBooks Online.',
+                autoSyncVBAExportNote:
+                    'Tu espacio de trabajo tiene una Cuenta Bancaria Verificada conectada. Con la contabilidad en Efectivo, los gastos de bolsillo solo se exportarán a QuickBooks Online después de ser pagados, no cuando se aprueben. Cambia a Devengado para exportar al aprobarse.',
             },
             accounts: {
                 [CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.DEBIT_CARD]: 'Tarjeta de débito',

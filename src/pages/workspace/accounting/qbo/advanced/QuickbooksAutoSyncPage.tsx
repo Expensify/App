@@ -4,6 +4,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
+import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {updateQuickbooksOnlineAutoSync} from '@libs/actions/connections/QuickbooksOnline';
@@ -33,6 +34,9 @@ function QuickbooksAutoSyncPage({policy, route}: WithPolicyConnectionsProps) {
     const accountingMethod = config?.accountingMethod ?? COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH;
     const pendingAction =
         settingsPendingAction([CONST.QUICKBOOKS_CONFIG.AUTO_SYNC], config?.pendingFields) ?? settingsPendingAction([CONST.QUICKBOOKS_CONFIG.ACCOUNTING_METHOD], config?.pendingFields);
+    const isVBAConnected = policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES;
+    const isCashAccountingMethod = accountingMethod === COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH;
+    const shouldShowVBAExportNote = !!config?.autoSync?.enabled && isVBAConnected && isCashAccountingMethod;
 
     const goBack = useCallback(() => {
         Navigation.goBack(backTo ?? ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_ADVANCED.getRoute(policyID));
@@ -78,6 +82,9 @@ function QuickbooksAutoSyncPage({policy, route}: WithPolicyConnectionsProps) {
                             shouldShowRightIcon
                             onPress={() => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_ACCOUNTING_METHOD.getRoute(policyID, backTo))}
                         />
+                        {shouldShowVBAExportNote && (
+                            <Text style={[styles.mutedNormalTextLabel, styles.ph5, styles.pv3]}>{translate('workspace.qbo.advancedConfig.autoSyncVBAExportNote')}</Text>
+                        )}
                     </OfflineWithFeedback>
                 )}
             </ScreenWrapper>

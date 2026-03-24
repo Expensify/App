@@ -4429,6 +4429,8 @@ const translations = {
                 qboInvoiceCollectionAccount: 'QuickBooks invoice collections account',
                 accountSelectDescription: "Choose where to pay bills from and we'll create the payment in QuickBooks Online.",
                 invoiceAccountSelectorDescription: "Choose where to receive invoice payments and we'll create the payment in QuickBooks Online.",
+                autoSyncVBAExportNote:
+                    'Your workspace has a Verified Bank Account connected. With Cash accounting, out-of-pocket expenses will only export to QuickBooks Online after they are paid, not when approved. Switch to Accrual to export on approval.',
             },
             accounts: {
                 [CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.DEBIT_CARD]: 'Debit card',

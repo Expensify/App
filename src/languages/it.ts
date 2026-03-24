@@ -4351,6 +4351,8 @@ ${
                 qboInvoiceCollectionAccount: 'Conto incassi fatture QuickBooks',
                 accountSelectDescription: 'Scegli da dove pagare le fatture e creeremo il pagamento in QuickBooks Online.',
                 invoiceAccountSelectorDescription: 'Scegli dove ricevere i pagamenti delle fatture e creeremo il pagamento in QuickBooks Online.',
+                autoSyncVBAExportNote:
+                    "Il tuo spazio di lavoro ha un conto bancario verificato collegato. Con la contabilità per cassa, le spese vive verranno esportate in QuickBooks Online solo dopo il pagamento, non all'approvazione. Passa alla contabilità per competenza per esportare all'approvazione.",
             },
             accounts: {
                 [CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.DEBIT_CARD]: 'Carta di debito',

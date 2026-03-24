@@ -4366,6 +4366,8 @@ ${
                 qboInvoiceCollectionAccount: 'QuickBooks-Konto für Rechnungseingänge',
                 accountSelectDescription: 'Wählen Sie, von welchem Konto Sie Rechnungen bezahlen möchten, und wir erstellen die Zahlung in QuickBooks Online.',
                 invoiceAccountSelectorDescription: 'Wähle aus, wo Rechnungszahlungen eingehen sollen, und wir erstellen die Zahlung in QuickBooks Online.',
+                autoSyncVBAExportNote:
+                    'Ihr Arbeitsbereich verfügt über ein verbundenes verifiziertes Bankkonto. Bei der Kassenbuchhaltung werden Auslagen erst nach der Zahlung in QuickBooks Online exportiert, nicht bei der Genehmigung. Wechseln Sie zur Periodenabgrenzung, um den Export bei der Genehmigung auszulösen.',
             },
             accounts: {
                 [CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.DEBIT_CARD]: 'Debitkarte',

@@ -4345,6 +4345,8 @@ ${
                 qboInvoiceCollectionAccount: 'QuickBooks-incassoaccount voor facturen',
                 accountSelectDescription: 'Kies vanwaar je rekeningen wilt betalen en wij maken de betaling aan in QuickBooks Online.',
                 invoiceAccountSelectorDescription: 'Kies waar je factuurbetalingen wilt ontvangen en we maken de betaling aan in QuickBooks Online.',
+                autoSyncVBAExportNote:
+                    'Je werkruimte heeft een geverifieerde bankrekening verbonden. Met kassaboekhouden worden onkostenvergoedingen pas naar QuickBooks Online geëxporteerd nadat ze zijn betaald, niet bij goedkeuring. Schakel over naar toerekening om te exporteren bij goedkeuring.',
             },
             accounts: {
                 [CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.DEBIT_CARD]: 'Debetkaart',

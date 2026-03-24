@@ -4244,6 +4244,7 @@ ${
                 qboInvoiceCollectionAccount: 'QuickBooks 发票收款账户',
                 accountSelectDescription: '选择用于支付账单的来源，我们会在 QuickBooks Online 中创建这笔付款。',
                 invoiceAccountSelectorDescription: '选择接收发票付款的账户，我们会在 QuickBooks Online 中创建这笔付款。',
+                autoSyncVBAExportNote: '您的工作区已连接已验证的银行账户。使用现金制会计时，自付费用将在付款后才导出到 QuickBooks Online，而非在审批时。切换至应计制可在审批时导出。',
             },
             accounts: {
                 [CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.DEBIT_CARD]: '借记卡',

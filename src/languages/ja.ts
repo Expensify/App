@@ -4316,6 +4316,8 @@ ${
                 qboInvoiceCollectionAccount: 'QuickBooks 請求書回収口座',
                 accountSelectDescription: '請求書の支払元を選択すると、QuickBooks Online に支払いが作成されます。',
                 invoiceAccountSelectorDescription: '請求書の入金先を選択すると、QuickBooks Online に支払いを作成します。',
+                autoSyncVBAExportNote:
+                    'このワークスペースには認証済み銀行口座が接続されています。現金主義会計では、立替経費は承認時ではなく支払い後にQuickBooks Onlineにエクスポートされます。承認時にエクスポートするには発生主義に切り替えてください。',
             },
             accounts: {
                 [CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.DEBIT_CARD]: 'デビットカード',

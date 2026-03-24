@@ -4339,6 +4339,8 @@ ${
                 qboInvoiceCollectionAccount: 'konto rozliczeń należności z faktur QuickBooks',
                 accountSelectDescription: 'Wybierz, z jakiego konta opłacać rachunki, a my utworzymy płatność w QuickBooks Online.',
                 invoiceAccountSelectorDescription: 'Wybierz, gdzie otrzymywać płatności za faktury, a my utworzymy płatność w QuickBooks Online.',
+                autoSyncVBAExportNote:
+                    'Twoje miejsce pracy ma podłączone zweryfikowane konto bankowe. W metodzie kasowej wydatki gotówkowe będą eksportowane do QuickBooks Online dopiero po zapłaceniu, a nie po zatwierdzeniu. Przełącz się na metodę memoriałową, aby eksportować przy zatwierdzeniu.',
             },
             accounts: {
                 [CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.DEBIT_CARD]: 'Karta debetowa',
