@@ -24,7 +24,7 @@ import {
     setMoneyRequestPendingFields,
     setMoneyRequestTag,
     setMoneyRequestTaxAmount,
-    setMoneyRequestTaxRate,
+    setMoneyRequestTaxRateValues,
 } from '@libs/actions/IOU';
 import {computePerDiemExpenseAmount, isValidPerDiemExpenseAmount} from '@libs/actions/IOU/PerDiem';
 import {adjustRemainingSplitShares, resetSplitShares, setIndividualShare, setSplitShares} from '@libs/actions/IOU/Split';
@@ -295,6 +295,7 @@ function MoneyRequestConfirmationList({
     const [lastSelectedDistanceRates] = useOnyx(ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES);
     const {getCurrencySymbol, getCurrencyDecimals} = useCurrencyListActions();
     const {isBetaEnabled} = usePermissions();
+    const isNewManualExpenseFlowEnabled = isBetaEnabled(CONST.BETAS.NEW_MANUAL_EXPENSE_FLOW);
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
 
@@ -350,6 +351,7 @@ function MoneyRequestConfirmationList({
     const isFromGlobalCreateAndCanEditParticipant = !!transaction?.isFromGlobalCreate && !isPerDiemRequest && !isTimeRequest;
 
     const transactionID = transaction?.transactionID;
+    const previousTransactionCurrency = usePrevious(transaction?.currency);
     const customUnitRateID = getRateID(transaction);
 
     const subRates = transaction?.comment?.customUnit?.subRates ?? [];
@@ -380,18 +382,30 @@ function MoneyRequestConfirmationList({
 
     // Update the tax code when the default changes (for example, because the transaction currency changed)
     const defaultTaxCode = getDefaultTaxCode(policy, transaction) ?? (isMovingTransactionFromTrackExpense ? (getDefaultTaxCode(policyForMovingExpenses, transaction) ?? '') : '');
+    const defaultTaxValue = getTaxValue(policy, transaction, defaultTaxCode) ?? null;
+    const previousDefaultTaxCode = getDefaultTaxCode(policy, transaction, previousTransactionCurrency);
+    const shouldKeepCurrentTaxSelection = hasTaxRateWithMatchingValue(policy, transaction) && transaction?.taxCode !== previousDefaultTaxCode;
 
     useEffect(() => {
         if (!transactionID || isReadOnly || !shouldShowTax || isMovingTransactionFromTrackExpense) {
             return;
         }
-        setMoneyRequestTaxRate(transactionID, defaultTaxCode);
+
+        // Keep the user's current selection when it's still valid for the active policy.
+        if (shouldKeepCurrentTaxSelection) {
+            return;
+        }
+
+        setMoneyRequestTaxRateValues(transactionID, {
+            taxCode: defaultTaxCode,
+            taxValue: defaultTaxValue,
+            taxAmount: transaction?.taxAmount ?? null,
+        });
         // trigger this useEffect also when policyID changes - the defaultTaxCode may stay the same
-    }, [defaultTaxCode, isMovingTransactionFromTrackExpense, isReadOnly, transactionID, policyID, shouldShowTax]);
+    }, [defaultTaxCode, defaultTaxValue, isMovingTransactionFromTrackExpense, isReadOnly, transactionID, policyID, shouldShowTax, shouldKeepCurrentTaxSelection, transaction?.taxAmount]);
 
     const distance = getDistanceInMeters(transaction, unit);
     const prevDistance = usePrevious(distance);
-
     const shouldCalculateDistanceAmount = isDistanceRequest && (iouAmount === 0 || prevRate !== rate || prevDistance !== distance || prevCurrency !== currency || prevUnit !== unit);
 
     const shouldCalculatePerDiemAmount = isPerDiemRequest && (iouAmount === 0 || JSON.stringify(prevSubRates) !== JSON.stringify(subRates) || prevCurrency !== currency);
@@ -609,19 +623,21 @@ function MoneyRequestConfirmationList({
             }
         } else if (isTypeTrackExpense) {
             text = translate('iou.createExpense');
-            if (iouAmount !== 0) {
+            if (iouAmount !== 0 && !isNewManualExpenseFlowEnabled) {
                 text = translate('iou.createExpenseWithAmount', {amount: formattedAmount});
             }
         } else if (isTypeSplit && iouAmount === 0) {
             text = translate('iou.splitExpense');
         } else if ((receiptPath && isTypeRequest) || isDistanceRequestWithPendingRoute || isPerDiemRequest) {
             text = translate('iou.createExpense');
-            if (iouAmount !== 0) {
+            if (iouAmount !== 0 && !isNewManualExpenseFlowEnabled) {
                 text = translate('iou.createExpenseWithAmount', {amount: formattedAmount});
             }
         } else if (isTypeSplit) {
             text = translate('iou.splitAmount', formattedAmount);
         } else if (iouAmount === 0) {
+            text = translate('iou.createExpense');
+        } else if (isNewManualExpenseFlowEnabled) {
             text = translate('iou.createExpense');
         } else {
             text = translate('iou.createExpenseWithAmount', {amount: formattedAmount});
@@ -646,6 +662,7 @@ function MoneyRequestConfirmationList({
         policy,
         translate,
         formattedAmount,
+        isNewManualExpenseFlowEnabled,
     ]);
 
     const onSplitShareChange = useCallback(
@@ -1005,6 +1022,15 @@ function MoneyRequestConfirmationList({
                 setFormError('iou.error.noParticipantSelected');
                 return;
             }
+
+            const amountForValidation = iouAmount;
+            const isAmountMissingForManualFlow = amountForValidation === null || amountForValidation === undefined;
+
+            if (iouType !== CONST.IOU.TYPE.PAY && isNewManualExpenseFlowEnabled && isAmountMissingForManualFlow) {
+                setFormError('common.error.invalidAmount');
+                return;
+            }
+
             if (!isEditingSplitBill && isMerchantRequired && (isMerchantEmpty || (shouldDisplayFieldError && isMerchantMissing(transaction)))) {
                 setFormError('iou.error.invalidMerchant');
                 return;
@@ -1263,7 +1289,9 @@ function MoneyRequestConfirmationList({
         confirm,
         iouCurrencyCode,
         policyID,
+        reportID,
         isConfirmed,
+        isConfirming,
         splitOrRequestOptions,
         errorMessage,
         expensesNumber,
@@ -1275,8 +1303,6 @@ function MoneyRequestConfirmationList({
         styles.productTrainingTooltipWrapper,
         shouldShowProductTrainingTooltip,
         renderProductTrainingTooltip,
-        isConfirming,
-        reportID,
     ]);
 
     const isCompactMode = useMemo(() => !showMoreFields && isScanRequest, [isScanRequest, showMoreFields]);
@@ -1293,9 +1319,10 @@ function MoneyRequestConfirmationList({
         <View style={isCompactMode ? styles.flex1 : undefined}>
             <MoneyRequestConfirmationListFooter
                 action={action}
-                currency={currency}
+                distanceRateCurrency={currency}
                 didConfirm={!!didConfirm}
                 distance={distance}
+                amount={amountToBeUsed}
                 formattedAmount={formattedAmount}
                 formattedAmountPerAttendee={formattedAmountPerAttendee}
                 formError={formError}

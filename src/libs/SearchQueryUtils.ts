@@ -44,7 +44,7 @@ import navigationRef from './Navigation/navigationRef';
 import type {SearchFullscreenNavigatorParamList} from './Navigation/types';
 import {getDisplayNameOrDefault, getPersonalDetailByEmail} from './PersonalDetailsUtils';
 import {getCleanedTagName} from './PolicyUtils';
-import {getReportName} from './ReportUtils';
+import {getReportName} from './ReportNameUtils';
 import {parse as parseSearchQuery} from './SearchParser/searchParser';
 import StringUtils from './StringUtils';
 import {hashText} from './UserUtils';
@@ -1108,7 +1108,7 @@ type GetFilterDisplayValueParams = {
     policies: OnyxCollection<OnyxTypes.Policy>;
     currentUserAccountID: number;
     translate: LocalizedTranslate;
-    conciergeReportID: string | undefined;
+    reportAttributes?: OnyxTypes.ReportAttributesDerivedValue['reports'];
     feedKeysWithCards?: FeedKeysWithAssignedCards;
 };
 
@@ -1125,7 +1125,7 @@ function getFilterDisplayValue({
     policies,
     currentUserAccountID,
     translate,
-    conciergeReportID,
+    reportAttributes,
     feedKeysWithCards,
 }: GetFilterDisplayValueParams) {
     if (
@@ -1146,8 +1146,7 @@ function getFilterDisplayValue({
         return getCardDescription(cardList?.[cardID], translate) || filterValue;
     }
     if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.IN) {
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        return getReportName({report: reports?.[`${ONYXKEYS.COLLECTION.REPORT}${filterValue}`], conciergeReportID}) || filterValue;
+        return getReportName(reports?.[`${ONYXKEYS.COLLECTION.REPORT}${filterValue}`], reportAttributes) || filterValue;
     }
     if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT || filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.TOTAL || filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_AMOUNT) {
         const frontendAmount = convertToFrontendAmountAsInteger(Number(filterValue));
@@ -1187,7 +1186,7 @@ function getDisplayQueryFiltersForKey(
     policies: OnyxCollection<OnyxTypes.Policy>,
     currentUserAccountID: number,
     translate: LocalizedTranslate,
-    conciergeReportID: string | undefined,
+    reportAttributes?: OnyxTypes.ReportAttributesDerivedValue['reports'],
     feedKeysWithCards?: FeedKeysWithAssignedCards,
 ) {
     if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE) {
@@ -1253,7 +1252,7 @@ function getDisplayQueryFiltersForKey(
             policies,
             currentUserAccountID,
             translate,
-            conciergeReportID,
+            reportAttributes,
             feedKeysWithCards,
         }),
     }));
@@ -1333,7 +1332,7 @@ function buildUserReadableQueryString({
     autoCompleteWithSpace = false,
     translate,
     feedKeysWithCards,
-    conciergeReportID,
+    reportAttributes,
 }: {
     queryJSON: SearchQueryJSON;
     PersonalDetails: OnyxTypes.PersonalDetailsList | undefined;
@@ -1346,7 +1345,7 @@ function buildUserReadableQueryString({
     autoCompleteWithSpace: boolean;
     translate: LocalizedTranslate;
     feedKeysWithCards?: FeedKeysWithAssignedCards;
-    conciergeReportID: string | undefined;
+    reportAttributes?: OnyxTypes.ReportAttributesDerivedValue['reports'];
 }) {
     const {type, status, groupBy, columns, policyID, rawFilterList, flatFilters: filters = [], limit} = queryJSON;
 
@@ -1390,7 +1389,7 @@ function buildUserReadableQueryString({
                 policies,
                 currentUserAccountID,
                 translate,
-                conciergeReportID,
+                reportAttributes,
                 feedKeysWithCards,
             );
 
@@ -1440,7 +1439,7 @@ function buildUserReadableQueryString({
             policies,
             currentUserAccountID,
             translate,
-            conciergeReportID,
+            reportAttributes,
             feedKeysWithCards,
         );
 
@@ -1639,32 +1638,49 @@ function shouldHighlight(referenceText: string, searchText: string) {
     return pattern.test(StringUtils.normalizeAccents(referenceText).toLowerCase());
 }
 
+const TIME_BASED_GROUP_BYS = new Set<string>([CONST.SEARCH.GROUP_BY.MONTH, CONST.SEARCH.GROUP_BY.WEEK, CONST.SEARCH.GROUP_BY.YEAR, CONST.SEARCH.GROUP_BY.QUARTER]);
+
 /**
- * Determines whether sortBy and sortOrder should be reset when filters change.
- * Each view/groupBy combination has its own defaults derived by the parser,
- * so we reset on any view or groupBy change to let the parser determine the correct defaults.
+ * Determines whether sortBy and sortOrder should be fully reset (re-derived by
+ * the parser) when filters change.  Returns true only when the groupBy value
+ * changes, because each groupBy has its own default sort column and order.
  */
-function shouldResetSort({
-    newView,
-    oldView,
-    newGroupBy,
-    oldGroupBy,
-}: {
-    newView: string | undefined;
-    oldView: string | undefined;
-    newGroupBy: string | undefined;
-    oldGroupBy: string | undefined;
-}): boolean {
-    const effectiveNewView = newView ?? CONST.SEARCH.VIEW.TABLE;
-    const effectiveOldView = oldView ?? CONST.SEARCH.VIEW.TABLE;
-    return effectiveNewView !== effectiveOldView || newGroupBy !== oldGroupBy;
+function shouldResetSort({newGroupBy, oldGroupBy}: {newGroupBy: string | undefined; oldGroupBy: string | undefined}): boolean {
+    return newGroupBy !== oldGroupBy;
 }
 
 /**
- * Builds a query string from filter form values, resetting sortBy and sortOrder when the view
- * or groupBy has changed so the parser can re-derive the correct defaults. When a reset is needed,
- * the query is round-tripped through the parser so that parser-derived defaults appear in the
- * final query string.
+ * Returns true when the view change requires resetting sort for proper display.
+ * For time-based groupBys (month/week/year/quarter):
+ * - Line charts need chronological (asc) order for left-to-right readability
+ * - Table view defaults to desc (most recent first)
+ * - Bar/Pie charts can display data in any order
+ *
+ * Reset occurs when:
+ * - Switching TO line view (needs chronological asc order)
+ * - Switching TO table view (needs default desc order)
+ * Preserve sort when switching TO bar/pie (any order is fine).
+ */
+function shouldResetSortForViewChange({newView, oldView, groupBy}: {newView: string | undefined; oldView: string | undefined; groupBy: string | undefined}): boolean {
+    if (newView === oldView || !groupBy) {
+        return false;
+    }
+    if (!TIME_BASED_GROUP_BYS.has(groupBy)) {
+        return false;
+    }
+    const isLineView = (view: string | undefined) => view === CONST.SEARCH.VIEW.LINE;
+    const isTableView = (view: string | undefined) => view === CONST.SEARCH.VIEW.TABLE;
+    // Reset when switching to line (asc) or table (desc) - both need their specific defaults
+    // Preserve when switching to bar/pie - they can display any order
+    return isLineView(newView) || isTableView(newView);
+}
+
+/**
+ * Builds a query string from filter form values, resetting sortBy and sortOrder
+ * when the groupBy has changed so the parser can re-derive the correct defaults.
+ * When only the view changes between table and chart with a time-based groupBy,
+ * both sortBy and sortOrder are reset to allow the parser to apply the appropriate
+ * defaults (e.g., groupMonth asc for charts, groupMonth desc for tables).
  *
  * Returns undefined if the parser round-trip fails.
  */
@@ -1674,19 +1690,25 @@ function buildFilterQueryWithSortDefaults(
     currentQueryOptions: {sortBy?: string; sortOrder?: string; limit?: number},
 ): string | undefined {
     const resetSort = shouldResetSort({
-        newView: filterValues.view,
-        oldView: previousState.view,
         newGroupBy: filterValues.groupBy,
         oldGroupBy: previousState.groupBy,
     });
 
+    const resetSortForViewChange =
+        !resetSort &&
+        shouldResetSortForViewChange({
+            newView: filterValues.view,
+            oldView: previousState.view,
+            groupBy: filterValues.groupBy,
+        });
+
     const queryString = buildQueryStringFromFilterFormValues(filterValues, {
-        sortBy: resetSort ? undefined : currentQueryOptions.sortBy,
-        sortOrder: resetSort ? undefined : currentQueryOptions.sortOrder,
+        sortBy: resetSort || resetSortForViewChange ? undefined : currentQueryOptions.sortBy,
+        sortOrder: resetSort || resetSortForViewChange ? undefined : currentQueryOptions.sortOrder,
         limit: currentQueryOptions.limit,
     });
 
-    if (!resetSort) {
+    if (!resetSort && !resetSortForViewChange) {
         return queryString;
     }
 
@@ -1737,6 +1759,7 @@ export {
     getUserFriendlyValue,
     getUserFriendlyKey,
     shouldResetSort,
+    shouldResetSortForViewChange,
     buildFilterQueryWithSortDefaults,
     buildOptimisticSnapshotData,
 };
