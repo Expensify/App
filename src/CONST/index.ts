@@ -142,7 +142,9 @@ const signupQualifiers = {
     SMB: 'smb',
 } as const;
 
-type OnboardingAccounting = keyof typeof CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY | null;
+type NoneAccountingKey = 'none';
+
+type OnboardingAccounting = keyof typeof CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY | NoneAccountingKey | null;
 
 const onboardingInviteTypes = {
     IOU: 'iou',
@@ -1795,17 +1797,26 @@ const CONST = {
         BREADCRUMB_CATEGORY_SCRIPT_LOAD: 'script.load',
         BREADCRUMB_MEMORY_PERIODIC: 'Periodic memory check',
         BREADCRUMB_MEMORY_FOREGROUND: 'App foreground - memory check',
-        TAG_ACTIVE_POLICY: 'active_policy_id',
-        TAG_POLICIES_COUNT: 'policies_count',
-        TAG_REPORTS_COUNT: 'reports_count',
-        TAG_PERSONAL_DETAILS_COUNT: 'personal_details_count',
-        TAG_USER_ROLE: 'user_role',
-        TAG_NUDGE_MIGRATION_COHORT: 'nudge_migration_cohort',
-        TAG_AUTHENTICATION_FUNCTION: 'authentication_function',
-        TAG_AUTHENTICATION_ERROR_TYPE: 'authentication_error_type',
-        TAG_AUTHENTICATION_JSON_CODE: 'authentication_json_code',
-        TAG_EXPENSE_ERROR_TYPE: 'expense_error_type',
-        TAG_EXPENSE_ERROR_SOURCE: 'expense_error_source',
+        TAGS: {
+            ACTIVE_POLICY: 'active_policy_id',
+            POLICIES_COUNT: 'policies_count',
+            REPORTS_COUNT: 'reports_count',
+            PERSONAL_DETAILS_COUNT: 'personal_details_count',
+            USER_ROLE: 'user_role',
+            NUDGE_MIGRATION_COHORT: 'nudge_migration_cohort',
+            AUTHENTICATION_FUNCTION: 'authentication_function',
+            AUTHENTICATION_ERROR_TYPE: 'authentication_error_type',
+            AUTHENTICATION_JSON_CODE: 'authentication_json_code',
+            EXPENSE_ERROR_TYPE: 'expense_error_type',
+            EXPENSE_ERROR_SOURCE: 'expense_error_source',
+            EXPENSE_IS_REQUEST_PENDING: 'expense_is_request_pending',
+            EXPENSE_HAS_RECEIPT: 'expense_has_receipt',
+            EXPENSE_COMMAND: 'expense_command',
+            EXPENSE_JSON_CODE: 'expense_json_code',
+            MFA_SCENARIO: 'mfa_scenario',
+            MFA_ERROR_REASON: 'mfa_error_reason',
+            BUILD_TYPE: 'build_type',
+        },
         EXPENSE_ERROR_TYPE: {
             REPORT_CREATION_FAILED: 'report_creation_failed',
             TRANSACTION_MISSING: 'transaction_missing',
@@ -1818,13 +1829,6 @@ const CONST = {
             REPORT_CREATION: 'report_creation',
             API_RESPONSE: 'api_response',
         },
-        TAG_EXPENSE_IS_REQUEST_PENDING: 'expense_is_request_pending',
-        TAG_EXPENSE_HAS_RECEIPT: 'expense_has_receipt',
-        TAG_EXPENSE_COMMAND: 'expense_command',
-        TAG_EXPENSE_JSON_CODE: 'expense_json_code',
-        TAG_MFA_SCENARIO: 'mfa_scenario',
-        TAG_MFA_ERROR_REASON: 'mfa_error_reason',
-        TAG_BUILD_TYPE: 'build_type',
         BUILD_TYPE_HYBRID_APP: 'hybrid_app',
         BUILD_TYPE_STANDALONE: 'standalone',
         // Span names
@@ -6359,10 +6363,6 @@ const CONST = {
         RBR_MESSAGE_MAX_CHARACTERS_FOR_PREVIEW: 40,
     },
 
-    REPORT_VIOLATIONS_EXCLUDED_FIELDS: {
-        TEXT_TITLE: 'text_title',
-    },
-
     /** Context menu types */
     CONTEXT_MENU_TYPES: {
         LINK: 'LINK',
@@ -8644,6 +8644,7 @@ const CONST = {
             GROUP_EXPAND_TOGGLE: 'Search-GroupExpandToggle',
             GROUP_SELECT_ALL_CHECKBOX: 'Search-GroupSelectAllCheckbox',
             SORTABLE_HEADER: 'Search-SortableHeader',
+            UNREPORTED_EXPENSE_LIST_ITEM: 'UnreportedExpenseListItem',
         },
         REPORT: {
             FLOATING_MESSAGE_COUNTER: 'Report-FloatingMessageCounter',
@@ -8789,6 +8790,9 @@ const CONST = {
         },
         TRANSACTION_PREVIEW: {
             CARD: 'TransactionPreview-Card',
+        },
+        TRIP_ROOM_PREVIEW: {
+            CARD: 'TripRoomPreview-Card',
         },
         TRANSACTION_ITEM_ROW: {
             ARROW_RIGHT: 'TransactionItemRow-ArrowRight',

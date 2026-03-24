@@ -67,6 +67,7 @@ function SplitBillDetailsPage({route, report, reportAction}: SplitBillDetailsPag
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const reportAttributesDerived = useReportAttributes();
     const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`);
     const [privateIsArchived] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`, {selector: privateIsArchivedSelector});
 
     // In case this is workspace split expense, we manually add the workspace as the second participant of the split expense
@@ -75,7 +76,15 @@ function SplitBillDetailsPage({route, report, reportAction}: SplitBillDetailsPag
     if (isPolicyExpenseChat(report)) {
         participants = [
             getParticipantsOption({accountID: participantAccountIDs.at(0), selected: true, reportID: ''}, personalDetails),
-            getPolicyExpenseReportOption({...report, selected: true, reportID}, privateIsArchived, currentUserPersonalDetails.accountID, personalDetails, report, reportAttributesDerived),
+            getPolicyExpenseReportOption(
+                {...report, selected: true, reportID},
+                privateIsArchived,
+                currentUserPersonalDetails.accountID,
+                personalDetails,
+                report,
+                policy,
+                reportAttributesDerived,
+            ),
         ];
     } else {
         participants = participantAccountIDs.map((accountID) => getParticipantsOption({accountID, selected: true, reportID: ''}, personalDetails));
