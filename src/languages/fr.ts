@@ -1488,8 +1488,11 @@ const translations: TranslationDeepObject<typeof en> = {
         approveOnly: 'Approuver uniquement',
         holdEducationalTitle: 'Devriez-vous conserver cette dépense ?',
         whatIsHoldExplain: "La mise en attente revient à mettre une « pause » sur une dépense jusqu'à ce que vous soyez prêt à la soumettre.",
+        whatIsHoldExplainDM: "Hold is like hitting 'pause' on an expense until you're ready to send it.",
         holdIsLeftBehind: 'Les dépenses retenues sont laissées de côté même si vous soumettez une note de frais entière.',
+        holdIsLeftBehindDM: "Held expenses won't be sent until you remove the hold.",
         unholdWhenReady: 'Retirez les dépenses de la mise en attente lorsque vous êtes prêt à les soumettre.',
+        unholdWhenReadyDM: "Unhold expenses when you're ready to send them.",
         changePolicyEducational: {
             title: 'Vous avez déplacé cette note de frais !',
             description: 'Vérifiez attentivement ces éléments, qui ont tendance à changer lorsque vous déplacez des notes de frais vers un nouvel espace de travail.',

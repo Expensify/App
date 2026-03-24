@@ -1829,7 +1829,7 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
 
                 const isDismissed = isReportSubmitter ? dismissedHoldUseExplanation : dismissedRejectUseExplanation;
 
-                if (isDismissed || isChatReportDM) {
+                if (isDismissed) {
                     changeMoneyRequestHoldStatus(requestParentReportAction, transaction);
                 } else if (isReportSubmitter) {
                     setIsHoldEducationalModalVisible(true);
@@ -2631,6 +2631,7 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
                 <HoldSubmitterEducationalModal
                     onClose={dismissModalAndUpdateUseHold}
                     onConfirm={dismissModalAndUpdateUseHold}
+                    isDM={isChatReportDM}
                 />
             )}
             <DecisionModal

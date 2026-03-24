@@ -41,6 +41,7 @@ import {
     getReportOrDraftReport,
     isBusinessInvoiceRoom,
     isCurrentUserSubmitter,
+    isDM,
     isExpenseReport as isExpenseReportUtil,
     isInvoiceReport,
     isIOUReport as isIOUReportUtil,
@@ -676,6 +677,28 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         );
     }, [selectedTransactionReportIDs, currentUserPersonalDetails?.accountID, currentSearchResults?.data]);
 
+    const areAllTransactionsFromDMReports = useMemo(() => {
+        const searchData = currentSearchResults?.data;
+        const reports: Report[] = searchData
+            ? Object.keys(searchData)
+                  .filter((key) => key.startsWith(ONYXKEYS.COLLECTION.REPORT))
+                  .map((key) => searchData[key as keyof typeof searchData] as Report)
+                  .filter((report): report is Report => report != null && 'reportID' in report)
+            : [];
+
+        return (
+            selectedTransactionReportIDs.length > 0 &&
+            selectedTransactionReportIDs.every((id) => {
+                const iouReport = getReportOrDraftReport(id, reports);
+                if (!iouReport?.chatReportID) {
+                    return false;
+                }
+                const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${iouReport.chatReportID}`];
+                return isDM(chatReport);
+            })
+        );
+    }, [selectedTransactionReportIDs, currentSearchResults?.data, allReports]);
+
     const headerButtonsOptions = useMemo(() => {
         if (selectedTransactionsKeys.length === 0 || status == null || !hash) {
             return CONST.EMPTY_ARRAY as unknown as Array<DropdownOption<SearchHeaderOptionValue>>;
@@ -1232,6 +1255,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         isOfflineModalVisible,
         isDownloadErrorModalVisible,
         isHoldEducationalModalVisible,
+        areAllTransactionsFromDMReports,
         rejectModalAction,
         emptyReportsCount,
         handleOfflineModalClose,

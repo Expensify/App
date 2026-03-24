@@ -17,18 +17,23 @@ type HoldMenuSection = {
     titleTranslationKey: TranslationPaths;
 };
 
-function HoldMenuSectionList() {
+type HoldMenuSectionListProps = {
+    /** Whether the expense is from a DM (direct message) report */
+    isDM?: boolean;
+};
+
+function HoldMenuSectionList({isDM}: HoldMenuSectionListProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const illustrations = useMemoizedLazyIllustrations(['RealtimeReport', 'Stopwatch']);
     const holdMenuSections: HoldMenuSection[] = [
         {
             icon: illustrations.Stopwatch,
-            titleTranslationKey: 'iou.holdIsLeftBehind',
+            titleTranslationKey: isDM ? 'iou.holdIsLeftBehindDM' : 'iou.holdIsLeftBehind',
         },
         {
             icon: illustrations.RealtimeReport,
-            titleTranslationKey: 'iou.unholdWhenReady',
+            titleTranslationKey: isDM ? 'iou.unholdWhenReadyDM' : 'iou.unholdWhenReady',
         },
     ];
 
