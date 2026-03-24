@@ -533,6 +533,166 @@ describe('SidebarUtils', () => {
 
             await Onyx.clear();
         });
+
+        it('returns correct reason when report has transaction thread notice type violation', async () => {
+            const MOCK_REPORT: Report = {
+                reportID: '1',
+                ownerAccountID: 12345,
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                policyID: '6',
+            };
+
+            const MOCK_REPORTS: ReportCollectionDataSet = {
+                [`${ONYXKEYS.COLLECTION.REPORT}${MOCK_REPORT.reportID}` as const]: MOCK_REPORT,
+            };
+
+            const MOCK_REPORT_ACTIONS: ReportActions = {
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                '1': {
+                    reportActionID: '1',
+                    actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                    actorAccountID: 12345,
+                    created: '2024-08-08 18:20:44.171',
+                },
+            };
+
+            const MOCK_TRANSACTION = {
+                transactionID: '1',
+                amount: 10,
+                modifiedAmount: 10,
+                reportID: MOCK_REPORT.reportID,
+            };
+
+            const MOCK_TRANSACTIONS = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${MOCK_TRANSACTION.transactionID}` as const]: MOCK_TRANSACTION,
+            } as OnyxCollection<Transaction>;
+
+            const MOCK_TRANSACTION_VIOLATIONS: TransactionViolationsCollectionDataSet = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${MOCK_TRANSACTION.transactionID}` as const]: [
+                    {
+                        type: CONST.VIOLATION_TYPES.NOTICE,
+                        name: CONST.VIOLATIONS.MODIFIED_AMOUNT,
+                        showInReview: true,
+                    },
+                ],
+            };
+
+            await act(async () => {
+                await Onyx.multiSet({
+                    ...MOCK_REPORTS,
+                    ...MOCK_TRANSACTION_VIOLATIONS,
+                    [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${MOCK_REPORT.reportID}` as const]: MOCK_REPORT_ACTIONS,
+                    [ONYXKEYS.SESSION]: {
+                        accountID: 12345,
+                    },
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${MOCK_TRANSACTION.transactionID}` as const]: MOCK_TRANSACTION,
+                });
+            });
+
+            const {result: isReportArchived} = renderHook(() => useReportIsArchived(MOCK_REPORT?.reportID));
+            const result = SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad(
+                MOCK_REPORT,
+                chatReportR14932,
+                MOCK_REPORT_ACTIONS,
+                false,
+                {},
+                MOCK_TRANSACTIONS,
+                MOCK_TRANSACTION_VIOLATIONS as OnyxCollection<TransactionViolations>,
+                isReportArchived.current,
+            );
+
+            expect(result).not.toBeNull();
+            expect(result?.reason).toBe(CONST.RBR_REASONS.HAS_TRANSACTION_THREAD_VIOLATIONS);
+        });
+
+        it('returns correct reason when submitter has held expenses even if outstanding tasks trigger GBR', async () => {
+            const policyID = generateReportID();
+            const expenseChatID = generateReportID();
+            const expenseReportID = generateReportID();
+            const holdReportActionID = generateReportID();
+
+            const policyExpenseChat: Report = {
+                reportID: expenseChatID,
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                type: CONST.REPORT.TYPE.CHAT,
+                ownerAccountID: 12345,
+                policyID,
+                hasOutstandingChildRequest: true,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            };
+
+            const expenseReport: Report = {
+                reportID: expenseReportID,
+                chatReportID: expenseChatID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                ownerAccountID: 12345,
+                managerID: 12345,
+                policyID,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            };
+
+            const baseTransaction = createRandomTransaction(700);
+            const transactionID = generateTransactionID();
+            const transaction: Transaction = {
+                ...baseTransaction,
+                transactionID,
+                reportID: expenseReport.reportID,
+                amount: 12345,
+                currency: CONST.CURRENCY.USD,
+                status: CONST.TRANSACTION.STATUS.POSTED,
+                comment: {
+                    ...(baseTransaction.comment ?? {}),
+                    hold: holdReportActionID,
+                },
+            };
+
+            const transactionKey = `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}` as const;
+            const transactionViolationsKey = `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}` as const;
+            const transactionViolations: OnyxCollection<TransactionViolation[]> = {
+                [transactionViolationsKey]: [
+                    {
+                        name: CONST.VIOLATIONS.HOLD,
+                        type: CONST.VIOLATION_TYPES.VIOLATION,
+                        showInReview: true,
+                    },
+                ],
+            };
+
+            await act(async () => {
+                await Onyx.multiSet({
+                    [ONYXKEYS.SESSION]: {
+                        accountID: 12345,
+                    },
+                    [`${ONYXKEYS.COLLECTION.REPORT}${policyExpenseChat.reportID}`]: policyExpenseChat,
+                    [`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`]: expenseReport,
+                    [transactionKey]: transaction,
+                    [transactionViolationsKey]: transactionViolations[transactionViolationsKey],
+                } as unknown as OnyxMultiSetInput);
+            });
+
+            await waitForBatchedUpdatesWithAct();
+
+            const requiresAttention = getReasonAndReportActionThatRequiresAttention(policyExpenseChat);
+            expect(requiresAttention?.reason).toBe(CONST.REQUIRES_ATTENTION_REASONS.HAS_CHILD_REPORT_AWAITING_ACTION);
+
+            const {reason} =
+                SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad(
+                    policyExpenseChat,
+                    policyExpenseChat,
+                    {} as OnyxEntry<ReportActions>,
+                    true,
+                    {},
+                    {[transactionKey]: transaction},
+                    transactionViolations,
+                    false,
+                ) ?? {};
+
+            expect(reason).toBe(CONST.RBR_REASONS.HAS_TRANSACTION_THREAD_VIOLATIONS);
+        });
     });
 
     describe('shouldDisplayReportInLHN', () => {
@@ -709,500 +869,6 @@ describe('SidebarUtils', () => {
             );
 
             expect(result).toStrictEqual({shouldDisplay: true, hasErrorsOtherThanFailedReceipt: true});
-        });
-    });
-
-    describe('shouldShowRedBrickRoad', () => {
-        it('returns true when report has transaction thread violations', async () => {
-            const MOCK_REPORT: Report = {
-                reportID: '1',
-                ownerAccountID: 12345,
-                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
-                stateNum: CONST.REPORT.STATE_NUM.OPEN,
-                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
-                policyID: '6',
-            };
-
-            const MOCK_REPORTS: ReportCollectionDataSet = {
-                [`${ONYXKEYS.COLLECTION.REPORT}${MOCK_REPORT.reportID}` as const]: MOCK_REPORT,
-            };
-
-            const MOCK_REPORT_ACTIONS: ReportActions = {
-                // eslint-disable-next-line @typescript-eslint/naming-convention
-                '1': {
-                    reportActionID: '1',
-                    actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
-                    actorAccountID: 12345,
-                    created: '2024-08-08 18:20:44.171',
-                },
-            };
-
-            const MOCK_TRANSACTION = {
-                transactionID: '1',
-                amount: 10,
-                modifiedAmount: 10,
-                reportID: MOCK_REPORT.reportID,
-            };
-
-            const MOCK_TRANSACTIONS = {
-                [`${ONYXKEYS.COLLECTION.TRANSACTION}${MOCK_TRANSACTION.transactionID}` as const]: MOCK_TRANSACTION,
-            } as OnyxCollection<Transaction>;
-
-            const MOCK_TRANSACTION_VIOLATIONS: TransactionViolationsCollectionDataSet = {
-                [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${MOCK_TRANSACTION.transactionID}` as const]: [
-                    {
-                        type: CONST.VIOLATION_TYPES.VIOLATION,
-                        name: CONST.VIOLATIONS.MISSING_CATEGORY,
-                        showInReview: true,
-                    },
-                ],
-            };
-
-            await act(async () => {
-                await Onyx.multiSet({
-                    ...MOCK_REPORTS,
-                    ...MOCK_TRANSACTION_VIOLATIONS,
-                    [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${MOCK_REPORT.reportID}` as const]: MOCK_REPORT_ACTIONS,
-                    [ONYXKEYS.SESSION]: {
-                        accountID: 12345,
-                    },
-                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${MOCK_TRANSACTION.transactionID}` as const]: MOCK_TRANSACTION,
-                });
-            });
-
-            // Simulate how components determined if a report is archived by using this hook
-            const {result: isReportArchived} = renderHook(() => useReportIsArchived(MOCK_REPORT?.reportID));
-            const result = SidebarUtils.shouldShowRedBrickRoad(
-                MOCK_REPORT,
-                chatReportR14932,
-                MOCK_REPORT_ACTIONS,
-                false,
-                {},
-                MOCK_TRANSACTIONS,
-                MOCK_TRANSACTION_VIOLATIONS as OnyxCollection<TransactionViolations>,
-                isReportArchived.current,
-            );
-
-            expect(result).toBe(true);
-        });
-
-        it('returns true when report has transaction thread notice type violation', async () => {
-            const MOCK_REPORT: Report = {
-                reportID: '1',
-                ownerAccountID: 12345,
-                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
-                stateNum: CONST.REPORT.STATE_NUM.OPEN,
-                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
-                policyID: '6',
-            };
-
-            const MOCK_REPORTS: ReportCollectionDataSet = {
-                [`${ONYXKEYS.COLLECTION.REPORT}${MOCK_REPORT.reportID}` as const]: MOCK_REPORT,
-            };
-
-            const MOCK_REPORT_ACTIONS: ReportActions = {
-                // eslint-disable-next-line @typescript-eslint/naming-convention
-                '1': {
-                    reportActionID: '1',
-                    actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
-                    actorAccountID: 12345,
-                    created: '2024-08-08 18:20:44.171',
-                },
-            };
-
-            const MOCK_TRANSACTION = {
-                transactionID: '1',
-                amount: 10,
-                modifiedAmount: 10,
-                reportID: MOCK_REPORT.reportID,
-            };
-
-            const MOCK_TRANSACTIONS = {
-                [`${ONYXKEYS.COLLECTION.TRANSACTION}${MOCK_TRANSACTION.transactionID}` as const]: MOCK_TRANSACTION,
-            } as OnyxCollection<Transaction>;
-
-            const MOCK_TRANSACTION_VIOLATIONS: TransactionViolationsCollectionDataSet = {
-                [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${MOCK_TRANSACTION.transactionID}` as const]: [
-                    {
-                        type: CONST.VIOLATION_TYPES.NOTICE,
-                        name: CONST.VIOLATIONS.MODIFIED_AMOUNT,
-                        showInReview: true,
-                    },
-                ],
-            };
-
-            await act(async () => {
-                await Onyx.multiSet({
-                    ...MOCK_REPORTS,
-                    ...MOCK_TRANSACTION_VIOLATIONS,
-                    [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${MOCK_REPORT.reportID}` as const]: MOCK_REPORT_ACTIONS,
-                    [ONYXKEYS.SESSION]: {
-                        accountID: 12345,
-                    },
-                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${MOCK_TRANSACTION.transactionID}` as const]: MOCK_TRANSACTION,
-                });
-            });
-
-            const {result: isReportArchived} = renderHook(() => useReportIsArchived(MOCK_REPORT?.reportID));
-            const result = SidebarUtils.shouldShowRedBrickRoad(
-                MOCK_REPORT,
-                chatReportR14932,
-                MOCK_REPORT_ACTIONS,
-                false,
-                {},
-                MOCK_TRANSACTIONS,
-                MOCK_TRANSACTION_VIOLATIONS as OnyxCollection<TransactionViolations>,
-                isReportArchived.current,
-            );
-
-            expect(result).toBe(true);
-        });
-
-        it('returns true when submitter has held expenses even if outstanding tasks trigger GBR', async () => {
-            const policyID = generateReportID();
-            const expenseChatID = generateReportID();
-            const expenseReportID = generateReportID();
-            const holdReportActionID = generateReportID();
-
-            const policyExpenseChat: Report = {
-                reportID: expenseChatID,
-                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
-                type: CONST.REPORT.TYPE.CHAT,
-                ownerAccountID: 12345,
-                policyID,
-                hasOutstandingChildRequest: true,
-                stateNum: CONST.REPORT.STATE_NUM.OPEN,
-                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
-            };
-
-            const expenseReport: Report = {
-                reportID: expenseReportID,
-                chatReportID: expenseChatID,
-                type: CONST.REPORT.TYPE.EXPENSE,
-                ownerAccountID: 12345,
-                managerID: 12345,
-                policyID,
-                stateNum: CONST.REPORT.STATE_NUM.OPEN,
-                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
-            };
-
-            const baseTransaction = createRandomTransaction(700);
-            const transactionID = generateTransactionID();
-            const transaction: Transaction = {
-                ...baseTransaction,
-                transactionID,
-                reportID: expenseReport.reportID,
-                amount: 12345,
-                currency: CONST.CURRENCY.USD,
-                status: CONST.TRANSACTION.STATUS.POSTED,
-                comment: {
-                    ...(baseTransaction.comment ?? {}),
-                    hold: holdReportActionID,
-                },
-            };
-
-            const transactionKey = `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}` as const;
-            const transactionViolationsKey = `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}` as const;
-            const transactionViolations: OnyxCollection<TransactionViolation[]> = {
-                [transactionViolationsKey]: [
-                    {
-                        name: CONST.VIOLATIONS.HOLD,
-                        type: CONST.VIOLATION_TYPES.VIOLATION,
-                        showInReview: true,
-                    },
-                ],
-            };
-
-            await act(async () => {
-                await Onyx.multiSet({
-                    [ONYXKEYS.SESSION]: {
-                        accountID: 12345,
-                    },
-                    [`${ONYXKEYS.COLLECTION.REPORT}${policyExpenseChat.reportID}`]: policyExpenseChat,
-                    [`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`]: expenseReport,
-                    [transactionKey]: transaction,
-                    [transactionViolationsKey]: transactionViolations[transactionViolationsKey],
-                } as unknown as OnyxMultiSetInput);
-            });
-
-            await waitForBatchedUpdatesWithAct();
-
-            const requiresAttention = getReasonAndReportActionThatRequiresAttention(policyExpenseChat);
-            expect(requiresAttention?.reason).toBe(CONST.REQUIRES_ATTENTION_REASONS.HAS_CHILD_REPORT_AWAITING_ACTION);
-
-            const {reason} =
-                SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad(
-                    policyExpenseChat,
-                    policyExpenseChat,
-                    {} as OnyxEntry<ReportActions>,
-                    true,
-                    {},
-                    {[transactionKey]: transaction},
-                    transactionViolations,
-                    false,
-                ) ?? {};
-
-            expect(reason).toBe(CONST.RBR_REASONS.HAS_TRANSACTION_THREAD_VIOLATIONS);
-
-            const {result: isReportArchived} = renderHook(() => useReportIsArchived(policyExpenseChat.reportID));
-            const hasRedBrickRoad = SidebarUtils.shouldShowRedBrickRoad(
-                policyExpenseChat,
-                policyExpenseChat,
-                {} as OnyxEntry<ReportActions>,
-                true,
-                {},
-                {[transactionKey]: transaction},
-                transactionViolations as OnyxCollection<TransactionViolations>,
-                isReportArchived.current,
-            );
-
-            expect(hasRedBrickRoad).toBe(true);
-        });
-
-        it('returns true when report has errors', () => {
-            const MOCK_REPORT: Report = {
-                reportID: '1',
-                errorFields: {
-                    someField: {
-                        error: 'Some error occurred',
-                    },
-                },
-            };
-            const MOCK_REPORT_ACTIONS: OnyxEntry<ReportActions> = {};
-            const MOCK_TRANSACTIONS = {};
-            const MOCK_TRANSACTION_VIOLATIONS: OnyxCollection<TransactionViolation[]> = {};
-            const reportErrors = getAllReportErrors(MOCK_REPORT, MOCK_REPORT_ACTIONS);
-            const {result: isReportArchived} = renderHook(() => useReportIsArchived(MOCK_REPORT?.reportID));
-            const result = SidebarUtils.shouldShowRedBrickRoad(
-                MOCK_REPORT,
-                chatReportR14932,
-                MOCK_REPORT_ACTIONS,
-                false,
-                reportErrors,
-                MOCK_TRANSACTIONS,
-                MOCK_TRANSACTION_VIOLATIONS,
-                isReportArchived.current,
-            );
-
-            expect(result).toBe(true);
-        });
-
-        it('returns true when report has violations', () => {
-            const MOCK_REPORT: Report = {
-                reportID: '1',
-            };
-            const MOCK_REPORT_ACTIONS: OnyxEntry<ReportActions> = {};
-            const MOCK_TRANSACTIONS = {};
-            const MOCK_TRANSACTION_VIOLATIONS: OnyxCollection<TransactionViolation[]> = {};
-
-            const {result: isReportArchived} = renderHook(() => useReportIsArchived(MOCK_REPORT?.reportID));
-            const result = SidebarUtils.shouldShowRedBrickRoad(
-                MOCK_REPORT,
-                chatReportR14932,
-                MOCK_REPORT_ACTIONS,
-                true,
-                {},
-                MOCK_TRANSACTIONS,
-                MOCK_TRANSACTION_VIOLATIONS,
-                isReportArchived.current,
-            );
-
-            expect(result).toBe(true);
-        });
-
-        it('returns true when report has report action errors', () => {
-            const MOCK_REPORT: Report = {
-                reportID: '1',
-            };
-            const MOCK_REPORT_ACTIONS: OnyxEntry<ReportActions> = {
-                // eslint-disable-next-line @typescript-eslint/naming-convention
-                '1': {
-                    reportActionID: '1',
-                    actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
-                    actorAccountID: 12345,
-                    created: '2024-08-08 18:20:44.171',
-                    message: [
-                        {
-                            type: '',
-                            text: '',
-                        },
-                    ],
-                    errors: {
-                        someError: 'Some error occurred',
-                    },
-                },
-            };
-            const MOCK_TRANSACTIONS = {};
-            const MOCK_TRANSACTION_VIOLATIONS: OnyxCollection<TransactionViolation[]> = {};
-            const reportErrors = getAllReportErrors(MOCK_REPORT, MOCK_REPORT_ACTIONS);
-            const {result: isReportArchived} = renderHook(() => useReportIsArchived(MOCK_REPORT?.reportID));
-            const result = SidebarUtils.shouldShowRedBrickRoad(
-                MOCK_REPORT,
-                chatReportR14932,
-                MOCK_REPORT_ACTIONS,
-                false,
-                reportErrors,
-                MOCK_TRANSACTIONS,
-                MOCK_TRANSACTION_VIOLATIONS,
-                isReportArchived.current,
-            );
-
-            expect(result).toBe(true);
-        });
-
-        it('returns true when report has export errors', () => {
-            const MOCK_REPORT: Report = {
-                reportID: '1',
-                errorFields: {
-                    export: {
-                        error: 'Some error occurred',
-                    },
-                },
-            };
-            const MOCK_REPORT_ACTIONS: OnyxEntry<ReportActions> = {};
-            const MOCK_TRANSACTIONS = {};
-            const MOCK_TRANSACTION_VIOLATIONS: OnyxCollection<TransactionViolation[]> = {};
-            const reportErrors = getAllReportErrors(MOCK_REPORT, MOCK_REPORT_ACTIONS);
-            const {result: isReportArchived} = renderHook(() => useReportIsArchived(MOCK_REPORT?.reportID));
-            const result = SidebarUtils.shouldShowRedBrickRoad(
-                MOCK_REPORT,
-                chatReportR14932,
-                MOCK_REPORT_ACTIONS,
-                false,
-                reportErrors,
-                MOCK_TRANSACTIONS,
-                MOCK_TRANSACTION_VIOLATIONS,
-                isReportArchived.current,
-            );
-
-            expect(result).toBe(true);
-        });
-
-        it('returns false when report has no errors', () => {
-            const MOCK_REPORT: Report = {
-                reportID: '1',
-            };
-            const MOCK_REPORT_ACTIONS: OnyxEntry<ReportActions> = {};
-            const MOCK_TRANSACTIONS = {};
-            const MOCK_TRANSACTION_VIOLATIONS: OnyxCollection<TransactionViolation[]> = {};
-
-            const {result: isReportArchived} = renderHook(() => useReportIsArchived(MOCK_REPORT?.reportID));
-            const result = SidebarUtils.shouldShowRedBrickRoad(
-                MOCK_REPORT,
-                chatReportR14932,
-                MOCK_REPORT_ACTIONS,
-                false,
-                {},
-                MOCK_TRANSACTIONS,
-                MOCK_TRANSACTION_VIOLATIONS,
-                isReportArchived.current,
-            );
-
-            expect(result).toBe(false);
-        });
-
-        it('shows RBR when copilot with full access pays a report but deposit and withdrawal accounts are the same', () => {
-            const copilotAccountID = 99999;
-            const ownerAccountID = 12345;
-
-            const MOCK_EXPENSE_REPORT: Report = {
-                reportID: '1',
-                type: CONST.REPORT.TYPE.EXPENSE,
-                ownerAccountID,
-                managerID: copilotAccountID,
-                statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED,
-                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
-            };
-
-            const MOCK_PAY_ACTION: ReportAction = {
-                reportActionID: '1',
-                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
-                actorAccountID: copilotAccountID,
-                created: '2024-08-08 18:20:44.171',
-                delegateAccountID: copilotAccountID,
-                message: [
-                    {
-                        type: 'COMMENT',
-                        text: '',
-                    },
-                ],
-                originalMessage: {
-                    type: CONST.IOU.REPORT_ACTION_TYPE.PAY,
-                    IOUReportID: MOCK_EXPENSE_REPORT.reportID,
-                    amount: 10000,
-                    currency: CONST.CURRENCY.USD,
-                    paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
-                } as OriginalMessageIOU,
-                errors: {
-                    [`${Date.now()}`]: CONST.ERROR.BANK_ACCOUNT_SAME_DEPOSIT_AND_WITHDRAWAL_ERROR,
-                },
-            };
-
-            const MOCK_REPORT_ACTIONS: OnyxEntry<ReportActions> = {
-                // eslint-disable-next-line @typescript-eslint/naming-convention
-                '1': MOCK_PAY_ACTION,
-            };
-            const MOCK_TRANSACTIONS = {};
-            const MOCK_TRANSACTION_VIOLATIONS: OnyxCollection<TransactionViolation[]> = {};
-            const reportErrors = getAllReportErrors(MOCK_EXPENSE_REPORT, MOCK_REPORT_ACTIONS);
-            const {result: isReportArchived} = renderHook(() => useReportIsArchived(MOCK_EXPENSE_REPORT?.reportID));
-
-            const result = SidebarUtils.shouldShowRedBrickRoad(
-                MOCK_EXPENSE_REPORT,
-                chatReportR14932,
-                MOCK_REPORT_ACTIONS,
-                false,
-                reportErrors,
-                MOCK_TRANSACTIONS,
-                MOCK_TRANSACTION_VIOLATIONS,
-                isReportArchived.current,
-            );
-            expect(result).toBe(true);
-
-            const {reason, reportAction} =
-                SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad(
-                    MOCK_EXPENSE_REPORT,
-                    chatReportR14932,
-                    MOCK_REPORT_ACTIONS,
-                    false,
-                    reportErrors,
-                    MOCK_TRANSACTIONS,
-                    MOCK_TRANSACTION_VIOLATIONS,
-                    isReportArchived.current,
-                ) ?? {};
-            expect(reason).toBe(CONST.RBR_REASONS.HAS_ERRORS);
-            expect(reportAction).toMatchObject<ReportAction>(MOCK_PAY_ACTION);
-        });
-
-        it('returns false when report is archived', () => {
-            const MOCK_REPORT: Report = {
-                reportID: '5',
-                errorFields: {
-                    export: {
-                        error: 'Some error occurred',
-                    },
-                },
-            };
-            // This report with reportID 5 is already archived from previous tests
-            // where we set reportNameValuePairs with private_isArchived
-            const MOCK_REPORT_ACTIONS: OnyxEntry<ReportActions> = {};
-            const MOCK_TRANSACTIONS = {};
-            const MOCK_TRANSACTION_VIOLATIONS: OnyxCollection<TransactionViolation[]> = {};
-
-            // Simulate how components determined if a report is archived by using this hook
-            const {result: isReportArchived} = renderHook(() => useReportIsArchived(MOCK_REPORT?.reportID));
-            const result = SidebarUtils.shouldShowRedBrickRoad(
-                MOCK_REPORT,
-                chatReportR14932,
-                MOCK_REPORT_ACTIONS,
-                false,
-                {},
-                MOCK_TRANSACTIONS,
-                MOCK_TRANSACTION_VIOLATIONS,
-                isReportArchived.current,
-            );
-
-            expect(result).toBe(false);
         });
     });
 
