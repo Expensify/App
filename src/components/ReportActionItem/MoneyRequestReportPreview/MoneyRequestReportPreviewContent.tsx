@@ -767,6 +767,7 @@ function MoneyRequestReportPreviewContent({
                     expenseReportCurrentNextStepDeprecated: iouReportNextStep,
                     betas,
                     userBillingGraceEndPeriods,
+                    ownerBillingGraceEndPeriod,
                     full: isFullApproval,
                 });
             }}
