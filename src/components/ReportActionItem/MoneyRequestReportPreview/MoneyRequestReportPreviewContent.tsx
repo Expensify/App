@@ -152,11 +152,13 @@ function MoneyRequestReportPreviewContent({
     const [isHoldMenuVisible, setIsHoldMenuVisible] = useState(false);
     const [requestType, setRequestType] = useState<ActionHandledType>();
     const [paymentType, setPaymentType] = useState<PaymentMethodType>();
+    const [shouldShowPayButton, setShouldShowPayButton] = useState(false);
     const hasOnlyHeldExpenses = hasOnlyHeldExpensesReportUtils(iouReport?.reportID);
 
-    const handleHoldMenuOpen = (holdRequestType: string, holdPaymentType?: PaymentMethodType) => {
+    const handleHoldMenuOpen = (holdRequestType: string, holdPaymentType?: PaymentMethodType, canPay?: boolean) => {
         setRequestType(holdRequestType as ActionHandledType);
         setPaymentType(holdPaymentType);
+        setShouldShowPayButton(!!canPay);
         setIsHoldMenuVisible(true);
     };
 
@@ -717,8 +719,7 @@ function MoneyRequestReportPreviewContent({
                     !!iouReport &&
                     !!requestType &&
                     (() => {
-                        const shouldExcludeNonReimbursables = requestType === CONST.IOU.REPORT_ACTION_TYPE.PAY;
-                        const {nonHeldAmount, fullAmount, hasValidNonHeldAmount} = getNonHeldAndFullAmount(iouReport, shouldExcludeNonReimbursables);
+                        const {nonHeldAmount, fullAmount, hasValidNonHeldAmount} = getNonHeldAndFullAmount(iouReport, shouldShowPayButton);
                         return (
                             <ProcessMoneyReportHoldMenu
                                 nonHeldAmount={!hasOnlyHeldExpenses && hasValidNonHeldAmount ? nonHeldAmount : undefined}

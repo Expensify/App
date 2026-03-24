@@ -32,7 +32,7 @@ type PayActionButtonProps = {
     startAnimation: () => void;
     onPaymentOptionsShow?: () => void;
     onPaymentOptionsHide?: () => void;
-    onHoldMenuOpen: (requestType: string, paymentType?: PaymentMethodType) => void;
+    onHoldMenuOpen: (requestType: string, paymentType?: PaymentMethodType, canPay?: boolean) => void;
     buttonMaxWidth: {maxWidth?: number};
     reportPreviewAction: ValueOf<typeof CONST.REPORT.REPORT_PREVIEW_ACTIONS>;
 };
@@ -71,6 +71,7 @@ function PayActionButton({
     const [userBillingGraceEndPeriods] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [iouReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${iouReportID}`);
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
+    const [ownerBillingGraceEndPeriod] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
@@ -115,7 +116,7 @@ function PayActionButton({
         if (isDelegateAccessRestricted) {
             showDelegateNoAccessModal();
         } else if (hasHeldExpensesReportUtils(iouReport?.reportID)) {
-            onHoldMenuOpen(CONST.IOU.REPORT_ACTION_TYPE.PAY, type);
+            onHoldMenuOpen(CONST.IOU.REPORT_ACTION_TYPE.PAY, type, shouldShowPayButton);
         } else if (chatReport && iouReport) {
             if (isInvoiceReportUtils(iouReport)) {
                 startAnimation();
@@ -149,6 +150,7 @@ function PayActionButton({
                     isSelfTourViewed,
                     userBillingGraceEndPeriods,
                     amountOwed,
+                    ownerBillingGraceEndPeriod,
                     onPaid: startAnimation,
                 });
             }

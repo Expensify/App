@@ -15,6 +15,7 @@ import {getConnectedIntegration, hasDynamicExternalWorkflow} from '@libs/PolicyU
 import {hasPendingDEWSubmit} from '@libs/ReportActionsUtils';
 import getReportPreviewAction from '@libs/ReportPreviewActionUtils';
 import {getAddExpenseDropdownOptions, getReportTransactions} from '@libs/ReportUtils';
+import {canIOUBePaid as canIOUBePaidIOUActions} from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {validTransactionDraftIDsSelector} from '@src/selectors/TransactionDraft';
@@ -36,7 +37,7 @@ type ReportPreviewActionButtonProps = {
     onPaymentOptionsShow?: () => void;
     onPaymentOptionsHide?: () => void;
     openReportFromPreview: () => void;
-    onHoldMenuOpen: (requestType: string, paymentType?: PaymentMethodType) => void;
+    onHoldMenuOpen: (requestType: string, paymentType?: PaymentMethodType, canPay?: boolean) => void;
     transactionPreviewCarouselWidth: number;
 };
 
@@ -86,6 +87,11 @@ function ReportPreviewActionButton({
     const isDEWSubmitPending = hasPendingDEWSubmit(iouReportMetadata, isDEWPolicy);
     const connectedIntegration = getConnectedIntegration(policy);
 
+    const canIOUBePaid = canIOUBePaidIOUActions(iouReport, chatReport, policy, bankAccountList, transactions, false, undefined, invoiceReceiverPolicy);
+    const onlyShowPayElsewhere = !canIOUBePaid && canIOUBePaidIOUActions(iouReport, chatReport, policy, bankAccountList, transactions, true, undefined, invoiceReceiverPolicy);
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Using || intentionally because all operands are booleans
+    const shouldShowPayButton = isPaidAnimationRunning || canIOUBePaid || onlyShowPayElsewhere;
+
     const buttonMaxWidth =
         !shouldUseNarrowLayout && transactionPreviewCarouselWidth >= CONST.REPORT.TRANSACTION_PREVIEW.CAROUSEL.MIN_WIDE_WIDTH ? {maxWidth: transactionPreviewCarouselWidth} : {};
 
@@ -125,6 +131,7 @@ function ReportPreviewActionButton({
                     iouReportID={iouReportID}
                     startApprovedAnimation={startApprovedAnimation}
                     onHoldMenuOpen={onHoldMenuOpen}
+                    shouldShowPayButton={shouldShowPayButton}
                 />
             );
         }
