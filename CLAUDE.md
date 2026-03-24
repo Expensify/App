@@ -224,6 +224,18 @@ The skill provides guidance on:
 
 ## Development Setup Requirements
 
+### Sentry MCP
+
+The Sentry MCP server is configured in `.mcp.json` and gives Claude Code direct access to Sentry — search issues, inspect events, traces, and run AI analysis.
+
+**Setup** (one-time per engineer): On first use, Claude Code will open a browser OAuth login to Sentry. Sign in and authorize — no manual token setup required.
+
+**Example uses:**
+
+- "Search Sentry for crashes in the last 24h related to expense creation"
+- "Get details on Sentry issue EXPENSIFY-APP-123"
+- "Analyze this Sentry issue with Seer"
+
 ## Command Reference
 
 ### Common Tasks
