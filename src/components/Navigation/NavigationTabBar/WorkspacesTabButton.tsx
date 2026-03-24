@@ -1,4 +1,3 @@
-import {findFocusedRoute, useNavigationState} from '@react-navigation/native';
 import React from 'react';
 import type {OnyxCollection} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -9,8 +8,9 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWorkspaceNavigationRouteState from '@hooks/useWorkspaceNavigationRouteState';
 import useWorkspacesTabIndicatorStatus from '@hooks/useWorkspacesTabIndicatorStatus';
-import navigateToWorkspacesPage, {getWorkspaceNavigationRouteState} from '@libs/Navigation/helpers/navigateToWorkspacesPage';
+import navigateToWorkspacesPage from '@libs/Navigation/helpers/navigateToWorkspacesPage';
 import type {DomainSplitNavigatorParamList, WorkspaceSplitNavigatorParamList} from '@navigation/types';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
@@ -33,8 +33,7 @@ function WorkspacesTabButton({selectedTab, isWideLayout}: WorkspacesTabButtonPro
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {login: currentUserLogin} = useCurrentUserPersonalDetails();
 
-    const navigationState = useNavigationState(findFocusedRoute);
-    const {lastWorkspacesTabNavigatorRoute, workspacesTabState} = getWorkspaceNavigationRouteState();
+    const {lastWorkspacesTabNavigatorRoute, workspacesTabState, topmostFullScreenRoute} = useWorkspaceNavigationRouteState();
     const params = workspacesTabState?.routes?.at(0)?.params as
         | WorkspaceSplitNavigatorParamList[typeof SCREENS.WORKSPACE.INITIAL]
         | DomainSplitNavigatorParamList[typeof SCREENS.DOMAIN.INITIAL];
@@ -48,7 +47,7 @@ function WorkspacesTabButton({selectedTab, isWideLayout}: WorkspacesTabButtonPro
         }
         return policies?.[`${ONYXKEYS.COLLECTION.POLICY}${paramsPolicyID}`];
     };
-    const [lastViewedPolicy] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: lastViewedPolicySelector}, [navigationState]);
+    const [lastViewedPolicy] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: lastViewedPolicySelector}, [lastWorkspacesTabNavigatorRoute, paramsPolicyID]);
 
     const lastViewedDomainSelector = (domains: OnyxCollection<Domain>) => {
         if (!lastWorkspacesTabNavigatorRoute || lastWorkspacesTabNavigatorRoute.name !== NAVIGATORS.DOMAIN_SPLIT_NAVIGATOR || !paramsDomainAccountID) {
@@ -56,10 +55,10 @@ function WorkspacesTabButton({selectedTab, isWideLayout}: WorkspacesTabButtonPro
         }
         return domains?.[`${ONYXKEYS.COLLECTION.DOMAIN}${paramsDomainAccountID}`];
     };
-    const [lastViewedDomain] = useOnyx(ONYXKEYS.COLLECTION.DOMAIN, {selector: lastViewedDomainSelector}, [navigationState]);
+    const [lastViewedDomain] = useOnyx(ONYXKEYS.COLLECTION.DOMAIN, {selector: lastViewedDomainSelector}, [lastWorkspacesTabNavigatorRoute, paramsDomainAccountID]);
 
     const navigateToWorkspaces = () => {
-        navigateToWorkspacesPage({shouldUseNarrowLayout, currentUserLogin, policy: lastViewedPolicy, domain: lastViewedDomain});
+        navigateToWorkspacesPage({shouldUseNarrowLayout, currentUserLogin, policy: lastViewedPolicy, domain: lastViewedDomain, lastWorkspacesTabNavigatorRoute, topmostFullScreenRoute});
     };
 
     const workspacesAccessibilityState = {selected: selectedTab === NAVIGATION_TABS.WORKSPACES};
