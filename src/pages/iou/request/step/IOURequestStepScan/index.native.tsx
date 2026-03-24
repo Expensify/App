@@ -268,9 +268,9 @@ function IOURequestStepScan({
             } else {
                 navigateBack();
             }
-            replaceReceipt({transactionID: initialTransactionID, file: file as File, source, transactionPolicy: policy, transactionPolicyCategories: policyCategories});
+            replaceReceipt({transaction: initialTransaction, file: file as File, source, transactionPolicy: policy, transactionPolicyCategories: policyCategories});
         },
-        [initialTransactionID, policy, policyCategories, backTo, navigateBack],
+        [initialTransaction, policy, policyCategories, backTo, navigateBack],
     );
 
     const getSource = useCallback((file: FileObject) => file.uri ?? '', []);

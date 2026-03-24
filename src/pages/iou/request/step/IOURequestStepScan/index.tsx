@@ -52,10 +52,10 @@ function IOURequestStepScan({
 
     const updateScanAndNavigate = useCallback(
         (file: FileObject, source: string) => {
-            replaceReceipt({transactionID: initialTransactionID, file: file as File, source, transactionPolicy: policy, transactionPolicyCategories: policyCategories});
+            replaceReceipt({transaction: initialTransaction, file: file as File, source, transactionPolicy: policy, transactionPolicyCategories: policyCategories});
             navigateBack();
         },
-        [initialTransactionID, navigateBack, policy, policyCategories],
+        [initialTransaction, navigateBack, policy, policyCategories],
     );
 
     const getSource = useCallback((file: FileObject) => file.uri ?? URL.createObjectURL(file as Blob), []);
