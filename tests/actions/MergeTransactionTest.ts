@@ -23,6 +23,7 @@ import createRandomMergeTransaction from '../utils/collections/mergeTransaction'
 import createRandomReportAction from '../utils/collections/reportActions';
 import {createExpenseReport, createRandomReport} from '../utils/collections/reports';
 import createRandomTransaction, {createRandomDistanceRequestTransaction} from '../utils/collections/transaction';
+import getOnyxValue from '../utils/getOnyxValue';
 import * as TestHelper from '../utils/TestHelper';
 import type {MockFetch} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
@@ -169,6 +170,7 @@ describe('mergeTransactionRequest', () => {
             currentUserAccountIDParam: 123,
             currentUserEmailParam: 'existing@example.com',
             isASAPSubmitBetaEnabled: false,
+            selfDMReport: undefined,
         });
 
         await mockFetch?.resume?.();
@@ -312,6 +314,7 @@ describe('mergeTransactionRequest', () => {
             currentUserAccountIDParam: 123,
             currentUserEmailParam: 'user@example.com',
             isASAPSubmitBetaEnabled: false,
+            selfDMReport: undefined,
         });
 
         await mockFetch?.resume?.();
@@ -472,6 +475,7 @@ describe('mergeTransactionRequest', () => {
             currentUserAccountIDParam: 123,
             currentUserEmailParam: 'existing@example.com',
             isASAPSubmitBetaEnabled: false,
+            selfDMReport: undefined,
         });
 
         await waitForBatchedUpdates();
@@ -573,6 +577,7 @@ describe('mergeTransactionRequest', () => {
             currentUserAccountIDParam: 123,
             currentUserEmailParam: 'existing@example.com',
             isASAPSubmitBetaEnabled: false,
+            selfDMReport: undefined,
         });
 
         await mockFetch?.resume?.();
@@ -682,6 +687,7 @@ describe('mergeTransactionRequest', () => {
                 currentUserAccountIDParam: 123,
                 currentUserEmailParam: 'existing@example.com',
                 isASAPSubmitBetaEnabled: false,
+                selfDMReport: undefined,
             });
 
             await mockFetch?.resume?.();
@@ -783,7 +789,19 @@ describe('mergeTransactionRequest', () => {
             const participantAccountIDs = Object.keys(thread.participants ?? {}).map(Number);
             const userLogins = getLoginsByAccountIDs(participantAccountIDs);
             jest.advanceTimersByTime(10);
-            openReport(thread.reportID, undefined, '', userLogins, thread, sourceIOUAction.reportActionID);
+            const allPersonalDetails = await getOnyxValue(ONYXKEYS.PERSONAL_DETAILS_LIST);
+            const participants = userLogins.map((login, index) => ({
+                login,
+                accountID: participantAccountIDs.at(index),
+            }));
+            openReport({
+                reportID: thread.reportID,
+                introSelected: undefined,
+                participants,
+                personalDetails: allPersonalDetails,
+                newReportObject: thread,
+                parentReportActionID: sourceIOUAction.reportActionID,
+            });
             await waitForBatchedUpdates();
 
             let transactionThreadReportActions: OnyxEntry<ReportActions>;
@@ -849,6 +867,7 @@ describe('mergeTransactionRequest', () => {
                 currentUserAccountIDParam: 123,
                 currentUserEmailParam: 'existing@example.com',
                 isASAPSubmitBetaEnabled: false,
+                selfDMReport: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -950,7 +969,19 @@ describe('mergeTransactionRequest', () => {
             const participantAccountIDs = Object.keys(thread.participants ?? {}).map(Number);
             const userLogins = getLoginsByAccountIDs(participantAccountIDs);
             jest.advanceTimersByTime(10);
-            openReport(thread.reportID, undefined, '', userLogins, thread, sourceIOUAction.reportActionID);
+            const allPersonalDetails = await getOnyxValue(ONYXKEYS.PERSONAL_DETAILS_LIST);
+            const participants = userLogins.map((login, index) => ({
+                login,
+                accountID: participantAccountIDs.at(index),
+            }));
+            openReport({
+                reportID: thread.reportID,
+                introSelected: undefined,
+                participants,
+                personalDetails: allPersonalDetails,
+                newReportObject: thread,
+                parentReportActionID: sourceIOUAction.reportActionID,
+            });
             await waitForBatchedUpdates();
 
             await new Promise<void>((resolve) => {
@@ -982,6 +1013,7 @@ describe('mergeTransactionRequest', () => {
                 currentUserAccountIDParam: 123,
                 currentUserEmailParam: 'existing@example.com',
                 isASAPSubmitBetaEnabled: false,
+                selfDMReport,
             });
 
             await waitForBatchedUpdates();

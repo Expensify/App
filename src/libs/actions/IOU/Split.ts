@@ -1,20 +1,20 @@
-import {eachDayOfInterval, format} from 'date-fns';
+import {eachDayOfInterval, format, parse} from 'date-fns';
 import {InteractionManager} from 'react-native';
-import type {OnyxCollection, OnyxEntry, OnyxKey, OnyxUpdate} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
-import type {SearchContextProps} from '@components/Search/types';
+import type {SearchActionsContextValue, SearchStateContextValue} from '@components/Search/types';
 import * as API from '@libs/API';
 import type {CompleteSplitBillParams, RevertSplitTransactionParams, SplitBillParams, SplitTransactionParams, SplitTransactionSplitsParam, StartSplitBillParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import {getCurrencySymbol} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
-import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import {calculateAmount as calculateIOUAmount, updateIOUOwnerAndTotal} from '@libs/IOUUtils';
 import {toLocaleDigit} from '@libs/LocaleDigitUtils';
 import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import * as Localize from '@libs/Localize';
+import Log from '@libs/Log';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import * as NumberUtils from '@libs/NumberUtils';
@@ -38,26 +38,29 @@ import {
     hasViolations as hasViolationsReportUtils,
     isArchivedReport,
     isPolicyExpenseChat as isPolicyExpenseChatReportUtil,
+    navigateBackOnDeleteTransaction,
     shouldCreateNewMoneyRequestReport as shouldCreateNewMoneyRequestReportReportUtils,
     updateReportPreview,
 } from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
+import {getSpan} from '@libs/telemetry/activeSpans';
+import {setPendingSubmitFollowUpAction} from '@libs/telemetry/submitFollowUpAction';
 import {
     buildOptimisticTransaction,
     getAmount,
     getChildTransactions,
     getCurrency,
-    getOriginalTransactionWithSplitInfo,
     getUpdatedTransaction,
     isDistanceRequest as isDistanceRequestTransactionUtils,
     isOnHold,
     isPerDiemRequest as isPerDiemRequestTransactionUtils,
 } from '@libs/TransactionUtils';
 import {buildOptimisticPolicyRecentlyUsedTags} from '@userActions/Policy/Tag';
-import {notifyNewAction} from '@userActions/Report';
+import {notifyNewAction, setDeleteTransactionNavigateBackUrl} from '@userActions/Report';
 import {removeDraftSplitTransaction, removeDraftTransaction} from '@userActions/TransactionEdit';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
+import DistanceRequestUtils from '@src/libs/DistanceRequestUtils';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -67,7 +70,6 @@ import type {Attendee, Participant, Split, SplitExpense} from '@src/types/onyx/I
 import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 import type {Unit} from '@src/types/onyx/Policy';
 import type RecentlyUsedTags from '@src/types/onyx/RecentlyUsedTags';
-import type ReportAction from '@src/types/onyx/ReportAction';
 import type {OnyxData} from '@src/types/onyx/Request';
 import type {SplitShares, TransactionChanges, TransactionCustomUnit} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -83,7 +85,6 @@ import {
     getMoneyRequestInformation,
     getMoneyRequestParticipantsFromReport,
     getOrCreateOptimisticSplitChatReport,
-    getPolicyTags,
     getReceiptError,
     getReportPreviewAction,
     getUpdateMoneyRequestParams,
@@ -91,7 +92,7 @@ import {
     mergePolicyRecentlyUsedCategories,
     mergePolicyRecentlyUsedCurrencies,
 } from './index';
-import type {BuildOnyxDataForMoneyRequestKeys, MoneyRequestInformationParams, OneOnOneIOUReport, StartSplitBilActionParams} from './index';
+import type {BuildOnyxDataForMoneyRequestKeys, MoneyRequestInformationParams, OneOnOneIOUReport, StartSplitBilActionParams, UpdateMoneyRequestDataKeys} from './index';
 
 type IOURequestType = ValueOf<typeof CONST.IOU.REQUEST_TYPE>;
 
@@ -105,7 +106,7 @@ type UpdateSplitTransactionsParams = {
         splitExpenses: SplitExpense[];
         splitExpensesTotal?: number;
     };
-    searchContext?: Partial<SearchContextProps>;
+    searchContext?: Partial<SearchStateContextValue & SearchActionsContextValue>;
     policyCategories: OnyxTypes.PolicyCategories | undefined;
     policy: OnyxTypes.Policy | undefined;
     policyRecentlyUsedCategories: OnyxTypes.RecentlyUsedCategories | undefined;
@@ -118,6 +119,11 @@ type UpdateSplitTransactionsParams = {
     policyRecentlyUsedCurrencies: string[];
     iouReportNextStep: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>;
     betas: OnyxEntry<OnyxTypes.Beta[]>;
+    isFromSplitExpensesFlow?: boolean;
+    policyTags: OnyxTypes.PolicyTagLists;
+    personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
+    transactionReport: OnyxEntry<OnyxTypes.Report>;
+    expenseReport: OnyxEntry<OnyxTypes.Report>;
 };
 
 type SplitBillActionsParams = {
@@ -138,6 +144,7 @@ type SplitBillActionsParams = {
     splitShares?: SplitShares;
     taxCode?: string;
     taxAmount?: number;
+    taxValue?: string;
     isRetry?: boolean;
     policyRecentlyUsedCategories?: OnyxEntry<OnyxTypes.RecentlyUsedCategories>;
     policyRecentlyUsedTags: OnyxEntry<RecentlyUsedTags>;
@@ -146,6 +153,7 @@ type SplitBillActionsParams = {
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
     policyRecentlyUsedCurrencies: string[];
     betas: OnyxEntry<OnyxTypes.Beta[]>;
+    personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
 };
 
 /**
@@ -170,6 +178,7 @@ function splitBill({
     splitShares = {},
     taxCode = '',
     taxAmount = 0,
+    taxValue,
     policyRecentlyUsedCategories,
     isASAPSubmitBetaEnabled,
     transactionViolations,
@@ -177,6 +186,7 @@ function splitBill({
     policyRecentlyUsedCurrencies,
     policyRecentlyUsedTags,
     betas,
+    personalDetails,
 }: SplitBillActionsParams) {
     const parsedComment = getParsedComment(comment);
     const {splitData, splits, onyxData} = createSplitsAndOnyxData({
@@ -198,6 +208,7 @@ function splitBill({
             iouRequestType,
             taxCode,
             taxAmount,
+            taxValue,
         },
         policyRecentlyUsedCategories,
         policyRecentlyUsedTags,
@@ -206,6 +217,7 @@ function splitBill({
         quickAction,
         policyRecentlyUsedCurrencies,
         betas,
+        personalDetails,
     });
 
     const parameters: SplitBillParams = {
@@ -260,6 +272,7 @@ function splitBillAndOpenReport({
     splitShares = {},
     taxCode = '',
     taxAmount = 0,
+    taxValue,
     existingSplitChatReportID,
     policyRecentlyUsedCategories,
     policyRecentlyUsedTags,
@@ -268,6 +281,7 @@ function splitBillAndOpenReport({
     quickAction,
     policyRecentlyUsedCurrencies,
     betas,
+    personalDetails,
 }: SplitBillActionsParams) {
     const parsedComment = getParsedComment(comment);
     const {splitData, splits, onyxData} = createSplitsAndOnyxData({
@@ -290,6 +304,7 @@ function splitBillAndOpenReport({
             iouRequestType,
             taxCode,
             taxAmount,
+            taxValue,
         },
         policyRecentlyUsedCategories,
         policyRecentlyUsedTags,
@@ -297,6 +312,7 @@ function splitBillAndOpenReport({
         quickAction,
         policyRecentlyUsedCurrencies,
         betas,
+        personalDetails,
     });
 
     const parameters: SplitBillParams = {
@@ -330,16 +346,6 @@ function splitBillAndOpenReport({
     notifyNewAction(splitData.chatReportID, undefined, true);
 }
 
-/**
- * @deprecated This function uses Onyx.connect and should be replaced with useOnyx for reactive data access.
- * TODO: remove `getPolicyTagsData` from this file [https://github.com/Expensify/App/issues/80401]
- * All usages of this function should be replaced with useOnyx hook in React components.
- */
-function getPolicyTagsData(policyID: string | undefined) {
-    const allPolicyTags = getPolicyTags();
-    return allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] ?? {};
-}
-
 /** Used exclusively for starting a split expense request that contains a receipt, the split request will be completed once the receipt is scanned
  *  or user enters details manually.
  *
@@ -359,11 +365,13 @@ function startSplitBill({
     currency,
     taxCode = '',
     taxAmount = 0,
+    taxValue,
     shouldPlaySound = true,
     policyRecentlyUsedCategories,
     policyRecentlyUsedTags,
     quickAction,
     policyRecentlyUsedCurrencies,
+    participantsPolicyTags,
 }: StartSplitBilActionParams) {
     const currentUserEmailForIOUSplit = addSMSDomainIfPhoneNumber(currentUserLogin);
     const participantAccountIDs = participants.map((participant) => Number(participant.accountID));
@@ -384,6 +392,7 @@ function startSplitBill({
             tag,
             taxCode,
             taxAmount,
+            taxValue,
             billable,
             reimbursable,
         },
@@ -414,7 +423,19 @@ function startSplitBill({
         };
     }
 
-    const optimisticData: OnyxUpdate[] = [
+    const optimisticData: Array<
+        OnyxUpdate<
+            | typeof ONYXKEYS.COLLECTION.REPORT
+            | typeof ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE
+            | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
+            | typeof ONYXKEYS.COLLECTION.TRANSACTION
+            | typeof ONYXKEYS.COLLECTION.REPORT_METADATA
+            | typeof ONYXKEYS.PERSONAL_DETAILS_LIST
+            | typeof ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES
+            | typeof ONYXKEYS.RECENTLY_USED_CURRENCIES
+            | typeof ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS
+        >
+    > = [
         {
             // Use set for new reports because it doesn't exist yet, is faster,
             // and we need the data to be available when we navigate to the chat page
@@ -532,9 +553,11 @@ function startSplitBill({
         currency,
         taxCode,
         taxAmount,
+        taxValue,
         quickAction,
         policyRecentlyUsedCurrencies,
         policyRecentlyUsedTags,
+        participantsPolicyTags,
     };
 
     if (existingSplitChatReport) {
@@ -628,9 +651,7 @@ function startSplitBill({
         }
         const optimisticPolicyRecentlyUsedCategories = mergePolicyRecentlyUsedCategories(category, policyRecentlyUsedCategories);
         const optimisticPolicyRecentlyUsedTags = buildOptimisticPolicyRecentlyUsedTags({
-            // TODO: remove `allPolicyTags` from this file [https://github.com/Expensify/App/issues/80401]
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            policyTags: getPolicyTagsData(participant.policyID),
+            policyTags: participant.policyID ? participantsPolicyTags[participant.policyID] : {},
             policyRecentlyUsedTags,
             transactionTags: tag,
         });
@@ -697,6 +718,7 @@ function startSplitBill({
 
     API.write(WRITE_COMMANDS.START_SPLIT_BILL, parameters, {optimisticData, successData, failureData});
 
+    setPendingSubmitFollowUpAction(CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_AND_OPEN_REPORT, splitChatReport.reportID);
     Navigation.dismissModalWithReport({reportID: splitChatReport.reportID});
     notifyNewAction(splitChatReport.reportID, undefined, true);
 
@@ -721,6 +743,7 @@ function completeSplitBill(
     quickAction: OnyxEntry<OnyxTypes.QuickAction>,
     transactionViolations: OnyxCollection<OnyxTypes.TransactionViolation[]>,
     betas: OnyxEntry<OnyxTypes.Beta[]>,
+    personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>,
     sessionEmail?: string,
 ) {
     if (!reportAction) {
@@ -841,7 +864,7 @@ function completeSplitBill(
         }
 
         let oneOnOneIOUReport: OneOnOneIOUReport = oneOnOneChatReport?.iouReportID ? getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${oneOnOneChatReport.iouReportID}`] : null;
-        const shouldCreateNewOneOnOneIOUReport = shouldCreateNewMoneyRequestReportReportUtils(oneOnOneIOUReport, oneOnOneChatReport, false);
+        const shouldCreateNewOneOnOneIOUReport = shouldCreateNewMoneyRequestReportReportUtils(oneOnOneIOUReport, oneOnOneChatReport, false, betas);
 
         // Generate IDs upfront so we can pass them to buildOptimisticExpenseReport for formula computation
         const optimisticTransactionID = NumberUtils.rand64();
@@ -893,6 +916,7 @@ function completeSplitBill(
                 tag: updatedTransaction?.tag,
                 taxCode: updatedTransaction?.taxCode,
                 taxAmount: isPolicyExpenseChat ? -splitTaxAmount : splitAmount,
+                taxValue: updatedTransaction?.taxValue,
                 billable: updatedTransaction?.billable,
                 reimbursable: updatedTransaction?.reimbursable,
                 source: CONST.IOU.TYPE.SPLIT,
@@ -952,6 +976,7 @@ function completeSplitBill(
                 policyRecentlyUsed: {},
             },
             quickAction,
+            personalDetails,
         });
 
         splits.push({
@@ -1030,18 +1055,16 @@ function updateSplitTransactions({
     quickAction,
     policyRecentlyUsedCurrencies,
     iouReportNextStep,
+    isFromSplitExpensesFlow,
     betas,
+    policyTags,
+    personalDetails,
+    transactionReport,
+    expenseReport,
 }: UpdateSplitTransactionsParams) {
-    const transactionReport = getReportOrDraftReport(transactionData?.reportID);
-    const parentTransactionReport = getReportOrDraftReport(transactionReport?.parentReportID);
-    const expenseReport = transactionReport?.type === CONST.REPORT.TYPE.EXPENSE ? transactionReport : parentTransactionReport;
-
     const originalTransactionID = transactionData?.originalTransactionID ?? CONST.IOU.OPTIMISTIC_TRANSACTION_ID;
     const originalTransaction = allTransactionsList?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`];
     const originalTransactionDetails = getTransactionDetails(originalTransaction);
-    // TODO: remove `allPolicyTags` from this file [https://github.com/Expensify/App/issues/80401]
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const policyTags = getPolicyTagsData(expenseReport?.policyID);
     const participants = getMoneyRequestParticipantsFromReport(expenseReport, currentUserPersonalDetails.accountID);
     const splitExpenses = transactionData?.splitExpenses ?? [];
 
@@ -1063,7 +1086,7 @@ function updateSplitTransactions({
     const customUnitRateID = originalTransaction?.comment?.customUnit?.customUnitRateID;
     const isPerDiem = isPerDiemRequestTransactionUtils(originalTransaction);
 
-    if (customUnitRateID && policy && !isPerDiem && isCreationOfSplits) {
+    if (customUnitRateID && policy && !isPerDiem && isCreationOfSplits && !isFromSplitExpensesFlow) {
         const customUnitRate = getDistanceRateCustomUnitRate(policy, customUnitRateID);
 
         // If the rate doesn't exist or is disabled, show an error and return early
@@ -1100,9 +1123,11 @@ function updateSplitTransactions({
         }) ?? [];
     changesInReportTotal -= splitExpensesTotal;
 
-    const successData = [] as OnyxUpdate[];
-    const failureData = [] as OnyxUpdate[];
-    const optimisticData = [] as OnyxUpdate[];
+    const onyxData: OnyxData<BuildOnyxDataForMoneyRequestKeys | UpdateMoneyRequestDataKeys> = {
+        successData: [],
+        failureData: [],
+        optimisticData: [],
+    };
 
     // The split transactions can be in different reports, so we need to calculate the total for each report.
     const reportTotals = new Map<string, number>();
@@ -1160,7 +1185,7 @@ function updateSplitTransactions({
                 category: splitExpense.category,
                 tag: splitExpense.tags?.[0],
                 originalTransactionID,
-                attendees: originalTransactionDetails?.attendees,
+                attendees: splitTransaction?.comment?.attendees ?? originalTransactionDetails?.attendees,
                 source: CONST.IOU.TYPE.SPLIT,
                 linkedTrackedExpenseReportAction: currentReportAction,
                 pendingAction: splitTransaction ? null : CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
@@ -1168,6 +1193,7 @@ function updateSplitTransactions({
                 reimbursable: originalTransactionDetails?.reimbursable,
                 taxCode: originalTransactionDetails?.taxCode,
                 taxAmount: calculateIOUAmount(splitExpenses.length - 1, originalTransactionDetails?.taxAmount ?? 0, originalTransactionDetails?.currency ?? CONST.CURRENCY.USD, false),
+                taxValue: originalTransactionDetails?.taxValue,
                 billable: originalTransactionDetails?.billable,
                 waypoints: splitExpense.waypoints,
                 customUnit: splitExpense.customUnit,
@@ -1185,6 +1211,7 @@ function updateSplitTransactions({
             quickAction,
             policyRecentlyUsedCurrencies,
             betas,
+            personalDetails,
         } as MoneyRequestInformationParams;
 
         if (isReverseSplitOperation) {
@@ -1200,6 +1227,7 @@ function updateSplitTransactions({
                 linkedTrackedExpenseReportAction: currentReportAction,
                 taxCode: originalTransactionDetails?.taxCode,
                 taxAmount: calculateIOUAmount(splitExpenses.length - 1, originalTransactionDetails?.taxAmount ?? 0, originalTransactionDetails?.currency ?? CONST.CURRENCY.USD, false),
+                taxValue: originalTransactionDetails?.taxValue,
                 billable: originalTransactionDetails?.billable,
                 waypoints: splitExpense.waypoints,
                 customUnit: splitExpense.customUnit,
@@ -1218,9 +1246,9 @@ function updateSplitTransactions({
         const {
             transactionThreadReportID,
             createdReportActionIDForThread,
-            onyxData,
-            iouAction,
             transaction: optimisticTransactionFromGetMoneyRequest,
+            onyxData: moneyRequestInformationOnyxData,
+            iouAction,
         } = getMoneyRequestInformation({
             participantParams,
             parentChatReport,
@@ -1232,7 +1260,7 @@ function updateSplitTransactions({
             newReportTotal: reportTotals.get(splitExpense?.reportID ?? String(CONST.DEFAULT_NUMBER_ID)) ?? 0,
             newNonReimbursableTotal: (transactionReport?.nonReimbursableTotal ?? 0) - changesInReportTotal,
             isSplitExpense: true,
-            currentReportActionID: currentReportAction?.reportActionID,
+            currentReportActionID: !isReverseSplitOperation ? currentReportAction?.reportActionID : undefined,
             isASAPSubmitBetaEnabled,
             currentUserAccountIDParam: currentUserPersonalDetails?.accountID,
             currentUserEmailParam: currentUserPersonalDetails?.login ?? '',
@@ -1241,20 +1269,22 @@ function updateSplitTransactions({
             shouldGenerateTransactionThreadReport: !isReverseSplitOperation,
             policyRecentlyUsedCurrencies,
             betas,
+            personalDetails,
         });
 
-        let updateMoneyRequestParamsOnyxData: OnyxData<OnyxKey> = {};
+        let updateMoneyRequestParamsOnyxData: OnyxData<UpdateMoneyRequestDataKeys> = {};
         const currentSplit = splits.at(index);
 
         // For existing split transactions, update the field change messages
         // For new transactions, skip this step
         if (splitTransaction) {
-            const existing = getTransactionDetails(splitTransaction);
             const transactionChanges = {
                 ...currentSplit,
                 comment: currentSplit?.comment?.comment,
+                customUnitRateID: currentSplit?.customUnitRateID ?? CONST.CUSTOM_UNITS.FAKE_P2P_ID,
             } as TransactionChanges;
 
+            const existing = getTransactionDetails(splitTransaction);
             const oldTransactionChanges = {
                 ...existing,
                 quantity: splitTransaction.comment?.customUnit?.quantity ?? existing?.distance,
@@ -1273,6 +1303,13 @@ function updateSplitTransactions({
                     // Ensure we pass the currency to getUpdateMoneyRequestParams as well, so the amount message is created correctly
                 } else if (key === 'amount') {
                     transactionChanges.currency = originalTransactionDetails?.currency;
+                } else if (key === 'waypoints') {
+                    // For waypoints, we need to compare the stringified version of the arrays since they are arrays of objects
+                    const newWaypoints = JSON.stringify(transactionChanges.waypoints);
+                    const oldWaypoints = JSON.stringify(oldTransactionChanges?.waypoints);
+                    if (newWaypoints === oldWaypoints) {
+                        delete transactionChanges.waypoints;
+                    }
                 }
             }
 
@@ -1297,6 +1334,7 @@ function updateSplitTransactions({
                     currentUserEmailParam: currentUserPersonalDetails?.login ?? '',
                     isASAPSubmitBetaEnabled,
                     iouReportNextStep,
+                    isSplitTransaction: true,
                 });
                 if (currentSplit) {
                     currentSplit.modifiedExpenseReportActionID = params.reportActionID;
@@ -1316,8 +1354,8 @@ function updateSplitTransactions({
 
         // Ensure merchant from splitExpense is preserved in optimisticData for new and existing transactions
         const transactionIDFromOptimistic = optimisticTransactionFromGetMoneyRequest?.transactionID;
-        if (transactionIDFromOptimistic && onyxData.optimisticData) {
-            const transactionUpdate = onyxData.optimisticData.find((update) => update.key === `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionIDFromOptimistic}`);
+        if (transactionIDFromOptimistic && moneyRequestInformationOnyxData.optimisticData) {
+            const transactionUpdate = moneyRequestInformationOnyxData.optimisticData.find((update) => update.key === `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionIDFromOptimistic}`);
             if (transactionUpdate && 'value' in transactionUpdate && typeof transactionUpdate.value === 'object' && transactionUpdate.value !== null) {
                 const transactionUpdateValue = transactionUpdate.value as OnyxTypes.Transaction;
                 const expectedMerchant = optimisticTransactionFromGetMoneyRequest?.merchant;
@@ -1331,9 +1369,9 @@ function updateSplitTransactions({
             }
         }
 
-        optimisticData.push(...(onyxData.optimisticData ?? []), ...(updateMoneyRequestParamsOnyxData.optimisticData ?? []));
-        successData.push(...(onyxData.successData ?? []), ...(updateMoneyRequestParamsOnyxData.successData ?? []));
-        failureData.push(...(onyxData.failureData ?? []), ...(updateMoneyRequestParamsOnyxData.failureData ?? []));
+        onyxData.optimisticData?.push(...(moneyRequestInformationOnyxData.optimisticData ?? []), ...(updateMoneyRequestParamsOnyxData.optimisticData ?? []));
+        onyxData.successData?.push(...(moneyRequestInformationOnyxData.successData ?? []), ...(updateMoneyRequestParamsOnyxData.successData ?? []));
+        onyxData.failureData?.push(...(moneyRequestInformationOnyxData.failureData ?? []), ...(updateMoneyRequestParamsOnyxData.failureData ?? []));
     }
 
     // All transactions that were deleted in the split list will be marked as deleted in onyx
@@ -1345,11 +1383,17 @@ function updateSplitTransactions({
         const splitTransaction = allTransactionsList?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${undeletedTransaction?.transactionID}`];
         const splitReportActions = getAllReportActions(splitTransaction?.reportID);
         const reportNameValuePairs = allReportNameValuePairsList?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${splitTransaction?.reportID}`];
+        const splitTransactionReport = allReportsList?.[`${ONYXKEYS.COLLECTION.REPORT}${splitTransaction?.reportID}`];
         const isReportArchived = isArchivedReport(reportNameValuePairs);
         const currentReportAction = Object.values(splitReportActions).find((action) => {
             const transactionID = isMoneyRequestAction(action) ? (getOriginalMessage(action)?.IOUTransactionID ?? CONST.DEFAULT_NUMBER_ID) : CONST.DEFAULT_NUMBER_ID;
             return transactionID === undeletedTransaction?.transactionID;
-        }) as ReportAction;
+        });
+
+        if (!currentReportAction) {
+            Log.warn(`[Split] Can't find the report action for transaction ${undeletedTransaction?.transactionID} in report ${splitTransaction?.reportID}`);
+            continue;
+        }
 
         // For a reverse split operation (i.e. deleting one transaction from a 2-split), the other split(undeleted)
         // transaction also gets marked for deletion optimistically. This causes the undeleted split to remain visible,
@@ -1363,7 +1407,7 @@ function updateSplitTransactions({
             failureData: deleteExpenseFailureData,
             successData: deleteExpenseSuccessData,
         } = getDeleteTrackExpenseInformation(
-            splitTransaction?.reportID ?? String(CONST.DEFAULT_NUMBER_ID),
+            splitTransactionReport,
             undeletedTransaction?.transactionID,
             currentReportAction,
             undefined,
@@ -1374,14 +1418,14 @@ function updateSplitTransactions({
             isReportArchived || undeletedTransaction?.transactionID === forceDeleteSplitTransactionID,
         );
 
-        optimisticData.push(...(deleteExpenseOptimisticData ?? []));
-        successData.push(...(deleteExpenseSuccessData ?? []));
-        failureData.push(...(deleteExpenseFailureData ?? []));
+        onyxData.optimisticData?.push(...(deleteExpenseOptimisticData ?? []));
+        onyxData.successData?.push(...(deleteExpenseSuccessData ?? []));
+        onyxData.failureData?.push(...(deleteExpenseFailureData ?? []));
     }
 
     if (!isReverseSplitOperation) {
         // Use SET to update originalTransaction more quickly in Onyx as compared to MERGE to prevent UI inconsistency
-        optimisticData.push({
+        onyxData.optimisticData?.push({
             onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`,
             value: {
@@ -1391,7 +1435,7 @@ function updateSplitTransactions({
         });
 
         // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
-        failureData.push({
+        onyxData.failureData?.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`,
             value: originalTransaction,
@@ -1418,18 +1462,18 @@ function updateSplitTransactions({
                 },
             };
             const transactionThread = getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${firstIOU.childReportID}`] ?? null;
-            optimisticData.push({
+            onyxData.optimisticData?.push({
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT}${firstIOU?.childReportID}`,
                 value: null,
             });
-            optimisticData.push({
+            onyxData.optimisticData?.push({
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport?.reportID}`,
                 value: updatedReportAction,
             });
 
-            failureData.push({
+            onyxData.failureData?.push({
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport?.reportID}`,
                 value: {
@@ -1439,14 +1483,14 @@ function updateSplitTransactions({
                     },
                 },
             });
-            failureData.push({
+            onyxData.failureData?.push({
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT}${firstIOU?.childReportID}`,
                 value: transactionThread ?? null,
             });
         }
 
-        optimisticData.push({
+        onyxData.optimisticData?.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${searchContext?.currentSearchHash}`,
             value: {
@@ -1457,7 +1501,7 @@ function updateSplitTransactions({
         });
 
         // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
-        failureData.push({
+        onyxData.failureData?.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${searchContext?.currentSearchHash}`,
             value: {
@@ -1467,21 +1511,77 @@ function updateSplitTransactions({
             },
         });
     } else {
-        optimisticData.push({
+        onyxData.optimisticData?.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`,
             value: {
                 errors: null,
             },
         });
+        const isLastTransactionInReport = Object.values(allTransactionsList ?? {}).filter((itemTransaction) => itemTransaction?.reportID === expenseReportID).length === 1;
+        if (isLastTransactionInReport) {
+            onyxData.optimisticData?.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${transactionData.reportID}`,
+                value: {
+                    reportID: null,
+                    pendingFields: {
+                        preview: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                    },
+                },
+            });
+            onyxData.successData?.push({
+                onyxMethod: Onyx.METHOD.SET,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${transactionData.reportID}`,
+                value: null,
+            });
+            onyxData.failureData?.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${transactionData.reportID}`,
+                value: {
+                    reportID: transactionData.reportID,
+                    pendingFields: null,
+                },
+            });
+            if (expenseReport?.parentReportID && expenseReport?.parentReportActionID) {
+                onyxData.optimisticData?.push({
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport?.parentReportID}`,
+                    value: {
+                        [expenseReport?.parentReportActionID]: {
+                            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                        },
+                    },
+                });
+                onyxData.successData?.push({
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport?.parentReportID}`,
+                    value: {
+                        [expenseReport?.parentReportActionID]: {
+                            pendingAction: null,
+                        },
+                    },
+                });
+                onyxData.failureData?.push({
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport?.parentReportID}`,
+                    value: {
+                        [expenseReport?.parentReportActionID]: {
+                            pendingAction: null,
+                        },
+                    },
+                });
+            }
+        }
     }
 
     if (isReverseSplitOperation) {
         const parameters = {
             ...splits.at(0),
             comment: splits.at(0)?.comment?.comment,
+            waypoints: splits.at(0)?.waypoints ? JSON.stringify(splits.at(0)?.waypoints) : undefined,
         } as RevertSplitTransactionParams;
-        API.write(WRITE_COMMANDS.REVERT_SPLIT_TRANSACTION, parameters, {optimisticData, successData, failureData});
+        API.write(WRITE_COMMANDS.REVERT_SPLIT_TRANSACTION, parameters, onyxData);
     } else {
         // Prepare splitApiParams for the Transaction_Split API call which requires a specific format for the splits
         // The format is: splits[0][amount], splits[0][category], splits[0][tag] etc.
@@ -1541,7 +1641,7 @@ function updateSplitTransactions({
                         };
 
                         // Add to optimisticData for this split's reportActions
-                        optimisticData.push({
+                        onyxData.optimisticData?.push({
                             onyxMethod: Onyx.METHOD.MERGE,
                             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${splitReportID}`,
                             value: {
@@ -1551,7 +1651,7 @@ function updateSplitTransactions({
                         });
 
                         // Add successData to clear pendingAction after API call succeeds
-                        successData.push({
+                        onyxData.successData?.push({
                             onyxMethod: Onyx.METHOD.MERGE,
                             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${splitReportID}`,
                             value: {
@@ -1561,7 +1661,7 @@ function updateSplitTransactions({
                         });
 
                         // Add failureData to remove optimistic hold report actions if the request fails
-                        failureData.push({
+                        onyxData.failureData?.push({
                             onyxMethod: Onyx.METHOD.MERGE,
                             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${splitReportID}`,
                             value: {
@@ -1593,10 +1693,10 @@ function updateSplitTransactions({
 
         if (isCreationOfSplits) {
             // eslint-disable-next-line rulesdir/no-multiple-api-calls
-            API.write(WRITE_COMMANDS.SPLIT_TRANSACTION, splitParameters, {optimisticData, successData, failureData});
+            API.write(WRITE_COMMANDS.SPLIT_TRANSACTION, splitParameters, onyxData);
         } else {
             // eslint-disable-next-line rulesdir/no-multiple-api-calls
-            API.write(WRITE_COMMANDS.UPDATE_SPLIT_TRANSACTION, splitParameters, {optimisticData, successData, failureData});
+            API.write(WRITE_COMMANDS.UPDATE_SPLIT_TRANSACTION, splitParameters, onyxData);
         }
     }
     // eslint-disable-next-line @typescript-eslint/no-deprecated
@@ -1604,10 +1704,27 @@ function updateSplitTransactions({
 }
 
 function updateSplitTransactionsFromSplitExpensesFlow(params: UpdateSplitTransactionsParams) {
-    updateSplitTransactions(params);
-    const transactionReport = getReportOrDraftReport(params.transactionData?.reportID);
-    const parentTransactionReport = getReportOrDraftReport(transactionReport?.parentReportID);
-    const expenseReport = transactionReport?.type === CONST.REPORT.TYPE.EXPENSE ? transactionReport : parentTransactionReport;
+    // Detect if this will be a reverse split that deletes the expense report.
+    // When splits are reduced to 1, updateSplitTransactions performs a reverse split which
+    // optimistically deletes the expense report if it's the last transaction. We need to
+    // set the navigate-back URL before the deletion to prevent the "Not Found" page.
+    const splitExpenses = params.transactionData?.splitExpenses ?? [];
+    const originalTransactionID = params.transactionData?.originalTransactionID ?? CONST.IOU.OPTIMISTIC_TRANSACTION_ID;
+    const allChildTransactions = getChildTransactions(params.allTransactionsList, params.allReportsList, originalTransactionID, true);
+    const originalChildTransactions = allChildTransactions.filter((tx) => tx?.reportID !== CONST.REPORT.UNREPORTED_REPORT_ID);
+    const hasEditableSplitExpensesLeft = splitExpenses.some((expense) => (expense.statusNum ?? 0) < CONST.REPORT.STATUS_NUM.SUBMITTED);
+    const isReverseSplitOperation =
+        splitExpenses.length === 1 && originalChildTransactions.length > 0 && hasEditableSplitExpensesLeft && allChildTransactions.length === originalChildTransactions.length;
+    const expenseReportID = params.expenseReport?.reportID;
+    const isLastTransactionInReport =
+        isReverseSplitOperation && Object.values(params.allTransactionsList ?? {}).filter((itemTransaction) => itemTransaction?.reportID === expenseReportID).length === 1;
+    const fallbackReportID = params.expenseReport?.chatReportID ?? params.expenseReport?.parentReportID;
+
+    if (isLastTransactionInReport && fallbackReportID) {
+        setDeleteTransactionNavigateBackUrl(ROUTES.REPORT_WITH_ID.getRoute(fallbackReportID));
+    }
+
+    updateSplitTransactions({...params, isFromSplitExpensesFlow: true});
     const isSearchPageTopmostFullScreenRoute = isSearchTopmostFullScreenRoute();
     const transactionThreadReportID = params.firstIOU?.childReportID;
     const transactionThreadReportScreen = Navigation.getReportRouteByID(transactionThreadReportID);
@@ -1622,7 +1739,7 @@ function updateSplitTransactionsFromSplitExpensesFlow(params: UpdateSplitTransac
         params?.searchContext?.clearSelectedTransactions?.(true);
     }
 
-    if (isSearchPageTopmostFullScreenRoute || !transactionReport?.parentReportID) {
+    if (isSearchPageTopmostFullScreenRoute || !params.transactionReport?.parentReportID) {
         Navigation.navigateBackToLastSuperWideRHPScreen();
 
         // After the modal is dismissed, remove the transaction thread report screen
@@ -1637,7 +1754,31 @@ function updateSplitTransactionsFromSplitExpensesFlow(params: UpdateSplitTransac
 
         return;
     }
-    Navigation.dismissModalWithReport({reportID: expenseReport?.reportID ?? String(CONST.DEFAULT_NUMBER_ID)});
+
+    // When the reverse split deletes the expense report, use the backward navigation pattern
+    // (dismissToSuperWideRHP + goBack) instead of dismissModalWithReport. This naturally pops
+    // stale screens from the stack instead of leaving them behind.
+    if (isLastTransactionInReport && fallbackReportID) {
+        const backRoute = ROUTES.REPORT_WITH_ID.getRoute(fallbackReportID);
+        navigateBackOnDeleteTransaction(backRoute);
+
+        // Remove the transaction thread report screen to avoid navigating back to a removed report
+        requestAnimationFrame(() => {
+            if (!transactionThreadReportScreen?.key) {
+                return;
+            }
+            Navigation.removeScreenByKey(transactionThreadReportScreen.key);
+        });
+
+        return;
+    }
+
+    const targetReportID = params.expenseReport?.reportID ?? String(CONST.DEFAULT_NUMBER_ID);
+
+    if (getSpan(CONST.TELEMETRY.SPAN_SUBMIT_TO_DESTINATION_VISIBLE)) {
+        setPendingSubmitFollowUpAction(CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_AND_OPEN_REPORT, targetReportID);
+    }
+    Navigation.dismissModalWithReport({reportID: targetReportID});
 
     // After the modal is dismissed, remove the transaction thread report screen
     // to avoid navigating back to a report removed by the split transaction.
@@ -1645,7 +1786,6 @@ function updateSplitTransactionsFromSplitExpensesFlow(params: UpdateSplitTransac
         if (!transactionThreadReportScreen?.key) {
             return;
         }
-
         Navigation.removeScreenByKey(transactionThreadReportScreen.key);
     });
 }
@@ -1728,7 +1868,7 @@ function setDraftSplitTransaction(
               isFromExpenseReport: false,
               shouldUpdateReceiptState: false,
               policy,
-              isDraftSplitTransaction: true,
+              isSplitTransaction: true,
           })
         : null;
 
@@ -1784,13 +1924,13 @@ function setIndividualShare(transactionID: string, participantAccountID: number,
 /**
  * Calculate merchant for distance transactions based on distance and rate
  */
-function getDistanceMerchantForSplitExpense(distanceInUnits: number, unit: Unit | undefined, rate: number | undefined, currency: string, transactionCurrency?: string): string {
+function getDistanceMerchantFromDistance(distanceInUnits: number, unit: Unit | undefined, rate: number | undefined, currency: string): string {
     if (!rate || rate <= 0 || !unit) {
         return '';
     }
 
     const distanceInMeters = DistanceRequestUtils.convertToDistanceInMeters(distanceInUnits, unit);
-    const currencyForMerchant = currency ?? transactionCurrency ?? CONST.CURRENCY.USD;
+    const currencyForMerchant = currency;
     const currentLocale = IntlStore.getCurrentLocale();
     return DistanceRequestUtils.getDistanceMerchant(
         true,
@@ -1801,7 +1941,39 @@ function getDistanceMerchantForSplitExpense(distanceInUnits: number, unit: Unit 
         (phrase, ...parameters) => Localize.translate(currentLocale, phrase, ...parameters),
         (digit) => toLocaleDigit(currentLocale, digit),
         getCurrencySymbol,
+        true,
     );
+}
+
+/**
+ * Update split expense distance and merchant based on amount and rate
+ * Calculates distance from amount (distance = amount / rate) and updates customUnit quantity and merchant
+ */
+function updateSplitExpenseDistanceFromAmount(
+    amount: number,
+    rate: number,
+    unit: Unit | undefined,
+    existingCustomUnit: TransactionCustomUnit | undefined,
+    mileageRate: {currency?: string},
+    transactionCurrency?: string,
+): {customUnit: TransactionCustomUnit | undefined; merchant: string} {
+    if (!rate || rate <= 0 || !unit || !existingCustomUnit) {
+        return {customUnit: existingCustomUnit, merchant: ''};
+    }
+
+    // Calculate distance from amount: distance = amount / rate
+    // Both amount and rate are in cents, so the result is in distance units
+    const distanceInUnits = Math.abs(amount) / rate;
+    const quantity = Number(distanceInUnits.toFixed(CONST.DISTANCE_DECIMAL_PLACES));
+
+    const customUnit: TransactionCustomUnit = {
+        ...existingCustomUnit,
+        quantity,
+    };
+
+    const merchant = getDistanceMerchantFromDistance(distanceInUnits, unit, rate, transactionCurrency ?? mileageRate?.currency ?? CONST.CURRENCY.USD);
+
+    return {customUnit, merchant};
 }
 
 function initSplitExpenseItemData(
@@ -1814,7 +1986,8 @@ function initSplitExpenseItemData(
         created,
         merchant,
         customUnit,
-    }: {amount?: number; transactionID?: string; reportID?: string; created?: string; merchant?: string; customUnit?: TransactionCustomUnit} = {},
+        isManuallyEdited,
+    }: {amount?: number; transactionID?: string; reportID?: string; created?: string; merchant?: string; customUnit?: TransactionCustomUnit; isManuallyEdited?: boolean} = {},
 ): SplitExpense {
     const transactionDetails = getTransactionDetails(transaction);
 
@@ -1825,7 +1998,7 @@ function initSplitExpenseItemData(
         category: transactionDetails?.category,
         tags: transaction?.tag ? [transaction?.tag] : [],
         created: created ?? transactionDetails?.created ?? DateUtils.formatWithUTCTimeZone(DateUtils.getDBTime(), CONST.DATE.FNS_FORMAT_STRING),
-        merchant: merchant ?? (transaction?.modifiedMerchant ? transaction.modifiedMerchant : (transaction?.merchant ?? '')),
+        merchant: merchant ?? transactionDetails?.merchant,
         statusNum: transactionReport?.statusNum ?? 0,
         reportID: reportID ?? transaction?.reportID ?? String(CONST.DEFAULT_NUMBER_ID),
         reimbursable: transactionDetails?.reimbursable,
@@ -1833,130 +2006,8 @@ function initSplitExpenseItemData(
         waypoints: transaction?.comment?.waypoints ?? undefined,
         odometerStart: transaction?.comment?.odometerStart ?? undefined,
         odometerEnd: transaction?.comment?.odometerEnd ?? undefined,
+        isManuallyEdited: isManuallyEdited ?? false,
     };
-}
-
-/**
- * Create a draft transaction to set up split expense details for the split expense flow
- */
-function initSplitExpense(
-    transactions: OnyxCollection<OnyxTypes.Transaction>,
-    reports: OnyxCollection<OnyxTypes.Report>,
-    transaction: OnyxEntry<OnyxTypes.Transaction>,
-    policy?: OnyxEntry<OnyxTypes.Policy>,
-) {
-    if (!transaction) {
-        return;
-    }
-
-    const reportID = transaction.reportID ?? String(CONST.DEFAULT_NUMBER_ID);
-    const originalTransactionID = transaction?.comment?.originalTransactionID;
-    const originalTransaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`];
-    const {isExpenseSplit} = getOriginalTransactionWithSplitInfo(transaction, originalTransaction);
-
-    if (isExpenseSplit) {
-        const relatedTransactions = getChildTransactions(transactions, reports, originalTransactionID);
-        const transactionDetails = getTransactionDetails(originalTransaction);
-        const splitExpenses = relatedTransactions.map((currentTransaction) => {
-            const currentTransactionReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${currentTransaction?.reportID}`];
-            return initSplitExpenseItemData(currentTransaction, currentTransactionReport);
-        });
-        const draftTransaction = buildOptimisticTransaction({
-            originalTransactionID,
-            transactionParams: {
-                splitExpenses,
-                splitExpensesTotal: splitExpenses.reduce((total, item) => total + item.amount, 0),
-                amount: transactionDetails?.amount ?? 0,
-                currency: transactionDetails?.currency ?? CONST.CURRENCY.USD,
-                participants: transaction?.participants,
-                merchant: transaction?.modifiedMerchant ? transaction.modifiedMerchant : (transaction?.merchant ?? ''),
-                attendees: transactionDetails?.attendees as Attendee[],
-                reportID,
-                reimbursable: transactionDetails?.reimbursable,
-            },
-        });
-
-        Onyx.set(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${originalTransactionID}`, draftTransaction);
-        if (isSearchTopmostFullScreenRoute()) {
-            Navigation.navigate(ROUTES.SPLIT_EXPENSE_SEARCH.getRoute(reportID, originalTransactionID, transaction.transactionID, Navigation.getActiveRoute()));
-        } else {
-            Navigation.navigate(ROUTES.SPLIT_EXPENSE.getRoute(reportID, originalTransactionID, transaction.transactionID, Navigation.getActiveRoute()));
-        }
-        return;
-    }
-
-    const transactionDetails = getTransactionDetails(transaction);
-    const transactionDetailsAmount = transactionDetails?.amount ?? 0;
-    const transactionReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`];
-
-    const splitAmounts = [
-        calculateIOUAmount(1, transactionDetailsAmount, transactionDetails?.currency ?? '', false),
-        calculateIOUAmount(1, transactionDetailsAmount, transactionDetails?.currency ?? '', true),
-    ];
-    const splitCustomUnits: Array<TransactionCustomUnit | undefined> = [undefined, undefined];
-    const splitMerchants: Array<string | undefined> = [undefined, undefined];
-
-    if (isDistanceRequestTransactionUtils(transaction)) {
-        const mileageRate = DistanceRequestUtils.getRate({transaction, policy: policy ?? undefined});
-        const {unit, rate} = mileageRate;
-        const currency = mileageRate?.currency ?? transactionDetails?.currency ?? CONST.CURRENCY.USD;
-
-        if (rate && rate > 0 && transaction?.comment?.customUnit) {
-            for (let i = 0; i < splitAmounts.length; i++) {
-                if (splitAmounts.at(i)) {
-                    // Calculate distance from amount and rate: distance = amount / rate
-                    // Both amount and rate are in cents, so the result is in distance units
-                    const distanceInUnits = Math.abs(splitAmounts.at(i) ?? 0) / rate;
-                    const quantity = Number(distanceInUnits.toFixed(CONST.DISTANCE_DECIMAL_PLACES));
-
-                    splitCustomUnits[i] = {
-                        ...(transaction.comment.customUnit ?? {}),
-                        quantity,
-                    };
-
-                    splitMerchants[i] = getDistanceMerchantForSplitExpense(distanceInUnits, unit, rate, currency, transactionDetails?.currency);
-                }
-            }
-        }
-    }
-
-    const splitExpenses = [
-        initSplitExpenseItemData(transaction, transactionReport, {
-            amount: splitAmounts.at(0) ?? 0,
-            transactionID: NumberUtils.rand64(),
-            customUnit: splitCustomUnits.at(0),
-            merchant: splitMerchants.at(0),
-        }),
-        initSplitExpenseItemData(transaction, transactionReport, {
-            amount: splitAmounts.at(1) ?? 0,
-            transactionID: NumberUtils.rand64(),
-            customUnit: splitCustomUnits.at(1),
-            merchant: splitMerchants.at(1),
-        }),
-    ];
-
-    const draftTransaction = buildOptimisticTransaction({
-        originalTransactionID: transaction.transactionID,
-        transactionParams: {
-            splitExpenses,
-            splitExpensesTotal: splitExpenses.reduce((total, item) => total + item.amount, 0),
-            amount: transactionDetailsAmount,
-            currency: transactionDetails?.currency ?? CONST.CURRENCY.USD,
-            merchant: transactionDetails?.merchant ?? '',
-            participants: transaction?.participants,
-            attendees: transactionDetails?.attendees as Attendee[],
-            reportID,
-            reimbursable: transactionDetails?.reimbursable,
-        },
-    });
-
-    Onyx.set(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transaction?.transactionID}`, draftTransaction);
-
-    if (isSearchTopmostFullScreenRoute()) {
-        Navigation.navigate(ROUTES.SPLIT_EXPENSE_SEARCH.getRoute(reportID, transaction.transactionID, undefined, Navigation.getActiveRoute()));
-    } else {
-        Navigation.navigate(ROUTES.SPLIT_EXPENSE.getRoute(reportID, transaction.transactionID, undefined, Navigation.getActiveRoute()));
-    }
 }
 
 /**
@@ -1989,8 +2040,7 @@ function initDraftSplitExpenseDataForEdit(draftTransaction: OnyxEntry<OnyxTypes.
             reportID,
             created: splitTransactionData?.created ?? '',
             category: splitTransactionData?.category ?? '',
-            distance: splitTransactionData?.customUnit?.quantity ?? undefined,
-            customUnitRateID: splitTransactionData?.customUnit?.customUnitRateID,
+            customUnit: splitTransactionData?.customUnit,
             waypoints: splitTransactionData?.waypoints ?? undefined,
             odometerStart: splitTransactionData?.odometerStart ?? undefined,
             odometerEnd: splitTransactionData?.odometerEnd ?? undefined,
@@ -2003,7 +2053,46 @@ function initDraftSplitExpenseDataForEdit(draftTransaction: OnyxEntry<OnyxTypes.
 }
 
 /**
+ * Redistribute split expense amounts among unedited splits.
+ * Manually edited splits are preserved, and remaining amount is distributed among unedited splits.
+ *
+ * @param splitExpenses - Array of split expenses to redistribute
+ * @param total - Total amount to distribute
+ * @param currency - Currency for amount calculation
+ * @returns Array of split expenses with redistributed amounts
+ */
+function redistributeSplitExpenseAmounts(splitExpenses: SplitExpense[], total: number, currency: string): SplitExpense[] {
+    // Calculate sum of manually edited splits
+    const editedSum = splitExpenses.filter((split) => split.isManuallyEdited).reduce((sum, split) => sum + split.amount, 0);
+
+    // Find all unedited splits
+    const uneditedSplits = splitExpenses.filter((split) => !split.isManuallyEdited);
+    const uneditedCount = uneditedSplits.length;
+
+    // If no unedited splits, return as-is
+    if (uneditedCount === 0) {
+        return splitExpenses;
+    }
+
+    // Redistribute remaining amount among unedited splits
+    const remaining = total - editedSum;
+    const lastUneditedIndex = uneditedCount - 1;
+    let uneditedIndex = 0;
+
+    return splitExpenses.map((split) => {
+        if (split.isManuallyEdited) {
+            return split;
+        }
+        const isLast = uneditedIndex === lastUneditedIndex;
+        const newAmount = calculateIOUAmount(lastUneditedIndex, remaining, currency, isLast, true);
+        uneditedIndex += 1;
+        return {...split, amount: newAmount};
+    });
+}
+
+/**
  * Append a new split expense entry to the draft transaction's splitExpenses array
+ * and auto-redistribute amounts among all unedited splits.
  */
 function addSplitExpenseField(
     transaction: OnyxEntry<OnyxTypes.Transaction>,
@@ -2033,10 +2122,10 @@ function addSplitExpenseField(
         const mileageRate = DistanceRequestUtils.getRate({transaction, policy: policy ?? undefined});
         const {unit, rate} = mileageRate;
 
-        if (rate && rate > 0) {
+        if (rate && rate > 0 && customUnit) {
             // For amount = 0, distance = 0, but we still calculate merchant format
-            const currency = mileageRate?.currency ?? transaction.currency ?? CONST.CURRENCY.USD;
-            merchant = getDistanceMerchantForSplitExpense(0, unit, rate, currency, transaction.currency);
+            const {merchant: calculatedMerchant} = updateSplitExpenseDistanceFromAmount(0, rate, unit, customUnit, mileageRate, transaction.currency);
+            merchant = calculatedMerchant;
         }
     }
 
@@ -2046,11 +2135,27 @@ function addSplitExpenseField(
         reportID: draftTransaction?.reportID,
         customUnit,
         merchant,
+        isManuallyEdited: false,
     });
 
-    Onyx.merge(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transaction.transactionID}`, {
+    const existingSplits = draftTransaction.comment?.splitExpenses ?? [];
+    const updatedSplitExpenses = [...existingSplits, newSplitExpense];
+
+    // Get total amount and currency for redistribution
+    const total = getAmount(draftTransaction, undefined, undefined, true, true);
+    const currency = getCurrency(draftTransaction);
+    const originalTransactionID = draftTransaction.comment?.originalTransactionID ?? transaction.transactionID;
+
+    let redistributedSplitExpenses = updatedSplitExpenses;
+
+    // Auto-redistribute amounts for all splits if this is not a distance request
+    if (!isDistanceRequest) {
+        redistributedSplitExpenses = redistributeSplitExpenseAmounts(updatedSplitExpenses, total, currency);
+    }
+
+    Onyx.merge(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${originalTransactionID}`, {
         comment: {
-            splitExpenses: [...(draftTransaction.comment?.splitExpenses ?? []), newSplitExpense],
+            splitExpenses: redistributedSplitExpenses,
             splitsStartDate: null,
             splitsEndDate: null,
         },
@@ -2088,35 +2193,28 @@ function evenlyDistributeSplitExpenseAmounts(draftTransaction: OnyxEntry<OnyxTyp
     const splitCount = splitExpenses.length;
     const lastIndex = splitCount - 1;
 
+    const mileageRate = DistanceRequestUtils.getRate({transaction, policy: policy ?? undefined});
+    const {unit, rate} = mileageRate;
+
     const updatedSplitExpenses = splitExpenses.map((splitExpense, index) => {
         const amount = calculateIOUAmount(splitCount - 1, total, currency, index === lastIndex, true);
         let updatedSplitExpense: SplitExpense = {
             ...splitExpense,
             amount,
+            // Reset isManuallyEdited since user explicitly requested even distribution
+            isManuallyEdited: false,
         };
 
         // Update distance for distance transactions based on new amount and rate
         if (isDistanceRequest && transaction && splitExpense.customUnit && amount !== 0) {
-            const mileageRate = DistanceRequestUtils.getRate({transaction, policy: policy ?? undefined});
-            const {unit, rate} = mileageRate;
-
             if (rate && rate > 0) {
-                // Calculate distance from amount: distance = amount / rate
-                // Both amount and rate are in cents, so the result is in distance units
-                const distanceInUnits = Math.abs(amount) / rate;
-                const quantity = Number(distanceInUnits.toFixed(CONST.DISTANCE_DECIMAL_PLACES));
+                const {customUnit: updatedCustomUnit, merchant} = updateSplitExpenseDistanceFromAmount(amount, rate, unit, splitExpense.customUnit, mileageRate, transaction.currency);
 
                 updatedSplitExpense = {
                     ...updatedSplitExpense,
-                    customUnit: {
-                        ...splitExpense.customUnit,
-                        quantity,
-                    },
+                    customUnit: updatedCustomUnit,
+                    merchant,
                 };
-
-                // Update merchant for distance transactions
-                const currencyForMerchant = mileageRate?.currency ?? transaction.currency ?? CONST.CURRENCY.USD;
-                updatedSplitExpense.merchant = getDistanceMerchantForSplitExpense(distanceInUnits, unit, rate, currencyForMerchant, transaction.currency);
             }
         }
 
@@ -2152,8 +2250,8 @@ function resetSplitExpensesByDateRange(
 
     // Generate all dates in the range
     const dates = eachDayOfInterval({
-        start: new Date(startDate),
-        end: new Date(endDate),
+        start: parse(startDate, CONST.DATE.FNS_FORMAT_STRING, new Date()),
+        end: parse(endDate, CONST.DATE.FNS_FORMAT_STRING, new Date()),
     });
 
     const transactionDetails = getTransactionDetails(transaction);
@@ -2161,6 +2259,9 @@ function resetSplitExpensesByDateRange(
     const currency = transactionDetails?.currency ?? CONST.CURRENCY.USD;
 
     const isDistanceRequest = isDistanceRequestTransactionUtils(transaction);
+
+    const mileageRate = DistanceRequestUtils.getRate({transaction, policy: policy ?? undefined});
+    const {unit, rate} = mileageRate;
 
     // Create split expenses for each date with proportional amounts
     const lastIndex = dates.length - 1;
@@ -2175,26 +2276,14 @@ function resetSplitExpensesByDateRange(
 
         // Update distance for distance transactions based on new amount and rate
         if (isDistanceRequest && splitExpense.customUnit && amount !== 0) {
-            const mileageRate = DistanceRequestUtils.getRate({transaction, policy: policy ?? undefined});
-            const {unit, rate} = mileageRate;
-
             if (rate && rate > 0) {
-                // Calculate distance from amount: distance = amount / rate
-                // Both amount and rate are in cents, so the result is in distance units
-                const distanceInUnits = Math.abs(amount) / rate;
-                const quantity = Number(distanceInUnits.toFixed(CONST.DISTANCE_DECIMAL_PLACES));
+                const {customUnit: updatedCustomUnit, merchant} = updateSplitExpenseDistanceFromAmount(amount, rate, unit, splitExpense.customUnit, mileageRate, transaction.currency);
 
                 splitExpense = {
                     ...splitExpense,
-                    customUnit: {
-                        ...splitExpense.customUnit,
-                        quantity,
-                    },
+                    customUnit: updatedCustomUnit,
+                    merchant,
                 };
-
-                // Update merchant for distance transactions
-                const currencyForMerchant = mileageRate?.currency ?? transaction.currency ?? CONST.CURRENCY.USD;
-                splitExpense.merchant = getDistanceMerchantForSplitExpense(distanceInUnits, unit, rate, currencyForMerchant, transaction.currency);
             }
         }
 
@@ -2217,11 +2306,23 @@ function removeSplitExpenseField(draftTransaction: OnyxEntry<OnyxTypes.Transacti
 
     const originalTransactionID = draftTransaction?.comment?.originalTransactionID;
 
-    const splitExpenses = draftTransaction.comment?.splitExpenses?.filter((item) => item.transactionID !== splitExpenseTransactionID);
+    const splitExpenses = draftTransaction.comment?.splitExpenses?.filter((item) => item.transactionID !== splitExpenseTransactionID) ?? [];
+    const total = getAmount(draftTransaction, undefined, undefined, true, true);
+    const currency = getCurrency(draftTransaction);
+
+    const originalTransaction = getAllTransactions()?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`];
+    const isDistanceRequest = originalTransaction && isDistanceRequestTransactionUtils(originalTransaction);
+
+    let redistributedSplitExpenses = splitExpenses;
+
+    // Auto-redistribute amounts for all splits if this is not a distance request
+    if (!isDistanceRequest) {
+        redistributedSplitExpenses = redistributeSplitExpenseAmounts(splitExpenses, total, currency);
+    }
 
     Onyx.merge(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${originalTransactionID}`, {
         comment: {
-            splitExpenses,
+            splitExpenses: redistributedSplitExpenses,
             splitsStartDate: null,
             splitsEndDate: null,
         },
@@ -2252,10 +2353,8 @@ function updateSplitExpenseField(
             let quantity: number | undefined;
             if (splitExpenseDraftTransaction?.routes?.route0?.distance && splitExpenseDraftTransaction?.comment?.customUnit?.distanceUnit) {
                 quantity = DistanceRequestUtils.convertDistanceUnit(splitExpenseDraftTransaction?.routes?.route0?.distance, splitExpenseDraftTransaction?.comment?.customUnit?.distanceUnit);
-            } else if (splitExpenseDraftTransaction?.comment?.customUnit?.quantity) {
-                quantity = splitExpenseDraftTransaction?.comment?.customUnit?.quantity;
             } else {
-                quantity = undefined;
+                quantity = splitExpenseDraftTransaction?.comment?.customUnit?.quantity ?? 0;
             }
 
             const updatedItem: SplitExpense = {
@@ -2289,19 +2388,20 @@ function updateSplitExpenseField(
                             splitExpenseDraftTransaction.routes.route0.distance,
                             splitExpenseDraftTransaction.comment.customUnit.distanceUnit,
                         );
-                    } else if (splitExpenseDraftTransaction?.comment?.customUnit?.quantity) {
-                        distanceInUnits = splitExpenseDraftTransaction.comment.customUnit.quantity;
+                    } else {
+                        distanceInUnits = splitExpenseDraftTransaction?.comment?.customUnit?.quantity ?? 0;
                     }
 
                     if (distanceInUnits !== undefined) {
                         // Calculate amount from distance and rate: amount = distance * rate
                         // Both amount and rate are in cents, distance is in units
-                        const calculatedAmount = distanceInUnits > 0 ? Math.round(distanceInUnits * rate) : 0;
+                        const sign = item.amount < 0 ? -1 : 1;
+                        const calculatedAmount = distanceInUnits > 0 ? Math.round(distanceInUnits * rate) * sign : 0;
                         updatedItem.amount = calculatedAmount;
 
                         // Update merchant for distance transactions
-                        const currency = mileageRate?.currency ?? originalTransaction.currency ?? CONST.CURRENCY.USD;
-                        updatedItem.merchant = getDistanceMerchantForSplitExpense(distanceInUnits, unit, rate, currency, originalTransaction.currency);
+                        const currency = originalTransaction.currency ?? mileageRate?.currency ?? CONST.CURRENCY.USD;
+                        updatedItem.merchant = getDistanceMerchantFromDistance(distanceInUnits, unit, rate, currency);
                     }
                 }
             }
@@ -2322,43 +2422,49 @@ function updateSplitExpenseField(
 }
 
 function updateSplitExpenseAmountField(draftTransaction: OnyxEntry<OnyxTypes.Transaction>, currentItemTransactionID: string, amount: number, policy?: OnyxEntry<OnyxTypes.Policy>) {
-    if (!draftTransaction?.transactionID || !currentItemTransactionID) {
+    if (!draftTransaction?.transactionID || !currentItemTransactionID || Number.isNaN(amount)) {
         return;
     }
 
     const originalTransactionID = draftTransaction?.comment?.originalTransactionID;
     const originalTransaction = getAllTransactions()?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`];
     const isDistanceRequest = originalTransaction && isDistanceRequestTransactionUtils(originalTransaction);
+    const splitExpenses = draftTransaction.comment?.splitExpenses ?? [];
+    const total = getAmount(draftTransaction, undefined, undefined, true, true);
+    const currency = getCurrency(draftTransaction);
 
-    const updatedSplitExpenses = draftTransaction.comment?.splitExpenses?.map((splitExpense) => {
+    // Mark the edited split and update its amount
+    const splitWithUpdatedAmount = splitExpenses.map((splitExpense) => {
         if (splitExpense.transactionID === currentItemTransactionID) {
             let updatedSplitExpense: SplitExpense = {
                 ...splitExpense,
                 amount,
+                isManuallyEdited: true,
             };
 
             // Update distance for distance transactions based on new amount and rate
             if (isDistanceRequest && originalTransaction && splitExpense.customUnit) {
                 const mileageRate = DistanceRequestUtils.getRate({transaction: originalTransaction, policy: policy ?? undefined});
-                const {unit, rate} = mileageRate;
+                const {rate: currentRate = 0} =
+                    DistanceRequestUtils.getRateByCustomUnitRateID({policy, customUnitRateID: splitExpense.customUnit?.customUnitRateID ?? String(CONST.DEFAULT_NUMBER_ID)}) ?? {};
+                const {unit, rate: mileageRateValue} = mileageRate;
+                const rate = currentRate || mileageRateValue;
 
                 if (rate && rate > 0) {
-                    // Calculate distance from amount: distance = amount / rate
-                    // Both amount and rate are in cents, so the result is in distance units
-                    const distanceInUnits = Math.abs(amount) / rate;
-                    const quantity = Number(distanceInUnits.toFixed(CONST.DISTANCE_DECIMAL_PLACES));
+                    const {customUnit: updatedCustomUnit, merchant} = updateSplitExpenseDistanceFromAmount(
+                        amount,
+                        rate,
+                        unit,
+                        splitExpense.customUnit,
+                        mileageRate,
+                        originalTransaction.currency,
+                    );
 
                     updatedSplitExpense = {
                         ...updatedSplitExpense,
-                        customUnit: {
-                            ...splitExpense.customUnit,
-                            quantity,
-                        },
+                        customUnit: updatedCustomUnit,
+                        merchant,
                     };
-
-                    // Update merchant for distance transactions
-                    const currency = mileageRate?.currency ?? originalTransaction.currency ?? CONST.CURRENCY.USD;
-                    updatedSplitExpense.merchant = getDistanceMerchantForSplitExpense(distanceInUnits, unit, rate, currency, originalTransaction.currency);
                 }
             }
 
@@ -2367,9 +2473,16 @@ function updateSplitExpenseAmountField(draftTransaction: OnyxEntry<OnyxTypes.Tra
         return splitExpense;
     });
 
+    let redistributedSplitExpenses = splitWithUpdatedAmount;
+
+    // Auto-redistribute amounts for all splits if this is not a distance request
+    if (!isDistanceRequest) {
+        redistributedSplitExpenses = redistributeSplitExpenseAmounts(splitWithUpdatedAmount, total, currency);
+    }
+
     Onyx.merge(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${originalTransactionID}`, {
         comment: {
-            splitExpenses: updatedSplitExpenses,
+            splitExpenses: redistributedSplitExpenses,
         },
     });
 }
@@ -2394,10 +2507,10 @@ export {
     startSplitBill,
     updateSplitTransactions,
     updateSplitTransactionsFromSplitExpensesFlow,
-    initSplitExpense,
     initSplitExpenseItemData,
     updateSplitExpenseField,
     updateSplitExpenseAmountField,
+    updateSplitExpenseDistanceFromAmount,
     clearSplitTransactionDraftErrors,
     addSplitExpenseField,
     resetSplitExpensesByDateRange,

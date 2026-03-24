@@ -18,7 +18,6 @@ import type {
     Transaction,
     TransactionViolation,
 } from '@src/types/onyx';
-import type {ReportAttributes, ReportAttributesDerivedValue} from '@src/types/onyx/DerivedValues';
 
 type OptionMode = ValueOf<typeof CONST.OPTION_MODE>;
 
@@ -75,9 +74,6 @@ type OptionRowLHNDataProps = {
     /** The full data of the report */
     fullReport: OnyxEntry<Report>;
 
-    /** The transaction thread report associated with the current report, if any */
-    oneTransactionThreadReport: OnyxEntry<Report>;
-
     /** Array of report name value pairs for this report */
     reportNameValuePairs: OnyxEntry<ReportNameValuePairs>;
 
@@ -98,9 +94,6 @@ type OptionRowLHNDataProps = {
 
     /** Whether a report contains a draft */
     hasDraftComment: boolean;
-
-    /** The receipt transaction from the parent report action */
-    receiptTransactions: OnyxCollection<Transaction>;
 
     /** The reportID of the report */
     reportID: string;
@@ -123,19 +116,13 @@ type OptionRowLHNDataProps = {
     viewMode?: OptionMode;
 
     /** The last message text from the report */
-    lastMessageTextFromReport: string;
+    lastMessageTextFromReport?: string;
 
     /** A function that is called when an option is selected. Selected option is passed as a param */
     onSelectRow?: (optionItem: OptionData, popoverAnchor: RefObject<View | null>) => void;
 
     /** Callback to execute when the OptionList lays out */
     onLayout?: (event: LayoutChangeEvent) => void;
-
-    /** The report attributes for the report */
-    reportAttributes: OnyxEntry<ReportAttributes>;
-
-    /** The derived report attributes for all reports */
-    reportAttributesDerived?: ReportAttributesDerivedValue['reports'];
 
     /** Whether to show the educational tooltip for the GBR or RBR */
     shouldShowRBRorGBRTooltip: boolean;
@@ -211,6 +198,9 @@ type OptionRowLHNProps = {
 
     /** The testID of the row */
     testID: number;
+
+    /** The concierge report ID from Onyx */
+    conciergeReportID: OnyxEntry<string>;
 };
 
 type RenderItemProps = {item: Report; index: number};

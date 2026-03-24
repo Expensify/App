@@ -2,9 +2,10 @@ import React from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
-import type {ListItem} from '@components/SelectionListWithSections/types';
+import type {ListItem} from '@components/SelectionList/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getDecodedCategoryName} from '@libs/CategoryUtils';
+import CONST from '@src/CONST';
 import CategorySelectorModal from './CategorySelectorModal';
 
 type CategorySelectorProps = {
@@ -57,6 +58,7 @@ function CategorySelector({defaultValue = '', wrapperStyle, label, setNewCategor
                 onPress={showPickerModal}
                 wrapperStyle={wrapperStyle}
                 focused={focused}
+                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.CATEGORY_SELECTOR}
             />
             <CategorySelectorModal
                 policyID={policyID}

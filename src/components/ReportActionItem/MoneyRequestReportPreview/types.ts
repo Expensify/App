@@ -1,5 +1,6 @@
-import type {LayoutChangeEvent, ListRenderItem, StyleProp, ViewStyle} from 'react-native';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {ListRenderItem} from '@shopify/flash-list';
+import type {LayoutChangeEvent, StyleProp, ViewStyle} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
 import type {TransactionPreviewStyleType} from '@components/ReportActionItem/TransactionPreview/types';
 import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 import type {ContextMenuAnchor} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
@@ -24,12 +25,6 @@ type MoneyRequestReportPreviewStyleType = {
 };
 
 type MoneyRequestReportPreviewProps = {
-    /** All the data of the report collection */
-    allReports: OnyxCollection<Report>;
-
-    /** All the data of the policy collection */
-    policies: OnyxCollection<Policy>;
-
     /** The report's policyID, used for Onyx subscription */
     policyID: string | undefined;
 
@@ -63,11 +58,11 @@ type MoneyRequestReportPreviewProps = {
     /** Whether  context menu should be shown on press */
     shouldDisplayContextMenu?: boolean;
 
-    /** Whether the report is an invoice preview */
-    isInvoice?: boolean;
-
     /** Whether to show a border to separate Reports Chat Item and Money Request Report Preview */
     shouldShowBorder?: boolean;
+
+    /** ID of the original report from which the given reportAction is first created */
+    originalReportID?: string;
 };
 
 type MoneyRequestReportPreviewContentOnyxProps = {
@@ -103,6 +98,9 @@ type MoneyRequestReportPreviewContentProps = MoneyRequestReportPreviewContentOny
 
         /** Callback called when the whole preview is pressed */
         onPress: () => void;
+
+        /** IDs of newly added transactions */
+        newTransactionIDs?: Set<string>;
     };
 
 export type {MoneyRequestReportPreviewContentProps, MoneyRequestReportPreviewProps, MoneyRequestReportPreviewStyleType};

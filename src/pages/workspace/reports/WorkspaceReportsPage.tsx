@@ -14,7 +14,7 @@ import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
-import type {ListItem} from '@components/SelectionListWithSections/types';
+import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -23,6 +23,7 @@ import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
 import {isConnectionInProgress, isConnectionUnverified} from '@libs/actions/connections';
 import {clearPolicyTitleFieldError, enablePolicyReportFields, setPolicyPreventMemberCreatedTitle} from '@libs/actions/Policy/Policy';
 import {getLatestErrorField} from '@libs/ErrorUtils';
@@ -30,6 +31,8 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import {getConnectedIntegration, getCurrentConnectionName, hasAccountingConnections as hasAccountingConnectionsPolicyUtils, isControlPolicy, shouldShowSyncError} from '@libs/PolicyUtils';
+import {getTitleFieldWithFallback} from '@libs/ReportUtils';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {getReportFieldTypeTranslationKey} from '@libs/WorkspaceReportFieldUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
@@ -63,7 +66,8 @@ function WorkspaceReportFieldsPage({
     const {translate, localeCompare} = useLocalize();
     const [isReportFieldsWarningModalOpen, setIsReportFieldsWarningModalOpen] = useState(false);
     const policy = usePolicy(policyID);
-    const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policyID}`, {canBeMissing: true});
+    useWorkspaceDocumentTitle(policy?.name, 'workspace.common.reports');
+    const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policyID}`);
     const isSyncInProgress = isConnectionInProgress(connectionSyncProgress, policy);
     const hasSyncError = shouldShowSyncError(policy, isSyncInProgress);
     const connectedIntegration = getConnectedIntegration(policy) ?? connectionSyncProgress?.connectionName;
@@ -87,6 +91,8 @@ function WorkspaceReportFieldsPage({
     useEffect(() => {
         openPolicyReportFieldsPage(policyID);
     }, [policyID]);
+
+    const titleField = getTitleFieldWithFallback(policy);
 
     const reportFieldsSections: ReportFieldForList[] = policy?.fieldList
         ? Object.entries(policy.fieldList)
@@ -121,6 +127,7 @@ function WorkspaceReportFieldsPage({
         );
 
     const isLoading = !isOffline && policy === undefined;
+    const reasonAttributes: SkeletonSpanReasonAttributes = {context: 'WorkspaceReportFieldsPage', isOffline, isPolicyUndefined: policy === undefined};
 
     const renderItem = ({item}: ListRenderItemInfo<ReportFieldForList>) => (
         <OfflineWithFeedback pendingAction={item.pendingAction}>
@@ -140,7 +147,8 @@ function WorkspaceReportFieldsPage({
     const titleFieldError = policy?.errorFields?.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE];
     const reportTitleErrors = getLatestErrorField({errorFields: titleFieldError ?? {}}, 'defaultValue');
 
-    const reportTitlePendingFields = policy?.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE]?.pendingFields ?? {};
+    const policyTitleField = policy?.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE];
+    const reportTitlePendingFields = policyTitleField?.pendingFields ?? {};
 
     const clearTitleFieldError = () => {
         clearPolicyTitleFieldError(policyID);
@@ -150,7 +158,12 @@ function WorkspaceReportFieldsPage({
 
     const renderReportTitle = () => (
         <OfflineWithFeedback pendingAction={policy?.pendingAction}>
-            <Text style={[styles.textHeadline, styles.cardSectionTitle, styles.accountSettingsSectionTitle, styles.mb1]}>{translate('workspace.common.reportTitle')}</Text>
+            <Text
+                style={[styles.textHeadline, styles.cardSectionTitle, styles.accountSettingsSectionTitle, styles.mb1]}
+                accessibilityRole={CONST.ROLE.HEADER}
+            >
+                {translate('workspace.common.reportTitle')}
+            </Text>
         </OfflineWithFeedback>
     );
 
@@ -186,12 +199,14 @@ function WorkspaceReportFieldsPage({
                     title={translate('common.reports')}
                     shouldUseHeadlineHeader
                     shouldShowBackButton={shouldUseNarrowLayout}
+                    shouldDisplayHelpButton
                     onBackButtonPress={Navigation.goBack}
                 />
                 {isLoading && (
                     <ActivityIndicator
                         size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
                         style={styles.flex1}
+                        reasonAttributes={reasonAttributes}
                     />
                 )}
                 {!isLoading && (
@@ -212,7 +227,7 @@ function WorkspaceReportFieldsPage({
                             >
                                 <MenuItemWithTopDescription
                                     description={translate('workspace.reports.customNameTitle')}
-                                    title={Str.htmlDecode(policy?.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE]?.defaultValue ?? '')}
+                                    title={Str.htmlDecode(titleField?.defaultValue ?? '')}
                                     shouldShowRightIcon
                                     style={[styles.sectionMenuItemTopDescription, styles.mt6]}
                                     onPress={() => Navigation.navigate(ROUTES.REPORTS_DEFAULT_TITLE.getRoute(policyID))}
@@ -224,7 +239,7 @@ function WorkspaceReportFieldsPage({
                                 switchAccessibilityLabel={translate('workspace.reports.preventMembersFromChangingCustomNamesTitle')}
                                 wrapperStyle={[styles.sectionMenuItemTopDescription, styles.mt3]}
                                 titleStyle={toggleTitleStyle}
-                                isActive={policy?.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE]?.deletable === false}
+                                isActive={titleField?.deletable === false}
                                 onToggle={(isEnabled) => {
                                     if (isEnabled && !isControlPolicy(policy)) {
                                         Navigation.navigate(
@@ -251,6 +266,7 @@ function WorkspaceReportFieldsPage({
                                 switchAccessibilityLabel={reportFieldsAccessibilityLabel}
                                 subtitle={getHeaderText()}
                                 titleStyle={[styles.textHeadline, styles.cardSectionTitle, styles.accountSettingsSectionTitle, styles.mb1]}
+                                titleAccessibilityRole={CONST.ROLE.HEADER}
                                 isActive={!!policy?.areReportFieldsEnabled}
                                 onToggle={(isEnabled) => {
                                     if (!isEnabled) {

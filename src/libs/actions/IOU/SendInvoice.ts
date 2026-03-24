@@ -15,11 +15,11 @@ import {
     buildOptimisticInvoiceReport,
     buildOptimisticMoneyRequestEntities,
     buildOptimisticReportPreview,
-    doesReportReceiverMatchParticipant,
     getParsedComment,
     getPersonalDetailsForAccountID,
 } from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
+import {startSpan} from '@libs/telemetry/activeSpans';
 import {buildOptimisticTransaction} from '@libs/TransactionUtils';
 import {buildOptimisticPolicyRecentlyUsedTags} from '@userActions/Policy/Tag';
 import {notifyNewAction} from '@userActions/Report';
@@ -38,6 +38,7 @@ import {
     getReceiptError,
     getSearchOnyxUpdate,
     handleNavigateAfterExpenseCreate,
+    highlightTransactionOnSearchRouteIfNeeded,
     mergePolicyRecentlyUsedCategories,
     mergePolicyRecentlyUsedCurrencies,
 } from '.';
@@ -597,19 +598,18 @@ function getSendInvoiceInformation({
     policyRecentlyUsedCategories,
     policyRecentlyUsedTags,
 }: SendInvoiceOptions): SendInvoiceInformation {
-    const {amount = 0, currency = '', created = '', merchant = '', category = '', tag = '', taxCode = '', taxAmount = 0, billable, comment, participants} = transaction ?? {};
+    const {amount = 0, currency = '', created = '', merchant = '', category = '', tag = '', taxCode = '', taxAmount = 0, taxValue, billable, comment, participants} = transaction ?? {};
     const trimmedComment = (comment?.comment ?? '').trim();
     const senderWorkspaceID = participants?.find((participant) => participant?.isSender)?.policyID;
     const receiverParticipant: Participant | InvoiceReceiver | undefined =
         participants?.find((participant) => participant?.accountID && !participant?.isSender) ?? invoiceChatReport?.invoiceReceiver;
     const receiverAccountID = receiverParticipant && 'accountID' in receiverParticipant && receiverParticipant.accountID ? receiverParticipant.accountID : CONST.DEFAULT_NUMBER_ID;
-    const invoiceChatReportReceiverMatches = doesReportReceiverMatchParticipant(invoiceChatReport, receiverAccountID);
     let receiver = getPersonalDetailsForAccountID(receiverAccountID);
     let optimisticPersonalDetailListAction = {};
 
     // STEP 1: Get existing chat report OR build a new optimistic one
     let isNewChatReport = false;
-    let chatReport = !isEmptyObject(invoiceChatReport) && invoiceChatReport?.reportID && invoiceChatReportReceiverMatches ? invoiceChatReport : null;
+    let chatReport = !isEmptyObject(invoiceChatReport) && invoiceChatReport?.reportID ? invoiceChatReport : null;
 
     if (!chatReport) {
         isNewChatReport = true;
@@ -645,6 +645,7 @@ function getSendInvoiceInformation({
             tag,
             taxCode,
             taxAmount,
+            taxValue,
             billable,
             reimbursable: true,
         },
@@ -801,10 +802,24 @@ function sendInvoice({
         ...(invoiceChatReport?.reportID ? {receiverInvoiceRoomID: invoiceChatReport.reportID} : {receiverEmail: receiver.login ?? ''}),
     };
 
+    startSpan(CONST.TELEMETRY.SPAN_SUBMIT_TO_DESTINATION_VISIBLE, {
+        name: 'submit-to-destination-visible',
+        op: CONST.TELEMETRY.SPAN_SUBMIT_TO_DESTINATION_VISIBLE,
+        attributes: {
+            [CONST.TELEMETRY.ATTRIBUTE_SCENARIO]: CONST.TELEMETRY.SUBMIT_EXPENSE_SCENARIO.INVOICE,
+            [CONST.TELEMETRY.ATTRIBUTE_HAS_RECEIPT]: !!receiptFile,
+            [CONST.TELEMETRY.ATTRIBUTE_IS_FROM_GLOBAL_CREATE]: isFromGlobalCreate,
+            [CONST.TELEMETRY.ATTRIBUTE_IOU_TYPE]: CONST.IOU.TYPE.INVOICE,
+            [CONST.TELEMETRY.ATTRIBUTE_IOU_REQUEST_TYPE]: 'invoice',
+        },
+    });
+
     playSound(SOUNDS.DONE);
     API.write(WRITE_COMMANDS.SEND_INVOICE, parameters, onyxData);
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     InteractionManager.runAfterInteractions(() => removeDraftTransaction(CONST.IOU.OPTIMISTIC_TRANSACTION_ID));
+
+    highlightTransactionOnSearchRouteIfNeeded(isFromGlobalCreate, transactionID, CONST.SEARCH.DATA_TYPES.INVOICE);
 
     handleNavigateAfterExpenseCreate({
         activeReportID: invoiceRoom.reportID,

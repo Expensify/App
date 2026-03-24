@@ -3,7 +3,7 @@ import React from 'react';
 import Onyx from 'react-native-onyx';
 import {SafeAreaProvider} from 'react-native-safe-area-context';
 import type {Parameters} from 'storybook/internal/types';
-import {EnvironmentProvider} from '@components/EnvironmentContext';
+import EnvironmentProvider from '@components/EnvironmentContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import {SearchContextProvider} from '@components/Search/SearchContext';
 import ComposeProviders from '@src/components/ComposeProviders';

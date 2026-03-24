@@ -3,52 +3,51 @@ import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import type {OnyxCollection} from 'react-native-onyx';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
-import {useSearchContext} from '@components/Search/SearchContext';
 import type {SearchQueryJSON} from '@components/Search/types';
 import ThreeDotsMenu from '@components/ThreeDotsMenu';
 import {setSearchContext} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
 import {getAllTaxRates} from '@libs/PolicyUtils';
-import {buildSearchQueryJSON, buildUserReadableQueryString, shouldSkipSuggestedSearchNavigation as shouldSkipSuggestedSearchNavigationForQuery} from '@libs/SearchQueryUtils';
+import {buildSearchQueryJSON, buildUserReadableQueryString} from '@libs/SearchQueryUtils';
 import type {SavedSearchMenuItem} from '@libs/SearchUIUtils';
-import {createBaseSavedSearchMenuItem, getActiveSearchItemIndex, getOverflowMenu as getOverflowMenuUtil, updateQueryStringOnSearchTypeChange} from '@libs/SearchUIUtils';
+import {createBaseSavedSearchMenuItem, doesSearchItemMatchSort, getItemBadgeText, getOverflowMenu as getOverflowMenuUtil} from '@libs/SearchUIUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import todosReportCountsSelector from '@src/selectors/Todos';
 import type {Report} from '@src/types/onyx';
-import {getEmptyObject, isEmptyObject} from '@src/types/utils/EmptyObject';
+import {getEmptyObject} from '@src/types/utils/EmptyObject';
 import useDeleteSavedSearch from './useDeleteSavedSearch';
+import useFeedKeysWithAssignedCards from './useFeedKeysWithAssignedCards';
 import {useMemoizedLazyExpensifyIcons} from './useLazyAsset';
 import useLocalize from './useLocalize';
 import useOnyx from './useOnyx';
+import useReportAttributes from './useReportAttributes';
 import useSearchTypeMenuSections from './useSearchTypeMenuSections';
 import useSingleExecution from './useSingleExecution';
-import useStickySearchFilters from './useStickySearchFilters';
-import useSuggestedSearchDefaultNavigation from './useSuggestedSearchDefaultNavigation';
 import useTheme from './useTheme';
 import useThemeStyles from './useThemeStyles';
 import useWindowDimensions from './useWindowDimensions';
 
 export default function useSearchTypeMenu(queryJSON: SearchQueryJSON) {
     const {hash, similarSearchHash} = queryJSON;
-    const shouldSkipSuggestedSearchNavigation = useMemo(() => shouldSkipSuggestedSearchNavigationForQuery(queryJSON), [queryJSON]);
 
     const theme = useTheme();
     const styles = useThemeStyles();
     const {singleExecution} = useSingleExecution();
     const {windowHeight} = useWindowDimensions();
     const {translate} = useLocalize();
-    const {typeMenuSections, shouldShowSuggestedSearchSkeleton} = useSearchTypeMenuSections();
-    const {clearSelectedTransactions} = useSearchContext();
+    const {typeMenuSections} = useSearchTypeMenuSections();
     const {showDeleteModal} = useDeleteSavedSearch();
-    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
+    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const personalDetails = usePersonalDetails();
-    const [reports = getEmptyObject<NonNullable<OnyxCollection<Report>>>()] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
+    const [reports = getEmptyObject<NonNullable<OnyxCollection<Report>>>()] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const taxRates = getAllTaxRates(allPolicies);
-    const [nonPersonalAndWorkspaceCards] = useOnyx(ONYXKEYS.DERIVED.NON_PERSONAL_AND_WORKSPACE_CARD_LIST, {canBeMissing: true});
-    const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES, {canBeMissing: true});
-    const [currentUserAccountID = -1] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector, canBeMissing: false});
+    const [personalAndWorkspaceCards] = useOnyx(ONYXKEYS.DERIVED.PERSONAL_AND_WORKSPACE_CARD_LIST);
+    const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES);
+    const [currentUserAccountID = -1] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
+    const [reportCounts = CONST.EMPTY_TODOS_REPORT_COUNTS] = useOnyx(ONYXKEYS.DERIVED.TODOS, {selector: todosReportCountsSelector});
     const expensifyIcons = useMemoizedLazyExpensifyIcons([
         'Basket',
         'Bookmark',
@@ -61,6 +60,7 @@ export default function useSearchTypeMenu(queryJSON: SearchQueryJSON) {
         'CreditCard',
         'MoneyHourglass',
         'CreditCardHourglass',
+        'ExpensifyCard',
         'Bank',
         'User',
         'Folder',
@@ -68,16 +68,10 @@ export default function useSearchTypeMenu(queryJSON: SearchQueryJSON) {
 
     const [isPopoverVisible, setIsPopoverVisible] = useState(false);
 
-    const [allFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER, {canBeMissing: true});
+    const [allFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER);
+    const feedKeysWithCards = useFeedKeysWithAssignedCards();
+    const reportAttributes = useReportAttributes();
     const flattenedMenuItems = useMemo(() => typeMenuSections.flatMap((section) => section.menuItems), [typeMenuSections]);
-
-    useSuggestedSearchDefaultNavigation({
-        shouldShowSkeleton: shouldShowSuggestedSearchSkeleton,
-        flattenedMenuItems,
-        similarSearchHash,
-        clearSelectedTransactions,
-        shouldSkipNavigation: shouldSkipSuggestedSearchNavigation,
-    });
 
     // this is a performance fix, rendering popover menu takes a lot of time and we don't need this component initially, that's why we postpone rendering it until everything else is rendered
     const [delayPopoverMenuFirstRender, setDelayPopoverMenuFirstRender] = useState(true);
@@ -116,12 +110,14 @@ export default function useSearchTypeMenu(queryJSON: SearchQueryJSON) {
                     PersonalDetails: personalDetails,
                     reports,
                     taxRates,
-                    cardList: nonPersonalAndWorkspaceCards,
+                    cardList: personalAndWorkspaceCards,
                     cardFeeds: allFeeds,
                     policies: allPolicies,
                     currentUserAccountID,
                     autoCompleteWithSpace: false,
                     translate,
+                    feedKeysWithCards,
+                    reportAttributes,
                 });
             }
 
@@ -169,19 +165,27 @@ export default function useSearchTypeMenu(queryJSON: SearchQueryJSON) {
         personalDetails,
         reports,
         taxRates,
-        nonPersonalAndWorkspaceCards,
+        personalAndWorkspaceCards,
         allFeeds,
         allPolicies,
         currentUserAccountID,
         translate,
+        feedKeysWithCards,
+        reportAttributes,
     ]);
 
-    const [activeItemIndex, isExploreSectionActive] = useMemo(
-        () => getActiveSearchItemIndex(flattenedMenuItems, similarSearchHash, isSavedSearchActive, queryJSON?.type),
-        [similarSearchHash, isSavedSearchActive, flattenedMenuItems, queryJSON?.type],
-    );
+    const activeItemIndex = useMemo(() => {
+        if (isSavedSearchActive) {
+            return -1;
+        }
 
-    const allSearchAdvancedFilters = useStickySearchFilters(isExploreSectionActive && !shouldShowSuggestedSearchSkeleton);
+        return flattenedMenuItems.findIndex((item) => {
+            if (item.similarSearchHash !== similarSearchHash) {
+                return false;
+            }
+            return doesSearchItemMatchSort(item.key, item.searchQueryJSON?.sortBy, item.searchQueryJSON?.sortOrder, queryJSON.sortBy, queryJSON.sortOrder);
+        });
+    }, [similarSearchHash, isSavedSearchActive, flattenedMenuItems, queryJSON.sortBy, queryJSON.sortOrder]);
 
     const popoverMenuItems = useMemo(() => {
         return typeMenuSections
@@ -207,7 +211,8 @@ export default function useSearchTypeMenu(queryJSON: SearchQueryJSON) {
                         const icon = typeof item.icon === 'string' ? expensifyIcons[item.icon] : item.icon;
 
                         sectionItems.push({
-                            badgeText: item.badgeText,
+                            badgeText: getItemBadgeText(item.key, reportCounts),
+                            isBadgeSuccess: true,
                             text: translate(item.translationPath),
                             isSelected,
                             icon,
@@ -216,12 +221,7 @@ export default function useSearchTypeMenu(queryJSON: SearchQueryJSON) {
                             shouldCallAfterModalHide: true,
                             onSelected: singleExecution(() => {
                                 setSearchContext(false);
-                                let queryString = item.searchQuery;
-
-                                if (section.translationPath === 'common.explore' && !isEmptyObject(allSearchAdvancedFilters)) {
-                                    queryString = updateQueryStringOnSearchTypeChange(item.type, allSearchAdvancedFilters, queryJSON);
-                                }
-                                Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: queryString}));
+                                Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: item.searchQuery}));
                             }),
                         });
                     }
@@ -230,7 +230,7 @@ export default function useSearchTypeMenu(queryJSON: SearchQueryJSON) {
                 return sectionItems;
             })
             .flat();
-    }, [typeMenuSections, translate, styles.textSupporting, savedSearchesMenuItems, activeItemIndex, expensifyIcons, theme.border, singleExecution, allSearchAdvancedFilters, queryJSON]);
+    }, [typeMenuSections, translate, styles.textSupporting, savedSearchesMenuItems, activeItemIndex, theme.border, expensifyIcons, singleExecution, reportCounts]);
 
     const openMenu = useCallback(() => {
         setIsPopoverVisible(true);

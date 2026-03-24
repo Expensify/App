@@ -28,7 +28,7 @@ function GetStartedTravel({policyID}: GetStartedTravelProps) {
     const autoAddTripName = policy?.travelSettings?.autoAddTripName !== false;
 
     const toggleAutoAddTripName = (enabled: boolean) => {
-        setPolicyTravelSettings(policyID, {autoAddTripName: enabled});
+        setPolicyTravelSettings(policy, {autoAddTripName: enabled});
     };
 
     const handleManageTravel = () => {
@@ -53,6 +53,7 @@ function GetStartedTravel({policyID}: GetStartedTravelProps) {
                     icon={icons.LuggageWithLines}
                     onPress={handleManageTravel}
                     shouldShowRightIcon
+                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.TRAVEL.BOOK_TRAVEL_BUTTON}
                     iconRight={icons.NewWindow}
                     wrapperStyle={[styles.sectionMenuItemTopDescription, styles.mt3]}
                 />

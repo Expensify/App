@@ -11,4 +11,25 @@ const delegatesSelector = (account: OnyxEntry<Account>) => account?.delegatedAcc
 
 const hasBiometricsRegisteredSelector = (data: OnyxEntry<Account>) => data?.multifactorAuthenticationPublicKeyIDs && data.multifactorAuthenticationPublicKeyIDs.length > 0;
 
-export {isActingAsDelegateSelector, isUserValidatedSelector, primaryLoginSelector, delegatesSelector, hasBiometricsRegisteredSelector};
+const isAccountLoadingSelector = (data: OnyxEntry<Account>) => !!data?.isLoading;
+
+const requiresTwoFactorAuthSelector = (data: OnyxEntry<Account>) => data?.requiresTwoFactorAuth;
+
+const accountGuideDetailsSelector = (account: OnyxEntry<Account>) => account?.guideDetails;
+
+const mfaCredentialIDsSelector = (data: OnyxEntry<Account>) => data?.multifactorAuthenticationPublicKeyIDs;
+
+const isFromInternalDomainSelector = (account: OnyxEntry<Account>) => account?.isFromInternalDomain;
+
+export {
+    isActingAsDelegateSelector,
+    isUserValidatedSelector,
+    primaryLoginSelector,
+    delegatesSelector,
+    hasBiometricsRegisteredSelector,
+    isAccountLoadingSelector,
+    requiresTwoFactorAuthSelector,
+    accountGuideDetailsSelector,
+    mfaCredentialIDsSelector,
+    isFromInternalDomainSelector,
+};

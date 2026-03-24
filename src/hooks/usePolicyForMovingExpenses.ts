@@ -1,7 +1,7 @@
 import {activePolicySelector} from '@selectors/Policy';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useSession} from '@components/OnyxListItemProvider';
-import {canSubmitPerDiemExpenseFromWorkspace, isPaidGroupPolicy, isPolicyMemberWithoutPendingDelete} from '@libs/PolicyUtils';
+import {canSubmitPerDiemExpenseFromWorkspace, isPaidGroupPolicy, isPolicyMemberWithoutPendingDelete, isTimeTrackingEnabled} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy} from '@src/types/onyx';
@@ -20,21 +20,21 @@ function isPolicyMemberByRole(policy: OnyxEntry<Policy>) {
     return !!policy?.role && Object.values(CONST.POLICY.ROLE).includes(policy.role);
 }
 
-function isPolicyValidForMovingExpenses(policy: OnyxEntry<Policy>, login: string, isPerDiemRequest?: boolean) {
+function isPolicyValidForMovingExpenses(policy: OnyxEntry<Policy>, login: string, isPerDiemRequest?: boolean, isTimeRequest?: boolean) {
     return (
         checkForUserPendingDelete(login, policy) &&
         isPolicyMemberByRole(policy) &&
         isPaidGroupPolicy(policy) &&
         policy?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE &&
-        (!isPerDiemRequest || canSubmitPerDiemExpenseFromWorkspace(policy))
+        (!isPerDiemRequest || canSubmitPerDiemExpenseFromWorkspace(policy)) &&
+        (!isTimeRequest || isTimeTrackingEnabled(policy))
     );
 }
 
-function usePolicyForMovingExpenses(isPerDiemRequest?: boolean, expensePolicyID?: string) {
-    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
-    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
+function usePolicyForMovingExpenses(isPerDiemRequest?: boolean, isTimeRequest?: boolean, expensePolicyID?: string) {
+    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`, {
-        canBeMissing: true,
         selector: activePolicySelector,
     });
 
@@ -45,7 +45,7 @@ function usePolicyForMovingExpenses(isPerDiemRequest?: boolean, expensePolicyID?
     let singleUserPolicy;
     let isMemberOfMoreThanOnePolicy = false;
     for (const policy of Object.values(allPolicies ?? {})) {
-        if (!isPolicyValidForMovingExpenses(policy, login, isPerDiemRequest)) {
+        if (!isPolicyValidForMovingExpenses(policy, login, isPerDiemRequest, isTimeRequest)) {
             continue;
         }
 
@@ -62,12 +62,12 @@ function usePolicyForMovingExpenses(isPerDiemRequest?: boolean, expensePolicyID?
     // even if the user's default workspace is A
     if (expensePolicyID) {
         const expensePolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${expensePolicyID}`];
-        if (expensePolicy && isPolicyValidForMovingExpenses(expensePolicy, login, isPerDiemRequest)) {
+        if (expensePolicy && isPolicyValidForMovingExpenses(expensePolicy, login, isPerDiemRequest, isTimeRequest)) {
             return {policyForMovingExpensesID: expensePolicyID, policyForMovingExpenses: expensePolicy, shouldSelectPolicy: false};
         }
     }
 
-    if (activePolicy && (!isPerDiemRequest || canSubmitPerDiemExpenseFromWorkspace(activePolicy))) {
+    if (activePolicy && (!isPerDiemRequest || canSubmitPerDiemExpenseFromWorkspace(activePolicy)) && (!isTimeRequest || isTimeTrackingEnabled(activePolicy))) {
         return {policyForMovingExpensesID: activePolicyID, policyForMovingExpenses: activePolicy, shouldSelectPolicy: false};
     }
 

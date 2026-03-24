@@ -400,6 +400,9 @@ function removeMembers(policy: OnyxEntry<Policy>, selectedMemberEmails: string[]
         const employee = policy?.employeeList?.[employeeEmail];
         optimisticMembersState[employeeEmail] = optimisticMembersState[employeeEmail] ?? {};
         failureMembersState[employeeEmail] = failureMembersState[employeeEmail] ?? {};
+        if (employee?.email && selectedMemberEmails.includes(employee.email)) {
+            continue;
+        }
         if (employee?.submitsTo && selectedMemberEmails.includes(employee?.submitsTo)) {
             optimisticMembersState[employeeEmail] = {
                 ...optimisticMembersState[employeeEmail],
@@ -894,7 +897,17 @@ function buildAddMembersToWorkspaceOnyxData(
         };
     }
 
-    const optimisticData: OnyxUpdate[] = [
+    const optimisticData: Array<
+        OnyxUpdate<
+            | typeof ONYXKEYS.COLLECTION.POLICY
+            | typeof ONYXKEYS.PERSONAL_DETAILS_LIST
+            | typeof ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS
+            | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
+            | typeof ONYXKEYS.COLLECTION.REPORT_METADATA
+            | typeof ONYXKEYS.COLLECTION.REPORT
+            | typeof ONYXKEYS.COLLECTION.REPORT_DRAFT
+        >
+    > = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: policyKey,
@@ -913,7 +926,15 @@ function buildAddMembersToWorkspaceOnyxData(
         ...(adminRoomMembers.optimisticData ?? []),
     );
 
-    const successData: OnyxUpdate[] = [
+    const successData: Array<
+        OnyxUpdate<
+            | typeof ONYXKEYS.COLLECTION.POLICY
+            | typeof ONYXKEYS.PERSONAL_DETAILS_LIST
+            | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
+            | typeof ONYXKEYS.COLLECTION.REPORT_METADATA
+            | typeof ONYXKEYS.COLLECTION.REPORT
+        >
+    > = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: policyKey,
@@ -930,7 +951,16 @@ function buildAddMembersToWorkspaceOnyxData(
         ...(adminRoomMembers.successData ?? []),
     );
 
-    const failureData: OnyxUpdate[] = [
+    const failureData: Array<
+        OnyxUpdate<
+            | typeof ONYXKEYS.COLLECTION.POLICY
+            | typeof ONYXKEYS.PERSONAL_DETAILS_LIST
+            | typeof ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS
+            | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
+            | typeof ONYXKEYS.COLLECTION.REPORT_METADATA
+            | typeof ONYXKEYS.COLLECTION.REPORT
+        >
+    > = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: policyKey,
@@ -991,6 +1021,10 @@ type PolicyMember = {
     role: string;
     submitsTo?: string;
     forwardsTo?: string;
+    customField1?: string;
+    customField2?: string;
+    approvalLimit?: string;
+    overLimitForwardsTo?: string;
 };
 
 function importPolicyMembers(policy: OnyxEntry<Policy>, members: PolicyMember[]) {
@@ -1002,7 +1036,17 @@ function importPolicyMembers(policy: OnyxEntry<Policy>, members: PolicyMember[])
         (acc, curr) => {
             const employee = policy?.employeeList?.[curr.email];
             if (employee) {
-                if (curr.role !== employee.role || (curr.submitsTo ?? '') !== (employee.submitsTo ?? '') || (curr.forwardsTo ?? '') !== (employee.forwardsTo ?? '')) {
+                const existingCustomField1 = employee.employeeUserID;
+                const existingCustomField2 = employee.employeePayrollID;
+                if (
+                    curr.role !== employee.role ||
+                    (curr.submitsTo ?? '') !== (employee.submitsTo ?? '') ||
+                    (curr.forwardsTo ?? '') !== (employee.forwardsTo ?? '') ||
+                    (curr.customField1 !== undefined && curr.customField1 !== (existingCustomField1 ?? '')) ||
+                    (curr.customField2 !== undefined && curr.customField2 !== (existingCustomField2 ?? '')) ||
+                    (curr.approvalLimit !== undefined && curr.approvalLimit !== String(employee.approvalLimit ?? '')) ||
+                    (curr.overLimitForwardsTo !== undefined && curr.overLimitForwardsTo !== (employee.overLimitForwardsTo ?? ''))
+                ) {
                     acc.updated++;
                 }
             } else {
@@ -1016,7 +1060,18 @@ function importPolicyMembers(policy: OnyxEntry<Policy>, members: PolicyMember[])
 
     const parameters = {
         policyID: policy.id,
-        employees: JSON.stringify(members.map((member) => ({email: member.email, role: member.role, submitsTo: member.submitsTo, forwardsTo: member.forwardsTo}))),
+        employees: JSON.stringify(
+            members.map((member) => ({
+                email: member.email,
+                role: member.role,
+                submitsTo: member.submitsTo,
+                forwardsTo: member.forwardsTo,
+                ...(member.customField1 !== undefined && {customField1: member.customField1}),
+                ...(member.customField2 !== undefined && {customField2: member.customField2}),
+                ...(member.approvalLimit !== undefined && {approvalLimit: member.approvalLimit}),
+                ...(member.overLimitForwardsTo !== undefined && {overLimitForwardsTo: member.overLimitForwardsTo}),
+            })),
+        ),
     };
 
     API.write(WRITE_COMMANDS.IMPORT_MEMBERS_SPREADSHEET, parameters, onyxData);
@@ -1032,7 +1087,7 @@ function inviteMemberToWorkspace(policyID: string, inviterEmail?: string) {
     const optimisticMembersState = {policyID, inviterEmail};
     const failureMembersState = {policyID, inviterEmail};
 
-    const optimisticData: OnyxUpdate[] = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY_JOIN_MEMBER>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: memberJoinKey,
@@ -1040,7 +1095,7 @@ function inviteMemberToWorkspace(policyID: string, inviterEmail?: string) {
         },
     ];
 
-    const failureData: OnyxUpdate[] = [
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY_JOIN_MEMBER>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: memberJoinKey,
@@ -1059,7 +1114,7 @@ function inviteMemberToWorkspace(policyID: string, inviterEmail?: string) {
 function joinAccessiblePolicy(policyID: string) {
     const memberJoinKey = `${ONYXKEYS.COLLECTION.POLICY_JOIN_MEMBER}${policyID}` as const;
 
-    const optimisticData: OnyxUpdate[] = [
+    const optimisticData: Array<OnyxUpdate<typeof memberJoinKey>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: memberJoinKey,
@@ -1067,7 +1122,7 @@ function joinAccessiblePolicy(policyID: string) {
         },
     ];
 
-    const failureData: OnyxUpdate[] = [
+    const failureData: Array<OnyxUpdate<typeof memberJoinKey>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: memberJoinKey,
@@ -1084,7 +1139,7 @@ function joinAccessiblePolicy(policyID: string) {
 function askToJoinPolicy(policyID: string) {
     const memberJoinKey = `${ONYXKEYS.COLLECTION.POLICY_JOIN_MEMBER}${policyID}` as const;
 
-    const optimisticData: OnyxUpdate[] = [
+    const optimisticData: Array<OnyxUpdate<typeof memberJoinKey>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: memberJoinKey,
@@ -1092,7 +1147,7 @@ function askToJoinPolicy(policyID: string) {
         },
     ];
 
-    const failureData: OnyxUpdate[] = [
+    const failureData: Array<OnyxUpdate<typeof memberJoinKey>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: memberJoinKey,

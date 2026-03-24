@@ -10,7 +10,6 @@ import type {CardFeedWithDomainID, CardFeedWithNumber} from '@src/types/onyx/Car
 const DERIVED_VALUE_CONTEXT: DerivedValueContext<typeof cardFeedErrorsConfig.key, typeof cardFeedErrorsConfig.dependencies> = {
     currentValue: undefined,
     sourceValues: undefined,
-    areAllConnectionsSet: false,
 };
 
 const CARD_FEEDS = {
@@ -505,6 +504,9 @@ describe('CardFeedErrors Derived Value', () => {
                                     pending: false,
                                     errors: {error: 'Feed error'},
                                 },
+                            },
+                            oAuthAccountDetails: {
+                                [cardFeed.feedName]: {accountList: ['CREDIT CARD...1234'], credentials: 'xxxxx', expiration: 1730998958},
                             },
                         },
                     },

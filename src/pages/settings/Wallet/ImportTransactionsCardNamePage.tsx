@@ -13,6 +13,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {setImportTransactionCardName} from '@libs/actions/ImportSpreadsheet';
 import {addErrorMessage} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import {isValidInputLength} from '@libs/ValidationUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ImportTransactionsForm';
@@ -21,7 +22,7 @@ function ImportTransactionsCardNamePage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
-    const [importedSpreadsheet] = useOnyx(ONYXKEYS.IMPORTED_SPREADSHEET, {canBeMissing: true});
+    const [importedSpreadsheet] = useOnyx(ONYXKEYS.IMPORTED_SPREADSHEET);
 
     const submit = useCallback((values: FormOnyxValues<typeof ONYXKEYS.FORMS.IMPORT_TRANSACTIONS_FORM>) => {
         setImportTransactionCardName(values.cardDisplayName.trim());
@@ -34,8 +35,10 @@ function ImportTransactionsCardNamePage() {
             const errors: FormInputErrors<typeof ONYXKEYS.FORMS.IMPORT_TRANSACTIONS_FORM> = {};
             const name = values.cardDisplayName.trim();
 
-            if ([...name].length > CONST.TITLE_CHARACTER_LIMIT) {
-                addErrorMessage(errors, 'cardDisplayName', translate('common.error.characterLimitExceedCounter', [...name].length, CONST.TITLE_CHARACTER_LIMIT));
+            const {isValid, byteLength} = isValidInputLength(name, CONST.TITLE_CHARACTER_LIMIT);
+
+            if (!isValid) {
+                addErrorMessage(errors, 'cardDisplayName', translate('common.error.characterLimitExceedCounter', byteLength, CONST.TITLE_CHARACTER_LIMIT));
             }
 
             return errors;

@@ -13,6 +13,7 @@ import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import {hasCompletedGuidedSetupFlowSelector} from '@src/selectors/Onboarding';
 import type {Locale, Onboarding} from '@src/types/onyx';
@@ -82,7 +83,7 @@ Onyx.connectWithoutView({
  */
 function startOnboardingFlow(startOnboardingFlowParams: GetOnboardingInitialPathParamsType) {
     const currentRoute = navigationRef.getCurrentRoute();
-    const adaptedState = getAdaptedStateFromPath(getOnboardingInitialPath(startOnboardingFlowParams), linkingConfig.config, false);
+    const adaptedState = getAdaptedStateFromPath(getOnboardingInitialPath(startOnboardingFlowParams) as Route, undefined, false);
     const focusedRoute = findFocusedRoute(adaptedState as PartialState<NavigationState<RootNavigatorParamList>>);
     if (focusedRoute?.name === currentRoute?.name) {
         return;
@@ -113,10 +114,6 @@ function getOnboardingInitialPath(getOnboardingInitialPathParams: GetOnboardingI
     const isSmb = currentOnboardingValues?.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.SMB;
     const isIndividual = currentOnboardingValues?.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.INDIVIDUAL;
     const isCurrentOnboardingPurposeManageTeam = currentOnboardingPurposeSelected === CONST.ONBOARDING_CHOICES.MANAGE_TEAM;
-
-    if (onboardingInitialPath.includes(ROUTES.TEST_DRIVE_MODAL_ROOT.route)) {
-        return `/${ROUTES.TEST_DRIVE_MODAL_ROOT.route}`;
-    }
 
     if (isVsb) {
         Onyx.set(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED, CONST.ONBOARDING_CHOICES.MANAGE_TEAM);
@@ -365,7 +362,7 @@ const getOnboardingMessages = (locale?: Locale) => {
         tasks: [reviewWorkspaceSettingsTask, adminSubmitExpenseTask],
     };
     const onboardingLookingAroundMessage: OnboardingMessage = {
-        message: translate(resolvedLocale, 'onboarding.messages.onboardingLookingAroundMessage'),
+        message: '',
         tasks: [],
     };
 

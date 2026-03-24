@@ -1,6 +1,7 @@
 ---
 ---
 
+<script src="https://unpkg.com/turndown@7.2.0/dist/turndown.js"></script>
 <div class="homepage">
     <h1 class="title homepage-title" id="search-page-title">Search</h1>
     <form id="search-page-form" class="homepage-search search-page-form" action="#">
@@ -15,11 +16,16 @@
             <img src="/assets/images/search.svg" class="base-icon" />
         </button>
     </form>
-    <div id="search-page-results" class="search-results homepage-results-container"></div>
-<script>
-    if (new URLSearchParams(window.location.search).get('q')) {
-        // This is done to prevent layout jumps when first loading the page with a search query
-        document.getElementById('search-page-results').style.minHeight = '500px';
-    }
-</script>
+    <div class="search-columns">
+        <div class="search-articles-column">
+            <div id="search-page-results" class="search-results homepage-results-container"></div>
+        </div>
+        <div id="ai-answer-container" class="ai-answer-container"></div>
+    </div>
+    <script>
+        if (new URLSearchParams(window.location.search).get('q')) {
+            // This is done to prevent layout jumps when first loading the page with a search query
+            document.getElementById('search-page-results').style.minHeight = '500px';
+        }
+    </script>
 </div>

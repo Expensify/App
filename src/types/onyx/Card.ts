@@ -40,12 +40,6 @@ type PossibleFraudData = {
     fraudAlertReportActionID?: number;
 };
 
-/** Model of card message data */
-type CardMessage = {
-    /** Possible fraud information */
-    possibleFraud?: PossibleFraudData;
-};
-
 /** Model of Expensify card */
 type Card = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Card ID number */
@@ -93,9 +87,6 @@ type Card = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Current fraud state of the card */
     fraud: ValueOf<typeof CONST.EXPENSIFY_CARD.FRAUD_TYPES>;
 
-    /** Card message data containing possible fraud info and other metadata */
-    message?: CardMessage;
-
     /** Card name */
     cardName?: string;
 
@@ -129,6 +120,9 @@ type Card = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Card's primary account identifier token */
     token?: string;
 
+    /** Whether the card is in an offline PIN market */
+    isOfflinePINMarket?: boolean;
+
     /** Additional card data */
     nameValuePairs?: OnyxCommon.OnyxValueWithOfflineFeedback<{
         /** Type of card spending limits */
@@ -157,6 +151,9 @@ type Card = OnyxCommon.OnyxValueWithOfflineFeedback<{
 
         /** Issued card country */
         country?: string;
+
+        /** Program currency of the card (USD, GBP, or EUR) */
+        currency?: string;
 
         /** Is a virtual card */
         isVirtual?: boolean;
@@ -201,6 +198,9 @@ type Card = OnyxCommon.OnyxValueWithOfflineFeedback<{
          * null/undefined if card is not frozen
          */
         frozen?: FrozenCardData | null;
+
+        /** Possible fraud information */
+        possibleFraud?: PossibleFraudData;
     }> &
         OnyxCommon.OnyxValueWithOfflineFeedback<
             /** Type of export card */
@@ -423,7 +423,6 @@ export type {
     AssignableCardsList,
     CardAssignmentData,
     UnassignedCard,
-    CardMessage,
     PossibleFraudData,
     FrozenCardData,
 };

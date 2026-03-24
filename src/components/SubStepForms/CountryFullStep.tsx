@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
@@ -49,20 +49,25 @@ function CountryFullStep({onBackButtonPress, stepNames, onSubmit, policyID, isCo
     const styles = useThemeStyles();
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
-    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: false});
-    const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT, {canBeMissing: true});
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: true});
-    const currency = policy?.outputCurrency ?? '';
+    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
+    const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
 
-    const shouldAllowChange = currency === CONST.CURRENCY.EUR;
+    const currency =
+        reimbursementAccountDraft?.currency ??
+        policy?.outputCurrency ??
+        reimbursementAccount?.achData?.currency ??
+        CONST.BBA_COUNTRY_CURRENCY_MAP[reimbursementAccount?.achData?.country ?? ''];
+
+    const shouldAllowChange = currency === CONST.CURRENCY.EUR && !reimbursementAccount?.achData?.accountNumber;
     const defaultCountries = shouldAllowChange ? CONST.ALL_EUROPEAN_UNION_COUNTRIES : CONST.ALL_COUNTRIES;
-    const currencyMappedToCountry = mapCurrencyToCountry(currency);
+    const countryDefaultValue = reimbursementAccountDraft?.[COUNTRY] ?? reimbursementAccount?.achData?.[COUNTRY] ?? '';
+    const currencyMappedToCountry = mapCurrencyToCountry(currency) || countryDefaultValue;
     const isUkEuCurrencySupported = useExpensifyCardUkEuSupported(policyID) && isComingFromExpensifyCard;
     const countriesSupportedForExpensifyCard = getAvailableEuCountries();
 
-    const countryDefaultValue = reimbursementAccountDraft?.[COUNTRY] ?? reimbursementAccount?.achData?.[COUNTRY] ?? '';
-    const [userSelectedCountry, setUserSelectedCountry] = useState<string>(countryDefaultValue);
-    const selectedCountry = shouldAllowChange ? userSelectedCountry : currencyMappedToCountry;
+    const [userSelectedCountry, setUserSelectedCountry] = useState<string>('');
+    const selectedCountry = shouldAllowChange ? userSelectedCountry || countryDefaultValue : currencyMappedToCountry;
     const disableSubmit = !(currency in CONST.CURRENCY);
 
     const handleSettingsPress = () => {
@@ -75,20 +80,20 @@ function CountryFullStep({onBackButtonPress, stepNames, onSubmit, policyID, isCo
     };
 
     const handleSubmit = () => {
-        setDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, {[COUNTRY]: selectedCountry});
+        if (selectedCountry !== countryDefaultValue) {
+            setDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, {[COUNTRY]: selectedCountry});
+        }
         onSubmit();
     };
 
-    const validate = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
-            return getFieldRequiredErrors(values, [COUNTRY], translate);
-        },
-        [translate],
-    );
+    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
+        return getFieldRequiredErrors(values, [COUNTRY], translate);
+    };
 
+    // Clear any stale errors on mount
     useEffect(() => {
         clearErrors(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM);
-    });
+    }, []);
 
     const handleBackButtonPress = () => {
         clearErrors(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM);
@@ -119,18 +124,20 @@ function CountryFullStep({onBackButtonPress, stepNames, onSubmit, policyID, isCo
                     title={currency}
                     interactive={false}
                 />
-                <View style={styles.ph5}>
-                    <Text style={[styles.mb3, styles.mutedTextLabel]}>
-                        {`${translate('countryStep.yourBusiness')} ${translate('countryStep.youCanChange')}`}{' '}
-                        <TextLink
-                            style={[styles.label]}
-                            onPress={handleSettingsPress}
-                        >
-                            {translate('common.settings').toLowerCase()}
-                        </TextLink>
-                        .
-                    </Text>
-                </View>
+                {!!policyID && (
+                    <View style={styles.ph5}>
+                        <Text style={[styles.mb3, styles.mutedTextLabel]}>
+                            {`${translate('countryStep.yourBusiness')} ${translate('countryStep.youCanChange')}`}{' '}
+                            <TextLink
+                                style={[styles.label]}
+                                onPress={handleSettingsPress}
+                            >
+                                {translate('common.settings').toLowerCase()}
+                            </TextLink>
+                            .
+                        </Text>
+                    </View>
+                )}
                 <InputWrapper
                     InputComponent={PushRowWithModal}
                     optionsList={isUkEuCurrencySupported ? countriesSupportedForExpensifyCard : defaultCountries}

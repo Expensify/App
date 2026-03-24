@@ -5,14 +5,14 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import useOnyx from './useOnyx';
 
 function useThemePreference() {
-    const [preferredThemeFromStorage] = useOnyx(ONYXKEYS.PREFERRED_THEME, {canBeMissing: true});
+    const [preferredThemeFromStorage] = useOnyx(ONYXKEYS.PREFERRED_THEME);
     const systemTheme = useColorScheme();
 
     const themePreference = useMemo(() => {
         const theme = preferredThemeFromStorage ?? CONST.THEME.DEFAULT;
 
         // If the user chooses to use the device theme settings, set the theme preference to the system theme
-        return theme === CONST.THEME.SYSTEM ? (systemTheme ?? CONST.THEME.FALLBACK) : theme;
+        return theme === CONST.THEME.SYSTEM ? ((systemTheme ?? CONST.THEME.FALLBACK) as 'light' | 'dark') : theme;
     }, [preferredThemeFromStorage, systemTheme]);
 
     return themePreference;
