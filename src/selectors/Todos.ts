@@ -4,10 +4,10 @@ import CONST from '@src/CONST';
 import type {TodosDerivedValue} from '@src/types/onyx';
 
 const EMPTY_TODOS_SINGLE_REPORT_IDS = Object.freeze({
-    submit: undefined,
-    approve: undefined,
-    pay: undefined,
-    export: undefined,
+    [CONST.SEARCH.SEARCH_KEYS.SUBMIT]: undefined,
+    [CONST.SEARCH.SEARCH_KEYS.APPROVE]: undefined,
+    [CONST.SEARCH.SEARCH_KEYS.PAY]: undefined,
+    [CONST.SEARCH.SEARCH_KEYS.EXPORT]: undefined,
 });
 
 const todosReportCountsSelector = (todos: OnyxEntry<TodosDerivedValue>) => {
@@ -30,6 +30,10 @@ type SingleReportIDs = {
     [CONST.SEARCH.SEARCH_KEYS.EXPORT]: string | undefined;
 };
 
+// Manual memoization: singleReportIDs is used as a whole object in useMemo dependency arrays
+// in ForYouSection, so referential stability is needed to avoid cascading re-computation.
+// todosReportCountsSelector doesn't need this because its values are immediately destructured
+// into primitive variables (submitCount, approveCount, etc.).
 let previousSingleReportIDs: SingleReportIDs = EMPTY_TODOS_SINGLE_REPORT_IDS as SingleReportIDs;
 
 const todosSingleReportIDsSelector = (todos: OnyxEntry<TodosDerivedValue>) => {
