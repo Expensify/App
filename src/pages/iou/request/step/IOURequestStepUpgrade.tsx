@@ -82,7 +82,7 @@ function IOURequestStepUpgrade({
 
     const navigateWithMicrotask = (route: Route) => {
         if (isWeb) {
-        Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.navigate(route));
+            Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.navigate(route));
         } else {
             Navigation.navigate(route);
         }
