@@ -1110,6 +1110,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
                                                 transactionThreadReportID={isSentMoneyReport ? undefined : transactionThreadReportID}
                                                 shouldHideStatusIndicators={isConciergeSidePanel && !hasUserSentMessage}
                                                 kickoffWaitingIndicator={kickoffWaitingIndicator}
+                                                conciergeReportID={conciergeReportID}
                                             />
                                         ) : null}
                                     </View>

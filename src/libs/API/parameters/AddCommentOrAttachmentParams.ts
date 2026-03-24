@@ -14,6 +14,7 @@ type AddCommentOrAttachmentParams = {
     pageHTML?: string;
     optimisticConciergeReportActionID?: string;
     pregeneratedResponse?: string;
+    activeReportID?: string;
 };
 
 export default AddCommentOrAttachmentParams;
