@@ -1,10 +1,8 @@
-import type {OnyxKey, OnyxUpdate} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
+import type {OnyxKey} from 'react-native-onyx';
 import type {TupleToUnion} from 'type-fest';
 import type {DetachReceiptParams, OpenReportParams, UpdateCommentParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import type {ApiRequestCommandParameters} from '@libs/API/types';
-import ONYXKEYS from '@src/ONYXKEYS';
 import type OnyxRequest from '@src/types/onyx/Request';
 import type {AnyRequest, ConflictActionData} from '@src/types/onyx/Request';
 
@@ -137,19 +135,15 @@ function resolveCommentDeletionConflicts<TKey extends OnyxKey>(persistedRequests
         };
     }
 
-    if (addCommentFound) {
-        // The new message performs some changes in Onyx, so we need to rollback those changes.
-        const rollbackData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${originalReportID}`,
-                value: {
-                    [reportActionID]: null,
-                },
-            },
-        ];
-        Onyx.update(rollbackData);
-    }
+    // When addCommentFound is true, the DELETE_COMMENT's optimistic data (pendingAction: DELETE)
+    // already handles the Onyx state correctly — it marks the action as pending deletion so it
+    // renders with strikethrough. We must NOT call Onyx.update(null) here because:
+    // 1. This resolver is called twice (in prepareRequest and SequentialQueue.push), so a null
+    //    update would wipe out the optimistic DELETE state applied between those two calls.
+    // 2. The ADD_COMMENT's Onyx state is superseded by the DELETE_COMMENT's optimistic data,
+    //    so no explicit rollback is needed.
+    // The result: the action stays in Onyx with pendingAction: DELETE, passes the offline
+    // visibility filter, and renders with strikethrough until connectivity is restored.
 
     return {
         conflictAction: {
