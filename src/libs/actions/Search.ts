@@ -80,7 +80,7 @@ import {getReportPreviewAction, prepareRejectMoneyRequestData, rejectMoneyReques
 import type {RejectMoneyRequestData} from './IOU';
 import {isCurrencySupportedForGlobalReimbursement} from './Policy/Policy';
 import {deleteAppReport, setOptimisticTransactionThread} from './Report';
-import {saveLastSearchParams} from './ReportNavigation';
+import {saveLastSearchParams, saveSortedReportIDs} from './ReportNavigation';
 
 type OnyxSearchResponse = {
     data: [];
@@ -477,6 +477,7 @@ function search({
     offset,
     shouldCalculateTotals = false,
     prevReportsLength,
+    sortedReportIDs,
     isOffline = false,
     isLoading,
 }: {
@@ -485,6 +486,7 @@ function search({
     offset?: number;
     shouldCalculateTotals?: boolean;
     prevReportsLength?: number;
+    sortedReportIDs?: Array<string | undefined>;
     isOffline?: boolean;
     isLoading: boolean;
 }) {
@@ -546,6 +548,14 @@ function search({
                         previousLengthOfResults: reports.length,
                         allowPostSearchRecount: true,
                     });
+
+                    if (sortedReportIDs?.length) {
+                        const sortedReportIDSet = new Set(sortedReportIDs);
+                        const appendedReportIDs = reports.filter((reportID) => !sortedReportIDSet.has(reportID));
+                        if (appendedReportIDs.length) {
+                            saveSortedReportIDs([...sortedReportIDs, ...appendedReportIDs]);
+                        }
+                    }
                 }
 
                 return result?.jsonCode;
