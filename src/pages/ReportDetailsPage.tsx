@@ -900,7 +900,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
             deleteTrackExpense({
                 chatReportID: moneyRequestReport?.reportID,
                 chatReport: moneyRequestReport,
-                transactionID: iouTransactionID,
+                transaction: iouTransaction,
                 reportAction: requestParentReportAction,
                 iouReport,
                 chatIOUReport,
@@ -920,6 +920,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
         caseID,
         requestParentReportAction,
         iouTransactionID,
+        iouTransaction,
         report,
         parentReport,
         isReportArchived,

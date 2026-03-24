@@ -733,18 +733,31 @@ function startSplitBill({
  * @param sessionAccountID - accountID of the current user
  * @param sessionEmail - email of the current user
  */
-function completeSplitBill(
-    chatReportID: string,
-    reportAction: OnyxEntry<OnyxTypes.ReportAction>,
-    updatedTransaction: OnyxEntry<OnyxTypes.Transaction>,
-    sessionAccountID: number,
-    isASAPSubmitBetaEnabled: boolean,
-    quickAction: OnyxEntry<OnyxTypes.QuickAction>,
-    transactionViolations: OnyxCollection<OnyxTypes.TransactionViolation[]>,
-    betas: OnyxEntry<OnyxTypes.Beta[]>,
-    personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>,
-    sessionEmail?: string,
-) {
+function completeSplitBill({
+    chatReportID,
+    reportAction,
+    updatedTransaction,
+    unmodifiedTransaction,
+    sessionAccountID,
+    isASAPSubmitBetaEnabled,
+    quickAction,
+    transactionViolations,
+    betas,
+    personalDetails,
+    sessionEmail,
+}: {
+    chatReportID: string;
+    reportAction: OnyxEntry<OnyxTypes.ReportAction>;
+    updatedTransaction: OnyxEntry<OnyxTypes.Transaction>;
+    unmodifiedTransaction: OnyxEntry<OnyxTypes.Transaction>;
+    sessionAccountID: number;
+    isASAPSubmitBetaEnabled: boolean;
+    quickAction: OnyxEntry<OnyxTypes.QuickAction>;
+    transactionViolations: OnyxCollection<OnyxTypes.TransactionViolation[]>;
+    betas: OnyxEntry<OnyxTypes.Beta[]>;
+    personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
+    sessionEmail?: string;
+}) {
     if (!reportAction) {
         return;
     }
@@ -756,7 +769,6 @@ function completeSplitBill(
     }
     const currentUserEmailForIOUSplit = addSMSDomainIfPhoneNumber(sessionEmail);
     const transactionID = updatedTransaction?.transactionID;
-    const unmodifiedTransaction = getAllTransactions()[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
 
     // Save optimistic updated transaction and action
     const optimisticData: Array<OnyxUpdate<BuildOnyxDataForMoneyRequestKeys>> = [
@@ -1407,7 +1419,7 @@ function updateSplitTransactions({
             successData: deleteExpenseSuccessData,
         } = getDeleteTrackExpenseInformation(
             splitTransactionReport,
-            undeletedTransaction?.transactionID,
+            undeletedTransaction,
             currentReportAction,
             undefined,
             undefined,

@@ -1135,7 +1135,19 @@ describe('split expense', () => {
         expect(iouAction).toBeTruthy();
 
         // Complete this split bill without changing the description
-        completeSplitBill(reportID, iouAction, updatedSplitTransaction, RORY_ACCOUNT_ID, false, undefined, {}, [CONST.BETAS.ALL], mockPersonalDetails, RORY_EMAIL);
+        completeSplitBill({
+            chatReportID: reportID,
+            reportAction: iouAction,
+            updatedTransaction: updatedSplitTransaction,
+            unmodifiedTransaction: splitTransaction,
+            sessionAccountID: RORY_ACCOUNT_ID,
+            isASAPSubmitBetaEnabled: false,
+            quickAction: undefined,
+            transactionViolations: {},
+            betas: [CONST.BETAS.ALL],
+            personalDetails: mockPersonalDetails,
+            sessionEmail: RORY_EMAIL,
+        });
 
         await waitForBatchedUpdates();
 
@@ -1530,7 +1542,19 @@ describe('split expense', () => {
             },
         };
 
-        completeSplitBill(reportID, iouAction, updatedSplitTransaction, RORY_ACCOUNT_ID, false, undefined, {}, [CONST.BETAS.ALL], completeSplitPersonalDetails, RORY_EMAIL);
+        completeSplitBill({
+            chatReportID: reportID,
+            reportAction: iouAction,
+            updatedTransaction: updatedSplitTransaction,
+            unmodifiedTransaction: splitTransaction,
+            sessionAccountID: RORY_ACCOUNT_ID,
+            isASAPSubmitBetaEnabled: false,
+            quickAction: undefined,
+            transactionViolations: {},
+            betas: [CONST.BETAS.ALL],
+            personalDetails: completeSplitPersonalDetails,
+            sessionEmail: RORY_EMAIL,
+        });
 
         await waitForBatchedUpdates();
 
@@ -3143,15 +3167,15 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
                 transactionThreadReportID = iouAction?.childReportID;
             },
         });
+        const originalTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`);
 
         // Put the expense on hold
-        if (originalTransactionID && transactionThreadReportID) {
-            putOnHold(originalTransactionID, 'Test hold reason', transactionThreadReportID);
+        if (originalTransaction && transactionThreadReportID) {
+            putOnHold(originalTransaction, 'Test hold reason', transactionThreadReportID);
         }
         await waitForBatchedUpdates();
 
         // Verify the transaction is on hold
-        const originalTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`);
         expect(originalTransaction?.comment?.hold).toBeDefined();
 
         // Get the first IOU action for the split flow
