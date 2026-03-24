@@ -42,15 +42,17 @@ function BeneficialOwnerInfo({onBackButtonPress, onSubmit, stepNames, currentSub
 
     const isUserOwner = reimbursementAccount?.achData?.corpay?.[OWNS_MORE_THAN_25_PERCENT] ?? reimbursementAccountDraft?.[OWNS_MORE_THAN_25_PERCENT] ?? false;
     const isAnyoneElseOwner = reimbursementAccount?.achData?.corpay?.[ANY_INDIVIDUAL_OWN_25_PERCENT_OR_MORE] ?? reimbursementAccountDraft?.[ANY_INDIVIDUAL_OWN_25_PERCENT_OR_MORE] ?? false;
-    const beneficialOwnersDraftValues = useMemo(() => getDraftValuesForBeneficialOwners(reimbursementAccount), [reimbursementAccount]);
-    const ownerKeys = reimbursementAccountDraft?.beneficialOwnerKeys ?? beneficialOwnersDraftValues.beneficialOwnerKeys;
+    const savedBeneficialOwnerValues = useMemo(() => getDraftValuesForBeneficialOwners(reimbursementAccount), [reimbursementAccount]);
+    const ownerKeys = reimbursementAccountDraft?.beneficialOwnerKeys ?? savedBeneficialOwnerValues.beneficialOwnerKeys;
 
+    // Populate the form draft with beneficial owner data from the server.
+    // Skip if draft values already exist (beneficialOwnerKeys is set) or if there are no saved owners to populate.
     useEffect(() => {
-        if (reimbursementAccountDraft?.beneficialOwnerKeys || beneficialOwnersDraftValues.beneficialOwnerKeys.length === 0) {
+        if (reimbursementAccountDraft?.beneficialOwnerKeys || savedBeneficialOwnerValues.beneficialOwnerKeys.length === 0) {
             return;
         }
-        setDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, beneficialOwnersDraftValues);
-    }, [reimbursementAccountDraft?.beneficialOwnerKeys, beneficialOwnersDraftValues]);
+        setDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, savedBeneficialOwnerValues);
+    }, [reimbursementAccountDraft?.beneficialOwnerKeys, savedBeneficialOwnerValues]);
 
     const totalOwnedPercentageSum = ownerKeys.reduce((acc, key) => {
         const percentageKey = `${PREFIX}_${key}_${OWNERSHIP_PERCENTAGE}` as const;

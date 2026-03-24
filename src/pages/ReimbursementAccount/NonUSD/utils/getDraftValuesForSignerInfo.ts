@@ -6,7 +6,13 @@ const {FULL_NAME, DATE_OF_BIRTH, JOB_TITLE, ADDRESS, STREET, CITY, STATE, ZIP_CO
 
 type DraftValuesForSignerInfo = {
     isUserDirector: boolean;
-    [key: string]: string | boolean;
+    [FULL_NAME]?: string;
+    [JOB_TITLE]?: string;
+    [DATE_OF_BIRTH]?: string;
+    [STREET]?: string;
+    [CITY]?: string;
+    [STATE]?: string;
+    [ZIP_CODE]?: string;
 };
 
 /**

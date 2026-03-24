@@ -79,13 +79,13 @@ function NonUSDVerifiedBankAccountFlowPage({route}: NonUSDVerifiedBankAccountFlo
 
     const isAUD = currency === CONST.CURRENCY.AUD;
     const pages = useMemo(() => {
-        const filtered = isDocusignStepRequired ? allPages : allPages.filter((p) => p.pageName !== PAGE_NAME.DOCUSIGN);
-        return filtered.map((p) => {
-            if (p.pageName !== PAGE_NAME.SIGNER_INFO) {
-                return p;
+        const filteredPages = isDocusignStepRequired ? allPages : allPages.filter((page) => page.pageName !== PAGE_NAME.DOCUSIGN);
+        return filteredPages.map((page) => {
+            if (page.pageName !== PAGE_NAME.SIGNER_INFO) {
+                return page;
             }
             return {
-                ...p,
+                ...page,
                 firstSubPage: initialSignerSubPage,
                 ...(isAUD ? {lastSubPage: SIGNER_INFO_SUB_PAGES.HANG_TIGHT} : {}),
             };
