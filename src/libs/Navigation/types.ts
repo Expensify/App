@@ -2243,6 +2243,13 @@ type ReimbursementAccountNavigatorParamList = {
         bankAccountID?: string;
         subStep?: typeof CONST.BANK_ACCOUNT.STEP.COUNTRY;
     };
+    [SCREENS.REIMBURSEMENT_ACCOUNT_USD]: {
+        step?: string;
+        subStep?: string;
+        policyID?: string;
+        // eslint-disable-next-line no-restricted-syntax -- backTo is a temporary param will be removed after https://github.com/Expensify/App/issues/73825 is done
+        backTo?: Routes;
+    };
     [SCREENS.REIMBURSEMENT_ACCOUNT_VERIFY_ACCOUNT]: {
         // TODO this backTo comes from drilling it through bank account form screens
         // should be removed once https://github.com/Expensify/App/pull/72219 is resolved

@@ -312,6 +312,18 @@ const ROUTES = {
         route: 'bank-account/connect-existing-business-bank-account',
         getRoute: (policyID: string) => `bank-account/connect-existing-business-bank-account?policyID=${policyID}` as const,
     },
+    BANK_ACCOUNT_USD_SETUP: {
+        route: 'bank-account/us/:step?/:subStep?',
+        // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
+        getRoute: ({policyID, step, subStep, backTo}: {policyID?: string; step?: string; subStep?: string; backTo?: string}) => {
+            const base = 'bank-account/us';
+            const stepPart = step ? `/${step}` : '';
+            const subStepPart = subStep ? `/${subStep}` : '';
+            const queryString = policyID ? `?policyID=${policyID}` : '';
+            // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
+            return getUrlWithBackToParam(`${base}${stepPart}${subStepPart}${queryString}`, backTo);
+        },
+    },
     SETTINGS: 'settings',
     SETTINGS_PROFILE: {
         route: 'settings/profile',
