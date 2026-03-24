@@ -1481,6 +1481,7 @@ function PureReportActionItem({
                     emptyHTML={emptyHTML}
                     childReport={childReport}
                     originalReport={originalReport}
+                    policy={policy}
                 />
             );
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.MOVED) {

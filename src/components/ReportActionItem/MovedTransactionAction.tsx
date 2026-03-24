@@ -10,7 +10,7 @@ import ReportActionItemBasicMessage from '@pages/inbox/report/ReportActionItemBa
 import ReportActionItemMessageWithExplain from '@pages/inbox/report/ReportActionItemMessageWithExplain';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Report, ReportAction} from '@src/types/onyx';
+import type {Policy, Report, ReportAction} from '@src/types/onyx';
 
 type MovedTransactionActionProps = {
     /** The moved transaction action data */
@@ -24,9 +24,12 @@ type MovedTransactionActionProps = {
 
     /** Original report from which the given reportAction is first created */
     originalReport: OnyxEntry<Report>;
+
+    /** The policy of the action item */
+    policy: OnyxEntry<Policy>;
 };
 
-function MovedTransactionAction({action, emptyHTML, childReport, originalReport}: MovedTransactionActionProps) {
+function MovedTransactionAction({action, emptyHTML, childReport, originalReport, policy}: MovedTransactionActionProps) {
     const {translate} = useLocalize();
     const movedTransactionOriginalMessage = getOriginalMessage(action);
     const toReportID = movedTransactionOriginalMessage?.toReportID;
@@ -46,7 +49,7 @@ function MovedTransactionAction({action, emptyHTML, childReport, originalReport}
         return emptyHTML;
     }
 
-    const message = getMovedTransactionMessage(translate, action);
+    const message = getMovedTransactionMessage(translate, action, policy);
 
     if (hasReasoning(action)) {
         return (

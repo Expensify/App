@@ -4100,7 +4100,63 @@ describe('OptionsListUtils', () => {
 
                 currentUserLogin: CURRENT_USER_EMAIL,
             });
-            expect(lastMessage).toBe(Parser.htmlToText(getMovedTransactionMessage(translateLocal, movedTransactionAction)));
+            expect(lastMessage).toBe(Parser.htmlToText(getMovedTransactionMessage(translateLocal, movedTransactionAction, undefined)));
+        });
+        it('MOVED_TRANSACTION action with policy uses policy for report name', async () => {
+            const mockIsSearchTopmostFullScreenRoute = jest.mocked(isSearchTopmostFullScreenRoute);
+            mockIsSearchTopmostFullScreenRoute.mockReturnValue(false);
+
+            const policyID = 'policy_test_123';
+            const policy: Policy = {
+                id: policyID,
+                name: 'My Test Workspace',
+                type: CONST.POLICY.TYPE.TEAM,
+                role: CONST.POLICY.ROLE.USER,
+                isPolicyExpenseChatEnabled: false,
+                owner: CURRENT_USER_EMAIL,
+                outputCurrency: CONST.CURRENCY.USD,
+            } as Policy;
+
+            const fromReport: Report = {
+                ...createRandomReport(10, undefined),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                policyID,
+                reportName: undefined,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            };
+            const toReport: Report = {
+                ...createRandomReport(11, undefined),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                policyID,
+                reportName: undefined,
+            };
+            const movedTransactionActionWithPolicy: ReportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION,
+                message: [{type: 'COMMENT', text: ''}],
+                originalMessage: {
+                    toReportID: toReport.reportID,
+                    fromReportID: fromReport.reportID,
+                },
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${fromReport.reportID}`, fromReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${toReport.reportID}`, toReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${fromReport.reportID}`, {
+                [movedTransactionActionWithPolicy.reportActionID]: movedTransactionActionWithPolicy,
+            });
+
+            const lastMessage = getLastMessageTextForReport({
+                translate: translateLocal,
+                report: fromReport,
+                lastActorDetails: null,
+                policy,
+                isReportArchived: false,
+                currentUserLogin: CURRENT_USER_EMAIL,
+            });
+            expect(lastMessage).toBe(Parser.htmlToText(getMovedTransactionMessage(translateLocal, movedTransactionActionWithPolicy, policy)));
         });
         describe('SUBMITTED action', () => {
             it('should return automatic submitted message if submitted via harvesting', async () => {
