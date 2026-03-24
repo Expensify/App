@@ -44,6 +44,7 @@ function DeepLinkHandler({onInitialUrl}: DeepLinkHandlerProps) {
         // fire with stale conciergeReportID/introSelected values, causing a duplicate
         // openReportFromDeepLink() call.
         let cancelled = false;
+        let timeoutId: ReturnType<typeof setTimeout>;
 
         // If the app is opened from a deep link, get the reportID (if exists) from the deep link and navigate to the chat report.
         // We race against a timeout to prevent permanently blocking NavigationRoot if getInitialURL() never resolves
@@ -51,7 +52,7 @@ function DeepLinkHandler({onInitialUrl}: DeepLinkHandlerProps) {
         Promise.race([
             Linking.getInitialURL(),
             new Promise<null>((resolve) => {
-                setTimeout(() => resolve(null), CONST.TIMING.GET_INITIAL_URL_TIMEOUT);
+                timeoutId = setTimeout(() => resolve(null), CONST.TIMING.GET_INITIAL_URL_TIMEOUT);
             }),
         ])
             .then((url) => {
@@ -104,6 +105,7 @@ function DeepLinkHandler({onInitialUrl}: DeepLinkHandlerProps) {
 
         return () => {
             cancelled = true;
+            clearTimeout(timeoutId);
             linkingChangeListener.current?.remove();
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps -- we only want this effect to re-run when conciergeReportID changes
