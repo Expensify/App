@@ -236,7 +236,8 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
                             styles.p3,
                             isLargeScreenWidth && [styles.pv1Half, {minHeight: variables.tableRowHeight}],
                             styles.flex1,
-                            isLargeScreenWidth && isLastTransaction(index) && {borderBottomLeftRadius: 8, borderBottomRightRadius: 8},
+                            isLargeScreenWidth &&
+                                isLastTransaction(index) && {borderBottomLeftRadius: variables.componentBorderRadius, borderBottomRightRadius: variables.componentBorderRadius},
                         ]}
                         isReportItemChild
                         isInSingleTransactionReport={isInSingleTransactionReport}

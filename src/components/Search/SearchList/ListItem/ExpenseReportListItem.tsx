@@ -174,7 +174,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
                 paddingVertical: 8,
                 borderBottomWidth: isLastItem ? 0 : 1,
                 borderColor: item.isSelected ? theme.buttonHoveredBG : theme.border,
-                ...(isLastItem ? {borderBottomLeftRadius: 8, borderBottomRightRadius: 8} : {}),
+                ...(isLastItem ? {borderBottomLeftRadius: variables.componentBorderRadius, borderBottomRightRadius: variables.componentBorderRadius} : {}),
             },
         ],
         [styles, item.isSelected, isLargeScreenWidth, theme.buttonHoveredBG, theme.border, isLastItem],

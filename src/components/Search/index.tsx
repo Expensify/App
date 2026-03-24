@@ -1475,7 +1475,6 @@ function Search({
                             <SearchRowSkeleton
                                 shouldAnimate
                                 fixedNumItems={5}
-                                isLoadMore
                                 reasonAttributes={loadMoreSkeletonReasonAttributes}
                             />
                         ) : undefined

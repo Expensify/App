@@ -187,7 +187,12 @@ function TransactionGroupListItem<TItem extends ListItem>({
 
     const pressableStyle = [
         styles.transactionGroupListItemStyle,
-        isLargeScreenWidth && {minHeight: variables.tableRowHeight, borderRadius: 0, paddingVertical: 4, ...(isLastItem ? {borderBottomLeftRadius: 8, borderBottomRightRadius: 8} : {})},
+        isLargeScreenWidth && {
+            minHeight: variables.tableRowHeight,
+            borderRadius: 0,
+            paddingVertical: 4,
+            ...(isLastItem ? {borderBottomLeftRadius: variables.componentBorderRadius, borderBottomRightRadius: variables.componentBorderRadius} : {}),
+        },
         isItemSelected && styles.activeComponentBG,
     ];
 
@@ -481,7 +486,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
                     animatedHighlightStyle,
                     styles.userSelectNone,
                     isLargeScreenWidth && {borderRadius: 0, borderBottomWidth: isLastItem ? 0 : 1, borderColor: isItemSelected ? theme.buttonHoveredBG : theme.border},
-                    isLargeScreenWidth && isLastItem && {borderBottomLeftRadius: 8, borderBottomRightRadius: 8},
+                    isLargeScreenWidth && isLastItem && {borderBottomLeftRadius: variables.componentBorderRadius, borderBottomRightRadius: variables.componentBorderRadius},
                 ]}
             >
                 {({hovered}) => (

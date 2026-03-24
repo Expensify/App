@@ -112,7 +112,7 @@ function TransactionListItem<TItem extends ListItem>({
                   borderRadius: 0,
                   borderBottomWidth: isLastItem ? 0 : 1,
                   borderColor: item.isSelected ? theme.buttonHoveredBG : theme.border,
-                  ...(isLastItem ? {borderBottomLeftRadius: 8, borderBottomRightRadius: 8} : {}),
+                  ...(isLastItem ? {borderBottomLeftRadius: variables.componentBorderRadius, borderBottomRightRadius: variables.componentBorderRadius} : {}),
               }
             : {...styles.flexColumn, ...styles.alignItemsStretch},
     ];
