@@ -8,6 +8,8 @@
 import Onyx from 'react-native-onyx';
 import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
 import Log from '@libs/Log';
+import {endSpan, startSpan} from '@libs/telemetry/activeSpans';
+import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ObjectUtils from '@src/types/utils/ObjectUtils';
@@ -76,8 +78,18 @@ function init() {
                 context.currentValue = derivedValue;
                 context.sourceValues = sourceKey && sourceValue !== undefined ? {[sourceKey]: sourceValue} : undefined;
 
+                const spanId = `${CONST.TELEMETRY.SPAN_ONYX_DERIVED_COMPUTE}_${key}`;
+                startSpan(spanId, {
+                    name: CONST.TELEMETRY.SPAN_ONYX_DERIVED_COMPUTE,
+                    op: CONST.TELEMETRY.SPAN_ONYX_DERIVED_COMPUTE,
+                    attributes: {derivedKey: key},
+                });
+
                 // @ts-expect-error TypeScript can't confirm the shape of dependencyValues matches the compute function's parameters
                 const newDerivedValue = compute(dependencyValues, context);
+
+                endSpan(spanId);
+
                 Log.info(`[OnyxDerived] updating value for ${key} in Onyx`);
                 derivedValue = newDerivedValue;
                 setDerivedValue(key, derivedValue);
