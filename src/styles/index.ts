@@ -2545,6 +2545,11 @@ const staticStyles = (theme: ThemeColors) =>
             paddingRight: 12,
         },
 
+        newSearchResultsHeaderBar: {
+            display: 'flex',
+            position: 'relative',
+        },
+
         headerBarHeight: {
             height: variables.contentHeaderHeight,
         },
@@ -3462,6 +3467,11 @@ const staticStyles = (theme: ThemeColors) =>
             borderWidth: 1,
             borderColor: theme.bordersBold,
             height: 54,
+        },
+
+        newSearchAutocompleteInputResults: {
+            borderWidth: 1,
+            borderColor: theme.border,
         },
 
         searchAutocompleteInputResultsFocused: {
@@ -4860,15 +4870,37 @@ const staticStyles = (theme: ThemeColors) =>
             minHeight: variables.componentSizeSmall,
         },
 
+        filtersBar: {
+            flexDirection: 'row',
+            gap: 8,
+            marginTop: 3,
+        },
+
         searchFiltersBarContainer: {
             marginTop: 8,
             flexDirection: 'row',
             alignItems: 'center',
         },
 
-        searchFiltersBarCreateButton: {
+        searchActionsBarContainer: {
+            marginTop: 12,
+            marginBottom: 16,
+            paddingHorizontal: 20,
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            zIndex: 10,
+        },
+
+        searchActionsBarCreateButton: {
             marginLeft: 'auto',
             alignSelf: 'flex-start',
+        },
+
+        searchPageInputTouchableWrapper: {height: 32, width: 200},
+        searchPageInputPlaceholder: {
+            // Extra 2 to account for the borders
+            height: 34,
+            width: 202,
         },
 
         walletStaticIllustration: {

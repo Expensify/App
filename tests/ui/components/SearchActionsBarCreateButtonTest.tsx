@@ -5,7 +5,7 @@ import Onyx from 'react-native-onyx';
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
-import SearchFiltersBarCreateButton from '@components/Search/SearchPageHeader/SearchFiltersBarCreateButton';
+import SearchActionsBarCreateButton from '@components/Search/SearchPageHeader/SearchActionsBarCreateButton';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import {createNewReport} from '@libs/actions/Report';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
@@ -77,7 +77,7 @@ const MOCK_POLICY = {
 function renderComponent() {
     return render(
         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
-            <SearchFiltersBarCreateButton />
+            <SearchActionsBarCreateButton />
         </ComposeProviders>,
     );
 }
@@ -92,7 +92,7 @@ function createMockPressEvent(target: unknown) {
     };
 }
 
-describe('SearchFiltersBarCreateButton', () => {
+describe('SearchActionsBarCreateButton', () => {
     beforeAll(() => {
         Onyx.init({
             keys: ONYXKEYS,

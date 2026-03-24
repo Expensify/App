@@ -176,7 +176,7 @@ type SearchStateContextValue = SearchContextData & {
     currentSearchResults: SearchResults | undefined;
     /** Whether we're on a main to-do search and should use live Onyx data instead of snapshots */
     shouldUseLiveData: boolean;
-    shouldShowFiltersBarLoading: boolean;
+    shouldShowActionsBarLoading: boolean;
     lastSearchType: string | undefined;
     shouldShowSelectAllMatchingItems: boolean;
     areAllMatchingItemsSelected: boolean;
@@ -194,7 +194,7 @@ type SearchActionsContextValue = {
         (clearIDs: true, unused?: undefined): void;
     };
     removeTransaction: (transactionID: string | undefined) => void;
-    setShouldShowFiltersBarLoading: (shouldShow: boolean) => void;
+    setShouldShowActionsBarLoading: (shouldShow: boolean) => void;
     setLastSearchType: (type: string | undefined) => void;
     setShouldShowSelectAllMatchingItems: (shouldShow: boolean) => void;
     selectAllMatchingItems: (on: boolean) => void;
