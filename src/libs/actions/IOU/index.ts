@@ -533,6 +533,7 @@ type RequestMoneyInformation = {
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
     policyRecentlyUsedCurrencies: string[];
     existingTransactionDraft: OnyxEntry<OnyxTypes.Transaction>;
+    existingTransaction?: OnyxEntry<OnyxTypes.Transaction>;
     draftTransactionIDs: string[] | undefined;
     isSelfTourViewed: boolean;
     betas: OnyxEntry<OnyxTypes.Beta[]>;
@@ -1633,19 +1634,13 @@ function setGPSTransactionDraftData(transactionID: string, gpsDraftDetails: Onyx
 /**
  * Revert custom unit of the draft transaction to the original transaction's value
  */
-function resetDraftTransactionsCustomUnit(transactionID: string | undefined) {
-    if (!transactionID) {
+function resetDraftTransactionsCustomUnit(transaction: OnyxEntry<OnyxTypes.Transaction>) {
+    if (!transaction?.transactionID) {
         return;
     }
-
-    const originalTransaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
-    if (!originalTransaction) {
-        return;
-    }
-
-    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transaction?.transactionID}`, {
         comment: {
-            customUnit: originalTransaction.comment?.customUnit ?? {},
+            customUnit: transaction.comment?.customUnit ?? {},
         },
     });
 }
@@ -1696,7 +1691,7 @@ function revokeOdometerImageUri(image: FileObject | string | null | undefined, n
  * @param file - The image file (File object on web, URI string on native)
  * @param isDraft - Whether this is a draft transaction
  */
-function setMoneyRequestOdometerImage(transactionID: string, imageType: OdometerImageType, file: FileObject | string, isDraft: boolean) {
+function setMoneyRequestOdometerImage(transaction: OnyxEntry<OnyxTypes.Transaction>, imageType: OdometerImageType, file: FileObject | string, isDraft: boolean) {
     const imageKey = imageType === CONST.IOU.ODOMETER_IMAGE_TYPE.START ? 'odometerStartImage' : 'odometerEndImage';
     const normalizedFile: FileObject | string =
         typeof file === 'string'
@@ -1707,7 +1702,7 @@ function setMoneyRequestOdometerImage(transactionID: string, imageType: Odometer
                   type: file.type,
                   size: file.size,
               };
-    const transaction = isDraft ? allTransactionDrafts[`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`] : allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
+    const transactionID = transaction?.transactionID ;
     const existingImage = transaction?.comment?.[imageKey];
     revokeOdometerImageUri(existingImage, normalizedFile);
     Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
@@ -1723,12 +1718,14 @@ function setMoneyRequestOdometerImage(transactionID: string, imageType: Odometer
  * @param imageType - 'start' or 'end'
  * @param isDraft - Whether this is a draft transaction
  */
-function removeMoneyRequestOdometerImage(transactionID: string, imageType: OdometerImageType, isDraft: boolean) {
+function removeMoneyRequestOdometerImage(transaction: OnyxEntry<OnyxTypes.Transaction>, imageType: OdometerImageType, isDraft: boolean) {
+    if (!transaction?.transactionID) {
+        return;
+    }
     const imageKey = imageType === CONST.IOU.ODOMETER_IMAGE_TYPE.START ? 'odometerStartImage' : 'odometerEndImage';
-    const transaction = isDraft ? allTransactionDrafts[`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`] : allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
     const existingImage = transaction?.comment?.[imageKey];
     revokeOdometerImageUri(existingImage);
-    Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
+    Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transaction?.transactionID}`, {
         comment: {
             [imageKey]: null,
         },
@@ -6299,6 +6296,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
         quickAction,
         policyRecentlyUsedCurrencies,
         existingTransactionDraft,
+        existingTransaction,
         draftTransactionIDs = [],
         isSelfTourViewed,
         betas,
@@ -6347,7 +6345,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
     const moneyRequestReportID = isMoneyRequestReport ? report?.reportID : '';
     const isMovingTransactionFromTrackExpense = isMovingTransactionFromTrackExpenseIOUUtils(action);
     const existingTransactionID = existingTransactionDraft?.transactionID;
-    const existingTransaction = action === CONST.IOU.ACTION.SUBMIT ? existingTransactionDraft : allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${existingTransactionID}`];
+    const existingTransactionRef = action === CONST.IOU.ACTION.SUBMIT ? existingTransactionDraft : (existingTransaction ?? allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${existingTransactionID}`]);
 
     const retryParams = {
         ...requestMoneyInformation,
@@ -6382,7 +6380,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
         transactionParams,
         moneyRequestReportID,
         existingTransactionID,
-        existingTransaction: isDistanceRequestTransactionUtils(existingTransaction) ? existingTransaction : undefined,
+        existingTransaction: isDistanceRequestTransactionUtils(existingTransactionRef) ? existingTransactionRef : undefined,
         retryParams,
         testDriveCommentReportActionID,
         optimisticChatReportID,
