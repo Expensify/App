@@ -119,7 +119,7 @@ const mockedReports = getMockedReports(10);
 const mockedBetas = Object.values(CONST.BETAS);
 const mockedPersonalDetails = getMockedPersonalDetails(10);
 const EMPTY_PRIVATE_IS_ARCHIVED_MAP: PrivateIsArchivedMap = {};
-const mockedOptions = createOptionList(mockedPersonalDetails, MOCK_CURRENT_USER_ACCOUNT_ID, EMPTY_PRIVATE_IS_ARCHIVED_MAP, mockedReports);
+const mockedOptions = createOptionList(mockedPersonalDetails, MOCK_CURRENT_USER_ACCOUNT_ID, EMPTY_PRIVATE_IS_ARCHIVED_MAP, mockedReports, undefined);
 
 const mockOnClose = jest.fn();
 
