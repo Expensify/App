@@ -100,7 +100,7 @@ function ScrollOffsetContextProvider({children}: ScrollOffsetContextProviderProp
 
     const cleanStaleScrollOffsets: ScrollOffsetContextValue['cleanStaleScrollOffsets'] = useCallback(
         (state) => {
-            const sidebarRoutes = state.routes.filter((route) => isSidebarScreenName(route.name));
+            const sidebarRoutes = state.routes.filter((route) => isSidebarScreenName(route.name) || route.name === SCREENS.WORKSPACES_LIST);
             const existingScreenKeys = new Set(sidebarRoutes.map(getKey));
 
             const focusedRoute = findFocusedRoute(state);

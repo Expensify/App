@@ -1,6 +1,6 @@
 import {useIsFocused, useRoute} from '@react-navigation/native';
 import {Str} from 'expensify-common';
-import React, {useEffect, useRef, useState} from 'react';
+import React, {useCallback, useContext, useEffect, useLayoutEffect, useRef, useState} from 'react';
 import {FlatList, InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -19,6 +19,8 @@ import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import {PressableWithoutFeedback} from '@components/Pressable';
 import ScreenWrapper from '@components/ScreenWrapper';
+import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
+import type {ScrollViewProps} from '@components/ScrollView';
 import SearchBar from '@components/SearchBar';
 import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
@@ -82,6 +84,11 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import WorkspacesEmptyStateComponent from './WorkspacesEmptyStateComponent';
 import WorkspacesListPageHeaderButton from './WorkspacesListPageHeaderButton';
 import WorkspacesListRow from './WorkspacesListRow';
+
+// Estimated height (in px) of a single workspace row: avatar (40) + vertical padding (40) + bottom margin (8).
+// Used to calculate initialNumToRender so that enough items are rendered to restore scroll position
+// without rendering the entire list (which caused a performance regression with 5K+ workspaces).
+const ESTIMATED_WORKSPACE_ROW_HEIGHT = 88;
 
 type WorkspaceItem = {listItemType: 'workspace'} & ListItem &
     Required<Pick<MenuItemProps, 'title' | 'disabled'>> &
@@ -187,13 +194,38 @@ function WorkspacesListPage() {
 
     const policyToDelete = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyIDToDelete}`];
 
+    const {saveScrollOffset, getScrollOffset} = useContext(ScrollOffsetContext);
+    const onScroll = useCallback<NonNullable<ScrollViewProps['onScroll']>>(
+        (e) => {
+            // If the layout measurement is 0, it means the list is not displayed but the onScroll may be triggered with offset value 0.
+            // We should ignore this case.
+            if (e.nativeEvent.layoutMeasurement.height === 0) {
+                return;
+            }
+            saveScrollOffset(route, e.nativeEvent.contentOffset.y);
+        },
+        [route, saveScrollOffset],
+    );
+
+    const flatlistRef = useRef<FlatList | null>(null);
+
+    useLayoutEffect(() => {
+        const scrollOffset = getScrollOffset(route);
+        if (!scrollOffset || !flatlistRef.current) {
+            return;
+        }
+        flatlistRef.current.scrollToOffset({
+            offset: scrollOffset,
+            animated: false,
+        });
+    }, [getScrollOffset, route]);
+
     // We need this to update translation for deleting a workspace when it has third party card feeds or expensify card assigned.
     const workspaceAccountID = policyToDelete?.workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const [cardFeeds, , defaultCardFeeds] = useCardFeeds(policyIDToDelete);
     const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}`, {
         selector: filterInactiveCards,
     });
-    const flatlistRef = useRef<FlatList | null>(null);
     const [lastAccessedWorkspacePolicyID] = useOnyx(ONYXKEYS.LAST_ACCESSED_WORKSPACE_POLICY_ID);
 
     const hasCardFeedOrExpensifyCard =
@@ -765,6 +797,14 @@ function WorkspacesListPage() {
                         ListHeaderComponent={listHeaderComponent}
                         keyboardShouldPersistTaps="handled"
                         contentContainerStyle={styles.pb20}
+                        onScroll={onScroll}
+                        // Render enough items to cover the saved scroll offset so useLayoutEffect can restore
+                        // the position before the first paint. We calculate the count from the offset and an
+                        // estimated row height instead of using data.length (which caused a perf regression
+                        // for accounts with thousands of workspaces).
+                        initialNumToRender={
+                            getScrollOffset(route) ? Math.min(Math.ceil((getScrollOffset(route) ?? 0) / ESTIMATED_WORKSPACE_ROW_HEIGHT) + 10, data.length) : undefined
+                        }
                     />
                 )}
             </View>
