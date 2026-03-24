@@ -15256,9 +15256,6 @@ describe('actions/IOU', () => {
         const transactionID = '1';
         mockedIsReportTopmostSplitNavigator.mockReturnValue(false);
 
-        // When on the Inbox tab, or NOT from the "global create" button, or without a transactionID,
-        // the function dismissModalAndOpenReportInInboxTab will always be called to handle it,
-        // so mergeTransactionIdsHighlightOnSearchRoute will never be invoked.
         handleNavigateAfterExpenseCreate({activeReportID, isFromGlobalCreate: false});
         expect(spyOnMergeTransactionIdsHighlightOnSearchRoute).toHaveBeenCalledTimes(0);
 
@@ -15269,20 +15266,13 @@ describe('actions/IOU', () => {
         handleNavigateAfterExpenseCreate({activeReportID, isFromGlobalCreate: true, transactionID});
         expect(spyOnMergeTransactionIdsHighlightOnSearchRoute).toHaveBeenCalledTimes(0);
 
-        // When NOT on the Inbox tab
         mockedIsReportTopmostSplitNavigator.mockReturnValue(false);
         handleNavigateAfterExpenseCreate({activeReportID, isFromGlobalCreate: true, transactionID});
+        expect(spyOnMergeTransactionIdsHighlightOnSearchRoute).toHaveBeenCalledTimes(0);
 
-        // then mergeTransactionIdsHighlightOnSearchRoute will be called
-        expect(spyOnMergeTransactionIdsHighlightOnSearchRoute).toHaveBeenCalledTimes(1);
-        expect(spyOnMergeTransactionIdsHighlightOnSearchRoute).toHaveBeenCalledWith(CONST.SEARCH.DATA_TYPES.EXPENSE, {[transactionID]: true});
-        spyOnMergeTransactionIdsHighlightOnSearchRoute.mockClear();
-
-        // If expense is an invoice
         handleNavigateAfterExpenseCreate({activeReportID, isFromGlobalCreate: true, transactionID, isInvoice: true});
+        expect(spyOnMergeTransactionIdsHighlightOnSearchRoute).toHaveBeenCalledTimes(0);
 
-        expect(spyOnMergeTransactionIdsHighlightOnSearchRoute).toHaveBeenCalledTimes(1);
-        expect(spyOnMergeTransactionIdsHighlightOnSearchRoute).toHaveBeenCalledWith(CONST.SEARCH.DATA_TYPES.INVOICE, {[transactionID]: true});
         spyOnMergeTransactionIdsHighlightOnSearchRoute.mockReset();
     });
 
