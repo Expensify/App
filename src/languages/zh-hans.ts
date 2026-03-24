@@ -744,11 +744,6 @@ const translations: TranslationDeepObject<typeof en> = {
         searchForSomeone: '搜索联系人',
         userSelected: (username: string) => `已选择 ${username}`,
     },
-    customApprovalWorkflow: {
-        title: '自定义审批流程',
-        description: '您的公司在此工作区使用自定义审批流程。请在 Expensify Classic 中执行此操作',
-        goToExpensifyClassic: '切换到 Expensify 经典版',
-    },
     emptyList: {
         [CONST.IOU.TYPE.CREATE]: {
             title: '报销一笔费用，推荐你的团队',
@@ -2603,6 +2598,7 @@ ${amount}，商户：${merchant} - 日期：${date}`,
                 label: '使用设备设置',
             },
         },
+        highContrastMode: '高对比度模式',
         chooseThemeBelowOrSync: '请选择下方的主题，或与您的设备设置同步。',
     },
     termsOfUse: {
