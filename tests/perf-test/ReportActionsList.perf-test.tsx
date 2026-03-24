@@ -60,6 +60,32 @@ jest.mock('@react-navigation/native', () => {
 
 jest.mock('@src/components/ConfirmedRoute.tsx');
 
+jest.mock(
+    '@shopify/flash-list/dist/recyclerview/utils/measureLayout',
+    () =>
+        ({
+            ...jest.requireActual('@shopify/flash-list/dist/recyclerview/utils/measureLayout'),
+            measureParentSize: jest.fn().mockImplementation(() => ({
+                x: 0,
+                y: 0,
+                width: 300,
+                height: 400,
+            })),
+            measureFirstChildLayout: jest.fn().mockImplementation(() => ({
+                x: 0,
+                y: 0,
+                width: 300,
+                height: 400,
+            })),
+            measureItemLayout: jest.fn().mockImplementation(() => ({
+                x: 0,
+                y: 0,
+                width: 300,
+                height: 75,
+            })),
+        }) as Record<string, unknown>,
+);
+
 beforeAll(() =>
     Onyx.init({
         keys: ONYXKEYS,
