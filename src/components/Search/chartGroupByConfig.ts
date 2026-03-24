@@ -1,3 +1,5 @@
+import DateUtils from '@libs/DateUtils';
+import CONST from '@src/CONST';
 import type {
     TransactionCardGroupListItemType,
     TransactionCategoryGroupListItemType,
@@ -9,9 +11,7 @@ import type {
     TransactionWeekGroupListItemType,
     TransactionWithdrawalIDGroupListItemType,
     TransactionYearGroupListItemType,
-} from '@components/SelectionListWithSections/types';
-import DateUtils from '@libs/DateUtils';
-import CONST from '@src/CONST';
+} from './SearchList/ListItem/types';
 import type {GroupedItem, SearchGroupBy} from './types';
 
 type ChartGroupByConfig = {
