@@ -280,7 +280,6 @@ function IOURequestStepDistanceManual({
             policyRecentlyUsedCurrencies,
             introSelected,
             activePolicyID,
-            isArchived,
             isEditingSplit,
             distance,
             splitDraftTransaction,

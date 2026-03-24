@@ -379,7 +379,6 @@ function IOURequestStepDistance({
         policyRecentlyUsedCurrencies,
         introSelected,
         activePolicyID,
-        isArchived,
         policyForMovingExpenses,
         selfDMReport,
         betas,
