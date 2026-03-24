@@ -1,33 +1,33 @@
 /**
- * ButtonComposed – a new Button built with composition API.
+ * Button – a new Button built with composition API.
  *
  * Instead of a large flat props list (icon, text, shouldShowRightIcon, …),
  * sub-components are composed as children:
  *
  * @example
  * ```tsx
- * import ButtonComposed from '@components/ButtonComposed';
+ * import Button from '@components/Button';
  * import * as icons from '@expensify/react-native-expensify-icons';
  *
- * <ButtonComposed onPress={handlePress} success>
- *   <ButtonComposed.IconLeft src={icons.UserPlus} />
- *   <ButtonComposed.Text>Add members</ButtonComposed.Text>
- *   <ButtonComposed.IconRight src={icons.ArrowRight} />
- * </ButtonComposed>
+ * <Button onPress={handlePress} success>
+ *   <Button.IconLeft src={icons.UserPlus} />
+ *   <Button.Text>Add members</Button.Text>
+ *   <Button.IconRight src={icons.ArrowRight} />
+ * </Button>
  * ```
  *
  * The old `Button` component is not affected – migration can be gradual.
  */
 import withNavigationFallback from '@components/withNavigationFallback';
-import ButtonComposedComponent from './ButtonComposed';
-import {ButtonComposedIconLeft, ButtonComposedIconRight} from './ButtonComposedIcons';
-import ButtonComposedText from './ButtonComposedText';
+import ButtonComponent from './Button';
+import {ButtonIconLeft, ButtonIconRight} from './ButtonIcons';
+import ButtonText from './ButtonText';
 
-const ButtonComposed = Object.assign(withNavigationFallback(ButtonComposedComponent), {
-    IconLeft: ButtonComposedIconLeft,
-    Text: ButtonComposedText,
-    IconRight: ButtonComposedIconRight,
+const Button = Object.assign(withNavigationFallback(ButtonComponent), {
+    IconLeft: ButtonIconLeft,
+    Text: ButtonText,
+    IconRight: ButtonIconRight,
 });
 
-export default ButtonComposed;
-export type {ButtonComposedProps} from './ButtonComposed';
+export default Button;
+export type {ButtonProps} from './Button';

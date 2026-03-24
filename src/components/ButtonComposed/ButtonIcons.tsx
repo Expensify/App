@@ -6,9 +6,9 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
-import {useButtonComposedContext} from './ButtonComposedContext';
+import {useButtonContext} from './ButtonContext';
 
-type ButtonComposedIconProps = {
+type ButtonIconProps = {
     /** The icon asset to display */
     src: IconAsset;
 
@@ -22,9 +22,9 @@ type ButtonComposedIconProps = {
     fill?: string;
 };
 
-function ButtonIconBase({src, style, hoverFill, fill}: ButtonComposedIconProps) {
+function ButtonIconBase({src, style, hoverFill, fill}: ButtonIconProps) {
     const theme = useTheme();
-    const {isHovered, variant, size} = useButtonComposedContext();
+    const {isHovered, variant, size} = useButtonContext();
 
     const defaultFill = variant === 'success' || variant === 'danger' ? theme.textLight : theme.icon;
     const propsFill = isHovered ? hoverFill : fill;
@@ -43,9 +43,9 @@ function ButtonIconBase({src, style, hoverFill, fill}: ButtonComposedIconProps) 
     );
 }
 
-function ButtonComposedIconLeft({src, style, hoverFill, fill}: ButtonComposedIconProps) {
+function ButtonIconLeft({src, style, hoverFill, fill}: ButtonIconProps) {
     const styles = useThemeStyles();
-    const {size, isLoading, hasText} = useButtonComposedContext();
+    const {size, isLoading, hasText} = useButtonContext();
 
     return (
         <ButtonIconBase
@@ -55,9 +55,9 @@ function ButtonComposedIconLeft({src, style, hoverFill, fill}: ButtonComposedIco
     );
 }
 
-function ButtonComposedIconRight({src, style, hoverFill, fill}: ButtonComposedIconProps) {
+function ButtonIconRight({src, style, hoverFill, fill}: ButtonIconProps) {
     const styles = useThemeStyles();
-    const {size} = useButtonComposedContext();
+    const {size} = useButtonContext();
 
     return (
         <ButtonIconBase
@@ -67,5 +67,5 @@ function ButtonComposedIconRight({src, style, hoverFill, fill}: ButtonComposedIc
     );
 }
 
-export {ButtonComposedIconLeft, ButtonComposedIconRight};
-export type {ButtonComposedIconProps};
+export {ButtonIconLeft, ButtonIconRight};
+export type {ButtonIconProps};

@@ -17,12 +17,12 @@ import HapticFeedback from '@libs/HapticFeedback';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import CONST from '@src/CONST';
 import type WithSentryLabel from '@src/types/utils/SentryLabel';
-import ButtonComposedContext from './ButtonComposedContext';
-import type {ButtonComposedAppearanceProps} from './ButtonComposedContext';
-import {ButtonComposedIconLeft, ButtonComposedIconRight} from './ButtonComposedIcons';
-import ButtonComposedText from './ButtonComposedText';
+import type {ButtonAppearanceProps} from './ButtonContext';
+import ButtonContext from './ButtonContext';
+import {ButtonIconLeft, ButtonIconRight} from './ButtonIcons';
+import ButtonText from './ButtonText';
 
-type ButtonComposedEventsProps = {
+type ButtonEventsProps = {
     /** A function that is called when the button is clicked on */
     onPress?: (event?: GestureResponderEvent | KeyboardEvent) => void | Promise<void>;
 
@@ -42,7 +42,7 @@ type ButtonComposedEventsProps = {
     onLayout?: (event: LayoutChangeEvent) => void;
 };
 
-type ButtonComposedBehaviorProps = {
+type ButtonBehaviorProps = {
     /** Indicates whether the button should be disabled and in the loading state */
     isLoading?: boolean;
 
@@ -83,7 +83,7 @@ type ButtonComposedBehaviorProps = {
     shouldStayNormalOnDisable?: boolean;
 };
 
-type ButtonComposedStyleProps = ButtonComposedAppearanceProps & {
+type ButtonStyleProps = ButtonAppearanceProps & {
     /** Additional styles to add after local styles. Applied to Pressable portion of button */
     style?: StyleProp<ViewStyle>;
 
@@ -103,10 +103,10 @@ type ButtonComposedStyleProps = ButtonComposedAppearanceProps & {
     shouldRemoveBorderRadius?: 'left' | 'right' | 'all';
 };
 
-type ButtonComposedProps = WithSentryLabel &
-    ButtonComposedEventsProps &
-    ButtonComposedBehaviorProps &
-    ButtonComposedStyleProps & {
+type ButtonProps = WithSentryLabel &
+    ButtonEventsProps &
+    ButtonBehaviorProps &
+    ButtonStyleProps & {
         /** Sub-components to render inside the button */
         children: React.ReactNode;
 
@@ -125,10 +125,7 @@ type ButtonComposedProps = WithSentryLabel &
         ref?: ForwardedRef<View>;
     };
 
-type KeyboardShortcutComponentProps = Pick<
-    ButtonComposedProps,
-    'isDisabled' | 'isLoading' | 'onPress' | 'pressOnEnter' | 'allowBubble' | 'enterKeyEventListenerPriority' | 'isPressOnEnterActive'
->;
+type KeyboardShortcutComponentProps = Pick<ButtonProps, 'isDisabled' | 'isLoading' | 'onPress' | 'pressOnEnter' | 'allowBubble' | 'enterKeyEventListenerPriority' | 'isPressOnEnterActive'>;
 
 const accessibilityRoles: string[] = Object.values(CONST.ROLE);
 
@@ -172,7 +169,7 @@ function KeyboardShortcutComponent({
     return null;
 }
 
-function ButtonComposed({
+function Button({
     children,
     allowBubble = false,
     contentContainerStyle = [],
@@ -205,7 +202,7 @@ function ButtonComposed({
     shouldStayNormalOnDisable = false,
     sentryLabel,
     ref,
-}: ButtonComposedProps) {
+}: ButtonProps) {
     const resolvedSize = size ?? CONST.DROPDOWN_BUTTON_SIZE.MEDIUM;
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -217,9 +214,9 @@ function ButtonComposed({
 
     // Detect which sub-components are present in children
     const childrenArray = React.Children.toArray(children);
-    const hasIconLeft = childrenArray.some((child) => (child as React.ReactElement)?.type === ButtonComposedIconLeft);
-    const hasText = childrenArray.some((child) => (child as React.ReactElement)?.type === ButtonComposedText);
-    const hasIconRight = childrenArray.some((child) => (child as React.ReactElement)?.type === ButtonComposedIconRight);
+    const hasIconLeft = childrenArray.some((child) => (child as React.ReactElement)?.type === ButtonIconLeft);
+    const hasText = childrenArray.some((child) => (child as React.ReactElement)?.type === ButtonText);
+    const hasIconRight = childrenArray.some((child) => (child as React.ReactElement)?.type === ButtonIconRight);
 
     const contextValue = useMemo(
         () => ({
@@ -372,9 +369,9 @@ function ButtonComposed({
                 }}
             >
                 {shouldBlendOpacity && <View style={[StyleSheet.absoluteFill, buttonBlendForegroundStyle]} />}
-                <ButtonComposedContext.Provider value={contextValue}>
+                <ButtonContext.Provider value={contextValue}>
                     <View style={[styles.justifyContentBetween, styles.flexRow, contentContainerStyle, styles.mw100, styles.alignItemsCenter, styles.flexShrink1]}>{children}</View>
-                </ButtonComposedContext.Provider>
+                </ButtonContext.Provider>
                 {isLoading && (
                     <ActivityIndicator
                         color={variant === 'success' || variant === 'danger' ? theme.textLight : theme.text}
@@ -388,5 +385,5 @@ function ButtonComposed({
     );
 }
 
-export default ButtonComposed;
-export type {ButtonComposedProps};
+export default Button;
+export type {ButtonProps};

@@ -5,9 +5,9 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
-import {useButtonComposedContext} from './ButtonComposedContext';
+import {useButtonContext} from './ButtonContext';
 
-type ButtonComposedTextProps = {
+type ButtonTextProps = {
     /** The text to display */
     children: string;
 
@@ -21,8 +21,8 @@ type ButtonComposedTextProps = {
     hoverStyle?: StyleProp<TextStyle>;
 };
 
-function ButtonComposedText({children, numberOfLines = 1, style, hoverStyle}: ButtonComposedTextProps) {
-    const {isLoading, variant, size, isHovered, hasIconLeft} = useButtonComposedContext();
+function ButtonText({children, numberOfLines = 1, style, hoverStyle}: ButtonTextProps) {
+    const {isLoading, variant, size, isHovered, hasIconLeft} = useButtonContext();
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -53,5 +53,5 @@ function ButtonComposedText({children, numberOfLines = 1, style, hoverStyle}: Bu
     );
 }
 
-export default ButtonComposedText;
-export type {ButtonComposedTextProps};
+export default ButtonText;
+export type {ButtonTextProps};
