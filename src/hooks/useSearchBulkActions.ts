@@ -66,6 +66,7 @@ import usePersonalPolicy from './usePersonalPolicy';
 import useSelfDMReport from './useSelfDMReport';
 import useTheme from './useTheme';
 import useThemeStyles from './useThemeStyles';
+import { unholdRequest } from '@libs/actions/IOU/Hold';
 
 type SearchHeaderOptionValue = DeepValueOf<typeof CONST.SEARCH.BULK_ACTION_TYPES> | undefined;
 
@@ -1018,7 +1019,9 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                         return;
                     }
 
-                    unholdMoneyRequestOnSearch(hash, selectedTransactionsKeys);
+                    for (const transactionID of selectedTransactionsKeys) {
+                        unholdRequest(transactionID, selectedTransactions[transactionID].reportID ?? '', policies?.[`${ONYXKEYS.COLLECTION.POLICY}${selectedTransactions[transactionID].policyID}`]);
+                    }
                     // eslint-disable-next-line @typescript-eslint/no-deprecated
                     InteractionManager.runAfterInteractions(() => {
                         clearSelectedTransactions();
