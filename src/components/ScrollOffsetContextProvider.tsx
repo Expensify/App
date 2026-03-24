@@ -22,6 +22,12 @@ type ScrollOffsetContextValue = {
     /** Get scroll index value for given screen */
     getScrollIndex: (route: PlatformStackRouteProp<ParamListBase>) => number | undefined;
 
+    /** Save the measured average item length for a given screen's list */
+    saveAverageItemLength: (route: PlatformStackRouteProp<ParamListBase>, length: number) => void;
+
+    /** Get the saved average item length for a given screen's list */
+    getAverageItemLength: (route: PlatformStackRouteProp<ParamListBase>) => number | undefined;
+
     /** Clean scroll offsets of screen that aren't anymore in the state */
     cleanStaleScrollOffsets: (state: State) => void;
 };
@@ -36,6 +42,8 @@ const defaultValue: ScrollOffsetContextValue = {
     getScrollOffset: () => undefined,
     saveScrollIndex: () => {},
     getScrollIndex: () => undefined,
+    saveAverageItemLength: () => {},
+    getAverageItemLength: () => undefined,
     cleanStaleScrollOffsets: () => {},
 };
 
@@ -62,6 +70,7 @@ function getKey(route: PlatformStackRouteProp<ParamListBase> | NavigationPartial
 function ScrollOffsetContextProvider({children}: ScrollOffsetContextProviderProps) {
     const [priorityMode] = useOnyx(ONYXKEYS.NVP_PRIORITY_MODE);
     const scrollOffsetsRef = useRef<Record<string, number>>({});
+    const averageItemLengthsRef = useRef<Record<string, number>>({});
     const previousPriorityMode = usePrevious(priorityMode);
 
     useEffect(() => {
@@ -133,6 +142,17 @@ function ScrollOffsetContextProvider({children}: ScrollOffsetContextProviderProp
         return scrollOffsetsRef.current[getKey(route)];
     }, []);
 
+    const saveAverageItemLength: ScrollOffsetContextValue['saveAverageItemLength'] = useCallback((route, length) => {
+        averageItemLengthsRef.current[getKey(route)] = length;
+    }, []);
+
+    const getAverageItemLength: ScrollOffsetContextValue['getAverageItemLength'] = useCallback((route) => {
+        if (!averageItemLengthsRef.current) {
+            return;
+        }
+        return averageItemLengthsRef.current[getKey(route)];
+    }, []);
+
     const contextValue = useMemo(
         (): ScrollOffsetContextValue => ({
             saveScrollOffset,
@@ -140,8 +160,10 @@ function ScrollOffsetContextProvider({children}: ScrollOffsetContextProviderProp
             cleanStaleScrollOffsets,
             saveScrollIndex,
             getScrollIndex,
+            saveAverageItemLength,
+            getAverageItemLength,
         }),
-        [saveScrollOffset, getScrollOffset, cleanStaleScrollOffsets, saveScrollIndex, getScrollIndex],
+        [saveScrollOffset, getScrollOffset, cleanStaleScrollOffsets, saveScrollIndex, getScrollIndex, saveAverageItemLength, getAverageItemLength],
     );
 
     return <ScrollOffsetContext.Provider value={contextValue}>{children}</ScrollOffsetContext.Provider>;

@@ -1,7 +1,7 @@
 import {useIsFocused, useRoute} from '@react-navigation/native';
 import {Str} from 'expensify-common';
 import React, {useCallback, useContext, useEffect, useLayoutEffect, useRef, useState} from 'react';
-import {Dimensions, FlatList, InteractionManager, View} from 'react-native';
+import {FlatList, InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import ActivityIndicator from '@components/ActivityIndicator';
@@ -42,6 +42,7 @@ import useSearchResults from '@hooks/useSearchResults';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionViolationOfWorkspace from '@hooks/useTransactionViolationOfWorkspace';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 import {isConnectionInProgress} from '@libs/actions/connections';
 import {close} from '@libs/actions/Modal';
 import {clearWorkspaceOwnerChangeFlow, isApprover as isApproverUserAction, requestWorkspaceOwnerChange} from '@libs/actions/Policy/Member';
@@ -85,8 +86,6 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import WorkspacesEmptyStateComponent from './WorkspacesEmptyStateComponent';
 import WorkspacesListPageHeaderButton from './WorkspacesListPageHeaderButton';
 import WorkspacesListRow from './WorkspacesListRow';
-
-type StyleNumericValue<T extends string> = Partial<Record<T, number>>;
 
 type WorkspaceItem = {listItemType: 'workspace'} & ListItem &
     Required<Pick<MenuItemProps, 'title' | 'disabled'>> &
@@ -138,14 +137,11 @@ function WorkspacesListPage() {
     const theme = useTheme();
     const styles = useThemeStyles();
 
-    // Fallback estimated heights (in px) for a workspace row in wide and narrow layouts.
-    // Derived from actual style values: avatar + vertical padding (styles.p5 top + bottom) + margins.
+    // Fallback estimated height (in px) for a workspace row: avatar + vertical padding (styles.p5 top + bottom) + bottom margin (styles.mb2).
     // Used to calculate initialNumToRender when no measured height is available yet.
-    const rowMarginBottom = (styles.mb2 as StyleNumericValue<'marginBottom'>)?.marginBottom ?? 0;
-    const rowPaddingVertical = (styles.p5 as StyleNumericValue<'padding'>)?.padding ?? 0;
-    const narrowInternalMargin = (styles.mb3 as StyleNumericValue<'marginBottom'>)?.marginBottom ?? 0;
-    const estimatedItemHeightWide = variables.avatarSizeNormal + rowPaddingVertical * 2 + rowMarginBottom;
-    const estimatedItemHeightNarrow = variables.avatarSizeNormal + rowPaddingVertical * 2 + narrowInternalMargin + rowMarginBottom;
+    const rowMarginBottom = (styles.mb2 as Partial<Record<'marginBottom', number>>)?.marginBottom ?? 0;
+    const rowPaddingVertical = (styles.p5 as Partial<Record<'padding', number>>)?.padding ?? 0;
+    const estimatedItemHeight = variables.avatarSizeNormal + rowPaddingVertical * 2 + rowMarginBottom;
 
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Building', 'Exit', 'Copy', 'Star', 'Trashcan', 'Transfer', 'Plus', 'FallbackWorkspaceAvatar']);
     const {translate, localeCompare} = useLocalize();
@@ -202,7 +198,8 @@ function WorkspacesListPage() {
 
     const policyToDelete = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyIDToDelete}`];
 
-    const {saveScrollOffset, getScrollOffset} = useContext(ScrollOffsetContext);
+    const {saveScrollOffset, getScrollOffset, saveAverageItemLength, getAverageItemLength} = useContext(ScrollOffsetContext);
+    const {windowHeight} = useWindowDimensions();
     const onScroll = useCallback<NonNullable<ScrollViewProps['onScroll']>>(
         (e) => {
             // If the layout measurement is 0, it means the list is not displayed but the onScroll may be triggered with offset value 0.
@@ -216,7 +213,6 @@ function WorkspacesListPage() {
     );
 
     const flatlistRef = useRef<FlatList | null>(null);
-    const measuredItemHeight = useRef<number | undefined>(undefined);
 
     useLayoutEffect(() => {
         const scrollOffset = getScrollOffset(route);
@@ -480,10 +476,10 @@ function WorkspacesListPage() {
             <View
                 key={`${item.title}_${index}`}
                 onLayout={(e) => {
-                    if (measuredItemHeight.current) {
+                    if (getAverageItemLength(route)) {
                         return;
                     }
-                    measuredItemHeight.current = e.nativeEvent.layout.height;
+                    saveAverageItemLength(route, e.nativeEvent.layout.height);
                 }}
             >
                 <OfflineWithFeedback
@@ -735,16 +731,14 @@ function WorkspacesListPage() {
 
     // Compute initialNumToRender: render enough items to cover the saved scroll offset so
     // useLayoutEffect can restore position before first paint. Uses measured row height when
-    // available (from a previous render), otherwise falls back to a layout-aware estimate.
+    // available (persisted across navigations via ScrollOffsetContext), otherwise falls back to an estimate.
     const savedScrollOffset = getScrollOffset(route) ?? 0;
     const computedInitialNumToRender = (() => {
-        if (savedScrollOffset <= 0) {
+        if (savedScrollOffset <= 0 || data.length === 0) {
             return undefined;
         }
-        const fallbackHeight = shouldUseNarrowLayout ? estimatedItemHeightNarrow : estimatedItemHeightWide;
-        // eslint-disable-next-line react-hooks/refs -- Reading the measured height ref during render is intentional; the value is only an optimization hint for initialNumToRender and stale reads are acceptable.
-        const itemHeight = measuredItemHeight.current ?? fallbackHeight;
-        const viewportItems = Math.ceil(Dimensions.get('window').height / itemHeight);
+        const itemHeight = getAverageItemLength(route) ?? estimatedItemHeight;
+        const viewportItems = Math.ceil(windowHeight / itemHeight);
         return Math.min(Math.ceil(savedScrollOffset / itemHeight) + viewportItems, data.length);
     })();
 
