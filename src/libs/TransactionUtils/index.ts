@@ -2158,7 +2158,7 @@ function getTaxValue(policy: OnyxEntry<Policy>, transaction: OnyxEntry<Transacti
  * This happens in cross-workspace merge/move flows where the same tax code (e.g., `id_TAX_RATE_1`) maps to
  * different rates in different workspaces. Returns true only when both values are defined and they differ.
  */
-function hasConfirmedTaxMismatch(policy: OnyxEntry<Policy>, transaction: OnyxEntry<Transaction>): boolean {
+function hasTaxValueMismatch(policy: OnyxEntry<Policy>, transaction: OnyxEntry<Transaction>): boolean {
     const defaultTaxCode = getDefaultTaxCode(policy, transaction);
     const taxRatePercentage = getTaxValue(policy, transaction, transaction?.taxCode ?? defaultTaxCode ?? '');
     return taxRatePercentage !== undefined && transaction?.taxValue !== undefined && taxRatePercentage !== transaction?.taxValue;
@@ -3011,7 +3011,7 @@ export {
     isDistanceTypeRequest,
     recalculateUnreportedTransactionDetails,
     hasSmartScanFailedWithMissingFields,
-    hasConfirmedTaxMismatch,
+    hasTaxValueMismatch,
 };
 
 export type {TransactionChanges};

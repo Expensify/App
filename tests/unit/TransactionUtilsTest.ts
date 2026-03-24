@@ -1924,7 +1924,7 @@ describe('TransactionUtils', () => {
         });
     });
 
-    describe('hasConfirmedTaxMismatch', () => {
+    describe('hasTaxValueMismatch', () => {
         const policy: Policy = {
             ...createRandomPolicy(0),
             taxRates: CONST.DEFAULT_TAX,
@@ -1937,7 +1937,7 @@ describe('TransactionUtils', () => {
                 taxValue: '3%',
             });
 
-            expect(TransactionUtils.hasConfirmedTaxMismatch(policy, transaction)).toBe(true);
+            expect(TransactionUtils.hasTaxValueMismatch(policy, transaction)).toBe(true);
         });
 
         it('should return false when policy tax rate percentage matches transaction taxValue', () => {
@@ -1946,7 +1946,7 @@ describe('TransactionUtils', () => {
                 taxValue: '5%',
             });
 
-            expect(TransactionUtils.hasConfirmedTaxMismatch(policy, transaction)).toBe(false);
+            expect(TransactionUtils.hasTaxValueMismatch(policy, transaction)).toBe(false);
         });
 
         it('should return false when transaction taxValue is undefined', () => {
@@ -1955,7 +1955,7 @@ describe('TransactionUtils', () => {
                 taxValue: undefined,
             });
 
-            expect(TransactionUtils.hasConfirmedTaxMismatch(policy, transaction)).toBe(false);
+            expect(TransactionUtils.hasTaxValueMismatch(policy, transaction)).toBe(false);
         });
 
         it('should return false when taxCode does not exist in policy (policy rate is undefined)', () => {
@@ -1964,11 +1964,11 @@ describe('TransactionUtils', () => {
                 taxValue: '3%',
             });
 
-            expect(TransactionUtils.hasConfirmedTaxMismatch(policy, transaction)).toBe(false);
+            expect(TransactionUtils.hasTaxValueMismatch(policy, transaction)).toBe(false);
         });
 
         it('should return false when transaction is undefined', () => {
-            expect(TransactionUtils.hasConfirmedTaxMismatch(policy, undefined)).toBe(false);
+            expect(TransactionUtils.hasTaxValueMismatch(policy, undefined)).toBe(false);
         });
 
         it('should return false when policy is undefined', () => {
@@ -1977,7 +1977,7 @@ describe('TransactionUtils', () => {
                 taxValue: '3%',
             });
 
-            expect(TransactionUtils.hasConfirmedTaxMismatch(undefined, transaction)).toBe(false);
+            expect(TransactionUtils.hasTaxValueMismatch(undefined, transaction)).toBe(false);
         });
 
         it('should use default tax code when transaction has no taxCode', () => {
@@ -1987,7 +1987,7 @@ describe('TransactionUtils', () => {
                 taxValue: '5%',
             });
 
-            expect(TransactionUtils.hasConfirmedTaxMismatch(policy, transaction)).toBe(true);
+            expect(TransactionUtils.hasTaxValueMismatch(policy, transaction)).toBe(true);
         });
     });
 

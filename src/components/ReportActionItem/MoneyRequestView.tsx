@@ -90,7 +90,7 @@ import {
     getTagArrayFromName,
     getTagForDisplay,
     getTaxName,
-    hasConfirmedTaxMismatch as hasConfirmedTaxMismatchUtil,
+    hasTaxValueMismatch as hasTaxValueMismatchUtil,
     hasMissingSmartscanFields,
     hasMultipleSplitChildren,
     hasReservationList,
@@ -306,7 +306,7 @@ function MoneyRequestView({
             : convertToDisplayString(Math.abs(transactionTaxAmount ?? 0), actualCurrency);
 
     const taxRatesDescription = taxRates?.name;
-    const isTaxMismatch = hasConfirmedTaxMismatchUtil(policy, transaction);
+    const isTaxMismatch = hasTaxValueMismatchUtil(policy, transaction);
     const taxRateTitle = isTaxMismatch ? undefined : getTaxName(policy, transaction, isExpenseUnreported);
 
     const actualTransactionDate = isFromMergeTransaction && updatedTransaction ? getFormattedCreated(updatedTransaction) : transactionDate;
