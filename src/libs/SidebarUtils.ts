@@ -146,8 +146,6 @@ import {
     getReceiptUploadErrorReason,
     getReportDescription,
     getReportMetadata,
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    getReportName,
     getReportNotificationPreference,
     getReportParticipantsTitle,
     getReportSubtitlePrefix,
@@ -199,6 +197,7 @@ type WelcomeMessageParams = {
     translate: LocalizedTranslate;
     localeCompare: LocaleContextProps['localeCompare'];
     conciergeReportID: string | undefined;
+    reportAttributes?: ReportAttributesDerivedValue['reports'];
     isReportArchived?: boolean;
     reportDetailsLink?: string;
     shouldShowUsePlusButtonText?: boolean;
@@ -434,7 +433,7 @@ function updateReportsToDisplayInLHN({
 function categorizeReportsForLHN(
     reportsToDisplay: ReportsToDisplayInLHN,
     reportsDrafts: Record<string, boolean> | undefined,
-    conciergeReportID: string | undefined,
+    reportAttributes: ReportAttributesDerivedValue['reports'] | undefined,
     reportNameValuePairs?: OnyxCollection<ReportNameValuePairs>,
 ) {
     const pinnedAndGBRReports: MiniReport[] = [];
@@ -449,8 +448,7 @@ function categorizeReportsForLHN(
         }
 
         const reportID = report.reportID;
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        const displayName = getReportName({report, conciergeReportID});
+        const displayName = getReportNameFromDerived(report, reportAttributes);
         const miniReport: MiniReport = {
             reportID,
             displayName,
@@ -582,7 +580,7 @@ function sortReportsToDisplayInLHN(
     localeCompare: LocaleContextProps['localeCompare'],
     reportsDrafts: Record<string, boolean> | undefined,
     reportNameValuePairs: OnyxCollection<ReportNameValuePairs> | undefined,
-    conciergeReportID: string | undefined,
+    reportAttributes: ReportAttributesDerivedValue['reports'] | undefined,
 ): string[] {
     const isInFocusMode = priorityMode === CONST.PRIORITY_MODE.GSD;
     const isInDefaultMode = !isInFocusMode;
@@ -598,7 +596,7 @@ function sortReportsToDisplayInLHN(
     //      - Sorted by reportDisplayName in GSD (focus) view mode
 
     // Step 1: Categorize reports
-    const categories = categorizeReportsForLHN(reportsToDisplay, reportsDrafts, conciergeReportID, reportNameValuePairs);
+    const categories = categorizeReportsForLHN(reportsToDisplay, reportsDrafts, reportAttributes, reportNameValuePairs);
 
     // Step 2: Sort each category
     const sortedCategories = sortCategorizedReports(categories, isInDefaultMode, localeCompare);
@@ -1136,6 +1134,7 @@ function getOptionData({
                         translate,
                         localeCompare,
                         conciergeReportID,
+                        reportAttributes: reportAttributesDerived,
                         isReportArchived,
                     }).messageText ?? translate('report.noActivityYet'),
                 );
@@ -1153,6 +1152,7 @@ function getOptionData({
                     translate,
                     localeCompare,
                     conciergeReportID,
+                    reportAttributes: reportAttributesDerived,
                     isReportArchived,
                     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                 }).messageText || translate('report.noActivityYet'),
@@ -1236,6 +1236,7 @@ function getWelcomeMessage(params: WelcomeMessageParams): WelcomeMessage {
         translate,
         localeCompare,
         conciergeReportID,
+        reportAttributes,
         isReportArchived = false,
         reportDetailsLink = '',
         shouldShowUsePlusButtonText = false,
@@ -1248,7 +1249,7 @@ function getWelcomeMessage(params: WelcomeMessageParams): WelcomeMessage {
     }
 
     if (isChatRoom(report)) {
-        return getRoomWelcomeMessage(translate, report, invoiceReceiverPolicy, conciergeReportID, isReportArchived, reportDetailsLink);
+        return getRoomWelcomeMessage(translate, report, invoiceReceiverPolicy, reportAttributes, isReportArchived, reportDetailsLink);
     }
 
     if (isPolicyExpenseChat(report)) {
@@ -1307,14 +1308,13 @@ function getRoomWelcomeMessage(
     translate: LocalizedTranslate,
     report: OnyxEntry<Report>,
     invoiceReceiverPolicy: OnyxEntry<Policy>,
-    conciergeReportID: string | undefined,
+    reportAttributes: ReportAttributesDerivedValue['reports'] | undefined,
     isReportArchived = false,
     reportDetailsLink = '',
 ): WelcomeMessage {
     const welcomeMessage: WelcomeMessage = {};
     const workspaceName = getPolicyName({report});
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const reportName = getReportName({report, conciergeReportID});
+    const reportName = getReportNameFromDerived(report ?? undefined, reportAttributes);
 
     if (report?.description) {
         welcomeMessage.messageHtml = getReportDescription(report);
@@ -1346,12 +1346,12 @@ function getRoomWelcomeMessage(
     return welcomeMessage;
 }
 
+// Exported for unit testing only. Do not use directly in production code.
+export {categorizeReportsForLHN as _categorizeReportsForLHN, sortCategorizedReports as _sortCategorizedReports, combineReportCategories as _combineReportCategories};
+
 export default {
     getOptionData,
     sortReportsToDisplayInLHN,
-    categorizeReportsForLHN,
-    sortCategorizedReports,
-    combineReportCategories,
     getWelcomeMessage,
     getReasonAndReportActionThatHasRedBrickRoad,
     getReportsToDisplayInLHN,
