@@ -1210,6 +1210,8 @@ const translations: TranslationDeepObject<typeof en> = {
         pendingMatch: '待匹配',
         pendingMatchWithCreditCardDescription: '收据正在等待与卡片交易匹配。将其标记为现金以取消。',
         markAsCash: '标记为现金',
+        pendingMatchSubmitTitle: '提交报告',
+        pendingMatchSubmitDescription: '部分费用正在等待与信用卡交易匹配。您要将它们标记为现金吗？',
         routePending: '路由处理中…',
         automaticallyEnterExpenseDetails: 'Concierge 将自动为您输入费用详情，或者您可以手动添加。',
         receiptScanning: () => ({
