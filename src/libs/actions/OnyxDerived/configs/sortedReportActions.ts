@@ -104,3 +104,5 @@ export default createOnyxDerivedValueConfig({
         return {sortedActions, lastActions, transactionThreadIDs};
     },
 });
+
+export {computeForReport};
