@@ -1,3 +1,4 @@
+import {defaultSecurityGroupIDSelector, domainNameSelector} from '@selectors/Domain';
 import {policyNameSelector} from '@selectors/Policy';
 import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
@@ -19,7 +20,7 @@ import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import DomainNotFoundPageWrapper from '@pages/domain/DomainNotFoundPageWrapper';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
-import {clearDomainGroupCreatePreferredPolicyID} from '@userActions/Domain';
+import {clearDomainGroupCreatePreferredPolicyID, createDomainSecurityGroup, setDefaultSecurityGroup} from '@userActions/Domain';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -45,6 +46,12 @@ function DomainGroupCreatePage({route}: DomainGroupCreatePageProps) {
     const [preferredPolicyID] = useOnyx(ONYXKEYS.DOMAIN_GROUP_CREATE_PREFERRED_POLICY_ID);
     const [preferredPolicyName] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${preferredPolicyID}`, {
         selector: policyNameSelector,
+    });
+    const [domainName] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {
+        selector: domainNameSelector,
+    });
+    const [defaultSecurityGroupID] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {
+        selector: defaultSecurityGroupIDSelector,
     });
 
     useEffect(() => {
@@ -79,9 +86,22 @@ function DomainGroupCreatePage({route}: DomainGroupCreatePageProps) {
                         }
                         return errors;
                     }}
-                    onSubmit={() => {
-                        // ...
+                    onSubmit={(values: FormOnyxValues<typeof ONYXKEYS.FORMS.CREATE_DOMAIN_GROUP_FORM>) => {
+                        const groupID = createDomainSecurityGroup(domainAccountID, {
+                            name: values[INPUT_IDS.NAME],
+                            shared: {},
+                            enableRestrictedPolicyCreation: restrictExpenseWorkspaceCreation,
+                            enableRestrictedPrimaryLogin: restrictDefaultLoginSelection,
+                            enableStrictPolicyRules: strictlyEnforceWorkspaceRules,
+                            enableRestrictedPrimaryPolicy: preferredWorkspace,
+                            restrictedPrimaryPolicyID: preferredWorkspace ? (preferredPolicyID ?? '') : '',
+                            overridePreferredPolicyWithCardPolicy: expensifyCardPreferredWorkspace,
+                        });
+                        if (defaultGroupForNewMembers && domainName) {
+                            setDefaultSecurityGroup(domainAccountID, groupID, domainName, defaultSecurityGroupID);
+                        }
                         clearDomainGroupCreatePreferredPolicyID();
+                        Navigation.goBack(ROUTES.DOMAIN_GROUPS.getRoute(domainAccountID));
                     }}
                     submitButtonText={translate('domain.groups.createGroupSubmitButton')}
                     style={[styles.flex1]}
