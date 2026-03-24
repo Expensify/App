@@ -33,10 +33,10 @@ function useSpendOverTimeData() {
         });
     };
 
-    const onMount = useEffectEvent(fetchData);
+    const onConfigChanged = useEffectEvent(fetchData);
 
     useEffect(() => {
-        onMount();
+        onConfigChanged();
     }, [config.hash]);
 
     const {isOffline} = useNetwork({onReconnect: fetchData});
