@@ -4877,16 +4877,25 @@ function canEditReportPolicy(report: OnyxEntry<Report>, reportPolicy: OnyxEntry<
  * Checks if the current user can edit the provided property of an expense
  *
  */
-function canEditFieldOfMoneyRequest(
-    reportAction: OnyxInputOrEntry<ReportAction>,
-    fieldToEdit: ValueOf<typeof CONST.EDIT_REQUEST_FIELD>,
-    isDeleteAction?: boolean,
+function canEditFieldOfMoneyRequest({
+    reportAction,
+    fieldToEdit,
+    isDeleteAction = false,
     isChatReportArchived = false,
-    outstandingReportsByPolicyID?: OutstandingReportsByPolicyIDDerivedValue,
-    linkedTransaction?: OnyxEntry<Transaction>,
-    report?: OnyxInputOrEntry<Report>,
-    policy?: OnyxEntry<Policy>,
-): boolean {
+    outstandingReportsByPolicyID,
+    transaction,
+    report,
+    policy,
+}: {
+    reportAction: OnyxInputOrEntry<ReportAction>;
+    fieldToEdit: ValueOf<typeof CONST.EDIT_REQUEST_FIELD>;
+    isDeleteAction?: boolean;
+    isChatReportArchived?: boolean;
+    outstandingReportsByPolicyID?: OutstandingReportsByPolicyIDDerivedValue;
+    transaction: OnyxEntry<Transaction>;
+    report?: OnyxInputOrEntry<Report>;
+    policy?: OnyxEntry<Policy>;
+}): boolean {
     // A list of fields that cannot be edited by anyone, once an expense has been settled
     const restrictedFields: string[] = [
         CONST.EDIT_REQUEST_FIELD.AMOUNT,
@@ -4900,7 +4909,7 @@ function canEditFieldOfMoneyRequest(
         CONST.EDIT_REQUEST_FIELD.REPORT,
     ];
 
-    if (!isMoneyRequestAction(reportAction) || !canEditMoneyRequest(reportAction, isChatReportArchived, report, policy, linkedTransaction)) {
+    if (!isMoneyRequestAction(reportAction) || !canEditMoneyRequest(reportAction, isChatReportArchived, report, policy, transaction)) {
         return false;
     }
 
@@ -4911,7 +4920,6 @@ function canEditFieldOfMoneyRequest(
 
     const iouMessage = getOriginalMessage(reportAction);
     const moneyRequestReport = report ?? (iouMessage?.IOUReportID ? (getReport(iouMessage?.IOUReportID, allReports) ?? ({} as Report)) : ({} as Report));
-    const transaction = linkedTransaction ?? deprecatedAllTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${iouMessage?.IOUTransactionID}`] ?? ({} as Transaction);
 
     if (isSettled(String(moneyRequestReport.reportID)) || isReportIDApproved(String(moneyRequestReport.reportID))) {
         return false;
@@ -11798,15 +11806,19 @@ function prepareOnboardingOnyxData({
     let bespokeAction: OptimisticReportAction | undefined;
 
     if (shouldUseFollowupsInsteadOfTasks) {
-        bespokeWelcomeMessage = getBespokeWelcomeMessage(companySize, userReportedIntegration);
+        const bespokeMarkdown = getBespokeWelcomeMessage(companySize, userReportedIntegration);
         optimisticConciergeReportActionID = rand64();
         bespokeAction = buildOptimisticAddCommentReportAction({
-            text: bespokeWelcomeMessage,
+            text: bespokeMarkdown,
             actorAccountID: CONST.ACCOUNT_ID.CONCIERGE,
             createdOffset: 2,
             reportID: targetChatReportID,
             reportActionID: optimisticConciergeReportActionID,
         });
+        // Reuse the HTML that buildOptimisticAddCommentReportAction already parsed via getParsedComment,
+        // so we avoid calling getParsedComment a second time with the same input.
+        // The backend passes this to the LLM as HTML for AddComment, which expects HTML.
+        bespokeWelcomeMessage = bespokeAction.commentText;
     }
 
     let createWorkspaceTaskReportID;

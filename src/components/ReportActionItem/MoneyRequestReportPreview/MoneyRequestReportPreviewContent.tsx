@@ -26,6 +26,7 @@ import type {PaymentActionParams} from '@components/SettlementButton/types';
 import {showContextMenuForReport} from '@components/ShowContextMenuContext';
 import StatusBadge from '@components/StatusBadge';
 import Text from '@components/Text';
+import useConfirmPendingRTERAndProceed from '@hooks/useConfirmPendingRTERAndProceed';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -76,10 +77,11 @@ import {
 import shouldAdjustScroll from '@libs/shouldAdjustScroll';
 import {startSpan} from '@libs/telemetry/activeSpans';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
-import {hasPendingUI, isManagedCardTransaction, isPending} from '@libs/TransactionUtils';
+import {hasAnyPendingRTERViolation as hasAnyPendingRTERViolationTransactionUtils, hasPendingUI, isManagedCardTransaction, isPending} from '@libs/TransactionUtils';
 import colors from '@styles/theme/colors';
 import variables from '@styles/variables';
 import {approveMoneyRequest, canIOUBePaid as canIOUBePaidIOUActions, payInvoice, payMoneyRequest, submitReport} from '@userActions/IOU';
+import {markPendingRTERTransactionsAsCash} from '@userActions/Transaction';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -198,6 +200,11 @@ function MoneyRequestReportPreviewContent({
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const hasViolations = hasViolationsReportUtils(iouReport?.reportID, transactionViolations, currentUserAccountID, currentUserEmail);
+    const hasAnyPendingRTERViolation = useMemo(
+        () => hasAnyPendingRTERViolationTransactionUtils(transactions, transactionViolations, currentUserEmail, currentUserAccountID, iouReport, policy),
+        [transactions, transactionViolations, currentUserEmail, currentUserAccountID, iouReport, policy],
+    );
+
     const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
 
     const getCanIOUBePaid = useCallback(
@@ -254,6 +261,12 @@ function MoneyRequestReportPreviewContent({
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportID}`);
+
+    const handleMarkPendingRTERTransactionsAsCash = useCallback(() => {
+        markPendingRTERTransactionsAsCash(transactions, transactionViolations, Object.values(reportActions ?? {}));
+    }, [transactions, transactionViolations, reportActions]);
+
+    const confirmPendingRTERAndProceed = useConfirmPendingRTERAndProceed(hasAnyPendingRTERViolation, handleMarkPendingRTERTransactionsAsCash);
 
     // The submit button should be success green color only if the user is submitter and the policy does not have Scheduled Submit turned on
     // Or if the report has been reopened or retracted
@@ -738,18 +751,20 @@ function MoneyRequestReportPreviewContent({
             success={isWaitingForSubmissionFromCurrentUser}
             text={translate('common.submit')}
             onPress={() => {
-                submitReport({
-                    expenseReport: iouReport,
-                    policy,
-                    currentUserAccountIDParam: currentUserAccountID,
-                    currentUserEmailParam: currentUserEmail,
-                    hasViolations,
-                    isASAPSubmitBetaEnabled,
-                    expenseReportCurrentNextStepDeprecated: iouReportNextStep,
-                    userBillingGraceEndPeriods,
-                    amountOwed,
-                    onSubmitted: startSubmittingAnimation,
-                    ownerBillingGraceEndPeriod,
+                confirmPendingRTERAndProceed(() => {
+                    submitReport({
+                        expenseReport: iouReport,
+                        policy,
+                        currentUserAccountIDParam: currentUserAccountID,
+                        currentUserEmailParam: currentUserEmail,
+                        hasViolations,
+                        isASAPSubmitBetaEnabled,
+                        expenseReportCurrentNextStepDeprecated: iouReportNextStep,
+                        userBillingGraceEndPeriods,
+                        amountOwed,
+                        onSubmitted: startSubmittingAnimation,
+                        ownerBillingGraceEndPeriod,
+                    });
                 });
             }}
             isSubmittingAnimationRunning={isSubmittingAnimationRunning}
