@@ -1506,7 +1506,7 @@ const translations: TranslationDeepObject<typeof en> = {
         bookingArchived: 'Esta reserva está arquivada',
         bookingArchivedDescription: 'Esta reserva está arquivada porque a data da viagem já passou. Adicione uma despesa com o valor final, se necessário.',
         attendees: 'Participantes',
-        totalPerAttendee: 'Valor por participante',
+        totalPerAttendee: 'Por participante',
         whoIsYourAccountant: 'Quem é seu contador?',
         paymentComplete: 'Pagamento concluído',
         time: 'Hora',

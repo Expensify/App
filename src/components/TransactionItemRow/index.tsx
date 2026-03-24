@@ -19,7 +19,6 @@ import type {SearchColumnType, TableColumnSize} from '@components/Search/types';
 import Text from '@components/Text';
 import TextWithTooltip from '@components/TextWithTooltip';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import useDefaultAvatars from '@hooks/useDefaultAvatars';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -53,11 +52,9 @@ import {
     isUnreportedAndHasInvalidDistanceRateTransaction,
     shouldShowAttendees as shouldShowAttendeesUtils,
 } from '@libs/TransactionUtils';
-import {getDefaultAvatar} from '@libs/UserAvatarUtils';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type {PersonalDetails, Policy, Report, ReportAction, TransactionViolation} from '@src/types/onyx';
-import type {Icon as IconType} from '@src/types/onyx/OnyxCommon';
 import type {SearchTransactionAction} from '@src/types/onyx/SearchResults';
 import CategoryCell from './DataCells/CategoryCell';
 import ChatBubbleCell from './DataCells/ChatBubbleCell';
@@ -213,7 +210,6 @@ function TransactionItemRow({
     const createdAt = getTransactionCreated(transactionItem);
     const expensicons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const defaultAvatars = useDefaultAvatars();
     const transactionThreadReportID = reportActions ? getIOUActionForTransactionID(reportActions, transactionItem.transactionID)?.childReportID : undefined;
 
     const isDateColumnWide = dateColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE;
@@ -281,18 +277,7 @@ function TransactionItemRow({
 
     const transactionAttendees = useMemo(() => getAttendees(transactionItem, currentUserPersonalDetails), [transactionItem, currentUserPersonalDetails]);
 
-    const attendeeIcons: IconType[] = useMemo(
-        () =>
-            transactionAttendees.map((attendee) => ({
-                id: attendee.accountID ?? CONST.DEFAULT_NUMBER_ID,
-                name: attendee.displayName ?? attendee.email,
-                source: (attendee.avatarUrl || getDefaultAvatar({accountID: attendee.accountID, accountEmail: attendee.email, defaultAvatars})) ?? '',
-                type: CONST.ICON_TYPE_AVATAR,
-            })),
-        [defaultAvatars, transactionAttendees],
-    );
-
-    const shouldShowAttendees = shouldShowAttendeesUtils(CONST.IOU.TYPE.SUBMIT, policy) && attendeeIcons.length > 0;
+    const shouldShowAttendees = shouldShowAttendeesUtils(CONST.IOU.TYPE.SUBMIT, policy) && transactionAttendees.length > 0;
 
     const totalPerAttendee = useMemo(() => {
         const attendeesCount = transactionAttendees.length ?? 0;
