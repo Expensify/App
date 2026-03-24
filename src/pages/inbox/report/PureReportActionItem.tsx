@@ -708,7 +708,7 @@ function PureReportActionItem({
         if (draftMessage === undefined || !isDeletedAction(action)) {
             return;
         }
-        clearReportActionDrafts(reportID);
+        clearReportActionDrafts();
     }, [draftMessage, action, reportID]);
 
     // Hide the message if it is being moderated for a higher offense, or is hidden by a moderator

@@ -2938,8 +2938,8 @@ function editReportComment(
 }
 
 /** Clears drafts for all comment report action in a report. */
-function clearReportActionDrafts(reportID: string | undefined) {
-    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${reportID}`, null);
+function clearReportActionDrafts() {
+    Onyx.setCollection(ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS, {});
 }
 
 /** Saves the draft for a comment report action. This will put the comment into "edit mode" */

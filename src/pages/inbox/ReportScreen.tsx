@@ -193,7 +193,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
             }
 
             return () => {
-                clearReportActionDrafts(reportIDFromRoute);
+                clearReportActionDrafts();
             };
         }, [reportIDFromRoute]),
     );

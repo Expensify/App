@@ -529,7 +529,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                 return;
             }
             const editAction = () => {
-                clearReportActionDrafts(reportID);
+                clearReportActionDrafts();
 
                 if (draftMessage) {
                     return;

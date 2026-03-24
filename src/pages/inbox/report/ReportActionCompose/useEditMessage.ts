@@ -70,7 +70,7 @@ function useEditMessage({reportID, originalReportID, reportAction, shouldScrollT
 
         setEditingState('cancelled');
 
-        clearReportActionDrafts(reportID);
+        clearReportActionDrafts();
 
         if (isActive()) {
             ReportActionComposeFocusManager.clear(true);
