@@ -76,10 +76,14 @@ const BIOMETRY_TYPE_MAP: Record<string, SecureStoreAuthTypeEntry> = {
     OpticID: SECURE_STORE_VALUES.AUTH_TYPE.OPTIC_ID,
 };
 
-function mapBiometryTypeToAuthType(biometryType?: string): AuthTypeInfo | undefined {
-    const entry = BIOMETRY_TYPE_MAP[biometryType ?? ''];
+function mapBiometryTypeToAuthType(biometryType?: string, isDeviceSecure?: boolean): AuthTypeInfo | undefined {
+    let entry = BIOMETRY_TYPE_MAP[biometryType ?? ''];
     if (!entry) {
-        return undefined;
+        if (isDeviceSecure) {
+            entry = SECURE_STORE_VALUES.AUTH_TYPE.CREDENTIALS;
+        } else {
+            return undefined;
+        }
     }
     return {code: entry.CODE, name: entry.NAME, marqetaValue: entry.MARQETA_VALUE};
 }
@@ -123,7 +127,7 @@ function useNativeBiometricsEC256(): UseBiometricsReturn {
     const {serverKnownCredentialIDs, haveCredentialsEverBeenConfigured} = useServerCredentials();
 
     const doesDeviceSupportAuthenticationMethod = useCallback(() => {
-        return sensorResult.available;
+        return sensorResult.isDeviceSecure ?? sensorResult.available;
     }, []);
 
     const getLocalCredentialID = useCallback(async () => {
@@ -154,11 +158,11 @@ function useNativeBiometricsEC256(): UseBiometricsReturn {
 
             // createKeys with failIfExists=false auto-deletes existing key and recreates
             const {publicKey} = await createKeys(keyAlias, 'ec256', undefined, true, false);
-            console.log('[Network-less] created keys');
+
             const credentialID = base64ToBase64url(publicKey);
 
             // Map biometryType from module-level cache to auth type
-            const authType = mapBiometryTypeToAuthType(sensorResult.biometryType);
+            const authType = mapBiometryTypeToAuthType(sensorResult.biometryType, sensorResult.isDeviceSecure);
             if (!authType) {
                 onResult({success: false, reason: VALUES.REASON.GENERIC.BAD_REQUEST});
                 return;
