@@ -60,7 +60,7 @@ const defaultSearchStateContext: SearchStateContextValue = {
     lastSearchType: undefined,
     areAllMatchingItemsSelected: false,
     shouldShowSelectAllMatchingItems: false,
-    shouldShowFiltersBarLoading: false,
+    shouldShowActionsBarLoading: false,
     currentSearchResults: undefined,
     shouldUseLiveData: false,
 };
@@ -70,7 +70,7 @@ const defaultSearchActionsContext: SearchActionsContextValue = {
     setSelectedTransactions: () => {},
     removeTransaction: () => {},
     clearSelectedTransactions: () => {},
-    setShouldShowFiltersBarLoading: () => {},
+    setShouldShowActionsBarLoading: () => {},
     setShouldShowSelectAllMatchingItems: () => {},
     selectAllMatchingItems: () => {},
     setShouldResetSearchQuery: () => {},
@@ -101,7 +101,7 @@ function SearchContextProvider({children}: SearchContextProps) {
     const areTransactionsEmpty = useRef(true);
     const [lastSearchType, setLastSearchType] = useState<string>();
     const [areAllMatchingItemsSelected, selectAllMatchingItems] = useState(false);
-    const [shouldShowFiltersBarLoading, setShouldShowFiltersBarLoading] = useState(false);
+    const [shouldShowActionsBarLoading, setShouldShowActionsBarLoading] = useState(false);
     const [shouldShowSelectAllMatchingItems, setShouldShowSelectAllMatchingItems] = useState(false);
     const [searchContextData, setSearchContextData] = useState({...defaultSearchContextData});
 
@@ -282,7 +282,7 @@ function SearchContextProvider({children}: SearchContextProps) {
         currentSimilarSearchHash,
         currentSearchResults,
         shouldUseLiveData,
-        shouldShowFiltersBarLoading,
+        shouldShowActionsBarLoading,
         lastSearchType,
         shouldShowSelectAllMatchingItems,
         areAllMatchingItemsSelected,
@@ -293,7 +293,7 @@ function SearchContextProvider({children}: SearchContextProps) {
         removeTransaction,
         setSelectedTransactions,
         clearSelectedTransactions,
-        setShouldShowFiltersBarLoading,
+        setShouldShowActionsBarLoading,
         setLastSearchType,
         setShouldShowSelectAllMatchingItems,
         selectAllMatchingItems,
