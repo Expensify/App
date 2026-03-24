@@ -1705,6 +1705,10 @@ function shouldShowViolation(
         return isAttendeeTrackingEnabled;
     }
 
+    if (violationName === CONST.VIOLATIONS.BILLABLE_EXPENSE) {
+        return policy?.disabledFields?.defaultBillable !== true;
+    }
+
     if (violationName === CONST.VIOLATIONS.MISSING_CATEGORY && isCategoryBeingAnalyzed(transaction)) {
         return false;
     }

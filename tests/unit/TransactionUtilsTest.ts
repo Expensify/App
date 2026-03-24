@@ -1238,6 +1238,24 @@ describe('TransactionUtils', () => {
 
             expect(TransactionUtils.shouldShowViolation(iouReport, policy, CONST.VIOLATIONS.OVER_AUTO_APPROVAL_LIMIT, 'test@example.com')).toBe(false);
         });
+
+        it('should return false for billable violation when billable tracking is disabled on workspace', () => {
+            const policy: Policy = {
+                ...createRandomPolicy(0, CONST.POLICY.TYPE.TEAM),
+                disabledFields: {defaultBillable: true},
+            };
+
+            expect(TransactionUtils.shouldShowViolation(undefined, policy, CONST.VIOLATIONS.BILLABLE_EXPENSE, 'test@example.com')).toBe(false);
+        });
+
+        it('should return true for billable violation when billable tracking is enabled on workspace', () => {
+            const policy: Policy = {
+                ...createRandomPolicy(0, CONST.POLICY.TYPE.TEAM),
+                disabledFields: {defaultBillable: false},
+            };
+
+            expect(TransactionUtils.shouldShowViolation(undefined, policy, CONST.VIOLATIONS.BILLABLE_EXPENSE, 'test@example.com')).toBe(true);
+        });
     });
 
     describe('getReportOwnerAsAttendee', () => {
