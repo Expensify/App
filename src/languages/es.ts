@@ -1225,6 +1225,7 @@ const translations: TranslationDeepObject<typeof en> = {
         }),
         settledExpensify: 'Pagado',
         done: 'Listo',
+        deleted: 'Eliminado',
         settledElsewhere: 'Pagado de otra forma',
         individual: 'Individual',
         business: 'Empresa',
