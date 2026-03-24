@@ -547,7 +547,7 @@ index 1234567..abcdefg 100644
      methodMap_["setNativeProps"] = MethodMetadata {.argCount = 2, .invoker = __setNativeProps};
    }
 
-@@ -5984,6 +5985,15 @@
+@@ -5984,5 +5985,14 @@
        count <= 2 ? throw jsi::JSError(rt, "Expected argument in position 2 to be passed") : args[2].asObject(rt).asFunction(rt),
        count <= 3 ? throw jsi::JSError(rt, "Expected argument in position 3 to be passed") : args[3].asObject(rt).asFunction(rt));return jsi::Value::undefined();
    }
