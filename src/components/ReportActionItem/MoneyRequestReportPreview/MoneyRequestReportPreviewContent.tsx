@@ -152,8 +152,8 @@ function MoneyRequestReportPreviewContent({
     const shouldShowPreviewPlaceholder = shouldShowAccessPlaceHolder || shouldShowEmptyPlaceholder;
     const showStatusAndSkeleton = !shouldShowEmptyPlaceholder;
     // Empty/access placeholders do not depend on measured carousel width, so we can show them immediately
-    // instead of keeping the taller loading state around and causing the preview to reflow.
-    const shouldShowPreviewLoading = shouldShowLoading || (shouldShowLoadingDeferred && !shouldShowPreviewPlaceholder) || (!currentWidth && !shouldShowPreviewPlaceholder);
+    // once the report data is ready instead of keeping the taller loading state around and causing the preview to reflow.
+    const shouldShowPreviewLoading = shouldShowLoading || shouldShowLoadingDeferred || (!currentWidth && !shouldShowPreviewPlaceholder);
     const skeletonReasonAttributes: SkeletonSpanReasonAttributes = {
         context: 'MoneyRequestReportPreviewContent',
         hasOnceLoadedReportActions: chatReportMetadata?.hasOnceLoadedReportActions,

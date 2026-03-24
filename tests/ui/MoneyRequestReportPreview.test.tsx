@@ -33,6 +33,18 @@ const defaultReportWithTransactionsAndViolations: [OnyxEntry<Report>, Transactio
     defaultPreviewTransactions,
     {violations: mockViolations},
 ];
+let mockDeferredValueOverride: boolean | undefined;
+
+jest.mock('react', () => {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment -- jest.requireActual() returns the real React module for partial mocking
+    const actualReact = jest.requireActual('react');
+
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return -- returning the real React module plus one overridden hook is the standard Jest partial-mock pattern
+    return {
+        ...actualReact,
+        useDeferredValue: (value: boolean) => mockDeferredValueOverride ?? value,
+    };
+});
 
 jest.mock('@react-navigation/native');
 
@@ -168,6 +180,7 @@ describe('MoneyRequestReportPreview', () => {
 
     beforeEach(() => {
         jest.clearAllMocks();
+        mockDeferredValueOverride = undefined;
         setReportPreviewData();
         return act(async () => {
             await Onyx.clear();
@@ -243,5 +256,18 @@ describe('MoneyRequestReportPreview', () => {
         });
 
         expect(screen.getByText(TestHelper.translateLocal('search.moneyRequestReport.accessPlaceHolder'))).toBeOnTheScreen();
+    });
+
+    it('keeps showing loading during the deferred transition before transactions populate', async () => {
+        setReportPreviewData({transactions: []});
+        mockDeferredValueOverride = true;
+
+        renderPage({});
+        await act(async () => {
+            await setHasOnceLoadedReportActions(true);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        expect(screen.queryByText(TestHelper.translateLocal('search.moneyRequestReport.emptyStateTitle'))).not.toBeOnTheScreen();
     });
 });
