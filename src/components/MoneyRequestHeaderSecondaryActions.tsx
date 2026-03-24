@@ -3,6 +3,7 @@ import {shouldFailAllRequestsSelector} from '@selectors/Network';
 import {hasSeenTourSelector} from '@selectors/Onboarding';
 import {validTransactionDraftsSelector} from '@selectors/TransactionDraft';
 import React, {useRef, useState} from 'react';
+import {InteractionManager} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -420,8 +421,11 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
                             currentUserAccountID: accountID,
                         });
                     } else {
-                        deleteTransactions([transaction.transactionID], duplicateTransactions, duplicateTransactionViolations, currentSearchHash, true);
-                        removeTransaction(transaction.transactionID);
+                        // eslint-disable-next-line @typescript-eslint/no-deprecated
+                        InteractionManager.runAfterInteractions(() => {
+                            deleteTransactions([transaction.transactionID], duplicateTransactions, duplicateTransactionViolations, currentSearchHash, true);
+                            removeTransaction(transaction.transactionID);
+                        });
                     }
                     if (isInNarrowPaneModal) {
                         Navigation.navigateBackToLastSuperWideRHPScreen();
