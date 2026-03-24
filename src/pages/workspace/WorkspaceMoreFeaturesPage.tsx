@@ -1,3 +1,4 @@
+import {hasSeenTourSelector} from '@selectors/Onboarding';
 import React, {useCallback, useEffect} from 'react';
 import {View} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -103,6 +104,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
     });
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const isUberConnected = useIsPolicyConnectedToUberReceiptPartner({policyID});
     const [cardFeeds] = useCardFeeds(policyID);
@@ -235,7 +237,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                     if (result.action !== ModalActions.CONFIRM) {
                         return;
                     }
-                    navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, false);
+                    navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, false);
                 });
             },
             onPress: () => {
@@ -270,7 +272,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                 if (result.action !== ModalActions.CONFIRM) {
                     return;
                 }
-                navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, false);
+                navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, false);
             });
         },
         onPress: () => {
@@ -336,7 +338,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                 if (!policyID) {
                     return;
                 }
-                enablePolicyWorkflows(policyID, isEnabled);
+                enablePolicyWorkflows(policyID, isEnabled, policy?.approvalMode, policy?.autoReporting, policy?.harvesting, policy?.reimbursementChoice);
             },
             disabled: isSmartLimitEnabled,
             disabledAction: onDisabledWorkflowPress,
@@ -362,7 +364,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                     Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.rules.alias, ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID)));
                     return;
                 }
-                enablePolicyRules(policyID, isEnabled, undefined, policyData);
+                enablePolicyRules(policy, isEnabled, undefined, policyData);
             },
             onPress: () => {
                 if (!policyID) {
@@ -447,7 +449,11 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                 if (!policyID) {
                     return;
                 }
-                enablePolicyTaxes(policyID, isEnabled);
+                if (isEnabled) {
+                    enablePolicyTaxes(policyID, true, policy?.taxRates);
+                    return;
+                }
+                enablePolicyTaxes(policyID, false);
             },
             onPress: () => {
                 if (!policyID) {

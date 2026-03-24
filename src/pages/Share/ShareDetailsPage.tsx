@@ -21,6 +21,7 @@ import useOnyx from '@hooks/useOnyx';
 import usePrivateIsArchivedMap from '@hooks/usePrivateIsArchivedMap';
 import useReportAttributes from '@hooks/useReportAttributes';
 import useThemeStyles from '@hooks/useThemeStyles';
+import type {ParticipantInfo} from '@libs/actions/Report';
 import {addAttachmentWithComment, addComment, openReport} from '@libs/actions/Report';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {getFileName, readFileAsync} from '@libs/fileDownload/FileUtils';
@@ -69,9 +70,10 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
     const privateIsArchivedMap = usePrivateIsArchivedMap();
     const privateIsArchived = privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`];
     const ancestors = useAncestors(report);
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`);
     const displayReport = useMemo(
-        () => getReportDisplayOption(report, unknownUserDetails, personalDetail.accountID, personalDetails, privateIsArchived, reportAttributesDerived),
-        [report, unknownUserDetails, personalDetails, privateIsArchived, reportAttributesDerived, personalDetail.accountID],
+        () => getReportDisplayOption(report, unknownUserDetails, personalDetail.accountID, personalDetails, privateIsArchived, policy, reportAttributesDerived),
+        [report, unknownUserDetails, personalDetails, privateIsArchived, reportAttributesDerived, personalDetail.accountID, policy],
     );
 
     const shouldShowAttachment = !isTextShared;
@@ -153,10 +155,19 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
             validateFileName,
             (file) => {
                 if (isDraft) {
+                    const participants: ParticipantInfo[] =
+                        displayReport.participantsList
+                            ?.filter((u) => u.accountID !== personalDetail.accountID)
+                            .map((u) => ({
+                                login: u.login ?? '',
+                                accountID: u.accountID,
+                            })) ?? [];
+
                     openReport({
                         reportID: report.reportID,
                         introSelected,
-                        participantLoginList: displayReport.participantsList?.filter((u) => u.accountID !== personalDetail.accountID).map((u) => u.login ?? '') ?? [],
+                        personalDetails,
+                        participants,
                         newReportObject: report,
                         betas,
                     });

@@ -91,7 +91,7 @@ function WorkspaceDowngradePage({route}: WorkspaceDowngradePageProps) {
             dismissModalAndNavigate(policyID);
             return;
         }
-        downgradeToTeam(policy.id);
+        downgradeToTeam(policy.id, policy.type, policy.isAttendeeTrackingEnabled);
     };
 
     if (!canPerformDowngrade) {

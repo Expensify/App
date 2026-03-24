@@ -63,7 +63,6 @@ function ConfirmModalWrapper({closeModal, resolveModal, ...props}: ConfirmModalW
             onCancel={handleCancel}
             onModalHide={handleModalHide}
             isConfirmLoading={isConfirmLoading || props.isConfirmLoading}
-            shouldShowCancelButton={isConfirmLoading ? false : props.shouldShowCancelButton}
         />
     );
 }
