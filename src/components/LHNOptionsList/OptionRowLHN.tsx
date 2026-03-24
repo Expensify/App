@@ -13,6 +13,7 @@ import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
 import EducationalTooltip from '@components/Tooltip/EducationalTooltip';
 import getContextMenuAccessibilityHint from '@components/utils/getContextMenuAccessibilityHint';
+import getContextMenuAccessibilityProps from '@components/utils/getContextMenuAccessibilityProps';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useEnvironment from '@hooks/useEnvironment';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -25,7 +26,6 @@ import DateUtils from '@libs/DateUtils';
 import DomUtils from '@libs/DomUtils';
 import {containsCustomEmoji as containsCustomEmojiUtils, containsOnlyCustomEmoji} from '@libs/EmojiUtils';
 import FS from '@libs/Fullstory';
-import getPlatform from '@libs/getPlatform';
 import {shouldOptionShowTooltip, shouldUseBoldText} from '@libs/OptionsListUtils';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import {getDelegateAccountIDFromReportAction} from '@libs/ReportActionsUtils';
@@ -248,13 +248,11 @@ function OptionRowLHN({
         .filter(Boolean)
         .join('. ');
     const contextMenuHint = getContextMenuAccessibilityHint({translate});
-    const platform = getPlatform(true);
-    const shouldMergeContextMenuHintIntoLabel = platform === CONST.PLATFORM.WEB || platform === CONST.PLATFORM.MOBILE_WEB;
-    const accessibilityLabelWithContextMenuHint =
-        shouldMergeContextMenuHintIntoLabel && contextMenuHint ? [accessibilityLabel, contextMenuHint].filter(Boolean).join('. ') : accessibilityLabel;
-    const accessibilityHint = shouldMergeContextMenuHintIntoLabel
-        ? undefined
-        : [`${translate('accessibilityHints.navigatesToChat')} ${optionItem.text}`, contextMenuHint].filter(Boolean).join('. ');
+    const {accessibilityLabel: accessibilityLabelWithContextMenuHint, accessibilityHint} = getContextMenuAccessibilityProps({
+        accessibilityLabel,
+        nativeAccessibilityHint: accessibilityLabel,
+        contextMenuHint,
+    });
 
     return (
         <OfflineWithFeedback

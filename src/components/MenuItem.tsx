@@ -16,7 +16,6 @@ import {canUseTouchScreen, hasHoverSupport} from '@libs/DeviceCapabilities';
 import {containsCustomEmoji, containsOnlyCustomEmoji} from '@libs/EmojiUtils';
 import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 import getButtonState from '@libs/getButtonState';
-import getPlatform from '@libs/getPlatform';
 import mergeRefs from '@libs/mergeRefs';
 import Parser from '@libs/Parser';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
@@ -49,6 +48,7 @@ import SelectCircle from './SelectCircle';
 import Text from './Text';
 import EducationalTooltip from './Tooltip/EducationalTooltip';
 import getContextMenuAccessibilityHint from './utils/getContextMenuAccessibilityHint';
+import getContextMenuAccessibilityProps from './utils/getContextMenuAccessibilityProps';
 
 type IconProps = {
     /** Flag to choose between avatar image or an icon */
@@ -616,11 +616,10 @@ function MenuItem({
 
     const combinedAccessibilityLabel = [enhancedAccessibilityLabel, brickRoadIndicator ? translate('common.yourReviewIsRequired') : ''].filter(Boolean).join('. ');
     const contextMenuHint = shouldShowContextMenuHint ? getContextMenuAccessibilityHint({translate}) : undefined;
-    const platform = getPlatform(true);
-    const shouldMergeContextMenuHintIntoLabel = platform === CONST.PLATFORM.WEB || platform === CONST.PLATFORM.MOBILE_WEB;
-    const accessibilityLabelWithContextMenuHint =
-        shouldMergeContextMenuHintIntoLabel && contextMenuHint ? [combinedAccessibilityLabel, contextMenuHint].filter(Boolean).join('. ') : combinedAccessibilityLabel;
-    const accessibilityHint = shouldMergeContextMenuHintIntoLabel ? undefined : contextMenuHint;
+    const {accessibilityLabel: accessibilityLabelWithContextMenuHint, accessibilityHint} = getContextMenuAccessibilityProps({
+        accessibilityLabel: combinedAccessibilityLabel,
+        contextMenuHint,
+    });
 
     const combinedTitleTextStyle = StyleUtils.combineStyles<TextStyle>(
         [
