@@ -79,6 +79,7 @@ function ProcessMoneyReportHoldMenu({
     const [userBillingGraceEndPeriods] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
+    const [ownerBillingGraceEndPeriod] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const activePolicy = usePolicy(activePolicyID);
     const policy = usePolicy(moneyRequestReport?.policyID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
@@ -111,6 +112,7 @@ function ProcessMoneyReportHoldMenu({
                 betas,
                 userBillingGraceEndPeriods,
                 amountOwed,
+                ownerBillingGraceEndPeriod,
                 full,
                 onApproved: startAnimation,
             });
@@ -129,6 +131,7 @@ function ProcessMoneyReportHoldMenu({
                 isSelfTourViewed,
                 userBillingGraceEndPeriods,
                 amountOwed,
+                ownerBillingGraceEndPeriod,
                 methodID,
                 onPaid: startAnimation,
             });

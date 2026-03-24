@@ -13,7 +13,6 @@ import Checkbox from '@components/Checkbox';
 import DecisionModal from '@components/DecisionModal';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import FlatListWithScrollKey from '@components/FlatList/FlatListWithScrollKey';
-import {AUTOSCROLL_TO_TOP_THRESHOLD} from '@components/FlatList/hooks/useFlatListScrollKey';
 import HoldOrRejectEducationalModal from '@components/HoldOrRejectEducationalModal';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -35,6 +34,7 @@ import usePrevious from '@hooks/usePrevious';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useReportScrollManager from '@hooks/useReportScrollManager';
 import useResponsiveLayoutOnWideRHP from '@hooks/useResponsiveLayoutOnWideRHP';
+import useScrollToEndOnNewMessageReceived from '@hooks/useScrollToEndOnNewMessageReceived';
 import useSelectedTransactionsActions from '@hooks/useSelectedTransactionsActions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -59,6 +59,7 @@ import {
     wasMessageReceivedWhileOffline,
 } from '@libs/ReportActionsUtils';
 import {canUserPerformWriteAction, chatIncludesChronosWithID, getOriginalReportID, getReportLastVisibleActionCreated, isHarvestCreatedExpenseReport, isUnread} from '@libs/ReportUtils';
+import shouldPopoverUseScrollView from '@libs/shouldPopoverUseScrollView';
 import markOpenReportEnd from '@libs/telemetry/markOpenReportEnd';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {isTransactionPendingDelete} from '@libs/TransactionUtils';
@@ -67,7 +68,7 @@ import isSearchTopmostFullScreenRoute from '@navigation/helpers/isSearchTopmostF
 import FloatingMessageCounter from '@pages/inbox/report/FloatingMessageCounter';
 import getInitialNumToRender from '@pages/inbox/report/getInitialNumReportActionsToRender';
 import ReportActionsListItemRenderer from '@pages/inbox/report/ReportActionsListItemRenderer';
-import shouldDisplayNewMarkerOnReportAction from '@pages/inbox/report/shouldDisplayNewMarkerOnReportAction';
+import {getUnreadMarkerReportAction} from '@pages/inbox/report/shouldDisplayNewMarkerOnReportAction';
 import useReportUnreadMessageScrollTracking from '@pages/inbox/report/useReportUnreadMessageScrollTracking';
 import {ActionListContext} from '@pages/inbox/ReportScreenContext';
 import variables from '@styles/variables';
@@ -313,6 +314,8 @@ function MoneyRequestReportActionsList({
         });
     }, [originalSelectedTransactionsOptions, dismissedRejectUseExplanation, isDelegateAccessRestricted, showDelegateNoAccessModal]);
 
+    const popoverUseScrollView = shouldPopoverUseScrollView(selectedTransactionsOptions);
+
     const dismissRejectModalBasedOnAction = useCallback(() => {
         if (rejectModalAction === CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.REJECT_BULK) {
             dismissRejectUseExplanation();
@@ -368,10 +371,7 @@ function MoneyRequestReportActionsList({
         markOpenReportEnd(report, {warm: false});
     }, [report, shouldShowOpenReportLoadingSkeleton]);
 
-    const reportActionSize = useRef(visibleReportActions.length);
     const lastAction = visibleReportActions.at(-1);
-    const lastActionIndex = lastAction?.reportActionID;
-    const previousLastIndex = useRef(lastActionIndex);
 
     const {scrollOffsetRef} = useContext(ActionListContext);
     const scrollingVerticalBottomOffset = useRef(0);
@@ -380,7 +380,6 @@ function MoneyRequestReportActionsList({
     const readActionSkipped = useRef(false);
     const lastVisibleActionCreated = getReportLastVisibleActionCreated(report, transactionThreadReport);
     const hasNewestReportAction = lastAction?.created === lastVisibleActionCreated;
-    const hasNewestReportActionRef = useRef(hasNewestReportAction);
     const userActiveSince = useRef<string>(DateUtils.getDBTime());
 
     const reportActionIDs = useMemo(() => {
@@ -516,38 +515,17 @@ function MoneyRequestReportActionsList({
     /**
      * The reportActionID the unread marker should display above
      */
-    const [unreadMarkerReportActionID, unreadMarkerReportActionIndex] = useMemo(() => {
-        // If there are message that were received while offline,
-        // we can skip checking all messages later than the earliest received offline message.
-        const startIndex = visibleReportActions.length - 1;
-        const endIndex = earliestReceivedOfflineMessageIndex ?? 0;
-
-        // Scan through each visible report action until we find the appropriate action to show the unread marker
-        for (let index = startIndex; index >= endIndex; index--) {
-            const reportAction = visibleReportActions.at(index);
-            const nextAction = index > 0 ? visibleReportActions.at(index - 1) : undefined;
-            const isEarliestReceivedOfflineMessage = index === earliestReceivedOfflineMessageIndex;
-
-            const shouldDisplayNewMarker =
-                reportAction &&
-                shouldDisplayNewMarkerOnReportAction({
-                    message: reportAction,
-                    nextMessage: nextAction,
-                    isEarliestReceivedOfflineMessage,
-                    currentUserAccountID,
-                    prevSortedVisibleReportActionsObjects: prevVisibleActionsMap,
-                    unreadMarkerTime,
-                    scrollingVerticalOffset: scrollingVerticalBottomOffset.current,
-                    prevUnreadMarkerReportActionID: prevUnreadMarkerReportActionID.current,
-                });
-
-            if (shouldDisplayNewMarker) {
-                return [reportAction.reportActionID, index];
-            }
-        }
-
-        return [null, -1];
-    }, [currentUserAccountID, earliestReceivedOfflineMessageIndex, prevVisibleActionsMap, visibleReportActions, unreadMarkerTime]);
+    const [unreadMarkerReportActionID, unreadMarkerReportActionIndex] = getUnreadMarkerReportAction({
+        visibleReportActions,
+        earliestReceivedOfflineMessageIndex,
+        currentUserAccountID,
+        prevSortedVisibleReportActionsObjects: prevVisibleActionsMap,
+        unreadMarkerTime,
+        scrollingVerticalOffset: scrollingVerticalBottomOffset.current,
+        prevUnreadMarkerReportActionID: prevUnreadMarkerReportActionID.current,
+        isOffline,
+        isReversed: true,
+    });
     prevUnreadMarkerReportActionID.current = unreadMarkerReportActionID;
 
     const {isFloatingMessageCounterVisible, setIsFloatingMessageCounterVisible, trackVerticalScrolling, onViewableItemsChanged} = useReportUnreadMessageScrollTracking({
@@ -573,21 +551,16 @@ function MoneyRequestReportActionsList({
         hasOnceLoadedReportActions: !!reportMetadata?.hasOnceLoadedReportActions,
     });
 
-    useEffect(() => {
-        if (
-            scrollingVerticalBottomOffset.current < AUTOSCROLL_TO_TOP_THRESHOLD &&
-            previousLastIndex.current !== lastActionIndex &&
-            reportActionSize.current > reportActions.length &&
-            hasNewestReportAction
-        ) {
-            setIsFloatingMessageCounterVisible(false);
-            reportScrollManager.scrollToEnd();
-        }
-
-        previousLastIndex.current = lastActionIndex;
-        reportActionSize.current = visibleReportActions.length;
-        hasNewestReportActionRef.current = hasNewestReportAction;
-    }, [lastActionIndex, reportActions.length, reportScrollManager, hasNewestReportAction, visibleReportActions.length, setIsFloatingMessageCounterVisible]);
+    useScrollToEndOnNewMessageReceived({
+        sizeChangeType: 'grewFromReportActions',
+        scrollOffsetRef,
+        lastActionID: lastAction?.reportActionID,
+        visibleActionsLength: visibleReportActions.length,
+        reportActionsLength: reportActions.length,
+        hasNewestReportAction,
+        setIsFloatingMessageCounterVisible,
+        scrollToEnd: reportScrollManager.scrollToEnd,
+    });
 
     /**
      * Subscribe to read/unread events and update our unreadMarkerTime
@@ -681,8 +654,8 @@ function MoneyRequestReportActionsList({
     const renderItem = useCallback(
         ({item: reportAction, index}: ListRenderItemInfo<OnyxTypes.ReportAction>) => {
             const displayAsGroup =
-                !isConsecutiveChronosAutomaticTimerAction(visibleReportActions, index, chatIncludesChronosWithID(reportAction?.reportID)) &&
-                hasNextActionMadeBySameActor(visibleReportActions, index);
+                !isConsecutiveChronosAutomaticTimerAction(visibleReportActions, index, chatIncludesChronosWithID(reportAction?.reportID), isOffline) &&
+                hasNextActionMadeBySameActor(visibleReportActions, index, isOffline);
 
             const originalReportID = getOriginalReportID(report.reportID, reportAction, reportActionsObject);
 
@@ -718,6 +691,7 @@ function MoneyRequestReportActionsList({
             reportActionsObject,
             parentReportAction,
             report,
+            isOffline,
             transactionThreadReport,
             mostRecentIOUReportActionID,
             unreadMarkerReportActionID,
@@ -731,6 +705,7 @@ function MoneyRequestReportActionsList({
             isReportArchived,
             reportNameValuePairs?.origin,
             reportNameValuePairs?.originalID,
+            isOffline,
         ],
     );
 
@@ -808,6 +783,7 @@ function MoneyRequestReportActionsList({
                         })}
                         isSplitButton={false}
                         shouldAlwaysShowDropdownMenu
+                        shouldPopoverUseScrollView={popoverUseScrollView}
                         wrapperStyle={[styles.w100, styles.ph5]}
                     />
                     <View style={[styles.alignItemsCenter, styles.userSelectNone, styles.flexRow, styles.pt6, styles.ph8, styles.pb3]}>
