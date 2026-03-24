@@ -1,35 +1,24 @@
 import type {ValueOf} from 'type-fest';
-import {isConnectionInProgress} from '@libs/actions/connections';
-import {shouldShowQBOReimbursableExportDestinationAccountError} from '@libs/actions/connections/QuickbooksOnline';
 import {hasPaymentMethodError} from '@libs/actions/PaymentMethods';
 import {hasPartiallySetupBankAccount} from '@libs/BankAccountUtils';
 import {hasPendingExpensifyCardAction} from '@libs/CardUtils';
-import {hasDomainErrors} from '@libs/DomainUtils';
-import {getUberConnectionErrorDirectlyFromPolicy, shouldShowCustomUnitsError, shouldShowEmployeeListError, shouldShowPolicyError, shouldShowSyncError} from '@libs/PolicyUtils';
 import {hasSubscriptionGreenDotInfo, hasSubscriptionRedDotError} from '@libs/SubscriptionUtils';
 import {hasLoginListError, hasLoginListInfo} from '@libs/UserUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy} from '@src/types/onyx';
 import useCardFeedErrors from './useCardFeedErrors';
 import useOnyx from './useOnyx';
 import usePoliciesWithCardFeedErrors from './usePoliciesWithCardFeedErrors';
 
 type IndicatorStatus = ValueOf<typeof CONST.INDICATOR_STATUS>;
 
-type NavigationTabBarChecksResult = {
+type AccountIndicatorChecksResult = {
     accountStatus: IndicatorStatus | undefined;
-    policyStatus: IndicatorStatus | undefined;
-    domainStatus: IndicatorStatus | undefined;
     infoStatus: IndicatorStatus | undefined;
-    policyIDWithErrors: string | undefined;
 };
 
-function useNavigationTabBarIndicatorChecks(): NavigationTabBarChecksResult {
-    const [allConnectionSyncProgresses] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS);
-    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+function useAccountIndicatorChecks(): AccountIndicatorChecksResult {
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
-    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
     const [fundList] = useOnyx(ONYXKEYS.FUND_LIST);
     const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET);
     const [walletTerms] = useOnyx(ONYXKEYS.WALLET_TERMS);
@@ -44,32 +33,14 @@ function useNavigationTabBarIndicatorChecks(): NavigationTabBarChecksResult {
     const [amountOwed = 0] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const [ownerBillingGraceEndPeriod] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const [session] = useOnyx(ONYXKEYS.SESSION);
-    const [allDomainErrors] = useOnyx(ONYXKEYS.COLLECTION.DOMAIN_ERRORS);
+    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
+    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
 
     const {
         companyCards: {shouldShowRBR: hasCompanyCardFeedErrors},
     } = useCardFeedErrors();
-    const {policiesWithCardFeedErrors, isPolicyAdmin} = usePoliciesWithCardFeedErrors();
+    const {isPolicyAdmin} = usePoliciesWithCardFeedErrors();
 
-    // If a policy was just deleted from Onyx, then Onyx will pass a null value to the props, and
-    // those should be cleaned out before doing any error checking
-    const cleanPolicies = Object.values(policies ?? {}).filter((policy) => policy?.id);
-
-    const policyChecks: Partial<Record<IndicatorStatus, Policy | undefined>> = {
-        [CONST.INDICATOR_STATUS.HAS_POLICY_ERRORS]: cleanPolicies.find(shouldShowPolicyError),
-        [CONST.INDICATOR_STATUS.HAS_CUSTOM_UNITS_ERROR]: cleanPolicies.find(shouldShowCustomUnitsError),
-        [CONST.INDICATOR_STATUS.HAS_EMPLOYEE_LIST_ERROR]: cleanPolicies.find(shouldShowEmployeeListError),
-        [CONST.INDICATOR_STATUS.HAS_SYNC_ERRORS]: cleanPolicies.find((cleanPolicy) =>
-            shouldShowSyncError(cleanPolicy, isConnectionInProgress(allConnectionSyncProgresses?.[`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${cleanPolicy?.id}`], cleanPolicy)),
-        ),
-        [CONST.INDICATOR_STATUS.HAS_QBO_EXPORT_ERROR]: cleanPolicies.find(shouldShowQBOReimbursableExportDestinationAccountError),
-        [CONST.INDICATOR_STATUS.HAS_UBER_CREDENTIALS_ERROR]: cleanPolicies.find(getUberConnectionErrorDirectlyFromPolicy),
-        [CONST.INDICATOR_STATUS.HAS_POLICY_ADMIN_CARD_FEED_ERRORS]: isPolicyAdmin ? policiesWithCardFeedErrors.at(0) : undefined,
-    };
-
-    // All the error & info-checking methods are put into an array. This is so that using _.some() will return
-    // early as soon as the first error / info condition is returned. This makes the checks very efficient since
-    // we only care if a single error / info condition exists anywhere.
     const accountChecks: Partial<Record<IndicatorStatus, boolean>> = {
         [CONST.INDICATOR_STATUS.HAS_USER_WALLET_ERRORS]: Object.keys(userWallet?.errors ?? {}).length > 0,
         [CONST.INDICATOR_STATUS.HAS_PAYMENT_METHOD_ERROR]: hasPaymentMethodError(bankAccountList, fundList, allCards, session, policies),
@@ -107,26 +78,15 @@ function useNavigationTabBarIndicatorChecks(): NavigationTabBarChecksResult {
         [CONST.INDICATOR_STATUS.HAS_PARTIALLY_SETUP_BANK_ACCOUNT_INFO]: hasPartiallySetupBankAccount(bankAccountList),
     };
 
-    const domainChecks: Partial<Record<IndicatorStatus, boolean>> = {
-        [CONST.INDICATOR_STATUS.HAS_DOMAIN_ERRORS]: Object.values(allDomainErrors ?? {}).some((domainErrors) => hasDomainErrors(domainErrors)),
-    };
-
     const [accountStatus] = Object.entries(accountChecks).find(([, value]) => value) ?? [];
-    const [policyStatus] = Object.entries(policyChecks).find(([, value]) => value) ?? [];
-    const [domainStatus] = Object.entries(domainChecks).find(([, value]) => value) ?? [];
     const [infoStatus] = Object.entries(infoChecks).find(([, value]) => value) ?? [];
-
-    const policyIDWithErrors = Object.values(policyChecks).find(Boolean)?.id;
 
     return {
         accountStatus: accountStatus as IndicatorStatus | undefined,
-        policyStatus: policyStatus as IndicatorStatus | undefined,
-        domainStatus: domainStatus as IndicatorStatus | undefined,
         infoStatus: infoStatus as IndicatorStatus | undefined,
-        policyIDWithErrors,
     };
 }
 
-export default useNavigationTabBarIndicatorChecks;
+export default useAccountIndicatorChecks;
 
 export type {IndicatorStatus};
