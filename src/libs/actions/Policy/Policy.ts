@@ -2263,7 +2263,11 @@ function createDraftInitialWorkspace(
     const workspaceName = policyName || generateDefaultWorkspaceName(policyOwnerEmail);
     const {customUnits, outputCurrency} = buildOptimisticDistanceRateCustomUnits(currency);
     const shouldEnableWorkflowsByDefault =
-        !introSelected?.choice || introSelected.choice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM || introSelected.choice === CONST.ONBOARDING_CHOICES.LOOKING_AROUND;
+        !introSelected?.choice ||
+        introSelected.choice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM ||
+        introSelected.choice === CONST.ONBOARDING_CHOICES.LOOKING_AROUND ||
+        introSelected.choice === CONST.ONBOARDING_CHOICES.PERSONAL_SPEND ||
+        introSelected.choice === CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE;
 
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY_DRAFTS>> = [
         {
@@ -2931,7 +2935,11 @@ function createDraftWorkspace(
     );
 
     const shouldEnableWorkflowsByDefault =
-        !introSelected?.choice || introSelected.choice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM || introSelected.choice === CONST.ONBOARDING_CHOICES.LOOKING_AROUND;
+        !introSelected?.choice ||
+        introSelected.choice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM ||
+        introSelected.choice === CONST.ONBOARDING_CHOICES.LOOKING_AROUND ||
+        introSelected.choice === CONST.ONBOARDING_CHOICES.PERSONAL_SPEND ||
+        introSelected.choice === CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE;
 
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY_DRAFTS | typeof ONYXKEYS.COLLECTION.REPORT_DRAFT | typeof ONYXKEYS.COLLECTION.POLICY_CATEGORIES_DRAFT>> = [
         {
