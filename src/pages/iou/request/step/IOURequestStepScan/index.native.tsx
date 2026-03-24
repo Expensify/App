@@ -50,7 +50,6 @@ import {getEmptyObject} from '@src/types/utils/EmptyObject';
 import CameraPermission from './CameraPermission';
 import NavigationAwareCamera from './components/NavigationAwareCamera/Camera';
 import ReceiptPreviews from './components/ReceiptPreviews';
-import {generateThumbnail} from './cropImageToAspectRatio';
 import useMobileReceiptScan from './hooks/useMobileReceiptScan';
 import useReceiptScan from './hooks/useReceiptScan';
 import type IOURequestStepScanProps from './types';
@@ -400,14 +399,6 @@ function IOURequestStepScan({
                 };
 
                 setMoneyRequestReceipt(transactionID, source, filename, !isEditing, 'image/jpeg');
-
-                // Generate thumbnail off the critical path — update Onyx when ready
-                generateThumbnail(source).then((thumbnailUri) => {
-                    if (!thumbnailUri) {
-                        return;
-                    }
-                    setMoneyRequestReceipt(transactionID, source, filename, !isEditing, 'image/jpeg', false, false, thumbnailUri);
-                });
 
                 if (isEditing) {
                     updateScanAndNavigate(cameraFile as FileObject, source);
