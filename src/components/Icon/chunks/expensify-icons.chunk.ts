@@ -36,6 +36,7 @@ import Buildings from '@assets/images/buildings.svg';
 import CalendarSolid from '@assets/images/calendar-solid.svg';
 import Calendar from '@assets/images/calendar.svg';
 import Camera from '@assets/images/camera.svg';
+import CarCircleSlash from '@assets/images/car-circle-slash.svg';
 import CarPlus from '@assets/images/car-plus.svg';
 import CarWithKey from '@assets/images/car-with-key.svg';
 import Car from '@assets/images/car.svg';
@@ -230,6 +231,7 @@ import Thread from '@assets/images/thread.svg';
 import ThreeDots from '@assets/images/three-dots.svg';
 import ThumbsDown from '@assets/images/thumbs-down.svg';
 import ThumbsUp from '@assets/images/thumbs-up.svg';
+import TrainCircleSlash from '@assets/images/train-circle-slash.svg';
 import Train from '@assets/images/train.svg';
 import Transfer from '@assets/images/transfer.svg';
 import Trashcan from '@assets/images/trashcan.svg';
@@ -470,6 +472,7 @@ const Expensicons = {
     PlaneCircleSlash,
     Bed,
     BedCircleSlash,
+    CarCircleSlash,
     CarWithKey,
     Clear,
     CheckCircle,
@@ -495,6 +498,7 @@ const Expensicons = {
     QBDSquare,
     GalleryNotFound,
     Train,
+    TrainCircleSlash,
     boltSlash,
     MagnifyingGlassSpyMouthClosed,
     CheckSquare,

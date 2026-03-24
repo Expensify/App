@@ -8,7 +8,7 @@ import type IconAsset from '@src/types/utils/IconAsset';
 import SafeString from '@src/utils/SafeString';
 import {getMoneyRequestSpendBreakdown} from './ReportUtils';
 
-type TripReservationIcons = Record<'Plane' | 'PlaneCircleSlash' | 'Bed' | 'BedCircleSlash' | 'CarWithKey' | 'Train' | 'Luggage', IconAsset>;
+type TripReservationIcons = Record<'Plane' | 'PlaneCircleSlash' | 'Bed' | 'BedCircleSlash' | 'CarWithKey' | 'CarCircleSlash' | 'Train' | 'TrainCircleSlash' | 'Luggage', IconAsset>;
 
 function getTripReservationIcon(icons: TripReservationIcons, reservationType?: ReservationType, isCancelled?: boolean): IconAsset {
     switch (reservationType) {
@@ -17,9 +17,9 @@ function getTripReservationIcon(icons: TripReservationIcons, reservationType?: R
         case CONST.RESERVATION_TYPE.HOTEL:
             return isCancelled ? icons.BedCircleSlash : icons.Bed;
         case CONST.RESERVATION_TYPE.CAR:
-            return icons.CarWithKey;
+            return isCancelled ? icons.CarCircleSlash : icons.CarWithKey;
         case CONST.RESERVATION_TYPE.TRAIN:
-            return icons.Train;
+            return isCancelled ? icons.TrainCircleSlash : icons.Train;
         default:
             return icons.Luggage;
     }

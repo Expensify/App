@@ -44,7 +44,18 @@ function ReservationView({reservation, transactionID, tripRoomReportID, sequence
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['ArrowRightLong', 'Plane', 'PlaneCircleSlash', 'Bed', 'BedCircleSlash', 'CarWithKey', 'Train', 'Luggage']);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons([
+        'ArrowRightLong',
+        'Plane',
+        'PlaneCircleSlash',
+        'Bed',
+        'BedCircleSlash',
+        'CarWithKey',
+        'CarCircleSlash',
+        'Train',
+        'TrainCircleSlash',
+        'Luggage',
+    ]);
 
     const reservationIcon = getTripReservationIcon(expensifyIcons, reservation.type, isCancelled);
 

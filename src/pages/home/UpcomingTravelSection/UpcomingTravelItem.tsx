@@ -80,7 +80,18 @@ function UpcomingTravelItem({reservation: upcomingReservation}: UpcomingTravelIt
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Plane', 'PlaneCircleSlash', 'Bed', 'BedCircleSlash', 'CarWithKey', 'Train', 'Luggage', 'ArrowRight']);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons([
+        'Plane',
+        'PlaneCircleSlash',
+        'Bed',
+        'BedCircleSlash',
+        'CarWithKey',
+        'CarCircleSlash',
+        'Train',
+        'TrainCircleSlash',
+        'Luggage',
+        'ArrowRight',
+    ]);
 
     const {reservation, reportID, transactionID, sequenceIndex, isCancelled} = upcomingReservation;
     const reservationIcon = getTripReservationIcon(expensifyIcons, reservation.type, isCancelled);
