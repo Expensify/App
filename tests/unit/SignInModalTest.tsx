@@ -1,10 +1,8 @@
-/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import {render} from '@testing-library/react-native';
 import React from 'react';
 import type {View as RNView} from 'react-native';
 import Onyx from 'react-native-onyx';
 import {openApp} from '@libs/actions/App';
-// eslint-disable-next-line rulesdir/no-inline-named-export
 import SignInModal from '@pages/signin/SignInModal';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -129,7 +127,7 @@ describe('SignInModal', () => {
         const callOrder: string[] = [];
 
         // Make openApp chain take time to resolve
-        let resolveOpenApp: () => void;
+        let resolveOpenApp = () => {};
         const openAppPromise = new Promise<void>((resolve) => {
             resolveOpenApp = resolve;
         });
@@ -139,7 +137,7 @@ describe('SignInModal', () => {
         });
 
         // Make isNavigationReady take time to resolve
-        let resolveNavReady: () => void;
+        let resolveNavReady = () => {};
         const navReadyPromise = new Promise<void>((resolve) => {
             resolveNavReady = resolve;
         });
@@ -164,12 +162,12 @@ describe('SignInModal', () => {
         expect(mockDismissModal).not.toHaveBeenCalled();
 
         // Resolve isNavigationReady first - dismissModal should still wait for openApp
-        resolveNavReady!();
+        resolveNavReady();
         await waitForBatchedUpdatesWithAct();
         expect(mockDismissModal).not.toHaveBeenCalled();
 
         // Now resolve openApp - dismissModal should be called after both are done
-        resolveOpenApp!();
+        resolveOpenApp();
         await waitForBatchedUpdatesWithAct();
         expect(mockDismissModal).toHaveBeenCalledTimes(1);
 
