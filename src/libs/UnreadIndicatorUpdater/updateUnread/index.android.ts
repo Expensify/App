@@ -7,7 +7,5 @@ const updateUnread: UpdateUnread = () => {};
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 function setPageTitle(_title: string) {}
 
-function clearPageTitle() {}
-
 export default updateUnread;
-export {setPageTitle, clearPageTitle};
+export {setPageTitle};

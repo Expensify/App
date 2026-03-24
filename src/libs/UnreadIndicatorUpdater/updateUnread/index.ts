@@ -52,13 +52,5 @@ window.addEventListener('popstate', () => {
     updateUnread(unreadTotalCount);
 });
 
-/**
- * Clear the current page title without triggering a document title update.
- * Used as cleanup in useDocumentTitle to avoid the race condition from setPageTitle('').
- */
-function clearPageTitle() {
-    currentPageTitle = '';
-}
-
 export default updateUnread;
-export {setPageTitle, clearPageTitle};
+export {setPageTitle};
