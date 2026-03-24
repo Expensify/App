@@ -4106,9 +4106,9 @@ describe('OptionsListUtils', () => {
             const mockIsSearchTopmostFullScreenRoute = jest.mocked(isSearchTopmostFullScreenRoute);
             mockIsSearchTopmostFullScreenRoute.mockReturnValue(false);
 
-            const policyID = 'policy_test_123';
+            const testPolicyID = 'policy_test_123';
             const policy: Policy = {
-                id: policyID,
+                id: testPolicyID,
                 name: 'My Test Workspace',
                 type: CONST.POLICY.TYPE.TEAM,
                 role: CONST.POLICY.ROLE.USER,
@@ -4120,7 +4120,7 @@ describe('OptionsListUtils', () => {
             const fromReport: Report = {
                 ...createRandomReport(10, undefined),
                 type: CONST.REPORT.TYPE.EXPENSE,
-                policyID,
+                policyID: testPolicyID,
                 reportName: undefined,
                 stateNum: CONST.REPORT.STATE_NUM.OPEN,
                 statusNum: CONST.REPORT.STATUS_NUM.OPEN,
@@ -4128,7 +4128,7 @@ describe('OptionsListUtils', () => {
             const toReport: Report = {
                 ...createRandomReport(11, undefined),
                 type: CONST.REPORT.TYPE.EXPENSE,
-                policyID,
+                policyID: testPolicyID,
                 reportName: undefined,
             };
             const movedTransactionActionWithPolicy: ReportAction = {
@@ -4143,7 +4143,7 @@ describe('OptionsListUtils', () => {
 
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${fromReport.reportID}`, fromReport);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${toReport.reportID}`, toReport);
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${testPolicyID}`, policy);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${fromReport.reportID}`, {
                 [movedTransactionActionWithPolicy.reportActionID]: movedTransactionActionWithPolicy,
             });
