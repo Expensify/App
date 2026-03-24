@@ -164,12 +164,18 @@ function ExpenseReportListItem<TItem extends ListItem>({
             styles.selectionListPressableItemWrapper,
             styles.pv3,
             styles.ph3,
-            // Removing background style because they are added to the parent OpacityView via animatedHighlightStyle
             styles.bgTransparent,
             item.isSelected && styles.activeComponentBG,
             styles.mh0,
+            isLargeScreenWidth && {
+                minHeight: variables.tableRowHeight,
+                borderRadius: 0,
+                paddingVertical: 8,
+                borderBottomWidth: 1,
+                borderColor: item.isSelected ? theme.buttonHoveredBG : theme.border,
+            },
         ],
-        [styles, item.isSelected],
+        [styles, item.isSelected, isLargeScreenWidth, theme.buttonHoveredBG, theme.border],
     );
 
     const listItemWrapperStyle = useMemo(
@@ -182,7 +188,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
     );
 
     const animatedHighlightStyle = useAnimatedHighlightStyle({
-        borderRadius: variables.componentBorderRadius,
+        borderRadius: isLargeScreenWidth ? 0 : variables.componentBorderRadius,
         shouldHighlight: item?.shouldAnimateInHighlight ?? false,
         highlightColor: theme.messageHighlightBG,
         backgroundColor: theme.highlightBG,
@@ -232,7 +238,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
             item={item}
             pressableStyle={listItemPressableStyle}
             wrapperStyle={listItemWrapperStyle}
-            containerStyle={[styles.mb2]}
+            containerStyle={!isLargeScreenWidth && [styles.mb2]}
             isFocused={isFocused}
             showTooltip={showTooltip}
             canSelectMultiple={canSelectMultiple}

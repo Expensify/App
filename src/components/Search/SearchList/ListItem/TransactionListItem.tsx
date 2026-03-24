@@ -102,11 +102,21 @@ function TransactionListItem<TItem extends ListItem>({
         styles.transactionListItemStyle,
         !isLargeScreenWidth && styles.pt3,
         item.isSelected && styles.activeComponentBG,
-        isLargeScreenWidth ? {...styles.flexRow, ...styles.justifyContentBetween, ...styles.alignItemsCenter} : {...styles.flexColumn, ...styles.alignItemsStretch},
+        isLargeScreenWidth
+            ? {
+                  ...styles.flexRow,
+                  ...styles.justifyContentBetween,
+                  ...styles.alignItemsCenter,
+                  minHeight: variables.tableRowHeight,
+                  borderRadius: 0,
+                  borderBottomWidth: 1,
+                  borderColor: item.isSelected ? theme.buttonHoveredBG : theme.border,
+              }
+            : {...styles.flexColumn, ...styles.alignItemsStretch},
     ];
 
     const animatedHighlightStyle = useAnimatedHighlightStyle({
-        borderRadius: variables.componentBorderRadius,
+        borderRadius: isLargeScreenWidth ? 0 : variables.componentBorderRadius,
         shouldHighlight: item?.shouldAnimateInHighlight ?? false,
         highlightColor: theme.messageHighlightBG,
         backgroundColor: theme.highlightBG,
@@ -195,7 +205,7 @@ function TransactionListItem<TItem extends ListItem>({
                     isFocused && StyleUtils.getItemBackgroundColorStyle(!!item.isSelected, !!isFocused, !!item.isDisabled, theme.activeComponentBG, theme.hoverComponentBG),
                 ]}
                 onFocus={onFocus}
-                wrapperStyle={[styles.mb2, styles.mh5, styles.flex1, animatedHighlightStyle, styles.userSelectNone]}
+                wrapperStyle={[!isLargeScreenWidth && styles.mb2, styles.mh5, styles.flex1, animatedHighlightStyle, styles.userSelectNone]}
             >
                 {({hovered}) => (
                     <>
@@ -229,7 +239,7 @@ function TransactionListItem<TItem extends ListItem>({
                             taxAmountColumnSize={taxAmountColumnSize}
                             shouldShowCheckbox={!!canSelectMultiple}
                             checkboxSentryLabel={CONST.SENTRY_LABEL.SEARCH.TRANSACTION_LIST_ITEM_CHECKBOX}
-                            style={[styles.p3, styles.pv2, shouldUseNarrowLayout ? styles.pt2 : {}]}
+                            style={[styles.p3, styles.pv2, shouldUseNarrowLayout ? styles.pt2 : styles.noBorderRadius]}
                             violations={transactionViolations}
                             onArrowRightPress={() => onSelectRow(item, transactionPreviewData)}
                             isHover={hovered}

@@ -395,7 +395,10 @@ type SpendCategorySelectorListItemProps<TItem extends ListItem> = ListItemProps<
 
 type UserListItemProps<TItem extends ListItem> = ListItemProps<TItem> & ForwardedFSClassProps;
 
-type TableListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
+type TableListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
+    /** Whether this is the last item in the list (for border radius on desktop) */
+    isLastItem?: boolean;
+};
 
 type InviteMemberListItemProps<TItem extends ListItem> = UserListItemProps<TItem> & {
     /** Whether product training tooltips can be displayed */

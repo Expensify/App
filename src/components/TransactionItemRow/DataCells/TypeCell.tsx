@@ -83,8 +83,8 @@ function TypeCell({transactionItem, shouldUseNarrowLayout, shouldShowTooltip}: T
                 <Icon
                     src={typeIcon}
                     fill={theme.icon}
-                    height={variables.iconSizeNormal}
-                    width={variables.iconSizeNormal}
+                    height={variables.iconSizeSmall}
+                    width={variables.iconSizeSmall}
                 />
             </View>
         </Tooltip>

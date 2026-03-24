@@ -3480,13 +3480,17 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         searchListHeaderContainerStyle: {
-            width: '100%',
             flexDirection: 'row',
             alignItems: 'center',
             ...userSelect.userSelectNone,
-            paddingBottom: 12,
-            backgroundColor: theme.appBG,
+            paddingBottom: 8,
+            backgroundColor: theme.highlightBG,
             justifyContent: 'flex-start',
+            borderTopLeftRadius: 8,
+            borderTopRightRadius: 8,
+            borderBottomWidth: 1,
+            borderColor: theme.border,
+            minHeight: 40,
         },
 
         groupSearchListTableContainerStyle: {
@@ -4754,8 +4758,8 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         listTableHeader: {
-            paddingVertical: 12,
-            paddingHorizontal: 32,
+            paddingVertical: 8,
+            paddingHorizontal: 12,
         },
 
         tableHeaderIconSpacing: {

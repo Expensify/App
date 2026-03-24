@@ -176,7 +176,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
     };
 
     const animatedHighlightStyle = useAnimatedHighlightStyle({
-        borderRadius: variables.componentBorderRadius,
+        borderRadius: isLargeScreenWidth ? 0 : variables.componentBorderRadius,
         shouldHighlight: item?.shouldAnimateInHighlight ?? false,
         highlightColor: theme.messageHighlightBG,
         backgroundColor: theme.highlightBG,
@@ -184,7 +184,17 @@ function TransactionGroupListItem<TItem extends ListItem>({
 
     const isItemSelected = isSelectAllChecked || item?.isSelected;
 
-    const pressableStyle = [styles.transactionGroupListItemStyle, isItemSelected && styles.activeComponentBG];
+    const pressableStyle = [
+        styles.transactionGroupListItemStyle,
+        isItemSelected && styles.activeComponentBG,
+        isLargeScreenWidth && {
+            minHeight: variables.tableRowHeight,
+            borderRadius: 0,
+            paddingVertical: 4,
+            borderBottomWidth: 1,
+            borderColor: isItemSelected ? theme.buttonHoveredBG : theme.border,
+        },
+    ];
 
     const StyleUtils = useStyleUtils();
     const pressableRef = useRef<View>(null);
@@ -470,7 +480,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
                     isFocused && StyleUtils.getItemBackgroundColorStyle(!!isItemSelected, !!isFocused, !!item.isDisabled, theme.activeComponentBG, theme.hoverComponentBG),
                 ]}
                 onFocus={onFocus}
-                wrapperStyle={[styles.mb2, styles.mh5, animatedHighlightStyle, styles.userSelectNone]}
+                wrapperStyle={[!isLargeScreenWidth && styles.mb2, styles.mh5, animatedHighlightStyle, styles.userSelectNone]}
             >
                 {({hovered}) => (
                     <View style={styles.flex1}>
@@ -478,7 +488,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
                             isExpanded={isExpanded}
                             header={getHeader(hovered)}
                             onPress={onExpandIconPress}
-                            expandButtonStyle={styles.pv4Half}
+                            expandButtonStyle={styles.pv2}
                             shouldShowToggleButton={isLargeScreenWidth}
                             sentryLabel={CONST.SENTRY_LABEL.SEARCH.GROUP_EXPAND_TOGGLE}
                         >

@@ -4,9 +4,11 @@ import Checkbox from '@components/Checkbox';
 import ReportActionAvatars from '@components/ReportActionAvatars';
 import TextWithTooltip from '@components/TextWithTooltip';
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import variables from '@styles/variables';
 import BaseListItem from './BaseListItem';
 import type {ListItem, TableListItemProps} from './types';
 
@@ -27,13 +29,15 @@ function TableListItem<TItem extends ListItem>({
     shouldUseDefaultRightHandSideCheckmark,
     shouldShowRightCaret,
     errorRowStyles,
+    isLastItem,
 }: TableListItemProps<TItem>) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
+    const {isLargeScreenWidth} = useResponsiveLayout();
 
     const animatedHighlightStyle = useAnimatedHighlightStyle({
-        borderRadius: styles.selectionListPressableItemWrapper.borderRadius,
+        borderRadius: isLargeScreenWidth ? 0 : styles.selectionListPressableItemWrapper.borderRadius,
         shouldHighlight: !!item.shouldAnimateInHighlight,
         highlightColor: theme.messageHighlightBG,
         backgroundColor: theme.highlightBG,
@@ -50,20 +54,32 @@ function TableListItem<TItem extends ListItem>({
         }
     };
 
+    const compactRowStyle = isLargeScreenWidth
+        ? {
+              minHeight: variables.tableRowHeight,
+              borderRadius: 0,
+              paddingVertical: 8,
+              paddingHorizontal: 12,
+              borderBottomWidth: isLastItem ? 0 : 1,
+              borderColor: item.isSelected ? theme.buttonHoveredBG : theme.border,
+              ...(isLastItem ? {borderBottomLeftRadius: 8, borderBottomRightRadius: 8} : {}),
+          }
+        : {};
+
     return (
         <BaseListItem
             item={item}
             pressableStyle={[
                 styles.selectionListPressableItemWrapper,
                 styles.mh0,
-                // Removing background style because they are added to the parent OpacityView via animatedHighlightStyle
                 item.shouldAnimateInHighlight ? styles.bgTransparent : undefined,
                 item.isSelected && styles.activeComponentBG,
                 item.cursorStyle,
+                compactRowStyle,
             ]}
             pressableWrapperStyle={[styles.mh5, animatedHighlightStyle]}
             wrapperStyle={[styles.flexRow, styles.flex1, styles.justifyContentBetween, styles.userSelectNone, styles.alignItemsCenter]}
-            containerStyle={styles.mb2}
+            containerStyle={!isLargeScreenWidth && styles.mb2}
             isFocused={isFocused}
             isDisabled={isDisabled}
             showTooltip={showTooltip}
