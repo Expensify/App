@@ -101,7 +101,7 @@ function BaseVacationDelegateSelectionComponent({
                     icons: [
                         {
                             source: delegatePersonalDetails?.avatar ?? icons.FallbackAvatar,
-                            name: formatPhoneNumber(delegatePersonalDetails?.login ?? ''),
+                            name: formatPhoneNumber(delegatePersonalDetails?.login ?? '', countryCode),
                             type: CONST.ICON_TYPE_AVATAR,
                             id: delegatePersonalDetails?.accountID,
                         },

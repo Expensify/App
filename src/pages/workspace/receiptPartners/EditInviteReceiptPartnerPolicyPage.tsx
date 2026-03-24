@@ -180,7 +180,7 @@ function EditInviteReceiptPartnerPolicyPage({route}: EditInviteReceiptPartnerPol
                 icons: [
                     {
                         source: personalDetail?.avatar ?? icons.FallbackAvatar,
-                        name: formatPhoneNumber(email),
+                        name: formatPhoneNumber(email, countryCode),
                         type: CONST.ICON_TYPE_AVATAR,
                         id: personalDetail?.accountID,
                     },

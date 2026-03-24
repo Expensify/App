@@ -6,7 +6,7 @@ import useOnyx from '@hooks/useOnyx';
 import DateUtils from '@libs/DateUtils';
 import {buildEmojisTrie} from '@libs/EmojiTrie';
 import {fromLocaleDigit as fromLocaleDigitLocaleDigitUtils, toLocaleDigit as toLocaleDigitLocaleDigitUtils, toLocaleOrdinal as toLocaleOrdinalLocaleDigitUtils} from '@libs/LocaleDigitUtils';
-import {formatPhoneNumberWithCountryCode} from '@libs/LocalePhoneNumber';
+import {formatPhoneNumber as formatPhoneNumberUtil} from '@libs/LocalePhoneNumber';
 import {getDevicePreferredLocale, translate as translateLocalize} from '@libs/Localize';
 import {format} from '@libs/NumberFormatUtils';
 import {endSpan, getSpan, startSpan} from '@libs/telemetry/activeSpans';
@@ -155,7 +155,7 @@ function LocaleContextProvider({children}: LocaleContextProviderProps) {
     const datetimeToCalendarTime: LocaleContextProps['datetimeToCalendarTime'] = (datetime, includeTimezone, isLowercase = false) =>
         DateUtils.datetimeToCalendarTime(currentLocale, datetime, effectiveTimezone, includeTimezone, isLowercase);
 
-    const formatPhoneNumber: LocaleContextProps['formatPhoneNumber'] = (phoneNumber) => formatPhoneNumberWithCountryCode(phoneNumber, countryCodeByIP);
+    const formatPhoneNumber: LocaleContextProps['formatPhoneNumber'] = (phoneNumber) => formatPhoneNumberUtil(phoneNumber, countryCodeByIP);
 
     const toLocaleDigit: LocaleContextProps['toLocaleDigit'] = (digit) => toLocaleDigitLocaleDigitUtils(currentLocale, digit);
 

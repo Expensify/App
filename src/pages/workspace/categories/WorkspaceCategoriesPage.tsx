@@ -72,6 +72,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate, localeCompare} = useLocalize();
+    const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
     const [isOfflineModalVisible, setIsOfflineModalVisible] = useState(false);
     const [isDownloadFailureModalVisible, setIsDownloadFailureModalVisible] = useState(false);
     const [deleteCategoriesConfirmModalVisible, setDeleteCategoriesConfirmModalVisible] = useState(false);
@@ -218,7 +219,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
             const approverEmail = shouldShowApproverColumn ? (getCategoryApproverRule(policy?.rules?.approvalRules ?? [], value.name)?.approver ?? '') : '';
             const approverPersonalDetail = getPersonalDetailByEmail(approverEmail);
             const {avatar, displayName = approverEmail, accountID} = approverPersonalDetail ?? {};
-            const approverDisplayName = displayName ? formatPhoneNumber(displayName) : '';
+            const approverDisplayName = displayName ? formatPhoneNumber(displayName, countryCode) : '';
 
             acc.push({
                 text: getDecodedCategoryName(value.name),

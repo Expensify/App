@@ -28,7 +28,7 @@ import type {Participant} from '@src/types/onyx/IOU';
 /**
  * Helper function to create a formatted user list item
  */
-function createUserListItem(personalDetails: ReturnType<typeof getPersonalDetailByEmail>, login: string, keyPrefix: string, isSelected = false): OptionWithKey {
+function createUserListItem(personalDetails: ReturnType<typeof getPersonalDetailByEmail>, login: string, keyPrefix: string, countryCode: number, isSelected = false): OptionWithKey {
     const accountID = personalDetails?.accountID ?? generateAccountID(login);
     return {
         ...(personalDetails ?? {}),
@@ -42,7 +42,7 @@ function createUserListItem(personalDetails: ReturnType<typeof getPersonalDetail
         icons: [
             {
                 source: personalDetails?.avatar ?? FallbackAvatar,
-                name: formatPhoneNumber(personalDetails?.login ?? login),
+                name: formatPhoneNumber(personalDetails?.login ?? login, countryCode),
                 type: CONST.ICON_TYPE_AVATAR,
                 id: accountID,
             },
@@ -85,7 +85,7 @@ function WorkspaceConfirmationOwnerSelectorPage() {
         const currentUserPersonalDetails = getPersonalDetailByEmail(currentUserLogin ?? '');
 
         if (currentOwner) {
-            const ownerItem = createUserListItem(ownerPersonalDetails, currentOwner, 'currentOwner', true);
+            const ownerItem = createUserListItem(ownerPersonalDetails, currentOwner, 'currentOwner', countryCode, true);
             sectionsList.push({
                 data: [ownerItem],
                 sectionIndex: 0,
@@ -93,7 +93,7 @@ function WorkspaceConfirmationOwnerSelectorPage() {
         }
 
         if (currentUserLogin && currentUserLogin !== currentOwner) {
-            const currentUserItem = createUserListItem(currentUserPersonalDetails, currentUserLogin, 'currentUser', false);
+            const currentUserItem = createUserListItem(currentUserPersonalDetails, currentUserLogin, 'currentUser', countryCode, false);
             sectionsList.push({
                 data: [currentUserItem],
                 sectionIndex: 1,
