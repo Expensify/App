@@ -9,6 +9,7 @@ import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import getOSAndName from '@libs/actions/Device/getDeviceInfo/getOSAndName';
 import {isMobileIOS} from '@libs/Browser';
 import getPlatform from '@libs/getPlatform';
 import CONST from '@src/CONST';
@@ -46,7 +47,9 @@ function DistanceRateListItem<TItem extends ListItem>({
 
     const focusedBackgroundColor = styles.sidebarLinkActive.backgroundColor;
     const hoveredBackgroundColor = styles.sidebarLinkHover?.backgroundColor ? styles.sidebarLinkHover.backgroundColor : theme.sidebar;
-    const isIOSSplitAccessibilityMode = getPlatform() === CONST.PLATFORM.IOS || isMobileIOS();
+    const platform = getPlatform();
+    const isAppleDesktopWeb = platform === CONST.PLATFORM.WEB && getOSAndName().os === CONST.OS.MAC_OS;
+    const shouldSplitAccessibilityForAppleVoiceOver = platform === CONST.PLATFORM.IOS || isMobileIOS() || isAppleDesktopWeb;
     const fallbackAccessibilityLabel = item.accessibilityLabel ?? [item.text, item.text !== item.alternateText ? item.alternateText : undefined].filter(Boolean).join(', ');
     const shouldHideTextContainerFromAccessibility = !!item.accessibilityLabel;
     const summaryAccessibilityRole = canSelectMultiple ? getButtonRole(true) : CONST.ROLE.OPTION;
@@ -88,7 +91,7 @@ function DistanceRateListItem<TItem extends ListItem>({
             onFocus={onFocus}
             shouldSyncFocus={shouldSyncFocus}
             hoverStyle={item.isSelected && styles.activeComponentBG}
-            accessible={isIOSSplitAccessibilityMode ? false : undefined}
+            accessible={shouldSplitAccessibilityForAppleVoiceOver ? false : undefined}
             shouldUseDefaultRightHandSideCheckmark={shouldUseDefaultRightHandSideCheckmark}
             shouldShowRightCaret={shouldShowRightCaret}
         >
@@ -150,7 +153,7 @@ function DistanceRateListItem<TItem extends ListItem>({
                                 testID={`TableListItemCheckbox-${item.text}`}
                             />
                         )}
-                        {isIOSSplitAccessibilityMode ? (
+                        {shouldSplitAccessibilityForAppleVoiceOver ? (
                             <PressableWithFeedback
                                 accessibilityLabel={fallbackAccessibilityLabel}
                                 role={summaryAccessibilityRole}
