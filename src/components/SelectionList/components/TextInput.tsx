@@ -73,7 +73,10 @@ function TextInput({
     const shouldShowHeaderMessage = !!shouldShowTextInput && !!headerMessage && (!isLoadingNewOptions || !isNoResultsFoundMessage || noData);
     const trimmedSearchValue = value?.trim() ?? '';
     const suggestionsCount = dataLength ?? 0;
-    const suggestionsAnnouncement = !isLoadingNewOptions && suggestionsCount > 0 ? translate('search.suggestionsAvailable', {count: suggestionsCount}, trimmedSearchValue) : '';
+    const suggestionsAnnouncement =
+        !!shouldShowTextInput && !shouldShowLoadingPlaceholder && !isLoadingNewOptions && suggestionsCount > 0
+            ? translate('search.suggestionsAvailable', {count: suggestionsCount}, trimmedSearchValue)
+            : '';
 
     useDebouncedAccessibilityAnnouncement(headerMessage ?? '', shouldShowHeaderMessage, value ?? '');
     useDebouncedAccessibilityAnnouncement(suggestionsAnnouncement, !!suggestionsAnnouncement, value ?? '');
