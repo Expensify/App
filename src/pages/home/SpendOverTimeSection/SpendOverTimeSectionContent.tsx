@@ -14,7 +14,6 @@ import Navigation from '@libs/Navigation/Navigation';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-import {GROUP_BY, QUERY, QUERY_JSON, TRANSLATION_PATH, VIEW} from './config';
 import useSpendOverTimeData from './useSpendOverTimeData';
 
 function SpendOverTimeSectionContent() {
@@ -25,9 +24,9 @@ function SpendOverTimeSectionContent() {
     const illustrations = useMemoizedLazyIllustrations(['BrokenMagnifyingGlass']);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
-    const {sortedData, shouldShowOfflineIndicator, shouldShowErrorIndicator, shouldShowLoadingIndicator} = useSpendOverTimeData();
+    const {query, queryJSON, groupBy, view, sortedData, shouldShowOfflineIndicator, shouldShowErrorIndicator, shouldShowLoadingIndicator} = useSpendOverTimeData();
 
-    if (!QUERY_JSON || !VIEW || !GROUP_BY || VIEW === CONST.SEARCH.VIEW.TABLE) {
+    if (!queryJSON || !view || !groupBy || view === CONST.SEARCH.VIEW.TABLE) {
         return null;
     }
 
@@ -37,13 +36,13 @@ function SpendOverTimeSectionContent() {
 
     return (
         <WidgetContainer
-            title={translate(TRANSLATION_PATH)}
+            title={translate('search.spendOverTime')}
             titleRightContent={
                 shouldShowOfflineIndicator || shouldShowLoadingIndicator || shouldShowErrorIndicator ? null : (
                     <Button
                         small
                         text={translate('common.view')}
-                        onPress={() => Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: QUERY}))}
+                        onPress={() => Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query}))}
                         iconRight={icons.Expand}
                         shouldShowRightIcon
                         textStyles={styles.pb0}
@@ -81,9 +80,9 @@ function SpendOverTimeSectionContent() {
             {!shouldShowOfflineIndicator && !shouldShowErrorIndicator && (
                 <View style={[shouldUseNarrowLayout ? styles.ph5 : [styles.ph8, styles.pt3]]}>
                     <SearchChartView
-                        queryJSON={QUERY_JSON}
-                        view={VIEW}
-                        groupBy={GROUP_BY}
+                        queryJSON={queryJSON}
+                        view={view}
+                        groupBy={groupBy}
                         data={sortedData ?? []}
                         isLoading={shouldShowLoadingIndicator}
                     />

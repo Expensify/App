@@ -1,53 +1,56 @@
-import {useEffect, useLayoutEffect, useRef} from 'react';
+import {useEffect, useEffectEvent} from 'react';
 import type {GroupedItem} from '@components/Search/types';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import {search} from '@libs/actions/Search';
-import {getSections, getSortedSections, isSearchDataLoaded} from '@libs/SearchUIUtils';
+import {getSections, getSortedSections, getSuggestedSearches, isSearchDataLoaded} from '@libs/SearchUIUtils';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {GROUP_BY, QUERY_JSON, SEARCH_KEY} from './config';
 
 function useSpendOverTimeData() {
+    const config = getSuggestedSearches()[CONST.SEARCH.SEARCH_KEYS.SPEND_OVER_TIME];
+    const {searchQueryJSON: queryJSON, searchQuery: query, key: searchKey} = config;
+    const {groupBy, view} = queryJSON ?? {};
+
     const {translate, localeCompare, formatPhoneNumber} = useLocalize();
     const {accountID, login} = useCurrentUserPersonalDetails();
-    const {isOffline} = useNetwork();
+    const [searchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${queryJSON?.hash}`);
+    const isSearchLoading = !!searchResults?.search?.isLoading;
 
-    const [searchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${QUERY_JSON?.hash}`);
-
-    // We need the snapshot's isLoading in the search effect without subscribing to it (which would cause an infinite loop).
-    // useLayoutEffect syncs the ref before useEffect runs. TODO: Replace with useEffectEvent after upgrading to React 19.2.
-    const isSearchLoadingRef = useRef(false);
-
-    useLayoutEffect(() => {
-        isSearchLoadingRef.current = !!searchResults?.search?.isLoading;
-    }, [searchResults?.search?.isLoading]);
-
-    useEffect(() => {
-        if (isOffline || !QUERY_JSON || isSearchLoadingRef.current) {
+    const fetchData = () => {
+        if (!queryJSON || isSearchLoading) {
             return;
         }
         search({
-            queryJSON: QUERY_JSON,
-            searchKey: SEARCH_KEY,
+            queryJSON,
+            searchKey,
             offset: 0,
             isOffline: false,
             isLoading: false,
             shouldUpdateLastSearchParams: false,
         });
-    }, [isOffline]);
+    };
+
+    const onMount = useEffectEvent(fetchData);
+
+    useEffect(() => {
+        onMount();
+    }, [config.hash]);
+
+    const {isOffline} = useNetwork({onReconnect: fetchData});
 
     const sortedData =
-        searchResults?.data && QUERY_JSON && GROUP_BY && login
+        searchResults?.data && queryJSON && groupBy && login
             ? (getSortedSections(
-                  QUERY_JSON.type,
-                  QUERY_JSON.status,
+                  queryJSON.type,
+                  queryJSON.status,
                   getSections({
-                      type: QUERY_JSON.type,
+                      type: queryJSON.type,
                       data: searchResults.data,
-                      groupBy: GROUP_BY,
-                      queryJSON: QUERY_JSON,
+                      groupBy,
+                      queryJSON,
                       currentAccountID: accountID,
                       currentUserEmail: login,
                       translate,
@@ -58,17 +61,21 @@ function useSpendOverTimeData() {
                   })[0],
                   localeCompare,
                   translate,
-                  QUERY_JSON.sortBy,
-                  QUERY_JSON.sortOrder,
-                  GROUP_BY,
+                  queryJSON.sortBy,
+                  queryJSON.sortOrder,
+                  groupBy,
               ) as GroupedItem[])
             : undefined;
 
     const shouldShowOfflineIndicator = isOffline && !sortedData;
     const shouldShowErrorIndicator = !shouldShowOfflineIndicator && Object.keys(searchResults?.errors ?? {}).length > 0;
-    const shouldShowLoadingIndicator = !shouldShowOfflineIndicator && !shouldShowErrorIndicator && !isSearchDataLoaded(searchResults, QUERY_JSON);
+    const shouldShowLoadingIndicator = !shouldShowOfflineIndicator && !shouldShowErrorIndicator && !isSearchDataLoaded(searchResults, queryJSON);
 
     return {
+        query,
+        queryJSON,
+        groupBy,
+        view,
         sortedData,
         shouldShowOfflineIndicator,
         shouldShowErrorIndicator,
