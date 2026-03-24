@@ -40,7 +40,7 @@ function SortableItem({id, children, disabled = false, isFocused = false}: Sorta
         // Cancel drag on Tab but let default Tab behavior move focus naturally.
         // This must happen in capture phase (before blur) so the drag ends
         // before the browser moves focus, avoiding a render that eats the Tab.
-        if (isDragging && e.key === 'Tab') {
+        if (isDragging && e.key === CONST.KEYBOARD_SHORTCUTS.TAB.shortcutKey) {
             cancelDndKeyboardDrag();
             return;
         }
