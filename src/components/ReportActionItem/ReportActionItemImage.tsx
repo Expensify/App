@@ -1,6 +1,6 @@
 /* eslint-disable react/jsx-props-no-spreading */
 import {Str} from 'expensify-common';
-import React from 'react';
+import React, {useCallback, useMemo} from 'react';
 import type {ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -134,63 +134,91 @@ function ReportActionItemImage({
         );
     }
 
-    const originalImageSource = tryResolveUrlFromApiRoot(image ?? '');
-    const thumbnailSource = tryResolveUrlFromApiRoot(thumbnail ?? '');
+    // Memoize URL resolutions to produce stable references across renders
+    const originalImageSource = useMemo(() => tryResolveUrlFromApiRoot(image ?? ''), [image]);
+    const thumbnailSource = useMemo(() => tryResolveUrlFromApiRoot(thumbnail ?? ''), [thumbnail]);
     const isEReceipt = transaction && !hasReceiptSource(transaction) && hasEReceipt(transaction);
     const isPDF = filename && Str.isPDF(filename);
 
-    let propsObj: ReceiptImageProps;
+    // Memoize propsObj to avoid rebuilding it on every render
+    const propsObj = useMemo<ReceiptImageProps>(() => {
+        let props: ReceiptImageProps;
 
-    if (isEReceipt) {
-        propsObj = {isEReceipt: true, transactionID: transaction.transactionID, iconSize: isSingleImage ? 'medium' : ('small' as IconSize), shouldUseFullHeight};
-    } else if (thumbnail && !isLocalFile) {
-        propsObj = {
-            shouldUseThumbnailImage: shouldUseThumbnailImage ?? true,
+        if (isEReceipt) {
+            props = {isEReceipt: true, transactionID: transaction.transactionID, iconSize: isSingleImage ? 'medium' : ('small' as IconSize), shouldUseFullHeight};
+        } else if (thumbnail && !isLocalFile) {
+            props = {
+                shouldUseThumbnailImage: shouldUseThumbnailImage ?? true,
 
-            // PDF won't have originalImage that we can use. Use thumbnail instead
-            // We explicitly want to use || instead of nullish-coalescing because shouldUseThumbnailImage can be false.
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-            source: shouldUseThumbnailImage || isPDF ? thumbnailSource : originalImageSource,
-            fallbackIcon: icons.Receipt,
-            fallbackIconSize: isSingleImage ? variables.iconSizeSuperLarge : variables.iconSizeExtraLarge,
-            isAuthTokenRequired: true,
+                // PDF won't have originalImage that we can use. Use thumbnail instead
+                // We explicitly want to use || instead of nullish-coalescing because shouldUseThumbnailImage can be false.
+                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                source: shouldUseThumbnailImage || isPDF ? thumbnailSource : originalImageSource,
+                fallbackIcon: icons.Receipt,
+                fallbackIconSize: isSingleImage ? variables.iconSizeSuperLarge : variables.iconSizeExtraLarge,
+                isAuthTokenRequired: true,
 
-            // If the image is full height, use initial position to make sure it will grow properly to fill the container
-            shouldUseInitialObjectPosition: isMapDistanceRequest && !shouldUseFullHeight,
-        };
-    } else if (isLocalFile && isPDF && typeof originalImageSource === 'string') {
-        propsObj = {isPDFThumbnail: true, source: originalImageSource};
-    } else {
-        propsObj = {
-            isThumbnail,
-            ...(isThumbnail && {iconSize: (isSingleImage ? 'medium' : 'small') as IconSize, fileExtension}),
-            shouldUseThumbnailImage: shouldUseThumbnailImage ?? true,
-            isAuthTokenRequired: false,
-            source: shouldUseThumbnailImage ? (thumbnail ?? image ?? '') : originalImageSource,
+                // If the image is full height, use initial position to make sure it will grow properly to fill the container
+                shouldUseInitialObjectPosition: isMapDistanceRequest && !shouldUseFullHeight,
+            };
+        } else if (isLocalFile && isPDF && typeof originalImageSource === 'string') {
+            props = {isPDFThumbnail: true, source: originalImageSource};
+        } else {
+            props = {
+                isThumbnail,
+                ...(isThumbnail && {iconSize: (isSingleImage ? 'medium' : 'small') as IconSize, fileExtension}),
+                shouldUseThumbnailImage: shouldUseThumbnailImage ?? true,
+                isAuthTokenRequired: false,
+                source: shouldUseThumbnailImage ? (thumbnail ?? image ?? '') : originalImageSource,
 
-            // If the image is full height, use initial position to make sure it will grow properly to fill the container
-            shouldUseInitialObjectPosition: isMapDistanceRequest && !shouldUseFullHeight,
-            isEmptyReceipt,
-            onPress,
-        };
-    }
+                // If the image is full height, use initial position to make sure it will grow properly to fill the container
+                shouldUseInitialObjectPosition: isMapDistanceRequest && !shouldUseFullHeight,
+                isEmptyReceipt,
+                onPress,
+            };
+        }
 
-    propsObj.isPerDiemRequest = isPerDiemRequest(transaction);
+        props.isPerDiemRequest = isPerDiemRequest(transaction);
+        return props;
+    }, [
+        isEReceipt,
+        transaction,
+        isSingleImage,
+        shouldUseFullHeight,
+        thumbnail,
+        isLocalFile,
+        shouldUseThumbnailImage,
+        isPDF,
+        thumbnailSource,
+        originalImageSource,
+        icons.Receipt,
+        isMapDistanceRequest,
+        isThumbnail,
+        fileExtension,
+        image,
+        isEmptyReceipt,
+        onPress,
+    ]);
+
+    // Stabilize the navigation callback to avoid creating a new function reference on every render
+    const handlePreviewPress = useCallback(
+        () =>
+            Navigation.navigate(
+                ROUTES.TRANSACTION_RECEIPT.getRoute(
+                    transactionThreadReport?.reportID ?? contextReport?.reportID ?? reportProp?.reportID ?? getReportIDForExpense(transaction),
+                    transaction?.transactionID,
+                    readonly,
+                    mergeTransactionID,
+                ),
+            ),
+        [transactionThreadReport?.reportID, contextReport?.reportID, reportProp?.reportID, transaction, readonly, mergeTransactionID],
+    );
 
     if (enablePreviewModal) {
         return (
             <PressableWithoutFocus
                 style={[styles.w100, styles.h100, styles.noOutline as ViewStyle]}
-                onPress={() =>
-                    Navigation.navigate(
-                        ROUTES.TRANSACTION_RECEIPT.getRoute(
-                            transactionThreadReport?.reportID ?? contextReport?.reportID ?? reportProp?.reportID ?? getReportIDForExpense(transaction),
-                            transaction?.transactionID,
-                            readonly,
-                            mergeTransactionID,
-                        ),
-                    )
-                }
+                onPress={handlePreviewPress}
                 accessibilityLabel={translate('accessibilityHints.viewAttachment')}
                 accessibilityRole={CONST.ROLE.BUTTON}
                 sentryLabel={CONST.SENTRY_LABEL.RECEIPT.IMAGE}
@@ -216,4 +244,4 @@ function ReportActionItemImage({
     );
 }
 
-export default ReportActionItemImage;
+export default React.memo(ReportActionItemImage);

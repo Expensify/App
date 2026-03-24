@@ -5,7 +5,7 @@ import Button from '@components/Button';
 import ConfirmModal from '@components/ConfirmModal';
 import ReceiptCropView from '@components/ReceiptCropView';
 import type {CropRect} from '@components/ReceiptCropView';
-import useAllTransactions from '@hooks/useAllTransactions';
+import {useSearchStateContext} from '@components/Search/SearchContext';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -59,8 +59,21 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Camera', 'Download', 'Crop', 'Trashcan', 'Rotate', 'Close', 'Checkmark']);
 
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
-    const allTransactions = useAllTransactions();
-    const transactionMain = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`];
+
+    // Read only the single transaction we need instead of the full collection to avoid
+    // expensive collection-wide work on the Receipt-Image interaction path (improves INP).
+    const [transactionFromOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`);
+
+    // Narrow fallback for search-context: if the single Onyx transaction is missing,
+    // look it up only in current search results rather than merging the full collection.
+    const {currentSearchResults} = useSearchStateContext();
+    const transactionMain = useMemo(() => {
+        if (transactionFromOnyx) {
+            return transactionFromOnyx;
+        }
+        const searchKey = `${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}` as const;
+        return (currentSearchResults?.data?.[searchKey] as typeof transactionFromOnyx) ?? undefined;
+    }, [transactionFromOnyx, transactionID, currentSearchResults?.data]);
     const [transactionDraft] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${getNonEmptyStringOnyxID(transactionID)}`);
     const [reportMetadata = CONST.DEFAULT_REPORT_METADATA] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report?.policyID}`);
