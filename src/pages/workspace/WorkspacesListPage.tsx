@@ -802,9 +802,7 @@ function WorkspacesListPage() {
                         // the position before the first paint. We calculate the count from the offset and an
                         // estimated row height instead of using data.length (which caused a perf regression
                         // for accounts with thousands of workspaces).
-                        initialNumToRender={
-                            getScrollOffset(route) ? Math.min(Math.ceil((getScrollOffset(route) ?? 0) / ESTIMATED_WORKSPACE_ROW_HEIGHT) + 10, data.length) : undefined
-                        }
+                        initialNumToRender={getScrollOffset(route) ? Math.min(Math.ceil((getScrollOffset(route) ?? 0) / ESTIMATED_WORKSPACE_ROW_HEIGHT) + 10, data.length) : undefined}
                     />
                 )}
             </View>
