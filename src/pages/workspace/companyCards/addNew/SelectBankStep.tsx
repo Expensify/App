@@ -104,17 +104,7 @@ function SelectBankStep() {
                 keyForList: bank,
                 isSelected: bankSelected === bank,
                 leftElement: (
-                    <View
-                        style={[
-                            styles.justifyContentCenter,
-                            styles.alignItemsCenter,
-                            styles.mr3,
-                            {
-                                width: variables.iconSizeExtraLarge,
-                                height: variables.iconSizeExtraLarge,
-                            },
-                        ]}
-                    >
+                    <View style={[styles.justifyContentCenter, styles.alignItemsCenter, styles.mr3, styles.selectBankStepIconSize]}>
                         <Icon
                             src={getBankCardDetailsImage(bank, illustrations, companyCardBankIcons)}
                             height={bank === CONST.COMPANY_CARDS.BANKS.FILE_IMPORT ? variables.iconSizeLarge : variables.iconSizeExtraLarge}

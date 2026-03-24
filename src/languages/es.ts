@@ -4979,8 +4979,8 @@ ${amount} para ${merchant} - ${date}`,
                     uniqueID: 'Unique ID',
                 },
                 csvErrors: {
-                    requiredColumns: (missingColumns: string) => `Please assign a column to each of the attributes: ${missingColumns}.`,
-                    duplicateColumns: (duplicateColumn: string) => `Oops! You've mapped a single field ("${duplicateColumn}") to multiple columns. Please review and try again.`,
+                    requiredColumns: (missingColumns: string) => `Por favor, asigna una columna a cada uno de los atributos: ${missingColumns}.`,
+                    duplicateColumns: (duplicateColumn: string) => `¡Ups! Has asignado un solo campo ("${duplicateColumn}") a múltiples columnas. Por favor, revisa y vuelve a intentarlo.`,
                 },
             },
             statementCloseDate: {
