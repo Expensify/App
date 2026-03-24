@@ -2684,6 +2684,7 @@ function isPayAtEndExpenseReport(report: OnyxEntry<Report>, transactions: Transa
 /**
  * Checks if a report is a transaction thread associated with a report that has only one transaction
  */
+// TODO: isOffline will be required eventually. Refactor issue: https://github.com/Expensify/App/issues/66407
 function isOneTransactionThread(report: OnyxEntry<Report>, parentReport: OnyxEntry<Report>, threadParentReportAction: OnyxEntry<ReportAction>, isOffline?: boolean) {
     if (!report || !parentReport) {
         return false;
@@ -2707,6 +2708,7 @@ function isReportTransactionThread(report: OnyxEntry<Report>) {
 /**
  * Get displayed report ID, it will be parentReportID if the report is one transaction thread
  */
+// TODO: isOffline will be required eventually. Refactor issue: https://github.com/Expensify/App/issues/66407
 function getDisplayedReportID(reportID: string, isOffline?: boolean): string {
     const report = getReport(reportID, allReports);
     const parentReportID = report?.parentReportID;
