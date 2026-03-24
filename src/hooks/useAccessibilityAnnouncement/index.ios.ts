@@ -5,10 +5,9 @@ import type UseAccessibilityAnnouncementOptions from './types';
 
 const DELAY_FOR_ACCESSIBILITY_TREE_SYNC = 100;
 
-function useAccessibilityAnnouncement(message: string | ReactNode, shouldAnnounceMessage: boolean, options?: UseAccessibilityAnnouncementOptions) {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+function useAccessibilityAnnouncement(message: string | ReactNode, shouldAnnounceMessage: boolean, _options?: UseAccessibilityAnnouncementOptions) {
     const previousAnnouncedMessageRef = useRef('');
-    const delay = options?.delay ?? DELAY_FOR_ACCESSIBILITY_TREE_SYNC;
-    const previousKeyRef = useRef(_options?.announcementKey);
 
     useEffect(() => {
         if (!shouldAnnounceMessage || typeof message !== 'string' || !message.trim()) {
@@ -16,10 +15,7 @@ function useAccessibilityAnnouncement(message: string | ReactNode, shouldAnnounc
             return;
         }
 
-        const keyChanged = _options?.announcementKey !== undefined && _options.announcementKey !== previousKeyRef.current;
-        previousKeyRef.current = _options?.announcementKey;
-
-        if (!keyChanged && previousAnnouncedMessageRef.current === message) {
+        if (previousAnnouncedMessageRef.current === message) {
             return;
         }
 
@@ -28,11 +24,10 @@ function useAccessibilityAnnouncement(message: string | ReactNode, shouldAnnounc
         // On iOS real devices, a brief delay helps the accessibility tree sync before announcing.
         const timeout = setTimeout(() => {
             AccessibilityInfo.announceForAccessibility(message);
-        }, delay);
+        }, DELAY_FOR_ACCESSIBILITY_TREE_SYNC);
 
-        // eslint-disable-next-line consistent-return
         return () => clearTimeout(timeout);
-    }, [message, shouldAnnounceMessage, delay, _options?.announcementKey]);
+    }, [message, shouldAnnounceMessage]);
 }
 
 export default useAccessibilityAnnouncement;

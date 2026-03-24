@@ -7,7 +7,7 @@ function NativeGenericPressable({ref, ...props}: PressableProps) {
         <GenericPressable
             focusable
             accessible
-            accessibilityHint={props.accessibilityHint}
+            accessibilityHint={props.accessibilityHint ?? props.accessibilityLabel}
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
             ref={ref}

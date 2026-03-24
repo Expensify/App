@@ -11,7 +11,6 @@ import PressableWithDelayToggle from '@components/Pressable/PressableWithDelayTo
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import Text from '@components/Text';
-import useAccessibilityAnnouncement from '@hooks/useAccessibilityAnnouncement';
 import {useMemoizedLazyAsset, useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -40,16 +39,10 @@ function CopyCodesPage({route}: TwoFactorAuthPageProps) {
     const {isExtraSmallScreenWidth, isSmallScreenWidth} = useResponsiveLayout();
     const [error, setError] = useState('');
     const [statusAnnouncement, setStatusAnnouncement] = useState({id: 0, text: ''});
-    const [nativeAnnouncement, setNativeAnnouncement] = useState('');
     const isFocused = useIsFocused();
 
-    useAccessibilityAnnouncement(nativeAnnouncement, !!nativeAnnouncement, {shouldAnnounceOnNative: true, delay: CONST.TIMING.VOICEOVER_LABEL_COMPLETION_DELAY});
-
-    const announceStatus = (message: string, shouldAnnounceOnNative = false) => {
+    const announceStatus = (message: string) => {
         setStatusAnnouncement((prev) => ({id: prev.id + 1, text: message}));
-        if (shouldAnnounceOnNative) {
-            setNativeAnnouncement(message);
-        }
     };
 
     const [account, accountMetadata] = useOnyx(ONYXKEYS.ACCOUNT);
@@ -134,15 +127,15 @@ function CopyCodesPage({route}: TwoFactorAuthPageProps) {
                                                 Clipboard.setString(account?.recoveryCodes ?? '');
                                                 setError('');
                                                 setCodesAreCopied();
-                                                announceStatus(translate('common.copied'), true);
+                                                announceStatus(translate('common.copied'));
                                             }}
                                             styles={[styles.button, styles.buttonMedium, styles.twoFactorAuthCodesButton]}
                                             textStyles={[styles.buttonMediumText]}
                                             tooltipText=""
                                             tooltipTextChecked=""
                                             accessibilityLabel={`${translate('twoFactorAuth.copy')}, ${translate('twoFactorAuth.stepCodes')}`}
+                                            accessibilityLabelChecked={translate('common.copied')}
                                             sentryLabel={CONST.SENTRY_LABEL.TWO_FACTOR_AUTH.COPY_CODES}
-                                            onReset={() => setNativeAnnouncement('')}
                                         />
                                         <PressableWithDelayToggle
                                             text={translate('common.download')}
