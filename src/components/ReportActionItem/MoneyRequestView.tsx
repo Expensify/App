@@ -81,6 +81,7 @@ import {hasEnabledTags} from '@libs/TagsOptionsListUtils';
 import {
     getBillable,
     getCurrency,
+    getDefaultTaxCode,
     getDescription,
     getDistanceInMeters,
     getFormattedCreated,
@@ -90,6 +91,7 @@ import {
     getTagArrayFromName,
     getTagForDisplay,
     getTaxName,
+    getTaxValue,
     hasMissingSmartscanFields,
     hasMultipleSplitChildren,
     hasReservationList,
@@ -305,7 +307,12 @@ function MoneyRequestView({
             : convertToDisplayString(Math.abs(transactionTaxAmount ?? 0), actualCurrency);
 
     const taxRatesDescription = taxRates?.name;
-    const taxRateTitle = updatedTransaction ? getTaxName(policy, updatedTransaction, isExpenseUnreported) : getTaxName(policy, transaction, isExpenseUnreported);
+    // In merge/move flows involving multiple workspaces, the same tax code might refer to different tax rates.
+    // Only skip the policy lookup when we can positively confirm a mismatch (both values must be defined).
+    const defaultTaxCode = getDefaultTaxCode(policy, transaction);
+    const taxRatePercentage = getTaxValue(policy, transaction, transaction?.taxCode ?? defaultTaxCode ?? '');
+    const hasConfirmedTaxMismatch = taxRatePercentage !== undefined && transaction?.taxValue !== undefined && taxRatePercentage !== transaction?.taxValue;
+    const taxRateTitle = hasConfirmedTaxMismatch ? undefined : getTaxName(policy, transaction, isExpenseUnreported);
 
     const actualTransactionDate = isFromMergeTransaction && updatedTransaction ? getFormattedCreated(updatedTransaction) : transactionDate;
     const fallbackTaxRateTitle = transaction?.taxValue;
@@ -592,7 +599,7 @@ function MoneyRequestView({
     const decodedCategoryName = getDecodedCategoryName(categoryValue);
     const categoryCopyValue = !canEdit ? decodedCategoryName : undefined;
     const cardCopyValue = cardProgramName;
-    const taxRateValue = transaction?.taxName ?? taxRateTitle ?? fallbackTaxRateTitle;
+    const taxRateValue = hasConfirmedTaxMismatch ? fallbackTaxRateTitle : (transaction?.taxName ?? taxRateTitle ?? fallbackTaxRateTitle);
     const taxRateCopyValue = !canEditTaxFields ? taxRateValue : undefined;
     const taxAmountTitle = formattedTaxAmount ? formattedTaxAmount.toString() : '';
     const taxAmountCopyValue = !canEditTaxFields ? taxAmountTitle : undefined;
