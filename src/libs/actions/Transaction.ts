@@ -1015,12 +1015,14 @@ function changeTransactionsReport({
             ? recalculateUnreportedTransactionDetails(transaction, destinationCurrency, translate, toLocaleDigit)
             : {};
 
-        // 1. Optimistically change the reportID on the passed transactions
-        // Only set pendingAction for transactions that need convertedAmount recalculation
+        // 1. Optimistically update the transaction with full data and changed fields.
+        // Spreading the full transaction ensures the TRANSACTION collection has complete data
+        // (e.g. amount) even when the existing entry was incomplete from search results.
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
             value: {
+                ...transaction,
                 reportID,
                 comment,
                 modifiedAmount,
