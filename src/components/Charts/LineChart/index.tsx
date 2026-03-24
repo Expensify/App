@@ -6,7 +6,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import type {LineChartProps} from './LineChartContent';
 
-const getLineChartContent = () => import('./LineChartContent');
 function LineChart(props: LineChartProps) {
     const styles = useThemeStyles();
     const reasonAttributes: SkeletonSpanReasonAttributes = {context: 'LineChart.SkiaWebLoading'};
@@ -14,10 +13,10 @@ function LineChart(props: LineChartProps) {
     return (
         <WithSkiaWeb
             opts={{locateFile: (file: string) => `/${file}`}}
-            getComponent={getLineChartContent}
+            getComponent={() => import('./LineChartContent')}
             componentProps={props}
             fallback={
-                <View style={styles.chartWebFallback}>
+                <View style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsCenter, styles.highlightBG, styles.br4, styles.p5]}>
                     <ActivityIndicator
                         size="large"
                         reasonAttributes={reasonAttributes}
@@ -27,5 +26,7 @@ function LineChart(props: LineChartProps) {
         />
     );
 }
+
+LineChart.displayName = 'LineChart';
 
 export default LineChart;

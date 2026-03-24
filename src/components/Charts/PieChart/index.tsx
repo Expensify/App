@@ -18,7 +18,7 @@ function PieChart(props: PieChartProps) {
             getComponent={getPieChartContent}
             componentProps={props}
             fallback={
-                <View style={styles.chartWebFallback}>
+                <View style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsCenter, styles.highlightBG, styles.br4, styles.p5]}>
                     <ActivityIndicator
                         size="large"
                         reasonAttributes={reasonAttributes}

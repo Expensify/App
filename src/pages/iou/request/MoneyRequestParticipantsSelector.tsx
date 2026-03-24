@@ -250,7 +250,6 @@ function MoneyRequestParticipantsSelector({
     const cleanSearchTerm = useMemo(() => debouncedSearchTerm.trim().toLowerCase(), [debouncedSearchTerm]);
 
     const {userToInviteExpenseReport} = useUserToInviteReports(availableOptions?.userToInvite);
-    const userToInviteExpenseReportPolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${userToInviteExpenseReport?.policyID}`];
 
     useEffect(() => {
         searchUserInServer(debouncedSearchTerm.trim());
@@ -304,7 +303,6 @@ function MoneyRequestParticipantsSelector({
             [],
             privateIsArchivedMap,
             currentUserAccountID,
-            allPolicies,
             personalDetails,
             true,
             undefined,
@@ -370,15 +368,7 @@ function MoneyRequestParticipantsSelector({
                     const isPolicyExpenseChat = participant?.isPolicyExpenseChat ?? false;
                     const privateIsArchived = privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${userToInviteExpenseReport?.reportID}`];
                     return isPolicyExpenseChat
-                        ? getPolicyExpenseReportOption(
-                              participant,
-                              privateIsArchived,
-                              currentUserAccountID,
-                              personalDetails,
-                              userToInviteExpenseReport,
-                              userToInviteExpenseReportPolicy,
-                              reportAttributesDerived,
-                          )
+                        ? getPolicyExpenseReportOption(participant, privateIsArchived, currentUserAccountID, personalDetails, userToInviteExpenseReport, reportAttributesDerived)
                         : getParticipantsOption(participant, personalDetails);
                 }),
                 sectionIndex: 5,
@@ -405,7 +395,6 @@ function MoneyRequestParticipantsSelector({
         availableOptions.recentReports,
         availableOptions.personalDetails,
         userToInviteExpenseReport,
-        userToInviteExpenseReportPolicy,
         isWorkspacesOnly,
         loginList,
         isPerDiemRequest,
@@ -415,7 +404,6 @@ function MoneyRequestParticipantsSelector({
         privateIsArchivedMap,
         currentUserAccountID,
         currentUserEmail,
-        allPolicies,
     ]);
 
     /**

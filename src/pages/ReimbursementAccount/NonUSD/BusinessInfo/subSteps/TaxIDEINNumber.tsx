@@ -4,12 +4,12 @@ import SingleFieldStep from '@components/SubStepForms/SingleFieldStep';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useReimbursementAccountStepFormSubmit from '@hooks/useReimbursementAccountStepFormSubmit';
-import type {SubPageProps} from '@hooks/useSubPage/types';
+import type {SubStepProps} from '@hooks/useSubStep/types';
 import {getFieldRequiredErrors, isValidTaxIDEINNumber} from '@libs/ValidationUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 
-type TaxIDEINNumberProps = SubPageProps;
+type TaxIDEINNumberProps = SubStepProps;
 
 const {TAX_ID_EIN_NUMBER, COMPANY_COUNTRY_CODE} = INPUT_IDS.ADDITIONAL_DATA.CORPAY;
 const STEP_FIELDS = [TAX_ID_EIN_NUMBER];
@@ -55,7 +55,6 @@ function TaxIDEINNumber({onNext, onMove, isEditing}: TaxIDEINNumberProps) {
             inputLabel={translate('businessInfoStep.taxIDEIN', businessStepCountryValue)}
             defaultValue={defaultValue}
             shouldShowHelpLinks={false}
-            shouldDelayAutoFocus
         />
     );
 }

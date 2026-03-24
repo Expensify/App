@@ -38,7 +38,6 @@ import {
     getReceiptError,
     getSearchOnyxUpdate,
     handleNavigateAfterExpenseCreate,
-    highlightTransactionOnSearchRouteIfNeeded,
     mergePolicyRecentlyUsedCategories,
     mergePolicyRecentlyUsedCurrencies,
 } from '.';
@@ -818,8 +817,6 @@ function sendInvoice({
     API.write(WRITE_COMMANDS.SEND_INVOICE, parameters, onyxData);
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     InteractionManager.runAfterInteractions(() => removeDraftTransaction(CONST.IOU.OPTIMISTIC_TRANSACTION_ID));
-
-    highlightTransactionOnSearchRouteIfNeeded(isFromGlobalCreate, transactionID, CONST.SEARCH.DATA_TYPES.INVOICE);
 
     handleNavigateAfterExpenseCreate({
         activeReportID: invoiceRoom.reportID,

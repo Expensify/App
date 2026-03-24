@@ -2268,7 +2268,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
         expect(isDeleted).toBe(true);
     });
 
-    it('should set navigate-back URL and use backward navigation pattern when reverse-split deletes the last transaction in expense report', async () => {
+    it('should set navigate-back URL and navigate to parent chat when reverse-split deletes the last transaction in expense report', async () => {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         const Navigation = jest.requireMock('@src/libs/Navigation/Navigation');
         // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
@@ -2286,7 +2286,6 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             chatReportID: chatReport.reportID,
             parentReportID: chatReport.reportID,
         };
-
         const originalTransaction: Transaction = {
             amount: 10000,
             currency: 'USD',
@@ -2385,14 +2384,9 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
         expect(Report.setDeleteTransactionNavigateBackUrl).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(chatReport.reportID));
 
-        // Then navigateBackOnDeleteTransaction should be used (which calls dismissToSuperWideRHP + goBack)
-        // instead of dismissModalWithReport
+        // Then navigation should go to the parent chat report instead of the deleted expense report
         // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-        expect(Navigation.dismissToSuperWideRHP).toHaveBeenCalled();
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-        expect(Navigation.goBack).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(chatReport.reportID));
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-        expect(Navigation.dismissModalWithReport).not.toHaveBeenCalled();
+        expect(Navigation.dismissModalWithReport).toHaveBeenCalledWith({reportID: chatReport.reportID});
     });
 
     it('should navigate to expense report normally when reverse-split is not the last transaction', async () => {

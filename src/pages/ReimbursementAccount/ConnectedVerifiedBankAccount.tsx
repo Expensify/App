@@ -32,6 +32,9 @@ type ConnectedVerifiedBankAccountProps = {
     /** Method to set the state of USD bank account step */
     setUSDBankAccountStep: (step: string | null) => void;
 
+    /** Method to set the state of setNonUSDBankAccountStep */
+    setNonUSDBankAccountStep?: (step: string | null) => void;
+
     /** Whether the workspace currency is set to non USD currency */
     isNonUSDWorkspace: boolean;
 };
@@ -41,6 +44,7 @@ function ConnectedVerifiedBankAccount({
     onBackButtonPress,
     setShouldShowConnectedVerifiedBankAccount,
     setUSDBankAccountStep,
+    setNonUSDBankAccountStep,
     isNonUSDWorkspace,
 }: ConnectedVerifiedBankAccountProps) {
     const styles = useThemeStyles();
@@ -110,6 +114,7 @@ function ConnectedVerifiedBankAccount({
                     isNonUSDWorkspace={isNonUSDWorkspace}
                     setShouldShowConnectedVerifiedBankAccount={setShouldShowConnectedVerifiedBankAccount}
                     setUSDBankAccountStep={setUSDBankAccountStep}
+                    setNonUSDBankAccountStep={setNonUSDBankAccountStep}
                 />
             )}
         </ScreenWrapper>

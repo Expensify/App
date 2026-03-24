@@ -44,7 +44,6 @@ import {
     setReimbursementAccountLoading,
     updateReimbursementAccountDraft,
 } from '@userActions/BankAccounts';
-import {setDraftValues} from '@userActions/FormActions';
 import {getPaymentMethods} from '@userActions/PaymentMethods';
 import {isCurrencySupportedForGlobalReimbursement} from '@userActions/Policy/Policy';
 import {clearReimbursementAccount, clearReimbursementAccountDraft} from '@userActions/ReimbursementAccount';
@@ -59,7 +58,8 @@ import type {ACHDataReimbursementAccount, ReimbursementAccountStep} from '@src/t
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import ConnectedVerifiedBankAccount from './ConnectedVerifiedBankAccount';
-import getStartPageForContinueSetup from './NonUSD/utils/getStartPageForContinueSetup';
+import NonUSDVerifiedBankAccountFlow from './NonUSD/NonUSDVerifiedBankAccountFlow';
+import requiresDocusignStep from './NonUSD/utils/requiresDocusignStep';
 import USDVerifiedBankAccountFlow from './USD/USDVerifiedBankAccountFlow';
 import getFieldsForStep from './USD/utils/getFieldsForStep';
 import getStepToOpenFromRouteParams from './USD/utils/getStepToOpenFromRouteParams';
@@ -129,6 +129,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: 
     const isPreviousPolicy =
         policyIDParam && !!reimbursementAccount && !isLoadingOnyxValue(reimbursementAccountMetadata) ? policyIDParam === achData?.policyID : isLoadingOnyxValue(reimbursementAccountMetadata);
     const hasConfirmedUSDCurrency = (reimbursementAccountDraft?.[INPUT_IDS.ADDITIONAL_DATA.COUNTRY] ?? '') !== '' || (achData?.accountNumber ?? '') !== '';
+    const isDocusignStepRequired = requiresDocusignStep(policyCurrency);
 
     /**
      We main rely on `achData.currentStep` to determine the step to display in USD flow.
@@ -144,7 +145,9 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: 
         return achData?.currentStep ?? CONST.BANK_ACCOUNT.STEP.COUNTRY;
     };
     const currentStep = getInitialCurrentStep();
+    const [nonUSDBankAccountStep, setNonUSDBankAccountStep] = useState<string | null>(subStepParam ?? null);
     const [USDBankAccountStep, setUSDBankAccountStep] = useState<string | null>(subStepParam ?? null);
+    const [isResettingBankAccount, setIsResettingBankAccount] = useState(false);
     const [isNonUSDSetup, setIsNonUSDSetup] = useState(policy ? isNonUSDWorkspace : achData?.currency !== CONST.CURRENCY.USD || reimbursementAccountDraft?.currency !== CONST.CURRENCY.USD);
 
     useEffect(() => {
@@ -278,7 +281,9 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: 
             return;
         }
 
-        if (policyCurrency && policyCurrency !== CONST.CURRENCY.USD) {
+        if (policyCurrency && policyCurrency === CONST.CURRENCY.USD) {
+            setNonUSDBankAccountStep(null);
+        } else {
             setUSDBankAccountStep(null);
         }
         setBankAccountSubStep(null);
@@ -352,11 +357,62 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: 
     }, [currentStep]);
 
     const continueNonUSDVBBASetup = () => {
-        const {page: startPage, subPage: startSubPage} = getStartPageForContinueSetup(achData, nonUSDCountryDraftValue, policyCurrency, reimbursementAccountDraft);
-        if (isComingFromExpensifyCard) {
-            setDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, {isComingFromExpensifyCard});
+        const isPastSignerStep = () => {
+            if (achData?.state === CONST.NON_USD_BANK_ACCOUNT.STATE.VERIFYING) {
+                return true;
+            }
+
+            if (policyCurrency === CONST.CURRENCY.AUD) {
+                return achData?.corpay?.signerFullName && achData?.corpay?.secondSignerFullName && achData?.corpay?.authorizedToBindClientToAgreement === undefined;
+            }
+
+            return achData?.corpay?.signerFullName && achData?.corpay?.authorizedToBindClientToAgreement === undefined;
+        };
+        const allAgreementsChecked =
+            !!(reimbursementAccountDraft?.authorizedToBindClientToAgreement ?? achData?.corpay?.authorizedToBindClientToAgreement) &&
+            !!(reimbursementAccountDraft?.agreeToTermsAndConditions ?? achData?.corpay?.agreeToTermsAndConditions) &&
+            !!(reimbursementAccountDraft?.consentToPrivacyNotice ?? achData?.corpay?.consentToPrivacyNotice) &&
+            !!(reimbursementAccountDraft?.provideTruthfulInformation ?? achData?.corpay?.provideTruthfulInformation);
+
+        setShouldShowContinueSetupButton(false);
+        if (nonUSDCountryDraftValue !== '' && achData?.created === undefined) {
+            setNonUSDBankAccountStep(CONST.NON_USD_BANK_ACCOUNT.STEP.BANK_INFO);
+            return;
         }
-        Navigation.navigate(ROUTES.BANK_ACCOUNT_NON_USD_SETUP.getRoute({policyID: policyIDParam ?? '', page: startPage, subPage: startSubPage, backTo}));
+
+        if (achData?.created && achData?.corpay?.companyName === undefined) {
+            setNonUSDBankAccountStep(CONST.NON_USD_BANK_ACCOUNT.STEP.BUSINESS_INFO);
+            return;
+        }
+
+        if (achData?.corpay?.companyName && achData?.corpay?.anyIndividualOwn25PercentOrMore === undefined) {
+            setNonUSDBankAccountStep(CONST.NON_USD_BANK_ACCOUNT.STEP.BENEFICIAL_OWNER_INFO);
+            return;
+        }
+
+        if (!isPastSignerStep()) {
+            setNonUSDBankAccountStep(CONST.NON_USD_BANK_ACCOUNT.STEP.SIGNER_INFO);
+            return;
+        }
+
+        if (isPastSignerStep() && !allAgreementsChecked) {
+            setNonUSDBankAccountStep(CONST.NON_USD_BANK_ACCOUNT.STEP.AGREEMENTS);
+            return;
+        }
+
+        if (isPastSignerStep() && allAgreementsChecked && !isDocusignStepRequired && achData?.state !== CONST.BANK_ACCOUNT.STATE.VERIFYING) {
+            setNonUSDBankAccountStep(CONST.NON_USD_BANK_ACCOUNT.STEP.AGREEMENTS);
+            return;
+        }
+
+        if (isPastSignerStep() && allAgreementsChecked && isDocusignStepRequired && achData?.state !== CONST.BANK_ACCOUNT.STATE.VERIFYING) {
+            setNonUSDBankAccountStep(CONST.NON_USD_BANK_ACCOUNT.STEP.DOCUSIGN);
+            return;
+        }
+
+        if (achData?.state === CONST.BANK_ACCOUNT.STATE.VERIFYING) {
+            setNonUSDBankAccountStep(CONST.NON_USD_BANK_ACCOUNT.STEP.FINISH);
+        }
     };
 
     const goBack = useCallback(() => {
@@ -513,8 +569,23 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: 
                 reimbursementAccount={reimbursementAccount}
                 setShouldShowConnectedVerifiedBankAccount={setShouldShowConnectedVerifiedBankAccount}
                 setUSDBankAccountStep={setUSDBankAccountStep}
+                setNonUSDBankAccountStep={setNonUSDBankAccountStep}
                 onBackButtonPress={goBack}
                 isNonUSDWorkspace={isNonUSDSetup}
+            />
+        );
+    }
+
+    if (isNonUSDSetup && nonUSDBankAccountStep !== null && !isResettingBankAccount) {
+        return (
+            <NonUSDVerifiedBankAccountFlow
+                nonUSDBankAccountStep={nonUSDBankAccountStep}
+                setNonUSDBankAccountStep={setNonUSDBankAccountStep}
+                setShouldShowContinueSetupButton={setShouldShowContinueSetupButton}
+                policyID={policyIDParam}
+                isComingFromExpensifyCard={isComingFromExpensifyCard}
+                shouldShowContinueSetupButtonValue={shouldShowContinueSetupButtonValue}
+                policyCurrency={policyCurrency ?? ''}
             />
         );
     }
@@ -542,9 +613,10 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: 
             backTo={backTo}
             shouldShowContinueSetupButton={shouldShowContinueSetupButton}
             isNonUSDWorkspace={isNonUSDSetup}
+            setNonUSDBankAccountStep={setNonUSDBankAccountStep}
             setUSDBankAccountStep={setUSDBankAccountStep}
             policyID={policyIDParam}
-            isComingFromExpensifyCard={isComingFromExpensifyCard}
+            setIsResettingBankAccount={setIsResettingBankAccount}
         />
     );
 }

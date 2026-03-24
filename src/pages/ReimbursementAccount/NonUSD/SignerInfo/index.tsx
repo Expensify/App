@@ -1,31 +1,59 @@
 import {Str} from 'expensify-common';
-import React, {useCallback, useEffect, useMemo, useRef} from 'react';
+import type {ComponentType} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import YesNoStep from '@components/SubStepForms/YesNoStep';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import Navigation from '@libs/Navigation/Navigation';
-import type NonUSDPageProps from '@pages/ReimbursementAccount/NonUSD/types';
-import getDraftValuesForSignerInfo from '@pages/ReimbursementAccount/NonUSD/utils/getDraftValuesForSignerInfo';
+import useSubStep from '@hooks/useSubStep';
+import type {SubStepProps} from '@hooks/useSubStep/types';
+import Navigation from '@navigation/Navigation';
+import getInitialSubStepForSignerInfoStep from '@pages/ReimbursementAccount/NonUSD/utils/getInitialSubStepForSignerInfoStep';
 import getSignerDetailsAndSignerFilesForSignerInfo from '@pages/ReimbursementAccount/NonUSD/utils/getSignerDetailsAndSignerFilesForSignerInfo';
 import {askForCorpaySignerInformation, clearReimbursementAccountSaveCorpayOnboardingDirectorInformation, saveCorpayOnboardingDirectorInformation} from '@userActions/BankAccounts';
-import {clearErrors, setDraftValues} from '@userActions/FormActions';
+import {clearErrors} from '@userActions/FormActions';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 import EnterEmail from './EnterEmail';
-import type {EmailSubmitParams} from './EnterEmail';
 import HangTight from './HangTight';
-import SignerDetailsFormPages from './SignerDetailsFormPages';
+import Address from './subSteps/Address';
+import Confirmation from './subSteps/Confirmation';
+import DateOfBirth from './subSteps/DateOfBirth';
+import JobTitle from './subSteps/JobTitle';
+import Name from './subSteps/Name';
+import UploadDocuments from './subSteps/UploadDocuments';
 
-const {PAGE_NAME, SIGNER_INFO_STEP} = CONST.NON_USD_BANK_ACCOUNT;
+type SignerInfoProps = {
+    /** Handles back button press */
+    onBackButtonPress: () => void;
+
+    /** Handles submit button press */
+    onSubmit: () => void;
+
+    /** Array of step names */
+    stepNames?: readonly string[];
+};
+
+type EmailSubmitParams = {
+    /** Signer email to send the reminder to */
+    signerEmail: string;
+
+    /** Optional second signer email to send the reminder to (only for AUD) */
+    secondSignerEmail?: string;
+};
+
+type SignerDetailsFormProps = SubStepProps;
+
 // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment
-const SUB_PAGE_NAMES = SIGNER_INFO_STEP.SUB_PAGE_NAMES;
-const {OWNS_MORE_THAN_25_PERCENT, COMPANY_NAME, SIGNER_FULL_NAME} = INPUT_IDS.ADDITIONAL_DATA.CORPAY;
+const SUBSTEP: Record<string, number> = CONST.NON_USD_BANK_ACCOUNT.SIGNER_INFO_STEP.SUBSTEP;
+const {OWNS_MORE_THAN_25_PERCENT, COMPANY_NAME, SIGNER_EMAIL, SIGNER_FULL_NAME, SECOND_SIGNER_EMAIL} = INPUT_IDS.ADDITIONAL_DATA.CORPAY;
 
-function SignerInfo({onBackButtonPress, onSubmit, stepNames, currentSubPage, backTo}: NonUSDPageProps) {
+const fullBodyContent: Array<ComponentType<SignerDetailsFormProps>> = [Name, JobTitle, DateOfBirth, Address, UploadDocuments, Confirmation];
+const userIsOwnerBodyContent: Array<ComponentType<SignerDetailsFormProps>> = [JobTitle, UploadDocuments, Confirmation];
+
+function SignerInfo({onBackButtonPress, onSubmit, stepNames}: SignerInfoProps) {
     const {translate} = useLocalize();
     const {isProduction} = useEnvironment();
 
@@ -34,33 +62,23 @@ function SignerInfo({onBackButtonPress, onSubmit, stepNames, currentSubPage, bac
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const policyID = reimbursementAccount?.achData?.policyID;
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
-    const country = reimbursementAccountDraft?.[INPUT_IDS.ADDITIONAL_DATA.COUNTRY] ?? reimbursementAccount?.achData?.[INPUT_IDS.ADDITIONAL_DATA.COUNTRY] ?? '';
-    const currency = policy?.outputCurrency ?? reimbursementAccountDraft?.currency ?? CONST.BBA_COUNTRY_CURRENCY_MAP[country] ?? '';
+    const currency = policy?.outputCurrency ?? reimbursementAccountDraft?.currency ?? '';
     const isUserOwner = reimbursementAccount?.achData?.corpay?.[OWNS_MORE_THAN_25_PERCENT] ?? reimbursementAccountDraft?.[OWNS_MORE_THAN_25_PERCENT] ?? false;
     const companyName = reimbursementAccount?.achData?.corpay?.[COMPANY_NAME] ?? reimbursementAccountDraft?.[COMPANY_NAME] ?? '';
+    const savedSignerEmail = reimbursementAccount?.achData?.corpay?.[SIGNER_EMAIL];
+    const savedSignerFullName = reimbursementAccount?.achData?.corpay?.[SIGNER_FULL_NAME];
+    const savedSecondSignerEmail = reimbursementAccount?.achData?.corpay?.[SECOND_SIGNER_EMAIL];
     const bankAccountID = reimbursementAccount?.achData?.bankAccountID ?? CONST.DEFAULT_NUMBER_ID;
-    const isUserDirector = reimbursementAccountDraft?.isUserDirector ?? false;
-    const shouldSendOnlySecondSignerEmail = currency === CONST.CURRENCY.AUD && isUserDirector;
-
+    const initialSubStep = getInitialSubStepForSignerInfoStep(savedSignerEmail, savedSignerFullName, savedSecondSignerEmail, currency);
+    const [currentSubStep, setCurrentSubStep] = useState<number>(initialSubStep);
+    const [isUserDirector, setIsUserDirector] = useState(false);
     const primaryLogin = account?.primaryLogin ?? '';
     // Corpay does not accept emails with a "+" character and will not let us connect account at the end of whole flow
     const signerEmail = !isProduction ? Str.replaceAll(primaryLogin, '+', '') : primaryLogin;
 
-    const isSubmittingRef = useRef(false);
-
-    const signerDraftValues = useMemo(() => getDraftValuesForSignerInfo(reimbursementAccount), [reimbursementAccount]);
-    const signerFullNameDraft = reimbursementAccountDraft?.[SIGNER_FULL_NAME];
-
-    useEffect(() => {
-        if (signerFullNameDraft || !signerDraftValues.isUserDirector) {
-            return;
-        }
-        setDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, signerDraftValues);
-    }, [signerFullNameDraft, signerDraftValues]);
-
     const submit = useCallback(() => {
-        isSubmittingRef.current = true;
         const {signerDetails, signerFiles} = getSignerDetailsAndSignerFilesForSignerInfo(reimbursementAccountDraft, signerEmail, isUserOwner);
+
         saveCorpayOnboardingDirectorInformation({
             inputs: JSON.stringify(signerDetails),
             ...signerFiles,
@@ -74,10 +92,9 @@ function SignerInfo({onBackButtonPress, onSubmit, stepNames, currentSubPage, bac
             return;
         }
 
-        if (reimbursementAccount?.isSuccess && isSubmittingRef.current) {
-            isSubmittingRef.current = false;
+        if (reimbursementAccount?.isSuccess && currentSubStep !== SUBSTEP.HANG_TIGHT) {
             if (currency === CONST.CURRENCY.AUD) {
-                Navigation.navigate(ROUTES.BANK_ACCOUNT_NON_USD_SETUP.getRoute({policyID, page: PAGE_NAME.SIGNER_INFO, subPage: SUB_PAGE_NAMES.ENTER_EMAIL, backTo}));
+                setCurrentSubStep(SUBSTEP.ENTER_EMAIL);
                 clearReimbursementAccountSaveCorpayOnboardingDirectorInformation();
                 return;
             }
@@ -88,7 +105,7 @@ function SignerInfo({onBackButtonPress, onSubmit, stepNames, currentSubPage, bac
         return () => {
             clearReimbursementAccountSaveCorpayOnboardingDirectorInformation();
         };
-    }, [reimbursementAccount?.errors, reimbursementAccount?.isSavingCorpayOnboardingDirectorInformation, reimbursementAccount?.isSuccess, onSubmit, currency, policyID, backTo]);
+    }, [reimbursementAccount?.errors, reimbursementAccount?.isSavingCorpayOnboardingDirectorInformation, reimbursementAccount?.isSuccess, onSubmit, currency, currentSubStep]);
 
     useEffect(() => {
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
@@ -97,9 +114,75 @@ function SignerInfo({onBackButtonPress, onSubmit, stepNames, currentSubPage, bac
         }
 
         if (reimbursementAccount?.isAskingForCorpaySignerInformationSuccess) {
-            Navigation.navigate(ROUTES.BANK_ACCOUNT_NON_USD_SETUP.getRoute({policyID, page: PAGE_NAME.SIGNER_INFO, subPage: SUB_PAGE_NAMES.HANG_TIGHT, backTo}));
+            setCurrentSubStep(SUBSTEP.HANG_TIGHT);
         }
-    }, [reimbursementAccount?.errors, reimbursementAccount?.isAskingForCorpaySignerInformation, reimbursementAccount?.isAskingForCorpaySignerInformationSuccess, policyID, backTo]);
+    }, [reimbursementAccount?.errors, reimbursementAccount?.isAskingForCorpaySignerInformation, reimbursementAccount?.isAskingForCorpaySignerInformationSuccess]);
+
+    const bodyContent = useMemo(() => {
+        if (isUserOwner) {
+            return userIsOwnerBodyContent;
+        }
+
+        return fullBodyContent;
+    }, [isUserOwner]);
+
+    const {
+        componentToRender: SignerDetailsForm,
+        isEditing,
+        screenIndex,
+        nextScreen,
+        prevScreen,
+        moveTo,
+        goToTheLastStep,
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+    } = useSubStep<SignerDetailsFormProps>({bodyContent, startFrom: 0, onFinished: submit});
+
+    const handleNextSubStep = useCallback(
+        (value: boolean) => {
+            if (currentSubStep === SUBSTEP.IS_DIRECTOR) {
+                // user is director so we gather their data
+                if (value) {
+                    setIsUserDirector(value);
+                    setCurrentSubStep(SUBSTEP.SIGNER_DETAILS_FORM);
+                    return;
+                }
+
+                setIsUserDirector(value);
+                setCurrentSubStep(SUBSTEP.ENTER_EMAIL);
+                return;
+            }
+
+            setIsUserDirector(value);
+            setCurrentSubStep(SUBSTEP.ENTER_EMAIL);
+        },
+        [currentSubStep],
+    );
+
+    const handleBackButtonPress = useCallback(() => {
+        clearErrors(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM);
+        if (isEditing) {
+            goToTheLastStep();
+            return;
+        }
+
+        if (currentSubStep === SUBSTEP.IS_DIRECTOR) {
+            onBackButtonPress();
+        } else if (currentSubStep === SUBSTEP.ENTER_EMAIL && isUserDirector) {
+            setCurrentSubStep(SUBSTEP.SIGNER_DETAILS_FORM);
+        } else if (currentSubStep === SUBSTEP.SIGNER_DETAILS_FORM && screenIndex > 0) {
+            prevScreen();
+        } else if (currentSubStep === SUBSTEP.SIGNER_DETAILS_FORM && screenIndex === 0) {
+            setCurrentSubStep(SUBSTEP.IS_DIRECTOR);
+        } else if (currentSubStep === SUBSTEP.HANG_TIGHT) {
+            Navigation.goBack();
+        } else if (currentSubStep === SUBSTEP.ARE_YOU_DIRECTOR) {
+            setCurrentSubStep(SUBSTEP.SIGNER_DETAILS_FORM);
+        } else {
+            setCurrentSubStep((subStep) => subStep - 1);
+        }
+    }, [currentSubStep, goToTheLastStep, isEditing, isUserDirector, onBackButtonPress, prevScreen, screenIndex]);
+
+    const shouldSendOnlySecondSignerEmail = currency === CONST.CURRENCY.AUD && isUserDirector;
 
     const handleEmailSubmit = useCallback(
         (values: EmailSubmitParams) => {
@@ -121,48 +204,6 @@ function SignerInfo({onBackButtonPress, onSubmit, stepNames, currentSubPage, bac
         [bankAccountID, policyID, shouldSendOnlySecondSignerEmail],
     );
 
-    const handleIsDirectorSelected = useCallback(
-        (value: boolean) => {
-            setDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, {isUserDirector: value});
-            if (value) {
-                const firstFormPage = isUserOwner ? SUB_PAGE_NAMES.JOB_TITLE : SUB_PAGE_NAMES.NAME;
-                Navigation.navigate(ROUTES.BANK_ACCOUNT_NON_USD_SETUP.getRoute({policyID, page: PAGE_NAME.SIGNER_INFO, subPage: firstFormPage, backTo}));
-            } else {
-                Navigation.navigate(ROUTES.BANK_ACCOUNT_NON_USD_SETUP.getRoute({policyID, page: PAGE_NAME.SIGNER_INFO, subPage: SUB_PAGE_NAMES.ENTER_EMAIL, backTo}));
-            }
-        },
-        [isUserOwner, policyID, backTo],
-    );
-
-    const handleBackButtonPress = useCallback(() => {
-        if (currentSubPage === SUB_PAGE_NAMES.ENTER_EMAIL) {
-            clearErrors(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM);
-            const backSubPage = isUserDirector ? SUB_PAGE_NAMES.CONFIRMATION : SUB_PAGE_NAMES.IS_DIRECTOR;
-            Navigation.goBack(ROUTES.BANK_ACCOUNT_NON_USD_SETUP.getRoute({policyID, page: PAGE_NAME.SIGNER_INFO, subPage: backSubPage, backTo}));
-        } else if (currentSubPage === SUB_PAGE_NAMES.HANG_TIGHT) {
-            Navigation.dismissModal();
-        } else {
-            onBackButtonPress();
-        }
-    }, [currentSubPage, isUserDirector, onBackButtonPress, policyID, backTo]);
-
-    const handleBackToIsDirector = useCallback(() => {
-        clearErrors(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM);
-        Navigation.goBack(ROUTES.BANK_ACCOUNT_NON_USD_SETUP.getRoute({policyID, page: PAGE_NAME.SIGNER_INFO, subPage: SUB_PAGE_NAMES.IS_DIRECTOR, backTo}));
-    }, [policyID, backTo]);
-
-    if (currentSubPage !== SUB_PAGE_NAMES.IS_DIRECTOR && currentSubPage !== SUB_PAGE_NAMES.ENTER_EMAIL && currentSubPage !== SUB_PAGE_NAMES.HANG_TIGHT) {
-        return (
-            <SignerDetailsFormPages
-                onBackToIsDirector={handleBackToIsDirector}
-                stepNames={stepNames}
-                policyID={policyID}
-                onFinished={submit}
-                backTo={backTo}
-            />
-        );
-    }
-
     return (
         <InteractiveStepWrapper
             wrapperID="SignerInfo"
@@ -171,22 +212,32 @@ function SignerInfo({onBackButtonPress, onSubmit, stepNames, currentSubPage, bac
             stepNames={stepNames}
             startStepIndex={4}
         >
-            {currentSubPage === SUB_PAGE_NAMES.IS_DIRECTOR && (
+            {currentSubStep === SUBSTEP.IS_DIRECTOR && (
                 <YesNoStep
                     title={translate('signerInfoStep.areYouDirector', companyName)}
                     description={translate('signerInfoStep.regulationRequiresUs')}
                     defaultValue={isUserDirector}
-                    onSelectedValue={handleIsDirectorSelected}
+                    onSelectedValue={handleNextSubStep}
                 />
             )}
-            {currentSubPage === SUB_PAGE_NAMES.ENTER_EMAIL && (
+
+            {currentSubStep === SUBSTEP.SIGNER_DETAILS_FORM && (
+                <SignerDetailsForm
+                    isEditing={isEditing}
+                    onNext={nextScreen}
+                    onMove={moveTo}
+                />
+            )}
+
+            {currentSubStep === SUBSTEP.ENTER_EMAIL && (
                 <EnterEmail
                     onSubmit={handleEmailSubmit}
                     isUserDirector={isUserDirector}
                     isLoading={reimbursementAccount?.isAskingForCorpaySignerInformation}
                 />
             )}
-            {currentSubPage === SUB_PAGE_NAMES.HANG_TIGHT && (
+
+            {currentSubStep === SUBSTEP.HANG_TIGHT && (
                 <HangTight
                     policyID={policyID}
                     bankAccountID={bankAccountID}

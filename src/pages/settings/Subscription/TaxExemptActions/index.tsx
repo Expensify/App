@@ -1,4 +1,3 @@
-import {hasSeenTourSelector} from '@selectors/Onboarding';
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import ThreeDotsMenu from '@components/ThreeDotsMenu';
@@ -24,7 +23,6 @@ function TaxExemptActions() {
     const icons = useMemoizedLazyExpensifyIcons(['Coins']);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
 
     const overflowMenu: ThreeDotsMenuProps['menuItems'] = useMemo(
@@ -35,11 +33,11 @@ function TaxExemptActions() {
                 text: translate('subscription.details.taxExempt'),
                 onSelected: () => {
                     requestTaxExempt();
-                    navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, false);
+                    navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, false);
                 },
             },
         ],
-        [translate, icons.Coins, conciergeReportID, introSelected, isSelfTourViewed, currentUserAccountID],
+        [translate, icons.Coins, conciergeReportID, introSelected, currentUserAccountID],
     );
 
     return (

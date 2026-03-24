@@ -40,7 +40,7 @@ import PureReportActionItem from './PureReportActionItem';
 
 type ReportActionItemProps = Omit<
     PureReportActionItemProps,
-    'taskReport' | 'linkedReport' | 'iouReportOfLinkedReport' | 'currentUserAccountID' | 'currentUserEmail' | 'personalPolicyID' | 'draftTransactionIDs' | 'userBillingGraceEndPeriods'
+    'taskReport' | 'linkedReport' | 'iouReportOfLinkedReport' | 'currentUserAccountID' | 'personalPolicyID' | 'draftTransactionIDs' | 'userBillingGraceEndPeriods'
 > & {
     /** Whether to show the draft message or not */
     shouldShowDraftMessage?: boolean;
@@ -141,7 +141,6 @@ function ReportActionItem({
             report={report}
             policy={policy}
             currentUserAccountID={currentUserAccountID}
-            currentUserEmail={currentUserEmail}
             draftMessage={draftMessage}
             iouReport={iouReport}
             taskReport={taskReport}

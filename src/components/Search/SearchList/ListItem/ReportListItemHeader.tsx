@@ -59,6 +59,12 @@ type ReportListItemHeaderProps<TItem extends ListItem> = {
     /** Whether the item is hovered */
     isHovered?: boolean;
 
+    /** Callback to fire when DEW modal should be opened */
+    onDEWModalOpen?: () => void;
+
+    /** Whether the DEW beta flag is enabled */
+    isDEWBetaEnabled?: boolean;
+
     /** The last payment method used per policy */
     lastPaymentMethod?: OnyxEntry<LastPaymentMethod>;
 
@@ -208,6 +214,8 @@ function ReportListItemHeader<TItem extends ListItem>({
     onDownArrowClick,
     isExpanded,
     isHovered,
+    onDEWModalOpen,
+    isDEWBetaEnabled,
     lastPaymentMethod,
     personalPolicyID,
 }: ReportListItemHeaderProps<TItem>) {
@@ -241,6 +249,8 @@ function ReportListItemHeader<TItem extends ListItem>({
             lastPaymentMethod,
             userBillingGraceEndPeriods,
             currentSearchKey,
+            onDEWModalOpen,
+            isDEWBetaEnabled,
             isDelegateAccessRestricted,
             onDelegateAccessRestricted: showDelegateNoAccessModal,
             personalPolicyID,

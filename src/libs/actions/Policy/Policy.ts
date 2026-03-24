@@ -2139,7 +2139,7 @@ function clearDuplicateWorkspace() {
  * Generate a policy name based on an email and policy list.
  * @param [email] the email to base the workspace name on. If not passed, will use the logged-in user's email instead
  */
-function generateDefaultWorkspaceName(email = '', displayNameOverride?: string): string {
+function generateDefaultWorkspaceName(email = ''): string {
     const emailParts = email ? email.split('@') : deprecatedSessionEmail.split('@');
     if (!emailParts || emailParts.length !== 2) {
         return '';
@@ -2147,7 +2147,7 @@ function generateDefaultWorkspaceName(email = '', displayNameOverride?: string):
     const username = emailParts.at(0) ?? '';
     const domain = emailParts.at(1) ?? '';
     const userDetails = PersonalDetailsUtils.getPersonalDetailByEmail(email || deprecatedSessionEmail);
-    const displayName = displayNameOverride?.trim() ?? userDetails?.displayName?.trim();
+    const displayName = userDetails?.displayName?.trim();
     let displayNameForWorkspace = '';
 
     if (!PUBLIC_DOMAINS_SET.has(domain.toLowerCase())) {
@@ -4611,9 +4611,7 @@ function enablePolicyReportFields(policyID: string, enabled: boolean) {
     API.writeWithNoDuplicatesEnableFeatureConflicts(WRITE_COMMANDS.ENABLE_POLICY_REPORT_FIELDS, parameters, onyxData);
 }
 
-function enablePolicyTaxes(policyID: string, enabled: true, currentTaxRates: TaxRatesWithDefault | undefined): void;
-function enablePolicyTaxes(policyID: string, enabled: false): void;
-function enablePolicyTaxes(policyID: string, enabled: boolean, currentTaxRates?: TaxRatesWithDefault) {
+function enablePolicyTaxes(policyID: string, enabled: boolean) {
     const defaultTaxRates: TaxRatesWithDefault = CONST.DEFAULT_TAX;
     const taxRatesData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> = {
         optimisticData: [
@@ -4663,12 +4661,15 @@ function enablePolicyTaxes(policyID: string, enabled: boolean, currentTaxRates?:
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 value: {
-                    taxRates: null,
+                    taxRates: undefined,
                 },
             },
         ],
     };
-    const shouldAddDefaultTaxRatesData = (!currentTaxRates || isEmptyObject(currentTaxRates)) && enabled;
+    // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
+    const policy = getPolicy(policyID);
+    const shouldAddDefaultTaxRatesData = (!policy?.taxRates || isEmptyObject(policy.taxRates)) && enabled;
 
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
@@ -4732,14 +4733,10 @@ function enablePolicyTaxes(policyID: string, enabled: boolean, currentTaxRates?:
     }
 }
 
-function enablePolicyWorkflows(
-    policyID: string,
-    enabled: boolean,
-    currentApprovalMode: Policy['approvalMode'],
-    currentAutoReporting: Policy['autoReporting'],
-    currentHarvesting: Policy['harvesting'],
-    currentReimbursementChoice: Policy['reimbursementChoice'],
-) {
+function enablePolicyWorkflows(policyID: string, enabled: boolean) {
+    // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
+    const policy = getPolicy(policyID);
     const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> = {
         optimisticData: [
             {
@@ -4798,10 +4795,10 @@ function enablePolicyWorkflows(
                     areWorkflowsEnabled: !enabled,
                     ...(!enabled
                         ? {
-                              approvalMode: currentApprovalMode,
-                              autoReporting: currentAutoReporting,
-                              harvesting: currentHarvesting,
-                              reimbursementChoice: currentReimbursementChoice,
+                              approvalMode: policy?.approvalMode,
+                              autoReporting: policy?.autoReporting,
+                              harvesting: policy?.harvesting,
+                              reimbursementChoice: policy?.reimbursementChoice,
                           }
                         : {}),
                     pendingFields: {
@@ -4837,12 +4834,10 @@ const DISABLED_MAX_EXPENSE_VALUES: Pick<Policy, 'maxExpenseAmountNoReceipt' | 'm
     maxExpenseAge: CONST.DISABLED_MAX_EXPENSE_VALUE,
 };
 
-function enablePolicyRules(policy: OnyxEntry<Policy>, enabled: boolean, shouldGoBack = true, policyData?: PolicyData) {
-    if (!policy) {
-        return;
-    }
-
-    const policyID = policy.id;
+function enablePolicyRules(policyID: string, enabled: boolean, shouldGoBack = true, policyData?: PolicyData) {
+    // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
+    const policy = getPolicy(policyID);
     const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> = {
         optimisticData: [
             {
@@ -4917,7 +4912,10 @@ function enablePolicyRules(policy: OnyxEntry<Policy>, enabled: boolean, shouldGo
     }
 }
 
-function enableDistanceRequestTax(policyID: string, customUnitName: string, customUnitID: string, attributes: Attributes, currentAttributes: Attributes | undefined) {
+function enableDistanceRequestTax(policyID: string, customUnitName: string, customUnitID: string, attributes: Attributes) {
+    // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
+    const policy = getPolicy(policyID);
     const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> = {
         optimisticData: [
             {
@@ -4957,7 +4955,7 @@ function enableDistanceRequestTax(policyID: string, customUnitName: string, cust
                 value: {
                     customUnits: {
                         [customUnitID]: {
-                            attributes: currentAttributes ?? null,
+                            attributes: policy?.customUnits ? policy?.customUnits[customUnitID].attributes : null,
                             errorFields: {
                                 taxEnabled: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
                             },
@@ -5308,12 +5306,10 @@ function setForeignCurrencyDefault(policyID: string, taxCode: string) {
     API.write(WRITE_COMMANDS.SET_POLICY_TAXES_FOREIGN_CURRENCY_DEFAULT, parameters, onyxData);
 }
 
-function upgradeToCorporate(policy: OnyxEntry<Policy>, featureName?: string) {
-    if (!policy) {
-        return;
-    }
-
-    const policyID = policy.id;
+function upgradeToCorporate(policyID: string, featureName?: string) {
+    // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
+    const policy = getPolicy(policyID);
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -5369,7 +5365,10 @@ function upgradeToCorporate(policy: OnyxEntry<Policy>, featureName?: string) {
     API.write(WRITE_COMMANDS.UPGRADE_TO_CORPORATE, parameters, {optimisticData, successData, failureData});
 }
 
-function downgradeToTeam(policyID: string, currentType: Policy['type'], currentIsAttendeeTrackingEnabled: Policy['isAttendeeTrackingEnabled']) {
+function downgradeToTeam(policyID: string) {
+    // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
+    const policy = getPolicy(policyID);
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -5398,8 +5397,8 @@ function downgradeToTeam(policyID: string, currentType: Policy['type'], currentI
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 isPendingDowngrade: false,
-                type: currentType,
-                isAttendeeTrackingEnabled: currentIsAttendeeTrackingEnabled,
+                type: policy?.type,
+                isAttendeeTrackingEnabled: policy?.isAttendeeTrackingEnabled,
             },
         },
     ];
@@ -6813,7 +6812,11 @@ function clearAllPolicies() {
     }
 }
 
-function updateInvoiceCompanyName(policyID: string, companyName: string, currentCompanyName: string | undefined) {
+function updateInvoiceCompanyName(policyID: string, companyName: string) {
+    // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
+    const policy = getPolicy(policyID);
+
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -6849,7 +6852,7 @@ function updateInvoiceCompanyName(policyID: string, companyName: string, current
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 invoice: {
-                    companyName: currentCompanyName,
+                    companyName: policy?.invoice?.companyName,
                     pendingFields: {
                         companyName: null,
                     },
@@ -6866,7 +6869,11 @@ function updateInvoiceCompanyName(policyID: string, companyName: string, current
     API.write(WRITE_COMMANDS.UPDATE_INVOICE_COMPANY_NAME, parameters, {optimisticData, successData, failureData});
 }
 
-function updateInvoiceCompanyWebsite(policyID: string, companyWebsite: string, currentCompanyWebsite: string | undefined) {
+function updateInvoiceCompanyWebsite(policyID: string, companyWebsite: string) {
+    // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
+    const policy = getPolicy(policyID);
+
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -6902,7 +6909,7 @@ function updateInvoiceCompanyWebsite(policyID: string, companyWebsite: string, c
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 invoice: {
-                    companyWebsite: currentCompanyWebsite,
+                    companyWebsite: policy?.invoice?.companyWebsite,
                     pendingFields: {
                         companyWebsite: null,
                     },

@@ -24,7 +24,6 @@ function BaseTextInputWithSymbol({
     style,
     symbolTextStyle,
     isNegative = false,
-    rightHandSideComponent,
     ref,
     disabled,
     ...rest
@@ -67,7 +66,6 @@ function BaseTextInputWithSymbol({
                 }}
                 onKeyPress={onKeyPress}
                 style={[styles.pr1, style]}
-                rightHandSideComponent={rightHandSideComponent}
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...rest}
             />

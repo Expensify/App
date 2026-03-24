@@ -6,6 +6,7 @@ import Animated, {useSharedValue} from 'react-native-reanimated';
 import {scheduleOnRN} from 'react-native-worklets';
 import {Pie, PolarChart} from 'victory-native';
 import ActivityIndicator from '@components/ActivityIndicator';
+import ChartHeader from '@components/Charts/components/ChartHeader';
 import ChartTooltip from '@components/Charts/components/ChartTooltip';
 import {PIE_CHART_START_ANGLE} from '@components/Charts/constants';
 import {TOOLTIP_BAR_GAP, useChartLabelFormats, useTooltipData} from '@components/Charts/hooks';
@@ -26,12 +27,11 @@ type PieChartProps = ChartProps & {
     valueUnitPosition?: UnitPosition;
 };
 
-function PieChartContent({data, isLoading, valueUnit, valueUnitPosition, onSlicePress}: PieChartProps) {
+function PieChartContent({data, title, titleIcon, isLoading, valueUnit, valueUnitPosition, onSlicePress}: PieChartProps) {
     const styles = useThemeStyles();
     const [canvasWidth, setCanvasWidth] = useState(0);
     const [canvasHeight, setCanvasHeight] = useState(0);
     const [activeSliceIndex, setActiveSliceIndex] = useState(-1);
-    const [isHoveringOverPie, setIsHoveringOverPie] = useState(false);
 
     // Shared values for hover state
     const isHovering = useSharedValue(false);
@@ -61,7 +61,6 @@ function PieChartContent({data, isLoading, valueUnit, valueUnitPosition, onSlice
         const {radius, centerX, centerY} = pieGeometry;
         const sliceIndex = findSliceAtPosition(x, y, centerX, centerY, radius, 0, processedSlices);
         setActiveSliceIndex(sliceIndex);
-        setIsHoveringOverPie(sliceIndex >= 0);
     };
 
     // Handle slice press callback
@@ -104,7 +103,6 @@ function PieChartContent({data, isLoading, valueUnit, valueUnitPosition, onSlice
 
                 isHovering.set(false);
                 scheduleOnRN(setActiveSliceIndex, -1);
-                scheduleOnRN(setIsHoveringOverPie, false);
             });
 
     // Tap gesture for click/tap navigation
@@ -145,7 +143,7 @@ function PieChartContent({data, isLoading, valueUnit, valueUnitPosition, onSlice
     if (isLoading) {
         const reasonAttributes: SkeletonSpanReasonAttributes = {context: 'PieChartContent', isLoading};
         return (
-            <View style={styles.chartActivityIndicator}>
+            <View style={[styles.pieChartContainer, styles.highlightBG, styles.justifyContentCenter, styles.alignItemsCenter]}>
                 <ActivityIndicator
                     size="large"
                     reasonAttributes={reasonAttributes}
@@ -159,10 +157,15 @@ function PieChartContent({data, isLoading, valueUnit, valueUnitPosition, onSlice
     }
 
     return (
-        <>
+        <View style={[styles.pieChartContainer, styles.highlightBG]}>
+            <ChartHeader
+                title={title}
+                titleIcon={titleIcon}
+            />
+
             <GestureDetector gesture={combinedGesture}>
                 <Animated.View
-                    style={[styles.chartContent, isHoveringOverPie && styles.cursorPointer]}
+                    style={styles.pieChartChartContainer}
                     onLayout={handleLayout}
                 >
                     {processedSlices.length > 0 && (
@@ -189,7 +192,7 @@ function PieChartContent({data, isLoading, valueUnit, valueUnitPosition, onSlice
                 </Animated.View>
             </GestureDetector>
             <View style={styles.pieChartLegendContainer}>{processedSlices.map((slice) => renderLegendItem(slice))}</View>
-        </>
+        </View>
     );
 }
 

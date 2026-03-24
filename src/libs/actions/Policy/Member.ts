@@ -58,6 +58,16 @@ Onyx.connectWithoutView({
     },
 });
 
+/** Check if the passed employee is an approver in the policy's employeeList */
+function isApprover(policy: OnyxEntry<Policy>, employeeLogin: string) {
+    if (policy?.approver === employeeLogin) {
+        return true;
+    }
+    return Object.values(policy?.employeeList ?? {}).some(
+        (employee) => employee?.submitsTo === employeeLogin || employee?.forwardsTo === employeeLogin || employee?.overLimitForwardsTo === employeeLogin,
+    );
+}
+
 /**
  * Build optimistic data for adding members to the announcement/admins room
  */
@@ -1381,6 +1391,7 @@ export {
     askToJoinPolicy,
     acceptJoinRequest,
     declineJoinRequest,
+    isApprover,
     importPolicyMembers,
     downloadMembersCSV,
     clearInviteDraft,

@@ -4,7 +4,7 @@ import type {ChartDataPoint} from '@components/Charts';
 import {convertToFrontendAmountAsInteger} from '@libs/CurrencyUtils';
 import type {SearchChartProps} from './types';
 
-function SearchLineChart({data, getLabel, getFilterQuery, onItemPress, isLoading, unit, unitPosition}: SearchChartProps) {
+function SearchLineChart({data, title, titleIcon, getLabel, getFilterQuery, onItemPress, isLoading, unit, unitPosition}: SearchChartProps) {
     const chartData: ChartDataPoint[] = data.map((item) => {
         const currency = item.currency ?? 'USD';
         const totalInDisplayUnits = convertToFrontendAmountAsInteger(item.total ?? 0, currency);
@@ -32,6 +32,8 @@ function SearchLineChart({data, getLabel, getFilterQuery, onItemPress, isLoading
     return (
         <LineChart
             data={chartData}
+            title={title}
+            titleIcon={titleIcon}
             isLoading={isLoading}
             onPointPress={handlePointPress}
             yAxisUnit={unit}
@@ -39,5 +41,7 @@ function SearchLineChart({data, getLabel, getFilterQuery, onItemPress, isLoading
         />
     );
 }
+
+SearchLineChart.displayName = 'SearchLineChart';
 
 export default SearchLineChart;

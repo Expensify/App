@@ -1,89 +1,94 @@
 import {Str} from 'expensify-common';
-import React, {useCallback, useEffect, useMemo, useRef} from 'react';
+import type {ComponentType} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import YesNoStep from '@components/SubStepForms/YesNoStep';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import Navigation from '@libs/Navigation/Navigation';
-import type NonUSDPageProps from '@pages/ReimbursementAccount/NonUSD/types';
-import getDraftValuesForBeneficialOwners from '@pages/ReimbursementAccount/NonUSD/utils/getDraftValuesForBeneficialOwners';
+import usePrevious from '@hooks/usePrevious';
+import useSubStep from '@hooks/useSubStep';
+import type {SubStepProps} from '@hooks/useSubStep/types';
 import getOwnerDetailsAndOwnerFilesForBeneficialOwners from '@pages/ReimbursementAccount/NonUSD/utils/getOwnerDetailsAndOwnerFilesForBeneficialOwners';
 import {clearReimbursementAccountSaveCorpayOnboardingBeneficialOwners, saveCorpayOnboardingBeneficialOwners} from '@userActions/BankAccounts';
 import {clearErrors, setDraftValues} from '@userActions/FormActions';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 import SafeString from '@src/utils/SafeString';
-import BeneficialOwnerDetailsFormPages from './BeneficialOwnerDetailsFormPages';
+import Address from './BeneficialOwnerDetailsFormSubSteps/Address';
+import Confirmation from './BeneficialOwnerDetailsFormSubSteps/Confirmation';
+import DateOfBirth from './BeneficialOwnerDetailsFormSubSteps/DateOfBirth';
+import Documents from './BeneficialOwnerDetailsFormSubSteps/Documents';
+import Last4SSN from './BeneficialOwnerDetailsFormSubSteps/Last4SSN';
+import Name from './BeneficialOwnerDetailsFormSubSteps/Name';
+import Nationality from './BeneficialOwnerDetailsFormSubSteps/Nationality';
+import OwnershipPercentage from './BeneficialOwnerDetailsFormSubSteps/OwnershipPercentage';
 import BeneficialOwnersList from './BeneficialOwnersList';
 
-const {PAGE_NAME, BENEFICIAL_OWNER_INFO_STEP} = CONST.NON_USD_BANK_ACCOUNT;
-const SUB_PAGE_NAMES = BENEFICIAL_OWNER_INFO_STEP.SUB_PAGE_NAMES;
-const {OWNERSHIP_PERCENTAGE, PREFIX} = BENEFICIAL_OWNER_INFO_STEP.BENEFICIAL_OWNER_DATA;
+type BeneficialOwnerInfoProps = {
+    /** Handles back button press */
+    onBackButtonPress: () => void;
+
+    /** Handles submit button press */
+    onSubmit: () => void;
+
+    /** Array of step names */
+    stepNames?: readonly string[];
+};
+
 const {OWNS_MORE_THAN_25_PERCENT, ANY_INDIVIDUAL_OWN_25_PERCENT_OR_MORE, BENEFICIAL_OWNERS, COMPANY_NAME} = INPUT_IDS.ADDITIONAL_DATA.CORPAY;
+const {NATIONALITY, PREFIX} = CONST.NON_USD_BANK_ACCOUNT.BENEFICIAL_OWNER_INFO_STEP.BENEFICIAL_OWNER_DATA;
+const SUBSTEP = CONST.NON_USD_BANK_ACCOUNT.BENEFICIAL_OWNER_INFO_STEP.SUBSTEP;
 
-const OUTER_SUB_PAGES = new Set<string>([
-    SUB_PAGE_NAMES.IS_USER_BENEFICIAL_OWNER,
-    SUB_PAGE_NAMES.IS_ANYONE_ELSE_BENEFICIAL_OWNER,
-    SUB_PAGE_NAMES.ARE_THERE_MORE_BENEFICIAL_OWNERS,
-    SUB_PAGE_NAMES.BENEFICIAL_OWNERS_LIST,
-]);
+type BeneficialOwnerDetailsFormProps = SubStepProps & {
+    ownerBeingModifiedID: string;
+    setOwnerBeingModifiedID?: (id: string) => void;
+    isUserEnteringHisOwnData: boolean;
+    totalOwnedPercentage: Record<string, number>;
+    setTotalOwnedPercentage: (ownedPercentage: Record<string, number>) => void;
+};
 
-function BeneficialOwnerInfo({onBackButtonPress, onSubmit, stepNames, currentSubPage, backTo}: NonUSDPageProps) {
+const bodyContent: Array<ComponentType<BeneficialOwnerDetailsFormProps>> = [Name, Nationality, OwnershipPercentage, DateOfBirth, Address, Last4SSN, Documents, Confirmation];
+
+function BeneficialOwnerInfo({onBackButtonPress, onSubmit, stepNames}: BeneficialOwnerInfoProps) {
     const {translate} = useLocalize();
 
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
 
+    const [ownerKeys, setOwnerKeys] = useState<string[]>([]);
+    const [ownerBeingModifiedID, setOwnerBeingModifiedID] = useState<string>(CONST.NON_USD_BANK_ACCOUNT.CURRENT_USER_KEY);
+    const [isEditingCreatedOwner, setIsEditingCreatedOwner] = useState(false);
+    const [isUserEnteringHisOwnData, setIsUserEnteringHisOwnData] = useState(false);
+    const [isUserOwner, setIsUserOwner] = useState(false);
+    const [isAnyoneElseOwner, setIsAnyoneElseOwner] = useState(false);
+    const [currentSubStep, setCurrentSubStep] = useState<number>(SUBSTEP.IS_USER_BENEFICIAL_OWNER);
+    const previousSubStep = usePrevious(currentSubStep);
+    const [totalOwnedPercentage, setTotalOwnedPercentage] = useState<Record<string, number>>({});
     const companyName = reimbursementAccount?.achData?.corpay?.[COMPANY_NAME] ?? reimbursementAccountDraft?.[COMPANY_NAME] ?? '';
     const bankAccountID = reimbursementAccount?.achData?.bankAccountID ?? CONST.DEFAULT_NUMBER_ID;
-    const policyID = reimbursementAccount?.achData?.policyID;
-
-    const isUserOwner = reimbursementAccount?.achData?.corpay?.[OWNS_MORE_THAN_25_PERCENT] ?? reimbursementAccountDraft?.[OWNS_MORE_THAN_25_PERCENT] ?? false;
-    const isAnyoneElseOwner = reimbursementAccount?.achData?.corpay?.[ANY_INDIVIDUAL_OWN_25_PERCENT_OR_MORE] ?? reimbursementAccountDraft?.[ANY_INDIVIDUAL_OWN_25_PERCENT_OR_MORE] ?? false;
-    const savedBeneficialOwnerValues = useMemo(() => getDraftValuesForBeneficialOwners(reimbursementAccount), [reimbursementAccount]);
-    const ownerKeys = reimbursementAccountDraft?.beneficialOwnerKeys ?? savedBeneficialOwnerValues.beneficialOwnerKeys;
-
-    // Populate the form draft with beneficial owner data from the server.
-    // Skip if draft values already exist (beneficialOwnerKeys is set) or if there are no saved owners to populate.
-    useEffect(() => {
-        if (reimbursementAccountDraft?.beneficialOwnerKeys || savedBeneficialOwnerValues.beneficialOwnerKeys.length === 0) {
-            return;
-        }
-        setDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, savedBeneficialOwnerValues);
-    }, [reimbursementAccountDraft?.beneficialOwnerKeys, savedBeneficialOwnerValues]);
-
-    const totalOwnedPercentageSum = ownerKeys.reduce((acc, key) => {
-        const percentageKey = `${PREFIX}_${key}_${OWNERSHIP_PERCENTAGE}` as const;
-        return acc + (Number(SafeString(reimbursementAccountDraft?.[percentageKey])) || 0);
-    }, 0);
-
-    const canAddMoreOwners = totalOwnedPercentageSum <= 75;
-
     const isSubmittingRef = useRef(false);
 
-    const submit = useCallback(
-        ({anyIndividualOwn25PercentOrMore}: {anyIndividualOwn25PercentOrMore?: boolean} = {}) => {
-            const currentOwnerKeys = reimbursementAccountDraft?.beneficialOwnerKeys ?? [];
-            const {ownerDetails, ownerFiles} = getOwnerDetailsAndOwnerFilesForBeneficialOwners(currentOwnerKeys, reimbursementAccountDraft);
+    const totalOwnedPercentageSum = Object.values(totalOwnedPercentage).reduce((acc, value) => acc + value, 0);
+    const canAddMoreOwners = totalOwnedPercentageSum <= 75;
 
-            setDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, {
-                [OWNS_MORE_THAN_25_PERCENT]: isUserOwner,
-                [ANY_INDIVIDUAL_OWN_25_PERCENT_OR_MORE]: isAnyoneElseOwner,
-                [BENEFICIAL_OWNERS]: JSON.stringify(ownerDetails),
-            });
+    const submit = ({anyIndividualOwn25PercentOrMore}: {anyIndividualOwn25PercentOrMore?: boolean}) => {
+        const {ownerDetails, ownerFiles} = getOwnerDetailsAndOwnerFilesForBeneficialOwners(ownerKeys, reimbursementAccountDraft);
 
-            isSubmittingRef.current = true;
-            saveCorpayOnboardingBeneficialOwners({
-                inputs: JSON.stringify({...ownerDetails, anyIndividualOwn25PercentOrMore}),
-                ...ownerFiles,
-                beneficialOwnerIDs: currentOwnerKeys.length > 0 ? currentOwnerKeys.join(',') : undefined,
-                bankAccountID,
-            });
-        },
-        [bankAccountID, isAnyoneElseOwner, isUserOwner, reimbursementAccountDraft],
-    );
+        setDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, {
+            [OWNS_MORE_THAN_25_PERCENT]: isUserOwner,
+            [ANY_INDIVIDUAL_OWN_25_PERCENT_OR_MORE]: isAnyoneElseOwner,
+            [BENEFICIAL_OWNERS]: JSON.stringify(ownerDetails),
+        });
+
+        isSubmittingRef.current = true;
+        saveCorpayOnboardingBeneficialOwners({
+            inputs: JSON.stringify({...ownerDetails, anyIndividualOwn25PercentOrMore}),
+            ...ownerFiles,
+            beneficialOwnerIDs: ownerKeys.length > 0 ? ownerKeys.join(',') : undefined,
+            bankAccountID,
+        });
+    };
 
     useEffect(() => {
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
@@ -103,141 +108,183 @@ function BeneficialOwnerInfo({onBackButtonPress, onSubmit, stepNames, currentSub
         };
     }, [reimbursementAccount?.errors, reimbursementAccount?.isSavingCorpayOnboardingBeneficialOwnersFields, reimbursementAccount?.isSuccess, onSubmit]);
 
-    const prepareOwnerDetailsForm = useCallback(
-        (ownerID: string) => {
-            setDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, {ownerBeingModifiedID: ownerID});
-            Navigation.navigate(ROUTES.BANK_ACCOUNT_NON_USD_SETUP.getRoute({policyID, page: PAGE_NAME.BENEFICIAL_OWNER_INFO, subPage: SUB_PAGE_NAMES.NAME, backTo}));
-        },
-        [policyID, backTo],
-    );
+    const addOwner = (ownerID: string) => {
+        const newOwners = [...ownerKeys, ownerID];
 
-    const handleOwnerDetailsFormFinished = useCallback(() => {
-        const ownerBeingModifiedID = reimbursementAccountDraft?.ownerBeingModifiedID ?? CONST.NON_USD_BANK_ACCOUNT.CURRENT_USER_KEY;
-        const currentOwnerKeys = reimbursementAccountDraft?.beneficialOwnerKeys ?? [];
-        const isFreshOwner = !currentOwnerKeys.includes(ownerBeingModifiedID);
-        const isEditingCreatedOwner = reimbursementAccountDraft?.isEditingCreatedOwner ?? false;
-        const isUserEnteringHisOwnData = ownerBeingModifiedID === CONST.NON_USD_BANK_ACCOUNT.CURRENT_USER_KEY;
+        setOwnerKeys(newOwners);
+    };
 
-        let updatedOwnerKeys = currentOwnerKeys;
+    const handleOwnerDetailsFormSubmit = () => {
+        const isFreshOwner = ownerKeys.find((ownerID) => ownerID === ownerBeingModifiedID) === undefined;
+
         if (isFreshOwner) {
-            updatedOwnerKeys = [...currentOwnerKeys, ownerBeingModifiedID];
-            setDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, {beneficialOwnerKeys: updatedOwnerKeys});
+            addOwner(ownerBeingModifiedID);
         }
 
-        const updatedTotalSum = updatedOwnerKeys.reduce((acc, key) => {
-            const percentageKey = `${PREFIX}_${key}_${OWNERSHIP_PERCENTAGE}` as const;
-            return acc + (Number(SafeString(reimbursementAccountDraft?.[percentageKey])) || 0);
-        }, 0);
-        const canAddMore = updatedTotalSum <= 75;
-
-        if (isEditingCreatedOwner || !canAddMore) {
-            setDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, {isEditingCreatedOwner: false});
-            Navigation.navigate(ROUTES.BANK_ACCOUNT_NON_USD_SETUP.getRoute({policyID, page: PAGE_NAME.BENEFICIAL_OWNER_INFO, subPage: SUB_PAGE_NAMES.BENEFICIAL_OWNERS_LIST, backTo}));
-        } else if (isUserEnteringHisOwnData) {
-            Navigation.navigate(
-                ROUTES.BANK_ACCOUNT_NON_USD_SETUP.getRoute({policyID, page: PAGE_NAME.BENEFICIAL_OWNER_INFO, subPage: SUB_PAGE_NAMES.IS_ANYONE_ELSE_BENEFICIAL_OWNER, backTo}),
-            );
+        let nextSubStep;
+        if (isEditingCreatedOwner || !canAddMoreOwners) {
+            nextSubStep = SUBSTEP.BENEFICIAL_OWNERS_LIST;
         } else {
-            Navigation.navigate(
-                ROUTES.BANK_ACCOUNT_NON_USD_SETUP.getRoute({policyID, page: PAGE_NAME.BENEFICIAL_OWNER_INFO, subPage: SUB_PAGE_NAMES.ARE_THERE_MORE_BENEFICIAL_OWNERS, backTo}),
-            );
+            nextSubStep = isUserEnteringHisOwnData ? SUBSTEP.IS_ANYONE_ELSE_BENEFICIAL_OWNER : SUBSTEP.ARE_THERE_MORE_BENEFICIAL_OWNERS;
         }
-    }, [policyID, reimbursementAccountDraft, backTo]);
 
-    const handleOwnerEdit = useCallback(
-        (ownerID: string) => {
-            setDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, {ownerBeingModifiedID: ownerID, isEditingCreatedOwner: true});
-            Navigation.navigate(ROUTES.BANK_ACCOUNT_NON_USD_SETUP.getRoute({policyID, page: PAGE_NAME.BENEFICIAL_OWNER_INFO, subPage: SUB_PAGE_NAMES.NAME, backTo}));
-        },
-        [policyID, backTo],
-    );
+        setCurrentSubStep(nextSubStep);
+        setIsEditingCreatedOwner(false);
+    };
 
-    const handleIsUserOwnerSelected = useCallback(
-        (value: boolean) => {
-            const currentOwnerKeys = reimbursementAccountDraft?.beneficialOwnerKeys ?? [];
-            setDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, {[OWNS_MORE_THAN_25_PERCENT]: value});
+    const {
+        componentToRender: BeneficialOwnerDetailsForm,
+        isEditing,
+        screenIndex,
+        nextScreen,
+        prevScreen,
+        moveTo,
+        resetScreenIndex,
+        goToTheLastStep,
+    } = useSubStep<BeneficialOwnerDetailsFormProps>({bodyContent, startFrom: 0, onFinished: handleOwnerDetailsFormSubmit});
 
-            if (value) {
-                if (currentOwnerKeys.length >= 4) {
-                    setDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, {beneficialOwnerKeys: currentOwnerKeys.slice(0, 3)});
+    const prepareOwnerDetailsForm = () => {
+        const ownerID = Str.guid();
+        setOwnerBeingModifiedID(ownerID);
+        resetScreenIndex();
+        setCurrentSubStep(SUBSTEP.BENEFICIAL_OWNER_DETAILS_FORM);
+    };
+
+    const handleOwnerEdit = (ownerID: string) => {
+        setOwnerBeingModifiedID(ownerID);
+        setIsEditingCreatedOwner(true);
+        setCurrentSubStep(SUBSTEP.BENEFICIAL_OWNER_DETAILS_FORM);
+    };
+
+    const countryStepCountryValue = reimbursementAccountDraft?.[INPUT_IDS.ADDITIONAL_DATA.COUNTRY] ?? '';
+    const beneficialOwnerNationalityInputID = `${PREFIX}_${ownerBeingModifiedID}_${NATIONALITY}` as const;
+    const beneficialOwnerNationality = SafeString(reimbursementAccountDraft?.[beneficialOwnerNationalityInputID]);
+
+    const handleBackButtonPress = () => {
+        clearErrors(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM);
+        if (isEditing) {
+            goToTheLastStep();
+            return;
+        }
+
+        if (currentSubStep === SUBSTEP.IS_USER_BENEFICIAL_OWNER) {
+            onBackButtonPress();
+        } else if (currentSubStep === SUBSTEP.BENEFICIAL_OWNERS_LIST && !canAddMoreOwners) {
+            setCurrentSubStep(SUBSTEP.BENEFICIAL_OWNER_DETAILS_FORM);
+        } else if (currentSubStep === SUBSTEP.BENEFICIAL_OWNERS_LIST && isAnyoneElseOwner) {
+            setCurrentSubStep(SUBSTEP.ARE_THERE_MORE_BENEFICIAL_OWNERS);
+        } else if (currentSubStep === SUBSTEP.BENEFICIAL_OWNERS_LIST && isUserOwner && !isAnyoneElseOwner) {
+            setCurrentSubStep(SUBSTEP.IS_ANYONE_ELSE_BENEFICIAL_OWNER);
+        } else if (currentSubStep === SUBSTEP.IS_ANYONE_ELSE_BENEFICIAL_OWNER) {
+            setCurrentSubStep(SUBSTEP.IS_USER_BENEFICIAL_OWNER);
+        } else if (currentSubStep === SUBSTEP.BENEFICIAL_OWNER_DETAILS_FORM && screenIndex > 0) {
+            if (screenIndex === 6) {
+                // User is on documents sub step and is not from US (no SSN needed)
+                if (beneficialOwnerNationality !== CONST.COUNTRY.US) {
+                    moveTo(4, false);
+                    return;
                 }
-                setDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, {ownerBeingModifiedID: CONST.NON_USD_BANK_ACCOUNT.CURRENT_USER_KEY});
-                Navigation.navigate(ROUTES.BANK_ACCOUNT_NON_USD_SETUP.getRoute({policyID, page: PAGE_NAME.BENEFICIAL_OWNER_INFO, subPage: SUB_PAGE_NAMES.NAME, backTo}));
-            } else {
-                const filteredKeys = currentOwnerKeys.filter((key) => key !== CONST.NON_USD_BANK_ACCOUNT.CURRENT_USER_KEY);
-                setDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, {beneficialOwnerKeys: filteredKeys});
-                Navigation.navigate(
-                    ROUTES.BANK_ACCOUNT_NON_USD_SETUP.getRoute({policyID, page: PAGE_NAME.BENEFICIAL_OWNER_INFO, subPage: SUB_PAGE_NAMES.IS_ANYONE_ELSE_BENEFICIAL_OWNER, backTo}),
-                );
             }
-        },
-        [policyID, reimbursementAccountDraft?.beneficialOwnerKeys, backTo],
-    );
 
-    const handleIsAnyoneElseOwnerSelected = useCallback(
-        (value: boolean) => {
-            setDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, {[ANY_INDIVIDUAL_OWN_25_PERCENT_OR_MORE]: value});
+            if (screenIndex === 7) {
+                // User is on confirmation screen and is GB (no SSN or documents needed)
+                if (countryStepCountryValue === CONST.COUNTRY.GB && beneficialOwnerNationality === CONST.COUNTRY.GB) {
+                    moveTo(4, false);
+                    return;
+                }
+            }
 
-            if (!value && !isUserOwner) {
-                setDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, {beneficialOwnerKeys: []});
+            prevScreen();
+        } else if (currentSubStep === SUBSTEP.BENEFICIAL_OWNER_DETAILS_FORM && previousSubStep === SUBSTEP.IS_USER_BENEFICIAL_OWNER) {
+            setCurrentSubStep(SUBSTEP.IS_USER_BENEFICIAL_OWNER);
+        } else if (currentSubStep === SUBSTEP.BENEFICIAL_OWNER_DETAILS_FORM && previousSubStep === SUBSTEP.IS_ANYONE_ELSE_BENEFICIAL_OWNER) {
+            setCurrentSubStep(SUBSTEP.IS_ANYONE_ELSE_BENEFICIAL_OWNER);
+        } else {
+            setCurrentSubStep((subStep) => subStep - 1);
+        }
+    };
+
+    const handleNextSubStep = (value: boolean) => {
+        if (currentSubStep === SUBSTEP.IS_USER_BENEFICIAL_OWNER) {
+            // User is owner so we gather his data
+            if (value) {
+                setIsUserOwner(value);
+                setIsUserEnteringHisOwnData(value);
+                setCurrentSubStep(SUBSTEP.BENEFICIAL_OWNER_DETAILS_FORM);
+                return;
+            }
+
+            setIsUserOwner(value);
+            setIsUserEnteringHisOwnData(value);
+            setOwnerKeys((currentOwnersKeys) => currentOwnersKeys.filter((key) => key !== CONST.NON_USD_BANK_ACCOUNT.CURRENT_USER_KEY));
+
+            // User is an owner but there are 4 other owners already added, so we remove last one
+            if (value && ownerKeys.length === 4) {
+                setOwnerKeys((previousBeneficialOwners) => previousBeneficialOwners.slice(0, 3));
+            }
+
+            setCurrentSubStep(SUBSTEP.IS_ANYONE_ELSE_BENEFICIAL_OWNER);
+            return;
+        }
+
+        if (currentSubStep === SUBSTEP.IS_ANYONE_ELSE_BENEFICIAL_OWNER) {
+            setIsAnyoneElseOwner(value);
+            setIsUserEnteringHisOwnData(false);
+
+            // Someone else is an owner so we gather his data
+            if (canAddMoreOwners && value) {
+                prepareOwnerDetailsForm();
+                return;
+            }
+
+            // User went back in the flow, but he cannot add more owners, so we send him back to owners list
+            if (!canAddMoreOwners && value) {
+                setCurrentSubStep(SUBSTEP.BENEFICIAL_OWNERS_LIST);
+                return;
+            }
+
+            // User is not an owner and no one else is an owner
+            if (!isUserOwner && !value) {
+                setOwnerKeys([]);
                 submit({anyIndividualOwn25PercentOrMore: false});
                 return;
             }
 
-            if (!value && isUserOwner) {
-                setDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, {beneficialOwnerKeys: [CONST.NON_USD_BANK_ACCOUNT.CURRENT_USER_KEY]});
-                Navigation.navigate(ROUTES.BANK_ACCOUNT_NON_USD_SETUP.getRoute({policyID, page: PAGE_NAME.BENEFICIAL_OWNER_INFO, subPage: SUB_PAGE_NAMES.BENEFICIAL_OWNERS_LIST, backTo}));
+            // User is an owner and no one else is an owner
+            if (isUserOwner && !value) {
+                setOwnerKeys([CONST.NON_USD_BANK_ACCOUNT.CURRENT_USER_KEY]);
+                setCurrentSubStep(SUBSTEP.BENEFICIAL_OWNERS_LIST);
                 return;
             }
-
-            if (!canAddMoreOwners) {
-                Navigation.navigate(ROUTES.BANK_ACCOUNT_NON_USD_SETUP.getRoute({policyID, page: PAGE_NAME.BENEFICIAL_OWNER_INFO, subPage: SUB_PAGE_NAMES.BENEFICIAL_OWNERS_LIST, backTo}));
-                return;
-            }
-
-            prepareOwnerDetailsForm(Str.guid());
-        },
-        [canAddMoreOwners, isUserOwner, policyID, prepareOwnerDetailsForm, submit, backTo],
-    );
-
-    const handleAreThereMoreSelected = useCallback(
-        (value: boolean) => {
-            if (!value || !canAddMoreOwners) {
-                Navigation.navigate(ROUTES.BANK_ACCOUNT_NON_USD_SETUP.getRoute({policyID, page: PAGE_NAME.BENEFICIAL_OWNER_INFO, subPage: SUB_PAGE_NAMES.BENEFICIAL_OWNERS_LIST, backTo}));
-                return;
-            }
-
-            setDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, {[ANY_INDIVIDUAL_OWN_25_PERCENT_OR_MORE]: true});
-            prepareOwnerDetailsForm(Str.guid());
-        },
-        [canAddMoreOwners, policyID, prepareOwnerDetailsForm, backTo],
-    );
-
-    const handleBackButtonPress = useCallback(() => {
-        clearErrors(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM);
-        if (currentSubPage === SUB_PAGE_NAMES.IS_USER_BENEFICIAL_OWNER) {
-            onBackButtonPress();
-        } else if (currentSubPage === SUB_PAGE_NAMES.IS_ANYONE_ELSE_BENEFICIAL_OWNER) {
-            Navigation.goBack(ROUTES.BANK_ACCOUNT_NON_USD_SETUP.getRoute({policyID, page: PAGE_NAME.BENEFICIAL_OWNER_INFO, subPage: SUB_PAGE_NAMES.IS_USER_BENEFICIAL_OWNER, backTo}));
-        } else if (currentSubPage === SUB_PAGE_NAMES.ARE_THERE_MORE_BENEFICIAL_OWNERS) {
-            Navigation.goBack(ROUTES.BANK_ACCOUNT_NON_USD_SETUP.getRoute({policyID, page: PAGE_NAME.BENEFICIAL_OWNER_INFO, subPage: SUB_PAGE_NAMES.IS_ANYONE_ELSE_BENEFICIAL_OWNER, backTo}));
-        } else if (currentSubPage === SUB_PAGE_NAMES.BENEFICIAL_OWNERS_LIST) {
-            Navigation.goBack(ROUTES.BANK_ACCOUNT_NON_USD_SETUP.getRoute({policyID, page: PAGE_NAME.BENEFICIAL_OWNER_INFO, subPage: SUB_PAGE_NAMES.CONFIRMATION, backTo}));
-        } else {
-            Navigation.goBack();
         }
-    }, [backTo, currentSubPage, onBackButtonPress, policyID]);
 
-    if (currentSubPage && !OUTER_SUB_PAGES.has(currentSubPage)) {
-        return (
-            <BeneficialOwnerDetailsFormPages
-                stepNames={stepNames}
-                policyID={policyID}
-                onFinished={handleOwnerDetailsFormFinished}
-                backTo={backTo}
-            />
-        );
-    }
+        // Are there more UBOs
+        if (currentSubStep === SUBSTEP.ARE_THERE_MORE_BENEFICIAL_OWNERS) {
+            setIsUserEnteringHisOwnData(false);
+
+            // User went back in the flow, but he cannot add more owners, so we send him back to owners list
+            if (!canAddMoreOwners && value) {
+                setCurrentSubStep(SUBSTEP.BENEFICIAL_OWNERS_LIST);
+                return;
+            }
+
+            // Gather data of another owner
+            if (value) {
+                setIsAnyoneElseOwner(true);
+                prepareOwnerDetailsForm();
+                return;
+            }
+
+            // No more owners and no need to gather entity chart, so we send user to owners list
+            setCurrentSubStep(SUBSTEP.BENEFICIAL_OWNERS_LIST);
+            return;
+        }
+
+        // User reached the limit of UBOs
+        if (currentSubStep === SUBSTEP.BENEFICIAL_OWNER_DETAILS_FORM && !canAddMoreOwners) {
+            setCurrentSubStep(SUBSTEP.BENEFICIAL_OWNERS_LIST);
+        }
+    };
 
     return (
         <InteractiveStepWrapper
@@ -245,37 +292,53 @@ function BeneficialOwnerInfo({onBackButtonPress, onSubmit, stepNames, currentSub
             handleBackButtonPress={handleBackButtonPress}
             headerTitle={translate('ownershipInfoStep.ownerInfo')}
             stepNames={stepNames}
-            shouldShowOfflineIndicatorInWideScreen={currentSubPage === SUB_PAGE_NAMES.BENEFICIAL_OWNERS_LIST}
+            shouldShowOfflineIndicatorInWideScreen={currentSubStep === SUBSTEP.BENEFICIAL_OWNERS_LIST}
             startStepIndex={3}
         >
-            {currentSubPage === SUB_PAGE_NAMES.IS_USER_BENEFICIAL_OWNER && (
+            {currentSubStep === SUBSTEP.IS_USER_BENEFICIAL_OWNER && (
                 <YesNoStep
                     title={translate('ownershipInfoStep.doYouOwn', companyName)}
                     description={translate('ownershipInfoStep.regulationsRequire')}
                     defaultValue={isUserOwner}
-                    onSelectedValue={handleIsUserOwnerSelected}
+                    onSelectedValue={handleNextSubStep}
                     isLoading={reimbursementAccount?.isSavingCorpayOnboardingBeneficialOwnersFields}
                 />
             )}
-            {currentSubPage === SUB_PAGE_NAMES.IS_ANYONE_ELSE_BENEFICIAL_OWNER && (
+
+            {currentSubStep === SUBSTEP.IS_ANYONE_ELSE_BENEFICIAL_OWNER && (
                 <YesNoStep
                     title={translate('ownershipInfoStep.doesAnyoneOwn', companyName)}
                     description={translate('ownershipInfoStep.regulationsRequire')}
                     defaultValue={isAnyoneElseOwner}
-                    onSelectedValue={handleIsAnyoneElseOwnerSelected}
+                    onSelectedValue={handleNextSubStep}
                     isLoading={reimbursementAccount?.isSavingCorpayOnboardingBeneficialOwnersFields}
                 />
             )}
-            {currentSubPage === SUB_PAGE_NAMES.ARE_THERE_MORE_BENEFICIAL_OWNERS && (
+
+            {currentSubStep === SUBSTEP.BENEFICIAL_OWNER_DETAILS_FORM && (
+                <BeneficialOwnerDetailsForm
+                    isEditing={isEditing}
+                    onNext={nextScreen}
+                    onMove={moveTo}
+                    ownerBeingModifiedID={ownerBeingModifiedID}
+                    setOwnerBeingModifiedID={setOwnerBeingModifiedID}
+                    isUserEnteringHisOwnData={isUserEnteringHisOwnData}
+                    totalOwnedPercentage={totalOwnedPercentage}
+                    setTotalOwnedPercentage={setTotalOwnedPercentage}
+                />
+            )}
+
+            {currentSubStep === SUBSTEP.ARE_THERE_MORE_BENEFICIAL_OWNERS && (
                 <YesNoStep
                     title={translate('ownershipInfoStep.areThereOther', companyName)}
                     description={translate('ownershipInfoStep.regulationsRequire')}
                     defaultValue={false}
-                    onSelectedValue={handleAreThereMoreSelected}
+                    onSelectedValue={handleNextSubStep}
                     isLoading={reimbursementAccount?.isSavingCorpayOnboardingBeneficialOwnersFields}
                 />
             )}
-            {currentSubPage === SUB_PAGE_NAMES.BENEFICIAL_OWNERS_LIST && (
+
+            {currentSubStep === SUBSTEP.BENEFICIAL_OWNERS_LIST && (
                 <BeneficialOwnersList
                     handleConfirmation={submit}
                     handleOwnerEdit={handleOwnerEdit}

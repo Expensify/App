@@ -25,7 +25,6 @@ import Navigation from '@libs/Navigation/Navigation';
 import {hasActiveAdminWorkspaces} from '@libs/PolicyUtils';
 import WorkspaceResetBankAccountModal from '@pages/workspace/WorkspaceResetBankAccountModal';
 import {goToWithdrawalAccountSetupStep, openPlaidView, updateReimbursementAccountDraft} from '@userActions/BankAccounts';
-import {setDraftValues} from '@userActions/FormActions';
 import {openExternalLink} from '@userActions/Link';
 import {requestResetBankAccount, resetReimbursementAccount, setBankAccountSubStep, setReimbursementAccountOptionPressed, updateReimbursementAccount} from '@userActions/ReimbursementAccount';
 import CONST from '@src/CONST';
@@ -59,14 +58,17 @@ type VerifiedBankAccountFlowEntryPointProps = {
     /** Whether the workspace currency is set to non USD currency */
     isNonUSDWorkspace: boolean;
 
+    /** Set step for non USD flow */
+    setNonUSDBankAccountStep: (shouldShowContinueSetupButton: string | null) => void;
+
     /** Set step for USD flow */
     setUSDBankAccountStep: (shouldShowContinueSetupButton: string | null) => void;
 
     /** Method to set the state of shouldShowContinueSetupButton */
     setShouldShowContinueSetupButton?: (shouldShowContinueSetupButton: boolean) => void;
 
-    /** Whether the user is coming from the expensify card */
-    isComingFromExpensifyCard?: boolean;
+    /** Method to set the state of isResettingBankAccount */
+    setIsResettingBankAccount?: (isResetting: boolean) => void;
 };
 
 const bankInfoStepKeys = INPUT_IDS.BANK_INFO_STEP;
@@ -79,9 +81,10 @@ function VerifiedBankAccountFlowEntryPoint({
     onContinuePress,
     shouldShowContinueSetupButton,
     isNonUSDWorkspace,
+    setNonUSDBankAccountStep,
     setUSDBankAccountStep,
     setShouldShowContinueSetupButton,
-    isComingFromExpensifyCard,
+    setIsResettingBankAccount,
 }: VerifiedBankAccountFlowEntryPointProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -141,10 +144,7 @@ function VerifiedBankAccountFlowEntryPoint({
 
         if (reimbursementAccountOptionPressed === CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL) {
             if (isNonUSDWorkspace) {
-                if (isComingFromExpensifyCard) {
-                    setDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, {isComingFromExpensifyCard});
-                }
-                Navigation.navigate(ROUTES.BANK_ACCOUNT_NON_USD_SETUP.getRoute({policyID, page: CONST.NON_USD_BANK_ACCOUNT.PAGE_NAME.CURRENCY_AND_COUNTRY, backTo}));
+                setNonUSDBankAccountStep(CONST.NON_USD_BANK_ACCOUNT.STEP.COUNTRY);
                 setReimbursementAccountOptionPressed(CONST.BANK_ACCOUNT.SETUP_TYPE.NONE);
                 return;
             }
@@ -158,7 +158,7 @@ function VerifiedBankAccountFlowEntryPoint({
             prepareNextStep(CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID);
             setReimbursementAccountOptionPressed(CONST.BANK_ACCOUNT.SETUP_TYPE.NONE);
         }
-    }, [isAccountValidated, isNonUSDWorkspace, prepareNextStep, reimbursementAccountOptionPressed, policyID, isComingFromExpensifyCard, backTo, removeExistingBankAccountDetails]);
+    }, [isAccountValidated, isNonUSDWorkspace, prepareNextStep, reimbursementAccountOptionPressed, removeExistingBankAccountDetails, setNonUSDBankAccountStep]);
 
     const handleConnectManually = () => {
         if (!isAccountValidated) {
@@ -168,10 +168,7 @@ function VerifiedBankAccountFlowEntryPoint({
         }
 
         if (isNonUSDWorkspace) {
-            if (isComingFromExpensifyCard) {
-                setDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, {isComingFromExpensifyCard});
-            }
-            Navigation.navigate(ROUTES.BANK_ACCOUNT_NON_USD_SETUP.getRoute({policyID, page: CONST.NON_USD_BANK_ACCOUNT.PAGE_NAME.CURRENCY_AND_COUNTRY, backTo}));
+            setNonUSDBankAccountStep(CONST.NON_USD_BANK_ACCOUNT.STEP.COUNTRY);
             return;
         }
 
@@ -315,9 +312,10 @@ function VerifiedBankAccountFlowEntryPoint({
                     reimbursementAccount={reimbursementAccount}
                     isNonUSDWorkspace={isNonUSDWorkspace}
                     setUSDBankAccountStep={setUSDBankAccountStep}
+                    setNonUSDBankAccountStep={setNonUSDBankAccountStep}
                     setShouldShowContinueSetupButton={setShouldShowContinueSetupButton}
+                    setIsResettingBankAccount={setIsResettingBankAccount}
                     navigateAfterReset={navigateAfterReset}
-                    backTo={backTo}
                 />
             )}
         </ScreenWrapper>

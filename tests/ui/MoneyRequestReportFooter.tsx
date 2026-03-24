@@ -69,10 +69,9 @@ const FAKE_UNREPORTED_REPORT_ID = CONST.REPORT.UNREPORTED_REPORT_ID;
 const renderMoneyRequestConfirmationListFooter = (transaction: Transaction) => {
     const defaultProps = {
         action: CONST.IOU.ACTION.CREATE,
-        distanceRateCurrency: 'USD',
+        currency: 'USD',
         didConfirm: false,
         distance: 0,
-        amount: 10000,
         formattedAmount: '100',
         formattedAmountPerAttendee: '50',
         formError: '',

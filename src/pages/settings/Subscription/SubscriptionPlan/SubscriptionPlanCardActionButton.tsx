@@ -79,7 +79,7 @@ function SubscriptionPlanCardActionButton({subscriptionPlan, isFromComparisonMod
 
         if (planType === CONST.POLICY.TYPE.CORPORATE) {
             if (canPerformUpgrade && !!policy?.id) {
-                upgradeToCorporate(policy);
+                upgradeToCorporate(policy.id);
                 closeComparisonModal?.();
                 return;
             }

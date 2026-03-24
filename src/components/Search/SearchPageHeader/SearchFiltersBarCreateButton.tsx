@@ -34,7 +34,7 @@ import ROUTES from '@src/ROUTES';
 import {groupPaidPoliciesWithExpenseChatEnabledSelector} from '@src/selectors/Policy';
 import type * as OnyxTypes from '@src/types/onyx';
 
-function SearchActionsBarCreateButton() {
+function SearchFiltersBarCreateButton() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Plus', 'Location', 'Document', 'Receipt', 'Coins', 'Cash', 'Transfer', 'MoneyCircle']);
@@ -225,7 +225,7 @@ function SearchActionsBarCreateButton() {
     );
 
     return (
-        <View style={[styles.pr5, styles.searchActionsBarCreateButton]}>
+        <View style={[styles.pr5, styles.searchFiltersBarCreateButton]}>
             <PopoverMenu
                 onClose={hideCreateMenu}
                 isVisible={isCreateMenuActive}
@@ -250,6 +250,6 @@ function SearchActionsBarCreateButton() {
     );
 }
 
-SearchActionsBarCreateButton.displayName = 'SearchActionsBarCreateButton';
+SearchFiltersBarCreateButton.displayName = 'SearchFiltersBarCreateButton';
 
-export default SearchActionsBarCreateButton;
+export default SearchFiltersBarCreateButton;

@@ -49,6 +49,8 @@ function TransactionListItem<TItem extends ListItem>({
     isLoading,
     violations,
     customCardNames,
+    onDEWModalOpen,
+    isDEWBetaEnabled,
     lastPaymentMethod,
     personalPolicyID,
 }: TransactionListItemProps<TItem>) {
@@ -160,6 +162,8 @@ function TransactionListItem<TItem extends ListItem>({
             lastPaymentMethod,
             userBillingGraceEndPeriods,
             currentSearchKey,
+            onDEWModalOpen,
+            isDEWBetaEnabled,
             isDelegateAccessRestricted,
             onDelegateAccessRestricted: showDelegateNoAccessModal,
             personalPolicyID,

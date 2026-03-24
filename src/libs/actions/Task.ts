@@ -1327,8 +1327,7 @@ function canModifyTask(taskReport: OnyxEntry<OnyxTypes.Report>, sessionAccountID
 }
 
 /**
- * Check if you can change the status of the task (mark complete or incomplete).
- * The task owner and task assignee can always do this. When a task has no assignee, any participant of the parent report can do this.
+ * Check if you can change the status of the task (mark complete or incomplete). Only the task owner and task assignee can do this.
  */
 function canActionTask(
     taskReport: OnyxEntry<OnyxTypes.Report>,
@@ -1360,18 +1359,8 @@ function canActionTask(
         return false;
     }
 
-    // The task can be actioned by the task owner or the explicit assignee
-    const assigneeAccountID = getTaskAssigneeAccountID(taskReport, parentReportAction);
-    if (sessionAccountID === taskReport?.ownerAccountID || sessionAccountID === assigneeAccountID) {
-        return true;
-    }
-
-    // When the task has no assignee, any participant of the parent report can action it
-    if (!assigneeAccountID) {
-        return !!parentReport?.participants?.[sessionAccountID];
-    }
-
-    return false;
+    // The task can only be actioned by the task report owner or the task assignee
+    return sessionAccountID === taskReport?.ownerAccountID || sessionAccountID === getTaskAssigneeAccountID(taskReport, parentReportAction);
 }
 
 function clearTaskErrors(report: OnyxEntry<OnyxTypes.Report>, conciergeReportID: string | undefined, currentUserAccountID: number, introSelected: OnyxEntry<OnyxTypes.IntroSelected>) {

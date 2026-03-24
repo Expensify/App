@@ -4,21 +4,22 @@ import SingleFieldStep from '@components/SubStepForms/SingleFieldStep';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useReimbursementAccountStepFormSubmit from '@hooks/useReimbursementAccountStepFormSubmit';
-import type {SubPageProps} from '@hooks/useSubPage/types';
+import type {SubStepProps} from '@hooks/useSubStep/types';
 import {getFieldRequiredErrors, isValidOwnershipPercentage} from '@libs/ValidationUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SafeString from '@src/utils/SafeString';
 
-type OwnershipPercentageProps = SubPageProps & {
+type OwnershipPercentageProps = SubStepProps & {
     isUserEnteringHisOwnData: boolean;
     ownerBeingModifiedID: string;
     totalOwnedPercentage: Record<string, number>;
+    setTotalOwnedPercentage: (ownedPercentage: Record<string, number>) => void;
 };
 
 const {OWNERSHIP_PERCENTAGE, PREFIX} = CONST.NON_USD_BANK_ACCOUNT.BENEFICIAL_OWNER_INFO_STEP.BENEFICIAL_OWNER_DATA;
 
-function OwnershipPercentage({onNext, isEditing, onMove, isUserEnteringHisOwnData, ownerBeingModifiedID, totalOwnedPercentage}: OwnershipPercentageProps) {
+function OwnershipPercentage({onNext, isEditing, onMove, isUserEnteringHisOwnData, ownerBeingModifiedID, totalOwnedPercentage, setTotalOwnedPercentage}: OwnershipPercentageProps) {
     const {translate} = useLocalize();
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
 
@@ -34,9 +35,14 @@ function OwnershipPercentage({onNext, isEditing, onMove, isUserEnteringHisOwnDat
                 errors[ownershipPercentageInputID] = translate('bankAccount.error.ownershipPercentage');
             }
 
+            setTotalOwnedPercentage({
+                ...totalOwnedPercentage,
+                [ownerBeingModifiedID]: Number(values[ownershipPercentageInputID]),
+            });
+
             return errors;
         },
-        [ownerBeingModifiedID, ownershipPercentageInputID, totalOwnedPercentage, translate],
+        [ownerBeingModifiedID, ownershipPercentageInputID, setTotalOwnedPercentage, totalOwnedPercentage, translate],
     );
 
     const handleSubmit = useReimbursementAccountStepFormSubmit({
@@ -59,7 +65,6 @@ function OwnershipPercentage({onNext, isEditing, onMove, isUserEnteringHisOwnDat
             inputMode={CONST.INPUT_MODE.NUMERIC}
             defaultValue={defaultOwnershipPercentage}
             shouldShowHelpLinks={false}
-            shouldDelayAutoFocus
         />
     );
 }

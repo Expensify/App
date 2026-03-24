@@ -53,7 +53,7 @@ function WorkspaceDowngradePage({route}: WorkspaceDowngradePageProps) {
             setIsDowngradeWarningModalOpen(true);
             return;
         }
-        downgradeToTeam(policy.id, policy.type, policy.isAttendeeTrackingEnabled);
+        downgradeToTeam(policy.id);
     };
 
     const onClose = () => {

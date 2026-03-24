@@ -38,7 +38,6 @@ import {
     hasViolations as hasViolationsReportUtils,
     isArchivedReport,
     isPolicyExpenseChat as isPolicyExpenseChatReportUtil,
-    navigateBackOnDeleteTransaction,
     shouldCreateNewMoneyRequestReport as shouldCreateNewMoneyRequestReportReportUtils,
     updateReportPreview,
 } from '@libs/ReportUtils';
@@ -1755,25 +1754,8 @@ function updateSplitTransactionsFromSplitExpensesFlow(params: UpdateSplitTransac
         return;
     }
 
-    // When the reverse split deletes the expense report, use the backward navigation pattern
-    // (dismissToSuperWideRHP + goBack) instead of dismissModalWithReport. This naturally pops
-    // stale screens from the stack instead of leaving them behind.
-    if (isLastTransactionInReport && fallbackReportID) {
-        const backRoute = ROUTES.REPORT_WITH_ID.getRoute(fallbackReportID);
-        navigateBackOnDeleteTransaction(backRoute);
-
-        // Remove the transaction thread report screen to avoid navigating back to a removed report
-        requestAnimationFrame(() => {
-            if (!transactionThreadReportScreen?.key) {
-                return;
-            }
-            Navigation.removeScreenByKey(transactionThreadReportScreen.key);
-        });
-
-        return;
-    }
-
-    const targetReportID = params.expenseReport?.reportID ?? String(CONST.DEFAULT_NUMBER_ID);
+    // If the expense report was deleted by the reverse split, navigate to the parent chat instead
+    const targetReportID = isLastTransactionInReport && fallbackReportID ? fallbackReportID : (params.expenseReport?.reportID ?? String(CONST.DEFAULT_NUMBER_ID));
 
     if (getSpan(CONST.TELEMETRY.SPAN_SUBMIT_TO_DESTINATION_VISIBLE)) {
         setPendingSubmitFollowUpAction(CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_AND_OPEN_REPORT, targetReportID);
@@ -1786,6 +1768,7 @@ function updateSplitTransactionsFromSplitExpensesFlow(params: UpdateSplitTransac
         if (!transactionThreadReportScreen?.key) {
             return;
         }
+
         Navigation.removeScreenByKey(transactionThreadReportScreen.key);
     });
 }

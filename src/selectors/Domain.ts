@@ -84,10 +84,7 @@ function memberAccountIDsSelector(domain: OnyxEntry<Domain>): number[] {
 
             const sharedMembers = securityGroup?.shared ?? {};
 
-            for (const [id, memberValue] of Object.entries(sharedMembers)) {
-                if (memberValue === null || memberValue === undefined) {
-                    continue;
-                }
+            for (const id of Object.keys(sharedMembers)) {
                 const accountID = Number(id);
                 if (!Number.isNaN(accountID)) {
                     acc.push(accountID);

@@ -4,7 +4,7 @@ import Button from '@components/Button';
 import DropdownButton from '@components/Search/FilterDropdowns/DropdownButton';
 import SearchBulkActionsButton from '@components/Search/SearchBulkActionsButton';
 import type {SearchQueryJSON} from '@components/Search/types';
-import SearchActionsSkeleton from '@components/Skeletons/SearchActionsSkeleton';
+import SearchFiltersSkeleton from '@components/Skeletons/SearchFiltersSkeleton';
 import shouldAdjustScroll from '@libs/shouldAdjustScroll';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import CONST from '@src/CONST';
@@ -71,7 +71,7 @@ function SearchFiltersBarNarrow({queryJSON, isMobileSelectionModeEnabled}: Searc
             shouldShowFiltersBarLoading,
         };
         return (
-            <SearchActionsSkeleton
+            <SearchFiltersSkeleton
                 shouldAnimate
                 reasonAttributes={skeletonReasonAttributes}
             />

@@ -11,7 +11,6 @@ import {InteractionManager, View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import useActiveAdminPolicies from '@hooks/useActiveAdminPolicies';
 import useConfirmModal from '@hooks/useConfirmModal';
-import useConfirmPendingRTERAndProceed from '@hooks/useConfirmPendingRTERAndProceed';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
 import useDeleteTransactions from '@hooks/useDeleteTransactions';
@@ -125,7 +124,6 @@ import {
     allHavePendingRTERViolation,
     getChildTransactions,
     getOriginalTransactionWithSplitInfo,
-    hasAnyPendingRTERViolation as hasAnyPendingRTERViolationTransactionUtils,
     hasCustomUnitOutOfPolicyViolation as hasCustomUnitOutOfPolicyViolationTransactionUtils,
     hasDuplicateTransactions,
     isDistanceRequest,
@@ -157,7 +155,7 @@ import {
     unapproveExpenseReport,
 } from '@userActions/IOU';
 import {setDeleteTransactionNavigateBackUrl} from '@userActions/Report';
-import {markAsCash as markAsCashAction, markPendingRTERTransactionsAsCash} from '@userActions/Transaction';
+import {markAsCash as markAsCashAction} from '@userActions/Transaction';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -393,7 +391,8 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
     const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
-    const isDEWPolicy = hasDynamicExternalWorkflow(policy);
+    const isDEWBetaEnabled = isBetaEnabled(CONST.BETAS.NEW_DOT_DEW);
+    const isDEWPolicy = isDEWBetaEnabled && hasDynamicExternalWorkflow(policy);
     const hasViolations = hasViolationsReportUtils(moneyRequestReport?.reportID, allTransactionViolations, accountID, email ?? '');
     const hasCustomUnitOutOfPolicyViolation = hasCustomUnitOutOfPolicyViolationTransactionUtils(transactionViolations);
     const isPerDiemRequestOnNonDefaultWorkspace = isPerDiemRequest(transaction) && defaultExpensePolicy?.id !== policy?.id;
@@ -477,12 +476,6 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
         () => allHavePendingRTERViolation(transactions, violations, email ?? '', accountID, moneyRequestReport, policy),
         [transactions, violations, email, accountID, moneyRequestReport, policy],
     );
-    // Check if any transactions have pending RTER violations (for showing the submit confirmation modal)
-    const hasAnyPendingRTERViolation = useMemo(
-        () => hasAnyPendingRTERViolationTransactionUtils(transactions, allTransactionViolations, email ?? '', accountID, moneyRequestReport, policy),
-        [transactions, allTransactionViolations, email, accountID, moneyRequestReport, policy],
-    );
-
     // Check if user should see broken connection violation warning.
     const shouldShowBrokenConnectionViolation = shouldShowBrokenConnectionViolationForMultipleTransactions(transactions, moneyRequestReport, policy, violations, email ?? '', accountID);
     const hasOnlyHeldExpenses = hasOnlyHeldExpensesReportUtils(moneyRequestReport?.reportID);
@@ -501,13 +494,7 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
         }
 
         const iouReportAction = getIOUActionForTransactionID(reportActions, transactionToMove.transactionID);
-        const canMoveExpense = canEditFieldOfMoneyRequest({
-            reportAction: iouReportAction,
-            fieldToEdit: CONST.EDIT_REQUEST_FIELD.REPORT,
-            isChatReportArchived,
-            outstandingReportsByPolicyID,
-            transaction: transactionToMove,
-        });
+        const canMoveExpense = canEditFieldOfMoneyRequest(iouReportAction, CONST.EDIT_REQUEST_FIELD.REPORT, undefined, isChatReportArchived, outstandingReportsByPolicyID);
 
         const canUserPerformWriteAction = canUserPerformWriteActionReportUtils(moneyRequestReport, isChatReportArchived);
 
@@ -816,8 +803,25 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
         isSelectionModePaymentRef.current = false;
     }, [selectedTransactionIDs.length]);
 
+    const showDWEModal = useCallback(async () => {
+        const result = await showConfirmModal({
+            confirmText: translate('customApprovalWorkflow.goToExpensifyClassic'),
+            title: translate('customApprovalWorkflow.title'),
+            prompt: translate('customApprovalWorkflow.description'),
+            shouldShowCancelButton: false,
+        });
+
+        if (result.action === ModalActions.CONFIRM) {
+            openOldDotLink(CONST.OLDDOT_URLS.INBOX);
+        }
+    }, [showConfirmModal, translate]);
+
     const confirmApproval = useCallback(
         (skipAnimation = false) => {
+            if (hasDynamicExternalWorkflow(policy) && !isDEWBetaEnabled) {
+                showDWEModal();
+                return;
+            }
             setRequestType(CONST.IOU.REPORT_ACTION_TYPE.APPROVE);
             if (isDelegateAccessRestricted) {
                 showDelegateNoAccessModal();
@@ -854,6 +858,8 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
         },
         [
             policy,
+            isDEWBetaEnabled,
+            showDWEModal,
             isDelegateAccessRestricted,
             showDelegateNoAccessModal,
             isAnyTransactionOnHold,
@@ -872,57 +878,53 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
         ],
     );
 
-    const handleMarkPendingRTERTransactionsAsCash = useCallback(() => {
-        markPendingRTERTransactionsAsCash(transactions, allTransactionViolations, reportActions);
-    }, [transactions, allTransactionViolations, reportActions]);
-
-    const confirmPendingRTERAndProceed = useConfirmPendingRTERAndProceed(hasAnyPendingRTERViolation, handleMarkPendingRTERTransactionsAsCash);
-
     const handleSubmitReport = useCallback(
         (skipAnimation = false) => {
             if (!moneyRequestReport || shouldBlockSubmit) {
                 return;
             }
-
-            const doSubmit = () => {
-                submitReport({
-                    expenseReport: moneyRequestReport,
-                    policy,
-                    currentUserAccountIDParam: accountID,
-                    currentUserEmailParam: email ?? '',
-                    hasViolations,
-                    isASAPSubmitBetaEnabled,
-                    expenseReportCurrentNextStepDeprecated: nextStep,
-                    userBillingGraceEndPeriods,
-                    amountOwed,
-                    onSubmitted: () => {
-                        if (skipAnimation) {
-                            return;
-                        }
-                        startSubmittingAnimation();
-                    },
-                    ownerBillingGraceEndPeriod,
+            if (hasDynamicExternalWorkflow(policy) && !isDEWBetaEnabled) {
+                showDWEModal();
+                return;
+            }
+            submitReport({
+                expenseReport: moneyRequestReport,
+                policy,
+                currentUserAccountIDParam: accountID,
+                currentUserEmailParam: email ?? '',
+                hasViolations,
+                isASAPSubmitBetaEnabled,
+                expenseReportCurrentNextStepDeprecated: nextStep,
+                userBillingGraceEndPeriods,
+                amountOwed,
+                onSubmitted: () => {
+                    if (skipAnimation) {
+                        return;
+                    }
+                    startSubmittingAnimation();
+                },
+                ownerBillingGraceEndPeriod,
+            });
+            if (currentSearchQueryJSON && !isOffline) {
+                search({
+                    searchKey: currentSearchKey,
+                    shouldCalculateTotals,
+                    offset: 0,
+                    queryJSON: currentSearchQueryJSON,
+                    isOffline,
+                    isLoading: !!currentSearchResults?.search?.isLoading,
                 });
-                if (currentSearchQueryJSON && !isOffline) {
-                    search({
-                        searchKey: currentSearchKey,
-                        shouldCalculateTotals,
-                        offset: 0,
-                        queryJSON: currentSearchQueryJSON,
-                        isOffline,
-                        isLoading: !!currentSearchResults?.search?.isLoading,
-                    });
-                }
-                if (skipAnimation) {
-                    clearSelectedTransactions(true);
-                }
-            };
-            confirmPendingRTERAndProceed(doSubmit);
+            }
+            if (skipAnimation) {
+                clearSelectedTransactions(true);
+            }
         },
         [
             moneyRequestReport,
             shouldBlockSubmit,
             policy,
+            isDEWBetaEnabled,
+            showDWEModal,
             startSubmittingAnimation,
             accountID,
             email,
@@ -937,7 +939,6 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
             shouldCalculateTotals,
             currentSearchResults?.search?.isLoading,
             clearSelectedTransactions,
-            confirmPendingRTERAndProceed,
             ownerBillingGraceEndPeriod,
         ],
     );
@@ -1738,20 +1739,21 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
                 if (!moneyRequestReport) {
                     return;
                 }
-
-                confirmPendingRTERAndProceed(() => {
-                    submitReport({
-                        expenseReport: moneyRequestReport,
-                        policy,
-                        currentUserAccountIDParam: accountID,
-                        currentUserEmailParam: email ?? '',
-                        hasViolations,
-                        isASAPSubmitBetaEnabled,
-                        expenseReportCurrentNextStepDeprecated: nextStep,
-                        userBillingGraceEndPeriods,
-                        amountOwed,
-                        ownerBillingGraceEndPeriod,
-                    });
+                if (hasDynamicExternalWorkflow(policy) && !isDEWBetaEnabled) {
+                    showDWEModal();
+                    return;
+                }
+                submitReport({
+                    expenseReport: moneyRequestReport,
+                    policy,
+                    currentUserAccountIDParam: accountID,
+                    currentUserEmailParam: email ?? '',
+                    hasViolations,
+                    isASAPSubmitBetaEnabled,
+                    expenseReportCurrentNextStepDeprecated: nextStep,
+                    userBillingGraceEndPeriods,
+                    amountOwed,
+                    ownerBillingGraceEndPeriod,
                 });
             },
         },

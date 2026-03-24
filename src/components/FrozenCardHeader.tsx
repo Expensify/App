@@ -1,4 +1,5 @@
-import React from 'react';
+import {cardByIdSelector} from '@selectors/Card';
+import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -8,26 +9,19 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import DateUtils from '@libs/DateUtils';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
-import Navigation from '@navigation/Navigation';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import Button from './Button';
 import Icon from './Icon';
 import Text from './Text';
-import TextLink from './TextLink';
 
 type FrozenCardHeaderProps = {
+    cardID: string;
     cardPreview: React.ReactNode;
     onUnfreezePress: () => void;
-    onAskToUnfreezePress: () => void;
-    canUnfreezeCard: boolean;
-    isWorkspaceAdmin: boolean;
-    frozenByAccountID?: number;
-    frozenDate?: string;
 };
 
-function FrozenCardHeader({cardPreview, onUnfreezePress, onAskToUnfreezePress, canUnfreezeCard, isWorkspaceAdmin, frozenByAccountID, frozenDate}: FrozenCardHeaderProps) {
+function FrozenCardHeader({cardID, cardPreview, onUnfreezePress}: FrozenCardHeaderProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
@@ -35,50 +29,21 @@ function FrozenCardHeader({cardPreview, onUnfreezePress, onAskToUnfreezePress, c
     const icons = useMemoizedLazyExpensifyIcons(['FreezeCard'] as const);
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [card] = useOnyx(ONYXKEYS.CARD_LIST, {selector: cardByIdSelector(cardID)});
+
+    const frozenByAccountID = card?.nameValuePairs?.frozen?.byAccountID;
+    const frozenDate = card?.nameValuePairs?.frozen?.date;
     const isCurrentUser = frozenByAccountID === session?.accountID;
 
     const frozenByName = frozenByAccountID ? getDisplayNameOrDefault(personalDetails?.[frozenByAccountID]) : '';
     const formattedDate = frozenDate ? DateUtils.formatWithUTCTimeZone(frozenDate, CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT) : '';
-    const adminFrozenTextPrefix = translate('cardPage.frozenByAdminPrefix', {date: formattedDate});
-    const frozenNeedsUnfreezePrefix = translate('cardPage.frozenByAdminNeedsUnfreezePrefix');
-    const frozenNeedsUnfreezeSuffix = translate('cardPage.frozenByAdminNeedsUnfreezeSuffix');
 
-    let statusText: React.ReactNode;
-
-    if (isCurrentUser) {
-        statusText = translate('cardPage.youFroze', {date: formattedDate});
-    } else if (isWorkspaceAdmin) {
-        if (!frozenByAccountID || !frozenByName) {
-            statusText = `${adminFrozenTextPrefix}${translate('common.someone')}`;
-        } else {
-            statusText = (
-                <>
-                    {adminFrozenTextPrefix}
-                    <TextLink
-                        onPress={() => Navigation.navigate(ROUTES.PROFILE.getRoute(Number(frozenByAccountID), Navigation.getActiveRoute()))}
-                        style={styles.link}
-                    >
-                        {frozenByName}
-                    </TextLink>
-                </>
-            );
+    const statusText = useMemo(() => {
+        if (isCurrentUser) {
+            return translate('cardPage.youFroze', {date: formattedDate});
         }
-    } else if (!frozenByAccountID || !frozenByName) {
-        statusText = translate('cardPage.frozenByAdminNeedsUnfreeze', {person: frozenByName || translate('common.someone')});
-    } else {
-        statusText = (
-            <>
-                {frozenNeedsUnfreezePrefix}
-                <TextLink
-                    onPress={() => Navigation.navigate(ROUTES.PROFILE.getRoute(Number(frozenByAccountID), Navigation.getActiveRoute()))}
-                    style={styles.link}
-                >
-                    {frozenByName}
-                </TextLink>
-                {frozenNeedsUnfreezeSuffix}
-            </>
-        );
-    }
+        return translate('cardPage.frozenBy', {date: formattedDate, person: frozenByName});
+    }, [formattedDate, frozenByName, isCurrentUser, translate]);
 
     return (
         <View style={[styles.ph5, styles.pb5]}>
@@ -93,9 +58,9 @@ function FrozenCardHeader({cardPreview, onUnfreezePress, onAskToUnfreezePress, c
             </View>
             <Button
                 medium
-                text={translate(canUnfreezeCard ? 'cardPage.unfreeze' : 'cardPage.askToUnfreeze')}
-                onPress={canUnfreezeCard ? onUnfreezePress : onAskToUnfreezePress}
-                isDisabled={canUnfreezeCard && isOffline}
+                text={translate('cardPage.unfreeze')}
+                onPress={onUnfreezePress}
+                isDisabled={isOffline}
                 style={[styles.mt4]}
             />
         </View>

@@ -30,7 +30,7 @@ import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
 import enhanceParameters from '@libs/Network/enhanceParameters';
 import {rand64} from '@libs/NumberUtils';
 import {getActivePaymentType} from '@libs/PaymentUtils';
-import {getSubmitToAccountID, getValidConnectedIntegration, isDelayedSubmissionEnabled} from '@libs/PolicyUtils';
+import {getSubmitToAccountID, getValidConnectedIntegration, hasDynamicExternalWorkflow, isDelayedSubmissionEnabled} from '@libs/PolicyUtils';
 import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
 import type {OptimisticExportIntegrationAction} from '@libs/ReportUtils';
 import {
@@ -107,6 +107,8 @@ type HandleActionButtonPressParams = {
     lastPaymentMethod: OnyxEntry<LastPaymentMethod>;
     userBillingGraceEndPeriods: OnyxCollection<BillingGraceEndPeriod>;
     currentSearchKey?: SearchKey;
+    onDEWModalOpen?: () => void;
+    isDEWBetaEnabled?: boolean;
     isDelegateAccessRestricted?: boolean;
     onDelegateAccessRestricted?: () => void;
     personalPolicyID: string | undefined;
@@ -137,6 +139,8 @@ function handleActionButtonPress({
     lastPaymentMethod,
     userBillingGraceEndPeriods,
     currentSearchKey,
+    onDEWModalOpen,
+    isDEWBetaEnabled,
     isDelegateAccessRestricted,
     onDelegateAccessRestricted,
     personalPolicyID,
@@ -172,11 +176,19 @@ function handleActionButtonPress({
                 Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(snapshotReport.policyID));
                 return;
             }
+            if (hasDynamicExternalWorkflow(snapshotPolicy) && !isDEWBetaEnabled) {
+                onDEWModalOpen?.();
+                return;
+            }
             approveMoneyRequestOnSearch(hash, item.reportID ? [item.reportID] : [], currentSearchKey);
             return;
         case CONST.SEARCH.ACTION_TYPES.SUBMIT: {
             if (snapshotReport.policyID && shouldRestrictUserBillableActions(snapshotReport.policyID, userBillingGraceEndPeriods)) {
                 Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(snapshotReport.policyID));
+                return;
+            }
+            if (hasDynamicExternalWorkflow(snapshotPolicy) && !isDEWBetaEnabled) {
+                onDEWModalOpen?.();
                 return;
             }
             submitMoneyRequestOnSearch(hash, [item as Report], [snapshotPolicy], currentSearchKey);
@@ -475,7 +487,6 @@ function search({
     prevReportsLength,
     isOffline = false,
     isLoading,
-    shouldUpdateLastSearchParams = true,
 }: {
     queryJSON: SearchQueryJSON;
     searchKey: SearchKey | undefined;
@@ -484,7 +495,6 @@ function search({
     prevReportsLength?: number;
     isOffline?: boolean;
     isLoading: boolean;
-    shouldUpdateLastSearchParams?: boolean;
 }) {
     if (isLoading || shouldPreventSearchAPI) {
         return;
@@ -509,45 +519,41 @@ function search({
     };
     const jsonQuery = JSON.stringify(query);
 
-    if (shouldUpdateLastSearchParams) {
-        saveLastSearchParams({
-            queryJSON,
-            offset,
-            allowPostSearchRecount: false,
-        });
-    }
+    saveLastSearchParams({
+        queryJSON,
+        offset,
+        allowPostSearchRecount: false,
+    });
 
     return waitForWrites(READ_COMMANDS.SEARCH).then(() => {
         // eslint-disable-next-line rulesdir/no-api-side-effects-method
         return API.makeRequestWithSideEffects(READ_COMMANDS.SEARCH, {hash: queryJSON.hash, jsonQuery}, {optimisticData, finallyData, failureData})
             .then((result) => {
-                if (shouldUpdateLastSearchParams) {
-                    const response = result?.onyxData?.[0]?.value as OnyxSearchResponse;
-                    const reports = Object.keys(response?.data ?? {})
-                        .filter((key) => key.startsWith(ONYXKEYS.COLLECTION.REPORT))
-                        .map((key) => key.replace(ONYXKEYS.COLLECTION.REPORT, ''));
-                    if (response?.search?.offset) {
-                        // Indicates that search results are extended from the Report view (with navigation between reports),
-                        // using previous results to enable correct counter behavior.
-                        if (prevReportsLength) {
-                            saveLastSearchParams({
-                                queryJSON,
-                                offset,
-                                hasMoreResults: !!response?.search?.hasMoreResults,
-                                previousLengthOfResults: prevReportsLength,
-                                allowPostSearchRecount: false,
-                            });
-                        }
-                    } else {
-                        // Applies to all searches from the Search View
+                const response = result?.onyxData?.[0]?.value as OnyxSearchResponse;
+                const reports = Object.keys(response?.data ?? {})
+                    .filter((key) => key.startsWith(ONYXKEYS.COLLECTION.REPORT))
+                    .map((key) => key.replace(ONYXKEYS.COLLECTION.REPORT, ''));
+                if (response?.search?.offset) {
+                    // Indicates that search results are extended from the Report view (with navigation between reports),
+                    // using previous results to enable correct counter behavior.
+                    if (prevReportsLength) {
                         saveLastSearchParams({
                             queryJSON,
                             offset,
                             hasMoreResults: !!response?.search?.hasMoreResults,
-                            previousLengthOfResults: reports.length,
-                            allowPostSearchRecount: true,
+                            previousLengthOfResults: prevReportsLength,
+                            allowPostSearchRecount: false,
                         });
                     }
+                } else {
+                    // Applies to all searches from the Search View
+                    saveLastSearchParams({
+                        queryJSON,
+                        offset,
+                        hasMoreResults: !!response?.search?.hasMoreResults,
+                        previousLengthOfResults: reports.length,
+                        allowPostSearchRecount: true,
+                    });
                 }
 
                 return result?.jsonCode;
