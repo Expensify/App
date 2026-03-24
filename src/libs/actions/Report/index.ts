@@ -3512,7 +3512,6 @@ function navigateToConciergeChat(
             if (!checkIfCurrentPageActive()) {
                 return;
             }
-            // TODO: Thread betas through navigateToConciergeChat in next PR. Refactor issue: https://github.com/Expensify/App/issues/66417
             navigateToAndOpenReport([CONST.EMAIL.CONCIERGE], allPersonalDetails, currentUserAccountID, introSelected, isSelfTourViewed, undefined, shouldDismissModal);
         });
     } else if (shouldDismissModal) {
