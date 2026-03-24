@@ -207,7 +207,14 @@ function TransactionListItem<TItem extends ListItem>({
                     isFocused && StyleUtils.getItemBackgroundColorStyle(!!item.isSelected, !!isFocused, !!item.isDisabled, theme.activeComponentBG, theme.hoverComponentBG),
                 ]}
                 onFocus={onFocus}
-                wrapperStyle={[!isLargeScreenWidth && styles.mb2, styles.mh5, styles.flex1, animatedHighlightStyle, styles.userSelectNone]}
+                wrapperStyle={[
+                    !isLargeScreenWidth && styles.mb2,
+                    styles.mh5,
+                    styles.flex1,
+                    animatedHighlightStyle,
+                    styles.userSelectNone,
+                    isLargeScreenWidth && isLastItem && {borderBottomLeftRadius: variables.componentBorderRadius, borderBottomRightRadius: variables.componentBorderRadius},
+                ]}
             >
                 {({hovered}) => (
                     <>

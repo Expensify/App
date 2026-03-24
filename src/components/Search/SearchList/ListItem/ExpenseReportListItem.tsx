@@ -251,7 +251,11 @@ function ExpenseReportListItem<TItem extends ListItem>({
             onLongPressRow={onLongPressRow}
             shouldSyncFocus={shouldSyncFocus}
             hoverStyle={item.isSelected && styles.activeComponentBG}
-            pressableWrapperStyle={[styles.mh5, animatedHighlightStyle]}
+            pressableWrapperStyle={[
+                styles.mh5,
+                animatedHighlightStyle,
+                isLargeScreenWidth && isLastItem && {borderBottomLeftRadius: variables.componentBorderRadius, borderBottomRightRadius: variables.componentBorderRadius},
+            ]}
             accessible={false}
             shouldShowRightCaret={false}
             shouldUseDefaultRightHandSideCheckmark={false}
