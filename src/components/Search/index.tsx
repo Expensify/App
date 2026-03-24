@@ -433,7 +433,7 @@ function Search({
                 (hasErrors && searchRequestResponseStatusCode === null) ||
                 isCardFeedsLoading));
 
-    const shouldShowLoadingMoreItems = true;
+    const shouldShowLoadingMoreItems = !shouldShowLoadingState && searchResults?.search?.isLoading && searchResults?.search?.offset > 0;
 
     const loadMoreSkeletonReasonAttributes = useMemo<SkeletonSpanReasonAttributes>(
         () => ({
