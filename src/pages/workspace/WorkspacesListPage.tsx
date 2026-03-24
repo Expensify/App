@@ -476,7 +476,7 @@ function WorkspacesListPage() {
             <View
                 key={`${item.title}_${index}`}
                 onLayout={(e) => {
-                    if (getAverageItemLength(route)) {
+                    if (e.nativeEvent.layout.height === 0 || getAverageItemLength(route)) {
                         return;
                     }
                     saveAverageItemLength(route, e.nativeEvent.layout.height);
