@@ -7108,7 +7108,7 @@ describe('actions/IOU', () => {
             return waitForBatchedUpdates()
                 .then(() => Onyx.multiSet({...transactionCollectionDataSet, ...actionCollectionDataSet}))
                 .then(() => {
-                    putOnHold(transaction1.transactionID, 'comment', iouReport.reportID);
+                    putOnHold(transaction1.transactionID, 'comment', iouReport.reportID, false);
                     return waitForBatchedUpdates();
                 })
                 .then(() => {
@@ -13245,7 +13245,7 @@ describe('actions/IOU', () => {
 
                 // Put the expense on hold
                 if (originalTransactionID && transactionThreadReportID) {
-                    putOnHold(originalTransactionID, 'Test hold reason', transactionThreadReportID);
+                    putOnHold(originalTransactionID, 'Test hold reason', transactionThreadReportID, false);
                 }
                 await waitForBatchedUpdates();
 

@@ -3146,7 +3146,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
 
         // Put the expense on hold
         if (originalTransactionID && transactionThreadReportID) {
-            putOnHold(originalTransactionID, 'Test hold reason', transactionThreadReportID);
+            putOnHold(originalTransactionID, 'Test hold reason', transactionThreadReportID, false);
         }
         await waitForBatchedUpdates();
 
