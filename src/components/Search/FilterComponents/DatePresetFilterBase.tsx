@@ -337,6 +337,10 @@ function DatePresetFilterBase({
 
                 const updatedValue =
                     selectedDateModifier === CONST.SEARCH.DATE_MODIFIERS.RANGE ? getRangeQueryValue(rangeEphemeralValues.from, rangeEphemeralValues.to) || undefined : ephemeralDateValue;
+                if (updatedValue === undefined) {
+                    return;
+                }
+
                 updateDateValues(getExclusiveDateValues(selectedDateModifier, updatedValue));
             },
 
