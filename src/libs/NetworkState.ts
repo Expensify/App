@@ -173,6 +173,7 @@ function simulatePoorConnection(shouldSimulate: boolean) {
         clearTimeout(poorConnectionTimerID);
         poorConnectionTimerID = undefined;
         simulatedOffline = false;
+        updateState();
         NetInfo.fetch().then((state) => {
             const radio = state.isConnected !== false;
             setHasRadio(radio);
@@ -272,6 +273,12 @@ Onyx.connectWithoutView({
     key: ONYXKEYS.NETWORK,
     callback: (network) => {
         if (!network) {
+            // NETWORK key was cleared (e.g. sign-out via clearStorageAndRedirect).
+            // Reset in-memory flags so the sign-in flow doesn't think we're offline.
+            simulatePoorConnection(false);
+            if (shouldForceOffline) {
+                setForceOffline(false);
+            }
             return;
         }
 
