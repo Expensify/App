@@ -180,7 +180,6 @@ function TripRoomPreview({
         >
             <View style={[styles.chatItemMessage, containerStyles]}>
                 <PressableWithoutFeedback
-                    sentryLabel="TripRoomPreview"
                     onPress={navigateToTrip}
                     onPressIn={() => canUseTouchScreen() && ControlSelection.block()}
                     onPressOut={() => ControlSelection.unblock()}
