@@ -74,7 +74,10 @@ const CHART_GROUP_BY_CONFIG: Record<SearchGroupBy, ChartGroupByConfig> = {
     },
     [CONST.SEARCH.GROUP_BY.MONTH]: {
         titleIconName: 'Calendar',
-        getLabel: (item: GroupedItem) => (item as TransactionMonthGroupListItemType).formattedMonth ?? '',
+        getLabel: (item: GroupedItem) => {
+            const monthItem = item as TransactionMonthGroupListItemType;
+            return `${String(monthItem.month).padStart(2, '0')}/${monthItem.year}`;
+        },
         getFilterQuery: (item: GroupedItem) => {
             const monthItem = item as TransactionMonthGroupListItemType;
             const {start, end} = DateUtils.getMonthDateRange(monthItem.year, monthItem.month);
@@ -83,7 +86,11 @@ const CHART_GROUP_BY_CONFIG: Record<SearchGroupBy, ChartGroupByConfig> = {
     },
     [CONST.SEARCH.GROUP_BY.WEEK]: {
         titleIconName: 'Calendar',
-        getLabel: (item: GroupedItem) => (item as TransactionWeekGroupListItemType).formattedWeek ?? '',
+        getLabel: (item: GroupedItem) => {
+            const weekItem = item as TransactionWeekGroupListItemType;
+            const [year, month, day] = weekItem.week.split('-');
+            return `${month}/${day}/${year}`;
+        },
         getFilterQuery: (item: GroupedItem) => {
             const weekItem = item as TransactionWeekGroupListItemType;
             const {start, end} = DateUtils.getWeekDateRange(weekItem.week);
@@ -101,7 +108,10 @@ const CHART_GROUP_BY_CONFIG: Record<SearchGroupBy, ChartGroupByConfig> = {
     },
     [CONST.SEARCH.GROUP_BY.QUARTER]: {
         titleIconName: 'Calendar',
-        getLabel: (item: GroupedItem) => (item as TransactionQuarterGroupListItemType).formattedQuarter ?? '',
+        getLabel: (item: GroupedItem) => {
+            const quarterItem = item as TransactionQuarterGroupListItemType;
+            return `Q${quarterItem.quarter} ${quarterItem.year}`;
+        },
         getFilterQuery: (item: GroupedItem) => {
             const quarterItem = item as TransactionQuarterGroupListItemType;
             const {start, end} = DateUtils.getQuarterDateRange(quarterItem.year, quarterItem.quarter);
