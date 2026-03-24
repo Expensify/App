@@ -1407,7 +1407,7 @@ function updateSplitTransactions({
             successData: deleteExpenseSuccessData,
         } = getDeleteTrackExpenseInformation(
             splitTransactionReport,
-            undeletedTransaction?.transactionID,
+            undeletedTransaction,
             currentReportAction,
             undefined,
             undefined,

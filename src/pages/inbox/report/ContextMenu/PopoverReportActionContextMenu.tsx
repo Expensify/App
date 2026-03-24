@@ -24,13 +24,14 @@ import calculateAnchorPosition from '@libs/calculateAnchorPosition';
 import refocusComposerAfterPreventFirstResponder from '@libs/refocusComposerAfterPreventFirstResponder';
 import type {ComposerType} from '@libs/ReportActionComposeFocusManager';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
-import {getOriginalMessage, isMoneyRequestAction, isReportPreviewAction, isTrackExpenseAction} from '@libs/ReportActionsUtils';
+import {getLinkedTransactionID, getOriginalMessage, isMoneyRequestAction, isReportPreviewAction, isTrackExpenseAction} from '@libs/ReportActionsUtils';
 import {getOriginalReportID} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {AnchorDimensions} from '@src/styles';
 import type {ReportAction} from '@src/types/onyx';
 import type {Location} from '@src/types/utils/Layout';
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import BaseReportActionContextMenu from './BaseReportActionContextMenu';
 import type {ContextMenuAction} from './ContextMenuActions';
 import type {ContextMenuAnchor, ContextMenuType, ReportActionContextMenu} from './ReportActionContextMenu';
@@ -343,12 +344,15 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
     const ancestorsRef = useRef<typeof ancestors>([]);
     const ancestors = useAncestors(originalReport);
     const {transactions: reportTransactions} = useTransactionsAndViolationsForReport(originalReport?.iouReportID);
+     const [reportActionLinkedIOUTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(getLinkedTransactionID(reportActionRef.current ?? undefined))}`);
+
     useEffect(() => {
         if (!originalReport) {
             return;
         }
         ancestorsRef.current = ancestors;
     }, [originalReport, ancestors]);
+
     const confirmDeleteAndHideModal = useCallback(() => {
         callbackWhenDeleteModalHide.current = runAndResetCallback(onConfirmDeleteModal.current);
         const reportAction = reportActionRef.current;
@@ -358,7 +362,7 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
                 deleteTrackExpense({
                     chatReportID: reportIDRef.current,
                     chatReport: report,
-                    transactionID: originalMessage?.IOUTransactionID,
+                    transaction: reportActionLinkedIOUTransaction,
                     reportAction,
                     iouReport,
                     chatIOUReport: chatReport,
@@ -405,29 +409,7 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
 
         DeviceEventEmitter.emit(`deletedReportAction_${reportIDRef.current}`, reportAction?.reportActionID);
         setIsDeleteCommentConfirmModalVisible(false);
-    }, [
-        report,
-        childReport,
-        selfDMReport,
-        iouReport,
-        chatReport,
-        duplicateTransactions,
-        duplicateTransactionViolations,
-        isReportArchived,
-        isChatIOUReportArchived,
-        allTransactionViolations,
-        currentUserAccountID,
-        deleteTransactions,
-        currentSearchHash,
-        email,
-        reportTransactions,
-        bankAccountList,
-        personalPolicy,
-        isOriginalReportArchived,
-        translate,
-        toLocaleDigit,
-        visibleReportActionsData,
-    ]);
+    }, [report, reportActionLinkedIOUTransaction, iouReport, chatReport, duplicateTransactions, duplicateTransactionViolations, isReportArchived, isChatIOUReportArchived, allTransactionViolations, currentUserAccountID, deleteTransactions, currentSearchHash, childReport, selfDMReport, email, reportTransactions, bankAccountList, personalPolicy, translate, toLocaleDigit, isOriginalReportArchived, visibleReportActionsData]);
 
     const hideDeleteModal = () => {
         callbackWhenDeleteModalHide.current = () => (onCancelDeleteModal.current = runAndResetCallback(onCancelDeleteModal.current));
