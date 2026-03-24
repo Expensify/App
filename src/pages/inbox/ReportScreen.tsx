@@ -378,13 +378,24 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
         hideEmojiPicker(true);
     }, [prevIsFocused, isFocused]);
 
+    // Set activeReportID so that Concierge AI side panel can access it and load it into the context
     useEffect(() => {
         if (!reportID) {
             return;
         }
+
+        // Never set activeReportID as Concierge as we will always have context of Concierge chat loaded.
+        if (reportID === conciergeReportID) {
+            // Don't overwrite activeReportID when opening Concierge side panel
+            if (!isInSidePanel) {
+                setActiveReportID(null);
+            }
+            return;
+        }
+
         setActiveReportID(reportID);
         return () => setActiveReportID(null);
-    }, [reportID]);
+    }, [reportID, conciergeReportID, isInSidePanel]);
 
     const backTo = route?.params?.backTo as string;
     const onBackButtonPress = useCallback(

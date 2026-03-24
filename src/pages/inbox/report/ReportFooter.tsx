@@ -68,6 +68,9 @@ type ReportFooterProps = {
     shouldHideStatusIndicators?: boolean;
     /** Function to trigger optimistic waiting indicator for Concierge */
     kickoffWaitingIndicator?: () => void;
+
+    /** Current user's Concierge reportID */
+    conciergeReportID?: string;
 };
 
 function ReportFooter({
@@ -79,6 +82,7 @@ function ReportFooter({
     transactionThreadReportID,
     shouldHideStatusIndicators,
     kickoffWaitingIndicator,
+    conciergeReportID,
 }: ReportFooterProps) {
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
@@ -89,7 +93,6 @@ function ReportFooter({
     const personalDetail = useCurrentUserPersonalDetails();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Lightbulb']);
 
-    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const isConciergeSidePanel = isInSidePanel && conciergeReportID === report.reportID;
     const [activeReportID] = useOnyx(ONYXKEYS.ACTIVE_REPORT_ID);
     const [shouldShowComposeInput = false] = useOnyx(ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT);
