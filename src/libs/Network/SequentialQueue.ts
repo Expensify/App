@@ -21,12 +21,14 @@ import {processWithMiddleware} from '@libs/Request';
 import RequestThrottle from '@libs/RequestThrottle';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type Report from '@src/types/onyx/Report';
+import type ReportAction from '@src/types/onyx/ReportAction';
 import type OnyxRequest from '@src/types/onyx/Request';
 import type {AnyOnyxUpdate, AnyRequest, ConflictData} from '@src/types/onyx/Request';
 import {isOffline, onReconnection} from './NetworkStore';
 
 let shouldFailAllRequests: boolean;
-const reportsWithProcessedOfflineComments = new Set<string>();
+const reportsWithProcessedOfflineComments = new Map<string, string>();
 const OFFLINE_COMMENT_COMMANDS = new Set<string>([WRITE_COMMANDS.ADD_COMMENT, WRITE_COMMANDS.ADD_ATTACHMENT, WRITE_COMMANDS.ADD_TEXT_AND_ATTACHMENT]);
 // Use connectWithoutView since this is for network data and don't affect to any UI
 Onyx.connectWithoutView({
@@ -153,14 +155,6 @@ function process(): Promise<void> {
         return Promise.resolve();
     }
 
-    // Track offline comments so we can reconcile the following ReadNewestAction.
-    if (requestToProcess.initiatedOffline && OFFLINE_COMMENT_COMMANDS.has(requestToProcess.command)) {
-        const reportID = requestToProcess.data?.reportID;
-        if (typeof reportID === 'string') {
-            reportsWithProcessedOfflineComments.add(reportID);
-        }
-    }
-
     // Offline ReadNewestAction carries a stale lastReadTime from when the user opened the report
     // offline. If the user also sent messages offline, those messages get server-assigned timestamps
     // that are later than the stale lastReadTime, causing the report to appear unread after reconnect.
@@ -168,10 +162,13 @@ function process(): Promise<void> {
     if (requestToProcess.command === WRITE_COMMANDS.READ_NEWEST_ACTION && requestToProcess.initiatedOffline) {
         const reportID = requestToProcess.data?.reportID;
         if (typeof reportID === 'string' && reportsWithProcessedOfflineComments.has(reportID)) {
-            requestToProcess.data = {
-                ...requestToProcess.data,
-                lastReadTime: NetworkConnection.getDBTimeWithSkew(),
-            };
+            const recordedTime = reportsWithProcessedOfflineComments.get(reportID);
+            if (recordedTime) {
+                requestToProcess.data = {
+                    ...requestToProcess.data,
+                    lastReadTime: recordedTime,
+                };
+            }
             reportsWithProcessedOfflineComments.delete(reportID);
         }
     }
@@ -185,6 +182,41 @@ function process(): Promise<void> {
     // Set the current request to a promise awaiting its processing so that getCurrentRequest can be used to take some action after the current request has processed.
     currentRequestPromise = processWithMiddleware(requestToProcess, true)
         .then((response) => {
+            // Track offline comments so we can reconcile the following ReadNewestAction.
+            if (requestToProcess.initiatedOffline && OFFLINE_COMMENT_COMMANDS.has(requestToProcess.command)) {
+                const reportID = requestToProcess.data?.reportID;
+                if (typeof reportID === 'string') {
+                    let serverTimestamp = '';
+                    for (const update of response?.onyxData ?? []) {
+                        if (update.key === `${ONYXKEYS.COLLECTION.REPORT}${reportID}`) {
+                            const reportUpdate = update.value as Partial<Report> | null;
+                            if (reportUpdate?.lastVisibleActionCreated && reportUpdate.lastVisibleActionCreated > serverTimestamp) {
+                                serverTimestamp = reportUpdate.lastVisibleActionCreated;
+                            }
+                        }
+                        if (update.key === `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`) {
+                            const actionsUpdate = update.value as Record<string, Partial<ReportAction>> | null;
+                            if (actionsUpdate) {
+                                for (const action of Object.values(actionsUpdate)) {
+                                    if (action?.created && action.created > serverTimestamp) {
+                                        serverTimestamp = action.created;
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    if (!serverTimestamp) {
+                        serverTimestamp = NetworkConnection.getDBTimeWithSkew();
+                    }
+
+                    const currentMax = reportsWithProcessedOfflineComments.get(reportID) ?? '';
+                    if (serverTimestamp > currentMax) {
+                        reportsWithProcessedOfflineComments.set(reportID, serverTimestamp);
+                    }
+                }
+            }
+
             Log.info('[SequentialQueue] Request processed successfully', false, {
                 command: requestToProcess.command,
                 shouldPauseQueue: response?.shouldPauseQueue ?? false,
