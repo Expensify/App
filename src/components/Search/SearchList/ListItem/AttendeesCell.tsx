@@ -63,7 +63,8 @@ function AttendeesCell({attendees, isHovered, isPressed}: AttendeesCellProps) {
         >
             {[...icons].splice(0, maxAvatarsInRow).map((icon, index) => (
                 <UserDetailsTooltip
-                    key={`stackedAvatars-${icon.id}`}
+                    // eslint-disable-next-line react/no-array-index-key
+                    key={`stackedAvatars-${icon.id}-${index}`}
                     accountID={Number(icon.id)}
                     icon={icon}
                     fallbackUserDetails={{
