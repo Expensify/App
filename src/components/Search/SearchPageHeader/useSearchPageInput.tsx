@@ -9,8 +9,8 @@ import {getQueryWithSubstitutions} from '@components/Search/SearchRouter/getQuer
 import type {SubstitutionMap} from '@components/Search/SearchRouter/getQueryWithSubstitutions';
 import {getUpdatedSubstitutionsMap} from '@components/Search/SearchRouter/getUpdatedSubstitutionsMap';
 import type {SearchQueryJSON, SearchQueryString} from '@components/Search/types';
-import {isSearchQueryItem} from '@components/SelectionListWithSections/Search/SearchQueryListItem';
-import type {SearchQueryItem} from '@components/SelectionListWithSections/Search/SearchQueryListItem';
+import {isSearchQueryItem} from '@components/Search/SearchList/ListItem/SearchQueryListItem';
+import type {SearchQueryItem} from '@components/Search/SearchList/ListItem/SearchQueryListItem';
 import useFeedKeysWithAssignedCards from '@hooks/useFeedKeysWithAssignedCards';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -180,7 +180,7 @@ function useSearchPageInput({queryJSON, onSearch, onSubmit}: UseSearchPageInputP
         } else if (item?.reportID) {
             Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(item?.reportID));
         } else if ('login' in item) {
-            navigateToAndOpenReport(item.login ? [item.login] : [], currentUserAccountID, introSelected, isSelfTourViewed, betas, false);
+            navigateToAndOpenReport(item.login ? [item.login] : [], personalDetails, currentUserAccountID, introSelected, isSelfTourViewed, betas, false);
         }
     }
 
