@@ -2299,6 +2299,9 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
     const selectedTransactionsOptions = useMemo(() => {
         const mappedOptions = originalSelectedTransactionsOptions.map((option) => {
             if (option.value === CONST.REPORT.SECONDARY_ACTIONS.DELETE) {
+                if (option.text === translate('iou.editSplits')) {
+                    return option;
+                }
                 return {
                     ...option,
                     onSelected: showDeleteModal,
@@ -2330,6 +2333,7 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
     }, [
         originalSelectedTransactionsOptions,
         showDeleteModal,
+        translate,
         dismissedRejectUseExplanation,
         allExpensesSelected,
         selectionModeReportLevelActions,
