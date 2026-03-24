@@ -512,7 +512,6 @@ describe('OnyxDerived', () => {
     });
 
     describe('personalAndWorkspaceCardList', () => {
-
         it('merges cardList and workspaceCardFeeds when dependencies are set', async () => {
             // Non-personal cards (fundID !== '0') from cardList are kept, workspace cards are always included
             const nonPersonalCard1 = createRandomExpensifyCard(1, {fundID: '123'});
