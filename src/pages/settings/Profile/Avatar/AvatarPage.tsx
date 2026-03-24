@@ -213,98 +213,100 @@ function ProfileAvatar() {
             testID="ProfileAvatar"
             offlineIndicatorStyle={styles.mtAuto}
             shouldShowOfflineIndicatorInWideScreen
-            shouldUseScrollViewInLandscapeMode
         >
             <HeaderWithBackButton title={translate('avatarPage.title')} />
-            <View style={[styles.flexColumn, styles.gap5, styles.alignItemsCenter, styles.pb10]}>
-                <AvatarCapture
-                    ref={avatarCaptureRef}
-                    fileName={selected ?? 'avatar'}
-                >
-                    <Avatar
-                        containerStyles={avatarStyle}
-                        imageStyles={avatarStyle}
-                        source={avatarURL}
-                        avatarID={accountID}
-                        fallbackIcon={currentUserPersonalDetails?.fallbackIcon}
-                        size={CONST.AVATAR_SIZE.X_LARGE}
-                        type={CONST.ICON_TYPE_AVATAR}
-                    />
-                </AvatarCapture>
-                <AttachmentPicker
-                    type={CONST.ATTACHMENT_PICKER_TYPE.IMAGE}
-                    // We need to skip the validation in AttachmentPicker because it is handled in this component itself
-                    shouldValidateImage={false}
-                >
-                    {({openPicker}) => {
-                        const menuItems = createMenuItems(openPicker);
-                        if (menuItems?.length <= 1) {
+            <ScrollView>
+                <View style={[styles.flexColumn, styles.gap5, styles.alignItemsCenter, styles.pb10]}>
+                    <AvatarCapture
+                        ref={avatarCaptureRef}
+                        fileName={selected ?? 'avatar'}
+                    >
+                        <Avatar
+                            containerStyles={avatarStyle}
+                            imageStyles={avatarStyle}
+                            source={avatarURL}
+                            avatarID={accountID}
+                            fallbackIcon={currentUserPersonalDetails?.fallbackIcon}
+                            size={CONST.AVATAR_SIZE.X_LARGE}
+                            type={CONST.ICON_TYPE_AVATAR}
+                        />
+                    </AvatarCapture>
+                    <AttachmentPicker
+                        type={CONST.ATTACHMENT_PICKER_TYPE.IMAGE}
+                        // We need to skip the validation in AttachmentPicker because it is handled in this component itself
+                        shouldValidateImage={false}
+                    >
+                        {({openPicker}) => {
+                            const menuItems = createMenuItems(openPicker);
+                            if (menuItems?.length <= 1) {
+                                return (
+                                    <Button
+                                        icon={icons.Upload}
+                                        text={translate('avatarPage.uploadPhoto')}
+                                        accessibilityLabel={translate('avatarPage.uploadPhoto')}
+                                        isDisabled={isAvatarCropModalOpen}
+                                        onPress={() => {
+                                            openPicker({
+                                                onPicked: (data) => showAvatarCropModal(data.at(0) ?? {}),
+                                            });
+                                        }}
+                                    />
+                                );
+                            }
+
                             return (
-                                <Button
-                                    icon={icons.Upload}
-                                    text={translate('avatarPage.uploadPhoto')}
-                                    accessibilityLabel={translate('avatarPage.uploadPhoto')}
+                                <ButtonWithDropdownMenu
+                                    success={false}
+                                    shouldUseOptionIcon
                                     isDisabled={isAvatarCropModalOpen}
-                                    onPress={() => {
-                                        openPicker({
-                                            onPicked: (data) => showAvatarCropModal(data.at(0) ?? {}),
-                                        });
-                                    }}
+                                    onPress={() => {}}
+                                    anchorAlignment={{horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.CENTER, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP}}
+                                    customText={translate('common.edit')}
+                                    options={menuItems}
+                                    isSplitButton={false}
                                 />
                             );
-                        }
-
-                        return (
-                            <ButtonWithDropdownMenu
-                                success={false}
-                                shouldUseOptionIcon
-                                isDisabled={isAvatarCropModalOpen}
-                                onPress={() => {}}
-                                anchorAlignment={{horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.CENTER, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP}}
-                                customText={translate('common.edit')}
-                                options={menuItems}
-                                isSplitButton={false}
-                            />
-                        );
-                    }}
-                </AttachmentPicker>
-            </View>
-
-            <ScrollView
-                style={styles.flex1}
-                contentContainerStyle={styles.flexGrow1}
-                keyboardShouldPersistTaps="handled"
-            >
-                <View style={[styles.ph5, styles.pb5, styles.flexColumn, styles.flex1, styles.gap3]}>
-                    <AvatarSelector
-                        label={translate('avatarPage.choosePresetAvatar')}
-                        name={currentUserPersonalDetails?.displayName}
-                        selectedID={selected}
-                        onSelect={(id) => {
-                            setImageData({...EMPTY_FILE});
-                            setSelected(id);
                         }}
-                    />
+                    </AttachmentPicker>
                 </View>
-            </ScrollView>
-            <FixedFooter style={styles.mtAuto}>
-                {!!errorData.validationError && (
-                    <DotIndicatorMessage
-                        style={styles.mv5}
-                        // eslint-disable-next-line @typescript-eslint/naming-convention
-                        messages={{0: translate(errorData.validationError, errorData.phraseParam as never)}}
-                        type="error"
+
+                <ScrollView
+                    style={styles.flex1}
+                    contentContainerStyle={styles.flexGrow1}
+                    keyboardShouldPersistTaps="handled"
+                >
+                    <View style={[styles.ph5, styles.pb5, styles.flexColumn, styles.flex1, styles.gap3]}>
+                        <AvatarSelector
+                            label={translate('avatarPage.choosePresetAvatar')}
+                            name={currentUserPersonalDetails?.displayName}
+                            selectedID={selected}
+                            onSelect={(id) => {
+                                setImageData({...EMPTY_FILE});
+                                setSelected(id);
+                            }}
+                        />
+                    </View>
+                </ScrollView>
+                <FixedFooter style={styles.mtAuto}>
+                    {!!errorData.validationError && (
+                        <DotIndicatorMessage
+                            style={styles.mv5}
+                            // eslint-disable-next-line @typescript-eslint/naming-convention
+                            messages={{0: translate(errorData.validationError, errorData.phraseParam as never)}}
+                            type="error"
+                        />
+                    )}
+                    <Button
+                        large
+                        success
+                        text={translate('common.save')}
+                        isDisabled={!isDirty}
+                        onPress={onPress}
+                        pressOnEnter
                     />
-                )}
-                <Button
-                    large
-                    success
-                    text={translate('common.save')}
-                    isDisabled={!isDirty}
-                    onPress={onPress}
-                    pressOnEnter
-                />
-            </FixedFooter>
+                </FixedFooter>
+            </ScrollView>
+
             <AvatarCropModal
                 onClose={() => {
                     if (!isAvatarCropModalOpen) {

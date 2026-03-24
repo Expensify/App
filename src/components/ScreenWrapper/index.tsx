@@ -9,11 +9,9 @@ import CustomDevMenu from '@components/CustomDevMenu';
 import FocusTrapForScreen from '@components/FocusTrap/FocusTrapForScreen';
 import type FocusTrapForScreenProps from '@components/FocusTrap/FocusTrapForScreen/FocusTrapProps';
 import {useInitialURLState} from '@components/InitialURLContextProvider';
-import ScrollView from '@components/ScrollView';
 import withNavigationFallback from '@components/withNavigationFallback';
 import useAccessibilityFocus from '@hooks/useAccessibilityFocus';
 import useEnvironment from '@hooks/useEnvironment';
-import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -77,9 +75,6 @@ type ScreenWrapperProps = Omit<ScreenWrapperContainerProps, 'children'> &
 
         /** Called when navigated Screen's transition is finished. It does not fire when user exit the page. */
         onEntryTransitionEnd?: () => void;
-
-        /** Whether to wrap the children in ScrollView in landscape mode */
-        shouldUseScrollViewInLandscapeMode?: boolean;
     };
 
 function ScreenWrapper({
@@ -101,7 +96,6 @@ function ScreenWrapper({
     isOfflineIndicatorTranslucent,
     focusTrapSettings,
     ref,
-    shouldUseScrollViewInLandscapeMode = false,
     ...restContainerProps
 }: ScreenWrapperProps) {
     /**
@@ -184,8 +178,6 @@ function ScreenWrapper({
 
     const {initialURL} = useInitialURLState();
     const [isSingleNewDotEntry = false] = useOnyx(ONYXKEYS.HYBRID_APP, {selector: isSingleNewDotEntrySelector});
-
-    const isInLandscapeMode = useIsInLandscapeMode();
 
     usePreventRemove(isSingleNewDotEntry && !!initialURL?.endsWith(Navigation.getActiveRouteWithoutParams()), () => {
         if (!CONFIG.IS_HYBRID_APP) {
@@ -290,17 +282,7 @@ function ScreenWrapper({
                 {isDevelopment && <CustomDevMenu />}
                 <ScreenWrapperStatusContext.Provider value={statusContextValue}>
                     <ScreenWrapperOfflineIndicatorContext.Provider value={offlineIndicatorContextValue}>
-                        {shouldUseScrollViewInLandscapeMode && isInLandscapeMode ? (
-                            <ScrollView
-                                style={styles.w100}
-                                contentContainerStyle={styles.flexGrow1}
-                            >
-                                {ChildrenContent}
-                            </ScrollView>
-                        ) : (
-                            ChildrenContent
-                        )}
-
+                        {ChildrenContent}
                         <ScreenWrapperOfflineIndicators
                             offlineIndicatorStyle={offlineIndicatorStyle}
                             shouldShowOfflineIndicator={displaySmallScreenOfflineIndicator}
