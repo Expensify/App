@@ -1214,7 +1214,7 @@ function setContactMethodAsDefault(
     Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS.getRoute(backTo));
 }
 
-function updateTheme(theme: ValueOf<typeof CONST.THEME>) {
+function updateTheme(theme: ValueOf<typeof CONST.THEME>, shouldGoBack = true) {
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.PREFERRED_THEME>> = [
         {
             onyxMethod: Onyx.METHOD.SET,
@@ -1229,7 +1229,9 @@ function updateTheme(theme: ValueOf<typeof CONST.THEME>) {
 
     API.write(WRITE_COMMANDS.UPDATE_THEME, parameters, {optimisticData});
 
-    Navigation.goBack();
+    if (shouldGoBack) {
+        Navigation.goBack();
+    }
 }
 
 /**

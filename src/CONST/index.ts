@@ -2015,6 +2015,9 @@ const CONST = {
         DARK: 'dark',
         LIGHT: 'light',
         SYSTEM: 'system',
+        DARK_CONTRAST: 'dark-contrast',
+        LIGHT_CONTRAST: 'light-contrast',
+        SYSTEM_CONTRAST: 'system-contrast',
     },
     COLOR_SCHEME: {
         LIGHT: 'light',
