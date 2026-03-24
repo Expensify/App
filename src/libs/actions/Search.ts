@@ -79,10 +79,10 @@ import SafeString from '@src/utils/SafeString';
 import {setPersonalBankAccountContinueKYCOnSuccess} from './BankAccounts';
 import {deleteMoneyRequest, getReportPreviewAction, prepareRejectMoneyRequestData, rejectMoneyRequest} from './IOU';
 import type {RejectMoneyRequestData} from './IOU';
+import {unholdRequest} from './IOU/Hold';
 import {isCurrencySupportedForGlobalReimbursement} from './Policy/Policy';
 import {deleteAppReport, setOptimisticTransactionThread} from './Report';
 import {saveLastSearchParams} from './ReportNavigation';
-import {unholdRequest} from './IOU/Hold';
 
 type OnyxSearchResponse = {
     data: [];

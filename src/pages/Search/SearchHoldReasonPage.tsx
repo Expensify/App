@@ -41,19 +41,12 @@ function SearchHoldReasonPage({route}: SearchHoldReasonPageProps) {
                 showDelegateNoAccessModal();
                 return;
             }
-
-            putTransactionsOnHold(selectedTransactionIDs, comment, reportID, ancestors);
+            const transactionIDs = Object.keys(selectedTransactions);
+            putTransactionsOnHold(transactionIDs, comment, reportID, ancestors);
             clearSelectedTransactions(true);
             Navigation.goBack();
         },
-        [
-            selectedTransactionIDs,
-            clearSelectedTransactions,
-            reportID,
-            ancestors,
-            isDelegateAccessRestricted,
-            showDelegateNoAccessModal,
-        ],
+        [selectedTransactions, clearSelectedTransactions, reportID, ancestors, isDelegateAccessRestricted, showDelegateNoAccessModal],
     );
 
     const validate = useCallback(
