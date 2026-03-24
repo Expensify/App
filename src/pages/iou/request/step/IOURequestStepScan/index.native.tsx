@@ -7,6 +7,7 @@ import {RESULTS} from 'react-native-permissions';
 import Animated, {useAnimatedStyle, useSharedValue, withDelay, withSequence, withSpring, withTiming} from 'react-native-reanimated';
 import type {Camera, PhotoFile, Point} from 'react-native-vision-camera';
 import {useCameraDevice, useCameraFormat} from 'react-native-vision-camera';
+import {scheduleOnRN} from 'react-native-worklets';
 import ActivityIndicator from '@components/ActivityIndicator';
 import AttachmentPicker from '@components/AttachmentPicker';
 import Button from '@components/Button';
@@ -82,7 +83,7 @@ function IOURequestStepScan({
         Navigation.goBack(backTo);
     }, [backTo]);
     const hasFlash = !!device?.hasFlash;
-    const camera = useRef<Camera>(null);
+    const [cameraInstance, setCameraInstance] = useState<Camera | null>(null);
     const [flash, setFlash] = useState(false);
     const lazyIllustrations = useMemoizedLazyIllustrations(['MultiScan', 'Hand', 'Shutter']);
     const lazyIcons = useMemoizedLazyExpensifyIcons(['Bolt', 'Gallery', 'ReceiptMultiple', 'boltSlash']);
@@ -92,7 +93,6 @@ function IOURequestStepScan({
     const [cameraPermissionStatus, setCameraPermissionStatus] = useState<string | null>(null);
     const [isAttachmentPickerActive, setIsAttachmentPickerActive] = useState(false);
     const [didCapturePhoto, setDidCapturePhoto] = useState(false);
-    const [focusPoint, setFocusPoint] = useState<Point | null>(null);
     const policy = usePolicy(report?.policyID);
 
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report?.policyID}`);
@@ -194,21 +194,20 @@ function IOURequestStepScan({
         transform: [{translateX: focusIndicatorPosition.get().x}, {translateY: focusIndicatorPosition.get().y}, {scale: focusIndicatorScale.get()}],
     }));
 
-    useEffect(() => {
-        if (!camera.current || !focusPoint) {
+    const focusCamera = (point: Point) => {
+        if (!cameraInstance) {
             return;
         }
 
-        camera.current.focus(focusPoint).catch((error: Record<string, unknown>) => {
+        cameraInstance.focus(point).catch((error: Record<string, unknown>) => {
             if (error.message === '[unknown/unknown] Cancelled by another startFocusAndMetering()') {
                 return;
             }
             Log.warn('Error focusing camera', error);
         });
-    }, [focusPoint]);
+    };
 
     const tapGesture = Gesture.Tap()
-        .runOnJS(true)
         .enabled(device?.supportsFocus ?? false)
         .onStart((ev: {x: number; y: number}) => {
             const point = {x: ev.x, y: ev.y};
@@ -218,7 +217,7 @@ function IOURequestStepScan({
             focusIndicatorScale.set(withSpring(1, {damping: 10, stiffness: 200}));
             focusIndicatorPosition.set(point);
 
-            setFocusPoint(point);
+            scheduleOnRN(focusCamera, point);
         });
 
     useFocusEffect(
@@ -336,7 +335,7 @@ function IOURequestStepScan({
             });
         }
 
-        if (!camera.current && (cameraPermissionStatus === RESULTS.DENIED || cameraPermissionStatus === RESULTS.BLOCKED)) {
+        if (!cameraInstance && (cameraPermissionStatus === RESULTS.DENIED || cameraPermissionStatus === RESULTS.BLOCKED)) {
             maybeCancelShutterSpan();
             askForPermissions();
             return;
@@ -346,7 +345,7 @@ function IOURequestStepScan({
             Alert.alert(translate('receipt.cameraErrorTitle'), translate('receipt.cameraErrorMessage'));
         };
 
-        if (!camera.current) {
+        if (!cameraInstance) {
             maybeCancelShutterSpan();
             showCameraAlert();
             return;
@@ -369,8 +368,8 @@ function IOURequestStepScan({
 
         const path = getReceiptsUploadFolderPath();
 
-        camera?.current
-            ?.takePhoto({
+        cameraInstance
+            .takePhoto({
                 flash: flash && hasFlash ? 'on' : 'off',
                 enableShutterSound: !isPlatformMuted,
                 path,
@@ -442,6 +441,7 @@ function IOURequestStepScan({
         updateScanAndNavigate,
         askForPermissions,
         maybeCancelShutterSpan,
+        cameraInstance,
     ]);
 
     const cameraLoadingReasonAttributes: SkeletonSpanReasonAttributes = {
@@ -511,7 +511,7 @@ function IOURequestStepScan({
                             <GestureDetector gesture={tapGesture}>
                                 <View style={StyleUtils.getCameraViewfinderStyle(cameraAspectRatio)}>
                                     <NavigationAwareCamera
-                                        ref={camera}
+                                        ref={setCameraInstance}
                                         device={device}
                                         format={format}
                                         style={styles.flex1}
