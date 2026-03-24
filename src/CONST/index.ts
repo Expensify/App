@@ -7,7 +7,7 @@ import type {ValueOf} from 'type-fest';
 import type {SearchFilterKey} from '@components/Search/types';
 import type ResponsiveLayoutResult from '@hooks/useResponsiveLayout/types';
 import type {MileageRate} from '@libs/DistanceRequestUtils';
-import MULTIFACTOR_AUTHENTICATION_VALUES from '@libs/MultifactorAuthentication/Biometrics/VALUES';
+import MULTIFACTOR_AUTHENTICATION_VALUES from '@libs/MultifactorAuthentication/VALUES';
 import addTrailingForwardSlash from '@libs/UrlUtils';
 import variables from '@styles/variables';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -22,6 +22,8 @@ import {LOCALES} from './LOCALES';
 const EMPTY_ARRAY = Object.freeze([]);
 const EMPTY_OBJECT = Object.freeze({});
 const EMPTY_SET = new Set<string>();
+// Shared immutable map used in hot paths that only read from the instance.
+const EMPTY_MAP = new Map<string, string>();
 const EMPTY_TODOS_REPORT_COUNTS = Object.freeze({
     submit: 0,
     approve: 0,
@@ -103,7 +105,7 @@ const connectionsVideoPaths = {
 // Explicit type annotation is required
 const cardActiveStates: number[] = [2, 3, 4, 7];
 
-const brokenConnectionScrapeStatuses: number[] = [200, 531, 530, 500, 666];
+const brokenConnectionScrapeStatuses: number[] = [200, 434, 531, 530, 500, 666];
 
 // Hide not issued or not activated cards (states 2, 4) from card filter options in search, as no transactions can be made on cards in these states
 const cardHiddenFromSearchStates: number[] = [2, 4];
@@ -140,7 +142,9 @@ const signupQualifiers = {
     SMB: 'smb',
 } as const;
 
-type OnboardingAccounting = keyof typeof CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY | null;
+type NoneAccountingKey = 'none';
+
+type OnboardingAccounting = keyof typeof CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY | NoneAccountingKey | null;
 
 const onboardingInviteTypes = {
     IOU: 'iou',
@@ -223,6 +227,7 @@ const CONST = {
     ANIMATED_HIGHLIGHT_END_DELAY: 800,
     ANIMATED_HIGHLIGHT_END_DURATION: 2000,
     ANIMATED_TRANSITION: 300,
+    KEYBOARD_RESTORATION_FLAG_RESET_DELAY: 100,
     SIDE_PANEL_ANIMATED_TRANSITION: 300,
     ANIMATED_TRANSITION_FROM_VALUE: 100,
     ANIMATED_PROGRESS_BAR_DELAY: 300,
@@ -436,6 +441,19 @@ const CONST = {
     },
 
     MULTIFACTOR_AUTHENTICATION: MULTIFACTOR_AUTHENTICATION_VALUES,
+
+    /**
+     * COSE algorithm identifiers used in WebAuthn credential registration.
+     * @see https://www.iana.org/assignments/cose/cose.xhtml#algorithms
+     */
+    COSE_ALGORITHM: {
+        /** EdDSA (ED25519) */
+        EDDSA: -8,
+        /** ES256 (ECDSA w/ SHA-256, P-256 curve) */
+        ES256: -7,
+        /** RS256 (RSASSA-PKCS1-v1_5 w/ SHA-256) */
+        RS256: -257,
+    },
 
     /** WebAuthn/Passkey credential type */
     PASSKEY_CREDENTIAL_TYPE: 'public-key',
@@ -774,10 +792,7 @@ const CONST = {
         NO_OPTIMISTIC_TRANSACTION_THREADS: 'noOptimisticTransactionThreads',
         UBER_FOR_BUSINESS: 'uberForBusiness',
         NEW_DOT_DEW: 'newDotDEW',
-        GPS_MILEAGE: 'gpsMileage',
         ODOMETER_EXPENSES: 'odometerExpenses',
-        NEW_DOT_HOME: 'newDotHome',
-        SINGLE_USE_AND_EXPIRE_BY_CARDS: 'singleUseAndExpireByCards',
         PAY_INVOICE_VIA_EXPENSIFY: 'payInvoiceViaExpensify',
         PERSONAL_CARD_IMPORT: 'personalCardImport',
         SUGGESTED_FOLLOWUPS: 'suggestedFollowups',
@@ -799,6 +814,7 @@ const CONST = {
         AU: 'AU',
         CA: 'CA',
         GB: 'GB',
+        GI: 'GI',
         IT: 'IT',
         PR: 'PR',
         GU: 'GU',
@@ -1020,6 +1036,7 @@ const CONST = {
     EMPTY_ARRAY,
     EMPTY_OBJECT,
     EMPTY_SET,
+    EMPTY_MAP,
     EMPTY_TODOS_REPORT_COUNTS,
     DEFAULT_NUMBER_ID,
     DEFAULT_MISSING_ID,
@@ -1127,6 +1144,7 @@ const CONST = {
         EMPLOYEE_TOUR_MOBILE: 'https://expensify.storylane.io/share/v8uwkznocw0g',
         EMPLOYEE_MIGRATED: 'https://app.storylane.io/share/v9dr1rjqsd9y',
         EMPLOYEE_MIGRATED_MOBILE: 'https://app.storylane.io/share/qbbob6zvapqo',
+        IFRAME_SANDBOX: 'allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox',
     },
     OLD_DOT_PUBLIC_URLS: {
         TERMS_URL: `${EXPENSIFY_URL}/terms`,
@@ -1137,6 +1155,7 @@ const CONST = {
         BANCORP_WALLET_AGREEMENT_URL: `${EXPENSIFY_URL}/bancorp-bank-wallet-terms-of-service`,
         EXPENSIFY_APPROVED_PROGRAM_URL: `${USE_EXPENSIFY_URL}/accountants-program`,
         TRAVEL_TERMS_URL: `${EXPENSIFY_URL}/travelterms`,
+        FEES_URL: `${EXPENSIFY_URL}/fees`,
     },
     OLDDOT_URLS: {
         ADMIN_POLICIES_URL: 'admin_policies',
@@ -1224,8 +1243,9 @@ const CONST = {
             EXPORT: 'export',
             PAY: 'pay',
             MERGE: 'merge',
-            DUPLICATE: 'duplicate',
+            DUPLICATE_EXPENSE: 'duplicateExpense',
             DUPLICATE_REPORT: 'duplicateReport',
+            MOVE_EXPENSE: 'moveExpense',
         },
         PRIMARY_ACTIONS: {
             SUBMIT: 'submit',
@@ -1262,11 +1282,18 @@ const CONST = {
             REJECT_BULK: 'rejectBulk',
             MERGE: 'merge',
             DUPLICATE: 'duplicate',
+            MOVE_EXPENSE: 'moveExpense',
         },
         ADD_EXPENSE_OPTIONS: {
             CREATE_NEW_EXPENSE: 'createNewExpense',
             ADD_UNREPORTED_EXPENSE: 'addUnreportedExpense',
             TRACK_DISTANCE_EXPENSE: 'trackDistanceExpense',
+        },
+        ACTION_BADGE: {
+            SUBMIT: 'submit',
+            APPROVE: 'approve',
+            PAY: 'pay',
+            FIX: 'fix',
         },
         ACTIONS: {
             LIMIT: 50,
@@ -1725,6 +1752,17 @@ const CONST = {
             FAB_OUT: 200,
         },
     },
+    FAB_MENU_ITEM_IDS: {
+        QUICK_ACTION: 'quick-action',
+        EXPENSE: 'expense',
+        TRACK_DISTANCE: 'track-distance',
+        CREATE_REPORT: 'create-report',
+        NEW_CHAT: 'new-chat',
+        INVOICE: 'invoice',
+        TRAVEL: 'travel',
+        TEST_DRIVE: 'test-drive',
+        NEW_WORKSPACE: 'new-workspace',
+    },
     TIMING: {
         REPORT_ACTION_ITEM_LAYOUT_DEBOUNCE_TIME: 1500,
         SHOW_LOADING_SPINNER_DEBOUNCE_TIME: 250,
@@ -1732,6 +1770,7 @@ const CONST = {
         TOOLTIP_SENSE: 1000,
         COMMENT_LENGTH_DEBOUNCE_TIME: 1500,
         SEARCH_OPTION_LIST_DEBOUNCE_TIME: 300,
+        ACCESSIBILITY_ANNOUNCEMENT_DEBOUNCE_TIME: 1000,
         SUGGESTION_DEBOUNCE_TIME: 100,
         RESIZE_DEBOUNCE_TIME: 100,
         UNREAD_UPDATE_DEBOUNCE_TIME: 300,
@@ -1744,6 +1783,7 @@ const CONST = {
         SHOW_HOVER_PREVIEW_DELAY: 270,
         SHOW_HOVER_PREVIEW_ANIMATION_DURATION: 250,
         ACTIVITY_INDICATOR_TIMEOUT: 10000,
+        MIN_SMOOTH_SCROLL_EVENT_THROTTLE: 16,
     },
     TELEMETRY: {
         CONTEXT_FULLSTORY: 'Fullstory',
@@ -1803,7 +1843,6 @@ const CONST = {
         SPAN_SEARCH_ROUTER_LIST_RENDER: 'SearchRouter.ListRender',
         SPAN_SEARCH_PAGE_VISIBLE: 'ManualOpenSearchRouterPageVisible',
         SPAN_OPEN_CREATE_EXPENSE: 'ManualOpenCreateExpense',
-        SPAN_SCAN_SHORTCUT: 'ScanShortcut',
         SPAN_CAMERA_INIT: 'ManualCameraInit',
         SPAN_SHUTTER_TO_CONFIRMATION: 'ManualShutterToConfirmation',
         SPAN_RECEIPT_CAPTURE: 'ManualReceiptCapture',
@@ -1815,6 +1854,7 @@ const CONST = {
         SPAN_NAVIGATE_AFTER_EXPENSE_CREATE: 'ManualCreateExpenseNavigation',
         SPAN_SUBMIT_TO_DESTINATION_VISIBLE: 'ManualSubmitToDestinationVisible',
         SPAN_EXPENSE_SERVER_RESPONSE: 'ManualCreateExpenseServerResponse',
+        SPAN_GEOLOCATION_WAIT: 'ManualGeolocationWait',
         SPAN_SEND_MESSAGE: 'ManualSendMessage',
         SPAN_NOT_FOUND_PAGE: 'ManualNotFoundPage',
         SPAN_SKELETON: 'ManualSkeleton',
@@ -2170,9 +2210,16 @@ const CONST = {
     KEYBOARD_TYPE: {
         VISIBLE_PASSWORD: 'visible-password',
         ASCII_CAPABLE: 'ascii-capable',
+        PHONE_PAD: 'phone-pad',
         NUMBER_PAD: 'number-pad',
         DECIMAL_PAD: 'decimal-pad',
         NUMBERS_AND_PUNCTUATION: 'numbers-and-punctuation',
+    },
+
+    KEYBOARD_SUBMIT_BEHAVIOR: {
+        DISMISS_THEN_SUBMIT: 'dismiss-then-submit',
+        SUBMIT_AND_DISMISS: 'submit-and-dismiss',
+        SUBMIT_ONLY: 'submit-only',
     },
 
     INPUT_MODE: {
@@ -2194,7 +2241,6 @@ const CONST = {
     YOUR_LOCATION_TEXT: 'Your Location',
 
     ATTACHMENT_MESSAGE_TEXT: '[Attachment]',
-    ATTACHMENT_REGEX: /<video |<img /,
     ATTACHMENT_SOURCE_ATTRIBUTE: 'data-expensify-source',
     ATTACHMENT_ID_ATTRIBUTE: 'data-attachment-id',
     ATTACHMENT_OPTIMISTIC_SOURCE_ATTRIBUTE: 'data-optimistic-src',
@@ -2248,6 +2294,20 @@ const CONST = {
         HEIC: 'image/heic',
     },
 
+    IMAGE_CACHE_FILE_TYPES: {
+        'image/webp': 'webp',
+        'image/png': 'png',
+        'image/apng': 'png',
+        'image/avif': 'avif',
+        'image/jpeg': 'jpg',
+        'image/jpg': 'jpg',
+        'image/gif': 'gif',
+        'image/svg+xml': 'svg',
+        'image/x-icon': 'ico',
+        'image/vnd.microsoft.icon': 'ico',
+        'image/heic': 'heic',
+    },
+
     SHARE_FILE_MIMETYPE: {
         JPG: 'image/jpg',
         JPEG: 'image/jpeg',
@@ -2257,6 +2317,7 @@ const CONST = {
         TIF: 'image/tif',
         TIFF: 'image/tiff',
         HEIC: 'image/heic',
+        HEIF: 'image/heif',
         IMG: 'image/*',
         PDF: 'application/pdf',
         MSWORD: 'application/msword',
@@ -2321,16 +2382,16 @@ const CONST = {
     },
 
     FILE_VALIDATION_ERRORS: {
+        FILE_INVALID: 'fileInvalid',
         WRONG_FILE_TYPE: 'wrongFileType',
-        WRONG_FILE_TYPE_MULTIPLE: 'wrongFileTypeMultiple',
         FILE_TOO_LARGE: 'fileTooLarge',
-        FILE_TOO_LARGE_MULTIPLE: 'fileTooLargeMultiple',
         FILE_TOO_SMALL: 'fileTooSmall',
         FILE_CORRUPTED: 'fileCorrupted',
-        FOLDER_NOT_ALLOWED: 'folderNotAllowed',
-        MAX_FILE_LIMIT_EXCEEDED: 'fileLimitExceeded',
         PROTECTED_FILE: 'protectedFile',
+        HEIC_OR_HEIF_IMAGE: 'heicOrHeifImage',
         IMAGE_DIMENSIONS_TOO_LARGE: 'imageDimensionsTooLarge',
+        FOLDER_NOT_ALLOWED: 'folderNotAllowed',
+        MAX_FILE_LIMIT_EXCEEDED: 'maxFileLimitExceeded',
     },
 
     IOS_CAMERA_ROLL_ACCESS_ERROR: 'Access to photo library was denied',
@@ -2880,11 +2941,13 @@ const CONST = {
 
     MISSING_PERSONAL_DETAILS: {
         STEP_INDEX_LIST: ['1', '2', '3', '4'],
+        STEP_INDEX_LIST_WITH_PIN: ['1', '2', '3', '4', '5'],
         PAGE_NAME: {
             LEGAL_NAME: 'legal-name',
             DATE_OF_BIRTH: 'date-of-birth',
             ADDRESS: 'address',
             PHONE_NUMBER: 'phone-number',
+            PIN: 'pin',
             CONFIRM: 'confirm',
         },
     },
@@ -2903,6 +2966,14 @@ const CONST = {
             ADDRESS: 2,
             PHONE_NUMBER: 3,
             CONFIRM: 4,
+        },
+        MAPPING_WITH_PIN: {
+            LEGAL_NAME: 0,
+            DATE_OF_BIRTH: 1,
+            ADDRESS: 2,
+            PHONE_NUMBER: 3,
+            PIN: 4,
+            CONFIRM: 5,
         },
         INDEX_LIST: ['1', '2', '3', '4'],
     },
@@ -3751,8 +3822,6 @@ const CONST = {
         LIMIT_VALUE: 21474836,
         STEP_NAMES: ['1', '2', '3', '4', '5'],
         ASSIGNEE_EXCLUDED_STEP_NAMES: ['1', '2', '3', '4'],
-        SINGLE_USE_DISABLED_STEP_NAMES: ['1', '2', '3', '4'],
-        SINGLE_USE_AND_ASSIGNEE_EXCLUDED_STEP_NAMES: ['1', '2', '3'],
         STEP: {
             ASSIGNEE: 'Assignee',
             CARD_TYPE: 'CardType',
@@ -3776,6 +3845,42 @@ const CONST = {
             DAMAGED: 'damaged',
         },
         MANAGE_EXPENSIFY_CARDS_ARTICLE_LINK: 'https://help.expensify.com/articles/new-expensify/expensify-card/Manage-Expensify-Cards',
+        PIN: {
+            LENGTH: 4,
+            INVALID_PINS: [
+                '0000',
+                '1111',
+                '2222',
+                '3333',
+                '4444',
+                '5555',
+                '6666',
+                '7777',
+                '8888',
+                '9999',
+                '1234',
+                '2345',
+                '3456',
+                '4567',
+                '5678',
+                '6789',
+                '7890',
+                '0123',
+                '0987',
+                '9876',
+                '8765',
+                '7654',
+                '6543',
+                '5432',
+                '4321',
+                '3210',
+                '1212',
+                '1004',
+                '6969',
+                '2000',
+                '2015',
+            ],
+        },
     },
     PERSONAL_CARDS: {
         FEED_KEY_SEPARATOR: '#',
@@ -4148,15 +4253,25 @@ const CONST = {
         NON_NUMERIC: /\D/g,
         ANY_SPACE: /\s/g,
 
-        // Extract attachment's source from the data's html string
-        ATTACHMENT_DATA: /(data-expensify-source|data-name)="([^"]+)"/g,
-
         EMOJI_NAME: /(?<=^|[\s\S]):[\p{L}0-9_+-]+:/gu,
         EMOJI_SUGGESTIONS: /(?<=^|[\s\S]):[\p{L}0-9_+-]{1,40}$/u,
         AFTER_FIRST_LINE_BREAK: /\n.*/g,
         LINE_BREAK: /\r\n|\r|\n|\u2028/g,
         CODE_2FA: /^\d{6}$/,
-        ATTACHMENT_ID: /chat-attachments\/(\d+)/,
+
+        ATTACHMENT: {
+            // Match any attachment tag inside the markdown text i.e only: <img or <video
+            ATTACHMENT_REGEX: /<video |<img /g,
+            // Extract all attachments including all atributes and values from markdown text
+            ATTACHMENT: /<(img|video)[^>]*>/gi,
+            // Retrieve the attachment id value from data-attachment-id attribute
+            ATTACHMENT_ID: /data-attachment-id=(["'])(.*?)\1/,
+            // Retrive attachment source id from attachment source url link
+            ATTACHMENT_SOURCE_ID: /chat-attachments\/(\d+)/,
+            // Retrieve attachment source either local or remote
+            ATTACHMENT_SOURCE: /(src|data-expensify-source|data-optimistic-src)="([^"]+)"/i,
+        },
+
         HAS_COLON_ONLY_AT_THE_BEGINNING: /^:[^:]+$/,
         HAS_AT_MOST_TWO_AT_SIGNS: /^@[^@]*@?[^@]*$/,
         EMPTY_COMMENT: /^(\s)*$/,
@@ -5815,6 +5930,8 @@ const CONST = {
         LINK: 'link',
         /** Use to identify a list of items. */
         LIST: 'list',
+        /** Use for a list of selectable options (single or multi-select). */
+        LISTBOX: 'listbox',
         /** Use for individual items within a list. */
         LISTITEM: 'listitem',
         /** Use for a list of choices or options. */
@@ -5823,6 +5940,8 @@ const CONST = {
         MENUBAR: 'menubar',
         /** Use for items within a menu. */
         MENUITEM: 'menuitem',
+        /** Use for selectable options within a listbox. */
+        OPTION: 'option',
         /** Use when no specific role is needed. */
         NONE: 'none',
         /** Use for elements that don't require a specific role. */
@@ -5892,6 +6011,8 @@ const CONST = {
         ENABLED: 'ENABLED',
         DISABLED: 'DISABLED',
         DISABLE: 'DISABLE',
+        REPLACE_VERIFY_OLD: 'REPLACE_VERIFY_OLD',
+        REPLACE_VERIFY_NEW: 'REPLACE_VERIFY_NEW',
     },
     MERGE_ACCOUNT_RESULTS: {
         SUCCESS: 'success',
@@ -5984,6 +6105,7 @@ const CONST = {
 
             /** These action types are custom for RootNavigator */
             DISMISS_MODAL: 'DISMISS_MODAL',
+            REPLACE_FULLSCREEN_UNDER_RHP: 'REPLACE_FULLSCREEN_UNDER_RHP',
             OPEN_WORKSPACE_SPLIT: 'OPEN_WORKSPACE_SPLIT',
             OPEN_DOMAIN_SPLIT: 'OPEN_DOMAIN_SPLIT',
             SET_HISTORY_PARAM: 'SET_HISTORY_PARAM',
@@ -6238,10 +6360,6 @@ const CONST = {
     REPORT_VIOLATIONS: {
         FIELD_REQUIRED: 'fieldRequired',
         RBR_MESSAGE_MAX_CHARACTERS_FOR_PREVIEW: 40,
-    },
-
-    REPORT_VIOLATIONS_EXCLUDED_FIELDS: {
-        TEXT_TITLE: 'text_title',
     },
 
     /** Context menu types */
@@ -7064,6 +7182,10 @@ const CONST = {
         BOOK_MEETING_LINK: 'https://calendly.com/d/cqsm-2gm-fxr/expensify-product-team',
     },
 
+    CACHE_API_KEYS: {
+        ATTACHMENTS: 'attachments',
+    },
+
     SESSION_STORAGE_KEYS: {
         INITIAL_URL: 'INITIAL_URL',
         ACTIVE_WORKSPACE_ID: 'ACTIVE_WORKSPACE_ID',
@@ -7229,6 +7351,7 @@ const CONST = {
                 EXPENSE: {
                     RECEIPT: this.TABLE_COLUMNS.RECEIPT,
                     DATE: this.TABLE_COLUMNS.DATE,
+                    STATUS: this.TABLE_COLUMNS.STATUS,
                     SUBMITTED: this.TABLE_COLUMNS.SUBMITTED,
                     APPROVED: this.TABLE_COLUMNS.APPROVED,
                     POSTED: this.TABLE_COLUMNS.POSTED,
@@ -7249,7 +7372,6 @@ const CONST = {
                     BILLABLE: this.TABLE_COLUMNS.BILLABLE,
                     TAX_RATE: this.TABLE_COLUMNS.TAX_RATE,
                     TAX_AMOUNT: this.TABLE_COLUMNS.TAX_AMOUNT,
-                    STATUS: this.TABLE_COLUMNS.STATUS,
                     TITLE: this.TABLE_COLUMNS.TITLE,
                     AMOUNT: this.TABLE_COLUMNS.TOTAL_AMOUNT,
                     EXPORTED_TO: this.TABLE_COLUMNS.EXPORTED_TO,
@@ -7360,13 +7482,12 @@ const CONST = {
                 EXPENSE: [
                     this.TABLE_COLUMNS.RECEIPT,
                     this.TABLE_COLUMNS.DATE,
+                    this.TABLE_COLUMNS.STATUS,
                     this.TABLE_COLUMNS.MERCHANT,
                     this.TABLE_COLUMNS.FROM,
-                    this.TABLE_COLUMNS.TO,
                     this.TABLE_COLUMNS.CATEGORY,
                     this.TABLE_COLUMNS.TAG,
                     this.TABLE_COLUMNS.TOTAL_AMOUNT,
-                    this.TABLE_COLUMNS.ACTION,
                 ],
                 EXPENSE_REPORT: [
                     this.TABLE_COLUMNS.DATE,
@@ -7715,6 +7836,11 @@ const CONST = {
             ON: 'On',
             AFTER: 'After',
             BEFORE: 'Before',
+        },
+        DATE_FILTER_SUB_PAGE: {
+            ON: 'on',
+            AFTER: 'after',
+            BEFORE: 'before',
         },
         AMOUNT_MODIFIERS: {
             LESS_THAN: 'LessThan',
@@ -8069,7 +8195,7 @@ const CONST = {
         CUSTOM_FIELD_1: 'customField1',
         CUSTOM_FIELD_2: 'customField2',
         ROLE: 'role',
-        REPORT_THRESHHOLD: 'reportThreshold',
+        REPORT_THRESHOLD: 'reportThreshold',
         APPROVE_TO_ALTERNATE: 'approveToAlternate',
         SUBRATE: 'subRate',
         AMOUNT: 'amount',
@@ -8404,6 +8530,9 @@ const CONST = {
             CAPTURE_IMAGE_START: 'IOURequestStepDistanceOdometer-CaptureStartImage',
             CAPTURE_IMAGE_END: 'IOURequestStepDistanceOdometer-CaptureEndImage',
         },
+        OPTION_CARD_PICKER: {
+            OPTION_ITEM: 'OptionCardPicker-OptionItem',
+        },
         ATTACHMENT_CAROUSEL: {
             PREVIOUS_BUTTON: 'AttachmentCarousel-PreviousButton',
             NEXT_BUTTON: 'AttachmentCarousel-NextButton',
@@ -8514,6 +8643,7 @@ const CONST = {
             GROUP_EXPAND_TOGGLE: 'Search-GroupExpandToggle',
             GROUP_SELECT_ALL_CHECKBOX: 'Search-GroupSelectAllCheckbox',
             SORTABLE_HEADER: 'Search-SortableHeader',
+            UNREPORTED_EXPENSE_LIST_ITEM: 'UnreportedExpenseListItem',
         },
         REPORT: {
             FLOATING_MESSAGE_COUNTER: 'Report-FloatingMessageCounter',
@@ -8621,6 +8751,7 @@ const CONST = {
             ADD_EXPENSE_UNREPORTED: 'MoreMenu-AddExpenseUnreported',
             PAY: 'MoreMenu-Pay',
             DUPLICATE_REPORT: 'MoreMenu-DuplicateReport',
+            MOVE_EXPENSE: 'MoreMenu-MoveExpense',
         },
         REPORT_PREVIEW: {
             CARD: 'ReportPreview-Card',
@@ -8658,6 +8789,9 @@ const CONST = {
         },
         TRANSACTION_PREVIEW: {
             CARD: 'TransactionPreview-Card',
+        },
+        TRIP_ROOM_PREVIEW: {
+            CARD: 'TripRoomPreview-Card',
         },
         TRANSACTION_ITEM_ROW: {
             ARROW_RIGHT: 'TransactionItemRow-ArrowRight',
@@ -8820,6 +8954,7 @@ const CONST = {
             DUPLICATE_SELECT_FEATURES_SELECT_ALL: 'WorkspaceDuplicate-SelectFeaturesSelectAll',
             WORKSPACE_MENU_ITEM: 'Workspace-WorkspaceMenuItem',
             INVITE_MESSAGE_PRIVACY_LINK: 'WorkspaceInviteMessage-PrivacyLink',
+            IMPORTED_MEMBERS_CONFIRMATION_PRIVACY_LINK: 'ImportedMembersConfirmation-PrivacyLink',
             COMPANY_CARDS: {
                 TABLE_ITEM: 'Workspace-CompanyCards-TableItem',
                 MORE_DROPDOWN: 'WorkspaceCompanyCards-MoreDropdown',
@@ -9187,6 +9322,10 @@ const CONST = {
     SECTION_LIST_ITEM_TYPE: {
         HEADER: 'header',
         ROW: 'row',
+    },
+
+    CACHE_NAME: {
+        AUTH_IMAGES: 'auth-images',
     },
 } as const;
 

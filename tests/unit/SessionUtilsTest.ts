@@ -1,4 +1,4 @@
-import {checkIfShouldUseNewPartnerName} from '@src/libs/SessionUtils';
+import {checkIfShouldUseNewPartnerName, isLoggingInAsDelegate} from '@src/libs/SessionUtils';
 
 function mockHybridAppConfig(isHybridApp: boolean): () => void {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
@@ -49,6 +49,24 @@ describe('SessionUtils', () => {
             ['should be case sensitive for expensify.cash- prefix when in HybridApp', true, 'EXPENSIFY.CASH-12345', false],
         ])('%s', (description, isHybridApp, partnerUserID, expectedResult) => {
             testPartnerNameBehavior(isHybridApp, partnerUserID, expectedResult);
+        });
+    });
+
+    describe('isLoggingInAsDelegate', () => {
+        test.each([
+            ['should return false when transitionURL is undefined', undefined, false],
+            ['should return false when transitionURL is empty', '', false],
+            ['should return false when delegatorEmail is absent', '?email=user@example.com', false],
+            ['should return false when delegatorEmail has empty value (query string)', '?delegatorEmail=', false],
+            ['should return true when delegatorEmail is present in query string', '?delegatorEmail=delegate@example.com', true],
+            ['should return true when delegatorEmail is a subsequent param', '?email=user@example.com&delegatorEmail=delegate@example.com', true],
+            ['should return true for full URL where URLSearchParams mangles the first param key', 'https://example.com?delegatorEmail=delegate@example.com', true],
+            ['should return true for full URL with delegatorEmail as second param', 'https://example.com?email=user@example.com&delegatorEmail=delegate@example.com', true],
+            ['should return false for full URL without delegatorEmail', 'https://example.com?email=user@example.com', false],
+            ['should return false when param name is similar but not exact', '?delegateEmail=delegate@example.com', false],
+            ['should return true when delegatorEmail value contains encoded characters', '?delegatorEmail=user%40example.com', true],
+        ])('%s', (_description, transitionURL, expectedResult) => {
+            expect(isLoggingInAsDelegate(transitionURL)).toBe(expectedResult);
         });
     });
 });

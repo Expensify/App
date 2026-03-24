@@ -1,5 +1,5 @@
 import type {RefObject} from 'react';
-import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {KYCWallRef} from '@components/KYCWall/types';
@@ -18,6 +18,7 @@ import * as CardUtils from '@libs/CardUtils';
 import GoogleTagManager from '@libs/GoogleTagManager';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
+import {isPolicyUser} from '@libs/PolicyUtils';
 import {getCardForSubscriptionBilling} from '@libs/SubscriptionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -25,7 +26,9 @@ import type {Route} from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/AddPaymentCardForm';
 import type {BankAccountList, CardList, FundList} from '@src/types/onyx';
 import type PaymentMethod from '@src/types/onyx/PaymentMethod';
+import type Policy from '@src/types/onyx/Policy';
 import type {OnyxData} from '@src/types/onyx/Request';
+import type Session from '@src/types/onyx/Session';
 import type {FilterMethodPaymentType} from '@src/types/onyx/WalletTransfer';
 
 /**
@@ -409,13 +412,33 @@ function dismissSuccessfulTransferBalancePage() {
 }
 
 /**
- * Looks through each payment method to see if there is an existing error
- *
+ * Looks through each payment method to see if there is an existing error.
+ * When session and policies are provided, card list errors are only counted if the current user
+ * is a member of that card's workspace (for company cards) or always counted for personal cards.
+ * Only cards with non-empty errors are considered (error cards).
  */
-function hasPaymentMethodError(bankList: OnyxEntry<BankAccountList>, fundList: OnyxEntry<FundList>, cardList: OnyxEntry<CardList>): boolean {
-    const combinedPaymentMethods = {...bankList, ...fundList, ...cardList};
+function hasPaymentMethodError(
+    bankList: OnyxEntry<BankAccountList>,
+    fundList: OnyxEntry<FundList>,
+    cardList: OnyxEntry<CardList>,
+    session?: OnyxEntry<Session>,
+    policies?: OnyxCollection<Policy>,
+): boolean {
+    const hasBankOrFundError = Object.values({...(bankList ?? {}), ...(fundList ?? {})}).some((item) => Object.keys(item?.errors ?? {}).length > 0);
+    const currentUserLogin = session?.email;
+    const cardsWithErrors = Object.values(cardList ?? {}).filter((card) => Object.keys(card?.errors ?? {}).length > 0);
 
-    return Object.values(combinedPaymentMethods).some((item) => Object.keys(item.errors ?? {}).length);
+    const policyList = Object.values(policies ?? {}).filter(Boolean);
+    const hasRelevantCardError = cardsWithErrors.some((card) => {
+        if (CardUtils.isPersonalCard(card)) {
+            return true;
+        }
+        const workspaceAccountID = Number(card?.fundID);
+        const policy = policyList.find((p) => p?.workspaceAccountID === workspaceAccountID);
+        return !!policy && isPolicyUser(policy, currentUserLogin);
+    });
+    // If there is card with errors, we should display the RBR if user is a member of the workspace.
+    return hasRelevantCardError || hasBankOrFundError;
 }
 
 type PaymentListKey =
