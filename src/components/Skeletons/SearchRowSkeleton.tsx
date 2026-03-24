@@ -4,6 +4,7 @@ import {View} from 'react-native';
 import {Circle} from 'react-native-svg';
 import SkeletonRect from '@components/SkeletonRect';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
@@ -18,6 +19,7 @@ type SearchRowSkeletonProps = {
     gradientOpacityEnabled?: boolean;
     containerStyle?: StyleProp<ViewStyle>;
     reasonAttributes: SkeletonSpanReasonAttributes;
+    isLoadMore?: boolean;
 };
 
 const barHeight = 8;
@@ -36,7 +38,8 @@ const centralPanePadding = 40;
 // 80 is the width of the button on the right side
 const rightButtonWidth = 80;
 
-function SearchRowSkeleton({shouldAnimate = true, fixedNumItems, gradientOpacityEnabled = false, containerStyle, reasonAttributes}: SearchRowSkeletonProps) {
+function SearchRowSkeleton({shouldAnimate = true, fixedNumItems, gradientOpacityEnabled = false, containerStyle, reasonAttributes, isLoadMore = false}: SearchRowSkeletonProps) {
+    const theme = useTheme();
     const styles = useThemeStyles();
     const {windowWidth} = useWindowDimensions();
     const {shouldUseNarrowLayout, isLargeScreenWidth} = useResponsiveLayout();
@@ -116,62 +119,77 @@ function SearchRowSkeleton({shouldAnimate = true, fixedNumItems, gradientOpacity
 
     return (
         <View style={[styles.flex1, containerStyle]}>
-            <ItemListSkeletonView
-                shouldAnimate={shouldAnimate}
-                fixedNumItems={fixedNumItems}
-                gradientOpacityEnabled={gradientOpacityEnabled}
-                itemViewStyle={[styles.highlightBG, styles.mb2, styles.br3, styles.ml5]}
-                renderSkeletonItem={() => (
-                    <>
-                        <SkeletonRect
-                            transform={[{translateX: 12}, {translateY: 12}]}
-                            borderRadius={5}
-                            width={36}
-                            height={40}
-                        />
-                        <SkeletonRect
-                            transform={[{translateX: 60}, {translateY: 28}]}
-                            width={30}
-                            height={barHeight}
-                        />
-                        <SkeletonRect
-                            transform={[{translateX: 102}, {translateY: 28}]}
-                            width={longBarWidth}
-                            height={barHeight}
-                        />
-                        {isLargeScreenWidth && (
-                            <>
-                                <SkeletonRect
-                                    transform={[{translateX: 234}, {translateY: 28}]}
-                                    width={longBarWidth}
-                                    height={barHeight}
-                                />
+            <View
+                style={[
+                    styles.mh5,
+                    styles.overflowHidden,
+                    {
+                        borderBottomLeftRadius: variables.componentBorderRadius,
+                        borderBottomRightRadius: variables.componentBorderRadius,
+                        ...(isLoadMore ? {} : {borderTopLeftRadius: variables.componentBorderRadius, borderTopRightRadius: variables.componentBorderRadius}),
+                    },
+                ]}
+            >
+                <ItemListSkeletonView
+                    shouldAnimate={shouldAnimate}
+                    fixedNumItems={fixedNumItems}
+                    gradientOpacityEnabled={gradientOpacityEnabled}
+                    itemViewStyle={[styles.highlightBG, {marginRight: 0}]}
+                    itemContainerStyle={{borderBottomWidth: 1, borderColor: theme.border}}
+                    itemViewHeight={variables.tableRowHeight}
+                    renderSkeletonItem={() => (
+                        <>
+                            <SkeletonRect
+                                transform={[{translateX: 12}, {translateY: 10}]}
+                                borderRadius={variables.componentBorderRadiusSmall}
+                                width={variables.w28}
+                                height={variables.h32}
+                            />
+                            <SkeletonRect
+                                transform={[{translateX: 52}, {translateY: 22}]}
+                                width={30}
+                                height={barHeight}
+                            />
+                            <SkeletonRect
+                                transform={[{translateX: 94}, {translateY: 22}]}
+                                width={longBarWidth}
+                                height={barHeight}
+                            />
+                            {isLargeScreenWidth && (
+                                <>
+                                    <SkeletonRect
+                                        transform={[{translateX: 226}, {translateY: 22}]}
+                                        width={longBarWidth}
+                                        height={barHeight}
+                                    />
 
-                                <SkeletonRect
-                                    transform={[{translateX: 366}, {translateY: 28}]}
-                                    width={60}
-                                    height={barHeight}
-                                />
-                            </>
-                        )}
+                                    <SkeletonRect
+                                        transform={[{translateX: 358}, {translateY: 22}]}
+                                        width={60}
+                                        height={barHeight}
+                                    />
+                                </>
+                            )}
 
-                        <SkeletonRect
-                            // We have to calculate this value to make sure the element is aligned to the button on the right side.
-                            transform={[{translateX: windowWidth - leftPaneWidth - rightButtonWidth - gapWidth - centralPanePadding - gapWidth - rightSideElementWidth}, {translateY: 28}]}
-                            width={80}
-                            height={barHeight}
-                        />
+                            <SkeletonRect
+                                transform={[
+                                    {translateX: windowWidth - leftPaneWidth - rightButtonWidth - gapWidth - centralPanePadding - gapWidth - rightSideElementWidth},
+                                    {translateY: 22},
+                                ]}
+                                width={80}
+                                height={barHeight}
+                            />
 
-                        <SkeletonRect
-                            // We have to calculate this value to make sure the element is aligned to the right border.
-                            transform={[{translateX: windowWidth - leftPaneWidth - rightSideElementWidth - gapWidth - centralPanePadding}, {translateY: 18}]}
-                            borderRadius={15}
-                            width={80}
-                            height={28}
-                        />
-                    </>
-                )}
-            />
+                            <SkeletonRect
+                                transform={[{translateX: windowWidth - leftPaneWidth - rightSideElementWidth - gapWidth - centralPanePadding}, {translateY: 12}]}
+                                borderRadius={15}
+                                width={80}
+                                height={28}
+                            />
+                        </>
+                    )}
+                />
+            </View>
         </View>
     );
 }

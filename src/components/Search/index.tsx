@@ -433,7 +433,7 @@ function Search({
                 (hasErrors && searchRequestResponseStatusCode === null) ||
                 isCardFeedsLoading));
 
-    const shouldShowLoadingMoreItems = !shouldShowLoadingState && searchResults?.search?.isLoading && searchResults?.search?.offset > 0;
+    const shouldShowLoadingMoreItems = true;
 
     const loadMoreSkeletonReasonAttributes = useMemo<SkeletonSpanReasonAttributes>(
         () => ({
@@ -1475,6 +1475,7 @@ function Search({
                             <SearchRowSkeleton
                                 shouldAnimate
                                 fixedNumItems={5}
+                                isLoadMore
                                 reasonAttributes={loadMoreSkeletonReasonAttributes}
                             />
                         ) : undefined
