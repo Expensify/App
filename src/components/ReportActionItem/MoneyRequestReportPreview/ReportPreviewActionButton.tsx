@@ -145,6 +145,7 @@ function ReportPreviewActionButton({
                     isApprovedAnimationRunning={isApprovedAnimationRunning}
                     stopAnimation={stopAnimation}
                     startAnimation={startAnimation}
+                    startApprovedAnimation={startApprovedAnimation}
                     onPaymentOptionsShow={onPaymentOptionsShow}
                     onPaymentOptionsHide={onPaymentOptionsHide}
                     onHoldMenuOpen={onHoldMenuOpen}

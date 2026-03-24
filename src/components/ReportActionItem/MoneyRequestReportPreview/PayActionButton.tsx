@@ -15,8 +15,14 @@ import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import {getTotalAmountForIOUReportPreviewButton} from '@libs/MoneyRequestReportUtils';
 import {hasDynamicExternalWorkflow} from '@libs/PolicyUtils';
-import {getReportTransactions, hasHeldExpenses as hasHeldExpensesReportUtils, hasUpdatedTotal, isInvoiceReport as isInvoiceReportUtils} from '@libs/ReportUtils';
-import {canIOUBePaid as canIOUBePaidIOUActions, payInvoice, payMoneyRequest} from '@userActions/IOU';
+import {
+    getReportTransactions,
+    hasHeldExpenses as hasHeldExpensesReportUtils,
+    hasUpdatedTotal,
+    hasViolations as hasViolationsReportUtils,
+    isInvoiceReport as isInvoiceReportUtils,
+} from '@libs/ReportUtils';
+import {approveMoneyRequest, canIOUBePaid as canIOUBePaidIOUActions, payInvoice, payMoneyRequest} from '@userActions/IOU';
 import {openOldDotLink} from '@userActions/Link';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -30,6 +36,7 @@ type PayActionButtonProps = {
     isApprovedAnimationRunning: boolean;
     stopAnimation: () => void;
     startAnimation: () => void;
+    startApprovedAnimation: () => void;
     onPaymentOptionsShow?: () => void;
     onPaymentOptionsHide?: () => void;
     onHoldMenuOpen: (requestType: string, paymentType?: PaymentMethodType, canPay?: boolean) => void;
@@ -44,6 +51,7 @@ function PayActionButton({
     isApprovedAnimationRunning,
     stopAnimation,
     startAnimation,
+    startApprovedAnimation,
     onPaymentOptionsShow,
     onPaymentOptionsHide,
     onHoldMenuOpen,
@@ -79,9 +87,13 @@ function PayActionButton({
 
     const transactions = getReportTransactions(iouReportID).filter((t) => isOffline || t.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
 
+    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
+
     const isDEWBetaEnabled = isBetaEnabled(CONST.BETAS.NEW_DOT_DEW);
+    const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const existingB2BInvoiceReport = useParticipantsInvoiceReport(activePolicyID, CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS, chatReport?.policyID);
     const canAllowSettlement = hasUpdatedTotal(iouReport, policy);
+    const hasViolations = hasViolationsReportUtils(iouReport?.reportID, transactionViolations, currentUserAccountID, currentUserEmail);
 
     const canIOUBePaid = canIOUBePaidIOUActions(iouReport, chatReport, policy, bankAccountList, transactions, false, undefined, invoiceReceiverPolicy);
     const onlyShowPayElsewhere = !canIOUBePaid && canIOUBePaidIOUActions(iouReport, chatReport, policy, bankAccountList, transactions, true, undefined, invoiceReceiverPolicy);
@@ -93,20 +105,41 @@ function PayActionButton({
     const formattedAmount = getTotalAmountForIOUReportPreviewButton(iouReport, policy, reportPreviewAction);
 
     const confirmApproval = () => {
-        if (!hasDynamicExternalWorkflow(policy) || isDEWBetaEnabled) {
+        if (hasDynamicExternalWorkflow(policy) && !isDEWBetaEnabled) {
+            showConfirmModal({
+                title: translate('customApprovalWorkflow.title'),
+                prompt: translate('customApprovalWorkflow.description'),
+                confirmText: translate('customApprovalWorkflow.goToExpensifyClassic'),
+                shouldShowCancelButton: false,
+            }).then((result) => {
+                if (result.action !== ModalActions.CONFIRM) {
+                    return;
+                }
+                openOldDotLink(CONST.OLDDOT_URLS.INBOX);
+            });
             return;
         }
-        showConfirmModal({
-            title: translate('customApprovalWorkflow.title'),
-            prompt: translate('customApprovalWorkflow.description'),
-            confirmText: translate('customApprovalWorkflow.goToExpensifyClassic'),
-            shouldShowCancelButton: false,
-        }).then((result) => {
-            if (result.action !== ModalActions.CONFIRM) {
-                return;
-            }
-            openOldDotLink(CONST.OLDDOT_URLS.INBOX);
-        });
+        if (isDelegateAccessRestricted) {
+            showDelegateNoAccessModal();
+        } else if (hasHeldExpensesReportUtils(iouReport?.reportID)) {
+            onHoldMenuOpen(CONST.IOU.REPORT_ACTION_TYPE.APPROVE, undefined, shouldShowPayButton);
+        } else {
+            approveMoneyRequest({
+                expenseReport: iouReport,
+                policy: activePolicy,
+                currentUserAccountIDParam: currentUserAccountID,
+                currentUserEmailParam: currentUserEmail,
+                hasViolations,
+                isASAPSubmitBetaEnabled,
+                expenseReportCurrentNextStepDeprecated: iouReportNextStep,
+                betas,
+                userBillingGraceEndPeriods,
+                amountOwed,
+                ownerBillingGraceEndPeriod,
+                full: true,
+                onApproved: startApprovedAnimation,
+            });
+        }
     };
 
     const confirmPayment = ({paymentType: type, payAsBusiness, methodID, paymentMethod}: PaymentActionParams) => {
