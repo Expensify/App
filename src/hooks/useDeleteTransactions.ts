@@ -1,10 +1,12 @@
 import {useCallback} from 'react';
 import type {OnyxCollection} from 'react-native-onyx';
+import {useSearchStateContext} from '@components/Search/SearchContext';
 import {deleteMoneyRequest, getIOURequestPolicyID} from '@libs/actions/IOU';
 import {getIOUActionForTransactions} from '@libs/actions/IOU/Duplicate';
 import {initSplitExpenseItemData, updateSplitTransactions} from '@libs/actions/IOU/Split';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
+import {getActiveGroupSearchHashes} from '@libs/SearchUIUtils';
 import {getChildTransactions, getOriginalTransactionWithSplitInfo} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -28,6 +30,7 @@ type UseDeleteTransactionsParams = {
  * All data must be provided through function parameters
  */
 function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransactionsParams) {
+    const {currentSearchResults, currentSearchQueryJSON} = useSearchStateContext();
     const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getNonEmptyStringOnyxID(report?.policyID)}`);
@@ -138,6 +141,8 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
                 const parentTransactionReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`];
                 const expenseReport = report?.type === CONST.REPORT.TYPE.EXPENSE ? report : parentTransactionReport;
                 const policyTags = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${expenseReport?.policyID}`] ?? {};
+                const activeGroupSearchHashes =
+                    currentSearchHash !== undefined && currentSearchHash >= 0 ? getActiveGroupSearchHashes(currentSearchResults?.data, currentSearchQueryJSON) : [];
 
                 updateSplitTransactions({
                     allTransactionsList: allTransactions,
@@ -151,6 +156,7 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
                     },
                     searchContext: {
                         currentSearchHash,
+                        activeGroupSearchHashes,
                     },
                     policyCategories,
                     policy,
@@ -210,6 +216,8 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
             allTransactions,
             archivedReportsIdSet,
             currentUserPersonalDetails,
+            currentSearchQueryJSON,
+            currentSearchResults?.data,
             iouReportNextStep,
             isBetaEnabled,
             policy,

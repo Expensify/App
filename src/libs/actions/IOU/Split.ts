@@ -106,7 +106,7 @@ type UpdateSplitTransactionsParams = {
         splitExpenses: SplitExpense[];
         splitExpensesTotal?: number;
     };
-    searchContext?: Partial<SearchStateContextValue & SearchActionsContextValue>;
+    searchContext?: (Partial<SearchStateContextValue & SearchActionsContextValue> & {activeGroupSearchHashes?: number[]}) | undefined;
     policyCategories: OnyxTypes.PolicyCategories | undefined;
     policy: OnyxTypes.Policy | undefined;
     policyRecentlyUsedCategories: OnyxTypes.RecentlyUsedCategories | undefined;
@@ -1437,27 +1437,26 @@ function updateSplitTransactions({
         if (deletedSplitSnapshotKeys.length > 0) {
             const snapshotKeysToUpdate = new Set<`${typeof ONYXKEYS.COLLECTION.SNAPSHOT}${string}`>();
             const currentSearchHash = searchContext?.currentSearchHash;
+            const activeGroupSearchHashes = searchContext?.activeGroupSearchHashes ?? [];
 
             if (currentSearchHash !== undefined && currentSearchHash >= 0) {
-                const currentSearchSnapshotKey = `${ONYXKEYS.COLLECTION.SNAPSHOT}${currentSearchHash}` as const;
+                snapshotKeysToUpdate.add(`${ONYXKEYS.COLLECTION.SNAPSHOT}${currentSearchHash}` as const);
+            }
 
-                if (allSnapshots?.[currentSearchSnapshotKey]) {
-                    snapshotKeysToUpdate.add(currentSearchSnapshotKey);
+            for (const searchHash of activeGroupSearchHashes) {
+                if (searchHash >= 0) {
+                    snapshotKeysToUpdate.add(`${ONYXKEYS.COLLECTION.SNAPSHOT}${searchHash}` as const);
                 }
             }
 
-            for (const [snapshotKey, snapshot] of Object.entries(allSnapshots ?? {})) {
+            const relevantSnapshotKeys = Array.from(snapshotKeysToUpdate).filter((snapshotKey) => {
+                const snapshot = allSnapshots?.[snapshotKey];
                 if (!snapshot?.data) {
-                    continue;
+                    return false;
                 }
 
-                const doesSnapshotContainDeletedSplit = deletedSplitSnapshotKeys.some((deletedSplitSnapshotKey) => Object.hasOwn(snapshot.data, deletedSplitSnapshotKey));
-                if (!doesSnapshotContainDeletedSplit) {
-                    continue;
-                }
-
-                snapshotKeysToUpdate.add(snapshotKey as `${typeof ONYXKEYS.COLLECTION.SNAPSHOT}${string}`);
-            }
+                return deletedSplitSnapshotKeys.some((deletedSplitSnapshotKey) => Object.hasOwn(snapshot.data, deletedSplitSnapshotKey));
+            });
 
             const originalSnapshotTransactionKey = `${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}` as const;
             const revertedOriginalTransactionUpdate = [...(onyxData.optimisticData ?? [])].reverse().find((update) => {
@@ -1465,7 +1464,7 @@ function updateSplitTransactions({
             });
             const revertedOriginalTransaction = revertedOriginalTransactionUpdate?.value as OnyxTypes.Transaction | undefined;
 
-            for (const snapshotKey of snapshotKeysToUpdate) {
+            for (const snapshotKey of relevantSnapshotKeys) {
                 const previousSnapshotData = allSnapshots?.[snapshotKey]?.data;
                 const optimisticSnapshotData: Partial<Record<`${typeof ONYXKEYS.COLLECTION.TRANSACTION}${string}`, OnyxTypes.Transaction | null>> = {};
                 const failureSnapshotData: Partial<Record<`${typeof ONYXKEYS.COLLECTION.TRANSACTION}${string}`, OnyxTypes.Transaction | null>> = {};
