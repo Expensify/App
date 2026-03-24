@@ -349,7 +349,7 @@ const getOnboardingMessages = (locale?: Locale) => {
             width: 1280,
             height: 960,
         },
-        tasks: [createWorkspaceTask, testDriveAdminTask, createReportTask, setupCategoriesTask, inviteAccountantTask, reviewWorkspaceSettingsTask],
+        tasks: [createWorkspaceTask, testDriveAdminTask, createReportTask, setupCategoriesTask],
     };
 
     const onboardingChatSplitMessage: OnboardingMessage = {
