@@ -1376,7 +1376,7 @@ function changeTransactionsReport({
         const baseTransactionData = {
             movedReportActionID: movedAction.reportActionID,
             moneyRequestPreviewReportActionID: newIOUAction.reportActionID,
-            ...(oldIOUAction && !oldIOUAction.childReportID
+            ...(transactionThreadCreatedReportActionID
                 ? {
                       transactionThreadReportID,
                       transactionThreadCreatedReportActionID,
