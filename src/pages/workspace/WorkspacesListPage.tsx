@@ -70,6 +70,7 @@ import shouldRenderTransferOwnerButton from '@libs/shouldRenderTransferOwnerButt
 import {isSubscriptionTypeOfInvoicing, shouldCalculateBillNewDot as shouldCalculateBillNewDotFn} from '@libs/SubscriptionUtils';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import type {AvatarSource} from '@libs/UserAvatarUtils';
+import variables from '@styles/variables';
 import {setNameValuePair} from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -86,11 +87,12 @@ import WorkspacesListPageHeaderButton from './WorkspacesListPageHeaderButton';
 import WorkspacesListRow from './WorkspacesListRow';
 
 // Fallback estimated heights (in px) for a workspace row in wide and narrow layouts.
-// Wide: avatar (40) + vertical padding (40) + bottom margin (8) ≈ 88px
-// Narrow: avatar (40) + vertical padding (40) + internal margin (12) + bottom margin (8) ≈ 100px
+// Derived from style constants: avatar + vertical padding (styles.p5 top + bottom) + margins.
 // Used to calculate initialNumToRender when no measured height is available yet.
-const ESTIMATED_ITEM_HEIGHT_WIDE = 88;
-const ESTIMATED_ITEM_HEIGHT_NARROW = 100;
+const WORKSPACE_ROW_PADDING = 20; // styles.p5 padding per side
+const WORKSPACE_ROW_NARROW_MARGIN = 12; // styles.mb3 internal margin in narrow layout
+const ESTIMATED_ITEM_HEIGHT_WIDE = variables.avatarSizeNormal + WORKSPACE_ROW_PADDING * 2 + variables.spacing2;
+const ESTIMATED_ITEM_HEIGHT_NARROW = variables.avatarSizeNormal + WORKSPACE_ROW_PADDING * 2 + WORKSPACE_ROW_NARROW_MARGIN + variables.spacing2;
 
 type WorkspaceItem = {listItemType: 'workspace'} & ListItem &
     Required<Pick<MenuItemProps, 'title' | 'disabled'>> &
