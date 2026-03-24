@@ -29,6 +29,31 @@ jest.mock('../../src/libs/Notification/LocalNotification');
 jest.mock('../../src/components/Icon/Expensicons');
 jest.mock('../../src/components/ConfirmedRoute.tsx');
 jest.mock('@libs/Navigation/AppNavigator/usePreloadFullScreenNavigators', () => jest.fn());
+jest.mock(
+    '@shopify/flash-list/dist/recyclerview/utils/measureLayout',
+    () =>
+        ({
+            ...jest.requireActual('@shopify/flash-list/dist/recyclerview/utils/measureLayout'),
+            measureParentSize: jest.fn().mockImplementation(() => ({
+                x: 0,
+                y: 0,
+                width: 300,
+                height: 400,
+            })),
+            measureFirstChildLayout: jest.fn().mockImplementation(() => ({
+                x: 0,
+                y: 0,
+                width: 300,
+                height: 400,
+            })),
+            measureItemLayout: jest.fn().mockImplementation(() => ({
+                x: 0,
+                y: 0,
+                width: 300,
+                height: 75,
+            })),
+        }) as Record<string, unknown>,
+);
 
 TestHelper.setupApp();
 const fetchMock = TestHelper.setupGlobalFetchMock();
@@ -394,7 +419,7 @@ describe('Pagination', () => {
 
         TestHelper.expectAPICommandToHaveBeenCalled('OpenReport', 3);
         TestHelper.expectAPICommandToHaveBeenCalled('GetOlderActions', 0);
-        TestHelper.expectAPICommandToHaveBeenCalled('GetNewerActions', 2);
+        TestHelper.expectAPICommandToHaveBeenCalled('GetNewerActions', 1);
 
         // We now have 10 messages. 5 from the initial OpenReport and 5 from the GetNewerActions call.
         expect(getReportActions()).toHaveLength(10);
