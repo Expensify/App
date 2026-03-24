@@ -5790,8 +5790,8 @@ const staticStyles = (theme: ThemeColors) =>
             height: 160,
         },
         helpStaticIllustration: {
-            width: 168,
-            height: 152,
+            width: 174,
+            height: 156,
         },
         aboutStaticIllustration: {
             width: 100,
