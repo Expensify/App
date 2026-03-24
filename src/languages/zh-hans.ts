@@ -744,11 +744,6 @@ const translations: TranslationDeepObject<typeof en> = {
         searchForSomeone: '搜索联系人',
         userSelected: (username: string) => `已选择 ${username}`,
     },
-    customApprovalWorkflow: {
-        title: '自定义审批流程',
-        description: '您的公司在此工作区使用自定义审批流程。请在 Expensify Classic 中执行此操作',
-        goToExpensifyClassic: '切换到 Expensify 经典版',
-    },
     emptyList: {
         [CONST.IOU.TYPE.CREATE]: {
             title: '报销一笔费用，推荐你的团队',

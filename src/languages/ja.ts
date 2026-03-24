@@ -754,11 +754,6 @@ const translations: TranslationDeepObject<typeof en> = {
         searchForSomeone: '誰かを検索',
         userSelected: (username: string) => `${username} 選択された`,
     },
-    customApprovalWorkflow: {
-        title: 'カスタム承認ワークフロー',
-        description: 'このワークスペースでは、あなたの会社がカスタム承認ワークフローを使用しています。Expensify Classic でこの操作を行ってください',
-        goToExpensifyClassic: 'Expensify Classic に切り替える',
-    },
     emptyList: {
         [CONST.IOU.TYPE.CREATE]: {
             title: '経費を提出し、チームを紹介する',
