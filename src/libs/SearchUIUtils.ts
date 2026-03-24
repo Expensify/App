@@ -4067,10 +4067,10 @@ function getDatePresets(filterKey: SearchDateFilterKeys, hasFeed: boolean): Sear
     const commonPresets = [CONST.SEARCH.DATE_PRESETS.THIS_MONTH, CONST.SEARCH.DATE_PRESETS.LAST_MONTH, CONST.SEARCH.DATE_PRESETS.YEAR_TO_DATE, CONST.SEARCH.DATE_PRESETS.LAST_12_MONTHS];
 
     switch (filterKey) {
-        case CONST.SEARCH.SYNTAX_FILTER_KEYS.POSTED:
-            return [...commonPresets, ...(hasFeed ? [CONST.SEARCH.DATE_PRESETS.LAST_STATEMENT] : [])];
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE:
             return commonPresets;
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.POSTED:
+            return [...commonPresets, CONST.SEARCH.DATE_PRESETS.NEVER, ...(hasFeed ? [CONST.SEARCH.DATE_PRESETS.LAST_STATEMENT] : [])];
         default:
             return [...commonPresets, CONST.SEARCH.DATE_PRESETS.NEVER];
     }
