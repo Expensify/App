@@ -4,7 +4,6 @@ import CategoryPicker from '@components/CategoryPicker';
 import CurrencySelectionList from '@components/CurrencySelectionList';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
-import type {ListItem} from '@components/SelectionListWithSections/types';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -30,7 +29,7 @@ function DynamicDebugDetailsConstantPickerPage({
     const styles = useThemeStyles();
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.DETAILS_CONSTANT_PICKER.path);
     const onSubmit = useCallback(
-        (item: ListItem) => {
+        (item: {text?: string; keyForList?: string}) => {
             const value = item.text === fieldValue ? '' : (item.text ?? '');
             Navigation.goBack(appendParam(backPath, fieldName, value), {compareParams: false});
         },
@@ -44,6 +43,7 @@ function DynamicDebugDetailsConstantPickerPage({
                     onSelect={({currencyCode}) =>
                         onSubmit({
                             text: currencyCode,
+                            keyForList: currencyCode,
                         })
                     }
                     searchInputLabel={translate('common.search')}
