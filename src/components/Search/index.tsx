@@ -8,15 +8,7 @@ import Animated, {useAnimatedStyle, useSharedValue, withTiming} from 'react-nati
 import FullPageErrorView from '@components/BlockingViews/FullPageErrorView';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
-import SearchTableHeader from '@components/SelectionListWithSections/SearchTableHeader';
-import type {
-    ReportActionListItemType,
-    SearchListItem,
-    SelectionListHandle,
-    TransactionGroupListItemType,
-    TransactionListItemType,
-    TransactionReportGroupListItemType,
-} from '@components/SelectionListWithSections/types';
+import type {SelectionListHandle} from '@components/SelectionList/types';
 import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
 import {useWideRHPActions} from '@components/WideRHPContextProvider';
 import useActionLoadingReportIDs from '@hooks/useActionLoadingReportIDs';
@@ -47,6 +39,7 @@ import {canEditFieldOfMoneyRequest, canHoldUnholdReportAction, canRejectReportAc
 import {buildCannedSearchQuery, buildSearchQueryString, isDefaultExpensesQuery} from '@libs/SearchQueryUtils';
 import {
     createAndOpenSearchTransactionThread,
+    doesSearchItemMatchSort,
     getColumnsToShow,
     getListItem,
     getSections,
@@ -85,7 +78,9 @@ import arraysEqual from '@src/utils/arraysEqual';
 import SearchChartView from './SearchChartView';
 import {useSearchActionsContext, useSearchStateContext} from './SearchContext';
 import SearchList from './SearchList';
+import type {ReportActionListItemType, SearchListItem, TransactionGroupListItemType, TransactionListItemType, TransactionReportGroupListItemType} from './SearchList/ListItem/types';
 import {SearchScopeProvider} from './SearchScopeProvider';
+import SearchTableHeader from './SearchTableHeader';
 import type {SearchColumnType, SearchParams, SearchQueryJSON, SelectedTransactionInfo, SelectedTransactions, SortOrder} from './types';
 
 type SearchProps = {
@@ -126,16 +121,14 @@ function mapTransactionItemToSelectedEntry(
             canUnhold: canUnholdRequest,
             canSplit: isSplitAction(item.report, [itemTransaction], originalItemTransaction, currentUserLogin, currentUserAccountID, item.policy),
             hasBeenSplit: getOriginalTransactionWithSplitInfo(itemTransaction, originalItemTransaction).isExpenseSplit,
-            canChangeReport: canEditFieldOfMoneyRequest(
-                item.reportAction,
-                CONST.EDIT_REQUEST_FIELD.REPORT,
-                undefined,
-                undefined,
+            canChangeReport: canEditFieldOfMoneyRequest({
+                reportAction: item.reportAction,
+                fieldToEdit: CONST.EDIT_REQUEST_FIELD.REPORT,
                 outstandingReportsByPolicyID,
-                item,
-                item.report,
-                item.policy,
-            ),
+                transaction: item,
+                report: item.report,
+                policy: item.policy,
+            }),
             action: item.action,
             groupCurrency: item.groupCurrency,
             groupExchangeRate: item.groupExchangeRate,
@@ -281,7 +274,7 @@ function Search({
 
     const previousReportActions = usePrevious(reportActions);
     const {translate, localeCompare, formatPhoneNumber} = useLocalize();
-    const searchListRef = useRef<SelectionListHandle | null>(null);
+    const searchListRef = useRef<SelectionListHandle<SearchListItem> | null>(null);
 
     const spanExistedOnMount = useRef(!!getSpan(CONST.TELEMETRY.SPAN_NAVIGATE_AFTER_EXPENSE_CREATE));
 
@@ -729,16 +722,14 @@ function Search({
                         canUnhold: canUnholdRequest,
                         canSplit: isSplitAction(transactionItem.report, [itemTransaction], originalItemTransaction, login ?? '', accountID, transactionItem.policy),
                         hasBeenSplit: getOriginalTransactionWithSplitInfo(itemTransaction, originalItemTransaction).isExpenseSplit,
-                        canChangeReport: canEditFieldOfMoneyRequest(
-                            transactionItem.reportAction,
-                            CONST.EDIT_REQUEST_FIELD.REPORT,
-                            undefined,
-                            undefined,
+                        canChangeReport: canEditFieldOfMoneyRequest({
+                            reportAction: transactionItem.reportAction,
+                            fieldToEdit: CONST.EDIT_REQUEST_FIELD.REPORT,
                             outstandingReportsByPolicyID,
-                            transactionItem,
-                            transactionItem.report,
-                            transactionItem.policy,
-                        ),
+                            transaction: transactionItem,
+                            report: transactionItem.report,
+                            policy: transactionItem.policy,
+                        }),
                         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                         isSelected: areAllMatchingItemsSelected || selectedTransactions[transactionItem.transactionID]?.isSelected || isExpenseReportType,
                         canReject: canRejectRequest,
@@ -785,16 +776,14 @@ function Search({
                     canUnhold: canUnholdRequest,
                     canSplit: isSplitAction(transactionItem.report, [itemTransaction], originalItemTransaction, login ?? '', accountID, transactionItem.policy),
                     hasBeenSplit: getOriginalTransactionWithSplitInfo(itemTransaction, originalItemTransaction).isExpenseSplit,
-                    canChangeReport: canEditFieldOfMoneyRequest(
-                        transactionItem.reportAction,
-                        CONST.EDIT_REQUEST_FIELD.REPORT,
-                        undefined,
-                        undefined,
+                    canChangeReport: canEditFieldOfMoneyRequest({
+                        reportAction: transactionItem.reportAction,
+                        fieldToEdit: CONST.EDIT_REQUEST_FIELD.REPORT,
                         outstandingReportsByPolicyID,
-                        transactionItem,
-                        transactionItem.report,
-                        transactionItem.policy,
-                    ),
+                        transaction: transactionItem,
+                        report: transactionItem.report,
+                        policy: transactionItem.policy,
+                    }),
                     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                     isSelected: areAllMatchingItemsSelected || selectedTransactions[transactionItem.transactionID].isSelected,
                     canReject: canRejectRequest,
@@ -1408,7 +1397,11 @@ function Search({
                 chartTitle = savedSearch.name;
             }
         } else if (currentSearchKey && suggestedSearches[currentSearchKey]) {
-            chartTitle = translate(suggestedSearches[currentSearchKey].translationPath);
+            const suggestedSearch = suggestedSearches[currentSearchKey];
+            const sortMatches = doesSearchItemMatchSort(currentSearchKey, suggestedSearch.searchQueryJSON?.sortBy, suggestedSearch.searchQueryJSON?.sortOrder, sortBy, sortOrder);
+            if (sortMatches) {
+                chartTitle = translate(suggestedSearch.translationPath);
+            }
         }
 
         return (

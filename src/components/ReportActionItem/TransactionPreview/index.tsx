@@ -43,6 +43,7 @@ function TransactionPreview(props: TransactionPreviewProps) {
         shouldHighlight,
         reportPreviewAction,
         contextAction,
+        originalReportID,
     } = props;
 
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`);
@@ -71,11 +72,14 @@ function TransactionPreview(props: TransactionPreviewProps) {
     const transactionDetails = getTransactionDetails(transaction);
     const {amount: requestAmount, currency: requestCurrency} = transactionDetails ?? {};
 
+    const contextMenuReportID = contextAction ? chatReportID : reportID;
+    const contextMenuAction = contextAction ?? action;
+
     const showContextMenu = (event: GestureResponderEvent) => {
         if (!shouldDisplayContextMenu) {
             return;
         }
-        showContextMenuForReport(event, contextMenuAnchor, contextAction ? chatReportID : reportID, contextAction ?? action, checkIfContextMenuActive);
+        showContextMenuForReport(event, contextMenuAnchor, contextMenuReportID, contextMenuAction, checkIfContextMenuActive, false, originalReportID);
     };
 
     const offlineWithFeedbackOnClose = useCallback(() => {
