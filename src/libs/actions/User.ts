@@ -1527,7 +1527,14 @@ type RespondToProactiveAppReviewParams = {
 /**
  * Respond to the proactive app review prompt and optionally create a Concierge message
  */
-function respondToProactiveAppReview(response: 'positive' | 'negative' | 'skip', currentProactiveAppReview: AppReview | null | undefined, message?: string, conciergeChatReportID?: string) {
+function respondToProactiveAppReview(
+    response: 'positive' | 'negative' | 'skip',
+    currentProactiveAppReview: AppReview | null | undefined,
+    userEmail: string | undefined,
+    userAccountID: number,
+    message?: string,
+    conciergeChatReportID?: string,
+) {
     const params: RespondToProactiveAppReviewParams = {response};
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.NVP_APP_REVIEW>> = [];
     const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [];
@@ -1540,7 +1547,13 @@ function respondToProactiveAppReview(response: 'positive' | 'negative' | 'skip',
     // For positive/negative responses, create an optimistic Concierge message
     if (message && conciergeChatReportID && response !== 'skip') {
         const conciergeAccountID = CONST.ACCOUNT_ID.CONCIERGE;
-        const optimisticReportAction = ReportUtils.buildOptimisticAddCommentReportAction({text: message, actorAccountID: conciergeAccountID, reportID: conciergeChatReportID});
+        const optimisticReportAction = ReportUtils.buildOptimisticAddCommentReportAction({
+            text: message,
+            actorAccountID: conciergeAccountID,
+            reportID: conciergeChatReportID,
+            currentUserEmail: userEmail,
+            currentUserAccountID: userAccountID,
+        });
         const optimisticReportActionID = optimisticReportAction.reportAction.reportActionID;
         const currentTime = DateUtils.getDBTime();
 
