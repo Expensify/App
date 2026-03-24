@@ -353,6 +353,7 @@ const useProductTrainingContext = (tooltipName: ProductTrainingTooltipName, shou
         theme.tooltipHighlightText,
         theme.icon,
         translate,
+        config.onShown,
         config.onConfirm,
         config.onDismiss,
         hideTooltip,
