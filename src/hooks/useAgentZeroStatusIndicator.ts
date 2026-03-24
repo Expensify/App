@@ -34,15 +34,13 @@ function useAgentZeroStatusIndicator(reportID: string, isAgentZeroChat: boolean)
     const lastUpdateTimeRef = useRef<number>(0);
     const {isOffline} = useNetwork();
 
-    // Tracks whether the NVP has been updated since the last kickoff.
-    // Onyx batches merges within a single tick, so when the client catches up on missed
-    // updates (e.g., via GetMissingOnyxMessages), a SET followed by CLEAR can be coalesced
-    // into a single notification with the final (empty) value. The hook would never see
-    // the intermediate non-empty server label, leaving optimisticStartTime stuck.
-    // This counter increments on every NVP write, letting us detect that the server
-    // processed the request even when the rendered value jumps directly to empty.
+    // Tracks outstanding concierge requests to handle rapid multi-message sends.
+    // Each kickoffWaitingIndicator increments pendingKickoffs; each detected server
+    // roundtrip completion (NVP version bump) decrements it. The optimistic "thinking"
+    // state is only cleared when all pending requests have been processed.
+    // This prevents msg1's response from clearing the indicator while msg2 is still pending.
     const nvpVersionRef = useRef<number>(0);
-    const kickoffNvpVersionRef = useRef<number>(0);
+    const pendingKickoffsRef = useRef<number>(0);
 
     // Minimum time to display a label before allowing change (prevents rapid flicker)
     const MIN_DISPLAY_TIME = 300; // ms
@@ -59,7 +57,13 @@ function useAgentZeroStatusIndicator(reportID: string, isAgentZeroChat: boolean)
             if (updatedReportID !== reportID) {
                 return;
             }
+            // Each server roundtrip produces 2 version bumps (SET + CLEAR).
+            // When a full cycle completes, decrement the pending counter.
+            const previousVersion = nvpVersionRef.current;
             nvpVersionRef.current = version;
+            if (pendingKickoffsRef.current > 0 && version >= previousVersion + 2) {
+                pendingKickoffsRef.current = Math.max(0, pendingKickoffsRef.current - 1);
+            }
         });
 
         return () => {
@@ -101,10 +105,10 @@ function useAgentZeroStatusIndicator(reportID: string, isAgentZeroChat: boolean)
         const hadServerLabel = !!prevServerLabelRef.current;
         const hasServerLabel = !!serverLabel;
 
-        // Detect if the server has processed the request since kickoff.
-        // The NVP version counter increments on every Onyx write to the indicator field,
-        // including batched writes where intermediate values are coalesced.
-        const serverProcessedSinceKickoff = nvpVersionRef.current > kickoffNvpVersionRef.current;
+        // All pending requests have been processed when the counter reaches zero.
+        // This correctly handles rapid multi-message sends: each kickoff increments
+        // the counter, and each server roundtrip (detected via version jumps) decrements it.
+        const allRequestsProcessed = pendingKickoffsRef.current <= 0;
 
         // Helper function to update label with timing control
         const updateLabel = (newLabel: string) => {
@@ -148,7 +152,7 @@ function useAgentZeroStatusIndicator(reportID: string, isAgentZeroChat: boolean)
         // Only persist optimistic state when the server has NOT yet processed the request.
         // If the server already set and cleared the indicator (detected via version counter),
         // the optimistic state is stale and should be cleared immediately.
-        else if (optimisticStartTime && !serverProcessedSinceKickoff) {
+        else if (optimisticStartTime && !allRequestsProcessed) {
             const thinkingLabel = translate('common.thinking');
             updateLabel(thinkingLabel);
         }
@@ -162,7 +166,7 @@ function useAgentZeroStatusIndicator(reportID: string, isAgentZeroChat: boolean)
             if (optimisticStartTime) {
                 setOptimisticStartTime(null);
             }
-            if ((hadServerLabel || serverProcessedSinceKickoff) && reasoningHistory.length > 0) {
+            if ((hadServerLabel || allRequestsProcessed) && reasoningHistory.length > 0) {
                 ConciergeReasoningStore.clearReasoning(reportID);
             }
         }
@@ -189,7 +193,7 @@ function useAgentZeroStatusIndicator(reportID: string, isAgentZeroChat: boolean)
         if (!isAgentZeroChat) {
             return;
         }
-        kickoffNvpVersionRef.current = nvpVersionRef.current;
+        pendingKickoffsRef.current += 1;
         setOptimisticStartTime(Date.now());
     }, [isAgentZeroChat]);
 
