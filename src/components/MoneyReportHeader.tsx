@@ -264,6 +264,7 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
         'Buildings',
         'Plus',
         'Hourglass',
+        'MoneyBag',
         'Cash',
         'Box',
         'Stopwatch',
@@ -1763,6 +1764,26 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
             value: CONST.REPORT.SECONDARY_ACTIONS.APPROVE,
             sentryLabel: CONST.SENTRY_LABEL.MORE_MENU.APPROVE,
             onSelected: confirmApproval,
+        },
+        [CONST.REPORT.SECONDARY_ACTIONS.RECEIVED_PAYMENT]: {
+            text: translate('iou.receivedPayment'),
+            icon: expensifyIcons.MoneyBag,
+            value: CONST.REPORT.SECONDARY_ACTIONS.RECEIVED_PAYMENT,
+            sentryLabel: CONST.SENTRY_LABEL.MORE_MENU.PAY,
+            onSelected: async () => {
+                const result = await showConfirmModal({
+                    title: translate('iou.confirmPaymentReceived'),
+                    prompt: translate('iou.receivedPaymentConfirmation'),
+                    confirmText: translate('iou.yesIHaveReceivedPayment'),
+                    cancelText: translate('common.cancel'),
+                });
+
+                if (result.action !== ModalActions.CONFIRM) {
+                    return;
+                }
+
+                confirmPayment({paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE});
+            },
         },
         [CONST.REPORT.SECONDARY_ACTIONS.UNAPPROVE]: {
             text: translate('iou.unapprove'),
