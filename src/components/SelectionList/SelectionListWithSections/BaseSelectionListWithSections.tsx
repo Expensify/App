@@ -191,6 +191,10 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
         innerTextInputRef.current?.focus();
     };
 
+    const clearInputAfterSelect = () => {
+        textInputOptions?.onChangeText?.('');
+    };
+
     const updateAndScrollToFocusedIndex = (index: number, shouldScroll = true) => {
         if (!shouldScroll) {
             suppressNextFocusScrollRef.current = true;
@@ -208,12 +212,18 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
         isTextInputFocusedRef.current = isTextInputFocused;
     };
 
-    useImperativeHandle(ref, () => ({
-        focusTextInput,
-        updateAndScrollToFocusedIndex,
-        updateExternalTextInputFocus,
-        getFocusedOption: getFocusedItem,
-    }));
+    useImperativeHandle(
+        ref,
+        () => ({
+            focusTextInput,
+            scrollToIndex,
+            clearInputAfterSelect,
+            updateAndScrollToFocusedIndex,
+            updateExternalTextInputFocus,
+            getFocusedOption: getFocusedItem,
+        }),
+        [focusTextInput, scrollToIndex, clearInputAfterSelect, updateAndScrollToFocusedIndex, updateExternalTextInputFocus, getFocusedItem],
+    );
 
     // Disable `Enter` shortcut if the active element is a button or checkbox
     const disableEnterShortcut = activeElementRole && [CONST.ROLE.BUTTON, CONST.ROLE.CHECKBOX].includes(activeElementRole as ButtonOrCheckBoxRoles);
