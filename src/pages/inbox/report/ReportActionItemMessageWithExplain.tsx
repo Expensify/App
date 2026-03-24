@@ -6,8 +6,10 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import {openLink} from '@libs/actions/Link';
 import {explain} from '@libs/actions/Report';
+import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {hasReasoning} from '@libs/ReportActionsUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -39,6 +41,9 @@ function ReportActionItemMessageWithExplain({message, action, childReport, origi
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
 
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const isSelectable = !canUseTouchScreen() || !shouldUseNarrowLayout;
+
     const actionHasReasoning = hasReasoning(action);
     const computedMessage = actionHasReasoning ? `${message}${translate('iou.AskToExplain')}` : message;
 
@@ -57,7 +62,7 @@ function ReportActionItemMessageWithExplain({message, action, childReport, origi
         <ReportActionItemBasicMessage>
             <RenderHTML
                 html={`<comment><muted-text>${computedMessage}</muted-text></comment>`}
-                isSelectable={false}
+                isSelectable={isSelectable}
                 onLinkPress={handleLinkPress}
             />
         </ReportActionItemBasicMessage>
