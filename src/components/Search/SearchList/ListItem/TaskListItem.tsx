@@ -22,6 +22,7 @@ function TaskListItem<TItem extends ListItem>({
     onLongPressRow,
     shouldSyncFocus,
     allReports,
+    isLastItem,
 }: TaskListItemProps<TItem>) {
     const taskItem = item as unknown as TaskListItemType;
     const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${taskItem?.parentReportID}`];
@@ -41,8 +42,9 @@ function TaskListItem<TItem extends ListItem>({
             minHeight: variables.tableRowHeight,
             borderRadius: 0,
             paddingVertical: 8,
-            borderBottomWidth: 1,
+            borderBottomWidth: isLastItem ? 0 : 1,
             borderColor: item.isSelected ? theme.buttonHoveredBG : theme.border,
+            ...(isLastItem ? {borderBottomLeftRadius: 8, borderBottomRightRadius: 8} : {}),
         },
     ];
 

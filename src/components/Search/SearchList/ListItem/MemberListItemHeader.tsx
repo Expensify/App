@@ -150,6 +150,7 @@ function MemberListItemHeader<TItem extends ListItem>({
                                             type={CONST.ICON_TYPE_AVATAR}
                                             name={formattedDisplayName}
                                             avatarID={memberItem.accountID}
+                                            size={CONST.AVATAR_SIZE.SMALL}
                                         />
                                     </View>
                                 </UserDetailsTooltip>

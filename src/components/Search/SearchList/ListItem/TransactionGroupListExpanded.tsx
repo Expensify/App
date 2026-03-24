@@ -25,6 +25,7 @@ import {getReportOrDraftReport} from '@libs/ReportUtils';
 import {createAndOpenSearchTransactionThread, getColumnsToShow, getTableMinWidth} from '@libs/SearchUIUtils';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {getTransactionViolations} from '@libs/TransactionUtils';
+import variables from '@styles/variables';
 import type {TransactionPreviewData} from '@userActions/Search';
 import {setActiveTransactionIDs} from '@userActions/TransactionThreadNavigation';
 import CONST from '@src/CONST';
@@ -190,7 +191,7 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
     const content = (
         <View style={[styles.flexColumn, styles.flex1]}>
             {isLargeScreenWidth && (
-                <View style={[styles.searchListHeaderContainerStyle, styles.groupSearchListTableContainerStyle, styles.bgTransparent, styles.pl9, styles.pr11]}>
+                <View style={[styles.searchListHeaderContainerStyle, styles.groupSearchListTableContainerStyle, styles.bgTransparent, styles.pl9, styles.pr11, styles.borderNone]}>
                     <SearchTableHeader
                         canSelectMultiple
                         type={CONST.SEARCH.DATA_TYPES.EXPENSE}
@@ -208,7 +209,7 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
                 </View>
             )}
             {visibleTransactions.map((transaction, index) => {
-                const shouldShowBottomBorder = !isLastTransaction(index) && !isLargeScreenWidth;
+                const shouldShowBottomBorder = !isLastTransaction(index);
                 const exportedReportActions = Object.values(transactionsSnapshot?.data?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transaction?.reportID}`] ?? {});
 
                 const transactionRow = (
@@ -230,7 +231,13 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
                         onButtonPress={() => {
                             openReportInRHP(transaction);
                         }}
-                        style={[styles.noBorderRadius, styles.p3, isLargeScreenWidth && [styles.pv1Half], styles.flex1]}
+                        style={[
+                            styles.noBorderRadius,
+                            styles.p3,
+                            isLargeScreenWidth && [styles.pv1Half, {minHeight: variables.tableRowHeight}],
+                            styles.flex1,
+                            isLargeScreenWidth && isLastTransaction(index) && {borderBottomLeftRadius: 8, borderBottomRightRadius: 8},
+                        ]}
                         isReportItemChild
                         isInSingleTransactionReport={isInSingleTransactionReport}
                         shouldShowBottomBorder={shouldShowBottomBorder}

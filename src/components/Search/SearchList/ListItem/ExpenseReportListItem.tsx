@@ -48,6 +48,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
     isDEWBetaEnabled,
     lastPaymentMethod,
     personalPolicyID,
+    isLastItem,
 }: ExpenseReportListItemProps<TItem>) {
     const reportItem = item as unknown as ExpenseReportListItemType;
     const styles = useThemeStyles();
@@ -171,11 +172,12 @@ function ExpenseReportListItem<TItem extends ListItem>({
                 minHeight: variables.tableRowHeight,
                 borderRadius: 0,
                 paddingVertical: 8,
-                borderBottomWidth: 1,
+                borderBottomWidth: isLastItem ? 0 : 1,
                 borderColor: item.isSelected ? theme.buttonHoveredBG : theme.border,
+                ...(isLastItem ? {borderBottomLeftRadius: 8, borderBottomRightRadius: 8} : {}),
             },
         ],
-        [styles, item.isSelected, isLargeScreenWidth, theme.buttonHoveredBG, theme.border],
+        [styles, item.isSelected, isLargeScreenWidth, theme.buttonHoveredBG, theme.border, isLastItem],
     );
 
     const listItemWrapperStyle = useMemo(

@@ -79,6 +79,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
     isDEWBetaEnabled,
     lastPaymentMethod,
     personalPolicyID,
+    isLastItem,
 }: TransactionGroupListItemProps<TItem>) {
     const groupItem = item as unknown as TransactionGroupListItemType;
 
@@ -186,14 +187,8 @@ function TransactionGroupListItem<TItem extends ListItem>({
 
     const pressableStyle = [
         styles.transactionGroupListItemStyle,
+        isLargeScreenWidth && {minHeight: variables.tableRowHeight, borderRadius: 0, paddingVertical: 4, ...(isLastItem ? {borderBottomLeftRadius: 8, borderBottomRightRadius: 8} : {})},
         isItemSelected && styles.activeComponentBG,
-        isLargeScreenWidth && {
-            minHeight: variables.tableRowHeight,
-            borderRadius: 0,
-            paddingVertical: 4,
-            borderBottomWidth: 1,
-            borderColor: isItemSelected ? theme.buttonHoveredBG : theme.border,
-        },
     ];
 
     const StyleUtils = useStyleUtils();
@@ -480,7 +475,14 @@ function TransactionGroupListItem<TItem extends ListItem>({
                     isFocused && StyleUtils.getItemBackgroundColorStyle(!!isItemSelected, !!isFocused, !!item.isDisabled, theme.activeComponentBG, theme.hoverComponentBG),
                 ]}
                 onFocus={onFocus}
-                wrapperStyle={[!isLargeScreenWidth && styles.mb2, styles.mh5, animatedHighlightStyle, styles.userSelectNone]}
+                wrapperStyle={[
+                    !isLargeScreenWidth && styles.mb2,
+                    styles.mh5,
+                    animatedHighlightStyle,
+                    styles.userSelectNone,
+                    isLargeScreenWidth && {borderRadius: 0, borderBottomWidth: isLastItem ? 0 : 1, borderColor: isItemSelected ? theme.buttonHoveredBG : theme.border},
+                    isLargeScreenWidth && isLastItem && {borderBottomLeftRadius: 8, borderBottomRightRadius: 8},
+                ]}
             >
                 {({hovered}) => (
                     <View style={styles.flex1}>

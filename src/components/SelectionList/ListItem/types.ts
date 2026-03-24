@@ -294,6 +294,9 @@ type ListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
 
     /** Whether the network is offline */
     isOffline?: boolean;
+
+    /** Whether this is the last item in the list (for border radius on desktop) */
+    isLastItem?: boolean;
 };
 
 type ValidListItem =

@@ -53,6 +53,7 @@ function TransactionListItem<TItem extends ListItem>({
     isDEWBetaEnabled,
     lastPaymentMethod,
     personalPolicyID,
+    isLastItem,
 }: TransactionListItemProps<TItem>) {
     const transactionItem = item as unknown as TransactionListItemType;
     const styles = useThemeStyles();
@@ -109,8 +110,9 @@ function TransactionListItem<TItem extends ListItem>({
                   ...styles.alignItemsCenter,
                   minHeight: variables.tableRowHeight,
                   borderRadius: 0,
-                  borderBottomWidth: 1,
+                  borderBottomWidth: isLastItem ? 0 : 1,
                   borderColor: item.isSelected ? theme.buttonHoveredBG : theme.border,
+                  ...(isLastItem ? {borderBottomLeftRadius: 8, borderBottomRightRadius: 8} : {}),
               }
             : {...styles.flexColumn, ...styles.alignItemsStretch},
     ];
