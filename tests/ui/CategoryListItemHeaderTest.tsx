@@ -111,6 +111,7 @@ describe('CategoryListItemHeader', () => {
     beforeEach(() => {
         // Default to small screen (mobile) layout
         mockedUseResponsiveLayout.mockReturnValue({
+            isInLandscapeMode: false,
             isLargeScreenWidth: false,
             shouldUseNarrowLayout: true,
             isSmallScreenWidth: true,
@@ -266,6 +267,7 @@ describe('CategoryListItemHeader', () => {
                 isSmallScreen: false,
                 isInNarrowPaneModal: false,
                 onboardingIsMediumOrLargerScreenWidth: true,
+                isInLandscapeMode: false,
             });
         });
 
