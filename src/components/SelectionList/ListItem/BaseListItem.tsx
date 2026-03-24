@@ -52,7 +52,12 @@ function getAccessibilityProps<TItem extends ListItem>({
     // For multi-select (checkbox/radio), keep existing role and state.
     const hasToggle = item.isToggleActive != null;
     const isSelectableOption = !hasToggle && !canSelectMultiple && role !== CONST.ROLE.CHECKBOX && role !== CONST.ROLE.RADIO;
-    const effectiveRole = hasToggle ? CONST.ROLE.SWITCH : isSelectableOption ? CONST.ROLE.OPTION : role;
+    let effectiveRole = role;
+    if (hasToggle) {
+        effectiveRole = CONST.ROLE.SWITCH;
+    } else if (isSelectableOption) {
+        effectiveRole = CONST.ROLE.OPTION;
+    }
 
     return {
         role: effectiveRole,
