@@ -1,9 +1,11 @@
 import {useIsFocused} from '@react-navigation/native';
-import React, {createContext, useContext, useState} from 'react';
+import React, {createContext, useCallback, useContext, useState} from 'react';
 import type {Dispatch, SetStateAction} from 'react';
+import type {OnyxCollection} from 'react-native-onyx';
 import type {TextSelection} from '@components/Composer/types';
 import useAncestors from '@hooks/useAncestors';
 import useOnyx from '@hooks/useOnyx';
+import {getOriginalReportID, shouldExcludeAncestorReportAction} from '@libs/ReportUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 
@@ -58,8 +60,51 @@ function ReportActionEditMessageContextProvider({reportID, children}: ReportActi
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
         canEvict: false,
     });
-    const [reportActionDrafts] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS);
-    const ancestors = useAncestors(report);
+
+    const ancestors = useAncestors(report, shouldExcludeAncestorReportAction);
+
+    const ancestorReportActionsSelector = useCallback(
+        (allReportActions: OnyxCollection<OnyxTypes.ReportActions>) => {
+            if (!allReportActions) {
+                return {};
+            }
+            const result: OnyxCollection<OnyxTypes.ReportActions> = {};
+            for (const ancestor of ancestors) {
+                const key = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${ancestor.report.reportID}`;
+                result[key] = allReportActions[key];
+            }
+            return result;
+        },
+        [ancestors],
+    );
+
+    const [ancestorsReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {selector: ancestorReportActionsSelector}, [ancestors]);
+
+    const ancestorDraftSelector = useCallback(
+        (allDrafts: OnyxCollection<OnyxTypes.ReportActionsDrafts>) => {
+            if (!allDrafts) {
+                return {};
+            }
+            const result: OnyxCollection<OnyxTypes.ReportActionsDrafts> = {};
+            if (reportID) {
+                const currentDraftKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${reportID}`;
+                result[currentDraftKey] = allDrafts[currentDraftKey];
+            }
+            for (const ancestor of ancestors) {
+                const reportActionsForAncestor = ancestorsReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${ancestor.report.reportID}`];
+                const origID = getOriginalReportID(ancestor.report.reportID, ancestor.reportAction, reportActionsForAncestor);
+                if (!origID) {
+                    continue;
+                }
+                const draftKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${origID}`;
+                result[draftKey] = allDrafts[draftKey];
+            }
+            return result;
+        },
+        [ancestors, ancestorsReportActions, reportID],
+    );
+
+    const [reportActionDrafts] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS, {selector: ancestorDraftSelector}, [ancestors, ancestorsReportActions, reportID]);
 
     const [editingState, setEditingState] = useState<EditingState | null>(null);
     const [prevEditingReportActionID, setPrevEditingReportActionID] = useState<string | null>(null);
@@ -77,7 +122,12 @@ function ReportActionEditMessageContextProvider({reportID, children}: ReportActi
             .slice()
             .reverse()
             .find(({report: ancestorReport, reportAction}) => {
-                const ancestorDrafts = reportActionDrafts?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${ancestorReport.reportID}`];
+                const reportActionsForAncestor = ancestorsReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${ancestorReport.reportID}`];
+                const origID = getOriginalReportID(ancestorReport.reportID, reportAction, reportActionsForAncestor);
+                if (!origID) {
+                    return false;
+                }
+                const ancestorDrafts = reportActionDrafts?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${origID}`];
                 const ancestorDraft = ancestorDrafts?.[reportAction.reportActionID];
 
                 return ancestorDraft?.message !== undefined;
@@ -100,7 +150,9 @@ function ReportActionEditMessageContextProvider({reportID, children}: ReportActi
 
         if (ancestorWithDraft) {
             const {report: ancestorReport, reportAction: ancestorReportAction} = ancestorWithDraft;
-            const ancestorDrafts = reportActionDrafts?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${ancestorReport.reportID}`];
+            const reportActionsForAncestor = ancestorsReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${ancestorReport.reportID}`];
+            const ancestorOrigReportID = getOriginalReportID(ancestorReport.reportID, ancestorReportAction, reportActionsForAncestor);
+            const ancestorDrafts = ancestorOrigReportID ? reportActionDrafts?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${ancestorOrigReportID}`] : undefined;
             const ancestorReportActionDraft = ancestorDrafts?.[ancestorReportAction.reportActionID];
 
             editingReportID = ancestorReport.reportID;
