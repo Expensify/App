@@ -86,11 +86,7 @@ import WorkspacesEmptyStateComponent from './WorkspacesEmptyStateComponent';
 import WorkspacesListPageHeaderButton from './WorkspacesListPageHeaderButton';
 import WorkspacesListRow from './WorkspacesListRow';
 
-// Fallback estimated heights (in px) for a workspace row in wide and narrow layouts.
-// Derived from style constants: avatar + vertical padding (styles.p5 top + bottom) + margins.
-// Used to calculate initialNumToRender when no measured height is available yet.
-const ESTIMATED_ITEM_HEIGHT_WIDE = variables.avatarSizeNormal + variables.spacing5 * 2 + variables.spacing2;
-const ESTIMATED_ITEM_HEIGHT_NARROW = variables.avatarSizeNormal + variables.spacing5 * 2 + variables.spacing3 + variables.spacing2;
+type StyleNumericValue<T extends string> = Partial<Record<T, number>>;
 
 type WorkspaceItem = {listItemType: 'workspace'} & ListItem &
     Required<Pick<MenuItemProps, 'title' | 'disabled'>> &
@@ -141,6 +137,16 @@ function WorkspacesListPage() {
     const icons = useMemoizedLazyExpensifyIcons(['Building', 'Exit', 'Copy', 'Star', 'Trashcan', 'Transfer', 'FallbackWorkspaceAvatar']);
     const theme = useTheme();
     const styles = useThemeStyles();
+
+    // Fallback estimated heights (in px) for a workspace row in wide and narrow layouts.
+    // Derived from actual style values: avatar + vertical padding (styles.p5 top + bottom) + margins.
+    // Used to calculate initialNumToRender when no measured height is available yet.
+    const rowMarginBottom = (styles.mb2 as StyleNumericValue<'marginBottom'>)?.marginBottom ?? 0;
+    const rowPaddingVertical = (styles.p5 as StyleNumericValue<'padding'>)?.padding ?? 0;
+    const narrowInternalMargin = (styles.mb3 as StyleNumericValue<'marginBottom'>)?.marginBottom ?? 0;
+    const estimatedItemHeightWide = variables.avatarSizeNormal + rowPaddingVertical * 2 + rowMarginBottom;
+    const estimatedItemHeightNarrow = variables.avatarSizeNormal + rowPaddingVertical * 2 + narrowInternalMargin + rowMarginBottom;
+
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Building', 'Exit', 'Copy', 'Star', 'Trashcan', 'Transfer', 'Plus', 'FallbackWorkspaceAvatar']);
     const {translate, localeCompare} = useLocalize();
     useDocumentTitle(translate('common.workspaces'));
@@ -735,7 +741,7 @@ function WorkspacesListPage() {
         if (savedScrollOffset <= 0) {
             return undefined;
         }
-        const fallbackHeight = shouldUseNarrowLayout ? ESTIMATED_ITEM_HEIGHT_NARROW : ESTIMATED_ITEM_HEIGHT_WIDE;
+        const fallbackHeight = shouldUseNarrowLayout ? estimatedItemHeightNarrow : estimatedItemHeightWide;
         // eslint-disable-next-line react-hooks/refs -- Reading the measured height ref during render is intentional; the value is only an optimization hint for initialNumToRender and stale reads are acceptable.
         const itemHeight = measuredItemHeight.current ?? fallbackHeight;
         const viewportItems = Math.ceil(Dimensions.get('window').height / itemHeight);
