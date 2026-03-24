@@ -413,21 +413,24 @@ function shouldShowLastActorDisplayName(
     return true;
 }
 
+type GetAlternateTextConfig = {
+    isReportArchived: boolean | undefined;
+    // We'll make it required in the next PR. Ref: https://github.com/Expensify/App/issues/66415
+    policy?: OnyxEntry<Policy>;
+    lastActorDetails?: Partial<PersonalDetails> | null;
+    visibleReportActionsData?: VisibleReportActionsDerivedValue;
+    translate?: LocalizedTranslate;
+    reportAttributesDerived?: ReportAttributesDerivedValue['reports'];
+    policyTags?: OnyxEntry<PolicyTagLists>;
+};
+
 /**
  * Update alternate text for the option when applicable
  */
 function getAlternateText(
     option: OptionData,
     {showChatPreviewLine = false, forcePolicyNamePreview = false}: PreviewConfig,
-    isReportArchived: boolean | undefined,
-    currentUserAccountID: number,
-    // We'll make it required in the next PR. Ref: https://github.com/Expensify/App/issues/66415
-    policy?: OnyxEntry<Policy>,
-    lastActorDetails: Partial<PersonalDetails> | null = {},
-    visibleReportActionsData: VisibleReportActionsDerivedValue = {},
-    translate?: LocalizedTranslate,
-    reportAttributesDerived?: ReportAttributesDerivedValue['reports'],
-    policyTags?: OnyxEntry<PolicyTagLists>,
+    {isReportArchived, policy, lastActorDetails = {}, visibleReportActionsData = {}, translate, reportAttributesDerived, policyTags}: GetAlternateTextConfig,
 ) {
     const report = getReportOrDraftReport(option.reportID);
     const isAdminRoom = reportUtilsIsAdminRoom(report);
@@ -1051,14 +1054,15 @@ function createOption({
                 : getAlternateText(
                       result,
                       {showChatPreviewLine, forcePolicyNamePreview},
-                      !!result.private_isArchived,
-                      currentUserAccountID,
-                      policy,
-                      lastActorDetails,
-                      visibleReportActionsData,
-                      translateFn,
-                      reportAttributesDerived,
-                      policyTags,
+                      {
+                          isReportArchived: !!result.private_isArchived,
+                          policy,
+                          lastActorDetails,
+                          visibleReportActionsData,
+                          translate: translateFn,
+                          reportAttributesDerived,
+                          policyTags,
+                      },
                   );
 
         const computedReportName = getReportName(report, reportAttributesDerived);
@@ -2289,14 +2293,14 @@ function prepareReportOptionsForDisplay(
         const alternateText = getAlternateText(
             option,
             {showChatPreviewLine, forcePolicyNamePreview},
-            !!option.private_isArchived,
-            currentUserAccountID,
-            policy,
-            null,
-            visibleReportActionsData,
-            undefined,
-            reportAttributesDerived,
-            reportPolicyTags,
+            {
+                isReportArchived: !!option.private_isArchived,
+                policy,
+                lastActorDetails: null,
+                visibleReportActionsData,
+                reportAttributesDerived,
+                policyTags: reportPolicyTags,
+            },
         );
         const isSelected = isReportSelected(option, selectedOptions);
 
