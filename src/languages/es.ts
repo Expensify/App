@@ -557,7 +557,7 @@ const translations: TranslationDeepObject<typeof en> = {
             biometricsTest: 'Prueba de biometría',
             authenticationSuccessful: 'Autenticación exitosa',
             successfullyAuthenticatedUsing: (authType) => `Te has autenticado exitosamente con ${authType}.`,
-            troubleshootBiometricsStatus: (status) => `Biometría (${status})`,
+            troubleshootBiometricsStatus: ({status}) => `Biometría (${status})`,
             statusNeverRegistered: 'Nunca registrado',
             statusNotRegistered: 'No registrado',
             statusRegisteredThisDevice: 'Registrado',
