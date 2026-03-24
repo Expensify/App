@@ -2134,6 +2134,7 @@ type MoneyRequestNavigatorParamList = {
         transactionID: string;
         reportID: string;
         reportActionID: string;
+        backToReport?: string;
     };
     [SCREENS.MONEY_REQUEST.STEP_HOURS_EDIT]: {
         action: IOUAction;
@@ -2141,6 +2142,7 @@ type MoneyRequestNavigatorParamList = {
         transactionID: string;
         reportID: string;
         reportActionID: string;
+        backToReport?: string;
     };
 };
 
