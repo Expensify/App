@@ -1,6 +1,6 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
-import {Linking, View} from 'react-native';
+import {Keyboard, Linking, View} from 'react-native';
 import PDF from 'react-native-pdf';
 import KeyboardAvoidingView from '@components/KeyboardAvoidingView';
 import LoadingIndicator from '@components/LoadingIndicator';
@@ -114,6 +114,11 @@ function PDFView({onToggleKeyboard, onLoadComplete, fileName, onPress, isFocused
      * @param pdfPassword Password submitted via PDFPasswordForm
      */
     const attemptPDFLoadWithPassword = (pdfPassword: string) => {
+        // Dismiss the keyboard explicitly before loading the PDF. Without this, the keyboard
+        // stays open on Android after the user submits the password (regression in RN 0.83
+        // where unmounting a TextInput no longer implicitly dismisses the keyboard).
+        Keyboard.dismiss();
+
         // Render react-native-pdf/PDF so that it can validate the password.
         // Note that at this point in the password challenge, shouldRequestPassword is true.
         // Thus react-native-pdf/PDF will be rendered - but not visible.
