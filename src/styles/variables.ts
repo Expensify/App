@@ -22,6 +22,8 @@ export default {
     inputComponentSizeNormal: 40,
     componentSizeLarge: 52,
     spacing2: 8,
+    spacing3: 12,
+    spacing5: 20,
     componentBorderRadius: 8,
     componentBorderRadiusSmall: 4,
     componentBorderRadiusMedium: 6,
