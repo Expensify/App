@@ -1022,7 +1022,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     for (const transactionID of selectedTransactionsKeys) {
                         unholdRequest(
                             transactionID,
-                            selectedTransactions[transactionID].reportID ?? '',
+                            selectedTransactions[transactionID].reportAction?.childReportID ?? '',
                             policies?.[`${ONYXKEYS.COLLECTION.POLICY}${selectedTransactions[transactionID].policyID}`],
                         );
                     }
