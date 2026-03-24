@@ -8,15 +8,7 @@ import Animated, {useAnimatedStyle, useSharedValue, withTiming} from 'react-nati
 import FullPageErrorView from '@components/BlockingViews/FullPageErrorView';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
-import SearchTableHeader from '@components/SelectionListWithSections/SearchTableHeader';
-import type {
-    ReportActionListItemType,
-    SearchListItem,
-    SelectionListHandle,
-    TransactionGroupListItemType,
-    TransactionListItemType,
-    TransactionReportGroupListItemType,
-} from '@components/SelectionListWithSections/types';
+import type {SelectionListHandle} from '@components/SelectionList/types';
 import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
 import {useWideRHPActions} from '@components/WideRHPContextProvider';
 import useActionLoadingReportIDs from '@hooks/useActionLoadingReportIDs';
@@ -47,6 +39,7 @@ import {canEditFieldOfMoneyRequest, canHoldUnholdReportAction, canRejectReportAc
 import {buildCannedSearchQuery, buildSearchQueryString, isDefaultExpensesQuery} from '@libs/SearchQueryUtils';
 import {
     createAndOpenSearchTransactionThread,
+    doesSearchItemMatchSort,
     getColumnsToShow,
     getListItem,
     getSections,
@@ -85,7 +78,9 @@ import arraysEqual from '@src/utils/arraysEqual';
 import SearchChartView from './SearchChartView';
 import {useSearchActionsContext, useSearchStateContext} from './SearchContext';
 import SearchList from './SearchList';
+import type {ReportActionListItemType, SearchListItem, TransactionGroupListItemType, TransactionListItemType, TransactionReportGroupListItemType} from './SearchList/ListItem/types';
 import {SearchScopeProvider} from './SearchScopeProvider';
+import SearchTableHeader from './SearchTableHeader';
 import type {SearchColumnType, SearchParams, SearchQueryJSON, SelectedTransactionInfo, SelectedTransactions, SortOrder} from './types';
 
 type SearchProps = {
@@ -99,6 +94,8 @@ type SearchProps = {
     searchRequestResponseStatusCode?: number | null;
     onDEWModalOpen?: () => void;
 };
+
+const hashToString = (queryHash?: number) => (queryHash || queryHash === 0 ? String(queryHash) : undefined);
 
 function mapTransactionItemToSelectedEntry(
     item: TransactionListItemType,
@@ -258,6 +255,7 @@ function Search({
     const [visibleColumns] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {selector: columnsSelector});
     const [customCardNames] = useOnyx(ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES);
     const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
 
     const isExpenseReportType = type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
     const {markReportIDAsMultiTransactionExpense, unmarkReportIDAsMultiTransactionExpense} = useWideRHPActions();
@@ -278,7 +276,7 @@ function Search({
 
     const previousReportActions = usePrevious(reportActions);
     const {translate, localeCompare, formatPhoneNumber} = useLocalize();
-    const searchListRef = useRef<SelectionListHandle | null>(null);
+    const searchListRef = useRef<SelectionListHandle<SearchListItem> | null>(null);
 
     const spanExistedOnMount = useRef(!!getSpan(CONST.TELEMETRY.SPAN_NAVIGATE_AFTER_EXPENSE_CREATE));
 
@@ -481,6 +479,7 @@ function Search({
             customCardNames,
             allReportMetadata,
             cardList,
+            conciergeReportID,
             onyxPersonalDetailsList,
         });
         return [filteredData1, filteredData1.length, allLength];
@@ -507,6 +506,7 @@ function Search({
         customCardNames,
         allReportMetadata,
         cardList,
+        conciergeReportID,
         onyxPersonalDetailsList,
     ]);
 
@@ -516,9 +516,7 @@ function Search({
         if (!validGroupBy) {
             return [];
         }
-        return (baseFilteredData as TransactionGroupListItemType[])
-            .map((item) => (item.transactionsQueryJSON?.hash ? String(item.transactionsQueryJSON.hash) : undefined))
-            .filter((hashValue): hashValue is string => !!hashValue);
+        return (baseFilteredData as TransactionGroupListItemType[]).map((item) => hashToString(item.transactionsQueryJSON?.hash)).filter((hashValue): hashValue is string => !!hashValue);
     }, [validGroupBy, baseFilteredData]);
 
     const groupByTransactionSnapshots = useMultipleSnapshots(groupByTransactionHashes);
@@ -529,7 +527,7 @@ function Search({
         }
 
         const enriched = (baseFilteredData as TransactionGroupListItemType[]).map((item) => {
-            const snapshot = item.transactionsQueryJSON?.hash ? groupByTransactionSnapshots[String(item.transactionsQueryJSON.hash)] : undefined;
+            const snapshot = groupByTransactionSnapshots[hashToString(item.transactionsQueryJSON?.hash) ?? ''];
             if (!snapshot?.data) {
                 return item;
             }
@@ -546,6 +544,7 @@ function Search({
                 cardFeeds,
                 allReportMetadata,
                 cardList,
+                conciergeReportID,
             });
             return {
                 ...item,
@@ -569,6 +568,7 @@ function Search({
         bankAccountList,
         allReportMetadata,
         cardList,
+        conciergeReportID,
     ]);
 
     const hasLoadedAllTransactions = useMemo(() => {
@@ -1403,7 +1403,11 @@ function Search({
                 chartTitle = savedSearch.name;
             }
         } else if (currentSearchKey && suggestedSearches[currentSearchKey]) {
-            chartTitle = translate(suggestedSearches[currentSearchKey].translationPath);
+            const suggestedSearch = suggestedSearches[currentSearchKey];
+            const sortMatches = doesSearchItemMatchSort(currentSearchKey, suggestedSearch.searchQueryJSON?.sortBy, suggestedSearch.searchQueryJSON?.sortOrder, sortBy, sortOrder);
+            if (sortMatches) {
+                chartTitle = translate(suggestedSearch.translationPath);
+            }
         }
 
         return (

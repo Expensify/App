@@ -96,12 +96,15 @@ import {
     getReportPreviewMessage,
     getReportStatusTranslation,
     getReportSubtitlePrefix,
+    getTaskAssigneeChatOnyxData,
+    getTransactionDetails,
     getViolatingReportIDForRBRInLHN,
     getWorkspaceIcon,
     getWorkspaceNameUpdatedMessage,
     hasActionWithErrorsForTransaction,
     hasEmptyReportsForPolicy,
     hasReceiptError,
+    hasVisibleReportFieldViolations,
     isAllowedToApproveExpenseReport,
     isArchivedNonExpenseReport,
     isArchivedReport,
@@ -476,6 +479,62 @@ describe('ReportUtils', () => {
         });
     });
 
+    describe('getTaskAssigneeChatOnyxData', () => {
+        it('uses passed currentUserEmail/currentUserAccountID for optimistic assignee comment', () => {
+            const passedCurrentUserEmail = 'passed@user.com';
+            const passedCurrentUserAccountID = 50;
+            const passedAccountID = 999;
+
+            const {optimisticAssigneeAddComment} = getTaskAssigneeChatOnyxData(
+                passedAccountID,
+                1,
+                'taskReportID',
+                'assigneeChatReportID',
+                'parentReportID',
+                'Task title',
+                {} as unknown as OnyxEntry<Report>,
+                passedCurrentUserEmail,
+                passedCurrentUserAccountID,
+            );
+
+            expect(optimisticAssigneeAddComment).toBeDefined();
+            const reportAction = optimisticAssigneeAddComment?.reportAction as ReportAction | undefined;
+
+            // Actor for the comment should use the passed `currentUserAccountID`, not the first `accountID` arg.
+            expect(reportAction?.actorAccountID).toBe(passedCurrentUserAccountID);
+            expect(reportAction?.person?.[0]?.text).toBe(passedCurrentUserEmail);
+        });
+
+        it('uses personal detail displayName for passed currentUserAccountID when available', () => {
+            const passedCurrentUserEmail = 'different-email@user.com';
+            const passedCurrentUserAccountID = currentUserAccountID; // 5, which exists in `participantsPersonalDetails`
+
+            const result = getTaskAssigneeChatOnyxData(
+                1,
+                2,
+                'taskReportID',
+                'assigneeChatReportID',
+                'parentReportID',
+                'Task title',
+                {} as unknown as OnyxEntry<Report>,
+                passedCurrentUserEmail,
+                passedCurrentUserAccountID,
+            );
+
+            const reportAction = result.optimisticAssigneeAddComment?.reportAction as ReportAction | undefined;
+            expect(reportAction?.actorAccountID).toBe(passedCurrentUserAccountID);
+
+            // When personal details exist for this accountID, we should render displayName instead of the passed email.
+            expect(reportAction?.person?.[0]?.text).toBe(participantsPersonalDetails[String(passedCurrentUserAccountID)]?.displayName);
+        });
+
+        it('does not create optimistic assignee comment when assigneeChatReportID equals parentReportID', () => {
+            const result = getTaskAssigneeChatOnyxData(1, 2, 'taskReportID', 'sameReportID', 'sameReportID', 'Task title', {} as unknown as OnyxEntry<Report>, 'email@user.com', 50);
+
+            expect(result.optimisticAssigneeAddComment).toBeUndefined();
+        });
+    });
+
     describe('prepareOnboardingOnyxData', () => {
         const REPORT_ID = '5';
         beforeEach(async () => {
@@ -570,11 +629,124 @@ describe('ReportUtils', () => {
                 companySize: CONST.ONBOARDING_COMPANY_SIZE.MICRO,
             });
             expect(result?.guidedSetupData).toHaveLength(0);
-            // MICRO company size with suggestedFollowups beta adds a bespoke Concierge welcome action optimistically
+            // suggestedFollowups beta adds a bespoke Concierge welcome action optimistically for all company sizes
             const reportActionsEntries = result?.optimisticData.filter((i) => i.key === `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${adminsChatReportID}`);
             expect(reportActionsEntries).toHaveLength(1);
             expect(result?.bespokeWelcomeMessage).toBeDefined();
+            // The bespoke message sent to the backend should be HTML (not raw markdown)
+            // so the server can pass it through to AddComment without formatting loss.
+            expect(result?.bespokeWelcomeMessage).toMatch(/<[^>]+>/);
             expect(result?.optimisticConciergeReportActionID).toBeDefined();
+        });
+
+        it('should generate bespoke welcome message for SMALL company sizes with suggestedFollowups beta', async () => {
+            const adminsChatReportID = '1';
+            await Onyx.merge(ONYXKEYS.SESSION, {email: 'test@example.com'});
+            await Onyx.merge(ONYXKEYS.BETAS, [CONST.BETAS.SUGGESTED_FOLLOWUPS]);
+            await waitForBatchedUpdates();
+
+            const result = prepareOnboardingOnyxData({
+                introSelected: undefined,
+                engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
+                onboardingMessage: {
+                    message: 'This is a test',
+                    tasks: [{type: CONST.ONBOARDING_TASK_TYPE.CONNECT_CORPORATE_CARD, title: () => '', description: () => '', autoCompleted: false}],
+                },
+                adminsChatReportID,
+                selectedInterestedFeatures: ['areCompanyCardsEnabled'],
+                companySize: CONST.ONBOARDING_COMPANY_SIZE.SMALL,
+            });
+            expect(result?.guidedSetupData).toHaveLength(0);
+            expect(result?.bespokeWelcomeMessage).toContain('growing team');
+            expect(result?.optimisticConciergeReportActionID).toBeDefined();
+        });
+
+        it('should generate bespoke welcome message for LARGE company sizes with suggestedFollowups beta', async () => {
+            const adminsChatReportID = '1';
+            await Onyx.merge(ONYXKEYS.SESSION, {email: 'test@example.com'});
+            await Onyx.merge(ONYXKEYS.BETAS, [CONST.BETAS.SUGGESTED_FOLLOWUPS]);
+            await waitForBatchedUpdates();
+
+            const result = prepareOnboardingOnyxData({
+                introSelected: undefined,
+                engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
+                onboardingMessage: {
+                    message: 'This is a test',
+                    tasks: [{type: CONST.ONBOARDING_TASK_TYPE.CONNECT_CORPORATE_CARD, title: () => '', description: () => '', autoCompleted: false}],
+                },
+                adminsChatReportID,
+                selectedInterestedFeatures: ['areCompanyCardsEnabled'],
+                companySize: CONST.ONBOARDING_COMPANY_SIZE.LARGE,
+            });
+            expect(result?.guidedSetupData).toHaveLength(0);
+            expect(result?.bespokeWelcomeMessage).toContain('organization your size');
+            expect(result?.optimisticConciergeReportActionID).toBeDefined();
+        });
+
+        it('should generate bespoke welcome message for MEDIUM_SMALL company sizes with suggestedFollowups beta', async () => {
+            const adminsChatReportID = '1';
+            await Onyx.merge(ONYXKEYS.SESSION, {email: 'test@example.com'});
+            await Onyx.merge(ONYXKEYS.BETAS, [CONST.BETAS.SUGGESTED_FOLLOWUPS]);
+            await waitForBatchedUpdates();
+
+            const result = prepareOnboardingOnyxData({
+                introSelected: undefined,
+                engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
+                onboardingMessage: {
+                    message: 'This is a test',
+                    tasks: [{type: CONST.ONBOARDING_TASK_TYPE.CONNECT_CORPORATE_CARD, title: () => '', description: () => '', autoCompleted: false}],
+                },
+                adminsChatReportID,
+                selectedInterestedFeatures: ['areCompanyCardsEnabled'],
+                companySize: CONST.ONBOARDING_COMPANY_SIZE.MEDIUM_SMALL,
+            });
+            expect(result?.guidedSetupData).toHaveLength(0);
+            expect(result?.bespokeWelcomeMessage).toContain('growing team');
+            expect(result?.optimisticConciergeReportActionID).toBeDefined();
+        });
+
+        it('should generate bespoke welcome message for MEDIUM company sizes with suggestedFollowups beta', async () => {
+            const adminsChatReportID = '1';
+            await Onyx.merge(ONYXKEYS.SESSION, {email: 'test@example.com'});
+            await Onyx.merge(ONYXKEYS.BETAS, [CONST.BETAS.SUGGESTED_FOLLOWUPS]);
+            await waitForBatchedUpdates();
+
+            const result = prepareOnboardingOnyxData({
+                introSelected: undefined,
+                engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
+                onboardingMessage: {
+                    message: 'This is a test',
+                    tasks: [{type: CONST.ONBOARDING_TASK_TYPE.CONNECT_CORPORATE_CARD, title: () => '', description: () => '', autoCompleted: false}],
+                },
+                adminsChatReportID,
+                selectedInterestedFeatures: ['areCompanyCardsEnabled'],
+                companySize: CONST.ONBOARDING_COMPANY_SIZE.MEDIUM,
+            });
+            expect(result?.guidedSetupData).toHaveLength(0);
+            expect(result?.bespokeWelcomeMessage).toContain('organization your size');
+            expect(result?.optimisticConciergeReportActionID).toBeDefined();
+        });
+
+        it('should append accounting integration suffix to bespoke welcome message', async () => {
+            const adminsChatReportID = '1';
+            await Onyx.merge(ONYXKEYS.SESSION, {email: 'test@example.com'});
+            await Onyx.merge(ONYXKEYS.BETAS, [CONST.BETAS.SUGGESTED_FOLLOWUPS]);
+            await waitForBatchedUpdates();
+
+            const result = prepareOnboardingOnyxData({
+                introSelected: undefined,
+                engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
+                onboardingMessage: {
+                    message: 'This is a test',
+                    tasks: [{type: CONST.ONBOARDING_TASK_TYPE.CONNECT_CORPORATE_CARD, title: () => '', description: () => '', autoCompleted: false}],
+                },
+                adminsChatReportID,
+                selectedInterestedFeatures: ['areCompanyCardsEnabled'],
+                companySize: CONST.ONBOARDING_COMPANY_SIZE.SMALL,
+                userReportedIntegration: 'quickbooksOnline',
+            });
+            expect(result?.bespokeWelcomeMessage).toContain('QuickBooks Online');
+            expect(result?.bespokeWelcomeMessage).toContain('expenses sync automatically');
         });
 
         it('should add guidedSetupData when posting into admin room WITHOUT suggestedFollowups beta', async () => {
@@ -13193,6 +13365,27 @@ describe('ReportUtils', () => {
     });
 
     describe('createDraftTransactionAndNavigateToParticipantSelector', () => {
+        it('should return early and not navigate when transaction is undefined', async () => {
+            jest.clearAllMocks();
+            await Onyx.clear();
+            await Onyx.set(ONYXKEYS.SESSION, {email: currentUserEmail, accountID: currentUserAccountID});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${1}`, {});
+
+            createDraftTransactionAndNavigateToParticipantSelector({
+                reportID: '1',
+                actionName: CONST.IOU.ACTION.CATEGORIZE,
+                reportActionID: '1',
+                introSelected: undefined,
+                draftTransactionIDs: [],
+                activePolicy: undefined,
+                userBillingGraceEndPeriods: undefined,
+                amountOwed: 0,
+                transaction: undefined,
+            });
+
+            expect(Navigation.navigate).not.toHaveBeenCalled();
+        });
+
         describe('when action is CATEGORIZE', () => {
             beforeEach(async () => {
                 jest.clearAllMocks();
@@ -13212,19 +13405,21 @@ describe('ReportUtils', () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${activePolicy.id}`, activePolicy);
                 await Onyx.merge(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED, 1);
                 // Grace period end is in the past (Unix timestamp in seconds)
-                await Onyx.merge(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END, Math.floor(Date.now() / 1000) - 3600);
+                const pastGracePeriod = Math.floor(Date.now() / 1000) - 3600;
+                await Onyx.merge(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END, pastGracePeriod);
 
                 // When we call createDraftTransactionAndNavigateToParticipantSelector with the restricted policy
                 createDraftTransactionAndNavigateToParticipantSelector({
-                    transactionID: transaction.transactionID,
                     reportID: '1',
                     actionName: CONST.IOU.ACTION.CATEGORIZE,
                     reportActionID: '1',
                     introSelected: undefined,
-                    allTransactionDrafts: undefined,
+                    draftTransactionIDs: [],
                     activePolicy,
                     userBillingGraceEndPeriods: undefined,
                     amountOwed: 1,
+                    ownerBillingGraceEndPeriod: pastGracePeriod,
+                    transaction,
                 });
 
                 // Then it should navigate to the restricted action page
@@ -13251,15 +13446,15 @@ describe('ReportUtils', () => {
 
                 // When we call createDraftTransactionAndNavigateToParticipantSelector
                 createDraftTransactionAndNavigateToParticipantSelector({
-                    transactionID: transaction.transactionID,
                     reportID: '1',
                     actionName: CONST.IOU.ACTION.CATEGORIZE,
                     reportActionID: '1',
                     introSelected: undefined,
-                    allTransactionDrafts: undefined,
+                    draftTransactionIDs: [],
                     activePolicy,
                     userBillingGraceEndPeriods,
                     amountOwed: 0,
+                    transaction,
                 });
 
                 // Then it should navigate to the restricted action page
@@ -13289,15 +13484,15 @@ describe('ReportUtils', () => {
 
                 // When we call createDraftTransactionAndNavigateToParticipantSelector
                 createDraftTransactionAndNavigateToParticipantSelector({
-                    transactionID: transaction.transactionID,
                     reportID: '1',
                     actionName: CONST.IOU.ACTION.CATEGORIZE,
                     reportActionID: '1',
                     introSelected: undefined,
-                    allTransactionDrafts: undefined,
+                    draftTransactionIDs: [],
                     activePolicy,
                     userBillingGraceEndPeriods: undefined,
                     amountOwed: 0,
+                    transaction,
                 });
 
                 // Then it should navigate to the category step
@@ -13329,15 +13524,15 @@ describe('ReportUtils', () => {
 
                 // When we call createDraftTransactionAndNavigateToParticipantSelector with undefined activePolicy
                 createDraftTransactionAndNavigateToParticipantSelector({
-                    transactionID: transaction.transactionID,
                     reportID: '2',
                     actionName: CONST.IOU.ACTION.CATEGORIZE,
                     reportActionID: '2',
                     introSelected: undefined,
-                    allTransactionDrafts: undefined,
+                    draftTransactionIDs: [],
                     activePolicy: undefined,
                     userBillingGraceEndPeriods: undefined,
                     amountOwed: 0,
+                    transaction,
                 });
 
                 // Then it should automatically pick the available policy and navigate to the category step
@@ -13356,15 +13551,15 @@ describe('ReportUtils', () => {
 
                 // When we call createDraftTransactionAndNavigateToParticipantSelector with undefined activePolicy
                 createDraftTransactionAndNavigateToParticipantSelector({
-                    transactionID: transaction.transactionID,
                     reportID: '1',
                     actionName: CONST.IOU.ACTION.CATEGORIZE,
                     reportActionID: '1',
                     introSelected: undefined,
-                    allTransactionDrafts: undefined,
+                    draftTransactionIDs: [],
                     activePolicy: undefined,
                     userBillingGraceEndPeriods: undefined,
                     amountOwed: 0,
+                    transaction,
                 });
 
                 // Then it should navigate to the upgrade page because no policies were found to categorize with
@@ -13404,15 +13599,15 @@ describe('ReportUtils', () => {
 
                 // When we call createDraftTransactionAndNavigateToParticipantSelector with undefined activePolicy
                 createDraftTransactionAndNavigateToParticipantSelector({
-                    transactionID: transaction.transactionID,
                     reportID: '1',
                     actionName: CONST.IOU.ACTION.CATEGORIZE,
                     reportActionID: '1',
                     introSelected: undefined,
-                    allTransactionDrafts: undefined,
+                    draftTransactionIDs: [],
                     activePolicy: undefined,
                     userBillingGraceEndPeriods: undefined,
                     amountOwed: 0,
+                    transaction,
                 });
 
                 // Then it should navigate to the upgrade page because it's ambiguous which policy to use
@@ -13448,15 +13643,15 @@ describe('ReportUtils', () => {
 
                 // When we call createDraftTransactionAndNavigateToParticipantSelector
                 createDraftTransactionAndNavigateToParticipantSelector({
-                    transactionID: transaction.transactionID,
                     reportID: '1',
                     actionName: CONST.IOU.ACTION.CATEGORIZE,
                     reportActionID: '1',
                     introSelected: undefined,
-                    allTransactionDrafts: undefined,
+                    draftTransactionIDs: [],
                     activePolicy,
                     userBillingGraceEndPeriods: undefined,
                     amountOwed: 0,
+                    transaction,
                 });
 
                 // Then it should log a warning and not navigate
@@ -13486,19 +13681,21 @@ describe('ReportUtils', () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${policyExpenseReport.reportID}`, policyExpenseReport);
                 await Onyx.merge(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED, 0);
                 // Grace period end is in the past
-                await Onyx.merge(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END, Math.floor(Date.now() / 1000) - 3600);
+                const pastGracePeriod = Math.floor(Date.now() / 1000) - 3600;
+                await Onyx.merge(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END, pastGracePeriod);
 
                 // When we call with amountOwed = 0
                 createDraftTransactionAndNavigateToParticipantSelector({
-                    transactionID: transaction.transactionID,
                     reportID: '1',
                     actionName: CONST.IOU.ACTION.CATEGORIZE,
                     reportActionID: '1',
                     introSelected: undefined,
-                    allTransactionDrafts: undefined,
+                    draftTransactionIDs: [],
                     activePolicy,
                     userBillingGraceEndPeriods: undefined,
                     amountOwed: 0,
+                    ownerBillingGraceEndPeriod: pastGracePeriod,
+                    transaction,
                 });
 
                 // Then it should NOT navigate to restricted action page, but to category step
@@ -13520,19 +13717,21 @@ describe('ReportUtils', () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${activePolicy.id}`, activePolicy);
                 await Onyx.merge(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED, 50);
                 // Grace period end is in the past
-                await Onyx.merge(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END, Math.floor(Date.now() / 1000) - 3600);
+                const pastGracePeriod = Math.floor(Date.now() / 1000) - 3600;
+                await Onyx.merge(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END, pastGracePeriod);
 
                 // When we call with amountOwed = 50
                 createDraftTransactionAndNavigateToParticipantSelector({
-                    transactionID: transaction.transactionID,
                     reportID: '1',
                     actionName: CONST.IOU.ACTION.CATEGORIZE,
                     reportActionID: '1',
                     introSelected: undefined,
-                    allTransactionDrafts: undefined,
+                    draftTransactionIDs: [],
                     activePolicy,
                     userBillingGraceEndPeriods: undefined,
                     amountOwed: 50,
+                    ownerBillingGraceEndPeriod: pastGracePeriod,
+                    transaction,
                 });
 
                 // Then it should navigate to restricted action page
@@ -14120,6 +14319,85 @@ describe('ReportUtils', () => {
         });
     });
 
+    describe('hasVisibleReportFieldViolations', () => {
+        const policyID = 'policy-field-violations';
+
+        const baseField: PolicyReportField = {
+            name: 'project',
+            fieldID: 'project_field',
+            defaultValue: '',
+            orderWeight: 1,
+            type: 'text',
+            deletable: true,
+            target: CONST.REPORT.TYPE.EXPENSE,
+            values: [],
+            keys: [],
+            externalIDs: [],
+            disabledOptions: [],
+            isTax: false,
+        };
+
+        const basePolicy = {
+            ...createRandomPolicy(Number(policyID), CONST.POLICY.TYPE.TEAM),
+            id: policyID,
+            type: CONST.POLICY.TYPE.TEAM,
+            role: CONST.POLICY.ROLE.ADMIN,
+            areReportFieldsEnabled: true,
+            fieldList: {
+                [`expensify_${baseField.fieldID}`]: baseField,
+            },
+        };
+
+        const expenseReport: Report = {
+            reportID: 'report-field-violations',
+            type: CONST.REPORT.TYPE.EXPENSE,
+            policyID,
+            ownerAccountID: currentUserAccountID,
+            stateNum: CONST.REPORT.STATE_NUM.OPEN,
+            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+        };
+
+        beforeEach(async () => {
+            await Onyx.clear();
+            await Onyx.merge(ONYXKEYS.SESSION, {accountID: currentUserAccountID, email: currentUserEmail});
+            await waitForBatchedUpdates();
+        });
+
+        it('should return false when policy does not have areReportFieldsEnabled enabled', () => {
+            const policyWithFieldsDisabled = {...basePolicy, areReportFieldsEnabled: false};
+
+            expect(hasVisibleReportFieldViolations(expenseReport, policyWithFieldsDisabled)).toBe(false);
+        });
+
+        it('should return false when the report is not an expense report or invoice report', () => {
+            const chatReport: Report = {
+                reportID: 'chat-report-field-violations',
+                type: CONST.REPORT.TYPE.CHAT,
+                policyID,
+            };
+
+            expect(hasVisibleReportFieldViolations(chatReport, basePolicy)).toBe(false);
+        });
+
+        it('should return true when expense report has a required field with no value', async () => {
+            const fieldWithNoValue: PolicyReportField = {
+                ...baseField,
+                value: null,
+                defaultValue: '',
+            };
+
+            const policyWithEmptyField = {
+                ...basePolicy,
+                fieldList: {[`expensify_${fieldWithNoValue.fieldID}`]: fieldWithNoValue},
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policyWithEmptyField);
+            await waitForBatchedUpdates();
+
+            expect(hasVisibleReportFieldViolations(expenseReport, policyWithEmptyField)).toBe(true);
+        });
+    });
+
     describe('getAddExpenseDropdownOptions', () => {
         const mockTranslate: LocaleContextProps['translate'] = (path, ...params) => translate(CONST.LOCALES.EN, path, ...params);
         const mockIcons = {
@@ -14573,6 +14851,64 @@ describe('ReportUtils', () => {
 
                 expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.RESTRICTED_ACTION.getRoute(policyID));
             });
+        });
+    });
+
+    describe('getTransactionDetails', () => {
+        it('should return taxValue from the transaction', () => {
+            const transaction = buildOptimisticTransaction({
+                transactionParams: {
+                    amount: 1000,
+                    currency: 'USD',
+                    reportID: '1',
+                    comment: '',
+                    created: '2024-01-01',
+                    taxCode: 'id_TAX_RATE_1',
+                    taxAmount: 0,
+                    taxValue: '0%',
+                },
+            });
+
+            const details = getTransactionDetails(transaction);
+
+            expect(details?.taxValue).toBe('0%');
+            expect(details?.taxCode).toBe('id_TAX_RATE_1');
+            expect(details?.taxAmount).toBe(0);
+        });
+
+        it('should return undefined taxValue when not set on the transaction', () => {
+            const transaction = buildOptimisticTransaction({
+                transactionParams: {
+                    amount: 500,
+                    currency: 'USD',
+                    reportID: '1',
+                    comment: '',
+                    created: '2024-01-01',
+                },
+            });
+
+            const details = getTransactionDetails(transaction);
+
+            expect(details?.taxValue).toBeUndefined();
+        });
+
+        it('should return non-zero taxValue from the transaction', () => {
+            const transaction = buildOptimisticTransaction({
+                transactionParams: {
+                    amount: 1000,
+                    currency: 'USD',
+                    reportID: '1',
+                    comment: '',
+                    created: '2024-01-01',
+                    taxCode: 'id_TAX_RATE_1',
+                    taxAmount: 100,
+                    taxValue: '10%',
+                },
+            });
+
+            const details = getTransactionDetails(transaction);
+
+            expect(details?.taxValue).toBe('10%');
         });
     });
 });

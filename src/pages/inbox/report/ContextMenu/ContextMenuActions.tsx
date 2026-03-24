@@ -18,11 +18,12 @@ import {getEnvironmentURL} from '@libs/Environment/Environment';
 import fileDownload from '@libs/fileDownload';
 import getAttachmentDetails from '@libs/fileDownload/getAttachmentDetails';
 import {formatPhoneNumber as formatPhoneNumberPhoneUtils} from '@libs/LocalePhoneNumber';
-import {getForReportActionTemp} from '@libs/ModifiedExpenseMessage';
+import {getForReportAction} from '@libs/ModifiedExpenseMessage';
 import Navigation from '@libs/Navigation/Navigation';
 import Parser from '@libs/Parser';
 import {getCleanedTagName, isPolicyAdmin} from '@libs/PolicyUtils';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
+import stripFollowupListFromHtml from '@libs/ReportActionFollowupUtils/stripFollowupListFromHtml';
 import {
     getActionableCardFraudAlertMessage,
     getActionableMentionWhisperMessage,
@@ -214,14 +215,15 @@ function getActionHtml(reportAction: OnyxInputOrEntry<ReportAction>): string {
 
 /** Sets the HTML string to Clipboard */
 function setClipboardMessage(content: string | undefined) {
-    if (!content) {
+    const strippedContent = stripFollowupListFromHtml(content);
+    if (!strippedContent) {
         return;
     }
-    const clipboardText = getClipboardText(content);
+    const clipboardText = getClipboardText(strippedContent);
     if (!Clipboard.canSetHtml()) {
         Clipboard.setString(clipboardText);
     } else {
-        Clipboard.setHtml(content, clipboardText);
+        Clipboard.setHtml(strippedContent, clipboardText);
     }
 }
 
@@ -284,6 +286,7 @@ type ContextMenuActionPayload = {
     translate: LocalizedTranslate;
     harvestReport?: OnyxEntry<ReportType>;
     introSelected: OnyxEntry<IntroSelected>;
+    isSelfTourViewed: boolean | undefined;
     betas: OnyxEntry<Beta[]>;
     isDelegateAccessRestricted?: boolean;
     showDelegateNoAccessModal?: () => void;
@@ -428,16 +431,16 @@ const ContextMenuActions: ContextMenuAction[] = [
             }
             return !shouldDisableThread(reportAction, isThreadReportParentAction, isArchivedRoom);
         },
-        onPress: (closePopover, {reportAction, childReport, originalReport, currentUserAccountID, introSelected}) => {
+        onPress: (closePopover, {reportAction, childReport, originalReport, currentUserAccountID, introSelected, betas}) => {
             if (closePopover) {
                 hideContextMenu(false, () => {
                     KeyboardUtils.dismiss().then(() => {
-                        navigateToAndOpenChildReport(childReport, reportAction, originalReport, currentUserAccountID, introSelected);
+                        navigateToAndOpenChildReport(childReport, reportAction, originalReport, currentUserAccountID, introSelected, betas);
                     });
                 });
                 return;
             }
-            navigateToAndOpenChildReport(childReport, reportAction, originalReport, currentUserAccountID, introSelected);
+            navigateToAndOpenChildReport(childReport, reportAction, originalReport, currentUserAccountID, introSelected, betas);
         },
         getDescription: () => {},
         sentryLabel: CONST.SENTRY_LABEL.CONTEXT_MENU.REPLY_IN_THREAD,
@@ -471,7 +474,7 @@ const ContextMenuActions: ContextMenuAction[] = [
 
             return hasReasoning(reportAction);
         },
-        onPress: (closePopover, {reportAction, childReport, originalReport, translate, currentUserPersonalDetails, introSelected}) => {
+        onPress: (closePopover, {reportAction, childReport, originalReport, translate, currentUserPersonalDetails, introSelected, betas}) => {
             if (!originalReport?.reportID) {
                 return;
             }
@@ -479,13 +482,13 @@ const ContextMenuActions: ContextMenuAction[] = [
             if (closePopover) {
                 hideContextMenu(false, () => {
                     KeyboardUtils.dismiss().then(() => {
-                        explain(childReport, originalReport, reportAction, translate, currentUserPersonalDetails.accountID, introSelected, currentUserPersonalDetails?.timezone);
+                        explain(childReport, originalReport, reportAction, translate, currentUserPersonalDetails.accountID, introSelected, betas, currentUserPersonalDetails?.timezone);
                     });
                 });
                 return;
             }
 
-            explain(childReport, originalReport, reportAction, translate, currentUserPersonalDetails.accountID, introSelected, currentUserPersonalDetails?.timezone);
+            explain(childReport, originalReport, reportAction, translate, currentUserPersonalDetails.accountID, introSelected, betas, currentUserPersonalDetails?.timezone);
         },
         getDescription: () => {},
         sentryLabel: CONST.SENTRY_LABEL.CONTEXT_MENU.EXPLAIN,
@@ -626,18 +629,36 @@ const ContextMenuActions: ContextMenuAction[] = [
                 (shouldDisplayThreadReplies || (!isDeletedAction && !isArchivedRoom))
             );
         },
-        onPress: (closePopover, {reportAction, currentUserAccountID, originalReport, introSelected}) => {
+        onPress: (closePopover, {reportAction, currentUserAccountID, originalReport, introSelected, isSelfTourViewed, betas}) => {
             const childReportNotificationPreference = getChildReportNotificationPreferenceReportUtils(reportAction);
             if (closePopover) {
                 hideContextMenu(false, () => {
                     ReportActionComposeFocusManager.focus();
-                    toggleSubscribeToChildReport(reportAction?.childReportID, currentUserAccountID, reportAction, originalReport, introSelected, childReportNotificationPreference);
+                    toggleSubscribeToChildReport(
+                        reportAction?.childReportID,
+                        currentUserAccountID,
+                        reportAction,
+                        originalReport,
+                        introSelected,
+                        isSelfTourViewed,
+                        betas,
+                        childReportNotificationPreference,
+                    );
                 });
                 return;
             }
 
             ReportActionComposeFocusManager.focus();
-            toggleSubscribeToChildReport(reportAction?.childReportID, currentUserAccountID, reportAction, originalReport, introSelected, childReportNotificationPreference);
+            toggleSubscribeToChildReport(
+                reportAction?.childReportID,
+                currentUserAccountID,
+                reportAction,
+                originalReport,
+                introSelected,
+                isSelfTourViewed,
+                betas,
+                childReportNotificationPreference,
+            );
         },
         getDescription: () => {},
         sentryLabel: CONST.SENTRY_LABEL.CONTEXT_MENU.JOIN_THREAD,
@@ -665,18 +686,36 @@ const ContextMenuActions: ContextMenuAction[] = [
                 (shouldDisplayThreadReplies || (!isDeletedAction && !isArchivedRoom))
             );
         },
-        onPress: (closePopover, {reportAction, currentUserAccountID, originalReport, introSelected}) => {
+        onPress: (closePopover, {reportAction, currentUserAccountID, originalReport, introSelected, isSelfTourViewed, betas}) => {
             const childReportNotificationPreference = getChildReportNotificationPreferenceReportUtils(reportAction);
             if (closePopover) {
                 hideContextMenu(false, () => {
                     ReportActionComposeFocusManager.focus();
-                    toggleSubscribeToChildReport(reportAction?.childReportID, currentUserAccountID, reportAction, originalReport, introSelected, childReportNotificationPreference);
+                    toggleSubscribeToChildReport(
+                        reportAction?.childReportID,
+                        currentUserAccountID,
+                        reportAction,
+                        originalReport,
+                        introSelected,
+                        isSelfTourViewed,
+                        betas,
+                        childReportNotificationPreference,
+                    );
                 });
                 return;
             }
 
             ReportActionComposeFocusManager.focus();
-            toggleSubscribeToChildReport(reportAction?.childReportID, currentUserAccountID, reportAction, originalReport, introSelected, childReportNotificationPreference);
+            toggleSubscribeToChildReport(
+                reportAction?.childReportID,
+                currentUserAccountID,
+                reportAction,
+                originalReport,
+                introSelected,
+                isSelfTourViewed,
+                betas,
+                childReportNotificationPreference,
+            );
         },
         getDescription: () => {},
         sentryLabel: CONST.SENTRY_LABEL.CONTEXT_MENU.LEAVE_THREAD,
@@ -774,7 +813,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                     const displayMessage = html ?? text;
                     setClipboardMessage(displayMessage);
                 } else if (isModifiedExpenseAction(reportAction)) {
-                    const modifyExpenseMessage = getForReportActionTemp({
+                    const modifyExpenseMessageWithHTML = getForReportAction({
                         translate,
                         reportAction,
                         policy,
@@ -783,6 +822,8 @@ const ContextMenuActions: ContextMenuAction[] = [
                         policyTags,
                         currentUserLogin: currentUserPersonalDetails?.email ?? '',
                     });
+                    // Convert HTML to markdown for clipboard copy to preserve links and formatting
+                    const modifyExpenseMessage = Parser.htmlToMarkdown(modifyExpenseMessageWithHTML);
                     Clipboard.setString(modifyExpenseMessage);
                 } else if (isReimbursementDeQueuedOrCanceledAction(reportAction)) {
                     const displayMessage = getReimbursementDeQueuedOrCanceledActionMessage(translate, reportAction, report);
