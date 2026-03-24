@@ -10,6 +10,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import {buildQueryStringFromFilterFormValues} from '@libs/SearchQueryUtils';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -99,7 +100,13 @@ function ForYouSection() {
 
     const renderContent = () => {
         if (isLoadingApp || isLoadingReportData || reportCounts === undefined) {
-            return <ForYouSkeleton />;
+            const reasonAttributes: SkeletonSpanReasonAttributes = {
+                context: 'ForYouSection.ForYouSkeleton',
+                isLoadingApp,
+                isLoadingReportData,
+                isReportCountsUndefined: reportCounts === undefined,
+            };
+            return <ForYouSkeleton reasonAttributes={reasonAttributes} />;
         }
 
         return hasAnyTodos ? renderTodoItems() : <EmptyState />;

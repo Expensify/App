@@ -181,6 +181,9 @@ function WorkspaceTravelInvoicingExportPage({route}: WorkspaceTravelInvoicingExp
                 setIsDownloading(false),
             );
         } else {
+            // Intentional: this setState resets the loading indicator when generation completes but no file is available.
+            // It runs in a cleanup path of the effect, not as a cascading re-render trigger.
+            // eslint-disable-next-line react-hooks/set-state-in-effect
             setIsDownloading(false);
         }
     }, [prevIsGenerating, isGenerating, travelInvoiceStatement, policyID, getDateRange, translate, baseURL, currentUserPersonalDetails?.login, session?.encryptedAuthToken]);

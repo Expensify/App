@@ -19,6 +19,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {setConnectionError} from '@userActions/connections';
 import {getQuickbooksDesktopCodatSetupLink} from '@userActions/connections/QuickbooksDesktop';
 import {enablePolicyTaxes} from '@userActions/Policy/Policy';
@@ -75,6 +76,11 @@ function RequireQuickBooksDesktopModal({route}: RequireQuickBooksDesktopModalPro
 
     const shouldShowError = hasError;
 
+    const activityReasonAttributes: SkeletonSpanReasonAttributes = {
+        context: 'RequireQuickBooksDesktopModal',
+        hasResultOfFetchingSetupLink,
+    };
+
     const children = (
         <>
             {shouldShowError && (
@@ -100,7 +106,7 @@ function RequireQuickBooksDesktopModal({route}: RequireQuickBooksDesktopModalPro
                     <Text style={[styles.textSupporting, styles.textNormal, styles.pt4]}>{translate('workspace.qbd.setupPage.body')}</Text>
                     <View style={[styles.qbdSetupLinkBox, styles.mt5]}>
                         {!hasResultOfFetchingSetupLink ? (
-                            <ActivityIndicator />
+                            <ActivityIndicator reasonAttributes={activityReasonAttributes} />
                         ) : (
                             <CopyTextToClipboard
                                 text={codatSetupLink}

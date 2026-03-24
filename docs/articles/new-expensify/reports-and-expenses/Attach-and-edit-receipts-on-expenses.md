@@ -1,7 +1,8 @@
 ---
 title: Attach and edit receipts on expenses
 description: Learn how to properly attach, verify, and troubleshoot receipts on expenses in New Expensify for audits and accounting.
-keywords: [attach receipt, verify receipt, missing receipt, expense attachments, audit trail, New Expensify, receipt not showing]
+keywords: [New Expensify,attach receipt, verify receipt, missing receipt, expense attachments, audit trail, New Expensify, receipt not showing, crop receipt, rotate receipt, trim receipt]
+internalScope: Audience is Expensify members and Workspace Admins. Covers attaching, replacing, and cropping receipts on expenses. Does not cover SmartScan configuration or receipt forwarding via email.
 ---
 
 <div id="new-expensify" markdown="1">
@@ -41,15 +42,20 @@ Attaching receipts in the report comment thread does **not** link them to any ex
 
 ## How to replace an existing receipt
 
-**On web:**
-1. Open the expense and click on the receipt image. 
-2. Click the three dots > **Replace**.
-3. Click **Choose file** to add the receipt image file. 
+1. Open the expense and click on the receipt image.
+2. Click **Replace**.
+3. Take a photo or upload a receipt image file from your device.
 
-**On mobile:**
-1. Open the expense and tap the receipt image.
-2. Tap the three dots > **Replace**.
-3. Take a photo or upload a file from your device image gallery.
+## How to crop a receipt image
+
+You can crop a receipt image to remove unnecessary areas or focus on specific details.
+
+1. Open the expense and click on the receipt image.
+2. Click **Crop**.
+3. Drag the corners or edges of the crop rectangle to select the area you want to keep.
+4. Click **Save**.
+
+The cropped image will replace the original receipt on the expense.
 
 ---
 
@@ -104,6 +110,9 @@ Only the expense creator or a Workspace Admin can attach a receipt an expense.
 
 ## Will auditors see receipts added in report comments?
 No. Receipts in the comments section are considered supplemental and are not included in audits, exports, or downloadable reports.
+
+## Can I crop or rotate an eReceipt?
+No. The **Crop** and **Rotate** buttons are only available for image receipts that you uploaded or scanned. eReceipts cannot be cropped or rotated.
 
 ## Can I attach both the card and itemized restaurant receipts?
 Yes. Attach the **card receipt** to the expense itself, and upload the **itemized receipt** in the report comments as supporting documentation.

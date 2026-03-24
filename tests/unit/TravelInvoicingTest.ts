@@ -46,8 +46,10 @@ describe('TravelInvoicing', () => {
                     expect.objectContaining({
                         key: cardSettingsKey,
                         value: expect.objectContaining({
-                            paymentBankAccountID: settlementBankAccountID,
-                            previousPaymentBankAccountID,
+                            [CONST.TRAVEL.PROGRAM_TRAVEL_US]: expect.objectContaining({
+                                paymentBankAccountID: settlementBankAccountID,
+                                previousPaymentBankAccountID,
+                            }),
                             isLoading: true,
                             pendingFields: expect.objectContaining({
                                 paymentBankAccountID: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
@@ -62,8 +64,10 @@ describe('TravelInvoicing', () => {
                     expect.objectContaining({
                         key: cardSettingsKey,
                         value: expect.objectContaining({
-                            paymentBankAccountID: settlementBankAccountID,
-                            previousPaymentBankAccountID: null,
+                            [CONST.TRAVEL.PROGRAM_TRAVEL_US]: expect.objectContaining({
+                                paymentBankAccountID: settlementBankAccountID,
+                                previousPaymentBankAccountID: null,
+                            }),
                             isLoading: false,
                             pendingFields: expect.objectContaining({
                                 paymentBankAccountID: null,
@@ -78,8 +82,10 @@ describe('TravelInvoicing', () => {
                     expect.objectContaining({
                         key: cardSettingsKey,
                         value: expect.objectContaining({
-                            paymentBankAccountID: settlementBankAccountID,
-                            previousPaymentBankAccountID,
+                            [CONST.TRAVEL.PROGRAM_TRAVEL_US]: expect.objectContaining({
+                                paymentBankAccountID: settlementBankAccountID,
+                                previousPaymentBankAccountID,
+                            }),
                             isLoading: false,
                             pendingFields: expect.objectContaining({
                                 paymentBankAccountID: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
@@ -102,8 +108,10 @@ describe('TravelInvoicing', () => {
         clearTravelInvoicingSettlementAccountErrors(workspaceAccountID, restoredAccountID);
 
         expect(spyOnyxMerge).toHaveBeenCalledWith(cardSettingsKey, {
-            paymentBankAccountID: restoredAccountID,
-            previousPaymentBankAccountID: null,
+            [CONST.TRAVEL.PROGRAM_TRAVEL_US]: {
+                paymentBankAccountID: restoredAccountID,
+                previousPaymentBankAccountID: null,
+            },
             pendingFields: {
                 paymentBankAccountID: null,
             },
@@ -121,8 +129,10 @@ describe('TravelInvoicing', () => {
         clearTravelInvoicingSettlementFrequencyErrors(workspaceAccountID, monthlySettlementDate);
 
         expect(spyOnyxMerge).toHaveBeenCalledWith(cardSettingsKey, {
-            monthlySettlementDate: monthlySettlementDate ?? null,
-            previousMonthlySettlementDate: null,
+            [CONST.TRAVEL.PROGRAM_TRAVEL_US]: {
+                monthlySettlementDate: monthlySettlementDate ?? null,
+                previousMonthlySettlementDate: null,
+            },
             pendingFields: {
                 monthlySettlementDate: null,
             },
@@ -156,8 +166,10 @@ describe('TravelInvoicing', () => {
                     expect.objectContaining({
                         key: cardSettingsKey,
                         value: expect.objectContaining({
-                            monthlySettlementDate: mockDate,
-                            previousMonthlySettlementDate: currentMonthlySettlementDate,
+                            [CONST.TRAVEL.PROGRAM_TRAVEL_US]: expect.objectContaining({
+                                monthlySettlementDate: mockDate,
+                                previousMonthlySettlementDate: currentMonthlySettlementDate,
+                            }),
                             pendingFields: expect.objectContaining({
                                 monthlySettlementDate: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                             }),
@@ -171,8 +183,10 @@ describe('TravelInvoicing', () => {
                     expect.objectContaining({
                         key: cardSettingsKey,
                         value: expect.objectContaining({
-                            monthlySettlementDate: mockDate,
-                            previousMonthlySettlementDate: null,
+                            [CONST.TRAVEL.PROGRAM_TRAVEL_US]: expect.objectContaining({
+                                monthlySettlementDate: mockDate,
+                                previousMonthlySettlementDate: null,
+                            }),
                             pendingFields: expect.objectContaining({
                                 monthlySettlementDate: null,
                             }),
@@ -186,8 +200,10 @@ describe('TravelInvoicing', () => {
                     expect.objectContaining({
                         key: cardSettingsKey,
                         value: expect.objectContaining({
-                            monthlySettlementDate: mockDate,
-                            previousMonthlySettlementDate: currentMonthlySettlementDate,
+                            [CONST.TRAVEL.PROGRAM_TRAVEL_US]: expect.objectContaining({
+                                monthlySettlementDate: mockDate,
+                                previousMonthlySettlementDate: currentMonthlySettlementDate,
+                            }),
                             pendingFields: expect.objectContaining({
                                 monthlySettlementDate: null,
                             }),
@@ -280,7 +296,6 @@ describe('TravelInvoicing', () => {
                     expect.objectContaining({
                         key: cardSettingsKey,
                         value: expect.objectContaining({
-                            isEnabled: false,
                             [CONST.TRAVEL.PROGRAM_TRAVEL_US]: expect.objectContaining({
                                 isEnabled: false,
                             }),
@@ -304,7 +319,6 @@ describe('TravelInvoicing', () => {
                     expect.objectContaining({
                         key: cardSettingsKey,
                         value: expect.objectContaining({
-                            isEnabled: true,
                             [CONST.TRAVEL.PROGRAM_TRAVEL_US]: expect.objectContaining({
                                 isEnabled: true,
                             }),

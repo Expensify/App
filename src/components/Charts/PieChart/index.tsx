@@ -3,12 +3,14 @@ import React from 'react';
 import {View} from 'react-native';
 import ActivityIndicator from '@components/ActivityIndicator';
 import useThemeStyles from '@hooks/useThemeStyles';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import type {PieChartProps} from './PieChartContent';
 
 const getPieChartContent = () => import('./PieChartContent');
 
 function PieChart(props: PieChartProps) {
     const styles = useThemeStyles();
+    const reasonAttributes: SkeletonSpanReasonAttributes = {context: 'PieChart.SkiaWebLoading'};
 
     return (
         <WithSkiaWeb
@@ -17,7 +19,10 @@ function PieChart(props: PieChartProps) {
             componentProps={props}
             fallback={
                 <View style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsCenter, styles.highlightBG, styles.br4, styles.p5]}>
-                    <ActivityIndicator size="large" />
+                    <ActivityIndicator
+                        size="large"
+                        reasonAttributes={reasonAttributes}
+                    />
                 </View>
             }
         />

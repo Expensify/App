@@ -234,9 +234,7 @@ function ReportActionItemSingle({
                     </Text>
                 )}
                 {!!managerOnVacation && !isAutomaticAction && (
-                    <Text style={[styles.chatDelegateMessage]}>
-                        {translate('statusPage.asVacationDelegate', {nameOrEmail: vacationDelegateDetailsForApprove?.displayName ?? managerOnVacation ?? ''})}
-                    </Text>
+                    <Text style={[styles.chatDelegateMessage]}>{translate('statusPage.asVacationDelegate', vacationDelegateDetailsForApprove?.displayName ?? managerOnVacation ?? '')}</Text>
                 )}
                 <View style={hasBeenFlagged ? styles.blockquote : {}}>{children}</View>
             </View>

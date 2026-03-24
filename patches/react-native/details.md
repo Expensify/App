@@ -1,13 +1,13 @@
 # `react-native` patches
 
-### [react-native+0.81.4+001+initial.patch](react-native+0.81.4+001+initial.patch)
+### [react-native+0.83.1+001+initial.patch](react-native+0.83.1+001+initial.patch)
 
 - Reason: Fixes keyboard flickering issue when opening/closing modals. When an input is blurred and a modal is opened, the `rootView` becomes the `firstResponder`, causing the system to retain an incorrect keyboard state. This leads to keyboard flickering when the modal is closed. The patch adds code to resign the `rootView`'s `firstResponder` status before presenting the modal to prevent this issue.
 - Upstream PR/issue: 🛑
 - E/App issue: 🛑
 - PR Introducing Patch: https://github.com/Expensify/App/pull/23994
 
-### [react-native+0.81.4+002+fixMVCPAndroid.patch](react-native+0.81.4+002+fixMVCPAndroid.patch)
+### [react-native+0.83.1+002+fixMVCPAndroid.patch](react-native+0.83.1+002+fixMVCPAndroid.patch)
 
 - Reason: Fixes content jumping issues with `MaintainVisibleContentPosition` on Android, particularly in bidirectional pagination scenarios. The patch makes two key improvements:
   1. Changes when the first visible view is calculated - now happens on scroll events instead of during Fabric's willMountItems lifecycle, which was causing incorrect updates
@@ -16,63 +16,63 @@
 - E/App issue: 🛑
 - PR Introducing Patch: https://github.com/Expensify/App/pull/46315 (introduced), https://github.com/Expensify/App/pull/45289 (refactored)
 
-### [react-native+0.81.4+003+disableTextInputRecycling.patch](react-native+0.81.4+003+disableTextInputRecycling.patch)
+### [react-native+0.83.1+003+disableTextInputRecycling.patch](react-native+0.83.1+003+disableTextInputRecycling.patch)
 
 - Reason: Disables text input recycling to prevent issues with state of recycled component
 - Upstream PR/issue: 🛑
 - E/App issue: 🛑
 - PR Introducing Patch: https://github.com/Expensify/App/pull/13767
 
-### [react-native+0.81.4+004+iOSFontResolution.patch](react-native+0.81.4+004+iOSFontResolution.patch)
+### [react-native+0.83.1+004+iOSFontResolution.patch](react-native+0.83.1+004+iOSFontResolution.patch)
 
 - Reason: Fixes font resolution issues on iOS by properly preserving font properties when loading fonts by name. When a font is loaded by its name, the patch now correctly extracts and uses its actual weight and style properties instead of ignoring them.
 - Upstream PR/issue: 🛑
 - E/App issue: 🛑
 - PR Introducing Patch: https://github.com/Expensify/App/pull/13767
 
-### [react-native+0.81.4+005+resetAutoresizingOnView.patch](react-native+0.81.4+005+resetAutoresizingOnView.patch)
+### [react-native+0.83.1+005+resetAutoresizingOnView.patch](react-native+0.83.1+005+resetAutoresizingOnView.patch)
 
 - Reason: This is a workaround fix for an issue with `UIPageViewController` and Fabric's view recycling system. The problem occurs because pager-view was incorrectly using a Fabric-provided view as its content-view. This is problematic because `UIPageViewController` modifies its content view, and when Fabric later recycles this modified view, it can lead to unexpected layout issues. The patch addresses this by resetting the autoresizing mask on the view to prevent layout corruption when views are recycled. The root cause should be addressed in react-native-pager-view: https://github.com/callstack/react-native-pager-view/issues/819
 - Upstream PR/issue: https://github.com/facebook/react-native/issues/42732
 - E/App issue: 🛑
 - PR Introducing Patch: https://github.com/Expensify/App/pull/13767
 
-### [react-native+0.81.4+006+disableNonTranslucentStatusBar.patch](react-native+0.81.4+006+disableNonTranslucentStatusBar.patch)
+### [react-native+0.83.1+006+disableNonTranslucentStatusBar.patch](react-native+0.83.1+006+disableNonTranslucentStatusBar.patch)
 
 - Reason: Disables non-translucent status bar to fix UI issues
 - Upstream PR/issue: 🛑
 - E/App issue: 🛑
 - PR Introducing Patch: 🛑
 
-### [react-native+0.81.4+007+TextInput.patch](react-native+0.81.4+007+TextInput.patch)
+### [react-native+0.83.1+007+TextInput.patch](react-native+0.83.1+007+TextInput.patch)
 
 - Reason: Fixes TextInput component issues
 - Upstream PR/issue: 🛑
 - E/App issue: 🛑
 - PR Introducing Patch: 🛑
 
-### [react-native+0.81.4+008+iOSCoreAnimationBorderRendering.patch](react-native+0.81.4+008+iOSCoreAnimationBorderRendering.patch)
+### [react-native+0.83.1+008+iOSCoreAnimationBorderRendering.patch](react-native+0.83.1+008+iOSCoreAnimationBorderRendering.patch)
 
 - Reason: Fixes border rendering issues with Core Animation on iOS
 - Upstream PR/issue: 🛑
 - E/App issue: 🛑
 - PR Introducing Patch: 🛑
 
-### [react-native+0.81.4+009+copyStateOnClone.patch](react-native+0.81.4+009+copyStateOnClone.patch)
+### [react-native+0.83.1+009+copyStateOnClone.patch](react-native+0.83.1+009+copyStateOnClone.patch)
 
 - Reason: Ensures state is properly copied when cloning components
 - Upstream PR/issue: 🛑
 - E/App issue: 🛑
 - PR Introducing Patch: 🛑
 
-### [react-native+0.81.4+010+textinput-clear-command.patch](react-native+0.81.4+010+textinput-clear-command.patch)
+### [react-native+0.83.1+010+textinput-clear-command.patch](react-native+0.83.1+010+textinput-clear-command.patch)
 
 - Reason: Adds clear command functionality to TextInput
 - Upstream PR/issue: 🛑
 - E/App issue: 🛑
 - PR Introducing Patch: 🛑
 
-### [react-native+0.81.4+011+Add-onPaste-to-TextInput.patch](react-native+0.81.4+011+Add-onPaste-to-TextInput.patch)
+### [react-native+0.83.1+011+Add-onPaste-to-TextInput.patch](react-native+0.83.1+011+Add-onPaste-to-TextInput.patch)
 
 - Reasons:
     - Adds `onPaste` callback to `TextInput` to support image pasting on native
@@ -88,84 +88,70 @@
     - https://github.com/Expensify/App/issues/75991
 - PR Introducing Patch: [#47203](https://github.com/Expensify/App/pull/47203)
 
-### [react-native+0.81.4+012+alert-style.patch](react-native+0.81.4+012+alert-style.patch)
+### [react-native+0.83.1+012+alert-style.patch](react-native+0.83.1+012+alert-style.patch)
 
 - Reason: Fixes alert styling issues
 - Upstream PR/issue: 🛑
 - E/App issue: 🛑
 - PR Introducing Patch: 🛑
 
-### [react-native+0.81.4+013+fixNavigationAnimations.patch](react-native+0.81.4+013+fixNavigationAnimations.patch)
+### [react-native+0.83.1+013+fixNavigationAnimations.patch](react-native+0.83.1+013+fixNavigationAnimations.patch)
 
 - Reason: Fixes navigation animation issues
 - Upstream PR/issue: 🛑
 - E/App issue: 🛑
 - PR Introducing Patch: 🛑
 
-### [react-native+0.81.4+014+fixScrollViewState.patch](react-native+0.81.4+014+fixScrollViewState.patch)
+### [react-native+0.83.1+014+fixScrollViewState.patch](react-native+0.83.1+014+fixScrollViewState.patch)
 
 - Reason: Fixes ScrollView state management issues
 - Upstream PR/issue: 🛑
 - E/App issue: 🛑
 - PR Introducing Patch: 🛑
 
-### [react-native+0.81.4+015+android-keyboard-avoiding-view.patch](react-native+0.81.4+015+android-keyboard-avoiding-view.patch)
+### [react-native+0.83.1+015+android-keyboard-avoiding-view.patch](react-native+0.83.1+015+android-keyboard-avoiding-view.patch)
 
 - Reason: Fixes keyboard avoiding view behavior on Android
 - Upstream PR/issue: 🛑
 - E/App issue: 🛑
 - PR Introducing Patch: 🛑
 
-### [react-native+0.81.4+016+fix-mask-persisting-recycling.patch](react-native+0.81.4+016+fix-mask-persisting-recycling.patch)
+### [react-native+0.83.1+016+fix-mask-persisting-recycling.patch](react-native+0.83.1+016+fix-mask-persisting-recycling.patch)
 
 - Reason: Fixes mask persisting and recycling issues
 - Upstream PR/issue: 🛑
 - E/App issue: 🛑
 - PR Introducing Patch: 🛑
 
-### [react-native+0.81.4+017+fix-text-selecting-on-change.patch](react-native+0.81.4+017+fix-text-selecting-on-change.patch)
+### [react-native+0.83.1+017+fix-text-selecting-on-change.patch](react-native+0.83.1+017+fix-text-selecting-on-change.patch)
 
 - Reason: Fixes text selection issues during onChange events
 - Upstream PR/issue: 🛑
 - E/App issue: 🛑
 - PR Introducing Patch: 🛑
 
-### [react-native+0.81.4+018+fix-dropping-mutations-in-transactions.patch](react-native+0.81.4+018+fix-dropping-mutations-in-transactions.patch)
+### [react-native+0.83.1+018+fix-dropping-mutations-in-transactions.patch](react-native+0.83.1+018+fix-dropping-mutations-in-transactions.patch)
 
 - Reason: Fixes issues with dropping mutations in transactions
 - Upstream PR/issue: 🛑
 - E/App issue: 🛑
 - PR Introducing Patch: 🛑
 
-### [react-native+0.81.4+019+fix-crash-when-deleting-expense.patch](react-native+0.81.4+019+fix-crash-when-deleting-expense.patch)
+### [react-native+0.83.1+019+fix-crash-when-deleting-expense.patch](react-native+0.83.1+019+fix-crash-when-deleting-expense.patch)
 
 - Reason: Fixes crash when deleting expenses
 - Upstream PR/issue: 🛑
 - E/App issue: 🛑
 - PR Introducing Patch: 🛑
 
-### [react-native+0.81.4+020+fix-surface-stopped-before-started.patch](react-native+0.81.4+020+fix-surface-stopped-before-started.patch)
-
-- Reason: Fixes surface lifecycle issues where surface is stopped before being started
-- Upstream PR/issue: 🛑
-- E/App issue: 🛑
-- PR Introducing Patch: 🛑
-
-### [react-native+0.81.4+021+publish-gradle.patch](react-native+0.81.4+021+publish-gradle.patch)
+### [react-native+0.83.1+020+publish-gradle.patch](react-native+0.83.1+020+publish-gradle.patch)
 
 - Reason: This patch customizes the Gradle publishing script to allow publishing our custom React Native artifacts to GitHub Packages.
 - Upstream PR/issue: 🛑
 - E/App issue: 🛑
 - PR Introducing Patch: https://github.com/Expensify/App/pull/59738
 
-### [react-native+0.81.4+022+fix-display-contents-not-updating-nodes.patch](react-native+0.81.4+022+fix-display-contents-not-updating-nodes.patch)
-
-- Reason: This patch updates Yoga to correctly update the subtrees of `display: contents` nodes so that they are in sync with their React Native counterparts.
-- Upstream PR/issue: https://github.com/facebook/react-native/pull/52530
-- E/App issue: https://github.com/Expensify/App/issues/65268
-- PR introducing patch: [#65925](https://github.com/Expensify/App/pull/65925)
-
-### [react-native+0.81.4+023+textinput-prevent-focus-on-first-responder.patch](react-native+0.81.4+023+textinput-prevent-focus-on-first-responder.patch)
+### [react-native+0.83.1+021+textinput-prevent-focus-on-first-responder.patch](react-native+0.83.1+021+textinput-prevent-focus-on-first-responder.patch)
 
 - Reason: On iOS, a text input automatically becomes the "first responder" in UIKit's "UIResponder" chain. Once a text input becomes the first responder, it will be automatically focused. (This also causes the keyboard to open)
     - This is not handled by React or React Native, but is rather a native iOS/UIKit behaviour. This patch adds an additional `TextInput` prop (`preventFocusOnFirstResponder`) and a ref method (`preventFocusOnFirstResponderOnce`) to bypass the focus on first responder.
@@ -174,14 +160,14 @@
 - E/App issue: [#54813](https://github.com/Expensify/App/issues/54813)
 - PR Introducing Patch: [#61492](https://github.com/Expensify/App/pull/61492)
 
-### [react-native+0.81.4+024+fix-modal-transparent-navigation-bar.patch](react-native+0.81.4+024+fix-modal-transparent-navigation-bar.patch)
+### [react-native+0.83.1+022+fix-modal-transparent-navigation-bar.patch](react-native+0.83.1+022+fix-modal-transparent-navigation-bar.patch)
 
 - Reason: This patch fixes an issue where it is not possible to enable a transparent navigation bar on Android
 - Upstream PR/issue: 🛑
 - E/App issue: [#69005](https://github.com/Expensify/App/issues/69005)
 - PR introducing patch: [#69004](https://github.com/Expensify/App/pull/69004)
 
-### [react-native+0.81.4+025+restore-interaction-manager.patch](react-native+0.81.4+025+restore-interaction-manager.patch)
+### [react-native+0.83.1+023+restore-interaction-manager.patch](react-native+0.83.1+023+restore-interaction-manager.patch)
 
 - Reason:
 
@@ -197,23 +183,72 @@
 - E/App issue: https://github.com/Expensify/App/issues/71913
 - PR introducing patch: https://github.com/Expensify/App/pull/69535
 
-### [react-native+0.81.4+026+perf-increase-initial-heap-size.patch](react-native+0.81.4+026+perf-increase-initial-heap-size.patch)
+### [react-native+0.83.1+024+perf-increase-initial-heap-size.patch](react-native+0.83.1+024+perf-increase-initial-heap-size.patch)
 
 - Reason: This patch increases the initial heap size of the Hermes runtime. This allows us to disable Hermes Young-Gen Garbage Collection (GC) in a separate patch, which improves initial TTI and app startup time.
 - Upstream PR/issue: This is not intended to be upstreamed, since this is a low-level fix very specific to the Expensify app's requirements.
 - E/App issue: [#76859](https://github.com/Expensify/App/issues/76859)
 - PR introducing patch: [#76154](https://github.com/Expensify/App/pull/76154)
 
-### [react-native+0.81.4+027+perf-disable-hermes-young-gc-before-tti-reached.patch](react-native+0.81.4+027+perf-disable-hermes-young-gc-before-tti-reached.patch)
+### [react-native+0.83.1+025+perf-disable-hermes-young-gc-before-tti-reached.patch](react-native+0.83.1+025+perf-disable-hermes-young-gc-before-tti-reached.patch)
 
-- Reason: This patch disables Hermes Young-Gen Garbage Collection (GC), which improves initial TTI and app startup time, by delaying GC for early allocated memory to the first Old-Gen GC run. 
+- Reason: This patch disables Hermes Young-Gen Garbage Collection (GC), which improves initial TTI and app startup time, by delaying GC for early allocated memory to the first Old-Gen GC run.
 - Upstream PR/issue: This is not intended to be upstreamed, since this is a low-level fix very specific to the Expensify app's requirements.
 - E/App issue: [#76859](https://github.com/Expensify/App/issues/76859)
 - PR introducing patch: [#76154](https://github.com/Expensify/App/pull/76154)
 
-### [react-native+0.81.4+028+strip-hermes-debug-info.patch](react-native+0.81.4+028+strip-hermes-debug-info.patch)
+### [react-native+0.83.1+026+strip-hermes-debug-info.patch](react-native+0.83.1+026+strip-hermes-debug-info.patch)
 
 - Reason: Always pass `-output-source-map` to `hermesc` for production iOS builds, stripping ~13.4MB of debug metadata from the Hermes bytecode. Previously this flag was only passed when `SOURCEMAP_FILE` was set; if the build environment didn't propagate that variable, debug info remained in the shipped bundle.
 - Upstream PR/issue: This should ideally be the default behavior upstream, but no PR has been filed yet.
 - E/App issue: [#83000](https://github.com/Expensify/App/issues/83000)
 - PR introducing patch: [#83256](https://github.com/Expensify/App/pull/83256)
+
+### [react-native+0.83.1+027+log-soft-exception-if-viewState-not-found.patch](react-native+0.83.1+027+log-soft-exception-if-viewState-not-found.patch)
+
+- Reason: This patch prevents app crashes by soft-logging the exception when JS try to send events to native views even if they are removed from view hierarchy. The approach follows existing patterns in the same file where similar events are already handled this way and is based on suggestions from other developers in upstream discussions.
+- Upstream PR/issue: [#49077](https://github.com/facebook/react-native/issues/49077) [#7493](https://github.com/software-mansion/react-native-reanimated/issues/7493)
+- E/App issue: [#82611](https://github.com/Expensify/App/issues/82611)
+- PR introducing patch: [#84303](https://github.com/Expensify/App/pull/84303)
+
+### [react-native+0.83.1+028+fix-fetching-files-android.patch](react-native+0.83.1+028+fix-fetching-files-android.patch)
+
+- Reason: Fixes fetching files (blobs, file URIs) on Android
+- Upstream PR/issue: https://github.com/facebook/react-native/pull/55706
+- E/App issue: https://github.com/Expensify/App/issues/75120
+- PR Introducing Patch: https://github.com/Expensify/App/pull/79962
+
+### [react-native+0.83.1+029+fix-view-stealing-first-responder.patch](react-native+0.83.1+029+fix-view-stealing-first-responder.patch)
+
+- Reason: In RN 0.83, `RCTViewComponentView.canBecomeFirstResponder` unconditionally returns `YES` (added for the `enableImperativeFocus` feature). This causes UIKit to promote parent views to first responder after navigation transitions complete (`_promoteSelfOrDescendantToFirstResponderIfNecessary`), stealing focus from text inputs and triggering an immediate focus→blur cycle. The fix gates `canBecomeFirstResponder` behind the `enableImperativeFocus` feature flag, which defaults to `false`.
+- Upstream PR/issue: https://github.com/facebook/react-native/pull/55908
+- E/App issue: https://github.com/Expensify/App/issues/75120
+- PR Introducing Patch: https://github.com/Expensify/App/pull/79962
+
+### [react-native+0.83.1+030+fix-exif-orientation.patch](react-native+0.83.1+030+fix-exif-orientation.patch)
+
+- Reason: In RN 0.83, PR [#54127](https://github.com/facebook/react-native/pull/54127) changed `RCTDecodeImageWithData` to use `CGImageSourceCreateImageAtIndex` instead of `CGImageSourceCreateThumbnailAtIndex` for full-size images (to fix memory crashes with large images). However, `CGImageSourceCreateImageAtIndex` does NOT apply EXIF orientation transform to pixels, unlike the previous thumbnail API which used `kCGImageSourceCreateThumbnailWithTransform`. The code still hardcodes `UIImageOrientationUp`, so EXIF orientation is silently lost. This causes camera-captured images (which have EXIF orientation metadata) to appear rotated when processed by `expo-image-manipulator`. The fix reads the EXIF orientation from image properties and passes it to `UIImage` for the full-size code path.
+- Upstream PR/issue: https://github.com/facebook/react-native/pull/55934
+- E/App issue: https://github.com/Expensify/App/issues/75120
+- PR Introducing Patch: https://github.com/Expensify/App/pull/79962
+
+### [react-native+0.83.1+031+fix-hermes-sampling-profiler-disable.patch](react-native+0.83.1+031+fix-hermes-sampling-profiler-disable.patch)
+
+- Reason: Fixes a copy-paste bug in `HermesSamplingProfiler::registerNatives()` where the JNI `"disable"` method was mapped to `HermesSamplingProfiler::enable` instead of `::disable`. This caused Sentry (or any caller of `HermesSamplingProfiler.disable()`) to call `enable()` again, corrupting the sampling thread state and leading to a `SIGABRT` crash (`invalid pthread_t passed to pthread_kill` in the `hermes-sampling` thread).
+- Upstream PR/issue: https://github.com/facebook/react-native/issues/56120
+- E/App issue: [#77171](https://github.com/Expensify/App/issues/77171)
+- PR introducing patch: [#84708](https://github.com/Expensify/App/pull/84708)
+
+### [react-native+0.83.1+032+fix-hermes-sampling-profiler-pthread-kill-crash.patch](react-native+0.83.1+032+fix-hermes-sampling-profiler-pthread-kill-crash.patch)
+
+- Reason: On Android (Bionic libc), `pthread_kill` with an invalid `pthread_t` (e.g., thread has exited) calls `abort()` instead of returning `ESRCH` like glibc. The Hermes sampling profiler's timer thread sends `SIGPROF` via `pthread_kill` to registered runtime threads at ~100Hz. If a runtime's thread exits while profiling is active (e.g., during HybridApp transitions or background/foreground), the stale `pthread_t` triggers `SIGABRT: invalid pthread_t passed to pthread_kill`. This patch adds a `doLast` hook to the `unzipHermes` Gradle task that modifies `SamplingProfilerPosix.cpp` after Hermes source extraction, replacing `pthread_kill` with the `tgkill` syscall on Android, which safely returns `ESRCH` for dead threads. A kernel thread ID (`currentTid_`) is stored alongside the `pthread_t` and kept in sync via `setRuntimeThread()`. The Gradle hook approach is necessary because `unzipHermes` downloads fresh Hermes source, overwriting any direct source patches.
+- Upstream PR/issue: 🛑
+- E/App issue: [#77171](https://github.com/Expensify/App/issues/77171)
+- PR introducing patch: [#84708](https://github.com/Expensify/App/pull/84708)
+
+### [react-native+0.83.1+033+fix-display-contents-dirty-flag.patch](react-native+0.83.1+033+fix-display-contents-dirty-flag.patch)
+
+- Reason: When a child node has `display: contents`, Yoga may reuse cached layout results from a previous pass even though the subtree has changed. This patch marks the parent yoga node as dirty when it encounters a child with `display: contents`, ensuring Yoga re-visits and recalculates the layout for that subtree instead of skipping it.
+- Upstream PR/issue: 🛑
+- E/App issue: https://github.com/Expensify/App/issues/85877
+- PR introducing patch: 🛑

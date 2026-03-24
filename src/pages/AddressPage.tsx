@@ -9,6 +9,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import type {BackToParams} from '@libs/Navigation/types';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import type {FormOnyxValues} from '@src/components/Form/types';
 import type {Country} from '@src/CONST';
 import CONST from '@src/CONST';
@@ -35,7 +36,9 @@ function AddressPage({title, address, updateAddress, isLoadingApp = true, backTo
 
     // Check if country is valid
     const {street} = address ?? {};
-    const [street1, street2] = street ? street.split('\n') : [undefined, undefined];
+    const [street1, legacyStreet2] = street ? street.split('\n') : [undefined, undefined];
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- nullish coalescing cannot be used if explicit line 2 can be an empty string
+    const street2 = address?.street2 || legacyStreet2;
     const [currentCountry, setCurrentCountry] = useState(address?.country ?? defaultCountry);
     const [state, setState] = useState(address?.state);
     const [city, setCity] = useState(address?.city);
@@ -83,6 +86,8 @@ function AddressPage({title, address, updateAddress, isLoadingApp = true, backTo
         [currentCountry],
     );
 
+    const reasonAttributes: SkeletonSpanReasonAttributes = {context: 'AddressPage', isLoadingApp: !!isLoadingApp};
+
     return (
         <ScreenWrapper
             enableEdgeToEdgeBottomSafeAreaPadding
@@ -95,7 +100,10 @@ function AddressPage({title, address, updateAddress, isLoadingApp = true, backTo
                     onBackButtonPress={() => Navigation.goBack(backTo)}
                 />
                 {isLoadingApp ? (
-                    <FullscreenLoadingIndicator style={[styles.flex1, styles.pRelative]} />
+                    <FullscreenLoadingIndicator
+                        style={[styles.flex1, styles.pRelative]}
+                        reasonAttributes={reasonAttributes}
+                    />
                 ) : (
                     <AddressForm
                         formID={ONYXKEYS.FORMS.HOME_ADDRESS_FORM}

@@ -13,8 +13,19 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  validate:
+    uses: ./.github/workflows/contributorValidationGate.yml
+    with:
+      PR_NUMBER: ${{ github.event.pull_request.number }}
+      PR_AUTHOR: ${{ github.event.pull_request.user.login }}
+      AUTHOR_ASSOCIATION: ${{ github.event.pull_request.author_association }}
+
   review:
-    if: github.event.pull_request.draft != true && !contains(github.event.pull_request.title, 'Revert')
+    needs: [validate]
+    if: |
+      needs.validate.outputs.IS_AUTHORIZED == 'true'
+      && github.event.pull_request.draft != true
+      && !contains(github.event.pull_request.title, 'Revert')
     runs-on: blacksmith-2vcpu-ubuntu-2404
     env:
       PR_NUMBER: ${{ github.event.pull_request.number }}
@@ -63,7 +74,7 @@ jobs:
           prompt: "/review-code-pr REPO: ${{ github.repository }} PR_NUMBER: ${{ github.event.pull_request.number }}"
           claude_args: |
             --model claude-opus-4-6
-            --allowedTools "Task,Glob,Grep,Read,Bash(gh pr diff:*),Bash(gh pr view:*)" --json-schema '${{ steps.schema.outputs.json }}'
+            --allowedTools "Task,Glob,Grep,Read,Bash(gh pr diff:*),Bash(gh pr view:*),Bash(check-compiler.sh:*)" --json-schema '${{ steps.schema.outputs.json }}'
 
       - name: Post code review results
         if: steps.code-review.outcome == 'success' && steps.filter.outputs.code == 'true'

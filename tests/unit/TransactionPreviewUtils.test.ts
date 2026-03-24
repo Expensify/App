@@ -48,6 +48,7 @@ const basicProps = {
     areThereDuplicates: false,
     currentUserEmail: '',
     currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
+    reportViolations: undefined,
 };
 
 describe('TransactionPreviewUtils', () => {

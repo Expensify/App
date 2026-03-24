@@ -776,6 +776,17 @@ function isInvalidMerchantValue(merchant?: string): boolean {
     return merchant === '' || merchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT || merchant === CONST.TRANSACTION.DEFAULT_MERCHANT;
 }
 
+/**
+ * Validates a 4-digit PIN for UK/EU Expensify Card.
+ * PIN must be exactly 4 digits and not in the list of invalid/weak PINs.
+ */
+function isValidPIN(pin: string): boolean {
+    if (!/^\d{4}$/.test(pin)) {
+        return false;
+    }
+    return !(CONST.EXPENSIFY_CARD.PIN.INVALID_PINS as readonly string[]).includes(pin);
+}
+
 export {
     meetsMinimumAgeRequirement,
     meetsMaximumAgeRequirement,
@@ -830,4 +841,5 @@ export {
     isValidInputLength,
     isValidTaxIDEINNumber,
     isInvalidMerchantValue,
+    isValidPIN,
 };

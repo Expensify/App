@@ -6,6 +6,7 @@ import useLocalize from '@hooks/useLocalize';
 import useMappedPersonalDetails, {personalDetailMapper} from '@hooks/useMappedPersonalDetails';
 import useOnyx from '@hooks/useOnyx';
 import usePreferredPolicy from '@hooks/usePreferredPolicy';
+import useReportAttributes from '@hooks/useReportAttributes';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
@@ -43,6 +44,7 @@ function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
     const {translate, localeCompare} = useLocalize();
     const styles = useThemeStyles();
     const {environmentURL} = useEnvironment();
+    const reportAttributes = useReportAttributes();
     const [personalDetails] = useMappedPersonalDetails(personalDetailMapper);
     const {isRestrictedToPreferredPolicy} = usePreferredPolicy();
     const isPolicyExpenseChat = isPolicyExpenseChatReportUtils(report);
@@ -79,7 +81,7 @@ function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
                 )}`,
         )
         .join(', ');
-    const reportName = getReportName(report);
+    const reportName = getReportName(report, reportAttributes);
     const shouldShowUsePlusButtonText =
         moneyRequestOptions.includes(CONST.IOU.TYPE.PAY) ||
         moneyRequestOptions.includes(CONST.IOU.TYPE.SUBMIT) ||
@@ -94,13 +96,13 @@ function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
     } else if (isInvoiceRoom) {
         welcomeHeroText = translate('reportActionsView.sayHello');
     } else if (isChatRoom) {
-        welcomeHeroText = translate('reportActionsView.welcomeToRoom', {roomName: reportName});
+        welcomeHeroText = translate('reportActionsView.welcomeToRoom', reportName);
     } else if (isSelfDM) {
         welcomeHeroText = translate('reportActionsView.yourSpace');
     } else if (isSystemChat) {
         welcomeHeroText = reportName;
     } else if (isPolicyExpenseChat) {
-        welcomeHeroText = translate('reportActionsView.welcomeToRoom', {roomName: policyName});
+        welcomeHeroText = translate('reportActionsView.welcomeToRoom', policyName);
     }
 
     // If we are the only participant (e.g. solo group chat) then keep the current user personal details so the welcome message does not show up empty.
@@ -109,18 +111,19 @@ function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
     const participantPersonalDetailListExcludeCurrentUser = Object.values(
         getPersonalDetailsForAccountIDs(participantAccountIDsExcludeCurrentUser, personalDetails as OnyxInputOrEntry<PersonalDetailsList>),
     );
-    const welcomeMessage = SidebarUtils.getWelcomeMessage(
+    const welcomeMessage = SidebarUtils.getWelcomeMessage({
         report,
         policy,
         invoiceReceiverPolicy,
-        participantPersonalDetailListExcludeCurrentUser,
+        participantPersonalDetailList: participantPersonalDetailListExcludeCurrentUser,
         translate,
         localeCompare,
+        conciergeReportID,
         isReportArchived,
         reportDetailsLink,
         shouldShowUsePlusButtonText,
         additionalText,
-    );
+    });
 
     return (
         <>
@@ -136,7 +139,7 @@ function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
                 {isSelfDM && (
                     <Text>
                         <Text>{welcomeMessage.messageText}</Text>
-                        {shouldShowUsePlusButtonText && <Text>{translate('reportActionsView.usePlusButton', {additionalText})}</Text>}
+                        {shouldShowUsePlusButtonText && <Text>{translate('reportActionsView.usePlusButton', additionalText)}</Text>}
                     </Text>
                 )}
                 {isSystemChat && (

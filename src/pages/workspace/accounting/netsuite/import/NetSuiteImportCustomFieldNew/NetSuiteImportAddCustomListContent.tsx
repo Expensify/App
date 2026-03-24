@@ -9,6 +9,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import useSubPage from '@hooks/useSubPage';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import type {CustomFieldSubPageWithPolicy} from '@pages/workspace/accounting/netsuite/types';
 import {updateNetSuiteCustomLists} from '@userActions/connections/NetSuiteCommands';
 import {clearDraftValues} from '@userActions/FormActions';
@@ -109,7 +110,7 @@ function NetSuiteImportAddCustomListContent({policy, draftValues, policyIDParam}
     if (isRedirecting) {
         return (
             <ScreenWrapper testID="NetSuiteImportAddCustomListContent">
-                <FullScreenLoadingIndicator />
+                <FullScreenLoadingIndicator reasonAttributes={{context: 'NetSuiteImportAddCustomListContent', isRedirecting} satisfies SkeletonSpanReasonAttributes} />
             </ScreenWrapper>
         );
     }

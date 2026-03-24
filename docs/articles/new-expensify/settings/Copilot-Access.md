@@ -1,7 +1,7 @@
 ---
 title: Copilot Access
 description: How to add a Copilot or act as a Copilot for delegated account access
-keywords: [New Expensify, copilot, delegated access, switch accounts, expense management, account assistant, view user account, expense forwarding]
+keywords: [New Expensify, copilot, copilot access, delegated access, switch accounts, expense management, account assistant, view user account, expense forwarding, full access, limited access, account delegation, share account, behalf of, proxy access]
 ---
 
 You can assign someone access to your Expensify account as a **Copilot**. A Copilot can help manage expenses, review reports, and access your settings without sharing your login details.
@@ -28,7 +28,7 @@ Copilots can access another user’s Expensify account to:
 
 To grant someone access to your account:
 
-1. In the navigation tabs (on the left on web, and at the bottom on mobile) (on the left on web, and at the bottom on mobile), click **Account > Security**.
+1. In the navigation tabs (on the left on web, and at the bottom on mobile), click **Account > Security**.
 2. In the **Copilot: Delegated Access** section, click **Add Copilot**.
 3. Search for the user by **name** or **email**.
 4. Choose the access level:
@@ -44,13 +44,13 @@ To grant someone access to your account:
 
 To **remove a Copilot**:
 
-1. In the navigation tabs (on the left on web, and at the bottom on mobile) (on the left on web, and at the bottom on mobile), click **Account > Security**.
+1. In the navigation tabs (on the left on web, and at the bottom on mobile), click **Account > Security**.
 2. In the **Copilot: Delegated Access** section, click the **three-dot menu** next to their name.
 3. Select **Remove Copilot**, then confirm.
 
 To **change a Copilot's access level**:
 
-1. In the navigation tabs (on the left on web, and at the bottom on mobile) (on the left on web, and at the bottom on mobile), click **Account > Security**.
+1. In the navigation tabs (on the left on web, and at the bottom on mobile), click **Account > Security**.
 2. In the **Copilot: Delegated Access** section, click the **three-dot menu** next to their name.
 3. Choose **Change Access Level**.
 4. Select **Full Access** or **Limited Access** and confirm your choice.

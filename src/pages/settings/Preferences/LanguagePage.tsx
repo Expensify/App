@@ -28,6 +28,7 @@ function LanguagePage() {
             accessibilityLabel: LOCALE_TO_LANGUAGE_STRING[locale],
             keyForList: locale,
             isSelected: preferredLocale === locale,
+            lang: locale,
         }));
     }, [preferredLocale]);
 

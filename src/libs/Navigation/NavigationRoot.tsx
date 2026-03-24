@@ -14,6 +14,7 @@ import FS from '@libs/Fullstory';
 import Log from '@libs/Log';
 import shouldOpenLastVisitedPath from '@libs/shouldOpenLastVisitedPath';
 import {getPathFromURL} from '@libs/Url';
+import {getBaseTheme} from '@styles/theme/utils';
 import {updateLastVisitedPath} from '@userActions/App';
 import {updateOnboardingLastVisitedPath} from '@userActions/Welcome';
 import CONST from '@src/CONST';
@@ -145,7 +146,7 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
 
     // https://reactnavigation.org/docs/themes
     const navigationTheme = useMemo(() => {
-        const defaultNavigationTheme = themePreference === CONST.THEME.DARK ? DarkTheme : DefaultTheme;
+        const defaultNavigationTheme = getBaseTheme(themePreference) === CONST.THEME.DARK ? DarkTheme : DefaultTheme;
 
         return {
             ...defaultNavigationTheme,

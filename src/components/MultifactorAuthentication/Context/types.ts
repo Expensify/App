@@ -4,8 +4,8 @@ import type {
     MultifactorAuthenticationScenarioConfig,
     MultifactorAuthenticationScenarioResponse,
 } from '@components/MultifactorAuthentication/config/types';
-import type {AuthenticationChallenge, RegistrationChallenge} from '@libs/MultifactorAuthentication/Biometrics/ED25519/types';
-import type {AuthTypeInfo, MultifactorAuthenticationReason} from '@libs/MultifactorAuthentication/Biometrics/types';
+import type {AuthenticationChallenge, RegistrationChallenge} from '@libs/MultifactorAuthentication/shared/challengeTypes';
+import type {AuthTypeInfo, MultifactorAuthenticationReason} from '@libs/MultifactorAuthentication/shared/types';
 
 type ErrorState = {
     reason: MultifactorAuthenticationReason;
@@ -32,6 +32,9 @@ type MultifactorAuthenticationState = {
 
     /** Whether user approved the soft prompt for biometric setup */
     softPromptApproved: boolean;
+
+    /** Scenario name identifier (e.g. 'AUTHORIZE-TRANSACTION') */
+    scenarioName: MultifactorAuthenticationScenario | undefined;
 
     /** Current scenario configuration being executed */
     scenario: MultifactorAuthenticationScenarioConfig | undefined;

@@ -1,7 +1,7 @@
 ---
 title: Create an Expense
 description: Learn how to create and submit expenses in Expensify using SmartScan, manual entry, distance tracking, or time expenses.
-keywords: [create expense, submit expense, SmartScan, manual expense, distance expense, time expense, create time expense, log time, track hours, expense report, submit to workspace, submit to individual, split expense, scan receipts, bulk upload, GPS, GPS tracking, GPS mileage]
+keywords: [create expense, submit expense, SmartScan, manual expense, distance expense, time expense, create time expense, log time, track hours, expense report, submit to workspace, submit to individual, split expense, scan receipts, bulk upload, GPS, GPS tracking, GPS mileage, Proofpoint, email forwarding, receipt forwarding]
 internalScope: Audience is submitters, approvers, and Workspace Admins. Covers how to create and submit expenses to a workspace or individual using SmartScan, manual entry, distance tracking, or Time expenses. Does not cover credit card import or Time Tracking
 ---
 
@@ -23,6 +23,8 @@ If you're submitting expenses for a personal payment, you can send them directly
 
 You can create an expense by scanning a receipt, entering details manually, or tracking distance. The steps below walk you through each method so you can quickly capture and submit expenses for reimbursement or record-keeping.
 
+**Note:** When creating an expense, Workspace Merchant Rules set by your workspace may automatically apply categories, tags, descriptions, reimbursable status, billable status, and other fields based on the merchant name.
+
 ## How to use SmartScan to create an expense
 
 **On mobile:**
@@ -40,8 +42,10 @@ You can create an expense by scanning a receipt, entering details manually, or t
 
 **Other SmartScan methods:**
 
-- Forward your digital receipts to receipts@expensify.com.
+- Forward your digital receipts to [receipts@expensify.com](mailto:receipts@expensify.com).
 - Text a receipt photo to 47777 (US numbers only). Make sure you [add your phone number as a contact method to Expensify](https://new.expensify.com/settings/profile/contact-methods).
+
+**Note:** Having trouble forwarding receipts? See [Why can't I forward receipts to receipts@expensify.com?](#why-cant-i-forward-receipts-to-receiptsexpensifycom) in the FAQ below.
 
 ---
 
@@ -120,6 +124,7 @@ The total amount will be calculated automatically using the hourly rate set for 
 ## What happens after submitting an expense to a workspace
 
 - Expenses are automatically added to a report.
+- [Workspace Merchant Rules](https://help.expensify.com/articles/new-expensify/workspaces/Workspace-Merchant-Rules) may automatically apply categories, tags, descriptions, and other coding based on the merchant name.
 - Workspace rules check for violations or missing fields.
 - Approvers are notified to review and approve.
 - Reports can be submitted manually or automatically.
@@ -175,6 +180,10 @@ Expensify uses AI to detect suspicious or non-human receipts:
 - **Prohibited expenses** – If a receipt violates workspace rules, it will be flagged as soon as it's submitted.
 
 This feature helps prevent policy violations and ensures accurate expense tracking from the moment of upload.
+
+## Why can't I forward receipts to receipts@expensify.com?
+
+If your company uses **Proofpoint Hosted Email Security**, you may be unable to forward receipts to receipts@expensify.com. This is caused by an issue on Proofpoint's side. Contact Proofpoint for resolution. In the meantime, you can upload receipts in the Expensify app or on the web, or text a receipt photo to 47777 (US numbers only) after [adding your phone number as a contact method](https://new.expensify.com/settings/profile/contact-methods).
 
 ## Can I attach multiple receipts to one expense?
 

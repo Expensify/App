@@ -26,7 +26,7 @@ function WalletStatementModal({statementPageURL}: WalletStatementProps) {
 
     return (
         <>
-            {isLoading && <FullScreenLoadingIndicator />}
+            {isLoading && <FullScreenLoadingIndicator reasonAttributes={{context: 'WalletStatementModal'}} />}
             <View style={[styles.flex1]}>
                 <iframe
                     src={`${statementPageURL}&authToken=${authToken}`}

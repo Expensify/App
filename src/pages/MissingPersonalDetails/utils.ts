@@ -23,7 +23,7 @@ function getSubPageValues(privatePersonalDetails: OnyxEntry<PrivatePersonalDetai
     };
 }
 
-function getInitialSubPage(values: PersonalDetailsForm) {
+function getInitialSubPage(values: PersonalDetailsForm, shouldCollectPin = false, pin = '') {
     if (values[INPUT_IDS.LEGAL_FIRST_NAME] === '' || values[INPUT_IDS.LEGAL_LAST_NAME] === '') {
         return CONST.MISSING_PERSONAL_DETAILS.PAGE_NAME.LEGAL_NAME;
     }
@@ -41,6 +41,9 @@ function getInitialSubPage(values: PersonalDetailsForm) {
     }
     if (values[INPUT_IDS.PHONE_NUMBER] === '') {
         return CONST.MISSING_PERSONAL_DETAILS.PAGE_NAME.PHONE_NUMBER;
+    }
+    if (shouldCollectPin && !pin) {
+        return CONST.MISSING_PERSONAL_DETAILS.PAGE_NAME.PIN;
     }
     return CONST.MISSING_PERSONAL_DETAILS.PAGE_NAME.CONFIRM;
 }

@@ -60,12 +60,19 @@ function validateAmount(amount: string, decimals: number, amountMaxLength: numbe
  * Some callers (e.g. split-by-percentage) may temporarily allow values above 100 while the user edits; they can
  * opt into this relaxed behavior via the `allowExceedingHundred` flag.
  * The `allowDecimal` flag enables one decimal place (0.1 precision) for more granular percentage splits.
+ * The `shouldAllowNegative` flag enables negative percentages (e.g. for split expenses with negative amounts).
  * Accepts both period (.) and comma (,) as decimal separators to support locale-specific input (e.g., Spanish).
  */
-function validatePercentage(amount: string, allowExceedingHundred = false, allowDecimal = false): boolean {
+function validatePercentage(amount: string, allowExceedingHundred = false, allowDecimal = false, shouldAllowNegative = false): boolean {
     if (allowExceedingHundred) {
-        // Accept both period and comma as decimal separators for locale support (e.g., Spanish uses comma)
-        const regex = allowDecimal ? /^\d*[.,]?\d?$/u : /^\d*$/u;
+        // Build regex pattern conditionally based on flags
+        const negativePattern = shouldAllowNegative ? '-?' : '';
+        const decimalPattern = allowDecimal ? '[.,]?\\d?' : '';
+        const regex = new RegExp(`^${negativePattern}\\d*${decimalPattern}$`, 'u');
+
+        if (shouldAllowNegative) {
+            return amount === '' || amount === '-' || regex.test(amount);
+        }
         return amount === '' || regex.test(amount);
     }
 
@@ -97,11 +104,16 @@ function replaceAllDigits(text: string, convertFn: (char: string) => string): st
  * @param amount - The amount string to process
  * @param allowFlippingAmount - Whether flipping amount is allowed
  * @param toggleNegative - Function to toggle negative state
- * @returns The processed amount string without the '-' prefix
+ * @returns The processed amount string without the '-' prefix if flipping is enabled and toggle function is provided,
+ *          otherwise returns the original amount (keeping the minus sign for direct negative input)
  */
 function handleNegativeAmountFlipping(amount: string, allowFlippingAmount: boolean, toggleNegative?: () => void): string {
-    if (allowFlippingAmount && amount.startsWith('-')) {
-        toggleNegative?.();
+    // Only strip the minus and toggle if both conditions are met:
+    // 1. Flipping is allowed
+    // 2. A toggle function is provided (indicating the component uses the toggle mechanism)
+    // If no toggle function is provided, keep the minus sign for direct negative value input
+    if (allowFlippingAmount && amount.startsWith('-') && toggleNegative) {
+        toggleNegative();
         return amount.slice(1);
     }
     return amount;

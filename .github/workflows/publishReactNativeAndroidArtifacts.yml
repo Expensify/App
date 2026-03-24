@@ -124,9 +124,9 @@ jobs:
 
   buildAndPublishReactNativeArtifacts:
     name: Build and Publish React Native Artifacts
-    runs-on: ${{ github.repository_owner == 'Expensify' && 'ubuntu-latest-xl' || 'ubuntu-latest' }}
+    runs-on: ${{ github.repository_owner == 'Expensify' && 'blacksmith-16vcpu-ubuntu-2404' || 'blacksmith-2vcpu-ubuntu-2404' }}
     needs: verifyPatches
-    if: needs.verifyPatches.outputs.build_targets != '' 
+    if: needs.verifyPatches.outputs.build_targets != ''
     strategy:
       # Disable fail-fast to prevent cancelling both jobs when only one needs to be stopped due to concurrency limits
       fail-fast: false
@@ -160,7 +160,7 @@ jobs:
 
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@06832c7b30a0129d7fb559bcc6e43d26f6374244
-      
+
       - name: Determine new patched RN version
         id: getNewPatchedVersion
         run: echo "NEW_PATCHED_VERSION=$(./.github/scripts/getNewPatchedRNVersion.sh)" >> "$GITHUB_OUTPUT"
@@ -175,7 +175,18 @@ jobs:
           echo "Version: ${{ env.PATCHED_VERSION }}"
           echo "Patches hash: ${{ env.PATCHES_HASH }}"
           export ORG_GRADLE_PROJECT_reactNativeArchitectures="armeabi-v7a,arm64-v8a,x86,x86_64"
-          ./gradlew buildReactNativeArtifacts -PpatchedArtifacts.forceBuildFromSource=true -x lint -x test -x check
+
+          # Exclude ktfmt and test tasks from the included react-native build
+          EXCLUDE_TASKS=(
+            -x :react-native:packages:react-native:ReactAndroid:ktfmtCheck
+            -x :react-native:packages:react-native:ReactAndroid:ktfmtCheckMain
+            -x :react-native:packages:react-native:ReactAndroid:ktfmtCheckScripts
+            -x :react-native:packages:react-native:ReactAndroid:testDebugOptimizedUnitTest
+            -x :react-native:packages:react-native:ReactAndroid:testDebugUnitTest
+            -x :react-native:packages:react-native:ReactAndroid:testReleaseUnitTest
+          )
+
+          ./gradlew buildReactNativeArtifacts -PpatchedArtifacts.forceBuildFromSource=true -x lint -x test -x check "${EXCLUDE_TASKS[@]}"
           ./gradlew publishReactNativeArtifacts -PpatchedArtifacts.forceBuildFromSource=true
         env:
           GH_PUBLISH_ACTOR: ${{ github.actor }}
@@ -183,6 +194,7 @@ jobs:
           IS_HYBRID_BUILD: ${{ matrix.is_hybrid }}
           PATCHED_VERSION: ${{ steps.getNewPatchedVersion.outputs.NEW_PATCHED_VERSION }}
           PATCHES_HASH: ${{ matrix.is_hybrid == 'true' && needs.verifyPatches.outputs.hybrid_app_patches_hash || needs.verifyPatches.outputs.standalone_patches_hash }}
+          CMAKE_VERSION: 3.31.6
 
       - name: Announce failed workflow in Slack
         if: ${{ failure() }}

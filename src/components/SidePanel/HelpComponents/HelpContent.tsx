@@ -15,6 +15,7 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {normalizedConfigs} from '@libs/Navigation/linkingConfig/config';
 import {getOneTransactionThreadReportAction, getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {getHelpPaneReportType} from '@libs/ReportUtils';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {getExpenseType} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -116,6 +117,10 @@ function HelpContent({closeSidePanel}: HelpContentProps) {
         }
     }, [isExtraLargeScreenWidth, closeSidePanel]);
 
+    const helpLoadingReasonAttributes: SkeletonSpanReasonAttributes = {
+        context: 'HelpContent',
+    };
+
     return (
         <>
             <HelpHeader
@@ -127,7 +132,10 @@ function HelpContent({closeSidePanel}: HelpContentProps) {
             />
             {currentState === undefined ? (
                 <View style={[styles.flex1, styles.fullScreenLoading]}>
-                    <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />
+                    <ActivityIndicator
+                        size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
+                        reasonAttributes={helpLoadingReasonAttributes}
+                    />
                 </View>
             ) : (
                 <ScrollView

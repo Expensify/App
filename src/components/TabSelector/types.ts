@@ -66,6 +66,9 @@ type TabSelectorBaseProps = {
 };
 
 type TabSelectorItemProps = WithSentryLabel & {
+    /** Key of the tab */
+    tabKey: string;
+
     /** Function to call when onPress */
     onPress?: () => void;
 

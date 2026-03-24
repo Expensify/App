@@ -63,7 +63,6 @@ function getSignerDetailsAndSignerFilesForSignerInfo(reimbursementAccountDraft: 
     if (isUserBeneficialOwner) {
         signerDetails[FULL_NAME] = '';
         signerDetails[DATE_OF_BIRTH] = '';
-        signerDetails[JOB_TITLE] = '';
         signerDetails[ADDRESS] = '';
 
         for (const fieldName of beneficialOwnerFields) {

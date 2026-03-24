@@ -179,6 +179,10 @@ export default {
         marginRight: 40,
     },
 
+    mr13: {
+        marginRight: 52,
+    },
+
     mrn1: {
         marginRight: -4,
     },

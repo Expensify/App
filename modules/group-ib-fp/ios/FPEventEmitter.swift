@@ -4,6 +4,7 @@ import GIBMobileSdk
 @objc(FPEventEmitter)
 class FPEventEmitter: RCTEventEmitter, GIBSessionListener {
     static var shared: FPEventEmitter?
+    private var hasListeners = false
 
     override init() {
         super.init()
@@ -19,15 +20,25 @@ class FPEventEmitter: RCTEventEmitter, GIBSessionListener {
         return [Constants.onSessionOpened, Constants.onReceiveSession]
     }
 
+    override func startObserving() {
+        hasListeners = true
+    }
+
+    override func stopObserving() {
+        hasListeners = false
+    }
+
     func sessionDidOpen(withID sessionId: String) {
         DispatchQueue.main.async { [weak self] in
-            self?.sendEvent(withName: Constants.onSessionOpened, body: sessionId)
+            guard let self, self.hasListeners else { return }
+            self.sendEvent(withName: Constants.onSessionOpened, body: sessionId)
         }
     }
-    
+
     func sessionDidGetId(_ sessionId: String) {
         DispatchQueue.main.async { [weak self] in
-            self?.sendEvent(withName: Constants.onReceiveSession, body: sessionId)
+            guard let self, self.hasListeners else { return }
+            self.sendEvent(withName: Constants.onReceiveSession, body: sessionId)
         }
     }
 }

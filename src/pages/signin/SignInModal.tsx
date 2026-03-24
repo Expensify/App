@@ -34,16 +34,20 @@ function SignInModal() {
     useEffect(() => {
         const isAnonymousUser = session?.authTokenType === CONST.AUTH_TOKEN_TYPES.ANONYMOUS;
         if (!isAnonymousUser) {
-            // Signing in RHP is only for anonymous users
-            Navigation.isNavigationReady().then(() => {
-                Navigation.dismissModal();
-            });
-
             // To prevent deadlock when OpenReport and OpenApp overlap, wait for the queue to be idle before calling openApp.
             // This ensures that any communication gaps between the client and server during OpenReport processing do not cause the queue to pause,
             // which would prevent us from processing or clearing the queue.
-            waitForIdle().then(() => {
-                openApp(true);
+            //
+            // We must wait for openApp to fully complete (IS_LOADING_APP → false, NVP_ONBOARDING loaded) before dismissing the modal,
+            // so the OnboardingGuard can properly evaluate and redirect new users to onboarding.
+            // Without this, dismissModal() triggers the guard while IS_LOADING_APP is still true, causing it to skip the onboarding redirect.
+            Promise.all([
+                waitForIdle()
+                    .then(() => openApp(true))
+                    .then(() => waitForIdle()),
+                Navigation.isNavigationReady(),
+            ]).then(() => {
+                Navigation.dismissModal();
             });
         }
     }, [session?.authTokenType]);

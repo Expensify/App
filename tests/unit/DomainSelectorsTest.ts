@@ -265,6 +265,25 @@ describe('domainSelectors', () => {
             expect(memberAccountIDsSelector(domain)).toEqual([111]);
         });
 
+        it('Should filter out members with null or undefined permission values', () => {
+            const domain = {
+                [`${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}1`]: {
+                    shared: {
+                        // eslint-disable-next-line @typescript-eslint/naming-convention
+                        '100': 'read',
+                        // eslint-disable-next-line @typescript-eslint/naming-convention
+                        '200': null,
+                        // eslint-disable-next-line @typescript-eslint/naming-convention
+                        '300': undefined,
+                        // eslint-disable-next-line @typescript-eslint/naming-convention
+                        '400': 'read',
+                    },
+                },
+            } as unknown as OnyxEntry<Domain>;
+
+            expect(memberAccountIDsSelector(domain).sort()).toEqual([100, 400]);
+        });
+
         it('Should filter out non-numeric shared keys', () => {
             const domain = {
                 [`${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}1`]: {
@@ -409,13 +428,13 @@ describe('domainSelectors', () => {
 
         it('Should return an array of groups when keys start with the security group prefix', () => {
             const domain = {
-                [`${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}123`]: {name: 'Group 1'},
-                [`${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}456`]: {name: 'Group 2'},
+                [`${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}123`]: {name: 'Group 1', shared: {}},
+                [`${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}456`]: {name: 'Group 2', shared: {}},
             } as unknown as OnyxEntry<Domain>;
 
             const expectedGroups = [
-                {id: '123', details: {name: 'Group 1'}},
-                {id: '456', details: {name: 'Group 2'}},
+                {id: '123', details: {name: 'Group 1', shared: {}}},
+                {id: '456', details: {name: 'Group 2', shared: {}}},
             ];
 
             expect(groupsSelector(domain)).toEqual(expectedGroups);
@@ -423,11 +442,13 @@ describe('domainSelectors', () => {
 
         it('Should ignore keys that do not start with the security group prefix', () => {
             const domain = {
-                [`${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}123`]: {name: 'Group 1'},
+                [`${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}123`]: {name: 'Group 1', shared: {}},
+                [`${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}456`]: {name: 'Group 2', shared: null},
+                [`${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}789`]: {name: 'Group 3'},
                 otherKey: 'value',
             } as unknown as OnyxEntry<Domain>;
 
-            const expectedGroups = [{id: '123', details: {name: 'Group 1'}}];
+            const expectedGroups = [{id: '123', details: {name: 'Group 1', shared: {}}}];
 
             expect(groupsSelector(domain)).toEqual(expectedGroups);
         });

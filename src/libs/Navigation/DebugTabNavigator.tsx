@@ -106,6 +106,7 @@ function DebugTabNavigator({id, routes}: DebugTabNavigatorProps) {
 
                     return (
                         <TabSelectorItem
+                            tabKey={route.name}
                             key={route.name}
                             icon={icon}
                             title={title}

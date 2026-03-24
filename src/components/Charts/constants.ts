@@ -36,6 +36,11 @@ const ELLIPSIS = '...';
 /** Minimum visible characters (excluding ellipsis) for truncation to be worthwhile */
 const MIN_TRUNCATED_CHARS = 10;
 
+/** Radian threshold separating diagonal from vertical label hit-test */
+const DIAGONAL_ANGLE_RADIAN_THRESHOLD = 1;
+
+const PIE_CHART_TOOLTIP_RADIUS_DISTANCE = 2 / 3;
+
 export {
     Y_AXIS_TICK_COUNT,
     AXIS_LABEL_GAP,
@@ -49,4 +54,6 @@ export {
     LABEL_PADDING,
     ELLIPSIS,
     MIN_TRUNCATED_CHARS,
+    DIAGONAL_ANGLE_RADIAN_THRESHOLD,
+    PIE_CHART_TOOLTIP_RADIUS_DISTANCE,
 };

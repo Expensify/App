@@ -1,0 +1,19 @@
+diff --git a/node_modules/expo/src/async-require/hmr.ts b/node_modules/expo/src/async-require/hmr.ts
+index c0ea71e..811f667 100644
+--- a/node_modules/expo/src/async-require/hmr.ts
++++ b/node_modules/expo/src/async-require/hmr.ts
+@@ -92,9 +92,12 @@ const HMRClient = {
+   },
+ 
+   registerBundle(requestUrl: string) {
+-    assert(hmrClient, 'Expected HMRClient.setup() call at startup.');
+     pendingEntryPoints.push(requestUrl);
+-    registerBundleEntryPoints(hmrClient);
++    if (hmrClient) {
++      registerBundleEntryPoints(hmrClient);
++    }
++    // If hmrClient is not yet initialized, entry points will be
++    // processed when setup() calls registerBundleEntryPoints().
+   },
+ 
+   log(level: LogLevel, data: any[]) {

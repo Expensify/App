@@ -54,6 +54,7 @@ function BaseModal({
     onBackdropPress,
     modalId,
     shouldEnableNewFocusManagement = false,
+    shouldReturnFocus,
     restoreFocusType,
     shouldUseModalPaddingStyle = true,
     initialFocus = false,
@@ -368,6 +369,7 @@ function BaseModal({
                         type={type}
                         shouldIgnoreBackHandlerDuringTransition={shouldIgnoreBackHandlerDuringTransition}
                         shouldEnableNewFocusManagement={shouldEnableNewFocusManagement}
+                        shouldReturnFocus={shouldReturnFocus}
                     >
                         <Animated.View
                             onLayout={onViewLayout}

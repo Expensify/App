@@ -49,7 +49,6 @@ function AttachmentCarouselView({
                 if (onNavigate) {
                     onNavigate(item);
                 }
-                onNavigate?.(item);
             }
         },
         [setShouldShowArrows, attachments, setPage, onNavigate],

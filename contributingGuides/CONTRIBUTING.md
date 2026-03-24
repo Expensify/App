@@ -211,6 +211,9 @@ This helps future investigators understand the history and current status of err
 ### Important note about JavaScript Style
 - Read our official [JavaScript and React style guide](https://github.com/Expensify/App/blob/main/contributingGuides/STYLE.md). Please refer to our Style Guide before asking for a review.
 
+### Using AI tools
+- If you use AI tools (Copilot, Cursor, ChatGPT, etc.) to help write code or PR descriptions, please read our [AI Etiquette guide](https://github.com/Expensify/App/blob/main/contributingGuides/AI_ETIQUETTE.md). You are accountable for all AI output you submit.
+
 ### For external agencies that Expensify partners with
 Follow all the above above steps and processes. When you find a job you'd like to work on:
 - Post “I’m from [agency], I’d like to work on this job”

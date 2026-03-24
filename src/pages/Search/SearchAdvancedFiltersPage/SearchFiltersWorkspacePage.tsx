@@ -108,7 +108,10 @@ function SearchFiltersWorkspacePage() {
                         }}
                     />
                     {shouldShowLoadingIndicator ? (
-                        <FullScreenLoadingIndicator style={[styles.flex1, styles.pRelative]} />
+                        <FullScreenLoadingIndicator
+                            style={[styles.flex1, styles.pRelative]}
+                            reasonAttributes={{context: 'SearchFiltersWorkspacePage', shouldShowLoadingIndicator}}
+                        />
                     ) : (
                         <SelectionList<WorkspaceListItem>
                             ref={selectionListRef}

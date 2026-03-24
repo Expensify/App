@@ -1,5 +1,5 @@
 import type {VideoPlayer} from 'expo-video';
-import React, {useCallback, useContext, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
 import {useSession} from '@components/OnyxListItemProvider';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -9,6 +9,7 @@ import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
 import fileDownload from '@libs/fileDownload';
 import CONST from '@src/CONST';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
+import {usePlaybackStateContext} from './PlaybackContext';
 import type {PlaybackSpeed, VideoPopoverMenuActionsContextType, VideoPopoverMenuStateContextType} from './types';
 
 const VideoPopoverMenuStateContext = React.createContext<VideoPopoverMenuStateContextType | null>(null);
@@ -17,6 +18,7 @@ const VideoPopoverMenuActionsContext = React.createContext<VideoPopoverMenuActio
 function VideoPopoverMenuContextProvider({children}: ChildrenProps) {
     const icons = useMemoizedLazyExpensifyIcons(['Checkmark', 'Download', 'Meter'] as const);
     const {translate} = useLocalize();
+    const {currentVideoPlayerRef, originalParent} = usePlaybackStateContext();
     const [source, setSource] = useState('');
     const [currentPlaybackSpeed, setCurrentPlaybackSpeed] = useState<PlaybackSpeed>(CONST.VIDEO_PLAYER.PLAYBACK_SPEEDS[3]);
     const {isOffline} = useNetwork();
@@ -38,6 +40,18 @@ function VideoPopoverMenuContextProvider({children}: ChildrenProps) {
         },
         [videoPopoverMenuPlayerRef],
     );
+
+    // Apply stored playback speed when the active player changes (e.g. navigating from parent to thread).
+    // Same pattern as VolumeContext which re-applies volume on originalParent change.
+    useEffect(() => {
+        if (!originalParent || !currentVideoPlayerRef.current) {
+            return;
+        }
+
+        if (currentVideoPlayerRef.current.playbackRate !== currentPlaybackSpeed) {
+            currentVideoPlayerRef.current.playbackRate = currentPlaybackSpeed;
+        }
+    }, [originalParent, currentPlaybackSpeed]);
 
     const updateVideoPopoverMenuPlayerRef = (videoPlayer: VideoPlayer | null) => {
         videoPopoverMenuPlayerRef.current = videoPlayer;

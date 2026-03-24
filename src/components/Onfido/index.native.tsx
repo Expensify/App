@@ -103,7 +103,7 @@ function Onfido({sdkToken, onUserExit, onSuccess, onError}: OnfidoProps) {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    return <FullscreenLoadingIndicator />;
+    return <FullscreenLoadingIndicator reasonAttributes={{context: 'Onfido'}} />;
 }
 
 export default Onfido;

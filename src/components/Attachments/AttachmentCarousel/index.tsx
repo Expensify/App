@@ -102,7 +102,7 @@ function AttachmentCarousel({
     if (page == null) {
         return (
             <View style={[styles.flex1, styles.attachmentCarouselContainer]}>
-                <FullScreenLoadingIndicator />
+                <FullScreenLoadingIndicator reasonAttributes={{context: 'AttachmentCarousel'}} />
             </View>
         );
     }

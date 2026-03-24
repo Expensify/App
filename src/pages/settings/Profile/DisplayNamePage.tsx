@@ -16,6 +16,7 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {addErrorMessage} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {doesContainReservedWord, isValidDisplayName} from '@libs/ValidationUtils';
 import {updateDisplayName as updateDisplayNamePersonalDetails} from '@userActions/PersonalDetails';
 import CONST from '@src/CONST';
@@ -81,7 +82,10 @@ function DisplayNamePage({currentUserPersonalDetails}: DisplayNamePageProps) {
                 onBackButtonPress={() => Navigation.goBack()}
             />
             {isLoadingApp ? (
-                <FullScreenLoadingIndicator style={[styles.flex1, styles.pRelative]} />
+                <FullScreenLoadingIndicator
+                    style={[styles.flex1, styles.pRelative]}
+                    reasonAttributes={{context: 'DisplayNamePage', isLoadingApp} satisfies SkeletonSpanReasonAttributes}
+                />
             ) : (
                 <FormProvider
                     style={[styles.flexGrow1, styles.ph5]}

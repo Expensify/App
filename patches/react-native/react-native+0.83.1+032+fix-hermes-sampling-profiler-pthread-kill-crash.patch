@@ -1,0 +1,68 @@
+diff --git a/node_modules/react-native/ReactAndroid/hermes-engine/build.gradle.kts b/node_modules/react-native/ReactAndroid/hermes-engine/build.gradle.kts
+--- a/node_modules/react-native/ReactAndroid/hermes-engine/build.gradle.kts
++++ b/node_modules/react-native/ReactAndroid/hermes-engine/build.gradle.kts
+@@ -117,6 +117,64 @@
+         }
+       }
+       into(hermesDir)
++      doLast {
++        // Apply the tgkill patch to SamplingProfilerPosix.cpp after extraction.
++        // On Android (Bionic libc), pthread_kill aborts when given an invalid pthread_t
++        // (e.g., thread has exited) instead of returning ESRCH like glibc. The Hermes
++        // sampling profiler's timer thread sends SIGPROF via pthread_kill to registered
++        // runtime threads at ~100Hz. If a runtime's thread exits while profiling is active,
++        // the stale pthread_t triggers a SIGABRT crash. This patch replaces pthread_kill
++        // with the tgkill syscall on Android, which safely returns ESRCH for dead threads.
++        val samplingProfilerFile = File(hermesDir, "lib/VM/Profiler/SamplingProfilerPosix.cpp")
++        if (samplingProfilerFile.exists()) {
++          var content = samplingProfilerFile.readText()
++
++          // Add #include <sys/syscall.h> if not already present
++          if (!content.contains("sys/syscall.h")) {
++            content = content.replace(
++              "#include \"SamplingProfilerSampler.h\"",
++              "#include \"SamplingProfilerSampler.h\"\n\n#if defined(__ANDROID__)\n#include <sys/syscall.h>\n#include <unistd.h>\n#endif"
++            )
++          }
++
++          // Add currentTid_ field to SamplingProfilerPosix struct
++          if (!content.contains("currentTid_")) {
++            content = content.replace(
++              "pthread_t currentThread_;",
++              "pthread_t currentThread_;\n\n  /// Kernel thread ID for safe signal delivery via tgkill syscall.\n  pid_t currentTid_;"
++            )
++
++            // Initialize currentTid_ in constructor body
++            content = content.replace(
++              "currentThread_{pthread_self()} {",
++              "currentThread_{pthread_self()} {\n  currentTid_ = static_cast<pid_t>(syscall(__NR_gettid));"
++            )
++
++            // Replace pthread_kill with tgkill in platformSuspendVMAndWalkStack
++            content = content.replace(
++              "  pthread_kill(posixProfiler->currentThread_, SIGPROF);",
++              """#if defined(__ANDROID__)
++  // On Android (Bionic), pthread_kill aborts if the pthread_t is invalid
++  // (e.g., thread exited). Use tgkill syscall which returns ESRCH instead.
++  if (syscall(__NR_tgkill, getpid(), posixProfiler->currentTid_, SIGPROF) != 0) {
++    self->profilerForSig_.store(nullptr, std::memory_order_release);
++    return true;
++  }
++#else
++  pthread_kill(posixProfiler->currentThread_, SIGPROF);
++#endif"""
++            )
++
++            // Update currentTid_ in setRuntimeThread
++            content = content.replace(
++              "profiler->currentThread_ = pthread_self();",
++              "profiler->currentThread_ = pthread_self();\n  profiler->currentTid_ = static_cast<pid_t>(syscall(__NR_gettid));"
++            )
++          }
++
++          samplingProfilerFile.writeText(content)
++        }
++      }
+     }
+ 
+ // NOTE: ideally, we would like CMake to be installed automatically by the `externalNativeBuild`

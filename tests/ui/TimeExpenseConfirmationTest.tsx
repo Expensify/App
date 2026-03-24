@@ -231,8 +231,15 @@ describe('TimeExpenseConfirmationTest', () => {
             renderConfirmation();
             await waitForBatchedUpdatesWithAct();
 
-            const amountRow = screen.getByTestId('menu-item-Amount');
-            expect(within(amountRow).getByText(/\$400\.00/)).toBeDefined();
+            const amountRow = screen.queryByTestId('menu-item-Amount');
+
+            // In the new manual expense flow, amount is rendered as a text input instead of a menu item.
+            if (amountRow) {
+                expect(within(amountRow).getByText(/\$400\.00/)).toBeDefined();
+            } else {
+                const amountInput = screen.getByLabelText('Amount');
+                expect(amountInput.props.value).toBe('400.00');
+            }
         });
     });
 

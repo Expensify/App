@@ -912,7 +912,7 @@ jobs:
   postGithubComments:
     uses: ./.github/workflows/postDeployComments.yml
     if: ${{ always() && fromJSON(needs.checkDeploymentSuccess.outputs.IS_AT_LEAST_ONE_PLATFORM_DEPLOYED) }}
-    needs: [prep, checkDeploymentSuccess, createRelease]
+    needs: [prep, checkDeploymentSuccess, createRelease, androidBuild, iosBuild]
     secrets: inherit
     with:
       version: ${{ needs.prep.outputs.APP_VERSION }}
@@ -920,3 +920,5 @@ jobs:
       android: ${{ needs.checkDeploymentSuccess.outputs.ANDROID_RESULT }}
       ios: ${{ needs.checkDeploymentSuccess.outputs.IOS_RESULT }}
       web: ${{ needs.checkDeploymentSuccess.outputs.WEB_RESULT }}
+      android_sentry_url: ${{ needs.androidBuild.outputs.SENTRY_URL }}
+      ios_sentry_url: ${{ needs.iosBuild.outputs.SENTRY_URL }}

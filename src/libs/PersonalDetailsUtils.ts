@@ -456,17 +456,6 @@ function areTravelPersonalDetailsMissing(privatePersonalDetails: OnyxEntry<Priva
     return !privatePersonalDetails?.legalFirstName || !privatePersonalDetails?.legalLastName;
 }
 
-/**
- * Determines if the user should be redirected to the missing details page
- * before revealing their card details (for UK/EU cards only).
- */
-function shouldShowMissingDetailsPage(card: {nameValuePairs?: {feedCountry?: string}} | null | undefined, privatePersonalDetails: OnyxEntry<PrivatePersonalDetails>): boolean {
-    const isUKOrEUCard = card?.nameValuePairs?.feedCountry === CONST.COUNTRY.GB;
-    const hasMissingDetails = arePersonalDetailsMissing(privatePersonalDetails);
-
-    return hasMissingDetails && isUKOrEUCard;
-}
-
 export {
     getDisplayNameOrDefault,
     getPersonalDetailsByIDs,
@@ -488,6 +477,5 @@ export {
     getPhoneNumber,
     arePersonalDetailsMissing,
     areTravelPersonalDetailsMissing,
-    shouldShowMissingDetailsPage,
     createPersonalDetailsLookupByAccountID,
 };

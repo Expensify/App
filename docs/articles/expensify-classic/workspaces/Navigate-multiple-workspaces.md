@@ -4,7 +4,7 @@ description: Using more than one Expensify workspace
 keywords: [Expensify Classic, default workspace]
 ---
 
-If you have multiple workspaces—whether an individual workspace and a group workspace or multiple group workspaces—you’ll want to:
+If you have multiple workspaces, you’ll want to:
 - Set a default workspace. (*Note: Some domains automatically set your default workspace, and in these cases, you cannot change it.*)
 - Select your workspace before creating an expense or report to ensure it’s posted to the correct workspace.
 

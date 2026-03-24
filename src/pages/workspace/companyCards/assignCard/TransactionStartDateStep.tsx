@@ -11,6 +11,7 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {isRequiredFulfilled} from '@libs/ValidationUtils';
 import Navigation from '@navigation/Navigation';
 import {setAssignCardStepAndData} from '@userActions/CompanyCards';
@@ -85,6 +86,10 @@ function TransactionStartDateStep() {
     ];
 
     const isLoading = isLoadingOnyxValue(assignCardMeta);
+    const activityReasonAttributes: SkeletonSpanReasonAttributes = {
+        context: 'TransactionStartDateStep',
+        isLoading,
+    };
 
     return (
         <InteractiveStepWrapper
@@ -97,6 +102,7 @@ function TransactionStartDateStep() {
                 <ActivityIndicator
                     size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
                     style={styles.h100}
+                    reasonAttributes={activityReasonAttributes}
                 />
             ) : (
                 <>

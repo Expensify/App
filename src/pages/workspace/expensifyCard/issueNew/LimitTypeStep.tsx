@@ -10,7 +10,6 @@ import Text from '@components/Text';
 import ValuePicker from '@components/ValuePicker';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setIssueNewCardStepAndData} from '@libs/actions/Card';
 import {getDefaultExpensifyCardLimitType} from '@libs/CardUtils';
@@ -40,7 +39,6 @@ function LimitTypeStep({policy, stepNames, startStepIndex}: LimitTypeStepProps) 
     const styles = useThemeStyles();
     const policyID = policy?.id;
     const [issueNewCard] = useOnyx(`${ONYXKEYS.COLLECTION.ISSUE_NEW_EXPENSIFY_CARD}${policyID}`);
-    const {isBetaEnabled} = usePermissions();
     const formRef = useRef<FormRef | null>(null);
 
     const areApprovalsConfigured = getApprovalWorkflow(policy) !== CONST.POLICY.APPROVAL_MODE.OPTIONAL;
@@ -53,11 +51,11 @@ function LimitTypeStep({policy, stepNames, startStepIndex}: LimitTypeStepProps) 
         if (isEditing) {
             return CONST.EXPENSIFY_CARD.STEP.CONFIRMATION;
         }
-        if (issueNewCard?.data?.cardType === CONST.EXPENSIFY_CARD.CARD_TYPE.VIRTUAL && isBetaEnabled(CONST.BETAS.SINGLE_USE_AND_EXPIRE_BY_CARDS)) {
+        if (issueNewCard?.data?.cardType === CONST.EXPENSIFY_CARD.CARD_TYPE.VIRTUAL) {
             return CONST.EXPENSIFY_CARD.STEP.EXPIRY_OPTIONS;
         }
         return CONST.EXPENSIFY_CARD.STEP.CARD_NAME;
-    }, [isBetaEnabled, isEditing, issueNewCard?.data?.cardType]);
+    }, [isEditing, issueNewCard?.data?.cardType]);
 
     const onInputFocus = useCallback(() => {
         formRef.current?.scrollToEnd();
@@ -116,7 +114,7 @@ function LimitTypeStep({policy, stepNames, startStepIndex}: LimitTypeStepProps) 
             },
         );
 
-        if (issueNewCard?.data?.cardType === CONST.EXPENSIFY_CARD.CARD_TYPE.VIRTUAL && isBetaEnabled(CONST.BETAS.SINGLE_USE_AND_EXPIRE_BY_CARDS)) {
+        if (issueNewCard?.data?.cardType === CONST.EXPENSIFY_CARD.CARD_TYPE.VIRTUAL) {
             options.push({
                 value: CONST.EXPENSIFY_CARD.LIMIT_TYPES.SINGLE_USE,
                 label: translate('workspace.card.issueNewCard.singleUse'),
@@ -126,7 +124,7 @@ function LimitTypeStep({policy, stepNames, startStepIndex}: LimitTypeStepProps) 
             });
         }
         return options;
-    }, [areApprovalsConfigured, isBetaEnabled, issueNewCard?.data?.cardType, translate, typeSelected]);
+    }, [areApprovalsConfigured, issueNewCard?.data?.cardType, translate, typeSelected]);
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ISSUE_NEW_EXPENSIFY_CARD_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.ISSUE_NEW_EXPENSIFY_CARD_FORM> => {

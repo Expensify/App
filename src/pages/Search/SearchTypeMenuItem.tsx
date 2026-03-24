@@ -4,6 +4,7 @@ import Badge from '@components/Badge';
 import Icon from '@components/Icon';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import Text from '@components/Text';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getButtonState from '@libs/getButtonState';
@@ -34,16 +35,18 @@ type SearchTypeMenuItemProps = {
 function SearchTypeMenuItem({title, icon, badgeText, focused = false, onPress}: SearchTypeMenuItemProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     return (
         <PressableWithoutFeedback
             onPress={onPress}
             accessibilityLabel={title}
-            role={CONST.ROLE.BUTTON}
+            accessibilityState={{selected: focused}}
+            role={CONST.ROLE.TAB}
             sentryLabel={CONST.SENTRY_LABEL.SEARCH.TYPE_MENU_ITEM}
             style={({hovered, pressed}) => [
                 styles.flexRow,
-                styles.sectionMenuItem,
+                styles.sectionMenuItem(shouldUseNarrowLayout),
                 StyleUtils.getButtonBackgroundColorStyle(getButtonState(focused || hovered, pressed, false, false, true), true),
                 hovered && !focused && !pressed && styles.hoveredComponentBG,
             ]}

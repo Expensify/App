@@ -32,6 +32,7 @@ import './mapbox.css';
 import type {MapViewProps} from './MapViewTypes';
 import PendingMapView from './PendingMapView';
 import responder from './responder';
+import useDistanceUnit from './useDistanceUnit';
 import utils from './utils';
 
 function MapViewImpl({
@@ -51,19 +52,7 @@ function MapViewImpl({
 
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
-    const [distanceUnit, setDistanceUnit] = useState(unit);
-    useEffect(() => {
-        if (!unit || distanceUnit) {
-            return;
-        }
-        setDistanceUnit(unit);
-    }, [unit, distanceUnit]);
-
-    const toggleDistanceUnit = useCallback(() => {
-        setDistanceUnit((currentUnit) =>
-            currentUnit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS ? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES : CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS,
-        );
-    }, []);
+    const {distanceUnit, toggleDistanceUnit} = useDistanceUnit(unit);
 
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -293,6 +282,7 @@ function MapViewImpl({
                         latitude={distanceSymbolCoordinate.at(1) ?? 0}
                     >
                         <PressableWithoutFeedback
+                            sentryLabel="MapView-ToggleDistanceUnit"
                             accessibilityLabel={CONST.ROLE.BUTTON}
                             role={CONST.ROLE.BUTTON}
                             onPress={toggleDistanceUnit}

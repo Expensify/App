@@ -163,11 +163,9 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
     const renderItem = useCallback(
         ({item, index}: RenderItemProps): ReactElement => {
             const reportID = item.reportID;
-            const itemReportAttributes = reportAttributes?.[reportID];
             const itemParentReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${item.parentReportID}`];
             const itemReportNameValuePairs = reportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`];
             const itemReportActions = reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`];
-            const itemOneTransactionThreadReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${itemReportAttributes?.oneTransactionThreadReportID}`];
             const itemParentReportActions = reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${item?.parentReportID}`];
             const itemParentReportAction = item?.parentReportActionID ? itemParentReportActions?.[item?.parentReportActionID] : undefined;
 
@@ -197,10 +195,10 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
                 canUserPerformWrite,
                 reportActions,
                 visibleReportActionsData,
-                itemOneTransactionThreadReport?.reportID,
+                reportAttributes?.[reportID]?.oneTransactionThreadReportID,
             );
 
-            const iouReportIDOfLastAction = getIOUReportIDOfLastAction(item, visibleReportActionsData, lastAction);
+            const iouReportIDOfLastAction = getIOUReportIDOfLastAction(item, itemReportNameValuePairs?.private_isArchived, visibleReportActionsData, lastAction);
             const itemIouReportReportActions = iouReportIDOfLastAction ? reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportIDOfLastAction}`] : undefined;
 
             const lastReportActionTransactionID = isMoneyRequestAction(lastAction) ? (getOriginalMessage(lastAction)?.IOUTransactionID ?? CONST.DEFAULT_NUMBER_ID) : CONST.DEFAULT_NUMBER_ID;
@@ -226,9 +224,6 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
                 <OptionRowLHNData
                     reportID={reportID}
                     fullReport={item}
-                    reportAttributes={itemReportAttributes}
-                    reportAttributesDerived={reportAttributes}
-                    oneTransactionThreadReport={itemOneTransactionThreadReport}
                     reportNameValuePairs={itemReportNameValuePairs}
                     reportActions={itemReportActions}
                     parentReportAction={itemParentReportAction}
@@ -238,7 +233,6 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
                     personalDetails={personalDetails ?? {}}
                     transaction={itemTransaction}
                     lastReportActionTransaction={lastReportActionTransaction}
-                    receiptTransactions={transactions}
                     viewMode={optionMode}
                     isOptionFocused={!shouldDisableFocusOptions}
                     lastMessageTextFromReport={lastMessageTextFromReport}
@@ -297,7 +291,6 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
         () => [
             reportActions,
             reports,
-            reportAttributes,
             reportNameValuePairs,
             transactionViolations,
             policy,
@@ -315,7 +308,6 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
         [
             reportActions,
             reports,
-            reportAttributes,
             reportNameValuePairs,
             transactionViolations,
             policy,

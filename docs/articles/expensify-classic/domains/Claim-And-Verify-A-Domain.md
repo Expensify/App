@@ -58,6 +58,6 @@ Once verified, an email will be sent to all domain members informing them that t
 
 # Add Another Domain
 To add an additional domain:
-1. Add your domain email address (`@yourcompany.com`) as a **primary or secondary email** in Expensify -- [How to add an email](https://help.expensify.com/articles/expensify-classic/settings/account-settings/Change-or-add-email-address)
+1. Add your domain email address (`@yourcompany.com`) as a **primary or secondary email** in Expensify -- [How to add an email](https://help.expensify.com/articles/expensify-classic/settings/Contact-Methods)
 2. Follow the steps above to claim and verify the new domain.
 

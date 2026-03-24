@@ -1,5 +1,6 @@
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
-import {InteractionManager, View} from 'react-native';
+import {useIsFocused} from '@react-navigation/native';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import {View} from 'react-native';
 import type {GestureResponderEvent} from 'react-native/Libraries/Types/CoreEventTypes';
 import type {ValueOf} from 'type-fest';
 import Button from '@components/Button';
@@ -46,7 +47,9 @@ function ImportedMembersConfirmationPage({route}: ImportedMembersConfirmationPag
     const policyID = route.params.policyID;
     const policy = usePolicy(policyID);
     const [isImporting, setIsImporting] = useState(false);
+    const [shouldShowConfirmModal, setShouldShowConfirmModal] = useState(true);
     const {isOffline} = useNetwork();
+    const isFocused = useIsFocused();
 
     const personalDetails = usePersonalDetails();
     const {setIsClosing} = useCloseImportPage();
@@ -58,9 +61,17 @@ function ImportedMembersConfirmationPage({route}: ImportedMembersConfirmationPag
     }, []);
 
     const [importedSpreadsheetMemberData] = useOnyx(ONYXKEYS.IMPORTED_SPREADSHEET_MEMBER_DATA);
-    const newMembers = useMemo(() => {
+    const computedNewMembers = useMemo(() => {
         return importedSpreadsheetMemberData?.filter((member) => !isPolicyMemberWithoutPendingDelete(member.email, policy) && !member.role) ?? [];
     }, [importedSpreadsheetMemberData, policy]);
+
+    // Freeze the displayed members once import starts so the UI doesn't reset
+    // when the policy updates with the newly imported members.
+    const newMembersRef = useRef(computedNewMembers);
+    if (!isImporting) {
+        newMembersRef.current = computedNewMembers;
+    }
+    const newMembers = newMembersRef.current;
     const invitedEmailsToAccountIDsDraft = useMemo(() => {
         const memberEmails = newMembers.map((member) => member.email);
         return memberEmails.reduce(
@@ -92,7 +103,9 @@ function ImportedMembersConfirmationPage({route}: ImportedMembersConfirmationPag
     const closeImportPageAndModal = () => {
         setIsClosing(true);
         setIsImporting(false);
+        setShouldShowConfirmModal(false);
         closeImportPage();
+        Navigation.goBack(ROUTES.WORKSPACE_MEMBERS.getRoute(policyID));
     };
 
     const onRoleChange = (item: ListItemType) => {
@@ -195,6 +208,7 @@ function ImportedMembersConfirmationPage({route}: ImportedMembersConfirmationPag
                     accessibilityLabel={translate('common.privacy')}
                     href={CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}
                     style={[styles.mv2, styles.alignSelfStart]}
+                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.IMPORTED_MEMBERS_CONFIRMATION_PRIVACY_LINK}
                 >
                     <View style={[styles.flexRow]}>
                         <Text style={[styles.mr1, styles.label, styles.link]}>{translate('common.privacy')}</Text>
@@ -202,13 +216,9 @@ function ImportedMembersConfirmationPage({route}: ImportedMembersConfirmationPag
                 </PressableWithoutFeedback>
             </FixedFooter>
             <ImportSpreadsheetConfirmModal
-                isVisible={spreadsheet?.shouldFinalModalBeOpened}
+                isVisible={spreadsheet?.shouldFinalModalBeOpened && shouldShowConfirmModal && isFocused}
                 closeImportPageAndModal={closeImportPageAndModal}
                 shouldHandleNavigationBack={false}
-                onModalHide={() => {
-                    // eslint-disable-next-line @typescript-eslint/no-deprecated
-                    InteractionManager.runAfterInteractions(() => Navigation.goBack(ROUTES.WORKSPACE_MEMBERS.getRoute(policyID)));
-                }}
             />
             <WorkspaceMemberDetailsRoleSelectionModal
                 isVisible={isRoleSelectionModalVisible}

@@ -12,6 +12,7 @@ type Section = {
     href: string;
     title: string;
     articles?: Article[];
+    sections?: Section[];
 };
 
 type Hub = {
@@ -60,16 +61,14 @@ function toTitleCase(str: string): string {
 }
 
 /**
- * @param filename - The name of the file (path used for href)
+ * @param filename - The name of the file
  * @param order - Optional order from front matter
- * @param titleOverride - Optional display title (e.g. subfolder name: "Export-Errors" -> "Export Errors")
  */
-function getArticleObj(filename: string, order?: number, titleOverride?: string): Article {
+function getArticleObj(filename: string, order?: number): Article {
     const href = filename.replace('.md', '');
-    const title = titleOverride ? toTitleCase(titleOverride.replaceAll('-', ' ')) : toTitleCase(href.replaceAll('-', ' '));
     return {
         href,
-        title,
+        title: toTitleCase(href.replaceAll('-', ' ')),
         order,
     };
 }
@@ -97,76 +96,87 @@ function pushOrCreateEntry<TKey extends HubEntriesKey>(hubs: Hub[], hub: string,
 }
 
 function getOrderFromArticleFrontMatter(path: string): number | undefined {
-    const frontmatter = fs.readFileSync(path, 'utf8').split('---').at(1);
-    if (!frontmatter) {
-        return;
+    try {
+        const frontmatter = fs.readFileSync(path, 'utf8').split('---').at(1);
+        if (!frontmatter) {
+            return undefined;
+        }
+        const frontmatterObject = yaml.load(frontmatter) as Record<string, unknown>;
+        return frontmatterObject.order as number | undefined;
+    } catch {
+        return undefined;
     }
-    const frontmatterObject = yaml.load(frontmatter) as Record<string, unknown>;
-    return frontmatterObject.order as number | undefined;
+}
+
+/**
+ * Build a section from a directory path, with optional parent path for nested href
+ */
+function buildSection(platformName: string, hub: string, sectionPath: string, parentHref: string): Section {
+    const sectionName = sectionPath.split('/').pop() ?? sectionPath;
+    const fullPath = `${docsDir}/articles/${platformName}/${hub}/${sectionPath}`;
+    const articles: Article[] = [];
+    const childSections: Section[] = [];
+    const href = parentHref ? `${parentHref}/${sectionName}` : sectionName;
+
+    for (const entry of fs.readdirSync(fullPath)) {
+        const entryPath = `${fullPath}/${entry}`;
+        if (entry.endsWith('.md')) {
+            const order = getOrderFromArticleFrontMatter(entryPath);
+            articles.push(getArticleObj(entry, order));
+        } else if (fs.statSync(entryPath).isDirectory()) {
+            childSections.push(buildSection(platformName, hub, `${sectionPath}/${entry}`, href));
+        }
+    }
+
+    const section: Section = {
+        href,
+        title: toTitleCase(sectionName.replaceAll('-', ' ')),
+        ...(articles.length > 0 && {articles}),
+        ...(childSections.length > 0 && {sections: childSections}),
+    };
+    return section;
+}
+
+/**
+ * Flatten sections for lookup by full path (e.g. netsuite/troubleshooting/connection-errors)
+ */
+function flattenSections(sections: Section[]): Section[] {
+    const result: Section[] = [];
+    for (const s of sections) {
+        result.push(s);
+        if (s.sections?.length) {
+            result.push(...flattenSections(s.sections));
+        }
+    }
+    return result;
 }
 
 /**
  * Add articles and sections to hubs
  * @param hubs - The hubs inside docs/articles/ for a platform
  * @param platformName - Expensify Classic or New Expensify
- * @param routeHubs - The hubs insude docs/data/_routes.yml for a platform
+ * @param routeHubs - The hubs inside docs/data/_routes.yml for a platform
  */
 function createHubsWithArticles(hubs: string[], platformName: ValueOf<typeof platformNames>, routeHubs: Hub[]) {
     for (const hub of hubs) {
-        // Iterate through each directory in articles
-        for (const fileOrFolder of fs.readdirSync(`${docsDir}/articles/${platformName}/${hub}`)) {
-            // If the directory content is a markdown file, then it is an article
+        const basePath = `${docsDir}/articles/${platformName}/${hub}`;
+
+        for (const fileOrFolder of fs.readdirSync(basePath)) {
             if (fileOrFolder.endsWith('.md')) {
                 const articleObj = getArticleObj(fileOrFolder);
                 pushOrCreateEntry(routeHubs, hub, 'articles', articleObj);
                 continue;
             }
 
-            // For readability, we will use the term section to refer to subfolders
-            const section = fileOrFolder;
-            const articles: Article[] = [];
+            const sectionPath = fileOrFolder;
+            const section = buildSection(platformName, hub, sectionPath, '');
+            pushOrCreateEntry(routeHubs, hub, 'sections', section);
+        }
 
-            // Section can contain .md files directly and/or subfolders (and nested subfolders) that contain .md files
-            const sectionPath = `${docsDir}/articles/${platformName}/${hub}/${section}`;
-            for (const entry of fs.readdirSync(sectionPath)) {
-                const entryPath = `${sectionPath}/${entry}`;
-                if (entry.endsWith('.md') && fs.statSync(entryPath).isFile()) {
-                    const order = getOrderFromArticleFrontMatter(entryPath);
-                    articles.push(getArticleObj(entry, order));
-                    continue;
-                }
-                if (fs.statSync(entryPath).isDirectory()) {
-                    // One level: section/SubFolder/file.md -> href "SubFolder/file", display title = "Troubleshoot SubFolder"
-                    for (const file of fs.readdirSync(entryPath)) {
-                        const filePath = `${entryPath}/${file}`;
-                        if (file.endsWith('.md') && fs.statSync(filePath).isFile()) {
-                            const order = getOrderFromArticleFrontMatter(filePath);
-                            articles.push(getArticleObj(`${entry}/${file}`, order, `Troubleshoot ${entry}`));
-                            continue;
-                        }
-                        if (fs.statSync(filePath).isDirectory()) {
-                            // Two levels: section/SubFolder/NestedFolder/file.md -> href "SubFolder/NestedFolder/file", display title = "Troubleshoot NestedFolder" (e.g. "Troubleshoot Export Errors")
-                            for (const nestedFile of fs.readdirSync(filePath)) {
-                                if (!nestedFile.endsWith('.md')) {
-                                    continue;
-                                }
-                                const nestedPath = `${filePath}/${nestedFile}`;
-                                if (!fs.statSync(nestedPath).isFile()) {
-                                    continue;
-                                }
-                                const order = getOrderFromArticleFrontMatter(nestedPath);
-                                articles.push(getArticleObj(`${entry}/${file}/${nestedFile}`, order, `Troubleshoot ${file}`));
-                            }
-                        }
-                    }
-                }
-            }
-
-            pushOrCreateEntry(routeHubs, hub, 'sections', {
-                href: section,
-                title: toTitleCase(section.replaceAll('-', ' ')),
-                articles,
-            });
+        // Add flat section list for nested section page lookup
+        const hubObj = routeHubs.find((obj) => obj.href === hub);
+        if (hubObj?.sections?.length) {
+            (hubObj as Hub & {flatSections?: Section[]}).flatSections = flattenSections(hubObj.sections);
         }
     }
 }

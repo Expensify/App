@@ -1,6 +1,7 @@
-import React, {useState} from 'react';
+import React, {useRef, useState} from 'react';
 import {View} from 'react-native';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import useListKeyboardNav from '@hooks/useListKeyboardNav';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -12,8 +13,8 @@ import Icon from './Icon';
 import ScreenWrapper from './ScreenWrapper';
 import ScrollView from './ScrollView';
 import type {SearchCustomColumnIds} from './Search/types';
+import MultiSelectListItem from './SelectionList/ListItem/MultiSelectListItem';
 import type {ListItem} from './SelectionList/types';
-import MultiSelectListItem from './SelectionListWithSections/MultiSelectListItem';
 import Text from './Text';
 import TextLink from './TextLink';
 
@@ -71,6 +72,8 @@ function ColumnsSettingsList({allColumns, defaultSelectedColumns, currentColumns
     const styles = useThemeStyles();
     const icons = useMemoizedLazyExpensifyIcons(['DragHandles']);
     const {translate, localeCompare} = useLocalize();
+
+    const isGrouped = !!groupBy;
 
     const allCustomColumns = [...groupColumns, ...allColumns];
     const defaultCustomColumns = new Set([...defaultGroupColumns, ...defaultSelectedColumns]);
@@ -171,11 +174,27 @@ function ColumnsSettingsList({allColumns, defaultSelectedColumns, currentColumns
         });
     };
 
+    const combinedItems = isGrouped ? [...groupColumnsList, ...typeColumnsList] : [];
+    const groupLength = groupColumnsList.length;
+    const disabledIndexes = combinedItems.flatMap((item, index) => (item.isDisabled ? [index] : []));
+    const containerRef = useRef<View>(null);
+
+    const {focusedIndex, setFocusedIndex} = useListKeyboardNav({
+        containerRef,
+        isActive: isGrouped,
+        itemKeys: combinedItems.map((item) => item.value),
+        disabledIndexes,
+    });
+
+    const groupFocusedIndex = focusedIndex >= 0 && focusedIndex < groupLength ? focusedIndex : -1;
+    const typeFocusedIndex = focusedIndex >= groupLength ? focusedIndex - groupLength : -1;
+
     const onGroupDragEnd = ({data}: {data: typeof allColumnsList}) => {
         const newGroupColumns = data.map((item) => ({columnId: item.value, isSelected: item.isSelected}));
         const existingTypeColumns = typeColumnsList.map((item) => ({columnId: item.value, isSelected: item.isSelected}));
         const newColumns = [...existingTypeColumns, ...newGroupColumns];
         setColumns(newColumns);
+        setFocusedIndex(-1);
     };
 
     const onTypeDragEnd = ({data}: {data: typeof allColumnsList}) => {
@@ -183,6 +202,7 @@ function ColumnsSettingsList({allColumns, defaultSelectedColumns, currentColumns
         const existingGroupColumns = groupColumnsList.map((item) => ({columnId: item.value, isSelected: item.isSelected}));
         const newColumns = [...existingGroupColumns, ...newTypeColumns];
         setColumns(newColumns);
+        setFocusedIndex(-1);
     };
 
     const resetColumns = () => {
@@ -193,10 +213,12 @@ function ColumnsSettingsList({allColumns, defaultSelectedColumns, currentColumns
         onSave(selectedColumnIds);
     };
 
-    const renderItem = ({item}: {item: ListItem}) => {
+    const renderItem = ({item, isFocused}: {item: ListItem; isFocused?: boolean}) => {
         return (
             <MultiSelectListItem
                 item={item}
+                keyForList={item.keyForList}
+                isFocused={isFocused}
                 showTooltip={false}
                 onSelectRow={onSelectItem}
                 isDisabled={item.isDisabled}
@@ -219,8 +241,8 @@ function ColumnsSettingsList({allColumns, defaultSelectedColumns, currentColumns
                     style={styles.flex1}
                     contentContainerStyle={styles.flex1}
                 >
-                    {!!groupBy && (
-                        <>
+                    {isGrouped ? (
+                        <View ref={containerRef}>
                             <View style={[styles.ph5, styles.pb3]}>
                                 <Text style={styles.textLabelSupporting}>{translate('search.groupColumns')}</Text>
                             </View>
@@ -230,7 +252,11 @@ function ColumnsSettingsList({allColumns, defaultSelectedColumns, currentColumns
                                 data={groupColumnsList}
                                 keyExtractor={(item) => item.value}
                                 onDragEnd={onGroupDragEnd}
+                                onSelectRow={onSelectItem}
+                                isItemDragDisabled={(item) => item.isDragDisabled}
+                                isItemDisabled={(item) => item.isDisabled}
                                 renderItem={renderItem}
+                                focusedIndex={groupFocusedIndex}
                             />
 
                             <View style={styles.dividerLine} />
@@ -238,16 +264,31 @@ function ColumnsSettingsList({allColumns, defaultSelectedColumns, currentColumns
                             <View style={[styles.ph5, styles.pv3]}>
                                 <Text style={styles.textLabelSupporting}>{translate('search.expenseColumns')}</Text>
                             </View>
-                        </>
-                    )}
 
-                    <DraggableList
-                        disableScroll
-                        data={typeColumnsList}
-                        keyExtractor={(item) => item.value}
-                        onDragEnd={onTypeDragEnd}
-                        renderItem={renderItem}
-                    />
+                            <DraggableList
+                                disableScroll
+                                data={typeColumnsList}
+                                keyExtractor={(item) => item.value}
+                                onDragEnd={onTypeDragEnd}
+                                onSelectRow={onSelectItem}
+                                isItemDragDisabled={(item) => item.isDragDisabled}
+                                isItemDisabled={(item) => item.isDisabled}
+                                renderItem={renderItem}
+                                focusedIndex={typeFocusedIndex}
+                            />
+                        </View>
+                    ) : (
+                        <DraggableList
+                            disableScroll
+                            data={typeColumnsList}
+                            keyExtractor={(item) => item.value}
+                            onDragEnd={onTypeDragEnd}
+                            onSelectRow={onSelectItem}
+                            isItemDragDisabled={(item) => item.isDragDisabled}
+                            isItemDisabled={(item) => item.isDisabled}
+                            renderItem={renderItem}
+                        />
+                    )}
                 </ScrollView>
             </View>
             <View style={[styles.ph5, styles.pb5]}>

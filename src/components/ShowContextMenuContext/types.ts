@@ -10,6 +10,7 @@ type ShowContextMenuStateContextType = {
     transactionThreadReport?: OnyxEntry<Report>;
     isDisabled: boolean;
     shouldDisplayContextMenu?: boolean;
+    originalReportID?: string;
 };
 
 type ShowContextMenuActionsContextType = {

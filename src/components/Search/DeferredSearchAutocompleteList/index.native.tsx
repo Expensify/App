@@ -3,6 +3,7 @@ import OptionsListSkeletonView from '@components/OptionsListSkeletonView';
 import type {SearchAutocompleteListProps} from '@components/Search/SearchAutocompleteList';
 import SearchAutocompleteList from '@components/Search/SearchAutocompleteList';
 import {endSpan} from '@libs/telemetry/activeSpans';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import CONST from '@src/CONST';
 
 /**
@@ -31,6 +32,7 @@ function DeferredAutocompleteList(props: SearchAutocompleteListProps) {
                 shouldStyleAsTable
                 onLayout={renderComponent}
                 speed={CONST.TIMING.SKELETON_ANIMATION_SPEED}
+                reasonAttributes={{context: 'DeferredSearchAutocompleteList'} satisfies SkeletonSpanReasonAttributes}
             />
         );
     }

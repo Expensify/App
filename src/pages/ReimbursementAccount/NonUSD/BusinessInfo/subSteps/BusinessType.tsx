@@ -3,13 +3,13 @@ import PushRowFieldsStep from '@components/SubStepForms/PushRowFieldsStep';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useReimbursementAccountStepFormSubmit from '@hooks/useReimbursementAccountStepFormSubmit';
-import type {SubStepProps} from '@hooks/useSubStep/types';
+import type {SubPageProps} from '@hooks/useSubPage/types';
 import getListOptionsFromCorpayPicklist from '@pages/ReimbursementAccount/NonUSD/utils/getListOptionsFromCorpayPicklist';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 
-type BusinessTypeProps = SubStepProps;
+type BusinessTypeProps = SubPageProps;
 
 const {COUNTRY} = INPUT_IDS.ADDITIONAL_DATA;
 const {BUSINESS_CATEGORY, APPLICANT_TYPE_ID, BUSINESS_TYPE_ID} = INPUT_IDS.ADDITIONAL_DATA.CORPAY;

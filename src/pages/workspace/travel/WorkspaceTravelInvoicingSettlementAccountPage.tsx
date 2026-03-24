@@ -88,7 +88,7 @@ function WorkspaceTravelInvoicingSettlementAccountPage({route}: WorkspaceTravelI
             return;
         }
 
-        const previousPaymentBankAccountID = cardSettings?.previousPaymentBankAccountID ?? cardSettings?.paymentBankAccountID;
+        const previousPaymentBankAccountID = travelSettings?.previousPaymentBankAccountID ?? travelSettings?.paymentBankAccountID;
         setTravelInvoicingSettlementAccount(policyID, workspaceAccountID, value, previousPaymentBankAccountID);
         Navigation.goBack();
     };

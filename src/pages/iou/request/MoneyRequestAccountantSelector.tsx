@@ -143,7 +143,8 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
         return newOptions;
     }, [areOptionsInitialized, defaultOptions, debouncedSearchTerm, countryCode, loginList, currentUserAccountID, currentUserEmail, personalDetails]);
 
-    const {userToInviteExpenseReport, userToInviteChatReport} = useUserToInviteReports(chatOptions?.userToInvite);
+    const {userToInviteExpenseReport} = useUserToInviteReports(chatOptions?.userToInvite);
+    const userToInviteExpenseReportPolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${userToInviteExpenseReport?.policyID}`];
 
     /**
      * Returns the sections needed for the OptionsSelector
@@ -164,6 +165,7 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
             chatOptions.personalDetails,
             privateIsArchivedMap,
             currentUserAccountID,
+            allPolicies,
             personalDetails,
             true,
             undefined,
@@ -202,7 +204,7 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
                               currentUserAccountID,
                               personalDetails,
                               userToInviteExpenseReport,
-                              userToInviteChatReport,
+                              userToInviteExpenseReportPolicy,
                               reportAttributesDerived,
                           )
                         : getParticipantsOption(participant, personalDetails);
@@ -229,7 +231,7 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
         debouncedSearchTerm,
         personalDetails,
         userToInviteExpenseReport,
-        userToInviteChatReport,
+        userToInviteExpenseReportPolicy,
         reportAttributesDerived,
         translate,
         loginList,
@@ -237,6 +239,7 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
         privateIsArchivedMap,
         currentUserAccountID,
         currentUserEmail,
+        allPolicies,
     ]);
 
     const selectAccountant = useCallback(

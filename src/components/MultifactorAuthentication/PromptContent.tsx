@@ -1,19 +1,25 @@
 import React from 'react';
 import {View} from 'react-native';
+import ImageSVG from '@components/ImageSVG';
 import Lottie from '@components/Lottie';
 import type DotLottieAnimation from '@components/LottieAnimations/types';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {TranslationPaths} from '@src/languages/types';
+import type IconAsset from '@src/types/utils/IconAsset';
 
 type MultifactorAuthenticationPromptContentProps = {
-    animation: DotLottieAnimation;
+    illustration: DotLottieAnimation | IconAsset;
     title: TranslationPaths;
     subtitle?: TranslationPaths;
 };
 
-function MultifactorAuthenticationPromptContent({title, subtitle, animation}: MultifactorAuthenticationPromptContentProps) {
+function isLottieAnimation(source: DotLottieAnimation | IconAsset): source is DotLottieAnimation {
+    return typeof source === 'object' && 'file' in source;
+}
+
+function MultifactorAuthenticationPromptContent({title, subtitle, illustration}: MultifactorAuthenticationPromptContentProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
@@ -23,13 +29,21 @@ function MultifactorAuthenticationPromptContent({title, subtitle, animation}: Mu
             testID="MultifactorAuthenticationPromptContent"
         >
             <View style={[styles.flex1, styles.justifyContentEnd]}>
-                <Lottie
-                    source={animation}
-                    loop
-                    autoPlay
-                    style={styles.mfaBlockingViewAnimation}
-                    webStyle={styles.mfaBlockingViewAnimation}
-                />
+                {isLottieAnimation(illustration) ? (
+                    <Lottie
+                        source={illustration}
+                        loop
+                        autoPlay
+                        style={styles.mfaBlockingViewAnimation}
+                        webStyle={styles.mfaBlockingViewAnimation}
+                    />
+                ) : (
+                    <ImageSVG
+                        src={illustration}
+                        width={204}
+                        height={204}
+                    />
+                )}
             </View>
             <View style={[styles.flex1, styles.alignItemsCenter, styles.pt5]}>
                 <Text style={[styles.notFoundTextHeader, styles.mb2]}>{translate(title)}</Text>

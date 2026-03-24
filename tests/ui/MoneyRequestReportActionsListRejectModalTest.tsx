@@ -20,7 +20,14 @@ const FAKE_ACCOUNT_ID = 15593135;
 const FAKE_TRANSACTION_ID = 'FAKE_TXN_001';
 const FAKE_EMAIL = 'testuser@example.com';
 
-jest.mock('@react-navigation/native');
+jest.mock('@react-navigation/native', () => ({
+    ...jest.requireActual<typeof NativeNavigation>('@react-navigation/native'),
+    useNavigationState: () => true,
+    usePreventRemove: jest.fn(),
+    useRoute: () => ({
+        params: {},
+    }),
+}));
 
 jest.mock('@rnmapbox/maps', () => ({
     default: jest.fn(),

@@ -33,6 +33,10 @@ type DateFilterBaseProps = {
     onSubmit: (values: SearchDateValues) => void;
     /** Callback when a date value changes (e.g. preset click or calendar save) */
     onDateValuesChange?: (values: SearchDateValues) => void;
+    /** Controlled selected date modifier */
+    selectedDateModifier?: SearchDateModifier | null;
+    /** Callback for controlled selected date modifier */
+    onSelectDateModifier?: (dateModifier: SearchDateModifier | null) => void;
     /** Callback when the date modifier screen is opened or closed (on/after/before) */
     onDateModifierChange?: (isOpen: boolean) => void;
     /** If true, the Reset/Save buttons are only shown when a date modifier (On/After/Before) is selected. Defaults to false (always show buttons). */
@@ -56,12 +60,26 @@ function DateFilterBase({
     shouldShowButtonsOnlyWithDateModifier = false,
     shouldShowHeader = true,
     ref,
+    selectedDateModifier: selectedDateModifierProp,
+    onSelectDateModifier,
 }: DateFilterBaseProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
     const searchDatePresetFilterBaseRef = useRef<SearchDatePresetFilterBaseHandle>(null);
-    const [selectedDateModifier, setSelectedDateModifier] = useState<SearchDateModifier | null>(null);
+    const [selectedDateModifierState, setSelectedDateModifierState] = useState<SearchDateModifier | null>(null);
+
+    const isDateModifierControlled = selectedDateModifierProp !== undefined;
+    const selectedDateModifier = isDateModifierControlled ? selectedDateModifierProp : selectedDateModifierState;
+
+    const setSelectedDateModifier = (dateModifier: SearchDateModifier | null) => {
+        if (isDateModifierControlled) {
+            onSelectDateModifier?.(dateModifier);
+            return;
+        }
+
+        setSelectedDateModifierState(dateModifier);
+    };
 
     const handleSelectDateModifier = (dateModifier: SearchDateModifier | null) => {
         setSelectedDateModifier(dateModifier);

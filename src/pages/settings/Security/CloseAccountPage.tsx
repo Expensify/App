@@ -61,7 +61,7 @@ function CloseAccountPage() {
     const userEmailOrPhone = session?.email ? formatPhoneNumber(session.email) : null;
 
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.CLOSE_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.CLOSE_ACCOUNT_FORM> => {
-        const errors = getFieldRequiredErrors(values, ['phoneOrEmail'], translate);
+        const errors = getFieldRequiredErrors(values, ['reasonForLeaving', 'phoneOrEmail'], translate);
 
         if (values.phoneOrEmail && userEmailOrPhone) {
             let isValid = false;

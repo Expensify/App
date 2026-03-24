@@ -12,6 +12,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {getAgeRequirementError, getFieldRequiredErrors} from '@libs/ValidationUtils';
 import {updateDateOfBirth} from '@userActions/PersonalDetails';
 import CONST from '@src/CONST';
@@ -56,7 +57,10 @@ function DateOfBirthPage() {
                     onBackButtonPress={() => Navigation.goBack()}
                 />
                 {isLoadingApp ? (
-                    <FullscreenLoadingIndicator style={[styles.flex1, styles.pRelative]} />
+                    <FullscreenLoadingIndicator
+                        style={[styles.flex1, styles.pRelative]}
+                        reasonAttributes={{context: 'DateOfBirthPage', isLoadingApp} satisfies SkeletonSpanReasonAttributes}
+                    />
                 ) : (
                     <FormProvider
                         style={[styles.flexGrow1, styles.ph5]}

@@ -2,9 +2,7 @@ import React, {useCallback} from 'react';
 import type {FlatListProps, ListRenderItemInfo, ScrollViewProps} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import FlatList from '@components/FlatList/FlatList';
-import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import ONYXKEYS from '@src/ONYXKEYS';
 import type {Transaction} from '@src/types/onyx';
 import DuplicateTransactionItem from './DuplicateTransactionItem';
 
@@ -22,18 +20,15 @@ const maintainVisibleContentPosition: ScrollViewProps['maintainVisibleContentPos
 function DuplicateTransactionsList({transactions, onPreviewPressed}: DuplicateTransactionsListProps) {
     const styles = useThemeStyles();
 
-    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
-
     const renderItem = useCallback(
         ({item, index}: ListRenderItemInfo<OnyxEntry<Transaction>>) => (
             <DuplicateTransactionItem
                 transaction={item}
                 index={index}
-                policies={policies}
                 onPreviewPressed={onPreviewPressed}
             />
         ),
-        [onPreviewPressed, policies],
+        [onPreviewPressed],
     );
 
     return (

@@ -1,9 +1,13 @@
-import createDynamicRoute from '@libs/Navigation/helpers/createDynamicRoute';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {DynamicRouteSuffix} from '@src/ROUTES';
 
 jest.mock('@libs/Navigation/Navigation', () => ({
     getActiveRoute: jest.fn(),
+}));
+
+jest.mock('@libs/Log', () => ({
+    warn: jest.fn(),
 }));
 
 jest.mock('@src/ROUTES', () => ({
@@ -13,6 +17,7 @@ jest.mock('@src/ROUTES', () => ({
         DETAILS: {path: 'details'},
         INVITE: {path: 'invite'},
         FILTERS: {path: 'filters'},
+        ADDRESS_COUNTRY: {path: 'country', getRoute: (country: string) => `country?country=${country}`},
     },
 }));
 
@@ -77,5 +82,38 @@ describe('createDynamicRoute', () => {
         const result = createDynamicRoute(suffix as unknown as DynamicRouteSuffix);
 
         expect(result).toBe(expectedPath);
+    });
+
+    it('should append suffix with its own query params to a simple path', () => {
+        const activeRoute = 'settings/profile/address';
+        const suffixWithQuery = 'country?country=US';
+        const expectedPath = 'settings/profile/address/country?country=US';
+
+        mockGetActiveRoute.mockReturnValue(activeRoute);
+
+        const result = createDynamicRoute(suffixWithQuery);
+
+        expect(result).toBe(expectedPath);
+    });
+
+    it('should merge suffix query params with base path query params', () => {
+        const activeRoute = 'settings/profile/address?existingParam=1';
+        const suffixWithQuery = 'country?country=US';
+        const expectedPath = 'settings/profile/address/country?existingParam=1&country=US';
+
+        mockGetActiveRoute.mockReturnValue(activeRoute);
+
+        const result = createDynamicRoute(suffixWithQuery);
+
+        expect(result).toBe(expectedPath);
+    });
+
+    it('should throw an error when suffix query param collides with base path query param', () => {
+        const activeRoute = 'settings/profile/address?country=GB';
+        const suffixWithQuery = 'country?country=US';
+
+        mockGetActiveRoute.mockReturnValue(activeRoute);
+
+        expect(() => createDynamicRoute(suffixWithQuery)).toThrow('[createDynamicRoute] Query param "country" exists in both base path and dynamic suffix. This is not allowed.');
     });
 });

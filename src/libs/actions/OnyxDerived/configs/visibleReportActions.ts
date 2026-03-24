@@ -71,7 +71,7 @@ export default createOnyxDerivedValueConfig({
                         if (shouldSkipCachingAction(action)) {
                             continue;
                         }
-                        reportVisibility[action.reportActionID] = shouldReportActionBeVisible(action, actionID, undefined, allReports);
+                        reportVisibility[action.reportActionID] = shouldReportActionBeVisible(action, actionID, undefined, allReports, reportActions);
                     }
                 }
             }
@@ -108,7 +108,7 @@ export default createOnyxDerivedValueConfig({
                             delete reportVisibility[action.reportActionID];
                             continue;
                         }
-                        reportVisibility[action.reportActionID] = shouldReportActionBeVisible(action, actionID, undefined, allReports);
+                        reportVisibility[action.reportActionID] = shouldReportActionBeVisible(action, actionID, undefined, allReports, reportActions);
                     }
                 }
             }
@@ -158,7 +158,7 @@ export default createOnyxDerivedValueConfig({
                     continue;
                 }
 
-                reportVisibility[action.reportActionID] = shouldReportActionBeVisible(action, actionID, undefined, allReports);
+                reportVisibility[action.reportActionID] = shouldReportActionBeVisible(action, actionID, undefined, allReports, reportActions);
             }
         }
 

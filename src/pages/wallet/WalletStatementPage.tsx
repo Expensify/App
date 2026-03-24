@@ -20,6 +20,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import addTrailingForwardSlash from '@libs/UrlUtils';
 import type {WalletStatementNavigatorParamList} from '@navigation/types';
+import {getBaseTheme} from '@styles/theme/utils';
 import {generateStatementPDF} from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -45,7 +46,7 @@ function WalletStatementPage({route}: WalletStatementPageProps) {
     const encryptedAuthToken = session?.encryptedAuthToken ?? '';
     const baseURL = addTrailingForwardSlash(getOldDotURLFromEnvironment(environment));
     const cachedFileName = yearMonth ? walletStatement?.[yearMonth] : undefined;
-    const url = `${baseURL}statement.php?period=${yearMonth}${themePreference === CONST.THEME.DARK ? '&isDarkMode=true' : ''}`;
+    const url = `${baseURL}statement.php?period=${yearMonth}${getBaseTheme(themePreference) === CONST.THEME.DARK ? '&isDarkMode=true' : ''}`;
 
     // Dismiss if the yearMonth route param is missing, malformed, or in the future
     useEffect(() => {

@@ -69,7 +69,7 @@ Use filters to narrow down the data:
 2. Adjust the filters at the top of the page:
    - **Date Range** – Select a specific time frame.
    - **Merchant Name** – Find expenses from a particular vendor (partial searches work).
-   - **Workspace** – View expenses for a specific Group or Individual Workspace.
+   - **Workspace** – View expenses for a specific workspace.
    - **Categories** – Filter by category to refine your search.
    - **Tags** – Locate expenses based on assigned tags.
    - **Submitters** – Find expenses by employee or vendor.

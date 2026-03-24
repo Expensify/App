@@ -30,7 +30,7 @@ Use this approach if automatic migration isn't possible. Have each employee foll
 
 ## Step-by-step instructions
 
-1. Add your new email address as a [secondary login](https://help.expensify.com/articles/expensify-classic/settings/account-settings/Change-or-add-email-address) to your current account.
+1. Add your new email address as a [secondary login](https://help.expensify.com/articles/expensify-classic/settings/Contact-Methods) to your current account.
 2. [Claim and verify your new domain](https://help.expensify.com/articles/expensify-classic/domains/Claim-And-Verify-A-Domain).
 3. If using [domain groups](https://help.expensify.com/articles/expensify-classic/domains/Create-A-Group), disable **Restrict Primary Login Selection** on all groups in the old domain.
 4. Switch the **Primary Login** to the new email (swap primary and secondary emails).
@@ -43,7 +43,7 @@ Use this approach if automatic migration isn't possible. Have each employee foll
    - Remove all Domain Admins.
    - The **last remaining admin** will see a **Reset** button—click it to complete the process.
 
-8. If someone has already created an account using the new email, they need to [merge accounts](https://help.expensify.com/articles/expensify-classic/settings/account-settings/Merge-accounts).
+8. If someone has already created an account using the new email, they need to [merge accounts](https://help.expensify.com/articles/expensify-classic/settings/Merge-Accounts).
 9. Rebuild your [domain groups](https://help.expensify.com/articles/expensify-classic/domains/Create-A-Group) on the new domain and assign users to them.
 
 ---
@@ -60,5 +60,5 @@ Yes! Migrating preserves your account history, reports, and settings as long as 
 
 ## What if employees already created accounts under the new domain?
 
-They’ll need to [merge their accounts](https://help.expensify.com/articles/expensify-classic/settings/account-settings/Merge-accounts) to keep everything in one place.
+They’ll need to [merge their accounts](https://help.expensify.com/articles/expensify-classic/settings/Merge-Accounts) to keep everything in one place.
 

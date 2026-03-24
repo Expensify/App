@@ -13,7 +13,7 @@ type CardRowSkeletonProps = {
     shouldAnimate?: boolean;
     fixedNumItems?: number;
     gradientOpacityEnabled?: boolean;
-    reasonAttributes?: SkeletonSpanReasonAttributes;
+    reasonAttributes: SkeletonSpanReasonAttributes;
 };
 
 const barHeight = 7;

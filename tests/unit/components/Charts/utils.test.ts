@@ -7,6 +7,8 @@ import {
     effectiveWidth,
     findSliceAtPosition,
     isAngleInSlice,
+    isCursorInSkewedLabel,
+    isCursorOverChartLabel,
     labelOverhang,
     maxVisibleCount,
     normalizeAngle,
@@ -227,8 +229,8 @@ describe('isAngleInSlice', () => {
 
 describe('findSliceAtPosition', () => {
     const makeSlices = (): PieSlice[] => [
-        {label: 'A', value: 75, color: '#000', percentage: 75, startAngle: -90, endAngle: 180, originalIndex: 0},
-        {label: 'B', value: 25, color: '#fff', percentage: 25, startAngle: 180, endAngle: 270, originalIndex: 1},
+        {label: 'A', value: 75, color: '#000', percentage: 75, startAngle: -90, endAngle: 180, originalIndex: 0, ordinalIndex: 0, tooltipPosition: {x: 0, y: 0}},
+        {label: 'B', value: 25, color: '#fff', percentage: 25, startAngle: 180, endAngle: 270, originalIndex: 1, ordinalIndex: 1, tooltipPosition: {x: 0, y: 0}},
     ];
 
     const center = 100;
@@ -266,7 +268,7 @@ describe('findSliceAtPosition', () => {
 
 describe('processDataIntoSlices', () => {
     it('returns empty array for empty data', () => {
-        expect(processDataIntoSlices([], 0)).toEqual([]);
+        expect(processDataIntoSlices([], 0, {centerX: 0, centerY: 0, radius: 0})).toEqual([]);
     });
 
     it('returns empty array when all values are zero', () => {
@@ -274,12 +276,12 @@ describe('processDataIntoSlices', () => {
             {label: 'A', total: 0},
             {label: 'B', total: 0},
         ];
-        expect(processDataIntoSlices(data, 0)).toEqual([]);
+        expect(processDataIntoSlices(data, 0, {centerX: 0, centerY: 0, radius: 0})).toEqual([]);
     });
 
     it('creates a single slice covering 360 degrees for one data point', () => {
         const data: ChartDataPoint[] = [{label: 'Only', total: 100}];
-        const slices = processDataIntoSlices(data, -90);
+        const slices = processDataIntoSlices(data, -90, {centerX: 0, centerY: 0, radius: 0});
 
         expect(slices).toHaveLength(1);
         expect(slices.at(0)?.label).toBe('Only');
@@ -295,7 +297,7 @@ describe('processDataIntoSlices', () => {
             {label: 'Small', total: 10},
             {label: 'Large', total: 90},
         ];
-        const slices = processDataIntoSlices(data, 0);
+        const slices = processDataIntoSlices(data, 0, {centerX: 0, centerY: 0, radius: 0});
 
         expect(slices.at(0)?.label).toBe('Large');
         expect(slices.at(1)?.label).toBe('Small');
@@ -306,7 +308,7 @@ describe('processDataIntoSlices', () => {
             {label: 'Positive', total: 75},
             {label: 'Negative', total: -25},
         ];
-        const slices = processDataIntoSlices(data, 0);
+        const slices = processDataIntoSlices(data, 0, {centerX: 0, centerY: 0, radius: 0});
 
         expect(slices).toHaveLength(2);
         expect(slices.at(0)?.value).toBe(75);
@@ -321,7 +323,7 @@ describe('processDataIntoSlices', () => {
             {label: 'Medium', total: 50},
             {label: 'Large', total: 100},
         ];
-        const slices = processDataIntoSlices(data, 0);
+        const slices = processDataIntoSlices(data, 0, {centerX: 0, centerY: 0, radius: 0});
 
         expect(slices.at(0)?.originalIndex).toBe(2); // Large was at index 2
         expect(slices.at(1)?.originalIndex).toBe(1); // Medium was at index 1
@@ -334,7 +336,7 @@ describe('processDataIntoSlices', () => {
             {label: 'B', total: 33},
             {label: 'C', total: 34},
         ];
-        const slices = processDataIntoSlices(data, -90);
+        const slices = processDataIntoSlices(data, -90, {centerX: 0, centerY: 0, radius: 0});
 
         const totalSweep = slices.reduce((sum, s) => sum + (s.endAngle - s.startAngle), 0);
         expect(totalSweep).toBeCloseTo(360, 5);
@@ -346,7 +348,7 @@ describe('processDataIntoSlices', () => {
             {label: 'B', total: 30},
             {label: 'C', total: 20},
         ];
-        const slices = processDataIntoSlices(data, -90);
+        const slices = processDataIntoSlices(data, -90, {centerX: 0, centerY: 0, radius: 0});
 
         for (let i = 1; i < slices.length; i++) {
             expect(slices.at(i)?.startAngle).toBeCloseTo(slices.at(i - 1)?.endAngle ?? 0, 10);
@@ -360,10 +362,185 @@ describe('processDataIntoSlices', () => {
             {label: 'C', total: 20},
             {label: 'D', total: 10},
         ];
-        const slices = processDataIntoSlices(data, 0);
+        const slices = processDataIntoSlices(data, 0, {centerX: 0, centerY: 0, radius: 0});
         const colors = slices.map((s) => s.color);
         const uniqueColors = new Set(colors);
 
         expect(uniqueColors.size).toBe(4);
+    });
+});
+
+describe('isCursorInSkewedLabel', () => {
+    // Axis-aligned unit square: clockwise rightUpper -> rightLower -> leftLower -> leftUpper
+    const unitSquare = [
+        {x: 1, y: 0},
+        {x: 1, y: 1},
+        {x: 0, y: 1},
+        {x: 0, y: 0},
+    ];
+
+    it('returns true when cursor is inside the quadrilateral', () => {
+        expect(isCursorInSkewedLabel(0.5, 0.5, unitSquare)).toBe(true);
+    });
+
+    it('returns false when cursor is to the left of the polygon', () => {
+        expect(isCursorInSkewedLabel(-0.5, 0.5, unitSquare)).toBe(false);
+    });
+
+    it('returns false when cursor is to the right of the polygon', () => {
+        expect(isCursorInSkewedLabel(1.5, 0.5, unitSquare)).toBe(false);
+    });
+
+    it('returns false when cursor is above the polygon', () => {
+        expect(isCursorInSkewedLabel(0.5, -0.5, unitSquare)).toBe(false);
+    });
+
+    it('returns false when cursor is below the polygon', () => {
+        expect(isCursorInSkewedLabel(0.5, 1.5, unitSquare)).toBe(false);
+    });
+
+    it('returns true when cursor is on an edge (boundary)', () => {
+        expect(isCursorInSkewedLabel(1, 0.5, unitSquare)).toBe(true);
+        expect(isCursorInSkewedLabel(0.5, 0, unitSquare)).toBe(true);
+    });
+
+    it('returns true when cursor is at a vertex', () => {
+        expect(isCursorInSkewedLabel(0, 0, unitSquare)).toBe(true);
+        expect(isCursorInSkewedLabel(1, 1, unitSquare)).toBe(true);
+    });
+
+    it('returns true when cursor is inside a skewed (45°) parallelogram', () => {
+        // Parallelogram: rightUpper (5,0), rightLower (6,1), leftLower (1,1), leftUpper (0,0)
+        const skewed = [
+            {x: 5, y: 0},
+            {x: 6, y: 1},
+            {x: 1, y: 1},
+            {x: 0, y: 0},
+        ];
+        expect(isCursorInSkewedLabel(3, 0.5, skewed)).toBe(true);
+    });
+
+    it('returns false when cursor is outside a skewed parallelogram', () => {
+        const skewed = [
+            {x: 5, y: 0},
+            {x: 6, y: 1},
+            {x: 1, y: 1},
+            {x: 0, y: 0},
+        ];
+        expect(isCursorInSkewedLabel(10, 10, skewed)).toBe(false);
+        expect(isCursorInSkewedLabel(-1, 0.5, skewed)).toBe(false);
+    });
+
+    it('returns true for empty corners (no edges to cross)', () => {
+        expect(isCursorInSkewedLabel(0, 0, [])).toBe(true);
+    });
+});
+
+describe('isCursorOverChartLabel', () => {
+    const baseParams = {
+        targetX: 10,
+        labelY: 20,
+        halfWidth: 5,
+        padding: 2,
+        yMin90: 15,
+        yMax90: 25,
+    };
+
+    describe('0° (horizontal label)', () => {
+        const params = () => ({...baseParams, angleRad: 0, cursorX: 10, cursorY: 20});
+
+        it('returns true when cursor is inside the horizontal label box', () => {
+            expect(isCursorOverChartLabel({...params()})).toBe(true);
+            expect(isCursorOverChartLabel({...params(), cursorX: 12, cursorY: 21})).toBe(true);
+        });
+
+        it('returns false when cursor is to the left of the label', () => {
+            expect(isCursorOverChartLabel({...params(), cursorX: 2})).toBe(false);
+        });
+
+        it('returns false when cursor is to the right of the label', () => {
+            expect(isCursorOverChartLabel({...params(), cursorX: 18})).toBe(false);
+        });
+
+        it('returns false when cursor is above the label', () => {
+            expect(isCursorOverChartLabel({...params(), cursorY: 15})).toBe(false);
+        });
+
+        it('returns false when cursor is below the label', () => {
+            expect(isCursorOverChartLabel({...params(), cursorY: 25})).toBe(false);
+        });
+
+        it('returns true when cursor is on the horizontal boundary', () => {
+            expect(isCursorOverChartLabel({...params(), cursorX: 5, cursorY: 20})).toBe(true);
+            expect(isCursorOverChartLabel({...params(), cursorX: 15, cursorY: 20})).toBe(true);
+        });
+
+        it('returns true when cursor is on the vertical boundary', () => {
+            expect(isCursorOverChartLabel({...params(), cursorX: 10, cursorY: 18})).toBe(true);
+            expect(isCursorOverChartLabel({...params(), cursorX: 10, cursorY: 22})).toBe(true);
+        });
+    });
+
+    describe('45° (skewed label)', () => {
+        const unitSquare = [
+            {x: 1, y: 0},
+            {x: 1, y: 1},
+            {x: 0, y: 1},
+            {x: 0, y: 0},
+        ];
+
+        it('returns true when cursor is inside the skewed quadrilateral', () => {
+            expect(
+                isCursorOverChartLabel({
+                    ...baseParams,
+                    angleRad: Math.PI / 4,
+                    cursorX: 0.5,
+                    cursorY: 0.5,
+                    corners45: unitSquare,
+                }),
+            ).toBe(true);
+        });
+
+        it('returns false when cursor is outside the skewed quadrilateral', () => {
+            expect(
+                isCursorOverChartLabel({
+                    ...baseParams,
+                    angleRad: Math.PI / 4,
+                    cursorX: -1,
+                    cursorY: 0.5,
+                    corners45: unitSquare,
+                }),
+            ).toBe(false);
+        });
+    });
+
+    describe('90° (vertical label)', () => {
+        const params = () => ({...baseParams, angleRad: Math.PI / 2, cursorX: 10, cursorY: 20});
+
+        it('returns true when cursor is inside the vertical label band', () => {
+            expect(isCursorOverChartLabel({...params()})).toBe(true);
+            expect(isCursorOverChartLabel({...params(), cursorY: 18})).toBe(true);
+        });
+
+        it('returns false when cursor is to the left of the label', () => {
+            expect(isCursorOverChartLabel({...params(), cursorX: 5})).toBe(false);
+        });
+
+        it('returns false when cursor is to the right of the label', () => {
+            expect(isCursorOverChartLabel({...params(), cursorX: 15})).toBe(false);
+        });
+
+        it('returns false when cursor is above the vertical bounds', () => {
+            expect(isCursorOverChartLabel({...params(), cursorY: 10})).toBe(false);
+        });
+
+        it('returns false when cursor is below the vertical bounds', () => {
+            expect(isCursorOverChartLabel({...params(), cursorY: 30})).toBe(false);
+        });
+
+        it('returns true when cursor is on vertical boundary', () => {
+            expect(isCursorOverChartLabel({...params(), cursorY: 15})).toBe(true);
+            expect(isCursorOverChartLabel({...params(), cursorY: 25})).toBe(true);
+        });
     });
 });

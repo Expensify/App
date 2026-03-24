@@ -27,7 +27,7 @@ function ConnectToXeroFlow({policyID}: ConnectToXeroFlowProps) {
     const isUserValidated = account?.validated;
     const is2FAEnabled = account?.requiresTwoFactorAuth ?? false;
 
-    const renderLoading = () => <FullScreenLoadingIndicator />;
+    const renderLoading = () => <FullScreenLoadingIndicator reasonAttributes={{context: 'ConnectToXeroFlow'}} />;
     const [isRequire2FAModalOpen, setIsRequire2FAModalOpen] = useState(false);
 
     useEffect(() => {

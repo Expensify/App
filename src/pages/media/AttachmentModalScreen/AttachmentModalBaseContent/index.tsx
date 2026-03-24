@@ -330,7 +330,12 @@ function AttachmentModalBaseContent({
                 subTitleLink={currentAttachmentLink ?? ''}
             />
             <View style={[styles.imageModalImageCenterContainer, attachmentViewContainerStyles]}>
-                {isLoading && <FullScreenLoadingIndicator testID="attachment-loading-spinner" />}
+                {isLoading && (
+                    <FullScreenLoadingIndicator
+                        testID="attachment-loading-spinner"
+                        reasonAttributes={{context: 'AttachmentModalBaseContent'}}
+                    />
+                )}
                 {shouldShowNotFoundPage && !isLoading && (
                     <BlockingView
                         icon={illustrations.ToddBehindCloud}

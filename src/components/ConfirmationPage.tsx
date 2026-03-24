@@ -1,7 +1,9 @@
 import React from 'react';
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import {StyleSheet, View} from 'react-native';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useThemeStyles from '@hooks/useThemeStyles';
+import Accessibility from '@libs/Accessibility';
 import isIllustrationLottieAnimation from '@libs/isIllustrationLottieAnimation';
 import type IconAsset from '@src/types/utils/IconAsset';
 import Button from './Button';
@@ -93,30 +95,48 @@ function ConfirmationPage({
     innerContainerStyle,
 }: ConfirmationPageProps) {
     const styles = useThemeStyles();
+    const isReduceMotionEnabled = Accessibility.useReducedMotion();
+    const illustrations = useMemoizedLazyIllustrations(['Fireworks']);
     const isLottie = isIllustrationLottieAnimation(illustration);
+    const shouldShowStaticFallback = isLottie && isReduceMotionEnabled && illustration === LottieAnimations.Fireworks;
 
     return (
         <View style={[styles.flex1, containerStyle]}>
             <View style={[styles.screenCenteredContainer, styles.alignItemsCenter, innerContainerStyle]}>
-                {isLottie ? (
-                    <Lottie
-                        source={illustration}
-                        autoPlay
-                        loop
-                        style={[styles.confirmationAnimation, illustrationStyle]}
-                        webStyle={{
-                            width: (StyleSheet.flatten(illustrationStyle)?.width as number) ?? styles.confirmationAnimation.width,
-                            height: (StyleSheet.flatten(illustrationStyle)?.height as number) ?? styles.confirmationAnimation.height,
-                        }}
-                    />
-                ) : (
-                    <View style={[styles.confirmationAnimation, illustrationStyle]}>
-                        <ImageSVG
-                            src={illustration}
-                            contentFit="contain"
-                        />
-                    </View>
-                )}
+                {(() => {
+                    if (shouldShowStaticFallback) {
+                        return (
+                            <View style={[styles.confirmationAnimation, illustrationStyle]}>
+                                <ImageSVG
+                                    src={illustrations.Fireworks}
+                                    contentFit="contain"
+                                />
+                            </View>
+                        );
+                    }
+                    if (isLottie) {
+                        return (
+                            <Lottie
+                                source={illustration}
+                                autoPlay
+                                loop
+                                style={[styles.confirmationAnimation, illustrationStyle]}
+                                webStyle={{
+                                    width: (StyleSheet.flatten(illustrationStyle)?.width as number) ?? styles.confirmationAnimation.width,
+                                    height: (StyleSheet.flatten(illustrationStyle)?.height as number) ?? styles.confirmationAnimation.height,
+                                }}
+                            />
+                        );
+                    }
+                    return (
+                        <View style={[styles.confirmationAnimation, illustrationStyle]}>
+                            <ImageSVG
+                                src={illustration}
+                                contentFit="contain"
+                            />
+                        </View>
+                    );
+                })()}
                 <Text style={[styles.textHeadline, styles.textAlignCenter, styles.mv2, headingStyle]}>{heading}</Text>
                 {!!descriptionComponent && descriptionComponent}
                 {!!description && <Text style={[styles.textAlignCenter, descriptionStyle, styles.w100]}>{description}</Text>}

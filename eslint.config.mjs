@@ -14,6 +14,7 @@ import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 import typescriptEslint from 'typescript-eslint';
 import reactCompilerCompat from './eslint-plugin-react-compiler-compat/index.mjs';
+import reportNameUtilsPlugin from './eslint-plugin-report-name-utils/index.mjs';
 
 const filename = fileURLToPath(import.meta.url);
 const dirname = path.dirname(filename);
@@ -130,14 +131,6 @@ const restrictedImportPaths = [
     {
         name: '@src/utils/findNodeHandle',
         message: "Do not use 'findNodeHandle' as it is no longer supported on web.",
-    },
-    {
-        name: './SelectionListWithSections',
-        message: 'Use `SelectionList` for flat data. Only use `SelectionListWithSection` when data is actually sectioned. See contributingGuides/SELECTION_LIST.md for details',
-    },
-    {
-        name: '@components/SelectionListWithSections',
-        message: 'Use `SelectionList` for flat data. Only use `SelectionListWithSection` when data is actually sectioned. See contributingGuides/SELECTION_LIST.md for details',
     },
 ];
 
@@ -590,6 +583,12 @@ const config = defineConfig([
                 },
             ],
         },
+    },
+
+    {
+        files: ['src/libs/ReportNameUtils.ts'],
+        plugins: {'report-name-utils': reportNameUtilsPlugin},
+        rules: {'report-name-utils/no-function-call-in-get-report-name': 'error'},
     },
 
     {

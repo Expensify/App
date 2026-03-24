@@ -1,4 +1,4 @@
-import React, {useContext, useState} from 'react';
+import React, {useContext, useEffect, useState} from 'react';
 import type {ValueOf} from 'type-fest';
 import CONST from './CONST';
 import type ChildrenProps from './types/utils/ChildrenProps';
@@ -21,15 +21,25 @@ const SplashScreenActionsContext = React.createContext<SplashScreenActionsContex
     setSplashScreenState: () => {},
 });
 
+function loadPostSplashScreenModules() {
+    import('./libs/actions/replaceOptimisticReportWithActualReport');
+    import('./libs/registerPaginationConfig');
+    import('./libs/UnreadIndicatorUpdater');
+}
+
 function SplashScreenStateContextProvider({children}: ChildrenProps) {
     const [splashScreenState, setSplashScreenState] = useState<SplashScreenState>(CONST.BOOT_SPLASH_STATE.VISIBLE);
 
-    // Because of the React Compiler we don't need to memoize it manually
-    // eslint-disable-next-line react/jsx-no-constructed-context-values
-    const stateValue = {splashScreenState};
+    // Load post-splash-screen modules when the splash screen is hidden
+    useEffect(() => {
+        if (splashScreenState !== CONST.BOOT_SPLASH_STATE.HIDDEN) {
+            return;
+        }
+        loadPostSplashScreenModules();
+    }, [splashScreenState]);
 
-    // Because of the React Compiler we don't need to memoize it manually
-    // eslint-disable-next-line react/jsx-no-constructed-context-values
+    // Because of the React Compiler we don't need to memoize these context values manually
+    const stateValue = {splashScreenState};
     const actionsValue = {setSplashScreenState};
 
     return (

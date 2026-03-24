@@ -31,7 +31,7 @@ function WorkspaceInvoicingDetailsName({route}: WorkspaceInvoicingDetailsNamePro
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
 
     const submit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_INVOICES_COMPANY_NAME_FORM>) => {
-        updateInvoiceCompanyName(policyID, values[INPUT_IDS.COMPANY_NAME]);
+        updateInvoiceCompanyName(policyID, values[INPUT_IDS.COMPANY_NAME], policy?.invoice?.companyName);
         Navigation.goBack();
     };
 

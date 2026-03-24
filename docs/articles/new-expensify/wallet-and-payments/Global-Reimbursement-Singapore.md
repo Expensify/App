@@ -1,7 +1,7 @@
 ---
 title: Global Reimbursement - Singapore
 description: Learn how to enable international reimbursements if your business bank account is in Singapore.
-keywords: [Expensify Classic, global reimbursement, Singapore, SGD, international payments, DocuSign, compliance, UBO]
+keywords: [New Expensify, global reimbursement, Singapore, SGD, international payments, DocuSign, compliance, UBO]
 ---
 
 If your business operates in Singapore, you can enable global reimbursements to send international payments from your SGD account. This article walks you through the setup process and required documentation.
@@ -25,20 +25,13 @@ If your business operates in Singapore, you can enable global reimbursements to 
 ---
 
 # Step 1: Connect Your Singaporean Bank Account
-1. Go to **Settings > Workspaces [Workspace Name] > Overview**.
-2. In the **Report Currency** dropdown, select **SGD**.
-3. Navigate to **Settings > Workspaces [Workspace Name] > Workflows**.
-4. Scroll to **Make or track payments**.
-5. Set the reimbursement method to **Direct**.
-6. Click **Add business bank account**.
-7. Select **Singapore** as the country and confirm the currency is SGD.
-8. Fill in your account details and click **Save & Continue**.
 
-1. From the **navigation tabs** (on the left on web, and at the bottom on mobile), go to **Workspaces > [Workspace Name] > Overview**.
-2. Under **Default currency**, choose **SGD**.
-3. Return to the left-hand menu and select **Workflows > Make or Track Payments**.
-4. Click **Connect bank account**, then confirm your **currency and country** (choose a supported European country – EUR €).
-5. Click **Confirm** to proceed.
+1. In the navigation tabs (on the left on web, and at the bottom on mobile), select **Workspaces > [Workspace Name] > Overview**.
+2. Under **Default currency**, select **SGD**.
+3. From the Workspace settings menu, select **Workflows** > **Add Bank Account**
+   - **Note** To add a bank account, **Payments** must be enabled. 
+4. Confirm the bank account currency (SGD) and country (Singapore). 
+5. Click **Confirm**.
 
 ---
 

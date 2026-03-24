@@ -45,7 +45,7 @@ function trackExpenseCreationError(error: Error | null, context: ExpenseCreation
         const {errorType, transactionID, reportID, hasReceipt, pendingAction, errorMessage, iouType, errorSource, isTransactionMissing, isRequestPending} = context;
 
         const tags: Record<string, string> = {
-            [CONST.TELEMETRY.TAG_EXPENSE_ERROR_TYPE]: errorType,
+            [CONST.TELEMETRY.TAGS.EXPENSE_ERROR_TYPE]: errorType,
         };
 
         if (iouType) {
@@ -53,14 +53,14 @@ function trackExpenseCreationError(error: Error | null, context: ExpenseCreation
         }
 
         if (errorSource) {
-            tags[CONST.TELEMETRY.TAG_EXPENSE_ERROR_SOURCE] = errorSource;
+            tags[CONST.TELEMETRY.TAGS.EXPENSE_ERROR_SOURCE] = errorSource;
         }
 
         if (isRequestPending) {
-            tags[CONST.TELEMETRY.TAG_EXPENSE_IS_REQUEST_PENDING] = 'true';
+            tags[CONST.TELEMETRY.TAGS.EXPENSE_IS_REQUEST_PENDING] = 'true';
         }
         if (hasReceipt) {
-            tags[CONST.TELEMETRY.TAG_EXPENSE_HAS_RECEIPT] = 'true';
+            tags[CONST.TELEMETRY.TAGS.EXPENSE_HAS_RECEIPT] = 'true';
         }
 
         const extra: Record<string, unknown> = {
@@ -113,10 +113,10 @@ function trackExpenseApiError(context: ApiErrorContext): void {
         const errorType = isOpenReport ? CONST.TELEMETRY.EXPENSE_ERROR_TYPE.OPEN_REPORT_FAILED : CONST.TELEMETRY.EXPENSE_ERROR_TYPE.API_ERROR;
 
         const tags: Record<string, string> = {
-            [CONST.TELEMETRY.TAG_EXPENSE_ERROR_TYPE]: errorType,
-            [CONST.TELEMETRY.TAG_EXPENSE_ERROR_SOURCE]: CONST.TELEMETRY.EXPENSE_ERROR_SOURCE.API_RESPONSE,
-            [CONST.TELEMETRY.TAG_EXPENSE_COMMAND]: command,
-            [CONST.TELEMETRY.TAG_EXPENSE_JSON_CODE]: String(jsonCode),
+            [CONST.TELEMETRY.TAGS.EXPENSE_ERROR_TYPE]: errorType,
+            [CONST.TELEMETRY.TAGS.EXPENSE_ERROR_SOURCE]: CONST.TELEMETRY.EXPENSE_ERROR_SOURCE.API_RESPONSE,
+            [CONST.TELEMETRY.TAGS.EXPENSE_COMMAND]: command,
+            [CONST.TELEMETRY.TAGS.EXPENSE_JSON_CODE]: String(jsonCode),
         };
 
         const extra: Record<string, unknown> = {

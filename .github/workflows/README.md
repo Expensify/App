@@ -8,7 +8,7 @@ name: CI
 on: pull_request
 jobs:
   validate:
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-2vcpu-ubuntu-2404
     steps:
       - id: myTrueAction
         uses: Expensify/my-action-outputs-true@main

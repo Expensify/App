@@ -15,10 +15,12 @@ type AgentZeroStatusState = {
 };
 
 /**
- * Hook to manage AgentZero status indicator for Concierge chats.
- * Subscribes to real-time reasoning updates via Pusher and manages processing state.
+ * Hook to manage AgentZero status indicator for chats where AgentZero responds.
+ * This includes both Concierge DM chats and policy #admins rooms (where Concierge handles onboarding).
+ * @param reportID - The report ID to monitor
+ * @param isAgentZeroChat - Whether the chat is an AgentZero-enabled chat (Concierge DM or #admins room)
  */
-function useAgentZeroStatusIndicator(reportID: string, isConciergeChat: boolean): AgentZeroStatusState {
+function useAgentZeroStatusIndicator(reportID: string, isAgentZeroChat: boolean): AgentZeroStatusState {
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`);
     const serverLabel = reportNameValuePairs?.agentZeroProcessingRequestIndicator?.trim() ?? '';
 
@@ -52,7 +54,7 @@ function useAgentZeroStatusIndicator(reportID: string, isConciergeChat: boolean)
     }, [reportID]);
 
     useEffect(() => {
-        if (!isConciergeChat) {
+        if (!isAgentZeroChat) {
             return;
         }
 
@@ -63,7 +65,7 @@ function useAgentZeroStatusIndicator(reportID: string, isConciergeChat: boolean)
         return () => {
             unsubscribeFromReportReasoningChannel(reportID);
         };
-    }, [isConciergeChat, reportID]);
+    }, [isAgentZeroChat, reportID]);
 
     useEffect(() => {
         const hadServerLabel = !!prevServerLabelRef.current;
@@ -139,13 +141,13 @@ function useAgentZeroStatusIndicator(reportID: string, isConciergeChat: boolean)
     }, [isOffline]);
 
     const kickoffWaitingIndicator = useCallback(() => {
-        if (!isConciergeChat) {
+        if (!isAgentZeroChat) {
             return;
         }
         setOptimisticStartTime(Date.now());
-    }, [isConciergeChat]);
+    }, [isAgentZeroChat]);
 
-    const isProcessing = isConciergeChat && !isOffline && (!!serverLabel || !!optimisticStartTime);
+    const isProcessing = isAgentZeroChat && !isOffline && (!!serverLabel || !!optimisticStartTime);
 
     return useMemo(
         () => ({

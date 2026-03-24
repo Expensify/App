@@ -7,6 +7,7 @@ import LaptopWithSecondScreenX from '@assets/images/laptop-with-second-screen-x.
 import PendingTravel from '@assets/images/pending-travel.svg';
 import EmptyStateTravel from '@assets/images/product-illustrations/emptystate__travel.svg';
 import Fireworks from '@assets/images/product-illustrations/fireworks.svg';
+import UpgradeRocket from '@assets/images/product-illustrations/upgrade-rocket.svg';
 import Puzzle from '@assets/images/simple-illustrations/emptystate__puzzlepieces.svg';
 import Abacus from '@assets/images/simple-illustrations/simple-illustration__abacus.svg';
 import Alert from '@assets/images/simple-illustrations/simple-illustration__alert.svg';
@@ -27,6 +28,7 @@ import CreditCardEyes from '@assets/images/simple-illustrations/simple-illustrat
 import CreditCardsNewGreen from '@assets/images/simple-illustrations/simple-illustration__creditcards--green.svg';
 import EmailAddress from '@assets/images/simple-illustrations/simple-illustration__email-address.svg';
 import EmptyShelves from '@assets/images/simple-illustrations/simple-illustration__empty-shelves.svg';
+import EncryptionPasskeys from '@assets/images/simple-illustrations/simple-illustration__encryption-passkeys.svg';
 import Encryption from '@assets/images/simple-illustrations/simple-illustration__encryption.svg';
 import EnvelopeReceipt from '@assets/images/simple-illustrations/simple-illustration__envelopereceipt.svg';
 import FastMoney from '@assets/images/simple-illustrations/simple-illustration__fastmoney.svg';
@@ -73,6 +75,7 @@ export {
     ExpensifyCardCoins,
     EmptyStateTravel,
     Encryption,
+    EncryptionPasskeys,
     EnvelopeReceipt,
     ExpensifyApprovedLogo,
     ExpensifyCardImage,
@@ -100,4 +103,5 @@ export {
     TravelCVV,
     ThumbsUpStars,
     TurtleInShell,
+    UpgradeRocket,
 };

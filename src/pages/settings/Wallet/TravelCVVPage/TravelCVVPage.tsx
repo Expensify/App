@@ -17,11 +17,9 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {resetValidateActionCodeSent} from '@libs/actions/User';
 import Navigation from '@libs/Navigation/Navigation';
-import {shouldShowMissingDetailsPage} from '@libs/PersonalDetailsUtils';
-import {getTravelInvoicingCard} from '@libs/TravelInvoicingUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import {useTravelCVV} from './TravelCVVContextProvider';
+import {useTravelCVVActions, useTravelCVVState} from './TravelCVVContextProvider';
 
 /**
  * TravelCVVPage - Displays the Travel CVV reveal interface.
@@ -35,19 +33,17 @@ function TravelCVVPage() {
     const illustrations = useMemoizedLazyIllustrations(['TravelCVV']);
 
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
-    const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
-    const [cardList] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST);
     const {isAccountLocked} = useLockedAccountState();
     const {showLockedAccountModal} = useLockedAccountActions();
 
     // Get CVV from context - shared with TravelCVVVerifyAccountPage
-    const {cvv, setCvv} = useTravelCVV();
+    const {cvv} = useTravelCVVState();
+    const {setCvv} = useTravelCVVActions();
 
     // Clear CVV when the page unmounts (e.g. backdrop close) so it doesn't
     // remain visible the next time the page is opened
     useEffect(() => () => setCvv(null), [setCvv]);
 
-    const travelCard = getTravelInvoicingCard(cardList);
     const isSignedInAsDelegate = !!account?.delegatedAccess?.delegate || false;
 
     const handleRevealDetailsPress = useCallback(() => {
@@ -56,18 +52,12 @@ function TravelCVVPage() {
             return;
         }
 
-        // Check if user needs to add personal details first (UK/EU cards only)
-        if (shouldShowMissingDetailsPage(travelCard, privatePersonalDetails)) {
-            Navigation.navigate(ROUTES.SETTINGS_WALLET_CARD_MISSING_DETAILS.getRoute(String(travelCard?.cardID)));
-            return;
-        }
-
         // ValidateCodeActionContent only sends a magic code when validateCodeSent is false
         // so we need to reset it to ensure a code is always sent
         resetValidateActionCodeSent();
         // Navigate to the verify account page
         Navigation.navigate(ROUTES.SETTINGS_WALLET_TRAVEL_CVV_VERIFY_ACCOUNT);
-    }, [isAccountLocked, showLockedAccountModal, travelCard, privatePersonalDetails]);
+    }, [isAccountLocked, showLockedAccountModal]);
 
     return (
         <ScreenWrapper
