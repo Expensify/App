@@ -2,9 +2,8 @@ import React, {useCallback, useEffect, useMemo} from 'react';
 import {View} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
-// eslint-disable-next-line no-restricted-imports -- SelectionListWithSections required for section-based user list display
-import SelectionList from '@components/SelectionListWithSections';
-import UserListItem from '@components/SelectionListWithSections/UserListItem';
+import UserListItem from '@components/SelectionList/ListItem/UserListItem';
+import SelectionListWithSections from '@components/SelectionList/SelectionListWithSections';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -17,6 +16,7 @@ import {searchInServer} from '@libs/actions/Report';
 import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import Navigation from '@libs/Navigation/Navigation';
 import {getHeaderMessage} from '@libs/OptionsListUtils';
+import type {OptionWithKey} from '@libs/OptionsListUtils/types';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import {generateAccountID} from '@libs/UserUtils';
 import CONST from '@src/CONST';
@@ -29,7 +29,7 @@ import type IconAsset from '@src/types/utils/IconAsset';
 /**
  * Helper function to create a formatted user list item
  */
-function createUserListItem(personalDetails: ReturnType<typeof getPersonalDetailByEmail>, login: string, keyPrefix: string, isSelected: boolean, fallBackAvatarIcon: IconAsset) {
+function createUserListItem(personalDetails: ReturnType<typeof getPersonalDetailByEmail>, login: string, keyPrefix: string, isSelected: boolean, fallBackAvatarIcon: IconAsset): OptionWithKey {
     const accountID = personalDetails?.accountID ?? generateAccountID(login);
     return {
         ...(personalDetails ?? {}),
@@ -82,16 +82,6 @@ function WorkspaceConfirmationOwnerSelectorPage() {
         },
     });
 
-    const headerMessage = useMemo(() => {
-        return getHeaderMessage(
-            (availableOptions.recentReports?.length || 0) + (availableOptions.personalDetails?.length || 0) !== 0,
-            !!availableOptions.userToInvite,
-            debouncedSearchTerm.trim(),
-            countryCode,
-            false,
-        );
-    }, [availableOptions.recentReports?.length, availableOptions.personalDetails?.length, availableOptions.userToInvite, debouncedSearchTerm, countryCode]);
-
     const sections = useMemo(() => {
         const sectionsList = [];
         const currentUserPersonalDetails = getPersonalDetailByEmail(currentUserLogin ?? '');
@@ -99,18 +89,16 @@ function WorkspaceConfirmationOwnerSelectorPage() {
         if (currentOwner) {
             const ownerItem = createUserListItem(ownerPersonalDetails, currentOwner, 'currentOwner', true, icons.FallbackAvatar);
             sectionsList.push({
-                title: undefined,
                 data: [ownerItem],
-                shouldShow: true,
+                sectionIndex: 0,
             });
         }
 
         if (currentUserLogin && currentUserLogin !== currentOwner) {
             const currentUserItem = createUserListItem(currentUserPersonalDetails, currentUserLogin, 'currentUser', false, icons.FallbackAvatar);
             sectionsList.push({
-                title: undefined,
                 data: [currentUserItem],
-                shouldShow: true,
+                sectionIndex: 1,
             });
         }
 
@@ -119,7 +107,7 @@ function WorkspaceConfirmationOwnerSelectorPage() {
             sectionsList.push({
                 title: translate('common.recents'),
                 data: filteredRecentReports,
-                shouldShow: true,
+                sectionIndex: 2,
             });
         }
 
@@ -128,15 +116,14 @@ function WorkspaceConfirmationOwnerSelectorPage() {
             sectionsList.push({
                 title: translate('common.contacts'),
                 data: filteredPersonalDetails,
-                shouldShow: true,
+                sectionIndex: 3,
             });
         }
 
         if (availableOptions.userToInvite && availableOptions.userToInvite.login !== currentOwner) {
             sectionsList.push({
-                title: undefined,
                 data: [availableOptions.userToInvite],
-                shouldShow: true,
+                sectionIndex: 4,
             });
         }
 
@@ -171,6 +158,19 @@ function WorkspaceConfirmationOwnerSelectorPage() {
         searchInServer(debouncedSearchTerm);
     }, [debouncedSearchTerm]);
 
+    const textInputOptions = {
+        onChangeText: setSearchTerm,
+        value: searchTerm,
+        label: translate('selectionList.nameEmailOrPhoneNumber'),
+        headerMessage: getHeaderMessage(
+            (availableOptions.recentReports?.length || 0) + (availableOptions.personalDetails?.length || 0) !== 0,
+            !!availableOptions.userToInvite,
+            debouncedSearchTerm.trim(),
+            countryCode,
+            false,
+        ),
+    };
+
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
@@ -181,18 +181,16 @@ function WorkspaceConfirmationOwnerSelectorPage() {
                 onBackButtonPress={() => Navigation.goBack(backPath)}
             />
             <View style={[styles.flex1, styles.w100, styles.pRelative]}>
-                <SelectionList
+                <SelectionListWithSections
                     sections={areOptionsInitialized ? sections : []}
                     ListItem={UserListItem}
                     onSelectRow={onSelectRow}
-                    shouldSingleExecuteRowSelect
-                    onChangeText={setSearchTerm}
-                    textInputValue={searchTerm}
-                    headerMessage={headerMessage}
-                    textInputLabel={translate('selectionList.nameEmailOrPhoneNumber')}
+                    shouldShowTextInput
+                    textInputOptions={textInputOptions}
                     shouldShowLoadingPlaceholder={!areOptionsInitialized}
                     isLoadingNewOptions={!!isSearchingForReports}
                     onEndReached={onListEndReached}
+                    shouldSingleExecuteRowSelect
                 />
             </View>
         </ScreenWrapper>
