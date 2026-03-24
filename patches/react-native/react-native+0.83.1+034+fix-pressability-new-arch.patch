@@ -516,21 +516,52 @@ diff --git a/node_modules/react-native/src/private/webapis/dom/nodes/ReactNative
 index abf3c73..4e51bec 100644
 --- a/node_modules/react-native/src/private/webapis/dom/nodes/ReactNativeElement.js
 +++ b/node_modules/react-native/src/private/webapis/dom/nodes/ReactNativeElement.js
-@@ -154,6 +154,14 @@ class ReactNativeElement extends ReadOnlyElement implements NativeMethods {
+@@ -154,6 +154,18 @@ class ReactNativeElement extends ReadOnlyElement implements NativeMethods {
      }
    }
 
 +  measureAsyncOnUI(callback: MeasureOnSuccessCallback) {
 +    const node = getNativeElementReference(this);
 +    if (node != null) {
-+      // TODO: this is only available on native mobile platforms - when using web, do we need to fallback to measure()?
-+      NativeDOM.measureAsyncOnUI(node, callback);
++      if (typeof NativeDOM.measureAsyncOnUI === 'function') {
++        NativeDOM.measureAsyncOnUI(node, callback);
++      } else {
++        // Fallback to regular measure if native implementation is not available
++        NativeDOM.measure(node, callback);
++      }
 +    }
 +  }
 +
    measureInWindow(callback: MeasureInWindowOnSuccessCallback) {
      const node = getNativeElementReference(this);
      if (node != null) {
+diff --git a/node_modules/react-native/React/FBReactNativeSpec/FBReactNativeSpecJSI.h b/node_modules/react-native/React/FBReactNativeSpec/FBReactNativeSpecJSI.h
+index 1234567..abcdefg 100644
+--- a/node_modules/react-native/React/FBReactNativeSpec/FBReactNativeSpecJSI.h
++++ b/node_modules/react-native/React/FBReactNativeSpec/FBReactNativeSpecJSI.h
+@@ -5809,6 +5809,7 @@
+     methodMap_["measure"] = MethodMetadata {.argCount = 2, .invoker = __measure};
+     methodMap_["measureInWindow"] = MethodMetadata {.argCount = 2, .invoker = __measureInWindow};
+     methodMap_["measureLayout"] = MethodMetadata {.argCount = 4, .invoker = __measureLayout};
++    methodMap_["measureAsyncOnUI"] = MethodMetadata {.argCount = 2, .invoker = __measureAsyncOnUI};
+     methodMap_["setNativeProps"] = MethodMetadata {.argCount = 2, .invoker = __setNativeProps};
+   }
+
+@@ -5984,6 +5985,15 @@
+       count <= 2 ? throw jsi::JSError(rt, "Expected argument in position 2 to be passed") : args[2].asObject(rt).asFunction(rt),
+       count <= 3 ? throw jsi::JSError(rt, "Expected argument in position 3 to be passed") : args[3].asObject(rt).asFunction(rt));return jsi::Value::undefined();
+   }
++
++  static jsi::Value __measureAsyncOnUI(jsi::Runtime &rt, TurboModule &turboModule, const jsi::Value* args, size_t count) {
++    static_assert(
++      bridging::getParameterCount(&T::measureAsyncOnUI) == 3,
++      "Expected measureAsyncOnUI(...) to have 3 parameters");
++    bridging::callFromJs<void>(rt, &T::measureAsyncOnUI,  static_cast<NativeDOMCxxSpec*>(&turboModule)->jsInvoker_, static_cast<T*>(&turboModule),
++      count <= 0 ? throw jsi::JSError(rt, "Expected argument in position 0 to be passed") : jsi::Value(rt, args[0]),
++      count <= 1 ? throw jsi::JSError(rt, "Expected argument in position 1 to be passed") : args[1].asObject(rt).asFunction(rt));return jsi::Value::undefined();
++  }
+
+   static jsi::Value __setNativeProps(jsi::Runtime &rt, TurboModule &turboModule, const jsi::Value* args, size_t count) {
 diff --git a/node_modules/react-native/src/private/webapis/dom/nodes/specs/NativeDOM.js b/node_modules/react-native/src/private/webapis/dom/nodes/specs/NativeDOM.js
 index 60e23b2..6c63789 100644
 --- a/node_modules/react-native/src/private/webapis/dom/nodes/specs/NativeDOM.js
