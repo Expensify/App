@@ -305,7 +305,6 @@ describe('actions/IOU/Hold', () => {
         });
 
         test('should invoke navigation for each transaction when isOffline is true', () => {
-            const Navigation = require('@src/libs/Navigation/Navigation');
             const iouReport = buildOptimisticIOUReport(1, 2, 300, '1', 'USD');
             const transaction1 = buildOptimisticTransaction({
                 transactionParams: {
