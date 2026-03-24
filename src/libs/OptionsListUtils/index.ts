@@ -2291,7 +2291,6 @@ function prepareReportOptionsForDisplay(
         let isOptionUnread = option.isUnread;
         if (shouldUnreadBeBold) {
             const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report.chatReportID}`];
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
             const oneTransactionThreadReportID =
                 report.type === CONST.REPORT.TYPE.IOU || report.type === CONST.REPORT.TYPE.EXPENSE || report.type === CONST.REPORT.TYPE.INVOICE
                     ? getOneTransactionThreadReportID(report, chatReport, sortedActions[report.reportID])
