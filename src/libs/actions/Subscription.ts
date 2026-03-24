@@ -327,7 +327,7 @@ function requestTaxExempt() {
     API.write(WRITE_COMMANDS.REQUEST_TAX_EXEMPTION, null);
 }
 
-function applyExpensifyCode(expensifyCode: string) {
+function applyExpensifyCode(promoCode: string) {
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.FORMS.SUBSCRIPTION_EXPENSIFY_CODE_FORM>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -342,20 +342,13 @@ function applyExpensifyCode(expensifyCode: string) {
         },
     ];
 
-    const successData: Array<OnyxUpdate<typeof ONYXKEYS.FORMS.SUBSCRIPTION_EXPENSIFY_CODE_FORM | typeof ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION>> = [
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.FORMS.SUBSCRIPTION_EXPENSIFY_CODE_FORM>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.FORMS.SUBSCRIPTION_EXPENSIFY_CODE_FORM,
             value: {
                 isLoading: false,
                 expensifyCode: '',
-            },
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION,
-            value: {
-                expensifyCode,
             },
         },
     ];
@@ -374,7 +367,7 @@ function applyExpensifyCode(expensifyCode: string) {
     ];
 
     const parameters = {
-        expensifyCode,
+        promoCode,
     };
 
     API.write(WRITE_COMMANDS.SET_PROMO_CODE, parameters, {

@@ -20,7 +20,7 @@ type SearchFiltersSkeletonProps = {
     itemCount?: number;
     width?: number;
     height?: number;
-    reasonAttributes?: SkeletonSpanReasonAttributes;
+    reasonAttributes: SkeletonSpanReasonAttributes;
 };
 
 function SearchFiltersSkeleton({shouldAnimate = true, itemCount = 5, width = 84, height = 28, reasonAttributes}: SearchFiltersSkeletonProps) {

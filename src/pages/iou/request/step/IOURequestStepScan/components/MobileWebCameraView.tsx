@@ -20,6 +20,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {isMobileWebKit} from '@libs/Browser';
 import {base64ToFile} from '@libs/fileDownload/FileUtils';
 import {cancelSpan, endSpan, getSpan, startSpan} from '@libs/telemetry/activeSpans';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {cropImageToAspectRatio} from '@pages/iou/request/step/IOURequestStepScan/cropImageToAspectRatio';
 import type {ImageObject} from '@pages/iou/request/step/IOURequestStepScan/cropImageToAspectRatio';
 import useMobileReceiptScan from '@pages/iou/request/step/IOURequestStepScan/hooks/useMobileReceiptScan';
@@ -366,6 +367,13 @@ function MobileWebCameraView({
                                 size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
                                 style={[styles.flex1]}
                                 color={theme.textSupporting}
+                                reasonAttributes={
+                                    {
+                                        context: 'MobileWebCameraView',
+                                        cameraPermissionState,
+                                        isQueriedPermissionState,
+                                    } satisfies SkeletonSpanReasonAttributes
+                                }
                             />
                         )}
                         {cameraPermissionState !== 'granted' && isQueriedPermissionState && (

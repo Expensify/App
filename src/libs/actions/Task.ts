@@ -14,6 +14,7 @@ import NetworkConnection from '@libs/NetworkConnection';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
+import {getReportName} from '@libs/ReportNameUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import {buildOptimisticSnapshotData} from '@libs/SearchQueryUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
@@ -222,6 +223,8 @@ function createTaskAndNavigate(params: CreateTaskAndNavigateParams) {
             parentReportID,
             title,
             assigneeChatReport,
+            currentUserEmail,
+            currentUserAccountID,
         );
 
         optimisticData.push(...assigneeChatReportOnyxData.optimisticData);
@@ -719,6 +722,7 @@ function editTaskAssignee(
     parentReport: OnyxEntry<OnyxTypes.Report>,
     sessionAccountID: number,
     assigneeEmail: string,
+    currentUserEmail: string,
     currentUserAccountID: number,
     hasOutstandingChildTask: boolean,
     assigneeAccountID: number | null = 0,
@@ -839,6 +843,8 @@ function editTaskAssignee(
             report.parentReportID,
             reportName ?? '',
             assigneeChatReport,
+            currentUserEmail,
+            currentUserAccountID,
             isOptimisticReport,
         );
 
@@ -1068,6 +1074,7 @@ function getShareDestination(
     reports: OnyxCollection<OnyxTypes.Report>,
     personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>,
     localeCompare: LocaleContextProps['localeCompare'],
+    reportAttributes?: OnyxTypes.ReportAttributesDerivedValue['reports'],
 ): ShareDestination {
     const report = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
 
@@ -1095,9 +1102,7 @@ function getShareDestination(
     }
     return {
         icons: ReportUtils.getIcons(report, LocalePhoneNumber.formatPhoneNumber, personalDetails, Expensicons.FallbackAvatar),
-        // Will be fixed in https://github.com/Expensify/App/issues/76852
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        displayName: ReportUtils.getReportName({report}),
+        displayName: getReportName(report, reportAttributes),
         subtitle,
         displayNamesWithTooltips,
         shouldUseFullTitleToDisplay: ReportUtils.shouldUseFullTitleToDisplay(report),
