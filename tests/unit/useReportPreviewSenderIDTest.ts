@@ -178,7 +178,7 @@ describe('useReportPreviewSenderID', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionR14932.transactionID}2`, {
                 ...transactionR14932,
                 amount: 0,
-                receipt: {source: 'scan-receipt.png', state: CONST.IOU.RECEIPT_STATE.SCANREADY},
+                receipt: {source: 'scan-receipt.png', state: CONST.IOU.RECEIPT_STATE.SCAN_READY},
             });
         });
         const {result} = renderHook(
