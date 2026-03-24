@@ -1167,11 +1167,12 @@ function handleNavigateAfterExpenseCreate({
     shouldHandleNavigation?: boolean;
 }) {
     const isUserOnInbox = isReportTopmostSplitNavigator();
+    const isUserOnSearch = isSearchTopmostFullScreenRoute();
 
-    // If the expense is not created from global create or is currently on the inbox tab,
-    // we just need to dismiss the money request flow screens
+    // If the expense is not created from global create (and the user is not on the Search tab)
+    // or is currently on the inbox tab, we just need to dismiss the money request flow screens
     // and open the report chat containing the IOU report
-    if (!isFromGlobalCreate || isUserOnInbox || !transactionID) {
+    if ((!isFromGlobalCreate && !isUserOnSearch) || isUserOnInbox || !transactionID) {
         if (shouldHandleNavigation) {
             dismissModalAndOpenReportInInboxTab(activeReportID, isInvoice);
         }

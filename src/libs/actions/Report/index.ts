@@ -159,7 +159,8 @@ import {
     isValidReportIDFromPath,
     prepareOnboardingOnyxData,
 } from '@libs/ReportUtils';
-import {buildOptimisticSnapshotData, getCurrentSearchQueryJSON} from '@libs/SearchQueryUtils';
+import {buildCannedSearchQuery, buildOptimisticSnapshotData, getCurrentSearchQueryJSON} from '@libs/SearchQueryUtils';
+import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import playSound, {SOUNDS} from '@libs/Sound';
 import {getAmount, getCurrency, hasValidModifiedAmount, isOnHold, recalculateUnreportedTransactionDetails, shouldClearConvertedAmount} from '@libs/TransactionUtils';
 import addTrailingForwardSlash from '@libs/UrlUtils';
@@ -4342,6 +4343,14 @@ function doneCheckingPublicRoom() {
 
 function navigateToMostRecentReport(currentReport: OnyxEntry<Report>, conciergeReportID: string | undefined, currentUserAccountID: number, introSelected: OnyxEntry<IntroSelected>) {
     const lastAccessedReportID = findLastAccessedReport(false, false, currentReport?.reportID)?.reportID;
+
+    // If the user is currently on the Search/Reports tab, navigate back to the Search root
+    // instead of falling through to the Inbox or Concierge chat.
+    if (isSearchTopmostFullScreenRoute()) {
+        const queryString = buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.EXPENSE});
+        Navigation.goBack(ROUTES.SEARCH_ROOT.getRoute({query: queryString}));
+        return;
+    }
 
     if (lastAccessedReportID) {
         // Check if route exists for super wide RHP vs regular full screen report
