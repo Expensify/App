@@ -69,20 +69,23 @@ function Composer({
      * Set the TextInput Ref
      * @param {Element} el
      */
-    const setTextInputRef = useCallback((el: AnimatedMarkdownTextInputRef | null) => {
-        textInput.current = isInLandscapeMode ? getLandscapeTextInputRefProxy(el) : el;
+    const setTextInputRef = useCallback(
+        (el: AnimatedMarkdownTextInputRef | null) => {
+            textInput.current = isInLandscapeMode ? getLandscapeTextInputRefProxy(el) : el;
 
-        if (typeof ref !== 'function' || textInput.current === null) {
-            return;
-        }
+            if (typeof ref !== 'function' || textInput.current === null) {
+                return;
+            }
 
-        // This callback prop is used by the parent component using the constructor to
-        // get a ref to the inner textInput element e.g. if we do
-        // <constructor ref={el => this.textInput = el} /> this will not
-        // return a ref to the component, but rather the HTML element by default
-        ref(textInput.current);
+            // This callback prop is used by the parent component using the constructor to
+            // get a ref to the inner textInput element e.g. if we do
+            // <constructor ref={el => this.textInput = el} /> this will not
+            // return a ref to the component, but rather the HTML element by default
+            ref(textInput.current);
+        },
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+        [isInLandscapeMode],
+    );
 
     const onClear = useCallback(
         ({nativeEvent}: TextInputChangeEvent) => {

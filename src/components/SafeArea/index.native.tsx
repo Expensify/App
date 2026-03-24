@@ -21,7 +21,7 @@ function SafeArea({children}: SafeAreaProps) {
             {children}
             {isInLandscapeMode && left > 0 && (
                 <PressableWithoutFeedback
-                    style={{position: 'absolute', left: 0, top: 0, bottom: 0, width: left}}
+                    style={[styles.getSafeAreaPressablePosition(left)]}
                     onPress={() => Keyboard.dismiss()}
                     role="none"
                     accessible={false}
@@ -30,7 +30,7 @@ function SafeArea({children}: SafeAreaProps) {
             )}
             {isInLandscapeMode && right > 0 && (
                 <PressableWithoutFeedback
-                    style={{position: 'absolute', right: 0, top: 0, bottom: 0, width: right}}
+                    style={[styles.getSafeAreaPressablePosition(right)]}
                     onPress={() => Keyboard.dismiss()}
                     role="none"
                     accessible={false}

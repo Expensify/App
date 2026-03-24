@@ -6186,6 +6186,14 @@ const dynamicStyles = (theme: ThemeColors) =>
             marginBottom: shouldUseNarrowLayout ? 8 : 20,
         }),
 
+        getSafeAreaPressablePosition: (width: number): ViewStyle => ({
+            position: 'absolute',
+            left: 0,
+            top: 0,
+            bottom: 0,
+            width,
+        }),
+
         getSelectionListPopoverHeight: (itemCount: number, windowHeight: number, isSearchable: boolean) => {
             const SEARCHBAR_HEIGHT = isSearchable ? 52 : 0;
             const SEARCHBAR_PADDING = isSearchable ? 12 : 0;

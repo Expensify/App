@@ -106,7 +106,6 @@ function DatePicker({
             return;
         }
         isAutoFocused.current = true;
-
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
             textInputRef.current?.focus();
