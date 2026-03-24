@@ -1,7 +1,7 @@
 import {useIsFocused, useRoute} from '@react-navigation/native';
 import {Str} from 'expensify-common';
 import React, {useCallback, useContext, useEffect, useLayoutEffect, useRef, useState} from 'react';
-import {FlatList, InteractionManager, View} from 'react-native';
+import {Dimensions, FlatList, InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import ActivityIndicator from '@components/ActivityIndicator';
@@ -85,10 +85,12 @@ import WorkspacesEmptyStateComponent from './WorkspacesEmptyStateComponent';
 import WorkspacesListPageHeaderButton from './WorkspacesListPageHeaderButton';
 import WorkspacesListRow from './WorkspacesListRow';
 
-// Estimated height (in px) of a single workspace row: avatar (40) + vertical padding (40) + bottom margin (8).
-// Used to calculate initialNumToRender so that enough items are rendered to restore scroll position
-// without rendering the entire list (which caused a performance regression with 5K+ workspaces).
-const ESTIMATED_WORKSPACE_ROW_HEIGHT = 88;
+// Fallback estimated heights (in px) for a workspace row in wide and narrow layouts.
+// Wide: avatar (40) + vertical padding (40) + bottom margin (8) ≈ 88px
+// Narrow: avatar (40) + vertical padding (40) + internal margin (12) + bottom margin (8) ≈ 100px
+// Used to calculate initialNumToRender when no measured height is available yet.
+const ESTIMATED_ITEM_HEIGHT_WIDE = 88;
+const ESTIMATED_ITEM_HEIGHT_NARROW = 100;
 
 type WorkspaceItem = {listItemType: 'workspace'} & ListItem &
     Required<Pick<MenuItemProps, 'title' | 'disabled'>> &
@@ -208,6 +210,7 @@ function WorkspacesListPage() {
     );
 
     const flatlistRef = useRef<FlatList | null>(null);
+    const measuredItemHeight = useRef<number | undefined>(undefined);
 
     useLayoutEffect(() => {
         const scrollOffset = getScrollOffset(route);
@@ -468,48 +471,57 @@ function WorkspacesListPage() {
         }
 
         return (
-            <OfflineWithFeedback
+            <View
                 key={`${item.title}_${index}`}
-                pendingAction={item.pendingAction}
-                errorRowStyles={[styles.ph5, styles.mt3]}
-                onClose={item.dismissError}
-                errors={item.errors}
-                style={styles.mb2}
-                shouldShowErrorMessages={item.policyID !== policyIDToDelete}
-                shouldHideOnDelete={false}
+                onLayout={(e) => {
+                    if (measuredItemHeight.current) {
+                        return;
+                    }
+                    measuredItemHeight.current = e.nativeEvent.layout.height;
+                }}
             >
-                <PressableWithoutFeedback
-                    accessible={false}
-                    style={[styles.mh5]}
-                    disabled={item.disabled}
-                    onPress={item.action}
-                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKSPACE_MENU_ITEM}
+                <OfflineWithFeedback
+                    pendingAction={item.pendingAction}
+                    errorRowStyles={[styles.ph5, styles.mt3]}
+                    onClose={item.dismissError}
+                    errors={item.errors}
+                    style={styles.mb2}
+                    shouldShowErrorMessages={item.policyID !== policyIDToDelete}
+                    shouldHideOnDelete={false}
                 >
-                    {({hovered}) => (
-                        <WorkspacesListRow
-                            title={item.title}
-                            policyID={item.policyID}
-                            menuItems={threeDotsMenuItems}
-                            workspaceIcon={item.icon}
-                            ownerAccountID={item.ownerAccountID}
-                            workspaceType={item.type}
-                            shouldAnimateInHighlight={shouldAnimateInHighlight}
-                            isJoinRequestPending={item?.isJoinRequestPending}
-                            rowStyles={hovered && styles.hoveredComponentBG}
-                            layoutWidth={isLessThanMediumScreen ? CONST.LAYOUT_WIDTH.NARROW : CONST.LAYOUT_WIDTH.WIDE}
-                            brickRoadIndicator={item.brickRoadIndicator}
-                            shouldDisableThreeDotsMenu={item.disabled}
-                            style={[item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ? styles.offlineFeedbackDeleted : {}]}
-                            isDefault={isDefault}
-                            isLoadingBill={isLoadingBill}
-                            resetLoadingSpinnerIconIndex={resetLoadingSpinnerIconIndex}
-                            isHovered={hovered}
-                            disabled={item.disabled}
-                            onPress={item.action}
-                        />
-                    )}
-                </PressableWithoutFeedback>
-            </OfflineWithFeedback>
+                    <PressableWithoutFeedback
+                        accessible={false}
+                        style={[styles.mh5]}
+                        disabled={item.disabled}
+                        onPress={item.action}
+                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKSPACE_MENU_ITEM}
+                    >
+                        {({hovered}) => (
+                            <WorkspacesListRow
+                                title={item.title}
+                                policyID={item.policyID}
+                                menuItems={threeDotsMenuItems}
+                                workspaceIcon={item.icon}
+                                ownerAccountID={item.ownerAccountID}
+                                workspaceType={item.type}
+                                shouldAnimateInHighlight={shouldAnimateInHighlight}
+                                isJoinRequestPending={item?.isJoinRequestPending}
+                                rowStyles={hovered && styles.hoveredComponentBG}
+                                layoutWidth={isLessThanMediumScreen ? CONST.LAYOUT_WIDTH.NARROW : CONST.LAYOUT_WIDTH.WIDE}
+                                brickRoadIndicator={item.brickRoadIndicator}
+                                shouldDisableThreeDotsMenu={item.disabled}
+                                style={[item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ? styles.offlineFeedbackDeleted : {}]}
+                                isDefault={isDefault}
+                                isLoadingBill={isLoadingBill}
+                                resetLoadingSpinnerIconIndex={resetLoadingSpinnerIconIndex}
+                                isHovered={hovered}
+                                disabled={item.disabled}
+                                onPress={item.action}
+                            />
+                        )}
+                    </PressableWithoutFeedback>
+                </OfflineWithFeedback>
+            </View>
         );
     };
 
@@ -715,6 +727,21 @@ function WorkspacesListPage() {
         shouldShowDomainsSection && !domains.length ? [{listItemType: 'domains-empty-state' as const}] : [],
     ].flat();
 
+    // Compute initialNumToRender: render enough items to cover the saved scroll offset so
+    // useLayoutEffect can restore position before first paint. Uses measured row height when
+    // available (from a previous render), otherwise falls back to a layout-aware estimate.
+    const savedScrollOffset = getScrollOffset(route) ?? 0;
+    const computedInitialNumToRender = (() => {
+        if (savedScrollOffset <= 0) {
+            return undefined;
+        }
+        const fallbackHeight = shouldUseNarrowLayout ? ESTIMATED_ITEM_HEIGHT_NARROW : ESTIMATED_ITEM_HEIGHT_WIDE;
+        // eslint-disable-next-line react-hooks/refs -- Reading the measured height ref during render is intentional; the value is only an optimization hint for initialNumToRender and stale reads are acceptable.
+        const itemHeight = measuredItemHeight.current ?? fallbackHeight;
+        const viewportItems = Math.ceil(Dimensions.get('window').height / itemHeight);
+        return Math.min(Math.ceil(savedScrollOffset / itemHeight) + viewportItems, data.length);
+    })();
+
     // eslint-disable-next-line react/no-unused-prop-types
     const renderItem = ({item, index}: {item: WorkspaceOrDomainListItem; index: number}) => {
         switch (item.listItemType) {
@@ -798,11 +825,7 @@ function WorkspacesListPage() {
                         keyboardShouldPersistTaps="handled"
                         contentContainerStyle={styles.pb20}
                         onScroll={onScroll}
-                        // Render enough items to cover the saved scroll offset so useLayoutEffect can restore
-                        // the position before the first paint. We calculate the count from the offset and an
-                        // estimated row height instead of using data.length (which caused a perf regression
-                        // for accounts with thousands of workspaces).
-                        initialNumToRender={getScrollOffset(route) ? Math.min(Math.ceil((getScrollOffset(route) ?? 0) / ESTIMATED_WORKSPACE_ROW_HEIGHT) + 10, data.length) : undefined}
+                        initialNumToRender={computedInitialNumToRender}
                     />
                 )}
             </View>
