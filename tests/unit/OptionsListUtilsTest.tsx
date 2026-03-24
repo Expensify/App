@@ -47,11 +47,18 @@ import {
 } from '@libs/OptionsListUtils';
 import Parser from '@libs/Parser';
 import {
+    getAddedCardFeedMessage,
+    getAssignedCompanyCardMessage,
     getChangedApproverActionMessage,
     getCurrencyDefaultTaxUpdateMessage,
     getCustomTaxNameUpdateMessage,
     getDynamicExternalWorkflowRoutedMessage,
     getForeignCurrencyDefaultTaxUpdateMessage,
+    getRemovedCardFeedMessage,
+    getRenamedCardFeedMessage,
+    getUnassignedCompanyCardMessage,
+    getUpdatedCardFeedLiabilityMessage,
+    getUpdatedCardFeedStatementPeriodMessage,
 } from '@libs/ReportActionsUtils';
 import {
     canCreateTaskInReport,
@@ -4272,6 +4279,153 @@ describe('OptionsListUtils', () => {
                 currentUserLogin: CURRENT_USER_EMAIL,
             });
             expect(lastMessage).toBe(getForeignCurrencyDefaultTaxUpdateMessage(translateLocal, action));
+        });
+        it('ADD_CARD_FEED action', async () => {
+            const report: Report = createRandomReport(0, undefined);
+            const action: ReportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_CARD_FEED,
+                message: [{type: 'COMMENT', text: ''}],
+                originalMessage: {feedName: 'Visa Commercial'},
+            };
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {
+                [action.reportActionID]: action,
+            });
+            const lastMessage = getLastMessageTextForReport({
+                translate: translateLocal,
+                report,
+                lastActorDetails: null,
+                policy: undefined,
+                isReportArchived: false,
+                currentUserLogin: CURRENT_USER_EMAIL,
+            });
+            expect(lastMessage).toBe(getAddedCardFeedMessage(translateLocal, action));
+        });
+        it('DELETE_CARD_FEED action', async () => {
+            const report: Report = createRandomReport(0, undefined);
+            const action: ReportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_CARD_FEED,
+                message: [{type: 'COMMENT', text: ''}],
+                originalMessage: {feedName: 'Amex Corporate'},
+            };
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {
+                [action.reportActionID]: action,
+            });
+            const lastMessage = getLastMessageTextForReport({
+                translate: translateLocal,
+                report,
+                lastActorDetails: null,
+                policy: undefined,
+                isReportArchived: false,
+                currentUserLogin: CURRENT_USER_EMAIL,
+            });
+            expect(lastMessage).toBe(getRemovedCardFeedMessage(translateLocal, action));
+        });
+        it('RENAME_CARD_FEED action', async () => {
+            const report: Report = createRandomReport(0, undefined);
+            const action: ReportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.RENAME_CARD_FEED,
+                message: [{type: 'COMMENT', text: ''}],
+                originalMessage: {oldName: 'Old Feed', newName: 'New Feed'},
+            };
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {
+                [action.reportActionID]: action,
+            });
+            const lastMessage = getLastMessageTextForReport({
+                translate: translateLocal,
+                report,
+                lastActorDetails: null,
+                policy: undefined,
+                isReportArchived: false,
+                currentUserLogin: CURRENT_USER_EMAIL,
+            });
+            expect(lastMessage).toBe(getRenamedCardFeedMessage(translateLocal, action));
+        });
+        it('ASSIGN_COMPANY_CARD action', async () => {
+            const report: Report = createRandomReport(0, undefined);
+            const action: ReportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ASSIGN_COMPANY_CARD,
+                message: [{type: 'COMMENT', text: ''}],
+                originalMessage: {email: 'user@example.com', cardLastFour: '1234'},
+            };
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {
+                [action.reportActionID]: action,
+            });
+            const lastMessage = getLastMessageTextForReport({
+                translate: translateLocal,
+                report,
+                lastActorDetails: null,
+                policy: undefined,
+                isReportArchived: false,
+                currentUserLogin: CURRENT_USER_EMAIL,
+            });
+            expect(lastMessage).toBe(getAssignedCompanyCardMessage(translateLocal, action));
+        });
+        it('UNASSIGN_COMPANY_CARD action', async () => {
+            const report: Report = createRandomReport(0, undefined);
+            const action: ReportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UNASSIGN_COMPANY_CARD,
+                message: [{type: 'COMMENT', text: ''}],
+                originalMessage: {email: 'user@example.com', cardLastFour: '5678'},
+            };
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {
+                [action.reportActionID]: action,
+            });
+            const lastMessage = getLastMessageTextForReport({
+                translate: translateLocal,
+                report,
+                lastActorDetails: null,
+                policy: undefined,
+                isReportArchived: false,
+                currentUserLogin: CURRENT_USER_EMAIL,
+            });
+            expect(lastMessage).toBe(getUnassignedCompanyCardMessage(translateLocal, action));
+        });
+        it('UPDATE_CARD_FEED_LIABILITY action', async () => {
+            const report: Report = createRandomReport(0, undefined);
+            const action: ReportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CARD_FEED_LIABILITY,
+                message: [{type: 'COMMENT', text: ''}],
+                originalMessage: {feedName: 'Visa Commercial', liabilityType: CONST.TRANSACTION.LIABILITY_TYPE.ALLOW},
+            };
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {
+                [action.reportActionID]: action,
+            });
+            const lastMessage = getLastMessageTextForReport({
+                translate: translateLocal,
+                report,
+                lastActorDetails: null,
+                policy: undefined,
+                isReportArchived: false,
+                currentUserLogin: CURRENT_USER_EMAIL,
+            });
+            expect(lastMessage).toBe(getUpdatedCardFeedLiabilityMessage(translateLocal, action));
+        });
+        it('UPDATE_CARD_FEED_STATEMENT_PERIOD action', async () => {
+            const report: Report = createRandomReport(0, undefined);
+            const action: ReportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CARD_FEED_STATEMENT_PERIOD,
+                message: [{type: 'COMMENT', text: ''}],
+                originalMessage: {feedName: 'Visa Commercial', statementPeriodEndDay: '15', previousStatementPeriodEndDay: '20'},
+            };
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {
+                [action.reportActionID]: action,
+            });
+            const lastMessage = getLastMessageTextForReport({
+                translate: translateLocal,
+                report,
+                lastActorDetails: null,
+                policy: undefined,
+                isReportArchived: false,
+                currentUserLogin: CURRENT_USER_EMAIL,
+            });
+            expect(lastMessage).toBe(getUpdatedCardFeedStatementPeriodMessage(translateLocal, action));
         });
         it('TAKE_CONTROL action', async () => {
             const report: Report = createRandomReport(0, undefined);
