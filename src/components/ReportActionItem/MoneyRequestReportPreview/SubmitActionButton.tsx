@@ -1,6 +1,5 @@
 import React from 'react';
 import AnimatedSubmitButton from '@components/AnimatedSubmitButton';
-import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -30,8 +29,6 @@ function SubmitActionButton({iouReportID, chatReportID, isSubmittingAnimationRun
     const currentUserEmail = currentUserDetails.email ?? '';
     const {isBetaEnabled} = usePermissions();
     const {showConfirmModal} = useConfirmModal();
-    const {isDelegateAccessRestricted} = useDelegateNoAccessState();
-    const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
 
     const [iouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`);
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`);
@@ -39,6 +36,7 @@ function SubmitActionButton({iouReportID, chatReportID, isSubmittingAnimationRun
     const [userBillingGraceEndPeriods] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [iouReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${iouReportID}`);
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
+    const [ownerBillingGraceEndPeriod] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportID}`);
     const {isOffline} = useNetwork();
@@ -78,10 +76,6 @@ function SubmitActionButton({iouReportID, chatReportID, isSubmittingAnimationRun
                     });
                     return;
                 }
-                if (isDelegateAccessRestricted) {
-                    showDelegateNoAccessModal();
-                    return;
-                }
                 submitReport({
                     expenseReport: iouReport,
                     policy,
@@ -93,6 +87,7 @@ function SubmitActionButton({iouReportID, chatReportID, isSubmittingAnimationRun
                     userBillingGraceEndPeriods,
                     amountOwed,
                     onSubmitted: startSubmittingAnimation,
+                    ownerBillingGraceEndPeriod,
                 });
             }}
             isSubmittingAnimationRunning={isSubmittingAnimationRunning}
