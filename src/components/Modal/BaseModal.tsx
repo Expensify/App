@@ -72,6 +72,7 @@ function BaseModal({
     forwardedFSClass = CONST.FULLSTORY.CLASS.UNMASK,
     ref,
     shouldDisplayBelowModals = false,
+    shouldWrapModalChildrenInScrollViewIfBottomDockedInLandscapeMode = true,
 }: BaseModalProps) {
     // When the `enableEdgeToEdgeBottomSafeAreaPadding` prop is explicitly set, we enable edge-to-edge mode.
     const isUsingEdgeToEdgeMode = enableEdgeToEdgeBottomSafeAreaPadding !== undefined;
@@ -314,6 +315,8 @@ function BaseModal({
 
     const isBottomDockedModalInLandscapeMode = type === CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED && isInLandscapeMode;
 
+    const shouldWrapChildrenInScrollView = shouldWrapModalChildrenInScrollViewIfBottomDockedInLandscapeMode && isBottomDockedModalInLandscapeMode;
+
     return (
         <ModalContext.Provider value={modalContextValue}>
             <ScreenWrapperOfflineIndicatorContext.Provider value={offlineIndicatorContextValue}>
@@ -386,12 +389,12 @@ function BaseModal({
                                 modalPaddingStyles,
                                 !isVisible && styles.pointerEventsNone,
                                 sidePanelAnimatedStyle,
-                                isBottomDockedModalInLandscapeMode && {maxHeight: windowHeight * 0.75},
+                                isBottomDockedModalInLandscapeMode && {maxHeight: windowHeight * CONST.MODAL_MAX_HEIGHT_TO_WINDOW_HEIGHT_RATIO_LANDSCAPE_MODE},
                             ]}
                             ref={ref}
                             fsClass={forwardedFSClass}
                         >
-                            <ColorSchemeWrapper>{isBottomDockedModalInLandscapeMode ? <ScrollView>{children}</ScrollView> : children}</ColorSchemeWrapper>
+                            <ColorSchemeWrapper>{shouldWrapChildrenInScrollView ? <ScrollView>{children}</ScrollView> : children}</ColorSchemeWrapper>
                         </Animated.View>
                         {!keyboardStateContextValue?.isKeyboardActive && <NavigationBar />}
                     </ReanimatedModal>

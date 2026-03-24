@@ -619,6 +619,7 @@ function BasePopoverMenu({
             shouldUseModalPaddingStyle={shouldUseModalPaddingStyle}
             shouldHandleNavigationBack={shouldHandleNavigationBack}
             testID={testID}
+            shouldWrapModalChildrenInScrollViewIfBottomDockedInLandscapeMode={!shouldUseScrollView}
         >
             <FocusTrapForModal
                 active={isVisible}

@@ -77,8 +77,9 @@ function DecisionModal({
             type={isSmallScreenWidth ? CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED : CONST.MODAL.MODAL_TYPE.CONFIRM}
             innerContainerStyle={styles.pv0}
             onModalHide={onModalHide}
+            shouldWrapModalChildrenInScrollViewIfBottomDockedInLandscapeMode={false}
         >
-            <ScrollView contentContainerStyle={styles.m5}>
+            <ScrollView contentContainerStyle={styles.p5}>
                 <View>
                     <View style={[styles.flexRow, styles.mb5]}>
                         <Header

@@ -446,6 +446,7 @@ function FeatureTrainingModal({
                 onHelp();
             }}
             shouldDisableBottomSafeAreaPadding={shouldUseScrollView}
+            shouldWrapModalChildrenInScrollViewIfBottomDockedInLandscapeMode={!shouldUseScrollView}
         >
             <Wrapper
                 scrollsToTop={false}
