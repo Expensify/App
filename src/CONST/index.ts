@@ -990,11 +990,6 @@ const CONST = {
                 DEFAULT: {input: keyInputSpace},
             },
         },
-        TAB: {
-            descriptionKey: null,
-            shortcutKey: 'Tab',
-            modifiers: [],
-        },
     },
     KEYBOARD_SHORTCUTS_TYPES: {
         NAVIGATION_SHORTCUT: KEYBOARD_SHORTCUT_NAVIGATION_TYPE,
