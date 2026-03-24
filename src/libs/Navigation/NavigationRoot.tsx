@@ -198,8 +198,9 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
     }, [shouldUseNarrowLayout]);
 
     useEffect(() => {
-        // Since the NAVIGATORS.REPORTS_SPLIT_NAVIGATOR url is "/" and it has to be used as an URL for SignInPage,
-        // this navigator should be the only one in the navigation state after logout.
+        // After logout, we reset the navigation state to a single route to prevent stale auth state from leaking.
+        // ROOT_TAB_NAVIGATOR (or REPORTS_SPLIT_NAVIGATOR) persists between auth and public screens,
+        // so we explicitly clear params for these shared navigators.
         const hasUserLoggedOut = !authenticated && !!previousAuthenticated;
         if (!hasUserLoggedOut || !navigationRef.isReady()) {
             return;
@@ -211,17 +212,14 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
             return;
         }
 
-        // REPORTS_SPLIT_NAVIGATOR will persist after user logout, because it is used both for logged-in and logged-out users
-        // That's why for ReportsSplit we need to explicitly clear params when resetting navigation state,
-        // However in case other routes (related to login/logout) appear in nav state, then we want to preserve params for those
-        const isReportSplitNavigatorMounted = lastRoute.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR;
+        const isSharedNavigatorMounted = lastRoute.name === NAVIGATORS.ROOT_TAB_NAVIGATOR || lastRoute.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR;
         navigationRef.reset({
             ...rootState,
             index: 0,
             routes: [
                 {
                     ...lastRoute,
-                    params: isReportSplitNavigatorMounted ? undefined : lastRoute.params,
+                    params: isSharedNavigatorMounted ? undefined : lastRoute.params,
                 },
             ],
         });
@@ -240,8 +238,6 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
         // We want to clean saved scroll offsets for screens that aren't anymore in the state.
         cleanStaleScrollOffsets(state);
         cleanPreservedNavigatorStates(state);
-
-        console.log('navigation state', state);
     };
 
     const onReadyWithSentry = useCallback(() => {
