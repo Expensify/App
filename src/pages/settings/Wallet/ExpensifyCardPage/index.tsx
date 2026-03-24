@@ -124,7 +124,8 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
     const {cardsDetails, isCardDetailsLoading, cardsDetailsErrors} = useExpensifyCardState();
     const {setCardsDetails} = useExpensifyCardActions();
     const currentPhysicalCard = useMemo(() => physicalCards?.find((card) => String(card?.cardID) === cardID) ?? physicalCards?.at(0), [physicalCards, cardID]);
-    const revealedPIN = useRevealedPIN(String(currentPhysicalCard?.cardID));
+    const physicalCardID = String(currentPhysicalCard?.cardID);
+    const revealedPIN = useRevealedPIN(physicalCardID);
 
     // Resets card details and revealed PIN when navigating away from the page.
     useFocusEffect(
@@ -193,10 +194,10 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
 
     const handleUnlockCardPress = useCallback(() => {
         executeScenario(CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.UNBLOCK_CARD_PIN, {
-            cardID,
+            cardID: physicalCardID,
             isOfflinePINMarket: !!currentPhysicalCard?.isOfflinePINMarket,
         });
-    }, [executeScenario, cardID, currentPhysicalCard?.isOfflinePINMarket]);
+    }, [executeScenario, physicalCardID, currentPhysicalCard?.isOfflinePINMarket]);
 
     const [isFreezeModalVisible, setIsFreezeModalVisible] = useState(false);
     const [isUnfreezeModalVisible, setIsUnfreezeModalVisible] = useState(false);
@@ -519,7 +520,6 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                                         shouldShowRightIcon
                                         brickRoadIndicator={isCardOpenAndPINBlocked ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                                         onPress={() => {
-                                            const physicalCardID = String(currentPhysicalCard?.cardID);
                                             if (isCardOpenAndPINBlocked) {
                                                 Navigation.navigate(ROUTES.SETTINGS_WALLET_CARD_CHANGE_PIN_ATM_REQUIREMENT.getRoute(physicalCardID));
                                                 return;
