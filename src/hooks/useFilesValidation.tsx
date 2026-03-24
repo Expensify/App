@@ -32,7 +32,7 @@ const sortFilesByOriginalOrder = (files: FileObject[], orderMap: Map<string, num
     return files.sort((a, b) => (orderMap.get(a.uri ?? '') ?? 0) - (orderMap.get(b.uri ?? '') ?? 0));
 };
 
-const isImageFile = (file: FileObject) => hasHeicOrHeifExtension(file) ?? Str.isImage(file.name ?? '');
+const isImageFile = (file: FileObject) => !!hasHeicOrHeifExtension(file) || Str.isImage(file.name ?? '');
 
 function useFilesValidation(onFilesValidated: (files: FileObject[], dataTransferItems: DataTransferItem[]) => void) {
     const styles = useThemeStyles();
@@ -137,6 +137,7 @@ function useFilesValidation(onFilesValidated: (files: FileObject[], dataTransfer
     };
 
     async function validateAndResizeFiles(files: FileObject[], items: DataTransferItem[], validationState: ValidationState) {
+        
         if (files.length === 0) {
             return;
         }
