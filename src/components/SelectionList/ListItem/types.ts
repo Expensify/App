@@ -13,6 +13,7 @@ import type {Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {ReceiptErrors} from '@src/types/onyx/Transaction';
 import type WithSentryLabel from '@src/types/utils/SentryLabel';
 import type BaseListItem from './BaseListItem';
+import type DistanceRateListItem from './DistanceRateListItem';
 import type InviteMemberListItem from './InviteMemberListItem';
 import type MultiSelectListItem from './MultiSelectListItem';
 import type RadioListItem from './RadioListItem';
@@ -36,12 +37,6 @@ type ListItem<K extends string | number = string> = {
 
     /** Accessibility label for screen readers */
     accessibilityLabel?: string;
-
-    /** Accessibility role for the list item row */
-    accessibilityRole?: Role;
-
-    /** Whether the row summary and nested control should be separate accessibility stops on iOS */
-    shouldSplitAccessibilityOnIOS?: boolean;
 
     /** Key used internally by React */
     keyForList: K;
@@ -307,6 +302,7 @@ type ValidListItem =
     | typeof SpendCategorySelectorListItem
     | typeof SplitListItem
     | typeof TableListItem
+    | typeof DistanceRateListItem
     | typeof TravelDomainListItem
     | typeof UserListItem
     | typeof UserSelectionListItem;

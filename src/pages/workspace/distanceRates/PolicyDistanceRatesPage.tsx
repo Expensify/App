@@ -10,7 +10,7 @@ import {loadIllustration} from '@components/Icon/IllustrationLoader';
 import type {IllustrationName} from '@components/Icon/IllustrationLoader';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SearchBar from '@components/SearchBar';
-import TableListItem from '@components/SelectionList/ListItem/TableListItem';
+import DistanceRateListItem from '@components/SelectionList/ListItem/DistanceRateListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import SelectionListWithModal from '@components/SelectionListWithModal';
 import CustomListHeader from '@components/SelectionListWithModal/CustomListHeader';
@@ -231,8 +231,6 @@ function PolicyDistanceRatesPage({
                     text: value.name,
                     alternateText,
                     accessibilityLabel: rowAccessibilityLabel,
-                    accessibilityRole: CONST.ROLE.LISTITEM,
-                    shouldSplitAccessibilityOnIOS: true,
                     keyForList: value.customUnitRateID,
                     isDisabled: value.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
                     pendingAction:
@@ -512,7 +510,7 @@ function PolicyDistanceRatesPage({
                 {Object.values(customUnitRates).length > 0 && (
                     <SelectionListWithModal
                         data={filteredDistanceRatesList}
-                        ListItem={TableListItem}
+                        ListItem={DistanceRateListItem}
                         onSelectRow={openRateDetails}
                         onCheckboxPress={toggleRate}
                         selectedItems={selectedDistanceRates}
