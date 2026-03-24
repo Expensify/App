@@ -7,7 +7,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {getHeaderMessageForNonUserList} from '@libs/OptionsListUtils';
 import {getTaxRatesSection} from '@libs/TaxOptionsListUtils';
 import type {TaxRatesOption} from '@libs/TaxOptionsListUtils';
-import {getEnabledTaxRateCount} from '@libs/TransactionUtils';
+import {getDefaultTaxCode, getEnabledTaxRateCount, transformedTaxRates} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import type {IOUAction} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -68,7 +68,10 @@ function TaxPicker({selectedTaxRate = '', policyID, transactionID, onSubmit, act
 
     const shouldShowTextInput = !isTaxRatesCountBelowThreshold;
 
-    const {taxCode, taxValue} = transaction ?? {};
+    const {taxCode, taxValue} = currentTransaction ?? {};
+    const defaultTaxCode = getDefaultTaxCode(policy, currentTransaction) ?? '';
+    const effectiveTaxCode = taxCode && taxCode.length > 0 ? taxCode : defaultTaxCode;
+    const effectiveSelectedTaxRate = selectedTaxRate || (effectiveTaxCode ? (transformedTaxRates(policy, currentTransaction)[effectiveTaxCode]?.modifiedName ?? '') : '');
     const hasTaxBeenDeleted = !!taxCode && taxValue !== undefined && !taxRates?.taxes?.[taxCode];
     const hasTaxValueChanged = !!taxCode && taxValue !== undefined && taxRates?.taxes?.[taxCode]?.value !== taxValue;
 
@@ -84,10 +87,10 @@ function TaxPicker({selectedTaxRate = '', policyID, transactionID, onSubmit, act
               isSelected: true,
           };
 
-    const selectedOptions = selectedTaxRate
+    const selectedOptions = effectiveSelectedTaxRate
         ? [
               {
-                  modifiedName: selectedTaxRate,
+                  modifiedName: effectiveSelectedTaxRate,
                   isDisabled: false,
                   accountID: null,
               },
@@ -102,7 +105,9 @@ function TaxPicker({selectedTaxRate = '', policyID, transactionID, onSubmit, act
         transaction: currentTransaction,
     });
 
-    const selectedOptionKey = sections?.at(0)?.data?.find((taxRate) => taxRate.searchText === selectedTaxRate)?.keyForList;
+    const flattenedOptions = sections.flatMap((section) => section.data);
+    const selectedOptionKey =
+        flattenedOptions.find((taxRate) => taxRate.code === effectiveTaxCode)?.keyForList ?? flattenedOptions.find((taxRate) => taxRate.searchText === effectiveSelectedTaxRate)?.keyForList;
 
     const handleSelectRow = (newSelectedOption: TaxRatesOption) => {
         if (hasTaxValueChanged) {
@@ -110,7 +115,11 @@ function TaxPicker({selectedTaxRate = '', policyID, transactionID, onSubmit, act
             return;
         }
 
-        if (selectedOptionKey === newSelectedOption.keyForList) {
+        const isSameTaxCode = taxCode === newSelectedOption.code;
+        const currentTaxRateValue = taxCode ? taxRates?.taxes?.[taxCode]?.value : undefined;
+        const hasMatchingTaxValue = taxValue === undefined || currentTaxRateValue === taxValue;
+
+        if (isSameTaxCode && hasMatchingTaxValue) {
             onDismiss();
             return;
         }
@@ -128,7 +137,7 @@ function TaxPicker({selectedTaxRate = '', policyID, transactionID, onSubmit, act
     const updatedSections = deletedTaxOption
         ? sections.map((section) => ({
               ...section,
-              data: [...section.data.map((item) => (item.code === deletedTaxOption.code ? {...item, isSelected: false} : item)), deletedTaxOption],
+              data: [...section.data.filter((item) => item.code !== deletedTaxOption.code), deletedTaxOption],
           }))
         : sections;
 
