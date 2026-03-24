@@ -7,7 +7,6 @@ import {RESULTS} from 'react-native-permissions';
 import Animated, {useAnimatedStyle, useSharedValue, withDelay, withSequence, withSpring, withTiming} from 'react-native-reanimated';
 import type {Camera, PhotoFile, Point} from 'react-native-vision-camera';
 import {useCameraDevice, useCameraFormat} from 'react-native-vision-camera';
-import {scheduleOnRN} from 'react-native-worklets';
 import ActivityIndicator from '@components/ActivityIndicator';
 import AttachmentPicker from '@components/AttachmentPicker';
 import Button from '@components/Button';
@@ -93,6 +92,7 @@ function IOURequestStepScan({
     const [cameraPermissionStatus, setCameraPermissionStatus] = useState<string | null>(null);
     const [isAttachmentPickerActive, setIsAttachmentPickerActive] = useState(false);
     const [didCapturePhoto, setDidCapturePhoto] = useState(false);
+    const [focusPoint, setFocusPoint] = useState<Point | null>(null);
     const policy = usePolicy(report?.policyID);
 
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report?.policyID}`);
@@ -194,20 +194,21 @@ function IOURequestStepScan({
         transform: [{translateX: focusIndicatorPosition.get().x}, {translateY: focusIndicatorPosition.get().y}, {scale: focusIndicatorScale.get()}],
     }));
 
-    const focusCamera = (point: Point) => {
-        if (!camera.current) {
+    useEffect(() => {
+        if (!camera.current || !focusPoint) {
             return;
         }
 
-        camera.current.focus(point).catch((error: Record<string, unknown>) => {
+        camera.current.focus(focusPoint).catch((error: Record<string, unknown>) => {
             if (error.message === '[unknown/unknown] Cancelled by another startFocusAndMetering()') {
                 return;
             }
             Log.warn('Error focusing camera', error);
         });
-    };
+    }, [focusPoint]);
 
     const tapGesture = Gesture.Tap()
+        .runOnJS(true)
         .enabled(device?.supportsFocus ?? false)
         .onStart((ev: {x: number; y: number}) => {
             const point = {x: ev.x, y: ev.y};
@@ -217,7 +218,7 @@ function IOURequestStepScan({
             focusIndicatorScale.set(withSpring(1, {damping: 10, stiffness: 200}));
             focusIndicatorPosition.set(point);
 
-            scheduleOnRN(focusCamera, point);
+            setFocusPoint(point);
         });
 
     useFocusEffect(
