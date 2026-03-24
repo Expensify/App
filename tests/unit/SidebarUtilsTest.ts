@@ -16,7 +16,7 @@ import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {OriginalMessageIOU, PersonalDetails, Policy, Report, ReportAction, ReportActions, Transaction, TransactionViolation, TransactionViolations} from '@src/types/onyx';
-import type {ReportAttributes} from '@src/types/onyx/DerivedValues';
+import type {ReportAttributes, ReportAttributesDerivedValue} from '@src/types/onyx/DerivedValues';
 import type {ReportCollectionDataSet} from '@src/types/onyx/Report';
 import type {TransactionViolationsCollectionDataSet} from '@src/types/onyx/TransactionViolation';
 import {actionR14932 as mockIOUAction} from '../../__mocks__/reportData/actions';
@@ -1038,6 +1038,9 @@ describe('SidebarUtils', () => {
                     .then(() => {
                         // Simulate how components call getWelcomeMessage() by using the hook useReportIsArchived() to see if the report is archived
                         const {result: isReportArchived} = renderHook(() => useReportIsArchived(MOCK_REPORT?.reportID));
+                        const reportAttributes = {
+                            [MOCK_REPORT.reportID]: {reportName: 'Report (archived)'},
+                        } as ReportAttributesDerivedValue['reports'];
                         return SidebarUtils.getWelcomeMessage({
                             report: MOCK_REPORT,
                             policy: undefined,
@@ -1046,6 +1049,7 @@ describe('SidebarUtils', () => {
                             translate: translateLocal,
                             localeCompare,
                             conciergeReportID: MOCK_CONCIERGE_REPORT_ID,
+                            reportAttributes,
                             isReportArchived: isReportArchived.current,
                         });
                     })
@@ -1232,6 +1236,10 @@ describe('SidebarUtils', () => {
                 },
             };
 
+            const reportAttributes = {
+                [archivedInvoiceRoom.reportID]: {reportName: `${senderPolicy.name} owes ${invoiceReceiverPolicy.name}`},
+            } as ReportAttributesDerivedValue['reports'];
+
             const result = SidebarUtils.getWelcomeMessage({
                 report: archivedInvoiceRoom,
                 policy: senderPolicy,
@@ -1240,6 +1248,7 @@ describe('SidebarUtils', () => {
                 translate: translateLocal,
                 localeCompare,
                 conciergeReportID: MOCK_CONCIERGE_REPORT_ID,
+                reportAttributes,
                 isReportArchived: true,
                 reportDetailsLink: 'https://example.com/report',
             });
