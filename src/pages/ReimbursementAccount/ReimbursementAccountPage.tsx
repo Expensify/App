@@ -576,20 +576,6 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: 
         );
     }
 
-    if (isNonUSDSetup && nonUSDBankAccountStep !== null && !isResettingBankAccount) {
-        return (
-            <NonUSDVerifiedBankAccountFlow
-                nonUSDBankAccountStep={nonUSDBankAccountStep}
-                setNonUSDBankAccountStep={setNonUSDBankAccountStep}
-                setShouldShowContinueSetupButton={setShouldShowContinueSetupButton}
-                policyID={policyIDParam}
-                isComingFromExpensifyCard={isComingFromExpensifyCard}
-                shouldShowContinueSetupButtonValue={shouldShowContinueSetupButtonValue}
-                policyCurrency={policyCurrency ?? ''}
-            />
-        );
-    }
-
     if (!isNonUSDSetup && USDBankAccountStep !== null) {
         return (
             <USDVerifiedBankAccountFlow

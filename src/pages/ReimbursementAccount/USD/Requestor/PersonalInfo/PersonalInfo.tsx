@@ -23,6 +23,9 @@ type PersonalInfoProps = {
     /** Goes to the previous step */
     onBackButtonPress: () => void;
 
+    /** Handles submit button press (URL-based navigation) */
+    onSubmit?: () => void;
+
     /** Reference to the outer element */
     ref?: ForwardedRef<View>;
 };
@@ -30,7 +33,7 @@ type PersonalInfoProps = {
 const PERSONAL_INFO_STEP_KEYS = INPUT_IDS.PERSONAL_INFO_STEP;
 const bodyContent: Array<React.ComponentType<SubStepProps>> = [FullName, DateOfBirth, SocialSecurityNumber, Address, Confirmation];
 
-function PersonalInfo({onBackButtonPress, ref}: PersonalInfoProps) {
+function PersonalInfo({onBackButtonPress, onSubmit, ref}: PersonalInfoProps) {
     const {translate} = useLocalize();
 
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
@@ -56,8 +59,15 @@ function PersonalInfo({onBackButtonPress, ref}: PersonalInfoProps) {
         prevScreen,
         moveTo,
         goToTheLastStep,
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-    } = useSubStep({bodyContent, startFrom, onFinished: () => submit(true), onNextSubStep: () => submit(false)});
+    } = useSubStep({
+        bodyContent,
+        startFrom,
+        onFinished: () => {
+            submit(true);
+            onSubmit?.();
+        },
+        onNextSubStep: () => submit(false),
+    });
 
     const handleBackButtonPress = () => {
         if (isEditing) {

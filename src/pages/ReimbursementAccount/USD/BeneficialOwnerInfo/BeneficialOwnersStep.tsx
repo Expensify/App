@@ -23,6 +23,9 @@ import CompanyOwnersListUBO from './subSteps/CompanyOwnersListUBO';
 type BeneficialOwnersStepProps = {
     /** Goes to the previous step */
     onBackButtonPress: () => void;
+
+    /** Handles submit button press (URL-based navigation) */
+    onSubmit?: () => void;
 };
 
 type BeneficialOwnerSubStepProps = SubStepProps & {beneficialOwnerBeingModifiedID: string; setBeneficialOwnerBeingModifiedID?: (id: string) => void};
@@ -31,7 +34,7 @@ const SUBSTEP = CONST.BANK_ACCOUNT.BENEFICIAL_OWNER_INFO_STEP.SUBSTEP;
 const MAX_NUMBER_OF_UBOS = 4;
 const bodyContent: Array<React.ComponentType<BeneficialOwnerSubStepProps>> = [LegalNameUBO, DateOfBirthUBO, SocialSecurityNumberUBO, AddressUBO, ConfirmationUBO];
 
-function BeneficialOwnersStep({onBackButtonPress}: BeneficialOwnersStepProps) {
+function BeneficialOwnersStep({onBackButtonPress, onSubmit}: BeneficialOwnersStepProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
@@ -78,6 +81,7 @@ function BeneficialOwnersStep({onBackButtonPress}: BeneficialOwnersStepProps) {
             },
             policyID,
         );
+        onSubmit?.();
     };
 
     const addBeneficialOwner = (beneficialOwnerID: string) => {

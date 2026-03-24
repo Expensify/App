@@ -14,13 +14,11 @@ import {updateReimbursementAccountDraft} from '@userActions/ReimbursementAccount
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 
-type PlaidProps = SubStepProps & {
-    setUSDBankAccountStep: (step: string | null) => void;
-};
+type PlaidProps = SubStepProps;
 
 const BANK_INFO_STEP_KEYS = INPUT_IDS.BANK_INFO_STEP;
 
-function Plaid({onNext, setUSDBankAccountStep}: PlaidProps) {
+function Plaid({onNext}: PlaidProps) {
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
     const [plaidData] = useOnyx(ONYXKEYS.PLAID_DATA);
@@ -61,12 +59,10 @@ function Plaid({onNext, setUSDBankAccountStep}: PlaidProps) {
             return;
         }
         setBankAccountSubStep(null);
-        setUSDBankAccountStep(null);
-    }, [isFocused, prevIsFocused, plaidData?.bankAccounts, setUSDBankAccountStep]);
+    }, [isFocused, prevIsFocused, plaidData?.bankAccounts]);
 
     const handlePlaidExit = () => {
         setBankAccountSubStep(null);
-        setUSDBankAccountStep(null);
     };
 
     return (

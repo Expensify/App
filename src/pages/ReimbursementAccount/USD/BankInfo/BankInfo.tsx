@@ -20,23 +20,21 @@ type BankInfoProps = {
     /** Goes to the previous step */
     onBackButtonPress: () => void;
 
+    /** Handles submit button press (URL-based navigation) */
+    onSubmit?: () => void;
+
     /** Current Policy ID */
     policyID: string;
-
-    /** Set the step of the USD verified bank account flow */
-    setUSDBankAccountStep: (step: string | null) => void;
 };
 
-type BankInfoSubStepProps = SubStepProps & {
-    setUSDBankAccountStep: (step: string | null) => void;
-};
+type BankInfoSubStepProps = SubStepProps;
 
 const BANK_INFO_STEP_KEYS = INPUT_IDS.BANK_INFO_STEP;
 const manualSubSteps: Array<React.ComponentType<BankInfoSubStepProps>> = [Manual];
 const plaidSubSteps: Array<React.ComponentType<BankInfoSubStepProps>> = [Plaid];
 const receivedRedirectURI = getPlaidOAuthReceivedRedirectURI();
 
-function BankInfo({onBackButtonPress, policyID, setUSDBankAccountStep}: BankInfoProps) {
+function BankInfo({onBackButtonPress, onSubmit, policyID}: BankInfoProps) {
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
     const [plaidLinkToken] = useOnyx(ONYXKEYS.PLAID_LINK_TOKEN);
@@ -84,6 +82,7 @@ function BankInfo({onBackButtonPress, policyID, setUSDBankAccountStep}: BankInfo
                 policyID,
             );
         }
+        onSubmit?.();
     };
 
     const bodyContent = setupType === CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID ? plaidSubSteps : manualSubSteps;
@@ -124,7 +123,6 @@ function BankInfo({onBackButtonPress, policyID, setUSDBankAccountStep}: BankInfo
                 isEditing={isEditing}
                 onNext={nextScreen}
                 onMove={moveTo}
-                setUSDBankAccountStep={setUSDBankAccountStep}
             />
         </InteractiveStepWrapper>
     );

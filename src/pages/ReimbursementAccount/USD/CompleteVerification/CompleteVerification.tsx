@@ -16,12 +16,15 @@ import ConfirmAgreements from './subSteps/ConfirmAgreements';
 type CompleteVerificationProps = {
     /** Handles back button press */
     onBackButtonPress: () => void;
+
+    /** Handles submit button press (URL-based navigation) */
+    onSubmit?: () => void;
 };
 
 const COMPLETE_VERIFICATION_KEYS = INPUT_IDS.COMPLETE_VERIFICATION;
 const bodyContent: Array<ComponentType<SubStepProps>> = [ConfirmAgreements];
 
-function CompleteVerification({onBackButtonPress}: CompleteVerificationProps) {
+function CompleteVerification({onBackButtonPress, onSubmit}: CompleteVerificationProps) {
     const {translate} = useLocalize();
 
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
@@ -43,7 +46,8 @@ function CompleteVerification({onBackButtonPress}: CompleteVerificationProps) {
             policyID,
             policyID ? lastPaymentMethod?.[policyID] : undefined,
         );
-    }, [bankAccountID, values.isAuthorizedToUseBankAccount, values.certifyTrueInformation, values.acceptTermsAndConditions, policyID, lastPaymentMethod]);
+        onSubmit?.();
+    }, [bankAccountID, values.isAuthorizedToUseBankAccount, values.certifyTrueInformation, values.acceptTermsAndConditions, policyID, lastPaymentMethod, onSubmit]);
 
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     const {componentToRender: SubStep, isEditing, screenIndex, nextScreen, prevScreen, moveTo, goToTheLastStep} = useSubStep({bodyContent, startFrom: 0, onFinished: submit});

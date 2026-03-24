@@ -29,6 +29,9 @@ import WebsiteBusiness from './subSteps/WebsiteBusiness';
 type BusinessInfoProps = {
     /** Goes to the previous step */
     onBackButtonPress: () => void;
+
+    /** Handles submit button press (URL-based navigation) */
+    onSubmit?: () => void;
 };
 
 const BUSINESS_INFO_STEP_KEYS = INPUT_IDS.BUSINESS_INFO_STEP;
@@ -46,7 +49,7 @@ const bodyContent: Array<React.ComponentType<SubStepProps>> = [
     ConfirmationBusiness,
 ];
 
-function BusinessInfo({onBackButtonPress}: BusinessInfoProps) {
+function BusinessInfo({onBackButtonPress, onSubmit}: BusinessInfoProps) {
     const {translate} = useLocalize();
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
@@ -93,8 +96,15 @@ function BusinessInfo({onBackButtonPress}: BusinessInfoProps) {
         prevScreen,
         moveTo,
         goToTheLastStep,
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-    } = useSubStep({bodyContent, startFrom, onFinished: () => submit(true), onNextSubStep: () => submit(false)});
+    } = useSubStep({
+        bodyContent,
+        startFrom,
+        onFinished: () => {
+            submit(true);
+            onSubmit?.();
+        },
+        onNextSubStep: () => submit(false),
+    });
 
     const handleBackButtonPress = () => {
         if (isEditing) {

@@ -8,6 +8,9 @@ type RequestorStepProps = {
     /** Goes to the previous step */
     onBackButtonPress: () => void;
 
+    /** Handles submit button press (URL-based navigation) */
+    onSubmit?: () => void;
+
     /** If we should show Onfido flow */
     shouldShowOnfido: boolean;
 
@@ -15,7 +18,7 @@ type RequestorStepProps = {
     ref?: ForwardedRef<View>;
 };
 
-function RequestorStep({shouldShowOnfido, onBackButtonPress, ref}: RequestorStepProps) {
+function RequestorStep({shouldShowOnfido, onBackButtonPress, onSubmit, ref}: RequestorStepProps) {
     if (shouldShowOnfido) {
         return <VerifyIdentity onBackButtonPress={onBackButtonPress} />;
     }
@@ -24,6 +27,7 @@ function RequestorStep({shouldShowOnfido, onBackButtonPress, ref}: RequestorStep
         <PersonalInfo
             ref={ref}
             onBackButtonPress={onBackButtonPress}
+            onSubmit={onSubmit}
         />
     );
 }
