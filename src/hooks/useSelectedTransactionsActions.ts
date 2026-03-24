@@ -245,7 +245,10 @@ function useSelectedTransactionsActions({
                         if (!action?.childReportID) {
                             continue;
                         }
-                        unholdRequest(transactionID, action?.childReportID, policy);
+                        const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
+                        if(transaction){
+                            unholdRequest(transaction, action?.childReportID, policy);
+                        }
                     }
                     clearSelectedTransactions(true);
                 },

@@ -447,7 +447,7 @@ function IOURequestStepDistanceMap({
         if (isEditing) {
             // In the split flow, when editing we use SPLIT_TRANSACTION_DRAFT to save draft value
             if (isEditingSplit && transaction) {
-                setDraftSplitTransaction(transaction.transactionID, splitDraftTransaction, {waypoints}, policy);
+                setDraftSplitTransaction(transaction.transactionID, splitDraftTransaction ?? transaction, {waypoints}, policy);
                 navigateBack();
                 return;
             }
@@ -464,7 +464,7 @@ function IOURequestStepDistanceMap({
             }
             if (transaction?.transactionID && report?.reportID) {
                 updateMoneyRequestDistance({
-                    transactionID: transaction?.transactionID,
+                    transaction,
                     transactionThreadReport: report,
                     parentReport,
                     waypoints,

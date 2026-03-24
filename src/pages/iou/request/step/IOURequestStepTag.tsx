@@ -134,7 +134,7 @@ function IOURequestStepTag({
         }
 
         if (isEditingSplit) {
-            setDraftSplitTransaction(transactionID, splitDraftTransaction, {tag: updatedTag});
+            setDraftSplitTransaction(transactionID, splitDraftTransaction ?? transaction, {tag: updatedTag});
             navigateBack();
             return;
         }
