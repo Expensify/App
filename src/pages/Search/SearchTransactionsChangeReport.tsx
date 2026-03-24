@@ -3,7 +3,7 @@ import {InteractionManager} from 'react-native';
 import type {OnyxCollection} from 'react-native-onyx';
 import {usePersonalDetails, useSession} from '@components/OnyxListItemProvider';
 import {useSearchActionsContext, useSearchStateContext} from '@components/Search/SearchContext';
-import type {ListItem} from '@components/SelectionListWithSections/types';
+import type {ListItem} from '@components/SelectionList/types';
 import useConditionalCreateEmptyReportConfirmation from '@hooks/useConditionalCreateEmptyReportConfirmation';
 import useHasPerDiemTransactions from '@hooks/useHasPerDiemTransactions';
 import useLocalize from '@hooks/useLocalize';
@@ -124,7 +124,7 @@ function SearchTransactionsChangeReport() {
         Navigation.goBack();
     };
 
-    const {handleCreateReport, CreateReportConfirmationModal} = useConditionalCreateEmptyReportConfirmation({
+    const {handleCreateReport} = useConditionalCreateEmptyReportConfirmation({
         policyID: policyForMovingExpensesID,
         policyName: policyForMovingExpenses?.name ?? '',
         onCreateReport: createReportForPolicy,
@@ -190,21 +190,18 @@ function SearchTransactionsChangeReport() {
     };
 
     return (
-        <>
-            {CreateReportConfirmationModal}
-            <IOURequestEditReportCommon
-                backTo={undefined}
-                transactionIDs={selectedTransactionsKeys}
-                selectedReportID={selectedReportID}
-                selectReport={selectReport}
-                removeFromReport={removeFromReport}
-                createReport={createReport}
-                isEditing
-                isUnreported={areAllTransactionsUnreported}
-                targetOwnerAccountID={targetOwnerAccountID}
-                isPerDiemRequest={hasPerDiemTransactions}
-            />
-        </>
+        <IOURequestEditReportCommon
+            backTo={undefined}
+            transactionIDs={selectedTransactionsKeys}
+            selectedReportID={selectedReportID}
+            selectReport={selectReport}
+            removeFromReport={removeFromReport}
+            createReport={createReport}
+            isEditing
+            isUnreported={areAllTransactionsUnreported}
+            targetOwnerAccountID={targetOwnerAccountID}
+            isPerDiemRequest={hasPerDiemTransactions}
+        />
     );
 }
 

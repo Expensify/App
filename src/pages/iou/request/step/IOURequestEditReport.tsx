@@ -2,7 +2,7 @@ import React, {useMemo} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {usePersonalDetails, useSession} from '@components/OnyxListItemProvider';
 import {useSearchActionsContext, useSearchStateContext} from '@components/Search/SearchContext';
-import type {ListItem} from '@components/SelectionListWithSections/types';
+import type {ListItem} from '@components/SelectionList/types';
 import useConditionalCreateEmptyReportConfirmation from '@hooks/useConditionalCreateEmptyReportConfirmation';
 import useHasPerDiemTransactions from '@hooks/useHasPerDiemTransactions';
 import useLocalize from '@hooks/useLocalize';
@@ -33,9 +33,10 @@ type TransactionGroupListItem = ListItem & {
 type IOURequestEditReportProps = WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.EDIT_REPORT>;
 
 function IOURequestEditReport({route}: IOURequestEditReportProps) {
-    const {backTo, reportID, action, shouldTurnOffSelectionMode} = route.params;
+    const {backTo, reportID, action, shouldTurnOffSelectionMode, transactionID: transactionIDFromParams} = route.params;
     const {translate, toLocaleDigit} = useLocalize();
     const {selectedTransactionIDs} = useSearchStateContext();
+    const transactionIDs = transactionIDFromParams ? [transactionIDFromParams] : selectedTransactionIDs;
     const {clearSelectedTransactions} = useSearchActionsContext();
     const [allReports] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}`);
     const [selectedReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
@@ -54,7 +55,7 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
     );
     const selectedReportPolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${selectedReport?.policyID}`];
 
-    const hasPerDiemTransactions = useHasPerDiemTransactions(selectedTransactionIDs);
+    const hasPerDiemTransactions = useHasPerDiemTransactions(transactionIDs);
 
     const {policyForMovingExpensesID, shouldSelectPolicy} = usePolicyForMovingExpenses(hasPerDiemTransactions, undefined, selectedReport?.policyID);
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
@@ -63,7 +64,7 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
     const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const selectReport = (item: TransactionGroupListItem, report?: OnyxEntry<Report>) => {
-        if (selectedTransactionIDs.length === 0 || item.value === reportID) {
+        if (transactionIDs.length === 0 || item.value === reportID) {
             Navigation.dismissToSuperWideRHP();
             return;
         }
@@ -72,7 +73,7 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
 
         setNavigationActionToMicrotaskQueue(() => {
             changeTransactionsReport({
-                transactionIDs: selectedTransactionIDs,
+                transactionIDs,
                 isASAPSubmitBetaEnabled,
                 accountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
                 email: session?.email ?? '',
@@ -92,11 +93,11 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
     };
 
     const removeFromReport = () => {
-        if (!selectedReport || selectedTransactionIDs.length === 0) {
+        if (!selectedReport || transactionIDs.length === 0) {
             return;
         }
         changeTransactionsReport({
-            transactionIDs: selectedTransactionIDs,
+            transactionIDs,
             isASAPSubmitBetaEnabled,
             accountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
             email: session?.email ?? '',
@@ -119,10 +120,16 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
 
         const policyForNewReport = hasPerDiemTransactions ? selectedReportPolicy : policyForMovingExpenses;
         const optimisticReport = createNewReport(ownerPersonalDetails, hasViolations, isASAPSubmitBetaEnabled, policyForNewReport, betas, false, shouldDismissEmptyReportsConfirmation);
-        selectReport({value: optimisticReport.reportID}, optimisticReport);
+        selectReport(
+            {
+                value: optimisticReport.reportID,
+                keyForList: optimisticReport.reportID,
+            },
+            optimisticReport,
+        );
     };
 
-    const {handleCreateReport, CreateReportConfirmationModal} = useConditionalCreateEmptyReportConfirmation({
+    const {handleCreateReport} = useConditionalCreateEmptyReportConfirmation({
         policyID: policyForMovingExpensesID,
         policyName: policyForMovingExpenses?.name ?? '',
         onCreateReport: createReportForPolicy,
@@ -149,19 +156,16 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
     };
 
     return (
-        <>
-            {CreateReportConfirmationModal}
-            <IOURequestEditReportCommon
-                backTo={backTo}
-                selectedReportID={reportID}
-                transactionIDs={selectedTransactionIDs}
-                selectReport={selectReport}
-                removeFromReport={removeFromReport}
-                isEditing={action === CONST.IOU.ACTION.EDIT}
-                createReport={createReport}
-                isPerDiemRequest={hasPerDiemTransactions}
-            />
-        </>
+        <IOURequestEditReportCommon
+            backTo={backTo}
+            selectedReportID={reportID}
+            transactionIDs={transactionIDs}
+            selectReport={selectReport}
+            removeFromReport={removeFromReport}
+            isEditing={action === CONST.IOU.ACTION.EDIT}
+            createReport={createReport}
+            isPerDiemRequest={hasPerDiemTransactions}
+        />
     );
 }
 

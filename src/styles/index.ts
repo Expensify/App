@@ -1703,10 +1703,8 @@ const staticStyles = (theme: ThemeColors) =>
 
         floatingGpsButton: {
             position: 'absolute',
-            // floatingActionButton top property value (componentSizeLarge + 16) +
-            // + floatingCameraButton height (componentSizeLarge) + gap (12) + floatingGpsButton height (componentSizeLarge) + gap (12) = 3 * variables.componentSizeLarge + 40
-            top: 3 * -variables.componentSizeLarge - 40,
-            right: 16,
+            top: -variables.componentSizeSmall - 16,
+            alignSelf: 'center',
             zIndex: 10,
         },
 
@@ -3637,6 +3635,8 @@ const staticStyles = (theme: ThemeColors) =>
             height: 40,
             alignItems: 'center',
             justifyContent: 'center',
+            backgroundColor: theme.buttonDefaultBG,
+            borderRadius: 20,
         },
 
         bgGreenSuccess: {
@@ -3761,6 +3761,15 @@ const staticStyles = (theme: ThemeColors) =>
             lineHeight: variables.fontSizeNormalHeight,
             textAlign: 'center',
             color: theme.textSupporting,
+        },
+
+        quickCreationActionsBarButton: {
+            borderRadius: variables.buttonBorderRadius,
+        },
+
+        quickCreationActionsBarButtonText: {
+            fontSize: variables.fontSizeSmall,
+            lineHeight: 14,
         },
 
         homePageContentContainer: {
@@ -5011,7 +5020,7 @@ const staticStyles = (theme: ThemeColors) =>
         headerProgressBarContainer: {
             position: 'absolute',
             width: '100%',
-            zIndex: -1,
+            pointerEvents: 'none',
         },
 
         headerProgressBar: {
@@ -5694,6 +5703,10 @@ const staticStyles = (theme: ThemeColors) =>
             paddingVertical: 28,
             borderRadius: 16,
             marginTop: 32,
+        },
+        twoFactorAuthSecretBox: {
+            backgroundColor: theme.highlightBG,
+            borderRadius: 16,
         },
         anonymousRoomFooter: {
             padding: 20,
