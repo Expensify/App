@@ -21,6 +21,13 @@ function useIsAllowedToIssueCompanyCard({policyID}: {policyID?: string}) {
         return isPolicyAdmin;
     }
 
+    // When adminAccess hasn't been loaded yet (user hasn't visited Domain page),
+    // fall back to isPolicyAdmin to avoid silently blocking the action.
+    // The server validates domain admin access on the actual AssignCompanyCard API call.
+    if (adminAccess === undefined) {
+        return isPolicyAdmin;
+    }
+
     return !!adminAccess;
 }
 
