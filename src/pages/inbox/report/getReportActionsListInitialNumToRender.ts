@@ -17,11 +17,13 @@ export default function getReportActionsListInitialNumToRender({
     isOffline,
     getInitialNumToRender,
 }: GetReportActionsListInitialNumToRenderParams): number | undefined {
-    const numToRenderWithPlatformAdjustments = linkedReportActionID ? getInitialNumToRender(numToRender) : numToRender;
-
     if (shouldScrollToEndAfterLayout && (!hasCreatedActionAdded || isOffline)) {
-        return Math.min(numToRenderWithPlatformAdjustments, sortedVisibleReportActionsLength) || undefined;
+        return sortedVisibleReportActionsLength;
     }
 
-    return numToRenderWithPlatformAdjustments || undefined;
+    if (linkedReportActionID) {
+        return getInitialNumToRender(numToRender);
+    }
+
+    return numToRender || undefined;
 }

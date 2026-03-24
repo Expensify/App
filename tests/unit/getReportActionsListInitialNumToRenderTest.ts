@@ -2,7 +2,7 @@ import getInitialNumToRender from '@pages/inbox/report/getInitialNumReportAction
 import getReportActionsListInitialNumToRender from '@pages/inbox/report/getReportActionsListInitialNumToRender';
 
 describe('getReportActionsListInitialNumToRender', () => {
-    it('keeps initial render windowed when scroll-to-end mode is enabled', () => {
+    it('returns the full list length when scroll-to-end mode is enabled before the created action is added', () => {
         const result = getReportActionsListInitialNumToRender({
             numToRender: 12,
             shouldScrollToEndAfterLayout: true,
@@ -12,7 +12,7 @@ describe('getReportActionsListInitialNumToRender', () => {
             getInitialNumToRender,
         });
 
-        expect(result).toBe(12);
+        expect(result).toBe(500);
     });
 
     it('returns the platform-adjusted value for linked report actions', () => {
@@ -29,17 +29,16 @@ describe('getReportActionsListInitialNumToRender', () => {
         expect(result).toBe(getInitialNumToRender(10));
     });
 
-    it('caps rendering to available actions when platform-adjusted value is larger than the list', () => {
+    it('returns numToRender when there is no linked report action and the scroll-to-end short-circuit does not apply', () => {
         const result = getReportActionsListInitialNumToRender({
             numToRender: 10,
-            linkedReportActionID: '123',
-            shouldScrollToEndAfterLayout: true,
-            hasCreatedActionAdded: false,
+            shouldScrollToEndAfterLayout: false,
+            hasCreatedActionAdded: true,
             sortedVisibleReportActionsLength: 3,
             isOffline: false,
             getInitialNumToRender,
         });
 
-        expect(result).toBe(3);
+        expect(result).toBe(10);
     });
 });
