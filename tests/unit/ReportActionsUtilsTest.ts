@@ -3199,7 +3199,7 @@ describe('ReportActionsUtils', () => {
                 },
             } as ReportAction;
             const result = getRenamedCardFeedMessage(translateLocal, action);
-            expect(result).toBe('renamed card feed to "Old Feed Name" (previously "New Feed Name")');
+            expect(result).toBe('renamed card feed to "New Feed Name" (previously "Old Feed Name")');
         });
     });
 
