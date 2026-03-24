@@ -8,7 +8,7 @@ import type {FullScreenLoadingIndicatorIconSize} from '@components/FullscreenLoa
 import ImageWithLoading from '@components/ImageWithLoading';
 import PDFThumbnail from '@components/PDFThumbnail';
 import ReceiptEmptyState from '@components/ReceiptEmptyState';
-import type {TransactionListItemType} from '@components/SelectionListWithSections/types';
+import type {TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
 import ThumbnailImage from '@components/ThumbnailImage';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
@@ -129,9 +129,6 @@ type ReceiptImageProps = (
     /** The resize mode of the image */
     resizeMode?: ImageResizeMode;
 
-    /** Whether the receipt is a map distance request */
-    isMapDistanceRequest?: boolean;
-
     /** Any additional styles to apply */
     style?: StyleProp<ViewStyle & ImageStyle>;
 };
@@ -163,7 +160,6 @@ function ReceiptImage({
     onLoad,
     onLoadFailure,
     resizeMode,
-    isMapDistanceRequest,
     style,
 }: ReceiptImageProps) {
     const styles = useThemeStyles();
@@ -248,7 +244,7 @@ function ReceiptImage({
                 lastUpdateWidthTimestampRef.current = e.timeStamp;
             }}
             source={typeof source === 'string' ? {uri: source} : source}
-            style={[style, isMapDistanceRequest && styles.flex1, styles.overflowHidden]}
+            style={[style, styles.overflowHidden]}
             isAuthTokenRequired={!!isAuthTokenRequired}
             loadingIconSize={loadingIconSize}
             loadingIndicatorStyles={loadingIndicatorStyles}

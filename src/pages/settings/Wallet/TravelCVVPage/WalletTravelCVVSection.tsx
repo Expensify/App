@@ -23,7 +23,7 @@ function WalletTravelCVVSection() {
     const icons = useMemoizedLazyExpensifyIcons(['LuggageWithLines']);
     const {isBetaEnabled} = usePermissions();
 
-    const [cardList] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST);
+    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
 
     const travelCard = getTravelInvoicingCard(cardList);
 

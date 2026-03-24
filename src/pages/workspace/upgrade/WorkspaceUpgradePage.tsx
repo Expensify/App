@@ -131,7 +131,7 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
             return;
         }
 
-        upgradeToCorporate(policy.id, feature?.name);
+        upgradeToCorporate(policy, feature?.name);
     };
 
     // useCallback is needed here because confirmUpgrade is passed as a prop to child components;
@@ -186,7 +186,7 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
                 }
                 break;
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.rules.id:
-                enablePolicyRules(policyID, true, false, policyDataRef.current);
+                enablePolicyRules(policy, true, false, policyDataRef.current);
                 break;
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.companyCards.id:
                 enableCompanyCards(policyID, true, false);
@@ -203,8 +203,7 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
         categoryId,
         feature,
         perDiemCustomUnit?.customUnitID,
-        policy?.connections?.xero?.config,
-        policy?.connections?.xero?.data,
+        policy,
         policyID,
         qboConfig?.syncClasses,
         qboConfig?.syncCustomers,
