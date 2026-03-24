@@ -213,6 +213,7 @@ function WorkspacesListPage() {
     );
 
     const flatlistRef = useRef<FlatList | null>(null);
+    const measuredItemHeight = useRef<number>(0);
 
     useLayoutEffect(() => {
         const scrollOffset = getScrollOffset(route);
@@ -476,10 +477,14 @@ function WorkspacesListPage() {
             <View
                 key={`${item.title}_${index}`}
                 onLayout={(e) => {
-                    if (e.nativeEvent.layout.height === 0 || getAverageItemLength(route)) {
+                    const height = e.nativeEvent.layout.height;
+                    if (height <= 0) {
                         return;
                     }
-                    saveAverageItemLength(route, e.nativeEvent.layout.height);
+                    measuredItemHeight.current = height;
+                    if (height !== getAverageItemLength(route)) {
+                        saveAverageItemLength(route, height);
+                    }
                 }}
             >
                 <OfflineWithFeedback
@@ -737,7 +742,9 @@ function WorkspacesListPage() {
         if (savedScrollOffset <= 0 || data.length === 0) {
             return undefined;
         }
-        const itemHeight = getAverageItemLength(route) ?? estimatedItemHeight;
+        // eslint-disable-next-line react-hooks/refs -- Reading the local measured height during render is intentional; the value is an optimization hint for initialNumToRender.
+        const localMeasured = measuredItemHeight.current > 0 ? measuredItemHeight.current : undefined;
+        const itemHeight = localMeasured ?? getAverageItemLength(route) ?? estimatedItemHeight;
         const viewportItems = Math.ceil(windowHeight / itemHeight);
         return Math.min(Math.ceil(savedScrollOffset / itemHeight) + viewportItems, data.length);
     })();
