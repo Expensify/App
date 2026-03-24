@@ -162,7 +162,10 @@ type PopoverMenuProps = Partial<ModalAnimationProps> & {
     /** Whether we should wrap the list item in a scroll view */
     shouldUseScrollView?: boolean;
 
-    /** Whether we should set a max height to the popover content */
+    /**
+     * Whether we should set a max height to the popover content.
+     * Ignored in landscape mode to prevent content from being unreachable.
+     * */
     shouldEnableMaxHeight?: boolean;
 
     /** Whether to update the focused index on a row select */
@@ -295,7 +298,7 @@ function BasePopoverMenu({
     innerContainerStyle,
     scrollContainerStyle,
     shouldUseScrollView = false,
-    shouldEnableMaxHeight: shouldEnableMaxHeightProp = true,
+    shouldEnableMaxHeight = true,
     shouldUpdateFocusedIndex = true,
     shouldUseModalPaddingStyle,
     shouldAvoidSafariException = false,
@@ -317,8 +320,6 @@ function BasePopoverMenu({
     const [focusedIndex, setFocusedIndex] = useArrowKeyFocusManager({initialFocusedIndex: currentMenuItemsFocusedIndex, maxIndex: currentMenuItems.length - 1, isActive: isVisible});
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['BackArrow', 'ReceiptScan', 'MoneyCircle']);
     const prevMenuItems = usePrevious(menuItems);
-
-    const shouldEnableMaxHeight = shouldEnableMaxHeightProp && !isInLandscapeMode;
 
     const selectItem = (index: number, event?: GestureResponderEvent | KeyboardEvent) => {
         const selectedItem = currentMenuItems.at(index);
@@ -543,12 +544,12 @@ function BasePopoverMenu({
 
     const menuContainerStyle = useMemo(() => {
         if (isSmallScreenWidth) {
-            return shouldEnableMaxHeight ? [{maxHeight: CONST.POPOVER_MENU_MAX_HEIGHT_MOBILE}] : [];
+            return shouldEnableMaxHeight && !isInLandscapeMode ? [{maxHeight: CONST.POPOVER_MENU_MAX_HEIGHT_MOBILE}] : [];
         }
 
         const stylesArray: ViewStyle[] = [StyleSheet.flatten(styles.createMenuContainer)];
 
-        if (shouldUseScrollView && shouldEnableMaxHeight) {
+        if (shouldUseScrollView && shouldEnableMaxHeight && !isInLandscapeMode) {
             stylesArray.push({maxHeight: CONST.POPOVER_MENU_MAX_HEIGHT});
         }
 
