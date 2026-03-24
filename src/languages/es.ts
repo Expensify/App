@@ -667,11 +667,6 @@ const translations: TranslationDeepObject<typeof en> = {
         searchForSomeone: 'Busca a alguien',
         userSelected: (username: string) => `${username} seleccionado`,
     },
-    customApprovalWorkflow: {
-        title: 'Flujo de aprobación personalizado',
-        description: 'Tu empresa tiene un flujo de aprobación personalizado en este espacio de trabajo. Por favor, realiza esta acción en Expensify Classic',
-        goToExpensifyClassic: 'Cambiar a Expensify Classic',
-    },
     emptyList: {
         [CONST.IOU.TYPE.CREATE]: {
             title: 'Presenta un gasto, recomienda a tu equipo',
@@ -1153,6 +1148,8 @@ const translations: TranslationDeepObject<typeof en> = {
         pendingMatchWithCreditCard: 'Recibo pendiente de adjuntar con la transacción de la tarjeta',
         pendingMatchWithCreditCardDescription: 'Recibo pendiente de adjuntar con la transacción de la tarjeta. Márcalo como efectivo para cancelar.',
         markAsCash: 'Marcar como efectivo',
+        pendingMatchSubmitTitle: 'Enviar informe',
+        pendingMatchSubmitDescription: 'Algunos gastos están pendientes de coincidencia con una transacción de tarjeta de crédito. ¿Deseas marcarlos como efectivo?',
         routePending: 'Ruta pendiente...',
         findExpense: 'Buscar gasto',
         deletedTransaction: (amount, merchant) => `eliminó un gasto (${amount} para ${merchant})`,

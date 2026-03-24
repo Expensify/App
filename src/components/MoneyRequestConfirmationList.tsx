@@ -299,6 +299,7 @@ function MoneyRequestConfirmationList({
     const [lastSelectedDistanceRates] = useOnyx(ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES);
     const {getCurrencySymbol, getCurrencyDecimals} = useCurrencyListActions();
     const {isBetaEnabled} = usePermissions();
+    const isNewManualExpenseFlowEnabled = isBetaEnabled(CONST.BETAS.NEW_MANUAL_EXPENSE_FLOW);
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
 
@@ -409,7 +410,6 @@ function MoneyRequestConfirmationList({
 
     const distance = getDistanceInMeters(transaction, unit);
     const prevDistance = usePrevious(distance);
-
     const shouldCalculateDistanceAmount = isDistanceRequest && (iouAmount === 0 || prevRate !== rate || prevDistance !== distance || prevCurrency !== currency || prevUnit !== unit);
 
     const shouldCalculatePerDiemAmount = isPerDiemRequest && (iouAmount === 0 || JSON.stringify(prevSubRates) !== JSON.stringify(subRates) || prevCurrency !== currency);
@@ -627,19 +627,21 @@ function MoneyRequestConfirmationList({
             }
         } else if (isTypeTrackExpense) {
             text = translate('iou.createExpense');
-            if (iouAmount !== 0) {
+            if (iouAmount !== 0 && !isNewManualExpenseFlowEnabled) {
                 text = translate('iou.createExpenseWithAmount', {amount: formattedAmount});
             }
         } else if (isTypeSplit && iouAmount === 0) {
             text = translate('iou.splitExpense');
         } else if ((receiptPath && isTypeRequest) || isDistanceRequestWithPendingRoute || isPerDiemRequest) {
             text = translate('iou.createExpense');
-            if (iouAmount !== 0) {
+            if (iouAmount !== 0 && !isNewManualExpenseFlowEnabled) {
                 text = translate('iou.createExpenseWithAmount', {amount: formattedAmount});
             }
         } else if (isTypeSplit) {
             text = translate('iou.splitAmount', formattedAmount);
         } else if (iouAmount === 0) {
+            text = translate('iou.createExpense');
+        } else if (isNewManualExpenseFlowEnabled) {
             text = translate('iou.createExpense');
         } else {
             text = translate('iou.createExpenseWithAmount', {amount: formattedAmount});
@@ -664,6 +666,7 @@ function MoneyRequestConfirmationList({
         policy,
         translate,
         formattedAmount,
+        isNewManualExpenseFlowEnabled,
     ]);
 
     const onSplitShareChange = useCallback(
@@ -1023,6 +1026,15 @@ function MoneyRequestConfirmationList({
                 setFormError('iou.error.noParticipantSelected');
                 return;
             }
+
+            const amountForValidation = iouAmount;
+            const isAmountMissingForManualFlow = amountForValidation === null || amountForValidation === undefined;
+
+            if (iouType !== CONST.IOU.TYPE.PAY && isNewManualExpenseFlowEnabled && isAmountMissingForManualFlow) {
+                setFormError('common.error.invalidAmount');
+                return;
+            }
+
             if (!isEditingSplitBill && isMerchantRequired && (isMerchantEmpty || (shouldDisplayFieldError && isMerchantMissing(transaction)))) {
                 setFormError('iou.error.invalidMerchant');
                 return;
@@ -1281,7 +1293,9 @@ function MoneyRequestConfirmationList({
         confirm,
         iouCurrencyCode,
         policyID,
+        reportID,
         isConfirmed,
+        isConfirming,
         splitOrRequestOptions,
         errorMessage,
         expensesNumber,
@@ -1293,9 +1307,7 @@ function MoneyRequestConfirmationList({
         styles.productTrainingTooltipWrapper,
         shouldShowProductTrainingTooltip,
         renderProductTrainingTooltip,
-        isConfirming,
         isLoadingReceipt,
-        reportID,
     ]);
 
     const isCompactMode = useMemo(() => !showMoreFields && isScanRequest, [isScanRequest, showMoreFields]);
@@ -1312,9 +1324,10 @@ function MoneyRequestConfirmationList({
         <View style={isCompactMode ? styles.flex1 : undefined}>
             <MoneyRequestConfirmationListFooter
                 action={action}
-                currency={currency}
+                distanceRateCurrency={currency}
                 didConfirm={!!didConfirm}
                 distance={distance}
+                amount={amountToBeUsed}
                 formattedAmount={formattedAmount}
                 formattedAmountPerAttendee={formattedAmountPerAttendee}
                 formError={formError}
