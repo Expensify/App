@@ -18,6 +18,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {READ_COMMANDS} from '@libs/API/types';
 import Clipboard from '@libs/Clipboard';
+import getPlatform from '@libs/getPlatform';
 import localFileDownload from '@libs/localFileDownload';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
@@ -41,7 +42,12 @@ function CopyCodesPage({route}: TwoFactorAuthPageProps) {
     const [statusAnnouncement, setStatusAnnouncement] = useState({id: 0, text: ''});
     const isFocused = useIsFocused();
 
+    const isWeb = getPlatform() === CONST.PLATFORM.WEB;
+
     const announceStatus = (message: string) => {
+        if (!isWeb) {
+            return;
+        }
         setStatusAnnouncement((prev) => ({id: prev.id + 1, text: message}));
     };
 
