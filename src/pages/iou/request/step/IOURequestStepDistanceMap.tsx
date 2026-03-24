@@ -464,7 +464,7 @@ function IOURequestStepDistanceMap({
             }
             if (transaction?.transactionID && report?.reportID) {
                 updateMoneyRequestDistance({
-                    transactionID: transaction?.transactionID,
+                    transaction,
                     transactionThreadReport: report,
                     parentReport,
                     waypoints,

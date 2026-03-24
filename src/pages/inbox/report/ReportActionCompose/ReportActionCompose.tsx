@@ -534,7 +534,7 @@ function ReportActionCompose({
         onAttachmentPreviewClose,
         exceededMaxLength,
         shouldAddOrReplaceReceipt,
-        transactionID,
+        transaction,
         report,
         newParentReport,
         currentDate,
