@@ -10,7 +10,7 @@ import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import type {SubStepProps} from '@hooks/useSubStep/types';
+import type {SubPageProps} from '@hooks/useSubPage/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getFieldRequiredErrors} from '@libs/ValidationUtils';
 import getSubStepValues from '@pages/ReimbursementAccount/utils/getSubStepValues';
@@ -35,7 +35,7 @@ function ConfirmCompanyLabel() {
     );
 }
 
-function ConfirmationBusiness({onNext, onMove}: SubStepProps) {
+function ConfirmationBusiness({onNext, onMove}: SubPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 

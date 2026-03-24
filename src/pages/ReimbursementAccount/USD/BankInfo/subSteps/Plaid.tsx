@@ -6,7 +6,7 @@ import InputWrapper from '@components/Form/InputWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
-import type {SubStepProps} from '@hooks/useSubStep/types';
+import type {SubPageProps} from '@hooks/useSubPage/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getBankAccountIDAsNumber} from '@libs/ReimbursementAccountUtils';
 import {setBankAccountSubStep, validatePlaidSelection} from '@userActions/BankAccounts';
@@ -14,11 +14,9 @@ import {updateReimbursementAccountDraft} from '@userActions/ReimbursementAccount
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 
-type PlaidProps = SubStepProps;
-
 const BANK_INFO_STEP_KEYS = INPUT_IDS.BANK_INFO_STEP;
 
-function Plaid({onNext}: PlaidProps) {
+function Plaid({onNext}: SubPageProps) {
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
     const [plaidData] = useOnyx(ONYXKEYS.PLAID_DATA);
