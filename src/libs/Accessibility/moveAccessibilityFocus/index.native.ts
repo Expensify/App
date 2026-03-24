@@ -1,5 +1,5 @@
 import {AccessibilityInfo} from 'react-native';
-import type {NativeMethods} from 'react-native';
+import type {ReactNativeElement} from 'react-native';
 import type MoveAccessibilityFocus from './types';
 
 const moveAccessibilityFocus: MoveAccessibilityFocus = (ref) => {
@@ -9,7 +9,7 @@ const moveAccessibilityFocus: MoveAccessibilityFocus = (ref) => {
         return;
     }
 
-    AccessibilityInfo.sendAccessibilityEvent(focusTarget as NativeMethods, 'focus');
+    AccessibilityInfo.sendAccessibilityEvent(focusTarget as ReactNativeElement, 'focus');
 
     if ('focus' in focusTarget && typeof focusTarget.focus === 'function') {
         focusTarget.focus();
