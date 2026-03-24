@@ -33,17 +33,24 @@ function createReport(reportID: string, overrides: Partial<Report> = {}): Report
     } as Report;
 }
 
+function toReportActions(...actions: ReportAction[]): ReportActions {
+    const result: ReportActions = {};
+    for (const action of actions) {
+        result[action.reportActionID] = action;
+    }
+    return result;
+}
+
 describe('computeForReport', () => {
     const reportID = '1';
     const reportActionsKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`;
     const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${reportID}`;
 
     it('sorts actions in descending order (newest first)', () => {
-        const actions: ReportActions = {
-            '1': createAction('1', '2024-01-01 10:00:00.000'),
-            '2': createAction('2', '2024-01-02 10:00:00.000'),
-            '3': createAction('3', '2024-01-03 10:00:00.000'),
-        };
+        const action1 = createAction('1', '2024-01-01 10:00:00.000');
+        const action2 = createAction('2', '2024-01-02 10:00:00.000');
+        const action3 = createAction('3', '2024-01-03 10:00:00.000');
+        const actions = toReportActions(action1, action2, action3);
         const allReportActions: OnyxCollection<ReportActions> = {[reportActionsKey]: actions};
         const allReports: OnyxCollection<Report> = {[reportKey]: createReport(reportID)};
 
@@ -53,11 +60,10 @@ describe('computeForReport', () => {
     });
 
     it('returns the newest action as lastAction', () => {
-        const actions: ReportActions = {
-            '1': createAction('1', '2024-01-01 10:00:00.000'),
-            '2': createAction('2', '2024-01-03 10:00:00.000'),
-            '3': createAction('3', '2024-01-02 10:00:00.000'),
-        };
+        const action1 = createAction('1', '2024-01-01 10:00:00.000');
+        const action2 = createAction('2', '2024-01-03 10:00:00.000');
+        const action3 = createAction('3', '2024-01-02 10:00:00.000');
+        const actions = toReportActions(action1, action2, action3);
         const allReportActions: OnyxCollection<ReportActions> = {[reportActionsKey]: actions};
         const allReports: OnyxCollection<Report> = {[reportKey]: createReport(reportID)};
 
@@ -78,9 +84,8 @@ describe('computeForReport', () => {
     });
 
     it('returns undefined transactionThreadReportID for a non-expense report', () => {
-        const actions: ReportActions = {
-            '1': createAction('1', '2024-01-01 10:00:00.000'),
-        };
+        const action1 = createAction('1', '2024-01-01 10:00:00.000');
+        const actions = toReportActions(action1);
         const allReportActions: OnyxCollection<ReportActions> = {[reportActionsKey]: actions};
         const allReports: OnyxCollection<Report> = {[reportKey]: createReport(reportID, {type: CONST.REPORT.TYPE.CHAT})};
 
@@ -105,13 +110,10 @@ describe('computeForReport', () => {
             },
         } as Partial<ReportAction>);
 
-        const parentActions: ReportActions = {
-            '100': iouAction,
-        };
-        const threadActions: ReportActions = {
-            '200': createAction('200', '2024-01-01 11:00:00.000'),
-            '201': createAction('201', '2024-01-01 12:00:00.000'),
-        };
+        const parentActions = toReportActions(iouAction);
+        const threadAction200 = createAction('200', '2024-01-01 11:00:00.000');
+        const threadAction201 = createAction('201', '2024-01-01 12:00:00.000');
+        const threadActions = toReportActions(threadAction200, threadAction201);
         const chatReport = createReport('3', {type: CONST.REPORT.TYPE.CHAT});
         const expenseReport = createReport(reportID, {type: CONST.REPORT.TYPE.EXPENSE, chatReportID: '3'});
 
@@ -136,9 +138,8 @@ describe('computeForReport', () => {
     });
 
     it('handles single action correctly', () => {
-        const actions: ReportActions = {
-            '1': createAction('1', '2024-06-15 08:30:00.000'),
-        };
+        const action1 = createAction('1', '2024-06-15 08:30:00.000');
+        const actions = toReportActions(action1);
         const allReportActions: OnyxCollection<ReportActions> = {[reportActionsKey]: actions};
         const allReports: OnyxCollection<Report> = {[reportKey]: createReport(reportID)};
 
@@ -149,10 +150,9 @@ describe('computeForReport', () => {
         expect(result.lastAction?.reportActionID).toBe('1');
     });
 
-    it('handles null allReportActions gracefully for transaction thread merging', () => {
-        const actions: ReportActions = {
-            '1': createAction('1', '2024-01-01 10:00:00.000'),
-        };
+    it('handles undefined allReportActions gracefully for transaction thread merging', () => {
+        const action1 = createAction('1', '2024-01-01 10:00:00.000');
+        const actions = toReportActions(action1);
         const expenseReport = createReport(reportID, {type: CONST.REPORT.TYPE.EXPENSE, chatReportID: '3'});
         const chatReport = createReport('3', {type: CONST.REPORT.TYPE.CHAT});
         const allReports: OnyxCollection<Report> = {
@@ -166,11 +166,10 @@ describe('computeForReport', () => {
         expect(result.lastAction?.reportActionID).toBe('1');
     });
 
-    it('handles null allReports gracefully', () => {
-        const actions: ReportActions = {
-            '1': createAction('1', '2024-01-01 10:00:00.000'),
-            '2': createAction('2', '2024-01-02 10:00:00.000'),
-        };
+    it('handles undefined allReports gracefully', () => {
+        const action1 = createAction('1', '2024-01-01 10:00:00.000');
+        const action2 = createAction('2', '2024-01-02 10:00:00.000');
+        const actions = toReportActions(action1, action2);
         const allReportActions: OnyxCollection<ReportActions> = {[reportActionsKey]: actions};
 
         const result = computeForReport(reportID, actions, allReportActions, undefined);
