@@ -6834,18 +6834,18 @@ describe('SearchUIUtils', () => {
     });
 
     describe('Test getSuggestedSearches sort defaults', () => {
-        test('Should default Top Categories to sortBy groupCategory and sortOrder asc', () => {
+        test('Should default Top Categories to sortBy groupTotal and sortOrder desc', () => {
             const suggestedSearches = SearchUIUtils.getSuggestedSearches(adminAccountID);
             const topCategories = suggestedSearches[CONST.SEARCH.SEARCH_KEYS.TOP_CATEGORIES];
-            expect(topCategories.searchQueryJSON?.sortBy).toBe(CONST.SEARCH.TABLE_COLUMNS.GROUP_CATEGORY);
-            expect(topCategories.searchQueryJSON?.sortOrder).toBe(CONST.SEARCH.SORT_ORDER.ASC);
+            expect(topCategories.searchQueryJSON?.sortBy).toBe(CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL);
+            expect(topCategories.searchQueryJSON?.sortOrder).toBe(CONST.SEARCH.SORT_ORDER.DESC);
         });
 
-        test('Should default Top Merchants to sortBy groupMerchant and sortOrder asc', () => {
+        test('Should default Top Merchants to sortBy groupTotal and sortOrder desc', () => {
             const suggestedSearches = SearchUIUtils.getSuggestedSearches(adminAccountID);
             const topMerchants = suggestedSearches[CONST.SEARCH.SEARCH_KEYS.TOP_MERCHANTS];
-            expect(topMerchants.searchQueryJSON?.sortBy).toBe(CONST.SEARCH.TABLE_COLUMNS.GROUP_MERCHANT);
-            expect(topMerchants.searchQueryJSON?.sortOrder).toBe(CONST.SEARCH.SORT_ORDER.ASC);
+            expect(topMerchants.searchQueryJSON?.sortBy).toBe(CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL);
+            expect(topMerchants.searchQueryJSON?.sortOrder).toBe(CONST.SEARCH.SORT_ORDER.DESC);
         });
     });
 

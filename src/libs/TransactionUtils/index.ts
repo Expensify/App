@@ -101,6 +101,7 @@ type TransactionParams = {
     tag?: string;
     taxCode?: string;
     taxAmount?: number;
+    taxValue?: string;
     billable?: boolean;
     pendingFields?: Partial<Record<TransactionPendingFieldsKey, ValueOf<typeof CONST.RED_BRICK_ROAD_PENDING_ACTION>>>;
     reimbursable?: boolean;
@@ -437,6 +438,7 @@ function buildOptimisticTransaction(params: BuildOptimisticTransactionParams): T
         tag = '',
         taxCode = '',
         taxAmount = 0,
+        taxValue,
         billable = false,
         pendingFields,
         reimbursable = true,
@@ -550,6 +552,7 @@ function buildOptimisticTransaction(params: BuildOptimisticTransactionParams): T
         tag,
         taxCode,
         taxAmount,
+        taxValue,
         modifiedAmount,
         billable,
         reimbursable,

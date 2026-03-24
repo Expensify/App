@@ -25,6 +25,7 @@ import useFeedKeysWithAssignedCards from '@hooks/useFeedKeysWithAssignedCards';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useReportAttributes from '@hooks/useReportAttributes';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -64,14 +65,16 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
     const personalDetails = usePersonalDetails();
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const reportAttributes = useReportAttributes();
     const taxRates = useMemo(() => getAllTaxRates(policies), [policies]);
     const [personalAndWorkspaceCards] = useOnyx(ONYXKEYS.DERIVED.PERSONAL_AND_WORKSPACE_CARD_LIST);
     const [allFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER);
     const feedKeysWithCards = useFeedKeysWithAssignedCards();
     const {inputQuery: originalInputQuery} = queryJSON;
     const [currentUserAccountID = -1] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
-    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const [allPersonalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const queryText = buildUserReadableQueryString({
         queryJSON,
@@ -85,7 +88,7 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
         autoCompleteWithSpace: true,
         translate,
         feedKeysWithCards,
-        conciergeReportID,
+        reportAttributes,
     });
 
     const [searchContext] = useOnyx(ONYXKEYS.SEARCH_CONTEXT);
@@ -143,10 +146,10 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
             policies,
             currentUserAccountID,
             translate,
-            conciergeReportID,
+            reportAttributes,
         );
         setAutocompleteSubstitutions(substitutionsMap);
-    }, [allFeeds, personalAndWorkspaceCards, originalInputQuery, personalDetails, reports, taxRates, policies, currentUserAccountID, translate, conciergeReportID]);
+    }, [allFeeds, personalAndWorkspaceCards, originalInputQuery, personalDetails, reports, taxRates, policies, currentUserAccountID, translate, reportAttributes]);
 
     useEffect(() => {
         if (searchRouterListVisible) {
@@ -247,10 +250,10 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
             } else if (item?.reportID) {
                 Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(item?.reportID));
             } else if ('login' in item) {
-                navigateToAndOpenReport(item.login ? [item.login] : [], currentUserAccountID, introSelected, isSelfTourViewed, false);
+                navigateToAndOpenReport(item.login ? [item.login] : [], allPersonalDetails, currentUserAccountID, introSelected, isSelfTourViewed, betas, false);
             }
         },
-        [autocompleteSubstitutions, onSearchQueryChange, submitSearch, textInputValue, currentUserAccountID, introSelected, isSelfTourViewed],
+        [textInputValue, onSearchQueryChange, autocompleteSubstitutions, submitSearch, allPersonalDetails, currentUserAccountID, introSelected, isSelfTourViewed, betas],
     );
 
     const searchQueryItem = useMemo(

@@ -241,8 +241,10 @@ function NewChatPage({ref}: NewChatPageProps) {
     const personalData = useCurrentUserPersonalDetails();
     const currentUserAccountID = personalData.accountID;
     const {top} = useSafeAreaInsets();
+    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false});
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const privateIsArchivedMap = usePrivateIsArchivedMap();
     const selectionListRef = useRef<SelectionListWithSectionsHandle | null>(null);
@@ -281,6 +283,7 @@ function NewChatPage({ref}: NewChatPageProps) {
         personalDetails,
         privateIsArchivedMap,
         currentUserAccountID,
+        allPolicies,
         allPersonalDetails,
         undefined,
         undefined,
@@ -358,7 +361,6 @@ function NewChatPage({ref}: NewChatPageProps) {
             Navigation.dismissModalWithReport({reportID: option.reportID});
             return;
         }
-
         if (selectedOptions.length && option) {
             // Prevent excluded emails from being added to groups
             if (option?.login && excludedGroupEmails.has(option.login)) {
@@ -389,7 +391,7 @@ function NewChatPage({ref}: NewChatPageProps) {
             return;
         }
         KeyboardUtils.dismiss().then(() => {
-            singleExecution(() => navigateToAndOpenReport([login], currentUserAccountID, introSelected, isSelfTourViewed))();
+            singleExecution(() => navigateToAndOpenReport([login], allPersonalDetails, currentUserAccountID, introSelected, isSelfTourViewed, betas))();
         });
     };
 
