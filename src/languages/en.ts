@@ -253,6 +253,7 @@ const translations = {
         na: 'N/A',
         noResultsFound: 'No results found',
         noResultsFoundMatching: (searchString: string) => `No results found matching "${searchString}"`,
+        suggestionsAvailableFor: (searchString: string) => (searchString ? `Suggestions available for "${searchString}".` : 'Suggestions available.'),
         recentDestinations: 'Recent destinations',
         timePrefix: "It's",
         conjunctionFor: 'for',
@@ -1038,6 +1039,10 @@ const translations = {
                 title: 'Validate your account to continue using Expensify',
                 subtitle: 'Account',
                 cta: 'Validate',
+            },
+            fixFailedBilling: {
+                title: "We couldn't bill your card on file",
+                subtitle: 'Subscription',
             },
         },
         assignedCards: 'Your Expensify Cards',
@@ -7797,12 +7802,17 @@ const translations = {
             prompt: 'Are you sure you want to stop GPS tracking and switch to Expensify Classic?',
             confirm: 'Stop and switch',
         },
+        switchAccountWarningTripInProgress: {
+            title: 'GPS tracking in progress',
+            prompt: 'Are you sure you want to stop GPS tracking and switch accounts?',
+            confirm: 'Stop and switch',
+        },
         locationServicesRequiredModal: {
             title: 'Location access required',
             confirm: 'Open settings',
             prompt: 'Please allow location access in your device settings to start GPS distance tracking.',
         },
-        fabGpsTripExplained: 'Go to GPS screen (Floating action)',
+        gpsFloatingPillText: 'GPS tracking in progress...',
         liveActivity: {
             subtitle: 'Tracking distance',
             button: 'View progress',

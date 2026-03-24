@@ -302,7 +302,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                 if (!policyID) {
                     return;
                 }
-                enablePolicyWorkflows(policyID, isEnabled);
+                enablePolicyWorkflows(policyID, isEnabled, policy?.approvalMode, policy?.autoReporting, policy?.harvesting, policy?.reimbursementChoice);
             },
             disabled: isSmartLimitEnabled,
             disabledAction: onDisabledWorkflowPress,
@@ -328,7 +328,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                     Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.rules.alias, ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID)));
                     return;
                 }
-                enablePolicyRules(policyID, isEnabled, undefined, policyData);
+                enablePolicyRules(policy, isEnabled, undefined, policyData);
             },
             onPress: () => {
                 if (!policyID) {
@@ -413,7 +413,11 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                 if (!policyID) {
                     return;
                 }
-                enablePolicyTaxes(policyID, isEnabled);
+                if (isEnabled) {
+                    enablePolicyTaxes(policyID, true, policy?.taxRates);
+                    return;
+                }
+                enablePolicyTaxes(policyID, false);
             },
             onPress: () => {
                 if (!policyID) {
