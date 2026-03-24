@@ -8,7 +8,7 @@ import type {ValueOf} from 'type-fest';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import type {Coordinate} from '@components/MapView/MapViewTypes';
 import utils from '@components/MapView/utils';
-import type {UnreportedExpenseListItemType} from '@components/SelectionListWithSections/types';
+import type {UnreportedExpenseListItemType} from '@components/Search/SearchList/ListItem/types';
 import type {TransactionWithOptionalSearchFields} from '@components/TransactionItemRow';
 import type {MergeDuplicatesParams} from '@libs/API/parameters';
 import {getCategoryDefaultTaxRate, isCategoryMissing} from '@libs/CategoryUtils';
@@ -101,6 +101,7 @@ type TransactionParams = {
     tag?: string;
     taxCode?: string;
     taxAmount?: number;
+    taxValue?: string;
     billable?: boolean;
     pendingFields?: Partial<Record<TransactionPendingFieldsKey, ValueOf<typeof CONST.RED_BRICK_ROAD_PENDING_ACTION>>>;
     reimbursable?: boolean;
@@ -437,6 +438,7 @@ function buildOptimisticTransaction(params: BuildOptimisticTransactionParams): T
         tag = '',
         taxCode = '',
         taxAmount = 0,
+        taxValue,
         billable = false,
         pendingFields,
         reimbursable = true,
@@ -550,6 +552,7 @@ function buildOptimisticTransaction(params: BuildOptimisticTransactionParams): T
         tag,
         taxCode,
         taxAmount,
+        taxValue,
         modifiedAmount,
         billable,
         reimbursable,
@@ -2725,7 +2728,7 @@ function shouldShowExpenseBreakdown(transactions?: Transaction[]): boolean {
 /**
  * Creates sections data for unreported expenses, marking transactions with DELETE pending action as disabled
  */
-function createUnreportedExpenses(transactions: Array<Transaction | undefined>): UnreportedExpenseListItemType[] {
+function createUnreportedExpenses(transactions: Array<OnyxEntry<Transaction> | undefined>): UnreportedExpenseListItemType[] {
     return transactions
         .filter((t): t is Transaction => t !== undefined)
         .map(

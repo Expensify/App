@@ -250,6 +250,7 @@ const translations: TranslationDeepObject<typeof en> = {
         na: 'N/D',
         noResultsFound: 'Nenhum resultado encontrado',
         noResultsFoundMatching: (searchString: string) => `Nenhum resultado encontrado para "${searchString}"`,
+        suggestionsAvailableFor: (searchString: string) => (searchString ? `Sugestões disponíveis para "${searchString}".` : 'Sugestões disponíveis.'),
         recentDestinations: 'Destinos recentes',
         timePrefix: 'É',
         conjunctionFor: 'para',
@@ -452,6 +453,8 @@ const translations: TranslationDeepObject<typeof en> = {
         downloadAsCSV: 'Baixar como CSV',
         print: 'Imprimir',
         help: 'Ajuda',
+        collapsed: 'Recolhido',
+        expanded: 'Expandido',
         expenseReport: 'Relatório de despesas',
         expenseReports: 'Relatórios de despesas',
         rateOutOfPolicy: 'Taxa fora da política',
@@ -523,6 +526,7 @@ const translations: TranslationDeepObject<typeof en> = {
         concierge: {sidePanelGreeting: 'Oi, como posso ajudar?', showHistory: 'Mostrar histórico'},
         duplicateReport: 'Duplicar relatório',
         approver: 'Aprovador',
+        copyOfReportName: (reportName: string) => `Cópia de ${reportName}`,
     },
     socials: {
         podcast: 'Siga-nos no Podcast',
@@ -669,6 +673,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 faceId: 'Face ID',
                 touchId: 'Touch ID',
                 opticId: 'Optic ID',
+                passkey: 'Passkey',
             },
             statusNeverRegistered: 'Nunca registrado',
             statusNotRegistered: 'Não registrado',
@@ -686,11 +691,10 @@ const translations: TranslationDeepObject<typeof en> = {
         letsVerifyItsYou: 'Vamos verificar se é você',
         nowLetsAuthenticateYou: 'Agora, vamos autenticar você...',
         letsAuthenticateYou: 'Vamos autenticar você...',
-        verifyYourself: {
-            biometrics: 'Verifique sua identidade com seu rosto ou impressão digital',
-        },
+        verifyYourself: {biometrics: 'Verifique sua identidade com seu rosto ou impressão digital', passkeys: 'Verifique sua identidade com uma chave de acesso'},
         enableQuickVerification: {
             biometrics: 'Ative uma verificação rápida e segura usando seu rosto ou impressão digital. Nenhuma senha ou código é necessário.',
+            passkeys: 'Ative uma verificação rápida e segura usando uma chave de acesso. Nenhuma senha ou código é necessário.',
         },
         revoke: {
             title: 'Reconhecimento facial/digital e passkeys',
@@ -990,6 +994,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 subtitle: 'Carteira',
             },
             validateAccount: {title: 'Valide sua conta para continuar usando o Expensify', subtitle: 'Conta', cta: 'Validar'},
+            fixFailedBilling: {title: 'Não foi possível cobrar o cartão cadastrado', subtitle: 'Assinatura'},
         },
         assignedCards: 'Seus Cartões Expensify',
         assignedCardsRemaining: ({amount}: {amount: string}) => `${amount} restante`,
@@ -2667,6 +2672,8 @@ ${amount} para ${merchant} - ${date}`,
         requiredWhen2FAEnabled: 'Obrigatório quando a 2FA estiver ativada',
         requestNewCode: ({timeRemaining}: {timeRemaining: string}) => `Solicite um novo código em <a>${timeRemaining}</a>`,
         requestNewCodeAfterErrorOccurred: 'Solicitar um novo código',
+        timeRemainingAnnouncement: ({timeRemaining}) => `Tempo restante: ${timeRemaining} ${timeRemaining === 1 ? 'segundo' : 'segundos'}`,
+        timeExpiredAnnouncement: 'O tempo expirou',
         error: {
             pleaseFillMagicCode: 'Insira seu código mágico',
             incorrectMagicCode: 'Código mágico incorreto ou inválido. Tente novamente ou solicite um novo código.',
@@ -7772,12 +7779,17 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
             prompt: 'Tem certeza de que deseja parar o rastreamento por GPS e mudar para o Expensify Classic?',
             confirm: 'Parar e mudar',
         },
+        switchAccountWarningTripInProgress: {
+            title: 'Rastreamento por GPS em andamento',
+            prompt: 'Tem certeza de que quer parar o rastreamento por GPS e mudar de conta?',
+            confirm: 'Parar e trocar',
+        },
         locationServicesRequiredModal: {
             title: 'Acesso à localização necessário',
             confirm: 'Abrir configurações',
             prompt: 'Permita o acesso à localização nas configurações do seu dispositivo para iniciar o rastreamento de distância por GPS.',
         },
-        fabGpsTripExplained: 'Ir para a tela de GPS (Ação flutuante)',
+        gpsFloatingPillText: 'Rastreamento por GPS em andamento...',
         liveActivity: {subtitle: 'Rastreamento de distância', button: 'Ver progresso'},
     },
     reportCardLostOrDamaged: {
@@ -8216,6 +8228,8 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
             title: 'Código Expensify',
             discountCode: 'Código de desconto',
             enterCode: 'Insira um código Expensify para aplicar à sua assinatura.',
+            discountMessage: (promoDiscount: string, validBillingCycles: string) =>
+                `Você receberá ${promoDiscount}% de desconto nas próximas ${validBillingCycles ? `${validBillingCycles} ` : ''}cobranças de faturamento.`,
             apply: 'Aplicar',
             error: {
                 invalid: 'Este código é inválido',
@@ -8243,6 +8257,8 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
                 `<muted-text>Saiba mais na nossa <a href="${CONST.PRICING}">página de preços</a> ou converse com nossa equipe no seu ${hasAdminsRoom ? `<a href="adminsRoom">Sala #admins.</a>` : 'Sala #admins.'}</muted-text>`,
             estimatedPrice: 'Preço estimado',
             changesBasedOn: 'Isso muda de acordo com o uso do seu Cartão Expensify e as opções de assinatura abaixo.',
+            collectBillingDescription: 'Os espaços de trabalho Collect são cobrados mensalmente por membro, sem compromisso anual.',
+            pricing: 'Preços',
         },
         requestEarlyCancellation: {
             title: 'Solicitar cancelamento antecipado',

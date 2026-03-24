@@ -1693,10 +1693,8 @@ type ReportSettingsNavigatorParamList = {
         // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
         backTo?: Routes;
     };
-    [SCREENS.REPORT_SETTINGS.WRITE_CAPABILITY]: {
+    [SCREENS.REPORT_SETTINGS.DYNAMIC_SETTINGS_WRITE_CAPABILITY]: {
         reportID: string;
-        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
-        backTo?: Routes;
     };
     [SCREENS.REPORT_SETTINGS.DYNAMIC_SETTINGS_VISIBILITY]: {
         reportID: string;
@@ -2136,6 +2134,7 @@ type MoneyRequestNavigatorParamList = {
         transactionID: string;
         reportID: string;
         reportActionID: string;
+        backToReport?: string;
     };
     [SCREENS.MONEY_REQUEST.STEP_HOURS_EDIT]: {
         action: IOUAction;
@@ -2143,6 +2142,7 @@ type MoneyRequestNavigatorParamList = {
         transactionID: string;
         reportID: string;
         reportActionID: string;
+        backToReport?: string;
     };
 };
 
