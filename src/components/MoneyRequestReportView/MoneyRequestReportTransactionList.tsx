@@ -38,7 +38,7 @@ import {turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {setOptimisticTransactionThread} from '@libs/actions/Report';
 import {getReportLayoutGroupBy, setReportLayoutGroupBy} from '@libs/actions/ReportLayout';
 import {clearActiveTransactionIDs, setActiveTransactionIDs} from '@libs/actions/TransactionThreadNavigation';
-import {doesCardFeedExist} from '@libs/CardUtils';
+import {doesCardFeedExist, getCardDescription} from '@libs/CardUtils';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import {hasNonReimbursableTransactions, isBillableEnabledOnPolicy} from '@libs/MoneyRequestReportUtils';
 import {navigationRef} from '@libs/Navigation/Navigation';
@@ -170,6 +170,8 @@ function MoneyRequestReportTransactionList({
     const [reportDetailsColumns] = useOnyx(ONYXKEYS.NVP_REPORT_DETAILS_COLUMNS);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [cardFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER);
+    const [customCardNames] = useOnyx(ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES);
+    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
     const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
 
     const shouldShowGroupedTransactions = isExpenseReport(report) && !isIOUReport(report);
@@ -246,6 +248,25 @@ function MoneyRequestReportTransactionList({
         );
     }, [sortBy, sortOrder, transactions, localeCompare, report, policy]);
 
+    // Resolve card names from cardList so report layout matches search page display.
+    // The search API pre-resolves cardName on transactions, but local Onyx transactions have the raw value.
+    const transactionsWithResolvedCards: TransactionWithOptionalHighlight[] = useMemo(() => {
+        if (!cardList) {
+            return sortedTransactions;
+        }
+        return sortedTransactions.map((transaction) => {
+            const card = transaction.cardID ? cardList[transaction.cardID] : undefined;
+            if (!card) {
+                return transaction;
+            }
+            const resolvedCardName = getCardDescription(card, translate);
+            if (!resolvedCardName || resolvedCardName === transaction.cardName) {
+                return transaction;
+            }
+            return {...transaction, cardName: resolvedCardName};
+        });
+    }, [sortedTransactions, cardList, translate]);
+
     const highlightedTransactionIDs = useMemo(() => new Set(newTransactions.map(({transactionID}) => transactionID)), [newTransactions]);
 
     // Always use default columns for money request report view (don't use user-customized search columns)
@@ -289,13 +310,13 @@ function MoneyRequestReportTransactionList({
             return [];
         }
         if (currentGroupBy === CONST.REPORT_LAYOUT.GROUP_BY.TAG) {
-            return groupTransactionsByTag(sortedTransactions, report, localeCompare);
+            return groupTransactionsByTag(transactionsWithResolvedCards, report, localeCompare);
         }
-        return groupTransactionsByCategory(sortedTransactions, report, localeCompare);
+        return groupTransactionsByCategory(transactionsWithResolvedCards, report, localeCompare);
         // groupTransactionsByTag() and groupTransactionsByCategory() use the full report object to perform a null check.
         // We skip including the report as a dependency to avoid unnecessary re-renders as it changes often and we only need to recalculate when currency changes.
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [sortedTransactions, currentGroupBy, report?.reportID, report?.currency, localeCompare, shouldShowGroupedTransactions]);
+    }, [transactionsWithResolvedCards, currentGroupBy, report?.reportID, report?.currency, localeCompare, shouldShowGroupedTransactions]);
 
     const visualOrderTransactionIDs = useMemo(() => {
         if (!shouldShowGroupedTransactions || groupedTransactions.length === 0) {
@@ -558,13 +579,14 @@ function MoneyRequestReportTransactionList({
                                           isCardFeedDeleted={
                                               cardFeeds === undefined ? undefined : !!transaction.bank && !doesCardFeedExist(transaction.bank as OnyxTypes.CompanyCardFeed, cardFeeds)
                                           }
+                                          customCardNames={customCardNames}
                                       />
                                   );
                               })}
                           </View>
                       );
                   })
-                : sortedTransactions.map((transaction) => (
+                : transactionsWithResolvedCards.map((transaction) => (
                       <MoneyRequestReportTransactionItem
                           key={transaction.transactionID}
                           transaction={transaction}
@@ -583,6 +605,7 @@ function MoneyRequestReportTransactionList({
                           scrollToNewTransaction={transaction.transactionID === newTransactions?.at(0)?.transactionID ? scrollToNewTransaction : undefined}
                           onArrowRightPress={handleArrowRightPress}
                           isCardFeedDeleted={cardFeeds === undefined ? undefined : !!transaction.bank && !doesCardFeedExist(transaction.bank as OnyxTypes.CompanyCardFeed, cardFeeds)}
+                          customCardNames={customCardNames}
                       />
                   ))}
         </View>

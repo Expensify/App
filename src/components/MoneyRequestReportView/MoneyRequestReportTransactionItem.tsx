@@ -69,6 +69,9 @@ type MoneyRequestReportTransactionItemProps = {
 
     /** Whether the card feed has been deleted */
     isCardFeedDeleted?: boolean;
+
+    /** Custom card names mapping cardID to display name */
+    customCardNames?: Record<number, string>;
 };
 
 function MoneyRequestReportTransactionItem({
@@ -88,6 +91,7 @@ function MoneyRequestReportTransactionItem({
     onArrowRightPress,
     shouldBeHighlighted,
     isCardFeedDeleted,
+    customCardNames,
 }: MoneyRequestReportTransactionItemProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -165,6 +169,7 @@ function MoneyRequestReportTransactionItem({
                         }}
                         onArrowRightPress={() => onArrowRightPress?.(transaction.transactionID)}
                         isHover={hovered}
+                        customCardNames={customCardNames}
                         isCardFeedDeleted={isCardFeedDeleted}
                     />
                 )}

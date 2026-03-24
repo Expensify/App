@@ -4396,6 +4396,7 @@ function getColumnsToShow({
               [CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT]: true,
           }
         : {
+              [CONST.SEARCH.TABLE_COLUMNS.AVATAR]: true,
               [CONST.SEARCH.TABLE_COLUMNS.RECEIPT]: true,
               [CONST.SEARCH.TABLE_COLUMNS.TYPE]: true,
               [CONST.SEARCH.TABLE_COLUMNS.DATE]: true,
@@ -4424,6 +4425,7 @@ function getColumnsToShow({
               [CONST.SEARCH.TABLE_COLUMNS.EXPORTED_TO]: false,
               [CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT]: true,
               [CONST.SEARCH.TABLE_COLUMNS.ACTION]: false,
+              [CONST.SEARCH.TABLE_COLUMNS.COMMENTS]: false,
           };
 
     // If the user has set custom columns for the search, we need to respect their preference and order
@@ -4602,23 +4604,26 @@ function getColumnsToShow({
     }
 
     if (customResult) {
-        const alwaysShownColumns = new Set<SearchColumnType>([
+        // Columns that always have content and don't need data-presence checks.
+        // These are false in the default columns map (so they don't appear by default)
+        // but should be kept when explicitly selected by the user in custom columns.
+        const nonDataColumns = new Set<SearchColumnType>([
             CONST.SEARCH.TABLE_COLUMNS.AVATAR,
             CONST.SEARCH.TABLE_COLUMNS.RECEIPT,
             CONST.SEARCH.TABLE_COLUMNS.TYPE,
             CONST.SEARCH.TABLE_COLUMNS.DATE,
+            CONST.SEARCH.TABLE_COLUMNS.STATUS,
             CONST.SEARCH.TABLE_COLUMNS.COMMENTS,
             CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT,
-            CONST.SEARCH.TABLE_COLUMNS.STATUS,
-            CONST.SEARCH.TABLE_COLUMNS.REPORT_ID,
-            CONST.SEARCH.TABLE_COLUMNS.BASE_62_REPORT_ID,
-            CONST.SEARCH.TABLE_COLUMNS.TITLE,
-            CONST.SEARCH.TABLE_COLUMNS.ACTION,
             CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE,
             CONST.SEARCH.TABLE_COLUMNS.BILLABLE,
+            CONST.SEARCH.TABLE_COLUMNS.BASE_62_REPORT_ID,
+            CONST.SEARCH.TABLE_COLUMNS.REPORT_ID,
+            CONST.SEARCH.TABLE_COLUMNS.TITLE,
+            CONST.SEARCH.TABLE_COLUMNS.ACTION,
         ]);
 
-        return customResult.filter((col) => alwaysShownColumns.has(col) || columns[col]);
+        return customResult.filter((col) => nonDataColumns.has(col) || columns[col]);
     }
 
     return (Object.keys(columns) as SearchColumnType[]).filter((col) => columns[col]);
