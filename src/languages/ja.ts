@@ -7525,6 +7525,7 @@ ${reportName}
         preStyledText: '事前にスタイル設定されたテキスト',
         viewAttachment: '添付ファイルを表示',
         contextMenuAvailable: 'コンテキストメニューが利用可能です。Shift+F10 を押して開きます。',
+        contextMenuAvailableMacOS: 'コンテキストメニューが利用可能です。VO-Shift-M を押して開きます。',
         contextMenuAvailableNative: 'コンテキストメニューが利用可能です。ダブルタップして長押しで開きます。',
         selectAllFeatures: 'すべての機能を選択',
         selectAllTransactions: 'すべての取引を選択',

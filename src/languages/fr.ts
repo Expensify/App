@@ -7654,6 +7654,7 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
         preStyledText: 'Texte pré-stylé',
         viewAttachment: 'Afficher la pièce jointe',
         contextMenuAvailable: 'Menu contextuel disponible. Appuyez sur Shift+F10 pour l’ouvrir.',
+        contextMenuAvailableMacOS: 'Menu contextuel disponible. Appuyez sur VO-Shift-M pour l’ouvrir.',
         contextMenuAvailableNative: 'Menu contextuel disponible. Appuyez deux fois et maintenez pour l’ouvrir.',
         selectAllFeatures: 'Sélectionner toutes les fonctionnalités',
         selectAllTransactions: 'Sélectionner toutes les transactions',

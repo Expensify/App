@@ -7618,6 +7618,7 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
         preStyledText: 'Testo preformattato',
         viewAttachment: 'Visualizza allegato',
         contextMenuAvailable: 'Menu contestuale disponibile. Premi Shift+F10 per aprirlo.',
+        contextMenuAvailableMacOS: 'Menu contestuale disponibile. Premi VO-Shift-M per aprirlo.',
         contextMenuAvailableNative: 'Menu contestuale disponibile. Tocca due volte e tieni premuto per aprirlo.',
         selectAllFeatures: 'Seleziona tutte le funzionalità',
         selectAllTransactions: 'Seleziona tutte le transazioni',

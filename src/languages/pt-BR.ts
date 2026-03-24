@@ -7588,6 +7588,7 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
         preStyledText: 'Texto pré-formatado',
         viewAttachment: 'Ver anexo',
         contextMenuAvailable: 'Menu de contexto disponível. Pressione Shift+F10 para abrir.',
+        contextMenuAvailableMacOS: 'Menu de contexto disponível. Pressione VO-Shift-M para abrir.',
         contextMenuAvailableNative: 'Menu de contexto disponível. Toque duas vezes e mantenha pressionado para abrir.',
         selectAllFeatures: 'Selecionar todos os recursos',
         selectAllTransactions: 'Selecionar todas as transações',
