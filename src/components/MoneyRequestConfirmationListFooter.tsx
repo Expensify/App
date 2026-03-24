@@ -447,12 +447,13 @@ function MoneyRequestConfirmationListFooter({
     const resolvedThumbnail = isLocalFile ? receiptThumbnail : tryResolveUrlFromApiRoot(receiptThumbnail ?? '');
     const resolvedReceiptImage = isLocalFile ? receiptImage : tryResolveUrlFromApiRoot(receiptImage ?? '');
 
-    const {thumbnailUri} = useLocalReceiptThumbnail(resolvedReceiptImage as string, !!isLocalFile);
+    const [receiptImageLoaded, setReceiptImageLoaded] = useState(false);
+    const {thumbnailUri} = useLocalReceiptThumbnail(resolvedReceiptImage as string, !!isLocalFile, receiptImageLoaded);
 
-    // For local files: use thumbnail when ready, show empty string (loading state) while generating
+    // For local files: use thumbnail when ready, fall back to full-resolution image while generating
     // For remote files: use existing behavior unchanged
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const effectiveReceiptSource = isLocalFile ? thumbnailUri || '' : resolvedThumbnail || resolvedReceiptImage || '';
+    const effectiveReceiptSource = isLocalFile ? thumbnailUri || resolvedReceiptImage || '' : resolvedThumbnail || resolvedReceiptImage || '';
 
     const shouldNavigateToUpgradePath = !policyForMovingExpensesID && !shouldSelectPolicy;
     // Time requests appear as regular expenses after they're created, with editable amount and merchant, not hours and rate
@@ -1037,6 +1038,7 @@ function MoneyRequestConfirmationListFooter({
     const [compactReceiptContainerWidth, setCompactReceiptContainerWidth] = useState(0);
     const hasEndedReceiptLoadSpan = useRef(false);
     const handleReceiptLoad = useCallback((event?: {nativeEvent: {width: number; height: number}}) => {
+        setReceiptImageLoaded(true);
         if (!hasEndedReceiptLoadSpan.current) {
             hasEndedReceiptLoadSpan.current = true;
             endSpan(CONST.TELEMETRY.SPAN_CONFIRMATION_RECEIPT_LOAD);

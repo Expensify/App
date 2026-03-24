@@ -8,13 +8,13 @@ const thumbnailCache = new Map<string, string>();
  * State updates are wrapped in startTransition so React deprioritizes
  * the re-render and doesn't interrupt navigation animations.
  */
-function useLocalReceiptThumbnail(sourceUri: string | undefined, isLocalFile: boolean): {thumbnailUri: string | undefined; isGenerating: boolean} {
+function useLocalReceiptThumbnail(sourceUri: string | undefined, isLocalFile: boolean, enabled = true): {thumbnailUri: string | undefined; isGenerating: boolean} {
     const [thumbnailUri, setThumbnailUri] = useState<string | undefined>(() => (sourceUri ? thumbnailCache.get(sourceUri) : undefined));
     const [isGenerating, setIsGenerating] = useState(false);
     const [, startTransition] = useTransition();
 
     useEffect(() => {
-        if (!sourceUri || !isLocalFile) {
+        if (!sourceUri || !isLocalFile || !enabled) {
             return;
         }
 
@@ -45,7 +45,7 @@ function useLocalReceiptThumbnail(sourceUri: string | undefined, isLocalFile: bo
         return () => {
             cancelled = true;
         };
-    }, [sourceUri, isLocalFile, startTransition]);
+    }, [sourceUri, isLocalFile, startTransition, enabled]);
 
     return {thumbnailUri, isGenerating};
 }
