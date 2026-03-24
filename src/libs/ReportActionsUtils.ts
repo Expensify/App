@@ -1238,11 +1238,11 @@ function shouldReportActionBeVisible(
 /**
  * Checks if the new marker should be hidden for the report action.
  */
-function shouldHideNewMarker(reportAction: OnyxEntry<ReportAction>): boolean {
+function shouldHideNewMarker(reportAction: OnyxEntry<ReportAction>, isOffline: boolean): boolean {
     if (!reportAction) {
         return true;
     }
-    return !deprecatedIsNetworkOffline && reportAction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+    return !isOffline && reportAction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 }
 
 /**
