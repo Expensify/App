@@ -29,6 +29,7 @@ import {setMoneyRequestDistance, setMoneyRequestOdometerReading, setMoneyRequest
 import {handleMoneyRequestStepDistanceNavigation} from '@libs/actions/IOU/MoneyRequest';
 import {setDraftSplitTransaction} from '@libs/actions/IOU/Split';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
+import {getMimeTypeFromUri} from '@libs/fileDownload/FileUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {shouldUseTransactionDraft} from '@libs/IOUUtils';
 import Log from '@libs/Log';
@@ -117,6 +118,7 @@ function IOURequestStepDistanceOdometer({
     const personalPolicy = usePersonalPolicy();
     const defaultExpensePolicy = useDefaultExpensePolicy();
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
+    const [ownerBillingGraceEndPeriod] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const selfDMReport = useSelfDMReport();
     const {policyForMovingExpenses} = usePolicyForMovingExpenses();
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
@@ -135,7 +137,10 @@ function IOURequestStepDistanceOdometer({
     const currentUserEmailParam = currentUserPersonalDetails.login ?? '';
     const [shouldEnableDiscardConfirmation, setShouldEnableDiscardConfirmation] = useState(!isEditingConfirmation && !isEditing);
 
-    const shouldUseDefaultExpensePolicy = useMemo(() => shouldUseDefaultExpensePolicyUtil(iouType, defaultExpensePolicy, amountOwed), [iouType, defaultExpensePolicy, amountOwed]);
+    const shouldUseDefaultExpensePolicy = useMemo(
+        () => shouldUseDefaultExpensePolicyUtil(iouType, defaultExpensePolicy, amountOwed, ownerBillingGraceEndPeriod),
+        [iouType, defaultExpensePolicy, amountOwed, ownerBillingGraceEndPeriod],
+    );
     const customUnitRateID = getRateID(transaction);
 
     const mileageRate = DistanceRequestUtils.getRate({transaction: currentTransaction, policy: shouldUseDefaultExpensePolicy ? defaultExpensePolicy : policy});
@@ -308,8 +313,9 @@ function IOURequestStepDistanceOdometer({
         if (!isOdometerInputValid(text, startReading)) {
             return;
         }
-        setStartReading(text);
-        startReadingRef.current = text;
+        const textForDisplay = DistanceRequestUtils.prepareTextForDisplay(text);
+        setStartReading(textForDisplay);
+        startReadingRef.current = textForDisplay;
         if (formError) {
             setFormError('');
         }
@@ -319,8 +325,9 @@ function IOURequestStepDistanceOdometer({
         if (!isOdometerInputValid(text, endReading)) {
             return;
         }
-        setEndReading(text);
-        endReadingRef.current = text;
+        const textForDisplay = DistanceRequestUtils.prepareTextForDisplay(text);
+        setEndReading(textForDisplay);
+        endReadingRef.current = textForDisplay;
         if (formError) {
             setFormError('');
         }
@@ -394,7 +401,12 @@ function IOURequestStepDistanceOdometer({
                 (typeof odometerStartImage !== 'string' ? odometerStartImage?.name : odometerStartImage?.split('/').pop()) ??
                 (typeof odometerEndImage !== 'string' ? odometerEndImage?.name : odometerEndImage?.split('/').pop()) ??
                 '';
-            setMoneyRequestReceipt(transactionID, uri, name, isTransactionDraft);
+            const type =
+                stitchedImage?.type ??
+                (typeof odometerStartImage !== 'string' ? odometerStartImage?.type : getMimeTypeFromUri(odometerStartImage)) ??
+                (typeof odometerEndImage !== 'string' ? odometerEndImage?.type : getMimeTypeFromUri(odometerEndImage)) ??
+                'image/jpeg';
+            setMoneyRequestReceipt(transactionID, uri, name, isTransactionDraft, type);
         }
 
         if (isEditing) {
@@ -492,6 +504,7 @@ function IOURequestStepDistanceOdometer({
             draftTransactionIDs,
             isSelfTourViewed: !!isSelfTourViewed,
             amountOwed,
+            ownerBillingGraceEndPeriod,
         });
     };
 
