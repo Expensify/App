@@ -1,5 +1,5 @@
 import {AccessibilityInfo} from 'react-native';
-import type {NativeMethods} from 'react-native';
+import type {HostInstance} from 'react-native';
 import type MoveAccessibilityFocus from './types';
 import type {FocusTarget} from './types';
 
@@ -11,18 +11,18 @@ function isFocusTargetRef(focusTarget: FocusTarget): focusTarget is FocusTargetR
     return typeof focusTarget === 'object' && focusTarget !== null && 'current' in focusTarget;
 }
 
-function isNativeMethods(focusTarget: unknown): focusTarget is NativeMethods {
-    return typeof focusTarget === 'object' && focusTarget !== null && ('setNativeProps' in focusTarget || 'measure' in focusTarget);
+function isHostInstance(focusTarget: unknown): focusTarget is HostInstance {
+    return typeof focusTarget === 'object' && focusTarget !== null && ('setNativeProps' in focusTarget || 'measure' in focusTarget || 'focus' in focusTarget);
 }
 
-function resolveFocusTarget(focusTarget: FocusTarget): number | NativeMethods | null {
+function resolveFocusTarget(focusTarget: FocusTarget): number | HostInstance | null {
     const target = isFocusTargetRef(focusTarget) ? focusTarget.current : focusTarget;
 
     if (typeof target === 'number') {
         return target;
     }
 
-    if (isNativeMethods(target)) {
+    if (isHostInstance(target)) {
         return target;
     }
 
