@@ -6,7 +6,6 @@ import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleCon
 import type CONST from '@src/CONST';
 import type {OptionData} from '@src/libs/ReportUtils';
 import type {Locale, Onboarding, OnboardingPurpose, PersonalDetailsList, Policy, Report, ReportAction, ReportActions, ReportNameValuePairs, Transaction} from '@src/types/onyx';
-import type {ReportAttributes, ReportAttributesDerivedValue} from '@src/types/onyx/DerivedValues';
 
 type OptionMode = ValueOf<typeof CONST.OPTION_MODE>;
 
@@ -63,9 +62,6 @@ type OptionRowLHNDataProps = {
     /** The full data of the report */
     fullReport: OnyxEntry<Report>;
 
-    /** The transaction thread report associated with the current report, if any */
-    oneTransactionThreadReport: OnyxEntry<Report>;
-
     /** Array of report name value pairs for this report */
     reportNameValuePairs: OnyxEntry<ReportNameValuePairs>;
 
@@ -112,12 +108,6 @@ type OptionRowLHNDataProps = {
 
     /** Callback to execute when the OptionList lays out */
     onLayout?: (event: LayoutChangeEvent) => void;
-
-    /** The report attributes for the report */
-    reportAttributes: OnyxEntry<ReportAttributes>;
-
-    /** The derived report attributes for all reports */
-    reportAttributesDerived?: ReportAttributesDerivedValue['reports'];
 
     /** Whether to show the educational tooltip for the GBR or RBR */
     shouldShowRBRorGBRTooltip: boolean;
