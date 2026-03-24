@@ -611,7 +611,7 @@ function MoneyRequestHeader({reportID: reportIDProp, onBackButtonPress}: MoneyRe
                         deleteTrackExpense({
                             chatReportID: report?.parentReportID,
                             chatReport: parentReport,
-                            transactionID: transaction.transactionID,
+                            transaction,
                             reportAction: parentReportAction,
                             iouReport,
                             chatIOUReport,

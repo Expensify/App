@@ -107,19 +107,20 @@ function SplitBillDetailsPage({route, report, reportAction}: SplitBillDetailsPag
 
     const onConfirm = useCallback(() => {
         setIsConfirmed(true);
-        completeSplitBill(
-            reportID,
+        completeSplitBill({
+            chatReportID: reportID,
             reportAction,
-            draftTransaction,
-            session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
+            updatedTransaction: draftTransaction,
+            unmodifiedTransaction: transaction,
+            sessionAccountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
             isASAPSubmitBetaEnabled,
             quickAction,
             transactionViolations,
             betas,
             personalDetails,
-            session?.email,
-        );
-    }, [reportID, reportAction, draftTransaction, session?.accountID, session?.email, isASAPSubmitBetaEnabled, quickAction, transactionViolations, betas, personalDetails]);
+            sessionEmail: session?.email,
+        });
+    }, [reportID, reportAction, draftTransaction, transaction, session?.accountID, session?.email, isASAPSubmitBetaEnabled, quickAction, transactionViolations, betas, personalDetails]);
 
     return (
         <ScreenWrapper testID="SplitBillDetailsPage">
@@ -176,7 +177,7 @@ function SplitBillDetailsPage({route, report, reportAction}: SplitBillDetailsPag
                                 policyID={isPolicyExpenseChat(report) ? report?.policyID : undefined}
                                 action={isEditingSplitBill ? CONST.IOU.ACTION.EDIT : CONST.IOU.ACTION.CREATE}
                                 onToggleBillable={(billable) => {
-                                    setDraftSplitTransaction(transaction?.transactionID, draftTransaction, {billable});
+                                    setDraftSplitTransaction(transaction?.transactionID, draftTransaction ?? transaction, {billable});
                                 }}
                                 isConfirmed={isConfirmed}
                             />

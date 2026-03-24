@@ -1135,7 +1135,19 @@ describe('split expense', () => {
         expect(iouAction).toBeTruthy();
 
         // Complete this split bill without changing the description
-        completeSplitBill(reportID, iouAction, updatedSplitTransaction, RORY_ACCOUNT_ID, false, undefined, {}, [CONST.BETAS.ALL], mockPersonalDetails, RORY_EMAIL);
+        completeSplitBill({
+            chatReportID: reportID,
+            reportAction: iouAction,
+            updatedTransaction: updatedSplitTransaction,
+            unmodifiedTransaction: splitTransaction,
+            sessionAccountID: RORY_ACCOUNT_ID,
+            isASAPSubmitBetaEnabled: false,
+            quickAction: undefined,
+            transactionViolations: {},
+            betas: [CONST.BETAS.ALL],
+            personalDetails: mockPersonalDetails,
+            sessionEmail: RORY_EMAIL,
+        });
 
         await waitForBatchedUpdates();
 
@@ -1530,7 +1542,19 @@ describe('split expense', () => {
             },
         };
 
-        completeSplitBill(reportID, iouAction, updatedSplitTransaction, RORY_ACCOUNT_ID, false, undefined, {}, [CONST.BETAS.ALL], completeSplitPersonalDetails, RORY_EMAIL);
+        completeSplitBill({
+            chatReportID: reportID,
+            reportAction: iouAction,
+            updatedTransaction: updatedSplitTransaction,
+            unmodifiedTransaction: splitTransaction,
+            sessionAccountID: RORY_ACCOUNT_ID,
+            isASAPSubmitBetaEnabled: false,
+            quickAction: undefined,
+            transactionViolations: {},
+            betas: [CONST.BETAS.ALL],
+            personalDetails: completeSplitPersonalDetails,
+            sessionEmail: RORY_EMAIL,
+        });
 
         await waitForBatchedUpdates();
 
@@ -3143,15 +3167,15 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
                 transactionThreadReportID = iouAction?.childReportID;
             },
         });
+        const originalTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`);
 
         // Put the expense on hold
-        if (originalTransactionID && transactionThreadReportID) {
-            putOnHold(originalTransactionID, 'Test hold reason', transactionThreadReportID);
+        if (originalTransaction && transactionThreadReportID) {
+            putOnHold(originalTransaction, 'Test hold reason', transactionThreadReportID);
         }
         await waitForBatchedUpdates();
 
         // Verify the transaction is on hold
-        const originalTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`);
         expect(originalTransaction?.comment?.hold).toBeDefined();
 
         // Get the first IOU action for the split flow
@@ -4359,7 +4383,7 @@ describe('updateSplitExpenseAmountField', () => {
             reportID: '456',
         };
 
-        updateSplitExpenseAmountField(draftTransaction, currentTransactionID, 20);
+        updateSplitExpenseAmountField(draftTransaction, currentTransactionID, undefined, 20);
         await waitForBatchedUpdates();
 
         const updatedDraftTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${originalTransactionID}`);
@@ -4397,9 +4421,7 @@ describe('updateSplitExpenseAmountField', () => {
                 },
             },
         };
-
-        await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
-        await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`, {
+        const originalTransaction = {
             transactionID: originalTransactionID,
             amount: -20000,
             currency: 'USD',
@@ -4413,7 +4435,10 @@ describe('updateSplitExpenseAmountField', () => {
                     quantity: 200,
                 },
             },
-        });
+        };
+
+        await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+        await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`, originalTransaction);
         await waitForBatchedUpdates();
 
         const draftTransaction: Transaction = {
@@ -4449,7 +4474,7 @@ describe('updateSplitExpenseAmountField', () => {
             reportID: '456',
         };
 
-        updateSplitExpenseAmountField(draftTransaction, currentTransactionID, 15000, policy);
+        updateSplitExpenseAmountField(draftTransaction, currentTransactionID, originalTransaction as Transaction, 15000, policy);
         await waitForBatchedUpdates();
 
         const updatedDraftTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${originalTransactionID}`);
@@ -4777,7 +4802,7 @@ describe('initDraftSplitExpenseDataForEdit', () => {
             reportID,
         };
 
-        initDraftSplitExpenseDataForEdit(draftTransaction, splitExpenseTransactionID, reportID);
+        initDraftSplitExpenseDataForEdit(draftTransaction, splitExpenseTransactionID, originalTransaction, reportID);
         await waitForBatchedUpdates();
 
         const editDraftTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`);
@@ -4796,7 +4821,7 @@ describe('initDraftSplitExpenseDataForEdit', () => {
     });
 
     it('should not create draft if draftTransaction or splitExpenseTransactionID is missing', async () => {
-        initDraftSplitExpenseDataForEdit(undefined, 'split-456', 'report-789');
+        initDraftSplitExpenseDataForEdit(undefined, 'split-456', undefined, 'report-789');
         await waitForBatchedUpdates();
 
         const editDraftTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`);
@@ -5022,7 +5047,7 @@ describe('removeSplitExpenseField', () => {
         await Onyx.set(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${originalTransactionID}`, draftTransaction);
         await waitForBatchedUpdates();
 
-        removeSplitExpenseField(draftTransaction, splitExpenseTransactionID);
+        removeSplitExpenseField(draftTransaction, splitExpenseTransactionID, undefined);
         await waitForBatchedUpdates();
 
         const updatedDraft = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${originalTransactionID}`);
@@ -5038,7 +5063,7 @@ describe('removeSplitExpenseField', () => {
     });
 
     it('should not remove if draftTransaction or splitExpenseTransactionID is missing', async () => {
-        removeSplitExpenseField(undefined, 'split-123');
+        removeSplitExpenseField(undefined, 'split-123', undefined);
         await waitForBatchedUpdates();
     });
 });

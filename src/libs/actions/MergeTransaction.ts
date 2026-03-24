@@ -302,6 +302,7 @@ type MergeTransactionRequestParams = {
     targetTransaction: Transaction;
     allTransactionViolations: OnyxCollection<TransactionViolations>;
     sourceTransaction: Transaction;
+    onyxSourceTransaction: OnyxEntry<Transaction>;
     targetTransactionThreadReport: OnyxEntry<Report>;
     targetTransactionThreadParentReport: OnyxEntry<Report>;
     targetTransactionThreadParentReportNextStep: OnyxEntry<ReportNextStepDeprecated>;
@@ -321,6 +322,7 @@ function mergeTransactionRequest({
     mergeTransaction,
     targetTransaction,
     sourceTransaction,
+    onyxSourceTransaction,
     targetTransactionThreadReport,
     targetTransactionThreadParentReport,
     targetTransactionThreadParentReportNextStep,
@@ -492,7 +494,7 @@ function mergeTransactionRequest({
         } else {
             const {optimisticData, successData, failureData} = getDeleteTrackExpenseInformation(
                 selfDMReport,
-                sourceTransaction.transactionID,
+                onyxSourceTransaction,
                 sourceIouAction,
                 false,
                 undefined,

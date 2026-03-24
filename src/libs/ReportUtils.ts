@@ -5130,12 +5130,13 @@ const changeMoneyRequestHoldStatus = (reportAction: OnyxEntry<ReportAction>, iou
 
     const isOnHold = isOnHoldTransactionUtils(iouTransaction);
     const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${moneyRequestReport.policyID}`];
-
+    // @todo: We should not rely on deprecatedAllTransactions to get the transaction details, but we need to do it for now to avoid refactoring the entire action file. We will remove this once we refactor the action file and get rid of Onyx in it.
+    const transaction = deprecatedAllTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
     if (isOnHold) {
-        if (reportAction.childReportID) {
-            unholdRequest(transactionID, reportAction.childReportID, policy);
+        if (reportAction.childReportID && transaction) {
+            unholdRequest(transaction, reportAction.childReportID, policy);
         } else {
-            Log.warn('Missing reportAction.childReportID during money request unhold');
+            Log.warn('Missing reportAction.childReportID or transaction during money request unhold');
         }
     } else {
         const activeRoute = encodeURIComponent(Navigation.getActiveRoute());

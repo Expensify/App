@@ -28,7 +28,7 @@ type AttachmentUploadValidationProps = {
     onAttachmentPreviewClose: () => void;
     exceededMaxLength: boolean | number | null;
     shouldAddOrReplaceReceipt: boolean;
-    transactionID: string | undefined;
+    transaction: OnyxEntry<OnyxTypes.Transaction>;
     report: OnyxEntry<OnyxTypes.Report>;
     newParentReport: OnyxEntry<OnyxTypes.Report>;
     currentDate: string | undefined;
@@ -44,7 +44,7 @@ function useAttachmentUploadValidation({
     onAttachmentPreviewClose,
     exceededMaxLength,
     shouldAddOrReplaceReceipt,
-    transactionID,
+    transaction,
     report,
     newParentReport,
     currentDate,
@@ -90,9 +90,9 @@ function useAttachmentUploadValidation({
             return;
         }
 
-        if (shouldAddOrReplaceReceipt && transactionID) {
+        if (shouldAddOrReplaceReceipt && transaction) {
             const source = URL.createObjectURL(files.at(0) as Blob);
-            replaceReceipt({transactionID, file: files.at(0) as File, source, transactionPolicy: policy, transactionPolicyCategories: policyCategories});
+            replaceReceipt({transaction, file: files.at(0) as File, source, transactionPolicy: policy, transactionPolicyCategories: policyCategories});
             return;
         }
 
@@ -192,7 +192,7 @@ function useAttachmentUploadValidation({
             const files = getFilesFromClipboardEvent(e);
             const items = Array.from(e.dataTransfer?.items ?? []);
 
-            if (shouldAddOrReplaceReceipt && transactionID) {
+            if (shouldAddOrReplaceReceipt && transaction?.transactionID) {
                 const file = files.at(0);
                 if (!file) {
                     return;
@@ -205,7 +205,7 @@ function useAttachmentUploadValidation({
             attachmentUploadType.current = 'receipt';
             validateFiles(files, items, {isValidatingReceipts: true});
         },
-        [policy, userBillingGraceEndPeriods, ownerBillingGraceEndPeriod, shouldAddOrReplaceReceipt, transactionID, validateFiles],
+        [policy, userBillingGraceEndPeriods, ownerBillingGraceEndPeriod, shouldAddOrReplaceReceipt, transaction?.transactionID, validateFiles],
     );
 
     return {

@@ -18,6 +18,7 @@ import {clearErrorFields, clearErrors, setErrors} from '@userActions/FormActions
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/MoneyRequestHoldReasonForm';
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import HoldReasonFormView from './HoldReasonFormView';
 
 type HoldReasonPageProps =
@@ -34,6 +35,7 @@ function HoldReasonPage({route}: HoldReasonPageProps) {
     const ancestors = useAncestors(report);
 
     const [parentReportOwnerAccountID] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`, {selector: getReportOwnerAccountID});
+    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`);
 
     // We first check if the report is part of a policy - if not, then it's a personal request (1:1 request)
     // For personal requests, we need to allow both users to put the request on hold
@@ -56,7 +58,7 @@ function HoldReasonPage({route}: HoldReasonPageProps) {
             return;
         }
 
-        putOnHold(transactionID, values.comment, reportID, ancestors);
+        putOnHold(transaction, values.comment, reportID, ancestors);
         Navigation.goBack(backTo);
     };
 

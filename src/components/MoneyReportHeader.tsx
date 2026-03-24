@@ -355,6 +355,8 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
 
     const iouTransactionID = isMoneyRequestAction(requestParentReportAction) ? getOriginalMessage(requestParentReportAction)?.IOUTransactionID : undefined;
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(iouTransactionID)}`);
+    const linkedTrackedExpenseTransactionID = getExistingTransactionID(transaction?.linkedTrackedExpenseReportAction);
+    const [linkedTrackedExpenseTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(linkedTrackedExpenseTransactionID)}`);
 
     const [dismissedRejectUseExplanation] = useOnyx(ONYXKEYS.NVP_DISMISSED_REJECT_USE_EXPLANATION);
     const [dismissedHoldUseExplanation] = useOnyx(ONYXKEYS.NVP_DISMISSED_HOLD_USE_EXPLANATION);
@@ -962,7 +964,7 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
     );
 
     const duplicateExpenseTransaction = useCallback(
-        (transactionList: OnyxTypes.Transaction[]) => {
+        (transactionList: OnyxTypes.Transaction[], linkedTrackedExpenseTransactions: OnyxTypes.Transaction[]) => {
             if (!transactionList.length) {
                 return;
             }
@@ -974,6 +976,7 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
             for (const item of transactionList) {
                 const existingTransactionID = getExistingTransactionID(item.linkedTrackedExpenseReportAction);
                 const existingTransactionDraft = existingTransactionID ? transactionDrafts?.[existingTransactionID] : undefined;
+                const existingTransaction = existingTransactionID? linkedTrackedExpenseTransactions?.find(txn => txn?.transactionID === existingTransactionID) : undefined;
 
                 duplicateTransactionAction({
                     transaction: item,
@@ -990,6 +993,7 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
                     targetPolicyCategories: activePolicyCategories,
                     targetReport: activePolicyExpenseChat,
                     existingTransactionDraft,
+                    existingTransaction,
                     draftTransactionIDs,
                     betas,
                     personalDetails,
@@ -1911,7 +1915,7 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
 
                 temporarilyDisableDuplicateAction();
 
-                duplicateExpenseTransaction([transaction]);
+                duplicateExpenseTransaction([transaction], linkedTrackedExpenseTransaction ? [linkedTrackedExpenseTransaction]: []);
             },
             shouldCloseModalOnSelect: shouldDuplicateCloseModalOnSelect,
         },

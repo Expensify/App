@@ -54,9 +54,10 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
     const {reportID, transactionID, splitExpenseTransactionID = '', backTo} = route.params;
 
     const [splitExpenseDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`);
-    const [originalTransactionDraft] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${splitExpenseDraftTransaction?.comment?.originalTransactionID}`, undefined, [
+    const [splitExpenseOriginalTransactionDraft] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${splitExpenseDraftTransaction?.comment?.originalTransactionID}`, undefined, [
         splitExpenseDraftTransaction?.comment?.originalTransactionID,
     ]);
+    const [splitExpenseOriginalTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(splitExpenseDraftTransaction?.comment?.originalTransactionID)}`);
 
     const splitExpenseDraftTransactionDetails = useMemo<Partial<TransactionDetails>>(() => getTransactionDetails(splitExpenseDraftTransaction) ?? {}, [splitExpenseDraftTransaction]);
     const allTransactions = useAllTransactions();
@@ -183,7 +184,7 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
                         return;
                     }
 
-                    initDraftSplitExpenseDataForEdit(originalTransactionDraft, splitExpenseTransactionID, reportID, CONST.IOU.OPTIMISTIC_DISTANCE_SPLIT_TRANSACTION_ID);
+                    initDraftSplitExpenseDataForEdit(splitExpenseOriginalTransactionDraft, splitExpenseTransactionID, splitExpenseOriginalTransaction, reportID, CONST.IOU.OPTIMISTIC_DISTANCE_SPLIT_TRANSACTION_ID);
                     Navigation.navigate(
                         ROUTES.MONEY_REQUEST_STEP_DISTANCE.getRoute(
                             CONST.IOU.ACTION.EDIT,
@@ -369,7 +370,7 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
                             style={[styles.w100]}
                             text={translate('common.save')}
                             onPress={() => {
-                                updateSplitExpenseField(splitExpenseDraftTransaction, originalTransactionDraft, splitExpenseTransactionID, transaction, currentPolicy);
+                                updateSplitExpenseField(splitExpenseDraftTransaction, splitExpenseOriginalTransactionDraft, splitExpenseTransactionID, transaction, currentPolicy);
                                 Navigation.goBack(backTo);
                             }}
                             pressOnEnter

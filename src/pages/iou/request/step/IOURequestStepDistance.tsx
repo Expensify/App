@@ -456,7 +456,7 @@ function IOURequestStepDistance({
             if (isEditingSplit && originalSplitTransactionDraft) {
                 setDraftSplitTransaction(
                     CONST.IOU.OPTIMISTIC_TRANSACTION_ID,
-                    originalSplitTransactionDraft,
+                    originalSplitTransactionDraft ?? transaction,
                     {waypoints: currentTransaction?.comment?.waypoints, routes: currentTransaction?.routes},
                     policy,
                 );
@@ -476,7 +476,7 @@ function IOURequestStepDistance({
             }
             if (transaction?.transactionID && report?.reportID) {
                 updateMoneyRequestDistance({
-                    transactionID: transaction?.transactionID,
+                    transaction,
                     transactionThreadReport: report,
                     parentReport,
                     waypoints,
@@ -511,8 +511,7 @@ function IOURequestStepDistance({
         originalSplitTransactionDraft,
         transactionBackup,
         waypoints,
-        transaction?.routes,
-        transaction?.transactionID,
+        transaction,
         report,
         navigateBack,
         currentTransaction?.comment?.waypoints,
