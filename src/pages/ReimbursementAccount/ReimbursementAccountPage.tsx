@@ -46,7 +46,7 @@ import {
 } from '@userActions/BankAccounts';
 import {getPaymentMethods} from '@userActions/PaymentMethods';
 import {isCurrencySupportedForGlobalReimbursement} from '@userActions/Policy/Policy';
-import {clearReimbursementAccount, clearReimbursementAccountDraft} from '@userActions/ReimbursementAccount';
+import {cancelChangingToNewBankAccount, clearReimbursementAccount, clearReimbursementAccountDraft} from '@userActions/ReimbursementAccount';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -86,6 +86,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: 
     const [onfidoToken = ''] = useOnyx(ONYXKEYS.ONFIDO_TOKEN);
     const [isLoadingApp = false] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const topmostFullScreenRoute = useRootNavigationState((state) => state?.routes.findLast((lastRoute) => isFullScreenName(lastRoute.name)));
+    const [isChangingBusinessBankAccount] = useOnyx(ONYXKEYS.IS_CHANGING_TO_NEW_BANK_ACCOUNT);
 
     const {isBetaEnabled} = usePermissions();
     const policyName = policy?.name ?? '';
@@ -154,6 +155,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: 
         return () => {
             clearReimbursementAccountDraft();
             clearReimbursementAccount();
+            cancelChangingToNewBankAccount();
             getPaymentMethods(true);
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -209,7 +211,11 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: 
      * Retrieve verified business bank account currently being set up.
      */
     function fetchData(preserveCurrentStep = false) {
-        if ((!policyIDParam && !bankAccountIDParam) || isLoadingOnyxValue(reimbursementAccountMetadata)) {
+        if (
+            (!policyIDParam && !bankAccountIDParam) ||
+            isLoadingOnyxValue(reimbursementAccountMetadata) ||
+            (policyIDParam !== undefined && backTo === ROUTES.BANK_ACCOUNT_CONNECT_EXISTING_BUSINESS_BANK_ACCOUNT.getRoute(policyIDParam))
+        ) {
             return;
         }
         if (bankAccountIDParam) {
@@ -236,6 +242,10 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: 
 
     useEffect(() => {
         if (isPreviousPolicy && !!reimbursementAccount) {
+            return;
+        }
+
+        if (isChangingBusinessBankAccount) {
             return;
         }
 

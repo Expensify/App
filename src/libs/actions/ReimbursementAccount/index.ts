@@ -1,5 +1,7 @@
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
+import mapCurrencyToCountry from '@libs/mapCurrencyToCountry';
+import type {Country} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReimbursementAccountForm} from '@src/types/form';
@@ -46,6 +48,28 @@ function clearReimbursementAccount() {
 }
 
 /**
+ * Prepares the app to set up a new bank account by clearing existing data,
+ * initializing draft with country and currency, and marking the account change.
+ * We need to temporarily clear this data to set up new account without disconnecting existing one
+ */
+function prepareNewBankAccountSetup(currency: string) {
+    clearReimbursementAccount();
+    clearReimbursementAccountDraft();
+    updateReimbursementAccountDraft({
+        country: mapCurrencyToCountry(currency) as Country,
+        currency,
+    });
+    Onyx.set(ONYXKEYS.IS_CHANGING_TO_NEW_BANK_ACCOUNT, true);
+}
+
+/**
+ * Cancels the change to new bank account
+ */
+function cancelChangingToNewBankAccount() {
+    Onyx.set(ONYXKEYS.IS_CHANGING_TO_NEW_BANK_ACCOUNT, false);
+}
+
+/**
  * Triggers a modal to open allowing the user to reset their bank account
  */
 function requestResetBankAccount() {
@@ -79,4 +103,6 @@ export {
     setBankAccountState,
     setReimbursementAccountOptionPressed,
     updateReimbursementAccount,
+    cancelChangingToNewBankAccount,
+    prepareNewBankAccountSetup,
 };

@@ -16,7 +16,7 @@ import PaymentMethodList from '@pages/settings/Wallet/PaymentMethodList';
 import type {PaymentMethodPressHandlerParams} from '@pages/settings/Wallet/WalletPage/types';
 import {setReimbursementAccountLoading} from '@userActions/BankAccounts';
 import {setWorkspaceReimbursement} from '@userActions/Policy/Policy';
-import {navigateToBankAccountRoute} from '@userActions/ReimbursementAccount';
+import {navigateToBankAccountRoute, prepareNewBankAccountSetup} from '@userActions/ReimbursementAccount';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
@@ -32,12 +32,18 @@ function ConnectExistingBusinessBankAccountPage({route}: ConnectExistingBusiness
     const policyName = policy?.name ?? '';
     const policyCurrency = policy?.outputCurrency ?? '';
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const hasFullyWorkingConnectedAccount = policy?.achAccount?.state === CONST.BANK_ACCOUNT.STATE.OPEN;
+    const fullyWorkingConnectedAccountBankAccountID = policy?.achAccount?.bankAccountID ?? CONST.DEFAULT_NUMBER_ID;
 
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
     const handleAddBankAccountPress = () => {
-        navigateToBankAccountRoute({policyID});
+        if (hasFullyWorkingConnectedAccount) {
+            prepareNewBankAccountSetup(policyCurrency);
+        }
+
+        navigateToBankAccountRoute(hasFullyWorkingConnectedAccount ? {} : {policyID});
     };
 
     const handleItemPress = ({methodID, accountData}: PaymentMethodPressHandlerParams) => {
@@ -94,6 +100,7 @@ function ConnectExistingBusinessBankAccountPage({route}: ConnectExistingBusiness
                     itemIconRight={icons.ArrowRight}
                     filterType={CONST.BANK_ACCOUNT.TYPE.BUSINESS}
                     filterCurrency={policyCurrency}
+                    excludeBankAccountID={fullyWorkingConnectedAccountBankAccountID}
                     shouldHideDefaultBadge
                 />
             </ScrollView>

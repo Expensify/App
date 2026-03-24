@@ -510,7 +510,12 @@ function updateWorkflowDataOnApproverRemoval({approvalWorkflows, removedApprover
 /**
  * Get eligible business bank accounts for the workspace reimbursement workflow
  */
-function getEligibleExistingBusinessBankAccounts(bankAccountList: BankAccountList | undefined, policyCurrency: string | undefined, shouldIncludePartiallySetup?: boolean) {
+function getEligibleExistingBusinessBankAccounts(
+    bankAccountList: BankAccountList | undefined,
+    policyCurrency: string | undefined,
+    shouldIncludePartiallySetup?: boolean,
+    excludeBankAccountID?: number,
+) {
     if (!bankAccountList || policyCurrency === undefined) {
         return [];
     }
@@ -519,7 +524,8 @@ function getEligibleExistingBusinessBankAccounts(bankAccountList: BankAccountLis
         return (
             account.bankCurrency === policyCurrency &&
             (account.accountData?.state === CONST.BANK_ACCOUNT.STATE.OPEN || (shouldIncludePartiallySetup && isBankAccountPartiallySetup(account.accountData?.state))) &&
-            account.accountData?.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS
+            account.accountData?.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS &&
+            account.methodID !== excludeBankAccountID
         );
     });
 }
