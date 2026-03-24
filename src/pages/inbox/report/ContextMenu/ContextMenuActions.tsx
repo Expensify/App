@@ -1202,7 +1202,12 @@ const ContextMenuActions: ContextMenuAction[] = [
         isAnonymousAction: false,
         textTranslateKey: 'reportActionContextMenu.flagAsOffensive',
         icon: 'Flag',
-        shouldShow: ({type, reportAction, isArchivedRoom, isChronosReport, reportID}) => true,
+        shouldShow: ({type, reportAction, isArchivedRoom, isChronosReport, reportID}) =>
+            type === CONST.CONTEXT_MENU_TYPES.REPORT_ACTION &&
+            canFlagReportAction(reportAction, reportID) &&
+            !isArchivedRoom &&
+            !isChronosReport &&
+            reportAction?.actorAccountID !== CONST.ACCOUNT_ID.CONCIERGE,
         onPress: (closePopover, {reportID, reportAction}) => {
             if (!reportID) {
                 return;
