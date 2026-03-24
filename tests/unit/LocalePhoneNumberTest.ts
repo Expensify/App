@@ -1,36 +1,22 @@
-import Onyx from 'react-native-onyx';
 import * as LocalePhoneNumber from '../../src/libs/LocalePhoneNumber';
-import ONYXKEYS from '../../src/ONYXKEYS';
-import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 const ES_NUMBER = '+34702474537';
+const ES_CODE = 34;
 const US_NUMBER = '+18332403627';
+const US_CODE = 1;
 const INVALID_NUMBER = '+4818332403627';
 const EMAIL_LOGIN = 'user@test.com';
 
 describe('LocalePhoneNumber utils', () => {
-    beforeAll(() =>
-        Onyx.init({
-            keys: ONYXKEYS,
-        }),
-    );
-
     describe('formatPhoneNumber function', () => {
-        beforeEach(() =>
-            Onyx.multiSet({
-                [ONYXKEYS.SESSION]: {email: 'current@user.com'},
-                [ONYXKEYS.COUNTRY_CODE]: 1,
-            }).then(waitForBatchedUpdates),
-        );
-
-        afterEach(() => Onyx.clear());
-
         it('should display a number from the same region formatted locally', () => {
-            expect(LocalePhoneNumber.formatPhoneNumber(US_NUMBER)).toBe('(833) 240-3627');
+            expect(LocalePhoneNumber.formatPhoneNumber(US_NUMBER, US_CODE)).toBe('(833) 240-3627');
+            expect(LocalePhoneNumber.formatPhoneNumber(ES_NUMBER, ES_CODE)).toBe('702 47 45 37');
         });
 
         it('should display a number from another region formatted internationally', () => {
-            expect(LocalePhoneNumber.formatPhoneNumber(ES_NUMBER)).toBe('+34 702 47 45 37');
+            expect(LocalePhoneNumber.formatPhoneNumber(US_NUMBER, ES_CODE)).toBe('+1 833-240-3627');
+            expect(LocalePhoneNumber.formatPhoneNumber(ES_NUMBER, US_CODE)).toBe('+34 702 47 45 37');
         });
 
         it('should display a number with a space after the region code if the phone number is not valid', () => {
