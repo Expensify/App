@@ -289,12 +289,14 @@ function getPolicyExpenseChatName({report, personalDetailsList}: {report: OnyxEn
  */
 function getInvoicesChatName({
     report,
+    policy,
     receiverPolicy,
     personalDetails,
     policies,
     currentUserAccountID,
 }: {
     report: OnyxEntry<Report>;
+    policy: OnyxEntry<Policy>;
     receiverPolicy: OnyxEntry<Policy>;
     personalDetails?: Partial<PersonalDetailsList>;
     policies?: Policy[];
@@ -306,7 +308,7 @@ function getInvoicesChatName({
     const isCurrentUserReceiver = (isIndividual && invoiceReceiverAccountID === currentUserAccountID) || (!isIndividual && isPolicyAdmin(receiverPolicy));
 
     if (isCurrentUserReceiver) {
-        return getPolicyName({report, policies});
+        return getPolicyName({report, policy, policies});
     }
 
     if (isIndividual) {
@@ -479,7 +481,7 @@ function computeReportNameBasedOnReportAction(
     }
 
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.UNREPORTED_TRANSACTION)) {
-        return Parser.htmlToText(getUnreportedTransactionMessage(translate, parentReportAction));
+        return Parser.htmlToText(getUnreportedTransactionMessage(translate, parentReportAction, reportPolicy));
     }
 
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION)) {
@@ -891,7 +893,7 @@ function computeReportName({
             receiverPolicyID = (receiver as {policyID: string}).policyID;
         }
         const invoiceReceiverPolicy = receiverPolicyID ? policies?.[`${ONYXKEYS.COLLECTION.POLICY}${receiverPolicyID}`] : undefined;
-        formattedName = getInvoicesChatName({report, receiverPolicy: invoiceReceiverPolicy, personalDetails: personalDetailsList, currentUserAccountID});
+        formattedName = getInvoicesChatName({report, policy: reportPolicy, receiverPolicy: invoiceReceiverPolicy, personalDetails: personalDetailsList, currentUserAccountID});
     }
 
     if (isSelfDM(report)) {

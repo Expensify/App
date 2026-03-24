@@ -61,6 +61,7 @@ import {
     getMovedTransactionMessage,
     getReportPreviewMessage,
     getReportTransactions,
+    getUnreportedTransactionMessage,
     isCanceledTaskReport,
     isExpensifyOnlyParticipantInReport,
 } from '@libs/ReportUtils';
@@ -4101,6 +4102,83 @@ describe('OptionsListUtils', () => {
                 currentUserLogin: CURRENT_USER_EMAIL,
             });
             expect(lastMessage).toBe(Parser.htmlToText(getMovedTransactionMessage(translateLocal, movedTransactionAction)));
+        });
+        it('UNREPORTED_TRANSACTION action without policy', async () => {
+            const mockIsSearchTopmostFullScreenRoute = jest.mocked(isSearchTopmostFullScreenRoute);
+            mockIsSearchTopmostFullScreenRoute.mockReturnValue(false);
+            const report: Report = createRandomReport(2, undefined);
+            const fromReport: Report = {
+                ...createRandomReport(1, undefined),
+                reportName: 'Expense Report #456',
+            };
+            const unreportedTransactionAction: ReportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.UNREPORTED_TRANSACTION,
+                message: [{type: 'COMMENT', text: ''}],
+                originalMessage: {
+                    fromReportID: fromReport.reportID,
+                },
+            };
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${fromReport.reportID}`, fromReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {
+                [unreportedTransactionAction.reportActionID]: unreportedTransactionAction,
+            });
+            const lastMessage = getLastMessageTextForReport({
+                translate: translateLocal,
+                report,
+                lastActorDetails: null,
+                policy: undefined,
+                isReportArchived: false,
+                currentUserLogin: CURRENT_USER_EMAIL,
+            });
+            expect(lastMessage).toBe(Parser.htmlToText(getUnreportedTransactionMessage(translateLocal, unreportedTransactionAction, undefined)));
+        });
+        it('UNREPORTED_TRANSACTION action with policy uses policy for report name', async () => {
+            const mockIsSearchTopmostFullScreenRoute = jest.mocked(isSearchTopmostFullScreenRoute);
+            mockIsSearchTopmostFullScreenRoute.mockReturnValue(false);
+
+            const testPolicyID = 'unreported_policy_test_123';
+            const policy: Policy = {
+                id: testPolicyID,
+                name: 'My Unreported Workspace',
+                type: CONST.POLICY.TYPE.TEAM,
+                role: CONST.POLICY.ROLE.USER,
+                isPolicyExpenseChatEnabled: false,
+                owner: CURRENT_USER_EMAIL,
+                outputCurrency: CONST.CURRENCY.USD,
+            } as Policy;
+
+            const report: Report = createRandomReport(2, undefined);
+            const fromReport: Report = {
+                ...createRandomReport(3, undefined),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                policyID: testPolicyID,
+                reportName: undefined,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            };
+            const unreportedTransactionAction: ReportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.UNREPORTED_TRANSACTION,
+                message: [{type: 'COMMENT', text: ''}],
+                originalMessage: {
+                    fromReportID: fromReport.reportID,
+                },
+            };
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${fromReport.reportID}`, fromReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${testPolicyID}`, policy);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {
+                [unreportedTransactionAction.reportActionID]: unreportedTransactionAction,
+            });
+            const lastMessage = getLastMessageTextForReport({
+                translate: translateLocal,
+                report,
+                lastActorDetails: null,
+                policy,
+                isReportArchived: false,
+                currentUserLogin: CURRENT_USER_EMAIL,
+            });
+            expect(lastMessage).toBe(Parser.htmlToText(getUnreportedTransactionMessage(translateLocal, unreportedTransactionAction, policy)));
         });
         describe('SUBMITTED action', () => {
             it('should return automatic submitted message if submitted via harvesting', async () => {
