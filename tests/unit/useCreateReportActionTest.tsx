@@ -5,6 +5,7 @@ import useCreateReportAction from '@hooks/useCreateReportAction';
 import useOnyx from '@hooks/useOnyx';
 import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Policy} from '@src/types/onyx';
 
@@ -308,6 +309,86 @@ describe('useCreateReportAction', () => {
 
             const navigateArg = jest.mocked(Navigation.navigate).mock.calls.at(0)?.at(0) as string;
             expect(navigateArg).toContain('upgrade');
+        });
+    });
+
+    describe('policies loaded with valid workspace', () => {
+        it('does not navigate to upgrade path when user has a workspace', () => {
+            const onCreateReport = jest.fn();
+            const policies = [makePaidPolicy()];
+
+            const {result} = renderHook(() =>
+                useCreateReportAction({
+                    onCreateReport,
+                    groupPoliciesWithChatEnabled: policies,
+                }),
+            );
+
+            act(() => {
+                result.current.createReportAction();
+            });
+
+            // Should call onCreateReport directly, not navigate to upgrade
+            expect(onCreateReport).toHaveBeenCalledWith(false);
+            const calls = jest.mocked(Navigation.navigate).mock.calls;
+            const navigatedToUpgrade = calls.some((call) => {
+                const firstArg = call.at(0);
+                return typeof firstArg === 'string' && firstArg.includes('upgrade');
+            });
+            expect(navigatedToUpgrade).toBe(false);
+        });
+    });
+
+    describe('pre-load safety', () => {
+        it('does not call onCreateReport before policies load', () => {
+            const impl = ((_key: string, options?: {selector?: (value: unknown) => unknown}) => {
+                const value = options?.selector ? options.selector(undefined) : undefined;
+                return [value, {status: 'loading'}];
+            }) as typeof useOnyx;
+            mockUseOnyx.mockImplementation(impl);
+
+            const onCreateReport = jest.fn();
+
+            const {result} = renderHook(() =>
+                useCreateReportAction({
+                    onCreateReport,
+                    groupPoliciesWithChatEnabled: [makePaidPolicy()],
+                }),
+            );
+
+            act(() => {
+                result.current.createReportAction();
+            });
+
+            expect(onCreateReport).not.toHaveBeenCalled();
+            expect(Navigation.navigate).not.toHaveBeenCalled();
+            expect(mockShowConfirmModal).not.toHaveBeenCalled();
+        });
+    });
+
+    describe('empty report confirmation dismissed', () => {
+        it('calls onCreateReport directly when confirmation was previously dismissed', () => {
+            mockUseHasEmptyReportsForPolicy.mockReturnValue(true);
+            setupUseOnyx({
+                [ONYXKEYS.NVP_EMPTY_REPORTS_CONFIRMATION_DISMISSED]: true,
+            });
+
+            const onCreateReport = jest.fn();
+            const policies = [makePaidPolicy()];
+
+            const {result} = renderHook(() =>
+                useCreateReportAction({
+                    onCreateReport,
+                    groupPoliciesWithChatEnabled: policies,
+                }),
+            );
+
+            act(() => {
+                result.current.createReportAction();
+            });
+
+            expect(onCreateReport).toHaveBeenCalledWith(false);
+            expect(mockOpenCreateReportConfirmation).not.toHaveBeenCalled();
         });
     });
 

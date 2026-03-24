@@ -37,9 +37,9 @@ function CreateReportMenuItem() {
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const hasViolations = hasViolationsReportUtils(undefined, transactionViolations, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, session?.email ?? '');
 
-    const groupPaidPoliciesWithChatEnabledCb = (policies: Parameters<typeof groupPaidPoliciesWithExpenseChatEnabledSelector>[0]) =>
+    const groupPaidPoliciesWithChatEnabledSelector = (policies: Parameters<typeof groupPaidPoliciesWithExpenseChatEnabledSelector>[0]) =>
         groupPaidPoliciesWithExpenseChatEnabledSelector(policies, session?.email);
-    const [groupPoliciesWithChatEnabled = CONST.EMPTY_ARRAY] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: groupPaidPoliciesWithChatEnabledCb}, [session?.email]);
+    const [groupPoliciesWithChatEnabled = CONST.EMPTY_ARRAY] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: groupPaidPoliciesWithChatEnabledSelector}, [session?.email]);
 
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`);
