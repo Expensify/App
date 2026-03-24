@@ -35,8 +35,8 @@ const ServerFailureScreen = createScreenWithDefaults(
 );
 
 /**
- * Shows the offline-market ATM prompt when the card requires offline PIN verification,
- * otherwise shows the standard "PIN changed" confirmation.
+ * Show the standard change PIN success screen for online market cards. For offline market cards (e.g. UK),
+ * prompt the user to visit an ATM to complete the change.
  */
 function ChangePINSuccessScreen() {
     const {payload} = useMultifactorAuthenticationState();
