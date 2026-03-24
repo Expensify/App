@@ -170,9 +170,9 @@ function getMatchingFullScreenRoute(route: NavigationPartialRoute) {
 
     // Handle dynamic routes: find the appropriate full screen route
     if (route.path) {
-        const dynamicRouteSuffix = findMatchingDynamicSuffix(route.path);
-        if (dynamicRouteSuffix) {
-            const pathWithoutDynamicSuffix = getPathWithoutDynamicSuffix(route.path, dynamicRouteSuffix);
+        const suffixMatch = findMatchingDynamicSuffix(route.path);
+        if (suffixMatch) {
+            const pathWithoutDynamicSuffix = getPathWithoutDynamicSuffix(route.path, suffixMatch.actualSuffix, suffixMatch.pattern);
 
             if (!pathWithoutDynamicSuffix) {
                 return undefined;

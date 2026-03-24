@@ -1,5 +1,6 @@
 import {renderHook} from '@testing-library/react-native';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
+import type {DynamicRouteSuffix} from '@src/ROUTES';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 
 jest.mock('@hooks/useRootNavigationState', () => jest.fn());
@@ -12,6 +13,8 @@ jest.mock('@src/ROUTES', () => ({
         VERIFY_ACCOUNT: {path: 'verify-account'},
         CUSTOM_TEST_ROUTE: {path: 'custom-test-route'},
         ADDRESS_COUNTRY: {path: 'country'},
+        FLAG_COMMENT: {path: 'flag/:reportID/:reportActionID'},
+        MEMBER_DETAILS: {path: 'member-details/:accountID'},
     },
 }));
 
@@ -82,5 +85,48 @@ describe('useDynamicBackPath', () => {
         const {result} = renderHook(() => useDynamicBackPath(path));
 
         expect(result.current).toBe('settings/wallet');
+    });
+
+    const FLAG_COMMENT_PATH = 'flag/:reportID/:reportActionID' as DynamicRouteSuffix;
+    const MEMBER_DETAILS_PATH = 'member-details/:accountID' as DynamicRouteSuffix;
+
+    it('should remove parametric suffix with single param', () => {
+        getPathFromStateMock.mockReturnValue('r/123/members/member-details/456');
+
+        const {result} = renderHook(() => useDynamicBackPath(MEMBER_DETAILS_PATH));
+
+        expect(result.current).toBe('r/123/members');
+    });
+
+    it('should remove parametric suffix with multiple params', () => {
+        getPathFromStateMock.mockReturnValue('r/123/flag/456/abc');
+
+        const {result} = renderHook(() => useDynamicBackPath(FLAG_COMMENT_PATH));
+
+        expect(result.current).toBe('r/123');
+    });
+
+    it('should NOT remove parametric suffix when segment values dont fill pattern', () => {
+        getPathFromStateMock.mockReturnValue('r/123/flag/456');
+
+        const {result} = renderHook(() => useDynamicBackPath(FLAG_COMMENT_PATH));
+
+        expect(result.current).toBe('r/123/flag/456');
+    });
+
+    it('should preserve query params when removing parametric suffix', () => {
+        getPathFromStateMock.mockReturnValue('r/123/flag/456/abc?tab=details');
+
+        const {result} = renderHook(() => useDynamicBackPath(FLAG_COMMENT_PATH));
+
+        expect(result.current).toBe('r/123?tab=details');
+    });
+
+    it('should NOT remove parametric suffix when static segment mismatches', () => {
+        getPathFromStateMock.mockReturnValue('r/123/other/456/abc');
+
+        const {result} = renderHook(() => useDynamicBackPath(FLAG_COMMENT_PATH));
+
+        expect(result.current).toBe('r/123/other/456/abc');
     });
 });

@@ -10,7 +10,7 @@ import splitPathAndQuery from './splitPathAndQuery';
  * @param dynamicSuffix - The dynamic suffix to strip (e.g., 'country')
  * @returns The path without the suffix and with only base-path query params preserved
  */
-function getPathWithoutDynamicSuffix(fullPath: string, dynamicSuffix: string): Route {
+function getPathWithoutDynamicSuffix(fullPath: string, dynamicSuffix: string, patternSuffix?: string): Route {
     const [pathWithoutQuery, query] = splitPathAndQuery(fullPath);
     const pathWithoutDynamicSuffix = pathWithoutQuery?.slice(0, -(dynamicSuffix.length + 1)) ?? '';
 
@@ -18,7 +18,7 @@ function getPathWithoutDynamicSuffix(fullPath: string, dynamicSuffix: string): R
         return '';
     }
 
-    const paramsToStrip = getDynamicRouteQueryParams(dynamicSuffix);
+    const paramsToStrip = getDynamicRouteQueryParams(patternSuffix ?? dynamicSuffix);
     let filteredQuery = query;
     if (paramsToStrip?.length && query) {
         const params = new URLSearchParams(query);

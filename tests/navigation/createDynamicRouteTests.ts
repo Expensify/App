@@ -18,6 +18,8 @@ jest.mock('@src/ROUTES', () => ({
         INVITE: {path: 'invite'},
         FILTERS: {path: 'filters'},
         ADDRESS_COUNTRY: {path: 'country', getRoute: (country: string) => `country?country=${country}`},
+        FLAG_COMMENT: {path: 'flag/:reportID/:reportActionID'},
+        MEMBER_DETAILS: {path: 'member-details/:accountID'},
     },
 }));
 
@@ -115,5 +117,33 @@ describe('createDynamicRoute', () => {
         mockGetActiveRoute.mockReturnValue(activeRoute);
 
         expect(() => createDynamicRoute(suffixWithQuery)).toThrow('[createDynamicRoute] Query param "country" exists in both base path and dynamic suffix. This is not allowed.');
+    });
+
+    it('should append parametric suffix with single param to path', () => {
+        mockGetActiveRoute.mockReturnValue('r/123/members');
+
+        const result = createDynamicRoute('member-details/456');
+
+        expect(result).toBe('r/123/members/member-details/456');
+    });
+
+    it('should append parametric suffix with multiple params to path', () => {
+        mockGetActiveRoute.mockReturnValue('r/123');
+
+        const result = createDynamicRoute('flag/456/abc');
+
+        expect(result).toBe('r/123/flag/456/abc');
+    });
+
+    it('should append parametric suffix and preserve base query params', () => {
+        mockGetActiveRoute.mockReturnValue('search?q=test');
+
+        const result = createDynamicRoute('flag/456/abc');
+
+        expect(result).toBe('search/flag/456/abc?q=test');
+    });
+
+    it('should throw for suffix that does not match any parametric pattern', () => {
+        expect(() => createDynamicRoute('unknown/456/abc')).toThrow();
     });
 });
