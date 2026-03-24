@@ -1,5 +1,6 @@
 import type {ReactElement, RefObject} from 'react';
 import type {GestureResponderEvent, InputModeOptions, StyleProp, TextStyle, ViewStyle} from 'react-native';
+import type {TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import type {ListItem, ValidListItem} from './ListItem/types';
@@ -133,7 +134,7 @@ type SelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> &
         onSelectAll?: () => void;
 
         /** Callback to fire when the item is long pressed */
-        onLongPressRow?: (item: TItem) => void;
+        onLongPressRow?: (item: TItem, itemTransactions?: TransactionListItemType[]) => void;
 
         /** Custom header content to render instead of the default select all header */
         customListHeader?: React.ReactNode;
