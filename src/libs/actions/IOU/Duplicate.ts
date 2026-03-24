@@ -75,16 +75,18 @@ function getIOUActionForTransactions(transactionIDList: Array<string | undefined
 /** Merge several transactions into one by updating the fields of the one we want to keep and deleting the rest */
 function mergeDuplicates({transactionThreadReportID: optimisticTransactionThreadReportID, ...params}: MergeDuplicatesParams) {
     const allParams: MergeDuplicatesParams = {...params};
-    const allTransactions = getAllTransactions();
     const allTransactionViolations = getAllTransactionViolations();
     const allReports = getAllReports();
     const currentUserEmail = getCurrentUserEmail();
+    const {transaction: originalSelectedTransaction, transactionList} = params;
 
-    const originalSelectedTransaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${params.transactionID}`];
+    if(!originalSelectedTransaction?.transactionID){
+        return;
+    }
 
     const optimisticTransactionData: OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION> = {
         onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.TRANSACTION}${params.transactionID}`,
+        key: `${ONYXKEYS.COLLECTION.TRANSACTION}${originalSelectedTransaction.transactionID}`,
         value: {
             ...originalSelectedTransaction,
             billable: params.billable,
@@ -102,25 +104,23 @@ function mergeDuplicates({transactionThreadReportID: optimisticTransactionThread
 
     const failureTransactionData: OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION> = {
         onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.TRANSACTION}${params.transactionID}`,
-        // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
-        value: originalSelectedTransaction as OnyxTypes.Transaction,
+        key: `${ONYXKEYS.COLLECTION.TRANSACTION}${originalSelectedTransaction?.transactionID}`,
+        value: originalSelectedTransaction,
     };
-
-    const optimisticTransactionDuplicatesData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION>> = params.transactionIDList.map((id) => ({
+    const optimisticTransactionDuplicatesData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION>> = transactionList.map((txn) => ({
         onyxMethod: Onyx.METHOD.SET,
-        key: `${ONYXKEYS.COLLECTION.TRANSACTION}${id}`,
+        key: `${ONYXKEYS.COLLECTION.TRANSACTION}${txn.transactionID}`,
         value: null,
     }));
 
-    const failureTransactionDuplicatesData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION>> = params.transactionIDList.map((id) => ({
+    const failureTransactionDuplicatesData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION>> = transactionList.map((txn) => ({
         onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.TRANSACTION}${id}`,
-        // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
-        value: allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`] as OnyxTypes.Transaction,
+        key: `${ONYXKEYS.COLLECTION.TRANSACTION}${txn.transactionID}`,
+        value: txn ,
     }));
 
-    const optimisticTransactionViolations: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS>> = [...params.transactionIDList, params.transactionID].map((id) => {
+    const transactionIDList = transactionList.map(txn => txn.transactionID);
+    const optimisticTransactionViolations: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS>> = [...transactionIDList, originalSelectedTransaction.transactionID].map((id) => {
         const violations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${id}`] ?? [];
         return {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -129,7 +129,7 @@ function mergeDuplicates({transactionThreadReportID: optimisticTransactionThread
         };
     });
 
-    const failureTransactionViolations: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS>> = [...params.transactionIDList, params.transactionID].map((id) => {
+    const failureTransactionViolations: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS>> = [...transactionIDList, originalSelectedTransaction.transactionID].map((id) => {
         const violations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${id}`] ?? [];
         return {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -138,8 +138,7 @@ function mergeDuplicates({transactionThreadReportID: optimisticTransactionThread
         };
     });
 
-    const duplicateTransactionTotals = params.transactionIDList.reduce((total, id) => {
-        const duplicateTransaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`];
+    const duplicateTransactionTotals = transactionList.reduce((total, duplicateTransaction) => {
         if (!duplicateTransaction) {
             return total;
         }
@@ -162,7 +161,7 @@ function mergeDuplicates({transactionThreadReportID: optimisticTransactionThread
         },
     };
 
-    const iouActionsToDelete = params.reportID ? getIOUActionForTransactions(params.transactionIDList, params.reportID) : [];
+    const iouActionsToDelete = params.reportID ? getIOUActionForTransactions(transactionIDList, params.reportID) : [];
 
     const deletedTime = DateUtils.getDBTime();
     const expenseReportActionsOptimisticData: OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS> = {
@@ -230,7 +229,7 @@ function mergeDuplicates({transactionThreadReportID: optimisticTransactionThread
     const optimisticReportAction = buildOptimisticResolvedDuplicatesReportAction();
 
     const transactionThreadReportID =
-        optimisticTransactionThreadReportID ?? (params.reportID ? getIOUActionForTransactions([params.transactionID], params.reportID).at(0)?.childReportID : undefined);
+        optimisticTransactionThreadReportID ?? (params.reportID ? getIOUActionForTransactions([originalSelectedTransaction.transactionID], params.reportID).at(0)?.childReportID : undefined);
     const optimisticReportActionData: OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS> = {
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`,
@@ -276,7 +275,7 @@ function mergeDuplicates({transactionThreadReportID: optimisticTransactionThread
     );
 
     if (optimisticTransactionThreadReportID) {
-        const iouAction = getIOUActionForReportID(params.reportID, params.transactionID);
+        const iouAction = getIOUActionForReportID(params.reportID, originalSelectedTransaction.transactionID);
         const optimisticCreatedAction = buildOptimisticCreatedReportAction(currentUserEmail);
         const optimisticTransactionThreadReport = buildTransactionThread(iouAction, expenseReport, undefined, optimisticTransactionThreadReportID);
 
@@ -345,18 +344,18 @@ function mergeDuplicates({transactionThreadReportID: optimisticTransactionThread
 
 /** Instead of merging the duplicates, it updates the transaction we want to keep and puts the others on hold without deleting them */
 function resolveDuplicates(params: MergeDuplicatesParams) {
-    if (!params.transactionID) {
+    const {transaction, transactionList} = params;
+    if (!transaction) {
         return;
     }
 
-    const allTransactions = getAllTransactions();
     const allTransactionViolations = getAllTransactionViolations();
 
-    const originalSelectedTransaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${params.transactionID}`];
+    const originalSelectedTransaction = transaction;
 
     const optimisticTransactionData: OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION> = {
         onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.TRANSACTION}${params.transactionID}`,
+        key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction?.transactionID}`,
         value: {
             ...originalSelectedTransaction,
             billable: params.billable,
@@ -374,15 +373,14 @@ function resolveDuplicates(params: MergeDuplicatesParams) {
 
     const failureTransactionData: OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION> = {
         onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.TRANSACTION}${params.transactionID}`,
-        // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
-        value: originalSelectedTransaction as OnyxTypes.Transaction,
+        key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction?.transactionID}`,
+        value: originalSelectedTransaction,
     };
-
-    const optimisticTransactionViolations: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS>> = [...params.transactionIDList, params.transactionID].map((id) => {
+    const transactionIDList = transactionList.map(txn => txn.transactionID);
+    const optimisticTransactionViolations: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS>> = [...transactionIDList, transaction?.transactionID].map((id) => {
         const violations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${id}`] ?? [];
         const newViolation = {name: CONST.VIOLATIONS.HOLD, type: CONST.VIOLATION_TYPES.VIOLATION};
-        const updatedViolations = id === params.transactionID ? violations : [...violations, newViolation];
+        const updatedViolations = id === transaction?.transactionID ? violations : [...violations, newViolation];
         return {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${id}`,
@@ -390,7 +388,7 @@ function resolveDuplicates(params: MergeDuplicatesParams) {
         };
     });
 
-    const failureTransactionViolations: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS>> = [...params.transactionIDList, params.transactionID].map((id) => {
+    const failureTransactionViolations: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS>> = [...transactionIDList, transaction?.transactionID].map((id) => {
         const violations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${id}`] ?? [];
         return {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -409,21 +407,20 @@ function resolveDuplicates(params: MergeDuplicatesParams) {
 
     // For each duplicate transaction, find its IOU action and create hold actions
     // This handles cross-report duplicates by searching across all reports
-    for (const transactionID of params.transactionIDList) {
-        const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
-        if (!transaction) {
+    for (const duplicateTransaction of transactionList) {
+        if (!duplicateTransaction) {
             continue;
         }
 
         // Find the IOU action for this transaction in its own report
-        const transactionReportID = transaction.reportID;
+        const transactionReportID = duplicateTransaction.reportID;
         const reportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionReportID}`];
         const iouAction = Object.values(reportActions ?? {}).find((action): action is OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> => {
             if (!isMoneyRequestAction(action)) {
                 return false;
             }
             const message = getOriginalMessage(action);
-            return message?.IOUTransactionID === transactionID;
+            return message?.IOUTransactionID === duplicateTransaction?.transactionID;
         });
 
         if (!iouAction) {
@@ -433,10 +430,10 @@ function resolveDuplicates(params: MergeDuplicatesParams) {
         const transactionThreadReportID = iouAction.childReportID;
         const createdReportAction = buildOptimisticHoldReportAction();
         reportActionIDList.push(createdReportAction.reportActionID);
-        resolvedTransactionIDList.push(transactionID);
+        resolvedTransactionIDList.push(duplicateTransaction?.transactionID);
         optimisticHoldTransactionActions.push({
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${duplicateTransaction?.transactionID}`,
             value: {
                 comment: {
                     hold: createdReportAction.reportActionID,
@@ -445,7 +442,7 @@ function resolveDuplicates(params: MergeDuplicatesParams) {
         });
         failureHoldTransactionActions.push({
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${duplicateTransaction?.transactionID}`,
             value: {
                 comment: {
                     hold: null,
@@ -470,7 +467,7 @@ function resolveDuplicates(params: MergeDuplicatesParams) {
         });
     }
 
-    const transactionThreadReportID = params.reportID ? getIOUActionForTransactions([params.transactionID], params.reportID).at(0)?.childReportID : undefined;
+    const transactionThreadReportID = params.reportID ? getIOUActionForTransactions([transaction?.transactionID], params.reportID).at(0)?.childReportID : undefined;
     const optimisticReportAction = buildOptimisticDismissedViolationReportAction({
         reason: 'manual',
         violationName: CONST.VIOLATIONS.DUPLICATED_TRANSACTION,
@@ -497,11 +494,11 @@ function resolveDuplicates(params: MergeDuplicatesParams) {
 
     optimisticData.push(optimisticTransactionData, ...optimisticTransactionViolations, ...optimisticHoldActions, ...optimisticHoldTransactionActions, optimisticReportActionData);
     failureData.push(failureTransactionData, ...failureTransactionViolations, ...failureHoldActions, ...failureHoldTransactionActions, failureReportActionData);
-    const {reportID, transactionIDList, receiptID, ...otherParams} = params;
+    const {reportID, receiptID, ...otherParams} = params;
 
     const parameters: ResolveDuplicatesParams = {
         ...otherParams,
-        transactionID: params.transactionID,
+        transactionID: transaction?.transactionID,
         reportActionIDList,
         transactionIDList: resolvedTransactionIDList,
         dismissedViolationReportActionID: optimisticReportAction.reportActionID,
@@ -649,6 +646,7 @@ type DuplicateExpenseTransactionParams = {
     targetPolicyCategories?: OnyxEntry<OnyxTypes.PolicyCategories>;
     targetReport?: OnyxTypes.Report;
     existingTransactionDraft: OnyxEntry<OnyxTypes.Transaction>;
+    existingTransaction: OnyxEntry<OnyxTypes.Transaction>;
     draftTransactionIDs: string[];
     betas: OnyxEntry<OnyxTypes.Beta[]>;
     personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
@@ -671,6 +669,7 @@ function duplicateExpenseTransaction({
     targetPolicyCategories,
     targetReport,
     existingTransactionDraft,
+    existingTransaction,
     draftTransactionIDs,
     betas,
     personalDetails,
@@ -711,6 +710,7 @@ function duplicateExpenseTransaction({
         policyRecentlyUsedCurrencies,
         quickAction,
         existingTransactionDraft,
+        existingTransaction,
         draftTransactionIDs,
         isSelfTourViewed,
         betas,

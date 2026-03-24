@@ -193,6 +193,9 @@ function IOURequestStepAmount({
     };
 
     const [recentWaypoints] = useOnyx(ONYXKEYS.NVP_RECENT_WAYPOINTS);
+    const existingTransactionID = getExistingTransactionID(transaction?.linkedTrackedExpenseReportAction);
+    // transaction prop can be a transactionDraft or stored transaction. Here we will make sure to use stored transaction.
+    const [storedTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(existingTransactionID)}`);
 
     const navigateToNextPage = ({amount, paymentMethod}: AmountParams) => {
         isSaveButtonPressed.current = true;
@@ -251,7 +254,6 @@ function IOURequestStepAmount({
                     return;
                 }
                 if (iouType === CONST.IOU.TYPE.SUBMIT || iouType === CONST.IOU.TYPE.REQUEST) {
-                    const existingTransactionID = getExistingTransactionID(transaction?.linkedTrackedExpenseReportAction);
                     const existingTransactionDraft = existingTransactionID ? transactionDrafts?.[existingTransactionID] : undefined;
 
                     requestMoney({
@@ -279,6 +281,7 @@ function IOURequestStepAmount({
                         quickAction,
                         policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
                         existingTransactionDraft,
+                        existingTransaction: storedTransaction,
                         draftTransactionIDs,
                         isSelfTourViewed,
                         personalDetails,
