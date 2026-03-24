@@ -11,6 +11,7 @@ import useOnyx from '@hooks/useOnyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+import variables from '@styles/variables';
 import {getConnectedIntegration, hasDynamicExternalWorkflow} from '@libs/PolicyUtils';
 import {hasPendingDEWSubmit} from '@libs/ReportActionsUtils';
 import getReportPreviewAction from '@libs/ReportPreviewActionUtils';
@@ -89,8 +90,7 @@ function ReportPreviewActionButton({
 
     const canIOUBePaid = canIOUBePaidIOUActions(iouReport, chatReport, policy, bankAccountList, transactions, false, undefined, invoiceReceiverPolicy);
     const onlyShowPayElsewhere = !canIOUBePaid && canIOUBePaidIOUActions(iouReport, chatReport, policy, bankAccountList, transactions, true, undefined, invoiceReceiverPolicy);
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Using || intentionally because all operands are booleans
-    const shouldShowPayButton = isPaidAnimationRunning || canIOUBePaid || onlyShowPayElsewhere;
+    const shouldShowPayButton = isPaidAnimationRunning ?? canIOUBePaid ?? onlyShowPayElsewhere;
 
     const buttonMaxWidth =
         !shouldUseNarrowLayout && transactionPreviewCarouselWidth >= CONST.REPORT.TRANSACTION_PREVIEW.CAROUSEL.MIN_WIDE_WIDTH ? {maxWidth: transactionPreviewCarouselWidth} : {};
@@ -209,7 +209,7 @@ function ReportPreviewActionButton({
         );
     };
 
-    return <View style={[buttonMaxWidth, styles.flex1, {height: 40}]}>{renderButton()}</View>;
+    return <View style={[buttonMaxWidth, styles.flex1, {height: variables.h40}]}>{renderButton()}</View>;
 }
 
 export default ReportPreviewActionButton;

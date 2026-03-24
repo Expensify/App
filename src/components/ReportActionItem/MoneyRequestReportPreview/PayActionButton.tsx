@@ -97,8 +97,7 @@ function PayActionButton({
 
     const canIOUBePaid = canIOUBePaidIOUActions(iouReport, chatReport, policy, bankAccountList, transactions, false, undefined, invoiceReceiverPolicy);
     const onlyShowPayElsewhere = !canIOUBePaid && canIOUBePaidIOUActions(iouReport, chatReport, policy, bankAccountList, transactions, true, undefined, invoiceReceiverPolicy);
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const shouldShowPayButton = isPaidAnimationRunning || canIOUBePaid || onlyShowPayElsewhere;
+    const shouldShowPayButton = isPaidAnimationRunning ?? canIOUBePaid ?? onlyShowPayElsewhere;
     const shouldShowOnlyPayElsewhere = !canIOUBePaid && onlyShowPayElsewhere;
     const canIOUBePaidAndApproved = canIOUBePaid;
 
@@ -195,8 +194,7 @@ function PayActionButton({
             onlyShowPayElsewhere={shouldShowOnlyPayElsewhere}
             isPaidAnimationRunning={isPaidAnimationRunning}
             isApprovedAnimationRunning={isApprovedAnimationRunning}
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-            canIOUBePaid={canIOUBePaidAndApproved || isPaidAnimationRunning}
+            canIOUBePaid={canIOUBePaidAndApproved ?? isPaidAnimationRunning}
             onAnimationFinish={stopAnimation}
             chatReportID={chatReportID}
             policyID={policy?.id}
