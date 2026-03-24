@@ -167,6 +167,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
 
     const [userBillingGraceEndPeriods] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
+    const [ownerBillingGraceEndPeriod] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`);
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report.chatReportID}`);
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
@@ -462,6 +463,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                         activePolicy,
                         userBillingGraceEndPeriods,
                         amountOwed,
+                        ownerBillingGraceEndPeriod,
                         isRestrictedToPreferredPolicy,
                         preferredPolicyID,
                         transaction: iouTransaction,
@@ -485,6 +487,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                             activePolicy,
                             userBillingGraceEndPeriods,
                             amountOwed,
+                            ownerBillingGraceEndPeriod,
                             transaction: iouTransaction,
                         });
                     },
@@ -505,6 +508,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                             activePolicy,
                             userBillingGraceEndPeriods,
                             amountOwed,
+                            ownerBillingGraceEndPeriod,
                             transaction: iouTransaction,
                         });
                     },
@@ -634,6 +638,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
         reportActionsForOriginalReportID,
         userBillingGraceEndPeriods,
         amountOwed,
+        ownerBillingGraceEndPeriod,
         iouTransaction,
     ]);
 
