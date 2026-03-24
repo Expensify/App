@@ -234,7 +234,6 @@ The Sentry MCP server is configured in `.mcp.json` and gives Claude Code direct 
 
 - "Search Sentry for crashes in the last 24h related to expense creation"
 - "Get details on Sentry issue EXPENSIFY-APP-123"
-- "Analyze this Sentry issue with Seer"
 
 ## Command Reference
 
