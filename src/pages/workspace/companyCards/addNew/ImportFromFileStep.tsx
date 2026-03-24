@@ -2,7 +2,6 @@ import {useRoute} from '@react-navigation/native';
 import React, {useState} from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
-import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import RenderHTML from '@components/RenderHTML';
@@ -77,6 +76,8 @@ function ImportFromFileStep() {
                     shouldShowRightIcon
                     interactive
                     onPress={() => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_LAYOUT_NAME.getRoute(policyID))}
+                    brickRoadIndicator={shouldShowLayoutNameError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                    errorText={shouldShowLayoutNameError ? translate('workspace.companyCards.addNewCard.cardLayoutNameRequired') : undefined}
                 />
                 <View style={[styles.mt5, styles.mh5]}>
                     <View style={[styles.flexRow, styles.mr2, styles.alignItemsCenter, styles.justifyContentBetween]}>
@@ -89,14 +90,6 @@ function ImportFromFileStep() {
                     </View>
                 </View>
                 <View style={[styles.mh5, styles.pb5, styles.mt3, styles.flexGrow1, styles.justifyContentEnd]}>
-                    {shouldShowLayoutNameError && (
-                        <View style={styles.mb3}>
-                            <FormHelpMessage
-                                isError
-                                message={translate('workspace.companyCards.addNewCard.cardLayoutNameRequired')}
-                            />
-                        </View>
-                    )}
                     <Button
                         isDisabled={isOffline}
                         success
