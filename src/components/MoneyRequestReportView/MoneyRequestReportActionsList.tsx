@@ -408,7 +408,7 @@ function MoneyRequestReportActionsList({
                 return;
             }
             prevNewestFetchedIDRef.current = currentCursor;
-            loadNewerChats(true);
+            loadNewerChats(false);
         }
     }, [hasFinishedInitialLoad, reportActions.length, hasNewerActions, isOffline, reportMetadata?.isLoadingNewerReportActions, reportMetadata?.newestFetchedReportActionID, loadNewerChats]);
 
