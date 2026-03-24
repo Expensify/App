@@ -159,7 +159,7 @@ function AttachmentPicker({
      * Returns a Promise that resolves with the captured photo as an Asset-compatible object,
      * or resolves with void if the user closes the camera without capturing.
      */
-    const launchInAppCamera = useCallback((): Promise<Asset[] | void> => {
+    const launchInAppCamera = (): Promise<Asset[] | void> => {
         return new Promise((resolve) => {
             cameraResolveRef.current = (photos?: CapturedPhoto[]) => {
                 if (!photos || photos.length === 0) {
@@ -177,19 +177,19 @@ function AttachmentPicker({
             };
             setShowAttachmentCamera(true);
         });
-    }, []);
+    };
 
-    const handleCameraCapture = useCallback((photos: CapturedPhoto[]) => {
+    const handleCameraCapture = (photos: CapturedPhoto[]) => {
         setShowAttachmentCamera(false);
         cameraResolveRef.current?.(photos);
         cameraResolveRef.current = null;
-    }, []);
+    };
 
-    const handleCameraClose = useCallback(() => {
+    const handleCameraClose = () => {
         setShowAttachmentCamera(false);
         cameraResolveRef.current?.();
         cameraResolveRef.current = null;
-    }, []);
+    };
 
     /**
      * Common image picker handling
