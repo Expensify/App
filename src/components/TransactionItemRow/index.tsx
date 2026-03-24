@@ -6,17 +6,16 @@ import Icon from '@components/Icon';
 import type {TransactionWithOptionalHighlight} from '@components/MoneyRequestReportView/MoneyRequestReportTransactionList';
 import {PressableWithFeedback} from '@components/Pressable';
 import RadioButton from '@components/RadioButton';
-import ReportActionAvatars from '@components/ReportActionAvatars';
+import ActionCell from '@components/Search/SearchList/ListItem/ActionCell';
+import AttendeesCell from '@components/Search/SearchList/ListItem/AttendeesCell';
+import DateCell from '@components/Search/SearchList/ListItem/DateCell';
+import ExportedIconCell from '@components/Search/SearchList/ListItem/ExportedIconCell';
+import StatusCell from '@components/Search/SearchList/ListItem/StatusCell';
+import TextCell from '@components/Search/SearchList/ListItem/TextCell';
+import AmountCell from '@components/Search/SearchList/ListItem/TotalCell';
+import UserInfoCell from '@components/Search/SearchList/ListItem/UserInfoCell';
+import WorkspaceCell from '@components/Search/SearchList/ListItem/WorkspaceCell';
 import type {SearchColumnType, TableColumnSize} from '@components/Search/types';
-import ActionCell from '@components/SelectionListWithSections/Search/ActionCell';
-import AttendeesCell from '@components/SelectionListWithSections/Search/AttendeesCell';
-import DateCell from '@components/SelectionListWithSections/Search/DateCell';
-import ExportedIconCell from '@components/SelectionListWithSections/Search/ExportedIconCell';
-import StatusCell from '@components/SelectionListWithSections/Search/StatusCell';
-import TextCell from '@components/SelectionListWithSections/Search/TextCell';
-import AmountCell from '@components/SelectionListWithSections/Search/TotalCell';
-import UserInfoCell from '@components/SelectionListWithSections/Search/UserInfoCell';
-import WorkspaceCell from '@components/SelectionListWithSections/Search/WorkspaceCell';
 import Text from '@components/Text';
 import TextWithTooltip from '@components/TextWithTooltip';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -543,21 +542,6 @@ function TransactionItemRow({
                         style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.ATTENDEES)]}
                     >
                         {shouldShowAttendees && (
-                            // <ReportActionAvatars
-                            //     customAvatars={attendeeIcons}
-                            //     customAvatarType={CONST.REPORT_ACTION_AVATARS.TYPE.MULTIPLE_HORIZONTAL}
-                            //     horizontalStacking={{
-                            //         sort: CONST.REPORT_ACTION_AVATARS.SORT_BY.NAME,
-                            //         useCardBG: true,
-                            //         isHovered: isHover,
-                            //         isPressed: isSelected,
-                            //         pressedBorderColor: theme.activeComponentBG,
-                            //         textStyle: [styles.textMicroBold, styles.buttonSuccessText],
-                            //         overlayStyle: StyleUtils.getBackgroundColorWithOpacityStyle(colors.productDark400, variables.overlayOpacity),
-                            //     }}
-                            //     size={CONST.AVATAR_SIZE.SMALLER}
-                            //     isInReportAction
-                            // />
                             <AttendeesCell
                                 attendees={transactionAttendees}
                                 isHovered={isHover}
