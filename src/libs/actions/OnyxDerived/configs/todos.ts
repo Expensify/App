@@ -64,7 +64,7 @@ const createTodosReportsAndTransactions = ({
         if (isApproveAction(report, reportTransactions, currentUserAccountID, reportMetadata, policy)) {
             reportsToApprove.push(report);
         }
-        if (isPrimaryPayAction(report, currentUserAccountID, login, bankAccountList, policy, reportNameValuePair)) {
+        if (isPrimaryPayAction(report, currentUserAccountID, login, bankAccountList, policy, reportNameValuePair, undefined, undefined, reportActions)) {
             reportsToPay.push(report);
         }
         if (isExportAction(report, login, policy, reportActions) && policy?.exporter === login) {
