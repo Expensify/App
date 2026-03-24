@@ -18,7 +18,9 @@ type UseNonReimbursablePaymentModalReturn = {
 function useNonReimbursablePaymentModal(iouReport: OnyxEntry<Report>): UseNonReimbursablePaymentModalReturn {
     const [isModalVisible, setIsModalVisible] = useState(false);
     const {translate} = useLocalize();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    // We need to use isSmallScreenWidth here because the DecisionModal breaks in RHP with shouldUseNarrowLayout.
+    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
+    const {isSmallScreenWidth} = useResponsiveLayout();
 
     const showNonReimbursablePaymentErrorModal = () => setIsModalVisible(true);
 
@@ -29,7 +31,7 @@ function useNonReimbursablePaymentModal(iouReport: OnyxEntry<Report>): UseNonRei
         <DecisionModal
             title={translate('iou.error.nonReimbursablePayment')}
             prompt={translate('iou.error.nonReimbursablePaymentDescription')}
-            isSmallScreenWidth={shouldUseNarrowLayout}
+            isSmallScreenWidth={isSmallScreenWidth}
             onSecondOptionSubmit={() => setIsModalVisible(false)}
             secondOptionText={translate('common.buttonConfirm')}
             isVisible={isModalVisible}
