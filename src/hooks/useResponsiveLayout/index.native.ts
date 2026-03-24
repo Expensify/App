@@ -73,5 +73,6 @@ export default function useResponsiveLayout(): ResponsiveLayoutResult {
         isLargeScreenWidth,
         isSmallScreen,
         isExtraLargeScreenWidth,
+        isInLandscapeMode,
     };
 }

@@ -163,7 +163,10 @@ function IOURequestStepDistanceGPS({
                 style={[styles.flex1]}
                 contentContainerStyle={styles.flexGrow1}
             >
-                <DistanceCounter unit={unit} />
+                <DistanceCounter
+                    unit={unit}
+                    isInLandscapeMode={isInLandscapeMode}
+                />
                 <View style={[styles.w100, isInLandscapeMode ? styles.flex1 : [styles.pAbsolute, styles.b0, styles.r0, styles.l0]]}>
                     <Waypoints />
                     <DotIndicatorMessage

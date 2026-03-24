@@ -5,7 +5,6 @@ import type {Svg} from 'react-native-svg';
 import ImageSVG from '@components/ImageSVG';
 import QRCode from '@components/QRCode';
 import Text from '@components/Text';
-import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -36,12 +35,11 @@ function QRShare({
 }: QRShareProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {shouldUseNarrowLayout, isInLandscapeMode} = useResponsiveLayout();
     const {windowWidth, windowHeight} = useWindowDimensions();
     const qrCodeContainerWidth = shouldUseNarrowLayout ? windowWidth : variables.sideBarWidth;
     const icons = useMemoizedLazyExpensifyIcons(['ExpensifyWordmark']);
 
-    const isInLandscapeMode = useIsInLandscapeMode();
     const landscapeQrCodeSize = isInLandscapeMode ? Math.min(QR_CODE_LANDSCAPE_SIZE_RATIO * windowHeight, MAX_QR_CODE_LANDSCAPE_SIZE) : undefined;
 
     const {formatPhoneNumber, translate} = useLocalize();

@@ -1,7 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
 import Text from '@components/Text';
-import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
@@ -12,11 +11,13 @@ import TripStatusIndicator from './TripStatusIndicator';
 type DistanceCounterProps = {
     /** Distance unit of the ongoing GPS trip */
     unit: Unit;
+
+    /** Whether the device is in landscape mode */
+    isInLandscapeMode: boolean;
 };
 
-function DistanceCounter({unit}: DistanceCounterProps) {
+function DistanceCounter({unit, isInLandscapeMode}: DistanceCounterProps) {
     const styles = useThemeStyles();
-    const isInLandscapeMode = useIsInLandscapeMode();
     const [gpsDraftDetails] = useOnyx(ONYXKEYS.GPS_DRAFT_DETAILS);
 
     const distance = DistanceRequestUtils.convertDistanceUnit(gpsDraftDetails?.distanceInMeters ?? 0, unit).toFixed(1);
