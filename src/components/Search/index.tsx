@@ -362,6 +362,8 @@ function Search({
     const validGroupBy = getValidGroupBy(groupBy);
     const prevValidGroupBy = usePrevious(validGroupBy);
     const isSearchResultsEmpty = !searchResults?.data || isSearchResultsEmptyUtil(searchResults, validGroupBy);
+    const isSearchResultsEmptyRef = useRef(isSearchResultsEmpty);
+    isSearchResultsEmptyRef.current = isSearchResultsEmpty;
 
     // When grouping by card, we need cardFeeds to display feed names
     const isCardFeedsLoading = validGroupBy === CONST.SEARCH.GROUP_BY.CARD && cardFeedsResult?.status === 'loading';
@@ -1381,7 +1383,10 @@ function Search({
         markNavigateAfterExpenseCreateEnd();
         const pending = getPendingSubmitFollowUpAction();
         if (pending && pending.followUpAction !== CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_AND_OPEN_REPORT) {
-            endSubmitFollowUpActionSpan(pending.followUpAction);
+            endSubmitFollowUpActionSpan(pending.followUpAction, undefined, {
+                [CONST.TELEMETRY.ATTRIBUTE_IS_WARM]: true,
+                [CONST.TELEMETRY.ATTRIBUTE_WAS_LIST_EMPTY]: isSearchResultsEmptyRef.current,
+            });
         }
         // Reset the ref after the span is ended so future render-time cancelSpan calls are no longer guarded.
         spanExistedOnMount.current = false;
@@ -1442,7 +1447,10 @@ function Search({
             }
             const pending = getPendingSubmitFollowUpAction();
             if (pending && pending.followUpAction !== CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_AND_OPEN_REPORT) {
-                endSubmitFollowUpActionSpan(pending.followUpAction);
+                endSubmitFollowUpActionSpan(pending.followUpAction, undefined, {
+                    [CONST.TELEMETRY.ATTRIBUTE_IS_WARM]: !shouldShowLoadingState,
+                    [CONST.TELEMETRY.ATTRIBUTE_WAS_LIST_EMPTY]: isSearchResultsEmptyRef.current,
+                });
             }
             endSpanWithAttributes(CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS, {
                 [CONST.TELEMETRY.ATTRIBUTE_IS_WARM]: !shouldShowLoadingState,
