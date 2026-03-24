@@ -34,8 +34,9 @@ const shouldOpenRHPVariant: ShouldOpenRHPVariant = () => {
     const isMicroCompany = onboardingCompanySize === CONST.ONBOARDING_COMPANY_SIZE.MICRO;
     const isRHPConciergeDM = onboardingRHPVariant === CONST.ONBOARDING_RHP_VARIANT.RHP_CONCIERGE_DM;
     const isRHPAdminsRoom = onboardingRHPVariant === CONST.ONBOARDING_RHP_VARIANT.RHP_ADMINS_ROOM;
+    const isRHPHomePage = onboardingRHPVariant === CONST.ONBOARDING_RHP_VARIANT.RHP_HOME_PAGE;
 
-    return isMicroCompany && (isRHPConciergeDM || isRHPAdminsRoom);
+    return isMicroCompany && (isRHPConciergeDM || isRHPAdminsRoom || isRHPHomePage);
 };
 
 /**
@@ -43,8 +44,15 @@ const shouldOpenRHPVariant: ShouldOpenRHPVariant = () => {
  * - Control: navigate to the last accessed report on small screens, do not open side panel
  * - RHP Concierge DM: navigate to the workspace overview and open the side panel with the Concierge DM
  * - RHP Admins Room: navigate to the workspace overview and open the side panel with the Admins Room
+ * - RHP Home Page: navigate to the Home page and open the side panel
  */
 const handleRHPVariantNavigation: HandleRHPVariantNavigation = (onboardingPolicyID) => {
+    if (onboardingRHPVariant === CONST.ONBOARDING_RHP_VARIANT.RHP_HOME_PAGE) {
+        Navigation.navigate(ROUTES.HOME);
+        SidePanelActions.openSidePanel(true);
+        return;
+    }
+
     Navigation.navigate(ROUTES.WORKSPACE_OVERVIEW.getRoute(onboardingPolicyID));
     SidePanelActions.openSidePanel(true);
 };
