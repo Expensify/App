@@ -807,8 +807,8 @@ const translations: TranslationDeepObject<typeof en> = {
         emoji: '絵文字',
         collapse: '折りたたむ',
         expand: '展開',
-        askConciergeToUpdate: 'Concierge AI に経費の更新を依頼する…',
-        askConciergeToCorrect: 'Concierge AI に経費の修正を依頼する…',
+        askConciergeToUpdate: '「経費を更新」と入力してみてください…',
+        askConciergeToCorrect: '「経費を修正」と入力してみてください…',
         askConciergeForHelp: 'Concierge AI にヘルプを依頼…',
     },
     reportActionContextMenu: {
