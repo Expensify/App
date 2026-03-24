@@ -73,8 +73,6 @@ type PressableWithDelayToggleProps = PressableProps & {
 
     /** Custom accessibility label to use in the checked (pressed) state */
     accessibilityLabelChecked?: string;
-
-    onReset?: () => void;
 };
 
 function PressableWithDelayToggle({
@@ -98,11 +96,10 @@ function PressableWithDelayToggle({
     shouldUseButtonBackground = false,
     accessibilityLabel: accessibilityLabelProp,
     accessibilityLabelChecked,
-    onReset,
 }: PressableWithDelayToggleProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const [isActive, temporarilyDisableInteractions] = useThrottledButtonState(onReset);
+    const [isActive, temporarilyDisableInteractions] = useThrottledButtonState();
     const lazyIcons = useMemoizedLazyExpensifyIcons(['Checkmark'] as const);
     const resolvedIconChecked = iconChecked ?? lazyIcons.Checkmark;
 
