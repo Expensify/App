@@ -237,7 +237,7 @@ import {buildOptimisticPolicyRecentlyUsedTags} from '@userActions/Policy/Tag';
 import type {GuidedSetupData} from '@userActions/Report';
 import {buildInviteToRoomOnyxData, completeOnboarding, notifyNewAction, optimisticReportLastData} from '@userActions/Report';
 import {mergeTransactionIdsHighlightOnSearchRoute, sanitizeWaypointsForAPI, stringifyWaypointsForAPI} from '@userActions/Transaction';
-import {removeDraftTransaction, removeDraftTransactionsByIDs} from '@userActions/TransactionEdit';
+import {getRemoveDraftTransactionsByIDsData, removeDraftTransaction, removeDraftTransactionsByIDs} from '@userActions/TransactionEdit';
 import {getOnboardingMessages} from '@userActions/Welcome/OnboardingFlow';
 import type {OnboardingCompanySize} from '@userActions/Welcome/OnboardingFlow';
 import type {IOUAction, IOUActionParams, IOUType, OdometerImageType} from '@src/CONST';
@@ -538,6 +538,7 @@ type RequestMoneyInformation = {
     isSelfTourViewed: boolean;
     betas: OnyxEntry<OnyxTypes.Beta[]>;
     personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
+    shouldDeferAutoSubmit?: boolean;
 };
 
 type MoneyRequestInformationParams = {
@@ -650,6 +651,7 @@ type CreateDistanceRequestInformation = {
     personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
     betas: OnyxEntry<OnyxTypes.Beta[]>;
     optimisticReportPreviewActionID?: string;
+    shouldDeferAutoSubmit?: boolean;
 };
 
 type CreateSplitsTransactionParams = Omit<BaseTransactionParams, 'customUnitRateID'> & {
@@ -1392,8 +1394,11 @@ function createDraftTransaction(transaction: OnyxTypes.Transaction) {
 }
 
 function clearMoneyRequest(transactionID: string, draftTransactionIDs: string[] | undefined, skipConfirmation = false) {
-    removeDraftTransactionsByIDs(draftTransactionIDs);
-    Onyx.set(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${transactionID}`, skipConfirmation);
+    const onyxData: Record<string, null | boolean> = {
+        ...getRemoveDraftTransactionsByIDsData(draftTransactionIDs),
+        [`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${transactionID}`]: skipConfirmation,
+    };
+    Onyx.multiSet(onyxData as Parameters<typeof Onyx.multiSet>[0]);
 }
 
 function startMoneyRequest(
@@ -6292,6 +6297,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
         isSelfTourViewed,
         betas,
         personalDetails,
+        shouldDeferAutoSubmit,
     } = requestMoneyInformation;
     const {payeeAccountID} = participantParams;
     const parsedComment = getParsedComment(transactionParams.comment ?? '');
@@ -6512,6 +6518,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
                           unit,
                       }
                     : {}),
+                shouldDeferAutoSubmit,
             };
             // eslint-disable-next-line rulesdir/no-multiple-api-calls
             API.write(WRITE_COMMANDS.REQUEST_MONEY, parameters, onyxData);
@@ -7524,6 +7531,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
         personalDetails,
         betas,
         optimisticReportPreviewActionID,
+        shouldDeferAutoSubmit,
     } = distanceRequestInformation;
     const {policy, policyCategories, policyTagList, policyRecentlyUsedCategories, policyRecentlyUsedTags} = policyParams;
     const parsedComment = getParsedComment(transactionParams.comment);
@@ -7753,6 +7761,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
             description: parsedComment,
             attendees: attendees ? JSON.stringify(attendees) : undefined,
             gpsCoordinates,
+            shouldDeferAutoSubmit,
         };
     }
 
