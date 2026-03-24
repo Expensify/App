@@ -90,7 +90,6 @@ import {
     getTagArrayFromName,
     getTagForDisplay,
     getTaxName,
-    getTaxValue,
     hasMissingSmartscanFields,
     hasMultipleSplitChildren,
     hasReservationList,
@@ -310,8 +309,9 @@ function MoneyRequestView({
     const baseTransaction = updatedTransaction ?? transaction;
     const {taxCode, taxValue} = baseTransaction ?? {};
 
-    const taxRateTitle = taxCode ? getTaxName(policy, baseTransaction, isExpenseUnreported) : '';
-    const hasTaxValueChanged = taxCode ? getTaxValue(policy, baseTransaction, taxCode) !== baseTransaction?.taxValue : false;
+    const taxRateTitle = getTaxName(policy, baseTransaction, isExpenseUnreported);
+    const selectedPolicyTaxValue = taxCode ? policy?.taxRates?.taxes?.[taxCode]?.value : undefined;
+    const hasTaxValueChanged = taxCode && taxValue !== undefined ? selectedPolicyTaxValue !== taxValue : false;
 
     const actualTransactionDate = isFromMergeTransaction && updatedTransaction ? getFormattedCreated(updatedTransaction) : transactionDate;
     const fallbackTaxRateTitle = transaction?.taxValue;
