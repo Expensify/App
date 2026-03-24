@@ -125,7 +125,7 @@ describe('TransactionPreviewUtils', () => {
         it('returns missing amount message when amount is missing but merchant is present (expense report with field errors)', () => {
             const functionArgs = {
                 ...basicProps,
-                iouReport: {...basicProps.iouReport, type: CONST.REPORT.TYPE.EXPENSE},
+                iouReport: {...basicProps.iouReport, type: CONST.REPORT.TYPE.IOU},
                 transaction: {
                     ...basicProps.transaction,
                     amount: undefined,
