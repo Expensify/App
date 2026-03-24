@@ -1113,6 +1113,7 @@ describe('actions/Report', () => {
 
         expect(PersistedRequests.getAll().length).toBe(1);
 
+        await waitForBatchedUpdates();
         setHasRadio(true);
         await waitForBatchedUpdates();
         await waitForBatchedUpdates();
@@ -1218,6 +1219,7 @@ describe('actions/Report', () => {
 
         expect(PersistedRequests.getAll().length).toBe(4);
 
+        await waitForBatchedUpdates();
         setHasRadio(true);
         await waitForBatchedUpdates();
         await waitForBatchedUpdates();
@@ -2251,6 +2253,7 @@ describe('actions/Report', () => {
         expect(requests?.at(0)?.command).toBe(WRITE_COMMANDS.UPDATE_COMMENT);
         expect(requests?.at(0)?.data?.reportComment).toBe('value3');
 
+        await waitForBatchedUpdates();
         setHasRadio(true);
         await waitForBatchedUpdates();
 
@@ -2353,6 +2356,7 @@ describe('actions/Report', () => {
         expect(requests?.at(0)?.command).toBe(WRITE_COMMANDS.UPDATE_COMMENT);
         expect(requests?.at(0)?.data?.reportComment).toBe('value3');
 
+        await waitForBatchedUpdates();
         setHasRadio(true);
         await waitForBatchedUpdates();
 

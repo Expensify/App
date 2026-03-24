@@ -126,6 +126,10 @@ function setForceOffline(force: boolean) {
     shouldForceOffline = force;
     Log.info(`[NetworkState] shouldForceOffline set to ${force}`);
     updateState();
+
+    if (!force) {
+        NetInfo.refresh();
+    }
 }
 
 /**
@@ -182,11 +186,7 @@ function simulatePoorConnection(shouldSimulate: boolean) {
         poorConnectionTimerID = undefined;
         simulatedOffline = false;
         updateState();
-        NetInfo.fetch().then((state) => {
-            const radio = state.isConnected !== false;
-            setHasRadio(radio);
-            Log.info(`[NetworkState] Poor connection simulation turned off. Radio: ${radio}`);
-        });
+        NetInfo.refresh();
     }
 }
 

@@ -3,7 +3,7 @@ import Onyx from 'react-native-onyx';
 import AppStateMonitor from '@libs/AppStateMonitor';
 import Log from '@libs/Log';
 import {flush} from '@libs/Network/SequentialQueue';
-import {getIsOffline, onReachabilityConfirmed as onNetworkReachabilityConfirmed, refresh as refreshNetworkState} from '@libs/NetworkState';
+import {getIsOffline, onReachabilityConfirmed as onNetworkReachabilityConfirmed, refresh as refreshNetworkState, subscribe as subscribeNetworkState} from '@libs/NetworkState';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {openApp, reconnectApp} from './App';
 
@@ -34,8 +34,8 @@ Onyx.connectWithoutView({
 
 /**
  * Centralized reconnection logic.
- * Called when recovering from a hard stop or when the app comes to foreground.
- * Syncs app data and flushes the sequential queue.
+ * Syncs app data with the server — fetches missed Onyx updates.
+ * Queue flushing is handled separately by the offline→online subscriber below.
  */
 function reconnect() {
     if (!currentAccountID) {
@@ -52,9 +52,6 @@ function reconnect() {
         Log.info('[Reconnect] Calling reconnectApp');
         reconnectApp(lastUpdateIDAppliedToClient);
     }
-
-    // Flush the sequential queue to process any pending write requests
-    flush();
 }
 
 // Internet confirmed reachable — reconnect
@@ -62,14 +59,25 @@ onNetworkReachabilityConfirmed(() => {
     reconnect();
 });
 
-// App came to foreground — reconnect to catch up on missed Pusher events
+// Any offline→online transition — flush the sequential queue
+let wasOffline = getIsOffline();
+subscribeNetworkState(() => {
+    const offline = getIsOffline();
+    if (wasOffline && !offline) {
+        Log.info('[Reconnect] Offline→online, flushing queue');
+        flush();
+    }
+    wasOffline = offline;
+});
+
+// App came to foreground — sync data and flush queue
 AppStateMonitor.addBecameActiveListener(() => {
     Log.info('[Reconnect] App became active');
     if (getIsOffline()) {
         refreshNetworkState();
     }
-    // Always reconnect on foreground to catch up on missed events
     reconnect();
+    flush();
 });
 
 // eslint-disable-next-line import/prefer-default-export -- single export is intentional; more reconnection helpers may be added here as the architecture evolves

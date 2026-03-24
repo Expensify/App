@@ -16,7 +16,7 @@ import {flushQueue, isEmpty} from '@libs/actions/QueuedOnyxUpdates';
 import {isClientTheLeader} from '@libs/ActiveClientManager';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import Log from '@libs/Log';
-import {getIsOffline as isOfflineNetwork, subscribe as subscribeNetworkState} from '@libs/NetworkState';
+import {getIsOffline as isOfflineNetwork} from '@libs/NetworkState';
 import {processWithMiddleware} from '@libs/Request';
 import RequestThrottle from '@libs/RequestThrottle';
 import CONST from '@src/CONST';
@@ -441,18 +441,6 @@ function getShouldFailAllRequests(): boolean {
 
 // Flush the queue when the persisted requests are initialized
 onPersistedRequestsInitialization(flush);
-
-// Flush the queue when transitioning from offline to online.
-// This replaces the old NetworkState → unpause() → flush() coupling
-// with a cleaner dependency direction (SequentialQueue → NetworkState).
-let wasOfflineForQueue = isOfflineNetwork();
-subscribeNetworkState(() => {
-    const currentlyOffline = isOfflineNetwork();
-    if (wasOfflineForQueue && !currentlyOffline) {
-        flush();
-    }
-    wasOfflineForQueue = currentlyOffline;
-});
 
 function handleConflictActions<TKey extends OnyxKey>(conflictAction: ConflictData, newRequest: OnyxRequest<TKey>) {
     Log.info('[SequentialQueue] handleConflictActions', false, {
