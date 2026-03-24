@@ -36,8 +36,8 @@ function BaseFloatingCameraButton({icon}: BaseFloatingCameraButtonProps) {
     const {translate} = useLocalize();
 
     useEffect(() => {
-        loadIllustrationsChunk();
-        loadExpensifyIconsChunk();
+        loadIllustrationsChunk().catch(() => {});
+        loadExpensifyIconsChunk().catch(() => {});
     }, []);
 
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
