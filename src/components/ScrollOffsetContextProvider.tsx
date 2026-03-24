@@ -82,6 +82,7 @@ function ScrollOffsetContextProvider({children}: ScrollOffsetContextProviderProp
         for (const key of Object.keys(scrollOffsetsRef.current)) {
             if (key.includes(SCREENS.INBOX) || key.includes(SCREENS.SEARCH.ROOT)) {
                 delete scrollOffsetsRef.current[key];
+                delete averageItemLengthsRef.current[key];
             }
         }
     }, [priorityMode, previousPriorityMode]);
@@ -104,6 +105,7 @@ function ScrollOffsetContextProvider({children}: ScrollOffsetContextProviderProp
             }
 
             delete scrollOffsetsRef.current[key];
+            delete averageItemLengthsRef.current[key];
         }
     }, []);
 
