@@ -115,7 +115,7 @@ function OnyxTabNavigator<TTabName extends string = SelectedTabRequest>({
     const validInitialTab = selectedTab && tabNames.includes(selectedTab) ? selectedTab : defaultSelectedTab;
 
     const LazyPlaceholder = useCallback(() => {
-        return <FullScreenLoadingIndicator />;
+        return <FullScreenLoadingIndicator reasonAttributes={{context: 'OnyxTabNavigator.LazyPlaceholder'}} />;
     }, []);
 
     // This callback is used to register the focus trap container element of each available tab screen

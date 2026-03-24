@@ -46,6 +46,7 @@ type SelectPaymentTypeParams = {
     betas: OnyxEntry<Beta[]>;
     userBillingGraceEndPeriods: OnyxCollection<BillingGraceEndPeriod>;
     amountOwed: OnyxEntry<number>;
+    ownerBillingGraceEndPeriod: OnyxEntry<number>;
 };
 
 type BusinessBankAccountOption = {
@@ -196,6 +197,8 @@ const handleUnvalidatedAccount = (iouReport: OnyxEntry<Report>) => {
         Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT_VERIFY_ACCOUNT.getRoute(reportID));
     } else if (activeRoute.includes(ROUTES.SEARCH_REPORT.getRoute({reportID}))) {
         Navigation.navigate(ROUTES.SEARCH_REPORT_VERIFY_ACCOUNT.getRoute(reportID));
+    } else if (activeRoute.includes(ROUTES.EXPENSE_REPORT_RHP.getRoute({reportID}))) {
+        Navigation.navigate(ROUTES.EXPENSE_REPORT_VERIFY_ACCOUNT.getRoute(reportID));
     } else {
         Navigation.navigate(ROUTES.REPORT_VERIFY_ACCOUNT.getRoute(reportID));
     }
@@ -224,8 +227,9 @@ const selectPaymentType = (params: SelectPaymentTypeParams) => {
         betas,
         userBillingGraceEndPeriods,
         amountOwed,
+        ownerBillingGraceEndPeriod,
     } = params;
-    if (policy && shouldRestrictUserBillableActions(policy.id, userBillingGraceEndPeriods, amountOwed)) {
+    if (policy && shouldRestrictUserBillableActions(policy.id, userBillingGraceEndPeriods, amountOwed, ownerBillingGraceEndPeriod)) {
         Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
         return;
     }
@@ -234,7 +238,7 @@ const selectPaymentType = (params: SelectPaymentTypeParams) => {
         if (!isUserValidated) {
             return handleUnvalidatedAccount(iouReport);
         }
-        triggerKYCFlow({event, iouPaymentType});
+        triggerKYCFlow({event, iouPaymentType, policy});
         setPersonalBankAccountContinueKYCOnSuccess(ROUTES.ENABLE_PAYMENTS);
         return;
     }
@@ -254,6 +258,7 @@ const selectPaymentType = (params: SelectPaymentTypeParams) => {
                 betas,
                 userBillingGraceEndPeriods,
                 amountOwed,
+                ownerBillingGraceEndPeriod,
                 full: true,
             });
         }
