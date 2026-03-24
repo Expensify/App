@@ -6,6 +6,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import useFilterFeedValue from '@components/Search/hooks/useFilterFeedValue';
 import useFilterFromValue from '@components/Search/hooks/useFilterFromValue';
 import useFilterWorkspaceValue from '@components/Search/hooks/useFilterWorkspaceValue';
+import {useSearchStateContext} from '@components/Search/SearchContext';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
@@ -14,12 +15,10 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {saveSearch} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
-import {buildCannedSearchQuery, buildFilterQueryWithSortDefaults, buildSearchQueryJSON, getCurrentSearchQueryJSON} from '@libs/SearchQueryUtils';
 import {mapFiltersFormToLabelValueList} from '@libs/SearchUIUtils';
 import type {SearchFilter} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
 import {FILTER_KEYS} from '@src/types/form/SearchAdvancedFiltersForm';
 import type {SearchAdvancedFiltersKey} from '@src/types/form/SearchAdvancedFiltersForm';
@@ -69,35 +68,22 @@ function SearchSavePage() {
     const [searchAdvancedFiltersForm = getEmptyObject<Partial<SearchAdvancedFiltersForm>>()] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
     const [name, setName] = useState('');
 
-    const queryString = (() => {
-        const {view, groupBy, sortBy, sortOrder, limit} = getCurrentSearchQueryJSON() ?? {};
-        return buildFilterQueryWithSortDefaults(searchAdvancedFiltersForm, {view, groupBy}, {sortBy, sortOrder, limit}) ?? '';
-    })();
-    const queryJSON = buildSearchQueryJSON(queryString || buildCannedSearchQuery());
-
-    const applyFiltersAndNavigate = () => {
-        Navigation.navigate(
-            ROUTES.SEARCH_ROOT.getRoute({
-                query: queryString,
-            }),
-            {forceReplace: true},
-        );
-    };
+    const {currentSearchQueryJSON} = useSearchStateContext();
 
     const onSaveSearch = () => {
         const savedSearchKeys = Object.keys(savedSearches ?? {});
-        if (!queryJSON || (savedSearches && savedSearchKeys.includes(String(queryJSON.hash)))) {
+        if (!currentSearchQueryJSON || (savedSearches && savedSearchKeys.includes(String(currentSearchQueryJSON.hash)))) {
             // If the search is already saved, we only display the results as we don't need to save it.
-            applyFiltersAndNavigate();
+            Navigation.goBack();
             return;
         }
 
         if (name) {
-            saveSearch({queryJSON, newName: name});
+            saveSearch({queryJSON: currentSearchQueryJSON, newName: name});
         } else {
-            saveSearch({queryJSON});
+            saveSearch({queryJSON: currentSearchQueryJSON});
         }
-        Navigation.setNavigationActionToMicrotaskQueue(applyFiltersAndNavigate);
+        Navigation.goBack();
     };
 
     const appliedFilters = mapFiltersFormToLabelValueList(searchAdvancedFiltersForm, undefined, translate);
