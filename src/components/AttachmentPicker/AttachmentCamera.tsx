@@ -59,7 +59,7 @@ function AttachmentCamera({isVisible, onCapture, onClose}: AttachmentCameraProps
     const device = useCameraDevice(cameraPosition, {
         physicalDevices: ['wide-angle-camera', 'ultra-wide-angle-camera'],
     });
-    const format = useCameraFormat(device, [{photoAspectRatio: 4 / 3}, {photoResolution: 'max'}]);
+    const format = useCameraFormat(device, [{photoAspectRatio: CONST.RECEIPT.PHOTO_ASPECT_RATIO}, {photoResolution: 'max'}]);
     const cameraAspectRatio = format ? format.photoHeight / format.photoWidth : undefined;
     const hasFlash = !!device?.hasFlash;
 
