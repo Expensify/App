@@ -3,11 +3,10 @@ import {renderHook} from '@testing-library/react-native';
 import type {OnyxCollection} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import * as defaultWorkspaceAvatars from '@components/Icon/WorkspaceDefaultAvatars';
-import type {SelectedTransactionInfo} from '@components/Search/types';
-import ChatListItem from '@components/SelectionListWithSections/ChatListItem';
-import ExpenseReportListItem from '@components/SelectionListWithSections/Search/ExpenseReportListItem';
-import TransactionGroupListItem from '@components/SelectionListWithSections/Search/TransactionGroupListItem';
-import TransactionListItem from '@components/SelectionListWithSections/Search/TransactionListItem';
+import ChatListItem from '@components/Search/SearchList/ListItem/ChatListItem';
+import ExpenseReportListItem from '@components/Search/SearchList/ListItem/ExpenseReportListItem';
+import TransactionGroupListItem from '@components/Search/SearchList/ListItem/TransactionGroupListItem';
+import TransactionListItem from '@components/Search/SearchList/ListItem/TransactionListItem';
 import type {
     ReportActionListItemType,
     TaskListItemType,
@@ -24,7 +23,8 @@ import type {
     TransactionWeekGroupListItemType,
     TransactionWithdrawalIDGroupListItemType,
     TransactionYearGroupListItemType,
-} from '@components/SelectionListWithSections/types';
+} from '@components/Search/SearchList/ListItem/types';
+import type {SelectedTransactionInfo} from '@components/Search/types';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import Navigation from '@navigation/Navigation';
 // eslint-disable-next-line no-restricted-syntax
@@ -1561,6 +1561,7 @@ const transactionMemberGroupListItems: TransactionMemberGroupListItemType[] = [
         total: 70,
         transactions: [],
         transactionsQueryJSON: undefined,
+        keyForList: 'group_18439984',
     },
     {
         accountID: 1111111,
@@ -1574,6 +1575,7 @@ const transactionMemberGroupListItems: TransactionMemberGroupListItemType[] = [
         total: 30,
         transactions: [],
         transactionsQueryJSON: undefined,
+        keyForList: 'group_1111111',
     },
 ];
 
@@ -1590,6 +1592,7 @@ const transactionMemberGroupListItemsSorted: TransactionMemberGroupListItemType[
         total: 70,
         transactions: [],
         transactionsQueryJSON: undefined,
+        keyForList: 'group_18439984',
     },
     {
         accountID: 1111111,
@@ -1603,6 +1606,7 @@ const transactionMemberGroupListItemsSorted: TransactionMemberGroupListItemType[
         total: 30,
         transactions: [],
         transactionsQueryJSON: undefined,
+        keyForList: 'group_1111111',
     },
 ];
 
@@ -1624,6 +1628,7 @@ const transactionCardGroupListItems: TransactionCardGroupListItemType[] = [
         total: 40,
         transactions: [],
         transactionsQueryJSON: undefined,
+        keyForList: 'group_20202020',
     },
     {
         accountID: 1111111,
@@ -1642,6 +1647,7 @@ const transactionCardGroupListItems: TransactionCardGroupListItemType[] = [
         total: 20,
         transactions: [],
         transactionsQueryJSON: undefined,
+        keyForList: 'group_30303030',
     },
 ];
 
@@ -1663,6 +1669,7 @@ const transactionCardGroupListItemsSorted: TransactionCardGroupListItemType[] = 
         total: 40,
         transactions: [],
         transactionsQueryJSON: undefined,
+        keyForList: 'group_20202020',
     },
     {
         accountID: 1111111,
@@ -1681,6 +1688,7 @@ const transactionCardGroupListItemsSorted: TransactionCardGroupListItemType[] = 
         total: 20,
         transactions: [],
         transactionsQueryJSON: undefined,
+        keyForList: 'group_30303030',
     },
 ];
 
@@ -1698,6 +1706,7 @@ const transactionWithdrawalIDGroupListItems: TransactionWithdrawalIDGroupListIte
         formattedWithdrawalID: '5',
         transactions: [],
         transactionsQueryJSON: undefined,
+        keyForList: 'group_5',
     },
     {
         bankName: CONST.BANK_NAMES.CITIBANK,
@@ -1712,6 +1721,7 @@ const transactionWithdrawalIDGroupListItems: TransactionWithdrawalIDGroupListIte
         formattedWithdrawalID: '6',
         transactions: [],
         transactionsQueryJSON: undefined,
+        keyForList: 'group_30303030',
     },
 ];
 
@@ -1729,6 +1739,7 @@ const transactionWithdrawalIDGroupListItemsSorted: TransactionWithdrawalIDGroupL
         formattedWithdrawalID: '5',
         transactions: [],
         transactionsQueryJSON: undefined,
+        keyForList: 'group_5',
     },
     {
         bankName: CONST.BANK_NAMES.CITIBANK,
@@ -1743,6 +1754,7 @@ const transactionWithdrawalIDGroupListItemsSorted: TransactionWithdrawalIDGroupL
         formattedWithdrawalID: '6',
         transactions: [],
         transactionsQueryJSON: undefined,
+        keyForList: 'group_30303030',
     },
 ];
 
@@ -1756,6 +1768,7 @@ const transactionCategoryGroupListItems: TransactionCategoryGroupListItemType[] 
         formattedCategory: categoryName1,
         transactions: [],
         transactionsQueryJSON: undefined,
+        keyForList: 'group_Travel',
     },
     {
         category: categoryName2,
@@ -1766,6 +1779,7 @@ const transactionCategoryGroupListItems: TransactionCategoryGroupListItemType[] 
         formattedCategory: categoryName2,
         transactions: [],
         transactionsQueryJSON: undefined,
+        keyForList: 'group_Food & Drink',
     },
 ];
 
@@ -1779,6 +1793,7 @@ const transactionCategoryGroupListItemsSorted: TransactionCategoryGroupListItemT
         formattedCategory: categoryName1,
         transactions: [],
         transactionsQueryJSON: undefined,
+        keyForList: 'group_Travel',
     },
     {
         category: categoryName2,
@@ -1789,6 +1804,7 @@ const transactionCategoryGroupListItemsSorted: TransactionCategoryGroupListItemT
         formattedCategory: categoryName2,
         transactions: [],
         transactionsQueryJSON: undefined,
+        keyForList: 'group_Food & Drink',
     },
 ];
 
@@ -1837,6 +1853,7 @@ const transactionMerchantGroupListItems: TransactionMerchantGroupListItemType[] 
         formattedMerchant: merchantName1,
         transactions: [],
         transactionsQueryJSON: undefined,
+        keyForList: 'group_1234567890',
     },
     {
         merchant: merchantName2,
@@ -1847,6 +1864,7 @@ const transactionMerchantGroupListItems: TransactionMerchantGroupListItemType[] 
         formattedMerchant: merchantName2,
         transactions: [],
         transactionsQueryJSON: undefined,
+        keyForList: 'group_9876543210',
     },
 ];
 
@@ -1892,6 +1910,7 @@ const transactionTagGroupListItems: TransactionTagGroupListItemType[] = [
         formattedTag: tagName1,
         transactions: [],
         transactionsQueryJSON: undefined,
+        keyForList: 'group_Project A',
     },
     {
         tag: tagName2,
@@ -1902,6 +1921,7 @@ const transactionTagGroupListItems: TransactionTagGroupListItemType[] = [
         formattedTag: tagName2,
         transactions: [],
         transactionsQueryJSON: undefined,
+        keyForList: 'group_Project B',
     },
 ];
 
@@ -1930,6 +1950,7 @@ const transactionMerchantGroupListItemsSorted: TransactionMerchantGroupListItemT
         formattedMerchant: merchantName1,
         transactions: [],
         transactionsQueryJSON: undefined,
+        keyForList: 'group_1234567890',
     },
     {
         merchant: merchantName2,
@@ -1940,6 +1961,7 @@ const transactionMerchantGroupListItemsSorted: TransactionMerchantGroupListItemT
         formattedMerchant: merchantName2,
         transactions: [],
         transactionsQueryJSON: undefined,
+        keyForList: 'group_9876543210',
     },
 ];
 
@@ -3038,6 +3060,7 @@ describe('SearchUIUtils', () => {
                 formattedCategory: 'Travel',
                 transactions: [],
                 transactionsQueryJSON: undefined,
+                keyForList: 'group_Travel',
             };
 
             expect(SearchUIUtils.isTransactionCategoryGroupListItemType(categoryItem)).toBe(true);
@@ -3056,6 +3079,7 @@ describe('SearchUIUtils', () => {
                     sortKey: 202601,
                     transactions: [],
                     transactionsQueryJSON: undefined,
+                    keyForList: 'group_2026_1',
                 },
                 {
                     year: 2025,
@@ -3068,6 +3092,7 @@ describe('SearchUIUtils', () => {
                     sortKey: 202512,
                     transactions: [],
                     transactionsQueryJSON: undefined,
+                    keyForList: 'group_2025_12',
                 },
             ];
 
@@ -3155,6 +3180,7 @@ describe('SearchUIUtils', () => {
                 sortKey: 202601,
                 transactions: [],
                 transactionsQueryJSON: undefined,
+                keyForList: 'group_2026_1',
             };
 
             expect(SearchUIUtils.isTransactionMonthGroupListItemType(monthItem)).toBe(true);
@@ -3170,6 +3196,7 @@ describe('SearchUIUtils', () => {
                 formattedWeek: 'Jan 25 - Jan 31, 2026',
                 transactions: [],
                 transactionsQueryJSON: undefined,
+                keyForList: '2026-01-25-01-25',
             };
 
             expect(SearchUIUtils.isTransactionWeekGroupListItemType(weekItem)).toBe(true);
@@ -3187,6 +3214,7 @@ describe('SearchUIUtils', () => {
                     sortKey: 2026,
                     transactions: [],
                     transactionsQueryJSON: undefined,
+                    keyForList: 'group_2026',
                 },
                 {
                     year: 2025,
@@ -3198,6 +3226,7 @@ describe('SearchUIUtils', () => {
                     sortKey: 2025,
                     transactions: [],
                     transactionsQueryJSON: undefined,
+                    keyForList: 'group_2025',
                 },
             ];
 
@@ -3282,6 +3311,7 @@ describe('SearchUIUtils', () => {
                 sortKey: 2026,
                 transactions: [],
                 transactionsQueryJSON: undefined,
+                keyForList: '2026',
             };
 
             expect(SearchUIUtils.isTransactionYearGroupListItemType(yearItem)).toBe(true);
@@ -3607,6 +3637,7 @@ describe('SearchUIUtils', () => {
                     sortKey: 20261,
                     transactions: [],
                     transactionsQueryJSON: undefined,
+                    keyForList: 'group_2026_1',
                 },
                 {
                     year: 2025,
@@ -3619,6 +3650,7 @@ describe('SearchUIUtils', () => {
                     sortKey: 20254,
                     transactions: [],
                     transactionsQueryJSON: undefined,
+                    keyForList: 'group_2025_4',
                 },
             ];
 
@@ -3706,6 +3738,7 @@ describe('SearchUIUtils', () => {
                 sortKey: 20261,
                 transactions: [],
                 transactionsQueryJSON: undefined,
+                keyForList: '202601',
             };
 
             expect(SearchUIUtils.isTransactionQuarterGroupListItemType(quarterItem)).toBe(true);
@@ -3721,6 +3754,7 @@ describe('SearchUIUtils', () => {
                     formattedWeek: 'Jan 25 - Jan 31, 2026',
                     transactions: [],
                     transactionsQueryJSON: undefined,
+                    keyForList: 'group_2026-01-25',
                 },
                 {
                     week: '2025-12-21',
@@ -3731,6 +3765,7 @@ describe('SearchUIUtils', () => {
                     formattedWeek: 'Dec 21 - Dec 27, 2025',
                     transactions: [],
                     transactionsQueryJSON: undefined,
+                    keyForList: 'group_2025-12-21',
                 },
             ];
 
@@ -3799,6 +3834,7 @@ describe('SearchUIUtils', () => {
                 total: 100,
                 transactions: [],
                 transactionsQueryJSON: undefined,
+                keyForList: '123',
             };
 
             expect(SearchUIUtils.isTransactionCategoryGroupListItemType(memberItem)).toBe(false);
@@ -4257,6 +4293,7 @@ describe('SearchUIUtils', () => {
                 formattedMerchant: 'Starbucks',
                 transactions: [],
                 transactionsQueryJSON: undefined,
+                keyForList: 'merchantName1',
             };
 
             expect(SearchUIUtils.isTransactionMerchantGroupListItemType(merchantItem)).toBe(true);
@@ -4272,6 +4309,7 @@ describe('SearchUIUtils', () => {
                 formattedCategory: 'Travel',
                 transactions: [],
                 transactionsQueryJSON: undefined,
+                keyForList: 'categoryName1',
             };
 
             expect(SearchUIUtils.isTransactionMerchantGroupListItemType(categoryItem)).toBe(false);
@@ -4525,6 +4563,7 @@ describe('SearchUIUtils', () => {
                 formattedTag: 'Project A',
                 transactions: [],
                 transactionsQueryJSON: undefined,
+                keyForList: 'tagName1',
             };
 
             expect(SearchUIUtils.isTransactionTagGroupListItemType(tagItem)).toBe(true);
@@ -4540,6 +4579,7 @@ describe('SearchUIUtils', () => {
                 formattedCategory: 'Travel',
                 transactions: [],
                 transactionsQueryJSON: undefined,
+                keyForList: 'categoryName1',
             };
 
             expect(SearchUIUtils.isTransactionTagGroupListItemType(categoryItem)).toBe(false);
@@ -5410,6 +5450,7 @@ describe('SearchUIUtils', () => {
                     formattedMerchant: 'No merchant', // Translated by getMerchantSections
                     transactions: [],
                     transactionsQueryJSON: undefined,
+                    keyForList: 'noMerchant',
                 },
                 {
                     merchant: 'Apple Store',
@@ -5420,6 +5461,7 @@ describe('SearchUIUtils', () => {
                     formattedMerchant: 'Apple Store',
                     transactions: [],
                     transactionsQueryJSON: undefined,
+                    keyForList: 'appleStore',
                 },
                 {
                     merchant: 'Zebra Coffee',
@@ -5430,6 +5472,7 @@ describe('SearchUIUtils', () => {
                     formattedMerchant: 'Zebra Coffee',
                     transactions: [],
                     transactionsQueryJSON: undefined,
+                    keyForList: 'zebraCoffee',
                 },
             ];
 
@@ -6791,18 +6834,18 @@ describe('SearchUIUtils', () => {
     });
 
     describe('Test getSuggestedSearches sort defaults', () => {
-        test('Should default Top Categories to sortBy groupCategory and sortOrder asc', () => {
+        test('Should default Top Categories to sortBy groupTotal and sortOrder desc', () => {
             const suggestedSearches = SearchUIUtils.getSuggestedSearches(adminAccountID);
             const topCategories = suggestedSearches[CONST.SEARCH.SEARCH_KEYS.TOP_CATEGORIES];
-            expect(topCategories.searchQueryJSON?.sortBy).toBe(CONST.SEARCH.TABLE_COLUMNS.GROUP_CATEGORY);
-            expect(topCategories.searchQueryJSON?.sortOrder).toBe(CONST.SEARCH.SORT_ORDER.ASC);
+            expect(topCategories.searchQueryJSON?.sortBy).toBe(CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL);
+            expect(topCategories.searchQueryJSON?.sortOrder).toBe(CONST.SEARCH.SORT_ORDER.DESC);
         });
 
-        test('Should default Top Merchants to sortBy groupMerchant and sortOrder asc', () => {
+        test('Should default Top Merchants to sortBy groupTotal and sortOrder desc', () => {
             const suggestedSearches = SearchUIUtils.getSuggestedSearches(adminAccountID);
             const topMerchants = suggestedSearches[CONST.SEARCH.SEARCH_KEYS.TOP_MERCHANTS];
-            expect(topMerchants.searchQueryJSON?.sortBy).toBe(CONST.SEARCH.TABLE_COLUMNS.GROUP_MERCHANT);
-            expect(topMerchants.searchQueryJSON?.sortOrder).toBe(CONST.SEARCH.SORT_ORDER.ASC);
+            expect(topMerchants.searchQueryJSON?.sortBy).toBe(CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL);
+            expect(topMerchants.searchQueryJSON?.sortOrder).toBe(CONST.SEARCH.SORT_ORDER.DESC);
         });
     });
 
