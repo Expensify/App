@@ -393,8 +393,7 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
     const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
-    const isDEWBetaEnabled = isBetaEnabled(CONST.BETAS.NEW_DOT_DEW);
-    const isDEWPolicy = isDEWBetaEnabled && hasDynamicExternalWorkflow(policy);
+    const isDEWPolicy = hasDynamicExternalWorkflow(policy);
     const hasViolations = hasViolationsReportUtils(moneyRequestReport?.reportID, allTransactionViolations, accountID, email ?? '');
     const hasCustomUnitOutOfPolicyViolation = hasCustomUnitOutOfPolicyViolationTransactionUtils(transactionViolations);
     const isPerDiemRequestOnNonDefaultWorkspace = isPerDiemRequest(transaction) && defaultExpensePolicy?.id !== policy?.id;
@@ -817,25 +816,8 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
         isSelectionModePaymentRef.current = false;
     }, [selectedTransactionIDs.length]);
 
-    const showDWEModal = useCallback(async () => {
-        const result = await showConfirmModal({
-            confirmText: translate('customApprovalWorkflow.goToExpensifyClassic'),
-            title: translate('customApprovalWorkflow.title'),
-            prompt: translate('customApprovalWorkflow.description'),
-            shouldShowCancelButton: false,
-        });
-
-        if (result.action === ModalActions.CONFIRM) {
-            openOldDotLink(CONST.OLDDOT_URLS.INBOX);
-        }
-    }, [showConfirmModal, translate]);
-
     const confirmApproval = useCallback(
         (skipAnimation = false) => {
-            if (hasDynamicExternalWorkflow(policy) && !isDEWBetaEnabled) {
-                showDWEModal();
-                return;
-            }
             setRequestType(CONST.IOU.REPORT_ACTION_TYPE.APPROVE);
             if (isDelegateAccessRestricted) {
                 showDelegateNoAccessModal();
@@ -872,8 +854,6 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
         },
         [
             policy,
-            isDEWBetaEnabled,
-            showDWEModal,
             isDelegateAccessRestricted,
             showDelegateNoAccessModal,
             isAnyTransactionOnHold,
@@ -903,10 +883,7 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
             if (!moneyRequestReport || shouldBlockSubmit) {
                 return;
             }
-            if (hasDynamicExternalWorkflow(policy) && !isDEWBetaEnabled) {
-                showDWEModal();
-                return;
-            }
+
             const doSubmit = () => {
                 submitReport({
                     expenseReport: moneyRequestReport,
@@ -946,8 +923,6 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
             moneyRequestReport,
             shouldBlockSubmit,
             policy,
-            isDEWBetaEnabled,
-            showDWEModal,
             startSubmittingAnimation,
             accountID,
             email,
@@ -1763,10 +1738,7 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
                 if (!moneyRequestReport) {
                     return;
                 }
-                if (hasDynamicExternalWorkflow(policy) && !isDEWBetaEnabled) {
-                    showDWEModal();
-                    return;
-                }
+
                 confirmPendingRTERAndProceed(() => {
                     submitReport({
                         expenseReport: moneyRequestReport,
