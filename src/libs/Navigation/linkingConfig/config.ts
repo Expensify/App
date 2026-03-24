@@ -2160,6 +2160,10 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                     path: ROUTES.SETTINGS_ABOUT,
                     exact: true,
                 },
+                [SCREENS.SETTINGS.HELP]: {
+                    path: ROUTES.SETTINGS_HELP,
+                    exact: true,
+                },
                 [SCREENS.SETTINGS.TROUBLESHOOT]: {
                     path: ROUTES.SETTINGS_TROUBLESHOOT,
                     exact: true,
