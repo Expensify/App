@@ -527,6 +527,10 @@ const translations: TranslationDeepObject<typeof en> = {
         duplicateReport: 'Zduplikowany raport',
         approver: 'Osoba zatwierdzająca',
         copyOfReportName: (reportName: string) => `Kopia raportu ${reportName}`,
+        previousMonth: 'Poprzedni miesiąc',
+        nextMonth: 'W przyszłym miesiącu',
+        previousYear: 'Poprzedni rok',
+        nextYear: 'W przyszłym roku',
     },
     socials: {
         podcast: 'Śledź nas na Podcast',
@@ -8655,5 +8659,6 @@ Oto *paragon testowy*, żeby pokazać Ci, jak to działa:`,
         positiveButton: 'Tak!',
         negativeButton: 'Niekoniecznie',
     },
+    monthPickerPage: {month: 'Miesiąc', selectMonth: 'Wybierz miesiąc'},
 };
 export default translations;
