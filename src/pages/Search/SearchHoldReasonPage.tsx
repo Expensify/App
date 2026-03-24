@@ -41,12 +41,18 @@ function SearchHoldReasonPage({route}: SearchHoldReasonPageProps) {
                 showDelegateNoAccessModal();
                 return;
             }
-            const transactionIDs = Object.keys(selectedTransactions);
-            putTransactionsOnHold(transactionIDs, comment, reportID, ancestors);
-            clearSelectedTransactions(true);
+            if (route.name === SCREENS.SEARCH.MONEY_REQUEST_REPORT_HOLD_TRANSACTIONS) {
+                putTransactionsOnHold(selectedTransactionIDs, comment, reportID, ancestors);
+                clearSelectedTransactions(true);
+            } else {
+                const transactionIDs = Object.keys(selectedTransactions);
+                putTransactionsOnHold(transactionIDs, comment, reportID, ancestors);
+                clearSelectedTransactions();
+            }
+
             Navigation.goBack();
         },
-        [selectedTransactions, clearSelectedTransactions, reportID, ancestors, isDelegateAccessRestricted, showDelegateNoAccessModal],
+        [route.name, selectedTransactionIDs, selectedTransactions, clearSelectedTransactions, reportID, ancestors, isDelegateAccessRestricted, showDelegateNoAccessModal],
     );
 
     const validate = useCallback(

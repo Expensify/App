@@ -31,7 +31,6 @@ import enhanceParameters from '@libs/Network/enhanceParameters';
 import {rand64} from '@libs/NumberUtils';
 import {getActivePaymentType} from '@libs/PaymentUtils';
 import {getSubmitToAccountID, getValidConnectedIntegration, isDelayedSubmissionEnabled} from '@libs/PolicyUtils';
-import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
 import type {OptimisticExportIntegrationAction} from '@libs/ReportUtils';
 import {
     buildOptimisticExportIntegrationAction,
@@ -65,7 +64,6 @@ import type {
     Policy,
     Report,
     ReportAction,
-    ReportActions,
     ReportNameValuePairs,
     Transaction,
     TransactionViolations,
@@ -79,7 +77,6 @@ import SafeString from '@src/utils/SafeString';
 import {setPersonalBankAccountContinueKYCOnSuccess} from './BankAccounts';
 import {deleteMoneyRequest, getReportPreviewAction, prepareRejectMoneyRequestData, rejectMoneyRequest} from './IOU';
 import type {RejectMoneyRequestData} from './IOU';
-import {unholdRequest} from './IOU/Hold';
 import {isCurrencySupportedForGlobalReimbursement} from './Policy/Policy';
 import {deleteAppReport, setOptimisticTransactionThread} from './Report';
 import {saveLastSearchParams} from './ReportNavigation';
