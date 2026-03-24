@@ -1562,16 +1562,16 @@ const translations: TranslationDeepObject<typeof en> = {
             },
         },
         rejectReport: {
-            title: 'Rejeter le rapport',
-            description: 'Expliquez pourquoi vous rejetez ce rapport :',
-            rejectReason: 'Motif du rejet',
-            selectTarget: 'Choisissez le membre à qui renvoyer ce rapport pour révision:',
+            title: 'Rejeter la note de frais',
+            description: 'Expliquez pourquoi vous n’allez pas approuver cette note de frais :',
+            rejectReason: 'Motif de rejet',
+            selectTarget: 'Choisissez le membre vers qui renvoyer cette note de frais pour examen :',
             lastApprover: 'Dernier approbateur',
-            submitter: 'Soumetteur',
-            rejectedReportMessage: 'Ce rapport a été rejeté.',
-            rejectedNextStep: 'Ce rapport a été rejeté. En attente que vous corrigiez les problèmes et que vous le soumettiez à nouveau manuellement.',
-            selectMemberError: 'Sélectionnez un membre à qui renvoyer ce rapport.',
-            couldNotReject: "Le rapport n'a pas pu être rejeté. Veuillez réessayer.",
+            submitter: 'Déclarant',
+            rejectedReportMessage: 'Cette note de frais a été rejetée.',
+            rejectedNextStep: 'Cette note de frais a été rejetée. En attente de votre action pour corriger les problèmes et la soumettre manuellement à nouveau.',
+            selectMemberError: 'Sélectionnez un membre vers qui rejeter cette note de frais.',
+            couldNotReject: 'La note de frais n’a pas pu être rejetée. Veuillez réessayer.',
         },
         moveExpenses: 'Déplacer vers le rapport',
         moveExpensesError:
@@ -1697,7 +1697,7 @@ const translations: TranslationDeepObject<typeof en> = {
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_ADD_TRANSACTIONS]: ({actor, actorType}: NextStepParams) => {
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `En attente de <strong>vous</strong> pour ajouter des dépenses.`;
+                        return `En attente que <strong>vous</strong> ajoutiez des dépenses.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
                         return `En attente que <strong>${actor}</strong> ajoute des dépenses.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
@@ -1714,7 +1714,7 @@ const translations: TranslationDeepObject<typeof en> = {
                         return `En attente qu’un administrateur soumette des dépenses.`;
                 }
             },
-            [CONST.NEXT_STEP.MESSAGE_KEY.NO_FURTHER_ACTION]: (_: NextStepParams) => `Aucune autre action requise !`,
+            [CONST.NEXT_STEP.MESSAGE_KEY.NO_FURTHER_ACTION]: (_: NextStepParams) => `Aucune autre action n’est requise !`,
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_SUBMITTER_ACCOUNT]: ({actor, actorType}: NextStepParams) => {
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
@@ -1728,13 +1728,13 @@ const translations: TranslationDeepObject<typeof en> = {
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_AUTOMATIC_SUBMIT]: ({actor, actorType, eta, etaType}: NextStepParams) => {
                 let formattedETA = '';
                 if (eta) {
-                    formattedETA = etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? ` le ${eta} de chaque mois` : ` ${eta}`;
+                    formattedETA = etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? `le ${eta} de chaque mois` : ` ${eta}`;
                 }
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
                         return `En attente que <strong>vos</strong> dépenses soient automatiquement soumises${formattedETA}.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `En attente que les dépenses de <strong>${actor}</strong> soient automatiquement soumises${formattedETA}.`;
+                        return `En attente de la soumission automatique des dépenses de <strong>${actor}</strong>${formattedETA}.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
                         return `En attente de la soumission automatique des dépenses d’un administrateur${formattedETA}.`;
                 }
@@ -1752,11 +1752,11 @@ const translations: TranslationDeepObject<typeof en> = {
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_APPROVE]: ({actor, actorType}: NextStepParams) => {
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `En attente que <strong>vous</strong> approuviez des dépenses.`;
+                        return `En attente de <strong>votre</strong> approbation des dépenses.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
                         return `En attente de l’approbation des dépenses par <strong>${actor}</strong>.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `En attente de l’approbation des dépenses par un administrateur.`;
+                        return `En attente qu’un administrateur approuve les dépenses.`;
                 }
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_EXPORT]: ({actor, actorType}: NextStepParams) => {
@@ -1792,22 +1792,20 @@ const translations: TranslationDeepObject<typeof en> = {
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_PAYMENT]: ({eta, etaType}: NextStepParams) => {
                 let formattedETA = '';
                 if (eta) {
-                    formattedETA = etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? ` le ${eta}` : ` ${eta}`;
+                    formattedETA = etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? `d’ici ${eta}` : ` ${eta}`;
                 }
                 return `En attente de la finalisation du paiement${formattedETA}.`;
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.SUBMITTING_TO_SELF]: (_: NextStepParams) =>
-                `Oups ! On dirait que vous soumettez cette note de frais à <strong>vous-même</strong>. Approuver vos propres notes de frais est <strong>interdit</strong> par votre espace de travail. Veuillez soumettre cette note de frais à quelqu’un d’autre ou contacter votre administrateur pour changer la personne à qui vous la soumettez.`,
+                `Oups ! On dirait que vous soumettez à <strong>vous-même</strong>. L’approbation de vos propres notes de frais est <strong>interdite</strong> par votre espace de travail. Veuillez soumettre cette note de frais à une autre personne ou contacter votre administrateur pour modifier la personne à qui vous soumettez.`,
             [CONST.NEXT_STEP.MESSAGE_KEY.REJECTED_REPORT]: ({actor, actorType}: NextStepParams) => {
-                // All ACTOR_TYPE enum values are explicitly handled
-                // eslint-disable-next-line default-case
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `Ce rapport a été rejeté. En attente que <strong>vous</strong> corrigiez les problèmes et le soumettiez à nouveau manuellement.`;
+                        return `Cette note de frais a été rejetée. En attente que <strong>vous</strong> corrigiez les problèmes et la soumettiez à nouveau manuellement.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `Ce rapport a été rejeté. En attente que <strong>${actor}</strong> corrige les problèmes et le soumette à nouveau manuellement.`;
+                        return `Cette note de frais a été rejetée. En attente que <strong>${actor}</strong> corrige les problèmes et la soumette manuellement à nouveau.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `Ce rapport a été rejeté. En attente qu'un administrateur corrige les problèmes et le soumette à nouveau manuellement.`;
+                        return `Cette note de frais a été rejetée. En attente qu’un administrateur corrige les problèmes et la soumette manuellement à nouveau.`;
                 }
             },
         },
