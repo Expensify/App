@@ -407,25 +407,37 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
     const {isExpenseSplit} = getOriginalTransactionWithSplitInfo(transaction, originalTransaction);
 
     const originalTransactionID = transaction?.comment?.originalTransactionID;
-    
-    const [hasMultipleSplits] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {
-        selector: (transactions) => {
-            if (!originalTransactionID) {
-                return false
-            }
+
+    const [hasMultipleSplits] = useOnyx(
+        ONYXKEYS.COLLECTION.TRANSACTION,
+        {
+            selector: (transactions) => {
+                if (!originalTransactionID) {
+                    return false;
+                }
+
+                return Object.values(transactions ?? {}).some((transaction) => {
+                    const isSplitChild = transaction?.comment?.originalTransactionID === originalTransactionID;
+                    if (!isSplitChild || transaction?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+                        return false;
+                    }
+
+                    return true;
+                });
+            },
         },
+        [originalTransactionID],
+    );
 
-    }, [originalTransactionID]);
-
-    const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
-    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
-    const hasMultipleSplits = useMemo(() => {
-        if (!transaction?.comment?.originalTransactionID) {
-            return false;
-        }
-        const children = getChildTransactions(allTransactions, allReports, transaction.comment.originalTransactionID);
-        return children.length > 1;
-    }, [allTransactions, allReports, transaction?.comment?.originalTransactionID]);
+    // const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
+    // const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
+    // const hasMultipleSplits = useMemo(() => {
+    //     if (!transaction?.comment?.originalTransactionID) {
+    //         return false;
+    //     }
+    // const children = getChildTransactions(allTransactions, allReports, transaction.comment.originalTransactionID);
+    //     return children.length > 1;
+    // }, [allTransactions, allReports, transaction?.comment?.originalTransactionID]);
 
     const isReportOpen = isOpenReport(moneyRequestReport);
     const shouldShowSplitIndicator = isExpenseSplit && (hasMultipleSplits || isReportOpen);
