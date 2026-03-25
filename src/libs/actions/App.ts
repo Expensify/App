@@ -122,7 +122,7 @@ const KEYS_TO_PRESERVE: OnyxKey[] = [
     ONYXKEYS.ACCOUNT,
     ONYXKEYS.RAM_ONLY_IS_LOADING_APP,
     ONYXKEYS.RAM_ONLY_IS_SIDEBAR_LOADED,
-    ONYXKEYS.RAM_ONLY_IS_CHECKING_PUBLIC_ROOM,
+    ONYXKEYS.IS_CHECKING_PUBLIC_ROOM,
     ONYXKEYS.MODAL,
     ONYXKEYS.NETWORK,
     ONYXKEYS.SESSION,
@@ -568,6 +568,7 @@ type CreateWorkspaceWithPolicyDraftParams = {
     type?: PolicyType;
     // TODO: Remove optional (?) once allBetas Onyx.connect is removed (https://github.com/Expensify/App/issues/66417)
     betas?: OnyxEntry<OnyxTypes.Beta[]>;
+    hasActiveAdminPolicies: boolean;
 };
 
 /**
@@ -593,6 +594,7 @@ function createWorkspaceWithPolicyDraftAndNavigateToIt(params: CreateWorkspaceWi
         type,
         isSelfTourViewed,
         betas,
+        hasActiveAdminPolicies,
     } = params;
 
     const policyIDWithDefault = policyID || generatePolicyID();
@@ -620,6 +622,7 @@ function createWorkspaceWithPolicyDraftAndNavigateToIt(params: CreateWorkspaceWi
             type,
             isSelfTourViewed,
             betas,
+            hasActiveAdminPolicies,
         });
         Navigation.navigate(routeToNavigate, {forceReplace: !transitionFromOldDot});
     });
@@ -641,6 +644,7 @@ function createWorkspaceWithPolicyDraft(params: CreateWorkspaceWithPolicyDraftPa
         shouldCreateControlPolicy,
         isSelfTourViewed,
         betas,
+        hasActiveAdminPolicies,
     } = params;
 
     createDraftInitialWorkspace(introSelected, policyOwnerEmail, policyName, policyID, makeMeAdmin, currency, file);
@@ -660,6 +664,7 @@ function createWorkspaceWithPolicyDraft(params: CreateWorkspaceWithPolicyDraftPa
         shouldCreateControlPolicy,
         isSelfTourViewed,
         betas,
+        hasActiveAdminPolicies,
     });
 }
 
@@ -681,6 +686,7 @@ type SavePolicyDraftByNewWorkspaceParams = {
     type?: PolicyType;
     // TODO: Remove optional (?) once allBetas Onyx.connect is removed (https://github.com/Expensify/App/issues/66417)
     betas?: OnyxEntry<OnyxTypes.Beta[]>;
+    hasActiveAdminPolicies: boolean;
 };
 
 /**
@@ -703,6 +709,7 @@ function savePolicyDraftByNewWorkspace({
     type,
     isSelfTourViewed,
     betas,
+    hasActiveAdminPolicies,
 }: SavePolicyDraftByNewWorkspaceParams) {
     createWorkspace({
         policyOwnerEmail,
@@ -722,6 +729,7 @@ function savePolicyDraftByNewWorkspace({
         type,
         isSelfTourViewed,
         betas,
+        hasActiveAdminPolicies,
     });
 }
 
@@ -745,6 +753,7 @@ function setUpPoliciesAndNavigate(
     introSelected: OnyxEntry<OnyxTypes.IntroSelected>,
     activePolicyID: string | undefined,
     isSelfTourViewed: boolean | undefined,
+    hasActiveAdminPolicies: boolean,
 ) {
     const currentUrl = getCurrentUrl();
     if (!session || !currentUrl?.includes('exitTo')) {
@@ -776,6 +785,7 @@ function setUpPoliciesAndNavigate(
             currentUserAccountIDParam: currentSessionData.accountID ?? CONST.DEFAULT_NUMBER_ID,
             currentUserEmailParam: currentSessionData.email ?? '',
             isSelfTourViewed,
+            hasActiveAdminPolicies,
         });
         return;
     }

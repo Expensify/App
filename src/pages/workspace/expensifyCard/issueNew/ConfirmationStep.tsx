@@ -121,11 +121,10 @@ function ConfirmationStep({policyID, stepNames, startStepIndex, backTo}: Confirm
     const isPhysicalCard = data?.cardType === CONST.EXPENSIFY_CARD.CARD_TYPE.PHYSICAL;
     const cardReadyTranslationKey = isPhysicalCard ? 'workspace.card.issueNewCard.willBeReadyToShip' : 'workspace.card.issueNewCard.willBeReadyToUse';
 
-    const isSingleUseEnabled = isBetaEnabled(CONST.BETAS.SINGLE_USE_AND_EXPIRE_BY_CARDS);
     const expirationDateTitle =
         data?.validFrom && data?.validThru ? translate('workspace.card.issueNewCard.validFromToWithoutText', {startDate: data?.validFrom, endDate: data?.validThru}) : '';
 
-    const shouldShowExpirationDate = isSingleUseEnabled && !isPhysicalCard;
+    const shouldShowExpirationDate = !isPhysicalCard;
 
     return (
         <InteractiveStepWrapper
