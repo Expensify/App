@@ -32,6 +32,9 @@ import {getOriginalMessage, getReportAction, isWhisperAction} from '@libs/Report
 import {buildReportNameFromParticipantNames, computeReportName as computeReportNameOriginal, getGroupChatName, getPolicyExpenseChatName, getReportName} from '@libs/ReportNameUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import {
+    buildOptimisticApprovedReportAction,
+    buildOptimisticCancelPaymentReportAction,
+    buildOptimisticCardAssignedReportAction,
     buildOptimisticChatReport,
     buildOptimisticCreatedReportAction,
     buildOptimisticCreatedReportForUnapprovedAction,
@@ -14909,6 +14912,118 @@ describe('ReportUtils', () => {
             const details = getTransactionDetails(transaction);
 
             expect(details?.taxValue).toBe('10%');
+        });
+    });
+
+    describe('buildOptimisticApprovedReportAction', () => {
+        it('should set actorAccountID to the provided currentUserAccountID', () => {
+            const customAccountID = 99;
+            const action = buildOptimisticApprovedReportAction(500, 'USD', 'expenseReport1', customAccountID);
+
+            expect(action.actorAccountID).toBe(customAccountID);
+        });
+
+        it('should set actionName to APPROVED', () => {
+            const action = buildOptimisticApprovedReportAction(500, 'USD', 'expenseReport1', currentUserAccountID);
+
+            expect(action.actionName).toBe(CONST.REPORT.ACTIONS.TYPE.APPROVED);
+        });
+
+        it('should set originalMessage with the provided amount, currency, and expenseReportID', () => {
+            const amount = 1200;
+            const currency = 'EUR';
+            const expenseReportID = 'report42';
+            const action = buildOptimisticApprovedReportAction(amount, currency, expenseReportID, currentUserAccountID);
+
+            expect(getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.APPROVED>)).toMatchObject({amount, currency, expenseReportID});
+        });
+
+        it('should set pendingAction to ADD', () => {
+            const action = buildOptimisticApprovedReportAction(500, 'USD', 'expenseReport1', currentUserAccountID);
+
+            expect(action.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
+        });
+
+        it('should generate a non-empty reportActionID', () => {
+            const action = buildOptimisticApprovedReportAction(500, 'USD', 'expenseReport1', currentUserAccountID);
+
+            expect(action.reportActionID).toBeTruthy();
+        });
+    });
+
+    describe('buildOptimisticCancelPaymentReportAction', () => {
+        it('should set actorAccountID to the provided currentUserAccountID', () => {
+            const customAccountID = 77;
+            const action = buildOptimisticCancelPaymentReportAction('expenseReport2', 300, 'USD', customAccountID);
+
+            expect(action.actorAccountID).toBe(customAccountID);
+        });
+
+        it('should set actionName to REIMBURSEMENT_DEQUEUED', () => {
+            const action = buildOptimisticCancelPaymentReportAction('expenseReport2', 300, 'USD', currentUserAccountID);
+
+            expect(action.actionName).toBe(CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DEQUEUED);
+        });
+
+        it('should set originalMessage with the provided expenseReportID, amount, currency, and cancellationReason', () => {
+            const expenseReportID = 'report55';
+            const amount = 750;
+            const currency = 'GBP';
+            const action = buildOptimisticCancelPaymentReportAction(expenseReportID, amount, currency, currentUserAccountID);
+
+            expect(getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DEQUEUED>)).toMatchObject({
+                expenseReportID,
+                amount,
+                currency,
+                cancellationReason: CONST.REPORT.CANCEL_PAYMENT_REASONS.ADMIN,
+            });
+        });
+
+        it('should set pendingAction to ADD', () => {
+            const action = buildOptimisticCancelPaymentReportAction('expenseReport2', 300, 'USD', currentUserAccountID);
+
+            expect(action.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
+        });
+
+        it('should generate a non-empty reportActionID', () => {
+            const action = buildOptimisticCancelPaymentReportAction('expenseReport2', 300, 'USD', currentUserAccountID);
+
+            expect(action.reportActionID).toBeTruthy();
+        });
+    });
+
+    describe('buildOptimisticCardAssignedReportAction', () => {
+        it('should set actorAccountID to the provided currentUserAccountID', () => {
+            const assigneeAccountID = 10;
+            const customAccountID = 88;
+            const action = buildOptimisticCardAssignedReportAction(assigneeAccountID, customAccountID);
+
+            expect(action.actorAccountID).toBe(customAccountID);
+        });
+
+        it('should set actionName to CARD_ASSIGNED', () => {
+            const action = buildOptimisticCardAssignedReportAction(10, currentUserAccountID);
+
+            expect(action.actionName).toBe(CONST.REPORT.ACTIONS.TYPE.CARD_ASSIGNED);
+        });
+
+        it('should set originalMessage with the provided assigneeAccountID', () => {
+            const assigneeAccountID = 42;
+            const action = buildOptimisticCardAssignedReportAction(assigneeAccountID, currentUserAccountID);
+
+            expect(getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.CARD_ASSIGNED>)).toMatchObject({assigneeAccountID});
+        });
+
+        it('should set pendingAction to ADD', () => {
+            const action = buildOptimisticCardAssignedReportAction(10, currentUserAccountID);
+
+            expect(action.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
+        });
+
+        it('should generate a non-empty reportActionID', () => {
+            const action = buildOptimisticCardAssignedReportAction(10, currentUserAccountID);
+
+            expect(action.reportActionID).toBeTruthy();
         });
     });
 });

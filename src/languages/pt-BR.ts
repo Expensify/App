@@ -526,6 +526,7 @@ const translations: TranslationDeepObject<typeof en> = {
         concierge: {sidePanelGreeting: 'Oi, como posso ajudar?', showHistory: 'Mostrar histórico'},
         duplicateReport: 'Duplicar relatório',
         approver: 'Aprovador',
+        enterDigitLabel: ({digitIndex, totalDigits}: {digitIndex: number; totalDigits: number}) => `inserir dígito ${digitIndex} de ${totalDigits}`,
         copyOfReportName: (reportName: string) => `Cópia de ${reportName}`,
     },
     socials: {
@@ -765,11 +766,6 @@ const translations: TranslationDeepObject<typeof en> = {
         findMember: 'Encontrar membro',
         searchForSomeone: 'Buscar alguém',
         userSelected: (username: string) => `${username} selecionado`,
-    },
-    customApprovalWorkflow: {
-        title: 'Fluxo de aprovação personalizado',
-        description: 'Sua empresa tem um fluxo de aprovação personalizado neste workspace. Faça essa ação no Expensify Classic',
-        goToExpensifyClassic: 'Mudar para o Expensify Clássico',
     },
     emptyList: {
         [CONST.IOU.TYPE.CREATE]: {
@@ -1245,6 +1241,8 @@ const translations: TranslationDeepObject<typeof en> = {
         pendingMatch: 'Correspondência pendente',
         pendingMatchWithCreditCardDescription: 'Recibo aguardando correspondência com transação do cartão. Marque como dinheiro para cancelar.',
         markAsCash: 'Marcar como dinheiro',
+        pendingMatchSubmitTitle: 'Enviar relatório',
+        pendingMatchSubmitDescription: 'Algumas despesas estão pendentes de correspondência com uma transação de cartão de crédito. Deseja marcá-las como dinheiro?',
         routePending: 'Rota pendente...',
         automaticallyEnterExpenseDetails: 'O Concierge inserirá automaticamente os detalhes da despesa para você, ou você pode adicioná-los manualmente.',
         receiptScanning: () => ({
@@ -2351,11 +2349,16 @@ ${amount} para ${merchant} - ${date}`,
         freezeCard: 'Bloquear cartão',
         unfreeze: 'Desbloquear',
         unfreezeCard: 'Desbloquear cartão',
+        askToUnfreeze: 'Pedir desbloqueio',
         freezeDescription: 'Um cartão bloqueado não pode ser usado para compras e transações. Você pode desbloqueá-lo a qualquer momento.',
         unfreezeDescription: 'Ao desbloquear este cartão, compras e transações voltarão a ser permitidas. Continue apenas se tiver certeza de que o cartão é seguro para uso.',
         frozen: 'Congelado',
         youFroze: ({date}: {date: string}) => `Você bloqueou este cartão em ${date}.`,
         frozenBy: ({person, date}: {person: string; date: string}) => `${person} bloqueou este cartão em ${date}.`,
+        frozenByAdminPrefix: ({date}: {date: string}) => `Este cartão foi bloqueado em ${date} por `,
+        frozenByAdminNeedsUnfreezePrefix: 'Este cartão foi bloqueado por ',
+        frozenByAdminNeedsUnfreezeSuffix: '. Entre em contato com um administrador para desbloqueá-lo.',
+        frozenByAdminNeedsUnfreeze: ({person}: {person: string}) => `Este cartão foi bloqueado por ${person}. Entre em contato com um administrador para desbloqueá-lo.`,
     },
     workflowsPage: {
         workflowTitle: 'Gastos',
@@ -2655,6 +2658,7 @@ ${amount} para ${merchant} - ${date}`,
                 label: 'Usar configurações do dispositivo',
             },
         },
+        highContrastMode: 'Modo de alto contraste',
         chooseThemeBelowOrSync: 'Escolha um tema abaixo ou sincronize com as configurações do seu dispositivo.',
     },
     termsOfUse: {
@@ -7180,6 +7184,7 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
     search: {
         resultsAreLimited: 'Os resultados da pesquisa são limitados.',
         viewResults: 'Ver resultados',
+        appliedFilters: 'Filtros aplicados',
         resetFilters: 'Redefinir filtros',
         searchResults: {
             emptyResults: {
@@ -7236,6 +7241,7 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
             },
         },
         columns: 'Colunas',
+        editColumns: 'Editar colunas',
         resetColumns: 'Redefinir colunas',
         groupColumns: 'Agrupar colunas',
         expenseColumns: 'Colunas de despesas',
@@ -7336,8 +7342,13 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
                 [CONST.SEARCH.ACTION_FILTERS.EXPORT]: 'Exportar',
             },
         },
+        display: {
+            label: 'Exibir',
+            sortBy: 'Ordenar por',
+            groupBy: 'Agrupar por',
+            limitResults: 'Limitar resultados',
+        },
         has: 'Tem',
-        groupBy: 'Agrupar por',
         view: {
             label: 'Visualizar',
             table: 'Tabela',
