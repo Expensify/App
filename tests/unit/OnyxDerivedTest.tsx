@@ -123,17 +123,20 @@ describe('OnyxDerived', () => {
             const transaction = createRandomTransaction(1);
 
             // When the report attributes are recomputed with both report and transaction updates
-            reportAttributes.compute([reports, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined], {});
-            const reportAttributesComputedValue = reportAttributes.compute([reports, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined], {
-                sourceValues: {
-                    [ONYXKEYS.COLLECTION.REPORT]: {
-                        [`${ONYXKEYS.COLLECTION.REPORT}${reportID1}`]: reports[`${ONYXKEYS.COLLECTION.REPORT}${reportID1}`],
-                    },
-                    [ONYXKEYS.COLLECTION.TRANSACTION]: {
-                        [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]: transaction,
+            reportAttributes.compute([reports, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined], {});
+            const reportAttributesComputedValue = reportAttributes.compute(
+                [reports, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined],
+                {
+                    sourceValues: {
+                        [ONYXKEYS.COLLECTION.REPORT]: {
+                            [`${ONYXKEYS.COLLECTION.REPORT}${reportID1}`]: reports[`${ONYXKEYS.COLLECTION.REPORT}${reportID1}`],
+                        },
+                        [ONYXKEYS.COLLECTION.TRANSACTION]: {
+                            [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]: transaction,
+                        },
                     },
                 },
-            }).reports;
+            ).reports;
 
             // Then the computed report attributes should contain both reports
             expect(Object.keys(reportAttributesComputedValue)).toEqual([reportID1, reportID2]);
