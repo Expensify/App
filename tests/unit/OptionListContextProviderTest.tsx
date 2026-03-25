@@ -46,11 +46,13 @@ describe('OptionListContextProvider', () => {
         onyxState = {
             [ONYXKEYS.DERIVED.REPORT_ATTRIBUTES]: {locale: 'en'},
             [ONYXKEYS.COLLECTION.REPORT]: {},
+            [ONYXKEYS.COLLECTION.POLICY]: {},
         };
 
         onyxSourceValues = {
             [ONYXKEYS.DERIVED.REPORT_ATTRIBUTES]: onyxState[ONYXKEYS.DERIVED.REPORT_ATTRIBUTES],
             [ONYXKEYS.COLLECTION.REPORT]: {},
+            [ONYXKEYS.COLLECTION.POLICY]: {},
             [ONYXKEYS.COLLECTION.REPORT_ACTIONS]: {},
         };
 
@@ -64,6 +66,10 @@ describe('OptionListContextProvider', () => {
             }
 
             if (key === ONYXKEYS.COLLECTION.REPORT) {
+                return [onyxState[key], {sourceValue: onyxSourceValues[key]}];
+            }
+
+            if (key === ONYXKEYS.COLLECTION.POLICY) {
                 return [onyxState[key], {sourceValue: onyxSourceValues[key]}];
             }
 
