@@ -5,7 +5,6 @@ import {useCallback} from 'react';
 import type {ValueOf} from 'type-fest';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
-import {PrivateKeyStore, PublicKeyStore} from '@libs/MultifactorAuthentication/NativeBiometrics/KeyStore';
 import {SECURE_STORE_VALUES} from '@libs/MultifactorAuthentication/NativeBiometrics/SecureStore';
 import type {NativeBiometricsEC256KeyInfo} from '@libs/MultifactorAuthentication/NativeBiometrics/types';
 import type {AuthTypeInfo, MultifactorAuthenticationReason} from '@libs/MultifactorAuthentication/shared/types';
@@ -29,9 +28,9 @@ function getKeyAlias(accountID: number): string {
     return `${accountID}_${CONST.MULTIFACTOR_AUTHENTICATION.EC256_KEY_SUFFIX}`;
 }
 
-// Called once at module load. The MFA flow goes through multiple state machine steps
-// (validate code → challenge → soft prompt) before doesDeviceSupportAuthenticationMethod()
-// is checked, giving ample time for this to resolve.
+/**
+ * Called once at module load.
+ */
 let sensorResult: BiometricSensorInfo = {available: false};
 
 isSensorAvailable()
@@ -46,7 +45,7 @@ type SecureStoreAuthTypeEntry = ValueOf<typeof SECURE_STORE_VALUES.AUTH_TYPE>;
 
 /**
  * Maps authType number from signWithOptions (with returnAuthType: true) to AuthTypeInfo.
- * Native layer returns: 1=DeviceCredentials, 3=FaceID, 4=TouchID, 5=OpticID
+ * Native layer returns: -1=Unknown, 0=None, 1=DeviceCredentials, 2=Biometrics, 3=FaceID, 4=TouchID, 5=OpticID
  */
 const AUTH_TYPE_NUMBER_MAP = new Map<number, SecureStoreAuthTypeEntry>([
     [-1, SECURE_STORE_VALUES.AUTH_TYPE.UNKNOWN],
@@ -93,7 +92,6 @@ function mapBiometryTypeToAuthType(biometryType?: string, isDeviceSecure?: boole
 
 /**
  * Maps library errorCode strings to existing REASON values.
- * TODO: Investigate actual errorCode values from the library on both platforms.
  */
 function mapSignErrorCode(errorCode?: string): MultifactorAuthenticationReason | undefined {
     if (!errorCode) {
@@ -151,8 +149,6 @@ function useNativeBiometricsEC256(): UseBiometricsReturn {
     const deleteLocalKeysForAccount = useCallback(async () => {
         const keyAlias = getKeyAlias(accountID);
         await deleteKeys(keyAlias);
-        // Also clean up legacy ED25519 keys for migration
-        await Promise.all([PrivateKeyStore.delete(accountID), PublicKeyStore.delete(accountID)]);
     }, [accountID]);
 
     const register = async (onResult: (result: RegisterResult) => Promise<void> | void, registrationChallenge: Parameters<UseBiometricsReturn['register']>[1]) => {
@@ -228,7 +224,7 @@ function useNativeBiometricsEC256(): UseBiometricsReturn {
             const dataToSign = Buffer.concat([authenticatorData, clientDataHash]);
             const dataToSignB64 = dataToSign.toString('base64');
 
-            // Sign with biometric prompt — signWithOptions handles iOS/Android differences
+            // Sign with biometric prompt — signWithOptions
             const signResult = await signWithOptions({
                 keyAlias,
                 data: dataToSignB64,
