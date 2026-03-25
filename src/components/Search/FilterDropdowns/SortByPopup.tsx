@@ -5,7 +5,6 @@ import type {SearchColumnType, SearchGroupBy, SearchQueryJSON} from '@components
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {close} from '@libs/actions/Modal';
 import Navigation from '@libs/Navigation/Navigation';
@@ -29,7 +28,6 @@ type SortByPopupProps = {
 function SortByPopup({searchResults, queryJSON, groupBy, onSort, closeOverlay}: SortByPopupProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {accountID} = useCurrentUserPersonalDetails();
     const {shouldUseLiveData} = useSearchStateContext();
     const {clearSelectedTransactions} = useSearchActionsContext();
@@ -56,7 +54,6 @@ function SortByPopup({searchResults, queryJSON, groupBy, onSort, closeOverlay}: 
     return (
         <SingleSelectPopup
             style={styles.p0}
-            label={shouldUseNarrowLayout ? undefined : translate('search.display.sortBy')}
             items={sortableColumns}
             value={sortBy}
             closeOverlay={closeOverlay}

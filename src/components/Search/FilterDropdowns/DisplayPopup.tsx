@@ -154,7 +154,6 @@ function DisplayPopup({queryJSON, searchResults, closeOverlay, onSort}: DisplayP
         [CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY]: (
             <GroupByPopup
                 style={styles.p0}
-                label={shouldUseNarrowLayout ? undefined : translate('search.display.groupBy')}
                 sections={groupBySections}
                 value={groupBy}
                 closeOverlay={() => setSelectedDisplayFilter(null)}
@@ -171,7 +170,6 @@ function DisplayPopup({queryJSON, searchResults, closeOverlay, onSort}: DisplayP
         [CONST.SEARCH.SYNTAX_ROOT_KEYS.VIEW]: (
             <SingleSelectPopup
                 style={styles.p0}
-                label={shouldUseNarrowLayout ? undefined : translate('search.view.label')}
                 items={viewOptions}
                 value={view}
                 closeOverlay={() => setSelectedDisplayFilter(null)}
