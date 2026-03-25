@@ -43,7 +43,7 @@ function getWrapper(): HTMLDivElement {
         return wrapper;
     }
 
-    if (wrapper && wrapper.parentElement && wrapper.parentElement !== root) {
+    if (wrapper?.parentElement && wrapper.parentElement !== root) {
         wrapper.parentElement.removeChild(wrapper);
         wrapper = null;
     }
