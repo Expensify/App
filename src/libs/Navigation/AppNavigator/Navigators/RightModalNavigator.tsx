@@ -34,6 +34,7 @@ import Animations from '@libs/Navigation/PlatformStackNavigation/navigationOptio
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {AuthScreensParamList, RightModalNavigatorParamList} from '@navigation/types';
 import {PINContextProvider} from '@pages/MissingPersonalDetails/PINContext';
+import SearchSavePage from '@pages/Search/SearchSavePage';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
@@ -41,7 +42,6 @@ import SCREENS from '@src/SCREENS';
 import type ReactComponentModule from '@src/types/utils/ReactComponentModule';
 import {NarrowPaneContextProvider} from './NarrowPaneContext';
 import Overlay from './Overlay';
-import SearchSavePage from '@pages/Search/SearchSavePage';
 
 type RightModalNavigatorProps = PlatformStackScreenProps<AuthScreensParamList, typeof NAVIGATORS.RIGHT_MODAL_NAVIGATOR>;
 

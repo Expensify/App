@@ -1,5 +1,7 @@
 import React from 'react';
+import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
+import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {useSearchActionsContext, useSearchStateContext} from '@components/Search/SearchContext';
 import type {SearchColumnType, SearchGroupBy, SearchQueryJSON} from '@components/Search/types';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -16,8 +18,6 @@ import {columnsSelector} from '@src/selectors/AdvancedSearchFiltersForm';
 import type {SearchResults} from '@src/types/onyx';
 import SingleSelectPopup from './SingleSelectPopup';
 import type {SingleSelectItem} from './SingleSelectPopup';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
-import { View } from 'react-native';
 
 type SortByPopupProps = {
     searchResults: OnyxEntry<SearchResults>;

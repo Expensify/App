@@ -23,8 +23,8 @@ import {getEmptyObject} from '@src/types/utils/EmptyObject';
 import GroupByPopup from './GroupByPopup';
 import SingleSelectPopup from './SingleSelectPopup';
 import SortByPopup from './SortByPopup';
-import TextInputPopup from './TextInputPopup';
 import SortOrderPopup from './SortOrderPopup';
+import TextInputPopup from './TextInputPopup';
 
 type DisplayPopupProps = {
     queryJSON: SearchQueryJSON;

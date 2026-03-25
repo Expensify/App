@@ -1,6 +1,5 @@
-import React from 'react';
 import {useIsFocused} from '@react-navigation/native';
-import {useEffect, useRef, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import SearchAutocompleteList from '@components/Search/SearchAutocompleteList';
 import SearchInputSelectionWrapper from '@components/Search/SearchInputSelectionWrapper';

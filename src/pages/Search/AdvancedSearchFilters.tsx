@@ -550,7 +550,6 @@ function AdvancedSearchFilters() {
     const {singleExecution} = useSingleExecution();
     const waitForNavigate = useWaitForNavigation();
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
-    const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES);
     const [searchAdvancedFilters = getEmptyObject<SearchAdvancedFiltersForm>()] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
     const personalDetails = usePersonalDetails();
     const [reportAttributes] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
