@@ -20,10 +20,10 @@ type ConnectBankAccountProps = {
     onBackButtonPress: () => void;
 
     /** Method to set the state of shouldShowConnectedVerifiedBankAccount */
-    setShouldShowConnectedVerifiedBankAccount: (shouldShowConnectedVerifiedBankAccount: boolean) => void;
+    setShouldShowConnectedVerifiedBankAccount?: (shouldShowConnectedVerifiedBankAccount: boolean) => void;
 
     /** Method to set the state of shouldShowConnectedVerifiedBankAccount */
-    setUSDBankAccountStep: (step: string | null) => void;
+    setUSDBankAccountStep?: (step: string | null) => void;
 };
 
 function ConnectBankAccount({onBackButtonPress, setShouldShowConnectedVerifiedBankAccount, setUSDBankAccountStep}: ConnectBankAccountProps) {

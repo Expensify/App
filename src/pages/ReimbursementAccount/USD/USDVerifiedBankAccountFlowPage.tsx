@@ -41,7 +41,7 @@ function USDVerifiedBankAccountFlowPage({route}: USDVerifiedBankAccountFlowPageP
     const styles = useThemeStyles();
     const policyID = route.params?.policyID;
     const currentStep = route.params?.step;
-    const currentSubPage = route.params?.subStep;
+    const currentSubPage = route.params?.subPage;
 
     const [onfidoToken = ''] = useOnyx(ONYXKEYS.ONFIDO_TOKEN);
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);

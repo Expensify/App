@@ -30,7 +30,7 @@ type ConnectedVerifiedBankAccountProps = {
     setShouldShowConnectedVerifiedBankAccount?: (shouldShowConnectedVerifiedBankAccount: boolean) => void;
 
     /** Method to set the state of USD bank account step */
-    setUSDBankAccountStep: (step: string | null) => void;
+    setUSDBankAccountStep?: (step: string | null) => void;
 
     /** Method to set the state of setNonUSDBankAccountStep */
     setNonUSDBankAccountStep?: (step: string | null) => void;

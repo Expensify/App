@@ -25,7 +25,7 @@ type FinishChatCardProps = {
     requiresTwoFactorAuth: boolean;
 
     /** Method to set the state of USD bank account step */
-    setUSDBankAccountStep: (step: string | null) => void;
+    setUSDBankAccountStep?: (step: string | null) => void;
 };
 
 function FinishChatCard({requiresTwoFactorAuth, reimbursementAccount, setUSDBankAccountStep}: FinishChatCardProps) {
@@ -65,7 +65,7 @@ function FinishChatCard({requiresTwoFactorAuth, reimbursementAccount, setUSDBank
                     title={translate('workspace.bankAccount.updateDetails')}
                     onPress={() => {
                         setBankAccountSubStep(CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL).then(() => {
-                            setUSDBankAccountStep(CONST.BANK_ACCOUNT.STEP.REQUESTOR);
+                            setUSDBankAccountStep?.(CONST.BANK_ACCOUNT.STEP.REQUESTOR);
                             goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.REQUESTOR);
                         });
                     }}
