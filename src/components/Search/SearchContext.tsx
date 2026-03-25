@@ -107,15 +107,6 @@ function SearchContextProvider({children}: SearchContextProps) {
     const [shouldShowSelectAllMatchingItems, setShouldShowSelectAllMatchingItems] = useState(false);
     const [searchContextData, setSearchContextData] = useState({...defaultSearchContextData});
 
-    const setSortedReportIDs = useCallback((newIDs: Array<string | undefined>) => {
-        setSearchContextData((prev) => {
-            if (prev.sortedReportIDs.length === newIDs.length && prev.sortedReportIDs.every((id, i) => id === newIDs[i])) {
-                return prev;
-            }
-            return {...prev, sortedReportIDs: newIDs};
-        });
-    }, []);
-
     const selectedReports = searchContextData.selectedReports;
     const selectedTransactions = searchContextData.selectedTransactions;
     const selectedTransactionIDs = searchContextData.selectedTransactionIDs;
@@ -283,6 +274,15 @@ function SearchContextProvider({children}: SearchContextProps) {
             ...prevState,
             shouldResetSearchQuery: shouldReset,
         }));
+    };
+
+    const setSortedReportIDs = (newIDs: Array<string | undefined>) => {
+        setSearchContextData((prev) => {
+            // ensure that we don't save the same report IDs unless they are really different
+            const hasChanged = prev.sortedReportIDs.length !== newIDs.length || prev.sortedReportIDs.some((id, i) => id !== newIDs[i]);
+
+            return hasChanged ? {...prev, sortedReportIDs: newIDs} : prev;
+        });
     };
 
     const searchStateContextValue: SearchStateContextValue = {

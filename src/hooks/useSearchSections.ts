@@ -26,7 +26,9 @@ function useSearchSections<T extends SearchDataTypes, S extends SearchStatus>(
     );
 
     useEffect(() => {
-        setSortedReportIDs(sortedItems.map((item) => item.reportID));
+        const reportIDs = sortedItems.map((item) => item.reportID);
+
+        setSortedReportIDs(reportIDs);
     }, [sortedItems, setSortedReportIDs]);
 
     return sortedItems;
