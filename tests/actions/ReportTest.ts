@@ -5620,28 +5620,8 @@ describe('actions/Report', () => {
         const PARTICIPANT_1_LOGIN = 'participant1@test.com';
         const PARTICIPANT_1_ACCOUNT_ID = 2;
 
-        it('should create a group chat and navigate to it', async () => {
-            // Given a test user with initial data
-            const GROUP_CHAT_NAME = 'Test Group';
-            const GROUP_CHAT_REPORT_ID = '12345';
-            const CONCIERGE_REPORT_ID = '99999';
-
+        beforeEach(async () => {
             await TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN);
-
-            // Create a Concierge chat for guided setup
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${CONCIERGE_REPORT_ID}`, {
-                reportID: CONCIERGE_REPORT_ID,
-                chatType: undefined,
-                type: CONST.REPORT.TYPE.CHAT,
-                participants: {
-                    [CONST.ACCOUNT_ID.CONCIERGE]: {
-                        notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
-                    },
-                    [TEST_USER_ACCOUNT_ID]: {
-                        notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
-                    },
-                },
-            });
             await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
                 [CONST.ACCOUNT_ID.CONCIERGE]: {
                     accountID: CONST.ACCOUNT_ID.CONCIERGE,
@@ -5657,6 +5637,29 @@ describe('actions/Report', () => {
                     accountID: PARTICIPANT_1_ACCOUNT_ID,
                     login: PARTICIPANT_1_LOGIN,
                     displayName: 'Participant One',
+                },
+            });
+            await waitForBatchedUpdates();
+        });
+
+        it('should create a group chat and navigate to it', async () => {
+            // Given a test user with initial data
+            const GROUP_CHAT_NAME = 'Test Group';
+            const GROUP_CHAT_REPORT_ID = '12345';
+            const CONCIERGE_REPORT_ID = '99999';
+
+            // Create a Concierge chat for guided setup
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${CONCIERGE_REPORT_ID}`, {
+                reportID: CONCIERGE_REPORT_ID,
+                chatType: undefined,
+                type: CONST.REPORT.TYPE.CHAT,
+                participants: {
+                    [CONST.ACCOUNT_ID.CONCIERGE]: {
+                        notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
+                    },
+                    [TEST_USER_ACCOUNT_ID]: {
+                        notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
+                    },
                 },
             });
 
@@ -5687,13 +5690,11 @@ describe('actions/Report', () => {
             expect(introSelected?.isInviteOnboardingComplete).toBe(true);
         });
 
-        it('should create group chat with avatar and isSelfTourViewed', async () => {
+        it('should create group chat with avatar URI and isSelfTourViewed', async () => {
             const GROUP_CHAT_NAME = 'Avatar Group';
             const GROUP_CHAT_REPORT_ID = '12348';
             const CONCIERGE_REPORT_ID = '99996';
             const AVATAR_URI = 'https://example.com/avatar.png';
-
-            await TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN);
 
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${CONCIERGE_REPORT_ID}`, {
                 reportID: CONCIERGE_REPORT_ID,
@@ -5708,29 +5709,12 @@ describe('actions/Report', () => {
                     },
                 },
             });
-            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
-                [CONST.ACCOUNT_ID.CONCIERGE]: {
-                    accountID: CONST.ACCOUNT_ID.CONCIERGE,
-                    login: CONST.EMAIL.CONCIERGE,
-                    displayName: 'Concierge',
-                },
-                [TEST_USER_ACCOUNT_ID]: {
-                    accountID: TEST_USER_ACCOUNT_ID,
-                    login: TEST_USER_LOGIN,
-                    displayName: 'Test user account',
-                },
-                [PARTICIPANT_1_ACCOUNT_ID]: {
-                    accountID: PARTICIPANT_1_ACCOUNT_ID,
-                    login: PARTICIPANT_1_LOGIN,
-                    displayName: 'Participant One',
-                },
-            });
 
             await Onyx.set(ONYXKEYS.NVP_INTRO_SELECTED, TEST_INTRO_SELECTED);
             await Onyx.set(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: false});
             await waitForBatchedUpdates();
 
-            // When create group chat is called with an avatar and isSelfTourViewed=true
+            // When create group chat is called with an avatar URI and isSelfTourViewed=true
             Report.navigateToAndCreateGroupChat([TEST_USER_LOGIN, PARTICIPANT_1_LOGIN], GROUP_CHAT_NAME, TEST_USER_LOGIN, GROUP_CHAT_REPORT_ID, TEST_INTRO_SELECTED, true, AVATAR_URI);
             await waitForBatchedUpdates();
 
@@ -5749,21 +5733,6 @@ describe('actions/Report', () => {
         it('should create group chat when onboarding is already completed and isSelfTourViewed=true', async () => {
             const GROUP_CHAT_NAME = 'Completed Onboarding Group';
             const GROUP_CHAT_REPORT_ID = '12349';
-
-            await TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN);
-
-            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
-                [TEST_USER_ACCOUNT_ID]: {
-                    accountID: TEST_USER_ACCOUNT_ID,
-                    login: TEST_USER_LOGIN,
-                    displayName: 'Test user account',
-                },
-                [PARTICIPANT_1_ACCOUNT_ID]: {
-                    accountID: PARTICIPANT_1_ACCOUNT_ID,
-                    login: PARTICIPANT_1_LOGIN,
-                    displayName: 'Participant One',
-                },
-            });
 
             // Set onboarding as already completed
             await Onyx.set(ONYXKEYS.NVP_INTRO_SELECTED, {...TEST_INTRO_SELECTED, isInviteOnboardingComplete: true});
@@ -5786,6 +5755,47 @@ describe('actions/Report', () => {
             expect(newGroupChatReport).not.toBeNull();
             expect(newGroupChatReport?.reportName).toBe(GROUP_CHAT_NAME);
             expect(newGroupChatReport?.chatType).toBe(CONST.REPORT.CHAT_TYPE.GROUP);
+        });
+
+        it('should include avatarFile in API request when provided', async () => {
+            const GROUP_CHAT_REPORT_ID = '12350';
+            const avatarFile = new File([''], 'avatar.png', {type: 'image/png'});
+
+            await Onyx.set(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: true});
+            await waitForBatchedUpdates();
+
+            // When create group chat is called with an avatarFile
+            Report.navigateToAndCreateGroupChat([TEST_USER_LOGIN, PARTICIPANT_1_LOGIN], 'Avatar File Group', TEST_USER_LOGIN, GROUP_CHAT_REPORT_ID, {choice: CONST.ONBOARDING_CHOICES.ADMIN}, false, undefined, avatarFile);
+            await waitForBatchedUpdates();
+
+            // Then the group chat report should be created
+            const newGroupChatReport: OnyxEntry<OnyxTypes.Report> = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${GROUP_CHAT_REPORT_ID}`);
+            expect(newGroupChatReport).not.toBeNull();
+            expect(newGroupChatReport?.chatType).toBe(CONST.REPORT.CHAT_TYPE.GROUP);
+
+            // Then the API should be called with the file parameter
+            TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.OPEN_REPORT, 1);
+        });
+
+        it('should add optimistic personal details for participants not in personal details', async () => {
+            const GROUP_CHAT_REPORT_ID = '12351';
+            const UNKNOWN_PARTICIPANT_LOGIN = 'unknown@test.com';
+
+            await Onyx.set(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: true});
+            await waitForBatchedUpdates();
+
+            // When create group chat is called with a participant not in allPersonalDetails
+            Report.navigateToAndCreateGroupChat([TEST_USER_LOGIN, UNKNOWN_PARTICIPANT_LOGIN], 'Optimistic Group', TEST_USER_LOGIN, GROUP_CHAT_REPORT_ID, {choice: CONST.ONBOARDING_CHOICES.ADMIN}, false);
+            await waitForBatchedUpdates();
+
+            // Then the group chat report should be created
+            const newGroupChatReport: OnyxEntry<OnyxTypes.Report> = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${GROUP_CHAT_REPORT_ID}`);
+            expect(newGroupChatReport).not.toBeNull();
+
+            // Then optimistic personal details should be added for the unknown participant
+            const personalDetails = await getOnyxValue(ONYXKEYS.PERSONAL_DETAILS_LIST);
+            const optimisticEntry = Object.values(personalDetails ?? {}).find((details) => details?.login === UNKNOWN_PARTICIPANT_LOGIN && details?.isOptimisticPersonalDetail === true);
+            expect(optimisticEntry).not.toBeUndefined();
         });
     });
 
