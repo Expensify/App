@@ -6227,9 +6227,9 @@ const dynamicStyles = (theme: ThemeColors) =>
             marginBottom: shouldUseNarrowLayout ? 8 : 20,
         }),
 
-        getSafeAreaPressablePosition: (width: number): ViewStyle => ({
+        getSafeAreaPressablePosition: (safeAreaPosition: 'right' | 'left', width: number): ViewStyle => ({
             position: 'absolute',
-            left: 0,
+            [safeAreaPosition]: 0,
             top: 0,
             bottom: 0,
             width,
