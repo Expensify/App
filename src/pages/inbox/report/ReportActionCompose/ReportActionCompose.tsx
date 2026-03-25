@@ -1,4 +1,3 @@
-import {useRoute} from '@react-navigation/native';
 import {Str} from 'expensify-common';
 import lodashDebounce from 'lodash/debounce';
 import noop from 'lodash/noop';
@@ -49,8 +48,6 @@ import FS from '@libs/Fullstory';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {isEmailPublicDomain} from '@libs/LoginUtils';
 import {getAllNonDeletedTransactions} from '@libs/MoneyRequestReportUtils';
-import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
-import type {ReportsSplitNavigatorParamList} from '@libs/Navigation/types';
 import {rand64} from '@libs/NumberUtils';
 import {addDomainToShortMention} from '@libs/ParsingUtils';
 import {
@@ -93,7 +90,6 @@ import {addAttachmentWithComment, setIsComposerFullSize} from '@userActions/Repo
 import {isBlockedFromConcierge as isBlockedFromConciergeUserAction} from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {FileObject} from '@src/types/utils/Attachment';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -150,19 +146,15 @@ function ReportActionCompose({reportID}: ReportActionComposeProps) {
     const [blockedFromConcierge] = useOnyx(ONYXKEYS.NVP_BLOCKED_FROM_CONCIERGE);
     const [currentDate] = useOnyx(ONYXKEYS.CURRENT_DATE);
     const [shouldShowComposeInput = true] = useOnyx(ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT);
-    const [shouldShowComposeInputForLatch = false] = useOnyx(ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT);
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
     const {availableLoginsList} = useShortMentionsList();
     const currentUserEmail = currentUserPersonalDetails.email ?? '';
     const {isRestrictedToPreferredPolicy} = usePreferredPolicy();
 
-    const route = useRoute<PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>>();
-    const reportActionIDFromRoute = route?.params?.reportActionID;
-
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [isComposerFullSize = false] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${reportID}`);
 
-    const {reportActions: unfilteredReportActions} = usePaginatedReportActions(reportID, reportActionIDFromRoute);
+    const {reportActions: unfilteredReportActions} = usePaginatedReportActions(report?.reportID);
     const filteredReportActions = getFilteredReportActionsForReportView(unfilteredReportActions);
 
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.chatReportID}`);
@@ -171,13 +163,13 @@ function ReportActionCompose({reportID}: ReportActionComposeProps) {
     const visibleTransactions = reportTransactions?.filter((transaction) => isOffline || transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
     const reportTransactionIDs = visibleTransactions?.map((t) => t.transactionID);
     const isSentMoneyReport = filteredReportActions.some((action) => isSentMoneyReportAction(action));
-    const transactionThreadReportID = isSentMoneyReport ? undefined : getOneTransactionThreadReportID(report, chatReport, filteredReportActions, isOffline, reportTransactionIDs);
+    const transactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, filteredReportActions, isOffline, reportTransactionIDs);
+    const effectiveTransactionThreadReportID = isSentMoneyReport ? undefined : transactionThreadReportID;
 
-    const parentReportActionForEdit = useParentReportAction(report);
-    const [transactionThreadReportActionsRaw] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`);
-    const transactionThreadReportActions = transactionThreadReportActionsRaw ? Object.values(transactionThreadReportActionsRaw) : [];
-    const combinedReportActions = getCombinedReportActions(filteredReportActions, transactionThreadReportID ?? null, transactionThreadReportActions);
-    const lastReportAction = [...combinedReportActions, parentReportActionForEdit].find((action) => canEditReportAction(action) && !isMoneyRequestAction(action));
+    const parentReportAction = useParentReportAction(report);
+    const [transactionThreadReportActions = {} as OnyxTypes.ReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${effectiveTransactionThreadReportID}`);
+    const combinedReportActions = getCombinedReportActions(filteredReportActions, effectiveTransactionThreadReportID ?? null, Object.values(transactionThreadReportActions));
+    const lastReportAction = [...combinedReportActions, parentReportAction].find((action) => canEditReportAction(action) && !isMoneyRequestAction(action));
 
     const {reportPendingAction: pendingAction} = getReportOfflinePendingActionAndErrors(report);
 
@@ -189,7 +181,7 @@ function ReportActionCompose({reportID}: ReportActionComposeProps) {
 
     const shouldFocusComposerOnScreenFocus = shouldFocusInputOnScreenFocus || !!draftComment;
 
-    const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`);
+    const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${effectiveTransactionThreadReportID}`);
     const ancestors = useAncestors(transactionThreadReport ?? report);
     const {scrollOffsetRef} = useContext(ActionListContext);
 
@@ -213,7 +205,7 @@ function ReportActionCompose({reportID}: ReportActionComposeProps) {
      */
     const [isMenuVisible, setMenuVisibility] = useState(false);
     const [isAttachmentPreviewActive, setIsAttachmentPreviewActive] = useState(false);
-    const [didHideComposerInput, setDidHideComposerInput] = useState(!shouldShowComposeInputForLatch);
+    const [didHideComposerInput, setDidHideComposerInput] = useState(!shouldShowComposeInput);
 
     /**
      * Updates the composer when the comment length is exceeded
@@ -247,13 +239,11 @@ function ReportActionCompose({reportID}: ReportActionComposeProps) {
     const isTransactionThreadView = useMemo(() => isReportTransactionThread(report), [report]);
     const isExpensesReport = useMemo(() => reportTransactions && reportTransactions.length > 1, [reportTransactions]);
 
-    const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.reportID}`, {
+    const [rawReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.reportID}`, {
         canEvict: false,
     });
 
-    const personalDetail = useCurrentUserPersonalDetails();
-
-    const iouAction = reportActions ? Object.values(reportActions).find((action) => isMoneyRequestAction(action)) : null;
+    const iouAction = rawReportActions ? Object.values(rawReportActions).find((action) => isMoneyRequestAction(action)) : null;
     const linkedTransactionID = iouAction && !isExpensesReport ? getLinkedTransactionID(iouAction) : undefined;
 
     const transactionID = useMemo(() => getTransactionID(report) ?? linkedTransactionID, [report, linkedTransactionID]);
@@ -261,11 +251,11 @@ function ReportActionCompose({reportID}: ReportActionComposeProps) {
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`);
 
     const isSingleTransactionView = useMemo(() => !!transaction && !!reportTransactions && reportTransactions.length === 1, [transaction, reportTransactions]);
-    const parentReportAction = isSingleTransactionView ? iouAction : getReportAction(report?.parentReportID, report?.parentReportActionID);
+    const effectiveParentReportAction = isSingleTransactionView ? iouAction : getReportAction(report?.parentReportID, report?.parentReportActionID);
     const canUserPerformWriteAction = !!canUserPerformWriteActionReportUtils(report, isReportArchived);
     const canEditReceipt =
         canUserPerformWriteAction &&
-        canEditFieldOfMoneyRequest({reportAction: parentReportAction, fieldToEdit: CONST.EDIT_REQUEST_FIELD.RECEIPT, transaction}) &&
+        canEditFieldOfMoneyRequest({reportAction: effectiveParentReportAction, fieldToEdit: CONST.EDIT_REQUEST_FIELD.RECEIPT, transaction}) &&
         !transaction?.receipt?.isTestDriveReceipt;
     const shouldAddOrReplaceReceipt = (isTransactionThreadView || isSingleTransactionView) && canEditReceipt;
 
@@ -370,7 +360,7 @@ function ReportActionCompose({reportID}: ReportActionComposeProps) {
                     attachments: attachmentFileRef.current,
                     currentUserAccountID: currentUserPersonalDetails.accountID,
                     text: newCommentTrimmed,
-                    timezone: personalDetail.timezone,
+                    timezone: currentUserPersonalDetails.timezone,
                     shouldPlaySound: true,
                     isInSidePanel,
                 });
@@ -456,7 +446,6 @@ function ReportActionCompose({reportID}: ReportActionComposeProps) {
             ancestors,
             currentUserPersonalDetails.accountID,
             currentUserPersonalDetails.timezone,
-            personalDetail.timezone,
             isInSidePanel,
             currentUserEmail,
             availableLoginsList,
@@ -497,13 +486,13 @@ function ReportActionCompose({reportID}: ReportActionComposeProps) {
     }, [hasExceededMaxTaskTitleLength, hasExceededMaxCommentLength]);
 
     useEffect(() => {
-        if (didHideComposerInput || shouldShowComposeInputForLatch) {
+        if (didHideComposerInput || shouldShowComposeInput) {
             return;
         }
         // This is an intentional one-way latch: once the composer input has been hidden, it stays hidden.
         // eslint-disable-next-line react-hooks/set-state-in-effect
         setDidHideComposerInput(true);
-    }, [shouldShowComposeInputForLatch, didHideComposerInput]);
+    }, [shouldShowComposeInput, didHideComposerInput]);
 
     // We are returning a callback here as we want to invoke the method on unmount only
     useEffect(

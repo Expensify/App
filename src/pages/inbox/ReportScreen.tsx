@@ -1097,7 +1097,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
                                                     reportPendingAction={reportPendingAction}
                                                 />
                                             ) : null}
-                                            {isCurrentReportLoadedFromOnyx ? <ReportFooter reportID={reportIDFromRoute ?? ''} /> : null}
+                                            {isCurrentReportLoadedFromOnyx ? <ReportFooter /> : null}
                                         </View>
                                     </AgentZeroStatusProvider>
                                 </View>
