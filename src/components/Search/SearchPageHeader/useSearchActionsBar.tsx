@@ -20,7 +20,16 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {close} from '@libs/actions/Modal';
 import Navigation from '@libs/Navigation/Navigation';
 import {buildFilterQueryWithSortDefaults} from '@libs/SearchQueryUtils';
-import {filterValidHasValues, getFeedOptions, getGroupCurrencyOptions, getHasOptions, getStatusOptions, getWithdrawalTypeOptions, mapFiltersFormToLabelValueList} from '@libs/SearchUIUtils';
+import {
+    DATE_FILTER_GROUP_MAP,
+    filterValidHasValues,
+    getFeedOptions,
+    getGroupCurrencyOptions,
+    getHasOptions,
+    getStatusOptions,
+    getWithdrawalTypeOptions,
+    mapFiltersFormToLabelValueList,
+} from '@libs/SearchUIUtils';
 import type {SearchFilter} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -236,6 +245,19 @@ function useSearchActionsBar(queryJSON: SearchQueryJSON, isMobileSelectionModeEn
     };
 
     const filters = mapFiltersFormToLabelValueList<FilterItem>(searchAdvancedFiltersForm, queryJSON.policyID, translate, (filterKey) => {
+        const dateGroupConfig = DATE_FILTER_GROUP_MAP[filterKey];
+        if (dateGroupConfig) {
+            return makeDateFilterItem(
+                dateGroupConfig.syntax,
+                dateGroupConfig.label,
+                `Search-Filter-${dateGroupConfig.syntax}`,
+                searchAdvancedFiltersForm[dateGroupConfig.on] as string | undefined,
+                searchAdvancedFiltersForm[dateGroupConfig.after] as string | undefined,
+                searchAdvancedFiltersForm[dateGroupConfig.before] as string | undefined,
+                updateFilterForm,
+            );
+        }
+
         switch (filterKey) {
             case FILTER_KEYS.GROUP_CURRENCY:
                 return {
@@ -294,18 +316,6 @@ function useSearchActionsBar(queryJSON: SearchQueryJSON, isMobileSelectionModeEn
                     sentryLabel: CONST.SENTRY_LABEL.SEARCH.FILTER_FEED,
                 };
             }
-            case FILTER_KEYS.POSTED_ON:
-            case FILTER_KEYS.POSTED_AFTER:
-            case FILTER_KEYS.POSTED_BEFORE:
-                return makeDateFilterItem(
-                    CONST.SEARCH.SYNTAX_FILTER_KEYS.POSTED,
-                    'search.filters.posted',
-                    CONST.SENTRY_LABEL.SEARCH.FILTER_POSTED,
-                    searchAdvancedFiltersForm.postedOn,
-                    searchAdvancedFiltersForm.postedAfter,
-                    searchAdvancedFiltersForm.postedBefore,
-                    updateFilterForm,
-                );
             case FILTER_KEYS.WITHDRAWAL_TYPE: {
                 const withdrawalType = searchAdvancedFiltersForm[filterKey];
                 const withdrawalTypeOptions = getWithdrawalTypeOptions(translate);
@@ -321,18 +331,6 @@ function useSearchActionsBar(queryJSON: SearchQueryJSON, isMobileSelectionModeEn
                 );
                 return {PopoverComponent: withdrawalTypeComponent, sentryLabel: CONST.SENTRY_LABEL.SEARCH.FILTER_WITHDRAWAL_TYPE};
             }
-            case FILTER_KEYS.WITHDRAWN_ON:
-            case FILTER_KEYS.WITHDRAWN_AFTER:
-            case FILTER_KEYS.WITHDRAWN_BEFORE:
-                return makeDateFilterItem(
-                    CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWN,
-                    'search.filters.withdrawn',
-                    CONST.SENTRY_LABEL.SEARCH.FILTER_WITHDRAWN,
-                    searchAdvancedFiltersForm.withdrawnOn,
-                    searchAdvancedFiltersForm.withdrawnAfter,
-                    searchAdvancedFiltersForm.withdrawnBefore,
-                    updateFilterForm,
-                );
             case FILTER_KEYS.STATUS: {
                 const status = searchAdvancedFiltersForm[filterKey];
                 const statusOptions = type ? getStatusOptions(translate, type) : [];
@@ -352,18 +350,6 @@ function useSearchActionsBar(queryJSON: SearchQueryJSON, isMobileSelectionModeEn
                 );
                 return {PopoverComponent: statusComponent, sentryLabel: CONST.SENTRY_LABEL.SEARCH.FILTER_STATUS};
             }
-            case FILTER_KEYS.DATE_ON:
-            case FILTER_KEYS.DATE_AFTER:
-            case FILTER_KEYS.DATE_BEFORE:
-                return makeDateFilterItem(
-                    CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
-                    'common.date',
-                    CONST.SENTRY_LABEL.SEARCH.FILTER_DATE,
-                    searchAdvancedFiltersForm.dateOn,
-                    searchAdvancedFiltersForm.dateAfter,
-                    searchAdvancedFiltersForm.dateBefore,
-                    updateFilterForm,
-                );
             case FILTER_KEYS.FROM: {
                 const from = searchAdvancedFiltersForm[filterKey];
                 const userPickerComponent = ({closeOverlay}: PopoverComponentProps) => (

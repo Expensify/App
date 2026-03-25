@@ -4278,6 +4278,68 @@ type SearchFilter = {
     value: string | string[] | null;
 };
 
+type DateFilterGroupConfig = {
+    label: TranslationPaths;
+    on: keyof SearchAdvancedFiltersForm;
+    after: keyof SearchAdvancedFiltersForm;
+    before: keyof SearchAdvancedFiltersForm;
+    syntax: SearchDateFilterKeys;
+};
+
+const DATE_FILTER_GROUP_MAP: Partial<Record<SearchAdvancedFiltersKey, DateFilterGroupConfig>> = {
+    [FILTER_KEYS.DATE_ON]: {label: 'common.date', on: 'dateOn', after: 'dateAfter', before: 'dateBefore', syntax: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE},
+    [FILTER_KEYS.DATE_AFTER]: {label: 'common.date', on: 'dateOn', after: 'dateAfter', before: 'dateBefore', syntax: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE},
+    [FILTER_KEYS.DATE_BEFORE]: {label: 'common.date', on: 'dateOn', after: 'dateAfter', before: 'dateBefore', syntax: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE},
+
+    [FILTER_KEYS.SUBMITTED_ON]: {label: 'search.filters.submitted', on: 'submittedOn', after: 'submittedAfter', before: 'submittedBefore', syntax: CONST.SEARCH.SYNTAX_FILTER_KEYS.SUBMITTED},
+    [FILTER_KEYS.SUBMITTED_AFTER]: {
+        label: 'search.filters.submitted',
+        on: 'submittedOn',
+        after: 'submittedAfter',
+        before: 'submittedBefore',
+        syntax: CONST.SEARCH.SYNTAX_FILTER_KEYS.SUBMITTED,
+    },
+    [FILTER_KEYS.SUBMITTED_BEFORE]: {
+        label: 'search.filters.submitted',
+        on: 'submittedOn',
+        after: 'submittedAfter',
+        before: 'submittedBefore',
+        syntax: CONST.SEARCH.SYNTAX_FILTER_KEYS.SUBMITTED,
+    },
+
+    [FILTER_KEYS.APPROVED_ON]: {label: 'search.filters.approved', on: 'approvedOn', after: 'approvedAfter', before: 'approvedBefore', syntax: CONST.SEARCH.SYNTAX_FILTER_KEYS.APPROVED},
+    [FILTER_KEYS.APPROVED_AFTER]: {label: 'search.filters.approved', on: 'approvedOn', after: 'approvedAfter', before: 'approvedBefore', syntax: CONST.SEARCH.SYNTAX_FILTER_KEYS.APPROVED},
+    [FILTER_KEYS.APPROVED_BEFORE]: {label: 'search.filters.approved', on: 'approvedOn', after: 'approvedAfter', before: 'approvedBefore', syntax: CONST.SEARCH.SYNTAX_FILTER_KEYS.APPROVED},
+
+    [FILTER_KEYS.PAID_ON]: {label: 'search.filters.paid', on: 'paidOn', after: 'paidAfter', before: 'paidBefore', syntax: CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID},
+    [FILTER_KEYS.PAID_AFTER]: {label: 'search.filters.paid', on: 'paidOn', after: 'paidAfter', before: 'paidBefore', syntax: CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID},
+    [FILTER_KEYS.PAID_BEFORE]: {label: 'search.filters.paid', on: 'paidOn', after: 'paidAfter', before: 'paidBefore', syntax: CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID},
+
+    [FILTER_KEYS.EXPORTED_ON]: {label: 'search.filters.exported', on: 'exportedOn', after: 'exportedAfter', before: 'exportedBefore', syntax: CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED},
+    [FILTER_KEYS.EXPORTED_AFTER]: {label: 'search.filters.exported', on: 'exportedOn', after: 'exportedAfter', before: 'exportedBefore', syntax: CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED},
+    [FILTER_KEYS.EXPORTED_BEFORE]: {label: 'search.filters.exported', on: 'exportedOn', after: 'exportedAfter', before: 'exportedBefore', syntax: CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED},
+
+    [FILTER_KEYS.POSTED_ON]: {label: 'search.filters.posted', on: 'postedOn', after: 'postedAfter', before: 'postedBefore', syntax: CONST.SEARCH.SYNTAX_FILTER_KEYS.POSTED},
+    [FILTER_KEYS.POSTED_AFTER]: {label: 'search.filters.posted', on: 'postedOn', after: 'postedAfter', before: 'postedBefore', syntax: CONST.SEARCH.SYNTAX_FILTER_KEYS.POSTED},
+    [FILTER_KEYS.POSTED_BEFORE]: {label: 'search.filters.posted', on: 'postedOn', after: 'postedAfter', before: 'postedBefore', syntax: CONST.SEARCH.SYNTAX_FILTER_KEYS.POSTED},
+
+    [FILTER_KEYS.WITHDRAWN_ON]: {label: 'search.filters.withdrawn', on: 'withdrawnOn', after: 'withdrawnAfter', before: 'withdrawnBefore', syntax: CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWN},
+    [FILTER_KEYS.WITHDRAWN_AFTER]: {
+        label: 'search.filters.withdrawn',
+        on: 'withdrawnOn',
+        after: 'withdrawnAfter',
+        before: 'withdrawnBefore',
+        syntax: CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWN,
+    },
+    [FILTER_KEYS.WITHDRAWN_BEFORE]: {
+        label: 'search.filters.withdrawn',
+        on: 'withdrawnOn',
+        after: 'withdrawnAfter',
+        before: 'withdrawnBefore',
+        syntax: CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWN,
+    },
+};
+
 function mapFiltersFormToLabelValueList<T extends Record<string, unknown>>(
     searchAdvancedFiltersForm: Partial<SearchAdvancedFiltersForm>,
     policyIDQuery: string[] | undefined,
@@ -4285,11 +4347,9 @@ function mapFiltersFormToLabelValueList<T extends Record<string, unknown>>(
     mapper?: (filterKey: SearchAdvancedFiltersKey) => T,
 ): Array<SearchFilter & T> {
     const filters: Array<SearchFilter & T> = [];
-    const hasAddedFilter = {
-        posted: false,
-        withdrawn: false,
-        date: false,
-    };
+    // Tracks which date-group labels have already been added (e.g. 'date', 'submitted') to
+    // avoid rendering duplicate chips for the on/after/before siblings of the same group.
+    const addedDateGroups = new Set<TranslationPaths>();
 
     const type = searchAdvancedFiltersForm.type ?? CONST.SEARCH.DATA_TYPES.EXPENSE;
 
@@ -4318,6 +4378,26 @@ function mapFiltersFormToLabelValueList<T extends Record<string, unknown>>(
             continue;
         }
         const extra = mapper?.(key) ?? ({} as T);
+
+        // --- Date group filters (on/after/before siblings collapse into one chip) ---
+        const dateGroupConfig = DATE_FILTER_GROUP_MAP[key];
+        if (dateGroupConfig) {
+            if (addedDateGroups.has(dateGroupConfig.label)) {
+                continue;
+            }
+            const displayValue = createDateDisplayValue({
+                on: searchAdvancedFiltersForm[dateGroupConfig.on] as string | undefined,
+                after: searchAdvancedFiltersForm[dateGroupConfig.after] as string | undefined,
+                before: searchAdvancedFiltersForm[dateGroupConfig.before] as string | undefined,
+            });
+            if (!displayValue) {
+                continue;
+            }
+            addedDateGroups.add(dateGroupConfig.label);
+            filters.push({key, label: translate(dateGroupConfig.label), value: displayValue, ...extra});
+            continue;
+        }
+
         switch (key) {
             case FILTER_KEYS.GROUP_CURRENCY: {
                 const groupCurrency = searchAdvancedFiltersForm[key];
@@ -4329,42 +4409,12 @@ function mapFiltersFormToLabelValueList<T extends Record<string, unknown>>(
                 filters.push({key, label: translate('search.filters.feed'), value: feedFilterValues ?? null, ...extra});
                 break;
             }
-            case FILTER_KEYS.POSTED_ON:
-            case FILTER_KEYS.POSTED_AFTER:
-            case FILTER_KEYS.POSTED_BEFORE: {
-                if (hasAddedFilter.posted) {
-                    continue;
-                }
-                const displayPosted = createDateDisplayValue({
-                    on: searchAdvancedFiltersForm.postedOn,
-                    after: searchAdvancedFiltersForm.postedAfter,
-                    before: searchAdvancedFiltersForm.postedBefore,
-                });
-                filters.push({key, label: translate('search.filters.posted'), value: displayPosted, ...extra});
-                hasAddedFilter.posted = true;
-                break;
-            }
             case FILTER_KEYS.WITHDRAWAL_TYPE: {
                 const withdrawalType = searchAdvancedFiltersForm[key];
                 if (!withdrawalType) {
                     continue;
                 }
                 filters.push({key, label: translate('search.withdrawalType'), value: translate(`search.filters.withdrawalType.${withdrawalType}`), ...extra});
-                break;
-            }
-            case FILTER_KEYS.WITHDRAWN_ON:
-            case FILTER_KEYS.WITHDRAWN_AFTER:
-            case FILTER_KEYS.WITHDRAWN_BEFORE: {
-                if (hasAddedFilter.withdrawn) {
-                    continue;
-                }
-                const displayWithdrawn = createDateDisplayValue({
-                    on: searchAdvancedFiltersForm.withdrawnOn,
-                    after: searchAdvancedFiltersForm.withdrawnAfter,
-                    before: searchAdvancedFiltersForm.withdrawnBefore,
-                });
-                filters.push({key, label: translate('search.filters.withdrawn'), value: displayWithdrawn, ...extra});
-                hasAddedFilter.withdrawn = true;
                 break;
             }
             case FILTER_KEYS.STATUS: {
@@ -4392,21 +4442,6 @@ function mapFiltersFormToLabelValueList<T extends Record<string, unknown>>(
                     continue;
                 }
                 filters.push({key, label: translate('search.filters.is'), value: isFilterValues.map((option) => translate(`common.${option}`)).join(', '), ...extra});
-                break;
-            }
-            case FILTER_KEYS.DATE_ON:
-            case FILTER_KEYS.DATE_AFTER:
-            case FILTER_KEYS.DATE_BEFORE: {
-                if (hasAddedFilter.date) {
-                    continue;
-                }
-                const displayDate = createDateDisplayValue({
-                    on: searchAdvancedFiltersForm.dateOn,
-                    after: searchAdvancedFiltersForm.dateAfter,
-                    before: searchAdvancedFiltersForm.dateBefore,
-                });
-                filters.push({key, label: translate('common.date'), value: displayDate, ...extra});
-                hasAddedFilter.date = true;
                 break;
             }
             case FILTER_KEYS.FROM: {
@@ -5048,6 +5083,7 @@ export {
     isEligibleForApproveSuggestion,
     applySelectionToItem,
     GENERIC_SEARCH_KEYS,
+    DATE_FILTER_GROUP_MAP,
     doesSearchItemMatchSort,
     isPolicyEligibleForSpendOverTime,
 };
