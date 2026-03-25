@@ -19,7 +19,8 @@ jest.mock('@libs/actions/Report', () => {
 
 jest.mock('@pages/inbox/report/ReportActionEditMessageContext', () => ({
     useReportActionActiveEditActions: () => ({
-        setEditingState: jest.fn(),
+        submitEdit: jest.fn(),
+        stopEditing: jest.fn(),
     }),
 }));
 

@@ -47,7 +47,7 @@ function useEditMessage({reportID, originalReportID, reportAction, shouldScrollT
     const isOriginalParentReportArchived = useReportIsArchived(originalParentReportID);
     const ancestors = useAncestors(originalReport);
 
-    const {setEditingState} = useReportActionActiveEditActions();
+    const {stopEditing, submitEdit} = useReportActionActiveEditActions();
 
     useEffect(() => {
         // required for keeping last state of isFocused variable
@@ -68,7 +68,7 @@ function useEditMessage({reportID, originalReportID, reportAction, shouldScrollT
             return;
         }
 
-        setEditingState('off');
+        stopEditing();
 
         clearReportActionDrafts();
 
@@ -110,7 +110,7 @@ function useEditMessage({reportID, originalReportID, reportAction, shouldScrollT
             return;
         }
 
-        setEditingState('submitted');
+        submitEdit();
 
         editReportComment(
             originalReport,

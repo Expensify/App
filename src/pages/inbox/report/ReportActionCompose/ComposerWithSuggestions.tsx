@@ -337,7 +337,6 @@ function ComposerWithSuggestions({
 
     const isFirstEditingRenderRef = useRef(isEditing);
     const wasEditingInComposerRef = useRef(shouldUseNarrowLayout);
-    const previousDraftSelectionRef = useRef<TextSelection | null>(null);
 
     useEffect(() => {
         // If the draft message is already being submitted, do nothing.
@@ -345,12 +344,9 @@ function ComposerWithSuggestions({
             return;
         }
 
-        // Editing just started.
+        // This is the initial render of the composer when editing is turned on
         if (isFirstEditingRenderRef.current) {
             isFirstEditingRenderRef.current = false;
-
-            // Store the draft selection before switching into edit mode so we can restore it later.
-            previousDraftSelectionRef.current = selection;
             wasEditingInComposerRef.current = shouldUseNarrowLayout;
 
             if (!shouldUseNarrowLayout) {
@@ -596,13 +592,14 @@ function ComposerWithSuggestions({
                     syncSelectionWithOnChangeTextRef.current = {position, value: newComment};
                 }
 
-                setSelection((prevSelection) => ({
-                    ...prevSelection,
-                    start: position,
-                    end: position,
-                }));
-
-                setCurrentEditMessageSelection((prevSelection) => ({...prevSelection, start: position, end: position}));
+                if (!isFirstEditingRenderRef.current) {
+                    setSelection((prevSelection) => ({
+                        ...prevSelection,
+                        start: position,
+                        end: position,
+                    }));
+                    setCurrentEditMessageSelection((prevSelection) => ({...prevSelection, start: position, end: position}));
+                }
             }
 
             commentRef.current = newCommentConverted;

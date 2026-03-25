@@ -28,9 +28,10 @@ type ReportActionEditMessageContextValue = ReportActionActiveEdit & {
 };
 
 type ReportActionEditMessageContextActions = {
-    setEditingState: Dispatch<SetStateAction<EditingState>>;
     setEditingMessage: Dispatch<SetStateAction<string | null>>;
     setCurrentEditMessageSelection: Dispatch<SetStateAction<TextSelection | null>>;
+    submitEdit: () => void;
+    stopEditing: () => void;
 };
 
 const ReportActionEditMessageContext = createContext<ReportActionEditMessageContextValue>({
@@ -43,9 +44,10 @@ const ReportActionEditMessageContext = createContext<ReportActionEditMessageCont
 });
 
 const ReportActionEditMessageActionsContext = createContext<ReportActionEditMessageContextActions>({
-    setEditingState: NOOP,
     setEditingMessage: NOOP,
     setCurrentEditMessageSelection: NOOP,
+    submitEdit: NOOP,
+    stopEditing: NOOP,
 });
 
 type ReportActionEditMessageContextProviderProps = {
@@ -184,11 +186,19 @@ function ReportActionEditMessageContextProvider({reportID, children}: ReportActi
         }
     }
 
-    if (editingReportID == null && editingState !== 'off') {
+    const submitEdit = () => {
+        setEditingState('submitted');
+    };
+
+    const stopEditing = () => {
         setEditingState('off');
         setEditingMessage(null);
         setPrevEditingReportActionID(null);
         setCurrentEditMessageSelectionState(null);
+    };
+
+    if (editingReportID == null && editingState !== 'off') {
+        stopEditing();
     }
 
     const setCurrentEditMessageSelection = (setSelectionStateAction: SetStateAction<TextSelection | null>) => {
@@ -209,9 +219,10 @@ function ReportActionEditMessageContextProvider({reportID, children}: ReportActi
     };
 
     const actions: ReportActionEditMessageContextActions = {
-        setEditingState,
         setEditingMessage,
         setCurrentEditMessageSelection,
+        submitEdit,
+        stopEditing,
     };
 
     return (
