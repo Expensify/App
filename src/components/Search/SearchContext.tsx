@@ -1,7 +1,6 @@
 import {useNavigation} from '@react-navigation/core';
 import type {NavigationState} from '@react-navigation/routers';
 import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
-// We need direct access to useOnyx from react-native-onyx to avoid circular dependencies in SearchContext
 // eslint-disable-next-line no-restricted-imports
 import {useOnyx} from 'react-native-onyx';
 import useCardFeedsForDisplay from '@hooks/useCardFeedsForDisplay';

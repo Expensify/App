@@ -1,3 +1,4 @@
+import {useNavigation} from '@react-navigation/core';
 import {isUserValidatedSelector} from '@selectors/Account';
 import React, {useCallback} from 'react';
 import {StyleSheet, View} from 'react-native';
@@ -36,9 +37,11 @@ const is2FARequiredBecauseOfXeroSelector = (email?: string) => {
 };
 
 function RequireTwoFactorAuthenticationOverlay() {
+    const navigation = useNavigation();
     const shouldShowRequire2FAPage = useShouldShowRequire2FAPage();
     const isIn2FASetupFlow = useRootNavigationState((state) => {
-        const focusedScreen = getDeepestFocusedScreen(state);
+        // When navigation is not ready yet, use the navigation state from the navigation hook.
+        const focusedScreen = getDeepestFocusedScreen(state ?? navigation.getState());
         return isTwoFactorSetupScreen(focusedScreen?.name);
     });
 
