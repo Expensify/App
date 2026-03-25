@@ -459,6 +459,16 @@ function isPolicyPayer(policy: OnyxEntry<Policy>, currentUserLogin: string | und
     return false;
 }
 
+/** Check if the passed employee is an approver in the policy's employeeList */
+function isPolicyApprover(policy: OnyxEntry<Policy>, employeeLogin: string) {
+    if (policy?.approver === employeeLogin) {
+        return true;
+    }
+    return Object.values(policy?.employeeList ?? {}).some(
+        (employee) => employee?.submitsTo === employeeLogin || employee?.forwardsTo === employeeLogin || employee?.overLimitForwardsTo === employeeLogin,
+    );
+}
+
 function getUberConnectionErrorDirectlyFromPolicy(policy: OnyxEntry<Policy>) {
     const receiptUber = policy?.receiptPartners?.uber;
 
@@ -801,6 +811,21 @@ function getOwnedPaidPolicies(policies: OnyxCollection<Policy> | null, currentUs
 
 function isControlPolicy(policy: OnyxEntry<Policy>): boolean {
     return policy?.type === CONST.POLICY.TYPE.CORPORATE;
+}
+
+/**
+ * Whether the policy can access a feature based on plan level.
+ * Corporate-only features are restricted to control (Corporate) policies.
+ */
+function canPolicyAccessFeature(policy: OnyxEntry<Policy>, featureName: PolicyFeatureName): boolean {
+    if (!isPaidGroupPolicy(policy)) {
+        return false;
+    }
+    const corporateOnlyFeatures = new Set<PolicyFeatureName>([CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED, CONST.POLICY.MORE_FEATURES.ARE_PER_DIEM_RATES_ENABLED]);
+    if (corporateOnlyFeatures.has(featureName)) {
+        return isControlPolicy(policy);
+    }
+    return true;
 }
 
 function isCollectPolicy(policy: OnyxEntry<Policy>): boolean {
@@ -2030,6 +2055,7 @@ function sortPoliciesByName(policies: Policy[], localeCompare: (a: string, b: st
 
 export {
     canEditTaxRate,
+    canPolicyAccessFeature,
     escapeTagName,
     getActivePolicies,
     getAdminEmployees,
@@ -2205,6 +2231,7 @@ export {
     getActivePoliciesWithExpenseChatAndTimeEnabled,
     isPolicyTaxEnabled,
     sortPoliciesByName,
+    isPolicyApprover,
 };
 
 export type {MemberEmailsToAccountIDs};
