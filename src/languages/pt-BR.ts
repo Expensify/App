@@ -526,6 +526,7 @@ const translations: TranslationDeepObject<typeof en> = {
         concierge: {sidePanelGreeting: 'Oi, como posso ajudar?', showHistory: 'Mostrar histórico'},
         duplicateReport: 'Duplicar relatório',
         approver: 'Aprovador',
+        enterDigitLabel: ({digitIndex, totalDigits}: {digitIndex: number; totalDigits: number}) => `inserir dígito ${digitIndex} de ${totalDigits}`,
         copyOfReportName: (reportName: string) => `Cópia de ${reportName}`,
     },
     socials: {
@@ -2661,6 +2662,7 @@ ${amount} para ${merchant} - ${date}`,
                 label: 'Usar configurações do dispositivo',
             },
         },
+        highContrastMode: 'Modo de alto contraste',
         chooseThemeBelowOrSync: 'Escolha um tema abaixo ou sincronize com as configurações do seu dispositivo.',
     },
     termsOfUse: {
@@ -7186,6 +7188,7 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
     search: {
         resultsAreLimited: 'Os resultados da pesquisa são limitados.',
         viewResults: 'Ver resultados',
+        appliedFilters: 'Filtros aplicados',
         resetFilters: 'Redefinir filtros',
         searchResults: {
             emptyResults: {
@@ -7242,6 +7245,7 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
             },
         },
         columns: 'Colunas',
+        editColumns: 'Editar colunas',
         resetColumns: 'Redefinir colunas',
         groupColumns: 'Agrupar colunas',
         expenseColumns: 'Colunas de despesas',
@@ -7342,8 +7346,13 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
                 [CONST.SEARCH.ACTION_FILTERS.EXPORT]: 'Exportar',
             },
         },
+        display: {
+            label: 'Exibir',
+            sortBy: 'Ordenar por',
+            groupBy: 'Agrupar por',
+            limitResults: 'Limitar resultados',
+        },
         has: 'Tem',
-        groupBy: 'Agrupar por',
         view: {
             label: 'Visualizar',
             table: 'Tabela',

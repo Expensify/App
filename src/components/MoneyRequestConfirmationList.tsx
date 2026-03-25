@@ -164,6 +164,9 @@ type MoneyRequestConfirmationListProps = {
     /** Whether the expense is an odometer distance expense */
     isOdometerDistanceRequest?: boolean;
 
+    /** Whether the odometer receipt is currently being stitched */
+    isLoadingReceipt?: boolean;
+
     /** Whether the expense is a GPS distance expense */
     isGPSDistanceRequest: boolean;
 
@@ -237,6 +240,7 @@ function MoneyRequestConfirmationList({
     isDistanceRequest,
     isManualDistanceRequest,
     isOdometerDistanceRequest = false,
+    isLoadingReceipt = false,
     isGPSDistanceRequest,
     isPerDiemRequest = false,
     isPolicyExpenseChat = false,
@@ -726,7 +730,7 @@ function MoneyRequestConfirmationList({
             !isPolicyExpenseChat ||
             !transactionID ||
             !lastSelectedRate ||
-            isMovingTransactionFromTrackExpense ||
+            (isMovingTransactionFromTrackExpense && customUnitRateID === CONST.CUSTOM_UNITS.FAKE_P2P_ID) ||
             !selectedParticipants.some((participant) => participant.policyID === policy?.id)
         ) {
             return;
@@ -1263,7 +1267,7 @@ function MoneyRequestConfirmationList({
                             enterKeyEventListenerPriority={1}
                             useKeyboardShortcuts
                             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                            isLoading={isConfirmed || isConfirming}
+                            isLoading={isConfirmed || isConfirming || isLoadingReceipt}
                             sentryLabel={CONST.SENTRY_LABEL.MONEY_REQUEST.CONFIRMATION_SUBMIT_BUTTON}
                         />
                     </View>
@@ -1303,6 +1307,7 @@ function MoneyRequestConfirmationList({
         styles.productTrainingTooltipWrapper,
         shouldShowProductTrainingTooltip,
         renderProductTrainingTooltip,
+        isLoadingReceipt,
     ]);
 
     const isCompactMode = useMemo(() => !showMoreFields && isScanRequest, [isScanRequest, showMoreFields]);
@@ -1341,6 +1346,7 @@ function MoneyRequestConfirmationList({
                 isDistanceRequest={isDistanceRequest}
                 isManualDistanceRequest={isManualDistanceRequest}
                 isOdometerDistanceRequest={isOdometerDistanceRequest}
+                isLoadingReceipt={isLoadingReceipt}
                 isGPSDistanceRequest={isGPSDistanceRequest}
                 isPerDiemRequest={isPerDiemRequest}
                 isTimeRequest={isTimeRequest}
@@ -1436,5 +1442,6 @@ export default memo(
         prevProps.isTimeRequest === nextProps.isTimeRequest &&
         prevProps.iouTimeCount === nextProps.iouTimeCount &&
         prevProps.iouTimeRate === nextProps.iouTimeRate &&
-        prevProps.shouldHideToSection === nextProps.shouldHideToSection,
+        prevProps.shouldHideToSection === nextProps.shouldHideToSection &&
+        prevProps.isLoadingReceipt === nextProps.isLoadingReceipt,
 );

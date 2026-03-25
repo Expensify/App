@@ -528,6 +528,7 @@ const translations: TranslationDeepObject<typeof en> = {
         concierge: {sidePanelGreeting: 'Hallo, wie kann ich helfen?', showHistory: 'Verlauf anzeigen'},
         duplicateReport: 'Duplizierten Bericht',
         approver: 'Genehmiger',
+        enterDigitLabel: ({digitIndex, totalDigits}: {digitIndex: number; totalDigits: number}) => `Ziffer ${digitIndex} von ${totalDigits} eingeben`,
         copyOfReportName: (reportName: string) => `Kopie von ${reportName}`,
     },
     socials: {
@@ -2674,6 +2675,7 @@ ${amount} für ${merchant} – ${date}`,
                 label: 'Geräteeinstellungen verwenden',
             },
         },
+        highContrastMode: 'Hoher Kontrast',
         chooseThemeBelowOrSync: 'Wählen Sie unten ein Design aus oder synchronisieren Sie es mit den Einstellungen Ihres Geräts.',
     },
     termsOfUse: {
@@ -7229,6 +7231,7 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
     search: {
         resultsAreLimited: 'Suchergebnisse sind begrenzt.',
         viewResults: 'Ergebnisse anzeigen',
+        appliedFilters: 'Angewandte filter',
         resetFilters: 'Filter zurücksetzen',
         searchResults: {
             emptyResults: {
@@ -7284,6 +7287,7 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
             },
         },
         columns: 'Spalten',
+        editColumns: 'Spalten bearbeiten',
         resetColumns: 'Spalten zurücksetzen',
         groupColumns: 'Spalten gruppieren',
         expenseColumns: 'Spalten für Ausgaben',
@@ -7384,8 +7388,13 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
                 [CONST.SEARCH.ACTION_FILTERS.EXPORT]: 'Export',
             },
         },
+        display: {
+            label: 'Anzeige',
+            sortBy: 'Sortieren nach',
+            groupBy: 'Gruppieren nach',
+            limitResults: 'Ergebnisse einschränken',
+        },
         has: 'Hat',
-        groupBy: 'Gruppieren nach',
         view: {
             label: 'Anzeigen',
             table: 'Tabelle',

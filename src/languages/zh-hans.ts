@@ -523,6 +523,7 @@ const translations: TranslationDeepObject<typeof en> = {
         concierge: {sidePanelGreeting: '你好，我能帮你做什么？', showHistory: '显示历史'},
         duplicateReport: '重复报销单',
         approver: '审批人',
+        enterDigitLabel: ({digitIndex, totalDigits}: {digitIndex: number; totalDigits: number}) => `输入第 ${digitIndex} 位数字，共 ${totalDigits} 位`,
         copyOfReportName: (reportName: string) => `${reportName} 的副本`,
     },
     socials: {
@@ -2598,6 +2599,7 @@ ${amount}，商户：${merchant} - 日期：${date}`,
                 label: '使用设备设置',
             },
         },
+        highContrastMode: '高对比度模式',
         chooseThemeBelowOrSync: '请选择下方的主题，或与您的设备设置同步。',
     },
     termsOfUse: {
@@ -7006,6 +7008,7 @@ ${reportName}
     search: {
         resultsAreLimited: '搜索结果已受限制。',
         viewResults: '查看结果',
+        appliedFilters: '已应用的筛选条件',
         resetFilters: '重置筛选条件',
         searchResults: {
             emptyResults: {
@@ -7061,6 +7064,7 @@ ${reportName}
             },
         },
         columns: '列',
+        editColumns: '编辑列',
         resetColumns: '重置列',
         groupColumns: '分组列',
         expenseColumns: '报销列',
@@ -7161,8 +7165,13 @@ ${reportName}
                 [CONST.SEARCH.ACTION_FILTERS.EXPORT]: '导出',
             },
         },
+        display: {
+            label: '显示',
+            sortBy: '按排序',
+            groupBy: '分组依据',
+            limitResults: '限制结果',
+        },
         has: '有',
-        groupBy: '分组依据',
         view: {label: '查看', table: '表格', bar: '栏', line: '折线', pie: '饼图'},
         chartTitles: {
             [CONST.SEARCH.GROUP_BY.FROM]: '来自',

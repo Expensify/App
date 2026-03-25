@@ -528,6 +528,7 @@ const translations: TranslationDeepObject<typeof en> = {
         concierge: {sidePanelGreeting: 'Ciao, come posso aiutarti?', showHistory: 'Mostra cronologia'},
         duplicateReport: 'Report duplicato',
         approver: 'Approvante',
+        enterDigitLabel: ({digitIndex, totalDigits}: {digitIndex: number; totalDigits: number}) => `inserire la cifra ${digitIndex} di ${totalDigits}`,
         copyOfReportName: (reportName: string) => `Copia di ${reportName}`,
     },
     socials: {
@@ -2670,6 +2671,7 @@ ${amount} per ${merchant} - ${date}`,
                 label: 'Usa le impostazioni del dispositivo',
             },
         },
+        highContrastMode: 'Modalità alto contrasto',
         chooseThemeBelowOrSync: 'Scegli un tema qui sotto o sincronizza con le impostazioni del tuo dispositivo.',
     },
     termsOfUse: {
@@ -7216,6 +7218,7 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
     search: {
         resultsAreLimited: 'I risultati di ricerca sono limitati.',
         viewResults: 'Visualizza risultati',
+        appliedFilters: 'Filtri applicati',
         resetFilters: 'Reimposta filtri',
         searchResults: {
             emptyResults: {
@@ -7272,6 +7275,7 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
             },
         },
         columns: 'Colonne',
+        editColumns: 'Modifica colonne',
         resetColumns: 'Reimposta colonne',
         groupColumns: 'Raggruppa colonne',
         expenseColumns: 'Colonne spese',
@@ -7372,8 +7376,13 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
                 [CONST.SEARCH.ACTION_FILTERS.EXPORT]: 'Esporta',
             },
         },
+        display: {
+            label: 'Visualizza',
+            sortBy: 'Ordina per',
+            groupBy: 'Raggruppa per',
+            limitResults: 'Limita i risultati',
+        },
         has: 'Ha',
-        groupBy: 'Raggruppa per',
         view: {
             label: 'Visualizza',
             table: 'Tabella',

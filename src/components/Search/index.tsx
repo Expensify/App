@@ -72,6 +72,7 @@ import type SearchResults from '@src/types/onyx/SearchResults';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import arraysEqual from '@src/utils/arraysEqual';
 import SearchChartView from './SearchChartView';
+import SearchChartWrapper from './SearchChartWrapper';
 import {useSearchActionsContext, useSearchStateContext} from './SearchContext';
 import SearchList from './SearchList';
 import type {ReportActionListItemType, SearchListItem, TransactionGroupListItemType, TransactionListItemType, TransactionReportGroupListItemType} from './SearchList/ListItem/types';
@@ -227,7 +228,8 @@ function Search({
         shouldUseLiveData,
         suggestedSearches,
     } = useSearchStateContext();
-    const {setSelectedTransactions, clearSelectedTransactions, setShouldShowFiltersBarLoading, setShouldShowSelectAllMatchingItems, selectAllMatchingItems, setShouldResetSearchQuery} =
+
+    const {setSelectedTransactions, clearSelectedTransactions, setShouldShowActionsBarLoading, setShouldShowSelectAllMatchingItems, selectAllMatchingItems, setShouldResetSearchQuery} =
         useSearchActionsContext();
     const [offset, setOffset] = useState(0);
 
@@ -565,8 +567,8 @@ function Search({
 
     useEffect(() => {
         /** We only want to display the skeleton for the status filters the first time we load them for a specific data type */
-        setShouldShowFiltersBarLoading(shouldShowLoadingState && lastSearchType !== type);
-    }, [lastSearchType, setShouldShowFiltersBarLoading, shouldShowLoadingState, type]);
+        setShouldShowActionsBarLoading(shouldShowLoadingState && lastSearchType !== type);
+    }, [lastSearchType, setShouldShowActionsBarLoading, shouldShowLoadingState, type]);
 
     const shouldRetrySearchWithTotalsOrGroupedRef = useRef(false);
 
@@ -1379,16 +1381,28 @@ function Search({
 
         return (
             <SearchScopeProvider>
-                <SearchChartView
-                    queryJSON={queryJSON}
-                    view={view}
-                    groupBy={validGroupBy}
-                    data={sortedData}
-                    isLoading={shouldShowLoadingState}
+                <Animated.ScrollView
+                    style={styles.flex1}
+                    contentContainerStyle={styles.flexGrow1}
                     onScroll={onSearchListScroll}
                     onLayout={onLayoutChart}
-                    title={chartTitle}
-                />
+                    scrollEventThrottle={CONST.TIMING.MIN_SMOOTH_SCROLL_EVENT_THROTTLE}
+                >
+                    <View style={[shouldUseNarrowLayout ? styles.searchListContentContainerStyles : styles.mt3, styles.mh4, styles.mb4, styles.flex1]}>
+                        <SearchChartWrapper
+                            title={chartTitle}
+                            groupBy={validGroupBy}
+                        >
+                            <SearchChartView
+                                queryJSON={queryJSON}
+                                view={view}
+                                groupBy={validGroupBy}
+                                data={sortedData}
+                                isLoading={shouldShowLoadingState}
+                            />
+                        </SearchChartWrapper>
+                    </View>
+                </Animated.ScrollView>
             </SearchScopeProvider>
         );
     }

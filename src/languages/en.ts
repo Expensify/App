@@ -550,6 +550,7 @@ const translations = {
         vacationDelegate: 'Vacation delegate',
         expensifyLogo: 'Expensify logo',
         approver: 'Approver',
+        enterDigitLabel: ({digitIndex, totalDigits}: {digitIndex: number; totalDigits: number}) => `enter digit ${digitIndex} of ${totalDigits}`,
     },
     socials: {
         podcast: 'Follow us on Podcast',
@@ -2725,6 +2726,7 @@ const translations = {
                 label: 'Use device settings',
             },
         },
+        highContrastMode: 'High contrast mode',
         chooseThemeBelowOrSync: 'Choose a theme below, or sync with your device settings.',
     },
     termsOfUse: {
@@ -7214,6 +7216,7 @@ const translations = {
     search: {
         resultsAreLimited: 'Search results are limited.',
         viewResults: 'View results',
+        appliedFilters: 'Applied filters',
         resetFilters: 'Reset filters',
         searchResults: {
             emptyResults: {
@@ -7270,6 +7273,7 @@ const translations = {
             },
         },
         columns: 'Columns',
+        editColumns: 'Edit columns',
         resetColumns: 'Reset columns',
         groupColumns: 'Group columns',
         expenseColumns: 'Expense Columns',
@@ -7371,8 +7375,13 @@ const translations = {
                 [CONST.SEARCH.ACTION_FILTERS.EXPORT]: 'Export',
             },
         },
+        display: {
+            label: 'Display',
+            sortBy: 'Sort by',
+            groupBy: 'Group by',
+            limitResults: 'Limit results',
+        },
         has: 'Has',
-        groupBy: 'Group by',
         view: {
             label: 'View',
             table: 'Table',
