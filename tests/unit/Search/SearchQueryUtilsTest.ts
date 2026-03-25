@@ -1028,6 +1028,22 @@ describe('SearchQueryUtils', () => {
             expect(queryJSONa?.similarSearchHash).not.toEqual(queryJSONb?.similarSearchHash);
         });
 
+        it('should return different primary hash for queries with different explicit views but the same similarSearchHash', () => {
+            const queryJSONa = buildSearchQueryJSON('type:expense groupBy:category view:pie');
+            const queryJSONb = buildSearchQueryJSON('type:expense groupBy:category view:bar');
+
+            expect(queryJSONa?.similarSearchHash).toEqual(queryJSONb?.similarSearchHash);
+            expect(queryJSONa?.hash).not.toEqual(queryJSONb?.hash);
+        });
+
+        it('should return different primary hash for implicit table view and explicit view:table', () => {
+            const queryJSONa = buildSearchQueryJSON('type:expense groupBy:category');
+            const queryJSONb = buildSearchQueryJSON('type:expense groupBy:category view:table', 'type:expense groupBy:category view:table');
+
+            expect(queryJSONa?.similarSearchHash).toEqual(queryJSONb?.similarSearchHash);
+            expect(queryJSONa?.hash).not.toEqual(queryJSONb?.hash);
+        });
+
         describe('limit filter hashing', () => {
             it('should return same similarSearchHash for queries with different limit values', () => {
                 const queryJSONa = buildSearchQueryJSON('type:expense limit:10');
