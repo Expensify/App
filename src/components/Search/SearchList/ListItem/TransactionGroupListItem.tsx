@@ -75,8 +75,6 @@ function TransactionGroupListItem<TItem extends ListItem>({
     searchType,
     isOffline,
     newTransactionID,
-    onDEWModalOpen,
-    isDEWBetaEnabled,
     lastPaymentMethod,
     personalPolicyID,
     isLastItem,
@@ -397,8 +395,6 @@ function TransactionGroupListItem<TItem extends ListItem>({
                     isSelectAllChecked={isSelectAllChecked}
                     isIndeterminate={isIndeterminate}
                     isHovered={hovered}
-                    onDEWModalOpen={onDEWModalOpen}
-                    isDEWBetaEnabled={isDEWBetaEnabled}
                     lastPaymentMethod={lastPaymentMethod}
                     personalPolicyID={personalPolicyID}
                     onDownArrowClick={onExpandIconPress}

@@ -1,5 +1,5 @@
 import React from 'react';
-import type {StyleProp, ViewStyle} from 'react-native';
+import type {LayoutChangeEvent, StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import {Circle} from 'react-native-svg';
 import SkeletonRect from '@components/SkeletonRect';
@@ -19,6 +19,7 @@ type SearchRowSkeletonProps = {
     containerStyle?: StyleProp<ViewStyle>;
     reasonAttributes: SkeletonSpanReasonAttributes;
     isLoadMore?: boolean;
+    onLayout?: (event: LayoutChangeEvent) => void;
 };
 
 const barHeight = 8;
@@ -40,7 +41,7 @@ const rightArrowWidth = 28;
 // 68 is the width of the action button
 const rightButtonWidth = 68;
 
-function SearchRowSkeleton({shouldAnimate = true, fixedNumItems, gradientOpacityEnabled = false, containerStyle, reasonAttributes, isLoadMore = false}: SearchRowSkeletonProps) {
+function SearchRowSkeleton({shouldAnimate = true, fixedNumItems, gradientOpacityEnabled = false, containerStyle, reasonAttributes, isLoadMore = false, onLayout}: SearchRowSkeletonProps) {
     const styles = useThemeStyles();
     const {windowWidth} = useWindowDimensions();
     const {shouldUseNarrowLayout, isLargeScreenWidth} = useResponsiveLayout();
@@ -54,6 +55,7 @@ function SearchRowSkeleton({shouldAnimate = true, fixedNumItems, gradientOpacity
                     itemViewStyle={[styles.highlightBG, styles.mb2, styles.br3, styles.ml5]}
                     gradientOpacityEnabled={gradientOpacityEnabled}
                     shouldAnimate={shouldAnimate}
+                    onLayout={onLayout}
                     fixedNumItems={fixedNumItems}
                     renderSkeletonItem={() => (
                         <>
@@ -124,7 +126,8 @@ function SearchRowSkeleton({shouldAnimate = true, fixedNumItems, gradientOpacity
                 shouldAnimate={shouldAnimate}
                 fixedNumItems={fixedNumItems}
                 gradientOpacityEnabled={gradientOpacityEnabled}
-                itemViewStyle={[styles.highlightBG, {marginRight: 0}]}
+                onLayout={onLayout}
+                itemViewStyle={[styles.highlightBG, styles.mb2, styles.br3, styles.ml5]}
                 itemViewHeight={variables.tableRowHeight}
                 style={[styles.mh5, styles.overflowHidden, isLoadMore && styles.searchTableBottomRadius, !isLoadMore && styles.searchTableTopRadius]}
                 renderSkeletonItem={() => (
