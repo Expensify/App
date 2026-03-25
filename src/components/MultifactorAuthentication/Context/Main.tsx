@@ -7,31 +7,20 @@ import useBiometrics from '@components/MultifactorAuthentication/biometrics/useB
 import type {MultifactorAuthenticationScenario, MultifactorAuthenticationScenarioParams} from '@components/MultifactorAuthentication/config/types';
 import addMFABreadcrumb from '@components/MultifactorAuthentication/observability/breadcrumbs';
 import trackMFAFlowOutcome from '@components/MultifactorAuthentication/observability/trackMFAFlowOutcome';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useNetwork from '@hooks/useNetwork';
 import {requestValidateCodeAction} from '@libs/actions/User';
 import getPlatform from '@libs/getPlatform';
 import type {ChallengeType, MultifactorAuthenticationCallbackInput} from '@libs/MultifactorAuthentication/shared/types';
 import Navigation from '@navigation/Navigation';
-import {clearLocalMFAPublicKeyList, requestAuthorizationChallenge, requestRegistrationChallenge} from '@userActions/MultifactorAuthentication';
+import {clearLocalMFAPublicKeyList, getDeviceBiometricsOnyxKey, requestAuthorizationChallenge, requestRegistrationChallenge} from '@userActions/MultifactorAuthentication';
 import {processRegistration, processScenarioAction} from '@userActions/MultifactorAuthentication/processing';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {DeviceBiometrics} from '@src/types/onyx';
 import {useMultifactorAuthenticationActions, useMultifactorAuthenticationState} from './State';
 
 let deviceBiometricsState: OnyxEntry<DeviceBiometrics>;
-
-// Use Onyx.connectWithoutView instead of useOnyx hook to access the device biometrics state.
-// This is a non-reactive read that allows us to check the current value (hasAcceptedSoftPrompt)
-// from within the process() callback without triggering calling it too many times during the
-// fresh registration flow
-Onyx.connectWithoutView({
-    key: ONYXKEYS.DEVICE_BIOMETRICS,
-    callback: (data) => {
-        deviceBiometricsState = data;
-    },
-});
 
 type ExecuteScenarioParams<T extends MultifactorAuthenticationScenario> = MultifactorAuthenticationScenarioParams<T>;
 
@@ -71,9 +60,23 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
     const {dispatch} = useMultifactorAuthenticationActions();
 
     const biometrics = useBiometrics();
+    const {accountID} = useCurrentUserPersonalDetails();
     const {isOffline} = useNetwork();
     const platform = getPlatform();
     const promptType = CONST.MULTIFACTOR_AUTHENTICATION.PROMPT_TYPE_MAP[biometrics.deviceVerificationType];
+
+    useEffect(() => {
+        // Non-reactive read of deviceBiometrics. Using Onyx.connectWithoutView (set up in a useEffect
+        // inside the provider) instead of useOnyx to avoid triggering process() too many times during
+        // the fresh registration flow.
+        const connection = Onyx.connectWithoutView({
+            key: getDeviceBiometricsOnyxKey(accountID),
+            callback: (data) => {
+                deviceBiometricsState = data;
+            },
+        });
+        return () => Onyx.disconnect(connection);
+    }, [accountID]);
 
     /**
      * Handles the completion of a multifactor authentication scenario.
