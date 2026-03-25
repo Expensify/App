@@ -25,7 +25,6 @@ function useShouldSuppressConciergeIndicators(reportID: string | undefined): boo
         }
         return Object.values(actions).some((action) => !isCreatedAction(action) && action.actorAccountID === currentUserAccountID && action.created >= sessionStartTime);
     };
-    // eslint-disable-next-line rulesdir/no-inline-useOnyx-selector -- React Compiler handles memoization
     const [hasUserSentMessage] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
         selector: hasUserSentMessageSelector,
     });
