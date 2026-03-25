@@ -116,9 +116,11 @@ function PressableWithDelayToggle({
     // of a Pressable
     const PressableView = inline ? Text : PressableWithoutFeedback;
     const tooltipTexts = !isActive ? tooltipTextChecked : tooltipText;
-    const accessibilityLabel =
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Using || intentionally so empty string tooltip/text values fall through to the next fallback
-        (!isActive ? accessibilityLabelChecked || accessibilityLabelProp : accessibilityLabelProp) || (!isActive ? tooltipTextChecked || textChecked : tooltipText || text) || text || '';
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Using || intentionally so empty string tooltip/text values fall through to the next fallback
+    const checkedAccessibilityLabel = accessibilityLabelChecked || accessibilityLabelProp || tooltipTextChecked || textChecked || text || '';
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Using || intentionally so empty string tooltip/text values fall through to the next fallback
+    const defaultAccessibilityLabel = accessibilityLabelProp || tooltipText || text || '';
+    const accessibilityLabel = !isActive ? checkedAccessibilityLabel : defaultAccessibilityLabel;
     const shouldShowIcon = !!icon || (!isActive && !!resolvedIconChecked);
     const labelText =
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Disabling this line for safeness as nullish coalescing works only if the value is undefined or null
