@@ -4021,6 +4021,10 @@ ${
             policyExpenseChatName: (displayName: string) => `${displayName} 的报销费用`,
             deepDiveExpensifyCard: `<muted-text-label>Expensify 卡交易将自动导出到使用<a href="${CONST.DEEP_DIVE_EXPENSIFY_CARD}">我们的集成</a>创建的“Expensify 卡负债账户”。</muted-text-label>`,
         },
+        createdForClient: {
+            title: "You've created a workspace for your client!",
+            description: 'Great news 🎉. Reach out to us if they need any help with the setup.',
+        },
         receiptPartners: {
             uber: {
                 subtitle: (organizationName: string) => (organizationName ? `已连接到 ${organizationName}` : '在整个组织内自动化管理差旅和外卖餐饮报销。'),

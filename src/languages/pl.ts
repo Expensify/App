@@ -4106,6 +4106,10 @@ ${
             policyExpenseChatName: (displayName: string) => `Wydatki ${displayName}`,
             deepDiveExpensifyCard: `<muted-text-label>Transakcje z Karty Expensify będą automatycznie eksportowane do „Konta zobowiązań Karty Expensify” utworzonego dzięki <a href="${CONST.DEEP_DIVE_EXPENSIFY_CARD}">naszej integracji</a>.</muted-text-label>`,
         },
+        createdForClient: {
+            title: "You've created a workspace for your client!",
+            description: 'Great news 🎉. Reach out to us if they need any help with the setup.',
+        },
         receiptPartners: {
             uber: {
                 subtitle: (organizationName: string) =>

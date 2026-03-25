@@ -4085,6 +4085,10 @@ ${
             budgetFrequencyUnit: {monthly: '月', yearly: '年'},
             budgetTypeForNotificationMessage: {tag: 'タグ', category: 'カテゴリ'},
         },
+        createdForClient: {
+            title: "You've created a workspace for your client!",
+            description: 'Great news 🎉. Reach out to us if they need any help with the setup.',
+        },
         receiptPartners: {
             uber: {
                 subtitle: (organizationName: string) => (organizationName ? `${organizationName} に接続しました` : '組織全体の出張費や飲食デリバリー経費を自動化しましょう。'),

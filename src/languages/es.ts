@@ -4060,6 +4060,10 @@ ${amount} para ${merchant} - ${date}`,
             policyExpenseChatName: (displayName) => `${displayName}'s gastos`,
             deepDiveExpensifyCard: `<muted-text-label>Las transacciones de la Tarjeta Expensify se exportan automáticamente a una "Cuenta de Responsabilidad de la Tarjeta Expensify" creada con <a href="${CONST.DEEP_DIVE_EXPENSIFY_CARD}">nuestra integración</a>.</muted-text-label>`,
         },
+        createdForClient: {
+            title: "You've created a workspace for your client!",
+            description: 'Great news 🎉. Reach out to us if they need any help with the setup.',
+        },
         receiptPartners: {
             uber: {
                 subtitle: (organizationName) => (organizationName ? `Conectado a ${organizationName}` : 'Automatice los gastos de viajes y entrega de comidas en toda su organización.'),
