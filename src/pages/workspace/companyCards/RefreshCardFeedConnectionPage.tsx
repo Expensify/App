@@ -13,6 +13,8 @@ import {clearAssignCardStepAndData} from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
+import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
+import { isDirectFeed } from '@libs/CardUtils';
 import PlaidConnectionStep from './addNew/PlaidConnectionStep';
 import BankConnection from './BankConnection';
 
@@ -56,6 +58,10 @@ function RefreshCardFeedConnectionPage({route, policy}: RefreshCardFeedConnectio
         }
         Navigation.closeRHPFlow();
     }, [prevFeedExpiration, feedExpiration, isRefreshing]);
+
+    if (!isDirectFeed(feed) || !cardFeeds?.[feed]) {
+        return <NotFoundPage />;
+    }
 
     switch (currentStep) {
         case CONST.COMPANY_CARD.STEP.BANK_CONNECTION:
