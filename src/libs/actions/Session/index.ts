@@ -317,6 +317,7 @@ const KEYS_TO_PRESERVE_SUPPORTAL = [
     // Preserve IS_USING_IMPORTED_STATE so that when transitioning to/from supportal,
     // we know if we're in imported state mode and should skip API calls that would cause infinite loading
     ONYXKEYS.IS_USING_IMPORTED_STATE,
+    ONYXKEYS.COLLECTION.PASSKEY_CREDENTIALS,
 ];
 
 function signOutAndRedirectToSignIn(shouldResetToHome?: boolean, shouldStashSession?: boolean, shouldSignOutFromOldDot = true, shouldForceUseStashedSession?: boolean) {
