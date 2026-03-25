@@ -31,7 +31,7 @@ type SearchTypeMenuProps = {
     queryJSON: SearchQueryJSON | undefined;
 };
 
-function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
+function SearchTypeMenuWide({queryJSON}: SearchTypeMenuProps) {
     const {hash, similarSearchHash, sortBy, sortOrder, type} = queryJSON ?? {};
 
     const styles = useThemeStyles();
@@ -117,24 +117,22 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
                             {section.translationPath === 'search.savedSearchesMenuItemTitle' ? (
                                 <SavedSearchList hash={hash} />
                             ) : (
-                                <>
-                                    {section.menuItems.map((item, itemIndex) => {
-                                        const flattenedIndex = (sectionStartIndices?.at(sectionIndex) ?? 0) + itemIndex;
-                                        const focused = activeItemIndex === flattenedIndex;
-                                        const icon = typeof item.icon === 'string' ? expensifyIcons[item.icon] : item.icon;
+                                section.menuItems.map((item, itemIndex) => {
+                                    const flattenedIndex = (sectionStartIndices?.at(sectionIndex) ?? 0) + itemIndex;
+                                    const focused = activeItemIndex === flattenedIndex;
+                                    const icon = typeof item.icon === 'string' ? expensifyIcons[item.icon] : item.icon;
 
-                                        return (
-                                            <SearchTypeMenuItem
-                                                key={item.key}
-                                                title={translate(item.translationPath)}
-                                                icon={icon}
-                                                badgeText={getItemBadgeText(item.key, reportCounts)}
-                                                focused={focused}
-                                                onPress={() => handleTypeMenuItemPress(item.searchQuery)}
-                                            />
-                                        );
-                                    })}
-                                </>
+                                    return (
+                                        <SearchTypeMenuItem
+                                            key={item.key}
+                                            title={translate(item.translationPath)}
+                                            icon={icon}
+                                            badgeText={getItemBadgeText(item.key, reportCounts)}
+                                            focused={focused}
+                                            onPress={() => handleTypeMenuItemPress(item.searchQuery)}
+                                        />
+                                    );
+                                })
                             )}
                         </View>
                     ))}
@@ -144,4 +142,4 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
     );
 }
 
-export default SearchTypeMenu;
+export default SearchTypeMenuWide;
