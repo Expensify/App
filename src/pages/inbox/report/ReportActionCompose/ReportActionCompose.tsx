@@ -450,9 +450,11 @@ function ReportActionCompose({
             return;
         }
 
-        composerRef.current?.resetHeight();
-        if (isEditingInComposer) {
-            setDidResetComposerHeight(true);
+        if (effectiveDraft !== null && effectiveDraft !== '') {
+            composerRef.current?.resetHeight();
+            if (isEditingInComposer) {
+                setDidResetComposerHeight(true);
+            }
         }
 
         scheduleOnUI(() => {
@@ -464,7 +466,18 @@ function ReportActionCompose({
 
             clearWorklet?.();
         });
-    }, [isSendDisabled, debouncedCommentMaxLengthValidation, isEditingInComposer, editingMessage, draftComment, isComposerFullSize, validateAndSubmitDraft, reportID, composerRefShared]);
+    }, [
+        isSendDisabled,
+        debouncedCommentMaxLengthValidation,
+        isComposerFullSize,
+        isEditingInComposer,
+        editingMessage,
+        draftComment,
+        effectiveDraft,
+        reportID,
+        validateAndSubmitDraft,
+        composerRefShared,
+    ]);
     onSubmitAction = submitDraftAndClearComposer;
 
     const onTriggerAttachmentPicker = useCallback(() => {
