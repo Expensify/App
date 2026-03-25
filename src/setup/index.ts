@@ -61,6 +61,7 @@ export default function () {
         skippableCollectionMemberIDs: CONST.SKIPPABLE_COLLECTION_MEMBER_IDS,
         snapshotMergeKeys: ['pendingAction', 'pendingFields'],
         ramOnlyKeys: [
+            ONYXKEYS.DERIVED.SORTED_REPORT_ACTIONS,
             ONYXKEYS.RAM_ONLY_IS_CHECKING_PUBLIC_ROOM,
             ONYXKEYS.RAM_ONLY_UPDATE_AVAILABLE,
             ONYXKEYS.RAM_ONLY_UPDATE_REQUIRED,
