@@ -32,6 +32,9 @@ import {getOriginalMessage, getReportAction, isWhisperAction} from '@libs/Report
 import {buildReportNameFromParticipantNames, computeReportName as computeReportNameOriginal, getGroupChatName, getPolicyExpenseChatName, getReportName} from '@libs/ReportNameUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import {
+    buildOptimisticApprovedReportAction,
+    buildOptimisticCancelPaymentReportAction,
+    buildOptimisticCardAssignedReportAction,
     buildOptimisticChatReport,
     buildOptimisticCreatedReportAction,
     buildOptimisticCreatedReportForUnapprovedAction,
@@ -632,7 +635,10 @@ describe('ReportUtils', () => {
             // suggestedFollowups beta adds a bespoke Concierge welcome action optimistically for all company sizes
             const reportActionsEntries = result?.optimisticData.filter((i) => i.key === `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${adminsChatReportID}`);
             expect(reportActionsEntries).toHaveLength(1);
-            expect(result?.bespokeWelcomeMessage).toContain('For a small team like yours');
+            expect(result?.bespokeWelcomeMessage).toBeDefined();
+            // The bespoke message sent to the backend should be HTML (not raw markdown)
+            // so the server can pass it through to AddComment without formatting loss.
+            expect(result?.bespokeWelcomeMessage).toMatch(/<[^>]+>/);
             expect(result?.optimisticConciergeReportActionID).toBeDefined();
         });
 
@@ -4697,7 +4703,7 @@ describe('ReportUtils', () => {
                 canUnholdRequest: false,
             });
 
-            putOnHold(expenseTransaction.transactionID, 'hold', transactionThreadReport.reportID);
+            putOnHold(expenseTransaction.transactionID, 'hold', transactionThreadReport.reportID, false);
             await waitForBatchedUpdates();
 
             const expenseReportUpdated = await new Promise<OnyxEntry<Report>>((resolve) => {
@@ -13402,7 +13408,8 @@ describe('ReportUtils', () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${activePolicy.id}`, activePolicy);
                 await Onyx.merge(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED, 1);
                 // Grace period end is in the past (Unix timestamp in seconds)
-                await Onyx.merge(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END, Math.floor(Date.now() / 1000) - 3600);
+                const pastGracePeriod = Math.floor(Date.now() / 1000) - 3600;
+                await Onyx.merge(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END, pastGracePeriod);
 
                 // When we call createDraftTransactionAndNavigateToParticipantSelector with the restricted policy
                 createDraftTransactionAndNavigateToParticipantSelector({
@@ -13414,6 +13421,7 @@ describe('ReportUtils', () => {
                     activePolicy,
                     userBillingGraceEndPeriods: undefined,
                     amountOwed: 1,
+                    ownerBillingGraceEndPeriod: pastGracePeriod,
                     transaction,
                 });
 
@@ -13676,7 +13684,8 @@ describe('ReportUtils', () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${policyExpenseReport.reportID}`, policyExpenseReport);
                 await Onyx.merge(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED, 0);
                 // Grace period end is in the past
-                await Onyx.merge(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END, Math.floor(Date.now() / 1000) - 3600);
+                const pastGracePeriod = Math.floor(Date.now() / 1000) - 3600;
+                await Onyx.merge(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END, pastGracePeriod);
 
                 // When we call with amountOwed = 0
                 createDraftTransactionAndNavigateToParticipantSelector({
@@ -13688,6 +13697,7 @@ describe('ReportUtils', () => {
                     activePolicy,
                     userBillingGraceEndPeriods: undefined,
                     amountOwed: 0,
+                    ownerBillingGraceEndPeriod: pastGracePeriod,
                     transaction,
                 });
 
@@ -13710,7 +13720,8 @@ describe('ReportUtils', () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${activePolicy.id}`, activePolicy);
                 await Onyx.merge(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED, 50);
                 // Grace period end is in the past
-                await Onyx.merge(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END, Math.floor(Date.now() / 1000) - 3600);
+                const pastGracePeriod = Math.floor(Date.now() / 1000) - 3600;
+                await Onyx.merge(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END, pastGracePeriod);
 
                 // When we call with amountOwed = 50
                 createDraftTransactionAndNavigateToParticipantSelector({
@@ -13722,6 +13733,7 @@ describe('ReportUtils', () => {
                     activePolicy,
                     userBillingGraceEndPeriods: undefined,
                     amountOwed: 50,
+                    ownerBillingGraceEndPeriod: pastGracePeriod,
                     transaction,
                 });
 
@@ -14900,6 +14912,118 @@ describe('ReportUtils', () => {
             const details = getTransactionDetails(transaction);
 
             expect(details?.taxValue).toBe('10%');
+        });
+    });
+
+    describe('buildOptimisticApprovedReportAction', () => {
+        it('should set actorAccountID to the provided currentUserAccountID', () => {
+            const customAccountID = 99;
+            const action = buildOptimisticApprovedReportAction(500, 'USD', 'expenseReport1', customAccountID);
+
+            expect(action.actorAccountID).toBe(customAccountID);
+        });
+
+        it('should set actionName to APPROVED', () => {
+            const action = buildOptimisticApprovedReportAction(500, 'USD', 'expenseReport1', currentUserAccountID);
+
+            expect(action.actionName).toBe(CONST.REPORT.ACTIONS.TYPE.APPROVED);
+        });
+
+        it('should set originalMessage with the provided amount, currency, and expenseReportID', () => {
+            const amount = 1200;
+            const currency = 'EUR';
+            const expenseReportID = 'report42';
+            const action = buildOptimisticApprovedReportAction(amount, currency, expenseReportID, currentUserAccountID);
+
+            expect(getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.APPROVED>)).toMatchObject({amount, currency, expenseReportID});
+        });
+
+        it('should set pendingAction to ADD', () => {
+            const action = buildOptimisticApprovedReportAction(500, 'USD', 'expenseReport1', currentUserAccountID);
+
+            expect(action.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
+        });
+
+        it('should generate a non-empty reportActionID', () => {
+            const action = buildOptimisticApprovedReportAction(500, 'USD', 'expenseReport1', currentUserAccountID);
+
+            expect(action.reportActionID).toBeTruthy();
+        });
+    });
+
+    describe('buildOptimisticCancelPaymentReportAction', () => {
+        it('should set actorAccountID to the provided currentUserAccountID', () => {
+            const customAccountID = 77;
+            const action = buildOptimisticCancelPaymentReportAction('expenseReport2', 300, 'USD', customAccountID);
+
+            expect(action.actorAccountID).toBe(customAccountID);
+        });
+
+        it('should set actionName to REIMBURSEMENT_DEQUEUED', () => {
+            const action = buildOptimisticCancelPaymentReportAction('expenseReport2', 300, 'USD', currentUserAccountID);
+
+            expect(action.actionName).toBe(CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DEQUEUED);
+        });
+
+        it('should set originalMessage with the provided expenseReportID, amount, currency, and cancellationReason', () => {
+            const expenseReportID = 'report55';
+            const amount = 750;
+            const currency = 'GBP';
+            const action = buildOptimisticCancelPaymentReportAction(expenseReportID, amount, currency, currentUserAccountID);
+
+            expect(getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DEQUEUED>)).toMatchObject({
+                expenseReportID,
+                amount,
+                currency,
+                cancellationReason: CONST.REPORT.CANCEL_PAYMENT_REASONS.ADMIN,
+            });
+        });
+
+        it('should set pendingAction to ADD', () => {
+            const action = buildOptimisticCancelPaymentReportAction('expenseReport2', 300, 'USD', currentUserAccountID);
+
+            expect(action.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
+        });
+
+        it('should generate a non-empty reportActionID', () => {
+            const action = buildOptimisticCancelPaymentReportAction('expenseReport2', 300, 'USD', currentUserAccountID);
+
+            expect(action.reportActionID).toBeTruthy();
+        });
+    });
+
+    describe('buildOptimisticCardAssignedReportAction', () => {
+        it('should set actorAccountID to the provided currentUserAccountID', () => {
+            const assigneeAccountID = 10;
+            const customAccountID = 88;
+            const action = buildOptimisticCardAssignedReportAction(assigneeAccountID, customAccountID);
+
+            expect(action.actorAccountID).toBe(customAccountID);
+        });
+
+        it('should set actionName to CARD_ASSIGNED', () => {
+            const action = buildOptimisticCardAssignedReportAction(10, currentUserAccountID);
+
+            expect(action.actionName).toBe(CONST.REPORT.ACTIONS.TYPE.CARD_ASSIGNED);
+        });
+
+        it('should set originalMessage with the provided assigneeAccountID', () => {
+            const assigneeAccountID = 42;
+            const action = buildOptimisticCardAssignedReportAction(assigneeAccountID, currentUserAccountID);
+
+            expect(getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.CARD_ASSIGNED>)).toMatchObject({assigneeAccountID});
+        });
+
+        it('should set pendingAction to ADD', () => {
+            const action = buildOptimisticCardAssignedReportAction(10, currentUserAccountID);
+
+            expect(action.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
+        });
+
+        it('should generate a non-empty reportActionID', () => {
+            const action = buildOptimisticCardAssignedReportAction(10, currentUserAccountID);
+
+            expect(action.reportActionID).toBeTruthy();
         });
     });
 });

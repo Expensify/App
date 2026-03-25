@@ -25,6 +25,7 @@ import {getCleanedTagName, isPolicyAdmin} from '@libs/PolicyUtils';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import stripFollowupListFromHtml from '@libs/ReportActionFollowupUtils/stripFollowupListFromHtml';
 import {
+    getActionableCard3DSTransactionApprovalMessage,
     getActionableCardFraudAlertMessage,
     getActionableMentionWhisperMessage,
     getAddedApprovalRuleMessage,
@@ -286,6 +287,7 @@ type ContextMenuActionPayload = {
     translate: LocalizedTranslate;
     harvestReport?: OnyxEntry<ReportType>;
     introSelected: OnyxEntry<IntroSelected>;
+    isSelfTourViewed: boolean | undefined;
     betas: OnyxEntry<Beta[]>;
     isDelegateAccessRestricted?: boolean;
     showDelegateNoAccessModal?: () => void;
@@ -628,18 +630,36 @@ const ContextMenuActions: ContextMenuAction[] = [
                 (shouldDisplayThreadReplies || (!isDeletedAction && !isArchivedRoom))
             );
         },
-        onPress: (closePopover, {reportAction, currentUserAccountID, originalReport, introSelected, betas}) => {
+        onPress: (closePopover, {reportAction, currentUserAccountID, originalReport, introSelected, isSelfTourViewed, betas}) => {
             const childReportNotificationPreference = getChildReportNotificationPreferenceReportUtils(reportAction);
             if (closePopover) {
                 hideContextMenu(false, () => {
                     ReportActionComposeFocusManager.focus();
-                    toggleSubscribeToChildReport(reportAction?.childReportID, currentUserAccountID, reportAction, originalReport, introSelected, betas, childReportNotificationPreference);
+                    toggleSubscribeToChildReport(
+                        reportAction?.childReportID,
+                        currentUserAccountID,
+                        reportAction,
+                        originalReport,
+                        introSelected,
+                        isSelfTourViewed,
+                        betas,
+                        childReportNotificationPreference,
+                    );
                 });
                 return;
             }
 
             ReportActionComposeFocusManager.focus();
-            toggleSubscribeToChildReport(reportAction?.childReportID, currentUserAccountID, reportAction, originalReport, introSelected, betas, childReportNotificationPreference);
+            toggleSubscribeToChildReport(
+                reportAction?.childReportID,
+                currentUserAccountID,
+                reportAction,
+                originalReport,
+                introSelected,
+                isSelfTourViewed,
+                betas,
+                childReportNotificationPreference,
+            );
         },
         getDescription: () => {},
         sentryLabel: CONST.SENTRY_LABEL.CONTEXT_MENU.JOIN_THREAD,
@@ -667,18 +687,36 @@ const ContextMenuActions: ContextMenuAction[] = [
                 (shouldDisplayThreadReplies || (!isDeletedAction && !isArchivedRoom))
             );
         },
-        onPress: (closePopover, {reportAction, currentUserAccountID, originalReport, introSelected, betas}) => {
+        onPress: (closePopover, {reportAction, currentUserAccountID, originalReport, introSelected, isSelfTourViewed, betas}) => {
             const childReportNotificationPreference = getChildReportNotificationPreferenceReportUtils(reportAction);
             if (closePopover) {
                 hideContextMenu(false, () => {
                     ReportActionComposeFocusManager.focus();
-                    toggleSubscribeToChildReport(reportAction?.childReportID, currentUserAccountID, reportAction, originalReport, introSelected, betas, childReportNotificationPreference);
+                    toggleSubscribeToChildReport(
+                        reportAction?.childReportID,
+                        currentUserAccountID,
+                        reportAction,
+                        originalReport,
+                        introSelected,
+                        isSelfTourViewed,
+                        betas,
+                        childReportNotificationPreference,
+                    );
                 });
                 return;
             }
 
             ReportActionComposeFocusManager.focus();
-            toggleSubscribeToChildReport(reportAction?.childReportID, currentUserAccountID, reportAction, originalReport, introSelected, betas, childReportNotificationPreference);
+            toggleSubscribeToChildReport(
+                reportAction?.childReportID,
+                currentUserAccountID,
+                reportAction,
+                originalReport,
+                introSelected,
+                isSelfTourViewed,
+                betas,
+                childReportNotificationPreference,
+            );
         },
         getDescription: () => {},
         sentryLabel: CONST.SENTRY_LABEL.CONTEXT_MENU.LEAVE_THREAD,
@@ -1053,6 +1091,8 @@ const ContextMenuActions: ContextMenuAction[] = [
                     setClipboardMessage(getMovedActionMessage(translate, reportAction, originalReport));
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_CARD_FRAUD_ALERT)) {
                     setClipboardMessage(getActionableCardFraudAlertMessage(translate, reportAction, getLocalDateFromDatetime));
+                } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_CARD_3DS_TRANSACTION_APPROVAL)) {
+                    setClipboardMessage(getActionableCard3DSTransactionApprovalMessage(translate, reportAction));
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.CHANGE_POLICY) {
                     const displayMessage = getPolicyChangeMessage(translate, reportAction);
                     Clipboard.setString(displayMessage);
