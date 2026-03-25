@@ -3121,7 +3121,7 @@ const translations = {
                         👋 Hey there, I'm your Expensify setup specialist. Now that you've created a workspace, make the most of your 30-day free trial by following the steps below!
                     `),
             onboardingTrackWorkspaceMessage:
-                "# Welcome to Expensify\nHi! I’m Concierge, your personal financial assistant. To make the most of your 30-day free trial, just follow the remaining setup steps below!",
+                '# Welcome to Expensify\nHi! I’m Concierge, your personal financial assistant. To make the most of your 30-day free trial, just follow the remaining setup steps below!',
             onboardingChatSplitMessage: 'Splitting bills with friends is as easy as sending a message. Here’s how.',
             onboardingAdminMessage: "Learn how to manage your team's workspace as an admin and submit your own expenses.",
             onboardingTestDriveReceiverMessage: "*You've got 3 months free! Get started below.*",
