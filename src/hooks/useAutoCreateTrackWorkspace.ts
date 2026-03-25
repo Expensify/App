@@ -101,7 +101,7 @@ function useAutoCreateTrackWorkspace() {
 
             // Extract the RHP variant directly from the API response to avoid a race condition
             // where the Onyx callback hasn't fired yet when navigateAfterOnboarding is called.
-            const rhpVariant = response?.onyxData?.find((update) => update.key === ONYXKEYS.NVP_ONBOARDING_RHP_VARIANT)?.value as OnboardingRHPVariant | undefined;
+            const rhpVariant = response?.onyxData?.find((update) => (update.key as string) === ONYXKEYS.NVP_ONBOARDING_RHP_VARIANT)?.value as OnboardingRHPVariant | undefined;
 
             setOnboardingAdminsChatReportID();
             setOnboardingPolicyID();
