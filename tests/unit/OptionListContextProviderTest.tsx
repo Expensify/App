@@ -225,4 +225,38 @@ describe('OptionListContextProvider', () => {
 
         expect(mockCreateOptionFromReport).toHaveBeenCalledWith(report, updatedPersonalDetails, 'true', undefined, undefined, {showPersonalDetails: true});
     });
+
+    it('does not reset options when called before initialization', () => {
+        const {result} = renderHook(({shouldInitialize}) => useOptionsList({shouldInitialize}), {
+            initialProps: {shouldInitialize: false},
+            wrapper,
+        });
+
+        act(() => {
+            result.current.resetOptions();
+        });
+
+        expect(result.current.areOptionsInitialized).toBe(false);
+        expect(result.current.options).toEqual({reports: [], personalDetails: []});
+    });
+
+    it('resets options to empty state when called after initialization', () => {
+        const {result} = renderHook(({shouldInitialize}) => useOptionsList({shouldInitialize}), {
+            initialProps: {shouldInitialize: false},
+            wrapper,
+        });
+
+        act(() => {
+            result.current.initializeOptions();
+        });
+
+        expect(result.current.areOptionsInitialized).toBe(true);
+
+        act(() => {
+            result.current.resetOptions();
+        });
+
+        expect(result.current.areOptionsInitialized).toBe(false);
+        expect(result.current.options).toEqual({reports: [], personalDetails: []});
+    });
 });
