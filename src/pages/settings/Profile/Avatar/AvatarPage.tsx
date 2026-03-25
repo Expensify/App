@@ -14,6 +14,7 @@ import ScrollView from '@components/ScrollView';
 import useAvatarMenu from '@hooks/useAvatarMenu';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDiscardChangesConfirmation from '@hooks/useDiscardChangesConfirmation';
+import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLetterAvatars from '@hooks/useLetterAvatars';
 import useLocalize from '@hooks/useLocalize';
@@ -56,6 +57,7 @@ function ProfileAvatar() {
     const icons = useMemoizedLazyExpensifyIcons(['Upload']);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const isInLandscapeMode = useIsInLandscapeMode();
     const [cropImageData, setCropImageData] = useState<ImageData>({...EMPTY_FILE});
     const [imageData, setImageData] = useState<ImageData>({...EMPTY_FILE});
 
@@ -205,6 +207,61 @@ function ProfileAvatar() {
             });
     }, [currentUserPersonalDetails?.accountID, currentUserPersonalDetails?.avatar, currentUserPersonalDetails?.avatarThumbnail, imageData.file, selected]);
 
+    const renderAvatarPreview = () => (
+        <View style={[styles.flexColumn, styles.gap5, styles.alignItemsCenter, styles.pb10]}>
+            <AvatarCapture
+                ref={avatarCaptureRef}
+                fileName={selected ?? 'avatar'}
+            >
+                <Avatar
+                    containerStyles={avatarStyle}
+                    imageStyles={avatarStyle}
+                    source={avatarURL}
+                    avatarID={accountID}
+                    fallbackIcon={currentUserPersonalDetails?.fallbackIcon}
+                    size={CONST.AVATAR_SIZE.X_LARGE}
+                    type={CONST.ICON_TYPE_AVATAR}
+                />
+            </AvatarCapture>
+            <AttachmentPicker
+                type={CONST.ATTACHMENT_PICKER_TYPE.IMAGE}
+                shouldValidateImage={false}
+            >
+                {({openPicker}) => {
+                    const menuItems = createMenuItems(openPicker);
+                    if (menuItems?.length <= 1) {
+                        return (
+                            <Button
+                                icon={icons.Upload}
+                                text={translate('avatarPage.uploadPhoto')}
+                                accessibilityLabel={translate('avatarPage.uploadPhoto')}
+                                isDisabled={isAvatarCropModalOpen}
+                                onPress={() => {
+                                    openPicker({
+                                        onPicked: (data) => showAvatarCropModal(data.at(0) ?? {}),
+                                    });
+                                }}
+                            />
+                        );
+                    }
+
+                    return (
+                        <ButtonWithDropdownMenu
+                            success={false}
+                            shouldUseOptionIcon
+                            isDisabled={isAvatarCropModalOpen}
+                            onPress={() => {}}
+                            anchorAlignment={{horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.CENTER, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP}}
+                            customText={translate('common.edit')}
+                            options={menuItems}
+                            isSplitButton={false}
+                        />
+                    );
+                }}
+            </AttachmentPicker>
+        </View>
+    );
+
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom
@@ -215,97 +272,46 @@ function ProfileAvatar() {
             shouldShowOfflineIndicatorInWideScreen
         >
             <HeaderWithBackButton title={translate('avatarPage.title')} />
-            <ScrollView>
-                <View style={[styles.flexColumn, styles.gap5, styles.alignItemsCenter, styles.pb10]}>
-                    <AvatarCapture
-                        ref={avatarCaptureRef}
-                        fileName={selected ?? 'avatar'}
-                    >
-                        <Avatar
-                            containerStyles={avatarStyle}
-                            imageStyles={avatarStyle}
-                            source={avatarURL}
-                            avatarID={accountID}
-                            fallbackIcon={currentUserPersonalDetails?.fallbackIcon}
-                            size={CONST.AVATAR_SIZE.X_LARGE}
-                            type={CONST.ICON_TYPE_AVATAR}
-                        />
-                    </AvatarCapture>
-                    <AttachmentPicker
-                        type={CONST.ATTACHMENT_PICKER_TYPE.IMAGE}
-                        // We need to skip the validation in AttachmentPicker because it is handled in this component itself
-                        shouldValidateImage={false}
-                    >
-                        {({openPicker}) => {
-                            const menuItems = createMenuItems(openPicker);
-                            if (menuItems?.length <= 1) {
-                                return (
-                                    <Button
-                                        icon={icons.Upload}
-                                        text={translate('avatarPage.uploadPhoto')}
-                                        accessibilityLabel={translate('avatarPage.uploadPhoto')}
-                                        isDisabled={isAvatarCropModalOpen}
-                                        onPress={() => {
-                                            openPicker({
-                                                onPicked: (data) => showAvatarCropModal(data.at(0) ?? {}),
-                                            });
-                                        }}
-                                    />
-                                );
-                            }
 
-                            return (
-                                <ButtonWithDropdownMenu
-                                    success={false}
-                                    shouldUseOptionIcon
-                                    isDisabled={isAvatarCropModalOpen}
-                                    onPress={() => {}}
-                                    anchorAlignment={{horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.CENTER, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP}}
-                                    customText={translate('common.edit')}
-                                    options={menuItems}
-                                    isSplitButton={false}
-                                />
-                            );
+            {!isInLandscapeMode && renderAvatarPreview()}
+
+            <ScrollView
+                style={styles.flex1}
+                contentContainerStyle={styles.flexGrow1}
+                keyboardShouldPersistTaps="handled"
+            >
+                {isInLandscapeMode && renderAvatarPreview()}
+                <View style={[styles.ph5, styles.pb5, styles.flexColumn, styles.flex1, styles.gap3]}>
+                    <AvatarSelector
+                        label={translate('avatarPage.choosePresetAvatar')}
+                        name={currentUserPersonalDetails?.displayName}
+                        selectedID={selected}
+                        onSelect={(id) => {
+                            setImageData({...EMPTY_FILE});
+                            setSelected(id);
                         }}
-                    </AttachmentPicker>
-                </View>
-
-                <ScrollView
-                    style={styles.flex1}
-                    contentContainerStyle={styles.flexGrow1}
-                    keyboardShouldPersistTaps="handled"
-                >
-                    <View style={[styles.ph5, styles.pb5, styles.flexColumn, styles.flex1, styles.gap3]}>
-                        <AvatarSelector
-                            label={translate('avatarPage.choosePresetAvatar')}
-                            name={currentUserPersonalDetails?.displayName}
-                            selectedID={selected}
-                            onSelect={(id) => {
-                                setImageData({...EMPTY_FILE});
-                                setSelected(id);
-                            }}
-                        />
-                    </View>
-                </ScrollView>
-                <FixedFooter style={styles.mtAuto}>
-                    {!!errorData.validationError && (
-                        <DotIndicatorMessage
-                            style={styles.mv5}
-                            // eslint-disable-next-line @typescript-eslint/naming-convention
-                            messages={{0: translate(errorData.validationError, errorData.phraseParam as never)}}
-                            type="error"
-                        />
-                    )}
-                    <Button
-                        large
-                        success
-                        text={translate('common.save')}
-                        isDisabled={!isDirty}
-                        onPress={onPress}
-                        pressOnEnter
                     />
-                </FixedFooter>
+                </View>
             </ScrollView>
+
+            <FixedFooter style={styles.mtAuto}>
+                {!!errorData.validationError && (
+                    <DotIndicatorMessage
+                        style={styles.mv5}
+                        // eslint-disable-next-line @typescript-eslint/naming-convention
+                        messages={{0: translate(errorData.validationError, errorData.phraseParam as never)}}
+                        type="error"
+                    />
+                )}
+                <Button
+                    large
+                    success
+                    text={translate('common.save')}
+                    isDisabled={!isDirty}
+                    onPress={onPress}
+                    pressOnEnter
+                />
+            </FixedFooter>
 
             <AvatarCropModal
                 onClose={() => {

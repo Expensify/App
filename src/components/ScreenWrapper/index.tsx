@@ -283,6 +283,7 @@ function ScreenWrapper({
                 <ScreenWrapperStatusContext.Provider value={statusContextValue}>
                     <ScreenWrapperOfflineIndicatorContext.Provider value={offlineIndicatorContextValue}>
                         {ChildrenContent}
+
                         <ScreenWrapperOfflineIndicators
                             offlineIndicatorStyle={offlineIndicatorStyle}
                             shouldShowOfflineIndicator={displaySmallScreenOfflineIndicator}
