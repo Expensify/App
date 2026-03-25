@@ -1,5 +1,5 @@
 import {InteractionManager} from 'react-native';
-import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
 import type {SendInvoiceParams} from '@libs/API/parameters';
@@ -596,8 +596,8 @@ function getSendInvoiceInformation({
     companyWebsite,
     policyRecentlyUsedCategories,
     policyRecentlyUsedTags,
-    allPolicyTags,
-}: SendInvoiceOptions & {allPolicyTags: OnyxCollection<OnyxTypes.PolicyTagLists>}): SendInvoiceInformation {
+    policyTags,
+}: SendInvoiceOptions & {policyTags: OnyxTypes.PolicyTagLists}): SendInvoiceInformation {
     const {amount = 0, currency = '', created = '', merchant = '', category = '', tag = '', taxCode = '', taxAmount = 0, billable, comment, participants} = transaction ?? {};
     const trimmedComment = (comment?.comment ?? '').trim();
     const senderWorkspaceID = participants?.find((participant) => participant?.isSender)?.policyID;
@@ -654,7 +654,7 @@ function getSendInvoiceInformation({
     const optimisticPolicyRecentlyUsedTags = buildOptimisticPolicyRecentlyUsedTags({
         // TODO: remove `allPolicyTags` from this file https://github.com/Expensify/App/issues/80048
         // eslint-disable-next-line
-        policyTags: allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${optimisticInvoiceReport.policyID}`] ?? {},
+        policyTags: policyTags ?? {},
         policyRecentlyUsedTags,
         transactionTags: tag,
     });
@@ -743,7 +743,9 @@ function sendInvoice({
     policyRecentlyUsedTags,
     isFromGlobalCreate,
 }: SendInvoiceOptions) {
-    const allPolicyTags = getPolicyTags();
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
+    const policyTags = getPolicyTagsData(transaction?.participants?.find(p => p?.isSender)?.policyID);
+    
     const parsedComment = getParsedComment(transaction?.comment?.comment?.trim() ?? '');
     if (transaction?.comment) {
         // eslint-disable-next-line no-param-reassign
@@ -776,7 +778,7 @@ function sendInvoice({
         companyWebsite,
         policyRecentlyUsedCategories,
         policyRecentlyUsedTags,
-        allPolicyTags,
+        policyTags,
     });
 
     const parameters: SendInvoiceParams = {
