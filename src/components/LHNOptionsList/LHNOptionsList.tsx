@@ -55,7 +55,6 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
     const [policy] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
-    const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT);
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
@@ -183,10 +182,6 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
                 ? (getOriginalMessage(itemParentReportAction)?.IOUTransactionID ?? CONST.DEFAULT_NUMBER_ID)
                 : CONST.DEFAULT_NUMBER_ID;
             const itemTransaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
-            const hasDraftComment =
-                !!draftComments?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`] &&
-                !draftComments?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`]?.match(CONST.REGEX.EMPTY_COMMENT);
-
             const isReportArchived = !!itemReportNameValuePairs?.private_isArchived;
             const canUserPerformWrite = canUserPerformWriteActionUtil(item, isReportArchived);
 
@@ -238,7 +233,6 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
                     lastMessageTextFromReport={lastMessageTextFromReport}
                     onSelectRow={onSelectRow}
                     preferredLocale={preferredLocale}
-                    hasDraftComment={hasDraftComment}
                     transactionViolations={transactionViolations}
                     onLayout={onLayoutItem}
                     shouldShowRBRorGBRTooltip={shouldShowRBRorGBRTooltip}
@@ -265,7 +259,6 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
             reportActions,
             policy,
             transactions,
-            draftComments,
             personalDetails,
             firstReportIDWithGBRorRBR,
             isFullscreenVisible,
@@ -296,7 +289,6 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
             policy,
             personalDetails,
             data.length,
-            draftComments,
             optionMode,
             preferredLocale,
             transactions,
@@ -313,7 +305,6 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
             policy,
             personalDetails,
             data.length,
-            draftComments,
             optionMode,
             preferredLocale,
             transactions,
