@@ -103,6 +103,55 @@ Classic Track and Classic Submit plans follow the same migration and upgrade pat
 
 You’re likely using a **Classic Track** or **Classic Submit** plan, which is a personal workspace that does not support shared collaboration, or you aren't an admin on a Collect or Contorl workspace.
 
+---
+
+## What is an individual workspace in Expensify?
+
+An **individual workspace** is the same as a **personal workspace**.
+
+It includes:
+- Classic Track  
+- Classic Submit  
+
+It is used by one member and does not support collaboration.
+
+---
+## What is a group workspace in Expensify?
+
+A **group workspace** is the same as a **shared workspace**.
+
+It includes:
+- Submit  
+- Collect  
+- Control  
+
+It allows multiple members and shared settings.
+
+---
+
+## What is a submit-only policy?
+
+A **submit-only policy** typically refers to the **Submit plan**.
+
+It allows:
+- Submitting expenses  
+- Basic collaboration  
+
+It does not include:
+- Approvals  
+- Reimbursements  
+- Accounting integrations  
+
+---
+
+## What is the difference between Submit, Collect, and Control?
+
+- **Submit**: Basic expense submission (submit-only policy)  
+- **Collect**: Full expense management with approvals and reimbursements  
+- **Control**: Advanced controls, policies, and approvals  
+- 
+
+---
 
 ---
 
