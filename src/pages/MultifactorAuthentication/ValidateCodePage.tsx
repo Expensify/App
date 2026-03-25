@@ -73,7 +73,7 @@ function MultifactorAuthenticationValidateCodePage() {
     function getErrorMessage() {
         // Rate limit or other backend error when sending/resending the validate code
         if (hasValidateCodeActionError) {
-            return Object.values(validateCodeActionError ?? {}).at(0);
+            return Object.values(validateCodeActionError).at(0);
         }
         // Invalid validate code submitted by the user
         if (hasContinuableError) {
