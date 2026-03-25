@@ -170,7 +170,7 @@ function ReportActionCompose({
 
     const [didResetComposerHeight, setDidResetComposerHeight] = useState(false);
     const isEditingInComposer = shouldUseNarrowLayout && editingState !== 'off' && !didResetComposerHeight;
-    const composerEditingToggleKey = `${editingState !== 'off'}`;
+    const composerEditingToggleKey = editingReportActionID;
 
     useEffect(() => {
         if (editingState !== 'off' || !didResetComposerHeight) {
