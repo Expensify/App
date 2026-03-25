@@ -180,6 +180,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [onboarding] = useOnyx(ONYXKEYS.NVP_ONBOARDING);
+    const isSelfTourViewed = onboarding?.selfTourViewed;
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
 
     const archivedReportsIdSet = useArchivedReportsIdSet();
@@ -409,9 +410,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
         if (isTransactionThreadView) {
             return (
                 <MoneyRequestHeader
-                    report={report}
-                    policy={policy}
-                    parentReportAction={parentReportAction}
+                    reportID={reportIDFromRoute}
                     onBackButtonPress={onBackButtonPress}
                 />
             );
@@ -420,11 +419,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
         if (isMoneyRequestOrInvoiceReport) {
             return (
                 <MoneyReportHeader
-                    report={report}
-                    policy={policy}
-                    transactionThreadReportID={transactionThreadReportID}
-                    isLoadingInitialReportActions={reportMetadata.isLoadingInitialReportActions}
-                    reportActions={reportActions}
+                    reportID={reportIDFromRoute}
                     onBackButtonPress={onBackButtonPress}
                 />
             );
@@ -434,24 +429,9 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
             <HeaderView
                 reportID={reportIDFromRoute}
                 onNavigationMenuButtonClicked={onBackButtonPress}
-                report={report}
-                parentReportAction={parentReportAction}
-                shouldUseNarrowLayout={shouldUseNarrowLayout}
             />
         );
-    }, [
-        isTransactionThreadView,
-        isMoneyRequestOrInvoiceReport,
-        report,
-        policy,
-        parentReportAction,
-        onBackButtonPress,
-        transactionThreadReportID,
-        reportMetadata.isLoadingInitialReportActions,
-        reportActions,
-        reportIDFromRoute,
-        shouldUseNarrowLayout,
-    ]);
+    }, [isTransactionThreadView, isMoneyRequestOrInvoiceReport, onBackButtonPress, reportIDFromRoute]);
 
     useEffect(() => {
         if (!transactionThreadReportID || !route?.params?.reportActionID || !isOneTransactionThread(childReport, report, linkedAction)) {
@@ -549,6 +529,53 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
         firstRender,
         deleteTransactionNavigateBackUrl,
         isDeletedTransactionThread,
+    ]);
+
+    useEffect(() => {
+        if (!shouldShowNotFoundPage) {
+            return;
+        }
+
+        Log.info('[ReportScreen] Displaying NotFound Page', false, {
+            shouldShowNotFoundLinkedAction,
+            isLoadingApp,
+            isLoadingReportData,
+            isOffline,
+            isLoadingInitialReportActions: reportMetadata?.isLoadingInitialReportActions,
+            reportID,
+            isOptimisticDelete,
+            userLeavingStatus,
+            currentReportIDFormRoute,
+            firstRender,
+            deleteTransactionNavigateBackUrl,
+            isDeletedTransactionThread,
+            isParentActionDeleted,
+            isParentActionMissingAfterLoad,
+            isNavigatingToDeletedAction,
+            isLinkedActionInaccessibleWhisper,
+            isLinkedActionDeleted,
+            isLinkingToMessage,
+        });
+    }, [
+        shouldShowNotFoundPage,
+        shouldShowNotFoundLinkedAction,
+        isLoadingApp,
+        isLoadingReportData,
+        isOffline,
+        reportMetadata?.isLoadingInitialReportActions,
+        reportID,
+        isOptimisticDelete,
+        userLeavingStatus,
+        currentReportIDFormRoute,
+        firstRender,
+        deleteTransactionNavigateBackUrl,
+        isDeletedTransactionThread,
+        isParentActionDeleted,
+        isParentActionMissingAfterLoad,
+        isNavigatingToDeletedAction,
+        isLinkedActionInaccessibleWhisper,
+        isLinkedActionDeleted,
+        isLinkingToMessage,
     ]);
 
     const createOneTransactionThreadReport = useCallback(() => {
@@ -793,7 +820,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
             }
 
             Navigation.isNavigationReady().then(() => {
-                navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, false);
+                navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, false);
             });
             return;
         }
@@ -845,9 +872,9 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
 
         // Fallback to Concierge
         Navigation.isNavigationReady().then(() => {
-            navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID);
+            navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed);
         });
-    }, [reportWasDeleted, isFocused, deletedReportParentID, conciergeReportID, introSelected, currentUserAccountID]);
+    }, [reportWasDeleted, isFocused, deletedReportParentID, conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed]);
 
     useEffect(() => {
         if (!isValidReportIDFromPath(reportIDFromRoute)) {
