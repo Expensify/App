@@ -153,7 +153,7 @@ function ExpenseReportListItemRow({
             </View>
         ),
         [CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE_TOTAL]: (
-            <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE_TOTAL)]}>
+            <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE_TOTAL, false, item.isAmountColumnWide)]}>
                 <TotalCell
                     total={reimbursableSpend}
                     currency={currency}
@@ -162,7 +162,7 @@ function ExpenseReportListItemRow({
             </View>
         ),
         [CONST.SEARCH.TABLE_COLUMNS.NON_REIMBURSABLE_TOTAL]: (
-            <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.NON_REIMBURSABLE_TOTAL)]}>
+            <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.NON_REIMBURSABLE_TOTAL, false, item.isAmountColumnWide)]}>
                 <TotalCell
                     total={nonReimbursableSpend}
                     currency={currency}
@@ -171,7 +171,7 @@ function ExpenseReportListItemRow({
             </View>
         ),
         [CONST.SEARCH.TABLE_COLUMNS.TOTAL]: (
-            <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TOTAL)]}>
+            <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TOTAL, false, item.isAmountColumnWide)]}>
                 <TotalCell
                     total={totalDisplaySpend}
                     currency={currency}

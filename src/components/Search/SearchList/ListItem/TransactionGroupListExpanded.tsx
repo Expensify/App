@@ -231,14 +231,7 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
                         onButtonPress={() => {
                             openReportInRHP(transaction);
                         }}
-                        style={[
-                            styles.noBorderRadius,
-                            styles.p3,
-                            isLargeScreenWidth && [styles.pv1Half, {minHeight: variables.tableRowHeight}],
-                            styles.flex1,
-                            isLargeScreenWidth &&
-                                isLastTransaction(index) && {borderBottomLeftRadius: variables.componentBorderRadius, borderBottomRightRadius: variables.componentBorderRadius},
-                        ]}
+                        style={[styles.noBorderRadius, styles.p3, isLargeScreenWidth && [styles.pv1, {minHeight: variables.tableRowHeight}], styles.flex1]}
                         isReportItemChild
                         isInSingleTransactionReport={isInSingleTransactionReport}
                         shouldShowBottomBorder={shouldShowBottomBorder}
@@ -288,11 +281,10 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
                 </View>
             )}
             {shouldDisplayLoadingIndicator && (
-                <View style={[isLargeScreenWidth && styles.pl10, styles.pt3, isEmpty && styles.pb3]}>
+                <View style={[styles.pt3, isEmpty && styles.pb3, styles.alignItemsCenter, styles.justifyContentCenter]}>
                     <ActivityIndicator
                         color={theme.spinner}
                         size={25}
-                        style={[styles.pl3, !isEmpty && styles.alignItemsStart]}
                         reasonAttributes={transactionGroupLoadingReasonAttributes}
                     />
                 </View>

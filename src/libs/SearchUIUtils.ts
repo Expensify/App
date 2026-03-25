@@ -1414,6 +1414,7 @@ function shouldShowYear(
     data: TransactionListItemType[] | TransactionGroupListItemType[] | TaskListItemType[] | OnyxTypes.SearchResults['data'],
     checkOnlyReports = false,
     precomputedLastExportedMap?: Map<string, OnyxTypes.ReportAction>,
+    skipReportCreatedDate = false,
 ): ShouldShowYearResult {
     const result: ShouldShowYearResult = {
         shouldShowYearCreated: false,
@@ -1501,7 +1502,7 @@ function shouldShowYear(
         } else if (isReportEntry(key)) {
             const item = data[key];
 
-            if (item.created && DateUtils.doesDateBelongToAPastYear(item.created)) {
+            if (!skipReportCreatedDate && item.created && DateUtils.doesDateBelongToAPastYear(item.created)) {
                 result.shouldShowYearCreated = true;
             }
             if (item.submitted && DateUtils.doesDateBelongToAPastYear(item.submitted)) {
@@ -1685,7 +1686,12 @@ function getTransactionsSections({
 }: GetTransactionSectionsParams): [TransactionListItemType[], number] {
     const shouldShowMerchant = getShouldShowMerchant(data);
     const lastExportedActionByReportID = buildLastExportedActionByReportIDMap(data);
-    const {shouldShowYearCreated, shouldShowYearSubmitted, shouldShowYearApproved, shouldShowYearPosted, shouldShowYearExported} = shouldShowYear(data, false, lastExportedActionByReportID);
+    const {shouldShowYearCreated, shouldShowYearSubmitted, shouldShowYearApproved, shouldShowYearPosted, shouldShowYearExported} = shouldShowYear(
+        data,
+        false,
+        lastExportedActionByReportID,
+        true,
+    );
     const {shouldShowAmountInWideColumn, shouldShowTaxAmountInWideColumn} = getWideAmountIndicators(data);
 
     // Pre-filter transaction keys to avoid repeated checks
@@ -2399,6 +2405,7 @@ function getReportSections({
                     totalDisplaySpend,
                     nonReimbursableSpend,
                     reimbursableSpend,
+                    isAmountColumnWide: shouldShowAmountInWideColumn,
                     isAllScanning: false,
                     ...avatarProps,
                 };

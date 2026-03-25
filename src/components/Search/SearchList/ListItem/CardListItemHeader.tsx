@@ -164,6 +164,7 @@ function CardListItemHeader<TItem extends ListItem>({
                                             subscriptAvatarBorderColor={backgroundColor}
                                             noRightMarginOnSubscriptContainer
                                             accountIDs={[cardItem.accountID]}
+                                            size={CONST.AVATAR_SIZE.SMALL}
                                         />
                                     </View>
                                 </UserDetailsTooltip>

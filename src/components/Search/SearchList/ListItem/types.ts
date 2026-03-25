@@ -256,6 +256,9 @@ type TransactionReportGroupListItemType = TransactionGroupListItemType & {groupe
         /** Pre-computed reimbursable spend amount */
         reimbursableSpend?: number;
 
+        /** Whether the amount column should use the wide layout */
+        isAmountColumnWide?: boolean;
+
         /** Pre-computed flag indicating whether all transactions are scanning */
         isAllScanning?: boolean;
 

@@ -12,6 +12,7 @@ import TextWithTooltip from '@components/TextWithTooltip';
 import UserDetailsTooltip from '@components/UserDetailsTooltip';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -49,6 +50,7 @@ function CardListItem<TItem extends ListItem>({
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const theme = useTheme();
+    const {isLargeScreenWidth} = useResponsiveLayout();
 
     const handleCheckboxPress = useCallback(() => {
         if (onCheckboxPress) {
@@ -103,7 +105,9 @@ function CardListItem<TItem extends ListItem>({
                                 >
                                     <View>
                                         <Avatar
-                                            containerStyles={StyleUtils.getWidthAndHeightStyle(StyleUtils.getAvatarSize(CONST.AVATAR_SIZE.DEFAULT))}
+                                            containerStyles={StyleUtils.getWidthAndHeightStyle(
+                                                StyleUtils.getAvatarSize(isLargeScreenWidth ? CONST.AVATAR_SIZE.SMALL : CONST.AVATAR_SIZE.DEFAULT),
+                                            )}
                                             source={ownersAvatar.source}
                                             name={ownersAvatar.name}
                                             avatarID={ownersAvatar.id}
