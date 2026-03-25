@@ -4326,8 +4326,14 @@ function mapFiltersFormToLabelValueList<T extends Record<string, unknown>>(
 
     const type = searchAdvancedFiltersForm.type ?? CONST.SEARCH.DATA_TYPES.EXPENSE;
 
-    const createDateDisplayValue = (filterValues: {on?: string; after?: string; before?: string}): string => {
+    const createDateDisplayValue = (syntaxKey: SearchDateFilterKeys): string => {
         const displayText: string[] = [];
+        const filterValues = {
+            on: searchAdvancedFiltersForm[`${syntaxKey}${CONST.SEARCH.DATE_MODIFIERS.ON}`],
+            after: searchAdvancedFiltersForm[`${syntaxKey}${CONST.SEARCH.DATE_MODIFIERS.AFTER}`],
+            before: searchAdvancedFiltersForm[`${syntaxKey}${CONST.SEARCH.DATE_MODIFIERS.BEFORE}`],
+        };
+
         if (filterValues.on) {
             displayText.push(
                 isSearchDatePreset(filterValues.on)
@@ -4358,11 +4364,7 @@ function mapFiltersFormToLabelValueList<T extends Record<string, unknown>>(
             if (addedDateGroups.has(dateGroupConfig.label)) {
                 continue;
             }
-            const displayValue = createDateDisplayValue({
-                on: searchAdvancedFiltersForm[`${dateGroupConfig.syntax}${CONST.SEARCH.DATE_MODIFIERS.ON}`],
-                after: searchAdvancedFiltersForm[`${dateGroupConfig.syntax}${CONST.SEARCH.DATE_MODIFIERS.AFTER}`],
-                before: searchAdvancedFiltersForm[`${dateGroupConfig.syntax}${CONST.SEARCH.DATE_MODIFIERS.BEFORE}`],
-            });
+            const displayValue = createDateDisplayValue(dateGroupConfig.syntax);
             if (!displayValue) {
                 continue;
             }
