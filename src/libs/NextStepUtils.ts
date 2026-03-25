@@ -322,7 +322,12 @@ function buildOptimisticNextStepForPreventSelfApprovalsEnabled() {
     return optimisticNextStep;
 }
 
-function buildOptimisticFixIssueNextStep() {
+function buildOptimisticFixIssueNextStep(moneyRequestReport?: OnyxEntry<Report>) {
+    const isCurrentUserOwner = isReportOwner(moneyRequestReport);
+    const ownerName = moneyRequestReport?.ownerAccountID
+        ? getDisplayNameForParticipant({accountID: moneyRequestReport.ownerAccountID, formatPhoneNumber: formatPhoneNumberPhoneUtils}) ?? 'the submitter'
+        : 'the submitter';
+
     const optimisticNextStep: ReportNextStepDeprecated = {
         type: 'neutral',
         icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
@@ -331,7 +336,7 @@ function buildOptimisticFixIssueNextStep() {
                 text: 'Waiting for ',
             },
             {
-                text: `you`,
+                text: isCurrentUserOwner ? 'you' : ownerName,
                 type: 'strong',
             },
             {
@@ -378,7 +383,7 @@ function getReportNextStep(
             (transaction) => !!transaction && hasSubmissionBlockingViolations(transaction, transactionViolations, currentUserEmail, currentUserAccountID, moneyRequestReport, policy),
         )
     ) {
-        return buildOptimisticFixIssueNextStep();
+        return buildOptimisticFixIssueNextStep(moneyRequestReport);
     }
 
     const isSubmitterSameAsNextApprover =
