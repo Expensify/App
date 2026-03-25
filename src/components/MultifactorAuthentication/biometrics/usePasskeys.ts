@@ -8,6 +8,7 @@ import {
     buildPublicKeyCredentialRequestOptions,
     createPasskeyCredential,
     decodeWebAuthnError,
+    extractAAGUID,
     isSupportedTransport,
     isWebAuthnSupported,
     PASSKEY_AUTH_TYPE,
@@ -76,12 +77,16 @@ function usePasskeys(): UseBiometricsReturn {
 
         const transports = attestationResponse.getTransports?.().filter(isSupportedTransport);
 
+        // getAuthenticatorData() is a WebAuthn Level 2 method — not available in older browsers
+        const aaguid = attestationResponse.getAuthenticatorData ? extractAAGUID(attestationResponse.getAuthenticatorData()) : undefined;
+
         addLocalPasskeyCredential({
             userId,
             credential: {
                 id: credentialId,
                 type: CONST.PASSKEY_CREDENTIAL_TYPE,
                 transports,
+                aaguid,
             },
             existingCredentials: localPasskeyCredentials ?? null,
         });
@@ -92,6 +97,8 @@ function usePasskeys(): UseBiometricsReturn {
             keyInfo: {
                 rawId: credentialId,
                 type: CONST.PASSKEY_CREDENTIAL_TYPE,
+                transports,
+                aaguid,
                 response: {
                     clientDataJSON,
                     attestationObject,

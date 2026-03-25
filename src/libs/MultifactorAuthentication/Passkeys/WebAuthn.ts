@@ -111,6 +111,20 @@ function buildAllowedCredentialDescriptors(credentials: Array<{id: string; trans
         transports: c.transports?.filter(isSupportedTransport),
     }));
 }
+/**
+ * Extracts the AAGUID (Authenticator Attestation Globally Unique Identifier) from WebAuthn authenticatorData.
+ * The AAGUID occupies bytes 37-52: after rpIdHash (32 bytes), flags (1 byte), and signCount (4 bytes).
+ * Returns a UUID-formatted string, or empty string if authenticatorData is too short.
+ */
+function extractAAGUID(authData: ArrayBuffer): string | undefined {
+    const bytes = new Uint8Array(authData);
+    if (bytes.length < 53) {
+        return undefined;
+    }
+    const aaguidBytes = bytes.slice(37, 53);
+    const hex = Array.from(aaguidBytes, (b) => b.toString(16).padStart(2, '0')).join('');
+    return [hex.slice(0, 8), hex.slice(8, 12), hex.slice(12, 16), hex.slice(16, 20), hex.slice(20, 32)].join('-');
+}
 
 function isWebAuthnReason(name: string): name is MultifactorAuthenticationReason {
     return Object.values<string>(VALUES.REASON.WEBAUTHN).includes(name);
@@ -136,5 +150,6 @@ export {
     authenticateWithPasskey,
     buildAllowedCredentialDescriptors,
     isSupportedTransport,
+    extractAAGUID,
     decodeWebAuthnError,
 };
