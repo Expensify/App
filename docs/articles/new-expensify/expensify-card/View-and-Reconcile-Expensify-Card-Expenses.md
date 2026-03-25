@@ -24,6 +24,8 @@ Workspace Admins can reconcile Expensify Card expenses when the Expensify Card i
 3. Choose the **Withdrawn** filter to select a date range (for example, **Last month**).
 4. Review the list of withdrawals. Each row represents a single settlement withdrawal from your bank account.
 
+![Reports > Expensify Card to show withdrawals]({{site.url}}/assets/images/recon-card.png){:width="100%"}
+
 ---
 
 ## How to View Expenses Included in an Expensify Card Withdrawal
@@ -31,7 +33,9 @@ Workspace Admins can reconcile Expensify Card expenses when the Expensify Card i
 1. From the Expensify Card reconciliation view, locate the withdrawal you want to review.
 2. Click the arrow next to the withdrawal amount to expand the row.
 3. Review the individual expenses included in that withdrawal.
-   
+
+![Reports > Expensify Card > expand to show expenses]({{site.url}}/assets/images/recon-reimbursement-expand.png){:width="100%"}
+
 ---
 
 ## How to Verify Expensify Card Withdrawal Totals Against Your Bank Statement
