@@ -1020,9 +1020,12 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     }
 
                     for (const transactionID of selectedTransactionsKeys) {
+                        if (!selectedTransactions[transactionID].reportAction?.childReportID) {
+                            continue;
+                        }
                         unholdRequest(
                             transactionID,
-                            selectedTransactions[transactionID].reportAction?.childReportID ?? '',
+                            selectedTransactions[transactionID].reportAction?.childReportID,
                             policies?.[`${ONYXKEYS.COLLECTION.POLICY}${selectedTransactions[transactionID].policyID}`],
                         );
                     }
