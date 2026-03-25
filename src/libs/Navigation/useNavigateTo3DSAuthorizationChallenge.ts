@@ -2,8 +2,9 @@ import {findFocusedRoute} from '@react-navigation/native';
 import type {SeverityLevel} from '@sentry/react-native';
 import * as Sentry from '@sentry/react-native';
 import {useEffect, useMemo} from 'react';
+import type {ValueOf} from 'type-fest';
+import useBiometrics from '@components/MultifactorAuthentication/biometrics/useBiometrics';
 import AuthorizeTransaction from '@components/MultifactorAuthentication/config/scenarios/AuthorizeTransaction';
-import useNativeBiometrics from '@components/MultifactorAuthentication/Context/useNativeBiometrics';
 import useOnyx from '@hooks/useOnyx';
 import useRootNavigationState from '@hooks/useRootNavigationState';
 import {isTransactionStillPending3DSReview} from '@libs/actions/MultifactorAuthentication';
@@ -67,7 +68,7 @@ function useNavigateTo3DSAuthorizationChallenge() {
         return isMFAFlowScreen(focusedScreen);
     });
 
-    const {doesDeviceSupportBiometrics} = useNativeBiometrics();
+    const {deviceVerificationType, doesDeviceSupportAuthenticationMethod} = useBiometrics();
 
     const transactionPending3DSReview = useMemo(() => {
         if (!transactionsPending3DSReview || isLoadingOnyxValue(locallyProcessedReviewsResult)) {
@@ -115,16 +116,9 @@ function useNavigateTo3DSAuthorizationChallenge() {
             return;
         }
 
-        // TODO: when adding Passkey support, update the switch-case below.
-        // Passkey issue: https://github.com/expensify/app/issues/79470
-        const doesDeviceSupportAnAllowedAuthenticationMethod = AuthorizeTransaction.allowedAuthenticationMethods.some((method) => {
-            switch (method) {
-                case CONST.MULTIFACTOR_AUTHENTICATION.TYPE.BIOMETRICS:
-                    return doesDeviceSupportBiometrics();
-                default:
-                    return false;
-            }
-        });
+        const doesDeviceSupportAnAllowedAuthenticationMethod =
+            doesDeviceSupportAuthenticationMethod() &&
+            (AuthorizeTransaction.allowedAuthenticationMethods as Array<ValueOf<typeof CONST.MULTIFACTOR_AUTHENTICATION.TYPE>>).includes(deviceVerificationType);
 
         // Do not navigate the user to the 3DS challenge if we can tell that they won't be able to complete it on this device
         if (!doesDeviceSupportAnAllowedAuthenticationMethod) {
@@ -180,7 +174,7 @@ function useNavigateTo3DSAuthorizationChallenge() {
         return () => {
             cancel = true;
         };
-    }, [transactionPending3DSReview?.transactionID, doesDeviceSupportBiometrics, isCurrentlyActingOn3DSChallenge]);
+    }, [transactionPending3DSReview?.transactionID, doesDeviceSupportAuthenticationMethod, deviceVerificationType, isCurrentlyActingOn3DSChallenge]);
 }
 
 export default useNavigateTo3DSAuthorizationChallenge;

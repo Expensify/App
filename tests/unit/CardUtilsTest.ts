@@ -25,6 +25,7 @@ import {
     getCardDescription,
     getCardFeedIcon,
     getCardFeedWithDomainID,
+    getCardHintText,
     getCardsByCardholderName,
     getCardSettings,
     getCompanyCardDescription,
@@ -65,6 +66,7 @@ import {
     splitMaskedCardNumber,
     supportsPINManagementFeatures,
 } from '@src/libs/CardUtils';
+import type {CardProgramKey} from '@src/libs/CardUtils';
 import DateUtils from '@src/libs/DateUtils';
 import type {
     BankAccountList,
@@ -2485,7 +2487,7 @@ describe('CardUtils', () => {
                     state: CONST.EXPENSIFY_CARD.STATE.OPEN,
                     nameValuePairs: {
                         isVirtual: true,
-                        isTravelCard: true,
+                        feedCountry: CONST.TRAVEL.PROGRAM_TRAVEL_US,
                     },
                 },
             } as unknown as CardList;
@@ -3612,14 +3614,16 @@ describe('CardUtils', () => {
             expect(getCardSettings(null as unknown as undefined)).toBeUndefined();
         });
 
-        it('should return flat root when feedCountry is not provided and no nested keys exist', () => {
+        it('should fall back to flat root when no nested keys exist and feedCountry is not provided', () => {
             const result = getCardSettings(flatSettings);
-            expect(result).toBe(flatSettings);
+            expect(result?.paymentBankAccountID).toBe(12345);
+            expect(result?.limit).toBe(50000);
         });
 
-        it('should return flat root when feedCountry is undefined and no nested keys exist', () => {
+        it('should fall back to flat root when no nested keys exist and feedCountry is undefined', () => {
             const result = getCardSettings(flatSettings, undefined);
-            expect(result).toBe(flatSettings);
+            expect(result?.paymentBankAccountID).toBe(12345);
+            expect(result?.limit).toBe(50000);
         });
 
         it('should return merged root + nested when feedCountry matches a nested key', () => {
@@ -3630,9 +3634,9 @@ describe('CardUtils', () => {
             expect(result?.domainName).toBe('example.com');
         });
 
-        it('should fall back to root when feedCountry key does not exist', () => {
-            const result = getCardSettings(nestedSettings, 'CA');
-            expect(result).toBe(nestedSettings);
+        it('should return undefined when feedCountry key does not exist', () => {
+            const result = getCardSettings(nestedSettings, 'CA' as unknown as CardProgramKey);
+            expect(result).toBeUndefined();
         });
 
         it('should return merged root + TRAVEL_US when feedCountry is TRAVEL_US', () => {
@@ -3642,9 +3646,9 @@ describe('CardUtils', () => {
             expect(result?.domainName).toBe('example.com');
         });
 
-        it('should not return primitive values as nested settings', () => {
-            const result = getCardSettings(nestedSettings, 'limit');
-            expect(result).toBe(nestedSettings);
+        it('should return undefined for primitive values as feedCountry', () => {
+            const result = getCardSettings(nestedSettings, 'limit' as unknown as CardProgramKey);
+            expect(result).toBeUndefined();
         });
 
         it('should auto-detect US program when no feedCountry is provided', () => {
@@ -3775,6 +3779,39 @@ describe('CardUtils', () => {
                 card2: {bank: 'oauth.amex.com', lastScrapeResult: 200, cardID: 2, state: CONST.EXPENSIFY_CARD.STATE.OPEN} as unknown as Card,
             };
             expect(getFeedConnectionBrokenCard(feedCards, 'oauth.chase.com')).toBeUndefined();
+        });
+    });
+
+    describe('getCardHintText', () => {
+        afterEach(() => {
+            jest.restoreAllMocks();
+        });
+
+        it('returns undefined when validFrom or validThru is missing', () => {
+            const translate = jest.fn();
+
+            expect(getCardHintText(undefined, '2026-02-25 00:00:00', undefined, translate as never)).toBeUndefined();
+            expect(getCardHintText('2026-02-25 00:00:00', undefined, undefined, translate as never)).toBeUndefined();
+            expect(translate).not.toHaveBeenCalled();
+        });
+
+        it('returns undefined when date formatting fails', () => {
+            const translate = jest.fn();
+            jest.spyOn(DateUtils, 'formatUTCDateTimeToDateInTimezone').mockReturnValue('' as never);
+
+            expect(getCardHintText('2026-02-01 00:00:00', '2026-02-25 00:00:00', {} as never, translate as never)).toBeUndefined();
+            expect(translate).not.toHaveBeenCalled();
+        });
+
+        it('returns translated hint text when both dates are formatted', () => {
+            const translate = jest.fn().mockReturnValue('translated');
+            jest.spyOn(DateUtils, 'formatUTCDateTimeToDateInTimezone').mockReturnValue({} as never);
+            jest.spyOn(DateUtils, 'formatToReadableString').mockReturnValueOnce('Feb 1, 2026').mockReturnValueOnce('Feb 25, 2026');
+
+            const result = getCardHintText('2026-02-01 00:00:00', '2026-02-25 00:00:00', {} as never, translate as never);
+
+            expect(result).toBe('translated');
+            expect(translate).toHaveBeenCalledWith('workspace.card.issueNewCard.validFromTo', {startDate: 'Feb 1, 2026', endDate: 'Feb 25, 2026'});
         });
     });
 });
