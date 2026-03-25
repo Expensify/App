@@ -2,6 +2,7 @@ import {useFocusEffect} from '@react-navigation/native';
 import React, {useCallback, useMemo, useState} from 'react';
 import type {ViewStyle} from 'react-native';
 import {View} from 'react-native';
+import type {OnyxCollection} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import cardScarf from '@assets/images/card-scarf.svg';
 import AddToWalletButton from '@components/AddToWalletButton/index';
@@ -46,6 +47,8 @@ import {convertToDisplayString} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {DomainCardNavigatorParamList, SettingsNavigatorParamList} from '@libs/Navigation/types';
+import {isPolicyAdmin} from '@libs/PolicyUtils';
+import {getPolicyExpenseChat} from '@libs/ReportUtils';
 import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import RedDotCardSection from '@pages/settings/Wallet/RedDotCardSection';
@@ -57,6 +60,7 @@ import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
+import type {Policy} from '@src/types/onyx';
 import {useExpensifyCardActions, useExpensifyCardState} from './ExpensifyCardContextProvider';
 
 type ExpensifyCardPageProps =
@@ -150,9 +154,27 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
 
     const session = useSession();
     const isCardHolder = currentCard?.accountID === session?.accountID;
+    const frozenByAccountID = currentCard?.nameValuePairs?.frozen?.byAccountID;
 
     const {isBetaEnabled} = usePermissions();
     const canManageCardFreeze = isBetaEnabled(CONST.BETAS.FREEZE_CARD) && isCardHolder && !!currentCard && !isAccountLocked;
+
+    const policySelector = useCallback(
+        (allPolicies: OnyxCollection<Policy>): Policy | undefined => {
+            const workspaceAccountID = Number(currentCard?.fundID);
+            if (!workspaceAccountID || Number.isNaN(workspaceAccountID)) {
+                return undefined;
+            }
+
+            return Object.values(allPolicies ?? {}).find((policy) => policy?.workspaceAccountID === workspaceAccountID);
+        },
+        [currentCard?.fundID],
+    );
+    const [policyForCurrentCard] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: policySelector}, [policySelector]);
+    const policyIDForCurrentCard = policyForCurrentCard?.id;
+    const isWorkspaceAdmin = isPolicyAdmin(policyForCurrentCard, session?.email);
+    const canUnfreezeCard = canManageCardFreeze && (frozenByAccountID === session?.accountID || isWorkspaceAdmin);
+
     const scarfOverlayStyle = useMemo<ViewStyle>(
         () => ({
             top: 0,
@@ -187,6 +209,14 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
         setIsUnfreezeModalVisible(true);
     }, []);
 
+    const handleAskToUnfreezePress = useCallback(() => {
+        const cardHolderWorkspaceChatReportID = getPolicyExpenseChat(currentCard?.accountID, policyIDForCurrentCard)?.reportID;
+        if (!cardHolderWorkspaceChatReportID) {
+            return;
+        }
+        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(cardHolderWorkspaceChatReportID));
+    }, [currentCard?.accountID, policyIDForCurrentCard]);
+
     const handleDismissUnfreezeModal = useCallback(() => {
         setIsUnfreezeModalVisible(false);
     }, []);
@@ -212,7 +242,11 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
             <ScrollView>
                 {canManageCardFreeze && isCardFrozen(currentCard) ? (
                     <FrozenCardHeader
-                        cardID={cardID}
+                        isWorkspaceAdmin={isWorkspaceAdmin}
+                        frozenByAccountID={currentCard?.nameValuePairs?.frozen?.byAccountID}
+                        frozenDate={currentCard?.nameValuePairs?.frozen?.date}
+                        canUnfreezeCard={canUnfreezeCard}
+                        onAskToUnfreezePress={handleAskToUnfreezePress}
                         onUnfreezePress={handleUnfreezePress}
                         cardPreview={
                             <CardPreview
