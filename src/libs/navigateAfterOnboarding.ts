@@ -1,11 +1,23 @@
 import {handleRHPVariantNavigation, shouldOpenRHPVariant} from '@components/SidePanel/RHPVariantTest';
+import Onyx from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type {OnboardingRHPVariant} from '@src/types/onyx';
 import {setDisableDismissOnEscape} from './actions/Modal';
 import shouldOpenOnAdminRoom from './Navigation/helpers/shouldOpenOnAdminRoom';
 import Navigation from './Navigation/Navigation';
 import {findLastAccessedReport, isConciergeChatReport, isSelfDM} from './ReportUtils';
 import type {ArchivedReportsIDSet} from './SearchUIUtils';
+
+let onboardingRHPVariant: OnyxEntry<OnboardingRHPVariant>;
+Onyx.connectWithoutView({
+    key: ONYXKEYS.NVP_ONBOARDING_RHP_VARIANT,
+    callback: (value) => {
+        onboardingRHPVariant = value;
+    },
+});
 
 /**
  * Determines the report ID to navigate to after onboarding for control variant or ineligible users.
