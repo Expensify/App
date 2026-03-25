@@ -4984,7 +4984,6 @@ export {
     isTaskListItemType,
     getActions,
     createTypeMenuSections,
-    getTransactionsForReport,
     formatBadgeText,
     getItemBadgeText,
     createBaseSavedSearchMenuItem,

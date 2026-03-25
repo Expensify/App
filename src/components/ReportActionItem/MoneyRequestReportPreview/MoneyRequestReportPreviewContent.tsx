@@ -191,7 +191,7 @@ function MoneyRequestReportPreviewContent({
         usePaymentAnimations();
     const [isHoldMenuVisible, setIsHoldMenuVisible] = useState(false);
     const [requestType, setRequestType] = useState<ActionHandledType>();
-    const {showNonReimbursablePaymentErrorModal, shouldBlockDirectPayment, nonReimbursablePaymentErrorDecisionModal} = useNonReimbursablePaymentModal(iouReport);
+    const {showNonReimbursablePaymentErrorModal, shouldBlockDirectPayment, nonReimbursablePaymentErrorDecisionModal} = useNonReimbursablePaymentModal(iouReport, transactions);
     const [paymentType, setPaymentType] = useState<PaymentMethodType>();
     const isIouReportArchived = useReportIsArchived(iouReportID);
     const isChatReportArchived = useReportIsArchived(chatReport?.reportID);
@@ -217,7 +217,7 @@ function MoneyRequestReportPreviewContent({
     );
 
     const canIOUBePaid = useMemo(() => getCanIOUBePaid(), [getCanIOUBePaid]);
-    const reportHasOnlyNonReimbursableTransactions = hasOnlyNonReimbursableTransactions(iouReport?.reportID);
+    const reportHasOnlyNonReimbursableTransactions = hasOnlyNonReimbursableTransactions(iouReport?.reportID, transactions);
     const onlyShowPayElsewhere = useMemo(() => {
         if (reportHasOnlyNonReimbursableTransactions) {
             return false;

@@ -34,7 +34,7 @@ function PayActionCell({isLoading, policyID, reportID, hash, amount, extraSmall,
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
     const [iouReport, transactions] = useReportWithTransactionsAndViolations(reportID);
-    const {showNonReimbursablePaymentErrorModal, shouldBlockDirectPayment, nonReimbursablePaymentErrorDecisionModal} = useNonReimbursablePaymentModal(iouReport);
+    const {showNonReimbursablePaymentErrorModal, shouldBlockDirectPayment, nonReimbursablePaymentErrorDecisionModal} = useNonReimbursablePaymentModal(iouReport, transactions);
     const policy = usePolicy(policyID);
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${iouReport?.chatReportID}`);
@@ -44,7 +44,7 @@ function PayActionCell({isLoading, policyID, reportID, hash, amount, extraSmall,
     const shouldOnlyShowElsewhere =
         !canBePaid &&
         canIOUBePaid(iouReport, chatReport, policy, bankAccountList, transactions, true, undefined, invoiceReceiverPolicy) &&
-        !hasOnlyNonReimbursableTransactions(iouReport?.reportID);
+        !hasOnlyNonReimbursableTransactions(iouReport?.reportID, transactions);
 
     const {currency} = iouReport ?? {};
 

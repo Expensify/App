@@ -566,7 +566,7 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
     const shouldDisplayNarrowMoreButton = !shouldDisplayNarrowVersion || isWideRHPDisplayedOnWideLayout || isSuperWideRHPDisplayedOnWideLayout;
 
     const [offlineModalVisible, setOfflineModalVisible] = useState(false);
-    const {showNonReimbursablePaymentErrorModal, shouldBlockDirectPayment, nonReimbursablePaymentErrorDecisionModal} = useNonReimbursablePaymentModal(moneyRequestReport);
+    const {showNonReimbursablePaymentErrorModal, shouldBlockDirectPayment, nonReimbursablePaymentErrorDecisionModal} = useNonReimbursablePaymentModal(moneyRequestReport, transactions);
 
     const showExportProgressModal = useCallback(() => {
         return showConfirmModal({
@@ -624,7 +624,7 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
     });
 
     const canIOUBePaid = useMemo(() => getCanIOUBePaid(), [getCanIOUBePaid]);
-    const reportHasOnlyNonReimbursableTransactions = hasOnlyNonReimbursableTransactions(moneyRequestReport?.reportID);
+    const reportHasOnlyNonReimbursableTransactions = hasOnlyNonReimbursableTransactions(moneyRequestReport?.reportID, transactions);
     const onlyShowPayElsewhere = useMemo(() => {
         if (reportHasOnlyNonReimbursableTransactions) {
             return false;
