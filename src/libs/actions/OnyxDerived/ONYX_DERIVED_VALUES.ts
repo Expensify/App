@@ -6,6 +6,7 @@ import outstandingReportsByPolicyIDConfig from './configs/outstandingReportsByPo
 import personalAndWorkspaceCardListConfig from './configs/personalAndWorkspaceCardList';
 import reportAttributesConfig from './configs/reportAttributes';
 import reportTransactionsAndViolationsConfig from './configs/reportTransactionsAndViolations';
+import sortedReportActionsConfig from './configs/sortedReportActions';
 import todosConfig from './configs/todos';
 import visibleReportActionsConfig from './configs/visibleReportActions';
 import type {OnyxDerivedValueConfig} from './types';
@@ -23,6 +24,7 @@ const ONYX_DERIVED_VALUES = {
     [ONYXKEYS.DERIVED.PERSONAL_AND_WORKSPACE_CARD_LIST]: personalAndWorkspaceCardListConfig,
     [ONYXKEYS.DERIVED.CARD_FEED_ERRORS]: cardFeedErrorsConfig,
     [ONYXKEYS.DERIVED.TODOS]: todosConfig,
+    [ONYXKEYS.DERIVED.SORTED_REPORT_ACTIONS]: sortedReportActionsConfig,
 } as const satisfies {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     [Key in ValueOf<typeof ONYXKEYS.DERIVED>]: OnyxDerivedValueConfig<Key, any>;

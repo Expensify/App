@@ -51,6 +51,7 @@ function useSearchSections(): UseSearchSectionsResult {
     const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
 
     const archivedReportsIdSet = useArchivedReportsIdSet();
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
 
     const {type, status, sortBy, sortOrder, groupBy} = lastSearchQuery?.queryJSON ?? {};
     const searchResultsData = currentSearchResults?.data;
@@ -77,6 +78,7 @@ function useSearchSections(): UseSearchSectionsResult {
             cardFeeds,
             allReportMetadata,
             cardList,
+            conciergeReportID,
         });
         results = getSortedSections(type, status ?? '', searchData, localeCompare, translate, sortBy, sortOrder, groupBy).map((value) => value.reportID);
     }
