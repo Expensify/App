@@ -77,7 +77,7 @@ function buildChartParagraph(text: string, fontMgr: SkTypefaceFontProvider, font
  * This offset empirically corrects the hit-area center to match the visual center of the
  * rendered label. The sign and magnitude differ per rotation because the gap projects
  * geometrically differently after the transform:
- * 0°  - shift hit area UP   (top of bounding box is above visual center)
+ * 0°  - small downward shift (top of bounding box is above visual center)
  * 45° - shift hit area DOWN (rotation flips the projection)
  * 90° - small downward shift
  */
