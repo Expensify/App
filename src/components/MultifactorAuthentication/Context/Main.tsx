@@ -214,10 +214,12 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
             // Need validate code before registration
             if (!validateCode) {
                 addMFABreadcrumb('Validate code requested');
-                const response = await requestValidateCodeAction();
-                if (response?.jsonCode !== CONST.JSON_CODE.SUCCESS) {
+                requestValidateCodeAction().then((response) => {
+                    if (response?.jsonCode === CONST.JSON_CODE.SUCCESS) {
+                        return;
+                    }
                     addMFABreadcrumb('Validate code request failed', {jsonCode: response?.jsonCode, message: response?.message}, 'error');
-                }
+                });
                 Navigation.navigate(ROUTES.MULTIFACTOR_AUTHENTICATION_MAGIC_CODE, {forceReplace: true});
                 return;
             }
