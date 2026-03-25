@@ -8,7 +8,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import {clearErrorFields, clearErrors} from '@libs/actions/FormActions';
-import {putOnHold,putTransactionsOnHold} from '@libs/actions/IOU/Hold';
+import {putOnHold, putTransactionsOnHold} from '@libs/actions/IOU/Hold';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getFieldRequiredErrors} from '@libs/ValidationUtils';
@@ -57,17 +57,7 @@ function SearchHoldReasonPage({route}: SearchHoldReasonPageProps) {
 
             Navigation.goBack();
         },
-        [
-            route.name,
-            selectedTransactionIDs,
-            selectedTransactions,
-            clearSelectedTransactions,
-            reportID,
-            ancestors,
-            isOffline,
-            isDelegateAccessRestricted,
-            showDelegateNoAccessModal,
-        ],
+        [route.name, selectedTransactionIDs, selectedTransactions, clearSelectedTransactions, reportID, ancestors, isOffline, isDelegateAccessRestricted, showDelegateNoAccessModal],
     );
 
     const validate = useCallback(
