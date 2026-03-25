@@ -94,6 +94,7 @@ describe('ClearReportActionErrors UI', () => {
                         <PortalProvider>
                             <PureReportActionItem
                                 personalPolicyID={undefined}
+                                currentUserEmail={undefined}
                                 report={report}
                                 parentReportAction={undefined}
                                 action={action}
