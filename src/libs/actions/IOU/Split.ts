@@ -1876,9 +1876,9 @@ function updateSplitTransactionsFromSplitExpensesFlow(params: UpdateSplitTransac
     // updateSplitTransactions until after the navigation animation completes. This prevents
     // the brief "Not Found" flash caused by the original transaction being deleted while
     // the transaction thread is still visible in the central pane.
-    if (isSelfDMSplit) {
-        Navigation.dismissModalWithReport({reportID: params.transactionReport?.reportID ?? ''});
-        InteractionManager.runAfterInteractions(() => {
+    if (isSelfDMSplit && params.transactionReport?.reportID) {
+        Navigation.dismissModalWithReport({reportID: params.transactionReport.reportID});
+        requestAnimationFrame(() => {
             updateSplitTransactions({...params, isFromSplitExpensesFlow: true});
         });
         params?.searchContext?.clearSelectedTransactions?.(true);
