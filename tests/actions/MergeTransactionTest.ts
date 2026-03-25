@@ -759,9 +759,21 @@ describe('mergeTransactionRequest', () => {
     describe('Report deletion logic', () => {
         it('should NOT delete source report optimistically when it contains multiple transactions', async () => {
             // Given: A source transaction that is one of multiple transactions in its report
+            const parentReportID = 'parent-report-999';
+            const parentReportActionID = 'preview-action-999';
             const sourceReport = {
                 ...createExpenseReport(1),
                 reportID: 'source-report-123',
+                parentReportID,
+                parentReportActionID,
+            };
+            const previewAction: OnyxEntry<ReportAction> = {
+                ...createRandomReportAction(0),
+                actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+                reportActionID: parentReportActionID,
+                childMoneyRequestCount: 2,
+                childVisibleActionCount: 1,
+                originalMessage: {linkedReportID: sourceReport.reportID},
             };
             const targetTransaction = {
                 ...createRandomTransaction(1),
@@ -782,6 +794,7 @@ describe('mergeTransactionRequest', () => {
                 ...createRandomMergeTransaction(1),
                 targetTransactionID: 'target123',
                 sourceTransactionID: 'source456',
+                reportID: targetTransaction.reportID, // Ensure transactionToDelete is the source transaction's report
             };
             const mergeTransactionID = 'merge789';
 
@@ -816,6 +829,7 @@ describe('mergeTransactionRequest', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${sourceTransaction.transactionID}`, sourceTransaction);
             await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${otherTransaction.transactionID}`, otherTransaction);
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${sourceReport.reportID}`, sourceReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`, {[parentReportActionID]: previewAction});
             await Onyx.set(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${mergeTransactionID}`, mergeTransaction);
 
             mockFetch?.pause?.();
@@ -855,6 +869,19 @@ describe('mergeTransactionRequest', () => {
 
             expect(updatedSourceReport).toEqual(sourceReport);
             expect(updatedSourceReport?.reportID).toBe(sourceReport.reportID);
+
+            // And: Its parent report preview action should not be removed since the source report wasn't deleted
+            const updatedParentReportActions = await new Promise<ReportActions | null>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`,
+                    callback: (val) => {
+                        Onyx.disconnect(connection);
+                        resolve(val ?? null);
+                    },
+                });
+            });
+
+            expect(updatedParentReportActions?.[parentReportActionID]).toBeTruthy();
         });
 
         it('should delete the source transaction thread regardless of whether there are visible comments in the thread', async () => {

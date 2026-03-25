@@ -436,7 +436,7 @@ function mergeTransactionRequest({
                   ]
                 : [];
 
-        if (reportPreviewActionIDOfDeletableReport) {
+        if (reportPreviewActionIDOfDeletableReport && transactionsOfDeletableReport.length === 1) {
             optimisticReportDeletionData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${deletableReport?.parentReportID}`,
