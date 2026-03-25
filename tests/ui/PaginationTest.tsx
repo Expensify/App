@@ -135,7 +135,7 @@ function buildReportComments(count: number, initialID: string, reverse = false) 
 }
 
 function mockOpenReport(messageCount: number, initialID: string) {
-    fetchMock.mockAPICommand('OpenReport', ({reportID}) => {
+    fetchMock.mockAPICommand('OpenReport', ({reportID, reportActionID}) => {
         const comments = buildReportComments(messageCount, initialID);
         return {
             onyxData:
@@ -149,7 +149,8 @@ function mockOpenReport(messageCount: number, initialID: string) {
                       ]
                     : [],
             hasOlderActions: !comments['1'],
-            hasNewerActions: false,
+            // When comment-linking (reportActionID present), there may be newer actions beyond the cursor.
+            hasNewerActions: !!reportActionID,
         };
     });
 }
