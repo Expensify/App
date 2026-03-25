@@ -35,7 +35,7 @@ import {convertToDisplayString} from '@libs/CurrencyUtils';
 import navigateAfterInteraction from '@libs/Navigation/navigateAfterInteraction';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getDisplayNameOrDefault, getPhoneNumber} from '@libs/PersonalDetailsUtils';
-import {isControlPolicy} from '@libs/PolicyUtils';
+import {isControlPolicy, isPolicyApprover} from '@libs/PolicyUtils';
 import shouldRenderTransferOwnerButton from '@libs/shouldRenderTransferOwnerButton';
 import {convertPolicyEmployeesToApprovalWorkflows, updateWorkflowDataOnApproverRemoval} from '@libs/WorkflowUtils';
 import Navigation from '@navigation/Navigation';
@@ -45,7 +45,7 @@ import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
 import variables from '@styles/variables';
-import {clearWorkspaceOwnerChangeFlow, isApprover as isApproverUserAction, openPolicyMemberProfilePage, removeMembers} from '@userActions/Policy/Member';
+import {clearWorkspaceOwnerChangeFlow, openPolicyMemberProfilePage, removeMembers} from '@userActions/Policy/Member';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -121,7 +121,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
         ? Object.values(workspaceCards).filter((card) => card.accountID === accountID && card.nameValuePairs?.feedCountry !== CONST.TRAVEL.PROGRAM_TRAVEL_US)
         : [];
 
-    const isApprover = isApproverUserAction(policy, memberLogin);
+    const isApprover = isPolicyApprover(policy, memberLogin);
     const isTechnicalContact = policy?.technicalContact === details?.login;
     const exporters = [
         policy?.connections?.intacct?.config?.export?.exporter,
@@ -177,7 +177,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
         const removedApprover = personalDetails?.[accountID];
 
         // If the user is not an approver, proceed with member removal
-        if (!isApproverUserAction(policy, memberLogin) || !removedApprover?.login || !ownerEmail) {
+        if (!isPolicyApprover(policy, memberLogin) || !removedApprover?.login || !ownerEmail) {
             removeMemberAndCloseModal();
             return;
         }
