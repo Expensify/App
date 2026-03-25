@@ -296,7 +296,7 @@ function editTransactionCategoryInline(hash: number | undefined, transactionID: 
 
 /** Updates the amount and currency of an expense from the Search results table or the Expense Report page. */
 function editTransactionAmountInline(hash: number | undefined, transactionID: string, transactionThreadReportID: string | undefined, newAmount: number) {
-    if (newAmount <= 0) {
+    if (newAmount < 0) {
         return;
     }
     const iouParams = getIouParamsForTransaction(transactionID, transactionThreadReportID);
