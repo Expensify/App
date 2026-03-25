@@ -65,14 +65,6 @@ function GenericPressable({
     }, [isScreenReaderActive, enableInScreenReaderStates, disabled, isExecuting]);
 
     const shouldUseDisabledCursor = useMemo(() => isDisabled && !isExecuting, [isDisabled, isExecuting]);
-    // Avoid passing disabled={false} to RN Pressable for soft-disabled controls, since that overrides accessibilityState.disabled on native.
-    let nativeDisabled: boolean | undefined = false;
-    if (fullDisabled) {
-        nativeDisabled = true;
-    } else if (isDisabled) {
-        nativeDisabled = undefined;
-    }
-    const mergedAccessibilityState = {...accessibilityState, disabled: isDisabled};
 
     /**
      * Returns the cursor style based on the state of Pressable
@@ -192,7 +184,7 @@ function GenericPressable({
             hitSlop={shouldUseAutoHitSlop ? hitSlop : undefined}
             onLayout={shouldUseAutoHitSlop ? onLayout : undefined}
             ref={ref as ForwardedRef<View>}
-            disabled={nativeDisabled}
+            disabled={fullDisabled}
             onPress={!isDisabled ? onSingleExecutionPressHandler : undefined}
             onLongPress={!isDisabled && onLongPress ? onLongPressHandler : undefined}
             onKeyDown={!isDisabled ? handleKeyDown : undefined}
@@ -210,7 +202,10 @@ function GenericPressable({
                 isRoleButton && styles.userSelectNone,
             ]}
             // accessibility props
-            accessibilityState={mergedAccessibilityState}
+            accessibilityState={{
+                disabled: isDisabled,
+                ...accessibilityState,
+            }}
             aria-disabled={isDisabled}
             aria-checked={accessibilityState?.checked}
             aria-selected={accessibilityState?.selected}
