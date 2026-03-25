@@ -844,8 +844,8 @@ function removeScreenByKey(key: string) {
 function removeReportScreen(reportIDSet: Set<string>) {
     isNavigationReady().then(() => {
         navigationRef.current?.dispatch((state) => {
-            const isMatchingReportScreen = (route: {name: string; params?: object}) =>
-                route.name === SCREENS.REPORT && !!route.params && 'reportID' in route.params && reportIDSet.has(route.params.reportID as string);
+            const isMatchingReportScreen = (routeName: string, routeParams: Record<string, string | undefined> | undefined) =>
+                routeName === SCREENS.REPORT && typeof routeParams?.reportID === 'string' && reportIDSet.has(routeParams.reportID);
 
             const routes = state?.routes
                 .map((route) => {
@@ -854,7 +854,9 @@ function removeReportScreen(reportIDSet: Set<string>) {
                     if (!nestedRoutes) {
                         return route;
                     }
-                    const filteredNestedRoutes = nestedRoutes.filter((nestedRoute) => !isMatchingReportScreen(nestedRoute));
+                    const filteredNestedRoutes = nestedRoutes.filter(
+                        (nestedRoute) => !isMatchingReportScreen(nestedRoute.name, nestedRoute.params as Record<string, string | undefined> | undefined),
+                    );
                     if (filteredNestedRoutes.length === nestedRoutes.length) {
                         return route;
                     }
@@ -867,7 +869,7 @@ function removeReportScreen(reportIDSet: Set<string>) {
                         },
                     };
                 })
-                .filter((route) => !isMatchingReportScreen(route));
+                .filter((route) => !isMatchingReportScreen(route.name, route.params as Record<string, string | undefined> | undefined));
 
             return CommonActions.reset({
                 ...state,
