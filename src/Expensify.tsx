@@ -27,6 +27,8 @@ import NavigationRoot from './libs/Navigation/NavigationRoot';
 import NetworkConnection from './libs/NetworkConnection';
 import PushNotification from './libs/Notification/PushNotification';
 import {endSpan, getSpan, startSpan} from './libs/telemetry/activeSpans';
+import type {BootsplashGateStatus} from './libs/telemetry/bootsplashTelemetry';
+import {startBootsplashMonitor} from './libs/telemetry/bootsplashTelemetry';
 import {cleanupMemoryTrackingTelemetry, initializeMemoryTrackingTelemetry} from './libs/telemetry/TelemetrySynchronizer';
 import Visibility from './libs/Visibility';
 import ONYXKEYS from './ONYXKEYS';
@@ -138,6 +140,22 @@ function Expensify() {
     const shouldInit = isNavigationReady && hasAttemptedToOpenPublicRoom && !!preferredLocale;
     const shouldHideSplash = shouldInit && (CONFIG.IS_HYBRID_APP ? isSplashReadyToBeHidden : isSplashVisible);
 
+    // We store this in a ref to get the latest values in BootsplashMonitor callback
+    const gateStatusRef = useRef<BootsplashGateStatus | null>(null);
+    gateStatusRef.current = {
+        splashScreenState,
+        isOnyxMigrated,
+        isCheckingPublicRoom,
+        hasAttemptedToOpenPublicRoom,
+        isNavigationReady,
+        preferredLocale,
+        shouldInit,
+        shouldHideSplash,
+        isAuthenticated,
+        updateRequired,
+        lastVisitedPath,
+    };
+
     useEffect(() => {
         if (!shouldHideSplash) {
             return;
@@ -205,21 +223,10 @@ function Expensify() {
     }, []);
 
     useEffect(() => {
-        setTimeout(() => {
-            const appState = AppState.currentState;
-            Log.info('[BootSplash] splash screen status', false, {appState, splashScreenState});
+        return startBootsplashMonitor(gateStatusRef);
+    }, []);
 
-            if (splashScreenState === CONST.BOOT_SPLASH_STATE.VISIBLE) {
-                const propsToLog = {
-                    isCheckingPublicRoom,
-                    updateRequired,
-                    isAuthenticated,
-                    lastVisitedPath,
-                };
-                Log.alert('[BootSplash] splash screen is still visible', {propsToLog}, false);
-            }
-        }, 30 * 1000);
-
+    useEffect(() => {
         // Run any Onyx schema migrations and then continue loading the main app
         migrateOnyx().then(() => {
             // In case of a crash that led to disconnection, we want to remove all the push notifications.
