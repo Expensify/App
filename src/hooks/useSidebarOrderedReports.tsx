@@ -3,7 +3,6 @@ import React, {createContext, useCallback, useContext, useEffect, useMemo, useRe
 import type {OnyxEntry} from 'react-native-onyx';
 import Log from '@libs/Log';
 import {getTransactionThreadReportID} from '@libs/MergeTransactionUtils';
-import {getPolicyEmployeeListByIdWithoutCurrentUser} from '@libs/PolicyUtils';
 import {isOneTransactionReport} from '@libs/ReportUtils';
 import SidebarUtils from '@libs/SidebarUtils';
 import CONST from '@src/CONST';
@@ -31,7 +30,6 @@ type SidebarOrderedReportsStateContextValue = {
     orderedReports: OnyxTypes.Report[];
     orderedReportIDs: string[];
     currentReportID: string | undefined;
-    policyMemberAccountIDs: number[];
 };
 
 type SidebarOrderedReportsActionsContextValue = {
@@ -44,7 +42,6 @@ const SidebarOrderedReportsStateContext = createContext<SidebarOrderedReportsSta
     orderedReports: [],
     orderedReportIDs: [],
     currentReportID: '',
-    policyMemberAccountIDs: [],
 });
 
 const SidebarOrderedReportsActionsContext = createContext<SidebarOrderedReportsActionsContextValue>({
@@ -93,7 +90,6 @@ function SidebarOrderedReportsContextProvider({
     // I don't like it either, but clearing the cache is only a hack for the debug modal and I will endeavor to make it better as I work to improve the cache correctness of the LHN more broadly
     const [clearCacheDummyCounter, setClearCacheDummyCounter] = useState(0);
 
-    const policyMemberAccountIDs = useMemo(() => getPolicyEmployeeListByIdWithoutCurrentUser(policies, undefined, accountID), [policies, accountID]);
     const prevBetas = usePrevious(betas);
     const prevPriorityMode = usePrevious(priorityMode);
 
@@ -305,7 +301,6 @@ function SidebarOrderedReportsContextProvider({
                 orderedReports: updatedReports,
                 orderedReportIDs: updatedReportIDs,
                 currentReportID: derivedCurrentReportID,
-                policyMemberAccountIDs,
             };
         }
 
@@ -313,9 +308,8 @@ function SidebarOrderedReportsContextProvider({
             orderedReports,
             orderedReportIDs,
             currentReportID: derivedCurrentReportID,
-            policyMemberAccountIDs,
         };
-    }, [getOrderedReportIDs, orderedReportIDs, derivedCurrentReportID, policyMemberAccountIDs, shouldUseNarrowLayout, getOrderedReports, orderedReports]);
+    }, [getOrderedReportIDs, orderedReportIDs, derivedCurrentReportID, shouldUseNarrowLayout, getOrderedReports, orderedReports]);
 
     const actionsValue: SidebarOrderedReportsActionsContextValue = useMemo(() => ({clearLHNCache}), [clearLHNCache]);
 
@@ -334,7 +328,6 @@ function SidebarOrderedReportsContextProvider({
         currentReportIDValue,
         derivedCurrentReportID,
         prevDerivedCurrentReportID,
-        policyMemberAccountIDs,
         prevBetas,
         prevPriorityMode,
         reportsToDisplayInLHN,
