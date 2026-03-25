@@ -6944,8 +6944,10 @@ ${reportName}
         addedCardFeed: (feedName: string) => `已添加卡片流水“${feedName}”`,
         removedCardFeed: (feedName: string) => `已移除卡片流水 “${feedName}”`,
         renamedCardFeed: (newName: string, oldName: string) => `已将卡片流水从“${oldName}”重命名为“${newName}”`,
-        assignedCompanyCard: (email: string, cardLastFour: string) => `已分配以 ${cardLastFour} 结尾的公司卡给 ${email}`,
-        unassignedCompanyCard: (email: string, cardLastFour: string) => `未分配的 ${email} 公司卡（末尾为 ${cardLastFour}）`,
+        assignedCompanyCard: (email: string, feedName: string, cardLastFour: string) =>
+            `已分配以 ${cardLastFour} 结尾的${feedName ? `"${feedName}"` : ''}公司卡给 ${email}`,
+        unassignedCompanyCard: (email: string, feedName: string, cardLastFour: string) =>
+            `未分配的 ${email} ${feedName ? `"${feedName}"` : ''}公司卡（末尾为 ${cardLastFour}）`,
         updatedCardFeedLiability: (feedName: string, enabled: boolean) => `允许 ${enabled ? '已启用' : '已禁用'} 持卡人删除卡片交易（卡片流水来源：“${feedName}”）`,
         updatedCardFeedStatementPeriod: (feedName: string, newValue?: string, previousValue?: string) =>
             `已更改卡片流水“${feedName}”的账单周期截止日${newValue ? ` 为“${newValue}”` : ''}${previousValue ? ` （先前为“${previousValue}”）` : ''}`,

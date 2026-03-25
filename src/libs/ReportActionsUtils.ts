@@ -3801,7 +3801,8 @@ function getAssignedCompanyCardMessage(translate: LocalizedTranslate, reportActi
     const originalMessage = getOriginalMessage(reportAction);
     const cardLastFour = originalMessage?.cardLastFour;
     const email = originalMessage?.email;
-    return cardLastFour && email ? translate('workspaceActions.assignedCompanyCard', email, cardLastFour) : getReportActionText(reportAction);
+    const feedName = originalMessage?.feedName ?? '';
+    return cardLastFour && email ? translate('workspaceActions.assignedCompanyCard', email, feedName, cardLastFour) : getReportActionText(reportAction);
 }
 
 function getUnassignedCompanyCardMessage(translate: LocalizedTranslate, reportAction: OnyxEntry<ReportAction>): string {
@@ -3811,7 +3812,8 @@ function getUnassignedCompanyCardMessage(translate: LocalizedTranslate, reportAc
     const originalMessage = getOriginalMessage(reportAction);
     const cardLastFour = originalMessage?.cardLastFour;
     const email = originalMessage?.email;
-    return cardLastFour && email ? translate('workspaceActions.unassignedCompanyCard', email, cardLastFour) : getReportActionText(reportAction);
+    const feedName = originalMessage?.feedName ?? '';
+    return cardLastFour && email ? translate('workspaceActions.unassignedCompanyCard', email, feedName, cardLastFour) : getReportActionText(reportAction);
 }
 
 function getUpdatedCardFeedLiabilityMessage(translate: LocalizedTranslate, reportAction: OnyxEntry<ReportAction>): string {

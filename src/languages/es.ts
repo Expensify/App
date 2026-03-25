@@ -6744,8 +6744,10 @@ ${amount} para ${merchant} - ${date}`,
         addedCardFeed: (feedName: string) => `añadió la fuente de tarjetas "${feedName}"`,
         removedCardFeed: (feedName: string) => `eliminó la fuente de tarjetas "${feedName}"`,
         renamedCardFeed: (newName: string, oldName: string) => `renombró la fuente de tarjetas a "${newName}" (previamente "${oldName}")`,
-        assignedCompanyCard: (email: string, cardLastFour: string) => `asignó la tarjeta de empresa que termina en ${cardLastFour} a ${email}`,
-        unassignedCompanyCard: (email: string, cardLastFour: string) => `desasignó la tarjeta de empresa que termina en ${cardLastFour} de ${email}`,
+        assignedCompanyCard: (email: string, feedName: string, cardLastFour: string) =>
+            `asignó la tarjeta de empresa ${feedName ? `"${feedName}" ` : ''}que termina en ${cardLastFour} a ${email}`,
+        unassignedCompanyCard: (email: string, feedName: string, cardLastFour: string) =>
+            `desasignó la tarjeta de empresa ${feedName ? `"${feedName}" ` : ''}que termina en ${cardLastFour} de ${email}`,
         updatedCardFeedLiability: (feedName: string, enabled: boolean) =>
             `${enabled ? 'habilitó' : 'deshabilitó'} que los titulares de tarjetas eliminen transacciones de la fuente de tarjetas "${feedName}"`,
         updatedCardFeedStatementPeriod: (feedName: string, newValue?: string, previousValue?: string) =>

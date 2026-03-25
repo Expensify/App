@@ -7191,8 +7191,10 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
         addedCardFeed: (feedName: string) => `a ajouté le flux de carte « ${feedName} »`,
         removedCardFeed: (feedName: string) => `a supprimé le flux de carte « ${feedName} »`,
         renamedCardFeed: (newName: string, oldName: string) => `a renommé le flux de carte en « ${newName} » (auparavant « ${oldName} »)`,
-        assignedCompanyCard: (email: string, cardLastFour: string) => `a assigné la carte de société se terminant par ${cardLastFour} à ${email}`,
-        unassignedCompanyCard: (email: string, cardLastFour: string) => `carte d’entreprise se terminant par ${cardLastFour} désassignée de ${email}`,
+        assignedCompanyCard: (email: string, feedName: string, cardLastFour: string) =>
+            `a assigné ${email} ${feedName ? `« ${feedName} » ` : ''}carte de société se terminant par ${cardLastFour}`,
+        unassignedCompanyCard: (email: string, feedName: string, cardLastFour: string) =>
+            `carte d’entreprise ${feedName ? `« ${feedName} » ` : ''}se terminant par ${cardLastFour} désassignée de ${email}`,
         updatedCardFeedLiability: (feedName: string, enabled: boolean) =>
             `Autoriser les porteurs de carte ${enabled ? 'activé' : 'Désactivé'} à supprimer les transactions de carte pour le flux de cartes « ${feedName} »`,
         updatedCardFeedStatementPeriod: (feedName: string, newValue?: string, previousValue?: string) =>

@@ -7167,8 +7167,10 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
         addedCardFeed: (feedName: string) => `Kartenfeed „${feedName}“ hinzugefügt`,
         removedCardFeed: (feedName: string) => `Kartenfeed „${feedName}“ entfernt`,
         renamedCardFeed: (newName: string, oldName: string) => `Kartenfeed in „${newName}“ umbenannt (zuvor „${oldName}“)`,
-        assignedCompanyCard: (email: string, cardLastFour: string) => `hat die Firmenkreditkarte mit der Endziffer ${cardLastFour} ${email} zugewiesen`,
-        unassignedCompanyCard: (email: string, cardLastFour: string) => `nicht zugewiesene Firmenkarte ${email}, endet auf ${cardLastFour}`,
+        assignedCompanyCard: (email: string, feedName: string, cardLastFour: string) =>
+            `hat ${email} ${feedName ? `„${feedName}" ` : ''}Firmenkreditkarte mit der Endziffer ${cardLastFour} zugewiesen`,
+        unassignedCompanyCard: (email: string, feedName: string, cardLastFour: string) =>
+            `nicht zugewiesene ${feedName ? `„${feedName}" ` : ''}Firmenkarte ${email}, endet auf ${cardLastFour}`,
         updatedCardFeedLiability: (feedName: string, enabled: boolean) =>
             `${enabled ? 'aktiviert' : 'deaktiviert'} Karteninhaber:innen können Kartentransaktionen für Kartenfeed „${feedName}“ löschen`,
         updatedCardFeedStatementPeriod: (feedName: string, newValue?: string, previousValue?: string) =>

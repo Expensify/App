@@ -7122,8 +7122,10 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
         addedCardFeed: (feedName: string) => `dodano strumień karty „${feedName}”`,
         removedCardFeed: (feedName: string) => `usunięto kanał karty „${feedName}”`,
         renamedCardFeed: (newName: string, oldName: string) => `zmieniono nazwę kanału karty na „${newName}” (wcześniej „${oldName}”)`,
-        assignedCompanyCard: (email: string, cardLastFour: string) => `przypisano użytkownikowi ${email} firmową kartę kończącą się na ${cardLastFour}`,
-        unassignedCompanyCard: (email: string, cardLastFour: string) => `nieprzypisana firmowa karta ${email} kończąca się na ${cardLastFour}`,
+        assignedCompanyCard: (email: string, feedName: string, cardLastFour: string) =>
+            `przypisano użytkownikowi ${email} ${feedName ? `„${feedName}" ` : ''}firmową kartę kończącą się na ${cardLastFour}`,
+        unassignedCompanyCard: (email: string, feedName: string, cardLastFour: string) =>
+            `nieprzypisana ${feedName ? `„${feedName}" ` : ''}firmowa karta ${email} kończąca się na ${cardLastFour}`,
         updatedCardFeedLiability: (feedName: string, enabled: boolean) =>
             `${enabled ? 'włączone' : 'wyłączone'} posiadaczy karty może usuwać transakcje z karty dla kanału kart „${feedName}”`,
         updatedCardFeedStatementPeriod: (feedName: string, newValue?: string, previousValue?: string) =>

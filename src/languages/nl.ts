@@ -7133,8 +7133,10 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
         addedCardFeed: (feedName: string) => `kaartfeed ‘${feedName}’ toegevoegd`,
         removedCardFeed: (feedName: string) => `kaartfeed "${feedName}" verwijderd`,
         renamedCardFeed: (newName: string, oldName: string) => `kaartfeed hernoemd naar ‘${newName}’ (voorheen ‘${oldName}’)`,
-        assignedCompanyCard: (email: string, cardLastFour: string) => `heeft bedrijfskaart eindigend op ${cardLastFour} toegewezen aan ${email}`,
-        unassignedCompanyCard: (email: string, cardLastFour: string) => `niet-toegewezen bedrijfskaart van ${email} eindigend op ${cardLastFour}`,
+        assignedCompanyCard: (email: string, feedName: string, cardLastFour: string) =>
+            `heeft ${feedName ? `"${feedName}" ` : ''}bedrijfskaart eindigend op ${cardLastFour} toegewezen aan ${email}`,
+        unassignedCompanyCard: (email: string, feedName: string, cardLastFour: string) =>
+            `niet-toegewezen ${feedName ? `"${feedName}" ` : ''}bedrijfskaart van ${email} eindigend op ${cardLastFour}`,
         updatedCardFeedLiability: (feedName: string, enabled: boolean) =>
             `${enabled ? 'ingeschakeld' : 'uitgeschakeld'} kaarthouders om kaarttransacties te verwijderen voor kaartfeed "${feedName}"`,
         updatedCardFeedStatementPeriod: (feedName: string, newValue?: string, previousValue?: string) =>

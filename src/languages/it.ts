@@ -7154,8 +7154,10 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
         addedCardFeed: (feedName: string) => `ha aggiunto il feed della carta "${feedName}"`,
         removedCardFeed: (feedName: string) => `ha rimosso il feed carta "${feedName}"`,
         renamedCardFeed: (newName: string, oldName: string) => `ha rinominato il feed della carta in "${newName}" (precedentemente "${oldName}")`,
-        assignedCompanyCard: (email: string, cardLastFour: string) => `ha assegnato la carta aziendale ${email} terminante in ${cardLastFour}`,
-        unassignedCompanyCard: (email: string, cardLastFour: string) => `carta aziendale non assegnata ${email} che termina con ${cardLastFour}`,
+        assignedCompanyCard: (email: string, feedName: string, cardLastFour: string) =>
+            `ha assegnato ${email} ${feedName ? `"${feedName}" ` : ''}carta aziendale terminante in ${cardLastFour}`,
+        unassignedCompanyCard: (email: string, feedName: string, cardLastFour: string) =>
+            `carta aziendale ${feedName ? `"${feedName}" ` : ''}non assegnata ${email} che termina con ${cardLastFour}`,
         updatedCardFeedLiability: (feedName: string, enabled: boolean) =>
             `${enabled ? 'abilitato' : 'disabilitato'} titolari di carta per eliminare le transazioni della carta per il flusso di carte "${feedName}"`,
         updatedCardFeedStatementPeriod: (feedName: string, newValue?: string, previousValue?: string) =>
