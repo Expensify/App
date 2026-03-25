@@ -191,6 +191,7 @@ function useNativeBiometrics(): UseBiometricsReturn {
         haveCredentialsEverBeenConfigured,
         getLocalCredentialID,
         doesDeviceSupportAuthenticationMethod,
+        deviceCheckFailureReason: VALUES.REASON.GENERIC.NO_AUTHENTICATION_METHODS_ENROLLED,
         hasLocalCredentials,
         areLocalCredentialsKnownToServer,
         register,

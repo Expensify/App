@@ -174,6 +174,7 @@ function usePasskeys(): UseBiometricsReturn {
         haveCredentialsEverBeenConfigured,
         getLocalCredentialID,
         doesDeviceSupportAuthenticationMethod,
+        deviceCheckFailureReason: VALUES.REASON.GENERIC.AUTHENTICATION_TYPE_NOT_SUPPORTED,
         hasLocalCredentials,
         areLocalCredentialsKnownToServer,
         register,

@@ -200,8 +200,8 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
 
         // 2b. Check if the device can actually perform the allowed authentication method
         if (!biometrics.doesDeviceSupportAuthenticationMethod()) {
-            const reason = CONST.MULTIFACTOR_AUTHENTICATION.REASON.GENERIC.NO_AUTHENTICATION_METHODS_ENROLLED;
-            const message = `No authentication methods enrolled (deviceVerificationType: ${biometrics.deviceVerificationType})`;
+            const reason = biometrics.deviceCheckFailureReason;
+            const message = `Device check failed (deviceVerificationType: ${biometrics.deviceVerificationType})`;
             addMFABreadcrumb('Device check failed', {reason, deviceVerificationType: biometrics.deviceVerificationType, message}, 'warning');
             dispatch({type: 'SET_ERROR', payload: {reason, message}});
             return;
