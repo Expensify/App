@@ -62,12 +62,25 @@ function AgentZeroStatusProvider({reportID, chatType, children}: React.PropsWith
         return children;
     }
 
-    return <AgentZeroStatusGate reportID={reportID}>{children}</AgentZeroStatusGate>;
+    return (
+        <AgentZeroStatusGate
+            key={reportID}
+            reportID={reportID}
+        >
+            {children}
+        </AgentZeroStatusGate>
+    );
 }
+
+// Minimum time to display a label before allowing change (prevents rapid flicker)
+const MIN_DISPLAY_TIME = 300; // ms
+// Debounce delay for server label updates
+const DEBOUNCE_DELAY = 150; // ms
 
 /**
  * Inner gate — all Pusher, reasoning, label, and processing state.
  * Only mounted when reportID matches the Concierge report.
+ * Remounted via key prop when reportID changes, so all state resets automatically.
  */
 function AgentZeroStatusGate({reportID, children}: React.PropsWithChildren<{reportID: string}>) {
     // Server-driven processing label from report name-value pairs (e.g. "Looking up categories...")
@@ -76,12 +89,11 @@ function AgentZeroStatusGate({reportID, children}: React.PropsWithChildren<{repo
     // Timestamp set when the user sends a message, before the server label arrives — shows "Concierge is thinking..."
     const [optimisticStartTime, setOptimisticStartTime] = useState<number | null>(null);
     // Debounced label shown to the user — smooths rapid server label changes
+    const displayedLabelRef = useRef<string>('');
     const [displayedLabel, setDisplayedLabel] = useState<string>('');
     // Chronological list of reasoning steps streamed via Pusher during a single processing request
     const [reasoningHistory, setReasoningHistory] = useState<ReasoningEntry[]>([]);
     const {translate} = useLocalize();
-    // Tracks the previous server label to detect transitions (appeared → cleared)
-    const prevServerLabelRef = useRef<string>(serverLabel);
     // Timer for debounced label updates — ensures a minimum display time before switching
     const updateTimerRef = useRef<NodeJS.Timeout | null>(null);
     // Timestamp of the last label update — used to enforce MIN_DISPLAY_TIME
@@ -91,10 +103,28 @@ function AgentZeroStatusGate({reportID, children}: React.PropsWithChildren<{repo
     // Tracks the current agentZeroRequestID so the Pusher callback can detect new requests
     const agentZeroRequestIDRef = useRef('');
 
-    // Minimum time to display a label before allowing change (prevents rapid flicker)
-    const MIN_DISPLAY_TIME = 300; // ms
-    // Debounce delay for server label updates
-    const DEBOUNCE_DELAY = 150; // ms
+    // Clear optimistic state once server label arrives — the server has taken over
+    if (serverLabel && optimisticStartTime) {
+        setOptimisticStartTime(null);
+    }
+
+    // Clear optimistic state when coming back online — stale optimism from offline
+    const [prevIsOffline, setPrevIsOffline] = useState(isOffline);
+    if (prevIsOffline !== isOffline) {
+        setPrevIsOffline(isOffline);
+        if (!isOffline && optimisticStartTime) {
+            setOptimisticStartTime(null);
+        }
+    }
+
+    // Clear reasoning when processing ends (server label transitions from truthy → falsy)
+    const [prevServerLabel, setPrevServerLabel] = useState(serverLabel);
+    if (prevServerLabel !== serverLabel) {
+        setPrevServerLabel(serverLabel);
+        if (prevServerLabel && !serverLabel && reasoningHistory.length > 0) {
+            setReasoningHistory([]);
+        }
+    }
 
     /** Appends a reasoning entry from Pusher. Resets history when a new request ID is detected; skips duplicates. */
     const addReasoning = (data: {reasoning: string; agentZeroRequestID: string; loopCount: number}) => {
@@ -127,13 +157,6 @@ function AgentZeroStatusGate({reportID, children}: React.PropsWithChildren<{repo
         });
     };
 
-    // Reset all transient state when the viewed report changes
-    useEffect(() => {
-        setOptimisticStartTime(null);
-        setReasoningHistory([]);
-        agentZeroRequestIDRef.current = '';
-    }, [reportID]);
-
     // Subscribe to Pusher reasoning events for this report's channel
     useEffect(() => {
         const channelName = getReportChannelName(reportID);
@@ -149,83 +172,55 @@ function AgentZeroStatusGate({reportID, children}: React.PropsWithChildren<{repo
         return () => {
             listener.unsubscribe();
         };
-        // eslint-disable-next-line react-hooks/exhaustive-deps -- addReasoning is stable (uses only refs + functional updater)
-    }, [reportID]);
+    }, [reportID, addReasoning]);
 
-    // Synchronize the displayed label with the server label, applying debounce and minimum display time
+    // Synchronize the displayed label with debounce and minimum display time.
+    // displayedLabelRef mirrors state so the effect can check the current value without depending on displayedLabel.
     useEffect(() => {
-        const hadServerLabel = !!prevServerLabelRef.current;
-        const hasServerLabel = !!serverLabel;
+        let targetLabel = '';
+        if (serverLabel) {
+            targetLabel = serverLabel;
+        } else if (optimisticStartTime) {
+            targetLabel = translate('common.thinking');
+        }
 
-        // Helper function to update label with timing control
-        const updateLabel = (newLabel: string) => {
-            const now = Date.now();
-            const timeSinceLastUpdate = now - lastUpdateTimeRef.current;
-            const remainingMinTime = Math.max(0, MIN_DISPLAY_TIME - timeSinceLastUpdate);
+        if (displayedLabelRef.current === targetLabel) {
+            return;
+        }
 
-            // Clear any pending update
-            if (updateTimerRef.current) {
-                clearTimeout(updateTimerRef.current);
+        const now = Date.now();
+        const timeSinceLastUpdate = now - lastUpdateTimeRef.current;
+        const remainingMinTime = Math.max(0, MIN_DISPLAY_TIME - timeSinceLastUpdate);
+
+        if (updateTimerRef.current) {
+            clearTimeout(updateTimerRef.current);
+            updateTimerRef.current = null;
+        }
+
+        // Immediate update when enough time has passed or when clearing the label
+        if (remainingMinTime === 0 || targetLabel === '') {
+            displayedLabelRef.current = targetLabel;
+            // eslint-disable-next-line react-hooks/set-state-in-effect -- guarded by displayedLabelRef check above; fires once per serverLabel/optimistic transition
+            setDisplayedLabel(targetLabel);
+            lastUpdateTimeRef.current = now;
+        } else {
+            // Schedule update after debounce + remaining min display time
+            const delay = DEBOUNCE_DELAY + remainingMinTime;
+            updateTimerRef.current = setTimeout(() => {
+                displayedLabelRef.current = targetLabel;
+                setDisplayedLabel(targetLabel);
+                lastUpdateTimeRef.current = Date.now();
                 updateTimerRef.current = null;
-            }
-
-            // If enough time has passed or it's a critical update (clearing), update immediately
-            if (remainingMinTime === 0 || newLabel === '') {
-                if (displayedLabel !== newLabel) {
-                    setDisplayedLabel(newLabel);
-                    lastUpdateTimeRef.current = now;
-                }
-            } else {
-                // Schedule update after debounce + remaining min display time
-                const delay = DEBOUNCE_DELAY + remainingMinTime;
-                updateTimerRef.current = setTimeout(() => {
-                    if (displayedLabel !== newLabel) {
-                        setDisplayedLabel(newLabel);
-                        lastUpdateTimeRef.current = Date.now();
-                    }
-                    updateTimerRef.current = null;
-                }, delay);
-            }
-        };
-
-        // When server label arrives, transition smoothly without flicker
-        if (hasServerLabel) {
-            updateLabel(serverLabel);
-            if (optimisticStartTime) {
-                setOptimisticStartTime(null);
-            }
-        }
-        // When optimistic state is active but no server label, show "Concierge is thinking..."
-        else if (optimisticStartTime) {
-            const thinkingLabel = translate('common.thinking');
-            updateLabel(thinkingLabel);
-        }
-        // Clear everything when processing ends
-        else if (hadServerLabel && !hasServerLabel) {
-            updateLabel('');
-            if (reasoningHistory.length > 0) {
-                setReasoningHistory([]);
-            }
+            }, delay);
         }
 
-        prevServerLabelRef.current = serverLabel;
-
-        // Cleanup timer on unmount
         return () => {
             if (!updateTimerRef.current) {
                 return;
             }
             clearTimeout(updateTimerRef.current);
         };
-    }, [serverLabel, reasoningHistory.length, reportID, optimisticStartTime, translate, displayedLabel]);
-
-    // Clear optimistic state when the network comes back online
-    useEffect(() => {
-        if (isOffline) {
-            return;
-        }
-        setOptimisticStartTime(null);
-    }, [isOffline, reportID]);
+    }, [serverLabel, optimisticStartTime, translate]);
 
     const kickoffWaitingIndicator = () => {
         setOptimisticStartTime(Date.now());
@@ -234,14 +229,12 @@ function AgentZeroStatusGate({reportID, children}: React.PropsWithChildren<{repo
     // True when AgentZero is actively working — either the server sent a label or we're optimistically waiting
     const isProcessing = !isOffline && (!!serverLabel || !!optimisticStartTime);
 
-    // eslint-disable-next-line react/jsx-no-constructed-context-values -- React Compiler handles memoization
     const stateValue: AgentZeroStatusState = {
         isProcessing,
         reasoningHistory,
         statusLabel: displayedLabel,
     };
 
-    // eslint-disable-next-line react/jsx-no-constructed-context-values -- React Compiler handles memoization
     const actionsValue: AgentZeroStatusActions = {
         kickoffWaitingIndicator,
     };
