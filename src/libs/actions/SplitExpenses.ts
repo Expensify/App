@@ -66,7 +66,11 @@ function initSplitExpense(transaction: OnyxEntry<Transaction>, policy?: OnyxEntr
 
     let reportID;
     if (isSelfDMReport) {
-        reportID = report?.reportID;
+        // If the report itself is selfDM, use its ID directly.
+        // If only the parent is selfDM (e.g. user opened from a transaction thread inside selfDM),
+        // use the selfDM parent report ID so the edit screen resolves the correct report name
+        // instead of showing the transaction thread name (which uses the expense merchant).
+        reportID = isSelfDM(report) ? report?.reportID : parentReport?.reportID;
     } else {
         reportID = transaction.reportID;
     }
@@ -77,7 +81,17 @@ function initSplitExpense(transaction: OnyxEntry<Transaction>, policy?: OnyxEntr
             const currentTransactionReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${currentTransaction?.reportID}`];
             let itemReportID: string | undefined;
             if (isSelfDMReport) {
-                itemReportID = reportID;
+                // If this split was moved to a workspace report, use the workspace report ID
+                // so that SplitExpenseEditPage shows the correct workspace report name.
+                const actualReport =
+                    currentTransaction?.reportID && currentTransaction.reportID !== CONST.REPORT.UNREPORTED_REPORT_ID
+                        ? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${currentTransaction.reportID}`]
+                        : undefined;
+                if (actualReport && !isSelfDM(actualReport)) {
+                    itemReportID = currentTransaction?.reportID;
+                } else {
+                    itemReportID = reportID;
+                }
             } else if (currentTransaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
                 // For unreported (selfDM) transactions viewed from a workspace context,
                 // use the selfDM report ID from Onyx so that SplitExpenseEditPage can

@@ -147,11 +147,15 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
     const rates = DistanceRequestUtils.getMileageRates(policy, false, currentRateID);
 
     const currency = splitExpenseDraftTransactionDetails.currency ?? CONST.CURRENCY.USD;
-    const isCustomUnitOutOfPolicy = !rates[currentRateID] || (isDistance && !rate);
+
+    // For selfDM splits (no workspace policy), don't mark the rate as out-of-policy.
+    // getRate already resolves the P2P rate via defaultP2PRate for selfDM transactions.
+    const isSelfDMSplit = !currentPolicy;
+    const isCustomUnitOutOfPolicy = !isSelfDMSplit && (!rates[currentRateID] || (isDistance && !rate));
     const rateToDisplay = DistanceRequestUtils.getRateForExpenseDisplay(rateName, isCustomUnitOutOfPolicy, unit, rate, currency, translate, toLocaleDigit, getCurrencySymbol, isOffline);
 
     const getErrorForField = (field: ViolationField) => {
-        if (isCustomUnitOutOfPolicy && field === 'customUnitRateID') {
+        if (!isSelfDMSplit && isCustomUnitOutOfPolicy && field === 'customUnitRateID') {
             return translate('violations.customUnitOutOfPolicy');
         }
 
@@ -203,8 +207,8 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
             <MenuItemWithTopDescription
                 description={translate('common.rate')}
                 title={rateToDisplay}
-                interactive
-                shouldShowRightIcon
+                interactive={!isSelfDMSplit}
+                shouldShowRightIcon={!isSelfDMSplit}
                 titleStyle={styles.flex1}
                 brickRoadIndicator={getErrorForField('customUnitRateID') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                 errorText={getErrorForField('customUnitRateID')}
