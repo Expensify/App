@@ -85,14 +85,15 @@ function init() {
                     attributes: {derivedKey: key},
                 });
 
-                // @ts-expect-error TypeScript can't confirm the shape of dependencyValues matches the compute function's parameters
-                const newDerivedValue = compute(dependencyValues, context);
-
-                endSpan(spanId);
-
-                Log.info(`[OnyxDerived] updating value for ${key} in Onyx`);
-                derivedValue = newDerivedValue;
-                setDerivedValue(key, derivedValue);
+                try {
+                    // @ts-expect-error TypeScript can't confirm the shape of dependencyValues matches the compute function's parameters
+                    const newDerivedValue = compute(dependencyValues, context);
+                    Log.info(`[OnyxDerived] updating value for ${key} in Onyx`);
+                    derivedValue = newDerivedValue;
+                    setDerivedValue(key, derivedValue);
+                } finally {
+                    endSpan(spanId);
+                }
             };
 
             for (let i = 0; i < dependencies.length; i++) {
