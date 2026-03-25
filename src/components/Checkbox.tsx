@@ -66,9 +66,6 @@ type CheckboxProps = Partial<ChildrenProps> &
         /** Reference to the outer element */
         ref?: ForwardedRef<View>;
 
-        /** Whether this Checkbox should be focusable with a non-touch input device, eg. receive focus with a hardware keyboard. */
-        focusable?: boolean;
-
         /** Tab index for the checkbox */
         tabIndex?: 0 | -1;
     };
@@ -92,7 +89,6 @@ function Checkbox({
     wrapperStyle,
     testID,
     ref,
-    focusable = true,
     sentryLabel,
     tabIndex,
 }: CheckboxProps) {
@@ -151,7 +147,6 @@ function Checkbox({
             accessibilityLabel={accessibilityLabel}
             pressDimmingValue={1}
             wrapperStyle={wrapperStyle}
-            focusable={focusable}
             sentryLabel={sentryLabel}
             shouldUseAutoHitSlop
         >

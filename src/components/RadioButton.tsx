@@ -49,7 +49,6 @@ function RadioButton({isChecked, onPress, accessibilityLabel, hasError = false, 
                     isChecked && styles.checkedContainer,
                     isChecked && styles.borderColorFocus,
                 ]}
-                isNested
             >
                 {isChecked && (
                     <Icon
