@@ -11576,7 +11576,7 @@ describe('actions/IOU', () => {
         it('should return false if the report has negative total and onlyShowPayElsewhere is false', async () => {
             const policyChat = createRandomReport(1, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT);
             const fakePolicy: Policy = {
-                ...createRandomPolicy(Number('AA')),
+                ...createRandomPolicy(1),
                 id: 'AA',
                 type: CONST.POLICY.TYPE.TEAM,
                 approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
@@ -11607,7 +11607,7 @@ describe('actions/IOU', () => {
             const reportID = '999';
 
             const fakePolicy: Policy = {
-                ...createRandomPolicy(Number('AA')),
+                ...createRandomPolicy(1),
                 id: 'AA',
                 type: CONST.POLICY.TYPE.TEAM,
                 approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
