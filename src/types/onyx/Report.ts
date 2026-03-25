@@ -78,6 +78,9 @@ type ReportNextStep = {
         /** The ETA date time */
         dateTime?: string;
     };
+
+    /** The fill color of the icon */
+    iconFill?: string;
 };
 
 /** Model of report data */
@@ -88,6 +91,12 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** The date the report was created */
         created?: string;
+
+        /** The date the report was submitted */
+        submitted?: string;
+
+        /** The date the report was approved */
+        approved?: string;
 
         /** The specific type of chat */
         chatType?: ValueOf<typeof CONST.REPORT.CHAT_TYPE>;
@@ -246,7 +255,7 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
         privateNotes?: Record<number, Note>;
 
         /** Collection of policy report fields, indexed by their fieldID */
-        fieldList?: Record<string, PolicyReportField>;
+        fieldList?: Record<string, OnyxCommon.OnyxValueWithOfflineFeedback<PolicyReportField, 'defaultValue' | 'deletable'>>;
 
         /** Collection of report permissions granted to the current user */
         permissions?: Array<ValueOf<typeof CONST.REPORT.PERMISSIONS>>;
@@ -272,7 +281,7 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** The report's next step */
         nextStep?: ReportNextStep;
     },
-    'addWorkspaceRoom' | 'avatar' | 'createChat' | 'partial' | 'reimbursed' | 'preview' | 'createReport'
+    'addWorkspaceRoom' | 'avatar' | 'createChat' | 'partial' | 'reimbursed' | 'preview' | 'createReport' | 'reportName' | 'export'
 >;
 
 /** Collection of reports, indexed by report_{reportID} */

@@ -1,7 +1,7 @@
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import BlockingView from '@components/BlockingViews/BlockingView';
-import RadioListItem from '@components/SelectionListWithSections/RadioListItem';
+import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import type {SelectorType} from '@components/SelectionScreen';
 import SelectionScreen from '@components/SelectionScreen';
 import Text from '@components/Text';
@@ -24,7 +24,7 @@ function XeroInvoiceAccountSelectorPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
 
     const policyID = policy?.id ?? CONST.DEFAULT_NUMBER_ID.toString();
-    const illustrations = useMemoizedLazyIllustrations(['Telescope'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['Telescope']);
     const {config} = policy?.connections?.xero ?? {};
     const {invoiceCollectionsAccountID, syncReimbursedReports} = policy?.connections?.xero?.config.sync ?? {};
     const xeroSelectorOptions = useMemo<SelectorType[]>(() => getXeroBankAccounts(policy ?? undefined, invoiceCollectionsAccountID), [invoiceCollectionsAccountID, policy]);
@@ -67,8 +67,8 @@ function XeroInvoiceAccountSelectorPage({policy}: WithPolicyConnectionsProps) {
             policyID={policyID}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
-            displayName={XeroInvoiceAccountSelectorPage.displayName}
-            sections={xeroSelectorOptions.length ? [{data: xeroSelectorOptions}] : []}
+            displayName="XeroInvoiceAccountSelectorPage"
+            data={xeroSelectorOptions}
             listItem={RadioListItem}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.XERO}
             shouldBeBlocked={!syncReimbursedReports}
@@ -85,7 +85,5 @@ function XeroInvoiceAccountSelectorPage({policy}: WithPolicyConnectionsProps) {
         />
     );
 }
-
-XeroInvoiceAccountSelectorPage.displayName = 'XeroInvoiceAccountSelectorPage';
 
 export default withPolicyConnections(XeroInvoiceAccountSelectorPage);

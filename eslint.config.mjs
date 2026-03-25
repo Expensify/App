@@ -1,10 +1,10 @@
 import {FlatCompat} from '@eslint/eslintrc';
 import tsParser from '@typescript-eslint/parser';
 import expensifyConfig from 'eslint-config-expensify';
+import fileProgress from 'eslint-plugin-file-progress';
 import jsdoc from 'eslint-plugin-jsdoc';
 import lodash from 'eslint-plugin-lodash';
 import react from 'eslint-plugin-react';
-import reactCompiler from 'eslint-plugin-react-compiler';
 import reactNativeA11Y from 'eslint-plugin-react-native-a11y';
 import testingLibrary from 'eslint-plugin-testing-library';
 import youDontNeedLodashUnderscore from 'eslint-plugin-you-dont-need-lodash-underscore';
@@ -13,6 +13,8 @@ import globals from 'globals';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 import typescriptEslint from 'typescript-eslint';
+import reactCompilerCompat from './eslint-plugin-react-compiler-compat/index.mjs';
+import reportNameUtilsPlugin from './eslint-plugin-report-name-utils/index.mjs';
 
 const filename = fileURLToPath(import.meta.url);
 const dirname = path.dirname(filename);
@@ -64,6 +66,11 @@ const restrictedImportPaths = [
         name: 'react',
         importNames: ['CSSProperties'],
         message: "Please use 'ViewStyle', 'TextStyle', 'ImageStyle' from 'react-native' instead.",
+    },
+    {
+        name: 'react',
+        importNames: ['forwardRef'],
+        message: 'forwardRef is deprecated. Please use ref as a prop instead. See: contributingGuides/STYLE.md#forwarding-refs',
     },
     {
         name: '@styles/index',
@@ -150,6 +157,14 @@ const config = defineConfig([
     expensifyConfig,
     typescriptEslint.configs.recommendedTypeChecked,
     typescriptEslint.configs.stylisticTypeChecked,
+    fileProgress.configs['recommended-ci'],
+
+    // Suppress lint rules that are unnecessary for files successfully compiled by React Compiler.
+    // The processor runs React Compiler on each file and filters out redundant lint messages.
+    {
+        files: ['**/*.tsx', '**/*.jsx'],
+        processor: reactCompilerCompat.processors['react-compiler-compat'],
+    },
 
     {
         extends: new FlatCompat({baseDirectory: dirname}).extends(
@@ -167,7 +182,6 @@ const config = defineConfig([
             'react-native-a11y': reactNativeA11Y,
             react,
             'testing-library': testingLibrary,
-            'react-compiler': reactCompiler,
             lodash,
         },
 
@@ -272,6 +286,17 @@ const config = defineConfig([
             'rulesdir/prefer-underscore-method': 'off',
             'rulesdir/prefer-import-module-contents': 'off',
             'rulesdir/no-beta-handler': 'error',
+            'rulesdir/prefer-narrow-hook-dependencies': [
+                'error',
+                {
+                    stableObjectPatterns: [
+                        // cSpell:ignore tyles
+                        '[Ss]tyles?$', // Excludes 'style', 'styles', 'themeStyles', etc.
+                        '^theme', // Excludes 'theme', 'themeStyles', 'themeIllustrations', etc.
+                        '[Ii]cons?$', // Excludes 'icon', 'icons', 'expensifyIcons', etc.
+                    ],
+                },
+            ],
 
             // React and React Native specific rules
             'react-native-a11y/has-accessibility-hint': ['off'],
@@ -298,7 +323,6 @@ const config = defineConfig([
                     touchables: ['PressableWithoutFeedback', 'PressableWithFeedback'],
                 },
             ],
-            'react-compiler/react-compiler': 'error',
 
             // Disallow usage of certain functions and imports
             'no-restricted-syntax': [
@@ -306,6 +330,10 @@ const config = defineConfig([
                 {
                     selector: 'TSEnumDeclaration',
                     message: "Please don't declare enums, use union types instead.",
+                },
+                {
+                    selector: 'CallExpression[callee.object.name="React"][callee.property.name="forwardRef"]',
+                    message: 'forwardRef is deprecated. Please use ref as a prop instead. See: contributingGuides/STYLE.md#forwarding-refs',
                 },
                 {
                     selector: 'CallExpression[callee.name="getUrlWithBackToParam"]',
@@ -383,7 +411,6 @@ const config = defineConfig([
                         '@styles': './src/styles',
                         // This path is provide alias for files like `ONYXKEYS` and `CONST`.
                         '@src': './src',
-                        '@desktop': './desktop',
                         '@github': './.github',
                     },
                 },
@@ -452,15 +479,16 @@ const config = defineConfig([
     },
 
     {
-        files: ['**/*.js', '**/*.jsx'],
+        files: ['**/*.js', '**/*.jsx', '**/*.mjs', '**/*.cjs'],
         ...typescriptEslint.configs.disableTypeChecked,
     },
     {
-        files: ['**/*.js', '**/*.jsx'],
+        files: ['**/*.js', '**/*.jsx', '**/*.mjs', '**/*.cjs'],
         rules: {
             '@typescript-eslint/prefer-nullish-coalescing': 'off',
             '@typescript-eslint/no-unsafe-return': 'off',
             '@typescript-eslint/unbound-method': 'off',
+            'arrow-parens': 'off',
             'jsdoc/no-types': 'off',
             'react/jsx-filename-extension': 'off',
             'rulesdir/no-default-props': 'off',
@@ -558,10 +586,23 @@ const config = defineConfig([
     },
 
     {
+        files: ['src/libs/ReportNameUtils.ts'],
+        plugins: {'report-name-utils': reportNameUtilsPlugin},
+        rules: {'report-name-utils/no-function-call-in-get-report-name': 'error'},
+    },
+
+    {
         files: ['src/**/*'],
         ignores: ['src/languages/**', 'src/CONST/index.ts', 'src/NAICS.ts'],
         rules: {
             'max-lines': ['error', 4000],
+        },
+    },
+
+    {
+        files: ['modules/ExpensifyNitroUtils/src/**/*'],
+        rules: {
+            '@typescript-eslint/consistent-type-definitions': 'off',
         },
     },
 
@@ -579,6 +620,7 @@ const config = defineConfig([
         'web/gtm.js',
         '**/.expo/**/*',
         '**/.rock/**/*',
+        '**/.yalc/**/*',
         'src/libs/SearchParser/searchParser.js',
         'src/libs/SearchParser/autocompleteParser.js',
         'help/_scripts/**/*',
@@ -587,7 +629,15 @@ const config = defineConfig([
         '**/vendor',
         'modules/group-ib-fp/**/*',
         'web/snippets/gib.js',
-        'desktop/**/*',
+        // Generated language files - excluded from ESLint but still type-checked
+        'src/languages/de.ts',
+        'src/languages/fr.ts',
+        'src/languages/it.ts',
+        'src/languages/ja.ts',
+        'src/languages/nl.ts',
+        'src/languages/pl.ts',
+        'src/languages/pt-BR.ts',
+        'src/languages/zh-hans.ts',
     ]),
 ]);
 

@@ -1,9 +1,9 @@
-import type {Section} from '@libs/OptionsListUtils';
-import type {SelectedTagOption} from '@libs/TagsOptionsListUtils';
-import {getTagListSections, getTagVisibility, sortTags} from '@libs/TagsOptionsListUtils';
+import type {Section} from '@components/SelectionList/SelectionListWithSections/types';
+import type {SelectedTagOption, TagOption} from '@libs/TagsOptionsListUtils';
+import {getEnabledTags, getTagListSections, getTagVisibility, sortTags} from '@libs/TagsOptionsListUtils';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
-import type {PolicyTagLists} from '@src/types/onyx';
+import type {PolicyTagLists, PolicyTags} from '@src/types/onyx';
 import createRandomPolicy from '../utils/collections/policies';
 import createRandomTransaction from '../utils/collections/transaction';
 import {localeCompare, translateLocal} from '../utils/TestHelper';
@@ -56,10 +56,10 @@ describe('TagsOptionsListUtils', () => {
                 accountID: undefined,
             },
         };
-        const smallResultList: Section[] = [
+        const smallResultList: Array<Section<TagOption>> = [
             {
                 title: '',
-                shouldShow: false,
+                sectionIndex: 2,
                 // data sorted alphabetically by name
                 data: [
                     {
@@ -101,10 +101,10 @@ describe('TagsOptionsListUtils', () => {
                 ],
             },
         ];
-        const smallSearchResultList: Section[] = [
+        const smallSearchResultList: Array<Section<TagOption>> = [
             {
                 title: '',
-                shouldShow: true,
+                sectionIndex: 1,
                 data: [
                     {
                         text: 'Accounting',
@@ -118,10 +118,10 @@ describe('TagsOptionsListUtils', () => {
                 ],
             },
         ];
-        const employeeSearchResultList: Section[] = [
+        const employeeSearchResultList: Array<Section<TagOption>> = [
             {
                 title: '',
-                shouldShow: true,
+                sectionIndex: 1,
                 data: [
                     {
                         text: 'Employee Meals Office',
@@ -135,10 +135,10 @@ describe('TagsOptionsListUtils', () => {
                 ],
             },
         ];
-        const smallWrongSearchResultList: Section[] = [
+        const smallWrongSearchResultList: Array<Section<TagOption>> = [
             {
                 title: '',
-                shouldShow: true,
+                sectionIndex: 1,
                 data: [],
             },
         ];
@@ -199,11 +199,31 @@ describe('TagsOptionsListUtils', () => {
                 name: 'Benefits',
                 accountID: undefined,
             },
+            Communications: {
+                enabled: true,
+                name: 'Communications',
+                accountID: undefined,
+            },
+            Legal: {
+                enabled: true,
+                name: 'Legal',
+                accountID: undefined,
+            },
+            Marketing: {
+                enabled: true,
+                name: 'Marketing',
+                accountID: undefined,
+            },
+            Operations: {
+                enabled: true,
+                name: 'Operations',
+                accountID: undefined,
+            },
         };
-        const largeResultList: Section[] = [
+        const largeResultList: Array<Section<TagOption>> = [
             {
                 title: '',
-                shouldShow: true,
+                sectionIndex: 3,
                 data: [
                     {
                         text: 'Medical',
@@ -218,7 +238,7 @@ describe('TagsOptionsListUtils', () => {
             },
             {
                 title: 'Recent',
-                shouldShow: true,
+                sectionIndex: 4,
                 data: [
                     {
                         text: 'HR',
@@ -233,7 +253,7 @@ describe('TagsOptionsListUtils', () => {
             },
             {
                 title: 'All',
-                shouldShow: true,
+                sectionIndex: 5,
                 // data sorted alphabetically by name
                 data: [
                     {
@@ -264,6 +284,15 @@ describe('TagsOptionsListUtils', () => {
                         pendingAction: undefined,
                     },
                     {
+                        text: 'Communications',
+                        keyForList: 'Communications',
+                        searchText: 'Communications',
+                        tooltipText: 'Communications',
+                        isDisabled: false,
+                        isSelected: false,
+                        pendingAction: undefined,
+                    },
+                    {
                         text: 'Food',
                         keyForList: 'Food',
                         searchText: 'Food',
@@ -277,6 +306,33 @@ describe('TagsOptionsListUtils', () => {
                         keyForList: 'HR',
                         searchText: 'HR',
                         tooltipText: 'HR',
+                        isDisabled: false,
+                        isSelected: false,
+                        pendingAction: undefined,
+                    },
+                    {
+                        text: 'Legal',
+                        keyForList: 'Legal',
+                        searchText: 'Legal',
+                        tooltipText: 'Legal',
+                        isDisabled: false,
+                        isSelected: false,
+                        pendingAction: undefined,
+                    },
+                    {
+                        text: 'Marketing',
+                        keyForList: 'Marketing',
+                        searchText: 'Marketing',
+                        tooltipText: 'Marketing',
+                        isDisabled: false,
+                        isSelected: false,
+                        pendingAction: undefined,
+                    },
+                    {
+                        text: 'Operations',
+                        keyForList: 'Operations',
+                        searchText: 'Operations',
+                        tooltipText: 'Operations',
                         isDisabled: false,
                         isSelected: false,
                         pendingAction: undefined,
@@ -302,10 +358,10 @@ describe('TagsOptionsListUtils', () => {
                 ],
             },
         ];
-        const largeSearchResultList: Section[] = [
+        const largeSearchResultList: Array<Section<TagOption>> = [
             {
                 title: '',
-                shouldShow: true,
+                sectionIndex: 1,
                 data: [
                     {
                         text: 'Accounting',
@@ -325,13 +381,22 @@ describe('TagsOptionsListUtils', () => {
                         isSelected: false,
                         pendingAction: undefined,
                     },
+                    {
+                        text: 'Marketing',
+                        keyForList: 'Marketing',
+                        searchText: 'Marketing',
+                        tooltipText: 'Marketing',
+                        isDisabled: false,
+                        isSelected: false,
+                        pendingAction: undefined,
+                    },
                 ],
             },
         ];
-        const largeWrongSearchResultList: Section[] = [
+        const largeWrongSearchResultList: Array<Section<TagOption>> = [
             {
                 title: '',
-                shouldShow: true,
+                sectionIndex: 1,
                 data: [],
             },
         ];
@@ -777,6 +842,46 @@ describe('TagsOptionsListUtils', () => {
                 {isTagRequired: true, shouldShow: true},
                 {isTagRequired: false, shouldShow: true},
             ]);
+        });
+    });
+
+    describe('getEnabledTags', () => {
+        it('returns only enabled tags when no parent filter present', () => {
+            const tags: PolicyTags = {
+                a: {name: 'A', enabled: true},
+                b: {name: 'B', enabled: false},
+                c: {name: 'C', enabled: true},
+            };
+
+            const result = getEnabledTags(tags, 'A', 1);
+
+            expect(result.map((t) => t.name).sort()).toEqual(['A', 'C']);
+        });
+
+        it('filters tags by parentTagsFilter regex', () => {
+            const tags: PolicyTags = {
+                north: {name: 'North', enabled: true, parentTagsFilter: '^California$'},
+                south: {name: 'South', enabled: true, parentTagsFilter: '^Texas$'},
+                general: {name: 'General', enabled: true},
+                disabled: {name: 'Disabled', enabled: false},
+            };
+
+            const result = getEnabledTags(tags, 'California:North', 1);
+            const names = result.map((t) => t.name);
+
+            expect(names).toEqual(expect.arrayContaining(['North', 'General']));
+            expect(names).not.toContain('South');
+            expect(names).not.toContain('Disabled');
+        });
+
+        it('does not include tags whose filter does not match parent', () => {
+            const tags: PolicyTags = {
+                withFilter: {name: 'WithFilter', enabled: true, parentTagsFilter: '^California$'},
+            };
+
+            const result = getEnabledTags(tags, 'Texas:City', 1);
+
+            expect(result).toEqual([]);
         });
     });
 });

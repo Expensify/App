@@ -18,7 +18,7 @@ type BaseOpenAppFailureModalProps = {
 };
 
 function BaseOpenAppFailureModal({onRefreshAndTryAgainButtonPress}: BaseOpenAppFailureModalProps) {
-    const [isOpenAppFailureModalOpen = false] = useOnyx(ONYXKEYS.IS_OPEN_APP_FAILURE_MODAL_OPEN, {canBeMissing: true});
+    const [isOpenAppFailureModalOpen = false] = useOnyx(ONYXKEYS.IS_OPEN_APP_FAILURE_MODAL_OPEN);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
@@ -63,7 +63,5 @@ function BaseOpenAppFailureModal({onRefreshAndTryAgainButtonPress}: BaseOpenAppF
         </Modal>
     );
 }
-
-BaseOpenAppFailureModal.displayName = 'BaseOpenAppFailureModal';
 
 export default BaseOpenAppFailureModal;

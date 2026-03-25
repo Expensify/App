@@ -1,5 +1,5 @@
 import React from 'react';
-import TextWithIconCell from '@components/SelectionListWithSections/Search/TextWithIconCell';
+import TextWithIconCell from '@components/Search/SearchList/ListItem/TextWithIconCell';
 import TextWithTooltip from '@components/TextWithTooltip';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -7,7 +7,7 @@ import {getTagForDisplay} from '@libs/TransactionUtils';
 import type TransactionDataCellProps from './TransactionDataCellProps';
 
 function TagCell({shouldUseNarrowLayout, shouldShowTooltip, transactionItem}: TransactionDataCellProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['Tag'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Tag']);
     const styles = useThemeStyles();
     return shouldUseNarrowLayout ? (
         <TextWithIconCell
@@ -20,10 +20,10 @@ function TagCell({shouldUseNarrowLayout, shouldShowTooltip, transactionItem}: Tr
         <TextWithTooltip
             shouldShowTooltip={shouldShowTooltip}
             text={getTagForDisplay(transactionItem)}
-            style={[styles.optionDisplayName, styles.lineHeightLarge, styles.pre, styles.justifyContentCenter]}
+            numberOfLines={2}
+            style={[styles.lineHeightLarge, styles.preWrap, styles.justifyContentCenter]}
         />
     );
 }
 
-TagCell.displayName = 'TagCell';
 export default TagCell;

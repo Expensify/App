@@ -5,12 +5,10 @@ import ConnectToQuickbooksDesktopFlow from '@components/ConnectToQuickbooksDeskt
 import ConnectToQuickbooksOnlineFlow from '@components/ConnectToQuickbooksOnlineFlow';
 import ConnectToSageIntacctFlow from '@components/ConnectToSageIntacctFlow';
 import ConnectToXeroFlow from '@components/ConnectToXeroFlow';
-import * as Expensicons from '@components/Icon/Expensicons';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import {isAuthenticationError} from '@libs/actions/connections';
-import {getAdminPoliciesConnectedToSageIntacct} from '@libs/actions/Policy/Policy';
 import getPlatform from '@libs/getPlatform';
 import {canUseTaxNetSuite} from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
@@ -21,8 +19,10 @@ import ROUTES from '@src/ROUTES';
 import type {Policy} from '@src/types/onyx';
 import type {Account, ConnectionName, Connections, PolicyConnectionName, QBDNonReimbursableExportAccountType, QBDReimbursableExportAccountType} from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import type IconAsset from '@src/types/utils/IconAsset';
 import {
     getImportCustomFieldsSettings,
+    getInitialSubPageForNetsuiteTokenInput,
     shouldHideCustomFormIDOptions,
     shouldHideExportForeignCurrencyAmount,
     shouldHideExportJournalsTo,
@@ -46,16 +46,17 @@ function getAccountingIntegrationData(
     connectionName: PolicyConnectionName,
     policyID: string,
     translate: LocaleContextProps['translate'],
+    hasPoliciesConnectedToSageIntacct: boolean,
     policy?: Policy,
     key?: number,
     integrationToDisconnect?: ConnectionName,
     shouldDisconnectIntegrationBeforeConnecting?: boolean,
     canUseNetSuiteUSATax?: boolean,
+    expensifyIcons?: Record<'IntacctSquare' | 'QBOSquare' | 'XeroSquare' | 'NetSuiteSquare' | 'QBDSquare', IconAsset>,
 ): AccountingIntegration | undefined {
     const qboConfig = policy?.connections?.quickbooksOnline?.config;
     const netsuiteConfig = policy?.connections?.netsuite?.options?.config;
     const netsuiteSelectedSubsidiary = (policy?.connections?.netsuite?.options?.data?.subsidiaryList ?? []).find((subsidiary) => subsidiary.internalID === netsuiteConfig?.subsidiaryID);
-    const hasPoliciesConnectedToSageIntacct = !!getAdminPoliciesConnectedToSageIntacct().length;
     const getBackToAfterWorkspaceUpgradeRouteForIntacct = () => {
         if (integrationToDisconnect) {
             return ROUTES.POLICY_ACCOUNTING.getRoute(policyID, connectionName, integrationToDisconnect, shouldDisconnectIntegrationBeforeConnecting);
@@ -65,7 +66,6 @@ function getAccountingIntegrationData(
         }
         return ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_PREREQUISITES.getRoute(policyID);
     };
-
     const getBackToAfterWorkspaceUpgradeRouteForQBD = () => {
         if (integrationToDisconnect) {
             return ROUTES.POLICY_ACCOUNTING.getRoute(policyID, connectionName, integrationToDisconnect, shouldDisconnectIntegrationBeforeConnecting);
@@ -80,7 +80,7 @@ function getAccountingIntegrationData(
         case CONST.POLICY.CONNECTIONS.NAME.QBO:
             return {
                 title: translate('workspace.accounting.qbo'),
-                icon: Expensicons.QBOSquare,
+                icon: expensifyIcons?.QBOSquare,
                 setupConnectionFlow: (
                     <ConnectToQuickbooksOnlineFlow
                         policyID={policyID}
@@ -104,6 +104,8 @@ function getAccountingIntegrationData(
                     CONST.QUICKBOOKS_CONFIG.RECEIVABLE_ACCOUNT,
                     CONST.QUICKBOOKS_CONFIG.NON_REIMBURSABLE_EXPENSES_EXPORT_DESTINATION,
                     CONST.QUICKBOOKS_CONFIG.NON_REIMBURSABLE_EXPENSE_ACCOUNT,
+                    CONST.QUICKBOOKS_CONFIG.TRAVEL_INVOICING_VENDOR,
+                    CONST.QUICKBOOKS_CONFIG.TRAVEL_INVOICING_PAYABLE_ACCOUNT,
                     ...(qboConfig?.nonReimbursableExpensesExportDestination === CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.VENDOR_BILL
                         ? [CONST.QUICKBOOKS_CONFIG.AUTO_CREATE_VENDOR]
                         : []),
@@ -127,7 +129,7 @@ function getAccountingIntegrationData(
         case CONST.POLICY.CONNECTIONS.NAME.XERO:
             return {
                 title: translate('workspace.accounting.xero'),
-                icon: Expensicons.XeroSquare,
+                icon: expensifyIcons?.XeroSquare,
                 setupConnectionFlow: (
                     <ConnectToXeroFlow
                         policyID={policyID}
@@ -158,7 +160,7 @@ function getAccountingIntegrationData(
         case CONST.POLICY.CONNECTIONS.NAME.NETSUITE:
             return {
                 title: translate('workspace.accounting.netsuite'),
-                icon: Expensicons.NetSuiteSquare,
+                icon: expensifyIcons?.NetSuiteSquare,
                 setupConnectionFlow: (
                     <ConnectToNetSuiteFlow
                         policyID={policyID}
@@ -221,7 +223,7 @@ function getAccountingIntegrationData(
                     integrationAlias: CONST.UPGRADE_FEATURE_INTRO_MAPPING.netsuite.alias,
                     backToAfterWorkspaceUpgradeRoute: integrationToDisconnect
                         ? ROUTES.POLICY_ACCOUNTING.getRoute(policyID, connectionName, integrationToDisconnect, shouldDisconnectIntegrationBeforeConnecting)
-                        : ROUTES.POLICY_ACCOUNTING_NETSUITE_TOKEN_INPUT.getRoute(policyID),
+                        : ROUTES.POLICY_ACCOUNTING_NETSUITE_TOKEN_INPUT.getRoute(policyID, getInitialSubPageForNetsuiteTokenInput(policy)),
                 },
                 pendingFields: {...netsuiteConfig?.pendingFields, ...policy?.connections?.netsuite?.config?.pendingFields, ...policy?.connections?.netsuite?.options?.config?.pendingFields},
                 errorFields: {...netsuiteConfig?.errorFields, ...policy?.connections?.netsuite?.config?.errorFields, ...policy?.connections?.netsuite?.options?.config?.errorFields},
@@ -229,7 +231,7 @@ function getAccountingIntegrationData(
         case CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT:
             return {
                 title: translate('workspace.accounting.intacct'),
-                icon: Expensicons.IntacctSquare,
+                icon: expensifyIcons?.IntacctSquare,
                 setupConnectionFlow: (
                     <ConnectToSageIntacctFlow
                         policyID={policyID}
@@ -274,7 +276,7 @@ function getAccountingIntegrationData(
         case CONST.POLICY.CONNECTIONS.NAME.QBD:
             return {
                 title: translate('workspace.accounting.qbd'),
-                icon: Expensicons.QBDSquare,
+                icon: expensifyIcons?.QBDSquare,
                 setupConnectionFlow: (
                     <ConnectToQuickbooksDesktopFlow
                         policyID={policyID}
@@ -323,7 +325,7 @@ function getSynchronizationErrorMessage(
     if (isAuthenticationError(policy, connectionName)) {
         return (
             <Text style={[styles?.formError]}>
-                <Text style={[styles?.formError]}>{translate('workspace.common.authenticationError', {connectionName: CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]})} </Text>
+                <Text style={[styles?.formError]}>{translate('workspace.common.authenticationError', CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName])} </Text>
                 {connectionName in CONST.POLICY.CONNECTIONS.AUTH_HELP_LINKS && (
                     <>
                         <TextLink

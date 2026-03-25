@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import FormHelpMessage from '@components/FormHelpMessage';
@@ -18,11 +18,12 @@ import ONYXKEYS from '@src/ONYXKEYS';
 function AmexCustomFeed() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD, {canBeMissing: true});
-    const [typeSelected, setTypeSelected] = useState<ValueOf<typeof CONST.COMPANY_CARDS.AMEX_CUSTOM_FEED>>();
+    const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD);
+    const [localTypeSelected, setLocalTypeSelected] = useState<ValueOf<typeof CONST.COMPANY_CARDS.AMEX_CUSTOM_FEED>>();
+    const typeSelected = localTypeSelected ?? addNewCard?.data.selectedAmexCustomFeed;
     const [hasError, setHasError] = useState(false);
 
-    const submit = useCallback(() => {
+    const submit = () => {
         if (!typeSelected) {
             setHasError(true);
             return;
@@ -34,14 +35,6 @@ function AmexCustomFeed() {
                 selectedAmexCustomFeed: typeSelected,
             },
         });
-    }, [typeSelected]);
-
-    useEffect(() => {
-        setTypeSelected(addNewCard?.data.selectedAmexCustomFeed);
-    }, [addNewCard?.data.selectedAmexCustomFeed]);
-
-    const handleBackButtonPress = () => {
-        setAddNewCompanyCardStepAndData({step: CONST.COMPANY_CARDS.STEP.SELECT_BANK});
     };
 
     const data = [
@@ -68,25 +61,24 @@ function AmexCustomFeed() {
         },
     ];
 
-    const confirmButtonOptions = useMemo(
-        () => ({
-            showButton: true,
-            text: translate('common.next'),
-            onConfirm: submit,
-        }),
-        [submit, translate],
-    );
+    const confirmButtonOptions = {
+        showButton: true,
+        text: translate('common.next'),
+        onConfirm: submit,
+    };
 
     return (
         <ScreenWrapper
-            testID={AmexCustomFeed.displayName}
+            testID="AmexCustomFeed"
             enableEdgeToEdgeBottomSafeAreaPadding
             shouldEnablePickerAvoiding={false}
             shouldEnableMaxHeight
         >
             <HeaderWithBackButton
                 title={translate('workspace.companyCards.addCards')}
-                onBackButtonPress={handleBackButtonPress}
+                onBackButtonPress={() => {
+                    setAddNewCompanyCardStepAndData({step: CONST.COMPANY_CARDS.STEP.SELECT_BANK});
+                }}
             />
 
             <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mv3]}>{translate('workspace.companyCards.addNewCard.howDoYouWantToConnect')}</Text>
@@ -98,7 +90,7 @@ function AmexCustomFeed() {
                 data={data}
                 ListItem={RadioListItem}
                 onSelectRow={({value}) => {
-                    setTypeSelected(value);
+                    setLocalTypeSelected(value);
                     setHasError(false);
                 }}
                 confirmButtonOptions={confirmButtonOptions}
@@ -120,7 +112,5 @@ function AmexCustomFeed() {
         </ScreenWrapper>
     );
 }
-
-AmexCustomFeed.displayName = 'AmexCustomFeed';
 
 export default AmexCustomFeed;

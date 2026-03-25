@@ -1,27 +1,24 @@
-import {transactionDraftReceiptsViewSelector} from '@selectors/TransactionDraft';
 import React, {useCallback, useEffect, useState} from 'react';
 import {InteractionManager} from 'react-native';
 import AttachmentCarouselView from '@components/Attachments/AttachmentCarousel/AttachmentCarouselView';
 import useCarouselArrows from '@components/Attachments/AttachmentCarousel/useCarouselArrows';
 import useAttachmentErrors from '@components/Attachments/AttachmentView/useAttachmentErrors';
+import type {Attachment} from '@components/Attachments/types';
 import Button from '@components/Button';
-import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import * as Expensicons from '@components/Icon/Expensicons';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
 import ScreenWrapper from '@components/ScreenWrapper';
+import useConfirmModal from '@hooks/useConfirmModal';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useTransactionDraftReceipts from '@hooks/useTransactionDraftReceipts';
 import Navigation from '@libs/Navigation/Navigation';
-import type {ReceiptFile} from '@pages/iou/request/step/IOURequestStepScan/types';
 import {removeDraftTransaction, removeTransactionReceipt, replaceDefaultDraftTransaction} from '@userActions/TransactionEdit';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
-import type {Receipt} from '@src/types/onyx/Transaction';
-import getEmptyArray from '@src/types/utils/getEmptyArray';
-
-type ReceiptWithTransactionIDAndSource = Receipt & ReceiptFile;
 
 type ReceiptViewProps = {
     route: {
@@ -37,25 +34,25 @@ function ReceiptView({route}: ReceiptViewProps) {
     const {setAttachmentError} = useAttachmentErrors();
     const {shouldShowArrows, setShouldShowArrows, autoHideArrows, cancelAutoHideArrows} = useCarouselArrows();
     const styles = useThemeStyles();
-    const [currentReceipt, setCurrentReceipt] = useState<ReceiptWithTransactionIDAndSource | null>();
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Trashcan'] as const);
     const [page, setPage] = useState<number>(-1);
-    const [isDeleteReceiptConfirmModalVisible, setIsDeleteReceiptConfirmModalVisible] = useState(false);
+    const {showConfirmModal} = useConfirmModal();
 
-    const [receipts = getEmptyArray<ReceiptWithTransactionIDAndSource>()] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {
-        selector: transactionDraftReceiptsViewSelector,
-        canBeMissing: true,
-    });
+    const receipts = useTransactionDraftReceipts();
+
+    // Derive currentReceipt from page - always in sync with carousel position
+    const currentReceipt = page >= 0 ? receipts.at(page) : undefined;
+
     const secondTransactionID = receipts.at(1)?.transactionID;
-    const [secondTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${secondTransactionID}`, {canBeMissing: true});
+    const [secondTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${secondTransactionID}`);
+
+    // Set initial page based on route transactionID
     useEffect(() => {
         if (!receipts || receipts.length === 0) {
             return;
         }
 
-        const activeReceipt = receipts.find((receipt) => receipt.transactionID === route?.params?.transactionID);
-        const activeReceiptIndex = receipts.findIndex((receipt) => receipt.transactionID === activeReceipt?.transactionID);
-
-        setCurrentReceipt(activeReceipt);
+        const activeReceiptIndex = receipts.findIndex((receipt) => receipt.transactionID === route?.params?.transactionID);
         setPage(activeReceiptIndex);
     }, [receipts, route?.params?.transactionID]);
 
@@ -81,12 +78,7 @@ function ReceiptView({route}: ReceiptViewProps) {
         Navigation.goBack();
     }, [currentReceipt, receipts.length, secondTransaction, secondTransactionID]);
 
-    const handleCloseConfirmModal = () => {
-        setIsDeleteReceiptConfirmModalVisible(false);
-    };
-
     const deleteReceipt = useCallback(() => {
-        handleCloseConfirmModal();
         handleDeleteReceipt();
     }, [handleDeleteReceipt]);
 
@@ -94,27 +86,41 @@ function ReceiptView({route}: ReceiptViewProps) {
         Navigation.goBack(route.params.backTo);
     }, [route.params.backTo]);
 
+    const handleDeleteReceiptPress = useCallback(async () => {
+        const result = await showConfirmModal({
+            title: translate('receipt.deleteReceipt'),
+            prompt: translate('receipt.deleteConfirmation'),
+            confirmText: translate('common.delete'),
+            cancelText: translate('common.cancel'),
+            danger: true,
+        });
+        if (result.action !== ModalActions.CONFIRM) {
+            return;
+        }
+        deleteReceipt();
+    }, [showConfirmModal, translate, deleteReceipt]);
+
     return (
         <ScreenWrapper
-            testID={ReceiptView.displayName}
+            testID="ReceiptView"
             enableEdgeToEdgeBottomSafeAreaPadding
         >
             <HeaderWithBackButton
                 title={translate('common.receipt')}
                 shouldDisplayHelpButton={false}
                 onBackButtonPress={handleGoBack}
-                onCloseButtonPress={handleCloseConfirmModal}
             >
                 <Button
                     shouldShowRightIcon
-                    iconRight={Expensicons.Trashcan}
-                    onPress={() => setIsDeleteReceiptConfirmModalVisible(true)}
+                    iconRight={expensifyIcons.Trashcan}
+                    onPress={handleDeleteReceiptPress}
                     innerStyles={styles.bgTransparent}
                     large
+                    sentryLabel={CONST.SENTRY_LABEL.IOU_REQUEST_STEP.RECEIPT_DELETE_BUTTON}
                 />
             </HeaderWithBackButton>
             <AttachmentCarouselView
-                attachments={receipts}
+                attachments={receipts as Attachment[]}
                 source={currentReceipt?.source ?? ''}
                 page={page}
                 setPage={setPage}
@@ -126,21 +132,8 @@ function ReceiptView({route}: ReceiptViewProps) {
                 onAttachmentError={setAttachmentError}
                 shouldShowArrows={shouldShowArrows}
             />
-            <ConfirmModal
-                title={translate('receipt.deleteReceipt')}
-                isVisible={isDeleteReceiptConfirmModalVisible}
-                onConfirm={deleteReceipt}
-                onCancel={handleCloseConfirmModal}
-                prompt={translate('receipt.deleteConfirmation')}
-                confirmText={translate('common.delete')}
-                cancelText={translate('common.cancel')}
-                onBackdropPress={handleCloseConfirmModal}
-                danger
-            />
         </ScreenWrapper>
     );
 }
-
-ReceiptView.displayName = 'ReceiptView';
 
 export default ReceiptView;

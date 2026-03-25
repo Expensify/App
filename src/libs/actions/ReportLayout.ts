@@ -1,5 +1,6 @@
 import Onyx from 'react-native-onyx';
 import type {OnyxUpdate} from 'react-native-onyx';
+import type {SearchCustomColumnIds} from '@components/Search/types';
 import * as API from '@libs/API';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import CONST from '@src/CONST';
@@ -8,12 +9,9 @@ import type {ReportLayoutGroupBy} from '@src/types/onyx';
 
 /**
  * Set the user's report layout group-by preference
- * Uses existing SetNameValuePair API command for backward compatibility with OldDot
- * Implements Pattern A (Optimistic Without Feedback) - user gets instant visual feedback
- * via transaction regrouping, doesn't need to know about server sync status
  */
 function setReportLayoutGroupBy(groupBy: ReportLayoutGroupBy, previousValue?: string | null) {
-    const optimisticData: OnyxUpdate[] = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.NVP_REPORT_LAYOUT_GROUP_BY>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.NVP_REPORT_LAYOUT_GROUP_BY,
@@ -21,7 +19,7 @@ function setReportLayoutGroupBy(groupBy: ReportLayoutGroupBy, previousValue?: st
         },
     ];
 
-    const failureData: OnyxUpdate[] = [
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.NVP_REPORT_LAYOUT_GROUP_BY>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.NVP_REPORT_LAYOUT_GROUP_BY,
@@ -38,8 +36,7 @@ function setReportLayoutGroupBy(groupBy: ReportLayoutGroupBy, previousValue?: st
 }
 
 /**
- * Get the current group-by preference, defaulting to 'mcc' (Category)
- * This matches OldDot behavior where no NVP set means Category grouping
+ * Get the current group-by preference, defaulting to category
  */
 function getReportLayoutGroupBy(storedValue: string | null | undefined): ReportLayoutGroupBy {
     if (!storedValue) {
@@ -48,4 +45,31 @@ function getReportLayoutGroupBy(storedValue: string | null | undefined): ReportL
     return storedValue as ReportLayoutGroupBy;
 }
 
-export {setReportLayoutGroupBy, getReportLayoutGroupBy};
+/**
+ * Set the user's report details columns preference
+ */
+function setReportDetailsColumns(columns: SearchCustomColumnIds[], previousValue?: string[] | null) {
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.NVP_REPORT_DETAILS_COLUMNS>> = [
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: ONYXKEYS.NVP_REPORT_DETAILS_COLUMNS,
+            value: columns,
+        },
+    ];
+
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.NVP_REPORT_DETAILS_COLUMNS>> = [
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: ONYXKEYS.NVP_REPORT_DETAILS_COLUMNS,
+            value: previousValue ?? null,
+        },
+    ];
+
+    const parameters = {
+        columns: JSON.stringify(columns),
+    };
+
+    API.write(WRITE_COMMANDS.SET_REPORT_DETAILS_COLUMNS, parameters, {optimisticData, failureData});
+}
+
+export {setReportLayoutGroupBy, getReportLayoutGroupBy, setReportDetailsColumns};

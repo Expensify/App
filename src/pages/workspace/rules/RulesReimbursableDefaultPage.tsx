@@ -45,7 +45,7 @@ function RulesReimbursableDefaultPage({
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
                 shouldEnableMaxHeight
-                testID={RulesReimbursableDefaultPage.displayName}
+                testID="RulesReimbursableDefaultPage"
             >
                 <HeaderWithBackButton
                     title={translate('workspace.rules.individualExpenseRules.cashExpenseDefault')}
@@ -58,7 +58,7 @@ function RulesReimbursableDefaultPage({
                     data={reimbursableModes}
                     ListItem={RadioListItem}
                     onSelectRow={(item) => {
-                        setPolicyReimbursableMode(policyID, item.value);
+                        setPolicyReimbursableMode(policyID, item.value, policy?.defaultReimbursable, policy?.disabledFields?.reimbursable);
                         Navigation.setNavigationActionToMicrotaskQueue(Navigation.goBack);
                     }}
                     shouldSingleExecuteRowSelect
@@ -70,7 +70,5 @@ function RulesReimbursableDefaultPage({
         </AccessOrNotFoundWrapper>
     );
 }
-
-RulesReimbursableDefaultPage.displayName = 'RulesReimbursableDefaultPage';
 
 export default RulesReimbursableDefaultPage;

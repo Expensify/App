@@ -6,6 +6,7 @@ import type {TextInputOptions} from '@components/SelectionList/types';
 import Text from '@components/Text';
 import BaseTextInput from '@components/TextInput';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
+import useDebouncedAccessibilityAnnouncement from '@hooks/useDebouncedAccessibilityAnnouncement';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import mergeRefs from '@libs/mergeRefs';
@@ -40,13 +41,10 @@ type TextInputProps = {
     shouldShowTextInput?: boolean;
 
     /** Whether to show the loading placeholder */
-    showLoadingPlaceholder?: boolean;
+    shouldShowLoadingPlaceholder?: boolean;
 
     /** Whether to show the loading indicator for new options */
     isLoadingNewOptions?: boolean;
-
-    /** Function to update the focused index in the list */
-    setFocusedIndex: (index: number) => void;
 
     /** Function to focus text input component */
     focusTextInput: () => void;
@@ -61,18 +59,35 @@ function TextInput({
     onSubmit,
     onKeyPress,
     onFocusChange,
-    showLoadingPlaceholder,
+    shouldShowLoadingPlaceholder,
     isLoadingNewOptions,
     shouldShowTextInput,
-    setFocusedIndex,
     focusTextInput,
 }: TextInputProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {label, value, onChangeText, errorText, headerMessage, hint, disableAutoFocus, placeholder, maxLength, inputMode, ref: optionsRef} = options ?? {};
-    const resultsFound = headerMessage !== translate('common.noResultsFound');
-    const noData = dataLength === 0 && !showLoadingPlaceholder;
-    const shouldShowHeaderMessage = !!headerMessage && (!isLoadingNewOptions || resultsFound || !noData);
+    const {
+        label,
+        value,
+        onChangeText,
+        errorText,
+        headerMessage,
+        hint,
+        disableAutoFocus,
+        placeholder,
+        maxLength,
+        inputMode,
+        ref: optionsRef,
+        style,
+        disableAutoCorrect,
+        shouldInterceptSwipe,
+    } = options ?? {};
+    const noResultsFoundText = translate('common.noResultsFound');
+    const isNoResultsFoundMessage = headerMessage === noResultsFoundText;
+    const noData = dataLength === 0 && !shouldShowLoadingPlaceholder;
+    const shouldShowHeaderMessage = !!shouldShowTextInput && !!headerMessage && (!isLoadingNewOptions || !isNoResultsFoundMessage || noData);
+
+    useDebouncedAccessibilityAnnouncement(headerMessage ?? '', shouldShowHeaderMessage, value ?? '');
 
     const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const mergedRef = mergeRefs<BaseTextInputRef>(ref, optionsRef);
@@ -80,9 +95,8 @@ function TextInput({
     const handleTextInputChange = useCallback(
         (text: string) => {
             onChangeText?.(text);
-            setFocusedIndex(0);
         },
-        [onChangeText, setFocusedIndex],
+        [onChangeText],
     );
 
     useFocusEffect(
@@ -117,7 +131,7 @@ function TextInput({
 
     return (
         <>
-            <View style={[styles.ph5, styles.pb3]}>
+            <View style={[styles.ph5, styles.pb3, style?.containerStyle]}>
                 <BaseTextInput
                     ref={mergedRef}
                     onKeyPress={onKeyPress}
@@ -139,18 +153,22 @@ function TextInput({
                     isLoading={isLoading}
                     testID="selection-list-text-input"
                     errorText={errorText}
-                    shouldInterceptSwipe={false}
+                    autoCorrect={!disableAutoCorrect}
+                    shouldInterceptSwipe={shouldInterceptSwipe ?? false}
                 />
             </View>
             {shouldShowHeaderMessage && (
-                <View style={[styles.ph5, styles.pb5]}>
-                    <Text style={[styles.textLabel, styles.colorMuted, styles.minHeight5]}>{headerMessage}</Text>
+                <View style={[styles.ph5, styles.pb5, style?.headerMessageStyle]}>
+                    <Text
+                        style={[styles.textLabel, styles.colorMuted, styles.minHeight5]}
+                        aria-hidden
+                    >
+                        {headerMessage}
+                    </Text>
                 </View>
             )}
         </>
     );
 }
-
-TextInput.displayName = 'TextInput';
 
 export default TextInput;

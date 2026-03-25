@@ -1,11 +1,11 @@
 import {useIsFocused} from '@react-navigation/native';
 import {useEffect, useRef} from 'react';
-import type {ListItem} from '@components/SelectionListWithSections/types';
+import type {ListItem} from '@components/SelectionList/types';
 import {turnOffMobileSelectionMode, turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import useMobileSelectionMode from './useMobileSelectionMode';
 import useResponsiveLayout from './useResponsiveLayout';
 
-function useHandleSelectionMode<TItem extends ListItem>(selectedItems: string[] | TItem[]) {
+function useHandleSelectionMode<TItem extends ListItem>(selectedItems: readonly string[] | TItem[]) {
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
     const isFocused = useIsFocused();

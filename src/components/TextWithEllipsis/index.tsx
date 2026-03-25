@@ -40,6 +40,4 @@ function TextWithEllipsis({leadingText, trailingText, textStyle, leadingTextPare
     );
 }
 
-TextWithEllipsis.displayName = 'TextWithEllipsis';
-
 export default TextWithEllipsis;

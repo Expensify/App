@@ -27,8 +27,8 @@ const ONFIDO_ERROR_DISPLAY_DURATION = 10000;
 function VerifyIdentity() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const illustrations = useMemoizedLazyIllustrations(['ToddBehindCloud'] as const);
-    const [walletOnfidoData] = useOnyx(ONYXKEYS.WALLET_ONFIDO, {canBeMissing: true, initWithStoredValues: false});
+    const illustrations = useMemoizedLazyIllustrations(['ToddBehindCloud']);
+    const [walletOnfidoData] = useOnyx(ONYXKEYS.WALLET_ONFIDO, {initWithStoredValues: false});
 
     const handleOnfidoSuccess = useCallback(
         (onfidoData: OnfidoData) => {
@@ -54,7 +54,7 @@ function VerifyIdentity() {
     };
 
     return (
-        <ScreenWrapper testID={VerifyIdentity.displayName}>
+        <ScreenWrapper testID="VerifyIdentity">
             <HeaderWithBackButton
                 title={translate('onfidoStep.verifyIdentity')}
                 onBackButtonPress={goBack}
@@ -102,7 +102,5 @@ function VerifyIdentity() {
         </ScreenWrapper>
     );
 }
-
-VerifyIdentity.displayName = 'VerifyIdentity';
 
 export default VerifyIdentity;

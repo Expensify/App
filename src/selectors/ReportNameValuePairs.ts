@@ -1,29 +1,14 @@
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import {isArchivedReport} from '@libs/ReportUtils';
-import type {ArchivedReportsIDSet} from '@libs/SearchUIUtils';
+import type {OnyxEntry} from 'react-native-onyx';
 import type {ReportNameValuePairs} from '@src/types/onyx';
-import mapOnyxCollectionItems from '@src/utils/mapOnyxCollectionItems';
-
-type ReportNameValuePairsSelector<T> = (reportNameValuePairs: OnyxEntry<ReportNameValuePairs>) => T;
-
-const createReportNameValuePairsSelector = <T>(reportNameValuePairs: OnyxCollection<ReportNameValuePairs>, reportNameValuePairsSelector: ReportNameValuePairsSelector<T>) =>
-    mapOnyxCollectionItems(reportNameValuePairs, reportNameValuePairsSelector);
 
 /**
- * Selector that creates a Set of archived report IDs from report name value pairs
+ * Selector that extracts only the private_isArchived value from a single ReportNameValuePairs entry
  */
-const archivedReportsIdSetSelector = (all: OnyxCollection<ReportNameValuePairs>): ArchivedReportsIDSet => {
-    const ids = new Set<string>();
-    if (!all) {
-        return ids;
-    }
+const privateIsArchivedSelector = (reportNameValuePairs: OnyxEntry<ReportNameValuePairs>): string | undefined => reportNameValuePairs?.private_isArchived;
 
-    for (const [key, value] of Object.entries(all)) {
-        if (isArchivedReport(value)) {
-            ids.add(key);
-        }
-    }
-    return ids;
-};
+/**
+ * Selector that extracts and trims the agentZeroProcessingRequestIndicator value
+ */
+const agentZeroProcessingIndicatorSelector = (reportNameValuePairs: OnyxEntry<ReportNameValuePairs>): string => reportNameValuePairs?.agentZeroProcessingRequestIndicator?.trim() ?? '';
 
-export {createReportNameValuePairsSelector, archivedReportsIdSetSelector};
+export {privateIsArchivedSelector, agentZeroProcessingIndicatorSelector};

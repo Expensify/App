@@ -27,24 +27,89 @@
 }}
 
 // per-parser initializer (code executed before every parse)
-{
+{  
+  const GROUP_BY_DEFAULT_SORT = {
+    from: "groupFrom",
+    card: "groupCard",
+    "withdrawal-id": "groupWithdrawn",
+    category: "groupCategory",
+    tag: "groupTag",
+    merchant: "groupMerchant",
+    month: "groupmonth",
+    week: "groupweek",
+    year: "groupyear",
+    quarter: "groupquarter",
+  };
+
+  const GROUP_BY_DEFAULT_SORT_ORDER = {
+    from: "asc",
+    card: "asc",
+    "withdrawal-id": "desc",
+    category: "asc",
+    tag: "asc",
+    merchant: "asc",
+    month: "desc",
+    week: "desc",
+    year: "desc",
+    quarter: "desc",
+  };
+
+  const DEFAULT_SORT_BY_VALUES = new Set([...Object.values(GROUP_BY_DEFAULT_SORT), "date"]);
+
+  const TIME_BASED_GROUP_BY = new Set(["week", "month", "year", "quarter"]);
+
   const defaultValues = {
     type: "expense",
     status: "",
     sortBy: "date",
     sortOrder: "desc",
+    view: "table",
   };
+  let rawFilterList = [];
+  let userProvidedSortBy = false;
+  let userProvidedSortOrder = false;
 
   // List fields where you cannot prefix it with "-" to negate it
   const nonNegatableKeys = new Set([
-    "type", "keyword", "groupCurrency", "groupBy"
+    "type", "keyword", "groupCurrency", "groupBy", "columns", "limit", "view"
   ]);
+
+  function isDefaultSortValue(sortBy) {
+    return DEFAULT_SORT_BY_VALUES.has(sortBy);
+  }
+
+  function getDefaultSortByForGroupBy(groupBy) {
+    return GROUP_BY_DEFAULT_SORT[groupBy];
+  }
+
+  function getDefaultSortOrderForGroupBy(groupBy) {
+    return GROUP_BY_DEFAULT_SORT_ORDER[groupBy];
+  }
 
   function applyDefaults(filters) {
     return {
       ...defaultValues,
       filters,
+      rawFilterList,
     };
+  }
+
+  // Each groupBy has a natural sortBy column and sortOrder (e.g. groupBy:category sorts by groupCategory asc).
+  // When groupBy changes we re-derive both so the UI always starts with the correct default sort for the new grouping,
+  // unless the user explicitly provided sortBy or sortOrder in the query.
+  function deriveGroupByDefaults(groupByValue) {
+    if (!userProvidedSortBy) {
+      const defaultSortBy = getDefaultSortByForGroupBy(groupByValue);
+      if (defaultSortBy && defaultValues.sortBy !== defaultSortBy) {
+        defaultValues.sortBy = defaultSortBy;
+      }
+    }
+    if (!userProvidedSortOrder) {
+      const defaultSortOrder = getDefaultSortOrderForGroupBy(groupByValue);
+      if (defaultSortOrder) {
+        defaultValues.sortOrder = defaultSortOrder;
+      }
+    }
   }
 
   function updateDefaultValues(field, value) {
@@ -52,7 +117,63 @@
       defaultValues[field] = "";
       return;
     }
+
+    // Track if user explicitly provided a custom (non-default) sortBy
+    if (field === "sortBy" && !isDefaultSortValue(value)) {
+      userProvidedSortBy = true;
+    }
+
+    // Track if user explicitly provided sortOrder
+    if (field === "sortOrder") {
+      userProvidedSortOrder = true;
+    }
+
+    // Auto-update sortBy and sortOrder when groupBy changes
+    if (field === "groupBy" && value) {
+      deriveGroupByDefaults(value);
+
+      if (defaultValues.view !== "table" && TIME_BASED_GROUP_BY.has(value) && !userProvidedSortOrder) {
+        defaultValues.sortOrder = "asc";
+      }
+    }
+
+    // Chart views (bar, line, pie) require a groupBy to aggregate data, so we assign a sensible
+    // default groupBy when none was provided (line defaults to month for chronological display,
+    // others default to category). We also default sortOrder to asc for time-based groupBys so
+    // that charts display data in chronological order (oldest to newest).
+    if (field === "view" && value && value !== "table") {
+      if (!defaultValues.groupBy) {
+        const defaultGroupBy = value === "line" ? "month" : "category";
+        defaultValues.groupBy = defaultGroupBy;
+        deriveGroupByDefaults(defaultGroupBy);
+      }
+
+      if (TIME_BASED_GROUP_BY.has(defaultValues.groupBy) && !userProvidedSortOrder) {
+        defaultValues.sortOrder = "asc";
+      }
+    }
+
     defaultValues[field] = value;
+  }
+
+  function createRawFilter(filter) {
+    if (!filter || !filter.right) {
+      return null;
+    }
+
+    if (typeof filter.left !== "string") {
+      return null;
+    }
+
+    const key = filter.left;
+    const value = Array.isArray(filter.right) ? [...filter.right] : filter.right;
+
+    return {
+      key,
+      operator: filter.operator,
+      value,
+      isDefault: !!filter.isDefault,
+    };
   }
 }
 
@@ -63,15 +184,19 @@ filterList
       const allFilters = [head, ...tail.map(([_, filter]) => filter)]
         .filter(Boolean)
         .filter((filter) => filter.right);
-      if (!allFilters.length) {
+      rawFilterList = allFilters.map(createRawFilter).filter(Boolean);
+
+      const filtersWithoutDefaults = allFilters.filter((filter) => !filter.isDefault);
+
+      if (!filtersWithoutDefaults.length) {
         return null;
       }
 
-      const keywords = allFilters.filter(
+      const keywords = filtersWithoutDefaults.filter(
         (filter) =>
           filter.left === "keyword" || filter.right?.left === "keyword"
       );
-      const nonKeywords = allFilters.filter(
+      const nonKeywords = filtersWithoutDefaults.filter(
         (filter) =>
           filter.left !== "keyword" && filter.right?.left !== "keyword"
       );
@@ -96,6 +221,7 @@ filter = @(standardFilter / defaultFilter / freeTextFilter)
 defaultFilter
   = _ key:defaultKey _ op:operator _ value:identifier {
       updateDefaultValues(key, value);
+      return {...buildFilter(op, key, value), isDefault: true};
     }
 
 freeTextFilter
@@ -160,6 +286,7 @@ key "key"
       / submitted
       / approved
       / paid
+      / exportedTo
       / exported
       / posted
       / withdrawn
@@ -183,7 +310,7 @@ filterKey
       return k;
     }
     
-defaultKey "default key" = @(type / status / sortBy / sortOrder / policyID / groupBy)
+defaultKey "default key" = @(type / status / sortBy / sortOrder / policyID / groupBy / columns / limit / view)
 
 identifier
   = (","+)? parts:(values / quotedString / alphanumeric)|1.., ","+| empty:(","+)? {

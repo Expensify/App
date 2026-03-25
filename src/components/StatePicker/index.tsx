@@ -54,5 +54,4 @@ function StatePicker({value, errorText, onInputChange = () => {}}: StatePickerPr
     );
 }
 
-StatePicker.displayName = 'StatePicker';
 export default StatePicker;

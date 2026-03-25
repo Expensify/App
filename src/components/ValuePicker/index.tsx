@@ -7,7 +7,22 @@ import type {ValuePickerItem, ValuePickerProps} from './types';
 import ValueSelectionList from './ValueSelectionList';
 import ValueSelectorModal from './ValueSelectorModal';
 
-function ValuePicker({value, label, items, placeholder = '', errorText = '', onInputChange, furtherDetails, shouldShowTooltips = true, shouldShowModal = true, ref}: ValuePickerProps) {
+function ValuePicker({
+    value,
+    label,
+    items,
+    placeholder = '',
+    errorText = '',
+    onInputChange,
+    furtherDetails,
+    shouldShowTooltips = true,
+    shouldShowModal = true,
+    ref,
+    forwardedFSClass,
+    addBottomSafeAreaPadding = true,
+    disableKeyboardShortcuts = false,
+    alternateNumberOfSupportedLines,
+}: ValuePickerProps) {
     const [isPickerVisible, setIsPickerVisible] = useState(false);
 
     const showPickerModal = () => {
@@ -41,6 +56,7 @@ function ValuePicker({value, label, items, placeholder = '', errorText = '', onI
                         furtherDetails={furtherDetails}
                         brickRoadIndicator={errorText ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                         errorText={errorText}
+                        forwardedFSClass={forwardedFSClass}
                     />
                     <ValueSelectorModal
                         isVisible={isPickerVisible}
@@ -52,6 +68,8 @@ function ValuePicker({value, label, items, placeholder = '', errorText = '', onI
                         shouldShowTooltips={shouldShowTooltips}
                         onBackdropPress={Navigation.dismissModal}
                         shouldEnableKeyboardAvoidingView={false}
+                        addBottomSafeAreaPadding={addBottomSafeAreaPadding}
+                        alternateNumberOfSupportedLines={alternateNumberOfSupportedLines}
                     />
                 </>
             ) : (
@@ -60,12 +78,13 @@ function ValuePicker({value, label, items, placeholder = '', errorText = '', onI
                     selectedItem={selectedItem}
                     onItemSelected={updateInput}
                     shouldShowTooltips={shouldShowTooltips}
+                    addBottomSafeAreaPadding={addBottomSafeAreaPadding}
+                    disableKeyboardShortcuts={disableKeyboardShortcuts}
+                    alternateNumberOfSupportedLines={alternateNumberOfSupportedLines}
                 />
             )}
         </View>
     );
 }
-
-ValuePicker.displayName = 'ValuePicker';
 
 export default ValuePicker;

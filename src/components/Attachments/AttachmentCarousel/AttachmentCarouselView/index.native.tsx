@@ -30,7 +30,7 @@ function AttachmentCarouselView({
     const {translate} = useLocalize();
     const canUseTouchScreen = canUseTouchScreenUtil();
     const styles = useThemeStyles();
-    const illustrations = useMemoizedLazyIllustrations(['ToddBehindCloud'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['ToddBehindCloud']);
     const [activeAttachmentID, setActiveAttachmentID] = useState<AttachmentSource>(attachmentID ?? source);
 
     const pagerRef = useRef<AttachmentCarouselPagerHandle>(null);
@@ -49,7 +49,6 @@ function AttachmentCarouselView({
                 if (onNavigate) {
                     onNavigate(item);
                 }
-                onNavigate?.(item);
             }
         },
         [setShouldShowArrows, attachments, setPage, onNavigate],
@@ -113,7 +112,5 @@ function AttachmentCarouselView({
         </View>
     );
 }
-
-AttachmentCarouselView.displayName = 'AttachmentCarouselView';
 
 export default AttachmentCarouselView;

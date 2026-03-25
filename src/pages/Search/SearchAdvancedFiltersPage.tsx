@@ -16,11 +16,11 @@ function SearchAdvancedFiltersPage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const [searchAdvancedFilters = getEmptyObject<SearchAdvancedFiltersForm>()] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {canBeMissing: true});
+    const [searchAdvancedFilters = getEmptyObject<SearchAdvancedFiltersForm>()] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
 
     const shouldShowResetFilters = Object.entries(searchAdvancedFilters)
         .filter(([key, value]) => {
-            if (key === CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY) {
+            if (key === CONST.SEARCH.SYNTAX_ROOT_KEYS.COLUMNS) {
                 return false;
             }
 
@@ -38,7 +38,7 @@ function SearchAdvancedFiltersPage() {
 
     return (
         <ScreenWrapper
-            testID={SearchAdvancedFiltersPage.displayName}
+            testID="SearchAdvancedFiltersPage"
             shouldShowOfflineIndicatorInWideScreen
             offlineIndicatorStyle={styles.mtAuto}
             includeSafeAreaPaddingBottom
@@ -50,7 +50,5 @@ function SearchAdvancedFiltersPage() {
         </ScreenWrapper>
     );
 }
-
-SearchAdvancedFiltersPage.displayName = 'SearchAdvancedFiltersPage';
 
 export default SearchAdvancedFiltersPage;

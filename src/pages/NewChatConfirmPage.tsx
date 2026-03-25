@@ -18,8 +18,9 @@ import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types
 import {readFileAsync} from '@libs/fileDownload/FileUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getParticipantsOption} from '@libs/OptionsListUtils';
-import {generateReportID, getDefaultGroupAvatar, getGroupChatName} from '@libs/ReportUtils';
-import {navigateToAndOpenReport, setGroupDraft} from '@userActions/Report';
+import {getGroupChatName} from '@libs/ReportNameUtils';
+import {generateReportID, getDefaultGroupAvatar} from '@libs/ReportUtils';
+import {navigateToAndCreateGroupChat, setGroupDraft} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -37,12 +38,15 @@ function navigateToEditChatName() {
 function NewChatConfirmPage() {
     const optimisticReportID = useRef<string>(generateReportID());
     const [avatarFile, setAvatarFile] = useState<File | CustomRNImageManipulatorResult | undefined>();
-    const {translate, localeCompare} = useLocalize();
+    const {translate, localeCompare, formatPhoneNumber} = useLocalize();
     const styles = useThemeStyles();
     const personalData = useCurrentUserPersonalDetails();
-    const [newGroupDraft, newGroupDraftMetaData] = useOnyx(ONYXKEYS.NEW_GROUP_CHAT_DRAFT, {canBeMissing: true});
-    const [allPersonalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
-    const icons = useMemoizedLazyExpensifyIcons(['Camera'] as const);
+    const [newGroupDraft, newGroupDraftMetaData] = useOnyx(ONYXKEYS.NEW_GROUP_CHAT_DRAFT);
+    const [allPersonalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const [betas] = useOnyx(ONYXKEYS.BETAS);
+
+    const icons = useMemoizedLazyExpensifyIcons(['Camera']);
 
     const selectedOptions = useMemo((): Participant[] => {
         if (!newGroupDraft?.participants) {
@@ -54,7 +58,7 @@ function NewChatConfirmPage() {
         return options;
     }, [allPersonalDetails, newGroupDraft?.participants]);
 
-    const groupName = newGroupDraft?.reportName ? newGroupDraft?.reportName : getGroupChatName(newGroupDraft?.participants);
+    const groupName = newGroupDraft?.reportName ? newGroupDraft?.reportName : getGroupChatName(formatPhoneNumber, newGroupDraft?.participants);
     const selectedParticipants: ListItem[] = useMemo(
         () =>
             selectedOptions
@@ -98,8 +102,17 @@ function NewChatConfirmPage() {
         }
 
         const logins: string[] = (newGroupDraft.participants ?? []).map((participant) => participant.login).filter((login): login is string => !!login);
-        navigateToAndOpenReport(logins, true, newGroupDraft.reportName ?? '', newGroupDraft.avatarUri ?? '', avatarFile, optimisticReportID.current, true);
-    }, [newGroupDraft, avatarFile]);
+        navigateToAndCreateGroupChat(
+            logins,
+            newGroupDraft.reportName ?? '',
+            personalData.login ?? '',
+            optimisticReportID.current,
+            introSelected,
+            newGroupDraft.avatarUri ?? '',
+            avatarFile,
+            betas,
+        );
+    }, [newGroupDraft, avatarFile, personalData.login, introSelected, betas]);
 
     const stashedLocalAvatarImage = newGroupDraft?.avatarUri;
 
@@ -122,11 +135,11 @@ function NewChatConfirmPage() {
         readFileAsync(stashedLocalAvatarImage, newGroupDraft?.avatarFileName ?? '', onSuccess, onFailure, newGroupDraft?.avatarFileType ?? '');
 
         // we only need to run this when the component re-mounted and when the onyx is loaded completely
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [newGroupDraftMetaData]);
 
     return (
-        <ScreenWrapper testID={NewChatConfirmPage.displayName}>
+        <ScreenWrapper testID="NewChatConfirmPage">
             <HeaderWithBackButton
                 title={translate('common.group')}
                 onBackButtonPress={navigateBack}
@@ -134,7 +147,6 @@ function NewChatConfirmPage() {
             <View style={styles.avatarSectionWrapper}>
                 <AvatarWithImagePicker
                     isUsingDefaultAvatar={!stashedLocalAvatarImage}
-                    // eslint-disable-next-line react-compiler/react-compiler
                     source={stashedLocalAvatarImage ?? getDefaultGroupAvatar(optimisticReportID.current)}
                     onImageSelected={(image) => {
                         setAvatarFile(image);
@@ -180,7 +192,5 @@ function NewChatConfirmPage() {
         </ScreenWrapper>
     );
 }
-
-NewChatConfirmPage.displayName = 'NewChatConfirmPage';
 
 export default NewChatConfirmPage;

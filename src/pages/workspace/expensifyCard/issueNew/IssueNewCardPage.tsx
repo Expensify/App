@@ -1,9 +1,8 @@
-import {isActingAsDelegateSelector} from '@selectors/Account';
 import React, {useEffect, useMemo} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
+import {useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
 import ScreenWrapper from '@components/ScreenWrapper';
-import useInitial from '@hooks/useInitial';
 import useOnyx from '@hooks/useOnyx';
 import {startIssueNewCardFlow} from '@libs/actions/Card';
 import Navigation from '@libs/Navigation/Navigation';
@@ -21,8 +20,8 @@ import CardNameStep from './CardNameStep';
 import CardTypeStep from './CardTypeStep';
 import ConfirmationStep from './ConfirmationStep';
 import InviteNewMemberStep from './InviteNewMemberStep';
-import LimitStep from './LimitStep';
 import LimitTypeStep from './LimitTypeStep';
+import SetExpiryOptionsStep from './SetExpiryOptionsStep';
 
 type IssueNewCardPageProps = WithPolicyAndFullscreenLoadingProps & PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.EXPENSIFY_CARD_ISSUE_NEW>;
 
@@ -36,7 +35,7 @@ function getStartStepIndex(issueNewCard: OnyxEntry<IssueNewCard>): number {
         [CONST.EXPENSIFY_CARD.STEP.INVITE_NEW_MEMBER]: 0,
         [CONST.EXPENSIFY_CARD.STEP.CARD_TYPE]: 1,
         [CONST.EXPENSIFY_CARD.STEP.LIMIT_TYPE]: 2,
-        [CONST.EXPENSIFY_CARD.STEP.LIMIT]: 3,
+        [CONST.EXPENSIFY_CARD.STEP.EXPIRY_OPTIONS]: 3,
         [CONST.EXPENSIFY_CARD.STEP.CARD_NAME]: 4,
         [CONST.EXPENSIFY_CARD.STEP.CONFIRMATION]: 5,
     };
@@ -47,13 +46,17 @@ function getStartStepIndex(issueNewCard: OnyxEntry<IssueNewCard>): number {
 
 function IssueNewCardPage({policy, route}: IssueNewCardPageProps) {
     const policyID = policy?.id;
-    const [issueNewCard] = useOnyx(`${ONYXKEYS.COLLECTION.ISSUE_NEW_EXPENSIFY_CARD}${policyID}`, {canBeMissing: true});
+    const [issueNewCard] = useOnyx(`${ONYXKEYS.COLLECTION.ISSUE_NEW_EXPENSIFY_CARD}${policyID}`, {initWithStoredValues: false});
     const {currentStep} = issueNewCard ?? {};
     const backTo = route?.params?.backTo;
-    const firstAssigneeEmail = useInitial(issueNewCard?.data?.assigneeEmail);
-    const shouldUseBackToParam = !firstAssigneeEmail || firstAssigneeEmail === issueNewCard?.data?.assigneeEmail;
-    const [isActingAsDelegate] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isActingAsDelegateSelector, canBeMissing: true});
-    const stepNames = issueNewCard?.isChangeAssigneeDisabled ? CONST.EXPENSIFY_CARD.ASSIGNEE_EXCLUDED_STEP_NAMES : CONST.EXPENSIFY_CARD.STEP_NAMES;
+    const {isDelegateAccessRestricted} = useDelegateNoAccessState();
+
+    const stepNames = useMemo(() => {
+        if (issueNewCard?.isChangeAssigneeDisabled) {
+            return CONST.EXPENSIFY_CARD.ASSIGNEE_EXCLUDED_STEP_NAMES;
+        }
+        return CONST.EXPENSIFY_CARD.STEP_NAMES;
+    }, [issueNewCard?.isChangeAssigneeDisabled]);
     const startStepIndex = useMemo(() => getStartStepIndex(issueNewCard), [issueNewCard]);
 
     useEffect(() => {
@@ -74,7 +77,7 @@ function IssueNewCardPage({policy, route}: IssueNewCardPageProps) {
             case CONST.EXPENSIFY_CARD.STEP.CARD_TYPE:
                 return (
                     <CardTypeStep
-                        policyID={policyID}
+                        policy={policy}
                         stepNames={stepNames}
                         startStepIndex={startStepIndex}
                     />
@@ -87,14 +90,6 @@ function IssueNewCardPage({policy, route}: IssueNewCardPageProps) {
                         startStepIndex={startStepIndex}
                     />
                 );
-            case CONST.EXPENSIFY_CARD.STEP.LIMIT:
-                return (
-                    <LimitStep
-                        policyID={policyID}
-                        stepNames={stepNames}
-                        startStepIndex={startStepIndex}
-                    />
-                );
             case CONST.EXPENSIFY_CARD.STEP.CARD_NAME:
                 return (
                     <CardNameStep
@@ -103,13 +98,21 @@ function IssueNewCardPage({policy, route}: IssueNewCardPageProps) {
                         startStepIndex={startStepIndex}
                     />
                 );
+            case CONST.EXPENSIFY_CARD.STEP.EXPIRY_OPTIONS:
+                return (
+                    <SetExpiryOptionsStep
+                        policy={policy}
+                        stepNames={stepNames}
+                        startStepIndex={startStepIndex}
+                    />
+                );
             case CONST.EXPENSIFY_CARD.STEP.CONFIRMATION:
                 return (
                     <ConfirmationStep
                         policyID={policyID}
-                        backTo={shouldUseBackToParam ? backTo : undefined}
                         stepNames={stepNames}
                         startStepIndex={startStepIndex}
+                        backTo={backTo}
                     />
                 );
             case CONST.EXPENSIFY_CARD.STEP.INVITE_NEW_MEMBER:
@@ -126,15 +129,15 @@ function IssueNewCardPage({policy, route}: IssueNewCardPageProps) {
         }
     };
 
-    if (isActingAsDelegate) {
+    if (isDelegateAccessRestricted) {
         return (
             <ScreenWrapper
-                testID={IssueNewCardPage.displayName}
+                testID="IssueNewCardPage"
                 enableEdgeToEdgeBottomSafeAreaPadding
                 shouldEnablePickerAvoiding={false}
             >
                 <DelegateNoAccessWrapper
-                    accessDeniedVariants={[CONST.DELEGATE.DENIED_ACCESS_VARIANTS.DELEGATE]}
+                    accessDeniedVariants={[CONST.DELEGATE.DENIED_ACCESS_VARIANTS.SUBMITTER]}
                     onBackButtonPress={() => Navigation.goBack(backTo)}
                 />
             </ScreenWrapper>
@@ -152,5 +155,4 @@ function IssueNewCardPage({policy, route}: IssueNewCardPageProps) {
     );
 }
 
-IssueNewCardPage.displayName = 'IssueNewCardPage';
 export default withPolicyAndFullscreenLoading(IssueNewCardPage);

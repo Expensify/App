@@ -3,7 +3,6 @@ import {useNavigation, useRoute} from '@react-navigation/native';
 import {createStackNavigator} from '@react-navigation/stack';
 import React, {useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
-import * as Expensicons from '@components/Icon/Expensicons';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import getBackgroundColor from '@components/TabSelector/getBackground';
 import getOpacity from '@components/TabSelector/getOpacity';
@@ -20,18 +19,18 @@ type IconAndTitle = {
     title: string;
 };
 
-function getIconAndTitle(icons: Record<'Document', IconAsset>, route: string, translate: LocaleContextProps['translate']): IconAndTitle {
+function getIconAndTitle(icons: Record<'Document' | 'Exclamation' | 'Eye' | 'Info', IconAsset>, route: string, translate: LocaleContextProps['translate']): IconAndTitle {
     switch (route) {
         case CONST.DEBUG.DETAILS:
-            return {icon: Expensicons.Info, title: translate('debug.details')};
+            return {icon: icons.Info, title: translate('debug.details')};
         case CONST.DEBUG.JSON:
-            return {icon: Expensicons.Eye, title: translate('debug.JSON')};
+            return {icon: icons.Eye, title: translate('debug.JSON')};
         case CONST.DEBUG.REPORT_ACTIONS:
             return {icon: icons.Document, title: translate('debug.reportActions')};
         case CONST.DEBUG.REPORT_ACTION_PREVIEW:
             return {icon: icons.Document, title: translate('debug.reportActionPreview')};
         case CONST.DEBUG.TRANSACTION_VIOLATIONS:
-            return {icon: Expensicons.Exclamation, title: translate('debug.violations')};
+            return {icon: icons.Exclamation, title: translate('debug.violations')};
         default:
             throw new Error(`Route ${route} has no icon nor title set.`);
     }
@@ -52,7 +51,7 @@ type DebugTabNavigatorProps = {
 };
 
 function DebugTabNavigator({id, routes}: DebugTabNavigatorProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['Document'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Document', 'Exclamation', 'Eye', 'Info'] as const);
     const styles = useThemeStyles();
     const theme = useTheme();
     const navigation = useNavigation<NavigationProp<Record<string, unknown>>>();
@@ -107,6 +106,7 @@ function DebugTabNavigator({id, routes}: DebugTabNavigatorProps) {
 
                     return (
                         <TabSelectorItem
+                            tabKey={route.name}
                             key={route.name}
                             icon={icon}
                             title={title}

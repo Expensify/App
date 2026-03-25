@@ -15,7 +15,7 @@ declare -r GITHUB_ACTIONS=(
     "$ACTIONS_DIR/checkAndroidStatus/checkAndroidStatus.ts"
     "$ACTIONS_DIR/checkDeployBlockers/checkDeployBlockers.ts"
     "$ACTIONS_DIR/checkSVGCompression/checkSVGCompression.ts"
-    "$ACTIONS_DIR/createOrUpdateStagingDeploy/createOrUpdateStagingDeploy.ts"
+    "$ACTIONS_DIR/failureNotifier/failureNotifier.ts"
     "$ACTIONS_DIR/formatCodeCovComment/formatCodeCovComment.ts"
     "$ACTIONS_DIR/getAndroidRolloutPercentage/getAndroidRolloutPercentage.ts"
     "$ACTIONS_DIR/getArtifactInfo/getArtifactInfo.ts"
@@ -24,7 +24,7 @@ declare -r GITHUB_ACTIONS=(
     "$ACTIONS_DIR/getPreviousVersion/getPreviousVersion.ts"
     "$ACTIONS_DIR/getPullRequestDetails/getPullRequestDetails.ts"
     "$ACTIONS_DIR/getPullRequestIncrementalChanges/getPullRequestIncrementalChanges.ts"
-    "$ACTIONS_DIR/isStagingDeployLocked/isStagingDeployLocked.ts"
+    "$ACTIONS_DIR/isDeployChecklistLocked/isDeployChecklistLocked.ts"
     "$ACTIONS_DIR/markPullRequestsAsDeployed/markPullRequestsAsDeployed.ts"
     "$ACTIONS_DIR/postTestBuildComment/postTestBuildComment.ts"
     "$ACTIONS_DIR/proposalPoliceComment/proposalPoliceComment.ts"
@@ -32,6 +32,7 @@ declare -r GITHUB_ACTIONS=(
     "$ACTIONS_DIR/reviewerChecklist/reviewerChecklist.ts"
     "$ACTIONS_DIR/validateReassureOutput/validateReassureOutput.ts"
     "$ACTIONS_DIR/verifySignedCommits/verifySignedCommits.ts"
+    "$ACTIONS_DIR/waitForPreviousRuns/waitForPreviousRuns.ts"
 )
 
 # This will be inserted at the top of all compiled files as a warning to devs.

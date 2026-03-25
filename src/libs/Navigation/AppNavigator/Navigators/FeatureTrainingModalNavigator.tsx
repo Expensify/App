@@ -34,6 +34,4 @@ function FeatureTrainingModalNavigator() {
     );
 }
 
-FeatureTrainingModalNavigator.displayName = 'FeatureTrainingModalNavigator';
-
 export default FeatureTrainingModalNavigator;

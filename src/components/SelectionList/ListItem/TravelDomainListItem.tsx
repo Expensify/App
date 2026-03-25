@@ -69,6 +69,4 @@ function TravelDomainListItem<TItem extends ListItem>({item, isFocused, showTool
     );
 }
 
-TravelDomainListItem.displayName = 'TravelDomainListItem';
-
 export default TravelDomainListItem;

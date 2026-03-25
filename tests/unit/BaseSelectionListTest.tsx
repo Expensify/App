@@ -1,12 +1,21 @@
 import {act, fireEvent, render, screen, waitFor} from '@testing-library/react-native';
+import type ReactNative from 'react-native';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import BaseSelectionList from '@components/SelectionList/BaseSelectionList';
-import type BaseListItem from '@components/SelectionList/ListItem/BaseListItem';
+import BaseListItem from '@components/SelectionList/ListItem/BaseListItem';
 import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import type Navigation from '@libs/Navigation/Navigation';
 import colors from '@styles/theme/colors';
 import CONST from '@src/CONST';
+
+// FlashList requires layout events to render items; mock it with FlatList for tests
+jest.mock('@shopify/flash-list', () => {
+    const RN = jest.requireActual<typeof ReactNative>('react-native');
+    return {
+        FlashList: RN.FlatList,
+    };
+});
 
 type BaseSelectionListSections<TItem extends ListItem> = {
     data: TItem[];
@@ -46,22 +55,6 @@ jest.mock('@hooks/useKeyboardShortcut', () => (key: {shortcutKey: string}, callb
     }
 });
 
-let mockShouldStopMouseLeavePropagation = false;
-jest.mock('@components/SelectionList/ListItem/BaseListItem', () => {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
-    const ActualBaseListItem = jest.requireActual('@components/SelectionList/ListItem/BaseListItem').default;
-
-    return ((props) => (
-        <ActualBaseListItem
-            // eslint-disable-next-line react/jsx-props-no-spreading
-            {...props}
-            shouldStopMouseLeavePropagation={mockShouldStopMouseLeavePropagation}
-        >
-            {props.children}
-        </ActualBaseListItem>
-    )) as typeof BaseListItem;
-});
-
 describe('BaseSelectionList', () => {
     const onSelectRowMock = jest.fn();
 
@@ -82,7 +75,7 @@ describe('BaseSelectionList', () => {
         );
     }
 
-    it('should focus next/previous item relative to hovered item when arrow keys are pressed', async () => {
+    it('should focus next/previous item relative to focused item when arrow keys are pressed', async () => {
         render(
             <BaseListItemRenderer
                 data={mockSections}
@@ -92,17 +85,14 @@ describe('BaseSelectionList', () => {
 
         expect(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}0`)).toHaveStyle({backgroundColor: colors.productDark400});
 
-        // Trigger a mouse move event to hover the item
-        fireEvent(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}8`), 'mouseMove', {stopPropagation: () => {}});
-
         // eslint-disable-next-line testing-library/no-unnecessary-act
         act(() => {
             arrowDownCallback();
         });
 
-        // The item that gets focused will be the one following the hovered item
+        // The item that gets focused will be the one following the currently focused item
         await waitFor(() => {
-            expect(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}9`)).toHaveStyle({backgroundColor: colors.productDark300});
+            expect(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}1`)).toHaveStyle({backgroundColor: colors.productDark300});
         });
 
         act(() => {
@@ -111,7 +101,7 @@ describe('BaseSelectionList', () => {
         });
 
         await waitFor(() => {
-            expect(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}7`)).toHaveStyle({backgroundColor: colors.productDark300});
+            expect(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}9`)).toHaveStyle({backgroundColor: colors.productDark300});
         });
 
         act(() => {
@@ -119,34 +109,40 @@ describe('BaseSelectionList', () => {
         });
 
         await waitFor(() => {
-            expect(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}8`)).toHaveStyle({backgroundColor: colors.productDark300});
+            expect(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}0`)).toHaveStyle({backgroundColor: colors.productDark400});
         });
     });
 
-    it("the stopPropagation from the BaseListItem's mouseLeave event does not trigger if shouldStopMouseLeavePropagation === false", () => {
-        mockShouldStopMouseLeavePropagation = false;
+    it('should not call preventDefault on mouseDown when the target is an INPUT element', () => {
         render(
-            <BaseListItemRenderer
-                data={mockSections}
-                canSelectMultiple={false}
-            />,
+            <OnyxListItemProvider>
+                <BaseListItem
+                    item={{keyForList: '1', text: 'Item 1'}}
+                    onSelectRow={() => {}}
+                    showTooltip={false}
+                    isFocused={false}
+                    keyForList="1"
+                >
+                    <input data-testid="test-input" />
+                </BaseListItem>
+            </OnyxListItemProvider>,
         );
 
-        const mockStopPropagation = jest.fn();
-        fireEvent(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}3`), 'mouseLeave', {stopPropagation: mockStopPropagation});
+        const preventDefault = jest.fn();
+        const listItem = screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}1`);
 
-        expect(mockStopPropagation).toHaveBeenCalledTimes(0);
+        // Test case 1: Target is INPUT
+        fireEvent(listItem, 'mouseDown', {
+            target: {tagName: CONST.ELEMENT_NAME.INPUT},
+            preventDefault,
+        });
+        expect(preventDefault).not.toHaveBeenCalled();
 
-        mockShouldStopMouseLeavePropagation = true;
-        render(
-            <BaseListItemRenderer
-                data={mockSections}
-                canSelectMultiple={false}
-            />,
-        );
-
-        fireEvent(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}3`), 'mouseLeave', {stopPropagation: mockStopPropagation});
-
-        expect(mockStopPropagation).toHaveBeenCalledTimes(1);
+        // Test case 2: Target is NOT INPUT (e.g., DIV)
+        fireEvent(listItem, 'mouseDown', {
+            target: {tagName: CONST.ELEMENT_NAME.DIV},
+            preventDefault,
+        });
+        expect(preventDefault).toHaveBeenCalled();
     });
 });

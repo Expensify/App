@@ -1,6 +1,6 @@
 type OpenPolicyExpensifyCardsPageParams = {
     policyID: string;
-    authToken: string | null | undefined;
+    emailList?: string;
 };
 
 export default OpenPolicyExpensifyCardsPageParams;

@@ -10,9 +10,9 @@ import type {MapRef, ViewState} from 'react-map-gl';
 import Map, {Marker} from 'react-map-gl';
 import {View} from 'react-native';
 import Button from '@components/Button';
-import * as Expensicons from '@components/Icon/Expensicons';
 import {PressableWithoutFeedback} from '@components/Pressable';
 import Text from '@components/Text';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -32,6 +32,7 @@ import './mapbox.css';
 import type {MapViewProps} from './MapViewTypes';
 import PendingMapView from './PendingMapView';
 import responder from './responder';
+import useDistanceUnit from './useDistanceUnit';
 import utils from './utils';
 
 function MapViewImpl({
@@ -47,27 +48,16 @@ function MapViewImpl({
     unit,
     ref,
 }: MapViewProps) {
-    const [userLocation] = useOnyx(ONYXKEYS.USER_LOCATION, {canBeMissing: true});
+    const [userLocation] = useOnyx(ONYXKEYS.USER_LOCATION);
 
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
-    const [distanceUnit, setDistanceUnit] = useState(unit);
-    useEffect(() => {
-        if (!unit || distanceUnit) {
-            return;
-        }
-        setDistanceUnit(unit);
-    }, [unit, distanceUnit]);
-
-    const toggleDistanceUnit = useCallback(() => {
-        setDistanceUnit((currentUnit) =>
-            currentUnit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS ? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES : CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS,
-        );
-    }, []);
+    const {distanceUnit, toggleDistanceUnit} = useDistanceUnit(unit);
 
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Crosshair']);
 
     const [mapRef, setMapRef] = useState<MapRef | null>(null);
     const initialLocation = useMemo(() => ({longitude: initialState.location[0], latitude: initialState.location[1]}), [initialState]);
@@ -135,7 +125,7 @@ function MapViewImpl({
             zoom: CONST.MAPBOX.DEFAULT_ZOOM,
             animate: shouldAnimate,
         });
-    }, [currentPosition, mapRef, prevUserPosition, shouldPanMapToCurrentPosition]);
+    }, [currentPosition, mapRef, prevUserPosition.longitude, prevUserPosition.latitude, shouldPanMapToCurrentPosition]);
 
     const resetBoundaries = useCallback(() => {
         if (!waypoints || waypoints.length === 0) {
@@ -172,7 +162,7 @@ function MapViewImpl({
 
         resetBoundaries();
         setShouldResetBoundaries(false);
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- this effect only needs to run when the boundaries reset is forced
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- this effect only needs to run when the boundaries reset is forced
     }, [shouldResetBoundaries]);
 
     useEffect(() => {
@@ -224,7 +214,7 @@ function MapViewImpl({
             animate: true,
             duration: CONST.MAPBOX.ANIMATION_DURATION_ON_CENTER_ME,
         });
-    }, [directionCoordinates, currentPosition, mapRef, waypoints, mapPadding]);
+    }, [directionCoordinates, currentPosition?.longitude, currentPosition?.latitude, mapRef, waypoints, mapPadding]);
 
     const initialViewState: Partial<ViewState> | undefined = useMemo(() => {
         if (!interactive) {
@@ -245,7 +235,7 @@ function MapViewImpl({
             latitude: currentPosition?.latitude,
             zoom: initialState.zoom,
         };
-    }, [waypoints, directionCoordinates, interactive, currentPosition, initialState.zoom]);
+    }, [waypoints, directionCoordinates, interactive, currentPosition?.longitude, currentPosition?.latitude, initialState.zoom]);
 
     const distanceSymbolCoordinate = useMemo(() => {
         if (!directionCoordinates?.length || !waypoints?.length) {
@@ -292,6 +282,7 @@ function MapViewImpl({
                         latitude={distanceSymbolCoordinate.at(1) ?? 0}
                     >
                         <PressableWithoutFeedback
+                            sentryLabel="MapView-ToggleDistanceUnit"
                             accessibilityLabel={CONST.ROLE.BUTTON}
                             role={CONST.ROLE.BUTTON}
                             onPress={toggleDistanceUnit}
@@ -324,7 +315,7 @@ function MapViewImpl({
                     <Button
                         onPress={centerMap}
                         iconFill={theme.icon}
-                        icon={Expensicons.Crosshair}
+                        icon={expensifyIcons.Crosshair}
                         accessibilityLabel={translate('common.center')}
                     />
                 </View>

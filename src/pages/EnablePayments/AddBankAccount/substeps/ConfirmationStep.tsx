@@ -24,8 +24,8 @@ function ConfirmationStep({onNext, onMove}: ConfirmationStepProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
-    const [personalBankAccountDraft] = useOnyx(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM_DRAFT, {canBeMissing: true});
-    const [personalBankAccount] = useOnyx(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {canBeMissing: true});
+    const [personalBankAccountDraft] = useOnyx(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM_DRAFT);
+    const [personalBankAccount] = useOnyx(ONYXKEYS.PERSONAL_BANK_ACCOUNT);
 
     const isLoading = personalBankAccount?.isLoading ?? false;
     const error = getLatestErrorMessage(personalBankAccount ?? {});
@@ -38,6 +38,7 @@ function ConfirmationStep({onNext, onMove}: ConfirmationStepProps) {
         <ScrollView
             style={styles.pt0}
             contentContainerStyle={styles.flexGrow1}
+            addBottomSafeAreaPadding={!isOffline}
         >
             <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5]}>{translate('walletPage.confirmYourBankAccount')}</Text>
             <Text style={[styles.mt3, styles.mb3, styles.ph5, styles.textSupporting]}>{translate('bankAccount.letsDoubleCheck')}</Text>
@@ -68,7 +69,5 @@ function ConfirmationStep({onNext, onMove}: ConfirmationStepProps) {
         </ScrollView>
     );
 }
-
-ConfirmationStep.displayName = 'ConfirmationStep';
 
 export default ConfirmationStep;

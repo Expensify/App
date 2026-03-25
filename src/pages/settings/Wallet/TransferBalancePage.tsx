@@ -5,11 +5,11 @@ import ConfirmationPage from '@components/ConfirmationPage';
 import CurrentWalletBalance from '@components/CurrentWalletBalance';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -41,11 +41,12 @@ function TransferBalancePage() {
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const {paddingBottom} = useSafeAreaPaddings();
+    const icons = useMemoizedLazyExpensifyIcons(['Bank']);
 
-    const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET, {canBeMissing: true});
-    const [walletTransfer] = useOnyx(ONYXKEYS.WALLET_TRANSFER, {canBeMissing: true});
-    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
-    const [fundList] = useOnyx(ONYXKEYS.FUND_LIST, {canBeMissing: true});
+    const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET);
+    const [walletTransfer] = useOnyx(ONYXKEYS.WALLET_TRANSFER);
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
+    const [fundList] = useOnyx(ONYXKEYS.FUND_LIST);
     const paymentCardList = fundList ?? {};
 
     const paymentTypes = [
@@ -53,10 +54,10 @@ function TransferBalancePage() {
         // {
         //     key: CONST.WALLET.TRANSFER_METHOD_TYPE.INSTANT,
         //     title: translate('transferAmountPage.instant'),
-        //     description: translate('transferAmountPage.instantSummary', {
-        //         rate: numberFormat(CONST.WALLET.TRANSFER_METHOD_TYPE_FEE.INSTANT.RATE),
-        //         minAmount: convertToDisplayString(CONST.WALLET.TRANSFER_METHOD_TYPE_FEE.INSTANT.MINIMUM_FEE),
-        //     }),
+        //     description: translate('transferAmountPage.instantSummary',
+        //         numberFormat(CONST.WALLET.TRANSFER_METHOD_TYPE_FEE.INSTANT.RATE),
+        //         convertToDisplayString(CONST.WALLET.TRANSFER_METHOD_TYPE_FEE.INSTANT.MINIMUM_FEE)
+        //     ),
         //     icon: Expensicons.Bolt,
         //     type: CONST.PAYMENT_METHODS.DEBIT_CARD,
         // },
@@ -64,7 +65,7 @@ function TransferBalancePage() {
             key: CONST.WALLET.TRANSFER_METHOD_TYPE.ACH,
             title: translate('transferAmountPage.ach'),
             description: translate('transferAmountPage.achSummary'),
-            icon: Expensicons.Bank,
+            icon: icons.Bank,
             type: CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT,
         },
     ];
@@ -108,12 +109,12 @@ function TransferBalancePage() {
         }
 
         saveWalletTransferAccountTypeAndID(selectedAccount?.accountType, selectedAccount?.methodID?.toString());
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- we only want this effect to run on initial render
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- we only want this effect to run on initial render
     }, []);
 
     if (walletTransfer?.shouldShowSuccess && !walletTransfer?.loading) {
         return (
-            <ScreenWrapper testID={TransferBalancePage.displayName}>
+            <ScreenWrapper testID="TransferBalancePage">
                 <HeaderWithBackButton
                     title={translate('common.transferBalance')}
                     onBackButtonPress={dismissSuccessfulTransferBalancePage}
@@ -148,7 +149,7 @@ function TransferBalancePage() {
 
     return (
         <ScreenWrapper
-            testID={TransferBalancePage.displayName}
+            testID="TransferBalancePage"
             shouldShowOfflineIndicatorInWideScreen
         >
             <FullPageNotFoundView
@@ -210,9 +211,7 @@ function TransferBalancePage() {
                 </ScrollView>
                 <View>
                     <FormAlertWithSubmitButton
-                        buttonText={translate('transferAmountPage.transfer', {
-                            amount: isTransferable ? convertToDisplayString(transferAmount) : '',
-                        })}
+                        buttonText={translate('transferAmountPage.transfer', isTransferable ? convertToDisplayString(transferAmount) : '')}
                         isLoading={walletTransfer?.loading}
                         onSubmit={() => selectedAccount && transferWalletBalance(selectedAccount)}
                         isDisabled={isButtonDisabled || isOffline}
@@ -225,7 +224,5 @@ function TransferBalancePage() {
         </ScreenWrapper>
     );
 }
-
-TransferBalancePage.displayName = 'TransferBalancePage';
 
 export default TransferBalancePage;

@@ -7,13 +7,16 @@ import {View} from 'react-native';
 import RNPickerSelect from 'react-native-picker-select';
 import FormHelpMessage from '@components/FormHelpMessage';
 import Icon from '@components/Icon';
-import * as Expensicons from '@components/Icon/Expensicons';
 import Text from '@components/Text';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import useLocalize from '@hooks/useLocalize';
 import useScrollContext from '@hooks/useScrollContext';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {isMobile} from '@libs/Browser';
 import getOperatingSystem from '@libs/getOperatingSystem';
 import CONST from '@src/CONST';
+import getAccessibilityLabelConfig from './getAccessibilityLabelConfig';
 import type {BasePickerProps} from './types';
 
 type IconToRender = () => ReactElement;
@@ -26,6 +29,7 @@ function BasePicker<TPickerValue>({
     onInputChange,
     icon,
     label = '',
+    accessibilityLabel,
     isDisabled = false,
     errorText = '',
     hintText = '',
@@ -39,9 +43,11 @@ function BasePicker<TPickerValue>({
     additionalPickerEvents = () => {},
     ref,
 }: BasePickerProps<TPickerValue>) {
+    const icons = useMemoizedLazyExpensifyIcons(['DownArrow']);
+    const {translate} = useLocalize();
     const theme = useTheme();
     const styles = useThemeStyles();
-
+    const {shouldAnnounceSelectedLabel, shouldUseCustomAccessibilityLabel} = getAccessibilityLabelConfig();
     const [isHighlighted, setIsHighlighted] = useState(false);
 
     // reference to the root View
@@ -62,7 +68,7 @@ function BasePicker<TPickerValue>({
             onInputChange(item.value, 0);
         }
 
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [items]);
 
     const context = useScrollContext();
@@ -97,12 +103,12 @@ function BasePicker<TPickerValue>({
         return () => (
             <Icon
                 fill={theme.icon}
-                src={Expensicons.DownArrow}
+                src={icons.DownArrow}
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...(size === 'small' ? {width: styles.pickerSmall().icon.width, height: styles.pickerSmall().icon.height} : {})}
             />
         );
-    }, [icon, size, styles, theme.icon]);
+    }, [icon, size, styles, theme.icon, icons.DownArrow]);
 
     useImperativeHandle(ref, () => ({
         /**
@@ -158,6 +164,22 @@ function BasePicker<TPickerValue>({
 
     const hasError = !!errorText;
 
+    // Disable Tab focus on mobile to prevent soft keyboard navigation jumping to picker (#25759)
+    const pickerTabIndex = isMobile() ? -1 : 0;
+
+    const selectedItem = items.find((item) => item.value === value);
+    const selectedLabel = selectedItem?.label ?? '';
+    const defaultAccessibilityLabel = accessibilityLabel ?? label ?? selectedLabel;
+    const enhancedAccessibilityLabel = useMemo(() => {
+        if (!defaultAccessibilityLabel) {
+            return selectedLabel || '';
+        }
+        if (selectedLabel) {
+            return `${defaultAccessibilityLabel}${shouldAnnounceSelectedLabel ? `, ${selectedLabel}` : ''}, ${translate(isHighlighted ? 'common.expanded' : 'common.collapsed')}`;
+        }
+        return defaultAccessibilityLabel;
+    }, [defaultAccessibilityLabel, selectedLabel, shouldAnnounceSelectedLabel, translate, isHighlighted]);
+
     if (isDisabled && shouldShowOnlyTextWhenDisabled) {
         return (
             <View>
@@ -174,6 +196,8 @@ function BasePicker<TPickerValue>({
             </View>
         );
     }
+
+    const actualAccessibilityLabel = shouldUseCustomAccessibilityLabel ? enhancedAccessibilityLabel : defaultAccessibilityLabel;
 
     return (
         <>
@@ -203,15 +227,29 @@ function BasePicker<TPickerValue>({
                     onClose={disableHighlight}
                     textInputProps={{
                         allowFontScaling: false,
+                        accessibilityRole: CONST.ROLE.COMBOBOX,
+                        accessibilityLabel: actualAccessibilityLabel,
+                        importantForAccessibility: 'no-hide-descendants',
+                    }}
+                    touchableDoneProps={{
+                        accessibilityRole: CONST.ROLE.BUTTON,
+                        accessibilityLabel: translate('common.dismiss'),
+                    }}
+                    touchableWrapperProps={{
+                        accessible: true,
+                        accessibilityRole: CONST.ROLE.COMBOBOX,
+                        accessibilityLabel: actualAccessibilityLabel,
                     }}
                     pickerProps={{
                         ref: picker,
-                        tabIndex: -1,
+                        tabIndex: pickerTabIndex,
                         onFocus: enableHighlight,
                         onBlur: () => {
                             disableHighlight();
                             onBlur();
                         },
+                        accessibilityLabel: actualAccessibilityLabel,
+                        accessibilityRole: CONST.ROLE.COMBOBOX,
                         ...additionalPickerEvents(enableHighlight, (inputValue, index) => {
                             onValueChange(inputValue, index);
                             disableHighlight();
@@ -226,7 +264,5 @@ function BasePicker<TPickerValue>({
         </>
     );
 }
-
-BasePicker.displayName = 'BasePicker';
 
 export default BasePicker;

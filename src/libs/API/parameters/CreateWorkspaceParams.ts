@@ -18,6 +18,7 @@ type CreateWorkspaceParams = {
     userReportedIntegration?: string;
     memberData?: string;
     features?: string;
+    shouldAddGuideWelcomeMessage?: boolean;
     areDistanceRatesEnabled?: boolean;
 };
 

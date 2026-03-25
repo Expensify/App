@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import * as NativeNavigation from '@react-navigation/native';
-import {act, fireEvent, render, screen, waitFor, within} from '@testing-library/react-native';
+import {act, cleanup, fireEvent, render, screen, waitFor, within} from '@testing-library/react-native';
 import {addSeconds, format, subMinutes} from 'date-fns';
 import React from 'react';
 import Onyx from 'react-native-onyx';
@@ -88,7 +88,7 @@ function triggerListLayout(reportID?: string) {
 function getReportActions(reportID?: string) {
     const report = getReportScreen(reportID);
     return [
-        ...within(report).queryAllByLabelText(TestHelper.translateLocal('accessibilityHints.chatMessage')),
+        ...within(report).queryAllByAccessibilityHint(TestHelper.translateLocal('accessibilityHints.chatMessage')),
         // Created action has a different accessibility label.
         ...within(report).queryAllByLabelText(TestHelper.translateLocal('accessibilityHints.chatWelcomeMessage')),
     ];
@@ -228,11 +228,12 @@ async function signInAndGetApp(): Promise<void> {
     await waitForBatchedUpdatesWithAct();
 
     // Start listening for pusher events after navigation settles.
-    subscribeToUserEvents();
+    subscribeToUserEvents(USER_A_ACCOUNT_ID, undefined);
     await waitForBatchedUpdates();
 
     await act(async () => {
         await Promise.all([
+            Onyx.merge(ONYXKEYS.IS_LOADING_APP, false),
             // Simulate setting an unread report and personal details
             Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {
                 reportID: REPORT_ID,
@@ -289,6 +290,7 @@ async function signInAndGetApp(): Promise<void> {
 describe('Pagination', () => {
     afterEach(async () => {
         await waitForIdle();
+        cleanup();
         await act(async () => {
             await Onyx.clear();
 
@@ -378,6 +380,9 @@ describe('Pagination', () => {
         // Here we have 5 messages from the initial OpenReport and 5 from the initial GetNewerActions.
         expect(getReportActions()).toHaveLength(10);
 
+        // Simulate the backend returning no new messages to simulate reaching the start of the chat.
+        mockGetNewerActions(0);
+
         // There is 1 extra call here because of the comment linking report.
 
         // Simulate the backend returning no new messages to simulate reaching the start of the chat.
@@ -408,7 +413,7 @@ describe('Pagination', () => {
         // When there are no newer actions, we don't want to trigger GetNewerActions again.
         TestHelper.expectAPICommandToHaveBeenCalled('OpenReport', 3);
         TestHelper.expectAPICommandToHaveBeenCalled('GetOlderActions', 0);
-        TestHelper.expectAPICommandToHaveBeenCalled('GetNewerActions', 1);
+        TestHelper.expectAPICommandToHaveBeenCalled('GetNewerActions', 2);
 
         // We still have 10 messages. 5 from the initial OpenReport and 5 from the GetNewerActions call.
         expect(getReportActions()).toHaveLength(10);

@@ -8,8 +8,8 @@ if [[ $# -lt 1 ]] || ! [[ "$1" =~ ^[0-9]+$ ]]; then
     exit 1
 fi
 
-PR_NUMBER="$1"
-REPO="${GITHUB_REPOSITORY}"
+readonly PR_NUMBER="$1"
+readonly REPO="${GITHUB_REPOSITORY}"
 
 gh api -X POST "/repos/$REPO/issues/$PR_NUMBER/reactions" -f content="+1"
 

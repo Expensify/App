@@ -2,8 +2,6 @@ import React, {useRef} from 'react';
 import type {View} from 'react-native';
 import expensifyLogo from '@assets/images/expensify-logo-round-transparent.png';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-// eslint-disable-next-line no-restricted-imports
-import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import type {MenuItemProps} from '@components/MenuItem';
 import QRShare from '@components/QRShare';
@@ -14,7 +12,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {openExternalLink} from '@libs/actions/Link';
 import Navigation from '@libs/Navigation/Navigation';
-import {showContextMenu} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
+import {showContextMenu} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 
@@ -25,7 +23,7 @@ type DownloadMenuItem = MenuItemProps & {
 };
 
 function AppDownloadLinksPage() {
-    const icons = useMemoizedLazyExpensifyIcons(['NewWindow'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Android', 'Apple', 'Monitor', 'NewWindow'] as const);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const popoverAnchor = useRef<View>(null);
@@ -37,7 +35,7 @@ function AppDownloadLinksPage() {
                 openExternalLink(CONST.APP_DOWNLOAD_LINKS.ANDROID);
             },
             link: CONST.APP_DOWNLOAD_LINKS.ANDROID,
-            icon: Expensicons.Android,
+            icon: icons.Android,
             iconRight: icons.NewWindow,
         },
         {
@@ -46,22 +44,13 @@ function AppDownloadLinksPage() {
                 openExternalLink(CONST.APP_DOWNLOAD_LINKS.IOS, true);
             },
             link: CONST.APP_DOWNLOAD_LINKS.IOS,
-            icon: Expensicons.Apple,
-            iconRight: icons.NewWindow,
-        },
-        {
-            translationKey: 'initialSettingsPage.appDownloadLinks.desktop.label',
-            action: () => {
-                openExternalLink(CONST.APP_DOWNLOAD_LINKS.DESKTOP, true);
-            },
-            link: CONST.APP_DOWNLOAD_LINKS.DESKTOP,
-            icon: Expensicons.Monitor,
+            icon: icons.Apple,
             iconRight: icons.NewWindow,
         },
     ];
 
     return (
-        <ScreenWrapper testID={AppDownloadLinksPage.displayName}>
+        <ScreenWrapper testID="AppDownloadLinksPage">
             <HeaderWithBackButton
                 title={translate('initialSettingsPage.aboutPage.appDownloadLinks')}
                 onBackButtonPress={() => Navigation.goBack()}
@@ -96,13 +85,12 @@ function AppDownloadLinksPage() {
                         iconRight={item.iconRight}
                         shouldBlockSelection
                         shouldShowRightIcon
+                        role={CONST.ROLE.LINK}
                     />
                 ))}
             </ScrollView>
         </ScreenWrapper>
     );
 }
-
-AppDownloadLinksPage.displayName = 'AppDownloadLinksPage';
 
 export default AppDownloadLinksPage;

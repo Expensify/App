@@ -23,6 +23,4 @@ function useIsOnSearch() {
     return isOnSearch;
 }
 
-SearchScopeProvider.displayName = 'SearchScopeProvider';
-
 export {useIsOnSearch, SearchScopeProvider};

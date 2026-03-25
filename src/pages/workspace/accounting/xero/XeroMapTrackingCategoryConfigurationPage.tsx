@@ -1,7 +1,7 @@
 import {useRoute} from '@react-navigation/native';
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
-import RadioListItem from '@components/SelectionListWithSections/RadioListItem';
+import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import SelectionScreen from '@components/SelectionScreen';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
@@ -56,7 +56,7 @@ function XeroMapTrackingCategoryConfigurationPage({policy}: WithPolicyProps) {
     const listHeaderComponent = useMemo(
         () => (
             <View style={[styles.pb2, styles.ph5]}>
-                <Text style={[styles.pb5, styles.textNormal]}>{translate('workspace.xero.mapTrackingCategoryToDescription', {categoryName: decodedCategoryName})}</Text>
+                <Text style={[styles.pb5, styles.textNormal]}>{translate('workspace.xero.mapTrackingCategoryToDescription', decodedCategoryName)}</Text>
             </View>
         ),
         [translate, styles.pb2, styles.ph5, styles.pb5, styles.textNormal, decodedCategoryName],
@@ -91,7 +91,7 @@ function XeroMapTrackingCategoryConfigurationPage({policy}: WithPolicyProps) {
             }
             Navigation.goBack(ROUTES.POLICY_ACCOUNTING_XERO_TRACKING_CATEGORIES.getRoute(policyID));
         },
-        [categoryId, currentTrackingCategoryValue, reportFieldTrackingCategories, policy, policyID],
+        [categoryId, currentTrackingCategoryValue, reportFieldTrackingCategories.length, policy, policyID],
     );
 
     return (
@@ -99,14 +99,14 @@ function XeroMapTrackingCategoryConfigurationPage({policy}: WithPolicyProps) {
             policyID={policyID}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
-            displayName={XeroMapTrackingCategoryConfigurationPage.displayName}
-            sections={optionsList.length ? [{data: optionsList}] : []}
+            displayName="XeroMapTrackingCategoryConfigurationPage"
+            data={optionsList}
             listItem={RadioListItem}
             onSelectRow={updateMapping}
             initiallyFocusedOptionKey={optionsList.find((option) => option.isSelected)?.keyForList}
             headerContent={listHeaderComponent}
             onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_XERO_TRACKING_CATEGORIES.getRoute(policyID))}
-            headerTitleAlreadyTranslated={translate('workspace.xero.mapTrackingCategoryTo', {categoryName})}
+            headerTitleAlreadyTranslated={translate('workspace.xero.mapTrackingCategoryTo', categoryName)}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.XERO}
             pendingAction={settingsPendingAction([`${CONST.XERO_CONFIG.TRACKING_CATEGORY_PREFIX}${categoryId}`], config?.pendingFields)}
             errors={getLatestErrorField(config ?? {}, `${CONST.XERO_CONFIG.TRACKING_CATEGORY_PREFIX}${categoryId}`)}
@@ -117,5 +117,4 @@ function XeroMapTrackingCategoryConfigurationPage({policy}: WithPolicyProps) {
     );
 }
 
-XeroMapTrackingCategoryConfigurationPage.displayName = 'XeroMapTrackingCategoryConfigurationPage';
 export default withPolicyConnections(XeroMapTrackingCategoryConfigurationPage);

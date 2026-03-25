@@ -20,8 +20,8 @@ type TripSummaryPageProps = StackScreenProps<TravelNavigatorParamList, typeof SC
 function TripSummaryPage({route}: TripSummaryPageProps) {
     const {translate} = useLocalize();
 
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${route.params.reportID}`, {canBeMissing: true});
-    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(route.params.transactionID)}`, {canBeMissing: true});
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${route.params.reportID}`);
+    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(route.params.transactionID)}`);
     const reservationsData: TripReservationUtils.ReservationData[] = TripReservationUtils.getReservationsFromTripReport(report, transaction ? [transaction] : []);
 
     return (
@@ -29,7 +29,7 @@ function TripSummaryPage({route}: TripSummaryPageProps) {
             includeSafeAreaPaddingBottom={false}
             shouldEnablePickerAvoiding={false}
             shouldEnableMaxHeight
-            testID={TripSummaryPage.displayName}
+            testID="TripSummaryPage"
             shouldShowOfflineIndicatorInWideScreen
         >
             <FullPageNotFoundView
@@ -58,7 +58,5 @@ function TripSummaryPage({route}: TripSummaryPageProps) {
         </ScreenWrapper>
     );
 }
-
-TripSummaryPage.displayName = 'TripSummaryPage';
 
 export default TripSummaryPage;

@@ -133,7 +133,14 @@ function UpgradeIntro({feature, onUpgrade, buttonDisabled, loading, isCategorizi
                     <Text style={[styles.textHeadlineH1, styles.mb4]}>{translate(feature.title)}</Text>
                     <Text style={[styles.textNormal, styles.textSupporting, styles.mb4]}>{translate(feature.description)}</Text>
                     <View style={[styles.renderHTML]}>
-                        <RenderHTML html={translate(`workspace.upgrade.${feature.id}.onlyAvailableOnPlan`, {formattedPrice, hasTeam2025Pricing})} />
+                        <RenderHTML
+                            html={translate(
+                                feature.id === 'preventSelfApproval' || feature.id === 'autoApproveCompliantReports' || feature.id === 'autoPayApprovedReports'
+                                    ? 'workspace.upgrade.approvals.onlyAvailableOnPlan'
+                                    : `workspace.upgrade.${feature.id}.onlyAvailableOnPlan`,
+                                {formattedPrice, hasTeam2025Pricing},
+                            )}
+                        />
                     </View>
                 </View>
                 <Button
@@ -147,7 +154,7 @@ function UpgradeIntro({feature, onUpgrade, buttonDisabled, loading, isCategorizi
                 />
             </View>
             <View style={[styles.mt6, styles.renderHTML]}>
-                <RenderHTML html={translate('workspace.upgrade.note', {subscriptionLink})} />
+                <RenderHTML html={translate('workspace.upgrade.note', subscriptionLink)} />
             </View>
         </View>
     );

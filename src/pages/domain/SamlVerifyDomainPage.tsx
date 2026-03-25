@@ -8,15 +8,14 @@ import BaseVerifyDomainPage from './BaseVerifyDomainPage';
 type SamlVerifyDomainPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.DOMAIN.VERIFY>;
 
 function SamlVerifyDomainPage({route}: SamlVerifyDomainPageProps) {
-    const accountID = route.params.accountID;
+    const {domainAccountID} = route.params;
 
     return (
         <BaseVerifyDomainPage
-            accountID={accountID}
-            forwardTo={ROUTES.DOMAIN_VERIFIED.getRoute(route.params.accountID)}
+            domainAccountID={domainAccountID}
+            forwardTo={ROUTES.DOMAIN_VERIFIED.getRoute(route.params.domainAccountID)}
         />
     );
 }
 
-SamlVerifyDomainPage.displayName = 'SamlVerifyDomainPage';
 export default SamlVerifyDomainPage;

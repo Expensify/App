@@ -10,12 +10,16 @@ const useConfirmModal = () => {
     const showConfirmModal = (options: ConfirmModalOptions) => {
         return context.showModal({
             component: ConfirmModalWrapper,
-            props: options,
+            props: {
+                shouldHandleNavigationBack: true,
+                ...options,
+            },
         });
     };
 
     return {
         ...context,
+        closeModal: () => context.closeModal(),
         showConfirmModal,
     };
 };

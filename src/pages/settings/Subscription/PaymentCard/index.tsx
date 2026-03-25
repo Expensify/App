@@ -34,7 +34,8 @@ function AddPaymentCard() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const privateSubscription = usePrivateSubscription();
-    const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector, canBeMissing: false});
+    const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
+    const [fundList] = useOnyx(ONYXKEYS.FUND_LIST);
 
     const subscriptionPlan = useSubscriptionPlan();
     const subscriptionPrice = useSubscriptionPrice();
@@ -46,7 +47,7 @@ function AddPaymentCard() {
     const {asset: ShieldYellow} = useMemoizedLazyAsset(() => loadIllustration('ShieldYellow' as IllustrationName));
     const subscriptionPricingInfo =
         hasTeam2025Pricing && isCollect
-            ? translate('subscription.yourPlan.pricePerMemberPerMonth', {price: convertToShortDisplayString(subscriptionPrice, preferredCurrency)})
+            ? translate('subscription.yourPlan.pricePerMemberPerMonth', convertToShortDisplayString(subscriptionPrice, preferredCurrency))
             : translate(`subscription.yourPlan.${isCollect ? 'collect' : 'control'}.${isAnnual ? 'priceAnnual' : 'pricePayPerUse'}`, {
                   lower: convertToShortDisplayString(subscriptionPrice, preferredCurrency),
                   upper: convertToShortDisplayString(subscriptionPrice * CONST.SUBSCRIPTION_PRICE_FACTOR, preferredCurrency),
@@ -71,12 +72,12 @@ function AddPaymentCard() {
                 addressZip: values.addressZipCode,
                 currency: values.currency ?? CONST.PAYMENT_CARD_CURRENCY.USD,
             };
-            addSubscriptionPaymentCard(accountID ?? CONST.DEFAULT_NUMBER_ID, cardData);
+            addSubscriptionPaymentCard(accountID ?? CONST.DEFAULT_NUMBER_ID, cardData, fundList);
         },
-        [accountID],
+        [accountID, fundList],
     );
 
-    const [formData] = useOnyx(ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM, {canBeMissing: true});
+    const [formData] = useOnyx(ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM);
     const prevFormDataSetupComplete = usePrevious(!!formData?.setupComplete);
 
     useEffect(() => {
@@ -88,7 +89,7 @@ function AddPaymentCard() {
     }, [prevFormDataSetupComplete, formData?.setupComplete]);
 
     return (
-        <ScreenWrapper testID={AddPaymentCard.displayName}>
+        <ScreenWrapper testID="AddPaymentCard">
             <DelegateNoAccessWrapper accessDeniedVariants={[CONST.DELEGATE.DENIED_ACCESS_VARIANTS.DELEGATE]}>
                 <HeaderWithBackButton title={translate('subscription.paymentCard.addPaymentCard')} />
                 <View style={styles.containerWithSpaceBetween}>
@@ -129,7 +130,5 @@ function AddPaymentCard() {
         </ScreenWrapper>
     );
 }
-
-AddPaymentCard.displayName = 'AddPaymentCard';
 
 export default AddPaymentCard;

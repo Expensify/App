@@ -4,7 +4,7 @@ import type {FlatList} from 'react-native-gesture-handler';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type DraggableListProps from './types';
 
-function DraggableList<T>({ref, ...viewProps}: DraggableListProps<T> & {ref?: React.ForwardedRef<FlatList<T>>}) {
+function DraggableList<T>({ref, onSelectRow, focusedIndex, isItemDragDisabled, isItemDisabled, ...viewProps}: DraggableListProps<T> & {ref?: React.ForwardedRef<FlatList<T>>}) {
     const styles = useThemeStyles();
     return (
         <DraggableFlatList
@@ -17,7 +17,5 @@ function DraggableList<T>({ref, ...viewProps}: DraggableListProps<T> & {ref?: Re
         />
     );
 }
-
-DraggableList.displayName = 'DraggableList';
 
 export default DraggableList;

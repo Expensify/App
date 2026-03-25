@@ -13,6 +13,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import useAvatarMenu from '@hooks/useAvatarMenu';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDiscardChangesConfirmation from '@hooks/useDiscardChangesConfirmation';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLetterAvatars from '@hooks/useLetterAvatars';
 import useLocalize from '@hooks/useLocalize';
@@ -23,7 +24,6 @@ import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types
 import Navigation from '@libs/Navigation/Navigation';
 import type {AvatarSource} from '@libs/UserAvatarUtils';
 import {getDefaultAvatarName, isLetterAvatar, isPresetAvatar} from '@libs/UserAvatarUtils';
-import DiscardChangesConfirmation from '@pages/iou/request/step/DiscardChangesConfirmation';
 import {updateAvatar} from '@userActions/PersonalDetails';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -53,13 +53,17 @@ function ProfileAvatar() {
     const avatarCaptureRef = useRef<AvatarCaptureHandle>(null);
     const isSavingRef = useRef(false);
 
-    const icons = useMemoizedLazyExpensifyIcons(['Upload'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Upload']);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [cropImageData, setCropImageData] = useState<ImageData>({...EMPTY_FILE});
     const [imageData, setImageData] = useState<ImageData>({...EMPTY_FILE});
 
     const isDirty = imageData.uri !== '' || !!selected;
+
+    useDiscardChangesConfirmation({
+        getHasUnsavedChanges: () => !isSavingRef.current && isDirty,
+    });
 
     const avatarStyle = [styles.avatarXLarge, styles.alignSelfStart, styles.alignSelfCenter];
 
@@ -159,7 +163,6 @@ function ProfileAvatar() {
             });
             setImageData({...EMPTY_FILE});
             Navigation.dismissModal();
-            isSavingRef.current = false;
             return;
         }
 
@@ -178,7 +181,6 @@ function ProfileAvatar() {
             );
             setSelected(undefined);
             Navigation.dismissModal();
-            isSavingRef.current = false;
             return;
         }
         if (!selected || !avatarCaptureRef.current) {
@@ -186,17 +188,21 @@ function ProfileAvatar() {
             return;
         }
         // User selected a letter avatar
-        avatarCaptureRef.current.capture()?.then((file) => {
-            updateAvatar(file, {
-                avatar: currentUserPersonalDetails?.avatar,
-                avatarThumbnail: currentUserPersonalDetails?.avatarThumbnail,
-                accountID: currentUserPersonalDetails?.accountID,
+        avatarCaptureRef.current
+            .capture()
+            ?.then((file) => {
+                updateAvatar(file, {
+                    avatar: currentUserPersonalDetails?.avatar,
+                    avatarThumbnail: currentUserPersonalDetails?.avatarThumbnail,
+                    accountID: currentUserPersonalDetails?.accountID,
+                });
+                setSelected(undefined);
+                setImageData({...EMPTY_FILE});
+                Navigation.dismissModal();
+            })
+            .catch(() => {
+                isSavingRef.current = false;
             });
-            setSelected(undefined);
-            setImageData({...EMPTY_FILE});
-            Navigation.dismissModal();
-            isSavingRef.current = false;
-        });
     }, [currentUserPersonalDetails?.accountID, currentUserPersonalDetails?.avatar, currentUserPersonalDetails?.avatarThumbnail, imageData.file, selected]);
 
     return (
@@ -204,7 +210,7 @@ function ProfileAvatar() {
             includeSafeAreaPaddingBottom
             includePaddingTop
             shouldEnableMaxHeight
-            testID={ProfileAvatar.displayName}
+            testID="ProfileAvatar"
             offlineIndicatorStyle={styles.mtAuto}
             shouldShowOfflineIndicatorInWideScreen
         >
@@ -313,11 +319,8 @@ function ProfileAvatar() {
                 imageType={cropImageData.type}
                 buttonLabel={translate('avatarPage.upload')}
             />
-            <DiscardChangesConfirmation getHasUnsavedChanges={() => !isSavingRef.current && isDirty} />
         </ScreenWrapper>
     );
 }
-
-ProfileAvatar.displayName = 'ProfileAvatar';
 
 export default ProfileAvatar;

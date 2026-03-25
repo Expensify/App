@@ -17,6 +17,7 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {NewTaskNavigatorParamList} from '@libs/Navigation/types';
 import Parser from '@libs/Parser';
 import {getCommentLength} from '@libs/ReportUtils';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import updateMultilineInputRange from '@libs/updateMultilineInputRange';
 import variables from '@styles/variables';
 import {setDescriptionValue} from '@userActions/Task';
@@ -45,21 +46,22 @@ function NewTaskDescriptionPage({route}: NewTaskDescriptionPageProps) {
         const errors = {};
         const taskDescriptionLength = getCommentLength(values.taskDescription);
         if (taskDescriptionLength > CONST.DESCRIPTION_LIMIT) {
-            addErrorMessage(errors, 'taskDescription', translate('common.error.characterLimitExceedCounter', {length: taskDescriptionLength, limit: CONST.DESCRIPTION_LIMIT}));
+            addErrorMessage(errors, 'taskDescription', translate('common.error.characterLimitExceedCounter', taskDescriptionLength, CONST.DESCRIPTION_LIMIT));
         }
 
         return errors;
     };
 
     if (isLoadingOnyxValue(taskMetadata)) {
-        return <FullScreenLoadingIndicator />;
+        const reasonAttributes: SkeletonSpanReasonAttributes = {context: 'NewTaskDescriptionPage'};
+        return <FullScreenLoadingIndicator reasonAttributes={reasonAttributes} />;
     }
 
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom
             shouldEnableMaxHeight
-            testID={NewTaskDescriptionPage.displayName}
+            testID="NewTaskDescriptionPage"
         >
             <>
                 <HeaderWithBackButton
@@ -100,7 +102,5 @@ function NewTaskDescriptionPage({route}: NewTaskDescriptionPageProps) {
         </ScreenWrapper>
     );
 }
-
-NewTaskDescriptionPage.displayName = 'NewTaskDescriptionPage';
 
 export default NewTaskDescriptionPage;

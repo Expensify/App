@@ -20,7 +20,7 @@ type HoldMenuSection = {
 function HoldMenuSectionList() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const illustrations = useMemoizedLazyIllustrations(['RealtimeReport', 'Stopwatch'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['RealtimeReport', 'Stopwatch']);
     const holdMenuSections: HoldMenuSection[] = [
         {
             icon: illustrations.Stopwatch,
@@ -53,7 +53,5 @@ function HoldMenuSectionList() {
         </>
     );
 }
-
-HoldMenuSectionList.displayName = 'HoldMenuSectionList';
 
 export default HoldMenuSectionList;

@@ -25,6 +25,4 @@ function MentionHereRenderer({style, tnode}: CustomRendererProps<TText | TPhrasi
     );
 }
 
-MentionHereRenderer.displayName = 'HereMentionRenderer';
-
 export default MentionHereRenderer;

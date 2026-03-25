@@ -7,24 +7,24 @@ import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import useLocalize from '@hooks/useLocalize';
 import usePolicyData from '@hooks/usePolicyData';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {convertToShortDisplayString} from '@libs/CurrencyUtils';
+import {convertToDisplayString} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
-import {removePolicyCategoryReceiptsRequired, setPolicyCategoryReceiptsRequired} from '@userActions/Policy/Category';
+import {removePolicyCategoryReceiptsRequired, setPolicyCategoryReceiptsAndItemizedReceiptRequired, setPolicyCategoryReceiptsRequired} from '@userActions/Policy/Category';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
 type EditCategoryPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.CATEGORY_REQUIRE_RECEIPTS_OVER>;
 
-function getInitiallyFocusedOptionKey(isAlwaysSelected: boolean, isNeverSelected: boolean): ValueOf<typeof CONST.POLICY.REQUIRE_RECEIPTS_OVER_OPTIONS> {
+function getInitiallyFocusedOptionKey(isAlwaysSelected: boolean, isNeverSelected: boolean, isPolicyDisabled: boolean): ValueOf<typeof CONST.POLICY.REQUIRE_RECEIPTS_OVER_OPTIONS> {
     if (isAlwaysSelected) {
         return CONST.POLICY.REQUIRE_RECEIPTS_OVER_OPTIONS.ALWAYS;
     }
 
-    if (isNeverSelected) {
+    if (isNeverSelected || isPolicyDisabled) {
         return CONST.POLICY.REQUIRE_RECEIPTS_OVER_OPTIONS.NEVER;
     }
 
@@ -42,22 +42,27 @@ function CategoryRequireReceiptsOverPage({
     const {policy, categories: policyCategories} = policyData;
     const isAlwaysSelected = policyCategories?.[categoryName]?.maxAmountNoReceipt === 0;
     const isNeverSelected = policyCategories?.[categoryName]?.maxAmountNoReceipt === CONST.DISABLED_MAX_EXPENSE_VALUE;
-    const maxExpenseAmountToDisplay = policy?.maxExpenseAmountNoReceipt === CONST.DISABLED_MAX_EXPENSE_VALUE ? 0 : policy?.maxExpenseAmountNoReceipt;
+    const isPolicyReceiptDisabled = policy?.maxExpenseAmountNoReceipt === CONST.DISABLED_MAX_EXPENSE_VALUE || policy?.maxExpenseAmountNoReceipt === undefined;
 
     const requireReceiptsOverListData = [
-        {
-            value: null,
-            text: translate(`workspace.rules.categoryRules.requireReceiptsOverList.default`, {
-                defaultAmount: convertToShortDisplayString(maxExpenseAmountToDisplay, policy?.outputCurrency ?? CONST.CURRENCY.USD),
-            }),
-            keyForList: CONST.POLICY.REQUIRE_RECEIPTS_OVER_OPTIONS.DEFAULT,
-            isSelected: !isAlwaysSelected && !isNeverSelected,
-        },
+        ...(!isPolicyReceiptDisabled
+            ? [
+                  {
+                      value: null,
+                      text: translate(
+                          `workspace.rules.categoryRules.requireReceiptsOverList.default`,
+                          convertToDisplayString(policy.maxExpenseAmountNoReceipt, policy?.outputCurrency ?? CONST.CURRENCY.USD),
+                      ),
+                      keyForList: CONST.POLICY.REQUIRE_RECEIPTS_OVER_OPTIONS.DEFAULT,
+                      isSelected: !isAlwaysSelected && !isNeverSelected,
+                  },
+              ]
+            : []),
         {
             value: CONST.DISABLED_MAX_EXPENSE_VALUE,
             text: translate(`workspace.rules.categoryRules.requireReceiptsOverList.never`),
             keyForList: CONST.POLICY.REQUIRE_RECEIPTS_OVER_OPTIONS.NEVER,
-            isSelected: isNeverSelected,
+            isSelected: isPolicyReceiptDisabled ? !isAlwaysSelected : isNeverSelected,
         },
         {
             value: 0,
@@ -67,7 +72,7 @@ function CategoryRequireReceiptsOverPage({
         },
     ];
 
-    const initiallyFocusedOptionKey = getInitiallyFocusedOptionKey(isAlwaysSelected, isNeverSelected);
+    const initiallyFocusedOptionKey = getInitiallyFocusedOptionKey(isAlwaysSelected, isNeverSelected, isPolicyReceiptDisabled);
 
     return (
         <AccessOrNotFoundWrapper
@@ -78,7 +83,7 @@ function CategoryRequireReceiptsOverPage({
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
                 style={[styles.defaultModalContainer]}
-                testID={CategoryRequireReceiptsOverPage.displayName}
+                testID="CategoryRequireReceiptsOverPage"
                 shouldEnableMaxHeight
             >
                 <HeaderWithBackButton
@@ -90,7 +95,11 @@ function CategoryRequireReceiptsOverPage({
                     ListItem={RadioListItem}
                     onSelectRow={(item) => {
                         if (typeof item.value === 'number') {
-                            setPolicyCategoryReceiptsRequired(policyData, categoryName, item.value);
+                            if (item.value === CONST.DISABLED_MAX_EXPENSE_VALUE && policyCategories?.[categoryName]?.maxAmountNoItemizedReceipt !== CONST.DISABLED_MAX_EXPENSE_VALUE) {
+                                setPolicyCategoryReceiptsAndItemizedReceiptRequired(policyData, categoryName, CONST.DISABLED_MAX_EXPENSE_VALUE, CONST.DISABLED_MAX_EXPENSE_VALUE);
+                            } else {
+                                setPolicyCategoryReceiptsRequired(policyData, categoryName, item.value);
+                            }
                         } else {
                             removePolicyCategoryReceiptsRequired(policyData, categoryName);
                         }
@@ -105,7 +114,5 @@ function CategoryRequireReceiptsOverPage({
         </AccessOrNotFoundWrapper>
     );
 }
-
-CategoryRequireReceiptsOverPage.displayName = 'CategoryRequireReceiptsOverPage';
 
 export default CategoryRequireReceiptsOverPage;

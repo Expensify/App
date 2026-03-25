@@ -10,28 +10,30 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import {getAllTaxRates} from '@libs/PolicyUtils';
 import {updateAdvancedFilters} from '@userActions/Search';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Policy} from '@src/types/onyx';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 function SearchFiltersTaxRatePage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {canBeMissing: true});
-    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
+    const [searchAdvancedFiltersForm, searchAdvancedFiltersFormResult] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
+    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const allTaxRates = getAllTaxRates(policies);
     const selectedTaxesItems: SearchMultipleSelectionPickerItem[] = [];
-    // eslint-disable-next-line unicorn/no-array-for-each
-    Object.entries(allTaxRates).forEach(([taxRateName, taxRateKeys]) => {
-        // eslint-disable-next-line unicorn/no-array-for-each
-        searchAdvancedFiltersForm?.taxRate?.forEach((taxRateKey) => {
-            if (!taxRateKeys.includes(taxRateKey) || selectedTaxesItems.some((item) => item.name === taxRateName)) {
-                return;
+    for (const [taxRateName, taxRateKeys] of Object.entries(allTaxRates)) {
+        if (searchAdvancedFiltersForm?.taxRate) {
+            for (const taxRateKey of searchAdvancedFiltersForm.taxRate) {
+                if (!taxRateKeys.includes(taxRateKey) || selectedTaxesItems.some((item) => item.name === taxRateName)) {
+                    continue;
+                }
+                selectedTaxesItems.push({name: taxRateName, value: taxRateKeys});
             }
-            selectedTaxesItems.push({name: taxRateName, value: taxRateKeys});
-        });
-    });
+        }
+    }
     const policyIDs = useMemo(() => searchAdvancedFiltersForm?.policyID ?? [], [searchAdvancedFiltersForm?.policyID]);
 
     const selectedPoliciesMap = useMemo(() => {
@@ -62,7 +64,7 @@ function SearchFiltersTaxRatePage() {
 
     return (
         <ScreenWrapper
-            testID={SearchFiltersTaxRatePage.displayName}
+            testID="SearchFiltersTaxRatePage"
             shouldShowOfflineIndicatorInWideScreen
             offlineIndicatorStyle={styles.mtAuto}
             shouldEnableMaxHeight
@@ -74,16 +76,17 @@ function SearchFiltersTaxRatePage() {
                 }}
             />
             <View style={[styles.flex1]}>
-                <SearchMultipleSelectionPicker
-                    items={taxItems}
-                    initiallySelectedItems={selectedTaxesItems}
-                    onSaveSelection={updateTaxRateFilters}
-                />
+                {!isLoadingOnyxValue(searchAdvancedFiltersFormResult) && (
+                    <SearchMultipleSelectionPicker
+                        items={taxItems}
+                        initiallySelectedItems={selectedTaxesItems}
+                        onSaveSelection={updateTaxRateFilters}
+                        shouldShowTextInput={taxItems.length >= CONST.STANDARD_LIST_ITEM_LIMIT}
+                    />
+                )}
             </View>
         </ScreenWrapper>
     );
 }
-
-SearchFiltersTaxRatePage.displayName = 'SearchFiltersTaxRatePage';
 
 export default SearchFiltersTaxRatePage;

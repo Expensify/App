@@ -7,6 +7,7 @@ import useOnyx from '@hooks/useOnyx';
 import useSubStep from '@hooks/useSubStep';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import {parsePhoneNumber} from '@libs/PhoneNumber';
+import {getBankAccountIDAsNumber} from '@libs/ReimbursementAccountUtils';
 import {isValidWebsite} from '@libs/ValidationUtils';
 import getInitialSubStepForBusinessInfo from '@pages/ReimbursementAccount/USD/utils/getInitialSubStepForBusinessInfo';
 import getSubStepValues from '@pages/ReimbursementAccount/utils/getSubStepValues';
@@ -47,25 +48,26 @@ const bodyContent: Array<React.ComponentType<SubStepProps>> = [
 
 function BusinessInfo({onBackButtonPress}: BusinessInfoProps) {
     const {translate} = useLocalize();
-    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: false});
-    const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT, {canBeMissing: true});
+    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
+    const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
 
     const getBankAccountFields = useCallback(
         (fieldNames: string[]) => ({
             ...lodashPick(reimbursementAccount?.achData, ...fieldNames),
             ...lodashPick(reimbursementAccountDraft, ...fieldNames),
         }),
-        [reimbursementAccount, reimbursementAccountDraft],
+        [reimbursementAccount?.achData, reimbursementAccountDraft],
     );
 
     const policyID = reimbursementAccount?.achData?.policyID;
+    const bankAccountID = getBankAccountIDAsNumber(reimbursementAccount?.achData);
     const values = useMemo(() => getSubStepValues(BUSINESS_INFO_STEP_KEYS, reimbursementAccountDraft, reimbursementAccount), [reimbursementAccount, reimbursementAccountDraft]);
 
     const submit = useCallback(
         (isConfirmPage: boolean) => {
             const companyWebsite = Str.sanitizeURL(values.website, CONST.COMPANY_WEBSITE_DEFAULT_SCHEME);
             updateCompanyInformationForBankAccount(
-                Number(reimbursementAccount?.achData?.bankAccountID ?? CONST.DEFAULT_NUMBER_ID),
+                bankAccountID,
                 {
                     ...values,
                     ...getBankAccountFields(['routingNumber', 'accountNumber', 'bankName', 'plaidAccountID', 'plaidAccessToken', 'isSavings']),
@@ -77,7 +79,7 @@ function BusinessInfo({onBackButtonPress}: BusinessInfoProps) {
                 isConfirmPage,
             );
         },
-        [reimbursementAccount, values, getBankAccountFields, policyID],
+        [bankAccountID, values, getBankAccountFields, policyID],
     );
 
     const isBankAccountVerifying = reimbursementAccount?.achData?.state === CONST.BANK_ACCOUNT.STATE.VERIFYING;
@@ -91,6 +93,7 @@ function BusinessInfo({onBackButtonPress}: BusinessInfoProps) {
         prevScreen,
         moveTo,
         goToTheLastStep,
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
     } = useSubStep({bodyContent, startFrom, onFinished: () => submit(true), onNextSubStep: () => submit(false)});
 
     const handleBackButtonPress = () => {
@@ -108,7 +111,7 @@ function BusinessInfo({onBackButtonPress}: BusinessInfoProps) {
 
     return (
         <InteractiveStepWrapper
-            wrapperID={BusinessInfo.displayName}
+            wrapperID="BusinessInfo"
             shouldEnablePickerAvoiding={false}
             shouldEnableMaxHeight
             headerTitle={translate('businessInfoStep.businessInfo')}
@@ -124,7 +127,5 @@ function BusinessInfo({onBackButtonPress}: BusinessInfoProps) {
         </InteractiveStepWrapper>
     );
 }
-
-BusinessInfo.displayName = 'BusinessInfo';
 
 export default BusinessInfo;

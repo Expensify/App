@@ -9,6 +9,7 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import type IconAsset from '@src/types/utils/IconAsset';
 
 type DefaultAttachmentViewProps = {
@@ -34,10 +35,15 @@ type DefaultAttachmentViewProps = {
 };
 
 function DefaultAttachmentView({fileName = '', shouldShowLoadingSpinnerIcon = false, shouldShowDownloadIcon, containerStyles, icon, isUploading, isDeleted}: DefaultAttachmentViewProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['Download', 'Paperclip'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Download', 'Paperclip']);
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const reasonAttributes: SkeletonSpanReasonAttributes = {
+        context: 'DefaultAttachmentView',
+        shouldShowLoadingSpinnerIcon,
+        isUploading,
+    };
 
     return (
         <View style={[styles.defaultAttachmentView, containerStyles]}>
@@ -65,6 +71,7 @@ function DefaultAttachmentView({fileName = '', shouldShowLoadingSpinnerIcon = fa
                         <ActivityIndicator
                             color={theme.textSupporting}
                             testID="attachment-loading-spinner"
+                            reasonAttributes={reasonAttributes}
                         />
                     </Tooltip>
                 </View>
@@ -72,7 +79,5 @@ function DefaultAttachmentView({fileName = '', shouldShowLoadingSpinnerIcon = fa
         </View>
     );
 }
-
-DefaultAttachmentView.displayName = 'DefaultAttachmentView';
 
 export default DefaultAttachmentView;

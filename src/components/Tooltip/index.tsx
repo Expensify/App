@@ -17,6 +17,4 @@ function Tooltip({shouldRender = true, children, ...props}: TooltipExtendedProps
     );
 }
 
-Tooltip.displayName = 'Tooltip';
-
 export default Tooltip;

@@ -21,6 +21,4 @@ function PlaceholderIcon({width = 24, height = 24, fill, style, testID}: SvgProp
     );
 }
 
-PlaceholderIcon.displayName = 'PlaceholderIcon';
-
 export default PlaceholderIcon;

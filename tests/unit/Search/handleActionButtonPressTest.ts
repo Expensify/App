@@ -1,12 +1,24 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import type {OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
-import type {TransactionReportGroupListItemType} from '@components/SelectionListWithSections/types';
-import {handleActionButtonPress} from '@libs/actions/Search';
+import type {TransactionReportGroupListItemType} from '@components/Search/SearchList/ListItem/types';
+import {handleActionButtonPress, handleBulkPayItemSelected} from '@libs/actions/Search';
+import Navigation from '@libs/Navigation/Navigation';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {LastPaymentMethod, SearchResults} from '@src/types/onyx';
+import ROUTES from '@src/ROUTES';
+import type {LastPaymentMethod, Policy, Report, SearchResults} from '@src/types/onyx';
+import createRandomPolicy from '../../utils/collections/policies';
 
 jest.mock('@src/components/ConfirmedRoute.tsx');
+jest.mock('@src/libs/Navigation/Navigation', () => ({
+    navigate: jest.fn(),
+    dismissModal: jest.fn(),
+    goBack: jest.fn(),
+    getActiveRoute: jest.fn(),
+    getActiveRouteWithoutParams: jest.fn(),
+    isNavigationReady: jest.fn(() => Promise.resolve()),
+}));
 
 const mockReportItemWithHold = {
     groupedBy: 'expense-report',
@@ -16,6 +28,10 @@ const mockReportItemWithHold = {
     allActions: ['approve'],
     chatReportID: '2108006919825366',
     created: '2024-12-04 23:18:33',
+    submitted: '2024-12-04',
+    approved: undefined,
+    posted: undefined,
+    exported: undefined,
     currency: 'USD',
     isOneTransactionReport: false,
     isPolicyExpenseChat: false,
@@ -64,6 +80,10 @@ const mockReportItemWithHold = {
         validated: false,
     },
     shouldShowYear: false,
+    shouldShowYearSubmitted: false,
+    shouldShowYearApproved: false,
+    shouldShowYearPosted: false,
+    shouldShowYearExported: false,
     transactions: [
         {
             report: {
@@ -92,7 +112,6 @@ const mockReportItemWithHold = {
             action: 'view',
             allActions: ['view'],
             amount: -1200,
-            canDelete: true,
             category: '',
             comment: {
                 comment: '',
@@ -101,14 +120,17 @@ const mockReportItemWithHold = {
             created: '2024-12-04',
             currency: 'USD',
             hasEReceipt: false,
-            isFromOneTransactionReport: false,
             managerID: 1206,
             merchant: 'Qatar',
-            modifiedAmount: 0,
+            modifiedAmount: '',
             modifiedCreated: '',
             modifiedCurrency: '',
             modifiedMerchant: '',
             parentTransactionID: '',
+            submitted: '2024-12-04',
+            approved: undefined,
+            posted: undefined,
+            exported: undefined,
             policyID: '48D7178DE42EE9F9',
             reportID: '1350959062018695',
             reportType: 'expense',
@@ -152,12 +174,16 @@ const mockReportItemWithHold = {
             date: '2024-12-04',
             shouldShowMerchant: true,
             shouldShowYear: false,
+            shouldShowYearSubmitted: false,
+            shouldShowYearApproved: false,
+            shouldShowYearPosted: false,
+            shouldShowYearExported: false,
             keyForList: '1049531721038862176',
             isAmountColumnWide: false,
             isTaxAmountColumnWide: false,
             shouldAnimateInHighlight: false,
-            convertedAmount: 1200,
-            convertedCurrency: 'USD',
+            groupAmount: 1200,
+            groupCurrency: 'USD',
         },
         {
             report: {
@@ -182,17 +208,19 @@ const mockReportItemWithHold = {
             action: 'view',
             allActions: ['view'],
             amount: -12300,
-            canDelete: true,
             category: '',
             comment: {
                 comment: '',
             },
             created: '2024-12-04',
+            submitted: '2024-12-04',
+            approved: undefined,
+            posted: undefined,
+            exported: undefined,
             currency: 'USD',
             hasEReceipt: false,
-            isFromOneTransactionReport: false,
             merchant: 'Forbes',
-            modifiedAmount: 0,
+            modifiedAmount: '',
             modifiedCreated: '',
             modifiedCurrency: '',
             modifiedMerchant: '',
@@ -201,7 +229,6 @@ const mockReportItemWithHold = {
             reportID: '1350959062018695',
             tag: '',
             transactionID: '5345995386715609966',
-            transactionThreadReportID: '740282333335072',
             from: {
                 accountID: 1206,
                 avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/default-avatar_7.png',
@@ -220,12 +247,16 @@ const mockReportItemWithHold = {
             date: '2024-12-04',
             shouldShowMerchant: true,
             shouldShowYear: false,
+            shouldShowYearSubmitted: false,
+            shouldShowYearApproved: false,
+            shouldShowYearPosted: false,
+            shouldShowYearExported: false,
             keyForList: '5345995386715609966',
             isAmountColumnWide: false,
             isTaxAmountColumnWide: false,
             shouldAnimateInHighlight: false,
-            convertedAmount: 1200,
-            convertedCurrency: 'USD',
+            groupAmount: 1200,
+            groupCurrency: 'USD',
         },
     ],
     isSelected: false,
@@ -286,15 +317,156 @@ describe('handleActionButtonPress', () => {
 
     test('Should navigate to item when report has one transaction on hold', () => {
         const goToItem = jest.fn(() => {});
-        // @ts-expect-error: Allow partial record in snapshot update for testing
-        handleActionButtonPress(searchHash, mockReportItemWithHold, goToItem, snapshotReport, snapshotPolicy, mockLastPaymentMethod);
+        handleActionButtonPress({
+            hash: searchHash,
+            item: mockReportItemWithHold,
+            goToItem,
+            snapshotReport: snapshotReport as Report,
+            snapshotPolicy: snapshotPolicy as Policy,
+            lastPaymentMethod: mockLastPaymentMethod,
+            personalPolicyID: undefined,
+            userBillingGraceEndPeriods: undefined,
+        });
         expect(goToItem).toHaveBeenCalledTimes(1);
     });
 
     test('Should not navigate to item when the hold is removed', () => {
         const goToItem = jest.fn(() => {});
-        // @ts-expect-error: Allow partial record in snapshot update for testing
-        handleActionButtonPress(searchHash, updatedMockReportItem, goToItem, snapshotReport, snapshotPolicy, mockLastPaymentMethod);
+        handleActionButtonPress({
+            hash: searchHash,
+            item: updatedMockReportItem,
+            goToItem,
+            snapshotReport: snapshotReport as Report,
+            snapshotPolicy: snapshotPolicy as Policy,
+            lastPaymentMethod: mockLastPaymentMethod,
+            personalPolicyID: undefined,
+            userBillingGraceEndPeriods: undefined,
+        });
         expect(goToItem).toHaveBeenCalledTimes(0);
+    });
+});
+
+describe('handleBulkPayItemSelected', () => {
+    const policyID = '1001';
+    const ownerAccountID = 1;
+
+    const baseParams = {
+        item: {key: CONST.IOU.PAYMENT_TYPE.ELSEWHERE, text: 'Pay elsewhere', icon: () => null},
+        triggerKYCFlow: jest.fn(),
+        isAccountLocked: false,
+        showLockedAccountModal: jest.fn(),
+        latestBankItems: undefined,
+        activeAdminPolicies: [],
+        isUserValidated: true,
+        isDelegateAccessRestricted: false,
+        showDelegateNoAccessModal: jest.fn(),
+        confirmPayment: jest.fn(),
+        userBillingGraceEndPeriods: undefined,
+        businessBankAccountOptions: undefined,
+    };
+
+    beforeEach(async () => {
+        jest.clearAllMocks();
+        await Onyx.clear();
+        await Onyx.multiSet({
+            [ONYXKEYS.SESSION]: {email: 'owner@test.com', accountID: ownerAccountID},
+        });
+    });
+
+    it('should navigate to restricted action page when amountOwed > 0 and billing is past due', async () => {
+        const pastDate = Math.floor(Date.now() / 1000) - 86400 * 30;
+        const policy = {
+            ...createRandomPolicy(Number(policyID)),
+            id: policyID,
+            ownerAccountID,
+            role: CONST.POLICY.ROLE.ADMIN,
+        } as Policy;
+
+        await Onyx.multiSet({
+            [`${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const]: policy,
+            [ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END]: pastDate,
+            [ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED]: 100,
+        });
+
+        handleBulkPayItemSelected({
+            ...baseParams,
+            policy,
+            amountOwed: 100,
+        });
+
+        expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.RESTRICTED_ACTION.getRoute(policyID));
+        expect(baseParams.confirmPayment).not.toHaveBeenCalled();
+    });
+
+    it('should not navigate to restricted action page when amountOwed is 0', async () => {
+        const policy = {
+            ...createRandomPolicy(Number(policyID)),
+            id: policyID,
+            ownerAccountID,
+            role: CONST.POLICY.ROLE.ADMIN,
+        } as Policy;
+
+        await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
+
+        handleBulkPayItemSelected({
+            ...baseParams,
+            policy,
+            amountOwed: 0,
+        });
+
+        expect(Navigation.navigate).not.toHaveBeenCalledWith(ROUTES.RESTRICTED_ACTION.getRoute(policyID));
+        expect(baseParams.confirmPayment).toHaveBeenCalled();
+    });
+
+    it('should call showDelegateNoAccessModal when delegate access is restricted', () => {
+        const policy = {
+            ...createRandomPolicy(Number(policyID)),
+            id: policyID,
+        } as Policy;
+
+        handleBulkPayItemSelected({
+            ...baseParams,
+            policy,
+            isDelegateAccessRestricted: true,
+            amountOwed: 0,
+        });
+
+        expect(baseParams.showDelegateNoAccessModal).toHaveBeenCalled();
+        expect(baseParams.confirmPayment).not.toHaveBeenCalled();
+    });
+
+    it('should call showLockedAccountModal when account is locked', () => {
+        const policy = {
+            ...createRandomPolicy(Number(policyID)),
+            id: policyID,
+        } as Policy;
+
+        handleBulkPayItemSelected({
+            ...baseParams,
+            policy,
+            isAccountLocked: true,
+            amountOwed: 0,
+        });
+
+        expect(baseParams.showLockedAccountModal).toHaveBeenCalled();
+        expect(baseParams.confirmPayment).not.toHaveBeenCalled();
+    });
+
+    it('should call confirmPayment when no restrictions apply and amountOwed is 0', async () => {
+        const policy = {
+            ...createRandomPolicy(Number(policyID)),
+            id: policyID,
+            ownerAccountID,
+        } as Policy;
+
+        await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
+
+        handleBulkPayItemSelected({
+            ...baseParams,
+            policy,
+            amountOwed: 0,
+        });
+
+        expect(baseParams.confirmPayment).toHaveBeenCalled();
     });
 });

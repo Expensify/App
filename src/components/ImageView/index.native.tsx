@@ -6,6 +6,7 @@ import type ImageViewProps from './types';
 function ImageView({attachmentID, isAuthTokenRequired = false, url, style, zoomRange = DEFAULT_ZOOM_RANGE, onError}: ImageViewProps) {
     return (
         <Lightbox
+            key={url}
             attachmentID={attachmentID}
             uri={url}
             zoomRange={zoomRange}
@@ -15,7 +16,5 @@ function ImageView({attachmentID, isAuthTokenRequired = false, url, style, zoomR
         />
     );
 }
-
-ImageView.displayName = 'ImageView';
 
 export default ImageView;

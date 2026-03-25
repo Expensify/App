@@ -5,8 +5,6 @@ import SignInGradient from '@assets/images/home-fade-gradient--mobile.svg';
 import Hoverable from '@components/Hoverable';
 import ImageSVG from '@components/ImageSVG';
 import Text from '@components/Text';
-import type {LinkProps, PressProps} from '@components/TextLink';
-import TextLink from '@components/TextLink';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -18,13 +16,10 @@ import Socials from '@pages/signin/Socials';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
-import type {SignInPageLayoutProps} from './types';
+import FooterRow from './FooterRow';
+import type {FooterColumnRow, SignInPageLayoutProps} from './types';
 
 type FooterProps = Pick<SignInPageLayoutProps, 'navigateFocus'>;
-
-type FooterColumnRow = (LinkProps | PressProps) & {
-    translationPath: TranslationPaths;
-};
 
 type FooterColumnData = {
     translationPath: TranslationPaths;
@@ -148,7 +143,7 @@ function Footer({navigateFocus}: FooterProps) {
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
-    const icons = useMemoizedLazyExpensifyIcons(['ExpensifyFooterLogo', 'ExpensifyFooterLogoVertical'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['ExpensifyFooterLogo', 'ExpensifyFooterLogoVertical']);
     const isVertical = shouldUseNarrowLayout;
     const imageDirection = isVertical ? styles.flexRow : styles.flexColumn;
     const imageStyle = isVertical ? styles.pr0 : styles.alignSelfCenter;
@@ -176,29 +171,33 @@ function Footer({navigateFocus}: FooterProps) {
                                 key={column.translationPath}
                                 style={footerColumn}
                             >
-                                <Text style={[styles.textHeadline, styles.footerTitle]}>{translate(column.translationPath)}</Text>
+                                <Text
+                                    style={[styles.textHeadline, styles.footerTitle]}
+                                    accessibilityRole={CONST.ROLE.HEADER}
+                                    aria-level={2}
+                                >
+                                    {translate(column.translationPath)}
+                                </Text>
                                 <View style={[styles.footerRow]}>
-                                    {column.rows.map(({href, onPress, translationPath}) => (
-                                        <Hoverable key={translationPath}>
-                                            {(hovered) => (
-                                                <View>
-                                                    {onPress ? (
-                                                        <TextLink
-                                                            style={getTextLinkStyle(hovered)}
-                                                            onPress={onPress}
-                                                        >
-                                                            {translate(translationPath)}
-                                                        </TextLink>
-                                                    ) : (
-                                                        <TextLink
-                                                            style={getTextLinkStyle(hovered)}
-                                                            href={href}
-                                                        >
-                                                            {translate(translationPath)}
-                                                        </TextLink>
-                                                    )}
-                                                </View>
-                                            )}
+                                    {column.rows.map((row) => (
+                                        <Hoverable key={row.translationPath}>
+                                            {(hovered) =>
+                                                row.onPress ? (
+                                                    <FooterRow
+                                                        onPress={row.onPress}
+                                                        translationPath={row.translationPath}
+                                                        text={translate(row.translationPath)}
+                                                        style={getTextLinkStyle(hovered)}
+                                                    />
+                                                ) : (
+                                                    <FooterRow
+                                                        href={row.href}
+                                                        translationPath={row.translationPath}
+                                                        text={translate(row.translationPath)}
+                                                        style={getTextLinkStyle(hovered)}
+                                                    />
+                                                )
+                                            }
                                         </Hoverable>
                                     ))}
                                     {i === 2 && (
@@ -231,7 +230,5 @@ function Footer({navigateFocus}: FooterProps) {
         </View>
     );
 }
-
-Footer.displayName = 'Footer';
 
 export default Footer;

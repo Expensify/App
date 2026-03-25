@@ -11,8 +11,6 @@ import colors from '@styles/theme/colors';
 import variables from '@styles/variables';
 import ONYXKEYS from '@src/ONYXKEYS';
 import Icon from './Icon';
-// eslint-disable-next-line no-restricted-imports
-import * as Expensicons from './Icon/Expensicons';
 import ImageSVG from './ImageSVG';
 import Text from './Text';
 
@@ -39,12 +37,10 @@ type EReceiptThumbnailProps = {
 };
 
 function EReceiptThumbnail({transactionID, borderRadius, fileExtension, isReceiptThumbnail = false, centerIconV = true, iconSize = 'large'}: EReceiptThumbnailProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['CalendarSolid'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['CalendarSolid', 'EReceiptIcon']);
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`, {
-        canBeMissing: true,
-    });
+    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`);
 
     const {primaryColor, secondaryColor, MCCIcon, tripIcon, backgroundImage} = useEReceipt(transaction, fileExtension, isReceiptThumbnail);
     const isPerDiemRequest = isPerDiemRequestTransactionUtils(transaction);
@@ -94,7 +90,7 @@ function EReceiptThumbnail({transactionID, borderRadius, fileExtension, isReceip
             <View style={[styles.alignItemsCenter, styles.ph8, styles.pt8, styles.pb8]}>
                 <View style={[StyleUtils.getWidthAndHeightStyle(receiptIconWidth, receiptIconHeight), styles.alignItemsCenter, styles.justifyContentCenter]}>
                     <Icon
-                        src={Expensicons.EReceiptIcon}
+                        src={icons.EReceiptIcon}
                         height={receiptIconHeight}
                         width={receiptIconWidth}
                         fill={secondaryColor}
@@ -143,7 +139,6 @@ function EReceiptThumbnail({transactionID, borderRadius, fileExtension, isReceip
     );
 }
 
-EReceiptThumbnail.displayName = 'EReceiptThumbnail';
 export default EReceiptThumbnail;
 
 export type {IconSize, EReceiptThumbnailProps};

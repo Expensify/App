@@ -12,7 +12,7 @@ import {convertToDisplayString} from '@libs/CurrencyUtils';
 import CONST from '@src/CONST';
 
 function LongTermsForm() {
-    const icons = useMemoizedLazyExpensifyIcons(['Printer'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Printer']);
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate, numberFormat} = useLocalize();
@@ -60,8 +60,8 @@ function LongTermsForm() {
             title: translate('termsStep.electronicFundsWithdrawal'),
             subTitle: translate('termsStep.longTermsForm.instant'),
             rightText: `${numberFormat(1.5)}%`,
-            subRightText: translate('termsStep.longTermsForm.electronicFundsInstantFeeMin', {amount: convertToDisplayString(25, 'USD')}),
-            details: translate('termsStep.longTermsForm.electronicFundsInstantDetails', {percentage: numberFormat(1.5), amount: convertToDisplayString(25, 'USD')}),
+            subRightText: translate('termsStep.longTermsForm.electronicFundsInstantFeeMin', convertToDisplayString(25, 'USD')),
+            details: translate('termsStep.longTermsForm.electronicFundsInstantDetails', numberFormat(1.5), convertToDisplayString(25, 'USD')),
         },
     ];
 
@@ -92,9 +92,7 @@ function LongTermsForm() {
                 {getLongTermsSections()}
             </CollapsibleSection>
 
-            <Text style={[styles.mb4, styles.mt6, styles.textMicroSupporting]}>
-                {translate('termsStep.longTermsForm.fdicInsuranceBancorp', {amount: convertToDisplayString(25000000, 'USD')})}
-            </Text>
+            <Text style={[styles.mb4, styles.mt6, styles.textMicroSupporting]}>{translate('termsStep.longTermsForm.fdicInsuranceBancorp', convertToDisplayString(25000000, 'USD'))}</Text>
             <Text style={[styles.mb4, styles.textMicroSupporting]}>{translate('termsStep.noOverdraftOrCredit')}</Text>
             <Text style={[styles.mb4, styles.textMicroSupporting]}>{translate('termsStep.longTermsForm.contactExpensifyPayments')}</Text>
             <Text style={[styles.mb6, styles.textMicroSupporting]}>{translate('termsStep.longTermsForm.generalInformation')}</Text>
@@ -115,5 +113,4 @@ function LongTermsForm() {
     );
 }
 
-LongTermsForm.displayName = 'LongTermsForm';
 export default LongTermsForm;

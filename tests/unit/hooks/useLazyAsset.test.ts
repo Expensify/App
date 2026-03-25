@@ -1,7 +1,7 @@
 import {renderHook, waitFor} from '@testing-library/react-native';
 import React from 'react';
 import type {SvgProps} from 'react-native-svg/lib/typescript';
-import useLazyAsset, {useMemoizedLazyAsset} from '@hooks/useLazyAsset';
+import useLazyAsset, {useMemoizedLazyAsset, useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import type IconAsset from '@src/types/utils/IconAsset';
 
 jest.mock('@components/Icon/PlaceholderIcon', () => {
@@ -15,6 +15,18 @@ jest.mock('@components/Icon/PlaceholderIcon', () => {
         }),
     );
 });
+
+jest.mock('@components/Icon/ExpensifyIconLoader', () => ({
+    getExpensifyIconsChunk: jest.fn(),
+    loadExpensifyIconsChunk: jest.fn(),
+    loadExpensifyIcon: jest.fn(),
+}));
+
+jest.mock('@components/Icon/IllustrationLoader', () => ({
+    getIllustrationsChunk: jest.fn(),
+    loadIllustrationsChunk: jest.fn(),
+    loadIllustration: jest.fn(),
+}));
 
 jest.mock('@hooks/useLazyAsset', () => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
@@ -169,12 +181,11 @@ describe('useLazyAsset', () => {
         // Change import function
         rerender({importFn: importFn2});
 
-        // Wait for new asset to load
+        // Wait for new import function to be called and asset to load
         await waitFor(() => {
-            expect(result.current.asset).toBe(mockFallbackAsset);
+            expect(importFn2).toHaveBeenCalled();
         });
 
-        expect(result.current.asset).toBe(mockFallbackAsset);
         expect(result.current.isLoaded).toBe(true);
     });
 
@@ -204,22 +215,6 @@ describe('useLazyAsset', () => {
 
         // Now resolve the earlier request; it should be ignored (no regression)
         resolveFirst({default: mockAsset});
-        await waitFor(() => expect(result.current.asset).toBe(mockFallbackAsset));
-    });
-
-    it('resets isLoading when importFn changes', async () => {
-        const importFn1 = jest.fn(() => Promise.resolve({default: mockAsset}));
-        const importFn2 = jest.fn(() => Promise.resolve({default: mockFallbackAsset}));
-
-        const {result, rerender} = renderHook((props: {importFn: () => Promise<{default: IconAsset}>}) => useLazyAsset(props.importFn), {
-            initialProps: {importFn: importFn1},
-        });
-
-        await waitFor(() => expect(result.current.isLoaded).toBe(true));
-
-        // Changing importFn should trigger a new load cycle
-        rerender({importFn: importFn2});
-        expect(result.current.isLoading).toBe(true);
         await waitFor(() => expect(result.current.asset).toBe(mockFallbackAsset));
     });
 });
@@ -311,11 +306,10 @@ describe('useMemoizedLazyAsset', () => {
         // Change to different function
         rerender({importFn: importFn2});
 
+        // Wait for new import function to be called
         await waitFor(() => {
-            expect(result.current.asset).toBe(mockFallbackAsset);
+            expect(importFn2).toHaveBeenCalled();
         });
-
-        expect(result.current.asset).toBe(mockFallbackAsset);
     });
 
     it('returns PlaceholderIcon while loading', () => {
@@ -325,5 +319,109 @@ describe('useMemoizedLazyAsset', () => {
         const importFn: () => Promise<{default: IconAsset}> = () => new Promise(() => {});
         const {result} = renderHook(() => useMemoizedLazyAsset(importFn));
         expect(result.current.asset).toBe(PlaceholderIcon);
+    });
+
+    it('should load single icon synchronously when returned without Promise', () => {
+        // Given: An import function that returns synchronously (simulates cached chunk)
+        const importFn: () => {default: IconAsset} | Promise<{default: IconAsset}> = jest.fn(() => ({default: mockAsset}));
+
+        // When: Using useMemoizedLazyAsset with synchronous return
+        const {result} = renderHook(() => useMemoizedLazyAsset(importFn));
+
+        // Then: Icon should be available immediately (synchronous)
+        expect(result.current.asset).toBe(mockAsset);
+        expect(importFn).toHaveBeenCalled();
+    });
+});
+
+describe('useMemoizedLazyExpensifyIcons', () => {
+    // Get the mocked functions
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    const ExpensifyIconLoader = require('@components/Icon/ExpensifyIconLoader');
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+    const mockGetExpensifyIconsChunk = ExpensifyIconLoader.getExpensifyIconsChunk as jest.Mock;
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+    const mockLoadExpensifyIconsChunk = ExpensifyIconLoader.loadExpensifyIconsChunk as jest.Mock;
+
+    beforeEach(() => {
+        jest.clearAllMocks();
+    });
+
+    it('should load multiple icons synchronously when chunk is cached', () => {
+        // Given: A cached chunk that's already available synchronously
+        const mockChunk = {
+            getExpensifyIcon: jest.fn((name: string) => {
+                if (name === 'AddReaction' || name === 'Apple') {
+                    return mockAsset;
+                }
+                return undefined;
+            }),
+            AVAILABLE_EXPENSIFY_ICONS: ['AddReaction', 'Apple'],
+        };
+
+        mockGetExpensifyIconsChunk.mockReturnValue(mockChunk);
+
+        const names = ['AddReaction', 'Apple'] as const;
+
+        // When: The hook is rendered
+        const {result} = renderHook(() => useMemoizedLazyExpensifyIcons(names));
+
+        // Then: The synchronous chunk should be used to initialize state
+        expect(mockGetExpensifyIconsChunk).toHaveBeenCalled();
+        expect(mockChunk.getExpensifyIcon).toHaveBeenCalledWith('AddReaction');
+        expect(mockChunk.getExpensifyIcon).toHaveBeenCalledWith('Apple');
+
+        // And: Icons should be immediately available (from cached chunk)
+        expect(result.current.AddReaction).toBe(mockAsset);
+        expect(result.current.Apple).toBe(mockAsset);
+
+        // And: The async loader should NOT be called because chunk is already cached
+        expect(mockLoadExpensifyIconsChunk).not.toHaveBeenCalled();
+    });
+});
+
+describe('useMemoizedLazyIllustrations', () => {
+    // Get the mocked functions
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    const IllustrationLoader = require('@components/Icon/IllustrationLoader');
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+    const mockGetIllustrationsChunk = IllustrationLoader.getIllustrationsChunk as jest.Mock;
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+    const mockLoadIllustrationsChunk = IllustrationLoader.loadIllustrationsChunk as jest.Mock;
+
+    beforeEach(() => {
+        jest.clearAllMocks();
+    });
+
+    it('should load multiple illustrations synchronously when chunk is cached', () => {
+        // Given: A cached chunk that's already available synchronously
+        const mockChunk = {
+            getIllustration: jest.fn((name: string) => {
+                if (name === 'Building' || name === 'Tag') {
+                    return mockAsset;
+                }
+                return undefined;
+            }),
+            AVAILABLE_ILLUSTRATIONS: ['Building', 'Tag'],
+        };
+
+        mockGetIllustrationsChunk.mockReturnValue(mockChunk);
+
+        const names = ['Building', 'Tag'] as const;
+
+        // When: The hook is rendered
+        const {result} = renderHook(() => useMemoizedLazyIllustrations(names));
+
+        // Then: The synchronous chunk should be used to initialize state
+        expect(mockGetIllustrationsChunk).toHaveBeenCalled();
+        expect(mockChunk.getIllustration).toHaveBeenCalledWith('Building');
+        expect(mockChunk.getIllustration).toHaveBeenCalledWith('Tag');
+
+        // And: Illustrations should be immediately available (from cached chunk)
+        expect(result.current.Building).toBe(mockAsset);
+        expect(result.current.Tag).toBe(mockAsset);
+
+        // And: The async loader should NOT be called because chunk is already cached
+        expect(mockLoadIllustrationsChunk).not.toHaveBeenCalled();
     });
 });

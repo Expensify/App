@@ -1,7 +1,6 @@
 /**
  * @jest-environment node
  */
-
 /* eslint-disable @typescript-eslint/naming-convention */
 import CONST from '../../.github/libs/CONST';
 import type {InternalOctokit} from '../../.github/libs/GithubUtils';
@@ -85,6 +84,8 @@ function mockGetInputDefaultImplementation(key: string): boolean | string {
             return 'success';
         case 'DATE':
         case 'NOTE':
+        case 'ANDROID_SENTRY_URL':
+        case 'IOS_SENTRY_URL':
             return '';
         default:
             throw new Error(`Trying to access invalid input: ${key}`);

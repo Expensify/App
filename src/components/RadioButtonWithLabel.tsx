@@ -3,12 +3,13 @@ import React from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import useThemeStyles from '@hooks/useThemeStyles';
+import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 import FormHelpMessage from './FormHelpMessage';
 import * as Pressables from './Pressable';
 import RadioButton from './RadioButton';
 import Text from './Text';
 
-type RadioButtonWithLabelProps = {
+type RadioButtonWithLabelProps = ForwardedFSClassProps & {
     /** Whether the radioButton is checked */
     isChecked: boolean;
 
@@ -23,6 +24,9 @@ type RadioButtonWithLabelProps = {
 
     /** React element to display for the label */
     labelElement?: ReactNode;
+
+    /** Specifies the accessibility label for the radio button. Falls back to label if not provided. */
+    accessibilityLabel?: string;
 
     /** Should the input be styled for errors */
     hasError?: boolean;
@@ -42,7 +46,19 @@ type RadioButtonWithLabelProps = {
 
 const PressableWithFeedback = Pressables.PressableWithFeedback;
 
-function RadioButtonWithLabel({labelElement, style, label = '', hasError = false, errorText = '', isChecked, onPress, wrapperStyle, shouldBlendOpacity}: RadioButtonWithLabelProps) {
+function RadioButtonWithLabel({
+    labelElement,
+    style,
+    label = '',
+    accessibilityLabel,
+    hasError = false,
+    errorText = '',
+    isChecked,
+    onPress,
+    wrapperStyle,
+    shouldBlendOpacity,
+    forwardedFSClass,
+}: RadioButtonWithLabelProps) {
     const styles = useThemeStyles();
     const defaultStyles = [styles.flexRow, styles.alignItemsCenter];
 
@@ -55,10 +71,11 @@ function RadioButtonWithLabel({labelElement, style, label = '', hasError = false
                 <RadioButton
                     isChecked={isChecked}
                     onPress={onPress}
-                    accessibilityLabel={label}
+                    accessibilityLabel={accessibilityLabel ?? label}
                     hasError={hasError}
                 />
                 <PressableWithFeedback
+                    sentryLabel="RadioButtonWithLabel"
                     tabIndex={-1}
                     accessible={false}
                     onPress={onPress}
@@ -69,7 +86,14 @@ function RadioButtonWithLabel({labelElement, style, label = '', hasError = false
                     pressDimmingValue={0.5}
                     shouldBlendOpacity={shouldBlendOpacity}
                 >
-                    {!!label && <Text style={[styles.ml1]}>{label}</Text>}
+                    {!!label && (
+                        <Text
+                            style={[styles.ml1]}
+                            fsClass={forwardedFSClass}
+                        >
+                            {label}
+                        </Text>
+                    )}
                     {!!labelElement && labelElement}
                 </PressableWithFeedback>
             </View>
@@ -77,8 +101,6 @@ function RadioButtonWithLabel({labelElement, style, label = '', hasError = false
         </>
     );
 }
-
-RadioButtonWithLabel.displayName = 'RadioButtonWithLabel';
 
 export default RadioButtonWithLabel;
 

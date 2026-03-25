@@ -1,11 +1,11 @@
 import {Str} from 'expensify-common';
-import React from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
 import type {ViewStyle} from 'react-native';
-import {Receipt} from '@components/Icon/Expensicons';
 import ReceiptImage from '@components/ReceiptImage';
 import ReceiptPreview from '@components/TransactionItemRow/ReceiptPreview';
 import useHover from '@hooks/useHover';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -20,8 +20,21 @@ function ReceiptCell({transactionItem, isSelected, style}: {transactionItem: Tra
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
+    const icons = useMemoizedLazyExpensifyIcons(['Receipt']);
     const backgroundStyles = isSelected ? StyleUtils.getBackgroundColorStyle(theme.buttonHoveredBG) : StyleUtils.getBackgroundColorStyle(theme.border);
     const {hovered, bind} = useHover();
+    // Lazily mount ReceiptPreview on first hover and keep it mounted afterward.
+    // ReceiptPreview handles its own visibility via debounced state, so keeping it
+    // mounted avoids re-creating the portal and reloading images on subsequent hovers.
+    const [shouldMountPreview, setShouldMountPreview] = useState(false);
+
+    const handleMouseEnter = () => {
+        if (!shouldMountPreview) {
+            setShouldMountPreview(true);
+        }
+        bind.onMouseEnter();
+    };
+
     const isMissingReceiptSource = !hasReceiptSource(transactionItem);
     const isEReceipt = transactionItem.hasEReceipt && isMissingReceiptSource;
     const isPerDiem = isPerDiemRequest(transactionItem) && isMissingReceiptSource;
@@ -31,7 +44,11 @@ function ReceiptCell({transactionItem, isSelected, style}: {transactionItem: Tra
     if (source && typeof source === 'string') {
         const filename = getFileName(source);
         const receiptURIs = getThumbnailAndImageURIs(transactionItem, null, filename);
-        source = tryResolveUrlFromApiRoot(receiptURIs.thumbnail ?? receiptURIs.image ?? '');
+
+        // Use 320px thumbnail for the receipt cell image
+        source = tryResolveUrlFromApiRoot(receiptURIs.thumbnail320 ?? receiptURIs.thumbnail ?? receiptURIs.image ?? '');
+
+        // Use full size receipt image for the hovered preview
         const previewImageURI = Str.isImage(filename) ? receiptURIs.image : receiptURIs.thumbnail;
         previewSource = tryResolveUrlFromApiRoot(previewImageURI ?? '');
     }
@@ -45,7 +62,7 @@ function ReceiptCell({transactionItem, isSelected, style}: {transactionItem: Tra
                 backgroundStyles,
                 style,
             ]}
-            onMouseEnter={bind.onMouseEnter}
+            onMouseEnter={handleMouseEnter}
             onMouseLeave={bind.onMouseLeave}
         >
             <ReceiptImage
@@ -55,7 +72,7 @@ function ReceiptCell({transactionItem, isSelected, style}: {transactionItem: Tra
                 shouldUseThumbnailImage
                 thumbnailContainerStyles={styles.bgTransparent}
                 isAuthTokenRequired
-                fallbackIcon={Receipt}
+                fallbackIcon={icons.Receipt}
                 fallbackIconSize={20}
                 fallbackIconColor={theme.icon}
                 fallbackIconBackground={isSelected ? theme.buttonHoveredBG : undefined}
@@ -66,15 +83,16 @@ function ReceiptCell({transactionItem, isSelected, style}: {transactionItem: Tra
                 shouldUseInitialObjectPosition
                 isPerDiemRequest={isPerDiem}
             />
-            <ReceiptPreview
-                source={previewSource}
-                hovered={hovered}
-                isEReceipt={!!isEReceipt}
-                transactionItem={transactionItem}
-            />
+            {shouldMountPreview && (
+                <ReceiptPreview
+                    source={previewSource}
+                    hovered={hovered}
+                    isEReceipt={!!isEReceipt}
+                    transactionItem={transactionItem}
+                />
+            )}
         </View>
     );
 }
 
-ReceiptCell.displayName = 'ReceiptCell';
 export default ReceiptCell;

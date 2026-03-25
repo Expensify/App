@@ -38,7 +38,7 @@ function Breadcrumbs({breadcrumbs, style}: BreadcrumbsProps) {
     const [primaryBreadcrumb, secondaryBreadcrumb] = breadcrumbs;
     const isRootBreadcrumb = primaryBreadcrumb.type === CONST.BREADCRUMB_TYPE.ROOT;
     const fontScale = PixelRatio.getFontScale() > CONST.LOGO_MAX_SCALE ? CONST.LOGO_MAX_SCALE : PixelRatio.getFontScale();
-    const icons = useMemoizedLazyExpensifyIcons(['ExpensifyWordmark'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['ExpensifyWordmark']);
 
     return (
         <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap1, styles.w100, styles.breadcrumbsContainer, style]}>
@@ -81,8 +81,6 @@ function Breadcrumbs({breadcrumbs, style}: BreadcrumbsProps) {
         </View>
     );
 }
-
-Breadcrumbs.displayName = 'Breadcrumbs';
 
 export type {BreadcrumbsProps};
 export default Breadcrumbs;

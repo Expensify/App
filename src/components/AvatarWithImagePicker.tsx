@@ -19,8 +19,6 @@ import AvatarButtonWithIcon from './AvatarButtonWithIcon';
 import type {AvatarButtonWithIconProps} from './AvatarButtonWithIcon';
 import AvatarCropModal from './AvatarCropModal/AvatarCropModal';
 import DotIndicatorMessage from './DotIndicatorMessage';
-// eslint-disable-next-line no-restricted-imports
-import * as Expensicons from './Icon/Expensicons';
 import OfflineWithFeedback from './OfflineWithFeedback';
 import PopoverMenu from './PopoverMenu';
 
@@ -89,7 +87,7 @@ function AvatarWithImagePicker({
     onErrorClose = () => {},
     source = '',
     avatarID,
-    fallbackIcon = Expensicons.FallbackAvatar,
+    fallbackIcon,
     size = CONST.AVATAR_SIZE.DEFAULT,
     type = CONST.ICON_TYPE_AVATAR,
     isUsingDefaultAvatar = false,
@@ -100,10 +98,11 @@ function AvatarWithImagePicker({
     disabled = false,
     onViewPhotoPress,
     enablePreview = false,
-    editIcon = Expensicons.Pencil,
+    editIcon,
     name = '',
+    sentryLabel,
 }: AvatarWithImagePickerProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['Upload'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Eye', 'FallbackAvatar', 'Pencil', 'Trashcan', 'Upload'] as const);
     const styles = useThemeStyles();
     const isFocused = useIsFocused();
     const [popoverPosition, setPopoverPosition] = useState({horizontal: 0, vertical: 0});
@@ -191,7 +190,7 @@ function AvatarWithImagePicker({
         // If current avatar isn't a default avatar, allow Remove Photo option
         if (!isUsingDefaultAvatar) {
             menuItems.push({
-                icon: Expensicons.Trashcan,
+                icon: icons.Trashcan,
                 text: translate('avatarWithImagePicker.removePhoto'),
                 onSelected: () => {
                     setError(null, {});
@@ -242,7 +241,7 @@ function AvatarWithImagePicker({
                         // If the current avatar isn't a default avatar and we are not overriding this behavior allow the "View Photo" option
                         if (onViewPhotoPress && !isUsingDefaultAvatar) {
                             menuItems.push({
-                                icon: Expensicons.Eye,
+                                icon: icons.Eye,
                                 text: translate('avatarWithImagePicker.viewPhoto'),
                                 onSelected: onViewPhotoPress,
                                 shouldCallAfterModalHide: true,
@@ -263,16 +262,17 @@ function AvatarWithImagePicker({
                                         onPress={() => onPressAvatar(openPicker)}
                                         avatarStyle={avatarStyle}
                                         pendingAction={pendingAction}
-                                        fallbackIcon={fallbackIcon}
+                                        fallbackIcon={fallbackIcon ?? icons.FallbackAvatar}
                                         anchorRef={anchorRef}
                                         DefaultAvatar={DefaultAvatar}
-                                        editIcon={editIcon}
+                                        editIcon={editIcon ?? icons.Pencil}
                                         size={size}
                                         type={type}
                                         disabled={disabled}
                                         disabledStyle={disabledStyle}
                                         editIconStyle={editIconStyle}
                                         name={name}
+                                        sentryLabel={sentryLabel}
                                     />
                                 </OfflineWithFeedback>
                                 <PopoverMenu
@@ -319,7 +319,5 @@ function AvatarWithImagePicker({
         </View>
     );
 }
-
-AvatarWithImagePicker.displayName = 'AvatarWithImagePicker';
 
 export default AvatarWithImagePicker;

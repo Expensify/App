@@ -33,7 +33,7 @@ const draftResponseSelector = (value: OnyxEntry<ExitSurveyResponseForm>) => valu
 
 function ExitSurveyReasonPage() {
     const {isOffline} = useNetwork();
-    const [draftResponse = ''] = useOnyx(ONYXKEYS.FORMS.EXIT_SURVEY_RESPONSE_FORM_DRAFT, {selector: draftResponseSelector, canBeMissing: true});
+    const [draftResponse = ''] = useOnyx(ONYXKEYS.FORMS.EXIT_SURVEY_RESPONSE_FORM_DRAFT, {selector: draftResponseSelector});
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -67,7 +67,7 @@ function ExitSurveyReasonPage() {
     );
 
     return (
-        <ScreenWrapper testID={ExitSurveyReasonPage.displayName}>
+        <ScreenWrapper testID="ExitSurveyReasonPage">
             <HeaderWithBackButton
                 title={translate('exitSurvey.header')}
                 onBackButtonPress={() => Navigation.goBack()}
@@ -84,10 +84,7 @@ function ExitSurveyReasonPage() {
                     if (!response.trim()) {
                         errors[INPUT_IDS.RESPONSE] = translate('common.error.fieldRequired');
                     } else if (response.length > CONST.MAX_COMMENT_LENGTH) {
-                        errors[INPUT_IDS.RESPONSE] = translate('common.error.characterLimitExceedCounter', {
-                            length: response.length,
-                            limit: CONST.MAX_COMMENT_LENGTH,
-                        });
+                        errors[INPUT_IDS.RESPONSE] = translate('common.error.characterLimitExceedCounter', response.length, CONST.MAX_COMMENT_LENGTH);
                     }
                     return errors;
                 }}
@@ -118,7 +115,5 @@ function ExitSurveyReasonPage() {
         </ScreenWrapper>
     );
 }
-
-ExitSurveyReasonPage.displayName = 'ExitSurveyReasonPage';
 
 export default ExitSurveyReasonPage;

@@ -57,7 +57,7 @@ function WorkspaceAutoReportingFrequencyPage({policy, route}: WorkspaceAutoRepor
         if (!policy?.id) {
             return;
         }
-        setWorkspaceAutoReportingFrequency(policy.id, item.keyForList as AutoReportingFrequencyKey);
+        setWorkspaceAutoReportingFrequency(policy.id, item.keyForList as AutoReportingFrequencyKey, policy.autoReportingFrequency, policy.harvesting);
 
         if (item.keyForList === CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MONTHLY) {
             return;
@@ -113,7 +113,7 @@ function WorkspaceAutoReportingFrequencyPage({policy, route}: WorkspaceAutoRepor
         >
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
-                testID={WorkspaceAutoReportingFrequencyPage.displayName}
+                testID="WorkspaceAutoReportingFrequencyPage"
             >
                 <FullPageNotFoundView
                     onBackButtonPress={goBackFromInvalidPolicy}
@@ -148,7 +148,6 @@ function WorkspaceAutoReportingFrequencyPage({policy, route}: WorkspaceAutoRepor
     );
 }
 
-WorkspaceAutoReportingFrequencyPage.displayName = 'WorkspaceAutoReportingFrequencyPage';
 export type {AutoReportingFrequencyDisplayNames, AutoReportingFrequencyKey};
 export {getAutoReportingFrequencyDisplayNames};
 export default withPolicy(WorkspaceAutoReportingFrequencyPage);

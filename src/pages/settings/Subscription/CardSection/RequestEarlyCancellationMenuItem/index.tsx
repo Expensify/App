@@ -1,17 +1,19 @@
-import React, {useContext} from 'react';
-import {DelegateNoAccessContext} from '@components/DelegateNoAccessModalProvider';
+import React from 'react';
+import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import MenuItem from '@components/MenuItem';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
+import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
 function RequestEarlyCancellationMenuItem() {
-    const icons = useMemoizedLazyExpensifyIcons(['CalendarSolid'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['CalendarSolid']);
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const {isActingAsDelegate, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
+    const {isActingAsDelegate} = useDelegateNoAccessState();
+    const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
 
     const handleRequestEarlyCancellationPress = () => {
         if (isActingAsDelegate) {
@@ -27,10 +29,9 @@ function RequestEarlyCancellationMenuItem() {
             shouldShowRightIcon
             wrapperStyle={styles.sectionMenuItemTopDescription}
             onPress={handleRequestEarlyCancellationPress}
+            sentryLabel={CONST.SENTRY_LABEL.SETTINGS_SUBSCRIPTION.REQUEST_EARLY_CANCELLATION}
         />
     );
 }
-
-RequestEarlyCancellationMenuItem.displayName = 'RequestEarlyCancellationMenuItem';
 
 export default RequestEarlyCancellationMenuItem;

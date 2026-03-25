@@ -56,6 +56,4 @@ function ConfirmModalWrapper({closeModal, ...props}: ConfirmModalWrapperProps) {
     );
 }
 
-ConfirmModalWrapper.displayName = 'ConfirmModalWrapper';
-
 export default ConfirmModalWrapper;

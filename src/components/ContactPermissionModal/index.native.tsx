@@ -12,12 +12,12 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {ContactPermissionModalProps} from './types';
 
 function ContactPermissionModal({onDeny, onGrant, onFocusTextInput}: ContactPermissionModalProps) {
-    const [hasDeniedContactImportPrompt] = useOnyx(ONYXKEYS.HAS_DENIED_CONTACT_IMPORT_PROMPT, {canBeMissing: true});
+    const [hasDeniedContactImportPrompt] = useOnyx(ONYXKEYS.HAS_DENIED_CONTACT_IMPORT_PROMPT);
     const [isModalVisible, setIsModalVisible] = useState(false);
 
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const illustrations = useMemoizedLazyIllustrations(['ToddWithPhones'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['ToddWithPhones']);
 
     useEffect(() => {
         if (hasDeniedContactImportPrompt) {
@@ -32,7 +32,7 @@ function ContactPermissionModal({onDeny, onGrant, onFocusTextInput}: ContactPerm
             }
             setIsModalVisible(true);
         });
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const handleGrantPermission = () => {
@@ -87,7 +87,5 @@ function ContactPermissionModal({onDeny, onGrant, onFocusTextInput}: ContactPerm
         />
     );
 }
-
-ContactPermissionModal.displayName = 'ContactPermissionModal';
 
 export default ContactPermissionModal;

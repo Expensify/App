@@ -2,6 +2,7 @@ import React, {useCallback, useEffect, useMemo} from 'react';
 import {View} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
@@ -12,7 +13,7 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getConnectionNameFromRouteParam} from '@libs/AccountingUtils';
 import {openPolicyAccountingPage} from '@libs/actions/PolicyConnections';
-import {isExpensifyCardFullySetUp} from '@libs/CardUtils';
+import {getCardSettings, isExpensifyCardFullySetUp} from '@libs/CardUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import Navigation from '@navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
@@ -69,17 +70,18 @@ function CardReconciliationPage({policy, route}: CardReconciliationPageProps) {
     const domainID = fullySetUpCardSetting.key.split('_').at(-1);
     const effectiveDomainID = Number(domainID ?? workspaceAccountID);
 
-    const [isContinuousReconciliationOn] = useOnyx(`${ONYXKEYS.COLLECTION.EXPENSIFY_CARD_USE_CONTINUOUS_RECONCILIATION}${effectiveDomainID}`, {canBeMissing: true});
-    const [currentConnectionName] = useOnyx(`${ONYXKEYS.COLLECTION.EXPENSIFY_CARD_CONTINUOUS_RECONCILIATION_CONNECTION}${effectiveDomainID}`, {canBeMissing: true});
-    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
+    const [continuousReconciliation] = useOnyx(`${ONYXKEYS.COLLECTION.EXPENSIFY_CARD_USE_CONTINUOUS_RECONCILIATION}${effectiveDomainID}`);
+    const [currentConnectionName] = useOnyx(`${ONYXKEYS.COLLECTION.EXPENSIFY_CARD_CONTINUOUS_RECONCILIATION_CONNECTION}${effectiveDomainID}`);
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
 
-    const paymentBankAccountID = fullySetUpCardSetting.cardSetting?.paymentBankAccountID ?? CONST.DEFAULT_NUMBER_ID;
+    const resolvedCardSettings = getCardSettings(fullySetUpCardSetting.cardSetting);
+    const paymentBankAccountID = resolvedCardSettings?.paymentBankAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const bankAccountTitle = bankAccountList?.[paymentBankAccountID]?.title ?? '';
 
     const {connection} = route.params;
     const connectionName = getConnectionNameFromRouteParam(connection) as ConnectionName;
     const autoSync = !!policy?.connections?.[connectionName]?.config?.autoSync?.enabled;
-    const shouldShow = !!fullySetUpCardSetting.cardSetting?.paymentBankAccountID;
+    const shouldShow = !!resolvedCardSettings?.paymentBankAccountID;
 
     const handleToggleContinuousReconciliation = (value: boolean) => {
         toggleContinuousReconciliation(effectiveDomainID, value, connectionName, currentConnectionName);
@@ -117,11 +119,11 @@ function CardReconciliationPage({policy, route}: CardReconciliationPageProps) {
     }, [policyID]);
 
     useEffect(() => {
-        if (isContinuousReconciliationOn !== undefined) {
+        if (continuousReconciliation?.value !== undefined) {
             return;
         }
         fetchPolicyAccountingData();
-    }, [isContinuousReconciliationOn, fetchPolicyAccountingData]);
+    }, [continuousReconciliation?.value, fetchPolicyAccountingData]);
 
     return (
         <AccessOrNotFoundWrapper
@@ -132,7 +134,7 @@ function CardReconciliationPage({policy, route}: CardReconciliationPageProps) {
         >
             <ScreenWrapper
                 shouldEnableMaxHeight
-                testID={CardReconciliationPage.displayName}
+                testID="CardReconciliationPage"
             >
                 <HeaderWithBackButton title={translate('workspace.accounting.cardReconciliation')} />
                 <ScrollView
@@ -146,35 +148,37 @@ function CardReconciliationPage({policy, route}: CardReconciliationPageProps) {
                         shouldPlaceSubtitleBelowSwitch
                         switchAccessibilityLabel={translate('workspace.accounting.continuousReconciliation')}
                         disabled={!autoSync}
-                        isActive={!!isContinuousReconciliationOn}
+                        isActive={!!continuousReconciliation?.value}
                         onToggle={handleToggleContinuousReconciliation}
                         wrapperStyle={styles.ph5}
+                        pendingAction={continuousReconciliation?.pendingAction}
                     />
                     {!autoSync && (
                         <View style={[styles.renderHTML, styles.ph5, styles.mt2]}>
                             <RenderHTML
-                                html={translate('workspace.accounting.enableContinuousReconciliation', {
+                                html={translate(
+                                    'workspace.accounting.enableContinuousReconciliation',
                                     accountingAdvancedSettingsLink,
-                                    connectionName: CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName],
-                                })}
+                                    CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName],
+                                )}
                             />
                         </View>
                     )}
-                    {!!paymentBankAccountID && !!isContinuousReconciliationOn && (
-                        <MenuItemWithTopDescription
-                            style={styles.mt5}
-                            title={bankAccountTitle}
-                            description={translate('workspace.accounting.reconciliationAccount')}
-                            shouldShowRightIcon
-                            onPress={() => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_RECONCILIATION_ACCOUNT_SETTINGS.getRoute(policyID, connection))}
-                        />
-                    )}
+                    <OfflineWithFeedback pendingAction={continuousReconciliation?.pendingAction}>
+                        {!!paymentBankAccountID && !!continuousReconciliation?.value && (
+                            <MenuItemWithTopDescription
+                                style={styles.mt5}
+                                title={bankAccountTitle}
+                                description={translate('workspace.accounting.reconciliationAccount')}
+                                shouldShowRightIcon
+                                onPress={() => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_RECONCILIATION_ACCOUNT_SETTINGS.getRoute(policyID, connection))}
+                            />
+                        )}
+                    </OfflineWithFeedback>
                 </ScrollView>
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
     );
 }
-
-CardReconciliationPage.displayName = 'CardReconciliationPage';
 
 export default withPolicyConnections(CardReconciliationPage);
