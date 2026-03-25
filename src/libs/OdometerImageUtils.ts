@@ -1,7 +1,16 @@
 import type {FileObject} from '@src/types/utils/Attachment';
+import {getMimeTypeFromUri} from './fileDownload/FileUtils';
 
-function getOdometerImageUri(image: FileObject | string | null | undefined): string | undefined {
-    return typeof image === 'string' ? image : image?.uri;
+function getOdometerImageUri(image: FileObject | string | null | undefined): string {
+    return typeof image === 'string' ? image : (image?.uri ?? '');
+}
+
+function getOdometerImageName(image: FileObject | string | null | undefined): string {
+    return typeof image === 'string' ? (image.split('/').pop() ?? '') : (image?.name ?? '');
+}
+
+function getOdometerImageType(image: FileObject | string | null | undefined): string | undefined {
+    return typeof image === 'string' ? getMimeTypeFromUri(image) : (image?.type ?? getMimeTypeFromUri(image?.uri ?? ''));
 }
 
 /**
@@ -29,5 +38,5 @@ function revokeOdometerImageUri(image: FileObject | string | null | undefined, n
     URL.revokeObjectURL(currentUri);
 }
 
-export {getOdometerImageUri};
+export {getOdometerImageUri, getOdometerImageName, getOdometerImageType};
 export default revokeOdometerImageUri;

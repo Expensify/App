@@ -7,8 +7,8 @@ import calculateStitchLayout from './stitchLayout';
 let previousBlobUrl: string | null = null;
 
 function stitchOdometerImages(image1: FileObject | string | undefined, image2: FileObject | string | undefined): Promise<FileObject | null> {
-    const source1 = getOdometerImageUri(image1) ?? null;
-    const source2 = getOdometerImageUri(image2) ?? null;
+    const source1 = getOdometerImageUri(image1);
+    const source2 = getOdometerImageUri(image2);
 
     if (!source1 || !source2) {
         return Promise.resolve(null);

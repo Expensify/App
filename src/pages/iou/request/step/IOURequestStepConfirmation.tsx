@@ -40,7 +40,7 @@ import {getCurrencySymbol} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
-import {getMimeTypeFromUri, isLocalFile as isLocalFileFileUtils} from '@libs/fileDownload/FileUtils';
+import {isLocalFile as isLocalFileFileUtils} from '@libs/fileDownload/FileUtils';
 import validateReceiptFile from '@libs/fileDownload/validateReceiptFile';
 import getCurrentPosition from '@libs/getCurrentPosition';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
@@ -56,7 +56,7 @@ import Log from '@libs/Log';
 import navigateAfterInteraction from '@libs/Navigation/navigateAfterInteraction';
 import Navigation from '@libs/Navigation/Navigation';
 import {rand64, roundToTwoDecimalPlaces} from '@libs/NumberUtils';
-import {getOdometerImageUri} from '@libs/OdometerImageUtils';
+import {getOdometerImageName, getOdometerImageType, getOdometerImageUri} from '@libs/OdometerImageUtils';
 import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
 import {isPaidGroupPolicy} from '@libs/PolicyUtils';
 import {
@@ -454,11 +454,6 @@ function IOURequestStepConfirmation({
             return;
         }
 
-        const getImageUri = (img: FileObject | string | null | undefined): string => (typeof img === 'string' ? img : (img?.uri ?? ''));
-        const getImageName = (img: FileObject | string | null | undefined): string => (typeof img === 'string' ? (img.split('/').pop() ?? '') : (img?.name ?? ''));
-        const getImageType = (img: FileObject | string | null | undefined): string | undefined =>
-            typeof img === 'string' ? getMimeTypeFromUri(img) : (img?.type ?? getMimeTypeFromUri(img?.uri ?? ''));
-
         if (!odometerStartImage || !odometerEndImage) {
             const singleImage = odometerStartImage ?? odometerEndImage;
 
@@ -466,7 +461,13 @@ function IOURequestStepConfirmation({
                 return;
             }
 
-            setMoneyRequestReceipt(currentTransactionID, getImageUri(singleImage), getImageName(singleImage), shouldUseTransactionDraft(action, iouType), getImageType(singleImage));
+            setMoneyRequestReceipt(
+                currentTransactionID,
+                getOdometerImageUri(singleImage),
+                getOdometerImageName(singleImage),
+                shouldUseTransactionDraft(action, iouType),
+                getOdometerImageType(singleImage),
+            );
             lastStitchedImages.current = {startImage: odometerStartImage, endImage: odometerEndImage};
             return;
         }
@@ -482,10 +483,10 @@ function IOURequestStepConfirmation({
                 }
                 setMoneyRequestReceipt(
                     currentTransactionID,
-                    getImageUri(stitchedImage),
-                    getImageName(stitchedImage),
+                    getOdometerImageUri(stitchedImage),
+                    getOdometerImageName(stitchedImage),
                     shouldUseTransactionDraft(action, iouType),
-                    getImageType(stitchedImage),
+                    getOdometerImageType(stitchedImage),
                 );
                 lastStitchedImages.current = {startImage: odometerStartImage, endImage: odometerEndImage};
             })
