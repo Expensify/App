@@ -7281,6 +7281,7 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
                     [CONST.SEARCH.DATE_PRESETS.LAST_MONTH]: 'W zeszłym miesiącu',
                     [CONST.SEARCH.DATE_PRESETS.THIS_MONTH]: 'Ten miesiąc',
                     [CONST.SEARCH.DATE_PRESETS.YEAR_TO_DATE]: 'Od początku roku',
+                    [CONST.SEARCH.DATE_PRESETS.LAST_12_MONTHS]: 'Ostatnie 12 miesięcy',
                     [CONST.SEARCH.DATE_PRESETS.LAST_STATEMENT]: 'Ostatnie zestawienie',
                 },
             },
