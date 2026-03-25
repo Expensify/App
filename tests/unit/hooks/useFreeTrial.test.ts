@@ -140,6 +140,7 @@ describe('useFreeTrial', () => {
         it('should return discount info from getEarlyDiscountInfo when on trial', () => {
             mockedIsUserOnFreeTrial.mockReturnValue(true);
             mockedDoesUserHavePaymentCardAdded.mockReturnValue(false);
+            mockedShouldShowDiscountBanner.mockReturnValue(true);
             mockedCalculateRemainingFreeTrialDays.mockReturnValue(5);
             mockedGetEarlyDiscountInfo.mockReturnValue({discountType: 50, days: 0, hours: 23, minutes: 59, seconds: 30});
 
