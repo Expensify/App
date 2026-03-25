@@ -73,7 +73,7 @@ function WorkspaceExpensifyCardBankAccounts({route}: WorkspaceExpensifyCardBankA
     };
 
     const handleSelectBankAccount = (value?: number) => {
-        configureExpensifyCardsForPolicy(policyID, policy?.workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID, value);
+        configureExpensifyCardsForPolicy(policyID, policy?.policyAccountID ?? CONST.DEFAULT_NUMBER_ID, value);
     };
 
     const renderBankOptions = () => {
