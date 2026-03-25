@@ -40,6 +40,9 @@ type MultiSelectPopupProps<T> = {
 
     /** Search input placeholder. Defaults to 'common.search' when not provided. */
     searchPlaceholder?: string;
+
+    /** Whether the data for the popover is loading */
+    loading?: boolean;
 };
 
 function MultiSelectPopup<T extends string>({label, value, items, closeOverlay, onChange, isSearchable, searchPlaceholder}: MultiSelectPopupProps<T>) {
