@@ -1478,7 +1478,7 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
         />
     );
 
-    const markAsCashAction = (
+    const markTransactionAsCashAction = (
         <Button
             success
             text={translate('iou.markAsCash')}
@@ -1539,7 +1539,7 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
             case CONST.REPORT.PRIMARY_ACTIONS.REMOVE_HOLD:
                 return removeHoldAction;
             case CONST.REPORT.PRIMARY_ACTIONS.MARK_AS_CASH:
-                return markAsCashAction;
+                return markTransactionAsCashAction;
             case CONST.REPORT.TRANSACTION_PRIMARY_ACTIONS.MARK_AS_RESOLVED:
                 return markAsResolvedAction;
             case CONST.REPORT.PRIMARY_ACTIONS.REVIEW_DUPLICATES:
