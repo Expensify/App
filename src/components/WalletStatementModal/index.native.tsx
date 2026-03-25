@@ -1,3 +1,4 @@
+import {hasSeenTourSelector} from '@selectors/Onboarding';
 import React, {useCallback, useRef} from 'react';
 import type {WebViewMessageEvent, WebViewNavigation} from 'react-native-webview';
 import {WebView} from 'react-native-webview';
@@ -22,7 +23,9 @@ function WalletStatementModal({statementPageURL}: WalletStatementProps) {
 
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const [betas] = useOnyx(ONYXKEYS.BETAS);
+    /* eslint-disable react-hooks/preserve-manual-memoization -- React Compiler infers `session`; we use session?.accountID in deps per rulesdir/prefer-narrow-hook-dependencies */
     const onMessage = useCallback(
         (event: WebViewMessageEvent) => {
             try {
@@ -32,13 +35,14 @@ function WalletStatementModal({statementPageURL}: WalletStatementProps) {
                     return;
                 }
 
-                handleWalletStatementNavigation(conciergeReportID, introSelected, session?.accountID, betas, type, url);
+                handleWalletStatementNavigation(conciergeReportID, introSelected, session?.accountID, isSelfTourViewed, betas, type, url);
             } catch (error) {
                 console.error('Error parsing message from WebView:', error);
             }
         },
-        [conciergeReportID, session?.accountID, introSelected, betas],
+        [conciergeReportID, session?.accountID, introSelected, isSelfTourViewed, betas],
     );
+    /* eslint-enable react-hooks/preserve-manual-memoization */
 
     return (
         <WebView

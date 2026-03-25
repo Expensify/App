@@ -180,6 +180,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [onboarding] = useOnyx(ONYXKEYS.NVP_ONBOARDING);
+    const isSelfTourViewed = onboarding?.selfTourViewed;
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
 
     const archivedReportsIdSet = useArchivedReportsIdSet();
@@ -772,7 +773,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
             }
 
             Navigation.isNavigationReady().then(() => {
-                navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, betas, false);
+                navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas, false);
             });
             return;
         }
@@ -824,9 +825,9 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
 
         // Fallback to Concierge
         Navigation.isNavigationReady().then(() => {
-            navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, betas);
+            navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas);
         });
-    }, [reportWasDeleted, isFocused, deletedReportParentID, conciergeReportID, introSelected, currentUserAccountID, betas]);
+    }, [reportWasDeleted, isFocused, deletedReportParentID, conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas]);
 
     useEffect(() => {
         if (!isValidReportIDFromPath(reportIDFromRoute)) {

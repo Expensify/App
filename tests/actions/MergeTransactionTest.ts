@@ -23,7 +23,6 @@ import createRandomMergeTransaction from '../utils/collections/mergeTransaction'
 import createRandomReportAction from '../utils/collections/reportActions';
 import {createExpenseReport, createRandomReport} from '../utils/collections/reports';
 import createRandomTransaction, {createRandomDistanceRequestTransaction} from '../utils/collections/transaction';
-import getOnyxValue from '../utils/getOnyxValue';
 import * as TestHelper from '../utils/TestHelper';
 import type {MockFetch} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
@@ -789,16 +788,10 @@ describe('mergeTransactionRequest', () => {
             const participantAccountIDs = Object.keys(thread.participants ?? {}).map(Number);
             const userLogins = getLoginsByAccountIDs(participantAccountIDs);
             jest.advanceTimersByTime(10);
-            const allPersonalDetails = await getOnyxValue(ONYXKEYS.PERSONAL_DETAILS_LIST);
-            const participants = userLogins.map((login, index) => ({
-                login,
-                accountID: participantAccountIDs.at(index),
-            }));
             openReport({
                 reportID: thread.reportID,
                 introSelected: undefined,
-                participants,
-                personalDetails: allPersonalDetails,
+                participantLoginList: userLogins,
                 newReportObject: thread,
                 parentReportActionID: sourceIOUAction.reportActionID,
             });
@@ -969,16 +962,10 @@ describe('mergeTransactionRequest', () => {
             const participantAccountIDs = Object.keys(thread.participants ?? {}).map(Number);
             const userLogins = getLoginsByAccountIDs(participantAccountIDs);
             jest.advanceTimersByTime(10);
-            const allPersonalDetails = await getOnyxValue(ONYXKEYS.PERSONAL_DETAILS_LIST);
-            const participants = userLogins.map((login, index) => ({
-                login,
-                accountID: participantAccountIDs.at(index),
-            }));
             openReport({
                 reportID: thread.reportID,
                 introSelected: undefined,
-                participants,
-                personalDetails: allPersonalDetails,
+                participantLoginList: userLogins,
                 newReportObject: thread,
                 parentReportActionID: sourceIOUAction.reportActionID,
             });

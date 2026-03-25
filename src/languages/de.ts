@@ -767,11 +767,6 @@ const translations: TranslationDeepObject<typeof en> = {
         searchForSomeone: 'Nach jemandem suchen',
         userSelected: (username: string) => `${username} ausgewählt`,
     },
-    customApprovalWorkflow: {
-        title: 'Benutzerdefinierter Genehmigungsworkflow',
-        description: 'Ihr Unternehmen verwendet in diesem Workspace einen benutzerdefinierten Genehmigungs-Workflow. Bitte führen Sie diese Aktion in Expensify Classic aus',
-        goToExpensifyClassic: 'Zu Expensify Classic wechseln',
-    },
     emptyList: {
         [CONST.IOU.TYPE.CREATE]: {
             title: 'Reiche eine Ausgabe ein, wirb dein Team an',
@@ -1248,6 +1243,8 @@ const translations: TranslationDeepObject<typeof en> = {
         pendingMatch: 'Ausstehende Zuordnung',
         pendingMatchWithCreditCardDescription: 'Beleg wartet auf Abgleich mit Kartenumsatz. Als Barzahlung markieren, um abzubrechen.',
         markAsCash: 'Als Bar markieren',
+        pendingMatchSubmitTitle: 'Bericht einreichen',
+        pendingMatchSubmitDescription: 'Einige Ausgaben warten auf die Zuordnung mit einer Kreditkartentransaktion. Möchten Sie sie als Bar markieren?',
         routePending: 'Routing ausstehend ...',
         automaticallyEnterExpenseDetails: 'Concierge wird automatisch die Ausgabendetails für Sie eingeben, oder Sie können sie manuell hinzufügen.',
         receiptScanning: () => ({
@@ -2367,12 +2364,17 @@ ${amount} für ${merchant} – ${date}`,
         freezeCard: 'Karte sperren',
         unfreeze: 'Entsperren',
         unfreezeCard: 'Karte entsperren',
+        askToUnfreeze: 'Entsperrung anfragen',
         freezeDescription: 'Eine gesperrte Karte kann nicht für Käufe und Transaktionen verwendet werden. Du kannst sie jederzeit entsperren.',
         unfreezeDescription:
             'Durch das Entsperren dieser Karte werden Käufe und Transaktionen wieder zugelassen. Fahre nur fort, wenn du sicher bist, dass die Karte sicher verwendet werden kann.',
         frozen: 'Gesperrt',
         youFroze: ({date}: {date: string}) => `Du hast diese Karte am ${date} gesperrt.`,
         frozenBy: ({person, date}: {person: string; date: string}) => `${person} hat diese Karte am ${date} gesperrt.`,
+        frozenByAdminPrefix: ({date}: {date: string}) => `Diese Karte wurde am ${date} gesperrt von `,
+        frozenByAdminNeedsUnfreezePrefix: 'Diese Karte wurde von ',
+        frozenByAdminNeedsUnfreezeSuffix: ' gesperrt. Bitte kontaktiere einen Admin, um sie zu entsperren.',
+        frozenByAdminNeedsUnfreeze: ({person}: {person: string}) => `Diese Karte wurde von ${person} gesperrt. Bitte kontaktiere einen Admin, um sie zu entsperren.`,
     },
     workflowsPage: {
         workflowTitle: 'Ausgaben',
@@ -2672,6 +2674,7 @@ ${amount} für ${merchant} – ${date}`,
                 label: 'Geräteeinstellungen verwenden',
             },
         },
+        highContrastMode: 'Hoher Kontrast',
         chooseThemeBelowOrSync: 'Wählen Sie unten ein Design aus oder synchronisieren Sie es mit den Einstellungen Ihres Geräts.',
     },
     termsOfUse: {
@@ -7227,6 +7230,7 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
     search: {
         resultsAreLimited: 'Suchergebnisse sind begrenzt.',
         viewResults: 'Ergebnisse anzeigen',
+        appliedFilters: 'Angewandte filter',
         resetFilters: 'Filter zurücksetzen',
         searchResults: {
             emptyResults: {
@@ -7282,6 +7286,7 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
             },
         },
         columns: 'Spalten',
+        editColumns: 'Spalten bearbeiten',
         resetColumns: 'Spalten zurücksetzen',
         groupColumns: 'Spalten gruppieren',
         expenseColumns: 'Spalten für Ausgaben',
@@ -7382,8 +7387,13 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
                 [CONST.SEARCH.ACTION_FILTERS.EXPORT]: 'Export',
             },
         },
+        display: {
+            label: 'Anzeige',
+            sortBy: 'Sortieren nach',
+            groupBy: 'Gruppieren nach',
+            limitResults: 'Ergebnisse einschränken',
+        },
         has: 'Hat',
-        groupBy: 'Gruppieren nach',
         view: {
             label: 'Anzeigen',
             table: 'Tabelle',

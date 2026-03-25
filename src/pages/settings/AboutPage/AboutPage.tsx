@@ -1,3 +1,4 @@
+import {hasSeenTourSelector} from '@selectors/Onboarding';
 import React, {useCallback, useMemo, useRef} from 'react';
 import {View} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
@@ -66,6 +67,7 @@ function AboutPage() {
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
 
     const menuItems = useMemo(() => {
@@ -108,7 +110,7 @@ function AboutPage() {
                 translationKey: 'initialSettingsPage.aboutPage.reportABug',
                 icon: icons.Bug,
                 sentryLabel: CONST.SENTRY_LABEL.SETTINGS_ABOUT.REPORT_A_BUG,
-                action: waitForNavigate(() => navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, betas, false)),
+                action: waitForNavigate(() => navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas, false)),
             },
         ];
 
@@ -133,7 +135,7 @@ function AboutPage() {
             wrapperStyle: [styles.sectionMenuItemTopDescription],
             sentryLabel,
         }));
-    }, [icons, styles, translate, waitForNavigate, conciergeReportID, introSelected, currentUserAccountID, betas]);
+    }, [icons, styles, translate, waitForNavigate, conciergeReportID, introSelected, isSelfTourViewed, currentUserAccountID, betas]);
 
     const overlayContent = useCallback(
         () => (
