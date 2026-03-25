@@ -115,11 +115,13 @@ function MultiSelectPopup<T extends string>({label, loading, value, items, close
 
             <View style={[styles.getSelectionListPopoverHeight(listData.length || 1, windowHeight, isSearchable ?? false)]}>
                 {!!loading && (
-                    <ActivityIndicator
-                        size={CONST.ACTIVITY_INDICATOR_SIZE.SMALL}
-                        color={theme.spinner}
-                        reasonAttributes={reasonAttributes}
-                    />
+                    <View style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsCenter]}>
+                        <ActivityIndicator
+                            size={CONST.ACTIVITY_INDICATOR_SIZE.SMALL}
+                            color={theme.spinner}
+                            reasonAttributes={reasonAttributes}
+                        />
+                    </View>
                 )}
 
                 {!loading && (
