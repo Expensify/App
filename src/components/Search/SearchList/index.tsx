@@ -16,24 +16,7 @@ import {PressableWithFeedback} from '@components/Pressable';
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
 import ScrollView from '@components/ScrollView';
 import type {SearchColumnType, SearchGroupBy, SearchQueryJSON, SelectedTransactions} from '@components/Search/types';
-import type ChatListItem from '@components/SelectionListWithSections/ChatListItem';
-import type TaskListItem from '@components/SelectionListWithSections/Search/TaskListItem';
-import type TransactionGroupListItem from '@components/SelectionListWithSections/Search/TransactionGroupListItem';
-import type TransactionListItem from '@components/SelectionListWithSections/Search/TransactionListItem';
-import type {
-    ExtendedTargetedEvent,
-    ReportActionListItemType,
-    TaskListItemType,
-    TransactionCardGroupListItemType,
-    TransactionCategoryGroupListItemType,
-    TransactionGroupListItemType,
-    TransactionListItemType,
-    TransactionMerchantGroupListItemType,
-    TransactionMonthGroupListItemType,
-    TransactionQuarterGroupListItemType,
-    TransactionWeekGroupListItemType,
-    TransactionYearGroupListItemType,
-} from '@components/SelectionListWithSections/types';
+import type {ExtendedTargetedEvent} from '@components/SelectionList/ListItem/types';
 import Text from '@components/Text';
 import useKeyboardState from '@hooks/useKeyboardState';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -56,6 +39,23 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Transaction, TransactionViolations} from '@src/types/onyx';
 import type {HoldMenuCallback} from '..';
 import BaseSearchList from './BaseSearchList';
+import type ChatListItem from './ListItem/ChatListItem';
+import type TaskListItem from './ListItem/TaskListItem';
+import type TransactionGroupListItem from './ListItem/TransactionGroupListItem';
+import type TransactionListItem from './ListItem/TransactionListItem';
+import type {
+    ReportActionListItemType,
+    TaskListItemType,
+    TransactionCardGroupListItemType,
+    TransactionCategoryGroupListItemType,
+    TransactionGroupListItemType,
+    TransactionListItemType,
+    TransactionMerchantGroupListItemType,
+    TransactionMonthGroupListItemType,
+    TransactionQuarterGroupListItemType,
+    TransactionWeekGroupListItemType,
+    TransactionYearGroupListItemType,
+} from './ListItem/types';
 
 const easing = Easing.bezier(0.76, 0.0, 0.24, 1.0);
 
@@ -127,14 +127,8 @@ type SearchListProps = Pick<FlashListProps<SearchListItem>, 'onScroll' | 'conten
     /** Custom card names */
     customCardNames?: Record<number, string>;
 
-    /** Callback to fire when DEW modal should be opened */
-    onDEWModalOpen?: () => void;
-
     /** Callback to fire when hold menu should be opened */
     onHoldMenuOpen?: HoldMenuCallback;
-
-    /** Whether the DEW beta flag is enabled */
-    isDEWBetaEnabled?: boolean;
 
     /** Selected transactions for determining isSelected state */
     selectedTransactions: SelectedTransactions;
@@ -224,9 +218,7 @@ function SearchList({
     newTransactions = [],
     violations,
     customCardNames,
-    onDEWModalOpen,
     onHoldMenuOpen,
-    isDEWBetaEnabled,
     selectedTransactions,
     hasLoadedAllTransactions,
     ref,
@@ -452,8 +444,6 @@ function SearchList({
                         isDisabled={isDisabled}
                         groupBy={groupBy}
                         searchType={type}
-                        onDEWModalOpen={onDEWModalOpen}
-                        isDEWBetaEnabled={isDEWBetaEnabled}
                         lastPaymentMethod={lastPaymentMethod}
                         personalPolicyID={personalPolicyID}
                         userWalletTierName={userWalletTierName}
@@ -466,6 +456,7 @@ function SearchList({
                         onFocus={onFocus}
                         newTransactionID={newTransactionID}
                         onHoldMenuOpen={onHoldMenuOpen}
+                        keyForList={item.keyForList}
                     />
                 </Animated.View>
             );
@@ -493,8 +484,6 @@ function SearchList({
             userBillingFundID,
             isOffline,
             violations,
-            onDEWModalOpen,
-            isDEWBetaEnabled,
             lastPaymentMethod,
             personalPolicyID,
             customCardNames,

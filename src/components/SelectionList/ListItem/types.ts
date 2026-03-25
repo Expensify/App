@@ -2,7 +2,10 @@ import type {ReactElement, ReactNode} from 'react';
 import type {AccessibilityState, BlurEvent, NativeSyntheticEvent, Role, StyleProp, TargetedEvent, TextStyle, ViewStyle} from 'react-native';
 import type {AnimatedStyle} from 'react-native-reanimated';
 import type {ValueOf} from 'type-fest';
+import type {HoldMenuCallback} from '@components/Search';
 import type {SearchRouterItem} from '@components/Search/SearchAutocompleteList';
+import type {TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
+import type {TransactionPreviewData} from '@libs/actions/Search';
 import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 import type {BrickRoad} from '@libs/WorkspacesSettingsUtils';
 // eslint-disable-next-line no-restricted-imports
@@ -159,10 +162,10 @@ type CommonListItemProps<TItem extends ListItem> = {
     canSelectMultiple?: boolean;
 
     /** Callback to fire when the item is pressed */
-    onSelectRow: (item: TItem) => void;
+    onSelectRow: (item: TItem, transactionPreviewData?: TransactionPreviewData) => void;
 
     /** Callback to fire when a checkbox is pressed */
-    onCheckboxPress?: (item: TItem) => void;
+    onCheckboxPress?: (item: TItem, itemTransactions?: TransactionListItemType[]) => void;
 
     /** Callback to fire when an error is dismissed */
     onDismissError?: (item: TItem) => void;
@@ -204,7 +207,7 @@ type CommonListItemProps<TItem extends ListItem> = {
     onFocus?: ListItemFocusEventHandler;
 
     /** Callback to fire when the item is long pressed */
-    onLongPressRow?: (item: TItem) => void;
+    onLongPressRow?: (item: TItem, itemTransactions?: TransactionListItemType[]) => void;
 
     /** Accessibility State tells a person using either VoiceOver on iOS or TalkBack on Android the state of the element currently focused on */
     accessibilityState?: AccessibilityState;
@@ -287,8 +290,14 @@ type ListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
     /** Callback when the input inside the item is blurred (if input exists) */
     onInputBlur?: (e: BlurEvent) => void;
 
+    /** Callback when the hold menu should be opened */
+    onHoldMenuOpen?: HoldMenuCallback;
+
     /** Whether to disable the hover style of the item */
     shouldDisableHoverStyle?: boolean;
+
+    /** Whether the network is offline */
+    isOffline?: boolean;
 };
 
 type ValidListItem =
@@ -305,40 +314,41 @@ type ValidListItem =
     | typeof UserListItem
     | typeof UserSelectionListItem;
 
-type BaseListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
-    item: TItem;
-    shouldPreventDefaultFocusOnSelectRow?: boolean;
-    shouldPreventEnterKeySubmit?: boolean;
-    shouldShowBlueBorderOnFocus?: boolean;
-    keyForList: string;
-    errors?: Errors | ReceiptErrors | null;
-    /** Additional style object for the error row */
-    errorRowStyles?: StyleProp<ViewStyle>;
-    pendingAction?: PendingAction | null;
-    FooterComponent?: ReactElement;
-    children?: ReactElement<ListItemProps<TItem>> | ((hovered: boolean) => ReactElement<ListItemProps<TItem>>);
-    shouldSyncFocus?: boolean;
-    hoverStyle?: StyleProp<ViewStyle>;
-    /** Whether to show RBR */
-    shouldDisplayRBR?: boolean;
-    /** Test ID of the component. Used to locate this view in end-to-end tests. */
-    testID?: string;
-    /** Whether to show the default right hand side checkmark */
-    shouldUseDefaultRightHandSideCheckmark?: boolean;
-    /** Whether to show the right caret icon */
-    shouldShowRightCaret?: boolean;
-    /** Whether to highlight the selected item */
-    shouldHighlightSelectedItem?: boolean;
+type BaseListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> &
+    ForwardedFSClassProps & {
+        item: TItem;
+        shouldPreventDefaultFocusOnSelectRow?: boolean;
+        shouldPreventEnterKeySubmit?: boolean;
+        shouldShowBlueBorderOnFocus?: boolean;
+        keyForList: string;
+        errors?: Errors | ReceiptErrors | null;
+        /** Additional style object for the error row */
+        errorRowStyles?: StyleProp<ViewStyle>;
+        pendingAction?: PendingAction | null;
+        FooterComponent?: ReactElement;
+        children?: ReactElement<ListItemProps<TItem>> | ((hovered: boolean) => ReactElement<ListItemProps<TItem>>);
+        shouldSyncFocus?: boolean;
+        hoverStyle?: StyleProp<ViewStyle>;
+        /** Whether to show RBR */
+        shouldDisplayRBR?: boolean;
+        /** Test ID of the component. Used to locate this view in end-to-end tests. */
+        testID?: string;
+        /** Whether to show the default right hand side checkmark */
+        shouldUseDefaultRightHandSideCheckmark?: boolean;
+        /** Whether to show the right caret icon */
+        shouldShowRightCaret?: boolean;
+        /** Whether to highlight the selected item */
+        shouldHighlightSelectedItem?: boolean;
 
-    /** Whether to disable the hover style of the item */
-    shouldDisableHoverStyle?: boolean;
+        /** Whether to disable the hover style of the item */
+        shouldDisableHoverStyle?: boolean;
 
-    /**
-     * Whether the pressable should be accessible as a single element.
-     * When false, allows child elements (like TextInput) to be independently focusable by screen readers.
-     */
-    accessible?: boolean;
-};
+        /**
+         * Whether the pressable should be accessible as a single element.
+         * When false, allows child elements (like TextInput) to be independently focusable by screen readers.
+         */
+        accessible?: boolean;
+    };
 
 type SplitListItemType = ListItem &
     SplitExpense & {

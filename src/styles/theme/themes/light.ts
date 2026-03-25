@@ -90,6 +90,8 @@ const lightTheme = {
     badgeDangerText: colors.tangerine700,
     badgeAdHoc: colors.pink600,
     badgeAdHocHover: colors.pink700,
+    bordersBold: colors.productLight400,
+    buttonIcon: colors.productLight700,
     mentionText: colors.blue600,
     mentionBG: colors.blue100,
     ourMentionText: colors.green600,

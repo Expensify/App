@@ -40,7 +40,7 @@ type IOURequestStepHoursProps = WithWritableReportOrNotFoundProps<
 function IOURequestStepHours({
     report,
     route: {
-        params: {iouType, reportID, transactionID = '-1', action, reportActionID},
+        params: {iouType, reportID, transactionID = '-1', action, reportActionID, backToReport},
         name: routeName,
     },
     transaction,
@@ -120,12 +120,12 @@ function IOURequestStepHours({
                 setTransactionReport(transactionID, {reportID: policyExpenseChat.reportID}, isTransactionDraft);
                 setMoneyRequestParticipantsFromReport(transactionID, policyExpenseChat, accountID);
 
-                return Navigation.setNavigationActionToMicrotaskQueue(() => navigateToConfirmationPage(iouType, transactionID, policyExpenseChat.reportID, undefined));
+                return Navigation.setNavigationActionToMicrotaskQueue(() => navigateToConfirmationPage(iouType, transactionID, policyExpenseChat.reportID, backToReport));
             }
             setMoneyRequestParticipantsFromReport(transactionID, report, accountID);
         }
 
-        navigateToConfirmationPage(iouType, transactionID, reportID, undefined);
+        navigateToConfirmationPage(iouType, transactionID, reportID, backToReport);
     };
 
     return (
