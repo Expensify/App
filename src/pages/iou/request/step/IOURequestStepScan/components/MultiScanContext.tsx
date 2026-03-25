@@ -1,15 +1,12 @@
-import {useRoute} from '@react-navigation/native';
 import React, {createContext, useContext, useState} from 'react';
 import {InteractionManager} from 'react-native';
 import useOnyx from '@hooks/useOnyx';
 import {dismissProductTraining} from '@libs/actions/Welcome';
 import {isMobile} from '@libs/Browser';
-import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
-import type {MoneyRequestNavigatorParamList} from '@libs/Navigation/types';
+import type {ScanRoute} from '@pages/iou/request/step/IOURequestStepScan/types';
 import {removeDraftTransactionsByIDs, removeTransactionReceipt} from '@userActions/TransactionEdit';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type SCREENS from '@src/SCREENS';
 import {validTransactionDraftIDsSelector} from '@src/selectors/TransactionDraft';
 
 type MultiScanState = {
@@ -47,10 +44,10 @@ function useMultiScanActions(): MultiScanActions {
 
 type MultiScanProviderProps = {
     children: React.ReactNode;
+    route: ScanRoute;
 };
 
-function MultiScanProvider({children}: MultiScanProviderProps) {
-    const route = useRoute<PlatformStackRouteProp<MoneyRequestNavigatorParamList, typeof SCREENS.MONEY_REQUEST.STEP_SCAN>>();
+function MultiScanProvider({children, route}: MultiScanProviderProps) {
     const {iouType} = route.params;
 
     const [isMultiScanEnabled, setIsMultiScanEnabled] = useState(false);
@@ -99,9 +96,9 @@ function MultiScanProvider({children}: MultiScanProviderProps) {
  * Platform gate — renders MultiScanProvider on mobile (web + native), passes children through on desktop.
  * Multi-scan is a camera-based mobile interaction; desktop uses file picker with shouldAcceptMultipleFiles instead.
  */
-function MultiScanGate({children}: MultiScanProviderProps) {
+function MultiScanGate({children, route}: MultiScanProviderProps) {
     if (isMobile()) {
-        return <MultiScanProvider>{children}</MultiScanProvider>;
+        return <MultiScanProvider route={route}>{children}</MultiScanProvider>;
     }
     return children;
 }

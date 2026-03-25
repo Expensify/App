@@ -1,4 +1,3 @@
-import {useRoute} from '@react-navigation/native';
 import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -6,12 +5,11 @@ import useFilesValidation from '@hooks/useFilesValidation';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useOptimisticDraftTransactions from '@hooks/useOptimisticDraftTransactions';
+import useThemeStyles from '@hooks/useThemeStyles';
 import {navigateToConfirmationPage} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
-import type {MoneyRequestNavigatorParamList} from '@libs/Navigation/types';
 import {endSpan} from '@libs/telemetry/activeSpans';
-import type {ReceiptFile} from '@pages/iou/request/step/IOURequestStepScan/types';
+import type {ReceiptFile, ScanRoute} from '@pages/iou/request/step/IOURequestStepScan/types';
 import buildReceiptFiles from '@pages/iou/request/step/IOURequestStepScan/utils/buildReceiptFiles';
 import getFileSource from '@pages/iou/request/step/IOURequestStepScan/utils/getFileSource';
 import startScanProcessSpan from '@pages/iou/request/step/IOURequestStepScan/utils/startScanProcessSpan';
@@ -21,7 +19,6 @@ import {setMoneyRequestReceipt, setMultipleMoneyRequestParticipantsFromReport} f
 import {buildOptimisticTransactionAndCreateDraft} from '@userActions/TransactionEdit';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type SCREENS from '@src/SCREENS';
 import type {FileObject} from '@src/types/utils/Attachment';
 import Camera from './Camera';
 import {useMultiScanState} from './MultiScanContext';
@@ -34,10 +31,14 @@ import ReceiptPreviews from './ReceiptPreviews';
  *
  * Press handler: setMultipleMoneyRequestParticipantsFromReport -> navigateToConfirmationPage
  */
-function ScanFromReport() {
-    const route = useRoute<PlatformStackRouteProp<MoneyRequestNavigatorParamList, typeof SCREENS.MONEY_REQUEST.STEP_SCAN>>();
+type ScanFromReportProps = {
+    route: ScanRoute;
+};
+
+function ScanFromReport({route}: ScanFromReportProps) {
     const {action, iouType, reportID, transactionID: initialTransactionID, backTo, backToReport} = route.params;
 
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
@@ -114,7 +115,7 @@ function ScanFromReport() {
     function onCapture(file: FileObject, source: string) {
         const fileWithUri = file;
         fileWithUri.uri = source;
-        validateFiles([fileWithUri]);
+        onFilesAccepted([fileWithUri]);
     }
 
     // End the create expense span on mount
@@ -131,7 +132,7 @@ function ScanFromReport() {
             shouldShowWrapper={shouldShowWrapper}
             testID="IOURequestStepScan"
         >
-            <View>
+            <View style={styles.flex1}>
                 {PDFValidationComponent}
                 <Camera
                     // eslint-disable-next-line react/jsx-no-bind -- React Compiler handles memoization

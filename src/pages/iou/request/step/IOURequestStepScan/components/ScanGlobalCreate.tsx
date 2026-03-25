@@ -1,4 +1,3 @@
-import {useRoute} from '@react-navigation/native';
 import React, {useEffect} from 'react';
 import {View} from 'react-native';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -9,13 +8,13 @@ import useOnyx from '@hooks/useOnyx';
 import useOptimisticDraftTransactions from '@hooks/useOptimisticDraftTransactions';
 import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import useSelfDMReport from '@hooks/useSelfDMReport';
+import useThemeStyles from '@hooks/useThemeStyles';
 import {navigateToConfirmationPage, navigateToParticipantPage} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
-import type {MoneyRequestNavigatorParamList} from '@libs/Navigation/types';
 import {getPolicyExpenseChat, isSelfDM} from '@libs/ReportUtils';
 import shouldUseDefaultExpensePolicy from '@libs/shouldUseDefaultExpensePolicy';
 import {endSpan} from '@libs/telemetry/activeSpans';
+import type {ScanRoute} from '@pages/iou/request/step/IOURequestStepScan/types';
 import buildReceiptFiles from '@pages/iou/request/step/IOURequestStepScan/utils/buildReceiptFiles';
 import getFileSource from '@pages/iou/request/step/IOURequestStepScan/utils/getFileSource';
 import startScanProcessSpan from '@pages/iou/request/step/IOURequestStepScan/utils/startScanProcessSpan';
@@ -27,7 +26,6 @@ import {buildOptimisticTransactionAndCreateDraft} from '@userActions/Transaction
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type SCREENS from '@src/SCREENS';
 import type {FileObject} from '@src/types/utils/Attachment';
 import Camera from './Camera';
 import {useMultiScanState} from './MultiScanContext';
@@ -40,10 +38,14 @@ import ReceiptPreviews from './ReceiptPreviews';
  *
  * Press handler: shouldUseDefaultExpensePolicy -> determine target -> set participants -> navigate
  */
-function ScanGlobalCreate() {
-    const route = useRoute<PlatformStackRouteProp<MoneyRequestNavigatorParamList, typeof SCREENS.MONEY_REQUEST.STEP_SCAN>>();
+type ScanGlobalCreateProps = {
+    route: ScanRoute;
+};
+
+function ScanGlobalCreate({route}: ScanGlobalCreateProps) {
     const {action, iouType, reportID, transactionID: initialTransactionID, backTo, backToReport} = route.params;
 
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [initialTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${initialTransactionID}`);
@@ -142,7 +144,7 @@ function ScanGlobalCreate() {
     function onCapture(file: FileObject, source: string) {
         const fileWithUri = file;
         fileWithUri.uri = source;
-        validateFiles([fileWithUri]);
+        onFilesAccepted([fileWithUri]);
     }
 
     // End the create expense span on mount
@@ -159,7 +161,7 @@ function ScanGlobalCreate() {
             shouldShowWrapper={shouldShowWrapper}
             testID="IOURequestStepScan"
         >
-            <View>
+            <View style={styles.flex1}>
                 {PDFValidationComponent}
                 <Camera
                     // eslint-disable-next-line react/jsx-no-bind -- React Compiler handles memoization

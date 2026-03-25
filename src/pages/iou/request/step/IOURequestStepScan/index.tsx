@@ -19,13 +19,11 @@ import type IOURequestStepScanProps from './types';
  * Each variant is a self-contained component that reads its own route params and Onyx data.
  * The router only subscribes to per-key data needed for branching.
  */
-function IOURequestStepScan({
-    report,
-    route: {
-        params: {action, iouType, transactionID: initialTransactionID, backTo},
-    },
-    transaction: initialTransaction,
-}: Omit<IOURequestStepScanProps, 'user'>) {
+// We pass the parent route explicitly because variant components are rendered
+// inside a TopTab.Screen, where useRoute() would return the tab navigator's
+// route (which has no params) instead of the MoneyRequest navigator's route.
+function IOURequestStepScan({report, route, transaction: initialTransaction}: Omit<IOURequestStepScanProps, 'user'>) {
+    const {action, iouType, transactionID: initialTransactionID, backTo} = route.params;
     const policy = usePolicy(report?.policyID);
     const [skipConfirmation] = useOnyx(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${initialTransactionID}`);
     const isArchived = useReportIsArchived(report?.reportID);
@@ -36,27 +34,27 @@ function IOURequestStepScan({
         !!skipConfirmation && !!report?.reportID && !isArchived && !(isPolicyExpenseChat(report) && ((policy?.requiresCategory ?? false) || (policy?.requiresTag ?? false)));
 
     if (backTo || isEditing) {
-        return <ScanEditReceipt />;
+        return <ScanEditReceipt route={route} />;
     }
 
     if (!isFromGlobalCreate && !isArchived && iouType !== CONST.IOU.TYPE.CREATE) {
         if (shouldSkipConfirmation) {
             return (
-                <MultiScanGate>
-                    <ScanSkipConfirmation />
+                <MultiScanGate route={route}>
+                    <ScanSkipConfirmation route={route} />
                 </MultiScanGate>
             );
         }
         return (
-            <MultiScanGate>
-                <ScanFromReport />
+            <MultiScanGate route={route}>
+                <ScanFromReport route={route} />
             </MultiScanGate>
         );
     }
 
     return (
-        <MultiScanGate>
-            <ScanGlobalCreate />
+        <MultiScanGate route={route}>
+            <ScanGlobalCreate route={route} />
         </MultiScanGate>
     );
 }

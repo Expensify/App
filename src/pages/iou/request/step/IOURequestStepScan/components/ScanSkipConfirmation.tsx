@@ -1,4 +1,3 @@
-import {useRoute} from '@react-navigation/native';
 import shouldStartLocationPermissionFlowSelector from '@selectors/LocationPermission';
 import {hasSeenTourSelector} from '@selectors/Onboarding';
 import React, {useEffect, useState} from 'react';
@@ -14,20 +13,19 @@ import usePolicy from '@hooks/usePolicy';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import useReportAttributes from '@hooks/useReportAttributes';
 import useReportIsArchived from '@hooks/useReportIsArchived';
+import useThemeStyles from '@hooks/useThemeStyles';
 import {createTransaction} from '@libs/actions/IOU/MoneyRequest';
 import {clearUserLocation, setUserLocation} from '@libs/actions/UserLocation';
 import getCurrentPosition from '@libs/getCurrentPosition';
 import {calculateDefaultReimbursable} from '@libs/IOUUtils';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
-import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
-import type {MoneyRequestNavigatorParamList} from '@libs/Navigation/types';
 import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
 import {isPolicyExpenseChat} from '@libs/ReportUtils';
 import {cancelSpan, endSpan} from '@libs/telemetry/activeSpans';
 import {getDefaultTaxCode, getTaxValue} from '@libs/TransactionUtils';
 import {getLocationPermission} from '@pages/iou/request/step/IOURequestStepScan/LocationPermission';
-import type {ReceiptFile} from '@pages/iou/request/step/IOURequestStepScan/types';
+import type {ReceiptFile, ScanRoute} from '@pages/iou/request/step/IOURequestStepScan/types';
 import buildReceiptFiles from '@pages/iou/request/step/IOURequestStepScan/utils/buildReceiptFiles';
 import getFileSource from '@pages/iou/request/step/IOURequestStepScan/utils/getFileSource';
 import startScanProcessSpan from '@pages/iou/request/step/IOURequestStepScan/utils/startScanProcessSpan';
@@ -38,7 +36,6 @@ import {startSplitBill} from '@userActions/IOU/Split';
 import {buildOptimisticTransactionAndCreateDraft} from '@userActions/TransactionEdit';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type SCREENS from '@src/SCREENS';
 import {validTransactionDraftsSelector} from '@src/selectors/TransactionDraft';
 import type {PolicyTagLists} from '@src/types/onyx';
 import type {Receipt} from '@src/types/onyx/Transaction';
@@ -55,10 +52,14 @@ import ReceiptPreviews from './ReceiptPreviews';
  *
  * Press handler: directly calls requestMoney/trackExpense/startSplitBill
  */
-function ScanSkipConfirmation() {
-    const route = useRoute<PlatformStackRouteProp<MoneyRequestNavigatorParamList, typeof SCREENS.MONEY_REQUEST.STEP_SCAN>>();
+type ScanSkipConfirmationProps = {
+    route: ScanRoute;
+};
+
+function ScanSkipConfirmation({route}: ScanSkipConfirmationProps) {
     const {action, iouType, reportID, transactionID: initialTransactionID, backTo, backToReport} = route.params;
 
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
@@ -327,7 +328,7 @@ function ScanSkipConfirmation() {
     function onCapture(file: FileObject, source: string) {
         const fileWithUri = file;
         fileWithUri.uri = source;
-        validateFiles([fileWithUri]);
+        onFilesAccepted([fileWithUri]);
     }
 
     // End the create expense span on mount
@@ -365,7 +366,7 @@ function ScanSkipConfirmation() {
             shouldShowWrapper={shouldShowWrapper}
             testID="IOURequestStepScan"
         >
-            <View>
+            <View style={styles.flex1}>
                 {PDFValidationComponent}
                 <Camera
                     // eslint-disable-next-line react/jsx-no-bind -- React Compiler handles memoization

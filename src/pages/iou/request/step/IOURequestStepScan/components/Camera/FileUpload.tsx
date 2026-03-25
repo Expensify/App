@@ -1,4 +1,3 @@
-import {useRoute} from '@react-navigation/native';
 import React, {useRef, useState} from 'react';
 import {PanResponder, View} from 'react-native';
 import AttachmentPicker from '@components/AttachmentPicker';
@@ -13,10 +12,7 @@ import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hook
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
-import type {MoneyRequestNavigatorParamList} from '@libs/Navigation/types';
 import CONST from '@src/CONST';
-import type SCREENS from '@src/SCREENS';
 import type {FileObject} from '@src/types/utils/Attachment';
 import type {CameraProps} from './types';
 
@@ -25,14 +21,12 @@ import type {CameraProps} from './types';
  * Renders a drag-and-drop zone + file picker button + receipt alternative methods.
  * Calls `onCapture(file, source)` for each file picked, or `onDrop(files, items)` for drag-and-drop.
  */
-function FileUpload({onCapture, onDrop, shouldAcceptMultipleFiles = false, onLayout}: CameraProps) {
+function FileUpload({onCapture, onDrop, shouldAcceptMultipleFiles = false, onLayout, isReplacing = false}: CameraProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const lazyIllustrations = useMemoizedLazyIllustrations(['ReceiptStack']);
     const lazyIcons = useMemoizedLazyExpensifyIcons(['ReplaceReceipt', 'SmartScan']);
-    const route = useRoute<PlatformStackRouteProp<MoneyRequestNavigatorParamList, typeof SCREENS.MONEY_REQUEST.STEP_SCAN>>();
-    const isReplacing = route.params.action === CONST.IOU.ACTION.EDIT;
 
     const panResponderRef = useRef(
         PanResponder.create({

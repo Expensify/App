@@ -1,4 +1,3 @@
-import {useRoute} from '@react-navigation/native';
 import React, {useEffect} from 'react';
 import {View} from 'react-native';
 import useFilesValidation from '@hooks/useFilesValidation';
@@ -6,17 +5,16 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useOptimisticDraftTransactions from '@hooks/useOptimisticDraftTransactions';
 import usePolicy from '@hooks/usePolicy';
+import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
-import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
-import type {MoneyRequestNavigatorParamList} from '@libs/Navigation/types';
 import {endSpan} from '@libs/telemetry/activeSpans';
+import type {ScanRoute} from '@pages/iou/request/step/IOURequestStepScan/types';
 import getFileSource from '@pages/iou/request/step/IOURequestStepScan/utils/getFileSource';
 import useScanFileReadabilityCheck from '@pages/iou/request/step/IOURequestStepScan/utils/useScanFileReadabilityCheck';
 import StepScreenWrapper from '@pages/iou/request/step/StepScreenWrapper';
 import {replaceReceipt, setMoneyRequestReceipt} from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type SCREENS from '@src/SCREENS';
 import type {FileObject} from '@src/types/utils/Attachment';
 import Camera from './Camera';
 
@@ -26,10 +24,14 @@ import Camera from './Camera';
  *
  * Press handler: replaceReceipt -> navigateBack
  */
-function ScanEditReceipt() {
-    const route = useRoute<PlatformStackRouteProp<MoneyRequestNavigatorParamList, typeof SCREENS.MONEY_REQUEST.STEP_SCAN>>();
+type ScanEditReceiptProps = {
+    route: ScanRoute;
+};
+
+function ScanEditReceipt({route}: ScanEditReceiptProps) {
     const {action, reportID, transactionID: initialTransactionID, backTo} = route.params;
 
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const policy = usePolicy(report?.policyID);
@@ -69,7 +71,7 @@ function ScanEditReceipt() {
     function onCapture(file: FileObject, source: string) {
         const fileWithUri = file;
         fileWithUri.uri = source;
-        validateFiles([fileWithUri]);
+        onFilesAccepted([fileWithUri]);
     }
 
     // End the create expense span on mount
@@ -86,13 +88,14 @@ function ScanEditReceipt() {
             shouldShowWrapper
             testID="IOURequestStepScan"
         >
-            <View>
+            <View style={styles.flex1}>
                 {PDFValidationComponent}
                 <Camera
                     // eslint-disable-next-line react/jsx-no-bind -- React Compiler handles memoization
                     onCapture={onCapture}
                     onDrop={validateFiles}
                     shouldAcceptMultipleFiles={false}
+                    isReplacing={isEditing}
                 />
                 {ErrorModal}
             </View>
