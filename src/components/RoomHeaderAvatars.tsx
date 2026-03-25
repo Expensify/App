@@ -79,6 +79,7 @@ function RoomHeaderAvatars({icons, report, policy, participants, currentUserAcco
         }
 
         return (
+            /* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */
             <PressableWithoutFocus
                 style={styles.noOutline}
                 onPress={() => navigateToAvatarPage(icon)}
@@ -116,6 +117,7 @@ function RoomHeaderAvatars({icons, report, policy, participants, currentUserAcco
                         key={`${icon.id}${index}`}
                         style={[styles.justifyContentCenter, styles.alignItemsCenter]}
                     >
+                        {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                         <PressableWithoutFocus
                             style={[styles.mln4, StyleUtils.getAvatarBorderRadius(CONST.AVATAR_SIZE.LARGE_BORDERED, icon.type)]}
                             onPress={() => navigateToAvatarPage(icon)}

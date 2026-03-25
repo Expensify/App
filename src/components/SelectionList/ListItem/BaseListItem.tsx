@@ -99,6 +99,7 @@ function BaseListItem<TItem extends ListItem>({
             errorRowStyles={[styles.mh5, errorRowStyles]}
             contentContainerStyle={containerStyle}
         >
+            {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
             <PressableWithFeedback
                 sentryLabel={CONST.SENTRY_LABEL.SELECTION_LIST.BASE_LIST_ITEM}
                 // eslint-disable-next-line react/jsx-props-no-spreading

@@ -501,6 +501,7 @@ function ReportActionItemMessageEdit({
                 >
                     <View style={[styles.justifyContentEnd, styles.mb1]}>
                         <Tooltip text={translate('common.cancel')}>
+                            {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                             <PressableWithFeedback
                                 onPress={deleteDraft}
                                 style={closeButtonStyles}
@@ -619,6 +620,7 @@ function ReportActionItemMessageEdit({
 
                     <View style={styles.alignSelfEnd}>
                         <Tooltip text={translate('common.saveChanges')}>
+                            {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                             <PressableWithFeedback
                                 style={[styles.chatItemSubmitButton, hasExceededMaxCommentLength ? {} : styles.buttonSuccess]}
                                 onPress={publishDraft}

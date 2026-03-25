@@ -69,6 +69,7 @@ function BillingBanner({
     const rightIconComponent = useMemo(() => {
         if (rightIcon) {
             return onRightIconPress && rightIconAccessibilityLabel ? (
+                /* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */
                 <PressableWithoutFeedback
                     onPress={onRightIconPress}
                     style={[styles.touchableButtonImage]}

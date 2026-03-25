@@ -90,6 +90,7 @@ function AddReactionBubble({onSelectEmoji, reportAction, onPressOpenPicker, onWi
 
     return (
         <Tooltip text={translate('emojiReactions.addReactionTooltip')}>
+            {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
             <PressableWithFeedback
                 ref={ref}
                 style={({hovered, pressed}) => [styles.emojiReactionBubble, styles.userSelectNone, StyleUtils.getEmojiReactionBubbleStyle(hovered || pressed, false, isContextMenu)]}

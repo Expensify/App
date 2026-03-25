@@ -179,6 +179,7 @@ function ReportActionItemImage({
 
     if (enablePreviewModal) {
         return (
+            /* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */
             <PressableWithoutFocus
                 style={[styles.w100, styles.h100, styles.noOutline as ViewStyle]}
                 onPress={() =>

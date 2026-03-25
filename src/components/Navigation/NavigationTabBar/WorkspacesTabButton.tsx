@@ -67,6 +67,7 @@ function WorkspacesTabButton({selectedTab, isWideLayout}: WorkspacesTabButtonPro
 
     if (isWideLayout) {
         return (
+            /* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */
             <PressableWithFeedback
                 onPress={navigateToWorkspaces}
                 role={CONST.ROLE.TAB}
@@ -90,6 +91,7 @@ function WorkspacesTabButton({selectedTab, isWideLayout}: WorkspacesTabButtonPro
     }
 
     return (
+        /* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */
         <PressableWithFeedback
             onPress={navigateToWorkspaces}
             role={CONST.ROLE.TAB}

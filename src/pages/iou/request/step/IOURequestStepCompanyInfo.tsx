@@ -109,6 +109,7 @@ function IOURequestStepCompanyInfo({route, report, transaction}: IOURequestStepC
                 submitButtonText={translate('iou.sendInvoice', formattedAmount)}
                 enabledWhenOffline
             >
+                {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                 <InputWrapper
                     InputComponent={TextInput}
                     inputID={INPUT_IDS.COMPANY_NAME}
@@ -119,6 +120,7 @@ function IOURequestStepCompanyInfo({route, report, transaction}: IOURequestStepC
                     ref={inputCallbackRef}
                     containerStyles={styles.mv4}
                 />
+                {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                 <InputWrapper
                     InputComponent={TextInput}
                     inputID={INPUT_IDS.COMPANY_WEBSITE}

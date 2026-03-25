@@ -102,6 +102,7 @@ function ImportMultiLevelTagsSettingsPage({route}: ImportMultiLevelTagsSettingsP
                         >
                             {translate('workspace.tags.importMultiLevelTags.firstRowTitle')}
                         </Text>
+                        {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                         <Switch
                             isOn={spreadsheet?.containsHeader ?? true}
                             accessibilityLabel={translate('workspace.tags.importMultiLevelTags.firstRowTitle')}
@@ -119,6 +120,7 @@ function ImportMultiLevelTagsSettingsPage({route}: ImportMultiLevelTagsSettingsP
                         >
                             {translate('workspace.tags.importMultiLevelTags.independentTags')}
                         </Text>
+                        {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                         <Switch
                             isOn={spreadsheet?.isImportingIndependentMultiLevelTags ?? true}
                             accessibilityLabel={translate('workspace.tags.importMultiLevelTags.independentTags')}
@@ -136,6 +138,7 @@ function ImportMultiLevelTagsSettingsPage({route}: ImportMultiLevelTagsSettingsP
                         >
                             {translate('workspace.tags.importMultiLevelTags.glAdjacentColumn')}
                         </Text>
+                        {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                         <Switch
                             isOn={spreadsheet?.isGLAdjacent ?? false}
                             accessibilityLabel={translate('workspace.tags.importMultiLevelTags.glAdjacentColumn')}

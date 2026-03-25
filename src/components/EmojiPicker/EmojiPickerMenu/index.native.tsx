@@ -124,6 +124,7 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji, ref}: EmojiPickerMenuPro
     return (
         <View style={[styles.emojiPickerContainer, StyleUtils.getEmojiPickerStyle(shouldUseNarrowLayout)]}>
             <View style={[styles.p4, styles.pb3]}>
+                {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                 <TextInput
                     label={translate('common.search')}
                     accessibilityLabel={translate('common.search')}

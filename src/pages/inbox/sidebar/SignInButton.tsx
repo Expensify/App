@@ -12,6 +12,7 @@ function SignInButton() {
     const {translate} = useLocalize();
 
     return (
+        /* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */
         <PressableWithoutFeedback
             accessibilityLabel={translate('sidebarScreen.buttonMySettings')}
             role={CONST.ROLE.BUTTON}

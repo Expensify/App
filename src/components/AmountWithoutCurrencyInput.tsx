@@ -78,6 +78,7 @@ function AmountWithoutCurrencyInput({
     const {keyboardType, inputMode} = getAmountInputKeyboard(shouldAllowNegative);
 
     return (
+        /* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */
         <TextInput
             inputID={inputID}
             name={name}

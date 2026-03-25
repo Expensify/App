@@ -215,6 +215,7 @@ function StatusPage() {
                 </View>
                 <View style={[styles.mt4]}>
                     <View style={[styles.mb4, styles.ph5]}>
+                        {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                         <InputWrapper
                             InputComponent={EmojiPickerButtonDropdown}
                             inputID={INPUT_IDS.EMOJI_CODE}
@@ -234,6 +235,7 @@ function StatusPage() {
                             // eslint-disable-next-line @typescript-eslint/no-unused-vars
                             onInputChange={(emoji: string): void => {}}
                         />
+                        {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                         <InputWrapper
                             InputComponent={TextInput}
                             ref={isSmallScreenWidth ? undefined : inputCallbackRef}

@@ -811,6 +811,7 @@ function MoneyRequestReportActionsList({
                         wrapperStyle={[styles.w100, styles.ph5]}
                     />
                     <View style={[styles.alignItemsCenter, styles.userSelectNone, styles.flexRow, styles.pt6, styles.ph8, styles.pb3]}>
+                        {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                         <Checkbox
                             accessibilityLabel={translate('accessibilityHints.selectAllItems')}
                             isChecked={isSelectAllChecked}
@@ -823,6 +824,7 @@ function MoneyRequestReportActionsList({
                                 }
                             }}
                         />
+                        {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                         <PressableWithFeedback
                             style={[styles.userSelectNone, styles.alignItemsCenter]}
                             onPress={() => {
@@ -862,6 +864,7 @@ function MoneyRequestReportActionsList({
                         />
                     </ScrollView>
                 ) : (
+                    /* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */
                     <FlatListWithScrollKey
                         initialNumToRender={initialNumToRender}
                         accessibilityLabel={translate('sidebarScreen.listOfChatMessages')}

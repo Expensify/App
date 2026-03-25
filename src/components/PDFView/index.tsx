@@ -132,6 +132,7 @@ function PDFView({onToggleKeyboard, fileName, onPress, isFocused, sourceURL, sty
     };
 
     return onPress ? (
+        /* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */
         <PressableWithoutFeedback
             onPress={onPress}
             style={[styles.flex1, styles.flexRow, styles.alignSelfStretch]}

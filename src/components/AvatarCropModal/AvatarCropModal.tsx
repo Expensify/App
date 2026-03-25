@@ -413,6 +413,7 @@ function AvatarCropModal({imageUri = '', imageName = '', imageType = '', onClose
                                         fill={theme.icon}
                                     />
 
+                                    {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                                     <PressableWithoutFeedback
                                         style={[styles.mh5, styles.flex1]}
                                         onLayout={initializeSliderContainer}

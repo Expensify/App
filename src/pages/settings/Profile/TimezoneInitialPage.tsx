@@ -43,6 +43,7 @@ function TimezoneInitialPage({currentUserPersonalDetails}: TimezoneInitialPagePr
                         >
                             {translate('timezonePage.getLocationAutomatically')}
                         </Text>
+                        {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                         <Switch
                             accessibilityLabel={translate('timezonePage.getLocationAutomatically')}
                             isOn={!!timezone.automatic}

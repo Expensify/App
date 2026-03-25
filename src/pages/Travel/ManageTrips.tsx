@@ -76,6 +76,7 @@ function ManageTrips({policyID}: ManageTripsProps) {
                         contentPaddingOnLargeScreens={styles.p5}
                         footer={
                             <>
+                                {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                                 <Button
                                     text={translate('travel.bookDemo')}
                                     onPress={navigateToBookTravelDemo}

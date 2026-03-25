@@ -67,6 +67,7 @@ function SubscriptionPlanCard({subscriptionPlan, isFromComparisonModal = false, 
                 {benefits.map((item, index) => {
                     const {accessible, accessibilityLabel} = getSubscriptionPlanBenefitA11yProps({benefitText: item, index, totalBenefits: benefits.length, ofLabel: translate('common.of')});
                     return (
+                        /* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */
                         <View
                             key={item}
                             style={[styles.flexRow, styles.alignItemsCenter, shouldUseNarrowLayout ? styles.mt3 : styles.mt4, {width: `${100 / benefitsColumns}%`}]}

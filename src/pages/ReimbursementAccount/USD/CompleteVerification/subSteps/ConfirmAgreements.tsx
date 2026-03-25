@@ -83,6 +83,7 @@ function ConfirmAgreements({onNext}: ConfirmAgreementsProps) {
             enabledWhenOffline={false}
         >
             <Text style={[styles.textHeadlineLineHeightXXL]}>{translate('completeVerificationStep.confirmAgreements')}</Text>
+            {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
             <InputWrapper
                 InputComponent={CheckboxWithLabel}
                 accessibilityLabel={translate('completeVerificationStep.isAuthorizedToUseBankAccount')}
@@ -92,6 +93,7 @@ function ConfirmAgreements({onNext}: ConfirmAgreementsProps) {
                 defaultValue={defaultValues.isAuthorizedToUseBankAccount}
                 shouldSaveDraft
             />
+            {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
             <InputWrapper
                 InputComponent={CheckboxWithLabel}
                 accessibilityLabel={translate('completeVerificationStep.certifyTrueAndAccurate')}
@@ -101,6 +103,7 @@ function ConfirmAgreements({onNext}: ConfirmAgreementsProps) {
                 defaultValue={defaultValues.certifyTrueInformation}
                 shouldSaveDraft
             />
+            {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
             <InputWrapper
                 InputComponent={CheckboxWithLabel}
                 accessibilityLabel={`${translate('common.iAcceptThe')} ${translate('completeVerificationStep.termsAndConditions')}`}

@@ -55,6 +55,7 @@ function BackgroundImage({width}: BackgroundImageProps) {
 
     return (
         <Reanimated.View style={[styles.signInBackground, StyleUtils.getWidthStyle(width), animatedStyle]}>
+            {/* eslint-disable-next-line react-native-a11y/has-valid-accessibility-ignores-invert-colors -- Already present before the lint rule was enabled, needs to be fixed. */}
             <Image
                 source={MobileBackgroundImage as ImageSourcePropType}
                 onLoadEnd={() => setOpacityAnimation()}

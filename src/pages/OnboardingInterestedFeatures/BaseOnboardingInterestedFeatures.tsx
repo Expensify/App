@@ -334,6 +334,7 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
         (item: Feature) => {
             const isSelected = selectedFeatures.includes(item.id);
             return (
+                /* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */
                 <PressableWithoutFeedback
                     key={item.id}
                     onPress={() => {
@@ -353,6 +354,7 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
                         />
                         <Text style={[styles.textStrong]}>{item.title}</Text>
                     </View>
+                    {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                     <Checkbox
                         accessibilityLabel={item.title}
                         isChecked={isSelected}

@@ -158,6 +158,7 @@ function ReportActionItemSingle({
 
     return (
         <View style={[styles.chatItem, wrapperStyle]}>
+            {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
             <PressableWithoutFeedback
                 style={[styles.alignSelfStart, styles.mr3]}
                 onPressIn={ControlSelection.block}
@@ -188,6 +189,7 @@ function ReportActionItemSingle({
             <View style={[styles.chatItemRight]}>
                 {showHeader ? (
                     <View style={[styles.chatItemMessageHeader]}>
+                        {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                         <PressableWithoutFeedback
                             style={[styles.flexShrink1, styles.mr1]}
                             onPressIn={ControlSelection.block}

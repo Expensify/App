@@ -18,6 +18,7 @@ function ExpandCollapseArrowButton({isExpanded, onPress}: ExpandCollapseArrowBut
     const icons = useMemoizedLazyExpensifyIcons(['UpArrow', 'DownArrow']);
 
     return (
+        /* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */
         <PressableWithFeedback
             onPress={onPress}
             style={[styles.pl3, styles.justifyContentCenter, styles.alignItemsEnd]}

@@ -288,6 +288,7 @@ function IOURequestStepOdometerImage({
 
                         <Text style={[styles.textFileUpload]}>{translate('receipt.takePhoto')}</Text>
                         <Text style={[styles.subTextFileUpload]}>{translate('distance.odometer.cameraAccessRequired')}</Text>
+                        {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                         <Button
                             success
                             text={translate('common.continue')}
@@ -323,6 +324,7 @@ function IOURequestStepOdometerImage({
                                     forceInactive={isAttachmentPickerActive}
                                 />
                                 <View style={[styles.flashButtonContainer, styles.primaryMediumIcon, flash && styles.bgGreenSuccess, !hasFlash && styles.opacity0]}>
+                                    {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                                     <PressableWithFeedback
                                         role={CONST.ROLE.BUTTON}
                                         accessibilityLabel={translate('receipt.flash')}
@@ -368,6 +370,7 @@ function IOURequestStepOdometerImage({
                         shouldValidateImage={false}
                     >
                         {({openPicker}) => (
+                            /* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */
                             <PressableWithFeedback
                                 role={CONST.ROLE.BUTTON}
                                 accessibilityLabel={translate('receipt.gallery')}
@@ -394,6 +397,7 @@ function IOURequestStepOdometerImage({
                             </PressableWithFeedback>
                         )}
                     </AttachmentPicker>
+                    {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                     <PressableWithFeedback
                         role={CONST.ROLE.BUTTON}
                         accessibilityLabel={translate('receipt.shutter')}

@@ -71,6 +71,7 @@ function NavigationTabBarAvatar({onPress, isSelected = false, style}: Navigation
     const accountAccessibilityState = useMemo(() => ({selected: isSelected}), [isSelected]);
 
     return (
+        /* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */
         <PressableWithFeedback
             onPress={onPress}
             accessibilityLabel={`${translate('initialSettingsPage.account')}, ${translate('sidebarScreen.buttonMySettings')}. ${status ? `${translate('common.yourReviewIsRequired')}.` : ''}`}

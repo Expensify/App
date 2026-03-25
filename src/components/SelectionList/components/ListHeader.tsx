@@ -63,6 +63,7 @@ function ListHeader<TItem extends ListItem>({
             accessibilityRole={CONST.ROLE.HEADER}
         >
             <View style={[styles.flexRow, styles.alignItemsCenter]}>
+                {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                 <Checkbox
                     testID="selection-list-select-all-checkbox"
                     accessibilityLabel={translate('accessibilityHints.selectAllItems')}
@@ -73,6 +74,7 @@ function ListHeader<TItem extends ListItem>({
                 />
 
                 {!customListHeader && (
+                    /* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */
                     <PressableWithFeedback
                         style={[styles.userSelectNone, styles.flexRow, styles.alignItemsCenter]}
                         onPress={onSelectAll}

@@ -17,6 +17,7 @@ function CurrentLocationButton({onPress, isDisabled = false}: CurrentLocationBut
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Location']);
 
     return (
+        /* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */
         <PressableWithFeedback
             style={[styles.flexRow, styles.pv4, styles.ph3, isDisabled && styles.buttonOpacityDisabled]}
             hoverStyle={StyleUtils.getButtonBackgroundColorStyle(getButtonState(true), true)}

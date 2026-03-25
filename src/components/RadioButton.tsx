@@ -34,6 +34,7 @@ function RadioButton({isChecked, onPress, accessibilityLabel, hasError = false, 
 
     if (shouldUseNewStyle) {
         return (
+            /* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */
             <PressableWithFeedback
                 disabled={disabled}
                 onPress={onPress}
@@ -63,6 +64,7 @@ function RadioButton({isChecked, onPress, accessibilityLabel, hasError = false, 
     }
 
     return (
+        /* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */
         <PressableWithFeedback
             disabled={disabled}
             onPress={onPress}

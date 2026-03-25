@@ -243,6 +243,7 @@ function ExpenseReportListItemRow({
 
         return (
             <View style={styles.pRelative}>
+                {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                 <View
                     accessible
                     accessibilityLabel={groupAccessibilityLabel}
@@ -269,6 +270,7 @@ function ExpenseReportListItemRow({
                     <View style={[styles.pt0, styles.flexRow, styles.alignItemsCenter, styles.justifyContentStart, {marginRight: -variables.w72}]}>
                         <View style={[styles.flexRow, styles.alignItemsCenter, styles.mnh40, styles.flex1, styles.gap3]}>
                             {!!canSelectMultiple && (
+                                /* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */
                                 <Checkbox
                                     onPress={onCheckboxPress}
                                     isChecked={isSelectAllChecked}
@@ -321,6 +323,7 @@ function ExpenseReportListItemRow({
         <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, containerStyle]}>
             <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap3, styles.pr2]}>
                 {!!canSelectMultiple && (
+                    /* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */
                     <Checkbox
                         onPress={onCheckboxPress}
                         isChecked={isSelectAllChecked}

@@ -45,6 +45,7 @@ function WorkspaceCompanyCardExpensifyCardPromotionBanner({policy}: WorkspaceCom
         const smallScreenStyle = shouldUseNarrowLayout ? [styles.flex0, styles.flexBasis100, styles.justifyContentCenter] : [];
         return (
             <View style={[styles.flexRow, styles.gap2, smallScreenStyle]}>
+                {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                 <Button
                     success
                     onPress={handleLearnMore}

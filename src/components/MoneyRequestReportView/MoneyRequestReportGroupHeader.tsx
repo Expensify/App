@@ -94,6 +94,7 @@ function MoneyRequestReportGroupHeader({
             <View style={[styles.reportLayoutGroupHeader, conditionalHeight]}>
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.flex1]}>
                     {shouldShowCheckbox && (
+                        /* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */
                         <Checkbox
                             isChecked={isSelected}
                             isIndeterminate={isIndeterminate}

@@ -415,6 +415,7 @@ function NewChatPage({ref}: NewChatPageProps) {
 
         if (item.isSelected) {
             return (
+                /* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */
                 <PressableWithFeedback
                     sentryLabel={CONST.SENTRY_LABEL.NEW_CHAT.SELECT_PARTICIPANT}
                     onPress={() => toggleOption(item)}
@@ -432,6 +433,7 @@ function NewChatPage({ref}: NewChatPageProps) {
         }
         const buttonInnerStyles = isFocused ? styles.buttonDefaultHovered : {};
         return (
+            /* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */
             <Button
                 onPress={() => toggleOption(item)}
                 style={[styles.pl2]}

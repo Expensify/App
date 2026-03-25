@@ -25,6 +25,7 @@ function MergeFieldReview({mergeField, onValueSelected, errorText}: MergeFieldRe
                 const {transaction, displayValue, isSelected} = option;
 
                 return (
+                    /* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */
                     <PressableWithoutFeedback
                         key={`${field}-${transaction.transactionID}`}
                         onPress={() => onValueSelected(transaction, field)}
@@ -34,6 +35,7 @@ function MergeFieldReview({mergeField, onValueSelected, errorText}: MergeFieldRe
                         style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.pv5, styles.ph5]}
                     >
                         <Text style={[styles.flex1, styles.mr1, styles.textBold, styles.breakWord]}>{displayValue}</Text>
+                        {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                         <RadioButton
                             isChecked={isSelected}
                             onPress={() => onValueSelected(transaction, field)}

@@ -43,6 +43,7 @@ function RadioListItem<TItem extends ListItem>({
 
     const defaultRightHandSideComponent = useMemo(
         () => (
+            /* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */
             <Checkbox
                 shouldSelectOnPressEnter
                 containerBorderRadius={CIRCULAR_BORDER_RADIUS}

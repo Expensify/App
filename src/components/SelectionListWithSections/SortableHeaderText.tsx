@@ -61,6 +61,7 @@ export default function SortableHeaderText({text, icon, sortOrder, isActive, tex
 
     return (
         <View style={containerStyle}>
+            {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
             <PressableWithFeedback
                 onPress={() => onPress(nextSortOrder)}
                 role={CONST.ROLE.BUTTON}

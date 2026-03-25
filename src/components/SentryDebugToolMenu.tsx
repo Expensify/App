@@ -19,6 +19,7 @@ function SentryDebugToggle({isEnabled}: SentryDebugToggleProps) {
 
     return (
         <TestToolRow title={translate('initialSettingsPage.troubleshoot.sentryDebugDescription')}>
+            {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
             <Switch
                 accessibilityLabel={translate('initialSettingsPage.troubleshoot.sentryDebug')}
                 isOn={isEnabled}
@@ -46,6 +47,7 @@ function HighlightedSpanOpsInput() {
     return (
         <View style={styles.mt4}>
             <Text style={[styles.textLabelSupporting, styles.mb2]}>{translate('initialSettingsPage.troubleshoot.sentryHighlightedSpanOps')}</Text>
+            {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
             <TextInput
                 autoCapitalize="none"
                 accessibilityLabel={translate('initialSettingsPage.troubleshoot.sentryHighlightedSpanOps')}

@@ -193,6 +193,7 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
             />
             {isChaseAccountConnectedViaPlaid && (
                 <View style={[styles.pb3, shouldUseNarrowLayout ? styles.pl5 : styles.pl8]}>
+                    {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                     <PressableWithFeedback
                         onPress={() => openExternalLink(CONST.CHASE_ACCOUNT_NUMBER_HELP_URL)}
                         style={[styles.flexRow, styles.alignItemsCenter, styles.alignSelfStart]}

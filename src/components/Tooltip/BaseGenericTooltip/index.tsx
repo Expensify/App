@@ -160,6 +160,7 @@ function BaseGenericTooltip({
     return ReactDOM.createPortal(
         <>
             {shouldUseOverlay && <TransparentOverlay onPress={onHideTooltip} />}
+            {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
             <AnimatedWrapper
                 ref={viewRef(rootWrapper)}
                 style={[rootWrapperStyle, animationStyle]}

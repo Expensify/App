@@ -430,6 +430,7 @@ function MerchantRulePageBase({policyID, ruleID, titleKey, testID}: MerchantRule
                                 >
                                     {translate('workspace.rules.merchantRules.applyToExistingUnsubmittedExpenses')}
                                 </Text>
+                                {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                                 <Switch
                                     accessibilityLabel={translate('workspace.rules.merchantRules.applyToExistingUnsubmittedExpenses')}
                                     isOn={shouldUpdateMatchingTransactions}

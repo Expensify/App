@@ -57,6 +57,7 @@ function AttachmentPreview({source, aspectRatio = 1, onPress, onLoadError}: Atta
 
     if (isVideo) {
         return (
+            /* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */
             <PressableWithFeedback
                 accessibilityRole="button"
                 style={[fillStyle, styles.br2, styles.overflowHidden, styles.alignSelfStart, {aspectRatio}]}
@@ -65,6 +66,7 @@ function AttachmentPreview({source, aspectRatio = 1, onPress, onLoadError}: Atta
                 accessibilityLabel="Attachment Thumbnail"
             >
                 {!!thumbnail && (
+                    /* eslint-disable-next-line react-native-a11y/has-valid-accessibility-ignores-invert-colors -- Already present before the lint rule was enabled, needs to be fixed. */
                     <Image
                         source={thumbnail}
                         style={[fillStyle, {aspectRatio}]}
@@ -87,6 +89,7 @@ function AttachmentPreview({source, aspectRatio = 1, onPress, onLoadError}: Atta
 
     if (isFileImage) {
         return (
+            /* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */
             <PressableWithFeedback
                 accessibilityRole="button"
                 style={[styles.alignItemsStart, {aspectRatio: 1}]}
@@ -95,6 +98,7 @@ function AttachmentPreview({source, aspectRatio = 1, onPress, onLoadError}: Atta
                 accessibilityLabel="Image Thumbnail"
             >
                 <View style={[fillStyle, styles.br4, styles.overflowHidden, {aspectRatio}]}>
+                    {/* eslint-disable-next-line react-native-a11y/has-valid-accessibility-ignores-invert-colors -- Already present before the lint rule was enabled, needs to be fixed. */}
                     <Image
                         source={{uri: source}}
                         style={[[styles.w100, styles.h100], styles.overflowHidden]}
@@ -106,6 +110,7 @@ function AttachmentPreview({source, aspectRatio = 1, onPress, onLoadError}: Atta
 
     if (typeof source === 'string' && Str.isPDF(source) && !isEncryptedPDF) {
         return (
+            /* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */
             <PressableWithFeedback
                 accessibilityRole="button"
                 style={[styles.justifyContentStart, {aspectRatio: 1}]}

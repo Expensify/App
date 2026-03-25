@@ -140,6 +140,7 @@ function TravelTerms({route}: TravelTermsPageProps) {
                         <View style={[styles.renderHTML, styles.mt4]}>
                             <RenderHTML html={translate('travel.termsAndConditions.subtitle')} />
                         </View>
+                        {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                         <CheckboxWithLabel
                             style={styles.mt6}
                             accessibilityLabel={translate('travel.termsAndConditions.label')}

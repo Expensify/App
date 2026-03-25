@@ -33,6 +33,7 @@ function BaseAutoCompleteSuggestions<TSuggestion>({
      */
     const renderItem = useCallback(
         ({item, index}: RenderSuggestionMenuItemProps<TSuggestion>): ReactElement => (
+            /* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */
             <PressableWithFeedback
                 style={({hovered}) => StyleUtils.getAutoCompleteSuggestionItemStyle(highlightedSuggestionIndex, CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTION_ROW_HEIGHT, hovered, index)}
                 hoverDimmingValue={1}

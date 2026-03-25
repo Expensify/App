@@ -503,6 +503,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                 <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.gap3]}>
                     <AccountSwitcher isScreenFocused={isScreenFocused} />
                     <Tooltip text={translate('statusPage.status')}>
+                        {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                         <PressableWithFeedback
                             accessibilityLabel={
                                 emojiCode ? `${translate('statusPage.status')}: ${emojiCode}` : `${translate('statusPage.status')}, ${translate('emojiPicker.emojiNotSelected')}`

@@ -610,6 +610,7 @@ function ReceiptCropView({imageUri, onCropChange, initialCrop, isAuthTokenRequir
                 ref={(el: View | null) => ControlSelection.blockElement(el as HTMLElement | null)}
             >
                 <View style={[styles.flex1, styles.w100]}>
+                    {/* eslint-disable-next-line react-native-a11y/has-valid-accessibility-ignores-invert-colors -- Already present before the lint rule was enabled, needs to be fixed. */}
                     <Image
                         source={{uri: imageUri}}
                         resizeMode={RESIZE_MODES.contain}

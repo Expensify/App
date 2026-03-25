@@ -55,6 +55,7 @@ function Socials() {
     return (
         <View style={[styles.flexRow, styles.flexWrap]}>
             {socialList.map((social: Social) => (
+                /* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */
                 <PressableWithoutFeedback
                     key={social.link}
                     href={social.link}

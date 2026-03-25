@@ -94,6 +94,7 @@ function CheckboxWithLabel({
     return (
         <View style={style}>
             <View style={[styles.flexRow, styles.alignItemsCenter, styles.breakWord]}>
+                {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                 <Checkbox
                     isChecked={isActuallyChecked}
                     onPress={toggleCheckbox}

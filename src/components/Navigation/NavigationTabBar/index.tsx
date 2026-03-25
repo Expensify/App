@@ -148,6 +148,7 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFloatin
                     testID="NavigationTabBar"
                 >
                     <View style={styles.flex1}>
+                        {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                         <PressableWithFeedback
                             role={CONST.ROLE.LINK}
                             accessibilityLabel={translate('common.home')}
@@ -163,6 +164,7 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFloatin
                                 aria-hidden
                             />
                         </PressableWithFeedback>
+                        {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                         <PressableWithFeedback
                             onPress={navigateToNewDotHome}
                             role={CONST.ROLE.TAB}
@@ -179,6 +181,7 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFloatin
                                 />
                             )}
                         </PressableWithFeedback>
+                        {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                         <PressableWithFeedback
                             onPress={navigateToChats}
                             role={CONST.ROLE.TAB}
@@ -231,6 +234,7 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFloatin
                 style={styles.navigationTabBarContainer}
                 testID="NavigationTabBar"
             >
+                {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                 <PressableWithFeedback
                     onPress={navigateToNewDotHome}
                     role={CONST.ROLE.TAB}
@@ -245,6 +249,7 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFloatin
                         isSelected={selectedTab === NAVIGATION_TABS.HOME}
                     />
                 </PressableWithFeedback>
+                {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                 <PressableWithFeedback
                     onPress={navigateToChats}
                     role={CONST.ROLE.TAB}

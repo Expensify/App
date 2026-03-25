@@ -470,6 +470,7 @@ function MagicCodeInput({
                         style={[StyleSheet.absoluteFillObject, styles.w100, styles.h100, styles.invisibleOverlay]}
                         collapsable={false}
                     >
+                        {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                         <TextInput
                             disableKeyboard={isDisableKeyboard}
                             onLayout={(e) => {

@@ -299,6 +299,7 @@ const useProductTrainingContext = (tooltipName: ProductTrainingTooltipName, shou
                         <RenderHTML html={translate(tooltip.content)} />
                     </View>
                     {!tooltip?.shouldRenderActionButtons && (
+                        /* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */
                         <PressableWithoutFeedback
                             sentryLabel={CONST.SENTRY_LABEL.PRODUCT_TRAINING.TOOLTIP}
                             shouldUseAutoHitSlop

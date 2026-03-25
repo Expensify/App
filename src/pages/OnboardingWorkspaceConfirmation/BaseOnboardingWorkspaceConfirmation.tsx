@@ -172,6 +172,7 @@ function BaseOnboardingWorkspaceConfirmation({shouldUseNativeStyles}: BaseOnboar
                     <Text style={[styles.textNormal, styles.colorMuted]}>{translate('onboarding.confirmWorkspace.subtitle')}</Text>
                 </View>
                 <View style={styles.mb4}>
+                    {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                     <InputWrapper
                         InputComponent={TextInput}
                         ref={inputCallbackRef}

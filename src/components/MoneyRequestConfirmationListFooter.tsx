@@ -1093,6 +1093,7 @@ function MoneyRequestConfirmationListFooter({
                 onLayout={isCompactMode ? handleCompactReceiptContainerLayout : undefined}
             >
                 {isLocalFile && Str.isPDF(receiptFilename) ? (
+                    /* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */
                     <PressableWithoutFocus
                         onPress={() => {
                             if (!transactionID) {
@@ -1121,6 +1122,7 @@ function MoneyRequestConfirmationListFooter({
                         />
                     </PressableWithoutFocus>
                 ) : (
+                    /* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */
                     <PressableWithoutFocus
                         onPress={() => {
                             if (!transactionID) {

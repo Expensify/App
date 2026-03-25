@@ -44,6 +44,7 @@ function ApprovalWorkflowSection({approvalWorkflow, onPress, currency = CONST.CU
               .map((m) => Str.removeSMSDomain(m.displayName))
               .join(', ');
     return (
+        /* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */
         <PressableWithoutFeedback
             accessibilityRole="button"
             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.APPROVAL_WORKFLOW_SECTION}

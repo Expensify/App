@@ -195,6 +195,7 @@ function BaseOnboardingAccounting({shouldUseNativeStyles, route}: BaseOnboarding
 
     const renderOption = useCallback(
         (item: OnboardingListItem) => (
+            /* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */
             <PressableWithoutFeedback
                 key={item.keyForList ?? ''}
                 onPress={() => handleIntegrationSelect(item.keyForList)}
@@ -204,6 +205,7 @@ function BaseOnboardingAccounting({shouldUseNativeStyles, route}: BaseOnboarding
                 hoverStyle={!item.isSelected ? styles.hoveredComponentBG : undefined}
                 style={[styles.onboardingAccountingItem, isSmallScreenWidth && styles.flexBasis100, item.isSelected && styles.activeComponentBG]}
             >
+                {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                 <RadioButtonWithLabel
                     isChecked={!!item.isSelected}
                     onPress={() => handleIntegrationSelect(item.keyForList)}

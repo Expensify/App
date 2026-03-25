@@ -73,6 +73,7 @@ function SamlLoginSectionContent({accountID, domainName, isSamlEnabled, isSamlRe
                             {translate('domain.samlLogin.enableSamlLogin')}
                         </Text>
 
+                        {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                         <Switch
                             accessibilityLabel={translate('domain.samlLogin.enableSamlLogin')}
                             isOn={isSamlEnabled}
@@ -106,6 +107,7 @@ function SamlLoginSectionContent({accountID, domainName, isSamlEnabled, isSamlRe
                             >
                                 {translate('domain.samlLogin.requireSamlLogin')}
                             </Text>
+                            {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                             <Switch
                                 accessibilityLabel={translate('domain.samlLogin.requireSamlLogin')}
                                 isOn={isSamlRequired}

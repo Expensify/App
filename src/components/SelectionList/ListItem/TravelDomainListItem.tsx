@@ -38,6 +38,7 @@ function TravelDomainListItem<TItem extends ListItem>({item, isFocused, showTool
         >
             <>
                 <View style={[styles.flexRow, styles.alignItemsCenter]}>
+                    {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                     <PressableWithFeedback
                         onPress={handleCheckboxPress}
                         disabled={isDisabled}

@@ -136,6 +136,7 @@ function AnimatedCollapsible({
             <View style={[headerStyle, styles.flexRow, styles.alignItemsCenter]}>
                 <View style={[styles.flex1]}>{header}</View>
                 {shouldShowToggleButton && (
+                    /* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */
                     <PressableWithFeedback
                         onPress={onPress}
                         disabled={disabled}

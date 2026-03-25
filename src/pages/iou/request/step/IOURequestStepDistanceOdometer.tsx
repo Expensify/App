@@ -565,6 +565,7 @@ function IOURequestStepDistanceOdometer({
                     {/* Start Reading */}
                     <View style={[styles.mb6, styles.flexRow, !isEditing && [styles.alignItemsCenter, styles.gap3]]}>
                         <View style={[styles.flex1]}>
+                            {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                             <TextInput
                                 key={`start-${inputKey}`}
                                 ref={startReadingInputRef}
@@ -577,6 +578,7 @@ function IOURequestStepDistanceOdometer({
                             />
                         </View>
                         {!isEditing && (
+                            /* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */
                             <PressableWithFeedback
                                 accessibilityRole="button"
                                 accessibilityLabel={translate('distance.odometer.startTitle')}
@@ -607,6 +609,7 @@ function IOURequestStepDistanceOdometer({
                     {/* End Reading */}
                     <View style={[styles.mb6, styles.flexRow, !isEditing && [styles.alignItemsCenter, styles.gap3]]}>
                         <View style={[styles.flex1]}>
+                            {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                             <TextInput
                                 key={`end-${inputKey}`}
                                 ref={endReadingInputRef}
@@ -619,6 +622,7 @@ function IOURequestStepDistanceOdometer({
                             />
                         </View>
                         {!isEditing && (
+                            /* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */
                             <PressableWithFeedback
                                 accessibilityRole="button"
                                 accessibilityLabel={translate('distance.odometer.endTitle')}

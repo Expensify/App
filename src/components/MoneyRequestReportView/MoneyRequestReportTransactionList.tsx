@@ -609,6 +609,7 @@ function MoneyRequestReportTransactionList({
         <OfflineWithFeedback pendingAction={reportPendingAction}>
             <View style={[styles.dFlex, styles.flexRow, styles.pl5, styles.pr16, styles.alignItemsCenter]}>
                 <View style={[styles.dFlex, styles.flexRow, styles.pv2, styles.pr4, StyleUtils.getPaddingLeft(variables.w12)]}>
+                    {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                     <Checkbox
                         onPress={() => {
                             if (selectedTransactionIDs.length !== 0) {

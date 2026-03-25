@@ -38,6 +38,7 @@ function XeroChartOfAccountsPage({policy}: WithPolicyProps) {
                     <Text fontSize={variables.fontSizeNormal}>{translate('workspace.accounting.import')}</Text>
                 </View>
                 <View style={[styles.flex1, styles.alignItemsEnd, styles.pl3]}>
+                    {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                     <Switch
                         accessibilityLabel={translate('workspace.accounting.accounts')}
                         isOn

@@ -131,6 +131,7 @@ function ReportFieldsListValuesPage({
                 isSelected: selectedValues[value] && canSelectMultiple,
                 enabled: !disabledListValues.at(index),
                 rightElement: (
+                    /* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */
                     <Switch
                         isOn={!disabledListValues.at(index)}
                         accessibilityLabel={translate('workspace.distanceRates.trackTax')}

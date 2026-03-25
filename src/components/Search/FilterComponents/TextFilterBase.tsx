@@ -55,6 +55,7 @@ function TextFilterBase({filterKey, title, onSubmit, characterLimit = CONST.MERC
         >
             {!!description && <Text style={styles.mb6}>{description}</Text>}
             <View style={styles.mb5}>
+                {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                 <InputWrapper
                     InputComponent={TextInput}
                     inputID={filterKey}

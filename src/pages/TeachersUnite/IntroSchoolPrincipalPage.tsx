@@ -113,6 +113,7 @@ function IntroSchoolPrincipalPage() {
             >
                 <Text style={[styles.mb6]}>{translate('teachersUnitePage.schoolPrincipalVerifyExpense')}</Text>
                 <View>
+                    {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                     <InputWrapper
                         InputComponent={TextInput}
                         inputID={INPUT_IDS.FIRST_NAME}
@@ -125,6 +126,7 @@ function IntroSchoolPrincipalPage() {
                     />
                 </View>
                 <View style={styles.mv4}>
+                    {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                     <InputWrapper
                         InputComponent={TextInput}
                         inputID={INPUT_IDS.LAST_NAME}
@@ -137,6 +139,7 @@ function IntroSchoolPrincipalPage() {
                     />
                 </View>
                 <View>
+                    {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                     <InputWrapper
                         InputComponent={TextInput}
                         inputID={INPUT_IDS.PARTNER_USER_ID}

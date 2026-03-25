@@ -136,6 +136,7 @@ function HeaderFirstRow<TItem extends ListItem>({
         <View style={[styles.pt0, styles.flexRow, styles.alignItemsCenter, styles.justifyContentStart, styles.pl3]}>
             <View style={[styles.flexRow, styles.alignItemsCenter, styles.mnh40, styles.flex1, styles.gap3]}>
                 {!!canSelectMultiple && (
+                    /* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */
                     <Checkbox
                         onPress={() => onCheckboxPress?.(reportItem as unknown as TItem)}
                         isChecked={isSelectAllChecked}
@@ -163,6 +164,7 @@ function HeaderFirstRow<TItem extends ListItem>({
                 />
                 {!isLargeScreenWidth && !!onDownArrowClick && (
                     <View>
+                        {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                         <PressableWithFeedback
                             onPress={onDownArrowClick}
                             style={[styles.pl3, styles.justifyContentCenter, styles.alignItemsEnd]}

@@ -521,6 +521,7 @@ function MoneyRequestReceiptView({
                                     <AttachmentPicker acceptedFileTypes={[...CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_RECEIPT_EXTENSIONS]}>
                                         {({openPicker}) => (
                                             <Tooltip text={translate('receipt.addAdditionalReceipt')}>
+                                                {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                                                 <PressableWithoutFeedback
                                                     ref={addButtonRef}
                                                     onPress={() => {
@@ -557,6 +558,7 @@ function MoneyRequestReceiptView({
                                         )}
                                     </AttachmentPicker>
                                     <Tooltip text={translate('reportActionCompose.expand')}>
+                                        {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                                         <PressableWithoutFocus
                                             onPress={() =>
                                                 Navigation.navigate(

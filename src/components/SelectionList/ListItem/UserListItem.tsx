@@ -104,6 +104,7 @@ function UserListItem<TItem extends ListItem>({
                 return (
                     <>
                         {!shouldUseDefaultRightHandSideCheckmark && !!canSelectMultiple && (
+                            /* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */
                             <PressableWithFeedback
                                 accessibilityLabel={item.text ?? ''}
                                 role={CONST.ROLE.BUTTON}
@@ -173,6 +174,7 @@ function UserListItem<TItem extends ListItem>({
                             </View>
                         )}
                         {!!shouldUseDefaultRightHandSideCheckmark && !!canSelectMultiple && (
+                            /* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */
                             <PressableWithFeedback
                                 accessibilityLabel={item.text ?? ''}
                                 role={CONST.ROLE.BUTTON}

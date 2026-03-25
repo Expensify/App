@@ -309,6 +309,7 @@ function IOURequestStepOdometerImage({
                         ) : (
                             <Text style={[styles.subTextFileUpload]}>{translate('distance.odometer.cameraAccessRequired')}</Text>
                         )}
+                        {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                         <Button
                             success
                             text={translate('common.continue')}
@@ -342,6 +343,7 @@ function IOURequestStepOdometerImage({
                             screenshotQuality={0}
                         />
                         <View style={[styles.flashButtonContainer, styles.primaryMediumIcon, isFlashLightOn && styles.bgGreenSuccess, !isTorchAvailable && styles.opacity0]}>
+                            {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                             <PressableWithFeedback
                                 role={CONST.ROLE.BUTTON}
                                 accessibilityLabel={translate('receipt.flash')}
@@ -375,6 +377,7 @@ function IOURequestStepOdometerImage({
             <View style={[styles.flexRow, styles.justifyContentAround, styles.alignItemsCenter, styles.pv3]}>
                 <AttachmentPicker type={CONST.ATTACHMENT_PICKER_TYPE.IMAGE}>
                     {({openPicker}) => (
+                        /* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */
                         <PressableWithFeedback
                             role={CONST.ROLE.BUTTON}
                             accessibilityLabel={translate('common.chooseFile')}
@@ -394,6 +397,7 @@ function IOURequestStepOdometerImage({
                         </PressableWithFeedback>
                     )}
                 </AttachmentPicker>
+                {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                 <PressableWithFeedback
                     role={CONST.ROLE.BUTTON}
                     accessibilityLabel={translate('receipt.shutter')}
@@ -474,6 +478,7 @@ function IOURequestStepOdometerImage({
             </View>
             <AttachmentPicker type={CONST.ATTACHMENT_PICKER_TYPE.IMAGE}>
                 {({openPicker}) => (
+                    /* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */
                     <Button
                         success
                         text={translate('common.chooseFile')}

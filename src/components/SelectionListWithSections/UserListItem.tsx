@@ -106,6 +106,7 @@ function UserListItem<TItem extends ListItem>({
                 const isHovered = !!hovered && !shouldDisableHoverStyle;
 
                 return (
+                    /* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */
                     <View
                         accessible={shouldDisableAccessibleGrouping || undefined}
                         accessibilityLabel={shouldDisableAccessibleGrouping ? contactAccessibilityLabel : undefined}
@@ -113,6 +114,7 @@ function UserListItem<TItem extends ListItem>({
                         style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}
                     >
                         {!shouldUseDefaultRightHandSideCheckmark && !!canSelectMultiple && (
+                            /* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */
                             <PressableWithFeedback
                                 sentryLabel={CONST.SENTRY_LABEL.USER_LIST_ITEM_WITH_SECTIONS.LEFT_CHECKBOX}
                                 accessibilityLabel={item.text ?? ''}
@@ -182,6 +184,7 @@ function UserListItem<TItem extends ListItem>({
                             </View>
                         )}
                         {!!shouldUseDefaultRightHandSideCheckmark && !!canSelectMultiple && (
+                            /* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */
                             <PressableWithFeedback
                                 sentryLabel={CONST.SENTRY_LABEL.USER_LIST_ITEM_WITH_SECTIONS.RIGHT_CHECKBOX}
                                 accessibilityLabel={item.text ?? ''}

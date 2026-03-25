@@ -136,6 +136,7 @@ function AgreementsFullStep<TFormID extends keyof OnyxFormValuesMapping>({
             >
                 <Text style={[styles.textHeadlineLineHeightXXL]}>{translate('agreementsStep.pleaseConfirm')}</Text>
                 {!isDocusignStepRequired && <Text style={[styles.pv3, styles.textSupporting]}>{translate('agreementsStep.regulationRequiresUs')}</Text>}
+                {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                 <InputWrapper
                     InputComponent={CheckboxWithLabel}
                     accessibilityLabel={translate('agreementsStep.iAmAuthorized')}
@@ -145,6 +146,7 @@ function AgreementsFullStep<TFormID extends keyof OnyxFormValuesMapping>({
                     defaultValue={defaultValues[inputIDs.authorizedToBindClientToAgreement]}
                     shouldSaveDraft
                 />
+                {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                 <InputWrapper
                     InputComponent={CheckboxWithLabel}
                     accessibilityLabel={translate('agreementsStep.iCertify')}
@@ -154,6 +156,7 @@ function AgreementsFullStep<TFormID extends keyof OnyxFormValuesMapping>({
                     defaultValue={defaultValues[inputIDs.provideTruthfulInformation]}
                     shouldSaveDraft
                 />
+                {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                 <InputWrapper
                     InputComponent={CheckboxWithLabel}
                     accessibilityLabel={translate('agreementsStep.iAcceptTheTermsAndConditionsAccessibility')}
@@ -163,6 +166,7 @@ function AgreementsFullStep<TFormID extends keyof OnyxFormValuesMapping>({
                     defaultValue={defaultValues[inputIDs.agreeToTermsAndConditions]}
                     shouldSaveDraft
                 />
+                {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                 <InputWrapper
                     InputComponent={CheckboxWithLabel}
                     accessibilityLabel={translate('agreementsStep.iConsentToThePrivacyNoticeAccessibility')}

@@ -55,6 +55,7 @@ function WorkspacesListPageHeaderButton({shouldShowNewWorkspaceButton, shouldSho
 
     if (shouldShowNewWorkspaceButton) {
         return (
+            /* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */
             <Button
                 accessibilityLabel={translate('workspace.new.newWorkspace')}
                 text={translate('workspace.new.newWorkspace')}
@@ -68,6 +69,7 @@ function WorkspacesListPageHeaderButton({shouldShowNewWorkspaceButton, shouldSho
 
     if (shouldShowNewDomainButton) {
         return (
+            /* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */
             <Button
                 accessibilityLabel={translate('domain.addDomain.newDomain')}
                 text={translate('domain.addDomain.newDomain')}

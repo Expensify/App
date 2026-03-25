@@ -83,6 +83,7 @@ function FormHelpMessage({
     return (
         <View style={[styles.flexRow, styles.alignItemsCenter, styles.mt2, styles.mb1, style]}>
             {isError && shouldShowRedDotIndicator && (
+                /* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */
                 <View
                     accessible
                     role={CONST.ROLE.IMG}

@@ -21,6 +21,7 @@ function DebugTransactionViolations({transactionID}: DebugTransactionViolationsP
     const {translate} = useLocalize();
 
     const renderItem = (item: TransactionViolation, index: number) => (
+        /* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */
         <PressableWithFeedback
             accessibilityLabel={translate('common.details')}
             onPress={() => Navigation.navigate(ROUTES.DEBUG_TRANSACTION_VIOLATION.getRoute(transactionID, String(index)))}

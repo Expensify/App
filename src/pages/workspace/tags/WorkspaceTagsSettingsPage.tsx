@@ -104,6 +104,7 @@ function WorkspaceTagsSettingsPage({route}: WorkspaceTagsSettingsPageProps) {
                     >
                         {translate('workspace.tags.requiresTag')}
                     </Text>
+                    {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                     <Switch
                         isOn={policy?.requiresTag ?? false}
                         accessibilityLabel={translate('workspace.tags.requiresTag')}
@@ -121,6 +122,7 @@ function WorkspaceTagsSettingsPage({route}: WorkspaceTagsSettingsPageProps) {
                     >
                         {translate('workspace.tags.trackBillable')}
                     </Text>
+                    {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                     <Switch
                         isOn={!(policy?.disabledFields?.defaultBillable ?? false)}
                         accessibilityLabel={translate('workspace.tags.trackBillable')}

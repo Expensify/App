@@ -817,6 +817,7 @@ function MoneyRequestConfirmationList({
             <View style={[styles.mt2, styles.mb1, styles.flexRow, styles.justifyContentBetween]}>
                 <Text style={[styles.ph5, styles.textLabelSupporting]}>{translate('iou.participants')}</Text>
                 {!shouldShowReadOnlySplits && !!isSplitModified && (
+                    /* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */
                     <PressableWithFeedback
                         onPress={() => {
                             resetSplitShares(transaction);

@@ -20,6 +20,7 @@ function UnreadActionIndicator({reportActionID, shouldHideThreadDividerLine}: Un
     const containerStyle = shouldHideThreadDividerLine ? styles.topUnreadIndicatorContainer : styles.unreadIndicatorContainer;
 
     return (
+        /* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */
         <View
             accessibilityLabel={translate('accessibilityHints.newMessageLineIndicator')}
             data-action-id={reportActionID}

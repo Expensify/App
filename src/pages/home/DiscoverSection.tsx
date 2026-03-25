@@ -62,6 +62,7 @@ function DiscoverSection() {
 
     return (
         <WidgetContainer title={translate('homePage.discoverSection.title')}>
+            {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
             <PressableWithoutFeedback
                 onPress={handlePress}
                 accessibilityRole={CONST.ROLE.BUTTON}
@@ -70,6 +71,7 @@ function DiscoverSection() {
                 sentryLabel={CONST.SENTRY_LABEL.DISCOVER_SECTION.TEST_DRIVE}
             >
                 <View style={[styles.br2, styles.overflowHidden]}>
+                    {/* eslint-disable-next-line react-native-a11y/has-valid-accessibility-ignores-invert-colors -- Already present before the lint rule was enabled, needs to be fixed. */}
                     <Image
                         source={HomeTestDriveImage}
                         style={styles.discoverSectionImage}

@@ -163,6 +163,7 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
                 errors={item.errors}
                 onClose={() => clearDeletePaymentMethodError(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${defaultFundID}_${CONST.EXPENSIFY_CARD.BANK}`, item.cardID)}
             >
+                {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                 <PressableWithFeedback
                     role={CONST.ROLE.BUTTON}
                     style={[styles.mh5, styles.br3, styles.mb2, styles.highlightBG]}

@@ -27,6 +27,7 @@ function SidePanelOverlay({shouldBeVisible, onBackdropPress}: SidePanelOverlayPr
             entering={shouldBeVisible ? CustomFadeIn : undefined}
             exiting={shouldBeVisible ? CustomFadeOut : undefined}
         >
+            {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
             <PressableWithoutFeedback
                 accessible
                 accessibilityLabel={translate('modal.backdropLabel')}

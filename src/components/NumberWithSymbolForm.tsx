@@ -390,6 +390,7 @@ function NumberWithSymbolForm({
 
     if (displayAsTextInput) {
         return (
+            /* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */
             <TextInput
                 label={label}
                 accessibilityLabel={label}
@@ -423,6 +424,7 @@ function NumberWithSymbolForm({
     }
 
     const textInputComponent = (
+        /* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */
         <TextInputWithCurrencySymbol
             formattedAmount={formattedNumber}
             onChangeAmount={setNewNumber}
@@ -503,6 +505,7 @@ function NumberWithSymbolForm({
                     >
                         <View style={[styles.flexRow, styles.moneyRequestAmountContainer, styles.alignItemsCenter, styles.justifyContentCenter]}>{textInputComponent}</View>
                         {isSymbolPressable && !!currency && !canUseTouchScreen && (
+                            /* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */
                             <Button
                                 shouldShowRightIcon
                                 small
@@ -529,6 +532,7 @@ function NumberWithSymbolForm({
 
             <View style={[styles.flexRow, styles.justifyContentCenter, shouldShowBigNumberPad ? styles.mb2 : styles.mb0, styles.gap2]}>
                 {isSymbolPressable && canUseTouchScreen && (
+                    /* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */
                     <Button
                         shouldShowRightIcon
                         small
@@ -541,6 +545,7 @@ function NumberWithSymbolForm({
                     />
                 )}
                 {allowFlippingAmount && canUseTouchScreen && (
+                    /* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */
                     <Button
                         shouldShowRightIcon
                         small

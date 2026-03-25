@@ -74,6 +74,7 @@ function TestToolMenu() {
                         title={translate('initialSettingsPage.troubleshoot.debugMode')}
                         isTitleAccessible={false}
                     >
+                        {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                         <Switch
                             accessibilityLabel={translate('initialSettingsPage.troubleshoot.debugMode')}
                             isOn={isDebugModeEnabled}
@@ -151,6 +152,7 @@ function TestToolMenu() {
                     title={translate('initialSettingsPage.troubleshoot.useStagingServer')}
                     isTitleAccessible={false}
                 >
+                    {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                     <Switch
                         accessibilityLabel="Use Staging Server"
                         isOn={shouldUseStagingServer}
@@ -164,6 +166,7 @@ function TestToolMenu() {
                 title={translate('initialSettingsPage.troubleshoot.forceOffline')}
                 isTitleAccessible={false}
             >
+                {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                 <Switch
                     accessibilityLabel="Force offline"
                     isOn={!!network?.shouldForceOffline}
@@ -177,6 +180,7 @@ function TestToolMenu() {
                 title={translate('initialSettingsPage.troubleshoot.simulatePoorConnection')}
                 isTitleAccessible={false}
             >
+                {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                 <Switch
                     accessibilityLabel="Simulate poor internet connection"
                     isOn={!!network?.shouldSimulatePoorConnection}
@@ -190,6 +194,7 @@ function TestToolMenu() {
                 title={translate('initialSettingsPage.troubleshoot.simulateFailingNetworkRequests')}
                 isTitleAccessible={false}
             >
+                {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                 <Switch
                     accessibilityLabel="Simulate failing network requests"
                     isOn={!!network?.shouldFailAllRequests}

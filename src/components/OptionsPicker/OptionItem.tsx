@@ -37,6 +37,7 @@ function OptionItem({title, icon, onPress, isSelected = false, isDisabled, style
     const {translate} = useLocalize();
 
     return (
+        /* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */
         <PressableWithFeedback
             onPress={onPress}
             role={CONST.ROLE.BUTTON}

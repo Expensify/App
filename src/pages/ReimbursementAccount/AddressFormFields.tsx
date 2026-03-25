@@ -147,6 +147,7 @@ function AddressFormFields({
                     autoComplete="address-line1"
                 />
             </View>
+            {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
             <InputWrapper
                 InputComponent={TextInput}
                 inputID={inputKeys.city ?? 'cityInput'}
@@ -179,6 +180,7 @@ function AddressFormFields({
                     />
                 </View>
             )}
+            {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
             <InputWrapper
                 InputComponent={TextInput}
                 inputID={inputKeys.zipCode ?? 'zipCodeInput'}

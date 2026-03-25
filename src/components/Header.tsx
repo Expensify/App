@@ -75,6 +75,7 @@ function Header({title = '', subtitle = '', textStyles = [], style, containerSty
             <View style={[styles.mw100, style]}>
                 {typeof title === 'string'
                     ? !!title && (
+                          /* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */
                           <Text
                               numberOfLines={numberOfTitleLines}
                               style={[styles.headerText, styles.textLarge, styles.lineHeightXLarge, textStyles]}

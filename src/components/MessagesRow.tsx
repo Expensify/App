@@ -59,6 +59,7 @@ function MessagesRow({messages = {}, type, onDismiss, containerStyles, dismissEr
             />
             {showDismissButton && (
                 <Tooltip text={dismissText}>
+                    {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                     <PressableWithoutFeedback
                         onPress={onDismiss}
                         role={CONST.ROLE.BUTTON}

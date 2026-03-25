@@ -244,6 +244,7 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
                         key={transaction.transactionID}
                     >
                         {!isLargeScreenWidth ? (
+                            /* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */
                             <PressableWithFeedback
                                 onPress={() => handleOnPress(transaction)}
                                 onLongPress={() => onLongPress?.(transaction)}

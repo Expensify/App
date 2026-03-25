@@ -27,6 +27,7 @@ function RoomNameInput({disabled = false, autoFocus = false, isFocused, value, o
     const keyboardType = getOperatingSystem() === CONST.OS.IOS ? CONST.KEYBOARD_TYPE.ASCII_CAPABLE : CONST.KEYBOARD_TYPE.VISIBLE_PASSWORD;
 
     return (
+        /* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */
         <TextInput
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}

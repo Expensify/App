@@ -223,6 +223,7 @@ function WorkspaceConfirmationForm({onSubmit, policyOwnerEmail = '', onBackButto
                 >
                     <View style={styles.mb4}>
                         {!isLoadingOnyxValue(metadata) && (
+                            /* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */
                             <InputWrapper
                                 InputComponent={TextInput}
                                 role={CONST.ROLE.PRESENTATION}
@@ -283,6 +284,7 @@ function WorkspaceConfirmationForm({onSubmit, policyOwnerEmail = '', onBackButto
                                             <View style={styles.flex1}>
                                                 <Text style={[styles.textNormal]}>{translate('workspace.common.keepMeAsAdmin')}</Text>
                                             </View>
+                                            {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                                             <Switch
                                                 accessibilityLabel={translate('workspace.common.keepMeAsAdmin')}
                                                 isOn={makeMeAdmin}

@@ -116,6 +116,7 @@ function WorkspaceCardsListLabel({type, value, style}: WorkspaceCardsListLabelPr
                     style={[styles.flexRow, styles.alignItemsCenter, styles.mb1, style]}
                 >
                     <Text style={[styles.mutedNormalTextLabel, styles.mr1]}>{translate(`workspace.expensifyCard.${type}`)}</Text>
+                    {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                     <PressableWithFeedback
                         accessibilityLabel={translate(`workspace.expensifyCard.${type}`)}
                         accessibilityRole={CONST.ROLE.BUTTON}

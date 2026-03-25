@@ -120,6 +120,7 @@ function VerifyPage({route}: VerifyPageProps) {
                     <Text style={styles.mt5}>{translate('twoFactorAuth.addKey')}</Text>
                     <View style={[styles.mt11, styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween]}>
                         {!!account?.twoFactorAuthSecretKey && <Text fsClass={CONST.FULLSTORY.CLASS.MASK}>{splitSecretInChunks(account?.twoFactorAuthSecretKey ?? '')}</Text>}
+                        {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                         <PressableWithDelayToggle
                             text={translate('twoFactorAuth.copy')}
                             textChecked={translate('common.copied')}

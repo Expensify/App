@@ -126,6 +126,7 @@ function SplitListItem<TItem extends ListItem>({
             accessible={!splitItem.isEditable}
         >
             <View style={[styles.flexRow, styles.containerWithSpaceBetween, styles.p3]}>
+                {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                 <View
                     style={[styles.flex1]}
                     accessible={splitItem.isEditable}
@@ -221,6 +222,7 @@ function SplitListItem<TItem extends ListItem>({
                     </View>
                     <View style={[styles.popoverMenuIcon]}>
                         {!splitItem.isEditable ? null : (
+                            /* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */
                             <PressableWithFeedback
                                 onPress={() => onSelectRow(item)}
                                 accessibilityLabel={translate('common.edit')}

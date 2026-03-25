@@ -2611,6 +2611,7 @@ function MoneyReportHeader({
                             text={hasFinishedPDFDownload ? translate('common.download') : translate('common.cancel')}
                         />
                     </View>
+                    {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                     <PressableWithFeedback
                         onPress={() => {
                             setIsPDFModalVisible(false);

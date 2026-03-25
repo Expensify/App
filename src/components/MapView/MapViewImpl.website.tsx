@@ -281,6 +281,7 @@ function MapViewImpl({
                         longitude={distanceSymbolCoordinate.at(0) ?? 0}
                         latitude={distanceSymbolCoordinate.at(1) ?? 0}
                     >
+                        {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                         <PressableWithoutFeedback
                             sentryLabel="MapView-ToggleDistanceUnit"
                             accessibilityLabel={CONST.ROLE.BUTTON}
@@ -312,6 +313,7 @@ function MapViewImpl({
             </Map>
             {interactive && (
                 <View style={[styles.pAbsolute, styles.p5, styles.t0, styles.r0, {zIndex: 1}]}>
+                    {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                     <Button
                         onPress={centerMap}
                         iconFill={theme.icon}

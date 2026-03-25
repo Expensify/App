@@ -78,6 +78,7 @@ function NewTaskDescriptionPage({route}: NewTaskDescriptionPageProps) {
                     shouldHideFixErrorsAlert
                 >
                     <View style={styles.mb5}>
+                        {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                         <InputWrapperWithRef
                             InputComponent={TextInput}
                             defaultValue={Parser.htmlToMarkdown(Parser.replace(task?.description ?? ''))}

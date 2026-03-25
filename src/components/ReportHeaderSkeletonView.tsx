@@ -37,6 +37,7 @@ function ReportHeaderSkeletonView({shouldAnimate = true, onBackButtonPress = () 
         <View style={[styles.appContentHeader, shouldUseNarrowLayout && styles.pl2, styles.h100]}>
             <View style={[styles.appContentHeaderTitle, !shouldUseNarrowLayout && styles.pl5]}>
                 {shouldUseNarrowLayout && (
+                    /* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */
                     <PressableWithFeedback
                         onPress={onBackButtonPress}
                         style={[styles.touchableButtonImage]}

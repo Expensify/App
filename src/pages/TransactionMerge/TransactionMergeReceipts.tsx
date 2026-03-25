@@ -37,6 +37,7 @@ function TransactionMergeReceipts({transactions, selectedReceiptID, onSelect}: T
                         key={transaction.transactionID}
                         style={[styles.flexColumn, styles.alignItemsCenter, styles.w100, styles.mb2]}
                     >
+                        {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                         <PressableWithFeedback
                             onPress={() => onSelect(transaction.receipt)}
                             wrapperStyle={styles.w100}
@@ -49,6 +50,7 @@ function TransactionMergeReceipts({transactions, selectedReceiptID, onSelect}: T
                                 <Text style={[styles.headerText]}>
                                     {translate('common.receipt')} {index + 1}
                                 </Text>
+                                {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                                 <RadioButton
                                     isChecked={isSelected}
                                     onPress={() => onSelect(transaction.receipt)}

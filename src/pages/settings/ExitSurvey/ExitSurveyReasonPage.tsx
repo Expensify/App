@@ -96,6 +96,7 @@ function ExitSurveyReasonPage() {
                     <>
                         <Text style={styles.headerAnonymousFooter}>{translate('exitSurvey.reasonPage.title')}</Text>
                         <Text style={styles.mt2}>{translate('exitSurvey.reasonPage.subtitle')}</Text>
+                        {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                         <InputWrapper
                             InputComponent={TextInput}
                             inputID={INPUT_IDS.RESPONSE}

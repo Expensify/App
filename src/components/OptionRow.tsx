@@ -174,6 +174,7 @@ function OptionRow({
                     shouldShowErrorMessages={false}
                     needsOffscreenAlphaCompositing
                 >
+                    {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                     <PressableWithFeedback
                         id={keyForList}
                         ref={pressableRef}
@@ -229,6 +230,7 @@ function OptionRow({
                                     />
                                 )}
                                 <View style={contentContainerStyles}>
+                                    {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                                     <DisplayNames
                                         accessibilityLabel={translate('accessibilityHints.chatUserDisplayNames')}
                                         fullTitle={fullTitle}
@@ -307,6 +309,7 @@ function OptionRow({
                                             shouldUseDefaultHover={false}
                                         />
                                     ) : (
+                                        /* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */
                                         <PressableWithFeedback
                                             onPress={() => onSelectedStatePressed(option)}
                                             disabled={isDisabled}

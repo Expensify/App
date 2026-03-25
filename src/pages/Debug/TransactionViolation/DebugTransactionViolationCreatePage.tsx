@@ -108,6 +108,7 @@ function DebugTransactionViolationCreatePage({
                     <ScrollView contentContainerStyle={[styles.ph5, styles.pb5, styles.gap5]}>
                         <View>
                             <Text style={[styles.textLabelSupporting, styles.mb2]}>{translate('debug.editJson')}</Text>
+                            {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                             <TextInput
                                 errorText={error}
                                 accessibilityLabel={translate('debug.editJson')}

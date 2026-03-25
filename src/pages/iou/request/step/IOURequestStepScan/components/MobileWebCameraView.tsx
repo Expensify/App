@@ -392,6 +392,7 @@ function MobileWebCameraView({
                                 ) : (
                                     <Text style={[styles.subTextFileUpload]}>{translate('receipt.cameraAccess')}</Text>
                                 )}
+                                {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                                 <Button
                                     success
                                     text={translate('common.continue')}
@@ -426,6 +427,7 @@ function MobileWebCameraView({
                                 />
                                 {canUseMultiScan ? (
                                     <View style={[styles.flashButtonContainer, styles.primaryMediumIcon, isFlashLightOn && styles.bgGreenSuccess, !isTorchAvailable && styles.opacity0]}>
+                                        {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                                         <PressableWithFeedback
                                             role={CONST.ROLE.BUTTON}
                                             accessibilityLabel={translate('receipt.flash')}
@@ -456,6 +458,7 @@ function MobileWebCameraView({
                             allowMultiple={shouldAcceptMultipleFiles}
                         >
                             {({openPicker}) => (
+                                /* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */
                                 <PressableWithFeedback
                                     accessibilityLabel={translate(shouldAcceptMultipleFiles ? 'common.chooseFiles' : 'common.chooseFile')}
                                     role={CONST.ROLE.BUTTON}
@@ -476,6 +479,7 @@ function MobileWebCameraView({
                                 </PressableWithFeedback>
                             )}
                         </AttachmentPicker>
+                        {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                         <PressableWithFeedback
                             role={CONST.ROLE.BUTTON}
                             accessibilityLabel={translate('receipt.shutter')}
@@ -490,6 +494,7 @@ function MobileWebCameraView({
                             />
                         </PressableWithFeedback>
                         {canUseMultiScan ? (
+                            /* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */
                             <PressableWithFeedback
                                 accessibilityRole="button"
                                 role={CONST.ROLE.BUTTON}
@@ -506,6 +511,7 @@ function MobileWebCameraView({
                                 />
                             </PressableWithFeedback>
                         ) : (
+                            /* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */
                             <PressableWithFeedback
                                 role={CONST.ROLE.BUTTON}
                                 accessibilityLabel={translate('receipt.flash')}

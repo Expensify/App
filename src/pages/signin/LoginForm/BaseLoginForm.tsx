@@ -228,10 +228,12 @@ function BaseLoginForm({submitBehavior = 'submit', isVisible, ref}: BaseLoginFor
 
     return (
         <>
+            {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
             <View
                 accessibilityLabel={translate('loginForm.loginForm')}
                 style={[styles.mt3]}
             >
+                {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                 <TextInput
                     ref={input}
                     label={translate('loginForm.phoneOrEmail')}

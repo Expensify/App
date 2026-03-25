@@ -155,6 +155,7 @@ function PrivateNotesEditPageInternal({route, report, accountID, privateNoteDraf
                     onClose={() => clearPrivateNotesError(report.reportID, Number(route.params.accountID))}
                     style={[styles.mb3]}
                 >
+                    {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                     <InputWrapper
                         InputComponent={TextInput}
                         role={CONST.ROLE.PRESENTATION}

@@ -66,12 +66,14 @@ function TermsStep(props: TermsStepProps) {
             >
                 <ShortTermsForm userWallet={props.userWallet} />
                 <LongTermsForm />
+                {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                 <CheckboxWithLabel
                     accessibilityLabel={translate('termsStep.haveReadAndAgreePlain')}
                     style={[styles.mb4, styles.mt4]}
                     onInputChange={toggleDisclosure}
                     LabelComponent={HaveReadAndAgreeLabel}
                 />
+                {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                 <CheckboxWithLabel
                     accessibilityLabel={translate('termsStep.agreeToThePlain')}
                     onInputChange={togglePrivacyPolicy}

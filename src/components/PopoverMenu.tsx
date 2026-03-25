@@ -355,6 +355,7 @@ function BasePopoverMenu({
         const backButtonTitle = hasBackButtonText ? previouslySelectedItem?.backButtonText : previouslySelectedItem?.text;
 
         return (
+            /* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */
             <MenuItem
                 key={previouslySelectedItem?.text}
                 icon={expensifyIcons.BackArrow}

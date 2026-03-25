@@ -126,6 +126,7 @@ function DatePicker({
                 ref={anchorRef}
                 style={styles.mv2}
             >
+                {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                 <TextInput
                     ref={textInputRef}
                     inputID={inputID}

@@ -166,6 +166,7 @@ function DebugDetails({formType, data, policyHasEnabledTags, policyID, children,
                     {textFields.map(([key, value]) => {
                         const numberOfLines = DebugUtils.getNumberOfLinesFromString((formDraftData?.[key as keyof typeof formDraftData] as string) ?? value);
                         return (
+                            /* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */
                             <InputWrapper
                                 key={key}
                                 InputComponent={TextInput}
@@ -187,6 +188,7 @@ function DebugDetails({formType, data, policyHasEnabledTags, policyID, children,
                 <Text style={[styles.headerText, styles.ph5, styles.mb3]}>{translate('debug.numberFields')}</Text>
                 <View style={[styles.mb5, styles.ph5, styles.gap5]}>
                     {numberFields.map(([key, value]) => (
+                        /* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */
                         <InputWrapper
                             key={key}
                             InputComponent={TextInput}
@@ -235,6 +237,7 @@ function DebugDetails({formType, data, policyHasEnabledTags, policyID, children,
                 <Text style={[styles.headerText, styles.ph5, styles.mb3]}>{translate('debug.booleanFields')}</Text>
                 <View style={[styles.mb5, styles.ph5, styles.gap5]}>
                     {booleanFields.map(([key, value]) => (
+                        /* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */
                         <InputWrapper
                             key={key}
                             InputComponent={CheckboxWithLabel}

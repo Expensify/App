@@ -212,6 +212,7 @@ function ToggleSettingOptionRow({
     const shouldShowTooltip = disabled && !!disabledText;
 
     const switchComponent = (
+        /* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */
         <Switch
             disabledAction={disabledAction}
             accessibilityLabel={
@@ -237,6 +238,7 @@ function ToggleSettingOptionRow({
         >
             <View style={styles.pRelative}>
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, shouldPlaceSubtitleBelowSwitch && styles.h10]}>
+                    {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                     <PressableWithoutFeedback
                         style={[styles.flexRow, styles.alignItemsCenter, styles.flex1]}
                         onPress={shouldMakeContentPressable ? onPress : undefined}

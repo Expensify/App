@@ -45,6 +45,7 @@ function EmailDeliveryFailurePage() {
                 </View>
             </View>
             <View style={[styles.mv4, styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter]}>
+                {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                 <PressableWithFeedback
                     onPress={() => clearSignInData()}
                     role="button"

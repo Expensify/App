@@ -88,6 +88,7 @@ function ReceiptPreviews({submit, isMultiScanEnabled, isCapturingPhoto = false}:
         }
 
         return (
+            /* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */
             <PressableWithFeedback
                 accessible
                 accessibilityLabel={translate('common.receipt')}
@@ -95,6 +96,7 @@ function ReceiptPreviews({submit, isMultiScanEnabled, isCapturingPhoto = false}:
                 onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_RECEIPT_VIEW.getRoute(item.transactionID, Navigation.getActiveRoute()))}
                 sentryLabel={CONST.SENTRY_LABEL.IOU_REQUEST_STEP.RECEIPT_PREVIEW_ITEM}
             >
+                {/* eslint-disable-next-line react-native-a11y/has-valid-accessibility-ignores-invert-colors -- Already present before the lint rule was enabled, needs to be fixed. */}
                 <Image
                     source={typeof item.source === 'string' ? {uri: item.source} : item.source}
                     style={[styles.receiptPlaceholder, styles.overflowHidden]}

@@ -643,6 +643,7 @@ function TransactionItemRow({
                 >
                     <View style={[styles.flexRow]}>
                         {shouldShowCheckbox && (
+                            /* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */
                             <Checkbox
                                 disabled={isDisabled}
                                 onPress={() => {
@@ -711,6 +712,7 @@ function TransactionItemRow({
                         )}
                         {shouldShowRadioButton && (
                             <View style={[styles.ml3, styles.justifyContentCenter]}>
+                                {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                                 <RadioButton
                                     isChecked={isSelected}
                                     disabled={isDisabled}
@@ -773,6 +775,7 @@ function TransactionItemRow({
             <View style={[styles.expenseWidgetRadius, styles.flex1, styles.gap2, bgActiveStyles, styles.mw100, style]}>
                 <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap3]}>
                     {!shouldShowRadioButton && (
+                        /* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */
                         <Checkbox
                             disabled={isDisabled}
                             onPress={() => {
@@ -788,6 +791,7 @@ function TransactionItemRow({
                     {columns?.map(renderColumn)}
                     {shouldShowRadioButton && (
                         <View style={[styles.ml1, styles.justifyContentCenter]}>
+                            {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                             <RadioButton
                                 isChecked={isSelected}
                                 disabled={isDisabled}
@@ -798,6 +802,7 @@ function TransactionItemRow({
                         </View>
                     )}
                     {!!isLargeScreenWidth && !!onArrowRightPress && (
+                        /* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */
                         <PressableWithFeedback
                             disabled={!!isDisabled}
                             onPress={() => onArrowRightPress?.()}

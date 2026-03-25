@@ -208,6 +208,7 @@ function BookTravelButton({
                     type="error"
                 />
             )}
+            {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
             <Button
                 text={text}
                 onPress={bookATrip}

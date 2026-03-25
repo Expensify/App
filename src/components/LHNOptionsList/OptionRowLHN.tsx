@@ -269,6 +269,7 @@ function OptionRowLHN({
                                 secondaryAvatarBgColor = hoveredBackgroundColor;
                             }
                             return (
+                                /* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */
                                 <PressableWithSecondaryInteraction
                                     ref={popoverAnchor}
                                     onPress={onOptionPress}
@@ -326,6 +327,7 @@ function OptionRowLHN({
                                             )}
                                             <View style={contentContainerStyles}>
                                                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.mw100, styles.overflowHidden]}>
+                                                    {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                                                     <DisplayNames
                                                         accessibilityLabel={translate('accessibilityHints.chatUserDisplayNames')}
                                                         fullTitle={optionItem.text ?? ''}
@@ -358,6 +360,7 @@ function OptionRowLHN({
                                                     )}
                                                 </View>
                                                 {!!optionItem.alternateText && (
+                                                    /* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */
                                                     <Text
                                                         style={alternateTextStyle}
                                                         numberOfLines={1}
@@ -423,6 +426,7 @@ function OptionRowLHN({
                                                 </View>
                                             ))}
                                         {hasDraftComment && !!optionItem.isAllowedToComment && (
+                                            /* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */
                                             <View
                                                 style={styles.ml2}
                                                 accessibilityLabel={translate('sidebarScreen.draftedMessage')}
@@ -437,6 +441,7 @@ function OptionRowLHN({
                                         {!brickRoadIndicator &&
                                             !!optionItem.isPinned &&
                                             (isProduction ? (
+                                                /* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */
                                                 <View
                                                     style={styles.ml2}
                                                     accessibilityLabel={translate('sidebarScreen.chatPinned')}

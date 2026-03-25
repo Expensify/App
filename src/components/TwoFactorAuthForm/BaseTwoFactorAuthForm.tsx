@@ -192,6 +192,7 @@ function BaseTwoFactorAuthForm({
                 <Text style={[styles.mb3]}>{translate(isUsingRecoveryCode ? 'twoFactorAuth.explainProcessToRemoveWithRecovery' : 'twoFactorAuth.explainProcessToRemove')}</Text>
             )}
             {shouldAllowRecoveryCode && isUsingRecoveryCode ? (
+                /* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */
                 <TextInput
                     ref={(input) => {
                         recoveryInputRef.current = input;
@@ -210,6 +211,7 @@ function BaseTwoFactorAuthForm({
                     testID="recoveryCodeInput"
                 />
             ) : (
+                /* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */
                 <MagicCodeInput
                     autoComplete={autoComplete}
                     name="twoFactorAuthCode"
@@ -225,6 +227,7 @@ function BaseTwoFactorAuthForm({
                 />
             )}
             {shouldAllowRecoveryCode && (
+                /* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */
                 <PressableWithFeedback
                     style={[styles.mt2]}
                     onPress={handleToggleInputType}

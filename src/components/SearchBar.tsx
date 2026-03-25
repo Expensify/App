@@ -34,6 +34,7 @@ function SearchBar({label, style, icon, inputValue, onChangeText, onSubmitEditin
     return (
         <>
             <View style={[styles.searchBarMargin, styles.searchBarWidth(shouldUseNarrowLayout), style]}>
+                {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                 <TextInput
                     label={label}
                     accessibilityLabel={label}

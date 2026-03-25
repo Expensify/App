@@ -118,6 +118,7 @@ function TaskView({report, parentReport, action}: TaskViewProps) {
                     >
                         <Hoverable>
                             {(hovered) => (
+                                /* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */
                                 <PressableWithSecondaryInteraction
                                     onPress={callFunctionIfActionIsAllowed((e) => {
                                         if (isDisableInteractive) {
@@ -143,6 +144,7 @@ function TaskView({report, parentReport, action}: TaskViewProps) {
                                         <OfflineWithFeedback pendingAction={report?.pendingFields?.reportName}>
                                             <Text style={styles.taskTitleDescription}>{translate('task.title')}</Text>
                                             <View style={[styles.flexRow, styles.flex1]}>
+                                                {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                                                 <Checkbox
                                                     onPress={callFunctionIfActionIsAllowed(() => {
                                                         // If we're already navigating to these task editing pages, early return not to mark as completed, otherwise we would have not found page.

@@ -59,6 +59,7 @@ function TopBar({breadcrumbLabel, shouldDisplaySearch = true, shouldDisplayHelpB
                 {children}
                 {displaySignIn && <SignInButton />}
                 {!!cancelSearch && (
+                    /* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */
                     <PressableWithoutFeedback
                         accessibilityLabel={translate('common.cancel')}
                         style={styles.textBlue}

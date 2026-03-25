@@ -92,6 +92,7 @@ function ProfileAvatar(props: Parameters<typeof Avatar>[0] & {useProfileNavigati
     };
 
     return (
+        /* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */
         <PressableWithoutFocus
             onPress={onPress}
             accessibilityLabel={translate(isWorkspace ? 'common.workspaces' : 'common.profile')}

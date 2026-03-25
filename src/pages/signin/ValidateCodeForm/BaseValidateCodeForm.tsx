@@ -312,6 +312,7 @@ function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingReco
             {account?.requiresTwoFactorAuth && !!credentials?.validateCode ? (
                 <View style={[styles.mv3]}>
                     {isUsingRecoveryCode ? (
+                        /* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */
                         <TextInput
                             accessibilityLabel={translate('recoveryCodeForm.recoveryCode')}
                             value={recoveryCode}
@@ -344,6 +345,7 @@ function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingReco
                         />
                     )}
                     {hasError && <FormHelpMessage message={getLatestErrorMessage(account)} />}
+                    {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                     <PressableWithFeedback
                         key={isUsingRecoveryCode.toString()}
                         style={[styles.mt2]}
@@ -387,6 +389,7 @@ function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingReco
                                 />
                             </View>
                         ) : (
+                            /* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */
                             <PressableWithFeedback
                                 style={[styles.mt2]}
                                 onPress={resendValidateCode}

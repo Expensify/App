@@ -257,6 +257,7 @@ function WorkspaceInviteMessageComponent({
                         <View style={[styles.mb3]}>
                             <Text style={[styles.textSupportingNormal]}>{translate('workspace.inviteMessage.inviteMessagePrompt')}</Text>
                         </View>
+                        {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                         <InputWrapper
                             InputComponent={TextInput}
                             role={CONST.ROLE.PRESENTATION}
@@ -283,6 +284,7 @@ function WorkspaceInviteMessageComponent({
                             }}
                             shouldSaveDraft
                         />
+                        {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                         <PressableWithoutFeedback
                             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.INVITE_MESSAGE_PRIVACY_LINK}
                             onPress={openPrivacyURL}

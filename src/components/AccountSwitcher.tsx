@@ -187,6 +187,7 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
         <>
             {/* eslint-disable-next-line react/jsx-props-no-spreading */}
             <TooltipToRender {...tooltipProps}>
+                {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                 <PressableWithFeedback
                     accessible
                     accessibilityLabel={`${translate('common.profile')}, ${displayName}, ${Str.removeSMSDomain(currentUserPersonalDetails?.login ?? '')}`}

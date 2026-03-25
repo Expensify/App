@@ -158,6 +158,7 @@ function PolicyDistanceRateDetailsPage({route}: PolicyDistanceRateDetailsPagePro
                     contentContainerStyle={styles.flexGrow1}
                     addBottomSafeAreaPadding
                 >
+                    {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                     <Text
                         style={[styles.visuallyHidden]}
                         accessibilityRole={CONST.ROLE.HEADER}
@@ -178,6 +179,7 @@ function PolicyDistanceRateDetailsPage({route}: PolicyDistanceRateDetailsPagePro
                             >
                                 {translate('workspace.distanceRates.enableRate')}
                             </Text>
+                            {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                             <Switch
                                 isOn={rate?.enabled ?? false}
                                 onToggle={toggleRate}

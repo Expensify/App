@@ -184,6 +184,7 @@ function CalendarPicker({
                 style={[themeStyles.calendarHeader, themeStyles.flexRow, themeStyles.justifyContentBetween, themeStyles.alignItemsCenter, themeStyles.ph5]}
                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
             >
+                {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                 <PressableWithFeedback
                     onPress={() => {
                         pressableRef?.current?.blur();
@@ -208,6 +209,7 @@ function CalendarPicker({
                     <ArrowIcon disabled={years.length <= 1} />
                 </PressableWithFeedback>
                 <View style={[themeStyles.alignItemsCenter, themeStyles.flexRow, themeStyles.flex1, themeStyles.justifyContentEnd, themeStyles.mrn2]}>
+                    {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                     <Text
                         style={themeStyles.sidebarLinkTextBold}
                         testID="currentMonthText"
@@ -215,6 +217,7 @@ function CalendarPicker({
                     >
                         {monthNames.at(currentMonthView)}
                     </Text>
+                    {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                     <PressableWithFeedback
                         shouldUseAutoHitSlop={false}
                         testID="prev-month-arrow"
@@ -230,6 +233,7 @@ function CalendarPicker({
                             direction={CONST.DIRECTION.LEFT}
                         />
                     </PressableWithFeedback>
+                    {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                     <PressableWithFeedback
                         shouldUseAutoHitSlop={false}
                         testID="next-month-arrow"

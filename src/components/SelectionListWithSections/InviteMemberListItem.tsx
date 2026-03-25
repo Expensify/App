@@ -153,6 +153,7 @@ function InviteMemberListItem<TItem extends ListItem>({
                         </View>
                         {!!item.rightElement && <ListItemFocusContext.Provider value={{isFocused}}>{item.rightElement}</ListItemFocusContext.Provider>}
                         {!!shouldShowCheckBox && (
+                            /* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */
                             <PressableWithFeedback
                                 onPress={handleCheckboxPress}
                                 disabled={isDisabled}

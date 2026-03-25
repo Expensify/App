@@ -111,6 +111,7 @@ function UploadFile({
                 allowMultiple={fileLimit > 1}
             >
                 {({openPicker}) => (
+                    /* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */
                     <Button
                         medium
                         text={buttonText}
@@ -138,6 +139,7 @@ function UploadFile({
                         style={[styles.ml2, styles.mr2, styles.w100, styles.flexShrink1]}
                         textStyle={styles.textBold}
                     />
+                    {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                     <PressableWithFeedback
                         onPress={() => onRemove(file?.name ?? '')}
                         role={CONST.ROLE.BUTTON}

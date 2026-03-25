@@ -32,6 +32,7 @@ function SymbolButton({onSymbolButtonPress, symbol, isSymbolPressable = true, te
     const theme = useTheme();
     return isSymbolPressable ? (
         <Tooltip text={translate('common.selectSymbolOrCurrency')}>
+            {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
             <PressableWithoutFeedback
                 onPress={onSymbolButtonPress}
                 accessibilityLabel={translate('common.selectSymbolOrCurrency')}

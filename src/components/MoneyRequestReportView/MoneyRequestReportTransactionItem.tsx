@@ -117,6 +117,7 @@ function MoneyRequestReportTransactionItem({
 
     return (
         <OfflineWithFeedback pendingAction={pendingAction}>
+            {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
             <PressableWithFeedback
                 key={transaction.transactionID}
                 onPress={() => {

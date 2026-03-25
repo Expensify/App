@@ -39,6 +39,7 @@ function HelpHeader({title, onBackButtonPress, onCloseButtonPress, shouldShowBac
             <View style={[styles.dFlex, styles.flexRow, styles.alignItemsCenter, styles.flexGrow1, styles.justifyContentBetween, styles.overflowHidden]}>
                 {shouldShowBackButton && (
                     <Tooltip text={translate('common.back')}>
+                        {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                         <PressableWithoutFeedback
                             onPress={onBackButtonPress}
                             style={[styles.touchableButtonImage]}
@@ -61,6 +62,7 @@ function HelpHeader({title, onBackButtonPress, onCloseButtonPress, shouldShowBac
 
                 {shouldShowCloseButton && (
                     <Tooltip text={translate('common.close')}>
+                        {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                         <PressableWithoutFeedback
                             onPress={onCloseButtonPress}
                             style={[styles.touchableButtonImage]}

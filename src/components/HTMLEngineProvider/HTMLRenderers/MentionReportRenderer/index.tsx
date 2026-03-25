@@ -54,6 +54,7 @@ function MentionReportRenderer({style, tnode, TDefaultRenderer, ...defaultRender
     const {color, ...styleWithoutColor} = flattenStyle;
 
     return (
+        /* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */
         <Text
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...defaultRendererProps}

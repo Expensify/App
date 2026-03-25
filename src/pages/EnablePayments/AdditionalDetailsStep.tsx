@@ -168,6 +168,7 @@ function AdditionalDetailsStep({currentUserPersonalDetails}: AdditionalDetailsSt
                     submitButtonText={translate('common.saveAndContinue')}
                     style={[styles.mh5, styles.flexGrow1]}
                 >
+                    {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                     <InputWrapper
                         InputComponent={TextInput}
                         inputID="legalFirstName"
@@ -179,6 +180,7 @@ function AdditionalDetailsStep({currentUserPersonalDetails}: AdditionalDetailsSt
                         shouldSaveDraft
                         forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
                     />
+                    {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                     <InputWrapper
                         InputComponent={TextInput}
                         inputID="legalLastName"
@@ -201,6 +203,7 @@ function AdditionalDetailsStep({currentUserPersonalDetails}: AdditionalDetailsSt
                         shouldSaveDraft
                         forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
                     />
+                    {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                     <InputWrapper
                         InputComponent={TextInput}
                         inputID="phoneNumber"
@@ -225,6 +228,7 @@ function AdditionalDetailsStep({currentUserPersonalDetails}: AdditionalDetailsSt
                         shouldSaveDraft
                         forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
                     />
+                    {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                     <InputWrapper
                         InputComponent={TextInput}
                         inputID="ssn"

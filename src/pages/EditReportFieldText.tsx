@@ -72,6 +72,7 @@ function EditReportFieldTextPage({fieldName, onSubmit, fieldValue, isRequired, f
             shouldHideFixErrorsAlert
         >
             <View style={styles.mb4}>
+                {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                 <InputWrapper
                     InputComponent={TextInput}
                     inputID={fieldKey}

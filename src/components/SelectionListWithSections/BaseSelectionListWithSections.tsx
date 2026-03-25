@@ -637,6 +637,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
             {!headerMessage && canSelectMultiple && shouldShowSelectAll && (
                 <View style={[styles.userSelectNone, styles.peopleRow, styles.ph5, styles.pb3, listHeaderWrapperStyle, styles.selectionListStickyHeader]}>
                     <View style={[styles.flexRow, styles.alignItemsCenter]}>
+                        {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                         <Checkbox
                             testID="selection-list-select-all-checkbox"
                             accessibilityLabel={translate('accessibilityHints.selectAllItems')}
@@ -646,6 +647,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
                             disabled={flattenedSections.allOptions.length === flattenedSections.disabledOptionsIndexes.length}
                         />
                         {!customListHeader && (
+                            /* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */
                             <PressableWithFeedback
                                 style={[styles.userSelectNone, styles.flexRow, styles.alignItemsCenter]}
                                 onPress={selectAllRow}
@@ -750,6 +752,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
     const renderInput = () => {
         return (
             <View style={[styles.ph5, styles.pb3, textInputStyle]}>
+                {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                 <TextInput
                     onKeyPress={textInputKeyPress}
                     ref={(element) => {

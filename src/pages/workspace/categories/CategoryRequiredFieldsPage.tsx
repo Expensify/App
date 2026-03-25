@@ -72,6 +72,7 @@ function CategoryRequiredFieldsPage({
                                 >
                                     {translate('workspace.rules.categoryRules.requireDescription')}
                                 </Text>
+                                {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                                 <Switch
                                     isOn={areCommentsRequired}
                                     accessibilityLabel={translate('workspace.rules.categoryRules.requireDescription')}
@@ -93,6 +94,7 @@ function CategoryRequiredFieldsPage({
                                     >
                                         {translate('workspace.rules.categoryRules.requireAttendees')}
                                     </Text>
+                                    {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                                     <Switch
                                         isOn={areAttendeesRequired}
                                         accessibilityLabel={translate('workspace.rules.categoryRules.requireAttendees')}

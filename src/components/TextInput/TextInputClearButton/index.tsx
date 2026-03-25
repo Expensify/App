@@ -22,6 +22,7 @@ function TextInputClearButton({style, onPressButton, sentryLabel}: TextInputClea
     const icons = useMemoizedLazyExpensifyIcons(['Clear'] as const);
     return (
         <Tooltip text={translate('common.clear')}>
+            {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
             <PressableWithoutFeedback
                 style={[styles.mt4, styles.mh1, style]}
                 accessibilityRole={CONST.ROLE.BUTTON}

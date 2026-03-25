@@ -259,6 +259,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                             </View>
                         )}
                         <View style={switchContainerStyle}>
+                            {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                             <Switch
                                 isOn={value.enabled}
                                 disabled={isDisabled}
@@ -275,6 +276,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                         </View>
                     </>
                 ) : (
+                    /* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */
                     <Switch
                         isOn={value.enabled}
                         disabled={isDisabled}
