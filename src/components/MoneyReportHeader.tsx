@@ -405,6 +405,18 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
     const styles = useThemeStyles();
     const theme = useTheme();
     const {isExpenseSplit} = getOriginalTransactionWithSplitInfo(transaction, originalTransaction);
+
+    const originalTransactionID = transaction?.comment?.originalTransactionID;
+    
+    const [hasMultipleSplits] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {
+        selector: (transactions) => {
+            if (!originalTransactionID) {
+                return false
+            }
+        },
+
+    }, [originalTransactionID]);
+
     const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const hasMultipleSplits = useMemo(() => {
@@ -414,6 +426,7 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
         const children = getChildTransactions(allTransactions, allReports, transaction.comment.originalTransactionID);
         return children.length > 1;
     }, [allTransactions, allReports, transaction?.comment?.originalTransactionID]);
+
     const isReportOpen = isOpenReport(moneyRequestReport);
     const shouldShowSplitIndicator = isExpenseSplit && (hasMultipleSplits || isReportOpen);
 
