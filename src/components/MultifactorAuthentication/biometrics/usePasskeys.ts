@@ -77,7 +77,8 @@ function usePasskeys(): UseBiometricsReturn {
 
         const transports = attestationResponse.getTransports?.().filter(isSupportedTransport);
 
-        // getAuthenticatorData() is a WebAuthn Level 2 method — not available in older browsers
+        // getAuthenticatorData() is a WebAuthn Level 2 method — not available in older browsers.
+        // NOTE: A vvalue of "00000000-0000-0000-0000-000000000000" is expected for Apple iCloud Keychain
         const aaguid = attestationResponse.getAuthenticatorData ? extractAAGUID(attestationResponse.getAuthenticatorData()) : undefined;
 
         addLocalPasskeyCredential({
