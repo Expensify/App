@@ -1,4 +1,5 @@
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import {computeReportName} from '@libs/ReportNameUtils';
 import {generateIsEmptyReport, generateReportAttributes, hasVisibleReportFieldViolations, isArchivedReport, isValidReport} from '@libs/ReportUtils';
 import SidebarUtils from '@libs/SidebarUtils';
@@ -88,9 +89,10 @@ export default createOnyxDerivedValueConfig({
         ONYXKEYS.COLLECTION.POLICY,
         ONYXKEYS.COLLECTION.POLICY_TAGS,
         ONYXKEYS.COLLECTION.REPORT_METADATA,
+        ONYXKEYS.COUNTRY_CODE,
     ],
     compute: (
-        [reports, preferredLocale, transactionViolations, reportActions, reportNameValuePairs, transactions, personalDetails, session, policies, policyTags],
+        [reports, preferredLocale, transactionViolations, reportActions, reportNameValuePairs, transactions, personalDetails, session, policies, policyTags, , countryCode],
         {currentValue, sourceValues},
     ) => {
         // Check if display names changed when personal details are updated
@@ -305,6 +307,7 @@ export default createOnyxDerivedValueConfig({
                           currentUserAccountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
                           currentUserLogin: session?.email ?? '',
                           allPolicyTags: policyTags,
+                          formatPhoneNumber: (phoneNumber: string) => formatPhoneNumber(phoneNumber, countryCode ?? CONST.DEFAULT_COUNTRY_CODE),
                       })
                     : '',
                 isEmpty: generateIsEmptyReport(report, isReportArchived),

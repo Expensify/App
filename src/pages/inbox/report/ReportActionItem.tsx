@@ -80,7 +80,7 @@ function ReportActionItem({
     isTryNewDotNVPDismissed,
     ...props
 }: ReportActionItemProps) {
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const reportID = report?.reportID;
     const originalMessage = getOriginalMessage(action);
     const originalReportID = useOriginalReportID(reportID, action);
@@ -178,6 +178,7 @@ function ReportActionItem({
                 movedToReport,
                 policyTags: policyTags ?? CONST.POLICY.DEFAULT_TAG_LIST,
                 currentUserLogin: currentUserEmail ?? '',
+                formatPhoneNumber,
             })}
             getTransactionsWithReceipts={getTransactionsWithReceipts}
             clearError={clearError}

@@ -6,7 +6,6 @@ import useOnyx from '@hooks/useOnyx';
 import useSearchSelector from '@hooks/useSearchSelector';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {searchUserInServer} from '@libs/actions/Report';
-import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import {getHeaderMessage} from '@libs/OptionsListUtils';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import CONST from '@src/CONST';
@@ -50,7 +49,7 @@ function BaseVacationDelegateSelectionComponent({
     additionalExcludeLogins,
     includeCurrentUser = true,
 }: BaseVacationDelegateSelectionComponentProps) {
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const styles = useThemeStyles();
     const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar']);
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
@@ -101,7 +100,7 @@ function BaseVacationDelegateSelectionComponent({
                     icons: [
                         {
                             source: delegatePersonalDetails?.avatar ?? icons.FallbackAvatar,
-                            name: formatPhoneNumber(delegatePersonalDetails?.login ?? '', countryCode),
+                            name: formatPhoneNumber(delegatePersonalDetails?.login ?? ''),
                             type: CONST.ICON_TYPE_AVATAR,
                             id: delegatePersonalDetails?.accountID,
                         },

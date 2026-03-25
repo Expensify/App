@@ -42,7 +42,7 @@ type WorkspaceInvitePageProps = WithPolicyAndFullscreenLoadingProps &
 
 function WorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false});
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
@@ -92,9 +92,9 @@ function WorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
                 accountID,
                 selected: true,
             };
-            return getParticipantsOption(participant, personalDetails) as OptionData;
+            return getParticipantsOption(participant, personalDetails, formatPhoneNumber) as OptionData;
         });
-    }, [invitedEmailsToAccountIDsDraft, personalDetails]);
+    }, [invitedEmailsToAccountIDsDraft, personalDetails, formatPhoneNumber]);
 
     const {
         searchTerm,

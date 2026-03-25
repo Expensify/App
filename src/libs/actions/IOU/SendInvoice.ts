@@ -1,12 +1,12 @@
 import {InteractionManager} from 'react-native';
 import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import * as API from '@libs/API';
 import type {SendInvoiceParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import DateUtils from '@libs/DateUtils';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
-import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import Log from '@libs/Log';
 import {getReportActionHtml, getReportActionText} from '@libs/ReportActionsUtils';
 import type {OptimisticChatReport, OptimisticCreatedReportAction, OptimisticIOUReportAction} from '@libs/ReportUtils';
@@ -70,6 +70,7 @@ type SendInvoiceInformation = {
 };
 
 type SendInvoiceOptions = {
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
     transaction: OnyxEntry<OnyxTypes.Transaction>;
     currentUserAccountID: number;
     policyRecentlyUsedCurrencies: string[];
@@ -583,6 +584,7 @@ function getReceiverType(receiverParticipant: Participant | InvoiceReceiver | un
 
 /** Gathers all the data needed to create an invoice. */
 function getSendInvoiceInformation({
+    formatPhoneNumber,
     transaction,
     currentUserAccountID,
     policyRecentlyUsedCurrencies,
@@ -728,6 +730,7 @@ function getSendInvoiceInformation({
 }
 
 function sendInvoice({
+    formatPhoneNumber,
     currentUserAccountID,
     transaction,
     policyRecentlyUsedCurrencies,
@@ -762,6 +765,7 @@ function sendInvoice({
         reportActionID,
         onyxData,
     } = getSendInvoiceInformation({
+        formatPhoneNumber,
         transaction,
         currentUserAccountID,
         policyRecentlyUsedCurrencies,

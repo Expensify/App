@@ -2,6 +2,7 @@ import React, {useCallback, useEffect, useMemo} from 'react';
 import {View} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {FallbackAvatar} from '@components/Icon/Expensicons';
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 import UserListItem from '@components/SelectionList/ListItem/UserListItem';
 import SelectionListWithSections from '@components/SelectionList/SelectionListWithSections';
@@ -13,7 +14,6 @@ import useSearchSelector from '@hooks/useSearchSelector';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setDraftValues} from '@libs/actions/FormActions';
 import {searchInServer} from '@libs/actions/Report';
-import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import Navigation from '@libs/Navigation/Navigation';
 import {getHeaderMessage} from '@libs/OptionsListUtils';
 import type {OptionWithKey} from '@libs/OptionsListUtils/types';
@@ -28,7 +28,13 @@ import type {Participant} from '@src/types/onyx/IOU';
 /**
  * Helper function to create a formatted user list item
  */
-function createUserListItem(personalDetails: ReturnType<typeof getPersonalDetailByEmail>, login: string, keyPrefix: string, countryCode: number, isSelected = false): OptionWithKey {
+function createUserListItem(
+    personalDetails: ReturnType<typeof getPersonalDetailByEmail>,
+    login: string,
+    keyPrefix: string,
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
+    isSelected = false,
+): OptionWithKey {
     const accountID = personalDetails?.accountID ?? generateAccountID(login);
     return {
         ...(personalDetails ?? {}),
@@ -42,7 +48,7 @@ function createUserListItem(personalDetails: ReturnType<typeof getPersonalDetail
         icons: [
             {
                 source: personalDetails?.avatar ?? FallbackAvatar,
-                name: formatPhoneNumber(personalDetails?.login ?? login, countryCode),
+                name: formatPhoneNumber(personalDetails?.login ?? login),
                 type: CONST.ICON_TYPE_AVATAR,
                 id: accountID,
             },
@@ -51,7 +57,7 @@ function createUserListItem(personalDetails: ReturnType<typeof getPersonalDetail
 }
 
 function WorkspaceConfirmationOwnerSelectorPage() {
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const styles = useThemeStyles();
     const {login: currentUserLogin} = useCurrentUserPersonalDetails();
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
@@ -85,7 +91,7 @@ function WorkspaceConfirmationOwnerSelectorPage() {
         const currentUserPersonalDetails = getPersonalDetailByEmail(currentUserLogin ?? '');
 
         if (currentOwner) {
-            const ownerItem = createUserListItem(ownerPersonalDetails, currentOwner, 'currentOwner', countryCode, true);
+            const ownerItem = createUserListItem(ownerPersonalDetails, currentOwner, 'currentOwner', formatPhoneNumber, true);
             sectionsList.push({
                 data: [ownerItem],
                 sectionIndex: 0,
@@ -93,7 +99,7 @@ function WorkspaceConfirmationOwnerSelectorPage() {
         }
 
         if (currentUserLogin && currentUserLogin !== currentOwner) {
-            const currentUserItem = createUserListItem(currentUserPersonalDetails, currentUserLogin, 'currentUser', countryCode, false);
+            const currentUserItem = createUserListItem(currentUserPersonalDetails, currentUserLogin, 'currentUser', formatPhoneNumber, false);
             sectionsList.push({
                 data: [currentUserItem],
                 sectionIndex: 1,
@@ -126,7 +132,7 @@ function WorkspaceConfirmationOwnerSelectorPage() {
         }
 
         return sectionsList;
-    }, [currentOwner, currentUserLogin, ownerPersonalDetails, translate, availableOptions.recentReports, availableOptions.personalDetails, availableOptions.userToInvite]);
+    }, [currentOwner, currentUserLogin, ownerPersonalDetails, translate, availableOptions.recentReports, availableOptions.personalDetails, availableOptions.userToInvite, formatPhoneNumber]);
 
     const onSelectRow = useCallback(
         (option: Participant) => {

@@ -4,6 +4,7 @@ import {useEffect, useMemo, useState} from 'react';
 import TestReceipt from '@assets/images/fake-receipt.png';
 import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
 import useFilesValidation from '@hooks/useFilesValidation';
+import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useOptimisticDraftTransactions from '@hooks/useOptimisticDraftTransactions';
 import useParticipantsPolicyTags from '@hooks/useParticipantsPolicyTags';
@@ -42,6 +43,7 @@ function useReceiptScan({
     updateScanAndNavigate,
     getSource,
 }: UseReceiptScanParams) {
+    const {formatPhoneNumber} = useLocalize();
     const {isBetaEnabled} = usePermissions();
     const [shouldStartLocationPermissionFlow] = useOnyx(ONYXKEYS.NVP_LAST_LOCATION_PERMISSION_PROMPT, {
         selector: shouldStartLocationPermissionFlowSelector,
@@ -101,8 +103,17 @@ function useReceiptScan({
     const [recentWaypoints] = useOnyx(ONYXKEYS.NVP_RECENT_WAYPOINTS);
 
     const participants = useMemo(
-        () => getMoneyRequestParticipantOptions(currentUserPersonalDetails.accountID, report, policy, personalDetails, reportNameValuePairs?.private_isArchived, reportAttributesDerived),
-        [currentUserPersonalDetails.accountID, report, policy, personalDetails, reportNameValuePairs?.private_isArchived, reportAttributesDerived],
+        () =>
+            getMoneyRequestParticipantOptions(
+                currentUserPersonalDetails.accountID,
+                report,
+                policy,
+                personalDetails,
+                formatPhoneNumber,
+                reportNameValuePairs?.private_isArchived,
+                reportAttributesDerived,
+            ),
+        [currentUserPersonalDetails.accountID, report, policy, personalDetails, formatPhoneNumber, reportNameValuePairs?.private_isArchived, reportAttributesDerived],
     );
 
     const participantsPolicyTags = useParticipantsPolicyTags(participants);
@@ -157,6 +168,7 @@ function useReceiptScan({
             allTransactionDrafts,
             participants,
             participantsPolicyTags,
+            formatPhoneNumber,
             amountOwed,
             ownerBillingGraceEndPeriod,
         });

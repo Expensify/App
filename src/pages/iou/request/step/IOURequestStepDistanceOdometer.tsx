@@ -70,7 +70,7 @@ function IOURequestStepDistanceOdometer({
     transaction,
     currentUserPersonalDetails,
 }: IOURequestStepDistanceOdometerProps) {
-    const {translate, fromLocaleDigit, numberFormat} = useLocalize();
+    const {translate, formatPhoneNumber, fromLocaleDigit, numberFormat} = useLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
@@ -487,6 +487,7 @@ function IOURequestStepDistanceOdometer({
             transactionViolations,
             lastSelectedDistanceRates,
             translate,
+            formatPhoneNumber,
             quickAction,
             policyRecentlyUsedCurrencies,
             introSelected,

@@ -42,7 +42,6 @@ import {isConnectionInProgress, isConnectionUnverified} from '@libs/actions/conn
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {getCategoryApproverRule, getDecodedCategoryName} from '@libs/CategoryUtils';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
-import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
@@ -71,8 +70,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const {translate, localeCompare} = useLocalize();
-    const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
+    const {translate, localeCompare, formatPhoneNumber} = useLocalize();
     const [isOfflineModalVisible, setIsOfflineModalVisible] = useState(false);
     const [isDownloadFailureModalVisible, setIsDownloadFailureModalVisible] = useState(false);
     const [deleteCategoriesConfirmModalVisible, setDeleteCategoriesConfirmModalVisible] = useState(false);
@@ -219,7 +217,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
             const approverEmail = shouldShowApproverColumn ? (getCategoryApproverRule(policy?.rules?.approvalRules ?? [], value.name)?.approver ?? '') : '';
             const approverPersonalDetail = getPersonalDetailByEmail(approverEmail);
             const {avatar, displayName = approverEmail, accountID} = approverPersonalDetail ?? {};
-            const approverDisplayName = displayName ? formatPhoneNumber(displayName, countryCode) : '';
+            const approverDisplayName = displayName ? formatPhoneNumber(displayName) : '';
 
             acc.push({
                 text: getDecodedCategoryName(value.name),
@@ -308,6 +306,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
         styles.alignItemsCenter,
         styles.flexRow,
         styles.mr3,
+        formatPhoneNumber,
     ]);
 
     const filterCategory = useCallback((categoryOption: ListItem, searchInput: string) => {

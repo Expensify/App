@@ -41,7 +41,7 @@ type ReportWelcomeTextProps = {
 };
 
 function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
-    const {translate, localeCompare} = useLocalize();
+    const {translate, localeCompare, formatPhoneNumber} = useLocalize();
     const styles = useThemeStyles();
     const {environmentURL} = useEnvironment();
     const reportAttributes = useReportAttributes();
@@ -118,6 +118,7 @@ function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
         participantPersonalDetailList: participantPersonalDetailListExcludeCurrentUser,
         translate,
         localeCompare,
+        formatPhoneNumber,
         conciergeReportID,
         isReportArchived,
         reportDetailsLink,

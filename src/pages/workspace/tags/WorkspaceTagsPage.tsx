@@ -50,7 +50,6 @@ import {
     setWorkspaceTagRequired,
 } from '@libs/actions/Policy/Tag';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
-import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
@@ -92,8 +91,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const {translate, localeCompare} = useLocalize();
-    const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
+    const {translate, localeCompare, formatPhoneNumber} = useLocalize();
     const {showConfirmModal} = useConfirmModal();
     const [isDownloadFailureModalVisible, setIsDownloadFailureModalVisible] = useState(false);
     const {backTo, policyID} = route.params;
@@ -281,7 +279,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
             const approverEmail = shouldShowApproverColumn ? (getTagApproverRule(policy, tag.name)?.approver ?? '') : '';
             const approverPersonalDetail = getPersonalDetailByEmail(approverEmail);
             const {avatar, displayName = approverEmail, accountID} = approverPersonalDetail ?? {};
-            const approverDisplayName = displayName ? formatPhoneNumber(displayName, countryCode) : '';
+            const approverDisplayName = displayName ? formatPhoneNumber(displayName) : '';
 
             return {
                 value: tag.name,
@@ -384,6 +382,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
         styles.alignItemsCenter,
         styles.flexRow,
         styles.mr3,
+        formatPhoneNumber,
     ]);
 
     const filterTag = useCallback((tag: TagListItem, searchInput: string) => {

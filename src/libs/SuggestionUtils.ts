@@ -1,7 +1,6 @@
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import CONST from '@src/CONST';
 import type {PersonalDetails} from '@src/types/onyx';
-import {formatPhoneNumber as formatPhoneNumberPhoneUtils} from './LocalePhoneNumber';
 import {getDisplayNameForParticipant} from './ReportUtils';
 
 /**
@@ -24,8 +23,8 @@ function hasEnoughSpaceForLargeSuggestionMenu(listHeight: number, composerHeight
     return availableHeight > menuHeight;
 }
 
-function getDisplayName(details: PersonalDetails) {
-    const displayNameFromAccountID = getDisplayNameForParticipant({accountID: details.accountID, formatPhoneNumber: formatPhoneNumberPhoneUtils});
+function getDisplayName(details: PersonalDetails, formatPhoneNumber: LocaleContextProps['formatPhoneNumber']) {
+    const displayNameFromAccountID = getDisplayNameForParticipant({accountID: details.accountID, formatPhoneNumber});
     if (!displayNameFromAccountID) {
         return details.login?.length ? details.login : '';
     }
@@ -35,13 +34,17 @@ function getDisplayName(details: PersonalDetails) {
 /**
  * Function to sort users. It compares weights, display names, and accountIDs in that order
  */
-function getSortedPersonalDetails(personalDetails: Array<PersonalDetails & {weight: number}>, localeCompare: LocaleContextProps['localeCompare']) {
+function getSortedPersonalDetails(
+    personalDetails: Array<PersonalDetails & {weight: number}>,
+    localeCompare: LocaleContextProps['localeCompare'],
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
+) {
     return personalDetails.sort((first, second) => {
         if (first.weight !== second.weight) {
             return first.weight - second.weight;
         }
 
-        const displayNameLoginOrder = localeCompare(getDisplayName(first), getDisplayName(second));
+        const displayNameLoginOrder = localeCompare(getDisplayName(first, formatPhoneNumber), getDisplayName(second, formatPhoneNumber));
         if (displayNameLoginOrder !== 0) {
             return displayNameLoginOrder;
         }

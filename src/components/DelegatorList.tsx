@@ -1,11 +1,9 @@
 import React from 'react';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
-import useOnyx from '@hooks/useOnyx';
+import useLocalize from '@hooks/useLocalize';
 import usePersonalDetailsByLogin from '@hooks/usePersonalDetailsByLogin';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import MenuItem from './MenuItem';
 import Text from './Text';
 
@@ -19,7 +17,7 @@ type DelegatorListProps = {
 function DelegatorList({delegators, message}: DelegatorListProps) {
     const styles = useThemeStyles();
     const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar']);
-    const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
+    const {formatPhoneNumber} = useLocalize();
 
     const personalDetailsByLogin = usePersonalDetailsByLogin();
 
@@ -28,7 +26,7 @@ function DelegatorList({delegators, message}: DelegatorListProps) {
             <Text style={[styles.mh5, styles.mb4]}>{message}</Text>
             {delegators?.map((delegatorEmail) => {
                 const delegatorDetails = personalDetailsByLogin[delegatorEmail.toLowerCase()];
-                const formattedLogin = formatPhoneNumber(delegatorDetails?.login ?? '', countryCode);
+                const formattedLogin = formatPhoneNumber(delegatorDetails?.login ?? '');
                 const displayLogin = formattedLogin || delegatorEmail;
 
                 return (

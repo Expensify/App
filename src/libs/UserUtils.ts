@@ -1,13 +1,12 @@
 import {Str} from 'expensify-common';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
-import type {LocalizedTranslate} from '@components/LocaleContextProvider';
+import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 import CONST from '@src/CONST';
 import type {LoginList, PrivatePersonalDetails, VacationDelegate} from '@src/types/onyx';
 import type Login from '@src/types/onyx/Login';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import hashCode from './hashCode';
-import {formatPhoneNumber} from './LocalePhoneNumber';
 import type {AvatarSource} from './UserAvatarUtils';
 
 type LoginListIndicator = ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS> | undefined;
@@ -125,7 +124,7 @@ function getContactMethod(primaryLogin: string | undefined, email: string | unde
 /**
  * Gets details about contact methods to be displayed as MenuItems
  */
-function getContactMethodsOptions(translate: LocalizedTranslate, loginList?: LoginList, defaultEmail?: string) {
+function getContactMethodsOptions(translate: LocalizedTranslate, formatPhoneNumber: LocaleContextProps['formatPhoneNumber'], loginList?: LoginList, defaultEmail?: string) {
     if (!loginList) {
         return [];
     }

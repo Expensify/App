@@ -3,6 +3,7 @@ import {InteractionManager} from 'react-native';
 import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import type {SearchActionsContextValue, SearchStateContextValue} from '@components/Search/types';
 import * as API from '@libs/API';
 import type {CompleteSplitBillParams, RevertSplitTransactionParams, SplitBillParams, SplitTransactionParams, SplitTransactionSplitsParam, StartSplitBillParams} from '@libs/API/parameters';
@@ -12,7 +13,6 @@ import DateUtils from '@libs/DateUtils';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import {calculateAmount as calculateIOUAmount, updateIOUOwnerAndTotal} from '@libs/IOUUtils';
 import {toLocaleDigit} from '@libs/LocaleDigitUtils';
-import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import * as Localize from '@libs/Localize';
 import Log from '@libs/Log';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
@@ -126,6 +126,7 @@ type UpdateSplitTransactionsParams = {
 };
 
 type SplitBillActionsParams = {
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
     participants: Participant[];
     currentUserLogin: string;
     currentUserAccountID: number;
@@ -351,6 +352,7 @@ function splitBillAndOpenReport({
  * @param existingSplitChatReportID - Either a group DM or a expense chat
  */
 function startSplitBill({
+    formatPhoneNumber,
     participants,
     currentUserLogin,
     currentUserAccountID,
@@ -539,6 +541,7 @@ function startSplitBill({
     ];
 
     const retryParams = {
+        formatPhoneNumber,
         participants: participants.map(({icons, ...rest}) => rest),
         currentUserLogin,
         currentUserAccountID,

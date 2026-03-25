@@ -10,6 +10,7 @@ import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import ReceiptGeneric from '@assets/images/receipt-generic.png';
 import type {PaymentMethod} from '@components/KYCWall/types';
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import type {SearchQueryJSON} from '@components/Search/types';
 import * as API from '@libs/API';
 import type {
@@ -54,7 +55,6 @@ import {
     updateIOUOwnerAndTotal,
 } from '@libs/IOUUtils';
 import isFileUploadable from '@libs/isFileUploadable';
-import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import * as Localize from '@libs/Localize';
 import Log from '@libs/Log';
 import isReportOpenInRHP from '@libs/Navigation/helpers/isReportOpenInRHP';
@@ -409,6 +409,7 @@ type TrackedExpenseReportInformation = {
     isLinkedTrackedExpenseReportArchived: boolean | undefined;
 };
 type TrackedExpenseParams = {
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
     onyxData?: OnyxData<
         | BuildOnyxDataForTrackExpenseKeys
         | BuildPolicyDataKeys
@@ -541,6 +542,7 @@ type RequestMoneyInformation = {
 };
 
 type MoneyRequestInformationParams = {
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
     parentChatReport: OnyxEntry<OnyxTypes.Report>;
     existingIOUReport?: OnyxEntry<OnyxTypes.Report>;
     transactionParams: RequestMoneyTransactionParams;
@@ -600,6 +602,7 @@ type MoneyRequestOptimisticParams = {
 };
 
 type BuildOnyxDataForMoneyRequestParams = {
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
     isNewChatReport: boolean;
     shouldCreateNewMoneyRequestReport: boolean;
     isOneOnOneSplit?: boolean;
@@ -660,6 +663,7 @@ type CreateSplitsTransactionParams = Omit<BaseTransactionParams, 'customUnitRate
 };
 
 type CreateSplitsAndOnyxDataParams = {
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
     participants: Participant[];
     currentUserLogin: string;
     currentUserAccountID: number;
@@ -788,6 +792,7 @@ Onyx.connect({
 });
 
 type StartSplitBilActionParams = {
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
     participants: Participant[];
     currentUserLogin: string;
     currentUserAccountID: number;
@@ -1880,6 +1885,7 @@ type BuildOnyxDataForMoneyRequestKeys =
 /** Builds the Onyx data for an expense */
 function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyRequestParams): OnyxData<BuildOnyxDataForMoneyRequestKeys> {
     const {
+        formatPhoneNumber,
         isNewChatReport,
         shouldCreateNewMoneyRequestReport,
         isOneOnOneSplit = false,
@@ -2109,7 +2115,7 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
     if (isMoneyRequestToManagerMcTest) {
         const date = new Date();
         const isTestReceipt = transaction.receipt?.isTestReceipt ?? false;
-        const managerMcTestParticipant = getManagerMcTestParticipant(currentUserAccountIDParam, personalDetails) ?? {};
+        const managerMcTestParticipant = getManagerMcTestParticipant(currentUserAccountIDParam, personalDetails, formatPhoneNumber) ?? {};
         const optimisticIOUReportAction = buildOptimisticIOUReportAction({
             type: isScanRequest && !isTestReceipt ? CONST.IOU.REPORT_ACTION_TYPE.CREATE : CONST.IOU.REPORT_ACTION_TYPE.PAY,
             amount: iou.report?.total ?? 0,
@@ -3205,6 +3211,7 @@ function maybeUpdateReportNameForFormulaTitle(iouReport: OnyxTypes.Report, polic
  */
 function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInformationParams): MoneyRequestInformation {
     const {
+        formatPhoneNumber,
         parentChatReport,
         existingIOUReport,
         transactionParams,
@@ -3558,6 +3565,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
 
     // STEP 5: Build Onyx Data
     const {optimisticData, successData, failureData} = buildOnyxDataForMoneyRequest({
+        formatPhoneNumber,
         participant,
         isNewChatReport,
         shouldCreateNewMoneyRequestReport,
@@ -6166,7 +6174,7 @@ function categorizeTrackedExpense(trackedExpenseParams: TrackedExpenseParams) {
 }
 
 function shareTrackedExpense(trackedExpenseParams: TrackedExpenseParams) {
-    const {onyxData: trackedExpenseOnyxData, reportInformation, transactionParams, policyParams, createdWorkspaceParams, accountantParams} = trackedExpenseParams;
+    const {formatPhoneNumber, onyxData: trackedExpenseOnyxData, reportInformation, transactionParams, policyParams, createdWorkspaceParams, accountantParams} = trackedExpenseParams;
 
     const policyID = policyParams?.policyID;
     const chatReportID = reportInformation?.chatReportID;
@@ -6997,6 +7005,7 @@ function getOrCreateOptimisticSplitChatReport(existingSplitChatReportID: string 
  * @param existingSplitChatReportID - the report ID where the split expense happens, could be a group chat or a expense chat
  */
 function createSplitsAndOnyxData({
+    formatPhoneNumber,
     participants,
     currentUserLogin,
     currentUserAccountID,

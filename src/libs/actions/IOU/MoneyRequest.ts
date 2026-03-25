@@ -126,6 +126,7 @@ type MoneyRequestStepScanParticipantsFlowParams = {
     recentWaypoints: OnyxEntry<RecentWaypoint[]>;
     participants: Participant[];
     participantsPolicyTags: Record<string, PolicyTagLists>;
+    formatPhoneNumber: (phoneNumber: string) => string;
     amountOwed: OnyxEntry<number>;
     ownerBillingGraceEndPeriod?: OnyxEntry<number>;
 };
@@ -156,6 +157,7 @@ type MoneyRequestStepDistanceNavigationParams = {
     lastSelectedDistanceRates?: OnyxEntry<LastSelectedDistanceRates>;
     setDistanceRequestData?: (participants: Participant[]) => void;
     translate: <TPath extends TranslationPaths>(path: TPath, ...parameters: TranslationParameters<TPath>) => string;
+    formatPhoneNumber: (phoneNumber: string) => string;
     quickAction: OnyxEntry<QuickAction>;
     policyRecentlyUsedCurrencies?: string[];
     introSelected?: IntroSelected;
@@ -288,6 +290,7 @@ function getMoneyRequestParticipantOptions(
     report: OnyxEntry<Report>,
     policy: OnyxEntry<Policy>,
     personalDetails: OnyxEntry<PersonalDetailsList>,
+    formatPhoneNumber: (phoneNumber: string) => string,
     privateIsArchived?: string,
     reportAttributesDerived?: ReportAttributesDerivedValue['reports'],
 ): Array<Participant | OptionData> {
@@ -295,8 +298,8 @@ function getMoneyRequestParticipantOptions(
     return selectedParticipants.map((participant) => {
         const participantAccountID = participant?.accountID ?? CONST.DEFAULT_NUMBER_ID;
         return participantAccountID
-            ? getParticipantsOption(participant, personalDetails)
-            : getReportOption(participant, privateIsArchived, policy, currentUserAccountID, personalDetails, reportAttributesDerived);
+            ? getParticipantsOption(participant, personalDetails, formatPhoneNumber)
+            : getReportOption(participant, privateIsArchived, policy, currentUserAccountID, personalDetails, formatPhoneNumber, reportAttributesDerived);
     });
 }
 
@@ -334,6 +337,7 @@ function handleMoneyRequestStepScanParticipants({
     recentWaypoints,
     participants,
     participantsPolicyTags,
+    formatPhoneNumber,
     amountOwed,
     ownerBillingGraceEndPeriod,
 }: MoneyRequestStepScanParticipantsFlowParams) {
@@ -343,7 +347,7 @@ function handleMoneyRequestStepScanParticipants({
     }
 
     if (isTestTransaction) {
-        const managerMcTestParticipant = getManagerMcTestParticipant(currentUserAccountID, personalDetails) ?? {};
+        const managerMcTestParticipant = getManagerMcTestParticipant(currentUserAccountID, personalDetails, formatPhoneNumber) ?? {};
         let reportIDParam = managerMcTestParticipant.reportID;
         if (!managerMcTestParticipant.reportID && report?.reportID) {
             reportIDParam = generateReportID();
@@ -400,6 +404,7 @@ function handleMoneyRequestStepScanParticipants({
                     // No need to update recently used tags because no tags are used when the confirmation step is skipped
                     policyRecentlyUsedTags: undefined,
                     participantsPolicyTags,
+                    formatPhoneNumber,
                 });
                 return;
             }
@@ -573,6 +578,7 @@ function handleMoneyRequestStepDistanceNavigation({
     lastSelectedDistanceRates,
     setDistanceRequestData,
     translate,
+    formatPhoneNumber,
     quickAction,
     policyRecentlyUsedCurrencies,
     introSelected,
@@ -615,7 +621,7 @@ function handleMoneyRequestStepDistanceNavigation({
     // to the confirm step.
     // If the user started this flow using the Create expense option (combined submit/track flow), they should be redirected to the participants page.
     if (report?.reportID && !isArchivedExpenseReport && iouType !== CONST.IOU.TYPE.CREATE) {
-        const participants = getMoneyRequestParticipantOptions(currentUserAccountID, report, policy, personalDetails, privateIsArchived, reportAttributesDerived);
+        const participants = getMoneyRequestParticipantOptions(currentUserAccountID, report, policy, personalDetails, formatPhoneNumber, privateIsArchived, reportAttributesDerived);
 
         setDistanceRequestData?.(participants);
         if (shouldSkipConfirmation) {

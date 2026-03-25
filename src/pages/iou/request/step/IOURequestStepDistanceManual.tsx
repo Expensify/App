@@ -59,7 +59,7 @@ function IOURequestStepDistanceManual({
     transaction,
     currentUserPersonalDetails,
 }: IOURequestStepDistanceManualProps) {
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const styles = useThemeStyles();
     const {isBetaEnabled} = usePermissions();
 
@@ -235,6 +235,7 @@ function IOURequestStepDistanceManual({
                 transactionViolations,
                 lastSelectedDistanceRates,
                 translate,
+                formatPhoneNumber,
                 quickAction,
                 policyRecentlyUsedCurrencies,
                 introSelected,
@@ -298,6 +299,7 @@ function IOURequestStepDistanceManual({
             isSelfTourViewed,
             amountOwed,
             ownerBillingGraceEndPeriod,
+            formatPhoneNumber,
         ],
     );
 

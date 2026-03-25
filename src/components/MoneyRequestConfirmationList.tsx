@@ -328,7 +328,7 @@ function MoneyRequestConfirmationList({
     const defaultMileageRate = defaultMileageRateDraft ?? defaultMileageRateReal;
 
     const styles = useThemeStyles();
-    const {translate, toLocaleDigit} = useLocalize();
+    const {translate, toLocaleDigit, formatPhoneNumber} = useLocalize();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {isRestrictedToPreferredPolicy} = usePreferredPolicy();
 
@@ -737,7 +737,7 @@ function MoneyRequestConfirmationList({
             return [];
         }
 
-        const payeeOption = getIOUConfirmationOptionsFromPayeePersonalDetail(payeePersonalDetails);
+        const payeeOption = getIOUConfirmationOptionsFromPayeePersonalDetail(payeePersonalDetails, formatPhoneNumber);
         if (shouldShowReadOnlySplits) {
             return [payeeOption, ...selectedParticipants].map((participantOption: Participant) => {
                 const isPayer = participantOption.accountID === payeeOption.accountID;
@@ -817,6 +817,7 @@ function MoneyRequestConfirmationList({
         transaction?.splitShares,
         onSplitShareChange,
         getCurrencySymbol,
+        formatPhoneNumber,
     ]);
 
     const isSplitModified = useMemo(() => {
@@ -867,7 +868,7 @@ function MoneyRequestConfirmationList({
             options.push(
                 {
                     title: translate('moneyRequestConfirmationList.paidBy'),
-                    data: [getIOUConfirmationOptionsFromPayeePersonalDetail(payeePersonalDetails)],
+                    data: [getIOUConfirmationOptionsFromPayeePersonalDetail(payeePersonalDetails, formatPhoneNumber)],
                     sectionIndex: 0,
                 },
                 {
@@ -906,6 +907,7 @@ function MoneyRequestConfirmationList({
         isRestrictedToPreferredPolicy,
         isTypeInvoice,
         shouldHideToSection,
+        formatPhoneNumber,
     ]);
 
     useEffect(() => {

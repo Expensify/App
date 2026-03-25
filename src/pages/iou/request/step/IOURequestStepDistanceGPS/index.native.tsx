@@ -44,7 +44,7 @@ function IOURequestStepDistanceGPS({
 }: IOURequestStepDistanceGPSProps) {
     const styles = useThemeStyles();
 
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const {isBetaEnabled} = usePermissions();
 
     const [lastSelectedDistanceRates] = useOnyx(ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES);
@@ -116,6 +116,7 @@ function IOURequestStepDistanceGPS({
             transactionViolations,
             lastSelectedDistanceRates,
             translate,
+            formatPhoneNumber,
             quickAction,
             policyRecentlyUsedCurrencies,
             introSelected,

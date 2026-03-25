@@ -52,7 +52,7 @@ type MoneyRequestAccountantSelectorProps = {
 };
 
 function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType, action}: MoneyRequestAccountantSelectorProps) {
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const {isOffline} = useNetwork();
     const personalDetails = usePersonalDetails();
@@ -94,6 +94,7 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
             loginList,
             currentUserAccountID,
             currentUserEmail,
+            formatPhoneNumber,
             {
                 betas,
                 excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
@@ -124,6 +125,7 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
         currentUserAccountID,
         currentUserEmail,
         personalDetails,
+        formatPhoneNumber,
     ]);
 
     const chatOptions = useMemo(() => {
@@ -136,12 +138,12 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
                 headerMessage: '',
             };
         }
-        const newOptions = filterAndOrderOptions(defaultOptions, debouncedSearchTerm, countryCode, loginList, currentUserEmail, currentUserAccountID, personalDetails, {
+        const newOptions = filterAndOrderOptions(defaultOptions, debouncedSearchTerm, countryCode, loginList, currentUserEmail, currentUserAccountID, personalDetails, formatPhoneNumber, {
             excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
             maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
         });
         return newOptions;
-    }, [areOptionsInitialized, defaultOptions, debouncedSearchTerm, countryCode, loginList, currentUserAccountID, currentUserEmail, personalDetails]);
+    }, [areOptionsInitialized, defaultOptions, debouncedSearchTerm, countryCode, loginList, currentUserAccountID, currentUserEmail, personalDetails, formatPhoneNumber]);
 
     const {userToInviteExpenseReport} = useUserToInviteReports(chatOptions?.userToInvite);
     const userToInviteExpenseReportPolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${userToInviteExpenseReport?.policyID}`];
@@ -166,6 +168,7 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
             privateIsArchivedMap,
             currentUserAccountID,
             allPolicies,
+            formatPhoneNumber,
             personalDetails,
             true,
             undefined,
@@ -205,9 +208,10 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
                               personalDetails,
                               userToInviteExpenseReport,
                               userToInviteExpenseReportPolicy,
+                              formatPhoneNumber,
                               reportAttributesDerived,
                           )
-                        : getParticipantsOption(participant, personalDetails);
+                        : getParticipantsOption(participant, personalDetails, formatPhoneNumber);
                 }),
                 sectionIndex: 3,
             });
@@ -240,6 +244,7 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
         currentUserAccountID,
         currentUserEmail,
         allPolicies,
+        formatPhoneNumber,
     ]);
 
     const selectAccountant = useCallback(

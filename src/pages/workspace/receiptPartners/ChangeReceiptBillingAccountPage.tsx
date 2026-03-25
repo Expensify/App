@@ -13,7 +13,6 @@ import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {changePolicyUberBillingAccount} from '@libs/actions/Policy/Policy';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
-import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {formatMemberForList, getHeaderMessage, getSearchValueForPhoneOrEmail, sortAlphabetically} from '@libs/OptionsListUtils';
@@ -31,7 +30,7 @@ type ChangeReceiptBillingAccountPagePageProps = PlatformStackScreenProps<Workspa
 
 function ChangeReceiptBillingAccountPage({route}: ChangeReceiptBillingAccountPagePageProps) {
     const styles = useThemeStyles();
-    const {translate, localeCompare} = useLocalize();
+    const {translate, localeCompare, formatPhoneNumber} = useLocalize();
     const {isOffline} = useNetwork();
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const [selectedOption, setSelectedOption] = useState<string>('');
@@ -63,7 +62,7 @@ function ChangeReceiptBillingAccountPage({route}: ChangeReceiptBillingAccountPag
                     icons: [
                         {
                             source: personalDetail?.avatar ?? icons.FallbackAvatar,
-                            name: formatPhoneNumber(email, countryCode),
+                            name: formatPhoneNumber(email),
                             type: CONST.ICON_TYPE_AVATAR,
                             id: personalDetail?.accountID,
                         },

@@ -59,6 +59,7 @@ type SelectedOption = ListItem &
     };
 
 function useOptions(reportAttributesDerived: ReportAttributesDerivedValue['reports'] | undefined) {
+    const {formatPhoneNumber} = useLocalize();
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const [selectedOptions, setSelectedOptions] = useState<SelectedOption[]>([]);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
@@ -108,6 +109,7 @@ function useOptions(reportAttributesDerived: ReportAttributesDerivedValue['repor
         loginList,
         currentUserAccountID,
         currentUserEmail,
+        formatPhoneNumber,
         {
             betas: betas ?? [],
             includeSelfDM: true,
@@ -123,7 +125,7 @@ function useOptions(reportAttributesDerived: ReportAttributesDerivedValue['repor
 
     const areOptionsInitialized = !isLoading;
 
-    const options = filterAndOrderOptions(unselectedOptions, debouncedSearchTerm, countryCode, loginList, currentUserEmail, currentUserAccountID, allPersonalDetails, {
+    const options = filterAndOrderOptions(unselectedOptions, debouncedSearchTerm, countryCode, loginList, currentUserEmail, currentUserAccountID, allPersonalDetails, formatPhoneNumber, {
         selectedOptions,
         maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
     });
@@ -170,6 +172,7 @@ function useOptions(reportAttributesDerived: ReportAttributesDerivedValue['repor
                           loginList,
                           currentUserEmail: personalData.email ?? '',
                           currentUserAccountID: personalData.accountID,
+                          formatPhoneNumber,
                       });
                   if (participantOption) {
                       result.push({
@@ -234,7 +237,7 @@ type NewChatPageProps = {
     ref?: Ref<NewChatPageRef>;
 };
 function NewChatPage({ref}: NewChatPageProps) {
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const {isOffline} = useNetwork();
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to show offline indicator on small screen only
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
@@ -285,6 +288,7 @@ function NewChatPage({ref}: NewChatPageProps) {
         privateIsArchivedMap,
         currentUserAccountID,
         allPolicies,
+        formatPhoneNumber,
         allPersonalDetails,
         undefined,
         undefined,

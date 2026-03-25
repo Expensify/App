@@ -273,7 +273,7 @@ function IOURequestStepConfirmation({
 
     const styles = useThemeStyles();
     const theme = useTheme();
-    const {translate, toLocaleDigit} = useLocalize();
+    const {translate, toLocaleDigit, formatPhoneNumber} = useLocalize();
     const {isBetaEnabled} = usePermissions();
     const {isOffline} = useNetwork();
     const {showConfirmModal} = useConfirmModal();
@@ -342,10 +342,19 @@ function IOURequestStepConfirmation({
                 }
                 const privateIsArchived = privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${participant.reportID}`];
                 return participant.accountID
-                    ? getParticipantsOption(participant, personalDetails)
-                    : getReportOption(participant, privateIsArchived, policy, currentUserPersonalDetails.accountID, personalDetails, reportAttributesDerived, reportDrafts);
+                    ? getParticipantsOption(participant, personalDetails, formatPhoneNumber)
+                    : getReportOption(
+                          participant,
+                          privateIsArchived,
+                          policy,
+                          currentUserPersonalDetails.accountID,
+                          personalDetails,
+                          formatPhoneNumber,
+                          reportAttributesDerived,
+                          reportDrafts,
+                      );
             }) ?? [],
-        [transaction?.participants, iouType, personalDetails, reportAttributesDerived, reportDrafts, privateIsArchivedMap, policy, currentUserPersonalDetails.accountID],
+        [transaction?.participants, iouType, personalDetails, reportAttributesDerived, reportDrafts, privateIsArchivedMap, policy, currentUserPersonalDetails.accountID, formatPhoneNumber],
     );
     const participantsPolicyTags = useParticipantsPolicyTags(participants ?? []);
     const isPolicyExpenseChat = useMemo(() => participants?.some((participant) => participant.isPolicyExpenseChat), [participants]);
@@ -840,6 +849,7 @@ function IOURequestStepConfirmation({
                     quickAction,
                     betas,
                     personalDetails,
+                    formatPhoneNumber,
                 });
             }
         },
@@ -861,6 +871,7 @@ function IOURequestStepConfirmation({
             quickAction,
             betas,
             personalDetails,
+            formatPhoneNumber,
         ],
     );
 
@@ -1162,6 +1173,7 @@ function IOURequestStepConfirmation({
                             quickAction,
                             policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
                             participantsPolicyTags,
+                            formatPhoneNumber,
                         });
                     }
                 }
@@ -1200,6 +1212,7 @@ function IOURequestStepConfirmation({
                         policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
                         betas,
                         personalDetails,
+                        formatPhoneNumber,
                     });
                 }
                 markSubmitExpenseEnd();
@@ -1235,6 +1248,7 @@ function IOURequestStepConfirmation({
                         policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
                         betas,
                         personalDetails,
+                        formatPhoneNumber,
                     });
                 }
                 markSubmitExpenseEnd();
@@ -1258,6 +1272,7 @@ function IOURequestStepConfirmation({
                     policyRecentlyUsedCategories,
                     isFromGlobalCreate: transaction?.isFromFloatingActionButton ?? transaction?.isFromGlobalCreate,
                     policyRecentlyUsedTags,
+                    formatPhoneNumber,
                 });
                 markSubmitExpenseEnd();
                 return;
@@ -1364,6 +1379,7 @@ function IOURequestStepConfirmation({
             betas,
             participantsPolicyTags,
             personalDetails,
+            formatPhoneNumber,
         ],
     );
 

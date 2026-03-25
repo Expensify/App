@@ -40,7 +40,7 @@ function IOURequestStepUpgrade({
 }: IOURequestStepUpgradeProps) {
     const styles = useThemeStyles();
 
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const {isOffline} = useNetwork();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const personalDetails = usePersonalDetails();
@@ -135,7 +135,7 @@ function IOURequestStepUpgrade({
     };
 
     const participant = transaction?.participants?.[0];
-    const adminParticipant = isDistanceRateUpgrade && participant?.accountID ? getParticipantsOption(participant, personalDetails) : undefined;
+    const adminParticipant = isDistanceRateUpgrade && participant?.accountID ? getParticipantsOption(participant, personalDetails, formatPhoneNumber) : undefined;
 
     const onUpgrade = () => {
         if (isRestrictedPolicyCreation) {

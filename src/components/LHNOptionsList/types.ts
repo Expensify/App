@@ -143,6 +143,9 @@ type OptionRowLHNDataProps = {
     /** Function to compare locale strings */
     localeCompare: LocaleContextProps['localeCompare'];
 
+    /** Function to format phone numbers */
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
+
     /** Function to translate locale strings */
     translate: LocalizedTranslate;
 

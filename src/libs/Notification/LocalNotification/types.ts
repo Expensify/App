@@ -1,4 +1,5 @@
 import type {OnyxEntry} from 'react-native-onyx';
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import type ClearReportNotifications from '@libs/Notification/clearReportNotifications/types';
 import type {Policy, PolicyTagLists, Report, ReportAction, ReportAttributesDerivedValue} from '@src/types/onyx';
 
@@ -29,6 +30,7 @@ type LocalNotificationModifiedExpensePushParams = LocalNotificationModifiedExpen
     usesIcon?: boolean;
     policyTags: OnyxEntry<PolicyTagLists>;
     policy?: OnyxEntry<Policy>;
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
 };
 
 export type {LocalNotificationModule, LocalNotificationClickHandler, LocalNotificationData, LocalNotificationModifiedExpenseParams, LocalNotificationModifiedExpensePushParams};

@@ -20,11 +20,11 @@ describe('LocalePhoneNumber utils', () => {
         });
 
         it('should display a number with a space after the region code if the phone number is not valid', () => {
-            expect(LocalePhoneNumber.formatPhoneNumber(INVALID_NUMBER)).toBe('+48 18332403627');
+            expect(LocalePhoneNumber.formatPhoneNumber(INVALID_NUMBER, US_CODE)).toBe('+48 18332403627');
         });
 
         it('should display unchanged text if the string passed to the function is not a phone number', () => {
-            expect(LocalePhoneNumber.formatPhoneNumber(EMAIL_LOGIN)).toBe('user@test.com');
+            expect(LocalePhoneNumber.formatPhoneNumber(EMAIL_LOGIN, US_CODE)).toBe('user@test.com');
         });
     });
 });

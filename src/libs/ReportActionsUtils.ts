@@ -49,7 +49,6 @@ import {getEnvironmentURL, getOldDotEnvironmentURL} from './Environment/Environm
 import getBase62ReportID from './getBase62ReportID';
 import {isReportMessageAttachment} from './isReportMessageAttachment';
 import {toLocaleOrdinal} from './LocaleDigitUtils';
-import {formatPhoneNumber} from './LocalePhoneNumber';
 import {formatMessageElementList} from './Localize';
 import Log from './Log';
 import type {MessageElementBase, MessageTextElement} from './MessageElement';
@@ -1970,6 +1969,7 @@ function getMemberChangeMessageElements(
     reportAction: OnyxEntry<ReportAction>,
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     getReportNameCallback: typeof getReportName,
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
 ): readonly MemberChangeMessageElement[] {
     const isInviteAction = isInviteMemberAction(reportAction);
     const isLeaveAction = isLeavePolicyAction(reportAction);
@@ -1985,7 +1985,7 @@ function getMemberChangeMessageElements(
     }
 
     if (isLeaveAction) {
-        verb = getPolicyChangeLogEmployeeLeftMessage(translate, reportAction);
+        verb = getPolicyChangeLogEmployeeLeftMessage(translate, reportAction, formatPhoneNumber);
     }
 
     const originalMessage = getOriginalMessage(reportAction);
@@ -2285,8 +2285,13 @@ function getTravelUpdateMessage(
 }
 
 // eslint-disable-next-line @typescript-eslint/no-deprecated
-function getMemberChangeMessageFragment(translate: LocalizedTranslate, reportAction: OnyxEntry<ReportAction>, getReportNameCallback: typeof getReportName): Message {
-    const messageElements: readonly MemberChangeMessageElement[] = getMemberChangeMessageElements(translate, reportAction, getReportNameCallback);
+function getMemberChangeMessageFragment(
+    translate: LocalizedTranslate,
+    reportAction: OnyxEntry<ReportAction>,
+    getReportNameCallback: typeof getReportName,
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
+): Message {
+    const messageElements: readonly MemberChangeMessageElement[] = getMemberChangeMessageElements(translate, reportAction, getReportNameCallback, formatPhoneNumber);
     const html = messageElements
         .map((messageElement) => {
             switch (messageElement.kind) {
@@ -2418,7 +2423,11 @@ function hasRequestFromCurrentAccount(reportID: string | undefined, currentAccou
  * @param reportAction
  * @returns the actionable mention whisper message.
  */
-function getActionableMentionWhisperMessage(translate: LocalizedTranslate, reportAction: OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_MENTION_WHISPER>>): string {
+function getActionableMentionWhisperMessage(
+    translate: LocalizedTranslate,
+    reportAction: OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_MENTION_WHISPER>>,
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
+): string {
     if (!reportAction) {
         return '';
     }
@@ -2735,7 +2744,11 @@ function isPolicyChangeLogAddEmployeeMessage(reportAction: OnyxInputOrEntry<Repo
     return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_EMPLOYEE);
 }
 
-function getPolicyChangeLogAddEmployeeMessage(translate: LocalizedTranslate, reportAction: OnyxInputOrEntry<ReportAction>): string {
+function getPolicyChangeLogAddEmployeeMessage(
+    translate: LocalizedTranslate,
+    reportAction: OnyxInputOrEntry<ReportAction>,
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
+): string {
     if (!isPolicyChangeLogAddEmployeeMessage(reportAction)) {
         return '';
     }
@@ -2751,7 +2764,14 @@ function isPolicyChangeLogChangeRoleMessage(reportAction: OnyxInputOrEntry<Repor
     return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_EMPLOYEE);
 }
 
-function buildPolicyChangeLogUpdateEmployeeSingleFieldMessage(translate: LocalizedTranslate, field: string | undefined, oldValue: unknown, newValue: unknown, rawEmail: string): string {
+function buildPolicyChangeLogUpdateEmployeeSingleFieldMessage(
+    translate: LocalizedTranslate,
+    field: string | undefined,
+    oldValue: unknown,
+    newValue: unknown,
+    rawEmail: string,
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
+): string {
     if (!field) {
         return '';
     }
@@ -2770,7 +2790,7 @@ function buildPolicyChangeLogUpdateEmployeeSingleFieldMessage(translate: Localiz
     return translate('report.actions.type.updateRole', {email, newRole, currentRole: oldRole});
 }
 
-function getPolicyChangeLogUpdateEmployee(translate: LocalizedTranslate, reportAction: OnyxInputOrEntry<ReportAction>): string {
+function getPolicyChangeLogUpdateEmployee(translate: LocalizedTranslate, reportAction: OnyxInputOrEntry<ReportAction>, formatPhoneNumber: LocaleContextProps['formatPhoneNumber']): string {
     if (!isPolicyChangeLogChangeRoleMessage(reportAction)) {
         return '';
     }
@@ -2785,17 +2805,22 @@ function getPolicyChangeLogUpdateEmployee(translate: LocalizedTranslate, reportA
                 if (!fieldChange || typeof fieldChange !== 'object') {
                     return '';
                 }
-                return buildPolicyChangeLogUpdateEmployeeSingleFieldMessage(translate, fieldChange.field, fieldChange.oldValue, fieldChange.newValue, email);
+                return buildPolicyChangeLogUpdateEmployeeSingleFieldMessage(translate, fieldChange.field, fieldChange.oldValue, fieldChange.newValue, email, formatPhoneNumber);
             })
             .filter(Boolean);
 
         return messages.join(', ');
     }
 
-    return buildPolicyChangeLogUpdateEmployeeSingleFieldMessage(translate, originalMessage?.field, originalMessage?.oldValue, originalMessage?.newValue, email);
+    return buildPolicyChangeLogUpdateEmployeeSingleFieldMessage(translate, originalMessage?.field, originalMessage?.oldValue, originalMessage?.newValue, email, formatPhoneNumber);
 }
 
-function getPolicyChangeLogEmployeeLeftMessage(translate: LocalizedTranslate, reportAction: ReportAction, useName = false): string {
+function getPolicyChangeLogEmployeeLeftMessage(
+    translate: LocalizedTranslate,
+    reportAction: ReportAction,
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
+    useName = false,
+): string {
     if (!isLeavePolicyAction(reportAction)) {
         return '';
     }
@@ -3476,7 +3501,7 @@ function formatMemberListWithAnd(members: Array<{email: string; name: string}>):
     return `${allButLast.join(', ')}, and ${last}`;
 }
 
-function getDefaultApproverUpdateMessage(translate: LocalizedTranslate, action: ReportAction): string {
+function getDefaultApproverUpdateMessage(translate: LocalizedTranslate, action: ReportAction, formatPhoneNumber: LocaleContextProps['formatPhoneNumber']): string {
     const originalMessage = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_DEFAULT_APPROVER>) as
         | DefaultApproverOriginalMessage
         | undefined;
@@ -3490,7 +3515,7 @@ function getDefaultApproverUpdateMessage(translate: LocalizedTranslate, action: 
     return translate('workspaceActions.changedDefaultApprover', {newApprover, previousApprover});
 }
 
-function getSubmitsToUpdateMessage(translate: LocalizedTranslate, action: ReportAction): string {
+function getSubmitsToUpdateMessage(translate: LocalizedTranslate, action: ReportAction, formatPhoneNumber: LocaleContextProps['formatPhoneNumber']): string {
     const originalMessage = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_SUBMITS_TO>) as SubmitsToOriginalMessage | undefined;
 
     if (!originalMessage) {
@@ -3520,7 +3545,7 @@ function getSubmitsToUpdateMessage(translate: LocalizedTranslate, action: Report
     });
 }
 
-function getForwardsToUpdateMessage(translate: LocalizedTranslate, action: ReportAction): string {
+function getForwardsToUpdateMessage(translate: LocalizedTranslate, action: ReportAction, formatPhoneNumber: LocaleContextProps['formatPhoneNumber']): string {
     const originalMessage = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_FORWARDS_TO>) as ForwardsToOriginalMessage | undefined;
 
     if (!originalMessage) {
@@ -3558,7 +3583,7 @@ function getInvoiceCompanyWebsiteUpdateMessage(translate: LocalizedTranslate, ac
     return getReportActionText(action);
 }
 
-function getReimburserUpdateMessage(translate: LocalizedTranslate, action: ReportAction): string {
+function getReimburserUpdateMessage(translate: LocalizedTranslate, action: ReportAction, formatPhoneNumber: LocaleContextProps['formatPhoneNumber']): string {
     const originalMessage = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_REIMBURSER>);
 
     if (originalMessage?.reimburser?.email && originalMessage?.previousReimburser?.email) {
@@ -3722,7 +3747,11 @@ function getPolicyChangeLogDefaultTitleEnforcedMessage(translate: LocalizedTrans
     return getReportActionText(action);
 }
 
-function getPolicyChangeLogDeleteMemberMessage(translate: LocalizedTranslate, reportAction: OnyxInputOrEntry<ReportAction>): string {
+function getPolicyChangeLogDeleteMemberMessage(
+    translate: LocalizedTranslate,
+    reportAction: OnyxInputOrEntry<ReportAction>,
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
+): string {
     if (!isPolicyChangeLogDeleteMemberMessage(reportAction)) {
         return '';
     }

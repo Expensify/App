@@ -72,8 +72,8 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate, 
 
     // Transform raw recentAttendees into Option[] format for use with getValidOptions (only for attendee filter)
     const recentAttendeeLists = useMemo(
-        () => (shouldAllowNameOnlyOptions ? getFilteredRecentAttendees(personalDetails, [], recentAttendees ?? [], currentUserEmail, currentUserAccountID) : []),
-        [personalDetails, recentAttendees, currentUserEmail, currentUserAccountID, shouldAllowNameOnlyOptions],
+        () => (shouldAllowNameOnlyOptions ? getFilteredRecentAttendees(personalDetails, [], recentAttendees ?? [], currentUserEmail, currentUserAccountID, formatPhoneNumber) : []),
+        [personalDetails, recentAttendees, currentUserEmail, currentUserAccountID, shouldAllowNameOnlyOptions, formatPhoneNumber],
     );
 
     const {searchTerm, setSearchTerm, availableOptions, selectedOptions, setSelectedOptions, toggleSelection, areOptionsInitialized, onListEndReached} = useSearchSelector({
@@ -111,6 +111,7 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate, 
             privateIsArchivedMap,
             currentUserAccountID,
             allPolicies,
+            formatPhoneNumber,
             personalDetails,
             true,
             undefined,
@@ -229,7 +230,7 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate, 
                     const participant = personalDetails[identifier];
                     if (participant) {
                         const optionData = {
-                            ...getParticipantsOption(participant, personalDetails),
+                            ...getParticipantsOption(participant, personalDetails, formatPhoneNumber),
                             isSelected: true,
                         };
                         return optionData as OptionData;
@@ -266,7 +267,7 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate, 
                         return undefined;
                     }
                     const optionData = {
-                        ...getParticipantsOption(participant, personalDetails),
+                        ...getParticipantsOption(participant, personalDetails, formatPhoneNumber),
                         isSelected: true,
                     };
                     return optionData as OptionData;

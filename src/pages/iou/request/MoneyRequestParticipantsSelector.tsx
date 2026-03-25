@@ -108,7 +108,7 @@ function MoneyRequestParticipantsSelector({
     ref,
 }: MoneyRequestParticipantsSelectorProps) {
     const icons = useMemoizedLazyExpensifyIcons(['UserPlus']);
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const styles = useThemeStyles();
     const {contactPermissionState, contacts, setContactPermissionState, importAndSaveContacts} = useContactImport();
     const platform = getPlatform();
@@ -305,6 +305,7 @@ function MoneyRequestParticipantsSelector({
             privateIsArchivedMap,
             currentUserAccountID,
             allPolicies,
+            formatPhoneNumber,
             personalDetails,
             true,
             undefined,
@@ -377,9 +378,10 @@ function MoneyRequestParticipantsSelector({
                               personalDetails,
                               userToInviteExpenseReport,
                               userToInviteExpenseReportPolicy,
+                              formatPhoneNumber,
                               reportAttributesDerived,
                           )
-                        : getParticipantsOption(participant, personalDetails);
+                        : getParticipantsOption(participant, personalDetails, formatPhoneNumber);
                 }),
                 sectionIndex: 5,
             });
@@ -416,6 +418,7 @@ function MoneyRequestParticipantsSelector({
         currentUserAccountID,
         currentUserEmail,
         allPolicies,
+        formatPhoneNumber,
     ]);
 
     /**

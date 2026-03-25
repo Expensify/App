@@ -51,6 +51,7 @@ type UseAutocompleteSuggestionsParams = {
     personalDetails: OnyxEntry<PersonalDetailsList>;
     feedKeysWithCards?: FeedKeysWithAssignedCards;
     translate: LocaleContextProps['translate'];
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
 };
 
 // Static autocomplete lists derived from CONST values, computed once at module load
@@ -97,6 +98,7 @@ function useAutocompleteSuggestions({
     personalDetails,
     feedKeysWithCards,
     translate,
+    formatPhoneNumber,
 }: UseAutocompleteSuggestionsParams): AutocompleteItemData[] {
     const [allPolicyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
     const [allRecentCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES);
@@ -231,6 +233,7 @@ function useAutocompleteSuggestions({
                 currentUserAccountID,
                 currentUserEmail,
                 personalDetails,
+                formatPhoneNumber,
             }).personalDetails.filter((participant) => participant.text && !alreadyAutocompletedKeys.has(participant.text.toLowerCase()));
 
             return participants.map((participant) => ({
@@ -267,6 +270,7 @@ function useAutocompleteSuggestions({
                 currentUserAccountID,
                 currentUserEmail,
                 personalDetails,
+                formatPhoneNumber,
             }).recentReports.filter((chat) => {
                 if (!chat.text) {
                     return false;

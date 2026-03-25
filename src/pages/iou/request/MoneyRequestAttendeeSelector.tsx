@@ -59,7 +59,7 @@ type MoneyRequestAttendeesSelectorProps = {
 };
 
 function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdded, iouType, action}: MoneyRequestAttendeesSelectorProps) {
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const personalDetails = usePersonalDetails();
@@ -78,7 +78,7 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
     const currentUserEmail = currentUserPersonalDetails.email ?? '';
     const currentUserAccountID = currentUserPersonalDetails.accountID;
     const isPaidGroupPolicy = isPaidGroupPolicyFn(policy);
-    const recentAttendeeLists = getFilteredRecentAttendees(personalDetails, attendees, recentAttendees ?? [], currentUserEmail, currentUserAccountID);
+    const recentAttendeeLists = getFilteredRecentAttendees(personalDetails, attendees, recentAttendees ?? [], currentUserEmail, currentUserAccountID, formatPhoneNumber);
 
     const initialSelectedOptions = attendees.map((attendee) => ({
         ...attendee,
@@ -214,6 +214,7 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
             privateIsArchivedMap,
             currentUserAccountID,
             allPolicies,
+            formatPhoneNumber,
             personalDetails,
             true,
             undefined,
@@ -267,9 +268,10 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
                               personalDetails,
                               userToInviteExpenseReport,
                               userToInviteExpenseReportPolicy,
+                              formatPhoneNumber,
                               reportAttributesDerived,
                           )
-                        : getParticipantsOption(participant, personalDetails);
+                        : getParticipantsOption(participant, personalDetails, formatPhoneNumber);
                 }) as OptionData[],
                 sectionIndex: 3,
             });

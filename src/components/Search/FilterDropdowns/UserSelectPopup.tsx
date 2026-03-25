@@ -40,7 +40,7 @@ type UserSelectPopupProps = {
 function UserSelectPopup({value, closeOverlay, onChange, isSearchable}: UserSelectPopupProps) {
     const selectionListRef = useRef<SelectionListHandle<ListItem> | null>(null);
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const personalDetails = usePersonalDetails();
     const {windowHeight} = useWindowDimensions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -56,7 +56,7 @@ function UserSelectPopup({value, closeOverlay, onChange, isSearchable}: UserSele
             }
 
             const optionData = {
-                ...getParticipantsOption(participant, personalDetails),
+                ...getParticipantsOption(participant, personalDetails, formatPhoneNumber),
                 isSelected: true,
             };
 
@@ -66,7 +66,7 @@ function UserSelectPopup({value, closeOverlay, onChange, isSearchable}: UserSele
 
             return options;
         }, []);
-    }, [value, personalDetails]);
+    }, [value, personalDetails, formatPhoneNumber]);
 
     const {searchTerm, debouncedSearchTerm, setSearchTerm, availableOptions, selectedOptions, toggleSelection, areOptionsInitialized, selectedOptionsForDisplay, onListEndReached} =
         useSearchSelector({

@@ -6,7 +6,7 @@ import {parsePhoneNumber} from './PhoneNumber';
  * Returns a locally converted phone number for numbers from the same region
  * and an internationally converted phone number with the country code for numbers from other regions
  */
-function formatPhoneNumber(number: string, countryCode: number = CONST.DEFAULT_COUNTRY_CODE): string {
+function formatPhoneNumber(number: string, countryCode: number): string {
     if (!number) {
         return '';
     }

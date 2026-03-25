@@ -27,7 +27,7 @@ type ContactMethodsPageProps = PlatformStackScreenProps<SettingsNavigatorParamLi
 
 function ContactMethodsPage({route}: ContactMethodsPageProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const navigateBackTo = route?.params?.backTo;
@@ -38,7 +38,7 @@ function ContactMethodsPage({route}: ContactMethodsPageProps) {
     const {isAccountLocked} = useLockedAccountState();
     const {showLockedAccountModal} = useLockedAccountActions();
 
-    const options = useMemo(() => getContactMethodsOptions(translate, loginList, session?.email), [translate, loginList, session?.email]);
+    const options = useMemo(() => getContactMethodsOptions(translate, formatPhoneNumber, loginList, session?.email), [translate, formatPhoneNumber, loginList, session?.email]);
 
     const onNewContactMethodButtonPress = useCallback(() => {
         if (isActingAsDelegate) {

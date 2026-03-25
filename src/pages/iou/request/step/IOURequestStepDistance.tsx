@@ -78,7 +78,7 @@ function IOURequestStepDistance({
 }: IOURequestStepDistanceProps) {
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const {isBetaEnabled} = usePermissions();
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`);
@@ -337,6 +337,7 @@ function IOURequestStepDistance({
             lastSelectedDistanceRates,
             setDistanceRequestData,
             translate,
+            formatPhoneNumber,
             quickAction,
             policyRecentlyUsedCurrencies,
             introSelected,
@@ -388,6 +389,7 @@ function IOURequestStepDistance({
         isSelfTourViewed,
         amountOwed,
         ownerBillingGraceEndPeriod,
+        formatPhoneNumber,
     ]);
 
     const getError = () => {
