@@ -250,38 +250,39 @@ function BaseOnboardingWorkspaceOptional({shouldUseNativeStyles}: BaseOnboarding
                         })}
                     </View>
                 </View>
-                <View style={[onboardingIsMediumOrLargerScreenWidth ? styles.mh8 : styles.mh5, styles.pb5]}>
-                    <View style={[styles.flexRow, styles.renderHTML, styles.pb5]}>
-                        <RenderHTML html={processedHelperText} />
-                    </View>
-                    <View style={styles.mb2}>
+            </ScrollView>
+
+            <View style={[onboardingIsMediumOrLargerScreenWidth ? styles.mh8 : styles.mh5, styles.pb5]}>
+                <View style={[styles.flexRow, styles.renderHTML, styles.pb5]}>
+                    <RenderHTML html={processedHelperText} />
+                </View>
+                <View style={styles.mb2}>
+                    <Button
+                        large
+                        text={translate('common.skip')}
+                        onPress={() => completeOnboarding()}
+                        sentryLabel={CONST.SENTRY_LABEL.ONBOARDING.SKIP}
+                    />
+                </View>
+                {!isRestrictedPolicyCreation && (
+                    <View>
                         <Button
+                            success
                             large
-                            text={translate('common.skip')}
-                            onPress={() => completeOnboarding()}
-                            sentryLabel={CONST.SENTRY_LABEL.ONBOARDING.SKIP}
+                            text={translate('onboarding.workspace.createWorkspace')}
+                            onPress={() => {
+                                setOnboardingErrorMessage(null);
+                                if (onboardingPurposeSelected === CONST.ONBOARDING_CHOICES.PERSONAL_SPEND) {
+                                    createWorkspaceAndCompleteOnboarding();
+                                    return;
+                                }
+                                Navigation.navigate(ROUTES.ONBOARDING_WORKSPACE_CONFIRMATION.getRoute());
+                            }}
+                            sentryLabel={CONST.SENTRY_LABEL.ONBOARDING.CREATE_WORKSPACE}
                         />
                     </View>
-                    {!isRestrictedPolicyCreation && (
-                        <View>
-                            <Button
-                                success
-                                large
-                                text={translate('onboarding.workspace.createWorkspace')}
-                                onPress={() => {
-                                    setOnboardingErrorMessage(null);
-                                    if (onboardingPurposeSelected === CONST.ONBOARDING_CHOICES.PERSONAL_SPEND) {
-                                        createWorkspaceAndCompleteOnboarding();
-                                        return;
-                                    }
-                                    Navigation.navigate(ROUTES.ONBOARDING_WORKSPACE_CONFIRMATION.getRoute());
-                                }}
-                                sentryLabel={CONST.SENTRY_LABEL.ONBOARDING.CREATE_WORKSPACE}
-                            />
-                        </View>
-                    )}
-                </View>
-            </ScrollView>
+                )}
+            </View>
         </ScreenWrapper>
     );
 }
