@@ -4,8 +4,6 @@ import {convertAmountToDisplayString} from '@libs/CurrencyUtils';
 import {getTransactionViolations, hasWarningTypeViolation, isViolationDismissed} from '@libs/TransactionUtils';
 import ViolationsUtils, {filterReceiptViolations, getIsViolationFixed} from '@libs/Violations/ViolationsUtils';
 import CONST from '@src/CONST';
-import en from '@src/languages/en';
-import flattenObject from '@src/languages/flattenObject';
 import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, PolicyCategories, PolicyTagLists, Report, Transaction, TransactionViolation} from '@src/types/onyx';
@@ -1402,16 +1400,9 @@ describe('getViolationTranslation', () => {
         const routeDistanceKm = `${(routeDistanceMeters * metersToKm).toFixed(2)} km`;
         const routeDistanceMi = `${(routeDistanceMeters * metersToMiles).toFixed(2)} mi`;
 
-        const flatEn = flattenObject(en);
-
         beforeEach(() => {
-            jest.spyOn(IntlStore, 'getCurrentLocale').mockReturnValue(CONST.LOCALES.EN);
-            jest.spyOn(IntlStore, 'get').mockImplementation((key) => flatEn[key] ?? null);
+            IntlStore.load(CONST.LOCALES.EN);
             return waitForBatchedUpdates();
-        });
-
-        afterEach(() => {
-            jest.restoreAllMocks();
         });
 
         it('should return formatted message with route distance in km', () => {
