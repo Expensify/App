@@ -332,7 +332,8 @@ function getTransactionEditPermissions({
 
     // Search-table tab guard
     if (queryJSON !== undefined) {
-        const isEditableTab = queryJSON.type === CONST.SEARCH.DATA_TYPES.EXPENSE && CONST.SEARCH.INLINE_EDITABLE_EXPENSE_STATUSES.has((queryJSON.status as string) ?? '');
+        const statuses = Array.isArray(queryJSON.status) ? queryJSON.status : [queryJSON.status];
+        const isEditableTab = queryJSON.type === CONST.SEARCH.DATA_TYPES.EXPENSE && statuses.every((status) => CONST.SEARCH.INLINE_EDITABLE_EXPENSE_STATUSES.has(status));
         if (!isEditableTab) {
             return NO_EDIT;
         }
