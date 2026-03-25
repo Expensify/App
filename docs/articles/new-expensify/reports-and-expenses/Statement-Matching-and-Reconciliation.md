@@ -27,6 +27,8 @@ Workspace Admins whose workspace has at least one company card feed connected ca
    - If the totals match, the statement period is reconciled.
    - If the totals do not match, expand the card groups to review individual transactions and identify missing expenses. 
 
+![Reports > Card statements to show company card accounts]({{site.url}}/assets/images/recon-statement-expand.png){:width="100%"}
+
 ---
 
 ## How to Identify and Fix Discrepancies in Company Card Reconciliation
@@ -37,6 +39,8 @@ If the Expensify total does not match your card statement:
 2. Compare each transaction against your card statement line items.
 3. Look for missing transactions that appear on your card statement but not in Expensify, or duplicate transactions that may have been recorded twice.
 4. Check the posting dates — a transaction may fall into a different statement period in Expensify than on your card statement if posting dates differ.
+
+![Reports > Card statements > expand to show expenses]({{site.url}}/assets/images/recon-statement.png){:width="100%"}
 
 ---
 
