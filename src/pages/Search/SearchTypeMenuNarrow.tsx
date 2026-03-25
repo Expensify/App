@@ -27,14 +27,14 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import {accountIDSelector} from '@src/selectors/Session';
 import todosReportCountsSelector from '@src/selectors/Todos';
 
-type SearchPageTabSelectorProps = {
+type SearchTypeMenuNarrowProps = {
     /** Search query JSON */
     queryJSON?: SearchQueryJSON;
     /** Function to call when a tab is pressed */
     onTabPress?: () => void;
 };
 
-function SearchPageTabSelector({queryJSON, onTabPress}: SearchPageTabSelectorProps) {
+function SearchTypeMenuNarrow({queryJSON, onTabPress}: SearchTypeMenuNarrowProps) {
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const styles = useThemeStyles();
@@ -225,4 +225,4 @@ function SearchPageTabSelector({queryJSON, onTabPress}: SearchPageTabSelectorPro
     );
 }
 
-export default SearchPageTabSelector;
+export default SearchTypeMenuNarrow;

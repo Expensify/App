@@ -39,7 +39,7 @@ import {search} from '@userActions/Search';
 import ROUTES from '@src/ROUTES';
 import type {SearchResults} from '@src/types/onyx';
 import type {SearchResultsInfo} from '@src/types/onyx/SearchResults';
-import SearchPageTabSelector from './SearchPageTabSelector';
+import SearchTypeMenuNarrow from './SearchTypeMenuNarrow';
 
 const TOO_CLOSE_TO_TOP_DISTANCE = 10;
 const TOO_CLOSE_TO_BOTTOM_DISTANCE = 10;
@@ -211,7 +211,7 @@ function SearchPageNarrow({queryJSON, searchResults, isMobileSelectionModeEnable
                                         styles.searchTopBarZIndexStyle,
                                     ]}
                                 >
-                                    <SearchPageTabSelector
+                                    <SearchTypeMenuNarrow
                                         queryJSON={queryJSON}
                                         onTabPress={() => {
                                             setSearchRouterListVisible(false);
