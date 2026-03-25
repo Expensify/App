@@ -2143,8 +2143,10 @@ function createAndOpenSearchTransactionThread(
         transactionThreadReport = getReportOrDraftReport(iouReportAction.childReportID);
     }
 
-    // If the thread doesn't exist in Onyx (no childReportID, or report was deleted from backend e.g. after trashing an expense), create a new one
-    if (!transactionThreadReport) {
+    // Only create a new thread when there's no existing childReportID.
+    // When childReportID exists but the report isn't in Onyx (e.g. search snapshot didn't include it),
+    // skip creation so the navigation below falls back to the real childReportID.
+    if (!transactionThreadReport && !hasActualTransactionThread) {
         const reportActionID = moneyRequestReportActionID ?? iouReportAction?.reportActionID;
         const shouldPassTransactionData = !reportActionID || isFromSelfDM;
         const transaction = shouldPassTransactionData ? getTransactionFromTransactionListItem(item) : undefined;
