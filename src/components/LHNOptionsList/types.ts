@@ -94,8 +94,6 @@ type OptionRowLHNDataProps = {
 
     /** The receipt transaction from the parent report action */
     receiptTransactions: OnyxCollection<Transaction>;
-    /** Whether a report contains a draft */
-    hasDraftComment: boolean;
 
     /** The reportID of the report */
     reportID: string;
