@@ -9067,7 +9067,7 @@ function isUnread(report: OnyxEntry<Report>, oneTransactionThreadReport: OnyxEnt
     if (isEmptyReport(report, isReportArchived)) {
         return false;
     }
-    const latestReportActionFromOtherUsers = getLatestReportActionFromOtherUsers(reportActions, currentUserAccountID);
+    const latestReportActionFromOtherUsers = getLatestReportActionFromOtherUsers(reportActions, deprecatedCurrentUserAccountID);
 
     if (!report.lastReadTime) {
         return true;
