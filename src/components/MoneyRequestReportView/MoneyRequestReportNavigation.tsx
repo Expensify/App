@@ -1,13 +1,14 @@
 import React, {useEffect} from 'react';
 import {View} from 'react-native';
+import {useOnyx} from 'react-native-onyx';
 import PrevNextButtons from '@components/PrevNextButtons';
 import Text from '@components/Text';
-import useSearchSectionsState from '@hooks/useSearchSectionsState';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@navigation/Navigation';
 import {saveLastSearchParams} from '@userActions/ReportNavigation';
 import {search} from '@userActions/Search';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 
 type MoneyRequestReportNavigationProps = {
     reportID?: string;
@@ -15,17 +16,19 @@ type MoneyRequestReportNavigationProps = {
 };
 
 function MoneyRequestReportNavigation({reportID, shouldDisplayNarrowVersion}: MoneyRequestReportNavigationProps) {
-    const {allReports, isSearchLoading, lastSearchQuery} = useSearchSectionsState();
+    const [lastSearchQuery] = useOnyx(ONYXKEYS.REPORT_NAVIGATION_LAST_SEARCH_QUERY);
+    const [sortedReportIDs = []] = useOnyx(ONYXKEYS.REPORT_NAVIGATION_SORTED_REPORT_IDS);
+    const [currentSearchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${lastSearchQuery?.queryJSON?.hash}`);
 
     const type = lastSearchQuery?.queryJSON?.type;
-    const currentIndex = allReports.indexOf(reportID);
+    const currentIndex = sortedReportIDs.indexOf(reportID);
     const allReportsCount = lastSearchQuery?.previousLengthOfResults ?? 0;
 
-    const hideNextButton = !lastSearchQuery?.hasMoreResults && currentIndex === allReports.length - 1;
+    const hideNextButton = !lastSearchQuery?.hasMoreResults && currentIndex === sortedReportIDs.length - 1;
     const hidePrevButton = currentIndex === 0;
     const styles = useThemeStyles();
     const isExpenseReportSearch = type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
-    const shouldDisplayNavigationArrows = isExpenseReportSearch && allReports && allReports.length > 1 && currentIndex !== -1 && !!lastSearchQuery?.queryJSON;
+    const shouldDisplayNavigationArrows = isExpenseReportSearch && sortedReportIDs && sortedReportIDs.length > 1 && currentIndex !== -1 && !!lastSearchQuery?.queryJSON;
 
     useEffect(() => {
         if (!lastSearchQuery?.queryJSON) {
@@ -36,16 +39,16 @@ function MoneyRequestReportNavigation({reportID, shouldDisplayNarrowVersion}: Mo
             saveLastSearchParams({
                 ...lastSearchQuery,
                 allowPostSearchRecount: false,
-                previousLengthOfResults: allReports.length,
+                previousLengthOfResults: sortedReportIDs.length,
             });
             return;
         }
 
         // Update count when reports are added or removed (e.g., created offline)
-        if (allReports.length !== allReportsCount) {
+        if (sortedReportIDs.length !== allReportsCount) {
             saveLastSearchParams({
                 ...lastSearchQuery,
-                previousLengthOfResults: allReports.length,
+                previousLengthOfResults: sortedReportIDs.length,
             });
             return;
         }
@@ -56,9 +59,9 @@ function MoneyRequestReportNavigation({reportID, shouldDisplayNarrowVersion}: Mo
 
         saveLastSearchParams({
             ...lastSearchQuery,
-            previousLengthOfResults: allReports.length,
+            previousLengthOfResults: sortedReportIDs.length,
         });
-    }, [currentIndex, allReportsCount, allReports.length, lastSearchQuery?.queryJSON, lastSearchQuery]);
+    }, [currentIndex, allReportsCount, sortedReportIDs.length, lastSearchQuery?.queryJSON, lastSearchQuery]);
 
     const goToReportId = (reportId?: string) => {
         if (!reportId) {
@@ -70,35 +73,35 @@ function MoneyRequestReportNavigation({reportID, shouldDisplayNarrowVersion}: Mo
     };
 
     const goToNextReport = () => {
-        if (currentIndex === -1 || allReports.length === 0 || !lastSearchQuery?.queryJSON) {
+        if (currentIndex === -1 || sortedReportIDs.length === 0 || !lastSearchQuery?.queryJSON) {
             return;
         }
-        const threshold = Math.min(allReports.length * 0.75, allReports.length - 2);
+        const threshold = Math.min(sortedReportIDs.length * 0.75, sortedReportIDs.length - 2);
 
         if (currentIndex + 1 >= threshold && lastSearchQuery?.hasMoreResults) {
             const newOffset = (lastSearchQuery.offset ?? 0) + CONST.SEARCH.RESULTS_PAGE_SIZE;
             search({
                 queryJSON: lastSearchQuery.queryJSON,
                 offset: newOffset,
-                prevReportsLength: allReports.length,
-                sortedReportIDs: allReports,
+                prevReportsLength: sortedReportIDs.length,
+                sortedReportIDs,
                 shouldCalculateTotals: false,
                 searchKey: lastSearchQuery.searchKey,
-                isLoading: isSearchLoading,
+                isLoading: !!currentSearchResults?.search?.isLoading,
             });
         }
 
-        const nextIndex = (currentIndex + 1) % allReports.length;
-        goToReportId(allReports.at(nextIndex));
+        const nextIndex = (currentIndex + 1) % sortedReportIDs.length;
+        goToReportId(sortedReportIDs.at(nextIndex));
     };
 
     const goToPrevReport = () => {
-        if (currentIndex === -1 || allReports.length === 0) {
+        if (currentIndex === -1 || sortedReportIDs.length === 0) {
             return;
         }
 
-        const prevIndex = (currentIndex - 1) % allReports.length;
-        goToReportId(allReports.at(prevIndex));
+        const prevIndex = (currentIndex - 1) % sortedReportIDs.length;
+        goToReportId(sortedReportIDs.at(prevIndex));
     };
 
     return (

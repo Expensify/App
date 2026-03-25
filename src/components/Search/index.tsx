@@ -1162,7 +1162,7 @@ function Search({
     const canSelectMultiple = !isChat && !isTask && (!isSmallScreenWidth || isMobileSelectionModeEnabled);
     const ListItem = getListItem(type, status, validGroupBy);
 
-    const sortedItems = useSearchSections(type, status, filteredData, localeCompare, translate, sortBy, sortOrder, validGroupBy);
+    const sortedItems = useSearchSections(type, status, filteredData, sortBy, sortOrder, validGroupBy);
 
     const sortedData = useMemo(
         () =>

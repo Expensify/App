@@ -1,25 +1,24 @@
 import {useEffect, useMemo, useRef} from 'react';
-import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import type {SearchColumnType, SearchGroupBy, SearchStatus, SortOrder} from '@components/Search/types';
+import useLocalize from '@hooks/useLocalize';
 import {saveSortedReportIDs} from '@libs/actions/ReportNavigation';
 import {getSortedSections} from '@libs/SearchUIUtils';
 import type {ListItemDataType, SearchDataTypes} from '@src/types/onyx/SearchResults';
 
 /**
  * Sorts search result sections and persists the sorted report IDs to Onyx so that
- * useSearchSectionsState can read them in MoneyRequestReportNavigation without any recomputation.
+ * report navigation can read them without heavy recomputation.
  */
 function useSearchSections<T extends SearchDataTypes, S extends SearchStatus>(
     type: T,
     status: S,
     data: ListItemDataType<T, S>,
-    localeCompare: LocaleContextProps['localeCompare'],
-    translate: LocaleContextProps['translate'],
     sortBy?: SearchColumnType,
     sortOrder?: SortOrder,
     groupBy?: SearchGroupBy,
 ) {
-    const prevSortedKeyRef = useRef('');
+    const {translate, localeCompare} = useLocalize();
+    const prevReportIDs = useRef<Array<string | undefined> | null>(null);
 
     const sortedItems = useMemo(
         () => getSortedSections(type, status, data, localeCompare, translate, sortBy, sortOrder, groupBy),
@@ -28,12 +27,17 @@ function useSearchSections<T extends SearchDataTypes, S extends SearchStatus>(
 
     useEffect(() => {
         const reportIDs = sortedItems.map((item) => item.reportID);
-        const sortedKey = reportIDs.join(',');
-        if (sortedKey === prevSortedKeyRef.current) {
-            return;
+
+        // Persist once on first run (including empty arrays), then only when order/content changes.
+        const hasChanged =
+            prevReportIDs.current === null ||
+            prevReportIDs.current.length !== reportIDs.length ||
+            prevReportIDs.current.some((prevID, index) => prevID !== reportIDs[index]);
+
+        if (hasChanged) {
+            saveSortedReportIDs(reportIDs);
+            prevReportIDs.current = reportIDs;
         }
-        prevSortedKeyRef.current = sortedKey;
-        saveSortedReportIDs(reportIDs);
     }, [sortedItems]);
 
     return sortedItems;

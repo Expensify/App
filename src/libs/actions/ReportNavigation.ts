@@ -12,7 +12,7 @@ function clearLastSearchParams() {
 
 /**
  * Persists the pre-sorted report IDs computed by Search/index.tsx so that
- * MoneyRequestReportNavigation can read them without re-running getSections.
+ * deeper Search components can read them without re-running getSections().
  * Stored in a separate key so that saveLastSearchParams (Onyx.set) cannot wipe it.
  */
 function saveSortedReportIDs(sortedReportIDs: Array<string | undefined>) {

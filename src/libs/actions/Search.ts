@@ -539,6 +539,14 @@ function search({
                             allowPostSearchRecount: false,
                         });
                     }
+
+                    if (sortedReportIDs?.length) {
+                        const sortedReportIDSet = new Set(sortedReportIDs);
+                        const appendedReportIDs = reports.filter((reportID) => !sortedReportIDSet.has(reportID));
+                        if (appendedReportIDs.length) {
+                            saveSortedReportIDs([...sortedReportIDs, ...appendedReportIDs]);
+                        }
+                    }
                 } else {
                     // Applies to all searches from the Search View
                     saveLastSearchParams({
@@ -548,14 +556,6 @@ function search({
                         previousLengthOfResults: reports.length,
                         allowPostSearchRecount: true,
                     });
-
-                    if (sortedReportIDs?.length) {
-                        const sortedReportIDSet = new Set(sortedReportIDs);
-                        const appendedReportIDs = reports.filter((reportID) => !sortedReportIDSet.has(reportID));
-                        if (appendedReportIDs.length) {
-                            saveSortedReportIDs([...sortedReportIDs, ...appendedReportIDs]);
-                        }
-                    }
                 }
 
                 return result?.jsonCode;
