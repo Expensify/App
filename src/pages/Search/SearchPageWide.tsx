@@ -10,8 +10,6 @@ import Search from '@components/Search';
 import {useSearchStateContext} from '@components/Search/SearchContext';
 import SearchLoadingSkeleton from '@components/Search/SearchLoadingSkeleton';
 import SearchPageFooter from '@components/Search/SearchPageFooter';
-import SearchFiltersBar from '@components/Search/SearchPageHeader/SearchFiltersBar';
-import SearchPageHeader from '@components/Search/SearchPageHeader/SearchPageHeader';
 import type {SearchParams, SearchQueryJSON} from '@components/Search/types';
 import useNetwork from '@hooks/useNetwork';
 import useSearchLoadingState from '@hooks/useSearchLoadingState';
@@ -24,6 +22,8 @@ import Navigation from '@navigation/Navigation';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {SearchResults} from '@src/types/onyx';
+import SearchActionsBarWide from '@components/Search/SearchPageHeader/SearchActionsBarWide';
+import SearchPageHeaderWide from '@components/Search/SearchPageHeader/SearchPageHeaderWide';
 
 type SearchPageWideProps = {
     queryJSON?: SearchQueryJSON;
@@ -99,14 +99,12 @@ function SearchPageWide({
                 >
                     {!!queryJSON && (
                         <>
-                            <SearchPageHeader
+                            <SearchPageHeaderWide queryJSON={queryJSON} />
+                            <SearchActionsBarWide
                                 queryJSON={queryJSON}
+                                searchResults={searchResults}
+                                onSort={onSortPressedCallback}
                                 handleSearch={handleSearchAction}
-                                isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
-                            />
-                            <SearchFiltersBar
-                                queryJSON={queryJSON}
-                                isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
                             />
                             {shouldShowLoadingSkeleton ? (
                                 <SearchLoadingSkeleton

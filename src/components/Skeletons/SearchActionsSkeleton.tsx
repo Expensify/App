@@ -31,7 +31,7 @@ function SearchActionsSkeleton({shouldAnimate = true, itemCount = 5, width = 84,
     const skeletonCount = new Array(itemCount).fill(0);
 
     return (
-        <View style={[styles.mh5, styles.mb4, styles.mt2]}>
+        <View style={[styles.mh5, styles.mb4, styles.mt3]}>
             <SkeletonViewContentLoader
                 animate={shouldAnimate}
                 width={width}

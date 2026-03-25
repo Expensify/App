@@ -490,7 +490,7 @@ function SearchList({
     const isSelectAllChecked = selectedItemsLength > 0 && selectedItemsLength === totalItems && hasLoadedAllTransactions;
 
     const content = (
-        <View style={[styles.flex1, !isKeyboardShown && safeAreaPaddingBottomStyle, containerStyle]}>
+        <View style={[styles.flex1, !isKeyboardShown && safeAreaPaddingBottomStyle, styles.gap2, containerStyle]}>
             {tableHeaderVisible && (
                 <View style={[styles.searchListHeaderContainerStyle, styles.listTableHeader]}>
                     {canSelectMultiple && (

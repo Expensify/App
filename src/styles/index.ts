@@ -2538,11 +2538,7 @@ const staticStyles = (theme: ThemeColors) =>
 
         searchResultsHeaderBar: {
             display: 'flex',
-            height: variables.contentHeaderDesktopHeight,
-            zIndex: variables.popoverZIndex,
             position: 'relative',
-            paddingLeft: 20,
-            paddingRight: 12,
         },
 
         newSearchResultsHeaderBar: {
@@ -3466,7 +3462,6 @@ const staticStyles = (theme: ThemeColors) =>
         searchAutocompleteInputResults: {
             borderWidth: 1,
             borderColor: theme.bordersBold,
-            height: 54,
         },
 
         newSearchAutocompleteInputResults: {
@@ -3489,10 +3484,6 @@ const staticStyles = (theme: ThemeColors) =>
 
         height4: {
             height: 16,
-        },
-
-        searchListContentContainerStyles: {
-            paddingTop: variables.searchListContentMarginTop,
         },
 
         searchListHeaderContainerStyle: {
@@ -4770,7 +4761,8 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         listTableHeader: {
-            paddingVertical: 12,
+            paddingTop: 4,
+            paddingBottom: 4,
             paddingHorizontal: 32,
         },
 
@@ -4876,12 +4868,6 @@ const staticStyles = (theme: ThemeColors) =>
             marginTop: 3,
         },
 
-        searchFiltersBarContainer: {
-            marginTop: 8,
-            flexDirection: 'row',
-            alignItems: 'center',
-        },
-
         searchActionsBarContainer: {
             marginTop: 12,
             marginBottom: 16,
@@ -4892,7 +4878,6 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         searchActionsBarCreateButton: {
-            marginLeft: 'auto',
             alignSelf: 'flex-start',
         },
 
@@ -6213,6 +6198,10 @@ const dynamicStyles = (theme: ThemeColors) =>
 
         searchBarWidth: (shouldUseNarrowLayout: boolean) => ({
             maxWidth: shouldUseNarrowLayout ? '100%' : 300,
+        }),
+
+        searchListContentContainerStyles: (isSearchInputVisible) => ({
+            paddingTop: isSearchInputVisible ? variables.searchListContentWithInputMarginTop : variables.searchListContentMarginTop,
         }),
 
         getForYouSectionContainerStyle: (shouldUseNarrowLayout: boolean): ViewStyle => ({

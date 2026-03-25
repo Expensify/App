@@ -71,7 +71,6 @@ const FILTER_KEY_TO_COMPONENT: Partial<Record<SearchAdvancedFiltersKey, React.Co
     [FILTER_KEYS.FEED]: FeedDropdown,
 };
 
-// NOTE: This is intentionally unused for now. It will be wired up in https://github.com/Expensify/App/issues/84876
 function SearchActionsBarWide({queryJSON, searchResults, handleSearch, onSort}: SearchActionsBarWideProps) {
     const {filters, hasErrors, shouldShowActionsBarLoading, shouldShowSelectedDropdown, styles} = useSearchActionsBar(queryJSON, false);
 
