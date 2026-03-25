@@ -22,7 +22,7 @@ import useRootNavigationState from './useRootNavigationState';
  * It resolves the last visited route from navigation state, fetches the matching policy/domain
  * from Onyx (to verify it's still accessible), and returns a callback that performs the navigation.
  */
-function useNavigateToWorkspacesPage() {
+function useRestoreWorkspacesTabOnNavigate() {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {login: currentUserLogin} = useCurrentUserPersonalDetails();
 
@@ -95,4 +95,4 @@ function useNavigateToWorkspacesPage() {
     }, [shouldUseNarrowLayout, currentUserLogin, lastViewedPolicy, lastViewedDomain, lastWorkspacesTabNavigatorRoute, topmostFullScreenRoute]);
 }
 
-export default useNavigateToWorkspacesPage;
+export default useRestoreWorkspacesTabOnNavigate;

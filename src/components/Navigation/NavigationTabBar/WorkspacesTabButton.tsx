@@ -3,7 +3,7 @@ import type {ValueOf} from 'type-fest';
 import {PressableWithFeedback} from '@components/Pressable';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import useNavigateToWorkspacesPage from '@hooks/useNavigateToWorkspacesPage';
+import useRestoreWorkspacesTabOnNavigate from '@hooks/useRestoreWorkspacesTabOnNavigate';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspacesTabIndicatorStatus from '@hooks/useWorkspacesTabIndicatorStatus';
 import CONST from '@src/CONST';
@@ -21,7 +21,7 @@ function WorkspacesTabButton({selectedTab, isWideLayout}: WorkspacesTabButtonPro
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Buildings']);
     const {indicatorColor: workspacesTabIndicatorColor, status: workspacesTabIndicatorStatus} = useWorkspacesTabIndicatorStatus();
 
-    const navigateToWorkspaces = useNavigateToWorkspacesPage();
+    const navigateToWorkspaces = useRestoreWorkspacesTabOnNavigate();
 
     const workspacesAccessibilityState = {selected: selectedTab === NAVIGATION_TABS.WORKSPACES};
     const workspacesStatusIndicatorColor = workspacesTabIndicatorStatus ? workspacesTabIndicatorColor : undefined;

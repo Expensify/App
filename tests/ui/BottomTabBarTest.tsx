@@ -33,7 +33,7 @@ jest.mock('@src/hooks/useRootNavigationState', () => {
     }));
 });
 
-jest.mock('@hooks/useNavigateToWorkspacesPage', () => jest.fn(() => jest.fn()));
+jest.mock('@hooks/useRestoreWorkspacesTabOnNavigate', () => jest.fn(() => jest.fn()));
 
 // Helper function to render with proper navigation setup
 const renderWithNavigation = (component: React.ReactElement) => {
