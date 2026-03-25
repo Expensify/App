@@ -565,6 +565,7 @@ function BaseSelectionList<TItem extends ListItem>({
                         showsVerticalScrollIndicator={showScrollIndicator}
                         onEndReached={onEndReached}
                         onEndReachedThreshold={onEndReachedThreshold}
+                        testID="selection-list"
                         style={style?.listStyle}
                         contentContainerStyle={[styles.pb3, style?.contentContainerStyle]}
                         initialScrollIndex={shouldScrollToFocusedIndexOnMount ? initialFocusedIndex : undefined}
