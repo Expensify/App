@@ -135,7 +135,6 @@ function useSettlementData({
         activeAdminPolicies,
         paymentMethods,
         bankAccountList,
-        fundList,
         getFilteredBankItems,
     };
 }
