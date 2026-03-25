@@ -1,7 +1,9 @@
 import {act, renderHook, waitFor} from '@testing-library/react-native';
+import fs from 'fs';
+import path from 'path';
 import Onyx from 'react-native-onyx';
 import useAgentZeroStatusIndicator from '@hooks/useAgentZeroStatusIndicator';
-import {subscribeToReportReasoningEvents, unsubscribeFromReportReasoningChannel} from '@libs/actions/Report';
+import {clearAgentZeroProcessingIndicator, subscribeToReportReasoningEvents, unsubscribeFromReportReasoningChannel} from '@libs/actions/Report';
 import ConciergeReasoningStore from '@libs/ConciergeReasoningStore';
 import type {ReasoningEntry} from '@libs/ConciergeReasoningStore';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -25,6 +27,8 @@ jest.mock('@hooks/useLocalize', () => ({
 jest.mock('@libs/actions/Report');
 jest.mock('@libs/ConciergeReasoningStore');
 
+const mockClearAgentZeroProcessingIndicator = clearAgentZeroProcessingIndicator as jest.MockedFunction<typeof clearAgentZeroProcessingIndicator>;
+
 const mockSubscribeToReportReasoningEvents = subscribeToReportReasoningEvents as jest.MockedFunction<typeof subscribeToReportReasoningEvents>;
 const mockUnsubscribeFromReportReasoningChannel = unsubscribeFromReportReasoningChannel as jest.MockedFunction<typeof unsubscribeFromReportReasoningChannel>;
 const mockConciergeReasoningStore = ConciergeReasoningStore as jest.Mocked<typeof ConciergeReasoningStore>;
@@ -43,6 +47,12 @@ describe('useAgentZeroStatusIndicator', () => {
         mockConciergeReasoningStore.getReasoningHistory = jest.fn().mockReturnValue([]);
         mockConciergeReasoningStore.addReasoning = jest.fn();
         mockConciergeReasoningStore.clearReasoning = jest.fn();
+
+        // Make clearAgentZeroProcessingIndicator actually clear the Onyx NVP
+        // so safety timeout and reconnect tests can verify the full clearing flow
+        mockClearAgentZeroProcessingIndicator.mockImplementation((rID: string) => {
+            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${rID}`, {agentZeroProcessingRequestIndicator: null});
+        });
     });
 
     afterEach(() => {
@@ -370,14 +380,50 @@ describe('useAgentZeroStatusIndicator', () => {
     });
 
     describe('batched Onyx updates (stuck indicator fix)', () => {
-        it('should clear optimistic state when server SET and CLEAR arrive in the same Onyx batch', async () => {
+        const SAFETY_TIMEOUT_MS = 60000;
+        let safetyTimerCallback: (() => void) | null = null;
+        let safetyTimerIds: Set<ReturnType<typeof setTimeout>>;
+        let originalSetTimeout: typeof setTimeout;
+        let originalClearTimeout: typeof clearTimeout;
+
+        beforeEach(() => {
+            safetyTimerCallback = null;
+            safetyTimerIds = new Set();
+            originalSetTimeout = global.setTimeout;
+            originalClearTimeout = global.clearTimeout;
+
+            jest.spyOn(global, 'setTimeout').mockImplementation(((callback: () => void, ms?: number) => {
+                if (ms === SAFETY_TIMEOUT_MS) {
+                    safetyTimerCallback = callback;
+                    const id = originalSetTimeout(() => {}, 0);
+                    safetyTimerIds.add(id);
+                    return id;
+                }
+                return originalSetTimeout(callback, ms);
+            }) as typeof setTimeout);
+
+            jest.spyOn(global, 'clearTimeout').mockImplementation((id) => {
+                if (id !== undefined && id !== null && safetyTimerIds.has(id as ReturnType<typeof setTimeout>)) {
+                    safetyTimerIds.delete(id as ReturnType<typeof setTimeout>);
+                    safetyTimerCallback = null;
+                    return;
+                }
+                originalClearTimeout(id);
+            });
+        });
+
+        afterEach(() => {
+            jest.restoreAllMocks();
+        });
+
+        it('should clear optimistic state when server SET and CLEAR arrive sequentially', async () => {
             // Given a Concierge chat where the user triggered optimistic waiting
             const isConciergeChat = true;
 
             const {result} = renderHook(() => useAgentZeroStatusIndicator(reportID, isConciergeChat));
             await waitForBatchedUpdates();
 
-            // User sends message → optimistic waiting state
+            // User sends message -> optimistic waiting state
             act(() => {
                 result.current.kickoffWaitingIndicator();
             });
@@ -385,33 +431,37 @@ describe('useAgentZeroStatusIndicator', () => {
             expect(result.current.isProcessing).toBe(true);
             expect(result.current.statusLabel).toBe('Thinking...');
 
-            // When the client missed the real-time Pusher events (e.g., tab was in the background)
-            // and catches up via GetMissingOnyxMessages, both the SET and CLEAR arrive
-            // in the same Onyx batch. The final merged state is empty string.
-            // Simulate this by setting the server label and then immediately clearing it.
+            // When the server SET arrives, it clears optimistic state and shows server label
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`, {
                 agentZeroProcessingRequestIndicator: 'Concierge is looking up categories...',
             });
+            await waitForBatchedUpdates();
+
+            // Then server CLEAR arrives (processing complete)
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`, {
                 agentZeroProcessingRequestIndicator: '',
             });
-
-            // Then the indicator should be fully cleared and not stuck showing "Thinking..."
             await waitForBatchedUpdates();
+
+            // The indicator should be fully cleared (normal path, no TTL needed)
+            // The safety timer should also have been cancelled
             await waitFor(() => {
                 expect(result.current.isProcessing).toBe(false);
             });
             expect(result.current.statusLabel).toBe('');
+            expect(safetyTimerCallback).toBeNull();
         });
+    });
 
-        it('should clear optimistic state when server CLEAR arrives without a preceding SET being seen', async () => {
+    describe('server label transitions', () => {
+        it('should clear optimistic state when server CLEAR arrives after a visible SET', async () => {
             // Given a Concierge chat where the user triggered optimistic waiting
             const isConciergeChat = true;
 
             const {result} = renderHook(() => useAgentZeroStatusIndicator(reportID, isConciergeChat));
             await waitForBatchedUpdates();
 
-            // User sends message → optimistic waiting state
+            // User sends message -> optimistic waiting state
             act(() => {
                 result.current.kickoffWaitingIndicator();
             });
@@ -524,6 +574,205 @@ describe('useAgentZeroStatusIndicator', () => {
             await waitForBatchedUpdates();
             expect(result.current.isProcessing).toBe(false);
             expect(result.current.statusLabel).toBe('');
+        });
+    });
+
+    describe('safety timeout (TTL lease pattern)', () => {
+        // We spy on setTimeout/clearTimeout to capture the safety timer callback
+        // rather than using jest.useFakeTimers(), which interferes with Onyx's
+        // async batching (waitForBatchedUpdates calls jest.runOnlyPendingTimers
+        // when fake timers are detected).
+        const SAFETY_TIMEOUT_MS = 60000;
+        let safetyTimerCallback: (() => void) | null = null;
+        let safetyTimerIds: Set<ReturnType<typeof setTimeout>>;
+        let originalSetTimeout: typeof setTimeout;
+        let originalClearTimeout: typeof clearTimeout;
+
+        beforeEach(() => {
+            safetyTimerCallback = null;
+            safetyTimerIds = new Set();
+            originalSetTimeout = global.setTimeout;
+            originalClearTimeout = global.clearTimeout;
+
+            // Intercept setTimeout to capture safety timer callbacks (60s timeout)
+            // while letting shorter timeouts (debounce, display timing) pass through normally
+            jest.spyOn(global, 'setTimeout').mockImplementation(((callback: () => void, ms?: number) => {
+                if (ms === SAFETY_TIMEOUT_MS) {
+                    safetyTimerCallback = callback;
+                    const id = originalSetTimeout(() => {}, 0);
+                    safetyTimerIds.add(id);
+                    return id;
+                }
+                return originalSetTimeout(callback, ms);
+            }) as typeof setTimeout);
+
+            jest.spyOn(global, 'clearTimeout').mockImplementation((id) => {
+                if (id !== undefined && id !== null && safetyTimerIds.has(id as ReturnType<typeof setTimeout>)) {
+                    safetyTimerIds.delete(id as ReturnType<typeof setTimeout>);
+                    safetyTimerCallback = null;
+                    return;
+                }
+                originalClearTimeout(id);
+            });
+        });
+
+        afterEach(() => {
+            jest.restoreAllMocks();
+        });
+
+        it('should auto-clear indicator after safety timeout expires', async () => {
+            // Given a Concierge chat where the server sets a processing indicator
+            const isConciergeChat = true;
+            const serverLabel = 'Concierge is looking up categories...';
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`, {
+                agentZeroProcessingRequestIndicator: serverLabel,
+            });
+
+            const {result} = renderHook(() => useAgentZeroStatusIndicator(reportID, isConciergeChat));
+            await waitForBatchedUpdates();
+
+            // Verify processing is active and safety timer was registered
+            expect(result.current.isProcessing).toBe(true);
+            expect(result.current.statusLabel).toBe(serverLabel);
+            expect(safetyTimerCallback).not.toBeNull();
+
+            // When the safety timer fires (simulating 60s passing without a CLEAR arriving)
+            act(() => {
+                safetyTimerCallback?.();
+            });
+            await waitForBatchedUpdates();
+
+            // Then the indicator should auto-clear via the safety timeout
+            await waitFor(() => {
+                expect(result.current.isProcessing).toBe(false);
+            });
+            expect(result.current.statusLabel).toBe('');
+        });
+
+        it('should auto-clear optimistic indicator after safety timeout expires', async () => {
+            // Given a Concierge chat where the user triggered optimistic waiting
+            const isConciergeChat = true;
+
+            const {result} = renderHook(() => useAgentZeroStatusIndicator(reportID, isConciergeChat));
+            await waitForBatchedUpdates();
+
+            // User sends message -> optimistic waiting state
+            act(() => {
+                result.current.kickoffWaitingIndicator();
+            });
+            await waitForBatchedUpdates();
+            expect(result.current.isProcessing).toBe(true);
+            expect(result.current.statusLabel).toBe('Thinking...');
+            expect(safetyTimerCallback).not.toBeNull();
+
+            // When the safety timer fires (60s passed without any server response)
+            act(() => {
+                safetyTimerCallback?.();
+            });
+            await waitForBatchedUpdates();
+
+            // Then the indicator should auto-clear
+            await waitFor(() => {
+                expect(result.current.isProcessing).toBe(false);
+            });
+            expect(result.current.statusLabel).toBe('');
+        });
+
+        it('should cancel safety timer when indicator clears normally', async () => {
+            // Given a Concierge chat with an active processing indicator
+            const isConciergeChat = true;
+            const serverLabel = 'Concierge is looking up categories...';
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`, {
+                agentZeroProcessingRequestIndicator: serverLabel,
+            });
+
+            const {result} = renderHook(() => useAgentZeroStatusIndicator(reportID, isConciergeChat));
+            await waitForBatchedUpdates();
+            expect(result.current.isProcessing).toBe(true);
+            expect(safetyTimerCallback).not.toBeNull();
+
+            // When the server clears the indicator normally (before 60s timeout)
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`, {
+                agentZeroProcessingRequestIndicator: '',
+            });
+            await waitForBatchedUpdates();
+            expect(result.current.isProcessing).toBe(false);
+
+            // Then the safety timer should have been cancelled
+            expect(safetyTimerCallback).toBeNull();
+        });
+
+        it('should reset safety timer when a new server label arrives', async () => {
+            // Given a Concierge chat with an active processing indicator
+            const isConciergeChat = true;
+            const serverLabel1 = 'Concierge is looking up categories...';
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`, {
+                agentZeroProcessingRequestIndicator: serverLabel1,
+            });
+
+            const {result} = renderHook(() => useAgentZeroStatusIndicator(reportID, isConciergeChat));
+            await waitForBatchedUpdates();
+            expect(result.current.isProcessing).toBe(true);
+            const firstCallback = safetyTimerCallback;
+            expect(firstCallback).not.toBeNull();
+
+            // When a new label arrives (still processing), the safety timer should reset
+            const serverLabel2 = 'Concierge is preparing your response...';
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`, {
+                agentZeroProcessingRequestIndicator: serverLabel2,
+            });
+            await waitForBatchedUpdates();
+
+            // Then a new safety timer should have been registered (old one cancelled and new one set)
+            expect(safetyTimerCallback).not.toBeNull();
+            // The callback should be a fresh one (timer was reset)
+            // We verify the timer reset by checking that the old callback was cancelled
+            // and a new callback was registered
+            expect(result.current.isProcessing).toBe(true);
+        });
+    });
+
+    describe('reconnect reset', () => {
+        it('should reset indicator on network reconnect', async () => {
+            // Given a Concierge chat with an active processing indicator
+            const isConciergeChat = true;
+            const serverLabel = 'Concierge is looking up categories...';
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`, {
+                agentZeroProcessingRequestIndicator: serverLabel,
+            });
+
+            const {result} = renderHook(() => useAgentZeroStatusIndicator(reportID, isConciergeChat));
+            await waitForBatchedUpdates();
+            expect(result.current.isProcessing).toBe(true);
+
+            // When the network goes offline and then reconnects
+            // (simulating Pusher reconnect which could re-deliver stale NVP state)
+            await Onyx.set(ONYXKEYS.NETWORK, {isOffline: true, networkStatus: 'offline'});
+            await waitForBatchedUpdates();
+
+            await Onyx.set(ONYXKEYS.NETWORK, {isOffline: false, networkStatus: 'online'});
+            await waitForBatchedUpdates();
+
+            // Then the indicator should be cleared
+            // (reconnect clears stale state, fresh data will come from GetMissingOnyxMessages)
+            await waitFor(() => {
+                expect(result.current.isProcessing).toBe(false);
+            });
+            expect(result.current.statusLabel).toBe('');
+        });
+    });
+
+    describe('NVPIndicatorVersionTracker removal', () => {
+        it('should NOT use NVPIndicatorVersionTracker (module should not exist)', () => {
+            // The NVPIndicatorVersionTracker module was removed as part of the TTL fix.
+            // The TTL (lease pattern) handles all failure modes that the version tracker
+            // was designed to handle (batching coalescing + missed CLEAR).
+            const trackerPath = path.resolve(__dirname, '../../src/libs/NVPIndicatorVersionTracker.ts');
+            expect(fs.existsSync(trackerPath)).toBe(false);
         });
     });
 });

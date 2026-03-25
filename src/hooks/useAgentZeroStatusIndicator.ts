@@ -1,8 +1,7 @@
 import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {subscribeToReportReasoningEvents, unsubscribeFromReportReasoningChannel} from '@libs/actions/Report';
+import {clearAgentZeroProcessingIndicator, subscribeToReportReasoningEvents, unsubscribeFromReportReasoningChannel} from '@libs/actions/Report';
 import ConciergeReasoningStore from '@libs/ConciergeReasoningStore';
 import type {ReasoningEntry} from '@libs/ConciergeReasoningStore';
-import NVPIndicatorVersionTracker from '@libs/NVPIndicatorVersionTracker';
 import ONYXKEYS from '@src/ONYXKEYS';
 import useLocalize from './useLocalize';
 import useNetwork from './useNetwork';
@@ -14,6 +13,20 @@ type AgentZeroStatusState = {
     statusLabel: string;
     kickoffWaitingIndicator: () => void;
 };
+
+/**
+ * Safety timeout for the processing indicator (lease pattern).
+ * If the client misses the server CLEAR update (e.g., Onyx batching coalesced SET+CLEAR,
+ * Pusher reconnect delivered stale state, or the CLEAR was dropped), the indicator
+ * auto-expires after this duration. This follows the "lease pattern" from distributed
+ * systems: every state assertion must be time-bounded.
+ *
+ * 60s is appropriate because:
+ * - AI processing can take 30-45s on dev environments
+ * - XMPP uses 30s for composing to paused transitions
+ * - This gives a comfortable margin above normal processing time
+ */
+const SAFETY_TIMEOUT_MS = 60000;
 
 /**
  * Hook to manage AgentZero status indicator for chats where AgentZero responds.
@@ -32,45 +45,57 @@ function useAgentZeroStatusIndicator(reportID: string, isAgentZeroChat: boolean)
     const prevServerLabelRef = useRef<string>(serverLabel);
     const updateTimerRef = useRef<NodeJS.Timeout | null>(null);
     const lastUpdateTimeRef = useRef<number>(0);
-    const {isOffline} = useNetwork();
-
-    // Tracks outstanding concierge requests to handle rapid multi-message sends.
-    // Each kickoffWaitingIndicator increments pendingKickoffs; each detected server
-    // roundtrip completion (NVP version bump) decrements it. The optimistic "thinking"
-    // state is only cleared when all pending requests have been processed.
-    // This prevents msg1's response from clearing the indicator while msg2 is still pending.
-    const nvpVersionRef = useRef<number>(0);
-    const pendingKickoffsRef = useRef<number>(0);
+    const safetyTimerRef = useRef<NodeJS.Timeout | null>(null);
 
     // Minimum time to display a label before allowing change (prevents rapid flicker)
     const MIN_DISPLAY_TIME = 300; // ms
     // Debounce delay for server label updates
     const DEBOUNCE_DELAY = 150; // ms
 
-    // Subscribe to NVP indicator version tracking via a lib-level Onyx.connect.
-    // The tracker fires its callback for each merge (before Onyx's internal batching
-    // coalesces them for React subscribers via useSyncExternalStore). This lets us
-    // detect changes that useOnyx's rendered value might skip.
-    useEffect(() => {
-        const unsubscribeConnection = NVPIndicatorVersionTracker.subscribe(reportID);
-        const unsubscribeListener = NVPIndicatorVersionTracker.addListener((updatedReportID, version) => {
-            if (updatedReportID !== reportID) {
-                return;
-            }
-            // Each server roundtrip produces 2 version bumps (SET + CLEAR).
-            // When a full cycle completes, decrement the pending counter.
-            const previousVersion = nvpVersionRef.current;
-            nvpVersionRef.current = version;
-            if (pendingKickoffsRef.current > 0 && version >= previousVersion + 2) {
-                pendingKickoffsRef.current = Math.max(0, pendingKickoffsRef.current - 1);
-            }
-        });
+    /**
+     * Clear the safety timeout. Called when the indicator clears normally
+     * or when the component unmounts.
+     */
+    const clearSafetyTimer = useCallback(() => {
+        if (!safetyTimerRef.current) {
+            return;
+        }
+        clearTimeout(safetyTimerRef.current);
+        safetyTimerRef.current = null;
+    }, []);
 
-        return () => {
-            unsubscribeListener();
-            unsubscribeConnection();
-        };
+    /**
+     * Auto-clear the indicator by resetting local state and clearing the Onyx NVP.
+     * This is the "lease expiry" — if no renewal (new server label) or explicit clear
+     * arrived within the timeout window, assume the indicator is stale.
+     */
+    const autoClearIndicator = useCallback(() => {
+        setOptimisticStartTime(null);
+        setDisplayedLabel('');
+        clearAgentZeroProcessingIndicator(reportID);
+        safetyTimerRef.current = null;
     }, [reportID]);
+
+    /**
+     * Start or reset the safety timeout. Every time processing becomes active
+     * or the server label changes (renewal), the timer resets to the full duration.
+     */
+    const startSafetyTimer = useCallback(() => {
+        clearSafetyTimer();
+        safetyTimerRef.current = setTimeout(autoClearIndicator, SAFETY_TIMEOUT_MS);
+    }, [clearSafetyTimer, autoClearIndicator]);
+
+    // Clear indicator on network reconnect. When Pusher reconnects, stale NVP state
+    // may be re-delivered. Like typing indicators (Report/index.ts:486), we reset
+    // the indicator and let fresh data arrive via GetMissingOnyxMessages.
+    const {isOffline} = useNetwork({
+        onReconnect: () => {
+            clearSafetyTimer();
+            setOptimisticStartTime(null);
+            setDisplayedLabel('');
+            clearAgentZeroProcessingIndicator(reportID);
+        },
+    });
 
     useEffect(() => {
         setReasoningHistory(ConciergeReasoningStore.getReasoningHistory(reportID));
@@ -105,11 +130,6 @@ function useAgentZeroStatusIndicator(reportID: string, isAgentZeroChat: boolean)
         const hadServerLabel = !!prevServerLabelRef.current;
         const hasServerLabel = !!serverLabel;
 
-        // All pending requests have been processed when the counter reaches zero.
-        // This correctly handles rapid multi-message sends: each kickoff increments
-        // the counter, and each server roundtrip (detected via version jumps) decrements it.
-        const allRequestsProcessed = pendingKickoffsRef.current <= 0;
-
         // Helper function to update label with timing control
         const updateLabel = (newLabel: string) => {
             const now = Date.now();
@@ -141,32 +161,29 @@ function useAgentZeroStatusIndicator(reportID: string, isAgentZeroChat: boolean)
             }
         };
 
-        // When server label arrives, transition smoothly without flicker
+        // When server label arrives, transition smoothly without flicker.
+        // Start/reset the safety timer — the label acts as a lease renewal.
         if (hasServerLabel) {
             updateLabel(serverLabel);
+            startSafetyTimer();
             if (optimisticStartTime) {
                 setOptimisticStartTime(null);
             }
         }
         // When optimistic state is active but no server label, show "Concierge is thinking..."
-        // Only persist optimistic state when the server has NOT yet processed the request.
-        // If the server already set and cleared the indicator (detected via version counter),
-        // the optimistic state is stale and should be cleared immediately.
-        else if (optimisticStartTime && !allRequestsProcessed) {
+        else if (optimisticStartTime) {
             const thinkingLabel = translate('common.thinking');
             updateLabel(thinkingLabel);
+            // Safety timer was already started in kickoffWaitingIndicator
         }
         // Clear everything when processing ends — either via the normal transition
-        // (server label went from non-empty to empty), or when the optimistic state
-        // is stale (server responded and cleared but Onyx batching coalesced the updates).
+        // (server label went from non-empty to empty), or when the indicator is idle.
         else {
+            clearSafetyTimer();
             if (displayedLabel !== '') {
                 updateLabel('');
             }
-            if (optimisticStartTime) {
-                setOptimisticStartTime(null);
-            }
-            if ((hadServerLabel || allRequestsProcessed) && reasoningHistory.length > 0) {
+            if (hadServerLabel && reasoningHistory.length > 0) {
                 ConciergeReasoningStore.clearReasoning(reportID);
             }
         }
@@ -180,7 +197,7 @@ function useAgentZeroStatusIndicator(reportID: string, isAgentZeroChat: boolean)
             }
             clearTimeout(updateTimerRef.current);
         };
-    }, [serverLabel, reasoningHistory.length, reportID, optimisticStartTime, translate, displayedLabel]);
+    }, [serverLabel, reasoningHistory.length, reportID, optimisticStartTime, translate, displayedLabel, startSafetyTimer, clearSafetyTimer]);
 
     useEffect(() => {
         if (isOffline) {
@@ -189,13 +206,21 @@ function useAgentZeroStatusIndicator(reportID: string, isAgentZeroChat: boolean)
         setOptimisticStartTime(null);
     }, [isOffline]);
 
+    // Clean up safety timer on unmount
+    useEffect(
+        () => () => {
+            clearSafetyTimer();
+        },
+        [clearSafetyTimer],
+    );
+
     const kickoffWaitingIndicator = useCallback(() => {
         if (!isAgentZeroChat) {
             return;
         }
-        pendingKickoffsRef.current += 1;
         setOptimisticStartTime(Date.now());
-    }, [isAgentZeroChat]);
+        startSafetyTimer();
+    }, [isAgentZeroChat, startSafetyTimer]);
 
     const isProcessing = isAgentZeroChat && !isOffline && (!!serverLabel || !!optimisticStartTime);
 

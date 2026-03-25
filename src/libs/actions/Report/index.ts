@@ -627,6 +627,16 @@ function unsubscribeFromReportReasoningChannel(reportID: string) {
     reasoningSubscriptions.delete(reportID);
 }
 
+/**
+ * Clear the AgentZero processing indicator for a report.
+ * Used by the safety timeout (lease pattern) and network reconnect handler
+ * to auto-clear stale indicators when the CLEAR update was missed.
+ */
+function clearAgentZeroProcessingIndicator(reportID: string) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`, {agentZeroProcessingRequestIndicator: null});
+    ConciergeReasoningStore.clearReasoning(reportID);
+}
+
 // New action subscriber array for report pages
 let newActionSubscribers: ActionSubscriber[] = [];
 
@@ -7252,6 +7262,7 @@ export {
     startNewChat,
     subscribeToNewActionEvent,
     subscribeToReportLeavingEvents,
+    clearAgentZeroProcessingIndicator,
     subscribeToReportReasoningEvents,
     subscribeToReportTypingEvents,
     toggleEmojiReaction,
