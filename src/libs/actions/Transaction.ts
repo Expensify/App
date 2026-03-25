@@ -845,12 +845,14 @@ function changeTransactionsReport({
     toLocaleDigit,
 }: ChangeTransactionsReportProps) {
     const reportID = newReport?.reportID ?? CONST.REPORT.UNREPORTED_REPORT_ID;
-
     const transactions = transactionIDs.map((id) => allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`]).filter((t): t is NonNullable<typeof t> => t !== undefined);
     const transactionIDToReportActionAndThreadData: Record<string, TransactionThreadInfo> = {};
     const updatedReportTotals: Record<string, number> = {};
     const updatedReportNonReimbursableTotals: Record<string, number> = {};
     const updatedReportUnheldNonReimbursableTotals: Record<string, number> = {};
+    const staleReportIDs = new Set<string>();
+    const targetReportCurrenciesByReport: Record<string, Set<string>> = {};
+    const optimisticPendingFieldsByReport: Record<string, Partial<NonNullable<Report['pendingFields']>>> = {};
 
     // Store current violations for each transaction to restore on failure
     const currentTransactionViolations: Record<string, TransactionViolation[]> = {};
@@ -987,6 +989,64 @@ function changeTransactionsReport({
 
     // Determine the destination currency for convertedAmount clearing logic
     const destinationCurrency = newReport?.currency ?? policy?.outputCurrency;
+    const mergeOptimisticPendingFields = (reportIDToUpdate: string | undefined, pendingFields: Partial<NonNullable<Report['pendingFields']>>) => {
+        if (!reportIDToUpdate) {
+            return;
+        }
+        optimisticPendingFieldsByReport[reportIDToUpdate] = {
+            ...optimisticPendingFieldsByReport[reportIDToUpdate],
+            ...pendingFields,
+        };
+    };
+    const clearOptimisticPendingFields = (reportIDToUpdate: string | undefined, fieldNames: Array<keyof NonNullable<Report['pendingFields']>>) => {
+        if (!reportIDToUpdate || !optimisticPendingFieldsByReport[reportIDToUpdate]) {
+            return;
+        }
+
+        for (const fieldName of fieldNames) {
+            delete optimisticPendingFieldsByReport[reportIDToUpdate][fieldName];
+        }
+
+        if (Object.keys(optimisticPendingFieldsByReport[reportIDToUpdate]).length === 0) {
+            delete optimisticPendingFieldsByReport[reportIDToUpdate];
+        }
+    };
+    const clearAccumulatedReportTotals = (reportIDToUpdate: string) => {
+        delete updatedReportTotals[reportIDToUpdate];
+        delete updatedReportNonReimbursableTotals[reportIDToUpdate];
+        delete updatedReportUnheldNonReimbursableTotals[reportIDToUpdate];
+    };
+    const markReportTotalsAsStale = (reportIDToUpdate: string | undefined) => {
+        if (!reportIDToUpdate) {
+            return;
+        }
+
+        staleReportIDs.add(reportIDToUpdate);
+        clearAccumulatedReportTotals(reportIDToUpdate);
+        mergeOptimisticPendingFields(reportIDToUpdate, {
+            preview: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+            total: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+        });
+    };
+    const clearStaleReportState = (reportIDToUpdate: string | undefined) => {
+        if (!reportIDToUpdate) {
+            return;
+        }
+
+        staleReportIDs.delete(reportIDToUpdate);
+        clearOptimisticPendingFields(reportIDToUpdate, ['preview', 'total']);
+    };
+    const getTargetReportCurrencies = (targetReportID: string) => {
+        if (!targetReportCurrenciesByReport[targetReportID]) {
+            targetReportCurrenciesByReport[targetReportID] = new Set(
+                getReportTransactions(targetReportID)
+                    .filter((transaction) => transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
+                    .map((transaction) => transaction.currency),
+            );
+        }
+
+        return targetReportCurrenciesByReport[targetReportID];
+    };
 
     for (const transaction of transactions) {
         const isUnreportedExpense = !transaction.reportID || transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
@@ -1151,7 +1211,6 @@ function changeTransactionsReport({
         const allowNegative = shouldEnableNegative(newReport);
 
         // 3. Keep track of the new report totals
-        const targetReportID = isUnreported ? selfDMReportID : reportID;
         const {amount: oldTransactionAmount = 0, currency: oldTransactionCurrency} = getTransactionDetails(transaction, undefined, undefined, allowNegative) ?? {};
         const {amount: newTransactionAmount = 0, currency: newTransactionCurrency} =
             getTransactionDetails(
@@ -1166,7 +1225,10 @@ function changeTransactionsReport({
             ) ?? {};
 
         const oldReportTotal = oldReport?.total ?? 0;
-
+        const targetReportID = isUnreported ? selfDMReportID : reportID;
+        const targetReportKey = `${ONYXKEYS.COLLECTION.REPORT}${targetReportID}`;
+        const targetReport =
+            allReports?.[targetReportKey] ?? (targetReportID === newReport?.reportID ? newReport : undefined) ?? (targetReportID === selfDMReport?.reportID ? selfDMReport : undefined);
         if (oldReport) {
             const oldReportCurrency = oldReport.currency;
             const remainingTransactions = getReportTransactions(oldReportID).filter(
@@ -1176,10 +1238,13 @@ function changeTransactionsReport({
             const willBeEmpty = remainingTransactions.length === 0;
 
             if (willBeEmpty) {
+                clearStaleReportState(oldReportID);
                 updatedReportTotals[oldReportID] = 0;
                 updatedReportNonReimbursableTotals[oldReportID] = 0;
                 updatedReportUnheldNonReimbursableTotals[oldReportID] = 0;
-            } else if (oldReportCurrency === oldTransactionCurrency) {
+            } else if (staleReportIDs.has(oldReportID) || oldReportCurrency !== oldTransactionCurrency) {
+                markReportTotalsAsStale(oldReportID);
+            } else {
                 const baseTotal = updatedReportTotals[oldReportID] ?? oldReportTotal;
 
                 const baseNonReimb = updatedReportNonReimbursableTotals[oldReportID] ?? oldReport?.nonReimbursableTotal ?? 0;
@@ -1200,48 +1265,16 @@ function changeTransactionsReport({
                 updatedReportTotals[oldReportID] = baseTotal + oldTransactionAmount;
                 updatedReportNonReimbursableTotals[oldReportID] = baseNonReimb + addToNonReimb;
                 updatedReportUnheldNonReimbursableTotals[oldReportID] = baseUnheld + addToUnheld;
-            } else {
-                optimisticData.push({
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: `${ONYXKEYS.COLLECTION.REPORT}${oldReport.reportID}`,
-                    value: {
-                        pendingFields: {
-                            preview: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-                            total: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-                        },
-                    },
-                });
-
-                failureData.push({
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: `${ONYXKEYS.COLLECTION.REPORT}${oldReport.reportID}`,
-                    value: {
-                        pendingFields: {
-                            preview: null,
-                            total: null,
-                        },
-                    },
-                });
-
-                successData.push({
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: `${ONYXKEYS.COLLECTION.REPORT}${oldReport.reportID}`,
-                    value: {
-                        pendingFields: {
-                            preview: null,
-                            total: null,
-                        },
-                    },
-                });
             }
         }
 
-        if (targetReportID) {
-            const targetReportKey = `${ONYXKEYS.COLLECTION.REPORT}${targetReportID}`;
-            const targetReport =
-                allReports?.[targetReportKey] ?? (targetReportID === newReport?.reportID ? newReport : undefined) ?? (targetReportID === selfDMReport?.reportID ? selfDMReport : undefined);
+        if (targetReportID && targetReport) {
+            const targetReportCurrencies = getTargetReportCurrencies(targetReportID);
+            const shouldMarkTargetReportAsStale = staleReportIDs.has(targetReportID) || new Set([...targetReportCurrencies, newTransactionCurrency]).size > 1;
 
-            if (newTransactionCurrency === targetReport?.currency) {
+            if (shouldMarkTargetReportAsStale) {
+                markReportTotalsAsStale(targetReportID);
+            } else if (newTransactionCurrency === targetReport.currency) {
                 const currentTotal = updatedReportTotals[targetReportID] ?? targetReport?.total ?? 0;
                 updatedReportTotals[targetReportID] = currentTotal - newTransactionAmount;
 
@@ -1250,7 +1283,7 @@ function changeTransactionsReport({
 
                 const currentUnheldNonReimbursableTotal = updatedReportUnheldNonReimbursableTotals[targetReportID] ?? targetReport?.unheldNonReimbursableTotal ?? 0;
                 updatedReportUnheldNonReimbursableTotals[targetReportID] = currentUnheldNonReimbursableTotal - (transactionReimbursable && !isOnHold(transaction) ? 0 : newTransactionAmount);
-            } else if (!shouldClearAmount && transaction.convertedAmount && oldReport?.currency === targetReport?.currency) {
+            } else if (!shouldClearAmount && transaction.convertedAmount && oldReport?.currency === targetReport.currency) {
                 // Use convertedAmount when transaction currency differs but workspace currency is the same
                 const {convertedAmount} = transaction;
                 const currentTotal = updatedReportTotals[targetReportID] ?? targetReport?.total ?? 0;
@@ -1263,40 +1296,7 @@ function changeTransactionsReport({
                 updatedReportUnheldNonReimbursableTotals[targetReportID] = currentUnheldNonReimbursableTotal + (transactionReimbursable && !isOnHold(transaction) ? 0 : convertedAmount);
             }
 
-            if (oldTransactionCurrency !== targetReport?.currency) {
-                optimisticData.push({
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: `${ONYXKEYS.COLLECTION.REPORT}${targetReportID}`,
-                    value: {
-                        pendingFields: {
-                            preview: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-                            total: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-                        },
-                    },
-                });
-
-                failureData.push({
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: `${ONYXKEYS.COLLECTION.REPORT}${targetReportID}`,
-                    value: {
-                        pendingFields: {
-                            preview: null,
-                            total: null,
-                        },
-                    },
-                });
-
-                successData.push({
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: `${ONYXKEYS.COLLECTION.REPORT}${targetReportID}`,
-                    value: {
-                        pendingFields: {
-                            preview: null,
-                            total: null,
-                        },
-                    },
-                });
-            }
+            targetReportCurrencies.add(newTransactionCurrency);
         }
 
         // 4. Optimistically update the IOU action reportID
@@ -1611,6 +1611,12 @@ function changeTransactionsReport({
     for (const reportIDToUpdate of Object.keys(updatedReportTotals)) {
         affectedReportIDs.add(reportIDToUpdate);
     }
+    for (const reportIDToUpdate of Object.keys(optimisticPendingFieldsByReport)) {
+        affectedReportIDs.add(reportIDToUpdate);
+    }
+    for (const reportIDToUpdate of staleReportIDs) {
+        affectedReportIDs.add(reportIDToUpdate);
+    }
 
     if (destinationReportID) {
         affectedReportIDs.add(destinationReportID);
@@ -1668,23 +1674,40 @@ function changeTransactionsReport({
             key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${nextStepOnyxReportID}`,
             value: optimisticNextStepForCollection,
         });
+        const optimisticPendingFields = {
+            ...affectedReport.pendingFields,
+            ...optimisticPendingFieldsByReport[affectedReportID],
+            nextStep: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+        };
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${affectedReportID}`,
             value: {
                 nextStep: optimisticNextStepForReport,
-                pendingFields: {
-                    nextStep: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-                },
+                pendingFields: optimisticPendingFields,
             },
         });
+        const successPendingFields: Partial<NonNullable<Report['pendingFields']>> = {
+            nextStep: null,
+        };
+        const failurePendingFields: Partial<NonNullable<Report['pendingFields']>> = {
+            nextStep: affectedReport.pendingFields?.nextStep ?? null,
+        };
+
+        if (optimisticPendingFieldsByReport[affectedReportID]?.preview) {
+            successPendingFields.preview = null;
+            failurePendingFields.preview = affectedReport.pendingFields?.preview ?? null;
+        }
+
+        if (optimisticPendingFieldsByReport[affectedReportID]?.total) {
+            successPendingFields.total = null;
+            failurePendingFields.total = affectedReport.pendingFields?.total ?? null;
+        }
         successData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${affectedReportID}`,
             value: {
-                pendingFields: {
-                    nextStep: null,
-                },
+                pendingFields: successPendingFields,
             },
         });
         // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
@@ -1698,9 +1721,7 @@ function changeTransactionsReport({
             key: `${ONYXKEYS.COLLECTION.REPORT}${affectedReportID}`,
             value: {
                 nextStep: affectedReport.nextStep ?? null,
-                pendingFields: {
-                    nextStep: null,
-                },
+                pendingFields: failurePendingFields,
             },
         });
     }

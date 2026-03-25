@@ -93,6 +93,7 @@ import {
     getReportName as getReportNameDeprecated,
     getReportNotificationPreference,
     getReportOrDraftReport,
+    getReportOfflinePendingActionAndErrors,
     getReportPreviewMessage,
     getReportStatusTranslation,
     getReportSubtitlePrefix,
@@ -443,6 +444,24 @@ describe('ReportUtils', () => {
         return waitForBatchedUpdates();
     });
     beforeEach(() => IntlStore.load(CONST.LOCALES.DEFAULT).then(waitForBatchedUpdates));
+
+    describe('getReportOfflinePendingActionAndErrors', () => {
+        it('should treat total and preview pending fields as offline pending actions', () => {
+            const reportWithPendingTotal = {
+                pendingFields: {
+                    total: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                },
+            } as Report;
+            const reportWithPendingPreview = {
+                pendingFields: {
+                    preview: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                },
+            } as Report;
+
+            expect(getReportOfflinePendingActionAndErrors(reportWithPendingTotal).reportPendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
+            expect(getReportOfflinePendingActionAndErrors(reportWithPendingPreview).reportPendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
+        });
+    });
 
     describe('getIOUReportActionDisplayMessage', () => {
         const iouReportID = '1234567890';
