@@ -264,7 +264,8 @@ function ComposerWithSuggestions({
     const {editingState, editingReportActionID, editingReportAction, editingMessage, currentEditMessageSelection} = useReportActionActiveEdit();
     const {setEditingMessage, setCurrentEditMessageSelection} = useReportActionActiveEditActions();
 
-    const isEditingInComposer = shouldUseNarrowLayout && editingState !== null;
+    const isEditing = editingState !== 'off';
+    const isEditingInComposer = shouldUseNarrowLayout && isEditing;
     const [value, setValue] = useState(() => {
         const initialValue = isEditingInComposer ? (editingMessage ?? draftComment) : draftComment;
 
@@ -279,7 +280,7 @@ function ComposerWithSuggestions({
 
     useDraftMessageVideoAttributeCache({
         draftMessage: value,
-        isEditing: editingState !== null,
+        isEditing,
         editingReportAction,
         updateDraftMessage: setValue,
         isEditInProgressRef: isDraftPendingSaved,
@@ -334,7 +335,7 @@ function ComposerWithSuggestions({
         [currentEditMessageSelection, updateSelectionImperatively],
     );
 
-    const wasEditing = useRef(editingState !== null);
+    const wasEditing = useRef(isEditing);
     const wasEditingInComposerRef = useRef(shouldUseNarrowLayout);
     const previousDraftSelectionRef = useRef<TextSelection | null>(null);
 
@@ -343,9 +344,7 @@ function ComposerWithSuggestions({
             return;
         }
 
-        const isEditing = editingState === 'editing';
-
-        if (!isEditing) {
+        if (editingState !== 'editing') {
             if (wasEditing.current && wasEditingInComposerRef.current) {
                 // Editing just ended in the composer – restore the draft comment and its previous selection.
                 applyComposerValue(draftComment ?? '', {selection: previousDraftSelectionRef.current});

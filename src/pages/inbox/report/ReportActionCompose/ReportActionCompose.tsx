@@ -169,10 +169,10 @@ function ReportActionCompose({
     const {editingState, editingReportID, editingReportActionID, editingReportAction, editingMessage} = useReportActionActiveEdit();
 
     const [didResetComposerHeight, setDidResetComposerHeight] = useState(false);
-    const isEditingInComposer = shouldUseNarrowLayout && editingState !== null && !didResetComposerHeight;
+    const isEditingInComposer = shouldUseNarrowLayout && editingState !== 'off' && !didResetComposerHeight;
 
     useEffect(() => {
-        if (editingState !== null || !didResetComposerHeight) {
+        if (editingState !== 'off' || !didResetComposerHeight) {
             return;
         }
 
