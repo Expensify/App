@@ -44,6 +44,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
     onLongPressRow,
     shouldSyncFocus,
     onCheckboxPress,
+    onHoldMenuOpen,
     lastPaymentMethod,
     personalPolicyID,
 }: ExpenseReportListItemProps<TItem>) {
@@ -134,6 +135,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
             isDelegateAccessRestricted,
             onDelegateAccessRestricted: showDelegateNoAccessModal,
             personalPolicyID,
+            onHoldMenuOpen,
         });
     }, [
         currentSearchHash,
@@ -147,6 +149,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
         currentSearchKey,
         isDelegateAccessRestricted,
         showDelegateNoAccessModal,
+        onHoldMenuOpen,
     ]);
 
     const handleCheckboxPress = useCallback(() => {

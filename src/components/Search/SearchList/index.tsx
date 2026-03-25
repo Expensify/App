@@ -37,6 +37,7 @@ import type {TransactionPreviewData} from '@userActions/Search';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Transaction, TransactionViolations} from '@src/types/onyx';
+import type {HoldMenuCallback} from '..';
 import BaseSearchList from './BaseSearchList';
 import type ChatListItem from './ListItem/ChatListItem';
 import type TaskListItem from './ListItem/TaskListItem';
@@ -126,6 +127,9 @@ type SearchListProps = Pick<FlashListProps<SearchListItem>, 'onScroll' | 'conten
     /** Custom card names */
     customCardNames?: Record<number, string>;
 
+    /** Callback to fire when hold menu should be opened */
+    onHoldMenuOpen?: HoldMenuCallback;
+
     /** Selected transactions for determining isSelected state */
     selectedTransactions: SelectedTransactions;
 
@@ -214,6 +218,7 @@ function SearchList({
     newTransactions = [],
     violations,
     customCardNames,
+    onHoldMenuOpen,
     selectedTransactions,
     hasLoadedAllTransactions,
     ref,
@@ -450,6 +455,7 @@ function SearchList({
                         customCardNames={customCardNames}
                         onFocus={onFocus}
                         newTransactionID={newTransactionID}
+                        onHoldMenuOpen={onHoldMenuOpen}
                         keyForList={item.keyForList}
                     />
                 </Animated.View>
@@ -481,6 +487,7 @@ function SearchList({
             lastPaymentMethod,
             personalPolicyID,
             customCardNames,
+            onHoldMenuOpen,
             selectedTransactions,
         ],
     );

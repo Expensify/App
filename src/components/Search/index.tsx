@@ -7,6 +7,8 @@ import type {OnyxEntry} from 'react-native-onyx';
 import Animated, {useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import FullPageErrorView from '@components/BlockingViews/FullPageErrorView';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
+import type {ActionHandledType} from '@components/ProcessMoneyReportHoldMenu';
+import ProcessMoneyReportHoldMenu from '@components/ProcessMoneyReportHoldMenu';
 import type {SelectionListHandle} from '@components/SelectionList/types';
 import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
 import {useWideRHPActions} from '@components/WideRHPContextProvider';
@@ -31,7 +33,7 @@ import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTop
 import type {PlatformStackNavigationProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import {isCreatedTaskReportAction} from '@libs/ReportActionsUtils';
 import {isSplitAction} from '@libs/ReportSecondaryActionUtils';
-import {canEditFieldOfMoneyRequest, canHoldUnholdReportAction, canRejectReportAction, isOneTransactionReport, selectFilteredReportActions} from '@libs/ReportUtils';
+import {canEditFieldOfMoneyRequest, canHoldUnholdReportAction, canRejectReportAction, getNonHeldAndFullAmount, isOneTransactionReport, selectFilteredReportActions} from '@libs/ReportUtils';
 import {buildCannedSearchQuery, buildSearchQueryString, isDefaultExpensesQuery} from '@libs/SearchQueryUtils';
 import {
     createAndOpenSearchTransactionThread,
@@ -67,7 +69,8 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import {columnsSelector} from '@src/selectors/AdvancedSearchFiltersForm';
-import type {OutstandingReportsByPolicyIDDerivedValue, SaveSearch, Transaction} from '@src/types/onyx';
+import type {OutstandingReportsByPolicyIDDerivedValue, Report, SaveSearch, Transaction} from '@src/types/onyx';
+import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type SearchResults from '@src/types/onyx/SearchResults';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import arraysEqual from '@src/utils/arraysEqual';
@@ -90,6 +93,8 @@ type SearchProps = {
     isMobileSelectionModeEnabled: boolean;
     searchRequestResponseStatusCode?: number | null;
 };
+
+type HoldMenuCallback = (item: TransactionReportGroupListItemType, requestType: ActionHandledType, paymentType?: PaymentMethodType) => void;
 
 const hashToString = (queryHash?: number) => (queryHash || queryHash === 0 ? String(queryHash) : undefined);
 
@@ -217,6 +222,19 @@ function Search({
     const navigation = useNavigation<PlatformStackNavigationProp<SearchFullscreenNavigatorParamList>>();
     const isFocused = useIsFocused();
     const {markReportIDAsExpense} = useWideRHPActions();
+    const [isHoldMenuVisible, setIsHoldMenuVisible] = useState(false);
+    const holdMenuParams = useRef<{
+        chatReport: OnyxEntry<Report>;
+        fullAmount: string;
+        moneyRequestReport: OnyxEntry<Report>;
+        transactionCount: number;
+        nonHeldAmount: string;
+        requestType: ActionHandledType;
+        paymentType?: PaymentMethodType;
+        hasValidNonHeldAmount: boolean;
+        hasNoneHeldExpenses: boolean;
+    } | null>(null);
+
     const {
         currentSearchHash,
         currentSearchKey,
@@ -275,6 +293,27 @@ function Search({
     const [savedSearch] = useOnyx(ONYXKEYS.SAVED_SEARCHES, {
         selector: savedSearchSelector,
     });
+
+    const handleHoldMenuOpen = useCallback(
+        (item: TransactionReportGroupListItemType, requestType: ActionHandledType, paymentType?: PaymentMethodType) => {
+            const chatReport = searchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${item.parentReportID}`];
+            const moneyRequestReport = searchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${item.reportID}`];
+            const {nonHeldAmount, fullAmount, hasValidNonHeldAmount} = getNonHeldAndFullAmount(moneyRequestReport, item.allActions?.includes(CONST.SEARCH.ACTION_TYPES.PAY) ?? false);
+            holdMenuParams.current = {
+                chatReport,
+                moneyRequestReport,
+                transactionCount: item.transactionCount ?? 0,
+                fullAmount,
+                requestType,
+                paymentType,
+                nonHeldAmount,
+                hasValidNonHeldAmount,
+                hasNoneHeldExpenses: item.transactions.some((t) => !isOnHold(t)),
+            };
+            setIsHoldMenuVisible(true);
+        },
+        [searchResults?.data],
+    );
 
     const validGroupBy = getValidGroupBy(groupBy);
     const prevValidGroupBy = usePrevious(validGroupBy);
@@ -1467,7 +1506,22 @@ function Search({
                     newTransactions={newTransactions}
                     hasLoadedAllTransactions={hasLoadedAllTransactions}
                     customCardNames={customCardNames}
+                    onHoldMenuOpen={handleHoldMenuOpen}
                 />
+                {isHoldMenuVisible && !!holdMenuParams.current && (
+                    <ProcessMoneyReportHoldMenu
+                        isVisible={isHoldMenuVisible}
+                        onClose={() => setIsHoldMenuVisible(false)}
+                        chatReport={holdMenuParams.current.chatReport}
+                        fullAmount={holdMenuParams.current.fullAmount}
+                        moneyRequestReport={holdMenuParams.current.moneyRequestReport}
+                        transactionCount={holdMenuParams.current.transactionCount}
+                        hasNonHeldExpenses={holdMenuParams.current?.hasNoneHeldExpenses}
+                        nonHeldAmount={holdMenuParams.current.hasNoneHeldExpenses && holdMenuParams.current.hasValidNonHeldAmount ? holdMenuParams.current.nonHeldAmount : undefined}
+                        requestType={holdMenuParams.current.requestType}
+                        paymentType={holdMenuParams.current.paymentType}
+                    />
+                )}
             </Animated.View>
         </SearchScopeProvider>
     );
@@ -1475,7 +1529,7 @@ function Search({
 
 Search.displayName = 'Search';
 
-export type {SearchProps};
+export type {SearchProps, HoldMenuCallback};
 const WrappedSearch = Sentry.withProfiler(Search) as typeof Search;
 WrappedSearch.displayName = 'Search';
 
