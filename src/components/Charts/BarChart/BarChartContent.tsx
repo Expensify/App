@@ -61,7 +61,6 @@ type BarChartProps = CartesianChartProps & {
 function BarChartContent({data, isLoading, yAxisUnit, yAxisUnitPosition = 'left', useSingleColor = false, onBarPress}: BarChartProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const fontMgr = useChartFontManager();
     const [chartWidth, setChartWidth] = useState(0);
     const [barAreaWidth, setBarAreaWidth] = useState(0);
@@ -271,9 +270,6 @@ function BarChartContent({data, isLoading, yAxisUnit, yAxisUnitPosition = 'left'
                         }}
                         yAxis={[
                             {
-                                font,
-                                labelColor: theme.textSupporting,
-                                formatYLabel: formatValue,
                                 tickCount: Y_AXIS_TICK_COUNT,
                                 lineWidth: Y_AXIS_LINE_WIDTH,
                                 lineColor: theme.border,

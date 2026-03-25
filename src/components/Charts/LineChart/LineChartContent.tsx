@@ -61,7 +61,6 @@ type LineChartProps = CartesianChartProps & {
 function LineChartContent({data, isLoading, yAxisUnit, yAxisUnitPosition = 'left', onPointPress}: LineChartProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const fontMgr = useChartFontManager();
     const [chartWidth, setChartWidth] = useState(0);
     const [plotAreaWidth, setPlotAreaWidth] = useState(0);
@@ -219,7 +218,7 @@ function LineChartContent({data, isLoading, yAxisUnit, yAxisUnitPosition = 'left
                         fontMgr={fontMgr}
                         labelColor={theme.textSupporting}
                         formatValue={formatValue}
-                        // leftAlign
+                        leftAlign
                     />
                 )}
             </>
@@ -269,9 +268,6 @@ function LineChartContent({data, isLoading, yAxisUnit, yAxisUnitPosition = 'left
                         }}
                         yAxis={[
                             {
-                                font,
-                                labelColor: theme.textSupporting,
-                                formatYLabel: formatValue,
                                 tickCount: Y_AXIS_TICK_COUNT,
                                 lineWidth: Y_AXIS_LINE_WIDTH,
                                 lineColor: theme.border,

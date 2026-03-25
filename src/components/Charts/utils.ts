@@ -83,7 +83,7 @@ function buildChartParagraph(text: string, fontMgr: SkTypefaceFontProvider, font
  */
 function getAdditionalOffset(angleRad: number): number {
     if (angleRad === 0) {
-        return 0;
+        return variables.iconSizeExtraSmall / 3;
     }
     if (angleRad > 0 && angleRad < DIAGONAL_ANGLE_RADIAN_THRESHOLD) {
         return variables.iconSizeExtraSmall / 1.5;
