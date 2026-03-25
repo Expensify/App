@@ -451,7 +451,7 @@ function SearchList({
                         onFocus={onFocus}
                         newTransactionID={newTransactionID}
                         keyForList={item.keyForList}
-                        isLastItem={index === data.length - 1}
+                        isLastItem={index === data.length - 1 && !ListFooterComponent}
                     />
                 </Animated.View>
             );
@@ -483,6 +483,7 @@ function SearchList({
             personalPolicyID,
             customCardNames,
             selectedTransactions,
+            ListFooterComponent,
         ],
     );
 
