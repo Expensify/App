@@ -92,6 +92,7 @@ function NamePage({
                     validate={validate}
                     shouldHideFixErrorsAlert
                     addBottomSafeAreaPadding
+                    shouldUseStrictHtmlTagValidation
                 >
                     <View style={styles.mb4}>
                         <InputWrapper

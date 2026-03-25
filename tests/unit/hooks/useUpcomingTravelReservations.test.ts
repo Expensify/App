@@ -406,9 +406,12 @@ function makeRailPnr(pnrId: string, departISO: string, arriveISO: string): Pnr {
     };
 }
 
-function makeTripRoomReport(reportID: string, pnrs: Pnr[]): Report {
+const TEST_ACCOUNT_ID = 12345;
+
+function makeTripRoomReport(reportID: string, pnrs: Pnr[], ownerAccountID: number = TEST_ACCOUNT_ID): Report {
     return {
         reportID,
+        ownerAccountID,
         type: CONST.REPORT.TYPE.CHAT,
         chatType: CONST.REPORT.CHAT_TYPE.TRIP_ROOM,
         reportName: `Trip ${reportID}`,
@@ -427,6 +430,7 @@ describe('useUpcomingTravelReservations', () => {
 
     beforeEach(async () => {
         await Onyx.clear();
+        await Onyx.merge(ONYXKEYS.SESSION, {accountID: TEST_ACCOUNT_ID});
         await waitForBatchedUpdates();
     });
 
@@ -572,5 +576,84 @@ describe('useUpcomingTravelReservations', () => {
         expect(result.current.at(0)?.reportID).toBe('501');
         expect(result.current.at(1)?.reservation.reservationID).toBe('PNR_TRIP1');
         expect(result.current.at(1)?.reportID).toBe('500');
+    });
+
+    it('should exclude trips owned by other users', async () => {
+        const flight = makeAirPnr('PNR_OTHER', daysFromNow(2), daysFromNow(2, 15));
+        const tripRoom = makeTripRoomReport('600', [flight], 99999);
+
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}600`, tripRoom);
+        await waitForBatchedUpdates();
+
+        const {result} = renderHook(() => useUpcomingTravelReservations());
+
+        await waitFor(() => {
+            expect(result.current).toEqual([]);
+        });
+    });
+
+    it('should show only the current user trips when mixed with other users trips', async () => {
+        const ownFlight = makeAirPnr('PNR_OWN', daysFromNow(3), daysFromNow(3, 15));
+        const otherFlight = makeAirPnr('PNR_OTHER_MIX', daysFromNow(2), daysFromNow(2, 15));
+
+        const ownTripRoom = makeTripRoomReport('700', [ownFlight], TEST_ACCOUNT_ID);
+        const otherTripRoom = makeTripRoomReport('701', [otherFlight], 88888);
+
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}700`, ownTripRoom);
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}701`, otherTripRoom);
+        await waitForBatchedUpdates();
+
+        const {result} = renderHook(() => useUpcomingTravelReservations());
+
+        await waitFor(() => {
+            expect(result.current).toHaveLength(1);
+        });
+        expect(result.current.at(0)?.reservation.reservationID).toBe('PNR_OWN');
+        expect(result.current.at(0)?.reportID).toBe('700');
+    });
+
+    it('should exclude trips with undefined ownerAccountID', async () => {
+        const flight = makeAirPnr('PNR_NO_OWNER', daysFromNow(2), daysFromNow(2, 15));
+        const tripRoom = {
+            reportID: '800',
+            type: CONST.REPORT.TYPE.CHAT,
+            chatType: CONST.REPORT.CHAT_TYPE.TRIP_ROOM,
+            reportName: 'Trip 800',
+            policyID: 'policy1',
+            tripData: {
+                tripID: 'trip-800',
+                payload: {pnrs: [flight]},
+            },
+        } as Report;
+
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}800`, tripRoom);
+        await waitForBatchedUpdates();
+
+        const {result} = renderHook(() => useUpcomingTravelReservations());
+
+        await waitFor(() => {
+            expect(result.current).toEqual([]);
+        });
+    });
+
+    it('should return empty when all trips belong to other users', async () => {
+        const flight1 = makeAirPnr('PNR_OTHER_A', daysFromNow(1), daysFromNow(1, 15));
+        const flight2 = makeAirPnr('PNR_OTHER_B', daysFromNow(3), daysFromNow(3, 15));
+        const flight3 = makeAirPnr('PNR_OTHER_C', daysFromNow(5), daysFromNow(5, 15));
+
+        const tripRoom1 = makeTripRoomReport('900', [flight1], 11111);
+        const tripRoom2 = makeTripRoomReport('901', [flight2], 22222);
+        const tripRoom3 = makeTripRoomReport('902', [flight3], 33333);
+
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}900`, tripRoom1);
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}901`, tripRoom2);
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}902`, tripRoom3);
+        await waitForBatchedUpdates();
+
+        const {result} = renderHook(() => useUpcomingTravelReservations());
+
+        await waitFor(() => {
+            expect(result.current).toEqual([]);
+        });
     });
 });

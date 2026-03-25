@@ -263,6 +263,7 @@ function MoneyRequestAmountForm({
                 autoGrowExtraSpace={variables.w80}
                 hideCurrencySymbol={hideCurrencySymbol}
                 currency={currency}
+                shouldUseDynamicFontSize
                 isCurrencyPressable={isCurrencyPressable}
                 onCurrencyButtonPress={onCurrencyButtonPress}
                 onAmountChange={() => {

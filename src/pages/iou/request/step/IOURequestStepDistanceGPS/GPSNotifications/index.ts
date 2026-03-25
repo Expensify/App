@@ -8,10 +8,28 @@ function startGpsTripNotification(_translate: LocalizedTranslate, _reportID: str
 function stopGpsTripNotification() {}
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-function updateGpsTripNotification(_distanceInMeters: number) {}
+function updateGpsTripNotificationDistance(_distanceInMeters: number) {}
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+function updateGpsTripNotificationUnit(_translate: LocalizedTranslate, _unit: Unit) {}
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+function updateGpsTripNotificationLanguage(_translate: LocalizedTranslate) {}
 
 async function checkAndCleanGpsNotification(): Promise<void> {
     // no-op
 }
 
-export {startGpsTripNotification, stopGpsTripNotification, updateGpsTripNotification, checkAndCleanGpsNotification};
+function shouldUpdateGpsNotificationUnit(): boolean {
+    return false;
+}
+
+export {
+    startGpsTripNotification,
+    stopGpsTripNotification,
+    updateGpsTripNotificationDistance,
+    updateGpsTripNotificationUnit,
+    updateGpsTripNotificationLanguage,
+    checkAndCleanGpsNotification,
+    shouldUpdateGpsNotificationUnit,
+};
