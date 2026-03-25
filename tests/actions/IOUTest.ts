@@ -9641,7 +9641,7 @@ describe('actions/IOU', () => {
             let expenseReport: OnyxEntry<Report>;
             let chatReport: OnyxEntry<Report>;
             return waitForBatchedUpdates()
-                .then(() => {
+                .then(async () => {
                     const policyID = generatePolicyID();
                     createWorkspace({
                         policyOwnerEmail: CARLOS_EMAIL,
@@ -9655,8 +9655,9 @@ describe('actions/IOU', () => {
                         hasActiveAdminPolicies: false,
                     });
 
+                    const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
                     // Change the approval mode for the policy since default is Submit and Close
-                    setWorkspaceApprovalMode(policyID, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC);
+                    setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC);
                     return waitForBatchedUpdates();
                 })
                 .then(
@@ -9787,7 +9788,7 @@ describe('actions/IOU', () => {
             let chatReport: OnyxEntry<Report>;
 
             return waitForBatchedUpdates()
-                .then(() => {
+                .then(async () => {
                     const policyID = generatePolicyID();
                     createWorkspace({
                         policyOwnerEmail: CARLOS_EMAIL,
@@ -9801,7 +9802,8 @@ describe('actions/IOU', () => {
                         hasActiveAdminPolicies: false,
                     });
 
-                    setWorkspaceApprovalMode(policyID, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC);
+                    const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+                    setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, {});
                     return waitForBatchedUpdates();
                 })
                 .then(
@@ -10368,8 +10370,9 @@ describe('actions/IOU', () => {
                 hasActiveAdminPolicies: false,
             });
             return waitForBatchedUpdates()
-                .then(() => {
-                    setWorkspaceApprovalMode(policyID, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL);
+                .then(async () => {
+                    policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+                    setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL, {});
                     return waitForBatchedUpdates();
                 })
                 .then(
@@ -10595,7 +10598,7 @@ describe('actions/IOU', () => {
                 hasActiveAdminPolicies: false,
             });
 
-            setWorkspaceApprovalMode(policyID, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC);
+            setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, {});
             await waitForBatchedUpdates();
 
             let chatReport: OnyxEntry<Report>;
@@ -12787,8 +12790,9 @@ describe('actions/IOU', () => {
                     hasActiveAdminPolicies: false,
                 });
 
+                const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
                 // Change the approval mode for the policy since default is Submit and Close
-                setWorkspaceApprovalMode(policyID, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC);
+                setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, {});
                 await waitForBatchedUpdates();
                 await getOnyxData({
                     key: ONYXKEYS.COLLECTION.REPORT,
@@ -12961,8 +12965,9 @@ describe('actions/IOU', () => {
                     hasActiveAdminPolicies: false,
                 });
 
+                const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
                 // Change the approval mode for the policy since default is Submit and Close
-                setWorkspaceApprovalMode(policyID, RORY_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC);
+                setWorkspaceApprovalMode(policy, RORY_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, {});
                 await waitForBatchedUpdates();
                 await getOnyxData({
                     key: ONYXKEYS.COLLECTION.REPORT,
@@ -13139,7 +13144,8 @@ describe('actions/IOU', () => {
                     hasActiveAdminPolicies: false,
                 });
 
-                setWorkspaceApprovalMode(policyID, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC);
+                const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+                setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, {});
                 await waitForBatchedUpdates();
 
                 await getOnyxData({
@@ -13326,8 +13332,9 @@ describe('actions/IOU', () => {
                     hasActiveAdminPolicies: false,
                 });
 
+                const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
                 // Change the approval mode for the policy since default is Submit and Close
-                setWorkspaceApprovalMode(policyID, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC);
+                setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, {});
                 await waitForBatchedUpdates();
 
                 await getOnyxData({
