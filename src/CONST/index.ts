@@ -605,6 +605,53 @@ const CONST = {
             ENABLE: 'enable',
         },
         STEP_NAMES: ['1', '2', '3', '4', '5', '6'],
+        BANK_INFO_STEP: {
+            SUB_PAGE_NAMES: {
+                MANUAL: 'manual',
+                PLAID: 'plaid',
+            },
+        },
+        PERSONAL_INFO_STEP: {
+            SUB_PAGE_NAMES: {
+                FULL_NAME: 'full-name',
+                DATE_OF_BIRTH: 'date-of-birth',
+                SSN: 'ssn',
+                ADDRESS: 'address',
+                CONFIRMATION: 'confirmation',
+            },
+        },
+        BUSINESS_INFO_STEP: {
+            SUB_PAGE_NAMES: {
+                NAME: 'name',
+                TAX_ID: 'tax-id',
+                WEBSITE: 'website',
+                PHONE: 'phone',
+                ADDRESS: 'address',
+                TYPE: 'type',
+                INCORPORATION_DATE: 'incorporation-date',
+                INCORPORATION_STATE: 'incorporation-state',
+                INCORPORATION_CODE: 'incorporation-code',
+                CONFIRMATION: 'confirmation',
+            },
+        },
+        BENEFICIAL_OWNERS_STEP: {
+            SUB_PAGE_NAMES: {
+                IS_USER_UBO: 'is-user-ubo',
+                IS_ANYONE_ELSE_UBO: 'is-anyone-else-ubo',
+                ARE_THERE_MORE_UBOS: 'are-there-more-ubos',
+                UBOS_LIST: 'ubos-list',
+                LEGAL_NAME: 'legal-name',
+                DATE_OF_BIRTH: 'date-of-birth',
+                SSN: 'ssn',
+                ADDRESS: 'address',
+                CONFIRMATION: 'confirmation',
+            },
+        },
+        COMPLETE_VERIFICATION_STEP: {
+            SUB_PAGE_NAMES: {
+                CONFIRM_AGREEMENTS: 'confirm-agreements',
+            },
+        },
         SUBSTEP: {
             MANUAL: 'manual',
             PLAID: 'plaid',

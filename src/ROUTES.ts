@@ -313,15 +313,16 @@ const ROUTES = {
         getRoute: (policyID: string) => `bank-account/connect-existing-business-bank-account?policyID=${policyID}` as const,
     },
     BANK_ACCOUNT_USD_SETUP: {
-        route: 'bank-account/us/:step?/:subStep?',
+        route: 'bank-account/us/:step?/:subPage?/:action?',
         // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-        getRoute: ({policyID, step, subStep, backTo}: {policyID?: string; step?: string; subStep?: string; backTo?: string}) => {
+        getRoute: ({policyID, step, subPage, action, backTo}: {policyID?: string; step?: string; subPage?: string; action?: 'edit'; backTo?: string}) => {
             const base = 'bank-account/us';
             const stepPart = step ? `/${step}` : '';
-            const subStepPart = subStep ? `/${subStep}` : '';
+            const subStepPart = subPage ? `/${subPage}` : '';
+            const actionPart = action ? `/${action}` : '';
             const queryString = policyID ? `?policyID=${policyID}` : '';
             // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-            return getUrlWithBackToParam(`${base}${stepPart}${subStepPart}${queryString}`, backTo);
+            return getUrlWithBackToParam(`${base}${stepPart}${subStepPart}${actionPart}${queryString}`, backTo);
         },
     },
     SETTINGS: 'settings',
