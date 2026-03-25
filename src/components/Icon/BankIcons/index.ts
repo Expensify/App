@@ -17,7 +17,7 @@ type BankIconAsset = {
 /**
  * Returns Bank Icon Object that matches to existing bank icons or default icons
  */
-export default function getBankIcon({styles, bankName, isCard = false}: BankIconParams): BankIcon {
+export default function getBankIcon({styles, bankName, isCard = false, maxIconSize}: BankIconParams): BankIcon {
     const bankIcon: BankIcon = {
         icon: isCard ? GenericBankCard : GenericBank,
     };
@@ -31,11 +31,15 @@ export default function getBankIcon({styles, bankName, isCard = false}: BankIcon
 
     // For default Credit Card icon the icon size should not be set.
     if (!isCard) {
-        bankIcon.iconSize = variables.iconSizeExtraLarge;
+        const defaultSize: number = variables.iconSizeExtraLarge;
+        bankIcon.iconSize = maxIconSize ? Math.min(defaultSize, maxIconSize) : defaultSize;
         bankIcon.iconStyles = [styles.bankIconContainer];
     } else {
-        bankIcon.iconHeight = variables.cardIconHeight;
-        bankIcon.iconWidth = variables.cardIconWidth;
+        const cardWidth: number = variables.cardIconWidth;
+        const cardHeight: number = variables.cardIconHeight;
+        const scale = maxIconSize ? Math.min(1, maxIconSize / cardWidth) : 1;
+        bankIcon.iconHeight = Math.round(cardHeight * scale);
+        bankIcon.iconWidth = Math.round(cardWidth * scale);
         bankIcon.iconStyles = [styles.cardIcon];
     }
 

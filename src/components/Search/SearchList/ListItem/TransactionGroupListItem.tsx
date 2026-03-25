@@ -186,7 +186,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
     const pressableStyle = [
         styles.transactionGroupListItemStyle,
         isLargeScreenWidth && {
-            minHeight: variables.tableRowHeight,
+            ...styles.searchTableRowHeight,
             borderRadius: 0,
             paddingVertical: 4,
             ...(isLastItem ? styles.searchTableBottomRadius : {}),
@@ -481,8 +481,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
                     styles.mh5,
                     animatedHighlightStyle,
                     styles.userSelectNone,
-                    isLargeScreenWidth && {borderRadius: 0, borderBottomWidth: isLastItem ? 0 : 1, borderColor: isItemSelected ? theme.buttonHoveredBG : theme.border},
-                    isLargeScreenWidth && isLastItem && styles.searchTableBottomRadius,
+                    isLargeScreenWidth && StyleUtils.getSearchTableRowBorderStyle(isLastItem, isItemSelected),
                 ]}
             >
                 {({hovered}) => (
@@ -491,7 +490,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
                             isExpanded={isExpanded}
                             header={getHeader(hovered)}
                             onPress={onExpandIconPress}
-                            expandButtonStyle={styles.pv2}
+                            expandButtonStyle={isLargeScreenWidth ? styles.pv2 : styles.pv4Half}
                             shouldShowToggleButton={isLargeScreenWidth}
                             sentryLabel={CONST.SENTRY_LABEL.SEARCH.GROUP_EXPAND_TOGGLE}
                         >

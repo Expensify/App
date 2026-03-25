@@ -3,6 +3,7 @@ import BaseListItem from '@components/SelectionList/ListItem/BaseListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import FS from '@libs/Fullstory';
@@ -27,6 +28,7 @@ function TaskListItem<TItem extends ListItem>({
     const taskItem = item as unknown as TaskListItemType;
     const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${taskItem?.parentReportID}`];
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const theme = useTheme();
 
     const {isLargeScreenWidth} = useResponsiveLayout();
@@ -35,16 +37,14 @@ function TaskListItem<TItem extends ListItem>({
         styles.selectionListPressableItemWrapper,
         styles.pv3,
         styles.ph3,
+        // Removing background style because they are added to the parent OpacityView via animatedHighlightStyle
         styles.bgTransparent,
         item.isSelected && styles.activeComponentBG,
         styles.mh0,
         isLargeScreenWidth && {
-            minHeight: variables.tableRowHeight,
-            borderRadius: 0,
+            ...styles.searchTableRowHeight,
+            ...StyleUtils.getSearchTableRowBorderStyle(isLastItem, item.isSelected),
             paddingVertical: 8,
-            borderBottomWidth: isLastItem ? 0 : 1,
-            borderColor: item.isSelected ? theme.buttonHoveredBG : theme.border,
-            ...(isLastItem ? styles.searchTableBottomRadius : {}),
         },
     ];
 

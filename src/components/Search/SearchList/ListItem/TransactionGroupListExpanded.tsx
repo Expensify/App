@@ -25,7 +25,7 @@ import {getReportOrDraftReport} from '@libs/ReportUtils';
 import {createAndOpenSearchTransactionThread, getColumnsToShow, getTableMinWidth} from '@libs/SearchUIUtils';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {getTransactionViolations} from '@libs/TransactionUtils';
-import variables from '@styles/variables';
+
 import type {TransactionPreviewData} from '@userActions/Search';
 import {setActiveTransactionIDs} from '@userActions/TransactionThreadNavigation';
 import CONST from '@src/CONST';
@@ -231,7 +231,7 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
                         onButtonPress={() => {
                             openReportInRHP(transaction);
                         }}
-                        style={[styles.noBorderRadius, styles.p3, isLargeScreenWidth && [styles.pv1, {minHeight: variables.tableRowHeight}], styles.flex1]}
+                        style={[styles.noBorderRadius, styles.p3, isLargeScreenWidth && [styles.pv1, styles.searchTableRowHeight], styles.flex1]}
                         isReportItemChild
                         isInSingleTransactionReport={isInSingleTransactionReport}
                         shouldShowBottomBorder={shouldShowBottomBorder}
@@ -281,10 +281,11 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
                 </View>
             )}
             {shouldDisplayLoadingIndicator && (
-                <View style={[styles.pt3, isEmpty && styles.pb3, styles.alignItemsCenter, styles.justifyContentCenter]}>
+                <View style={[isLargeScreenWidth && styles.pl10, styles.pt3, isEmpty && styles.pb3]}>
                     <ActivityIndicator
                         color={theme.spinner}
                         size={25}
+                        style={[styles.pl3, !isEmpty && styles.alignItemsStart]}
                         reasonAttributes={transactionGroupLoadingReasonAttributes}
                     />
                 </View>

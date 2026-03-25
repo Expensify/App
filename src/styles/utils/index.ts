@@ -1786,6 +1786,13 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
         return isDragging ? styles.cursorGrabbing : styles.cursorZoomOut;
     },
 
+    getSearchTableRowBorderStyle: (isLastItem?: boolean, isSelected?: boolean): ViewStyle => ({
+        borderRadius: 0,
+        borderBottomWidth: isLastItem ? 0 : 1,
+        borderColor: isSelected ? theme.buttonHoveredBG : theme.border,
+        ...(isLastItem ? styles.searchTableBottomRadius : {}),
+    }),
+
     getReportTableColumnStyles: (
         columnName: string,
         isDateColumnWide = false,

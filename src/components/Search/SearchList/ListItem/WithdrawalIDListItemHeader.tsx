@@ -77,7 +77,7 @@ function WithdrawalIDListItemHeader<TItem extends ListItem>({
     const maskedNumber = withdrawalIDItem.accountNumber ? `xx${withdrawalIDItem.accountNumber.slice(-4)}` : '';
     const accountLabel = `${formattedBankName} ${maskedNumber}`;
 
-    const {icon, iconSize, iconStyles} = getBankIcon({bankName: withdrawalIDItem.bankName, styles});
+    const {icon, iconSize, iconStyles} = getBankIcon({bankName: withdrawalIDItem.bankName, styles, maxIconSize: isLargeScreenWidth ? variables.w28 : undefined});
     const formattedWithdrawalDate = DateUtils.formatWithUTCTimeZone(
         withdrawalIDItem.debitPosted,
         DateUtils.doesDateBelongToAPastYear(withdrawalIDItem.debitPosted) ? CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT : CONST.DATE.MONTH_DAY_ABBR_FORMAT,

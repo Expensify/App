@@ -8,7 +8,6 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import variables from '@styles/variables';
 import BaseListItem from './BaseListItem';
 import type {ListItem, TableListItemProps} from './types';
 
@@ -56,13 +55,10 @@ function TableListItem<TItem extends ListItem>({
 
     const compactRowStyle = isLargeScreenWidth
         ? {
-              minHeight: variables.tableRowHeight,
-              borderRadius: 0,
+              ...styles.searchTableRowHeight,
+              ...StyleUtils.getSearchTableRowBorderStyle(isLastItem, item.isSelected),
               paddingVertical: 8,
               paddingHorizontal: 12,
-              borderBottomWidth: isLastItem ? 0 : 1,
-              borderColor: item.isSelected ? theme.buttonHoveredBG : theme.border,
-              ...(isLastItem ? styles.searchTableBottomRadius : {}),
           }
         : {};
 
@@ -72,6 +68,7 @@ function TableListItem<TItem extends ListItem>({
             pressableStyle={[
                 styles.selectionListPressableItemWrapper,
                 styles.mh0,
+                // Removing background style because they are added to the parent OpacityView via animatedHighlightStyle
                 item.shouldAnimateInHighlight ? styles.bgTransparent : undefined,
                 item.isSelected && styles.activeComponentBG,
                 item.cursorStyle,

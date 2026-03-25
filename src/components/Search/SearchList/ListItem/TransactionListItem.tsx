@@ -56,6 +56,7 @@ function TransactionListItem<TItem extends ListItem>({
     const transactionItem = item as unknown as TransactionListItemType;
     const styles = useThemeStyles();
     const theme = useTheme();
+    const StyleUtils = useStyleUtils();
 
     const {isLargeScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
     const {currentSearchHash, currentSearchKey, currentSearchResults} = useSearchStateContext();
@@ -106,11 +107,8 @@ function TransactionListItem<TItem extends ListItem>({
                   ...styles.flexRow,
                   ...styles.justifyContentBetween,
                   ...styles.alignItemsCenter,
-                  minHeight: variables.tableRowHeight,
-                  borderRadius: 0,
-                  borderBottomWidth: isLastItem ? 0 : 1,
-                  borderColor: item.isSelected ? theme.buttonHoveredBG : theme.border,
-                  ...(isLastItem ? styles.searchTableBottomRadius : {}),
+                  ...styles.searchTableRowHeight,
+                  ...StyleUtils.getSearchTableRowBorderStyle(isLastItem, item.isSelected),
               }
             : {...styles.flexColumn, ...styles.alignItemsStretch},
     ];
@@ -178,7 +176,6 @@ function TransactionListItem<TItem extends ListItem>({
         });
     };
 
-    const StyleUtils = useStyleUtils();
     const pressableRef = useRef<View>(null);
 
     useSyncFocus(pressableRef, !!isFocused, shouldSyncFocus);

@@ -17,6 +17,7 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {handleActionButtonPress} from '@libs/actions/Search';
@@ -50,6 +51,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
 }: ExpenseReportListItemProps<TItem>) {
     const reportItem = item as unknown as ExpenseReportListItemType;
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const theme = useTheme();
     const {translate} = useLocalize();
     const {isLargeScreenWidth} = useResponsiveLayout();
@@ -163,20 +165,18 @@ function ExpenseReportListItem<TItem extends ListItem>({
             styles.selectionListPressableItemWrapper,
             styles.pv3,
             styles.ph3,
+            // Removing background style because they are added to the parent OpacityView via animatedHighlightStyle
             styles.bgTransparent,
             item.isSelected && styles.activeComponentBG,
             styles.mh0,
             isPendingDelete && styles.cursorDisabled,
             isLargeScreenWidth && {
-                minHeight: variables.tableRowHeight,
-                borderRadius: 0,
+                ...styles.searchTableRowHeight,
+                ...StyleUtils.getSearchTableRowBorderStyle(isLastItem, item.isSelected),
                 paddingVertical: 8,
-                borderBottomWidth: isLastItem ? 0 : 1,
-                borderColor: item.isSelected ? theme.buttonHoveredBG : theme.border,
-                ...(isLastItem ? styles.searchTableBottomRadius : {}),
             },
         ],
-        [styles, item.isSelected, isLargeScreenWidth, theme.buttonHoveredBG, theme.border, isLastItem, isPendingDelete],
+        [styles, item.isSelected, isLargeScreenWidth, isLastItem, isPendingDelete, StyleUtils],
     );
 
     const listItemWrapperStyle = useMemo(

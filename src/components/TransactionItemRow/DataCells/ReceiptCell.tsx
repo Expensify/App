@@ -6,6 +6,7 @@ import ReceiptImage from '@components/ReceiptImage';
 import ReceiptPreview from '@components/TransactionItemRow/ReceiptPreview';
 import useHover from '@hooks/useHover';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -20,6 +21,7 @@ function ReceiptCell({transactionItem, isSelected, style}: {transactionItem: Tra
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
+    const {isLargeScreenWidth} = useResponsiveLayout();
     const icons = useMemoizedLazyExpensifyIcons(['Receipt']);
     const backgroundStyles = isSelected ? StyleUtils.getBackgroundColorStyle(theme.buttonHoveredBG) : StyleUtils.getBackgroundColorStyle(theme.border);
     const {hovered, bind} = useHover();
@@ -56,7 +58,7 @@ function ReceiptCell({transactionItem, isSelected, style}: {transactionItem: Tra
     return (
         <View
             style={[
-                StyleUtils.getWidthAndHeightStyle(variables.w28, variables.h32),
+                StyleUtils.getWidthAndHeightStyle(isLargeScreenWidth ? variables.w28 : variables.h36, isLargeScreenWidth ? variables.h32 : variables.w40),
                 StyleUtils.getBorderRadiusStyle(variables.componentBorderRadiusSmall),
                 styles.overflowHidden,
                 backgroundStyles,
