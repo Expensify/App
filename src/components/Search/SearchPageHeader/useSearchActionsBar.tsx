@@ -104,7 +104,7 @@ function GroupCurrencyPopup({updateFilterForm, closeOverlay}: FilterBarPopupProp
     );
 }
 
-function FeedPopup({updateFilterForm, closeOverlay}: FilterBarPopupProps) {
+function FeedPopup({updateFilterForm, closeOverlay, isExpanded}: FilterBarPopupProps) {
     const {translate, localeCompare} = useLocalize();
     const feedKeysWithCards = useFeedKeysWithAssignedCards();
     const [feed] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {selector: filterFeedSelector});
@@ -119,6 +119,7 @@ function FeedPopup({updateFilterForm, closeOverlay}: FilterBarPopupProps) {
 
     return (
         <MultiSelectFilterPopup
+            isExpanded={isExpanded}
             closeOverlay={closeOverlay}
             translationKey="search.filters.feed"
             items={feedOptions}
@@ -177,6 +178,7 @@ function makeDateFilterItem(
     return {
         PopoverComponent: (props) => (
             <DatePickerFilterPopup
+                isExpanded={props.isExpanded}
                 closeOverlay={props.closeOverlay}
                 filterKey={filterKey}
                 value={value}
@@ -239,8 +241,9 @@ function useSearchActionsBar(queryJSON: SearchQueryJSON, isMobileSelectionModeEn
         switch (filterKey) {
             case FILTER_KEYS.GROUP_CURRENCY:
                 return {
-                    PopoverComponent: ({closeOverlay}) => (
+                    PopoverComponent: ({closeOverlay, isExpanded}) => (
                         <GroupCurrencyPopup
+                            isExpanded={isExpanded}
                             updateFilterForm={updateFilterForm}
                             closeOverlay={closeOverlay}
                         />
@@ -256,6 +259,7 @@ function useSearchActionsBar(queryJSON: SearchQueryJSON, isMobileSelectionModeEn
                 };
                 const hasComponent = (props: PopoverComponentProps) => (
                     <MultiSelectFilterPopup
+                        isExpanded={props.isExpanded}
                         closeOverlay={props.closeOverlay}
                         translationKey="search.has"
                         items={hasOptions}
@@ -274,6 +278,7 @@ function useSearchActionsBar(queryJSON: SearchQueryJSON, isMobileSelectionModeEn
                 };
                 const isComponent = (props: PopoverComponentProps) => (
                     <MultiSelectFilterPopup
+                        isExpanded={props.isExpanded}
                         closeOverlay={props.closeOverlay}
                         translationKey="search.filters.is"
                         items={isOptions}
@@ -285,8 +290,9 @@ function useSearchActionsBar(queryJSON: SearchQueryJSON, isMobileSelectionModeEn
             }
             case FILTER_KEYS.FEED: {
                 return {
-                    PopoverComponent: ({closeOverlay}) => (
+                    PopoverComponent: ({closeOverlay, isExpanded}) => (
                         <FeedPopup
+                            isExpanded={isExpanded}
                             updateFilterForm={updateFilterForm}
                             closeOverlay={closeOverlay}
                         />
@@ -343,6 +349,7 @@ function useSearchActionsBar(queryJSON: SearchQueryJSON, isMobileSelectionModeEn
                 };
                 const statusComponent = (props: PopoverComponentProps) => (
                     <MultiSelectFilterPopup
+                        isExpanded={props.isExpanded}
                         closeOverlay={props.closeOverlay}
                         translationKey="common.status"
                         items={statusOptions}
@@ -377,8 +384,9 @@ function useSearchActionsBar(queryJSON: SearchQueryJSON, isMobileSelectionModeEn
             }
             case FILTER_KEYS.POLICY_ID:
                 return {
-                    PopoverComponent: ({closeOverlay}) => (
+                    PopoverComponent: ({closeOverlay, isExpanded}) => (
                         <WorkspacePopup
+                            isExpanded={isExpanded}
                             policyIDQuery={queryJSON.policyID}
                             updateFilterForm={updateFilterForm}
                             closeOverlay={closeOverlay}
