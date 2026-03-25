@@ -2,7 +2,6 @@ import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import Button from '@components/Button';
-import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MagicCodeInput from '@components/MagicCodeInput';
 import type {MagicCodeInputHandle} from '@components/MagicCodeInput';
@@ -10,6 +9,7 @@ import {DefaultCancelConfirmModal} from '@components/MultifactorAuthentication/c
 import {useMultifactorAuthentication, useMultifactorAuthenticationActions, useMultifactorAuthenticationState} from '@components/MultifactorAuthentication/Context';
 import MultifactorAuthenticationValidateCodeResendButton from '@components/MultifactorAuthentication/ValidateCodeResendButton';
 import type {MultifactorAuthenticationValidateCodeResendButtonHandle} from '@components/MultifactorAuthentication/ValidateCodeResendButton';
+import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
@@ -62,11 +62,25 @@ function MultifactorAuthenticationValidateCodePage() {
     // Derived state
     const hasAccountError = !!account && !isEmptyObject(account?.errors);
     const hasContinuableError = !!continuableError;
-    const hasError = hasAccountError || hasContinuableError;
     const isValidateCodeFormSubmitting = AccountUtils.isValidateCodeFormSubmitting(account);
     const shouldDisableResendCode = isOffline ?? account?.isLoading;
     const validateCodeActionError = getLatestErrorField(validateActionCode, 'actionVerified');
     const hasValidateCodeActionError = !isEmptyObject(validateCodeActionError);
+    const hasError = hasAccountError || hasContinuableError || hasValidateCodeActionError;
+    const errorMessage = getErrorMessage();
+
+    function getErrorMessage() {
+        // Rate limit or other backend error when sending/resending the validate code
+        if (hasValidateCodeActionError) {
+            return Object.values(validateCodeActionError ?? {}).at(0);
+        }
+        // Invalid validate code submitted by the user
+        if (hasContinuableError) {
+            return translate('validateCodeForm.error.incorrectMagicCode');
+        }
+        // Generic account/session error (e.g. stale errors from a previous flow)
+        return getLatestErrorMessage(account);
+    }
 
     // Check if this page can handle the continuable error, if not convert to regular error
     useEffect(() => {
@@ -239,9 +253,6 @@ function MultifactorAuthenticationValidateCodePage() {
                         ref={inputRef}
                         maxLength={CONST.MAGIC_CODE_LENGTH}
                     />
-                    {hasContinuableError && <FormHelpMessage message={translate('validateCodeForm.error.incorrectMagicCode')} />}
-                    {hasAccountError && <FormHelpMessage message={getLatestErrorMessage(account)} />}
-                    {hasValidateCodeActionError && <FormHelpMessage message={Object.values(validateCodeActionError).at(0)} />}
                     <MultifactorAuthenticationValidateCodeResendButton
                         ref={resendButtonRef}
                         shouldDisableResendCode={shouldDisableResendCode}
@@ -250,15 +261,22 @@ function MultifactorAuthenticationValidateCodePage() {
                         onResendValidationCode={resendValidationCode}
                     />
                 </View>
-                <Button
-                    success
-                    large
-                    style={[styles.w100, styles.p5, styles.mtAuto]}
-                    onPress={validateAndSubmitForm}
-                    text={translate('common.verify')}
-                    isLoading={isValidateCodeFormSubmitting}
-                    isDisabled={isOffline}
-                />
+                <OfflineWithFeedback
+                    shouldDisplayErrorAbove
+                    errors={errorMessage ? {error: errorMessage} : undefined}
+                    errorRowStyles={[styles.mh5, styles.mb2]}
+                    style={[styles.w100, styles.mtAuto]}
+                >
+                    <Button
+                        success
+                        large
+                        style={[styles.w100, styles.p5]}
+                        onPress={validateAndSubmitForm}
+                        text={translate('common.verify')}
+                        isLoading={isValidateCodeFormSubmitting}
+                        isDisabled={isOffline}
+                    />
+                </OfflineWithFeedback>
                 <CancelConfirmModal
                     isVisible={isCancelModalVisible}
                     onConfirm={cancelFlow}
