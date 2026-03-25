@@ -63,16 +63,6 @@ const baseFilterConfig = {
         description: 'common.type' as const,
         route: ROUTES.SEARCH_ADVANCED_FILTERS.getRoute(CONST.SEARCH.SYNTAX_FILTER_KEYS.TYPE),
     },
-    groupBy: {
-        getTitle: getFilterDisplayTitle,
-        description: 'search.display.groupBy' as const,
-        route: ROUTES.SEARCH_ADVANCED_FILTERS.getRoute(CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.GROUP_BY),
-    },
-    view: {
-        getTitle: getFilterViewDisplayTitle,
-        description: 'search.view.label' as const,
-        route: ROUTES.SEARCH_ADVANCED_FILTERS.getRoute(CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.VIEW),
-    },
     status: {
         getTitle: getStatusFilterDisplayTitle,
         description: 'common.status' as const,
@@ -197,11 +187,6 @@ const baseFilterConfig = {
         getTitle: getFilterDisplayTitle,
         description: 'search.has' as const,
         route: ROUTES.SEARCH_ADVANCED_FILTERS.getRoute(CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS),
-    },
-    limit: {
-        getTitle: getFilterDisplayTitle,
-        description: 'search.filters.limit' as const,
-        route: ROUTES.SEARCH_ADVANCED_FILTERS.getRoute(CONST.SEARCH.SYNTAX_ROOT_KEYS.LIMIT),
     },
     is: {
         getTitle: getFilterDisplayTitle,
@@ -473,11 +458,6 @@ function getFilterDisplayTitle(
         return filterValue ? translate(`search.filters.action.${filterValue as ValueOf<typeof CONST.SEARCH.ACTION_FILTERS>}`) : undefined;
     }
 
-    if (key === CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY) {
-        const filterValue = filters[key];
-        return filterValue ? translate(`search.filters.groupBy.${filterValue}`) : undefined;
-    }
-
     if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_TYPE) {
         const filterValue = filters[key];
         return filterValue ? translate(`search.filters.withdrawalType.${filterValue}`) : undefined;
@@ -503,14 +483,6 @@ function getFilterDisplayTitle(
 
     const filterValue = filters[key];
     return Array.isArray(filterValue) ? filterValue.join(', ') : filterValue;
-}
-
-function getFilterViewDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, translate: LocaleContextProps['translate']) {
-    const filterValue = filters[CONST.SEARCH.SYNTAX_ROOT_KEYS.VIEW];
-    if (!filterValue) {
-        return translate('search.view.table');
-    }
-    return translate(`search.view.${filterValue as ValueOf<typeof CONST.SEARCH.VIEW>}`);
 }
 
 function getStatusFilterDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, type: SearchDataTypes, translate: LocaleContextProps['translate']) {
@@ -648,8 +620,6 @@ function AdvancedSearchFilters() {
                 filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, workspacesData);
             } else if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS) {
                 filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, currentType, translate);
-            } else if (key === CONST.SEARCH.SYNTAX_ROOT_KEYS.VIEW) {
-                filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, translate);
             } else {
                 filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, key, translate, localeCompare);
             }
