@@ -258,7 +258,6 @@ function useSearchSelectorBase({
                 });
             case CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_GENERAL:
                 return getValidOptions(optionsWithContacts, allPolicies, draftComments, nvpDismissedProductTraining, loginList, currentUserAccountID, currentUserEmail, {
-                    ...getValidOptionsConfig,
                     betas: betas ?? [],
                     searchString: computedSearchTerm,
                     searchInputValue: trimmedSearchInput,
@@ -277,6 +276,7 @@ function useSearchSelectorBase({
                     countryCode,
                     reportAttributesDerived: reportAttributesDerived?.reports,
                     allPolicyTags,
+                    ...getValidOptionsConfig,
                 });
             case CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_SHARE_DESTINATION:
                 return getValidOptions(optionsWithContacts, allPolicies, draftComments, nvpDismissedProductTraining, loginList, currentUserAccountID, currentUserEmail, {
@@ -303,7 +303,6 @@ function useSearchSelectorBase({
                 });
             case CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_ATTENDEES:
                 return getValidOptions(optionsWithContacts, allPolicies, draftComments, nvpDismissedProductTraining, loginList, currentUserAccountID, currentUserEmail, {
-                    ...getValidOptionsConfig,
                     betas: betas ?? [],
                     includeP2P: true,
                     includeSelectedOptions: false,
@@ -322,6 +321,7 @@ function useSearchSelectorBase({
                     countryCode,
                     reportAttributesDerived: reportAttributesDerived?.reports,
                     allPolicyTags,
+                    ...getValidOptionsConfig,
                 });
             default:
                 return getEmptyOptions();

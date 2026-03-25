@@ -49,6 +49,9 @@ type AmountTextInputProps = {
 
     /** Determines which keyboard to open */
     keyboardType?: KeyboardTypeOptions;
+
+    /** Component to render on the right hand side of the input - only shown if clear button is not rendered */
+    rightHandSideComponent?: React.ReactNode;
 } & Pick<BaseTextInputProps, 'autoFocus' | 'autoGrowExtraSpace' | 'submitBehavior' | 'ref' | 'onFocus' | 'onBlur' | 'disabled' | 'accessibilityLabel'>;
 
 function AmountTextInput({
@@ -67,6 +70,7 @@ function AmountTextInput({
     ref,
     disabled,
     accessibilityLabel,
+    rightHandSideComponent,
     ...rest
 }: AmountTextInputProps) {
     const navigation = useNavigation();
@@ -102,6 +106,7 @@ function AmountTextInput({
             disableKeyboardShortcuts
             shouldUseFullInputHeight
             shouldApplyPaddingToContainer={shouldApplyPaddingToContainer}
+            rightHandSideComponent={rightHandSideComponent}
             navigation={navigation}
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...rest}
