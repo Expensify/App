@@ -250,7 +250,8 @@ describe('ReportActionCompose Integration Tests', () => {
         const parentReportActionID = 'parent_action_1';
         const transactionID = 'txn_receipt_test';
 
-        const setupReceiptTestData = async (threadReportID: string, isSettledReport = false) => {
+        const setupReceiptTestData = async (threadReport: {reportID: string; parentReportID?: string; parentReportActionID?: string}, isSettledReport = false) => {
+            const threadReportID = threadReport.reportID;
             const iouReportAction = {
                 ...LHNTestUtils.getFakeReportAction(),
                 reportActionID: parentReportActionID,
@@ -306,6 +307,8 @@ describe('ReportActionCompose Integration Tests', () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${threadReportID}`, {
                     [parentReportActionID]: iouReportAction,
                 });
+                // Thread report (so the component can self-subscribe via useOnyx)
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${threadReportID}`, threadReport);
                 // Transaction
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction);
             });
@@ -324,13 +327,11 @@ describe('ReportActionCompose Integration Tests', () => {
             };
 
             // Given real Onyx data where the user is admin and the report is open (not settled)
-            const transaction = await setupReceiptTestData(threadReport.reportID);
+            await setupReceiptTestData(threadReport);
 
             // When rendering with the transaction thread report
             const {unmount} = renderReportActionCompose({
-                report: threadReport,
                 reportID: threadReport.reportID,
-                reportTransactions: [transaction as never],
             });
             await waitForBatchedUpdatesWithAct();
 
@@ -352,13 +353,11 @@ describe('ReportActionCompose Integration Tests', () => {
             };
 
             // Given real Onyx data where the expense report is settled/reimbursed
-            const transaction = await setupReceiptTestData(threadReport.reportID, true);
+            await setupReceiptTestData(threadReport, true);
 
             // When rendering with the transaction thread report
             const {unmount} = renderReportActionCompose({
-                report: threadReport,
                 reportID: threadReport.reportID,
-                reportTransactions: [transaction as never],
             });
             await waitForBatchedUpdatesWithAct();
 
