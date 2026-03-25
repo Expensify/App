@@ -53,12 +53,7 @@ function Composer({
     ref,
     ...props
 }: ComposerProps) {
-    const textContainsOnlyEmojis = useMemo(() => {
-        if (!value) {
-            return false;
-        }
-        return containsOnlyEmojis(Parser.htmlToText(Parser.replace(value)));
-    }, [value]);
+    const textContainsOnlyEmojis = useMemo(() => containsOnlyEmojis(Parser.htmlToText(Parser.replace(value ?? ''))), [value]);
 
     const theme = useTheme();
     const styles = useThemeStyles();

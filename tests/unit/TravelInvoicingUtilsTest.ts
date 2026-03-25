@@ -1,7 +1,4 @@
 import CONST from '@src/CONST';
-// Needed for testing usage with jest.spyOn
-// eslint-disable-next-line no-restricted-imports
-import * as Environment from '@src/libs/Environment/Environment';
 import {
     getIsTravelInvoicingEnabled,
     getTravelInvoicingCard,
@@ -15,28 +12,7 @@ import {
 import type {BankAccountList, CardList} from '@src/types/onyx';
 import type {ExpensifyCardSettingsBase} from '@src/types/onyx/ExpensifyCardSettings';
 
-jest.mock('@src/libs/Environment/Environment', () => ({
-    getEnvironmentURL: jest.fn(() => Promise.resolve('https://new.expensify.com')),
-    getOldDotEnvironmentURL: jest.fn(() => Promise.resolve('https://www.expensify.com')),
-    isDevelopment: jest.fn(() => false),
-    isInternalTestBuild: jest.fn(() => false),
-    isStaging: jest.fn(() => false),
-}));
-
 describe('TravelInvoicingUtils', () => {
-    let isDevelopmentSpy: jest.SpyInstance;
-    let isInternalTestBuildSpy: jest.SpyInstance;
-
-    beforeAll(() => {
-        isDevelopmentSpy = jest.spyOn(Environment, 'isDevelopment').mockReturnValue(false);
-        isInternalTestBuildSpy = jest.spyOn(Environment, 'isInternalTestBuild').mockReturnValue(false);
-    });
-
-    afterEach(() => {
-        isDevelopmentSpy.mockReturnValue(false);
-        isInternalTestBuildSpy.mockReturnValue(false);
-        jest.clearAllMocks();
-    });
     describe('PROGRAM_TRAVEL_US constant', () => {
         it('Should be defined as TRAVEL_US', () => {
             expect(CONST.TRAVEL.PROGRAM_TRAVEL_US).toBe('TRAVEL_US');
@@ -298,26 +274,6 @@ describe('TravelInvoicingUtils', () => {
             expect(result).toBeDefined();
             expect(result?.nameValuePairs?.feedCountry).toBe(CONST.TRAVEL.PROGRAM_TRAVEL_US);
         });
-        it('Should fallback to first available card when testing is enabled and no travel card exists', () => {
-            isDevelopmentSpy.mockReturnValue(true);
-
-            const cardList = {
-                // eslint-disable-next-line @typescript-eslint/naming-convention
-                '9999': {
-                    cardID: 9999,
-                    state: 3,
-                    bank: 'Expensify Card',
-                    nameValuePairs: {
-                        isVirtual: true,
-                        feedCountry: 'OTHER_COUNTRY',
-                    },
-                },
-            } as unknown as CardList;
-
-            const result = getTravelInvoicingCard(cardList);
-            expect(result).toBeDefined();
-            expect(result?.cardID).toBe(9999);
-        });
     });
 
     describe('isTravelCVVEligible', () => {
@@ -368,12 +324,6 @@ describe('TravelInvoicingUtils', () => {
 
         it('Should return true when beta is true and travel card exists', () => {
             const result = isTravelCVVEligible(true, mockTravelCardList);
-            expect(result).toBe(true);
-        });
-
-        it('Should return true when testing is enabled and beta is true even if no travel card exists', () => {
-            isDevelopmentSpy.mockReturnValue(true);
-            const result = isTravelCVVEligible(true, mockNonTravelCardList);
             expect(result).toBe(true);
         });
     });
