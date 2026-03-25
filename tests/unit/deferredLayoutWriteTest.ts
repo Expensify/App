@@ -1,3 +1,4 @@
+import {AppState} from 'react-native';
 import {cancelDeferredWrite, flushDeferredWrite, getOptimisticWatchKey, hasDeferredWrite, registerDeferredWrite} from '@libs/deferredLayoutWrite';
 
 beforeEach(() => {
@@ -88,5 +89,35 @@ describe('deferredLayoutWrite', () => {
     it('is a no-op when flushing or cancelling an unknown key', () => {
         expect(() => flushDeferredWrite('unknown')).not.toThrow();
         expect(() => cancelDeferredWrite('unknown')).not.toThrow();
+    });
+
+    it('flushes all pending writes when the app goes to background', () => {
+        const callbackA = jest.fn();
+        const callbackB = jest.fn();
+
+        registerDeferredWrite('a', callbackA);
+        registerDeferredWrite('b', callbackB);
+
+        expect(callbackA).not.toHaveBeenCalled();
+        expect(callbackB).not.toHaveBeenCalled();
+
+        (AppState as unknown as {emitCurrentTestState: (state: string) => void}).emitCurrentTestState('background');
+
+        expect(callbackA).toHaveBeenCalledTimes(1);
+        expect(callbackB).toHaveBeenCalledTimes(1);
+        expect(hasDeferredWrite('a')).toBe(false);
+        expect(hasDeferredWrite('b')).toBe(false);
+    });
+
+    it('does not flush writes when the app returns to active state', () => {
+        const callback = jest.fn();
+        registerDeferredWrite('test', callback);
+
+        (AppState as unknown as {emitCurrentTestState: (state: string) => void}).emitCurrentTestState('active');
+
+        expect(callback).not.toHaveBeenCalled();
+        expect(hasDeferredWrite('test')).toBe(true);
+
+        flushDeferredWrite('test');
     });
 });

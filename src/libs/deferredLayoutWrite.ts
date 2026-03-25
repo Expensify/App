@@ -17,6 +17,7 @@
  *   - 10s (Search): guarantees the skeleton/ghost-row UI clears if the optimistic
  *     item never reaches sortedData (e.g. empty list, API failure, offline).
  */
+import {AppState} from 'react-native';
 import type {OnyxKey} from 'react-native-onyx';
 import Log from './Log';
 
@@ -107,5 +108,18 @@ function hasDeferredWrite(key: string): boolean {
 function getOptimisticWatchKey(key: string): OnyxKey | undefined {
     return channels.get(key)?.optimisticWatchKey;
 }
+
+// Flush every pending deferred write when the app moves to background so
+// that API.write() calls are persisted to the SequentialQueue before the OS
+// can kill the process.
+AppState.addEventListener('change', (nextState) => {
+    if (nextState === 'active' || channels.size === 0) {
+        return;
+    }
+    Log.info(`[DeferredLayoutWrite] App going to "${nextState}" - flushing ${channels.size} pending deferred write(s)`);
+    for (const key of [...channels.keys()]) {
+        flushDeferredWrite(key);
+    }
+});
 
 export {registerDeferredWrite, flushDeferredWrite, cancelDeferredWrite, hasDeferredWrite, getOptimisticWatchKey};
