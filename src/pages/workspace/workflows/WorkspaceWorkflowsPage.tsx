@@ -171,12 +171,12 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
     }, []);
 
     const confirmDisableApprovals = useCallback(() => {
-        setWorkspaceApprovalMode(route.params.policyID, policy?.owner ?? '', CONST.POLICY.APPROVAL_MODE.OPTIONAL, {
+        setWorkspaceApprovalMode(policy, policy?.owner ?? '', CONST.POLICY.APPROVAL_MODE.OPTIONAL, {
             reportNextSteps: allReportNextSteps,
             transactionViolations,
             betas,
         });
-    }, [allReportNextSteps, betas, policy?.owner, route.params.policyID, transactionViolations]);
+    }, [allReportNextSteps, betas, policy, transactionViolations]);
 
     // User should be allowed to add new Approval Workflow only if he's upgraded to Control Plan, otherwise redirected to the Upgrade Page
     const addApprovalAction = useCallback(() => {
@@ -311,7 +311,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                         });
                         return;
                     }
-                    setWorkspaceApprovalMode(route.params.policyID, policy?.owner ?? '', isEnabled ? updateApprovalMode : CONST.POLICY.APPROVAL_MODE.OPTIONAL, {
+                    setWorkspaceApprovalMode(policy, policy?.owner ?? '', isEnabled ? updateApprovalMode : CONST.POLICY.APPROVAL_MODE.OPTIONAL, {
                         reportNextSteps: allReportNextSteps,
                         transactionViolations,
                         betas,
@@ -399,6 +399,8 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                     const newReimburserEmail = policy?.achAccount?.reimburser ?? policy?.owner;
                     setWorkspaceReimbursement({
                         policyID: route.params.policyID,
+                        currentAchAccount: policy?.achAccount,
+                        currentReimbursementChoice: policy?.reimbursementChoice,
                         reimbursementChoice: newReimbursementChoice,
                         reimburserEmail: newReimburserEmail ?? '',
                         bankAccountID: policy?.achAccount?.bankAccountID,
@@ -466,7 +468,12 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                                         return;
                                     }
                                     if (!shouldShowBankAccount && hasValidExistingAccounts && !shouldShowContinueModal) {
-                                        Navigation.navigate(ROUTES.BANK_ACCOUNT_CONNECT_EXISTING_BUSINESS_BANK_ACCOUNT.getRoute(route.params.policyID));
+                                        Navigation.navigate(
+                                            ROUTES.BANK_ACCOUNT_CONNECT_EXISTING_BUSINESS_BANK_ACCOUNT.getRoute(
+                                                route.params.policyID,
+                                                ROUTES.WORKSPACE_WORKFLOWS.getRoute(route.params.policyID),
+                                            ),
+                                        );
                                         return;
                                     }
                                     navigateToBankAccountRoute({policyID: route.params.policyID, backTo: ROUTES.WORKSPACE_WORKFLOWS.getRoute(route.params.policyID)});
