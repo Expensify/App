@@ -92,6 +92,7 @@ export type {WorkspaceCategoryDescriptionHintForm} from './WorkspaceCategoryDesc
 export type {WorkspaceCategoryFlagAmountsOverForm} from './WorkspaceCategoryFlagAmountsOverForm';
 export type {WorkspaceCompanyCardFeedName} from './WorkspaceCompanyCardFeedName';
 export type {SearchSavedSearchRenameForm} from './SearchSavedSearchRenameForm';
+export type {SearchSaveForm} from './SearchSaveForm';
 export type {WorkspaceCompanyCardEditName} from './WorkspaceCompanyCardEditName';
 export type {PersonalDetailsForm} from './PersonalDetailsForm';
 export type {OnboardingWorkEmailForm} from './OnboardingWorkEmailForm';
