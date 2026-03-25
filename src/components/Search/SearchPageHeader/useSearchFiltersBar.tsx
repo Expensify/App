@@ -330,6 +330,7 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON, isMobileSelectionModeEn
     };
     const feedComponent = (props: PopoverComponentProps) => (
         <FeedFilterPopup
+            isExpanded={props.isExpanded}
             closeOverlay={props.closeOverlay}
             items={feedOptions}
             value={feed}
@@ -339,6 +340,7 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON, isMobileSelectionModeEn
 
     const datePickerComponent = (props: PopoverComponentProps) => (
         <DatePickerFilterPopup
+            isExpanded={props.isExpanded}
             closeOverlay={props.closeOverlay}
             filterKey={CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE}
             value={date}
@@ -349,6 +351,7 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON, isMobileSelectionModeEn
 
     const postedPickerComponent = (props: PopoverComponentProps) => (
         <DatePickerFilterPopup
+            isExpanded={props.isExpanded}
             closeOverlay={props.closeOverlay}
             filterKey={CONST.SEARCH.SYNTAX_FILTER_KEYS.POSTED}
             value={posted}
@@ -359,6 +362,7 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON, isMobileSelectionModeEn
 
     const withdrawnPickerComponent = (props: PopoverComponentProps) => (
         <DatePickerFilterPopup
+            isExpanded={props.isExpanded}
             closeOverlay={props.closeOverlay}
             filterKey={CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWN}
             value={withdrawn}
@@ -383,6 +387,7 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON, isMobileSelectionModeEn
     };
     const statusComponent = (props: PopoverComponentProps) => (
         <MultiSelectFilterPopup
+            isExpanded={props.isExpanded}
             closeOverlay={props.closeOverlay}
             translationKey="common.status"
             items={statusOptions}
@@ -396,6 +401,7 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON, isMobileSelectionModeEn
     };
     const hasComponent = (props: PopoverComponentProps) => (
         <MultiSelectFilterPopup
+            isExpanded={props.isExpanded}
             closeOverlay={props.closeOverlay}
             translationKey="search.has"
             items={hasOptions}
@@ -409,6 +415,7 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON, isMobileSelectionModeEn
     };
     const isComponent = (props: PopoverComponentProps) => (
         <MultiSelectFilterPopup
+            isExpanded={props.isExpanded}
             closeOverlay={props.closeOverlay}
             translationKey="search.filters.is"
             items={isOptions}
