@@ -1,9 +1,13 @@
-import {useState} from 'react';
+import {hasSeenTourSelector} from '@selectors/Onboarding';
+import {validTransactionDraftsSelector} from '@selectors/TransactionDraft';
+import {useCallback, useMemo, useState} from 'react';
 import {DeviceEventEmitter} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import {useSearchActionsContext, useSearchStateContext} from '@components/Search/SearchContext';
+import {bulkDuplicateExpenses} from '@libs/actions/IOU/Duplicate';
 import {unholdRequest} from '@libs/actions/IOU/Hold';
 import {setupMergeTransactionDataAndNavigate} from '@libs/actions/MergeTransaction';
 import {exportReportToCSV} from '@libs/actions/Report';
@@ -19,6 +23,7 @@ import {
     canHoldUnholdReportAction,
     canRejectReportAction,
     canUserPerformWriteAction as canUserPerformWriteActionReportUtils,
+    getPolicyExpenseChat,
     getReportOrDraftReport,
     isInvoiceReport,
     isMoneyRequestReport as isMoneyRequestReportUtils,
@@ -34,13 +39,17 @@ import type {Route} from '@src/ROUTES';
 import type {Policy, Report, ReportAction, Session, Transaction} from '@src/types/onyx';
 import useAllTransactions from './useAllTransactions';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
+import useDefaultExpensePolicy from './useDefaultExpensePolicy';
 import useDeleteTransactions from './useDeleteTransactions';
 import useDuplicateTransactionsAndViolations from './useDuplicateTransactionsAndViolations';
+import useEnvironment from './useEnvironment';
 import {useMemoizedLazyExpensifyIcons} from './useLazyAsset';
 import useLocalize from './useLocalize';
 import useNetworkWithOfflineStatus from './useNetworkWithOfflineStatus';
 import useOnyx from './useOnyx';
+import usePermissions from './usePermissions';
 import useReportIsArchived from './useReportIsArchived';
+import {shouldShowBulkDuplicateOption} from './useSearchBulkActions';
 
 // We do not use PRIMARY_REPORT_ACTIONS or SECONDARY_REPORT_ACTIONS because they weren't meant to be used in this situation. `value` property of returned options is later ignored.
 const HOLD = 'HOLD';
@@ -48,6 +57,7 @@ const UNHOLD = 'UNHOLD';
 const MOVE = 'MOVE';
 const MERGE = 'MERGE';
 const SPLIT = 'SPLIT';
+const DUPLICATE = 'DUPLICATE';
 
 function useSelectedTransactionsActions({
     report,
@@ -83,12 +93,42 @@ function useSelectedTransactionsActions({
     const [integrationsExportTemplates] = useOnyx(ONYXKEYS.NVP_INTEGRATION_SERVER_EXPORT_TEMPLATES);
     const [csvExportLayouts] = useOnyx(ONYXKEYS.NVP_CSV_EXPORT_LAYOUTS);
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
+    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
+    const [allReportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
 
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Stopwatch', 'Trashcan', 'ArrowRight', 'Table', 'DocumentMerge', 'Export', 'ArrowCollapse', 'ArrowSplit', 'ThumbsDown']);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons([
+        'Stopwatch',
+        'Trashcan',
+        'ArrowRight',
+        'Table',
+        'DocumentMerge',
+        'Export',
+        'ArrowCollapse',
+        'ArrowSplit',
+        'ThumbsDown',
+        'ExpenseCopy',
+    ]);
     const {duplicateTransactions, duplicateTransactionViolations} = useDuplicateTransactionsAndViolations(selectedTransactionIDs);
     const isReportArchived = useReportIsArchived(report?.reportID);
     const {deleteTransactions} = useDeleteTransactions({report, reportActions, policy});
     const {login, accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
+    const defaultExpensePolicy = useDefaultExpensePolicy();
+    const {isProduction} = useEnvironment();
+    const {isBetaEnabled} = usePermissions();
+    const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
+
+    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
+    const [policyRecentlyUsedCurrencies] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES);
+    const [isSelfTourViewed = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
+    const [transactionDrafts] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftsSelector});
+    const draftTransactionIDs = Object.keys(transactionDrafts ?? {});
+    const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const [recentWaypoints] = useOnyx(ONYXKEYS.NVP_RECENT_WAYPOINTS);
+    const [targetPolicyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${defaultExpensePolicy?.id}`);
+    const [targetPolicyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${defaultExpensePolicy?.id}`);
     const selectedTransactionsList = selectedTransactionIDs.reduce((acc, transactionID) => {
         const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
         if (transaction) {
@@ -129,6 +169,104 @@ function useSelectedTransactionsActions({
 
     const {translate, localeCompare} = useLocalize();
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
+
+    const selectedTransactionsForDuplicate = useMemo(() => {
+        const result: Record<string, {reportID?: string}> = {};
+        for (const id of selectedTransactionIDs) {
+            const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`];
+            result[id] = {reportID: transaction?.reportID};
+        }
+        return result;
+    }, [selectedTransactionIDs, allTransactions]);
+
+    const activePolicyExpenseChat = useMemo(() => getPolicyExpenseChat(currentUserAccountID, defaultExpensePolicy?.id), [currentUserAccountID, defaultExpensePolicy?.id]);
+
+    const isDuplicateOptionVisible = useMemo(
+        () =>
+            !isProduction &&
+            shouldShowBulkDuplicateOption({
+                selectedTransactionsKeys: selectedTransactionIDs,
+                selectedTransactions: selectedTransactionsForDuplicate,
+                allTransactions,
+                allReports,
+                allTransactionViolations,
+                allReportNameValuePairs,
+                defaultExpensePolicyID: defaultExpensePolicy?.id,
+                activePolicyExpenseChat,
+                typeExpenseReport: false,
+                searchData: undefined,
+            }),
+        [
+            isProduction,
+            selectedTransactionIDs,
+            selectedTransactionsForDuplicate,
+            allTransactions,
+            allReports,
+            allTransactionViolations,
+            allReportNameValuePairs,
+            defaultExpensePolicy?.id,
+            activePolicyExpenseChat,
+        ],
+    );
+
+    const sourcePolicyIDMap = useMemo(() => {
+        const map: Record<string, string | undefined> = {};
+        for (const transactionID of selectedTransactionIDs) {
+            const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
+            const txReportID = transaction?.reportID;
+            if (!txReportID) {
+                continue;
+            }
+            const txReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${txReportID}`];
+            map[transactionID] = txReport?.policyID;
+        }
+        return map;
+    }, [selectedTransactionIDs, allTransactions, allReports]);
+
+    const handleDuplicate = useCallback(() => {
+        bulkDuplicateExpenses({
+            transactionIDs: selectedTransactionIDs,
+            allTransactions: allTransactions ?? {},
+            sourcePolicyIDMap,
+            targetPolicy: (defaultExpensePolicy ?? undefined) as OnyxEntry<Policy>,
+            targetPolicyCategories: targetPolicyCategories ?? {},
+            targetPolicyTags: targetPolicyTags ?? {},
+            targetReport: activePolicyExpenseChat,
+            personalDetails,
+            isASAPSubmitBetaEnabled,
+            introSelected,
+            activePolicyID,
+            quickAction,
+            policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
+            isSelfTourViewed,
+            transactionDrafts,
+            draftTransactionIDs,
+            betas,
+            recentWaypoints,
+        });
+
+        clearSelectedTransactions(undefined, true);
+    }, [
+        selectedTransactionIDs,
+        defaultExpensePolicy,
+        allTransactions,
+        sourcePolicyIDMap,
+        targetPolicyCategories,
+        targetPolicyTags,
+        activePolicyExpenseChat,
+        personalDetails,
+        isASAPSubmitBetaEnabled,
+        introSelected,
+        activePolicyID,
+        quickAction,
+        policyRecentlyUsedCurrencies,
+        isSelfTourViewed,
+        transactionDrafts,
+        draftTransactionIDs,
+        betas,
+        recentWaypoints,
+        clearSelectedTransactions,
+    ]);
 
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     const isTrackExpenseThread = isTrackExpenseReport(report);
@@ -384,6 +522,16 @@ function useSelectedTransactionsActions({
                 onSelected: () => {
                     initSplitExpense(firstTransaction, policy);
                 },
+            });
+        }
+
+        if (isDuplicateOptionVisible) {
+            options.push({
+                text: translate('search.bulkActions.duplicateExpense', {count: selectedTransactionIDs.length}),
+                icon: expensifyIcons.ExpenseCopy,
+                value: DUPLICATE,
+                shouldCloseModalOnSelect: true,
+                onSelected: handleDuplicate,
             });
         }
 
