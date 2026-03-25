@@ -8153,16 +8153,10 @@ describe('actions/IOU', () => {
             const userLogins = getLoginsByAccountIDs(participantAccountIDs);
 
             // When Opening a thread report with the given details
-            const allPersonalDetails = await getOnyxValue(ONYXKEYS.PERSONAL_DETAILS_LIST);
-            const participants = userLogins.map((login, index) => ({
-                login,
-                accountID: participantAccountIDs.at(index),
-            }));
             openReport({
                 reportID: thread.reportID,
                 introSelected: TEST_INTRO_SELECTED,
-                participants,
-                personalDetails: allPersonalDetails,
+                participantLoginList: userLogins,
                 newReportObject: thread,
                 parentReportActionID: createIOUAction?.reportActionID,
             });
@@ -8258,17 +8252,10 @@ describe('actions/IOU', () => {
             const userLogins = getLoginsByAccountIDs(participantAccountIDs);
 
             // When Opening a thread report with the given details
-
-            const allPersonalDetails = await getOnyxValue(ONYXKEYS.PERSONAL_DETAILS_LIST);
-            const participants = userLogins.map((login, index) => ({
-                login,
-                accountID: participantAccountIDs.at(index),
-            }));
             openReport({
                 reportID: thread.reportID,
                 introSelected: TEST_INTRO_SELECTED,
-                personalDetails: allPersonalDetails,
-                participants,
+                participantLoginList: userLogins,
                 newReportObject: thread,
                 parentReportActionID: createIOUAction?.reportActionID,
             });
@@ -8387,16 +8374,10 @@ describe('actions/IOU', () => {
             const participantAccountIDs = Object.keys(thread.participants ?? {}).map(Number);
             const userLogins = getLoginsByAccountIDs(participantAccountIDs);
             jest.advanceTimersByTime(10);
-            const allPersonalDetails = await getOnyxValue(ONYXKEYS.PERSONAL_DETAILS_LIST);
-            const participants = userLogins.map((login, index) => ({
-                login,
-                accountID: participantAccountIDs.at(index),
-            }));
             openReport({
                 reportID: thread.reportID,
                 introSelected: TEST_INTRO_SELECTED,
-                participants,
-                personalDetails: allPersonalDetails,
+                participantLoginList: userLogins,
                 newReportObject: thread,
                 parentReportActionID: createIOUAction?.reportActionID,
             });
@@ -8529,16 +8510,10 @@ describe('actions/IOU', () => {
             jest.advanceTimersByTime(10);
             const participantAccountIDs = Object.keys(thread.participants ?? {}).map(Number);
             const userLogins = getLoginsByAccountIDs(participantAccountIDs);
-            const allPersonalDetails = await getOnyxValue(ONYXKEYS.PERSONAL_DETAILS_LIST);
-            const participants = userLogins.map((login, index) => ({
-                login,
-                accountID: participantAccountIDs.at(index),
-            }));
             openReport({
                 reportID: thread.reportID,
                 introSelected: TEST_INTRO_SELECTED,
-                participants,
-                personalDetails: allPersonalDetails,
+                participantLoginList: userLogins,
                 newReportObject: thread,
                 parentReportActionID: createIOUAction?.reportActionID,
             });
@@ -8840,16 +8815,10 @@ describe('actions/IOU', () => {
             jest.advanceTimersByTime(10);
             const participantAccountIDs = Object.keys(thread.participants ?? {}).map(Number);
             const userLogins = getLoginsByAccountIDs(participantAccountIDs);
-            const allPersonalDetails = await getOnyxValue(ONYXKEYS.PERSONAL_DETAILS_LIST);
-            const participants = userLogins.map((login, index) => ({
-                login,
-                accountID: participantAccountIDs.at(index),
-            }));
             openReport({
                 reportID: thread.reportID,
                 introSelected: TEST_INTRO_SELECTED,
-                participants,
-                personalDetails: allPersonalDetails,
+                participantLoginList: userLogins,
                 newReportObject: thread,
                 parentReportActionID: createIOUAction?.reportActionID,
             });
@@ -9017,16 +8986,10 @@ describe('actions/IOU', () => {
             const participantAccountIDs = Object.keys(thread.participants ?? {}).map(Number);
             const userLogins = getLoginsByAccountIDs(participantAccountIDs);
             jest.advanceTimersByTime(10);
-            const participants = userLogins.map((login, index) => ({
-                login,
-                accountID: participantAccountIDs.at(index),
-            }));
-            const allPersonalDetails = await getOnyxValue(ONYXKEYS.PERSONAL_DETAILS_LIST);
             openReport({
                 reportID: thread.reportID,
                 introSelected: TEST_INTRO_SELECTED,
-                personalDetails: allPersonalDetails,
-                participants,
+                participantLoginList: userLogins,
                 newReportObject: thread,
                 parentReportActionID: createIOUAction?.reportActionID,
             });
@@ -9292,18 +9255,10 @@ describe('actions/IOU', () => {
             const participantAccountIDs = Object.keys(thread.participants ?? {}).map(Number);
             const userLogins = getLoginsByAccountIDs(participantAccountIDs);
             jest.advanceTimersByTime(10);
-
-            const participants = userLogins.map((login, index) => ({
-                login,
-                accountID: participantAccountIDs.at(index),
-            }));
-            const allPersonalDetails = await getOnyxValue(ONYXKEYS.PERSONAL_DETAILS_LIST);
-
             openReport({
                 reportID: thread.reportID,
                 introSelected: TEST_INTRO_SELECTED,
-                personalDetails: allPersonalDetails,
-                participants,
+                participantLoginList: userLogins,
                 newReportObject: thread,
                 parentReportActionID: createIOUAction?.reportActionID,
             });
@@ -9399,16 +9354,10 @@ describe('actions/IOU', () => {
             const participantAccountIDs = Object.keys(thread.participants ?? {}).map(Number);
             const userLogins = getLoginsByAccountIDs(participantAccountIDs);
             jest.advanceTimersByTime(10);
-            const participants = userLogins.map((login, index) => ({
-                login,
-                accountID: participantAccountIDs.at(index),
-            }));
-            const allPersonalDetails = await getOnyxValue(ONYXKEYS.PERSONAL_DETAILS_LIST);
             openReport({
                 reportID: thread.reportID,
                 introSelected: TEST_INTRO_SELECTED,
-                personalDetails: allPersonalDetails,
-                participants,
+                participantLoginList: userLogins,
                 newReportObject: thread,
                 parentReportActionID: createIOUAction?.reportActionID,
             });
@@ -16321,9 +16270,6 @@ describe('actions/IOU', () => {
         const transactionID = '1';
         mockedIsReportTopmostSplitNavigator.mockReturnValue(false);
 
-        // When on the Inbox tab, or NOT from the "global create" button, or without a transactionID,
-        // the function dismissModalAndOpenReportInInboxTab will always be called to handle it,
-        // so mergeTransactionIdsHighlightOnSearchRoute will never be invoked.
         handleNavigateAfterExpenseCreate({activeReportID, isFromGlobalCreate: false});
         expect(spyOnMergeTransactionIdsHighlightOnSearchRoute).toHaveBeenCalledTimes(0);
 
@@ -16334,20 +16280,13 @@ describe('actions/IOU', () => {
         handleNavigateAfterExpenseCreate({activeReportID, isFromGlobalCreate: true, transactionID});
         expect(spyOnMergeTransactionIdsHighlightOnSearchRoute).toHaveBeenCalledTimes(0);
 
-        // When NOT on the Inbox tab
         mockedIsReportTopmostSplitNavigator.mockReturnValue(false);
         handleNavigateAfterExpenseCreate({activeReportID, isFromGlobalCreate: true, transactionID});
+        expect(spyOnMergeTransactionIdsHighlightOnSearchRoute).toHaveBeenCalledTimes(0);
 
-        // then mergeTransactionIdsHighlightOnSearchRoute will be called
-        expect(spyOnMergeTransactionIdsHighlightOnSearchRoute).toHaveBeenCalledTimes(1);
-        expect(spyOnMergeTransactionIdsHighlightOnSearchRoute).toHaveBeenCalledWith(CONST.SEARCH.DATA_TYPES.EXPENSE, {[transactionID]: true});
-        spyOnMergeTransactionIdsHighlightOnSearchRoute.mockClear();
-
-        // If expense is an invoice
         handleNavigateAfterExpenseCreate({activeReportID, isFromGlobalCreate: true, transactionID, isInvoice: true});
+        expect(spyOnMergeTransactionIdsHighlightOnSearchRoute).toHaveBeenCalledTimes(0);
 
-        expect(spyOnMergeTransactionIdsHighlightOnSearchRoute).toHaveBeenCalledTimes(1);
-        expect(spyOnMergeTransactionIdsHighlightOnSearchRoute).toHaveBeenCalledWith(CONST.SEARCH.DATA_TYPES.INVOICE, {[transactionID]: true});
         spyOnMergeTransactionIdsHighlightOnSearchRoute.mockReset();
     });
 

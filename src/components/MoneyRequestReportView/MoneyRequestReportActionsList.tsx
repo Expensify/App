@@ -1,5 +1,5 @@
 /* eslint-disable rulesdir/prefer-early-return */
-import {useIsFocused, useRoute} from '@react-navigation/native';
+import {useFocusEffect, useIsFocused, useRoute} from '@react-navigation/native';
 import {isUserValidatedSelector} from '@selectors/Account';
 import {tierNameSelector} from '@selectors/UserWallet';
 import isEmpty from 'lodash/isEmpty';
@@ -205,10 +205,20 @@ function MoneyRequestReportActionsList({
     const [enableScrollToEnd, setEnableScrollToEnd] = useState<boolean>(false);
     const [lastActionEventId, setLastActionEventId] = useState<string>('');
 
-    const {selectedTransactionIDs} = useSearchStateContext();
-    const {setSelectedTransactions, clearSelectedTransactions} = useSearchActionsContext();
+    const {selectedTransactionIDs, currentSelectedTransactionReportID} = useSearchStateContext();
+    const {setSelectedTransactions, clearSelectedTransactions, setCurrentSelectedTransactionReportID} = useSearchActionsContext();
 
-    useFilterSelectedTransactions(transactions);
+    useFocusEffect(
+        useCallback(() => {
+            if (reportID && currentSelectedTransactionReportID !== reportID && selectedTransactionIDs.length > 0) {
+                clearSelectedTransactions(true);
+            }
+
+            setCurrentSelectedTransactionReportID(reportID);
+        }, [clearSelectedTransactions, currentSelectedTransactionReportID, reportID, selectedTransactionIDs.length, setCurrentSelectedTransactionReportID]),
+    );
+
+    useFilterSelectedTransactions(transactions, reportID);
 
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
     const {showConfirmModal} = useConfirmModal();

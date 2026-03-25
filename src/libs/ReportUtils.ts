@@ -4168,10 +4168,10 @@ function buildOptimisticChangeFieldAction(reportField: PolicyReportField, previo
  * Builds an optimistic REIMBURSEMENT_DEQUEUED report action with a randomly generated reportActionID.
  *
  */
-function buildOptimisticCancelPaymentReportAction(expenseReportID: string, amount: number, currency: string): OptimisticCancelPaymentReportAction {
+function buildOptimisticCancelPaymentReportAction(expenseReportID: string, amount: number, currency: string, currentUserAccountID: number): OptimisticCancelPaymentReportAction {
     return {
         actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DEQUEUED,
-        actorAccountID: deprecatedCurrentUserAccountID,
+        actorAccountID: currentUserAccountID,
         message: [
             {
                 cancellationReason: CONST.REPORT.CANCEL_PAYMENT_REASONS.ADMIN,
@@ -4943,16 +4943,25 @@ function canEditMultipleTransactions(
  * Checks if the current user can edit the provided property of an expense
  *
  */
-function canEditFieldOfMoneyRequest(
-    reportAction: OnyxInputOrEntry<ReportAction>,
-    fieldToEdit: ValueOf<typeof CONST.EDIT_REQUEST_FIELD>,
-    isDeleteAction?: boolean,
+function canEditFieldOfMoneyRequest({
+    reportAction,
+    fieldToEdit,
+    isDeleteAction = false,
     isChatReportArchived = false,
-    outstandingReportsByPolicyID?: OutstandingReportsByPolicyIDDerivedValue,
-    linkedTransaction?: OnyxEntry<Transaction>,
-    report?: OnyxInputOrEntry<Report>,
-    policy?: OnyxEntry<Policy>,
-): boolean {
+    outstandingReportsByPolicyID,
+    transaction,
+    report,
+    policy,
+}: {
+    reportAction: OnyxInputOrEntry<ReportAction>;
+    fieldToEdit: ValueOf<typeof CONST.EDIT_REQUEST_FIELD>;
+    isDeleteAction?: boolean;
+    isChatReportArchived?: boolean;
+    outstandingReportsByPolicyID?: OutstandingReportsByPolicyIDDerivedValue;
+    transaction: OnyxEntry<Transaction>;
+    report?: OnyxInputOrEntry<Report>;
+    policy?: OnyxEntry<Policy>;
+}): boolean {
     // A list of fields that cannot be edited by anyone, once an expense has been settled
     const restrictedFields: string[] = [
         CONST.EDIT_REQUEST_FIELD.AMOUNT,
@@ -4967,7 +4976,7 @@ function canEditFieldOfMoneyRequest(
         CONST.EDIT_REQUEST_FIELD.BILLABLE,
     ];
 
-    if (!isMoneyRequestAction(reportAction) || !canEditMoneyRequest(reportAction, isChatReportArchived, report, policy, linkedTransaction)) {
+    if (!isMoneyRequestAction(reportAction) || !canEditMoneyRequest(reportAction, isChatReportArchived, report, policy, transaction)) {
         return false;
     }
 
@@ -4978,7 +4987,6 @@ function canEditFieldOfMoneyRequest(
 
     const iouMessage = getOriginalMessage(reportAction);
     const moneyRequestReport = report ?? (iouMessage?.IOUReportID ? (getReport(iouMessage?.IOUReportID, allReports) ?? ({} as Report)) : ({} as Report));
-    const transaction = linkedTransaction ?? deprecatedAllTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${iouMessage?.IOUTransactionID}`] ?? ({} as Transaction);
 
     if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.BILLABLE && isInvoiceReport(moneyRequestReport) && isReportApproved({report: moneyRequestReport})) {
         return false;
@@ -7336,7 +7344,7 @@ function buildOptimisticIOUReportAction(params: BuildOptimisticIOUReportActionPa
 /**
  * Builds an optimistic APPROVED report action with a randomly generated reportActionID.
  */
-function buildOptimisticApprovedReportAction(amount: number, currency: string, expenseReportID: string): OptimisticApprovedReportAction {
+function buildOptimisticApprovedReportAction(amount: number, currency: string, expenseReportID: string, currentUserAccountID: number): OptimisticApprovedReportAction {
     const originalMessage = {
         amount,
         currency,
@@ -7346,7 +7354,7 @@ function buildOptimisticApprovedReportAction(amount: number, currency: string, e
 
     return {
         actionName: CONST.REPORT.ACTIONS.TYPE.APPROVED,
-        actorAccountID: deprecatedCurrentUserAccountID,
+        actorAccountID: currentUserAccountID,
         automatic: false,
         avatar: getCurrentUserAvatar(),
         isAttachmentOnly: false,
@@ -8370,10 +8378,10 @@ function buildOptimisticEditedTaskFieldReportAction({title, description}: Task):
     };
 }
 
-function buildOptimisticCardAssignedReportAction(assigneeAccountID: number): OptimisticCardAssignedReportAction {
+function buildOptimisticCardAssignedReportAction(assigneeAccountID: number, currentUserAccountID: number): OptimisticCardAssignedReportAction {
     return {
         actionName: CONST.REPORT.ACTIONS.TYPE.CARD_ASSIGNED,
-        actorAccountID: deprecatedCurrentUserAccountID,
+        actorAccountID: currentUserAccountID,
         avatar: getCurrentUserAvatar(),
         created: DateUtils.getDBTime(),
         originalMessage: {assigneeAccountID, cardID: -1},
