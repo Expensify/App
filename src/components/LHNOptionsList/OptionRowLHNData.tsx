@@ -51,14 +51,15 @@ function OptionRowLHNData({
     const reportAttributesSelector = useCallback((data: ReportAttributesDerivedValue | undefined) => data?.reports?.[reportID], [reportID]);
     const [reportAttributes] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {selector: reportAttributesSelector});
 
-    // Look up the one-transaction thread report using the ID from our own attributes.
-    const [oneTransactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportAttributes?.oneTransactionThreadReportID)}`);
+    // Use the derived thread ID directly — available even when the child report object isn't hydrated yet
+    const oneTransactionThreadReportID = reportAttributes?.oneTransactionThreadReportID;
 
+    const [oneTransactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(oneTransactionThreadReportID)}`);
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`);
     const [parentReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(fullReport?.parentReportID)}`);
-    const [transactionThreadReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(oneTransactionThreadReport?.reportID)}`);
+    const [transactionThreadReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(oneTransactionThreadReportID)}`);
 
-    // Scoped VISIBLE_REPORT_ACTIONS selector — only picks entries for this report and its transaction thread
+    // Scoped VISIBLE_REPORT_ACTIONS selector — only picks entries for this report and its transaction thread.
     const visibleActionsSelector = useCallback(
         (data: VisibleReportActionsDerivedValue | undefined) => {
             if (!data) {
@@ -69,16 +70,15 @@ function OptionRowLHNData({
             if (reportEntry) {
                 result[reportID] = reportEntry;
             }
-            const txThreadID = oneTransactionThreadReport?.reportID;
-            if (txThreadID) {
-                const txThreadEntry = data[txThreadID];
+            if (oneTransactionThreadReportID) {
+                const txThreadEntry = data[oneTransactionThreadReportID];
                 if (txThreadEntry) {
-                    result[txThreadID] = txThreadEntry;
+                    result[oneTransactionThreadReportID] = txThreadEntry;
                 }
             }
             return result;
         },
-        [reportID, oneTransactionThreadReport?.reportID],
+        [reportID, oneTransactionThreadReportID],
     );
     const [visibleReportActionsData] = useOnyx(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS, {selector: visibleActionsSelector});
 
@@ -96,11 +96,11 @@ function OptionRowLHNData({
         const actionsCollection: OnyxCollection<ReportActionsType> = {
             [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`]: reportActions ?? undefined,
         };
-        if (oneTransactionThreadReport?.reportID) {
-            actionsCollection[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${oneTransactionThreadReport.reportID}`] = transactionThreadReportActions ?? undefined;
+        if (oneTransactionThreadReportID) {
+            actionsCollection[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${oneTransactionThreadReportID}`] = transactionThreadReportActions ?? undefined;
         }
-        return getLastVisibleActionIncludingTransactionThread(reportID, canUserPerformWrite, actionsCollection, visibleReportActionsData, oneTransactionThreadReport?.reportID);
-    }, [reportID, canUserPerformWrite, reportActions, transactionThreadReportActions, visibleReportActionsData, oneTransactionThreadReport?.reportID]);
+        return getLastVisibleActionIncludingTransactionThread(reportID, canUserPerformWrite, actionsCollection, visibleReportActionsData, oneTransactionThreadReportID);
+    }, [reportID, canUserPerformWrite, reportActions, transactionThreadReportActions, visibleReportActionsData, oneTransactionThreadReportID]);
 
     const iouReportIDOfLastAction = useMemo(
         () => getIOUReportIDOfLastAction(fullReport, (reportNameValuePairsEntry ?? reportNameValuePairs)?.private_isArchived, visibleReportActionsData, lastAction),
