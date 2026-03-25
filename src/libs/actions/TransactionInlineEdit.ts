@@ -375,7 +375,16 @@ function getTransactionEditPermissions({
     // Unreported expenses bypass this (all restricted fields editable by owner).
     const canEditRestricted = (field: string) =>
         isUnreported ||
-        canEditFieldOfMoneyRequest(parentReportAction, field as ValueOf<typeof CONST.EDIT_REQUEST_FIELD>, false, isChatReportArchived, undefined, transaction, parentReport, policy);
+        canEditFieldOfMoneyRequest({
+            reportAction: parentReportAction,
+            fieldToEdit: field as ValueOf<typeof CONST.EDIT_REQUEST_FIELD>,
+            isDeleteAction: false,
+            isChatReportArchived,
+            outstandingReportsByPolicyID: undefined,
+            transaction,
+            report: parentReport,
+            policy,
+        });
 
     return {
         canEditDate: canEditRestricted(CONST.EDIT_REQUEST_FIELD.DATE),

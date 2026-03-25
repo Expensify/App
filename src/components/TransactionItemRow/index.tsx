@@ -16,9 +16,9 @@ import UserInfoCell from '@components/Search/SearchList/ListItem/UserInfoCell';
 import WorkspaceCell from '@components/Search/SearchList/ListItem/WorkspaceCell';
 import type {SearchColumnType, TableColumnSize} from '@components/Search/types';
 import Text from '@components/Text';
-import useEffectivePolicyID from '@hooks/useEffectivePolicyID';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -40,6 +40,7 @@ import {
     getCreated as getTransactionCreated,
     hasMissingSmartscanFields,
     isAmountMissing,
+    isExpenseUnreported,
     isMerchantMissing,
     isScanning,
     isTimeRequest,
@@ -47,6 +48,7 @@ import {
 } from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails, Policy, Report, ReportAction, TransactionViolation} from '@src/types/onyx';
 import type {SearchTransactionAction} from '@src/types/onyx/SearchResults';
 import CategoryCell from './DataCells/CategoryCell';
@@ -229,9 +231,10 @@ function TransactionItemRow({
     const {isLargeScreenWidth} = useResponsiveLayout();
     const hasCategoryOrTag = !isCategoryMissing(transactionItem?.category) || !!transactionItem.tag;
 
-    // Compute effective policy ID once for all child components
-    // For unreported expenses (SelfDM), falls back to active policy
-    const effectivePolicyID = useEffectivePolicyID(report?.policyID ?? transactionItem.report?.policyID);
+    // For unreported expenses (SelfDM), use active policy to show policy-specific fields like categories and tags
+    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
+    const reportPolicyID = report?.policyID ?? transactionItem.report?.policyID;
+    const effectivePolicyID = isExpenseUnreported(transactionItem) ? activePolicyID : reportPolicyID;
     const createdAt = getTransactionCreated(transactionItem);
     const expensicons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
     const transactionThreadReportID = reportActions ? getIOUActionForTransactionID(reportActions, transactionItem.transactionID)?.childReportID : undefined;
