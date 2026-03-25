@@ -1,14 +1,11 @@
 import React from 'react';
 import type {ValueOf} from 'type-fest';
 import {PressableWithFeedback} from '@components/Pressable';
-import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useNavigateToWorkspacesPage from '@hooks/useNavigateToWorkspacesPage';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWorkspaceNavigationRouteState from '@hooks/useWorkspaceNavigationRouteState';
 import useWorkspacesTabIndicatorStatus from '@hooks/useWorkspacesTabIndicatorStatus';
-import navigateToWorkspacesPage from '@libs/Navigation/helpers/navigateToWorkspacesPage';
 import CONST from '@src/CONST';
 import NAVIGATION_TABS from './NAVIGATION_TABS';
 import TabBarItem from './TabBarItem';
@@ -23,14 +20,8 @@ function WorkspacesTabButton({selectedTab, isWideLayout}: WorkspacesTabButtonPro
     const {translate, preferredLocale} = useLocalize();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Buildings']);
     const {indicatorColor: workspacesTabIndicatorColor, status: workspacesTabIndicatorStatus} = useWorkspacesTabIndicatorStatus();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const {login: currentUserLogin} = useCurrentUserPersonalDetails();
 
-    const {lastWorkspacesTabNavigatorRoute, topmostFullScreenRoute, lastViewedPolicy, lastViewedDomain} = useWorkspaceNavigationRouteState();
-
-    const navigateToWorkspaces = () => {
-        navigateToWorkspacesPage({shouldUseNarrowLayout, currentUserLogin, policy: lastViewedPolicy, domain: lastViewedDomain, lastWorkspacesTabNavigatorRoute, topmostFullScreenRoute});
-    };
+    const navigateToWorkspaces = useNavigateToWorkspacesPage();
 
     const workspacesAccessibilityState = {selected: selectedTab === NAVIGATION_TABS.WORKSPACES};
     const workspacesStatusIndicatorColor = workspacesTabIndicatorStatus ? workspacesTabIndicatorColor : undefined;
