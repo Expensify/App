@@ -36,7 +36,7 @@ type WorkspaceMembersSelectionListProps = {
 
 function WorkspaceMembersSelectionList({policyID, selectedApprover, setApprover}: WorkspaceMembersSelectionListProps) {
     const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar']);
-    const {translate, localeCompare} = useLocalize();
+    const {translate, localeCompare, formatPhoneNumber} = useLocalize();
     const {didScreenTransitionEnd} = useScreenWrapperTransitionStatus();
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const personalDetails = usePersonalDetails();
@@ -57,13 +57,15 @@ function WorkspaceMembersSelectionList({policyID, selectedApprover, setApprover}
             const accountID = Number(policyMemberEmailsToAccountIDs[email] ?? '');
             const {avatar, displayName = email, login} = personalDetails?.[accountID] ?? {};
 
+            const formattedDisplayName = formatPhoneNumber(displayName);
+
             approvers.push({
-                text: displayName,
+                text: formattedDisplayName,
                 alternateText: email,
                 keyForList: email,
                 isSelected: selectedApprover === email,
                 login: email,
-                icons: [{source: avatar ?? icons.FallbackAvatar, type: CONST.ICON_TYPE_AVATAR, name: displayName, id: accountID}],
+                icons: [{source: avatar ?? icons.FallbackAvatar, type: CONST.ICON_TYPE_AVATAR, name: formattedDisplayName, id: accountID}],
                 rightElement: (
                     <MemberRightIcon
                         role={employee.role}
