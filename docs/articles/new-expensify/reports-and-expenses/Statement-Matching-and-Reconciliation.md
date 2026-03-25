@@ -5,19 +5,19 @@ keywords: [New Expensify, company cards, statement matching, company card reconc
 internalScope: Audience is Workspace Admins reconciling third-party company card spend. Covers statement-based reconciliation under Reconciliation > Card statements. Does not cover Expensify Card withdrawal-based reconciliation or reimbursement reconciliation.
 ---
 
-# Statement Matching and Reconciliation
+# Statement matching and reconciliation
 
 Company card reconciliation helps you match the transactions in Expensify to your card statement for a given period. This ensures the totals line up and all card activity is accounted for before you close your books.
 
 ---
 
-## Who Can Reconcile Company Cards
+## Who can reconcile company cards
 
 Workspace Admins whose workspace has at least one company card feed connected can reconcile company cards in Expensify.
 
 ---
 
-## How to Reconcile Company Card Transactions Against a Statement
+## How to reconcile company card transactions against a statement
 
 1. Click the navigation tabs (on the left on web, on the bottom on mobile) and go to **Reports**.
 2. In the **Reconciliation** section, select **Card statements**.
@@ -31,7 +31,7 @@ Workspace Admins whose workspace has at least one company card feed connected ca
 
 ---
 
-## How to Identify and Fix Discrepancies in Company Card Reconciliation
+## How to identify and fix discrepancies in company card reconciliation
 
 If the Expensify total does not match your card statement:
 
@@ -44,7 +44,7 @@ If the Expensify total does not match your card statement:
 
 ---
 
-## How Multi-Currency Works With Company Card Reconciliation
+## How multi-currency works with company card reconciliation
 
 If your workspace uses multiple currencies, apply the **Group currency** filter to convert all transactions into a single currency. This ensures the grouped totals match your accounting system's reporting currency.
 
@@ -52,14 +52,14 @@ If your workspace uses multiple currencies, apply the **Group currency** filter 
 
 # FAQ
 
-## What Is the Difference Between Company Card Reconciliation and Expensify Card Reconciliation?
+## What is the difference between company card reconciliation and Expensify Card reconciliation?
 
 Company card reconciliation is statement-based and matches Expensify transaction totals to an external card statement. Expensify Card reconciliation is withdrawal-based and matches bank withdrawals to grouped expenses within Expensify. See [View and Reconcile Expensify Card Expenses](/articles/new-expensify/expensify-card/View-and-Reconcile-Expensify-Card-Expenses) for the Expensify Card workflow.
 
-## Why Don't I See Card Statements Under Reconciliation?
+## Why don't I see card statements under Reconciliation?
 
 The Card statements option appears only when your workspace has at least one company card feed connected. If you don’t see it, confirm that a company card feed is set up and active.
 
-## What Does the Last Statement Filter Show?
+## What does the Last Statement filter show?
 
 The **Last statement** filter shows transactions posted during the most recent completed statement period, based on your configured statement close date.
