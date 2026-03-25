@@ -375,7 +375,7 @@ function BaseModal({
                         type={type}
                         shouldIgnoreBackHandlerDuringTransition={shouldIgnoreBackHandlerDuringTransition}
                         shouldEnableNewFocusManagement={shouldEnableNewFocusManagement}
-                        supportedOrientations={isInLandscapeMode ? ['portrait', 'portrait-upside-down', 'landscape', 'landscape-left', 'landscape-right'] : undefined}
+                        supportedOrientations={['portrait', 'portrait-upside-down', 'landscape', 'landscape-left', 'landscape-right']}
                         shouldReturnFocus={shouldReturnFocus}
                     >
                         <Animated.View
