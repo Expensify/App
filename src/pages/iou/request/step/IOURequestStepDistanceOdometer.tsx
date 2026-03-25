@@ -94,6 +94,8 @@ function IOURequestStepDistanceOdometer({
     const initialStartImageRef = useRef<FileObject | string | undefined>(undefined);
     const initialEndImageRef = useRef<FileObject | string | undefined>(undefined);
     const prevSelectedTabRef = useRef<string | undefined>(undefined);
+    const transactionWasSaved = useRef(false);
+    const backupHandledManually = useRef(false);
 
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`);
     const isArchived = isArchivedReport(reportNameValuePairs);
@@ -234,9 +236,20 @@ function IOURequestStepDistanceOdometer({
 
     useEffect(() => {
         if (!isEditingConfirmation) {
-            return;
+            return () => {};
         }
-        createBackupTransaction(currentTransaction, isTransactionDraft, true);
+        createBackupTransaction(transaction, isTransactionDraft, true);
+
+        return () => {
+            if (backupHandledManually.current) {
+                return;
+            }
+            if (transactionWasSaved.current) {
+                removeBackupTransactionWithImageCleanup(transactionID, isTransactionDraft);
+                return;
+            }
+            restoreOriginalTransactionFromBackupWithImageCleanup(transactionID, isTransactionDraft);
+        };
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
@@ -357,7 +370,7 @@ function IOURequestStepDistanceOdometer({
 
     const navigateBack = useCallback(() => {
         if (isEditingConfirmation) {
-            // User didn't saved - we restore original from backup and cleanup blob urls of new images
+            backupHandledManually.current = true;
             restoreOriginalTransactionFromBackupWithImageCleanup(transactionID, isTransactionDraft, () => {
                 Navigation.goBack(confirmationRoute);
             });
@@ -442,10 +455,8 @@ function IOURequestStepDistanceOdometer({
         }
 
         if (isEditingConfirmation) {
-            // User saved - we cleanup blob urls of original images from backup
-            removeBackupTransactionWithImageCleanup(transactionID, isTransactionDraft, () => {
-                Navigation.goBack(confirmationRoute);
-            });
+            transactionWasSaved.current = true;
+            Navigation.goBack(confirmationRoute);
             return;
         }
 
