@@ -527,6 +527,7 @@ const translations: TranslationDeepObject<typeof en> = {
         concierge: {sidePanelGreeting: 'こんにちは、どのようにお手伝いできますか？', showHistory: '履歴を表示'},
         duplicateReport: 'レポートを複製',
         approver: '承認者',
+        enterDigitLabel: ({digitIndex, totalDigits}: {digitIndex: number; totalDigits: number}) => `${totalDigits}桁中${digitIndex}桁目を入力`,
         copyOfReportName: (reportName: string) => `${reportName} のコピー`,
     },
     socials: {
@@ -753,11 +754,6 @@ const translations: TranslationDeepObject<typeof en> = {
         findMember: 'メンバーを検索',
         searchForSomeone: '誰かを検索',
         userSelected: (username: string) => `${username} 選択された`,
-    },
-    customApprovalWorkflow: {
-        title: 'カスタム承認ワークフロー',
-        description: 'このワークスペースでは、あなたの会社がカスタム承認ワークフローを使用しています。Expensify Classic でこの操作を行ってください',
-        goToExpensifyClassic: 'Expensify Classic に切り替える',
     },
     emptyList: {
         [CONST.IOU.TYPE.CREATE]: {
@@ -1230,6 +1226,8 @@ const translations: TranslationDeepObject<typeof en> = {
         pendingMatch: '保留中の照合',
         pendingMatchWithCreditCardDescription: 'レシートはカード取引との照合待ちです。現金としてマークしてキャンセルします。',
         markAsCash: '現金としてマーク',
+        pendingMatchSubmitTitle: 'レポートを提出',
+        pendingMatchSubmitDescription: '一部の経費がクレジットカード取引との照合待ちです。現金としてマークしますか？',
         routePending: 'ルート保留中…',
         automaticallyEnterExpenseDetails: 'コンシェルジュが自動的に経費の詳細を入力するか、手動で追加することができます。',
         receiptScanning: () => ({
@@ -2344,11 +2342,16 @@ ${date} の ${merchant} への ${amount}`,
         freezeCard: 'カードを一時停止',
         unfreeze: '再開',
         unfreezeCard: 'カードの一時停止を解除',
+        askToUnfreeze: '一時停止解除を依頼',
         freezeDescription: '一時停止したカードは購入や取引に使用できません。いつでも再開できます。',
         unfreezeDescription: 'このカードの一時停止を解除すると、購入と取引が再び可能になります。カードが安全に使用できると確信できる場合にのみ続行してください。',
         frozen: '凍結中',
         youFroze: ({date}: {date: string}) => `${date}にこのカードを一時停止しました。`,
         frozenBy: ({person, date}: {person: string; date: string}) => `${person}が${date}にこのカードを一時停止しました。`,
+        frozenByAdminPrefix: ({date}: {date: string}) => `${date}にこのカードを一時停止したのは`,
+        frozenByAdminNeedsUnfreezePrefix: 'このカードは',
+        frozenByAdminNeedsUnfreezeSuffix: 'によって一時停止されました。解除するには管理者に連絡してください。',
+        frozenByAdminNeedsUnfreeze: ({person}: {person: string}) => `このカードは${person}によって一時停止されました。解除するには管理者に連絡してください。`,
     },
     workflowsPage: {
         workflowTitle: '支出',
@@ -2646,6 +2649,7 @@ ${date} の ${merchant} への ${amount}`,
                 label: 'デバイスの設定を使用',
             },
         },
+        highContrastMode: 'ハイコントラストモード',
         chooseThemeBelowOrSync: '以下からテーマを選択するか、デバイスの設定と同期してください。',
     },
     termsOfUse: {
@@ -7134,6 +7138,7 @@ ${reportName}
     search: {
         resultsAreLimited: '検索結果は制限されています。',
         viewResults: '結果を表示',
+        appliedFilters: '適用されたフィルター',
         resetFilters: 'フィルターをリセット',
         searchResults: {
             emptyResults: {
@@ -7189,6 +7194,7 @@ ${reportName}
             },
         },
         columns: '列',
+        editColumns: '列の編集',
         resetColumns: '列をリセット',
         groupColumns: '列をグループ化',
         expenseColumns: '経費列',
@@ -7227,6 +7233,7 @@ ${reportName}
                     [CONST.SEARCH.DATE_PRESETS.LAST_MONTH]: '先月',
                     [CONST.SEARCH.DATE_PRESETS.THIS_MONTH]: '今月',
                     [CONST.SEARCH.DATE_PRESETS.YEAR_TO_DATE]: '年初来（累計）',
+                    [CONST.SEARCH.DATE_PRESETS.LAST_12_MONTHS]: '過去12か月',
                     [CONST.SEARCH.DATE_PRESETS.LAST_STATEMENT]: '最新明細書',
                 },
             },
@@ -7289,8 +7296,13 @@ ${reportName}
                 [CONST.SEARCH.ACTION_FILTERS.EXPORT]: 'エクスポート',
             },
         },
+        display: {
+            label: '表示',
+            sortBy: '並べ替え',
+            groupBy: 'グループ化基準',
+            limitResults: '結果の絞り込み',
+        },
         has: '持っている',
-        groupBy: 'グループ化基準',
         view: {label: '表示', table: 'テーブル', bar: 'バー', line: '折れ線', pie: '円グラフ'},
         chartTitles: {
             [CONST.SEARCH.GROUP_BY.FROM]: '差出人',
