@@ -439,8 +439,6 @@ type TransactionKey = `${typeof ONYXKEYS.COLLECTION.TRANSACTION}${string}`;
 
 type ReportActionKey = `${typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS}${string}`;
 
-type PolicyKey = `${typeof ONYXKEYS.COLLECTION.POLICY}${string}`;
-
 type ViolationKey = `${typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${string}`;
 
 type SearchGroupKey = `${typeof CONST.SEARCH.GROUP_PREFIX}${string}`;
@@ -1172,13 +1170,6 @@ function isReportEntry(key: string): key is ReportKey {
  */
 function isGroupEntry(key: string): key is SearchGroupKey {
     return key.startsWith(CONST.SEARCH.GROUP_PREFIX);
-}
-
-/**
- * @private
- */
-function isPolicyEntry(key: string): key is PolicyKey {
-    return key.startsWith(ONYXKEYS.COLLECTION.POLICY);
 }
 
 function isViolationEntry(key: string): key is ViolationKey {
@@ -2187,10 +2178,6 @@ function getReportActionsSections(data: OnyxTypes.SearchResults['data'], visible
         .filter(isReportEntry)
         .map((key) => data[key]);
 
-    const policies = Object.keys(data)
-        .filter(isPolicyEntry)
-        .map((key) => data[key]);
-
     let n = 0;
 
     for (const key in data) {
@@ -2232,7 +2219,7 @@ function getReportActionsSections(data: OnyxTypes.SearchResults['data'], visible
                     reportID,
                     from,
                     // eslint-disable-next-line @typescript-eslint/no-deprecated
-                    reportName: getSearchReportName({report, policy, personalDetails: data.personalDetailsList, transactions, invoiceReceiverPolicy, reports, policies, isReportArchived}),
+                    reportName: getSearchReportName({report, policy, personalDetails: data.personalDetailsList, transactions, invoiceReceiverPolicy, reports, isReportArchived}),
                     formattedFrom: from?.displayName ?? from?.login ?? '',
                     date: reportAction.created,
                     keyForList: reportAction.reportActionID,
