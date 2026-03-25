@@ -20,9 +20,6 @@ import ROUTES from '@src/ROUTES';
 import type {DeviceBiometrics} from '@src/types/onyx';
 import {useMultifactorAuthenticationActions, useMultifactorAuthenticationState} from './State';
 
-// Non-reactive read of deviceBiometrics. Using Onyx.connectWithoutView (set up in a useEffect
-// inside the provider) instead of useOnyx to avoid triggering process() too many times during
-// the fresh registration flow.
 let deviceBiometricsState: OnyxEntry<DeviceBiometrics>;
 
 type ExecuteScenarioParams<T extends MultifactorAuthenticationScenario> = MultifactorAuthenticationScenarioParams<T>;
@@ -69,6 +66,9 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
     const promptType = CONST.MULTIFACTOR_AUTHENTICATION.PROMPT_TYPE_MAP[biometrics.deviceVerificationType];
 
     useEffect(() => {
+        // Non-reactive read of deviceBiometrics. Using Onyx.connectWithoutView (set up in a useEffect
+        // inside the provider) instead of useOnyx to avoid triggering process() too many times during
+        // the fresh registration flow.
         const connection = Onyx.connectWithoutView({
             key: getDeviceBiometricsOnyxKey(accountID),
             callback: (data) => {
