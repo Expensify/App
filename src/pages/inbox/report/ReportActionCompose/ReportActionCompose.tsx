@@ -170,6 +170,7 @@ function ReportActionCompose({
 
     const [didResetComposerHeight, setDidResetComposerHeight] = useState(false);
     const isEditingInComposer = shouldUseNarrowLayout && editingState !== 'off' && !didResetComposerHeight;
+    const composerEditingToggleKey = `${editingState !== 'off'}`;
 
     useEffect(() => {
         if (editingState !== 'off' || !didResetComposerHeight) {
@@ -668,6 +669,7 @@ function ReportActionCompose({
                             />
                         )}
                         <ComposerWithSuggestions
+                            key={composerEditingToggleKey}
                             ref={(ref) => {
                                 composerRef.current = ref;
                                 composerRefShared.set({

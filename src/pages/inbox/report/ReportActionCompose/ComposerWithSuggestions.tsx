@@ -335,34 +335,22 @@ function ComposerWithSuggestions({
         [currentEditMessageSelection, updateSelectionImperatively],
     );
 
-    const wasEditing = useRef(isEditing);
+    const isFirstEditingRenderRef = useRef(isEditing);
     const wasEditingInComposerRef = useRef(shouldUseNarrowLayout);
     const previousDraftSelectionRef = useRef<TextSelection | null>(null);
 
     useEffect(() => {
         // If the draft message is already being submitted, do nothing.
-        if (editingState === 'submitted') {
-            return;
-        }
-
         if (editingState !== 'editing') {
-            if (wasEditing.current && wasEditingInComposerRef.current) {
-                // Editing just ended in the composer – restore the draft comment and its previous selection.
-                applyComposerValue(draftComment ?? '', {selection: previousDraftSelectionRef.current});
-            }
-
-            wasEditing.current = false;
-            wasEditingInComposerRef.current = shouldUseNarrowLayout;
-            previousDraftSelectionRef.current = null;
             return;
         }
 
         // Editing just started.
-        if (!wasEditing.current) {
+        if (isFirstEditingRenderRef.current) {
+            isFirstEditingRenderRef.current = false;
+
             // Store the draft selection before switching into edit mode so we can restore it later.
             previousDraftSelectionRef.current = selection;
-
-            wasEditing.current = true;
             wasEditingInComposerRef.current = shouldUseNarrowLayout;
 
             if (!shouldUseNarrowLayout) {
@@ -392,7 +380,7 @@ function ComposerWithSuggestions({
         if (shouldUseNarrowLayout) {
             applyComposerValue(editingMessage ?? '', {isEditingInComposer: true});
         }
-    }, [applyComposerValue, draftComment, editingMessage, editingState, selection, shouldUseNarrowLayout, updateSelectionImperatively]);
+    }, [applyComposerValue, draftComment, editingMessage, editingState, isEditing, selection, shouldUseNarrowLayout, updateSelectionImperatively]);
 
     const {superWideRHPRouteKeys} = useWideRHPState();
     // When SearchReport is stacked above another RHP, delay autofocus until after the transition completes to avoid animation jank
