@@ -730,7 +730,7 @@ function MoneyRequestConfirmationList({
             !isPolicyExpenseChat ||
             !transactionID ||
             !lastSelectedRate ||
-            (isMovingTransactionFromTrackExpense && customUnitRateID === CONST.CUSTOM_UNITS.FAKE_P2P_ID) ||
+            isMovingTransactionFromTrackExpense ||
             !selectedParticipants.some((participant) => participant.policyID === policy?.id)
         ) {
             return;
