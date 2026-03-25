@@ -144,7 +144,7 @@ function SearchFiltersCardPage() {
 
     const isLoadingOnyxData = isLoadingOnyxValue(userCardListMetadata, workspaceCardFeedsMetadata, searchAdvancedFiltersFormMetadata, policiesMetadata);
     const shouldShowLoadingState = isLoadingOnyxData || (!areCardsLoaded && !isOffline);
-    const reasonAttributes: SkeletonSpanReasonAttributes = {context: 'SearchFiltersCardPage', isLoadingFromOnyx: !!areCardsLoaded};
+    const reasonAttributes: SkeletonSpanReasonAttributes = {context: 'SearchFiltersCardPage', isLoadingFromOnyx: isLoadingOnyxData};
 
     return (
         <ScreenWrapper
