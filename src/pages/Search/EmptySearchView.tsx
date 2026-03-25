@@ -135,7 +135,7 @@ function EmptySearchViewContent({
     });
     const hasViolations = hasViolationsReportUtils(undefined, transactionViolations, accountID ?? CONST.DEFAULT_NUMBER_ID, '');
     const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
-
+    const [userBillingGraceEndPeriods] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [ownerBillingGraceEndPeriod] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const [hasTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {
         selector: hasTransactionsSelector,
@@ -324,7 +324,7 @@ function EmptySearchViewContent({
 
                                                   if (
                                                       !workspaceIDForReportCreation ||
-                                                      (shouldRestrictUserBillableActions(workspaceIDForReportCreation, undefined, undefined, ownerBillingGraceEndPeriod) &&
+                                                      (shouldRestrictUserBillableActions(workspaceIDForReportCreation, userBillingGraceEndPeriods, undefined, ownerBillingGraceEndPeriod) &&
                                                           groupPoliciesWithChatEnabled.length > 1)
                                                   ) {
                                                       // If we couldn't guess the workspace to create the report, or a guessed workspace is past it's grace period and we have other workspaces to choose from
@@ -332,7 +332,7 @@ function EmptySearchViewContent({
                                                       return;
                                                   }
 
-                                                  if (!shouldRestrictUserBillableActions(workspaceIDForReportCreation, undefined, undefined, ownerBillingGraceEndPeriod)) {
+                                                  if (!shouldRestrictUserBillableActions(workspaceIDForReportCreation, userBillingGraceEndPeriods, undefined, ownerBillingGraceEndPeriod)) {
                                                       handleCreateReportClick();
                                                   } else {
                                                       Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(workspaceIDForReportCreation));

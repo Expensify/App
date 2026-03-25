@@ -36,6 +36,7 @@ import {
 import Parser from './Parser';
 import {getCleanedTagName} from './PolicyUtils';
 import {
+    getActionableCard3DSTransactionApprovalMessage,
     getActionableCardFraudAlertResolutionMessage,
     getAddedApprovalRuleMessage,
     getAddedBudgetMessage,
@@ -264,6 +265,7 @@ function shouldDisplayReportInLHN(
     }
 
     // Check if report should override hidden status
+    const requiresAttention = reportAttributes?.[report?.reportID]?.requiresAttention;
     const isSystemChat = isSystemChatUtil(report);
     const shouldOverrideHidden =
         !!draftComment ||
@@ -272,7 +274,7 @@ function shouldDisplayReportInLHN(
         isSystemChat ||
         !!report.isPinned ||
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        reportAttributes?.[report?.reportID]?.requiresAttention ||
+        requiresAttention ||
         (report.isOwnPolicyExpenseChat && !isReportArchived);
 
     if (isHidden && !shouldOverrideHidden) {
@@ -291,6 +293,7 @@ function shouldDisplayReportInLHN(
         draftComment,
         includeSelfDM: true,
         isReportArchived,
+        requiresAttention,
     });
 
     return {shouldDisplay};
@@ -870,6 +873,11 @@ function getOptionData({
 
     // We need to remove sms domain in case the last message text has a phone number mention with sms domain.
     let lastMessageText = Str.removeSMSDomain(lastMessageTextFromReport);
+
+    // Specifically for concierge chats, which don't meet any of the conditions in the if statement below
+    if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_CARD_3DS_TRANSACTION_APPROVAL)) {
+        lastMessageText = getActionableCard3DSTransactionApprovalMessage(translate, lastAction) ?? lastMessageText;
+    }
 
     const isGroupChat = isGroupChatUtil(report) || isDeprecatedGroupDM(report, isReportArchived);
 
