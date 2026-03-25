@@ -4068,7 +4068,7 @@ describe('actions/Report', () => {
         });
 
         it('should not throw with any isSelfTourViewed value when conciergeReportID is undefined', async () => {
-            await Onyx.set(ONYXKEYS.IS_LOADING_REPORT_DATA, false);
+            await Onyx.set(ONYXKEYS.RAM_ONLY_IS_LOADING_REPORT_DATA, false);
             await waitForBatchedUpdates();
 
             expect(() => {
