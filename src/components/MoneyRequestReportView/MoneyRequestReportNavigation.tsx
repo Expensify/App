@@ -1,4 +1,4 @@
-import React, {useEffect, useRef} from 'react';
+import React, {useEffect} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import PrevNextButtons from '@components/PrevNextButtons';
@@ -17,11 +17,6 @@ type MoneyRequestReportNavigationProps = {
 };
 
 function MoneyRequestReportNavigation({reportID, shouldDisplayNarrowVersion}: MoneyRequestReportNavigationProps) {
-    const renderCount = useRef(0);
-    renderCount.current += 1;
-    // eslint-disable-next-line no-console
-    console.log(`[SEARCH_PERF] MoneyRequestReportNavigation render #${renderCount.current} t=${performance.now().toFixed(1)}`);
-
     const [lastSearchQuery] = useOnyx(ONYXKEYS.REPORT_NAVIGATION_LAST_SEARCH_QUERY);
     const [currentSearchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${lastSearchQuery?.queryJSON?.hash}`);
     const {sortedReportIDs} = useSearchStateContext();
