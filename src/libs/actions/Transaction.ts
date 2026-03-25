@@ -1248,6 +1248,7 @@ function changeTransactionsReport({
                 undefined,
                 allowNegative,
             ) ?? {};
+        const resolvedNewTransactionCurrency = newTransactionCurrency ?? transaction.currency;
 
         const oldReportTotal = oldReport?.total ?? 0;
         const targetReportID = isUnreported ? selfDMReportID : reportID;
@@ -1295,11 +1296,11 @@ function changeTransactionsReport({
 
         if (targetReportID && targetReport) {
             const targetReportCurrencies = getTargetReportCurrencies(targetReportID);
-            const shouldMarkTargetReportAsStale = staleReportIDs.has(targetReportID) || new Set([...targetReportCurrencies, newTransactionCurrency]).size > 1;
+            const shouldMarkTargetReportAsStale = staleReportIDs.has(targetReportID) || new Set([...targetReportCurrencies, resolvedNewTransactionCurrency]).size > 1;
 
             if (shouldMarkTargetReportAsStale) {
                 markReportTotalsAsStale(targetReportID);
-            } else if (newTransactionCurrency === targetReport.currency) {
+            } else if (resolvedNewTransactionCurrency === targetReport.currency) {
                 const currentTotal = updatedReportTotals[targetReportID] ?? targetReport?.total ?? 0;
                 updatedReportTotals[targetReportID] = currentTotal - newTransactionAmount;
 
@@ -1321,7 +1322,7 @@ function changeTransactionsReport({
                 updatedReportUnheldNonReimbursableTotals[targetReportID] = currentUnheldNonReimbursableTotal + (transactionReimbursable && !isOnHold(transaction) ? 0 : convertedAmount);
             }
 
-            targetReportCurrencies.add(newTransactionCurrency);
+            targetReportCurrencies.add(resolvedNewTransactionCurrency);
         }
 
         // 4. Optimistically update the IOU action reportID

@@ -243,11 +243,7 @@ function IOURequestEditReportCommon({
             return;
         }
         createReport?.();
-    }, [
-        createReport,
-        policyForMovingExpenses?.id,
-        validatePerDiemMove,
-    ]);
+    }, [createReport, policyForMovingExpenses?.id, validatePerDiemMove]);
 
     const headerMessage = useMemo(() => (searchValue && !reportOptions.length ? translate('common.noResultsFound') : ''), [searchValue, reportOptions.length, translate]);
 

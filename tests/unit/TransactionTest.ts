@@ -1,5 +1,5 @@
 import {act, renderHook, waitFor} from '@testing-library/react-native';
-import type {OnyxEntry} from 'react-native-onyx';
+import type {OnyxEntry, OnyxKey} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
 import useOnyx from '@hooks/useOnyx';
@@ -14,6 +14,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {TransactionViolation} from '@src/types/onyx';
 import type {Attendee} from '@src/types/onyx/IOU';
 import type {ReportCollectionDataSet} from '@src/types/onyx/Report';
+import type SearchResults from '@src/types/onyx/SearchResults';
 import * as TransactionUtils from '../../src/libs/TransactionUtils';
 import type {PersonalDetails, RecentWaypoint, Report, ReportAction, ReportActions, Transaction} from '../../src/types/onyx';
 import createRandomPolicy from '../utils/collections/policies';
@@ -49,7 +50,7 @@ const FAKE_NEW_REPORT_ID = '2';
 const FAKE_OLD_REPORT_ID = '3';
 const FAKE_SELF_DM_REPORT_ID = '4';
 
-function generateIOUAction(transaction: Transaction, reportID: string): OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>> {
+function generateIOUAction(transaction: Transaction, reportID: string): ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> {
     return {
         reportActionID: rand64(),
         actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
@@ -1006,7 +1007,7 @@ describe('Transaction', () => {
             };
             const usdIOUAction = generateIOUAction(usdTransaction, sourceExpenseReport.reportID);
             const movedBgnIOUAction = generateIOUAction(movedBgnTransaction, sourceExpenseReport.reportID);
-            const sourceIOUActions = {
+            const sourceIOUActions: ReportActions = {
                 [usdIOUAction.reportActionID]: usdIOUAction,
                 [movedBgnIOUAction.reportActionID]: movedBgnIOUAction,
             };
@@ -1020,6 +1021,7 @@ describe('Transaction', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${destinationExpenseReport.reportID}`, destinationExpenseReport);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${sourceExpenseReport.reportID}`, sourceIOUActions);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.SNAPSHOT}${snapshotHash}`, {
+                // @ts-expect-error: Allow partial record in snapshot update for testing
                 data: {
                     [`${ONYXKEYS.COLLECTION.REPORT}${sourceExpenseReport.reportID}`]: sourceExpenseReport,
                     [`${ONYXKEYS.COLLECTION.REPORT}${destinationExpenseReport.reportID}`]: destinationExpenseReport,
@@ -1040,11 +1042,14 @@ describe('Transaction', () => {
 
             await waitForBatchedUpdates();
 
-            const updatedSourceReport = await getOnyxValue<Report>(`${ONYXKEYS.COLLECTION.REPORT}${sourceExpenseReport.reportID}`);
-            const updatedDestinationReport = await getOnyxValue<Report>(`${ONYXKEYS.COLLECTION.REPORT}${destinationExpenseReport.reportID}`);
-            const snapshot = await getOnyxValue(`${ONYXKEYS.COLLECTION.SNAPSHOT}${snapshotHash}`);
-            const snapshotSourceReport = snapshot?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${sourceExpenseReport.reportID}`];
-            const snapshotDestinationReport = snapshot?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${destinationExpenseReport.reportID}`];
+            const sourceReportKey = `${ONYXKEYS.COLLECTION.REPORT}${sourceExpenseReport.reportID}` as const;
+            const destinationReportKey = `${ONYXKEYS.COLLECTION.REPORT}${destinationExpenseReport.reportID}` as const;
+            const snapshotKey = `${ONYXKEYS.COLLECTION.SNAPSHOT}${snapshotHash}` as OnyxKey;
+            const updatedSourceReport = (await getOnyxValue(sourceReportKey as OnyxKey)) as OnyxEntry<Report>;
+            const updatedDestinationReport = (await getOnyxValue(destinationReportKey as OnyxKey)) as OnyxEntry<Report>;
+            const snapshot = (await getOnyxValue(snapshotKey)) as OnyxEntry<SearchResults>;
+            const snapshotSourceReport = snapshot?.data?.[sourceReportKey];
+            const snapshotDestinationReport = snapshot?.data?.[destinationReportKey];
 
             expect(updatedSourceReport?.total).toBe(sourceExpenseReport.total);
             expect(updatedDestinationReport?.total).toBe(destinationExpenseReport.total);

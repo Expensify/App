@@ -137,9 +137,7 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
     });
 
     const createReport = () => {
-        const isRestricted = !!(
-            policyForMovingExpensesID && shouldRestrictUserBillableActions(policyForMovingExpensesID, undefined, undefined, ownerBillingGraceEndPeriod)
-        );
+        const isRestricted = !!(policyForMovingExpensesID && shouldRestrictUserBillableActions(policyForMovingExpensesID, undefined, undefined, ownerBillingGraceEndPeriod));
 
         if (hasPerDiemTransactions) {
             handleCreateReport();
