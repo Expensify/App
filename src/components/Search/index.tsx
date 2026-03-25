@@ -7,25 +7,21 @@ import type {OnyxEntry} from 'react-native-onyx';
 import Animated, {useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import FullPageErrorView from '@components/BlockingViews/FullPageErrorView';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
-import {ModalActions} from '@components/Modal/Global/ModalContext';
 import type {SelectionListHandle} from '@components/SelectionList/types';
 import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
 import {useWideRHPActions} from '@components/WideRHPContextProvider';
 import useActionLoadingReportIDs from '@hooks/useActionLoadingReportIDs';
 import useArchivedReportsIdSet from '@hooks/useArchivedReportsIdSet';
-import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useMultipleSnapshots from '@hooks/useMultipleSnapshots';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchHighlightAndScroll from '@hooks/useSearchHighlightAndScroll';
 import useSearchShouldCalculateTotals from '@hooks/useSearchShouldCalculateTotals';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {openOldDotLink} from '@libs/actions/Link';
 import {turnOffMobileSelectionMode, turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import type {TransactionPreviewData} from '@libs/actions/Search';
 import {setOptimisticDataForTransactionThreadPreview} from '@libs/actions/Search';
@@ -76,6 +72,7 @@ import type SearchResults from '@src/types/onyx/SearchResults';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import arraysEqual from '@src/utils/arraysEqual';
 import SearchChartView from './SearchChartView';
+import SearchChartWrapper from './SearchChartWrapper';
 import {useSearchActionsContext, useSearchStateContext} from './SearchContext';
 import SearchList from './SearchList';
 import type {ReportActionListItemType, SearchListItem, TransactionGroupListItemType, TransactionListItemType, TransactionReportGroupListItemType} from './SearchList/ListItem/types';
@@ -92,7 +89,6 @@ type SearchProps = {
     onSortPressedCallback?: () => void;
     isMobileSelectionModeEnabled: boolean;
     searchRequestResponseStatusCode?: number | null;
-    onDEWModalOpen?: () => void;
 };
 
 const hashToString = (queryHash?: number) => (queryHash || queryHash === 0 ? String(queryHash) : undefined);
@@ -121,16 +117,14 @@ function mapTransactionItemToSelectedEntry(
             canUnhold: canUnholdRequest,
             canSplit: isSplitAction(item.report, [itemTransaction], originalItemTransaction, currentUserLogin, currentUserAccountID, item.policy),
             hasBeenSplit: getOriginalTransactionWithSplitInfo(itemTransaction, originalItemTransaction).isExpenseSplit,
-            canChangeReport: canEditFieldOfMoneyRequest(
-                item.reportAction,
-                CONST.EDIT_REQUEST_FIELD.REPORT,
-                undefined,
-                undefined,
+            canChangeReport: canEditFieldOfMoneyRequest({
+                reportAction: item.reportAction,
+                fieldToEdit: CONST.EDIT_REQUEST_FIELD.REPORT,
                 outstandingReportsByPolicyID,
-                item,
-                item.report,
-                item.policy,
-            ),
+                transaction: item,
+                report: item.report,
+                policy: item.policy,
+            }),
             action: item.action,
             groupCurrency: item.groupCurrency,
             groupExchangeRate: item.groupExchangeRate,
@@ -209,7 +203,6 @@ function Search({
     isMobileSelectionModeEnabled,
     onSortPressedCallback,
     searchRequestResponseStatusCode,
-    onDEWModalOpen,
 }: SearchProps) {
     const {type, status, sortBy, sortOrder, hash, similarSearchHash, groupBy, view} = queryJSON;
     const [shouldDeferHeavySearchWork, setShouldDeferHeavySearchWork] = useState(() => !isSearchDataLoaded(searchResults, queryJSON));
@@ -218,9 +211,6 @@ function Search({
     const prevIsOffline = usePrevious(isOffline);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const styles = useThemeStyles();
-    const {showConfirmModal} = useConfirmModal();
-    const {isBetaEnabled} = usePermissions();
-    const isDEWBetaEnabled = isBetaEnabled(CONST.BETAS.NEW_DOT_DEW);
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout for enabling the selection mode on small screens only
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth, isLargeScreenWidth} = useResponsiveLayout();
@@ -238,7 +228,8 @@ function Search({
         shouldUseLiveData,
         suggestedSearches,
     } = useSearchStateContext();
-    const {setSelectedTransactions, clearSelectedTransactions, setShouldShowFiltersBarLoading, setShouldShowSelectAllMatchingItems, selectAllMatchingItems, setShouldResetSearchQuery} =
+
+    const {setSelectedTransactions, clearSelectedTransactions, setShouldShowActionsBarLoading, setShouldShowSelectAllMatchingItems, selectAllMatchingItems, setShouldResetSearchQuery} =
         useSearchActionsContext();
     const [offset, setOffset] = useState(0);
 
@@ -284,24 +275,6 @@ function Search({
     const [savedSearch] = useOnyx(ONYXKEYS.SAVED_SEARCHES, {
         selector: savedSearchSelector,
     });
-
-    const handleDEWModalOpen = useCallback(() => {
-        if (onDEWModalOpen) {
-            onDEWModalOpen();
-        } else {
-            showConfirmModal({
-                title: translate('customApprovalWorkflow.title'),
-                prompt: translate('customApprovalWorkflow.description'),
-                confirmText: translate('customApprovalWorkflow.goToExpensifyClassic'),
-                shouldShowCancelButton: false,
-            }).then((result) => {
-                if (result.action !== ModalActions.CONFIRM) {
-                    return;
-                }
-                openOldDotLink(CONST.OLDDOT_URLS.INBOX);
-            });
-        }
-    }, [onDEWModalOpen, showConfirmModal, translate]);
 
     const validGroupBy = getValidGroupBy(groupBy);
     const prevValidGroupBy = usePrevious(validGroupBy);
@@ -594,8 +567,8 @@ function Search({
 
     useEffect(() => {
         /** We only want to display the skeleton for the status filters the first time we load them for a specific data type */
-        setShouldShowFiltersBarLoading(shouldShowLoadingState && lastSearchType !== type);
-    }, [lastSearchType, setShouldShowFiltersBarLoading, shouldShowLoadingState, type]);
+        setShouldShowActionsBarLoading(shouldShowLoadingState && lastSearchType !== type);
+    }, [lastSearchType, setShouldShowActionsBarLoading, shouldShowLoadingState, type]);
 
     const shouldRetrySearchWithTotalsOrGroupedRef = useRef(false);
 
@@ -724,16 +697,14 @@ function Search({
                         canUnhold: canUnholdRequest,
                         canSplit: isSplitAction(transactionItem.report, [itemTransaction], originalItemTransaction, login ?? '', accountID, transactionItem.policy),
                         hasBeenSplit: getOriginalTransactionWithSplitInfo(itemTransaction, originalItemTransaction).isExpenseSplit,
-                        canChangeReport: canEditFieldOfMoneyRequest(
-                            transactionItem.reportAction,
-                            CONST.EDIT_REQUEST_FIELD.REPORT,
-                            undefined,
-                            undefined,
+                        canChangeReport: canEditFieldOfMoneyRequest({
+                            reportAction: transactionItem.reportAction,
+                            fieldToEdit: CONST.EDIT_REQUEST_FIELD.REPORT,
                             outstandingReportsByPolicyID,
-                            transactionItem,
-                            transactionItem.report,
-                            transactionItem.policy,
-                        ),
+                            transaction: transactionItem,
+                            report: transactionItem.report,
+                            policy: transactionItem.policy,
+                        }),
                         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                         isSelected: areAllMatchingItemsSelected || selectedTransactions[transactionItem.transactionID]?.isSelected || isExpenseReportType,
                         canReject: canRejectRequest,
@@ -780,16 +751,14 @@ function Search({
                     canUnhold: canUnholdRequest,
                     canSplit: isSplitAction(transactionItem.report, [itemTransaction], originalItemTransaction, login ?? '', accountID, transactionItem.policy),
                     hasBeenSplit: getOriginalTransactionWithSplitInfo(itemTransaction, originalItemTransaction).isExpenseSplit,
-                    canChangeReport: canEditFieldOfMoneyRequest(
-                        transactionItem.reportAction,
-                        CONST.EDIT_REQUEST_FIELD.REPORT,
-                        undefined,
-                        undefined,
+                    canChangeReport: canEditFieldOfMoneyRequest({
+                        reportAction: transactionItem.reportAction,
+                        fieldToEdit: CONST.EDIT_REQUEST_FIELD.REPORT,
                         outstandingReportsByPolicyID,
-                        transactionItem,
-                        transactionItem.report,
-                        transactionItem.policy,
-                    ),
+                        transaction: transactionItem,
+                        report: transactionItem.report,
+                        policy: transactionItem.policy,
+                    }),
                     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                     isSelected: areAllMatchingItemsSelected || selectedTransactions[transactionItem.transactionID].isSelected,
                     canReject: canRejectRequest,
@@ -1412,16 +1381,28 @@ function Search({
 
         return (
             <SearchScopeProvider>
-                <SearchChartView
-                    queryJSON={queryJSON}
-                    view={view}
-                    groupBy={validGroupBy}
-                    data={sortedData}
-                    isLoading={shouldShowLoadingState}
+                <Animated.ScrollView
+                    style={styles.flex1}
+                    contentContainerStyle={styles.flexGrow1}
                     onScroll={onSearchListScroll}
                     onLayout={onLayoutChart}
-                    title={chartTitle}
-                />
+                    scrollEventThrottle={CONST.TIMING.MIN_SMOOTH_SCROLL_EVENT_THROTTLE}
+                >
+                    <View style={[shouldUseNarrowLayout ? styles.searchListContentContainerStyles : styles.mt3, styles.mh4, styles.mb4, styles.flex1]}>
+                        <SearchChartWrapper
+                            title={chartTitle}
+                            groupBy={validGroupBy}
+                        >
+                            <SearchChartView
+                                queryJSON={queryJSON}
+                                view={view}
+                                groupBy={validGroupBy}
+                                data={sortedData}
+                                isLoading={shouldShowLoadingState}
+                            />
+                        </SearchChartWrapper>
+                    </View>
+                </Animated.ScrollView>
             </SearchScopeProvider>
         );
     }
@@ -1439,8 +1420,6 @@ function Search({
                     canSelectMultiple={canSelectMultiple}
                     selectedTransactions={selectedTransactions}
                     shouldPreventLongPressRow={isChat || isTask}
-                    onDEWModalOpen={handleDEWModalOpen}
-                    isDEWBetaEnabled={isDEWBetaEnabled}
                     SearchTableHeader={
                         !shouldShowTableHeader ? undefined : (
                             <View style={[!isTask && styles.pr8, styles.flex1]}>
