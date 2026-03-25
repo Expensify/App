@@ -236,6 +236,7 @@ import type {BuildPolicyDataKeys} from '@userActions/Policy/Policy';
 import {buildOptimisticPolicyRecentlyUsedTags} from '@userActions/Policy/Tag';
 import type {GuidedSetupData} from '@userActions/Report';
 import {buildInviteToRoomOnyxData, completeOnboarding, notifyNewAction, optimisticReportLastData} from '@userActions/Report';
+import {resolveDetachReceiptConflicts} from '@userActions/RequestConflictUtils';
 import {mergeTransactionIdsHighlightOnSearchRoute, sanitizeWaypointsForAPI, stringifyWaypointsForAPI} from '@userActions/Transaction';
 import {removeDraftTransaction, removeDraftTransactionsByIDs} from '@userActions/TransactionEdit';
 import {getOnboardingMessages} from '@userActions/Welcome/OnboardingFlow';
@@ -261,7 +262,6 @@ import type {OnyxData} from '@src/types/onyx/Request';
 import type {Comment, Receipt, ReceiptSource, Routes, SplitShares, TransactionChanges, TransactionCustomUnit, WaypointCollection} from '@src/types/onyx/Transaction';
 import type {FileObject} from '@src/types/utils/Attachment';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import {resolveDetachReceiptConflicts} from '../RequestConflictUtils';
 
 type IOURequestType = ValueOf<typeof CONST.IOU.REQUEST_TYPE>;
 
@@ -4120,6 +4120,97 @@ type UpdateMoneyRequestDataKeys =
     | typeof ONYXKEYS.COLLECTION.NEXT_STEP
     | typeof ONYXKEYS.COLLECTION.TRANSACTION_DRAFT;
 
+type BuildSnapshotTransactionOnyxDataParams = {
+    hash: number | undefined;
+    transactionID: string;
+    transactionChanges: TransactionChanges;
+    originalTransaction: OnyxEntry<OnyxTypes.Transaction>;
+    updatedTransaction: OnyxEntry<OnyxTypes.Transaction>;
+};
+
+/**
+ * Builds optimistic and failure Onyx data for snapshot transaction updates when editing inline from Search.
+ * Maps transactionChanges fields to their corresponding snapshot representation.
+ */
+function buildSnapshotTransactionOnyxData({
+    hash,
+    transactionID,
+    transactionChanges,
+    originalTransaction,
+    updatedTransaction,
+}: BuildSnapshotTransactionOnyxDataParams):
+    | {optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.SNAPSHOT>>; failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.SNAPSHOT>>}
+    | undefined {
+    if (!hash || !updatedTransaction || !originalTransaction) {
+        return undefined;
+    }
+
+    // Build optimistic snapshot update with only the fields that changed
+    const snapshotTransactionUpdate: Partial<OnyxTypes.Transaction> = {};
+    const snapshotTransactionRevert: Partial<OnyxTypes.Transaction> = {};
+
+    // Map transactionChanges fields to their snapshot representation
+    if ('created' in transactionChanges) {
+        snapshotTransactionUpdate.modifiedCreated = updatedTransaction.modifiedCreated;
+        snapshotTransactionRevert.modifiedCreated = originalTransaction.modifiedCreated;
+    }
+    if ('merchant' in transactionChanges) {
+        snapshotTransactionUpdate.modifiedMerchant = updatedTransaction.modifiedMerchant;
+        snapshotTransactionRevert.modifiedMerchant = originalTransaction.modifiedMerchant;
+    }
+    if ('comment' in transactionChanges) {
+        snapshotTransactionUpdate.comment = updatedTransaction.comment;
+        snapshotTransactionRevert.comment = originalTransaction.comment;
+    }
+    if ('category' in transactionChanges) {
+        snapshotTransactionUpdate.category = updatedTransaction.category;
+        snapshotTransactionRevert.category = originalTransaction.category;
+    }
+    if ('amount' in transactionChanges || 'currency' in transactionChanges) {
+        snapshotTransactionUpdate.modifiedAmount = updatedTransaction.modifiedAmount;
+        snapshotTransactionUpdate.modifiedCurrency = updatedTransaction.modifiedCurrency;
+        snapshotTransactionRevert.modifiedAmount = originalTransaction.modifiedAmount;
+        snapshotTransactionRevert.modifiedCurrency = originalTransaction.modifiedCurrency;
+    }
+    if ('tag' in transactionChanges) {
+        snapshotTransactionUpdate.tag = updatedTransaction.tag;
+        snapshotTransactionRevert.tag = originalTransaction.tag;
+    }
+
+    // Only return data if there are fields to update
+    if (Object.keys(snapshotTransactionUpdate).length === 0) {
+        return undefined;
+    }
+
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.SNAPSHOT>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`,
+            value: {
+                // @ts-expect-error - Snapshot data type will be fixed in https://github.com/Expensify/App/issues/73830
+                data: {
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: snapshotTransactionUpdate,
+                },
+            },
+        },
+    ];
+
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.SNAPSHOT>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`,
+            value: {
+                // @ts-expect-error - Snapshot data type will be fixed in https://github.com/Expensify/App/issues/73830
+                data: {
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: snapshotTransactionRevert,
+                },
+            },
+        },
+    ];
+
+    return {optimisticData, failureData};
+}
+
 function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): UpdateMoneyRequestData<UpdateMoneyRequestDataKeys> {
     const {
         transactionID,
@@ -4385,6 +4476,20 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
         },
     });
 
+    // Update the snapshot transaction if this is an inline edit from Search
+    const snapshotData = transactionID
+        ? buildSnapshotTransactionOnyxData({
+              hash,
+              transactionID,
+              transactionChanges,
+              originalTransaction: transaction,
+              updatedTransaction,
+          })
+        : undefined;
+    if (snapshotData) {
+        optimisticData.push(...snapshotData.optimisticData);
+    }
+
     if (updatedReportAction && transactionThreadReport?.reportID) {
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
@@ -4521,6 +4626,11 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
             reportID: transaction?.reportID,
         },
     });
+
+    // Revert the snapshot transaction update on failure (use the same helper that built optimistic data)
+    if (snapshotData) {
+        failureData.push(...snapshotData.failureData);
+    }
 
     if (iouReport) {
         // Reset the iouReport to its original state

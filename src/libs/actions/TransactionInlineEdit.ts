@@ -1,9 +1,8 @@
 /**
  * Actions for inline editing of transactions from the Search results table and the Expense Report page.
  *
- * Each function optionally updates the search snapshot entry (when a hash is provided) so the row
- * reflects the new value immediately, then delegates to the corresponding IOU action which owns
- * the canonical Onyx record, the API write, and failure rollback.
+ * Each function delegates to the corresponding IOU action which owns the canonical Onyx record,
+ * the API write, failure rollback, and snapshot updates (when a hash is provided).
  */
 import Onyx from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
@@ -29,7 +28,6 @@ import type {
     ReportAction,
     ReportNameValuePairs,
     ReportNextStepDeprecated,
-    SearchResults,
     Transaction,
     TransactionViolations,
 } from '@src/types/onyx';
@@ -186,17 +184,6 @@ type TransactionEditPermissionsParams = {
 
 /**
  * @private
- * Optimistically write a partial transaction update into the search snapshot so
- * the table row reflects the new value before the server responds.
- */
-function optimisticallyUpdateSnapshotTransaction(hash: number, transactionID: string, partialTransaction: Partial<Transaction>) {
-    Onyx.merge(`${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`, {
-        data: {[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: partialTransaction as Transaction} as unknown as SearchResults['data'],
-    });
-}
-
-/**
- * @private
  * Builds all params needed for IOU action calls from module-level Onyx caches.
  * The returned object can be spread directly into any updateMoneyRequest* call
  * (all shared fields are at the top level); field-specific extras like
@@ -236,9 +223,6 @@ function getIouParamsForTransaction(transactionID: string, transactionThreadRepo
 /** Updates the date of an expense from the Search results table or the Expense Report page. */
 function editTransactionDateInline(hash: number | undefined, transactionID: string, transactionThreadReportID: string | undefined, newDate: string) {
     const iouParams = getIouParamsForTransaction(transactionID, transactionThreadReportID);
-    if (hash !== undefined) {
-        optimisticallyUpdateSnapshotTransaction(hash, transactionID, {modifiedCreated: newDate});
-    }
     updateMoneyRequestDate({
         ...iouParams,
         // updateMoneyRequestDate uses 'policyTags' (not policyTagList)
@@ -258,9 +242,6 @@ function editTransactionMerchantInline(hash: number | undefined, transactionID: 
         return;
     }
     const iouParams = getIouParamsForTransaction(transactionID, transactionThreadReportID);
-    if (hash !== undefined) {
-        optimisticallyUpdateSnapshotTransaction(hash, transactionID, {modifiedMerchant: newMerchant});
-    }
     updateMoneyRequestMerchant({
         ...iouParams,
         value: newMerchant,
@@ -271,9 +252,6 @@ function editTransactionMerchantInline(hash: number | undefined, transactionID: 
 /** Updates the description of an expense from the Search results table or the Expense Report page. */
 function editTransactionDescriptionInline(hash: number | undefined, transactionID: string, transactionThreadReportID: string | undefined, newDescription: string) {
     const iouParams = getIouParamsForTransaction(transactionID, transactionThreadReportID);
-    if (hash !== undefined) {
-        optimisticallyUpdateSnapshotTransaction(hash, transactionID, {comment: {comment: newDescription}});
-    }
     updateMoneyRequestDescription({
         ...iouParams,
         comment: newDescription,
@@ -284,9 +262,6 @@ function editTransactionDescriptionInline(hash: number | undefined, transactionI
 /** Updates the category of an expense from the Search results table or the Expense Report page. */
 function editTransactionCategoryInline(hash: number | undefined, transactionID: string, transactionThreadReportID: string | undefined, newCategory: string) {
     const iouParams = getIouParamsForTransaction(transactionID, transactionThreadReportID);
-    if (hash !== undefined) {
-        optimisticallyUpdateSnapshotTransaction(hash, transactionID, {category: newCategory});
-    }
     updateMoneyRequestCategory({
         ...iouParams,
         category: newCategory,
@@ -302,9 +277,6 @@ function editTransactionAmountInline(hash: number | undefined, transactionID: st
     const iouParams = getIouParamsForTransaction(transactionID, transactionThreadReportID);
     // Keep the existing currency — only the amount is changing from the search table
     const currency = iouParams.transaction?.modifiedCurrency ?? iouParams.transaction?.currency ?? CONST.CURRENCY.USD;
-    if (hash !== undefined) {
-        optimisticallyUpdateSnapshotTransaction(hash, transactionID, {modifiedAmount: newAmount, modifiedCurrency: currency});
-    }
     updateMoneyRequestAmountAndCurrency({
         ...iouParams,
         amount: newAmount,
@@ -324,9 +296,6 @@ function editTransactionAmountInline(hash: number | undefined, transactionID: st
 /** Updates the tag of an expense from the Search results table or the Expense Report page. */
 function editTransactionTagInline(hash: number | undefined, transactionID: string, transactionThreadReportID: string | undefined, newTag: string) {
     const iouParams = getIouParamsForTransaction(transactionID, transactionThreadReportID);
-    if (hash !== undefined) {
-        optimisticallyUpdateSnapshotTransaction(hash, transactionID, {tag: newTag});
-    }
     updateMoneyRequestTag({
         ...iouParams,
         tag: newTag,
