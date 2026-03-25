@@ -110,7 +110,7 @@ function AddDelegatePage() {
                             headerMessage,
                             label: translate('selectionList.nameEmailOrPhoneNumber'),
                         }}
-                        showLoadingPlaceholder={!areOptionsInitialized}
+                        shouldShowLoadingPlaceholder={!areOptionsInitialized}
                         isLoadingNewOptions={!!isSearchingForReports}
                         shouldShowTextInput
                         onEndReached={onListEndReached}

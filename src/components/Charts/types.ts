@@ -1,4 +1,5 @@
-import type IconAsset from '@src/types/utils/IconAsset';
+import type {ValueOf} from 'type-fest';
+import type {LABEL_ROTATIONS} from './constants';
 
 type ChartDataPoint = {
     /** Label displayed under the data point (e.g., "Amazon", "Nov 2025") */
@@ -23,12 +24,6 @@ type UnitPosition = 'left' | 'right';
 type ChartProps = {
     /** Data points to display */
     data: ChartDataPoint[];
-
-    /** Chart title (e.g., "Top Categories", "Spend over time") */
-    title?: string;
-
-    /** Icon displayed next to the title */
-    titleIcon?: IconAsset;
 
     /** Whether data is loading */
     isLoading?: boolean;
@@ -63,6 +58,14 @@ type PieSlice = {
 
     /** Index in the original unsorted data array, used to map back for tooltips */
     originalIndex: number;
+
+    /** Ordinal position in the processed slice list (0 = largest slice). */
+    ordinalIndex: number;
+
+    /** Position of the tooltip on label hover. */
+    tooltipPosition: {x: number; y: number};
 };
 
-export type {ChartDataPoint, ChartProps, CartesianChartProps, PieSlice, UnitPosition, UnitWithFallback};
+type LabelRotation = ValueOf<typeof LABEL_ROTATIONS>;
+
+export type {ChartDataPoint, ChartProps, CartesianChartProps, LabelRotation, PieSlice, UnitPosition, UnitWithFallback};

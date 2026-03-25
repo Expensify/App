@@ -4,9 +4,10 @@ import Button from '@components/Button';
 import DropdownButton from '@components/Search/FilterDropdowns/DropdownButton';
 import SearchBulkActionsButton from '@components/Search/SearchBulkActionsButton';
 import type {SearchQueryJSON} from '@components/Search/types';
-import SearchFiltersSkeleton from '@components/Skeletons/SearchFiltersSkeleton';
+import SearchActionsSkeleton from '@components/Skeletons/SearchActionsSkeleton';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import CONST from '@src/CONST';
-import SearchFiltersBarCreateButton from './SearchFiltersBarCreateButton';
+import SearchActionsBarCreateButton from './SearchActionsBarCreateButton';
 import useSearchFiltersBar from './useSearchFiltersBar';
 
 type SearchFiltersBarWideProps = {
@@ -35,7 +36,16 @@ function SearchFiltersBarWide({queryJSON, isMobileSelectionModeEnabled}: SearchF
     }
 
     if (shouldShowFiltersBarLoading) {
-        return <SearchFiltersSkeleton shouldAnimate />;
+        const skeletonReasonAttributes: SkeletonSpanReasonAttributes = {
+            context: 'SearchFiltersBarWide',
+            shouldShowFiltersBarLoading,
+        };
+        return (
+            <SearchActionsSkeleton
+                shouldAnimate
+                reasonAttributes={skeletonReasonAttributes}
+            />
+        );
     }
 
     return (
@@ -83,7 +93,7 @@ function SearchFiltersBarWide({queryJSON, isMobileSelectionModeEnabled}: SearchF
                             )}
                         </View>
                     </View>
-                    <SearchFiltersBarCreateButton />
+                    <SearchActionsBarCreateButton />
                 </>
             )}
         </View>

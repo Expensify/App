@@ -187,13 +187,19 @@ function SidebarOrderedReportsContextProvider({
 
     const reportsToDisplayInLHN = useMemo(() => {
         const updatedReports = getUpdatedReports();
-        const shouldDoIncrementalUpdate = updatedReports.length > 0 && Object.keys(currentReportsToDisplay).length > 0;
+        const hasCachedReports = Object.keys(currentReportsToDisplay).length > 0;
+
+        // When reportAttributes changes (e.g. on startup hydration) but no report-specific keys were
+        // updated, getUpdatedReports() returns []. Rather than falling through to a full scan of all
+        // reports, recheck only the already-displayed reports with the new reportAttributes.
+        const effectiveUpdatedReports = updatedReports.length === 0 && hasCachedReports ? Object.keys(currentReportsToDisplay) : updatedReports;
+        const shouldDoIncrementalUpdate = effectiveUpdatedReports.length > 0 && hasCachedReports;
         let reportsToDisplay = {};
         if (shouldDoIncrementalUpdate) {
             reportsToDisplay = SidebarUtils.updateReportsToDisplayInLHN({
                 displayedReports: currentReportsToDisplay,
                 reports: chatReports,
-                updatedReportsKeys: updatedReports,
+                updatedReportsKeys: effectiveUpdatedReports,
                 currentReportId: derivedCurrentReportID,
                 isInFocusMode: priorityMode === CONST.PRIORITY_MODE.GSD,
                 betas,
@@ -209,7 +215,6 @@ function SidebarOrderedReportsContextProvider({
                 derivedCurrentReportID,
                 chatReports,
                 betas,
-                policies,
                 priorityMode,
                 reportsDrafts,
                 transactionViolations,
@@ -222,19 +227,7 @@ function SidebarOrderedReportsContextProvider({
         return reportsToDisplay;
         // Rule disabled intentionally — triggering a re-render on currentReportsToDisplay would cause an infinite loop
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [
-        getUpdatedReports,
-        chatReports,
-        derivedCurrentReportID,
-        priorityMode,
-        betas,
-        policies,
-        transactionViolations,
-        reportNameValuePairs,
-        reportAttributes,
-        reportsDrafts,
-        clearCacheDummyCounter,
-    ]);
+    }, [getUpdatedReports, chatReports, derivedCurrentReportID, priorityMode, betas, transactionViolations, reportNameValuePairs, reportAttributes, reportsDrafts, clearCacheDummyCounter]);
 
     // Derive a stable boolean map indicating which reports have drafts.
     const hasDraftByReportIDRef = useRef<Record<string, boolean>>({});

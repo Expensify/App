@@ -67,3 +67,59 @@ describe('ButtonWithDropdownMenu (single option)', () => {
         expect(screen.getByText('Test Option')).toBeTruthy();
     });
 });
+
+describe('ButtonWithDropdownMenu (dropdown arrow flip)', () => {
+    const mockOnPress = jest.fn();
+    const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Checkbox']));
+    const options = [
+        {value: 'one', text: 'Option One', icon: icons.current.Checkbox},
+        {value: 'two', text: 'Option Two', icon: icons.current.Checkbox},
+    ];
+
+    afterEach(() => {
+        jest.clearAllMocks();
+    });
+
+    it('flips the arrow icon when the dropdown menu is opened in split button mode', () => {
+        render(
+            <ButtonWithDropdownMenu
+                options={options}
+                onPress={mockOnPress}
+                isSplitButton
+            />,
+        );
+
+        const arrowIcon = screen.getByTestId('dropdown-arrow-icon', {includeHiddenElements: true});
+        expect(arrowIcon).not.toHaveStyle({transform: 'rotate(180deg)'});
+
+        const buttons = screen.getAllByRole('button');
+        const buttonToPress = buttons?.at(1);
+        if (buttonToPress) {
+            fireEvent.press(buttonToPress);
+        }
+        expect(arrowIcon).toHaveStyle({transform: 'rotate(180deg)'});
+    });
+
+    it('reverts the arrow icon when the dropdown menu is closed', () => {
+        render(
+            <ButtonWithDropdownMenu
+                options={options}
+                onPress={mockOnPress}
+                isSplitButton
+            />,
+        );
+
+        const arrowIcon = screen.getByTestId('dropdown-arrow-icon', {includeHiddenElements: true});
+        const buttons = screen.getAllByRole('button');
+        const buttonToPress = buttons?.at(1);
+        if (buttonToPress) {
+            fireEvent.press(buttonToPress);
+        }
+        expect(arrowIcon).toHaveStyle({transform: 'rotate(180deg)'});
+
+        if (buttonToPress) {
+            fireEvent.press(buttonToPress);
+        }
+        expect(arrowIcon).not.toHaveStyle({transform: 'rotate(180deg)'});
+    });
+});

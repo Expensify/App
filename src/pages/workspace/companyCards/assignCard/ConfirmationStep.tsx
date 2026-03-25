@@ -10,6 +10,7 @@ import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import useCardFeeds from '@hooks/useCardFeeds';
 import {useCurrencyListState} from '@hooks/useCurrencyList';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -69,6 +70,9 @@ function ConfirmationStep({route}: ConfirmationStepProps) {
     const cardholderEmail = Str.removeSMSDomain(cardToAssign?.email ?? '');
     const cardholderAccountID = cardholder?.accountID;
 
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const currentUserAccountID = currentUserPersonalDetails.accountID;
+
     useEffect(() => {
         if (!assignCard?.isAssignmentFinished) {
             return;
@@ -107,12 +111,12 @@ function ConfirmationStep({route}: ConfirmationStepProps) {
         // Check both encryptedCardNumber and cardName since isCardAlreadyAssigned matches on either
         // This handles cases where workspace card entries only have cardName (masked display name) stored
         const cardIdentifier = cardToAssign?.encryptedCardNumber ?? cardToAssign?.cardName;
-        if (cardIdentifier && isCardAlreadyAssigned(cardIdentifier, workspaceCardFeeds, domainOrWorkspaceAccountID)) {
+        if (cardIdentifier && isCardAlreadyAssigned(cardIdentifier, workspaceCardFeeds, domainOrWorkspaceAccountID, bankName)) {
             setCardError(getMicroSecondOnyxErrorWithTranslationKey('workspace.companyCards.cardAlreadyAssignedError'));
             return;
         }
 
-        assignWorkspaceCompanyCard(policy, domainOrWorkspaceAccountID, translate, {...cardToAssign, cardholder, bankName});
+        assignWorkspaceCompanyCard(policy, domainOrWorkspaceAccountID, translate, {...cardToAssign, cardholder, bankName}, currentUserAccountID);
     };
 
     const editStep = (step: string) => {
