@@ -63,26 +63,24 @@ function FreeTrialSection() {
                 role={CONST.ROLE.BUTTON}
                 sentryLabel={CONST.SENTRY_LABEL.HOME_PAGE.WIDGET_ITEM}
             >
-                {() => (
-                    <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap3, styles.pb8, shouldUseNarrowLayout ? styles.ph5 : styles.ph8]}>
-                        <Icon
-                            src={illustrations.TreasureChest}
-                            width={ILLUSTRATION_SIZE}
-                            height={ILLUSTRATION_SIZE}
-                        />
-                        <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter]}>
-                            <Text style={styles.widgetItemTitle}>{bodyText}</Text>
-                            {!!countdownSubtitle && <Text style={[styles.widgetItemSubtitle, {color: theme.trialTimer}]}>{countdownSubtitle}</Text>}
-                        </View>
-                        <Button
-                            text={ctaText}
-                            onPress={onCtaPress}
-                            small
-                            style={styles.widgetItemButton}
-                            success
-                        />
+                <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap3, styles.pb8, shouldUseNarrowLayout ? styles.ph5 : styles.ph8]}>
+                    <Icon
+                        src={illustrations.TreasureChest}
+                        width={ILLUSTRATION_SIZE}
+                        height={ILLUSTRATION_SIZE}
+                    />
+                    <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter]}>
+                        <Text style={styles.widgetItemTitle}>{bodyText}</Text>
+                        {!!countdownSubtitle && <Text style={[styles.widgetItemSubtitle, {color: theme.trialTimer}]}>{countdownSubtitle}</Text>}
                     </View>
-                )}
+                    <Button
+                        text={ctaText}
+                        onPress={onCtaPress}
+                        small
+                        style={styles.widgetItemButton}
+                        success
+                    />
+                </View>
             </PressableWithoutFeedback>
         </WidgetContainer>
     );
