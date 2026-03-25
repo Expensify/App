@@ -191,7 +191,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
             minHeight: variables.tableRowHeight,
             borderRadius: 0,
             paddingVertical: 4,
-            ...(isLastItem ? {borderBottomLeftRadius: variables.componentBorderRadius, borderBottomRightRadius: variables.componentBorderRadius} : {}),
+            ...(isLastItem ? styles.searchTableBottomRadius : {}),
         },
         isItemSelected && styles.activeComponentBG,
     ];
@@ -486,7 +486,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
                     animatedHighlightStyle,
                     styles.userSelectNone,
                     isLargeScreenWidth && {borderRadius: 0, borderBottomWidth: isLastItem ? 0 : 1, borderColor: isItemSelected ? theme.buttonHoveredBG : theme.border},
-                    isLargeScreenWidth && isLastItem && {borderBottomLeftRadius: variables.componentBorderRadius, borderBottomRightRadius: variables.componentBorderRadius},
+                    isLargeScreenWidth && isLastItem && styles.searchTableBottomRadius,
                 ]}
             >
                 {({hovered}) => (

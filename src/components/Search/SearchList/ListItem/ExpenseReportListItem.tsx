@@ -174,7 +174,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
                 paddingVertical: 8,
                 borderBottomWidth: isLastItem ? 0 : 1,
                 borderColor: item.isSelected ? theme.buttonHoveredBG : theme.border,
-                ...(isLastItem ? {borderBottomLeftRadius: variables.componentBorderRadius, borderBottomRightRadius: variables.componentBorderRadius} : {}),
+                ...(isLastItem ? styles.searchTableBottomRadius : {}),
             },
         ],
         [styles, item.isSelected, isLargeScreenWidth, theme.buttonHoveredBG, theme.border, isLastItem],
@@ -251,11 +251,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
             onLongPressRow={onLongPressRow}
             shouldSyncFocus={shouldSyncFocus}
             hoverStyle={item.isSelected && styles.activeComponentBG}
-            pressableWrapperStyle={[
-                styles.mh5,
-                animatedHighlightStyle,
-                isLargeScreenWidth && isLastItem && {borderBottomLeftRadius: variables.componentBorderRadius, borderBottomRightRadius: variables.componentBorderRadius},
-            ]}
+            pressableWrapperStyle={[styles.mh5, animatedHighlightStyle, isLargeScreenWidth && isLastItem && styles.searchTableBottomRadius]}
             accessible={false}
             shouldShowRightCaret={false}
             shouldUseDefaultRightHandSideCheckmark={false}

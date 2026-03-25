@@ -62,7 +62,7 @@ function TableListItem<TItem extends ListItem>({
               paddingHorizontal: 12,
               borderBottomWidth: isLastItem ? 0 : 1,
               borderColor: item.isSelected ? theme.buttonHoveredBG : theme.border,
-              ...(isLastItem ? {borderBottomLeftRadius: variables.componentBorderRadius, borderBottomRightRadius: variables.componentBorderRadius} : {}),
+              ...(isLastItem ? styles.searchTableBottomRadius : {}),
           }
         : {};
 
