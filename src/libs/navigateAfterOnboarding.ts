@@ -63,18 +63,20 @@ function navigateAfterOnboarding(
     onboardingPolicyID?: string,
     onboardingAdminsChatReportID?: string,
     shouldPreventOpenAdminRoom = false,
+    variantOverride?: OnboardingRHPVariant | null,
 ) {
     setDisableDismissOnEscape(false);
 
-    if (shouldOpenRHPVariant()) {
-        handleRHPVariantNavigation(onboardingPolicyID);
+    if (shouldOpenRHPVariant(variantOverride)) {
+        handleRHPVariantNavigation(onboardingPolicyID, variantOverride);
         return;
     }
 
     // On mobile (small screen), Track workspace admins with the trackExpensesWithConcierge variant
     // should navigate directly to the Concierge DM (which contains onboarding tasks).
     // The native shouldOpenRHPVariant() returns false (no side panel on mobile), so we handle it here.
-    if (isSmallScreenWidth && onboardingRHPVariant === CONST.ONBOARDING_RHP_VARIANT.TRACK_EXPENSES_WITH_CONCIERGE) {
+    const variant = variantOverride ?? onboardingRHPVariant;
+    if (isSmallScreenWidth && variant === CONST.ONBOARDING_RHP_VARIANT.TRACK_EXPENSES_WITH_CONCIERGE) {
         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(conciergeReportID));
         return;
     }
@@ -104,6 +106,7 @@ function navigateAfterOnboardingWithMicrotaskQueue(
     onboardingPolicyID?: string,
     onboardingAdminsChatReportID?: string,
     shouldPreventOpenAdminRoom = false,
+    variantOverride?: OnboardingRHPVariant | null,
 ) {
     Navigation.dismissModal();
     Navigation.setNavigationActionToMicrotaskQueue(() => {
@@ -115,6 +118,7 @@ function navigateAfterOnboardingWithMicrotaskQueue(
             onboardingPolicyID,
             onboardingAdminsChatReportID,
             shouldPreventOpenAdminRoom,
+            variantOverride,
         );
     });
 }

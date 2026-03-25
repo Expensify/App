@@ -1,6 +1,7 @@
 import {hasSeenTourSelector} from '@selectors/Onboarding';
 import {useCallback, useMemo} from 'react';
 import type {OnyxCollection} from 'react-native-onyx';
+import isSidePanelReportSupported from '@components/SidePanel/isSidePanelReportSupported';
 import {navigateAfterOnboardingWithMicrotaskQueue} from '@libs/navigateAfterOnboarding';
 import {createDisplayName} from '@libs/PersonalDetailsUtils';
 import {isPaidGroupPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
@@ -9,7 +10,7 @@ import {completeOnboarding} from '@userActions/Report';
 import {setOnboardingAdminsChatReportID, setOnboardingPolicyID} from '@userActions/Welcome';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {OnboardingPurpose, Policy} from '@src/types/onyx';
+import type {OnboardingPurpose, OnboardingRHPVariant, Policy} from '@src/types/onyx';
 import useArchivedReportsIdSet from './useArchivedReportsIdSet';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useHasActiveAdminPolicies from './useHasActiveAdminPolicies';
@@ -59,7 +60,7 @@ function useAutoCreateTrackWorkspace() {
     const mergedAccountConciergeReportID = !onboardingValues?.shouldRedirectToClassicAfterMerge && onboardingValues?.shouldValidate ? conciergeChatReportID : undefined;
 
     const autoCreateTrackWorkspace = useCallback(
-        (firstName: string, lastName: string, onboardingPurposeSelected: OnboardingPurpose) => {
+        async (firstName: string, lastName: string, onboardingPurposeSelected: OnboardingPurpose) => {
             const shouldCreateWorkspace = !isRestrictedPolicyCreation && !onboardingPolicyID && !hasPaidGroupAdminPolicy;
             const displayName = createDisplayName(session?.email ?? '', {firstName, lastName}, formatPhoneNumber);
 
@@ -85,17 +86,22 @@ function useAutoCreateTrackWorkspace() {
                   })
                 : {adminsChatReportID: onboardingAdminsChatReportID, policyID: onboardingPolicyID};
 
-            completeOnboarding({
+            const response = await completeOnboarding({
                 engagementChoice: CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE,
                 onboardingMessage: onboardingMessages[CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE],
                 firstName,
                 lastName,
                 adminsChatReportID: newAdminsChatReportID,
                 onboardingPolicyID: newPolicyID,
+                shouldWaitForRHPVariantInitialization: isSidePanelReportSupported,
                 introSelected,
                 isSelfTourViewed,
                 betas,
             });
+
+            // Extract the RHP variant directly from the API response to avoid a race condition
+            // where the Onyx callback hasn't fired yet when navigateAfterOnboarding is called.
+            const rhpVariant = response?.onyxData?.find((update) => update.key === ONYXKEYS.NVP_ONBOARDING_RHP_VARIANT)?.value as OnboardingRHPVariant | undefined;
 
             setOnboardingAdminsChatReportID();
             setOnboardingPolicyID();
@@ -108,6 +114,7 @@ function useAutoCreateTrackWorkspace() {
                 newPolicyID,
                 mergedAccountConciergeReportID,
                 false,
+                rhpVariant,
             );
         },
         [
