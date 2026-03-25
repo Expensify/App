@@ -42,6 +42,7 @@ const defaultSearchContextData: SearchContextData = {
     currentSearchKey: undefined,
     currentSearchQueryJSON: undefined,
     currentSearchResults: undefined,
+    currentSelectedTransactionReportID: undefined,
     selectedTransactions: {},
     selectedTransactionIDs: [],
     selectedReports: [],
@@ -58,17 +59,18 @@ const defaultSearchStateContext: SearchStateContextValue = {
     lastSearchType: undefined,
     areAllMatchingItemsSelected: false,
     shouldShowSelectAllMatchingItems: false,
-    shouldShowFiltersBarLoading: false,
+    shouldShowActionsBarLoading: false,
     currentSearchResults: undefined,
     shouldUseLiveData: false,
 };
 
 const defaultSearchActionsContext: SearchActionsContextValue = {
     setLastSearchType: () => {},
+    setCurrentSelectedTransactionReportID: () => {},
     setSelectedTransactions: () => {},
     removeTransaction: () => {},
     clearSelectedTransactions: () => {},
-    setShouldShowFiltersBarLoading: () => {},
+    setShouldShowActionsBarLoading: () => {},
     setShouldShowSelectAllMatchingItems: () => {},
     selectAllMatchingItems: () => {},
     setShouldResetSearchQuery: () => {},
@@ -98,7 +100,7 @@ function SearchContextProvider({children}: SearchContextProps) {
     const areTransactionsEmpty = useRef(true);
     const [lastSearchType, setLastSearchType] = useState<string>();
     const [areAllMatchingItemsSelected, selectAllMatchingItems] = useState(false);
-    const [shouldShowFiltersBarLoading, setShouldShowFiltersBarLoading] = useState(false);
+    const [shouldShowActionsBarLoading, setShouldShowActionsBarLoading] = useState(false);
     const [shouldShowSelectAllMatchingItems, setShouldShowSelectAllMatchingItems] = useState(false);
     const [searchContextData, setSearchContextData] = useState({...defaultSearchContextData});
 
@@ -211,6 +213,19 @@ function SearchContextProvider({children}: SearchContextProps) {
         currentSearchHashRef.current = currentSearchHash;
     }, [currentSearchHash]);
 
+    const setCurrentSelectedTransactionReportID: SearchActionsContextValue['setCurrentSelectedTransactionReportID'] = (reportID) => {
+        setSearchContextData((prevState) => {
+            if (reportID === prevState.currentSelectedTransactionReportID) {
+                return prevState;
+            }
+
+            return {
+                ...prevState,
+                currentSelectedTransactionReportID: reportID,
+            };
+        });
+    };
+
     const clearSelectedTransactions: SearchActionsContextValue['clearSelectedTransactions'] = useCallback(
         (searchHashOrClearIDsFlag, shouldTurnOffSelectionMode = false) => {
             if (typeof searchHashOrClearIDsFlag === 'boolean') {
@@ -289,7 +304,7 @@ function SearchContextProvider({children}: SearchContextProps) {
             currentSimilarSearchHash,
             currentSearchResults,
             shouldUseLiveData,
-            shouldShowFiltersBarLoading,
+            shouldShowActionsBarLoading,
             lastSearchType,
             shouldShowSelectAllMatchingItems,
             areAllMatchingItemsSelected,
@@ -303,7 +318,7 @@ function SearchContextProvider({children}: SearchContextProps) {
             currentSimilarSearchHash,
             currentSearchResults,
             shouldUseLiveData,
-            shouldShowFiltersBarLoading,
+            shouldShowActionsBarLoading,
             lastSearchType,
             shouldShowSelectAllMatchingItems,
             areAllMatchingItemsSelected,
@@ -315,15 +330,17 @@ function SearchContextProvider({children}: SearchContextProps) {
         () => ({
             removeTransaction,
             setSelectedTransactions,
+            setCurrentSelectedTransactionReportID,
             clearSelectedTransactions,
-            setShouldShowFiltersBarLoading,
+            setShouldShowActionsBarLoading,
             setLastSearchType,
             setShouldShowSelectAllMatchingItems,
             selectAllMatchingItems,
             setShouldResetSearchQuery,
         }),
-        // setShouldShowFiltersBarLoading, setLastSearchType, setShouldShowSelectAllMatchingItems,
+        // setShouldShowActionsBarLoading, setLastSearchType, setShouldShowSelectAllMatchingItems,
         // and selectAllMatchingItems are stable useState setters — excluded from deps intentionally.
+        // setCurrentSelectedTransactionReportID only uses setSearchContextData (stable setter).
         [removeTransaction, setSelectedTransactions, clearSelectedTransactions, setShouldResetSearchQuery],
     );
 
