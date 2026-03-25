@@ -26,6 +26,7 @@ type ConnectExistingBusinessBankAccountPageProps = PlatformStackScreenProps<Conn
 function ConnectExistingBusinessBankAccountPage({route}: ConnectExistingBusinessBankAccountPageProps) {
     const icons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
     const policyID = route.params?.policyID;
+    const backTo = route.params?.backTo;
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const [lastPaymentMethod] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD);
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
@@ -37,7 +38,7 @@ function ConnectExistingBusinessBankAccountPage({route}: ConnectExistingBusiness
     const {translate} = useLocalize();
 
     const handleAddBankAccountPress = () => {
-        navigateToBankAccountRoute({policyID});
+        navigateToBankAccountRoute({policyID, backTo});
     };
 
     const handleItemPress = ({methodID, accountData}: PaymentMethodPressHandlerParams) => {
@@ -66,7 +67,7 @@ function ConnectExistingBusinessBankAccountPage({route}: ConnectExistingBusiness
 
         Navigation.setNavigationActionToMicrotaskQueue(() => {
             if (isBankAccountPartiallySetup(accountData?.state)) {
-                navigateToBankAccountRoute({policyID: route.params.policyID, navigationOptions: {forceReplace: true}});
+                navigateToBankAccountRoute({policyID, backTo, navigationOptions: {forceReplace: true}});
             } else {
                 setReimbursementAccountLoading(false);
                 Navigation.closeRHPFlow();

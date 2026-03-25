@@ -50,12 +50,6 @@ type ExpenseReportListItemProps<TItem extends ListItem> = ListItemProps<TItem> &
     /** Whether the item's action is loading */
     isLoading?: boolean;
 
-    /** Callback to fire when DEW modal should be opened */
-    onDEWModalOpen?: () => void;
-
-    /** Whether the DEW beta flag is enabled */
-    isDEWBetaEnabled?: boolean;
-
     /** The last payment method used per policy */
     lastPaymentMethod?: OnyxEntry<LastPaymentMethod>;
 
@@ -403,10 +397,6 @@ type TransactionListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
     columns?: SearchColumnType[];
     violations?: Record<string, TransactionViolations | undefined> | undefined;
     customCardNames?: Record<number, string>;
-    /** Callback to fire when DEW modal should be opened */
-    onDEWModalOpen?: () => void;
-    /** Whether the DEW beta flag is enabled */
-    isDEWBetaEnabled?: boolean;
     /** The last payment method used per policy */
     lastPaymentMethod?: OnyxEntry<LastPaymentMethod>;
     /** The user's personal policy ID */
@@ -421,10 +411,6 @@ type TransactionGroupListItemProps<TItem extends ListItem> = ListItemProps<TItem
     columns?: SearchColumnType[];
     newTransactionID?: string;
     violations?: Record<string, TransactionViolations | undefined> | undefined;
-    /** Callback to fire when DEW modal should be opened */
-    onDEWModalOpen?: () => void;
-    /** Whether the DEW beta flag is enabled */
-    isDEWBetaEnabled?: boolean;
     /** The last payment method used per policy */
     lastPaymentMethod?: OnyxEntry<LastPaymentMethod>;
     /** The user's personal policy ID */
