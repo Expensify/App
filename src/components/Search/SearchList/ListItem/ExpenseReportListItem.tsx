@@ -22,7 +22,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {handleActionButtonPress} from '@libs/actions/Search';
 import {syncMissingAttendeesViolation} from '@libs/AttendeeUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import {isInvoiceReport, isOpenExpenseReport, isProcessingReport} from '@libs/ReportUtils';
+import {isInvoiceReport, isOpenExpenseReport, isProcessingReport, isReportPendingDelete} from '@libs/ReportUtils';
 import {isViolationDismissed, shouldShowViolation} from '@libs/TransactionUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -82,6 +82,10 @@ function ExpenseReportListItem<TItem extends ListItem>({
     const isDisabledCheckbox = useMemo(() => {
         return reportItem.isDisabled ?? reportItem.isDisabledCheckbox;
     }, [reportItem.isDisabled, reportItem.isDisabledCheckbox]);
+
+    // Prefer live Onyx data over stale search snapshot for pending delete check.
+    const reportForPendingDeleteCheck = parentReport ?? reportItem;
+    const isPendingDelete = isReportPendingDelete(reportForPendingDeleteCheck);
 
     // Prefer live Onyx policy data over snapshot to ensure fresh policy settings
     // like isAttendeeTrackingEnabled is not missing
@@ -162,6 +166,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
             styles.bgTransparent,
             item.isSelected && styles.activeComponentBG,
             styles.mh0,
+            isPendingDelete && styles.cursorDisabled,
             isLargeScreenWidth && {
                 minHeight: variables.tableRowHeight,
                 borderRadius: 0,
@@ -171,7 +176,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
                 ...(isLastItem ? styles.searchTableBottomRadius : {}),
             },
         ],
-        [styles, item.isSelected, isLargeScreenWidth, theme.buttonHoveredBG, theme.border, isLastItem],
+        [styles, item.isSelected, isLargeScreenWidth, theme.buttonHoveredBG, theme.border, isLastItem, isPendingDelete],
     );
 
     const listItemWrapperStyle = useMemo(
@@ -245,10 +250,12 @@ function ExpenseReportListItem<TItem extends ListItem>({
             onLongPressRow={onLongPressRow}
             shouldSyncFocus={shouldSyncFocus}
             hoverStyle={item.isSelected && styles.activeComponentBG}
-            pressableWrapperStyle={[styles.mh5, animatedHighlightStyle, isLargeScreenWidth && isLastItem && styles.searchTableBottomRadius]}
+            pressableWrapperStyle={[styles.mh5, animatedHighlightStyle, isPendingDelete && styles.cursorDisabled, isLargeScreenWidth && isLastItem && styles.searchTableBottomRadius]}
             accessible={false}
             shouldShowRightCaret={false}
             shouldUseDefaultRightHandSideCheckmark={false}
+            isDisabled={isPendingDelete}
+            shouldDisableHoverStyle={isPendingDelete}
         >
             {(hovered) => (
                 <View style={[styles.flex1]}>
@@ -266,6 +273,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
                         isDisabledCheckbox={isDisabledCheckbox}
                         isHovered={hovered}
                         isFocused={isFocused}
+                        isPendingDelete={isPendingDelete}
                     />
                     {getDescription}
                 </View>
