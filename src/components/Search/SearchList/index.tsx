@@ -278,7 +278,7 @@ function SearchList({
         return selectableTransactions.length;
     }, [data, type, flattenedItems, emptyReports]);
 
-    const {translate, toLocaleDigit} = useLocalize();
+    const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const listRef = useRef<FlashListRef<SearchListItem>>(null);
     const {isKeyboardShown} = useKeyboardState();
