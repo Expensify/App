@@ -17,12 +17,12 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import AccountUtils from '@libs/AccountUtils';
-import {getLatestErrorMessage} from '@libs/ErrorUtils';
+import {getLatestErrorField, getLatestErrorMessage} from '@libs/ErrorUtils';
 import VALUES from '@libs/MultifactorAuthentication/VALUES';
 import {isValidValidateCode} from '@libs/ValidationUtils';
 import Navigation from '@navigation/Navigation';
 import {clearAccountMessages} from '@userActions/Session';
-import {resendValidateCode} from '@userActions/User';
+import {requestValidateCodeAction} from '@userActions/User';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -40,7 +40,7 @@ function MultifactorAuthenticationValidateCodePage() {
     // Onyx data
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [session] = useOnyx(ONYXKEYS.SESSION);
-
+    const [validateActionCode] = useOnyx(ONYXKEYS.VALIDATE_ACTION_CODE);
     const contactMethod = account?.primaryLogin ?? '';
 
     // Local state
@@ -65,6 +65,8 @@ function MultifactorAuthenticationValidateCodePage() {
     const hasError = hasAccountError || hasContinuableError;
     const isValidateCodeFormSubmitting = AccountUtils.isValidateCodeFormSubmitting(account);
     const shouldDisableResendCode = isOffline ?? account?.isLoading;
+    const validateCodeActionError = getLatestErrorField(validateActionCode, 'actionVerified');
+    const hasValidateCodeActionError = !isEmptyObject(validateCodeActionError);
 
     // Check if this page can handle the continuable error, if not convert to regular error
     useEffect(() => {
@@ -124,16 +126,14 @@ function MultifactorAuthenticationValidateCodePage() {
             clearAccountMessages();
         }
 
-        // Clear validateCode and continuable error when user starts typing after an error
-        // This ensures process() will re-trigger on submit even if user enters the same code
+        // Clear continuable error when user starts typing after an error
         if (continuableError) {
-            dispatch({type: 'SET_VALIDATE_CODE', payload: undefined});
             dispatch({type: 'CLEAR_CONTINUABLE_ERROR'});
         }
     };
 
     const resendValidationCode = () => {
-        resendValidateCode(contactMethod);
+        requestValidateCodeAction();
         inputRef.current?.clear();
         setInputCode('');
         setFormError({});
@@ -238,6 +238,7 @@ function MultifactorAuthenticationValidateCodePage() {
                     />
                     {hasContinuableError && <FormHelpMessage message={translate('validateCodeForm.error.incorrectMagicCode')} />}
                     {hasAccountError && <FormHelpMessage message={getLatestErrorMessage(account)} />}
+                    {hasValidateCodeActionError && <FormHelpMessage message={Object.values(validateCodeActionError).at(0)} />}
                     <MultifactorAuthenticationValidateCodeResendButton
                         ref={resendButtonRef}
                         shouldDisableResendCode={shouldDisableResendCode}
