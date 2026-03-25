@@ -60,9 +60,10 @@ function OptionsListContextProvider({children}: OptionsListProviderProps) {
     const [reportAttributes] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
     const prevReportAttributesLocale = usePrevious(reportAttributes?.locale);
     const [reports, {sourceValue: changedReports}] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
+    const [allPolicies, {sourceValue: changedPolicies}] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const prevPolicies = usePrevious(allPolicies);
     const prevReports = usePrevious(reports);
     const [, {sourceValue: changedReportActions}] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
-    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const personalDetails = usePersonalDetails();
     const prevPersonalDetails = usePrevious(personalDetails);
     const privateIsArchivedMap = usePrivateIsArchivedMap();
@@ -184,6 +185,64 @@ function OptionsListContextProvider({children}: OptionsListProviderProps) {
             };
         });
     }, [changedReportActions, personalDetails, currentUserAccountID, reports, allPolicies, reportAttributes?.reports, privateIsArchivedMap]);
+
+    useEffect(() => {
+        if (!changedPolicies || !areOptionsInitialized.current || !reports || !prevPolicies) {
+            return;
+        }
+
+        const changedPolicyIDs = new Set<string>();
+
+        for (const policyKey of Object.keys(changedPolicies)) {
+            const previousName = prevPolicies?.[policyKey]?.name;
+            const updatedName = allPolicies?.[policyKey]?.name;
+
+            if (previousName === updatedName) {
+                continue;
+            }
+
+            changedPolicyIDs.add(policyKey.replace(ONYXKEYS.COLLECTION.POLICY, ''));
+        }
+
+        if (changedPolicyIDs.size === 0) {
+            return;
+        }
+
+        setOptions((prevOptions) => {
+            const updatedReportsMap = new Map(prevOptions.reports.filter((report) => report && report.reportID).map((report) => [report.reportID, report]));
+            let hasUpdatedReportOption = false;
+
+            for (const option of prevOptions.reports) {
+                const policyID = option?.item?.policyID;
+                const reportID = option?.reportID;
+
+                if (!policyID || !reportID || !changedPolicyIDs.has(policyID)) {
+                    continue;
+                }
+
+                hasUpdatedReportOption = true;
+                const report = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+                const privateIsArchived = privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`];
+                const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
+                const {reportOption} = processReport(report, personalDetails, privateIsArchived, currentUserAccountID, policy, reportAttributes?.reports);
+
+                if (reportOption) {
+                    updatedReportsMap.set(reportID, reportOption);
+                } else {
+                    updatedReportsMap.delete(reportID);
+                }
+            }
+
+            if (!hasUpdatedReportOption) {
+                return prevOptions;
+            }
+
+            return {
+                ...prevOptions,
+                reports: Array.from(updatedReportsMap.values()),
+            };
+        });
+    }, [changedPolicies, personalDetails, currentUserAccountID, reports, allPolicies, prevPolicies, reportAttributes?.reports, privateIsArchivedMap]);
 
     /**
      * This effect is used to update the options list when personal details change.
@@ -318,17 +377,11 @@ const useOptionsList = (options?: {shouldInitialize: boolean}) => {
     const {options: optionsList, areOptionsInitialized} = useOptionsListState();
     const {initializeOptions, resetOptions} = useOptionsListActions();
     const [internalOptions, setInternalOptions] = useState<OptionList>(optionsList);
-    const prevOptions = useRef<OptionList>(null);
-    const [areInternalOptionsInitialized, setAreInternalOptionsInitialized] = useState(false);
+    const prevOptions = useRef<OptionList>(optionsList);
+    const [areInternalOptionsInitialized, setAreInternalOptionsInitialized] = useState(areOptionsInitialized);
 
     const prevIsInitialized = usePrevious(areOptionsInitialized);
     useEffect(() => {
-        if (!prevOptions.current) {
-            prevOptions.current = optionsList;
-            setInternalOptions(optionsList);
-            setAreInternalOptionsInitialized(areOptionsInitialized);
-            return;
-        }
         /**
          * optionsList reference can change multiple times even the value of its arrays is the same. We perform shallow comparison to check if the options have truly changed.
          * This is necessary to avoid unnecessary re-renders in components that use this context.
@@ -338,12 +391,15 @@ const useOptionsList = (options?: {shouldInitialize: boolean}) => {
         const hasInitializedChanged = prevIsInitialized !== areOptionsInitialized;
         if (areOptionsEqual) {
             if (hasInitializedChanged) {
+                // eslint-disable-next-line react-hooks/set-state-in-effect -- This hook intentionally mirrors the initialization flag from context while preserving shallow option equality optimizations.
                 setAreInternalOptionsInitialized(areOptionsInitialized);
             }
 
             return;
         }
+        // eslint-disable-next-line react-hooks/set-state-in-effect -- This hook intentionally mirrors context into local state only when the shallow-compared options actually change.
         setInternalOptions(optionsList);
+        // eslint-disable-next-line react-hooks/set-state-in-effect -- This hook intentionally mirrors the initialization flag from context when the option list changes.
         setAreInternalOptionsInitialized(areOptionsInitialized);
     }, [optionsList, areOptionsInitialized, prevIsInitialized]);
 
