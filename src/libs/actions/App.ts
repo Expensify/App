@@ -570,6 +570,7 @@ type CreateWorkspaceWithPolicyDraftParams = {
     // TODO: Remove optional (?) once allBetas Onyx.connect is removed (https://github.com/Expensify/App/issues/66417)
     betas?: OnyxEntry<OnyxTypes.Beta[]>;
     hasActiveAdminPolicies: boolean;
+    isAnnualSubscription?: boolean;
 };
 
 /**
@@ -596,6 +597,7 @@ function createWorkspaceWithPolicyDraftAndNavigateToIt(params: CreateWorkspaceWi
         isSelfTourViewed,
         betas,
         hasActiveAdminPolicies,
+        isAnnualSubscription = false,
     } = params;
 
     const policyIDWithDefault = policyID || generatePolicyID();
@@ -624,6 +626,7 @@ function createWorkspaceWithPolicyDraftAndNavigateToIt(params: CreateWorkspaceWi
             isSelfTourViewed,
             betas,
             hasActiveAdminPolicies,
+            isAnnualSubscription,
         });
         Navigation.navigate(routeToNavigate, {forceReplace: !transitionFromOldDot});
     });
@@ -688,6 +691,7 @@ type SavePolicyDraftByNewWorkspaceParams = {
     // TODO: Remove optional (?) once allBetas Onyx.connect is removed (https://github.com/Expensify/App/issues/66417)
     betas?: OnyxEntry<OnyxTypes.Beta[]>;
     hasActiveAdminPolicies: boolean;
+    isAnnualSubscription?: boolean;
 };
 
 /**
@@ -711,6 +715,7 @@ function savePolicyDraftByNewWorkspace({
     isSelfTourViewed,
     betas,
     hasActiveAdminPolicies,
+    isAnnualSubscription = false,
 }: SavePolicyDraftByNewWorkspaceParams) {
     createWorkspace({
         policyOwnerEmail,
@@ -731,6 +736,7 @@ function savePolicyDraftByNewWorkspace({
         isSelfTourViewed,
         betas,
         hasActiveAdminPolicies,
+        isAnnualSubscription,
     });
 }
 
