@@ -250,6 +250,7 @@ function IOURequestStepDistanceOdometer({
             }
             restoreOriginalTransactionFromBackupWithImageCleanup(transactionID, isTransactionDraft);
         };
+        // We only want to create the backup once on mount and restore/remove it on unmount
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
