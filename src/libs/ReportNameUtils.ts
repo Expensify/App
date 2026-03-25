@@ -695,7 +695,6 @@ function computeReportNameBasedOnReportAction(
         return Parser.htmlToText(getSettlementAccountLockedMessage(translate, parentReportAction));
     }
 
-<<<<<<< card-feeds-changelogs
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_CARD_FEED)) {
         return getAddedCardFeedMessage(translate, parentReportAction);
     }
@@ -716,13 +715,12 @@ function computeReportNameBasedOnReportAction(
     }
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CARD_FEED_STATEMENT_PERIOD)) {
         return getUpdatedCardFeedStatementPeriodMessage(translate, parentReportAction);
-=======
+    }
     if (isDynamicExternalWorkflowSubmitFailedAction(parentReportAction)) {
         return getDynamicExternalWorkflowSubmitFailedActionMessage(translate, parentReportAction);
     }
     if (isDynamicExternalWorkflowApproveFailedAction(parentReportAction)) {
         return getDynamicExternalWorkflowApproveFailedActionMessage(translate, parentReportAction);
->>>>>>> main
     }
 
     return undefined;
