@@ -349,7 +349,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     const [transactionThreadReportActions = getEmptyObject<OnyxTypes.ReportActions>()] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`);
     const combinedReportActions = getCombinedReportActions(reportActions, transactionThreadReportID ?? null, Object.values(transactionThreadReportActions));
     const isSentMoneyReport = useMemo(() => reportActions.some((action) => isSentMoneyReportAction(action)), [reportActions]);
-    const lastReportAction = [...combinedReportActions, parentReportAction].find((action) => canEditReportAction(action, undefined) && !isMoneyRequestAction(action));
+    const lastReportAction = [...combinedReportActions, parentReportAction].find((action) => !isMoneyRequestAction(action) && canEditReportAction(action, undefined));
     const isTopMostReportId = currentReportIDValue === reportIDFromRoute;
     const didSubscribeToReportLeavingEvents = useRef(false);
     const isTransactionThreadView = isReportTransactionThread(report);
