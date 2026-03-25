@@ -6,7 +6,7 @@ import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import TextWithTooltip from '@components/TextWithTooltip';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {convertToDisplayString, convertToFrontendAmountAsString} from '@libs/CurrencyUtils';
+import {convertToBackendAmount, convertToDisplayString, convertToFrontendAmountAsString} from '@libs/CurrencyUtils';
 import {parseFloatAnyLocale, roundToTwoDecimalPlaces} from '@libs/NumberUtils';
 import {getTransactionDetails} from '@libs/ReportUtils';
 import {getCurrency as getTransactionCurrency, isScanning} from '@libs/TransactionUtils';
@@ -32,8 +32,7 @@ function TotalCell({shouldShowTooltip, transactionItem, canEdit, onSave}: TotalC
         const parsedValue = parseFloatAnyLocale(amountString);
         if (!Number.isNaN(parsedValue) && parsedValue >= 0) {
             const normalizedValue = roundToTwoDecimalPlaces(parsedValue);
-            // Convert back to cents for the save callback
-            onSave?.(Math.round(normalizedValue * 100));
+            onSave?.(convertToBackendAmount(normalizedValue));
         }
     };
 
