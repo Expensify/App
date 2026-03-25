@@ -6851,10 +6851,8 @@ const translations = {
         addedCardFeed: (feedName: string) => `added card feed "${feedName}"`,
         removedCardFeed: (feedName: string) => `removed card feed "${feedName}"`,
         renamedCardFeed: (newName: string, oldName: string) => `renamed card feed to "${newName}" (previously "${oldName}")`,
-        assignedCompanyCard: (email: string, feedName: string, cardLastFour: string) =>
-            `assigned ${email} ${feedName ? `"${feedName}" ` : ''}company card ending in ${cardLastFour}`,
-        unassignedCompanyCard: (email: string, feedName: string, cardLastFour: string) =>
-            `unassigned ${email} ${feedName ? `"${feedName}" ` : ''}company card ending in ${cardLastFour}`,
+        assignedCompanyCard: (email: string, feedName: string, cardLastFour: string) => `assigned ${email} ${feedName ? `"${feedName}" ` : ''}company card ending in ${cardLastFour}`,
+        unassignedCompanyCard: (email: string, feedName: string, cardLastFour: string) => `unassigned ${email} ${feedName ? `"${feedName}" ` : ''}company card ending in ${cardLastFour}`,
         updatedCardFeedLiability: (feedName: string, enabled: boolean) => `${enabled ? 'enabled' : 'disabled'} cardholders to delete card transactions for card feed "${feedName}"`,
         updatedCardFeedStatementPeriod: (feedName: string, newValue?: string, previousValue?: string) =>
             `changed card feed "${feedName}" statement period end day${newValue ? ` to "${newValue}"` : ''}${previousValue ? ` (previously "${previousValue}")` : ''}`,

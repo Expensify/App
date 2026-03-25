@@ -7124,8 +7124,7 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
         addedCardFeed: (feedName: string) => `adicionou o feed de cartão "${feedName}"`,
         removedCardFeed: (feedName: string) => `removeu o feed de cartão "${feedName}"`,
         renamedCardFeed: (newName: string, oldName: string) => `renomeou o feed de cartão para "${newName}" (antes "${oldName}")`,
-        assignedCompanyCard: (email: string, feedName: string, cardLastFour: string) =>
-            `atribuiu ${email} ${feedName ? `"${feedName}" ` : ''}cartão empresarial com final ${cardLastFour}`,
+        assignedCompanyCard: (email: string, feedName: string, cardLastFour: string) => `atribuiu ${email} ${feedName ? `"${feedName}" ` : ''}cartão empresarial com final ${cardLastFour}`,
         unassignedCompanyCard: (email: string, feedName: string, cardLastFour: string) =>
             `cartão corporativo ${feedName ? `"${feedName}" ` : ''}${email} não atribuído com final ${cardLastFour}`,
         updatedCardFeedLiability: (feedName: string, enabled: boolean) =>
