@@ -325,7 +325,7 @@ function buildOptimisticNextStepForPreventSelfApprovalsEnabled() {
 function buildOptimisticFixIssueNextStep(moneyRequestReport?: OnyxEntry<Report>) {
     const isCurrentUserOwner = isReportOwner(moneyRequestReport);
     const ownerName = moneyRequestReport?.ownerAccountID
-        ? getDisplayNameForParticipant({accountID: moneyRequestReport.ownerAccountID, formatPhoneNumber: formatPhoneNumberPhoneUtils}) ?? 'the submitter'
+        ? getDisplayNameForParticipant({accountID: moneyRequestReport.ownerAccountID, formatPhoneNumber: formatPhoneNumberPhoneUtils}) || 'the submitter'
         : 'the submitter';
 
     const optimisticNextStep: ReportNextStepDeprecated = {
