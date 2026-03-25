@@ -21,7 +21,15 @@ import * as NumberUtils from '@libs/NumberUtils';
 import Parser from '@libs/Parser';
 import {addSMSDomainIfPhoneNumber} from '@libs/PhoneNumber';
 import {getDistanceRateCustomUnitRate} from '@libs/PolicyUtils';
-import {getAllReportActions, getOriginalMessage, getReportAction, getReportActionHtml, getReportActionText, isMoneyRequestAction} from '@libs/ReportActionsUtils';
+import {
+    getAllReportActions,
+    getOriginalMessage,
+    getReportAction,
+    getReportActionHtml,
+    getReportActionText,
+    getTrackExpenseActionableWhisper,
+    isMoneyRequestAction,
+} from '@libs/ReportActionsUtils';
 import {
     buildOptimisticChatReport,
     buildOptimisticCreatedReportAction,
@@ -1568,6 +1576,10 @@ function updateSplitTransactions({
         });
 
         if (firstIOU) {
+            // For selfDM splits, also resolve the Concierge "What would you like to do with this expense?"
+            // whisper so it disappears along with the original expense when splits are created.
+            const whisperAction = isOriginalTransactionInSelfDM ? getTrackExpenseActionableWhisper(originalTransactionID, originalSelfDMReportID) : undefined;
+            const whisperActionID = whisperAction?.reportActionID;
             const updatedReportAction = {
                 [firstIOU.reportActionID]: {
                     pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
@@ -1586,6 +1598,11 @@ function updateSplitTransactions({
                     },
                     errors: null,
                 },
+                ...(whisperActionID && {
+                    [whisperActionID]: {
+                        originalMessage: {resolution: CONST.REPORT.ACTIONABLE_TRACK_EXPENSE_WHISPER_RESOLUTION.NOTHING},
+                    },
+                }),
             };
             const transactionThread = getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${firstIOU.childReportID}`] ?? null;
             // For selfDM, use the selfDM report ID for report actions
@@ -1852,8 +1869,23 @@ function updateSplitTransactionsFromSplitExpensesFlow(params: UpdateSplitTransac
         setDeleteTransactionNavigateBackUrl(ROUTES.REPORT_WITH_ID.getRoute(fallbackReportID));
     }
 
-    updateSplitTransactions({...params, isFromSplitExpensesFlow: true});
     const isSearchPageTopmostFullScreenRoute = isSearchTopmostFullScreenRoute();
+    const isSelfDMSplit = !isSearchPageTopmostFullScreenRoute && isSelfDM(params.transactionReport) && !!params.transactionReport?.reportID;
+
+    // For selfDM splits, navigate to the selfDM report BEFORE the data update and delay
+    // updateSplitTransactions until after the navigation animation completes. This prevents
+    // the brief "Not Found" flash caused by the original transaction being deleted while
+    // the transaction thread is still visible in the central pane.
+    if (isSelfDMSplit) {
+        Navigation.dismissModalWithReport({reportID: params.transactionReport?.reportID ?? ''});
+        InteractionManager.runAfterInteractions(() => {
+            updateSplitTransactions({...params, isFromSplitExpensesFlow: true});
+        });
+        params?.searchContext?.clearSelectedTransactions?.(true);
+        return;
+    }
+
+    updateSplitTransactions({...params, isFromSplitExpensesFlow: true});
     const transactionThreadReportID = params.firstIOU?.childReportID;
     const transactionThreadReportScreen = Navigation.getReportRouteByID(transactionThreadReportID);
 
@@ -1868,7 +1900,9 @@ function updateSplitTransactionsFromSplitExpensesFlow(params: UpdateSplitTransac
     }
 
     if (isSearchPageTopmostFullScreenRoute || !params.transactionReport?.parentReportID) {
-        Navigation.navigateBackToLastSuperWideRHPScreen();
+        if (!isSelfDMSplit) {
+            Navigation.navigateBackToLastSuperWideRHPScreen();
+        }
 
         // After the modal is dismissed, remove the transaction thread report screen
         // to avoid navigating back to a report removed by the split transaction.

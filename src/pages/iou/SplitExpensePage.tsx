@@ -48,11 +48,19 @@ import OnyxTabNavigator, {TabScreenWithFocusTrapWrapper, TopTab} from '@libs/Nav
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SplitExpenseParamList} from '@libs/Navigation/types';
 import {isSplitAction} from '@libs/ReportSecondaryActionUtils';
-import {getReportOrDraftReport, getTransactionDetails, isReportApproved, isSettled as isSettledReportUtils} from '@libs/ReportUtils';
+import {getReportOrDraftReport, getTransactionDetails, isReportApproved, isSelfDM, isSettled as isSettledReportUtils} from '@libs/ReportUtils';
 import type {TransactionDetails} from '@libs/ReportUtils';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import type {TranslationPathOrText} from '@libs/TransactionPreviewUtils';
-import {getChildTransactions, getExpenseTypeTranslationKey, getTransactionType, isDistanceRequest, isManagedCardTransaction, isPerDiemRequest} from '@libs/TransactionUtils';
+import {
+    getChildTransactions,
+    getExpenseTypeTranslationKey,
+    getTransactionType,
+    isCustomUnitRateIDForP2P,
+    isDistanceRequest,
+    isManagedCardTransaction,
+    isPerDiemRequest,
+} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -155,7 +163,9 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
     const isDistance = isDistanceRequest(transaction);
     const isCard = isManagedCardTransaction(transaction);
     const originalTransactionID = draftTransaction?.comment?.originalTransactionID ?? CONST.IOU.OPTIMISTIC_TRANSACTION_ID;
-    const iouActions = getIOUActionForTransactions([originalTransactionID], expenseReport?.reportID);
+    // For selfDM expenses, the IOU action lives in the selfDM report, not in an expense report.
+    const iouReportIDForActions = expenseReport?.reportID ?? (isSelfDM(draftTransactionReport) ? draftTransactionReport?.reportID : undefined);
+    const iouActions = getIOUActionForTransactions([originalTransactionID], iouReportIDForActions);
     const {iouReport} = useGetIOUReportFromReportAction(iouActions.at(0));
     const [iouReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${getNonEmptyStringOnyxID(iouReport?.reportID)}`);
 
@@ -187,7 +197,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
         const isEditable = isSplitExpenseEditable(splitExpense);
         if (splitTransaction && currentPolicy && isEditable) {
             const isSplitDistance = isDistanceRequest(splitTransaction);
-            if (isSplitDistance) {
+            if (isSplitDistance && !isCustomUnitRateIDForP2P(splitTransaction)) {
                 const currentRateID = splitExpense?.customUnit?.customUnitRateID ?? String(CONST.DEFAULT_NUMBER_ID);
                 const rates = DistanceRequestUtils.getMileageRates(currentPolicy, false, currentRateID);
                 const {rate} = DistanceRequestUtils.getRate({transaction: splitTransaction, policy: currentPolicy});

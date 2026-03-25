@@ -155,7 +155,7 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
     const rateToDisplay = DistanceRequestUtils.getRateForExpenseDisplay(rateName, isCustomUnitOutOfPolicy, unit, rate, currency, translate, toLocaleDigit, getCurrencySymbol, isOffline);
 
     const getErrorForField = (field: ViolationField) => {
-        if (!isSelfDMSplit && isCustomUnitOutOfPolicy && field === 'customUnitRateID') {
+        if (isCustomUnitOutOfPolicy && field === 'customUnitRateID') {
             return translate('violations.customUnitOutOfPolicy');
         }
 
