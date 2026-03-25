@@ -844,7 +844,7 @@ function removeScreenByKey(key: string) {
 function removeReportScreen(reportIDSet: Set<string>) {
     isNavigationReady().then(() => {
         navigationRef.current?.dispatch((state) => {
-            const isMatchingReportScreen = (route: {name: string; params?: Readonly<Record<string, unknown>> | undefined}) =>
+            const isMatchingReportScreen = (route: {name: string; params?: object}) =>
                 route.name === SCREENS.REPORT && !!route.params && 'reportID' in route.params && reportIDSet.has((route.params as Record<string, unknown>).reportID as string);
 
             const routes = state?.routes
