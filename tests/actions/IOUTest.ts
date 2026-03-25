@@ -10102,6 +10102,7 @@ describe('actions/IOU', () => {
                                 reimbursementAccountError: undefined,
                                 lastUsedPaymentMethods: undefined,
                                 localeCompare,
+                                currentUserAccountID: CARLOS_ACCOUNT_ID,
                             });
                         }
                         return waitForBatchedUpdates();

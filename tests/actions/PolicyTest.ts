@@ -2755,6 +2755,7 @@ describe('actions/Policy', () => {
                 reimbursementAccountError: {},
                 lastUsedPaymentMethods: undefined,
                 localeCompare: TestHelper.localeCompare,
+                currentUserAccountID: ESH_ACCOUNT_ID,
             });
 
             await waitForBatchedUpdates();
@@ -2853,6 +2854,7 @@ describe('actions/Policy', () => {
                 reimbursementAccountError: undefined,
                 lastUsedPaymentMethods: undefined,
                 localeCompare: TestHelper.localeCompare,
+                currentUserAccountID: ESH_ACCOUNT_ID,
             });
 
             await waitForBatchedUpdates();
@@ -2909,6 +2911,7 @@ describe('actions/Policy', () => {
                 reimbursementAccountError: undefined,
                 lastUsedPaymentMethods: undefined,
                 localeCompare: TestHelper.localeCompare,
+                currentUserAccountID: ESH_ACCOUNT_ID,
             });
             await waitForBatchedUpdates();
 
@@ -2946,6 +2949,7 @@ describe('actions/Policy', () => {
                 reimbursementAccountError: undefined,
                 lastUsedPaymentMethods: undefined,
                 localeCompare: TestHelper.localeCompare,
+                currentUserAccountID: ESH_ACCOUNT_ID,
             });
             await waitForBatchedUpdates();
 
@@ -2985,6 +2989,7 @@ describe('actions/Policy', () => {
                 reimbursementAccountError: undefined,
                 lastUsedPaymentMethods: undefined,
                 localeCompare: TestHelper.localeCompare,
+                currentUserAccountID: ESH_ACCOUNT_ID,
             });
             await waitForBatchedUpdates();
 

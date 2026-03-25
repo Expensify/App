@@ -15068,7 +15068,7 @@ describe('ReportUtils', () => {
             const action = buildOptimisticClosedReportAction(emailClosingReport, 'Test Policy', currentUserAccountID);
             const messages = action.message as Array<{type: string; style: string; text: string}>;
 
-            expect(messages[0]).toMatchObject({
+            expect(messages.at(0)).toMatchObject({
                 type: CONST.REPORT.MESSAGE.TYPE.TEXT,
                 style: 'strong',
                 text: emailClosingReport,
