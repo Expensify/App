@@ -7264,6 +7264,10 @@ ${reportName}
             billable: '請求可能',
             reimbursable: '払い戻し対象',
             purchaseCurrency: '購入通貨',
+            sortOrder: {
+                [CONST.SEARCH.SORT_ORDER.ASC]: '昇順',
+                [CONST.SEARCH.SORT_ORDER.DESC]: '降順',
+            },
             groupBy: {
                 [CONST.SEARCH.GROUP_BY.FROM]: '差出人',
                 [CONST.SEARCH.GROUP_BY.CARD]: 'カード',
@@ -7292,6 +7296,7 @@ ${reportName}
         display: {
             label: '表示',
             sortBy: '並べ替え',
+            sortOrder: '並べ替え順',
             groupBy: 'グループ化基準',
             limitResults: '結果の絞り込み',
         },

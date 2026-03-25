@@ -7350,6 +7350,10 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
             billable: 'Fatturabile',
             reimbursable: 'Rimborsabile',
             purchaseCurrency: 'Valuta di acquisto',
+            sortOrder: {
+                [CONST.SEARCH.SORT_ORDER.ASC]: 'In ordine crescente',
+                [CONST.SEARCH.SORT_ORDER.DESC]: 'In discesa',
+            },
             groupBy: {
                 [CONST.SEARCH.GROUP_BY.FROM]: 'Da',
                 [CONST.SEARCH.GROUP_BY.CARD]: 'Carta',
@@ -7378,6 +7382,7 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
         display: {
             label: 'Visualizza',
             sortBy: 'Ordina per',
+            sortOrder: 'Ordine di visualizzazione',
             groupBy: 'Raggruppa per',
             limitResults: 'Limita i risultati',
         },
