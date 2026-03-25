@@ -425,7 +425,7 @@ function ReportActionsList({
 
         didMarkReportAsReadInitially.current = true;
         readNewestAction(report.reportID, !!reportMetadata?.hasOnceLoadedReportActions);
-    }, [isListInitiallyLoaded, isReportUnread, report.reportID]);
+    }, [isListInitiallyLoaded, isReportUnread, report.reportID, reportMetadata?.hasOnceLoadedReportActions]);
 
     const handleReportChangeMarkAsRead = useCallback(() => {
         if (report.reportID !== prevReportID) {
@@ -788,7 +788,6 @@ function ReportActionsList({
             styles,
             translate,
             expensifyIcons.UpArrow,
-            isOffline,
         ],
     );
 
