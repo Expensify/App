@@ -528,6 +528,7 @@ const translations: TranslationDeepObject<typeof en> = {
         concierge: {sidePanelGreeting: 'Bonjour, comment puis-je vous aider ?', showHistory: 'Afficher l’historique'},
         duplicateReport: 'Note de frais en double',
         approver: 'Approbateur',
+        enterDigitLabel: ({digitIndex, totalDigits}: {digitIndex: number; totalDigits: number}) => `saisir le chiffre ${digitIndex} sur ${totalDigits}`,
         copyOfReportName: (reportName: string) => `Copie de ${reportName}`,
     },
     socials: {
@@ -768,11 +769,6 @@ const translations: TranslationDeepObject<typeof en> = {
         findMember: 'Trouver un membre',
         searchForSomeone: 'Rechercher une personne',
         userSelected: (username: string) => `${username} sélectionné`,
-    },
-    customApprovalWorkflow: {
-        title: 'Workflow d’approbation personnalisé',
-        description: 'Votre entreprise utilise un flux d’approbation personnalisé sur cet espace de travail. Veuillez effectuer cette action dans Expensify Classic',
-        goToExpensifyClassic: 'Passer à Expensify Classic',
     },
     emptyList: {
         [CONST.IOU.TYPE.CREATE]: {
@@ -2686,6 +2682,7 @@ ${amount} pour ${merchant} - ${date}`,
                 label: 'Utiliser les paramètres de l’appareil',
             },
         },
+        highContrastMode: 'Mode contraste élevé',
         chooseThemeBelowOrSync: 'Choisissez un thème ci-dessous ou synchronisez avec les réglages de votre appareil.',
     },
     termsOfUse: {
@@ -7258,6 +7255,7 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
     search: {
         resultsAreLimited: 'Les résultats de recherche sont limités.',
         viewResults: 'Afficher les résultats',
+        appliedFilters: 'Filtres appliqués',
         resetFilters: 'Réinitialiser les filtres',
         searchResults: {
             emptyResults: {
@@ -7313,6 +7311,7 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
             },
         },
         columns: 'Colonnes',
+        editColumns: 'Modifier les colonnes',
         resetColumns: 'Réinitialiser les colonnes',
         groupColumns: 'Regrouper les colonnes',
         expenseColumns: 'Colonnes de dépenses',
@@ -7413,8 +7412,13 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
                 [CONST.SEARCH.ACTION_FILTERS.EXPORT]: 'Exporter',
             },
         },
+        display: {
+            label: 'Affichage',
+            sortBy: 'Trier par',
+            groupBy: 'Regrouper par',
+            limitResults: 'Limiter les résultats',
+        },
         has: 'A A',
-        groupBy: 'Regrouper par',
         view: {
             label: 'Afficher',
             table: 'Table',

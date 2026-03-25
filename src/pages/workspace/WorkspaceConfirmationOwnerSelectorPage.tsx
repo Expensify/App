@@ -29,7 +29,13 @@ import type IconAsset from '@src/types/utils/IconAsset';
 /**
  * Helper function to create a formatted user list item
  */
-function createUserListItem(personalDetails: ReturnType<typeof getPersonalDetailByEmail>, login: string, keyPrefix: string, isSelected: boolean, fallBackAvatarIcon: IconAsset): OptionWithKey {
+function createUserListItem(
+    personalDetails: ReturnType<typeof getPersonalDetailByEmail>,
+    login: string,
+    keyPrefix: string,
+    isSelected: boolean,
+    fallBackAvatarIcon: IconAsset,
+): OptionWithKey {
     const accountID = personalDetails?.accountID ?? generateAccountID(login);
     return {
         ...(personalDetails ?? {}),
