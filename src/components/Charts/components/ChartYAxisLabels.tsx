@@ -1,9 +1,10 @@
 import {Paragraph} from '@shopify/react-native-skia';
-import type {SkParagraph, SkTypefaceFontProvider} from '@shopify/react-native-skia';
+import type {SkTypefaceFontProvider} from '@shopify/react-native-skia';
 import React, {useMemo} from 'react';
 import type {ChartBounds, Scale} from 'victory-native';
 import {AXIS_LABEL_GAP, MAX_Y_AXIS_LABEL_WIDTH} from '@components/Charts/constants';
-import {buildChartParagraph} from '@components/Charts/utils';
+import type {ParagraphWithWidth} from '@components/Charts/types';
+import {buildChartParagraph, getFontLineMetrics} from '@components/Charts/utils';
 
 // Small extra padding so complex glyphs (e.g. Arabic) are not clipped.
 // getLongestLine() can slightly under-report the visual extent of the last glyph.
@@ -23,7 +24,7 @@ type ChartYAxisLabelsProps = {
     fontSize: number;
 
     /** Font manager for Paragraph API rendering with multi-font fallback. */
-    fontMgr?: SkTypefaceFontProvider | null;
+    fontMgr: SkTypefaceFontProvider;
 
     /** Fill color for the label text. */
     labelColor: string;
@@ -38,10 +39,7 @@ type ChartYAxisLabelsProps = {
 function ChartYAxisLabels({yTicks, yScale, chartBounds, fontSize, fontMgr, labelColor, formatValue, leftAlign = false}: ChartYAxisLabelsProps) {
     const formattedLabels = useMemo(() => yTicks.map((tick) => formatValue(tick)), [yTicks, formatValue]);
 
-    const paragraphs = useMemo((): {items: Array<{para: SkParagraph; width: number}>; maxWidth: number} | null => {
-        if (!fontMgr) {
-            return null;
-        }
+    const paragraphs = useMemo((): {items: ParagraphWithWidth[]; maxWidth: number} => {
         const items = formattedLabels.map((label) => {
             const para = buildChartParagraph(label, fontMgr, fontSize, labelColor);
             para.layout(MAX_Y_AXIS_LABEL_WIDTH);
@@ -53,19 +51,16 @@ function ChartYAxisLabels({yTicks, yScale, chartBounds, fontSize, fontMgr, label
     }, [fontMgr, formattedLabels, labelColor, fontSize]);
 
     // Derive line height from the first available paragraph's line metrics.
-    const lineHeight = useMemo(() => {
-        const firstPara = paragraphs?.items.at(0);
-        const metrics = firstPara?.para.getLineMetrics().at(0);
-        return metrics ? Math.abs(metrics.ascent) + Math.abs(metrics.descent) : fontSize;
-    }, [paragraphs, fontSize]);
+    const {ascent, descent} = getFontLineMetrics(fontMgr, fontSize);
+    const lineHeight = ascent + descent;
 
     return yTicks.map((tick, i) => {
-        const paraData = paragraphs?.items.at(i) ?? null;
+        const paraData = paragraphs.items.at(i);
         if (!paraData) {
             return null;
         }
 
-        const x = chartBounds.left - AXIS_LABEL_GAP - 2 * GLYPH_PADDING - (leftAlign ? (paragraphs?.maxWidth ?? 0) : paraData.width);
+        const x = chartBounds.left - AXIS_LABEL_GAP + GLYPH_PADDING / 2 - (leftAlign ? (paragraphs?.maxWidth ?? 0) : paraData.width);
         const tickY = yScale(tick);
 
         return (

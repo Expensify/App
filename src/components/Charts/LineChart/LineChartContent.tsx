@@ -12,7 +12,7 @@ import ChartXAxisLabels from '@components/Charts/components/ChartXAxisLabels';
 import ChartYAxisLabels from '@components/Charts/components/ChartYAxisLabels';
 import LeftFrameLine from '@components/Charts/components/LeftFrameLine';
 import ScatterPoints from '@components/Charts/components/ScatterPoints';
-import {AXIS_LABEL_GAP, CHART_CONTENT_MIN_HEIGHT, CHART_PADDING, X_AXIS_LINE_WIDTH, Y_AXIS_LINE_WIDTH, Y_AXIS_TICK_COUNT} from '@components/Charts/constants';
+import {AXIS_LABEL_GAP, CHART_CONTENT_MIN_HEIGHT, CHART_PADDING, GLYPH_PADDING, X_AXIS_LINE_WIDTH, Y_AXIS_LINE_WIDTH, Y_AXIS_TICK_COUNT} from '@components/Charts/constants';
 import type {ComputeGeometryFn, HitTestArgs} from '@components/Charts/hooks';
 import {useChartFontManager, useChartInteractions, useChartLabelFormats, useChartLabelLayout, useDynamicYDomain, useLabelHitTesting, useTooltipData} from '@components/Charts/hooks';
 import type {CartesianChartProps, ChartDataPoint} from '@components/Charts/types';
@@ -200,7 +200,7 @@ function LineChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUn
                     radius={DOT_RADIUS}
                     color={DEFAULT_CHART_COLOR}
                 />
-                {xAxisLabelHeight !== undefined && (
+                {xAxisLabelHeight !== undefined && !!fontMgr && (
                     <ChartXAxisLabels
                         labels={truncatedLabels}
                         labelRotation={labelRotation}
@@ -212,16 +212,18 @@ function LineChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUn
                         chartBoundsBottom={args.chartBounds.bottom}
                     />
                 )}
-                <ChartYAxisLabels
-                    yTicks={args.yTicks}
-                    yScale={args.yScale}
-                    chartBounds={args.chartBounds}
-                    fontSize={variables.iconSizeExtraSmall}
-                    fontMgr={fontMgr}
-                    labelColor={theme.textSupporting}
-                    formatValue={formatValue}
-                    leftAlign
-                />
+                {!!fontMgr && (
+                    <ChartYAxisLabels
+                        yTicks={args.yTicks}
+                        yScale={args.yScale}
+                        chartBounds={args.chartBounds}
+                        fontSize={variables.iconSizeExtraSmall}
+                        fontMgr={fontMgr}
+                        labelColor={theme.textSupporting}
+                        formatValue={formatValue}
+                        // leftAlign
+                    />
+                )}
             </>
         );
     };
@@ -230,7 +232,7 @@ function LineChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUn
     const dynamicChartStyle = {height: CHART_CONTENT_MIN_HEIGHT + labelSpace};
     const maxYAxisTickValue = Math.max(...data.map((p) => p.total), 0);
     const yAxisLabelWidth = fontMgr ? measureTextWidth(formatValue(maxYAxisTickValue), fontMgr, variables.iconSizeExtraSmall) : 0;
-    const chartPadding = {...CHART_PADDING, bottom: labelSpace + CHART_PADDING.bottom, left: yAxisLabelWidth + AXIS_LABEL_GAP + CHART_PADDING.left};
+    const chartPadding = {...CHART_PADDING, bottom: labelSpace + CHART_PADDING.bottom + variables.iconSizeExtraSmall, left: yAxisLabelWidth - GLYPH_PADDING};
 
     if (isLoading || !fontMgr) {
         const reasonAttributes: SkeletonSpanReasonAttributes = {context: 'LineChartContent', isLoading, isFontLoading: !fontMgr};
@@ -277,6 +279,7 @@ function LineChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUn
                                     tickCount: Y_AXIS_TICK_COUNT,
                                     lineWidth: Y_AXIS_LINE_WIDTH,
                                     lineColor: theme.border,
+                                    labelOffset: AXIS_LABEL_GAP,
                                     domain: yAxisDomain,
                                 },
                             ]}

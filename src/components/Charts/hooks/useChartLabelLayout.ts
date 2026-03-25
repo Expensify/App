@@ -49,7 +49,7 @@ function useChartLabelLayout({
     const effectiveLastTickRightSpace = data.length === 1 ? Infinity : lastTickRightSpace;
 
     const {ascent, descent} = getFontLineMetrics(fontMgr, fontSize);
-    const lineHeight = ascent + descent;
+    const lineHeight = Math.abs(ascent) + Math.abs(descent);
     const ellipsisWidth = measureTextWidth(ELLIPSIS, fontMgr, fontSize);
     const labelWidths = data.map((point) => measureTextWidth(point.label, fontMgr, fontSize));
     const maxLabelWidth = Math.max(...labelWidths);

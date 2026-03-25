@@ -10,14 +10,7 @@ import ChartHeader from '@components/Charts/components/ChartHeader';
 import ChartTooltip from '@components/Charts/components/ChartTooltip';
 import ChartXAxisLabels from '@components/Charts/components/ChartXAxisLabels';
 import ChartYAxisLabels from '@components/Charts/components/ChartYAxisLabels';
-import {
-    AXIS_LABEL_GAP,
-    CHART_CONTENT_MIN_HEIGHT,
-    CHART_PADDING,
-    X_AXIS_LINE_WIDTH,
-    Y_AXIS_LINE_WIDTH,
-    Y_AXIS_TICK_COUNT,
-} from '@components/Charts/constants';
+import {AXIS_LABEL_GAP, CHART_CONTENT_MIN_HEIGHT, CHART_PADDING, GLYPH_PADDING, X_AXIS_LINE_WIDTH, Y_AXIS_LINE_WIDTH, Y_AXIS_TICK_COUNT} from '@components/Charts/constants';
 import type {ComputeGeometryFn, HitTestArgs} from '@components/Charts/hooks';
 import {useChartFontManager, useChartInteractions, useChartLabelFormats, useChartLabelLayout, useDynamicYDomain, useLabelHitTesting, useTooltipData} from '@components/Charts/hooks';
 import type {CartesianChartProps, ChartDataPoint} from '@components/Charts/types';
@@ -241,7 +234,7 @@ function BarChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUni
     const dynamicChartStyle = {height: CHART_CONTENT_MIN_HEIGHT + labelSpace};
     const maxYAxisTickValue = Math.max(...data.map((p) => p.total), 0);
     const yAxisLabelWidth = fontMgr ? measureTextWidth(formatValue(maxYAxisTickValue), fontMgr, variables.iconSizeExtraSmall) : 0;
-    const chartPadding = {...CHART_PADDING, bottom: labelSpace + CHART_PADDING.bottom, left: yAxisLabelWidth + AXIS_LABEL_GAP + CHART_PADDING.left};
+    const chartPadding = {...CHART_PADDING, bottom: labelSpace + CHART_PADDING.bottom + variables.iconSizeExtraSmall, left: yAxisLabelWidth - GLYPH_PADDING};
 
     if (isLoading || !fontMgr) {
         const reasonAttributes: SkeletonSpanReasonAttributes = {context: 'BarChartContent', isLoading, isFontLoading: !fontMgr};
@@ -288,6 +281,7 @@ function BarChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUni
                                     tickCount: Y_AXIS_TICK_COUNT,
                                     lineWidth: Y_AXIS_LINE_WIDTH,
                                     lineColor: theme.border,
+                                    labelOffset: AXIS_LABEL_GAP,
                                     domain: yAxisDomain,
                                 },
                             ]}

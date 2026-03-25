@@ -3,9 +3,10 @@ import type {SkParagraph, SkTypefaceFontProvider} from '@shopify/react-native-sk
 import React, {useMemo} from 'react';
 import {AXIS_LABEL_GAP, GLYPH_PADDING, MAX_X_AXIS_LABEL_WIDTH} from '@components/Charts/constants';
 import type {LabelRotation} from '@components/Charts/types';
-import {buildChartParagraph, rotatedLabelCenterCorrection, rotatedLabelYOffset} from '@components/Charts/utils';
+import {buildChartParagraph, getFontLineMetrics, rotatedLabelCenterCorrection, rotatedLabelYOffset} from '@components/Charts/utils';
+import variables from '@styles/variables';
 
-type ParagraphWithWidth = {para: SkParagraph; width: number};
+type ParagraphWithWidth = {para: SkParagraph | null; width: number};
 
 type ChartXAxisLabelsProps = {
     /** Processed label strings (already truncated by the layout hook). */
@@ -21,7 +22,7 @@ type ChartXAxisLabelsProps = {
     fontSize: number;
 
     /** Font manager for Paragraph API rendering with multi-font fallback. */
-    fontMgr?: SkTypefaceFontProvider | null;
+    fontMgr: SkTypefaceFontProvider;
 
     /** Fill color for the label text. */
     labelColor: string;
@@ -39,13 +40,10 @@ type ChartXAxisLabelsProps = {
 function ChartXAxisLabels({labels, labelRotation, labelSkipInterval, fontSize, fontMgr, labelColor, xScale, chartBoundsBottom, centerRotatedLabels = false}: ChartXAxisLabelsProps) {
     const angleRad = (Math.abs(labelRotation) * Math.PI) / 180;
 
-    const paragraphs = useMemo((): Array<ParagraphWithWidth | null> | null => {
-        if (!fontMgr) {
-            return null;
-        }
+    const paragraphs = useMemo((): ParagraphWithWidth[] => {
         return labels.map((label) => {
             if (label.length === 0) {
-                return null;
+                return {para: null, width: 0};
             }
             const para = buildChartParagraph(label, fontMgr, fontSize, labelColor);
             para.layout(MAX_X_AXIS_LABEL_WIDTH);
@@ -58,14 +56,7 @@ function ChartXAxisLabels({labels, labelRotation, labelSkipInterval, fontSize, f
     }, [labels, paragraphs]);
 
     // Derive ascent/descent from the first available paragraph's line metrics.
-    const {ascent, descent} = useMemo(() => {
-        const firstPara = paragraphs?.find((p) => p !== null);
-        const metrics = firstPara?.para.getLineMetrics().at(0);
-        return {
-            ascent: Math.abs(metrics?.ascent ?? fontSize * 0.8),
-            descent: Math.abs(metrics?.descent ?? fontSize * 0.2),
-        };
-    }, [paragraphs, fontSize]);
+    const {ascent, descent} = getFontLineMetrics(fontMgr, fontSize);
 
     const correction = rotatedLabelCenterCorrection(ascent, descent, angleRad);
     const centeredUpwardOffset = centerRotatedLabels && angleRad > 0 ? (Math.max(...labelWidths) / 2) * Math.sin(angleRad) : 0;
@@ -87,10 +78,10 @@ function ChartXAxisLabels({labels, labelRotation, labelSkipInterval, fontSize, f
         if (angleRad === 0) {
             return (
                 <Paragraph
-                    key={`x-label-${label.replaceAll(' ', '-')}-${tickX}`}
+                    key={`x-label-${label}-${tickX}`}
                     paragraph={paraData.para}
                     x={tickX - renderWidth / 2}
-                    y={labelY}
+                    y={labelY - variables.iconSizeExtraSmall}
                     width={renderWidth + GLYPH_PADDING}
                 />
             );
@@ -101,7 +92,7 @@ function ChartXAxisLabels({labels, labelRotation, labelSkipInterval, fontSize, f
 
         return (
             <Group
-                key={`x-label-${label.replaceAll(' ', '-')}-${tickX}`}
+                key={`x-label-${label}-${tickX}`}
                 origin={origin}
                 transform={[{translateX: correction}, {rotate: -angleRad}]}
             >
