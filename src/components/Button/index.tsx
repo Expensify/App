@@ -16,6 +16,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import HapticFeedback from '@libs/HapticFeedback';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import CONST from '@src/CONST';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import type IconAsset from '@src/types/utils/IconAsset';
@@ -309,6 +310,10 @@ function Button({
     const StyleUtils = useStyleUtils();
     const [isHovered, setIsHovered] = useState(false);
 
+    const buttonLoadingReasonAttributes: SkeletonSpanReasonAttributes = {
+        context: 'Button',
+    };
+
     const renderContent = () => {
         if ('children' in rest) {
             return rest.children;
@@ -365,7 +370,7 @@ function Button({
             primaryText
         );
 
-        const defaultFill = success || danger ? theme.textLight : theme.icon;
+        const defaultFill = success || danger ? theme.textLight : theme.buttonIcon;
 
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         if (icon || shouldShowRightIcon) {
@@ -373,7 +378,7 @@ function Button({
                 <View style={[isContentCentered ? styles.justifyContentCenter : styles.justifyContentBetween, styles.flexRow, iconWrapperStyles, styles.mw100]}>
                     <View style={[styles.alignItemsCenter, styles.flexRow, styles.flexShrink1]}>
                         {!!icon && (
-                            <View style={[extraSmall ? styles.mr1 : styles.mr2, !text && styles.mr0, iconStyles, isLoading && styles.opacity0]}>
+                            <View style={[extraSmall || small ? styles.mr1 : styles.mr2, !text && styles.mr0, iconStyles, isLoading && styles.opacity0]}>
                                 <Icon
                                     src={icon}
                                     fill={isHovered ? (iconHoverFill ?? defaultFill) : (iconFill ?? defaultFill)}
@@ -550,6 +555,7 @@ function Button({
                         color={success || danger ? theme.textLight : theme.text}
                         style={[styles.pAbsolute, styles.l0, styles.r0]}
                         size={extraSmall ? 12 : undefined}
+                        reasonAttributes={buttonLoadingReasonAttributes}
                     />
                 )}
             </PressableWithFeedback>

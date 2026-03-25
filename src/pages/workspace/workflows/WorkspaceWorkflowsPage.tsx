@@ -17,6 +17,7 @@ import Section from '@components/Section';
 import Text from '@components/Text';
 import useCardFeeds from '@hooks/useCardFeeds';
 import useConfirmModal from '@hooks/useConfirmModal';
+import useDebouncedAccessibilityAnnouncement from '@hooks/useDebouncedAccessibilityAnnouncement';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -25,6 +26,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchResults from '@hooks/useSearchResults';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
 import {
     clearPolicyErrorField,
     isCurrencySupportedForDirectReimbursement,
@@ -72,7 +74,29 @@ import {getAutoReportingFrequencyDisplayNames} from './WorkspaceAutoReportingFre
 type WorkspaceWorkflowsPageProps = WithPolicyProps & PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.WORKFLOWS>;
 type CurrencyType = TupleToUnion<typeof CONST.DIRECT_REIMBURSEMENT_CURRENCIES>;
 
+function WorkflowNoResultsView({message, shouldShow, searchValue}: {message: string; shouldShow: boolean; searchValue: string}) {
+    const styles = useThemeStyles();
+
+    useDebouncedAccessibilityAnnouncement(message, shouldShow, searchValue);
+
+    if (!shouldShow) {
+        return null;
+    }
+
+    return (
+        <View style={[styles.pt3, styles.pb5]}>
+            <Text
+                style={[styles.textNormal, styles.colorMuted]}
+                aria-hidden
+            >
+                {message}
+            </Text>
+        </View>
+    );
+}
+
 function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
+    useWorkspaceDocumentTitle(policy?.name, 'workspace.common.workflows');
     const {translate, localeCompare} = useLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -119,7 +143,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
     const onPressAutoReportingFrequency = useCallback(() => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_AUTOREPORTING_FREQUENCY.getRoute(route.params.policyID)), [route.params.policyID]);
 
     const fetchData = useCallback(() => {
-        openPolicyWorkflowsPage(route.params.policyID);
+        openPolicyWorkflowsPage(route.params.policyID, true);
         getPaymentMethods(true);
     }, [route.params.policyID]);
 
@@ -147,12 +171,12 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
     }, []);
 
     const confirmDisableApprovals = useCallback(() => {
-        setWorkspaceApprovalMode(route.params.policyID, policy?.owner ?? '', CONST.POLICY.APPROVAL_MODE.OPTIONAL, {
+        setWorkspaceApprovalMode(policy, policy?.owner ?? '', CONST.POLICY.APPROVAL_MODE.OPTIONAL, {
             reportNextSteps: allReportNextSteps,
             transactionViolations,
             betas,
         });
-    }, [allReportNextSteps, betas, policy?.owner, route.params.policyID, transactionViolations]);
+    }, [allReportNextSteps, betas, policy, transactionViolations]);
 
     // User should be allowed to add new Approval Workflow only if he's upgraded to Control Plan, otherwise redirected to the Upgrade Page
     const addApprovalAction = useCallback(() => {
@@ -287,7 +311,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                         });
                         return;
                     }
-                    setWorkspaceApprovalMode(route.params.policyID, policy?.owner ?? '', isEnabled ? updateApprovalMode : CONST.POLICY.APPROVAL_MODE.OPTIONAL, {
+                    setWorkspaceApprovalMode(policy, policy?.owner ?? '', isEnabled ? updateApprovalMode : CONST.POLICY.APPROVAL_MODE.OPTIONAL, {
                         reportNextSteps: allReportNextSteps,
                         transactionViolations,
                         betas,
@@ -321,11 +345,11 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                                 style={[styles.mt6, {marginHorizontal: 0}]}
                             />
                         )}
-                        {searchFilteredWorkflows.length === 0 && workflowSearchInput.length > 0 && (
-                            <View style={[styles.pt3, styles.pb5]}>
-                                <Text style={[styles.textNormal, styles.colorMuted]}>{translate('common.noResultsFoundMatching', workflowSearchInput)}</Text>
-                            </View>
-                        )}
+                        <WorkflowNoResultsView
+                            message={translate('common.noResultsFoundMatching', workflowSearchInput)}
+                            shouldShow={searchFilteredWorkflows.length === 0 && workflowSearchInput.length > 0}
+                            searchValue={workflowSearchInput}
+                        />
                         {searchFilteredWorkflows.map((workflow) => (
                             <OfflineWithFeedback
                                 key={workflow.approvers.at(0)?.email}
@@ -375,6 +399,8 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                     const newReimburserEmail = policy?.achAccount?.reimburser ?? policy?.owner;
                     setWorkspaceReimbursement({
                         policyID: route.params.policyID,
+                        currentAchAccount: policy?.achAccount,
+                        currentReimbursementChoice: policy?.reimbursementChoice,
                         reimbursementChoice: newReimbursementChoice,
                         reimburserEmail: newReimburserEmail ?? '',
                         bankAccountID: policy?.achAccount?.bankAccountID,
@@ -442,7 +468,12 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                                         return;
                                     }
                                     if (!shouldShowBankAccount && hasValidExistingAccounts && !shouldShowContinueModal) {
-                                        Navigation.navigate(ROUTES.BANK_ACCOUNT_CONNECT_EXISTING_BUSINESS_BANK_ACCOUNT.getRoute(route.params.policyID));
+                                        Navigation.navigate(
+                                            ROUTES.BANK_ACCOUNT_CONNECT_EXISTING_BUSINESS_BANK_ACCOUNT.getRoute(
+                                                route.params.policyID,
+                                                ROUTES.WORKSPACE_WORKFLOWS.getRoute(route.params.policyID),
+                                            ),
+                                        );
                                         return;
                                     }
                                     navigateToBankAccountRoute({policyID: route.params.policyID, backTo: ROUTES.WORKSPACE_WORKFLOWS.getRoute(route.params.policyID)});
@@ -458,7 +489,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                                 brickRoadIndicator={hasReimburserError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                             />
                         )}
-                        {shouldShowBankAccount && !isAccountInSetupState && (
+                        {shouldShowBankAccount && (
                             <OfflineWithFeedback
                                 pendingAction={policy?.pendingFields?.reimburser}
                                 shouldDisableOpacity={isOffline && !!policy?.pendingFields?.reimbursementChoice && !!policy?.pendingFields?.reimburser}
