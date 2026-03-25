@@ -1,4 +1,5 @@
 import type {ValueOf} from 'type-fest';
+import Log from '@libs/Log';
 import type {AuthenticationChallenge, RegistrationChallenge} from '@libs/MultifactorAuthentication/shared/challengeTypes';
 import MARQETA_VALUES from '@libs/MultifactorAuthentication/shared/MarqetaValues';
 import type {MultifactorAuthenticationReason} from '@libs/MultifactorAuthentication/shared/types';
@@ -132,6 +133,7 @@ function isWebAuthnReason(name: string): name is MultifactorAuthenticationReason
 
 /** Decodes WebAuthn DOMException errors and maps them to authentication error reasons. */
 function decodeWebAuthnError(error: unknown): MultifactorAuthenticationReason {
+    Log.info('[Passkey] WebAuthn error', false, {error: error instanceof Error ? error.message : String(error)});
     if (error instanceof DOMException && isWebAuthnReason(error.name)) {
         return error.name;
     }
