@@ -4319,7 +4319,6 @@ const staticStyles = (theme: ThemeColors) =>
 
         tabSelectorContentContainer: {
             flexGrow: 1,
-            paddingBottom: 12,
             paddingHorizontal: 20,
         },
 
