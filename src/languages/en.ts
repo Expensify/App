@@ -253,6 +253,7 @@ const translations = {
         na: 'N/A',
         noResultsFound: 'No results found',
         noResultsFoundMatching: (searchString: string) => `No results found matching "${searchString}"`,
+        suggestionsAvailableFor: (searchString: string) => (searchString ? `Suggestions available for "${searchString}".` : 'Suggestions available.'),
         recentDestinations: 'Recent destinations',
         timePrefix: "It's",
         conjunctionFor: 'for',
@@ -263,6 +264,7 @@ const translations = {
         conjunctionTo: 'to',
         genericErrorMessage: 'Oops... something went wrong and your request could not be completed. Please try again later.',
         percentage: 'Percentage',
+        progressBarLabel: 'Onboarding progress',
         converted: 'Converted',
         error: {
             invalidAmount: 'Invalid amount',
@@ -471,6 +473,8 @@ const translations = {
         downloadAsCSV: 'Download as CSV',
         print: 'Print',
         help: 'Help',
+        collapsed: 'Collapsed',
+        expanded: 'Expanded',
         expenseReport: 'Expense Report',
         expenseReports: 'Expense Reports',
         // @context Rate as a noun, not a verb
@@ -529,6 +533,7 @@ const translations = {
         duplicated: 'Duplicated',
         duplicateExpense: 'Duplicate expense',
         duplicateReport: 'Duplicate report',
+        copyOfReportName: (reportName: string) => `Copy of ${reportName}`,
         exchangeRate: 'Exchange rate',
         reimbursableTotal: 'Reimbursable total',
         nonReimbursableTotal: 'Non-reimbursable total',
@@ -545,6 +550,7 @@ const translations = {
         vacationDelegate: 'Vacation delegate',
         expensifyLogo: 'Expensify logo',
         approver: 'Approver',
+        enterDigitLabel: ({digitIndex, totalDigits}: {digitIndex: number; totalDigits: number}) => `enter digit ${digitIndex} of ${totalDigits}`,
     },
     socials: {
         podcast: 'Follow us on Podcast',
@@ -699,6 +705,7 @@ const translations = {
                 faceId: 'Face ID',
                 touchId: 'Touch ID',
                 opticId: 'Optic ID',
+                passkey: 'Passkey',
             },
         },
         pleaseEnableInSystemSettings: {
@@ -715,9 +722,11 @@ const translations = {
         letsAuthenticateYou: "Let's authenticate you...",
         verifyYourself: {
             biometrics: 'Verify yourself with your face or fingerprint',
+            passkeys: 'Verify yourself with a passkey',
         },
         enableQuickVerification: {
             biometrics: 'Enable quick, secure verification using your face or fingerprint. No passwords or codes required.',
+            passkeys: 'Enable quick, secure verification using a passkey. No passwords or codes required.',
         },
         revoke: {
             revoke: 'Revoke',
@@ -741,6 +750,12 @@ const translations = {
         },
         setPin: {
             didNotShipCard: "We didn't ship your card. Please try again.",
+        },
+        revealPin: {
+            couldNotReveal: "We couldn't reveal your PIN. Please try again.",
+        },
+        changePin: {
+            didNotChange: "We didn't change your PIN. Please try again.",
         },
     },
     validateCodeModal: {
@@ -782,11 +797,6 @@ const translations = {
         findMember: 'Find a member',
         searchForSomeone: 'Search for someone',
         userSelected: (username: string) => `${username} selected`,
-    },
-    customApprovalWorkflow: {
-        title: 'Custom approval workflow',
-        description: 'Your company has a custom approval workflow on this workspace. Please take this action in Expensify Classic',
-        goToExpensifyClassic: 'Switch to Expensify Classic',
     },
     emptyList: {
         [CONST.IOU.TYPE.CREATE]: {
@@ -1020,6 +1030,15 @@ const translations = {
                 titleWithDetails: ({amount, merchant}: {amount: string; merchant: string}) => `Review ${amount} in potential fraud at ${merchant}`,
                 subtitle: 'Expensify Card',
                 cta: 'Review',
+            },
+            validateAccount: {
+                title: 'Validate your account to continue using Expensify',
+                subtitle: 'Account',
+                cta: 'Validate',
+            },
+            fixFailedBilling: {
+                title: "We couldn't bill your card on file",
+                subtitle: 'Subscription',
             },
         },
         assignedCards: 'Your Expensify Cards',
@@ -1273,6 +1292,8 @@ const translations = {
         pendingMatch: 'Pending match',
         pendingMatchWithCreditCardDescription: 'Receipt pending match with card transaction. Mark as cash to cancel.',
         markAsCash: 'Mark as cash',
+        pendingMatchSubmitTitle: 'Submit report',
+        pendingMatchSubmitDescription: 'Some expenses are awaiting a match with a credit card transaction. Do you want to mark them as cash?',
         routePending: 'Route pending...',
         automaticallyEnterExpenseDetails: 'Concierge will automatically enter the expense details for you, or you can add them manually.',
         receiptScanning: () => ({
@@ -2379,20 +2400,33 @@ const translations = {
         },
         setYourPin: 'Set the PIN for your card.',
         confirmYourPin: 'Enter your PIN again to confirm.',
+        changeYourPin: 'Enter a new PIN for your card.',
+        confirmYourChangedPin: 'Confirm your new PIN.',
         pinMustBeFourDigits: 'PIN must be exactly 4 digits.',
         invalidPin: 'Please choose a more secure PIN.',
         pinMismatch: 'PINs do not match. Please try again.',
         revealPin: 'Reveal PIN',
         hidePin: 'Hide PIN',
         pin: 'PIN',
+        pinChanged: 'PIN changed!',
+        pinChangedHeader: 'PIN changed',
+        pinChangedDescription: "You're all set to use your PIN now.",
+        changePin: 'Change PIN',
+        changePinAtATM: 'Change your PIN at any ATM',
+        changePinAtATMDescription: 'This is required in your region. <concierge-link>Reach out to Concierge</concierge-link> if you have any questions.',
         freezeCard: 'Freeze card',
         unfreeze: 'Unfreeze',
         unfreezeCard: 'Unfreeze card',
+        askToUnfreeze: 'Ask to unfreeze',
         freezeDescription: 'A frozen card cannot be used for purchases and transactions. You can unfreeze it at any time.',
         unfreezeDescription: "Unfreezing this card will start allowing purchases and transactions again. Only proceed if you're sure the card is safe to use.",
         frozen: 'Frozen',
         youFroze: ({date}: {date: string}) => `You froze this card on ${date}.`,
         frozenBy: ({person, date}: {person: string; date: string}) => `${person} froze this card on ${date}.`,
+        frozenByAdminPrefix: ({date}: {date: string}) => `This card was frozen on ${date} by `,
+        frozenByAdminNeedsUnfreezePrefix: 'This card was frozen by ',
+        frozenByAdminNeedsUnfreezeSuffix: '. Please contact an admin to unfreeze it.',
+        frozenByAdminNeedsUnfreeze: ({person}: {person: string}) => `This card was frozen by ${person}. Please contact an admin to unfreeze it.`,
     },
     workflowsPage: {
         workflowTitle: 'Spend',
@@ -2692,6 +2726,7 @@ const translations = {
                 label: 'Use device settings',
             },
         },
+        highContrastMode: 'High contrast mode',
         chooseThemeBelowOrSync: 'Choose a theme below, or sync with your device settings.',
     },
     termsOfUse: {
@@ -2705,6 +2740,8 @@ const translations = {
         requiredWhen2FAEnabled: 'Required when 2FA is enabled',
         requestNewCode: ({timeRemaining}: {timeRemaining: string}) => `Request a new code in <a>${timeRemaining}</a>`,
         requestNewCodeAfterErrorOccurred: 'Request a new code',
+        timeRemainingAnnouncement: ({timeRemaining}: {timeRemaining: number}) => `Time remaining: ${timeRemaining} ${timeRemaining === 1 ? 'second' : 'seconds'}`,
+        timeExpiredAnnouncement: 'The time has expired',
         error: {
             pleaseFillMagicCode: 'Please enter your magic code',
             incorrectMagicCode: 'Incorrect or invalid magic code. Please try again or request a new code.',
@@ -7179,6 +7216,7 @@ const translations = {
     search: {
         resultsAreLimited: 'Search results are limited.',
         viewResults: 'View results',
+        appliedFilters: 'Applied filters',
         resetFilters: 'Reset filters',
         searchResults: {
             emptyResults: {
@@ -7235,6 +7273,7 @@ const translations = {
             },
         },
         columns: 'Columns',
+        editColumns: 'Edit columns',
         resetColumns: 'Reset columns',
         groupColumns: 'Group columns',
         expenseColumns: 'Expense Columns',
@@ -7336,8 +7375,13 @@ const translations = {
                 [CONST.SEARCH.ACTION_FILTERS.EXPORT]: 'Export',
             },
         },
+        display: {
+            label: 'Display',
+            sortBy: 'Sort by',
+            groupBy: 'Group by',
+            limitResults: 'Limit results',
+        },
         has: 'Has',
-        groupBy: 'Group by',
         view: {
             label: 'View',
             table: 'Table',
@@ -7501,7 +7545,8 @@ const translations = {
                     `The ${feedName} connection is broken. To restore card imports, <a href='${workspaceCompanyCardRoute}'>log into your bank</a>.`,
                 plaidBalanceFailure: ({maskedAccountNumber, walletRoute}: {maskedAccountNumber: string; walletRoute: string}) =>
                     `the Plaid connection to your business bank account is broken. Please <a href='${walletRoute}'>reconnect your bank account ${maskedAccountNumber}</a> so you can continue to use your Expensify Cards.`,
-                addEmployee: (email: string, role: string) => `added ${email} as ${role === 'member' ? 'a' : 'an'} ${role}`,
+                addEmployee: (email: string, role: string, didJoinPolicy?: boolean) =>
+                    didJoinPolicy ? `${email} joined via the workspace invite link` : `added ${email} as ${role === 'member' ? 'a' : 'an'} ${role}`,
                 updateRole: ({email, currentRole, newRole}: UpdateRoleParams) => `updated the role of ${email} to ${newRole} (previously ${currentRole})`,
                 updatedCustomField1: (email: string, newValue: string, previousValue: string) => {
                     if (!newValue) {
@@ -7768,12 +7813,17 @@ const translations = {
             prompt: 'Are you sure you want to stop GPS tracking and switch to Expensify Classic?',
             confirm: 'Stop and switch',
         },
+        switchAccountWarningTripInProgress: {
+            title: 'GPS tracking in progress',
+            prompt: 'Are you sure you want to stop GPS tracking and switch accounts?',
+            confirm: 'Stop and switch',
+        },
         locationServicesRequiredModal: {
             title: 'Location access required',
             confirm: 'Open settings',
             prompt: 'Please allow location access in your device settings to start GPS distance tracking.',
         },
-        fabGpsTripExplained: 'Go to GPS screen (Floating action)',
+        gpsFloatingPillText: 'GPS tracking in progress...',
         liveActivity: {
             subtitle: 'Tracking distance',
             button: 'View progress',
@@ -8216,6 +8266,8 @@ const translations = {
             title: 'Expensify code',
             discountCode: 'Discount code',
             enterCode: 'Enter an Expensify code to apply to your subscription.',
+            discountMessage: (promoDiscount: string, validBillingCycles: string) =>
+                `You will get a ${promoDiscount}% discount on your next ${validBillingCycles ? `${validBillingCycles} ` : ''}billing charges.`,
             apply: 'Apply',
             error: {
                 invalid: 'This code is invalid',
@@ -8243,6 +8295,8 @@ const translations = {
                 `<muted-text>Learn more on our <a href="${CONST.PRICING}">pricing page</a> or chat with our team in your ${hasAdminsRoom ? `<a href="adminsRoom">#admins room.</a>` : '#admins room.'}</muted-text>`,
             estimatedPrice: 'Estimated price',
             changesBasedOn: 'This changes based on your Expensify Card usage and the subscription options below.',
+            collectBillingDescription: 'Collect workspaces are billed monthly per member, with no annual commitment.',
+            pricing: 'Pricing',
         },
         requestEarlyCancellation: {
             title: 'Request early cancellation',

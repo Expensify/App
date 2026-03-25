@@ -167,6 +167,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
 
     const [userBillingGraceEndPeriods] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
+    const [ownerBillingGraceEndPeriod] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`);
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report.chatReportID}`);
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
@@ -454,7 +455,6 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                 shouldShowRightIcon: true,
                 action: () => {
                     createDraftTransactionAndNavigateToParticipantSelector({
-                        transactionID: iouTransactionID,
                         reportID: actionReportID,
                         actionName: CONST.IOU.ACTION.SUBMIT,
                         reportActionID: actionableWhisperReportActionID,
@@ -463,8 +463,10 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                         activePolicy,
                         userBillingGraceEndPeriods,
                         amountOwed,
+                        ownerBillingGraceEndPeriod,
                         isRestrictedToPreferredPolicy,
                         preferredPolicyID,
+                        transaction: iouTransaction,
                     });
                 },
             });
@@ -477,7 +479,6 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                     shouldShowRightIcon: true,
                     action: () => {
                         createDraftTransactionAndNavigateToParticipantSelector({
-                            transactionID: iouTransactionID,
                             reportID: actionReportID,
                             actionName: CONST.IOU.ACTION.CATEGORIZE,
                             reportActionID: actionableWhisperReportActionID,
@@ -486,6 +487,8 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                             activePolicy,
                             userBillingGraceEndPeriods,
                             amountOwed,
+                            ownerBillingGraceEndPeriod,
+                            transaction: iouTransaction,
                         });
                     },
                 });
@@ -497,7 +500,6 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                     shouldShowRightIcon: true,
                     action: () => {
                         createDraftTransactionAndNavigateToParticipantSelector({
-                            transactionID: iouTransactionID,
                             reportID: actionReportID,
                             actionName: CONST.IOU.ACTION.SHARE,
                             reportActionID: actionableWhisperReportActionID,
@@ -506,6 +508,8 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                             activePolicy,
                             userBillingGraceEndPeriods,
                             amountOwed,
+                            ownerBillingGraceEndPeriod,
+                            transaction: iouTransaction,
                         });
                     },
                 });
@@ -634,6 +638,8 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
         reportActionsForOriginalReportID,
         userBillingGraceEndPeriods,
         amountOwed,
+        ownerBillingGraceEndPeriod,
+        iouTransaction,
     ]);
 
     const displayNamesWithTooltips = useMemo(() => {
