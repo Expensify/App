@@ -164,6 +164,8 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
             setTimeout(() => {
                 isExecutingRef.current = false;
             }, CONST.ANIMATED_TRANSITION);
+        } else {
+            isExecutingRef.current = false;
         }
     }, [navigation]);
 
