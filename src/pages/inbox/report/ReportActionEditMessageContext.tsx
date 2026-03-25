@@ -13,7 +13,7 @@ function NOOP() {
     return null;
 }
 
-type EditingState = 'off' | 'editing' | 'submitted' | 'cancelled';
+type EditingState = 'off' | 'editing' | 'submitted';
 
 type ReportActionActiveEdit = {
     editingReportID: string | null;

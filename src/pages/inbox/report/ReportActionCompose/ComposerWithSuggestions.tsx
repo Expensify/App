@@ -340,6 +340,7 @@ function ComposerWithSuggestions({
     const previousDraftSelectionRef = useRef<TextSelection | null>(null);
 
     useEffect(() => {
+        // If the draft message is already being submitted, do nothing.
         if (editingState === 'submitted') {
             return;
         }

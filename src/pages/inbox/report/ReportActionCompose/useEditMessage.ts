@@ -68,7 +68,7 @@ function useEditMessage({reportID, originalReportID, reportAction, shouldScrollT
             return;
         }
 
-        setEditingState('cancelled');
+        setEditingState('off');
 
         clearReportActionDrafts();
 
@@ -101,8 +101,6 @@ function useEditMessage({reportID, originalReportID, reportAction, shouldScrollT
             return;
         }
 
-        setEditingState('submitted');
-
         const trimmedNewDraft = draftMessage.trim();
 
         // When user tries to save the empty message, it will delete it. Prompt the user to confirm deleting.
@@ -111,6 +109,8 @@ function useEditMessage({reportID, originalReportID, reportAction, shouldScrollT
             ReportActionContextMenu.showDeleteModal(originalReportID ?? reportID, reportAction, true, deleteDraft, () => focusEditAfterCancelDelete(composerRef.current));
             return;
         }
+
+        setEditingState('submitted');
 
         editReportComment(
             originalReport,
