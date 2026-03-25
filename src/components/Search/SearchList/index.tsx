@@ -494,7 +494,12 @@ function SearchList({
     const content = (
         <View style={[styles.flex1, !isKeyboardShown && safeAreaPaddingBottomStyle, containerStyle]}>
             {tableHeaderVisible && (
-                <View style={[styles.searchListHeaderContainerStyle, isLargeScreenWidth ? [styles.listTableHeaderCompact, styles.searchListHeaderTableStyle, styles.mh5] : styles.listTableHeader]}>
+                <View
+                    style={[
+                        styles.searchListHeaderContainerStyle,
+                        isLargeScreenWidth ? [styles.listTableHeaderCompact, styles.searchListHeaderTableStyle, styles.mh5] : styles.listTableHeader,
+                    ]}
+                >
                     {canSelectMultiple && (
                         <Checkbox
                             accessibilityLabel={translate('accessibilityHints.selectAllItems')}
