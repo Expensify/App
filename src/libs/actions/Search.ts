@@ -149,7 +149,7 @@ function handleActionButtonPress({
     const allReportTransactions = (isTransactionGroupListItemType(item) ? item.transactions : [item]) as Transaction[];
     const hasHeldExpense = hasHeldExpenses('', allReportTransactions);
 
-    if (hasHeldExpense && item.action !== CONST.SEARCH.ACTION_TYPES.SUBMIT && item.action !== CONST.SEARCH.ACTION_TYPES.APPROVE) {
+    if (hasHeldExpense && item.action !== CONST.SEARCH.ACTION_TYPES.SUBMIT && (item.action !== CONST.SEARCH.ACTION_TYPES.APPROVE || !onHoldMenuOpen)) {
         goToItem();
         return;
     }
