@@ -656,4 +656,90 @@ describe('PureReportActionItem', () => {
             expect(screen.getByText('Explain')).toBeOnTheScreen();
         });
     });
+
+    describe('UNREPORTED_TRANSACTION action', () => {
+        const FROM_REPORT_ID = '400';
+        const POLICY_ID = 'unreported_policy_ui_test';
+
+        beforeEach(async () => {
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, {
+                    id: POLICY_ID,
+                    name: 'Unreported Workspace',
+                    type: CONST.POLICY.TYPE.TEAM,
+                    role: CONST.POLICY.ROLE.USER,
+                    isPolicyExpenseChatEnabled: false,
+                    owner: actorEmail,
+                    outputCurrency: CONST.CURRENCY.USD,
+                });
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${FROM_REPORT_ID}`, {
+                    reportID: FROM_REPORT_ID,
+                    reportName: 'Source Expense Report',
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                    policyID: POLICY_ID,
+                });
+            });
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        it('renders message without policy', async () => {
+            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.UNREPORTED_TRANSACTION, {
+                fromReportID: FROM_REPORT_ID,
+            });
+
+            renderItemWithAction(action);
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByText(/moved this expense/)).toBeOnTheScreen();
+        });
+
+        it('renders message with policy uses workspace name', async () => {
+            const policy: Policy = {
+                id: POLICY_ID,
+                name: 'Unreported Workspace',
+                type: CONST.POLICY.TYPE.TEAM,
+                role: CONST.POLICY.ROLE.USER,
+                isPolicyExpenseChatEnabled: false,
+                owner: actorEmail,
+                outputCurrency: CONST.CURRENCY.USD,
+            } as Policy;
+
+            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.UNREPORTED_TRANSACTION, {
+                fromReportID: FROM_REPORT_ID,
+            });
+
+            render(
+                <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, HTMLEngineProvider]}>
+                    <OptionsListContextProvider>
+                        <ScreenWrapper testID="test">
+                            <PortalProvider>
+                                <PureReportActionItem
+                                    personalPolicyID={undefined}
+                                    report={undefined}
+                                    parentReportAction={undefined}
+                                    action={action}
+                                    displayAsGroup={false}
+                                    isMostRecentIOUReportAction={false}
+                                    shouldDisplayNewMarker={false}
+                                    index={0}
+                                    isFirstVisibleReportAction={false}
+                                    taskReport={undefined}
+                                    linkedReport={undefined}
+                                    iouReportOfLinkedReport={undefined}
+                                    currentUserAccountID={ACTOR_ACCOUNT_ID}
+                                    draftTransactionIDs={[]}
+                                    userBillingGraceEndPeriods={undefined}
+                                    policy={policy}
+                                />
+                            </PortalProvider>
+                        </ScreenWrapper>
+                    </OptionsListContextProvider>
+                </ComposeProviders>,
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByText(/moved this expense/)).toBeOnTheScreen();
+            expect(screen.getByText(/Source Expense Report/)).toBeOnTheScreen();
+        });
+    });
 });
