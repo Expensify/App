@@ -550,6 +550,7 @@ const translations = {
         vacationDelegate: 'Vacation delegate',
         expensifyLogo: 'Expensify logo',
         approver: 'Approver',
+        enterDigitLabel: ({digitIndex, totalDigits}: {digitIndex: number; totalDigits: number}) => `enter digit ${digitIndex} of ${totalDigits}`,
     },
     socials: {
         podcast: 'Follow us on Podcast',
@@ -7312,6 +7313,7 @@ const translations = {
                     [CONST.SEARCH.DATE_PRESETS.LAST_MONTH]: 'Last month',
                     [CONST.SEARCH.DATE_PRESETS.THIS_MONTH]: 'This month',
                     [CONST.SEARCH.DATE_PRESETS.YEAR_TO_DATE]: 'Year to date',
+                    [CONST.SEARCH.DATE_PRESETS.LAST_12_MONTHS]: 'Last 12 months',
                     [CONST.SEARCH.DATE_PRESETS.LAST_STATEMENT]: 'Last statement',
                 },
             },

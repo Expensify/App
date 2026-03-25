@@ -5,9 +5,10 @@ import {useSearchActionsContext, useSearchStateContext} from '@components/Search
 import useAncestors from '@hooks/useAncestors';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import {clearErrorFields, clearErrors} from '@libs/actions/FormActions';
-import {putTransactionsOnHold} from '@libs/actions/IOU/Hold';
+import {putOnHold,putTransactionsOnHold} from '@libs/actions/IOU/Hold';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getFieldRequiredErrors} from '@libs/ValidationUtils';
@@ -28,6 +29,7 @@ function SearchHoldReasonPage({route}: SearchHoldReasonPageProps) {
     const {clearSelectedTransactions} = useSearchActionsContext();
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+    const {isOffline} = useNetwork();
 
     const selectedTransactionsList = Object.values(selectedTransactions);
     const isSubmitter = report ? report.ownerAccountID === currentUserAccountID : selectedTransactionsList.some((t) => t.ownerAccountID === currentUserAccountID);
@@ -42,17 +44,30 @@ function SearchHoldReasonPage({route}: SearchHoldReasonPageProps) {
                 return;
             }
             if (route.name === SCREENS.SEARCH.MONEY_REQUEST_REPORT_HOLD_TRANSACTIONS) {
-                putTransactionsOnHold(selectedTransactionIDs, comment, reportID, ancestors);
+                putTransactionsOnHold(selectedTransactionIDs, comment, reportID, isOffline, ancestors);
                 clearSelectedTransactions(true);
             } else {
                 const transactionIDs = Object.keys(selectedTransactions);
-                putTransactionsOnHold(transactionIDs, comment, reportID, ancestors);
+                for (const transactionID of transactionIDs) {
+                    const transactionReportID = selectedTransactions[transactionID].reportID;
+                    putOnHold(transactionID, comment, transactionReportID, isOffline, ancestors);
+                }
                 clearSelectedTransactions();
             }
 
             Navigation.goBack();
         },
-        [route.name, selectedTransactionIDs, selectedTransactions, clearSelectedTransactions, reportID, ancestors, isDelegateAccessRestricted, showDelegateNoAccessModal],
+        [
+            route.name,
+            selectedTransactionIDs,
+            selectedTransactions,
+            clearSelectedTransactions,
+            reportID,
+            ancestors,
+            isOffline,
+            isDelegateAccessRestricted,
+            showDelegateNoAccessModal,
+        ],
     );
 
     const validate = useCallback(

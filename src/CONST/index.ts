@@ -2785,6 +2785,17 @@ const CONST = {
                 JOBS: 'jobs',
             },
         },
+        NETSUITE_ADD_CUSTOM_SEGMENT: {
+            STEP_INDEX_LIST: ['1', '2', '3', '4', '5', '6'],
+            PAGE_NAME: {
+                TYPE: 'type',
+                NAME: 'name',
+                INTERNAL_ID: 'internal-id',
+                SCRIPT_ID: 'script-id',
+                MAPPING_TITLE: 'mapping-title',
+                CONFIRM: 'confirm',
+            },
+        },
         NETSUITE_ADD_CUSTOM_LIST: {
             STEP_INDEX_LIST: ['1', '2', '3', '4'],
             PAGE_NAME: {
@@ -2794,7 +2805,6 @@ const CONST = {
                 CONFIRM: 'confirm',
             },
         },
-        NETSUITE_ADD_CUSTOM_SEGMENT_STEP_NAMES: ['1', '2,', '3', '4', '5', '6,'],
     },
 
     NETSUITE_CUSTOM_FIELD_SUBSTEP_INDEXES: {
@@ -7911,6 +7921,7 @@ const CONST = {
             LAST_MONTH: 'last-month',
             THIS_MONTH: 'this-month',
             YEAR_TO_DATE: 'year-to-date',
+            LAST_12_MONTHS: 'last-12-months',
             LAST_STATEMENT: 'last-statement',
         },
         SNAPSHOT_ONYX_KEYS: [

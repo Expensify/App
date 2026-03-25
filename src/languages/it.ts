@@ -528,6 +528,7 @@ const translations: TranslationDeepObject<typeof en> = {
         concierge: {sidePanelGreeting: 'Ciao, come posso aiutarti?', showHistory: 'Mostra cronologia'},
         duplicateReport: 'Report duplicato',
         approver: 'Approvante',
+        enterDigitLabel: ({digitIndex, totalDigits}: {digitIndex: number; totalDigits: number}) => `inserire la cifra ${digitIndex} di ${totalDigits}`,
         copyOfReportName: (reportName: string) => `Copia di ${reportName}`,
     },
     socials: {
@@ -7313,6 +7314,7 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
                     [CONST.SEARCH.DATE_PRESETS.LAST_MONTH]: 'Il mese scorso',
                     [CONST.SEARCH.DATE_PRESETS.THIS_MONTH]: 'Questo mese',
                     [CONST.SEARCH.DATE_PRESETS.YEAR_TO_DATE]: 'Da inizio anno',
+                    [CONST.SEARCH.DATE_PRESETS.LAST_12_MONTHS]: 'Ultimi 12 mesi',
                     [CONST.SEARCH.DATE_PRESETS.LAST_STATEMENT]: 'Ultimo estratto conto',
                 },
             },

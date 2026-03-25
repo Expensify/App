@@ -523,6 +523,7 @@ const translations: TranslationDeepObject<typeof en> = {
         concierge: {sidePanelGreeting: '你好，我能帮你做什么？', showHistory: '显示历史'},
         duplicateReport: '重复报销单',
         approver: '审批人',
+        enterDigitLabel: ({digitIndex, totalDigits}: {digitIndex: number; totalDigits: number}) => `输入第 ${digitIndex} 位数字，共 ${totalDigits} 位`,
         copyOfReportName: (reportName: string) => `${reportName} 的副本`,
     },
     socials: {
@@ -7102,6 +7103,7 @@ ${reportName}
                     [CONST.SEARCH.DATE_PRESETS.LAST_MONTH]: '上个月',
                     [CONST.SEARCH.DATE_PRESETS.THIS_MONTH]: '本月',
                     [CONST.SEARCH.DATE_PRESETS.YEAR_TO_DATE]: '本年度至今',
+                    [CONST.SEARCH.DATE_PRESETS.LAST_12_MONTHS]: '过去 12 个月',
                     [CONST.SEARCH.DATE_PRESETS.LAST_STATEMENT]: '上一期对账单',
                 },
             },
