@@ -25,6 +25,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {turnOffMobileSelectionMode, turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import type {TransactionPreviewData} from '@libs/actions/Search';
 import {setOptimisticDataForTransactionThreadPreview} from '@libs/actions/Search';
+import {flushDeferredWrite, getOptimisticWatchKey, hasDeferredWrite} from '@libs/deferredLayoutWrite';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import Log from '@libs/Log';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
@@ -90,6 +91,11 @@ type SearchProps = {
     isMobileSelectionModeEnabled: boolean;
     searchRequestResponseStatusCode?: number | null;
 };
+
+// Max time (ms) to keep the optimistic item cache/skeleton alive before
+// clearing all tracking state. Must be longer than deferredLayoutWrite's
+// 5s safety timeout so the API.write() has time to apply optimistic data.
+const OPTIMISTIC_TRACKING_TIMEOUT_MS = 10_000;
 
 const hashToString = (queryHash?: number) => (queryHash || queryHash === 0 ? String(queryHash) : undefined);
 
@@ -205,7 +211,52 @@ function Search({
     searchRequestResponseStatusCode,
 }: SearchProps) {
     const {type, status, sortBy, sortOrder, hash, similarSearchHash, groupBy, view} = queryJSON;
-    const [shouldDeferHeavySearchWork, setShouldDeferHeavySearchWork] = useState(() => !isSearchDataLoaded(searchResults, queryJSON));
+    // Deferred write: API.write() is postponed so the skeleton renders instantly.
+    // Once flushed, we cache the optimistic item from sortedData and re-inject it
+    // via stableSortedData if a stale snapshot briefly removes it. The cache is
+    // cleared when the server-confirmed version arrives (pendingAction !== ADD).
+    const hasPendingWriteOnMountRef = useRef(hasDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH));
+    const optimisticWatchKeyRef = useRef(getOptimisticWatchKey(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH));
+    const skipDeferralOnFocusRef = useRef(isSearchDataLoaded(searchResults, queryJSON) && !hasPendingWriteOnMountRef.current);
+
+    const [shouldDeferHeavySearchWork, setShouldDeferHeavySearchWork] = useState(() => !isSearchDataLoaded(searchResults, queryJSON) || hasPendingWriteOnMountRef.current);
+    const [showPendingExpensePlaceholder, setShowPendingExpensePlaceholder] = useState(() => hasPendingWriteOnMountRef.current && optimisticWatchKeyRef.current != null);
+    // Caches the optimistic list item once it first appears in sortedData.
+    // Used by stableSortedData to re-inject the row if a stale snapshot temporarily removes it.
+    // Cleared once the server-confirmed (non-optimistic) version arrives.
+    const cachedOptimisticItemRef = useRef<TransactionListItemType | null>(null);
+    const optimisticTrackingCleanedUpRef = useRef(false);
+
+    const clearOptimisticTracking = useCallback(() => {
+        if (optimisticTrackingCleanedUpRef.current) {
+            return;
+        }
+        optimisticTrackingCleanedUpRef.current = true;
+        cachedOptimisticItemRef.current = null;
+        optimisticWatchKeyRef.current = undefined;
+        setShowPendingExpensePlaceholder(false);
+    }, []);
+
+    // Safety timeout: if the optimistic lifecycle hasn't resolved within 10s
+    // (e.g. API failure, offline, item never reaches sortedData), clear all
+    // tracking state so the UI doesn't get stuck on a skeleton or ghost row.
+    useEffect(() => {
+        if (!hasPendingWriteOnMountRef.current || !optimisticWatchKeyRef.current) {
+            return;
+        }
+        const id = setTimeout(clearOptimisticTracking, OPTIMISTIC_TRACKING_TIMEOUT_MS);
+        return () => clearTimeout(id);
+    }, [clearOptimisticTracking]);
+
+    // Flush (not cancel) on unmount so the API.write() still executes if the
+    // user navigates away before onLayout fires. This also clears the channel,
+    // preventing a stale hasDeferredWrite() on the next mount.
+    useEffect(
+        () => () => {
+            flushDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH);
+        },
+        [],
+    );
 
     const {isOffline} = useNetwork();
     const prevIsOffline = usePrevious(isOffline);
@@ -279,6 +330,8 @@ function Search({
     const validGroupBy = getValidGroupBy(groupBy);
     const prevValidGroupBy = usePrevious(validGroupBy);
     const isSearchResultsEmpty = !searchResults?.data || isSearchResultsEmptyUtil(searchResults, validGroupBy);
+    const isSearchResultsEmptyRef = useRef(isSearchResultsEmpty);
+    isSearchResultsEmptyRef.current = isSearchResultsEmpty;
 
     // When grouping by card, we need cardFeeds to display feed names
     const isCardFeedsLoading = validGroupBy === CONST.SEARCH.GROUP_BY.CARD && cardFeedsResult?.status === 'loading';
@@ -371,13 +424,13 @@ function Search({
     // Skipping the defer for live data (to-dos) and cached results avoids a
     // flash of the empty state or a blank page caused by a redundant defer cycle.
     useEffect(() => {
-        if (shouldUseLiveData || isDataLoaded) {
+        if (isDataLoaded) {
             setShouldDeferHeavySearchWork(false);
             return;
         }
         return deferHeavySearchWork();
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [hash, deferHeavySearchWork, shouldUseLiveData, isDataLoaded]);
+    }, [hash, deferHeavySearchWork, isDataLoaded]);
 
     useFocusEffect(
         useCallback(() => {
@@ -389,22 +442,30 @@ function Search({
                 return;
             }
 
+            if (skipDeferralOnFocusRef.current) {
+                skipDeferralOnFocusRef.current = false;
+                return;
+            }
+
             // Re-applying the defer only on the submit-return path keeps the optimization scoped to
             // the transition we care about instead of slowing every search refocus.
             return deferHeavySearchWork(true);
         }, [deferHeavySearchWork]),
     );
 
+    const [skeletonWasDisplayed, setSkeletonWasDisplayed] = useState(false);
+    const onSkeletonLayout = useCallback(() => setSkeletonWasDisplayed(true), []);
+    const deferredWorkReasonAttributes = useMemo(() => ({context: 'Search.DeferredWork'}) as const, []);
+    const pendingExpenseReasonAttributes = useMemo(() => ({context: 'Search.PendingExpensePlaceholder'}) as const, []);
+
     // Show a skeleton whenever heavy work is deferred, even for live-data (to-do) searches,
     // so we never fall through to the empty-state check with stale zero-length data.
-    const shouldShowLoadingState =
-        (!isOffline && shouldDeferHeavySearchWork) ||
-        (!shouldUseLiveData &&
-            !isOffline &&
-            (!isDataLoaded ||
-                (!!searchResults?.search.isLoading && Array.isArray(searchResults?.data) && searchResults?.data.length === 0) ||
-                (hasErrors && searchRequestResponseStatusCode === null) ||
-                isCardFeedsLoading));
+    const isDeferringHeavyWork = !isOffline && shouldDeferHeavySearchWork;
+    const isSearchLoadingWithNoResults = !!searchResults?.search.isLoading && Array.isArray(searchResults?.data) && searchResults?.data.length === 0;
+    const hasUnresolvedErrors = hasErrors && searchRequestResponseStatusCode === null;
+    const isWaitingForInitialData = !shouldUseLiveData && !isOffline && (!isDataLoaded || isSearchLoadingWithNoResults || hasUnresolvedErrors || isCardFeedsLoading);
+    const shouldShowLoadingState = isDeferringHeavyWork || isWaitingForInitialData;
+    const shouldShowRowSkeleton = (!skeletonWasDisplayed || shouldShowLoadingState) && hasPendingWriteOnMountRef.current && !hasErrors;
 
     const shouldShowLoadingMoreItems = !shouldShowLoadingState && searchResults?.search?.isLoading && searchResults?.search?.offset > 0;
 
@@ -1158,6 +1219,45 @@ function Search({
         [type, status, filteredData, localeCompare, translate, sortBy, sortOrder, validGroupBy, isChat, newSearchResultKeys, hash],
     );
 
+    // Track the optimistic item through its lifecycle in sortedData.
+    // First appearance -> cache it & hide the skeleton.
+    // Server confirmed (pendingAction !== ADD) -> clear all tracking.
+    useEffect(() => {
+        if (!optimisticWatchKeyRef.current) {
+            return;
+        }
+        const optimisticItem = sortedData.find(
+            (item): item is TransactionListItemType => 'transactionID' in item && `${ONYXKEYS.COLLECTION.TRANSACTION}${item.transactionID}` === optimisticWatchKeyRef.current,
+        );
+        if (optimisticItem) {
+            if (!cachedOptimisticItemRef.current) {
+                setShowPendingExpensePlaceholder(false);
+            }
+            cachedOptimisticItemRef.current = optimisticItem;
+
+            if (optimisticItem.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
+                clearOptimisticTracking();
+            }
+        }
+    }, [sortedData, clearOptimisticTracking]);
+
+    // Re-inject the cached optimistic item when a stale snapshot temporarily removes it
+    // from sortedData. Once the item is back (real data), this is a no-op.
+    // Refs are intentionally excluded from deps. The memo doesn't need the cached
+    // value during the render where the item IS in sortedData (it passes through).
+    // When sortedData later changes (item removed by snapshot), the preceding tracking
+    // effect has already populated the ref, so the memo picks up the cached value.
+    const stableSortedData = useMemo(() => {
+        if (!cachedOptimisticItemRef.current || !optimisticWatchKeyRef.current) {
+            return sortedData;
+        }
+        const isStillInList = sortedData.some((item) => 'transactionID' in item && `${ONYXKEYS.COLLECTION.TRANSACTION}${item.transactionID}` === optimisticWatchKeyRef.current);
+        if (isStillInList) {
+            return sortedData;
+        }
+        return [...sortedData, cachedOptimisticItemRef.current];
+    }, [sortedData]);
+
     useEffect(() => {
         const currentRoute = Navigation.getActiveRouteWithoutParams();
         if (hasErrors && (currentRoute === '/' || (shouldResetSearchQuery && currentRoute === '/search'))) {
@@ -1247,12 +1347,16 @@ function Search({
         markNavigateAfterExpenseCreateEnd();
         const pending = getPendingSubmitFollowUpAction();
         if (pending && pending.followUpAction !== CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_AND_OPEN_REPORT) {
-            endSubmitFollowUpActionSpan(pending.followUpAction);
+            endSubmitFollowUpActionSpan(pending.followUpAction, undefined, {
+                [CONST.TELEMETRY.ATTRIBUTE_IS_WARM]: true,
+                [CONST.TELEMETRY.ATTRIBUTE_WAS_LIST_EMPTY]: isSearchResultsEmptyRef.current,
+            });
         }
         // Reset the ref after the span is ended so future render-time cancelSpan calls are no longer guarded.
         spanExistedOnMount.current = false;
-        handleSelectionListScroll(sortedData, searchListRef.current);
-    }, [handleSelectionListScroll, sortedData]);
+        handleSelectionListScroll(stableSortedData, searchListRef.current);
+        flushDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH);
+    }, [handleSelectionListScroll, stableSortedData]);
 
     useEffect(() => {
         const spanExisted = spanExistedOnMount.current;
@@ -1265,6 +1369,10 @@ function Search({
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
+    // Must be a ref, not state: cancelNavigationSpans is called during render
+    // (inside conditional returns), so using setState would trigger infinite re-renders.
+    const didBailToFallbackState = useRef(false);
+
     const cancelNavigationSpans = useCallback(() => {
         cancelSpan(CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS);
         cancelSpan(CONST.TELEMETRY.SPAN_NAVIGATE_AFTER_EXPENSE_CREATE);
@@ -1273,7 +1381,21 @@ function Search({
             cancelSubmitFollowUpActionSpan();
         }
         spanExistedOnMount.current = false;
+        didBailToFallbackState.current = true;
     }, []);
+
+    // When the render bails to an error/empty state, the SelectionList never mounts
+    // so its onLayout callback (the primary flush site) never fires. This effect
+    // catches that case and flushes immediately after commit. No dependency array
+    // is intentional — we need to check after every render since bail-outs happen
+    // in conditional returns that can't trigger state-based effects.
+    useEffect(() => {
+        if (!didBailToFallbackState.current || !hasDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH)) {
+            return;
+        }
+        didBailToFallbackState.current = false;
+        flushDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH);
+    });
 
     const onLayoutChart = useCallback(() => {
         hasHadFirstLayout.current = true;
@@ -1289,15 +1411,39 @@ function Search({
             }
             const pending = getPendingSubmitFollowUpAction();
             if (pending && pending.followUpAction !== CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_AND_OPEN_REPORT) {
-                endSubmitFollowUpActionSpan(pending.followUpAction);
+                endSubmitFollowUpActionSpan(pending.followUpAction, undefined, {
+                    [CONST.TELEMETRY.ATTRIBUTE_IS_WARM]: !shouldShowLoadingState,
+                    [CONST.TELEMETRY.ATTRIBUTE_WAS_LIST_EMPTY]: isSearchResultsEmptyRef.current,
+                });
             }
             endSpanWithAttributes(CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS, {
                 [CONST.TELEMETRY.ATTRIBUTE_IS_WARM]: !shouldShowLoadingState,
             });
             markNavigateAfterExpenseCreateEnd();
             spanExistedOnMount.current = false;
+            // On re-focus (e.g. DISMISS_MODAL_ONLY) onLayout won't re-fire — flush here.
+            flushDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH);
         }, [shouldShowLoadingState]),
     );
+
+    // Reset before conditional returns. Only cancelNavigationSpans (error/empty paths)
+    // sets it to true. Must happen during render since it coordinates with the
+    // dep-free useEffect above — see comment on didBailToFallbackState.
+    didBailToFallbackState.current = false;
+
+    // This is a performance optimization for the submit-expense->search path only.
+    // The SearchPage skeleton (useSearchLoadingState) doesn't cover this case because
+    // Search must mount for its onLayout to flush the deferred CreateMoneyRequest API write, which would block the JS thread causing a slowdown on post expense creation navigation
+    if (shouldShowRowSkeleton) {
+        return (
+            <SearchRowSkeleton
+                shouldAnimate
+                onLayout={onSkeletonLayout}
+                containerStyle={shouldUseNarrowLayout ? styles.searchListContentContainerStyles : styles.mt3}
+                reasonAttributes={deferredWorkReasonAttributes}
+            />
+        );
+    }
 
     if (searchResults === undefined) {
         Log.alert('[Search] Undefined search type');
@@ -1324,8 +1470,18 @@ function Search({
     }
     const isAnyVisibleActionLoading = filteredData.some((item) => 'reportID' in item && item.reportID && isActionLoadingSet.has(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${item.reportID}`));
     const visibleDataLength = filteredData.filter((item) => item.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || isOffline).length;
-    // Guard: don't render the empty view while heavy work is still deferred - the data is temporarily [] and not truly empty.
-    if (!shouldDeferHeavySearchWork && shouldShowEmptyState(isDataLoaded, visibleDataLength, searchDataType) && !isAnyVisibleActionLoading) {
+    // Guard: don't render the empty view while the data is transiently empty.
+    // - shouldDeferHeavySearchWork: skeleton is still showing, data hasn't been computed yet.
+    // - showPendingExpensePlaceholder: deferred write hasn't produced the optimistic item yet.
+    // - cachedOptimisticItemRef: an optimistic item was seen but a stale snapshot briefly removed it;
+    //   stableSortedData will re-inject it, so the list isn't truly empty.
+    if (
+        !shouldDeferHeavySearchWork &&
+        !showPendingExpensePlaceholder &&
+        !cachedOptimisticItemRef.current &&
+        shouldShowEmptyState(isDataLoaded, visibleDataLength, searchDataType) &&
+        !isAnyVisibleActionLoading
+    ) {
         cancelNavigationSpans();
         return (
             <View style={[shouldUseNarrowLayout ? styles.searchListContentContainerStyles : styles.mt3, styles.flex1]}>
@@ -1412,7 +1568,7 @@ function Search({
             <Animated.View style={[styles.flex1, animatedStyle]}>
                 <SearchList
                     ref={searchListRef}
-                    data={sortedData}
+                    data={stableSortedData}
                     ListItem={ListItem}
                     onSelectRow={onSelectRow}
                     onCheckboxPress={toggleTransaction}
@@ -1449,12 +1605,14 @@ function Search({
                     onScroll={onSearchListScroll}
                     onEndReachedThreshold={0.75}
                     onEndReached={fetchMoreResults}
+                    // Single-row skeleton while the deferred write's optimistic data hasn't
+                    // appeared in sortedData yet; 5-row skeleton for paginated loading.
                     ListFooterComponent={
-                        shouldShowLoadingMoreItems ? (
+                        shouldShowLoadingMoreItems || showPendingExpensePlaceholder ? (
                             <SearchRowSkeleton
                                 shouldAnimate
-                                fixedNumItems={5}
-                                reasonAttributes={loadMoreSkeletonReasonAttributes}
+                                fixedNumItems={shouldShowLoadingMoreItems ? 5 : 1}
+                                reasonAttributes={showPendingExpensePlaceholder ? pendingExpenseReasonAttributes : loadMoreSkeletonReasonAttributes}
                             />
                         ) : undefined
                     }
