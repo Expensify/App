@@ -1,0 +1,39 @@
+import {useCallback} from 'react';
+import {changeTransactionsReport} from '@libs/actions/Transaction';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import useAllTransactions from './useAllTransactions';
+import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
+import useLocalize from './useLocalize';
+import useOnyx from './useOnyx';
+import usePermissions from './usePermissions';
+
+function useUndeleteTransactions() {
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const allTransactions = useAllTransactions();
+    const {isBetaEnabled} = usePermissions();
+    const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
+    const {translate, toLocaleDigit} = useLocalize();
+    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID);
+
+    const undeleteTransactions = useCallback(
+        (transactionIDs: string[]) => {
+            changeTransactionsReport({
+                transactionIDs,
+                isASAPSubmitBetaEnabled,
+                accountID: currentUserPersonalDetails.accountID ?? CONST.DEFAULT_NUMBER_ID,
+                email: currentUserPersonalDetails.email ?? '',
+                policy: policies?.[`${ONYXKEYS.COLLECTION.POLICY}${personalPolicyID}`],
+                allTransactions,
+                translate,
+                toLocaleDigit,
+            });
+        },
+        [isASAPSubmitBetaEnabled, currentUserPersonalDetails.accountID, currentUserPersonalDetails.email, policies, personalPolicyID, allTransactions, translate, toLocaleDigit],
+    );
+
+    return undeleteTransactions;
+}
+
+export default useUndeleteTransactions;

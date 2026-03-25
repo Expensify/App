@@ -31,7 +31,6 @@ import {
     unholdMoneyRequestOnSearch,
 } from '@libs/actions/Search';
 import initSplitExpense from '@libs/actions/SplitExpenses';
-import {changeTransactionsReport} from '@libs/actions/Transaction';
 import {setNameValuePair} from '@libs/actions/User';
 import {getTransactionsAndReportsFromSearch} from '@libs/MergeTransactionUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -48,7 +47,7 @@ import {
 } from '@libs/ReportUtils';
 import {navigateToSearchRHP, shouldShowDeleteOption} from '@libs/SearchUIUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
-import {hasTransactionBeenRejected} from '@libs/TransactionUtils';
+import {hasTransactionBeenRejected, isDeletedTransaction} from '@libs/TransactionUtils';
 import variables from '@styles/variables';
 import {canIOUBePaid, dismissRejectUseExplanation} from '@userActions/IOU';
 import CONST from '@src/CONST';
@@ -64,11 +63,11 @@ import {useMemoizedLazyExpensifyIcons} from './useLazyAsset';
 import useLocalize from './useLocalize';
 import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
-import usePermissions from './usePermissions';
 import usePersonalPolicy from './usePersonalPolicy';
 import useSelfDMReport from './useSelfDMReport';
 import useTheme from './useTheme';
 import useThemeStyles from './useThemeStyles';
+import useUndeleteTransactions from './useUndeleteTransactions';
 
 type SearchHeaderOptionValue = DeepValueOf<typeof CONST.SEARCH.BULK_ACTION_TYPES> | undefined;
 
@@ -105,6 +104,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const personalPolicy = usePersonalPolicy();
     const [userBillingGraceEndPeriods] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
+    const undeleteTransactions = useUndeleteTransactions();
 
     // Cache the last search results that had data, so the merge option remains available
     // while results are temporarily unset (e.g. during sorting/loading).
@@ -120,8 +120,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     const [isOfflineModalVisible, setIsOfflineModalVisible] = useState(false);
     const [isDownloadErrorModalVisible, setIsDownloadErrorModalVisible] = useState(false);
     const {showConfirmModal} = useConfirmModal();
-    const {isBetaEnabled} = usePermissions();
-    const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const [isHoldEducationalModalVisible, setIsHoldEducationalModalVisible] = useState(false);
     const [rejectModalAction, setRejectModalAction] = useState<ValueOf<
         typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.HOLD | typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.REJECT
@@ -686,7 +684,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             return CONST.EMPTY_ARRAY as unknown as Array<DropdownOption<SearchHeaderOptionValue>>;
         }
 
-        const allSelectedAreDeleted = selectedTransactionsKeys.length > 0 && selectedTransactionsKeys.every((id) => selectedTransactions[id]?.reportID === CONST.REPORT.TRASH_REPORT_ID);
+        const allSelectedAreDeleted = selectedTransactionsKeys.length > 0 && selectedTransactionsKeys.every((id) => isDeletedTransaction(selectedTransactions[id] ?? {}));
 
         if (allSelectedAreDeleted) {
             return [
@@ -696,16 +694,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     value: CONST.SEARCH.BULK_ACTION_TYPES.UNDELETE,
                     shouldCloseModalOnSelect: true,
                     onSelected: () => {
-                        changeTransactionsReport({
-                            transactionIDs: selectedTransactionsKeys,
-                            isASAPSubmitBetaEnabled,
-                            accountID: currentUserPersonalDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID,
-                            email: currentUserPersonalDetails?.email ?? '',
-                            policy: policies?.[`${ONYXKEYS.COLLECTION.POLICY}${personalPolicyID}`],
-                            allTransactions,
-                            translate,
-                            toLocaleDigit,
-                        });
+                        undeleteTransactions(selectedTransactionsKeys);
                         clearSelectedTransactions();
                     },
                 },
@@ -1217,9 +1206,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         firstTransaction,
         firstTransactionPolicy,
         handleDeleteSelectedTransactions,
-        isASAPSubmitBetaEnabled,
-        allTransactions,
-        toLocaleDigit,
+        undeleteTransactions,
         currentUserPersonalDetails?.email,
         theme.icon,
         styles.colorMuted,
