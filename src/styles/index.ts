@@ -3509,14 +3509,18 @@ const staticStyles = (theme: ThemeColors) =>
             flexDirection: 'row',
             alignItems: 'center',
             ...userSelect.userSelectNone,
-            paddingBottom: 8,
-            backgroundColor: theme.highlightBG,
+            paddingBottom: 12,
             justifyContent: 'flex-start',
+        },
+
+        searchListHeaderTableStyle: {
+            backgroundColor: theme.highlightBG,
             borderTopLeftRadius: variables.componentBorderRadius,
             borderTopRightRadius: variables.componentBorderRadius,
             borderBottomWidth: 1,
             borderColor: theme.border,
             minHeight: 40,
+            paddingBottom: 8,
         },
 
         groupSearchListTableContainerStyle: {
@@ -4784,6 +4788,11 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         listTableHeader: {
+            paddingVertical: 12,
+            paddingHorizontal: 32,
+        },
+
+        listTableHeaderCompact: {
             paddingVertical: 8,
             paddingHorizontal: 12,
         },
