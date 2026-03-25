@@ -14,8 +14,8 @@ function useUndeleteTransactions() {
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const {translate, toLocaleDigit} = useLocalize();
-    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID);
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${personalPolicyID}`);
 
     const undeleteTransactions = useCallback(
         (transactionIDs: string[]) => {
@@ -24,13 +24,13 @@ function useUndeleteTransactions() {
                 isASAPSubmitBetaEnabled,
                 accountID: currentUserPersonalDetails.accountID ?? CONST.DEFAULT_NUMBER_ID,
                 email: currentUserPersonalDetails.email ?? '',
-                policy: policies?.[`${ONYXKEYS.COLLECTION.POLICY}${personalPolicyID}`],
+                policy,
                 allTransactions,
                 translate,
                 toLocaleDigit,
             });
         },
-        [isASAPSubmitBetaEnabled, currentUserPersonalDetails.accountID, currentUserPersonalDetails.email, policies, personalPolicyID, allTransactions, translate, toLocaleDigit],
+        [isASAPSubmitBetaEnabled, currentUserPersonalDetails.accountID, currentUserPersonalDetails.email, policy, allTransactions, translate, toLocaleDigit],
     );
 
     return undeleteTransactions;
