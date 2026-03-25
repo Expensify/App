@@ -339,7 +339,7 @@ describe('TransactionGroupListItem', () => {
         expect(screen.getByRole(CONST.ROLE.CHECKBOX)).not.toBeChecked();
         expect(screen.getByTestId('ReportSearchHeader')).toBeTruthy();
         expect(screen.getByTestId('TotalCell')).toBeTruthy();
-        expect(screen.getByTestId('ActionCell')).toBeTruthy();
+        expect(screen.getByTestId('ActionCell', {includeHiddenElements: true})).toBeTruthy();
         expect(screen.getByLabelText('Expand')).toBeTruthy();
         expect(screen.queryByTestId(CONST.ANIMATED_COLLAPSIBLE_CONTENT_TEST_ID)).toBeNull();
     });
@@ -450,7 +450,7 @@ describe('Empty Report Selection', () => {
         expect(screen.getByRole(CONST.ROLE.CHECKBOX)).not.toBeChecked();
         expect(screen.getByTestId('ReportSearchHeader')).toBeTruthy();
         expect(screen.getByTestId('TotalCell')).toBeTruthy();
-        expect(screen.getByTestId('ActionCell')).toBeTruthy();
+        expect(screen.getByTestId('ActionCell', {includeHiddenElements: true})).toBeTruthy();
     });
 
     it('should call onCheckboxPress when checkbox is clicked on an empty report', async () => {

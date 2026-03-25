@@ -65,8 +65,13 @@ function GenericPressable({
     }, [isScreenReaderActive, enableInScreenReaderStates, disabled, isExecuting]);
 
     const shouldUseDisabledCursor = useMemo(() => isDisabled && !isExecuting, [isDisabled, isExecuting]);
-    // Avoid passing disabled={false} to RN Pressable, since that overrides accessibilityState.disabled on native.
-    const nativeDisabled = fullDisabled ? true : undefined;
+    // Avoid passing disabled={false} to RN Pressable for soft-disabled controls, since that overrides accessibilityState.disabled on native.
+    let nativeDisabled: boolean | undefined = false;
+    if (fullDisabled) {
+        nativeDisabled = true;
+    } else if (isDisabled) {
+        nativeDisabled = undefined;
+    }
     const mergedAccessibilityState = {...accessibilityState, disabled: isDisabled};
 
     /**

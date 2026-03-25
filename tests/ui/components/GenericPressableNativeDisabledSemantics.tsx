@@ -1,6 +1,6 @@
 import React from 'react';
 import type {ReactNode} from 'react';
-import renderer from 'react-test-renderer';
+import {render} from '@testing-library/react-native';
 import GenericPressable from '@components/Pressable/GenericPressable/implementation/BaseGenericPressable';
 import CONST from '@src/CONST';
 
@@ -87,18 +87,16 @@ jest.mock('@libs/KeyboardShortcut', () => ({
 }));
 
 function renderGenericPressable(props: Partial<React.ComponentProps<typeof GenericPressable>>) {
-    renderer.act(() => {
-        renderer.create(
-            <GenericPressable
-                accessibilityLabel="Next"
-                accessibilityRole={CONST.ROLE.BUTTON}
-                // eslint-disable-next-line react/jsx-props-no-spreading
-                {...(props as React.ComponentProps<typeof GenericPressable>)}
-            >
-                Next
-            </GenericPressable>,
-        );
-    });
+    render(
+        <GenericPressable
+            accessibilityLabel="Next"
+            accessibilityRole={CONST.ROLE.BUTTON}
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...(props as React.ComponentProps<typeof GenericPressable>)}
+        >
+            Next
+        </GenericPressable>,
+    );
 }
 
 function getLastReactNativePressableProps() {
@@ -137,6 +135,19 @@ describe('GenericPressable native disabled semantics', () => {
                 disabled: true,
                 accessibilityState: expect.objectContaining({
                     disabled: true,
+                }),
+            }),
+        );
+    });
+
+    it('keeps native Pressable disabled false for enabled controls', () => {
+        renderGenericPressable({disabled: false});
+
+        expect(getLastReactNativePressableProps()).toEqual(
+            expect.objectContaining({
+                disabled: false,
+                accessibilityState: expect.objectContaining({
+                    disabled: false,
                 }),
             }),
         );
