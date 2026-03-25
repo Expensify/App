@@ -13,7 +13,6 @@ import {joinRoom, navigateToAndOpenReport, navigateToAndOpenReportWithAccountIDs
 import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-import type {PersonalDetailsList} from '@src/types/onyx';
 import type Beta from '@src/types/onyx/Beta';
 import type OnyxReport from '@src/types/onyx/Report';
 import Button from './Button';
@@ -33,7 +32,6 @@ type PromotedActionsType = Record<BasePromotedActions, (report: OnyxReport) => P
         accountID?: number;
         login?: string;
         currentUserAccountID: number;
-        personalDetails: OnyxEntry<PersonalDetailsList>;
         introSelected: OnyxEntry<IntroSelected>;
         isSelfTourViewed: boolean | undefined;
         betas: OnyxEntry<Beta[]>;
@@ -68,7 +66,7 @@ const PromotedActions = {
             joinRoom(report, currentUserAccountID);
         }),
     }),
-    message: ({reportID, accountID, login, currentUserAccountID, personalDetails, introSelected, isSelfTourViewed, betas}) => ({
+    message: ({reportID, accountID, login, currentUserAccountID, introSelected, isSelfTourViewed, betas}) => ({
         key: CONST.PROMOTED_ACTIONS.MESSAGE,
         icon: 'CommentBubbles',
         translationKey: 'common.message',
@@ -80,7 +78,7 @@ const PromotedActions = {
 
             // The accountID might be optimistic, so we should use the login if we have it
             if (login) {
-                navigateToAndOpenReport([login], personalDetails, currentUserAccountID, introSelected, isSelfTourViewed, betas, false);
+                navigateToAndOpenReport([login], currentUserAccountID, introSelected, isSelfTourViewed, betas, false);
                 return;
             }
             if (accountID) {

@@ -523,6 +523,7 @@ const translations: TranslationDeepObject<typeof en> = {
         concierge: {sidePanelGreeting: '你好，我能帮你做什么？', showHistory: '显示历史'},
         duplicateReport: '重复报销单',
         approver: '审批人',
+        enterDigitLabel: ({digitIndex, totalDigits}: {digitIndex: number; totalDigits: number}) => `输入第 ${digitIndex} 位数字，共 ${totalDigits} 位`,
         copyOfReportName: (reportName: string) => `${reportName} 的副本`,
     },
     socials: {
@@ -743,11 +744,6 @@ const translations: TranslationDeepObject<typeof en> = {
         findMember: '查找成员',
         searchForSomeone: '搜索联系人',
         userSelected: (username: string) => `已选择 ${username}`,
-    },
-    customApprovalWorkflow: {
-        title: '自定义审批流程',
-        description: '您的公司在此工作区使用自定义审批流程。请在 Expensify Classic 中执行此操作',
-        goToExpensifyClassic: '切换到 Expensify 经典版',
     },
     emptyList: {
         [CONST.IOU.TYPE.CREATE]: {
@@ -1210,6 +1206,8 @@ const translations: TranslationDeepObject<typeof en> = {
         pendingMatch: '待匹配',
         pendingMatchWithCreditCardDescription: '收据正在等待与卡片交易匹配。将其标记为现金以取消。',
         markAsCash: '标记为现金',
+        pendingMatchSubmitTitle: '提交报告',
+        pendingMatchSubmitDescription: '部分费用正在等待与信用卡交易匹配。您要将它们标记为现金吗？',
         routePending: '路由处理中…',
         automaticallyEnterExpenseDetails: 'Concierge 将自动为您输入费用详情，或者您可以手动添加。',
         receiptScanning: () => ({
@@ -2601,6 +2599,7 @@ ${amount}，商户：${merchant} - 日期：${date}`,
                 label: '使用设备设置',
             },
         },
+        highContrastMode: '高对比度模式',
         chooseThemeBelowOrSync: '请选择下方的主题，或与您的设备设置同步。',
     },
     termsOfUse: {
@@ -7009,6 +7008,7 @@ ${reportName}
     search: {
         resultsAreLimited: '搜索结果已受限制。',
         viewResults: '查看结果',
+        appliedFilters: '已应用的筛选条件',
         resetFilters: '重置筛选条件',
         searchResults: {
             emptyResults: {
@@ -7064,6 +7064,7 @@ ${reportName}
             },
         },
         columns: '列',
+        editColumns: '编辑列',
         resetColumns: '重置列',
         groupColumns: '分组列',
         expenseColumns: '报销列',
@@ -7164,8 +7165,13 @@ ${reportName}
                 [CONST.SEARCH.ACTION_FILTERS.EXPORT]: '导出',
             },
         },
+        display: {
+            label: '显示',
+            sortBy: '按排序',
+            groupBy: '分组依据',
+            limitResults: '限制结果',
+        },
         has: '有',
-        groupBy: '分组依据',
         view: {label: '查看', table: '表格', bar: '栏', line: '折线', pie: '饼图'},
         chartTitles: {
             [CONST.SEARCH.GROUP_BY.FROM]: '来自',

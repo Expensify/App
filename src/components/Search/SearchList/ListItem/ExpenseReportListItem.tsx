@@ -44,8 +44,6 @@ function ExpenseReportListItem<TItem extends ListItem>({
     onLongPressRow,
     shouldSyncFocus,
     onCheckboxPress,
-    onDEWModalOpen,
-    isDEWBetaEnabled,
     lastPaymentMethod,
     personalPolicyID,
 }: ExpenseReportListItemProps<TItem>) {
@@ -133,8 +131,6 @@ function ExpenseReportListItem<TItem extends ListItem>({
             lastPaymentMethod,
             userBillingGraceEndPeriods,
             currentSearchKey,
-            onDEWModalOpen,
-            isDEWBetaEnabled,
             isDelegateAccessRestricted,
             onDelegateAccessRestricted: showDelegateNoAccessModal,
             personalPolicyID,
@@ -149,8 +145,6 @@ function ExpenseReportListItem<TItem extends ListItem>({
         userBillingGraceEndPeriods,
         personalPolicyID,
         currentSearchKey,
-        onDEWModalOpen,
-        isDEWBetaEnabled,
         isDelegateAccessRestricted,
         showDelegateNoAccessModal,
     ]);
