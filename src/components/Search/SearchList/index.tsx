@@ -391,6 +391,7 @@ function SearchList({
 
             // Don't scroll while a cell is being edited
             // as it can cause unwanted scrolling when the edit is dismissed
+            // See: https://github.com/Expensify/App/pull/83127#issuecomment-4064533155
             if (getIsEditingCell() || getWasRecentlyEditingCell()) {
                 return;
             }
