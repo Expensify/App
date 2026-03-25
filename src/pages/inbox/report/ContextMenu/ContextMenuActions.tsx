@@ -172,7 +172,6 @@ import {
 import {getTaskCreatedMessage, getTaskReportActionMessage} from '@libs/TaskUtils';
 import {setDownload} from '@userActions/Download';
 import {
-    clearReportActionDrafts,
     explain,
     markCommentAsUnread,
     navigateToAndOpenChildReport,
