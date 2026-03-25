@@ -243,8 +243,15 @@ function Search({
         shouldUseLiveData,
         suggestedSearches,
     } = useSearchStateContext();
-    const {setSelectedTransactions, clearSelectedTransactions, setShouldShowFiltersBarLoading, setShouldShowSelectAllMatchingItems, selectAllMatchingItems, setShouldResetSearchQuery} =
-        useSearchActionsContext();
+    const {
+        setSelectedTransactions,
+        clearSelectedTransactions,
+        setShouldShowFiltersBarLoading,
+        setShouldShowSelectAllMatchingItems,
+        selectAllMatchingItems,
+        setShouldResetSearchQuery,
+        setSortedReportIDs,
+    } = useSearchActionsContext();
     const [offset, setOffset] = useState(0);
 
     const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
@@ -1163,6 +1170,10 @@ function Search({
     const ListItem = getListItem(type, status, validGroupBy);
 
     const sortedItems = useSearchSections(type, status, filteredData, sortBy, sortOrder, validGroupBy);
+
+    useEffect(() => {
+        setSortedReportIDs(sortedItems.map((item) => item.reportID));
+    }, [sortedItems, setSortedReportIDs]);
 
     const sortedData = useMemo(
         () =>

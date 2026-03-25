@@ -53,6 +53,7 @@ const defaultSearchContextData: SearchContextData = {
     currentSearchHash: -1,
     currentSimilarSearchHash: -1,
     suggestedSearches: {} as Record<SearchKey, SearchTypeMenuItem>,
+    sortedReportIDs: [],
 };
 
 const defaultSearchStateContext: SearchStateContextValue = {
@@ -74,6 +75,7 @@ const defaultSearchActionsContext: SearchActionsContextValue = {
     setShouldShowSelectAllMatchingItems: () => {},
     selectAllMatchingItems: () => {},
     setShouldResetSearchQuery: () => {},
+    setSortedReportIDs: () => {},
 };
 
 const SearchStateContext = React.createContext<SearchStateContextValue>(defaultSearchStateContext);
@@ -104,6 +106,15 @@ function SearchContextProvider({children}: SearchContextProps) {
     const [shouldShowFiltersBarLoading, setShouldShowFiltersBarLoading] = useState(false);
     const [shouldShowSelectAllMatchingItems, setShouldShowSelectAllMatchingItems] = useState(false);
     const [searchContextData, setSearchContextData] = useState({...defaultSearchContextData});
+
+    const setSortedReportIDs = useCallback((newIDs: Array<string | undefined>) => {
+        setSearchContextData((prev) => {
+            if (prev.sortedReportIDs.length === newIDs.length && prev.sortedReportIDs.every((id, i) => id === newIDs[i])) {
+                return prev;
+            }
+            return {...prev, sortedReportIDs: newIDs};
+        });
+    }, []);
 
     const selectedReports = searchContextData.selectedReports;
     const selectedTransactions = searchContextData.selectedTransactions;
@@ -298,6 +309,7 @@ function SearchContextProvider({children}: SearchContextProps) {
         setShouldShowSelectAllMatchingItems,
         selectAllMatchingItems,
         setShouldResetSearchQuery,
+        setSortedReportIDs,
     };
 
     return (

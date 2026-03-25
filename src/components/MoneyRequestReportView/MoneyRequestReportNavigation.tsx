@@ -2,6 +2,7 @@ import React, {useEffect} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import PrevNextButtons from '@components/PrevNextButtons';
+import {useSearchStateContext} from '@components/Search/SearchContext';
 import Text from '@components/Text';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@navigation/Navigation';
@@ -17,7 +18,7 @@ type MoneyRequestReportNavigationProps = {
 
 function MoneyRequestReportNavigation({reportID, shouldDisplayNarrowVersion}: MoneyRequestReportNavigationProps) {
     const [lastSearchQuery] = useOnyx(ONYXKEYS.REPORT_NAVIGATION_LAST_SEARCH_QUERY);
-    const [sortedReportIDs = []] = useOnyx(ONYXKEYS.REPORT_NAVIGATION_SORTED_REPORT_IDS);
+    const {sortedReportIDs} = useSearchStateContext();
     const [currentSearchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${lastSearchQuery?.queryJSON?.hash}`);
 
     const type = lastSearchQuery?.queryJSON?.type;
@@ -84,7 +85,6 @@ function MoneyRequestReportNavigation({reportID, shouldDisplayNarrowVersion}: Mo
                 queryJSON: lastSearchQuery.queryJSON,
                 offset: newOffset,
                 prevReportsLength: sortedReportIDs.length,
-                sortedReportIDs,
                 shouldCalculateTotals: false,
                 searchKey: lastSearchQuery.searchKey,
                 isLoading: !!currentSearchResults?.search?.isLoading,

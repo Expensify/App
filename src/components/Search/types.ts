@@ -170,6 +170,7 @@ type SearchContextData = {
     isOnSearch: boolean;
     shouldTurnOffSelectionMode: boolean;
     shouldResetSearchQuery: boolean;
+    sortedReportIDs: Array<string | undefined>;
 };
 
 type SearchStateContextValue = SearchContextData & {
@@ -199,6 +200,7 @@ type SearchActionsContextValue = {
     setShouldShowSelectAllMatchingItems: (shouldShow: boolean) => void;
     selectAllMatchingItems: (on: boolean) => void;
     setShouldResetSearchQuery: (shouldReset: boolean) => void;
+    setSortedReportIDs: (ids: Array<string | undefined>) => void;
 };
 
 type ASTNode = {
