@@ -8,7 +8,7 @@ import useNetwork from './useNetwork';
 
 type UseLoadReportActionsArguments = {
     /** The id of the current report */
-    reportID: string;
+    reportID: string | undefined;
 
     /** The list of reportActions linked to the current report  */
     reportActions: ReportAction[];

@@ -61,7 +61,7 @@ import UserTypingEventListener from './UserTypingEventListener';
 
 type ReportActionsViewProps = {
     /** The ID of the report to display actions for */
-    reportID: string;
+    reportID: string | undefined;
 
     /** Callback executed on layout */
     onLayout?: (event: LayoutChangeEvent) => void;

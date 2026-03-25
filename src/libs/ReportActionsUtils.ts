@@ -1251,7 +1251,7 @@ function shouldHideNewMarker(reportAction: OnyxEntry<ReportAction>, isOffline: b
  */
 function isReportActionVisible(
     reportAction: OnyxEntry<ReportAction>,
-    reportID: string,
+    reportID: string | undefined,
     canUserPerformWriteAction?: boolean,
     visibleReportActions?: VisibleReportActionsDerivedValue,
 ): boolean {
@@ -1271,7 +1271,7 @@ function isReportActionVisible(
         return shouldReportActionBeVisible(reportAction, reportAction.reportActionID, canUserPerformWriteAction, undefined, reportActionsForReport);
     }
 
-    if (visibleReportActions) {
+    if (visibleReportActions && reportID) {
         const reportCache = visibleReportActions[reportID];
         if (!reportCache) {
             return shouldReportActionBeVisible(reportAction, reportAction.reportActionID, canUserPerformWriteAction, undefined, reportActionsForReport);

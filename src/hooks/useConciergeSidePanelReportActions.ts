@@ -77,7 +77,7 @@ function useConciergeSidePanelReportActions({
         if (!showConciergeGreeting) {
             return undefined;
         }
-        return buildConciergeGreetingReportAction(report?.reportID ?? '', greetingText, report?.lastReadTime ?? DateUtils.getDBTime());
+        return buildConciergeGreetingReportAction({reportID: report?.reportID, greetingText, created: report?.lastReadTime ?? DateUtils.getDBTime()});
     }, [showConciergeGreeting, report?.reportID, report?.lastReadTime, greetingText]);
 
     const firstUserMessageCreated = useMemo(() => {

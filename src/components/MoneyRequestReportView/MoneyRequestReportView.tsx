@@ -294,7 +294,7 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
                             />
                         ) : (
                             <ReportActionsView
-                                reportID={reportID ?? ''}
+                                reportID={reportID}
                                 onLayout={onLayout}
                             />
                         )}
