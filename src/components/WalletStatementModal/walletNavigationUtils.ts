@@ -15,7 +15,6 @@ function handleWalletStatementNavigation(
     conciergeReportID: string | undefined,
     introSelected: OnyxEntry<IntroSelected>,
     currentUserAccountID: number | undefined,
-    isSelfTourViewed: boolean | undefined,
     betas: OnyxEntry<Beta[]>,
     type?: string,
     url?: string,
@@ -25,7 +24,8 @@ function handleWalletStatementNavigation(
     }
 
     if (type === CONST.WALLET.WEB_MESSAGE_TYPE.CONCIERGE) {
-        navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID, isSelfTourViewed, betas);
+        // TODO: We'll pass isSelfTourViewed in the next PR. Refactor issue: https://github.com/Expensify/App/issues/66424
+        navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID, undefined, betas);
         return;
     }
 

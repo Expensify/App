@@ -3936,6 +3936,7 @@ function navigateToConciergeChatAndDeleteReport(
     } else {
         Navigation.goBack();
     }
+    // TODO: We'll pass isSelfTourViewed in the next PR. Refactor issue: https://github.com/Expensify/App/issues/66424
     navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, undefined, betas, false);
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     InteractionManager.runAfterInteractions(() => {
@@ -4324,6 +4325,7 @@ function navigateToMostRecentReport(
             Navigation.goBack();
         }
 
+        // TODO: We'll pass isSelfTourViewed in the next PR. Refactor issue: https://github.com/Expensify/App/issues/66424
         navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, undefined, betas, false, () => true, {forceReplace: true});
     }
 }

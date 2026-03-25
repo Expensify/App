@@ -1,4 +1,3 @@
-import {hasSeenTourSelector} from '@selectors/Onboarding';
 import {useEffect, useRef} from 'react';
 import type {NativeEventSubscription} from 'react-native';
 import {Linking} from 'react-native';
@@ -31,7 +30,6 @@ function DeepLinkHandler({onInitialUrl}: DeepLinkHandlerProps) {
     const [, sessionMetadata] = useOnyx(ONYXKEYS.SESSION);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const isAuthenticated = useIsAuthenticated();
 
@@ -50,7 +48,7 @@ function DeepLinkHandler({onInitialUrl}: DeepLinkHandlerProps) {
                 if (introSelected === undefined) {
                     Log.info('[Deep link] introSelected is undefined when processing initial URL', false, {url});
                 }
-                openReportFromDeepLink(url, allReports, isAuthenticated, conciergeReportID, introSelected, isSelfTourViewed, betas);
+                openReportFromDeepLink(url, allReports, isAuthenticated, conciergeReportID, introSelected, betas);
             } else {
                 Report.doneCheckingPublicRoom();
             }
@@ -67,14 +65,14 @@ function DeepLinkHandler({onInitialUrl}: DeepLinkHandlerProps) {
                 Log.info('[Deep link] introSelected is undefined when processing URL change', false, {url: state.url});
             }
             const isCurrentlyAuthenticated = hasAuthToken();
-            openReportFromDeepLink(state.url, allReports, isCurrentlyAuthenticated, conciergeReportID, introSelected, isSelfTourViewed, betas);
+            openReportFromDeepLink(state.url, allReports, isCurrentlyAuthenticated, conciergeReportID, introSelected, betas);
         });
 
         return () => {
             linkingChangeListener.current?.remove();
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps -- we only want this effect to re-run when conciergeReportID changes
-    }, [sessionMetadata?.status, conciergeReportID, introSelected, isSelfTourViewed, betas]);
+    }, [sessionMetadata?.status, conciergeReportID, introSelected, betas]);
 
     return null;
 }

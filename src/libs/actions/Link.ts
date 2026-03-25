@@ -238,7 +238,6 @@ function openReportFromDeepLink(
     isAuthenticated: boolean,
     conciergeReportID: string | undefined,
     introSelected: OnyxEntry<IntroSelected>,
-    isSelfTourViewed: boolean | undefined,
     betas: OnyxEntry<Beta[]>,
 ) {
     const reportID = getReportIDFromLink(url);
@@ -343,7 +342,8 @@ function openReportFromDeepLink(
                                         Navigation.navigate(lastAccessedReportRoute, {forceReplace: Navigation.getTopmostReportId() === reportID});
                                         return;
                                     }
-                                    navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas, false, () => true);
+                                    // TODO: We'll pass isSelfTourViewed in the next PR. Refactor issue: https://github.com/Expensify/App/issues/66424
+                                    navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, undefined, betas, false, () => true);
                                     return;
                                 }
 

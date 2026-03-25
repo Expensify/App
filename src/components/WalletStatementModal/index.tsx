@@ -1,4 +1,3 @@
-import {hasSeenTourSelector} from '@selectors/Onboarding';
 import React, {useState} from 'react';
 import {View} from 'react-native';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
@@ -16,7 +15,6 @@ function WalletStatementModal({statementPageURL}: WalletStatementProps) {
 
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     /**
      * Handles in-app navigation for iframe links
@@ -24,7 +22,7 @@ function WalletStatementModal({statementPageURL}: WalletStatementProps) {
     const navigate = (event: MessageEvent<WalletStatementMessage>) => {
         const {data} = event;
         const {type, url} = data || {};
-        handleWalletStatementNavigation(conciergeReportID, introSelected, session?.accountID, isSelfTourViewed, betas, type, url);
+        handleWalletStatementNavigation(conciergeReportID, introSelected, session?.accountID, betas, type, url);
     };
 
     return (
