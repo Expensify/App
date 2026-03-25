@@ -45,16 +45,4 @@ type NativeBiometricsKeyInfo = {
     };
 };
 
-type NativeBiometricsEC256KeyInfo = {
-    rawId: Base64URLString;
-    type: typeof VALUES.ED25519_TYPE;
-    response: {
-        clientDataJSON: Base64URLString;
-        biometric: {
-            publicKey: Base64URLString;
-            algorithm: typeof CONST.COSE_ALGORITHM.ES256;
-        };
-    };
-};
-
-export type {MultifactorAuthenticationKeyStoreStatus, MultifactorAuthenticationKeyType, MultifactorKeyStoreOptions, NativeBiometricsKeyInfo, NativeBiometricsEC256KeyInfo};
+export type {MultifactorAuthenticationKeyStoreStatus, MultifactorAuthenticationKeyType, MultifactorKeyStoreOptions, NativeBiometricsKeyInfo};

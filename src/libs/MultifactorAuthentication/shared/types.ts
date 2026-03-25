@@ -5,7 +5,8 @@
 import type {ValueOf} from 'type-fest';
 import type {MultifactorAuthenticationScenario, MultifactorAuthenticationScenarioAdditionalParams} from '@components/MultifactorAuthentication/config/types';
 import type {SECURE_STORE_VALUES} from '@libs/MultifactorAuthentication/NativeBiometrics/SecureStore';
-import type {NativeBiometricsEC256KeyInfo, NativeBiometricsKeyInfo} from '@libs/MultifactorAuthentication/NativeBiometrics/types';
+import type {NativeBiometricsKeyInfo} from '@libs/MultifactorAuthentication/NativeBiometrics/types';
+import type {NativeBiometricsEC256KeyInfo} from '@libs/MultifactorAuthentication/NativeBiometricsEC256/types';
 import type {PasskeyRegistrationKeyInfo} from '@libs/MultifactorAuthentication/Passkeys/types';
 import type {PASSKEY_AUTH_TYPE} from '@libs/MultifactorAuthentication/Passkeys/WebAuthn';
 import type {SignedChallenge} from './challengeTypes';

@@ -1,121 +1,23 @@
-import type {BiometricSensorInfo} from '@sbaiahmed1/react-native-biometrics';
-import {createKeys, deleteKeys, getAllKeys, InputEncoding, isSensorAvailable, sha256, signWithOptions} from '@sbaiahmed1/react-native-biometrics';
+import {createKeys, deleteKeys, getAllKeys, InputEncoding, sha256, signWithOptions} from '@sbaiahmed1/react-native-biometrics';
 import {Buffer} from 'buffer';
 import {useCallback} from 'react';
-import type {ValueOf} from 'type-fest';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
-import {SECURE_STORE_VALUES} from '@libs/MultifactorAuthentication/NativeBiometrics/SecureStore';
-import type {NativeBiometricsEC256KeyInfo} from '@libs/MultifactorAuthentication/NativeBiometrics/types';
-import type {AuthTypeInfo, MultifactorAuthenticationReason} from '@libs/MultifactorAuthentication/shared/types';
+import {
+    base64ToBase64url,
+    getKeyAlias,
+    getSensorResult,
+    mapAuthTypeNumber,
+    mapBiometryTypeToAuthType,
+    mapLibraryError,
+    mapSignErrorCode,
+} from '@libs/MultifactorAuthentication/NativeBiometricsEC256/helpers';
+import type {NativeBiometricsEC256KeyInfo} from '@libs/MultifactorAuthentication/NativeBiometricsEC256/types';
 import VALUES from '@libs/MultifactorAuthentication/VALUES';
 import CONST from '@src/CONST';
 import Base64URL from '@src/utils/Base64URL';
 import type {AuthorizeParams, AuthorizeResult, RegisterResult, UseBiometricsReturn} from './shared/types';
 import useServerCredentials from './shared/useServerCredentials';
-
-/**
- * Converts standard base64 to base64url encoding.
- */
-function base64ToBase64url(b64: string): string {
-    return b64.replaceAll('+', '-').replaceAll('/', '_').replace(/=+$/, '');
-}
-
-/**
- * Builds the key alias for a given account.
- */
-function getKeyAlias(accountID: number): string {
-    return `${accountID}_${CONST.MULTIFACTOR_AUTHENTICATION.EC256_KEY_SUFFIX}`;
-}
-
-/**
- * Called once at module load.
- */
-let sensorResult: BiometricSensorInfo = {available: false};
-
-isSensorAvailable()
-    .then((result) => {
-        sensorResult = result;
-    })
-    .catch(() => {
-        // sensorResult stays { available: false }
-    });
-
-type SecureStoreAuthTypeEntry = ValueOf<typeof SECURE_STORE_VALUES.AUTH_TYPE>;
-
-/**
- * Maps authType number from signWithOptions (with returnAuthType: true) to AuthTypeInfo.
- * Native layer returns: -1=Unknown, 0=None, 1=DeviceCredentials, 2=Biometrics, 3=FaceID, 4=TouchID, 5=OpticID
- */
-const AUTH_TYPE_NUMBER_MAP = new Map<number, SecureStoreAuthTypeEntry>([
-    [-1, SECURE_STORE_VALUES.AUTH_TYPE.UNKNOWN],
-    [0, SECURE_STORE_VALUES.AUTH_TYPE.NONE],
-    [1, SECURE_STORE_VALUES.AUTH_TYPE.CREDENTIALS],
-    [2, SECURE_STORE_VALUES.AUTH_TYPE.BIOMETRICS],
-    [3, SECURE_STORE_VALUES.AUTH_TYPE.FACE_ID],
-    [4, SECURE_STORE_VALUES.AUTH_TYPE.TOUCH_ID],
-    [5, SECURE_STORE_VALUES.AUTH_TYPE.OPTIC_ID],
-]);
-
-function mapAuthTypeNumber(authType?: number): AuthTypeInfo | undefined {
-    if (authType === undefined) {
-        return undefined;
-    }
-    const entry = AUTH_TYPE_NUMBER_MAP.get(authType);
-    if (!entry) {
-        return undefined;
-    }
-    return {code: entry.CODE, name: entry.NAME, marqetaValue: entry.MARQETA_VALUE};
-}
-
-/**
- * Maps biometryType string from isSensorAvailable to AuthTypeInfo (used during registration).
- */
-const BIOMETRY_TYPE_MAP: Record<string, SecureStoreAuthTypeEntry> = {
-    FaceID: SECURE_STORE_VALUES.AUTH_TYPE.FACE_ID,
-    TouchID: SECURE_STORE_VALUES.AUTH_TYPE.TOUCH_ID,
-    Biometrics: SECURE_STORE_VALUES.AUTH_TYPE.BIOMETRICS,
-    OpticID: SECURE_STORE_VALUES.AUTH_TYPE.OPTIC_ID,
-};
-
-function mapBiometryTypeToAuthType(biometryType?: string, isDeviceSecure?: boolean): AuthTypeInfo | undefined {
-    let entry = BIOMETRY_TYPE_MAP[biometryType ?? ''];
-    if (!entry) {
-        if (isDeviceSecure) {
-            entry = SECURE_STORE_VALUES.AUTH_TYPE.CREDENTIALS;
-        } else {
-            return undefined;
-        }
-    }
-    return {code: entry.CODE, name: entry.NAME, marqetaValue: entry.MARQETA_VALUE};
-}
-
-/**
- * Maps library errorCode strings to existing REASON values.
- */
-function mapSignErrorCode(errorCode?: string): MultifactorAuthenticationReason | undefined {
-    if (!errorCode) {
-        return undefined;
-    }
-    if (errorCode.toLowerCase().includes('cancel')) {
-        return VALUES.REASON.EXPO.CANCELED;
-    }
-    if (errorCode.toLowerCase().includes('not available')) {
-        return VALUES.REASON.EXPO.NOT_SUPPORTED;
-    }
-    return VALUES.REASON.EXPO.GENERIC;
-}
-
-/**
- * Maps caught exceptions from the library to REASON values.
- */
-function mapLibraryError(e: unknown): MultifactorAuthenticationReason | undefined {
-    const msg = e instanceof Error ? e.message : String(e);
-    if (msg.toLowerCase().includes('cancel')) {
-        return VALUES.REASON.EXPO.CANCELED;
-    }
-    return undefined;
-}
 
 /**
  * Native biometrics hook using EC P-256 keys via react-native-biometrics.
@@ -128,6 +30,7 @@ function useNativeBiometricsEC256(): UseBiometricsReturn {
     const {serverKnownCredentialIDs, haveCredentialsEverBeenConfigured} = useServerCredentials();
 
     const doesDeviceSupportAuthenticationMethod = useCallback(() => {
+        const sensorResult = getSensorResult();
         return sensorResult.isDeviceSecure ?? sensorResult.available;
     }, []);
 
@@ -161,6 +64,7 @@ function useNativeBiometricsEC256(): UseBiometricsReturn {
             const credentialID = base64ToBase64url(publicKey);
 
             // Map biometryType from module-level cache to auth type
+            const sensorResult = getSensorResult();
             const authType = mapBiometryTypeToAuthType(sensorResult.biometryType, sensorResult.isDeviceSecure);
             if (!authType) {
                 onResult({success: false, reason: VALUES.REASON.GENERIC.BAD_REQUEST});
@@ -170,7 +74,7 @@ function useNativeBiometricsEC256(): UseBiometricsReturn {
             const clientDataJSON = JSON.stringify({challenge: registrationChallenge.challenge});
             const keyInfo: NativeBiometricsEC256KeyInfo = {
                 rawId: credentialID,
-                type: CONST.MULTIFACTOR_AUTHENTICATION.ED25519_TYPE,
+                type: CONST.MULTIFACTOR_AUTHENTICATION.EC256_TYPE,
                 response: {
                     clientDataJSON: Base64URL.encode(clientDataJSON),
                     biometric: {
@@ -252,7 +156,7 @@ function useNativeBiometricsEC256(): UseBiometricsReturn {
                 reason: VALUES.REASON.CHALLENGE.CHALLENGE_SIGNED,
                 signedChallenge: {
                     rawId: credentialID,
-                    type: CONST.MULTIFACTOR_AUTHENTICATION.ED25519_TYPE,
+                    type: CONST.MULTIFACTOR_AUTHENTICATION.EC256_TYPE,
                     response: {
                         authenticatorData: base64ToBase64url(authenticatorData.toString('base64')),
                         clientDataJSON: Base64URL.encode(clientDataJSON),
