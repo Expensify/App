@@ -127,7 +127,7 @@ function SearchRowSkeleton({shouldAnimate = true, fixedNumItems, gradientOpacity
                 fixedNumItems={fixedNumItems}
                 gradientOpacityEnabled={gradientOpacityEnabled}
                 onLayout={onLayout}
-                itemViewStyle={[styles.highlightBG, styles.mb2, styles.br3, styles.ml5]}
+                itemViewStyle={[styles.highlightBG, {marginRight: 0}]}
                 itemViewHeight={variables.tableRowHeight}
                 style={[styles.mh5, styles.overflowHidden, isLoadMore && styles.searchTableBottomRadius, !isLoadMore && styles.searchTableTopRadius]}
                 renderSkeletonItem={() => (
