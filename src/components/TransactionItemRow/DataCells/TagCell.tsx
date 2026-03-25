@@ -1,5 +1,5 @@
 import React from 'react';
-import TextWithIconCell from '@components/SelectionListWithSections/Search/TextWithIconCell';
+import TextWithIconCell from '@components/Search/SearchList/ListItem/TextWithIconCell';
 import type {EditableProps} from '@components/Table/EditableCell';
 import {EditableCell, usePopoverEditState} from '@components/Table/EditableCell';
 import TagPickerModal from '@components/TagPicker/TagPickerModal';

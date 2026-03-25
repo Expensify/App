@@ -1,7 +1,7 @@
-import React, {useCallback} from 'react';
+import React from 'react';
 import CategoryPickerModal from '@components/CategoryPicker/CategoryPickerModal';
+import TextWithIconCell from '@components/Search/SearchList/ListItem/TextWithIconCell';
 import type {ListItem} from '@components/SelectionList/types';
-import TextWithIconCell from '@components/SelectionListWithSections/Search/TextWithIconCell';
 import {EditableCell, usePopoverEditState} from '@components/Table/EditableCell';
 import type {EditableProps} from '@components/Table/EditableCell';
 import TextWithTooltip from '@components/TextWithTooltip';
@@ -22,15 +22,12 @@ function CategoryCell({shouldUseNarrowLayout, shouldShowTooltip, transactionItem
 
     const categoryForDisplay = isCategoryMissing(transactionItem?.category) ? '' : getDecodedCategoryName(transactionItem?.category ?? '');
 
-    const handleCategorySelected = useCallback(
-        (item: ListItem) => {
-            if (item.keyForList) {
-                onSave?.(String(item.keyForList));
-            }
-            cancelEditing();
-        },
-        [onSave, cancelEditing],
-    );
+    const handleCategorySelected = (item: ListItem) => {
+        if (item.keyForList) {
+            onSave?.(String(item.keyForList));
+        }
+        cancelEditing();
+    };
 
     const displayContent = shouldUseNarrowLayout ? (
         <TextWithIconCell

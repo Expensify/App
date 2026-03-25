@@ -423,7 +423,7 @@ const ONYXKEYS = {
     MY_DOMAIN_SECURITY_GROUPS: 'myDomainSecurityGroups',
 
     // The theme setting set by the user in preferences.
-    // This can be either "light", "dark" or "system"
+    // This can be either "light", "dark", "system", "light-contrast", "dark-contrast" or "system-contrast"
     PREFERRED_THEME: 'nvp_preferredTheme',
 
     // Information about the onyx updates IDs that were received from the server
@@ -725,7 +725,6 @@ const ONYXKEYS = {
         REPORT_USER_IS_TYPING: 'reportUserIsTyping_',
         PENDING_CONCIERGE_RESPONSE: 'pendingConciergeResponse_',
         REPORT_USER_IS_LEAVING_ROOM: 'reportUserIsLeavingRoom_',
-        REPORT_VIOLATIONS: 'reportViolations_',
         SECURITY_GROUP: 'securityGroup_',
         TRANSACTION: 'transactions_',
         TRANSACTION_VIOLATIONS: 'transactionViolations_',
@@ -998,6 +997,8 @@ const ONYXKEYS = {
         SAGE_INTACCT_DIMENSION_TYPE_FORM_DRAFT: 'sageIntacctDimensionTypeFormDraft',
         SEARCH_ADVANCED_FILTERS_FORM: 'searchAdvancedFiltersForm',
         SEARCH_ADVANCED_FILTERS_FORM_DRAFT: 'searchAdvancedFiltersFormDraft',
+        SEARCH_SAVE_FORM: 'searchSaveForm',
+        SEARCH_SAVE_FORM_DRAFT: 'searchSaveFormDraft',
         SEARCH_SAVED_SEARCH_RENAME_FORM: 'searchSavedSearchRenameForm',
         SEARCH_SAVED_SEARCH_RENAME_FORM_DRAFT: 'searchSavedSearchRenameFormDraft',
         TEXT_PICKER_MODAL_FORM: 'textPickerModalForm',
@@ -1052,6 +1053,7 @@ const ONYXKEYS = {
         PERSONAL_AND_WORKSPACE_CARD_LIST: 'personalAndWorkspaceCardList',
         CARD_FEED_ERRORS: 'cardFeedErrors',
         TODOS: 'todos',
+        SORTED_REPORT_ACTIONS: 'sortedReportActions',
     },
 
     /** Stores HybridApp specific state required to interoperate with OldDot */
@@ -1163,6 +1165,7 @@ type OnyxFormValuesMapping = {
     [ONYXKEYS.FORMS.RULES_MAX_EXPENSE_AGE_FORM]: FormTypes.RulesMaxExpenseAgeForm;
     [ONYXKEYS.FORMS.RULES_CUSTOM_FORM]: FormTypes.RulesCustomForm;
     [ONYXKEYS.FORMS.SEARCH_SAVED_SEARCH_RENAME_FORM]: FormTypes.SearchSavedSearchRenameForm;
+    [ONYXKEYS.FORMS.SEARCH_SAVE_FORM]: FormTypes.SearchSaveForm;
     [ONYXKEYS.FORMS.DEBUG_DETAILS_FORM]: FormTypes.DebugReportForm | FormTypes.DebugReportActionForm | FormTypes.DebugTransactionForm | FormTypes.DebugTransactionViolationForm;
     [ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM]: FormTypes.OnboardingWorkEmailForm;
     [ONYXKEYS.FORMS.MERGE_ACCOUNT_DETAILS_FORM]: FormTypes.MergeAccountDetailsForm;
@@ -1210,7 +1213,6 @@ type OnyxCollectionValuesMapping = {
     [ONYXKEYS.COLLECTION.REPORT_USER_IS_TYPING]: OnyxTypes.ReportUserIsTyping;
     [ONYXKEYS.COLLECTION.PENDING_CONCIERGE_RESPONSE]: OnyxTypes.PendingConciergeResponse;
     [ONYXKEYS.COLLECTION.REPORT_USER_IS_LEAVING_ROOM]: boolean;
-    [ONYXKEYS.COLLECTION.REPORT_VIOLATIONS]: OnyxTypes.ReportViolations;
     [ONYXKEYS.COLLECTION.SECURITY_GROUP]: OnyxTypes.SecurityGroup;
     [ONYXKEYS.COLLECTION.TRANSACTION]: OnyxTypes.Transaction;
     [ONYXKEYS.COLLECTION.TRANSACTION_DRAFT]: OnyxTypes.Transaction;
@@ -1486,6 +1488,7 @@ type OnyxDerivedValuesMapping = {
     [ONYXKEYS.DERIVED.PERSONAL_AND_WORKSPACE_CARD_LIST]: OnyxTypes.PersonalAndWorkspaceCardListDerivedValue;
     [ONYXKEYS.DERIVED.CARD_FEED_ERRORS]: OnyxTypes.CardFeedErrorsDerivedValue;
     [ONYXKEYS.DERIVED.TODOS]: OnyxTypes.TodosDerivedValue;
+    [ONYXKEYS.DERIVED.SORTED_REPORT_ACTIONS]: OnyxTypes.SortedReportActionsDerivedValue;
 };
 
 type OnyxValues = OnyxValuesMapping & OnyxCollectionValuesMapping & OnyxFormValuesMapping & OnyxFormDraftValuesMapping & OnyxDerivedValuesMapping;
