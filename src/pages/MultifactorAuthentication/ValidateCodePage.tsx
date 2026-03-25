@@ -7,6 +7,7 @@ import MagicCodeInput from '@components/MagicCodeInput';
 import type {MagicCodeInputHandle} from '@components/MagicCodeInput';
 import {DefaultCancelConfirmModal} from '@components/MultifactorAuthentication/components/Modals';
 import {useMultifactorAuthentication, useMultifactorAuthenticationActions, useMultifactorAuthenticationState} from '@components/MultifactorAuthentication/Context';
+import addMFABreadcrumb from '@components/MultifactorAuthentication/observability/breadcrumbs';
 import MultifactorAuthenticationValidateCodeResendButton from '@components/MultifactorAuthentication/ValidateCodeResendButton';
 import type {MultifactorAuthenticationValidateCodeResendButtonHandle} from '@components/MultifactorAuthentication/ValidateCodeResendButton';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -150,7 +151,13 @@ function MultifactorAuthenticationValidateCodePage() {
         if (hasValidateCodeActionError) {
             clearValidateCodeActionError('actionVerified');
         }
-        requestValidateCodeAction();
+        addMFABreadcrumb('Validate code resend requested');
+        requestValidateCodeAction().then((response) => {
+            if (response?.jsonCode === CONST.JSON_CODE.SUCCESS) {
+                return;
+            }
+            addMFABreadcrumb('Validate code resend failed', {jsonCode: response?.jsonCode, message: response?.message}, 'error');
+        });
         inputRef.current?.clear();
         setInputCode('');
         setFormError({});
