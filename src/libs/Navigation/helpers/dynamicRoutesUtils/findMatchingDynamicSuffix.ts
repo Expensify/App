@@ -28,13 +28,17 @@ function findMatchingDynamicSuffix(path = ''): DynamicSuffixMatch | undefined {
 
     const segments = normalizedPath.split('/').filter(Boolean);
 
+    // Iterate from the full path (longest candidate) down to single-segment suffixes.
+    // This guarantees the longest matching suffix is returned first.
     for (let i = 0; i < segments.length; i++) {
         const candidate = segments.slice(i).join('/');
 
+        // Static match (e.g. 'country', 'verify-account')
         if (dynamicRoutePaths.has(candidate)) {
             return {pattern: candidate, actualSuffix: candidate, pathParams: {}};
         }
 
+        // Parametric pattern match - only check patterns with the same segment count.
         const candidateSegmentCount = segments.length - i;
         const matchingEntries = parametricEntriesBySegmentCount.get(candidateSegmentCount);
         if (matchingEntries) {

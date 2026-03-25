@@ -54,6 +54,7 @@ function useDynamicBackPath(dynamicRouteSuffix: DynamicRouteSuffix): Route {
         }
     }
 
+    // No match found - the suffix is not at the end of the current path.
     return pathWithoutLeadingSlash as Route;
 }
 

@@ -4,7 +4,7 @@ type PatternMatch = {
 
 /**
  * Matches a URL path candidate against a route pattern with :param placeholders.
- * Static segments must match exactly; :param segments capture any value.
+ * Static segments must match exactly; :param segments capture any non-empty value.
  * Mirrors React Navigation's segment-by-segment matching approach.
  *
  * @param candidate - The actual URL suffix, e.g. 'flag/123/abc'
@@ -15,6 +15,7 @@ function matchPathPattern(candidate: string, pattern: string): PatternMatch | un
     const candidateSegments = candidate.split('/').filter(Boolean);
     const patternSegments = pattern.split('/').filter(Boolean);
 
+    // Quick reject: different segment counts can never match.
     if (candidateSegments.length !== patternSegments.length) {
         return undefined;
     }

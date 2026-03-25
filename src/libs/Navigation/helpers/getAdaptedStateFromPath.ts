@@ -172,13 +172,16 @@ function getMatchingFullScreenRoute(route: NavigationPartialRoute) {
     if (route.path) {
         const suffixMatch = findMatchingDynamicSuffix(route.path);
         if (suffixMatch) {
+            // Strip the suffix from the URL. For parametric routes we pass both the actual URL
+            // suffix and the registered pattern so query params can be resolved correctly.
             const pathWithoutDynamicSuffix = getPathWithoutDynamicSuffix(route.path, suffixMatch.actualSuffix, suffixMatch.pattern);
 
             if (!pathWithoutDynamicSuffix) {
                 return undefined;
             }
 
-            // Get navigation state for the base path without dynamic suffix
+            // Parse the base path (without dynamic suffix) into a navigation state
+            // to determine which full-screen route should be visible underneath the overlay.
             const stateUnderDynamicRoute = getStateFromPath(pathWithoutDynamicSuffix);
             const lastRoute = stateUnderDynamicRoute?.routes.at(-1);
 

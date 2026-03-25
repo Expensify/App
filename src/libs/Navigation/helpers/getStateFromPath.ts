@@ -30,15 +30,20 @@ function getStateFromPath(path: Route): PartialState<NavigationState> {
         type DynamicRouteKey = keyof typeof DYNAMIC_ROUTES;
         const dynamicRouteKeys = Object.keys(DYNAMIC_ROUTES) as DynamicRouteKey[];
 
-        // Find the dynamic route key that matches the extracted suffix
+        // Find the DYNAMIC_ROUTES config key whose path matches the extracted pattern.
         const dynamicRoute = dynamicRouteKeys.find((key) => DYNAMIC_ROUTES[key].path === pattern) ?? '';
 
-        // Get the currently focused route from the base path to check permissions
+        // Recursively parse the base path (without suffix) to determine which screen is "underneath".
+        // The focused route tells us which screen the user is on, so we can verify it's allowed
+        // to open this dynamic route (via entryScreens).
         const focusedRoute = findFocusedRouteWithOnyxTabGuard(getStateFromPath(pathWithoutDynamicSuffix) ?? {});
         const entryScreens: ReadonlyArray<Screen | '*'> = DYNAMIC_ROUTES[dynamicRoute as DynamicRouteKey]?.entryScreens ?? [];
 
         if (focusedRoute?.name) {
             if (entryScreens.some((s) => s === '*' || s === focusedRoute.name)) {
+                // Merge the base route's params with
+                // params extracted from the dynamic suffix.
+                // This gives the dynamic route screen access to all context it needs.
                 const mergedParams = {
                     ...(focusedRoute?.params as Record<string, unknown> | undefined),
                     ...pathParams,
@@ -47,6 +52,8 @@ function getStateFromPath(path: Route): PartialState<NavigationState> {
                 return dynamicRouteState;
             }
 
+            // Fallback: if the base path is empty
+            // there's no underlying screen - show Not Found.
             if (!pathWithoutDynamicSuffix) {
                 const state = {routes: [{name: SCREENS.NOT_FOUND, path: normalizedPathAfterRedirection}]};
 
