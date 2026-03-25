@@ -2,7 +2,6 @@ import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import type {ValueOf} from 'react-native-gesture-handler/lib/typescript/typeUtils';
 import type {OnyxCollection} from 'react-native-onyx';
-import Button from '@components/Button';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
@@ -18,7 +17,6 @@ import useSingleExecution from '@hooks/useSingleExecution';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
 import type {WorkspaceListItem} from '@hooks/useWorkspaceList';
-import {saveSearch} from '@libs/actions/Search';
 import {createCardFeedKey, getCardFeedKey, getCardFeedNamesWithType, getWorkspaceCardFeedKey} from '@libs/CardFeedUtils';
 import {getCardDescription} from '@libs/CardUtils';
 import {convertToDisplayStringWithoutCurrency} from '@libs/CurrencyUtils';
@@ -31,7 +29,6 @@ import {
     buildFilterQueryWithSortDefaults,
     buildSearchQueryJSON,
     getCurrentSearchQueryJSON,
-    isCannedSearchQuery,
     isSearchDatePreset,
     sortOptionsWithEmptyValue,
 } from '@libs/SearchQueryUtils';
@@ -581,21 +578,6 @@ function AdvancedSearchFilters() {
         );
     };
 
-    const onSaveSearch = () => {
-        const savedSearchKeys = Object.keys(savedSearches ?? {});
-        if (!queryJSON || (savedSearches && savedSearchKeys.includes(String(queryJSON.hash)))) {
-            // If the search is already saved, we only display the results as we don't need to save it.
-            applyFiltersAndNavigate();
-            return;
-        }
-
-        saveSearch({
-            queryJSON,
-        });
-
-        Navigation.setNavigationActionToMicrotaskQueue(() => applyFiltersAndNavigate());
-    };
-
     const filters = typeFiltersKeys.map((section) => {
         return section.map((key) => {
             const onPress = singleExecution(waitForNavigate(() => Navigation.navigate(baseFilterConfig[key].route)));
@@ -632,8 +614,6 @@ function AdvancedSearchFilters() {
             };
         });
     });
-
-    const displaySearchButton = queryJSON && !isCannedSearchQuery(queryJSON);
 
     const sections: SectionType[] = [
         {
@@ -704,15 +684,6 @@ function AdvancedSearchFilters() {
                     })}
                 </View>
             </ScrollView>
-            {!!displaySearchButton && (
-                <Button
-                    text={translate('search.saveSearch')}
-                    onPress={onSaveSearch}
-                    style={[styles.mh4, styles.mt4]}
-                    large
-                    sentryLabel={CONST.SENTRY_LABEL.SEARCH.SAVE_SEARCH_BUTTON}
-                />
-            )}
             <FormAlertWithSubmitButton
                 buttonText={translate('search.viewResults')}
                 containerStyles={[styles.m4, styles.mb5]}
