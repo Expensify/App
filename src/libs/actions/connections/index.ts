@@ -16,7 +16,7 @@ type ConnectionNameExceptNetSuite = Exclude<ConnectionName, typeof CONST.POLICY.
 
 function removePolicyConnection(policy: Policy, connectionName: PolicyConnectionName) {
     const policyID = policy.id;
-    const workspaceAccountID = policy?.workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID;
+    const workspaceAccountID = policy?.policyAccountID ?? CONST.DEFAULT_NUMBER_ID;
 
     const optimisticData: Array<
         OnyxUpdate<

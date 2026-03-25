@@ -17,7 +17,7 @@ function useIsAllowedToIssueCompanyCard({policyID}: {policyID?: string}) {
     const selectedFeedData = selectedFeed && companyCards[selectedFeed];
     const [adminAccess] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_ADMIN_ACCESS}${selectedFeedData?.domainID}`);
 
-    if (selectedFeedData?.domainID === policy?.workspaceAccountID) {
+    if (selectedFeedData?.domainID === policy?.policyAccountID) {
         return isPolicyAdmin;
     }
 

@@ -392,7 +392,7 @@ function deleteWorkspace(params: DeleteWorkspaceActionParams) {
 
     const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
     const filteredPolicies = Object.values(policies ?? {}).filter((p): p is Policy => p?.id !== policyID);
-    const workspaceAccountID = policy?.workspaceAccountID;
+    const workspaceAccountID = policy?.policyAccountID;
 
     const optimisticData: Array<
         OnyxUpdate<
@@ -3110,7 +3110,7 @@ function buildDuplicatePolicyData(policy: Policy, options: DuplicatePolicyDataOp
                 arePerDiemRatesEnabled: isPerDiemOptionSelected,
                 isTravelEnabled: isTravelOptionSelected ? policy?.isTravelEnabled : undefined,
                 travelSettings: undefined,
-                workspaceAccountID: undefined,
+                policyAccountID: undefined,
                 tax: isTaxesOptionSelected ? policy?.tax : undefined,
                 employeeList: isMemberOptionSelected ? policy.employeeList : {[policy.owner]: policy?.employeeList?.[policy.owner]},
                 id: targetPolicyID,

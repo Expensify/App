@@ -15,10 +15,10 @@ type StatementCloseDateStepProps = {
     policyID: string | undefined;
 
     /** Workspace account ID of the current policy */
-    workspaceAccountID: number;
+    policyAccountID: number;
 };
 
-function StatementCloseDateStep({policyID, workspaceAccountID}: StatementCloseDateStepProps) {
+function StatementCloseDateStep({policyID, policyAccountID}: StatementCloseDateStepProps) {
     const {translate} = useLocalize();
     const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD);
     const [lastSelectedFeed] = useOnyx(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${policyID}`);
@@ -39,7 +39,7 @@ function StatementCloseDateStep({policyID, workspaceAccountID}: StatementCloseDa
         if (addNewCard?.data.feedDetails) {
             addNewCompanyCardsFeed(
                 policyID,
-                workspaceAccountID,
+                policyAccountID,
                 addNewCard.data.feedType,
                 addNewCard.data.feedDetails,
                 cardFeeds,
