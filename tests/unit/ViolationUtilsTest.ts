@@ -1393,11 +1393,11 @@ describe('getViolationTranslation', () => {
             type: CONST.VIOLATION_TYPES.VIOLATION,
         };
 
-        // 16840 meters ≈ 16840 * 0.001 km = 16.84 km
-        // 16840 meters ≈ 16840 * 0.000621371 mi ≈ 10.46 mi
+        const metersToKm = 0.001;
+        const metersToMiles = 0.000621371;
         const routeDistanceMeters = 16840;
-        const routeDistanceKm = '16.84 km';
-        const routeDistanceMi = '10.46 mi';
+        const routeDistanceKm = `${(routeDistanceMeters * metersToKm).toFixed(2)} km`;
+        const routeDistanceMi = `${(routeDistanceMeters * metersToMiles).toFixed(2)} mi`;
 
         /* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-explicit-any */
         const enTranslate = ((path: string, ...params: unknown[]) => {
