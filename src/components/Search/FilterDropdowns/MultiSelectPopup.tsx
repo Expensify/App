@@ -1,5 +1,6 @@
 import React, {useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
+import ActivityIndicator from '@components/ActivityIndicator';
 import Button from '@components/Button';
 import SelectionList from '@components/SelectionList';
 import MultiSelectListItem from '@components/SelectionList/ListItem/MultiSelectListItem';
@@ -8,8 +9,10 @@ import Text from '@components/Text';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import CONST from '@src/CONST';
 import type {Icon} from '@src/types/onyx/OnyxCommon';
 
@@ -45,9 +48,11 @@ type MultiSelectPopupProps<T> = {
     loading?: boolean;
 };
 
-function MultiSelectPopup<T extends string>({label, value, items, closeOverlay, onChange, isSearchable, searchPlaceholder}: MultiSelectPopupProps<T>) {
+function MultiSelectPopup<T extends string>({label, loading, value, items, closeOverlay, onChange, isSearchable, searchPlaceholder}: MultiSelectPopupProps<T>) {
+    const theme = useTheme();
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
     const {windowHeight} = useWindowDimensions();
@@ -102,18 +107,30 @@ function MultiSelectPopup<T extends string>({label, value, items, closeOverlay, 
         [searchTerm, isSearchable, searchPlaceholder, translate, setSearchTerm, headerMessage],
     );
 
+    const reasonAttributes: SkeletonSpanReasonAttributes = {context: 'MultiSelectPopupDataLoading'};
+
     return (
         <View style={[!isSmallScreenWidth && styles.pv4, styles.gap2]}>
             {isSmallScreenWidth && <Text style={[styles.textLabel, styles.textSupporting, styles.ph5, styles.pv1]}>{label}</Text>}
 
             <View style={[styles.getSelectionListPopoverHeight(listData.length || 1, windowHeight, isSearchable ?? false)]}>
-                <SelectionList
-                    shouldSingleExecuteRowSelect
-                    data={listData}
-                    ListItem={MultiSelectListItem}
-                    onSelectRow={updateSelectedItems}
-                    textInputOptions={textInputOptions}
-                />
+                {!!loading && (
+                    <ActivityIndicator
+                        size={CONST.ACTIVITY_INDICATOR_SIZE.SMALL}
+                        color={theme.spinner}
+                        reasonAttributes={reasonAttributes}
+                    />
+                )}
+
+                {!loading && (
+                    <SelectionList
+                        shouldSingleExecuteRowSelect
+                        data={listData}
+                        ListItem={MultiSelectListItem}
+                        onSelectRow={updateSelectedItems}
+                        textInputOptions={textInputOptions}
+                    />
+                )}
             </View>
 
             <View style={[styles.flexRow, styles.gap2, styles.ph5]}>
