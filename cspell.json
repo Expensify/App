@@ -551,6 +551,7 @@
         "phonenumber",
         "Picklist",
         "picklists",
+        "PINATM",
         "PINGPONG",
         "pkill",
         "Pluginfile",
@@ -650,6 +651,7 @@
         "Salagatan",
         "samltool",
         "Saqbd",
+        "sbaiahmed",
         "SBFJ",
         "Scaleway",
         "Scaleway's",
@@ -668,10 +670,10 @@
         "Sepa",
         "serveo",
         "setuptools",
-        "shareeEmail",
-        "Sharees",
         "sharee",
+        "shareeEmail",
         "sharees",
+        "Sharees",
         "Sharons",
         "shellcheck",
         "shellenv",
@@ -864,8 +866,7 @@
         "zoneinfo",
         "zxcv",
         "zxldvw",
-        "مثال",
-        "PINATM"
+        "مثال"
     ],
     "ignorePaths": [
         "src/languages/de.ts",
@@ -928,6 +929,8 @@
         "web/snippets/gib.js",
         "tests/unit/hooks/useLetterAvatars.test.tsx"
     ],
-    "ignoreRegExpList": ["@assets/.*"],
+    "ignoreRegExpList": [
+        "@assets/.*"
+    ],
     "useGitignore": true
 }
