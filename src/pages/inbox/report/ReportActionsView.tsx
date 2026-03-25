@@ -17,7 +17,7 @@ import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
 import {getReportPreviewAction} from '@libs/actions/IOU';
-import {updateLoadingInitialReportAction} from '@libs/actions/Report';
+import {openReport, updateLoadingInitialReportAction} from '@libs/actions/Report';
 import type {ReasoningEntry} from '@libs/ConciergeReasoningStore';
 import DateUtils from '@libs/DateUtils';
 import getIsReportFullyVisible from '@libs/getIsReportFullyVisible';
@@ -30,6 +30,7 @@ import {
     getMostRecentIOURequestActionID,
     getOriginalMessage,
     getSortedReportActionsForDisplay,
+    isActionOfType,
     isCreatedAction,
     isDeletedParentAction,
     isIOUActionMatchingTransactionList,
@@ -173,6 +174,19 @@ function ReportActionsView({
         }
         updateLoadingInitialReportAction(report.reportID);
     }, [isOffline, report.reportID, reportActionID]);
+
+    const fetchedForStaleReimbursedReportID = useRef<string | null>(null);
+    useEffect(() => {
+        if (fetchedForStaleReimbursedReportID.current === reportID) {
+            return;
+        }
+        const hasStaleReimbursedAction = allReportActions?.some((action) => isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.REIMBURSED) && !getOriginalMessage(action)?.paymentMethod);
+        if (!hasStaleReimbursedAction) {
+            return;
+        }
+        fetchedForStaleReimbursedReportID.current = reportID;
+        openReport({reportID, introSelected: undefined});
+    }, [allReportActions, reportID]);
 
     // Change the list ID only for comment linking to get the positioning right
     const listID = useMemo(() => {

@@ -1078,6 +1078,33 @@ type OriginalMessageMarkedReimbursed = {
     message?: string;
 };
 
+/** Model of `reimbursed` report action */
+type OriginalMessageReimbursed = {
+    /** Whether this action was created from NewDot */
+    isNewDot?: boolean;
+
+    /** Payment method used (e.g., 'Fast_ACH', 'Check', 'StripeConnect', or standard ACH) */
+    paymentMethod?: string;
+
+    /** Last 4 digits of the debit bank account used to fund the payment */
+    debitBankAccountLast4?: string;
+
+    /** Last 4 digits of the credit bank account receiving the payment */
+    creditBankAccountLast4?: string;
+
+    /** Expected completion date for the reimbursement */
+    expectedDate?: string;
+
+    /** Whether this is an invoice or bill payment */
+    isInvoiceOrBill?: boolean;
+
+    /** Whether the submitter is adding a bank account */
+    isSubmitterAddingBankAccount?: boolean;
+
+    /** For StripeConnect payments, indicates payment type ('card' or 'bank account') */
+    stripePaymentType?: string;
+};
+
 /** Model of `trip room preview` report action */
 type OriginalMessageTripRoomPreview = {
     /** ID of the report to be previewed */
@@ -1411,7 +1438,7 @@ type OriginalMessageMap = {
     [CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION]: OriginalMessageMovedTransaction;
     [CONST.REPORT.ACTIONS.TYPE.UNREPORTED_TRANSACTION]: OriginalMessageUnreportedTransaction;
     [CONST.REPORT.ACTIONS.TYPE.OUTDATED_BANK_ACCOUNT]: never;
-    [CONST.REPORT.ACTIONS.TYPE.REIMBURSED]: never;
+    [CONST.REPORT.ACTIONS.TYPE.REIMBURSED]: OriginalMessageReimbursed;
     [CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_ACH_BOUNCE]: never;
     [CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_ACH_CANCELED]: never;
     [CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_ACCOUNT_CHANGED]: never;
@@ -1496,6 +1523,7 @@ export type {
     PolicyBudgetFrequencyValues,
     PolicyBudgetFrequency,
     OriginalMessageMarkedReimbursed,
+    OriginalMessageReimbursed,
     OriginalMessageConciergeAutoMapMccGroups,
     OriginalMessageCompanyCardConnectionBroken,
     OriginalMessagePlaidBalanceFailure,
