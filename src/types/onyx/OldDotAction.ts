@@ -141,6 +141,16 @@ type OriginalMessageOutdatedBankAccount = {
 /**
  *
  */
+type ReimbursementACHBounceOriginalMessage = {
+    /**
+     *
+     */
+    returnReason?: string;
+};
+
+/**
+ *
+ */
 type OriginalMessageReimbursementACHBounce = {
     /**
      *
@@ -149,7 +159,7 @@ type OriginalMessageReimbursementACHBounce = {
     /**
      *
      */
-    originalMessage: Record<string, unknown>;
+    originalMessage: Record<string, unknown> & ReimbursementACHBounceOriginalMessage;
 };
 
 /**

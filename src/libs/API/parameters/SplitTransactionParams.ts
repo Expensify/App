@@ -2,6 +2,7 @@ import type {Comment, WaypointCollection} from '@src/types/onyx/Transaction';
 
 type SplitTransactionSplitParam = {
     transactionID: string;
+    amount: number;
     category?: string;
     tag?: string;
     created: string;
@@ -32,7 +33,7 @@ type SplitTransactionSplitsParam = SplitTransactionSplitParam[];
 
 type SplitTransactionParams = {
     transactionID: string;
-    [key: string]: string | boolean;
+    [key: string]: string | number | boolean;
 };
 
 type RevertSplitTransactionParams = Omit<SplitTransactionSplitParam, 'comment' | 'holdReportActionID' | 'holdReportActionCommentID' | 'copiedComments'> & {comment?: string};
