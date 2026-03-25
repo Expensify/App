@@ -37,16 +37,7 @@ function StatementCloseDateStep({policyID, policyAccountID}: StatementCloseDateS
         }
 
         if (addNewCard?.data.feedDetails) {
-            addNewCompanyCardsFeed(
-                policyID,
-                policyAccountID,
-                addNewCard.data.feedType,
-                addNewCard.data.feedDetails,
-                cardFeeds,
-                statementPeriodEnd,
-                statementPeriodEndDay,
-                lastSelectedFeed,
-            );
+            addNewCompanyCardsFeed(policyID, policyAccountID, addNewCard.data.feedType, addNewCard.data.feedDetails, cardFeeds, statementPeriodEnd, statementPeriodEndDay, lastSelectedFeed);
             Navigation.goBack(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID));
         }
     };
