@@ -3950,7 +3950,14 @@ describe('OptionsListUtils', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
             await waitForBatchedUpdates();
 
-            const result = createOption([1, 2], PERSONAL_DETAILS, report, CURRENT_USER_ACCOUNT_ID, undefined, undefined, {showChatPreviewLine: true});
+            const result = createOption({
+                accountIDs: [1, 2],
+                personalDetails: PERSONAL_DETAILS,
+                report,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                privateIsArchived: undefined,
+                config: {showChatPreviewLine: true},
+            });
 
             expect(result.alternateText).toBe('Iron Man owes ₫34');
         });
@@ -3978,7 +3985,7 @@ describe('OptionsListUtils', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`, chatReport);
             await waitForBatchedUpdates();
 
-            const result = createOption([1, 2], PERSONAL_DETAILS, report, 1, undefined, undefined);
+            const result = createOption({accountIDs: [1, 2], personalDetails: PERSONAL_DETAILS, report, currentUserAccountID: 1, privateIsArchived: undefined});
 
             expect(result.reportID).toBe(reportID);
             expect(typeof result.text).toBe('string');
@@ -3997,7 +4004,7 @@ describe('OptionsListUtils', () => {
             await waitForBatchedUpdates();
 
             // Should not throw when reports is undefined
-            const result = createOption([1, 2], PERSONAL_DETAILS, report, 1, undefined, undefined, undefined);
+            const result = createOption({accountIDs: [1, 2], personalDetails: PERSONAL_DETAILS, report, currentUserAccountID: 1, privateIsArchived: undefined});
 
             expect(result.reportID).toBe(report.reportID);
         });
@@ -6542,7 +6549,13 @@ describe('OptionsListUtils', () => {
             await waitForBatchedUpdates();
 
             // When we call createOption with the linked chat report
-            const result = createOption([1, 2], PERSONAL_DETAILS, expenseReport, CURRENT_USER_ACCOUNT_ID, undefined, undefined);
+            const result = createOption({
+                accountIDs: [1, 2],
+                personalDetails: PERSONAL_DETAILS,
+                report: expenseReport,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                privateIsArchived: undefined,
+            });
 
             // Then the option should be created successfully
             expect(result).toBeDefined();
