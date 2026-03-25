@@ -5765,7 +5765,16 @@ describe('actions/Report', () => {
             await waitForBatchedUpdates();
 
             // When create group chat is called with an avatarFile
-            Report.navigateToAndCreateGroupChat([TEST_USER_LOGIN, PARTICIPANT_1_LOGIN], 'Avatar File Group', TEST_USER_LOGIN, GROUP_CHAT_REPORT_ID, {choice: CONST.ONBOARDING_CHOICES.ADMIN}, false, undefined, avatarFile);
+            Report.navigateToAndCreateGroupChat(
+                [TEST_USER_LOGIN, PARTICIPANT_1_LOGIN],
+                'Avatar File Group',
+                TEST_USER_LOGIN,
+                GROUP_CHAT_REPORT_ID,
+                {choice: CONST.ONBOARDING_CHOICES.ADMIN},
+                false,
+                undefined,
+                avatarFile,
+            );
             await waitForBatchedUpdates();
 
             // Then the group chat report should be created
@@ -5785,7 +5794,14 @@ describe('actions/Report', () => {
             await waitForBatchedUpdates();
 
             // When create group chat is called with a participant not in allPersonalDetails
-            Report.navigateToAndCreateGroupChat([TEST_USER_LOGIN, UNKNOWN_PARTICIPANT_LOGIN], 'Optimistic Group', TEST_USER_LOGIN, GROUP_CHAT_REPORT_ID, {choice: CONST.ONBOARDING_CHOICES.ADMIN}, false);
+            Report.navigateToAndCreateGroupChat(
+                [TEST_USER_LOGIN, UNKNOWN_PARTICIPANT_LOGIN],
+                'Optimistic Group',
+                TEST_USER_LOGIN,
+                GROUP_CHAT_REPORT_ID,
+                {choice: CONST.ONBOARDING_CHOICES.ADMIN},
+                false,
+            );
             await waitForBatchedUpdates();
 
             // Then the group chat report should be created
