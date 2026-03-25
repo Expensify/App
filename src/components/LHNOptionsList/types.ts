@@ -71,9 +71,6 @@ type OptionRowLHNDataProps = {
     /** Invoice receiver policy */
     invoiceReceiverPolicy?: OnyxEntry<Policy>;
 
-    /** Whether a report contains a draft */
-    hasDraftComment: boolean;
-
     /** The reportID of the report */
     reportID: string;
 

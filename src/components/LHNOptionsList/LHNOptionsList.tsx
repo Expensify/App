@@ -49,7 +49,6 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
     const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
     const [policy] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
-    const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT);
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
@@ -169,10 +168,6 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
             const itemInvoiceReceiverPolicy = policy?.[`${ONYXKEYS.COLLECTION.POLICY}${invoiceReceiverPolicyID}`];
 
             const itemPolicy = policy?.[`${ONYXKEYS.COLLECTION.POLICY}${item?.policyID}`];
-            const hasDraftComment =
-                !!draftComments?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`] &&
-                !draftComments?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`]?.match(CONST.REGEX.EMPTY_COMMENT);
-
             const shouldShowRBRorGBRTooltip = firstReportIDWithGBRorRBR === reportID;
 
             return (
@@ -187,7 +182,6 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
                     isOptionFocused={!shouldDisableFocusOptions}
                     onSelectRow={onSelectRow}
                     preferredLocale={preferredLocale}
-                    hasDraftComment={hasDraftComment}
                     transactionViolations={transactionViolations}
                     onLayout={onLayoutItem}
                     shouldShowRBRorGBRTooltip={shouldShowRBRorGBRTooltip}
@@ -208,7 +202,6 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
             reports,
             reportNameValuePairs,
             policy,
-            draftComments,
             personalDetails,
             firstReportIDWithGBRorRBR,
             isFullscreenVisible,
@@ -237,27 +230,13 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
             policy,
             personalDetails,
             data.length,
-            draftComments,
             optionMode,
             preferredLocale,
             isOffline,
             isScreenFocused,
             isReportsSplitNavigatorLast,
         ],
-        [
-            reports,
-            reportNameValuePairs,
-            transactionViolations,
-            policy,
-            personalDetails,
-            data.length,
-            draftComments,
-            optionMode,
-            preferredLocale,
-            isOffline,
-            isScreenFocused,
-            isReportsSplitNavigatorLast,
-        ],
+        [reports, reportNameValuePairs, transactionViolations, policy, personalDetails, data.length, optionMode, preferredLocale, isOffline, isScreenFocused, isReportsSplitNavigatorLast],
     );
 
     const previousOptionMode = usePrevious(optionMode);
