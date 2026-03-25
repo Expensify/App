@@ -217,8 +217,8 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
                             <ButtonComposed.IconRight
                                 src={icons.DownArrow}
                                 style={isMenuVisible ? styles.flipUpsideDown : undefined}
-                                fill={hasError ? theme.icon : undefined}
-                                hoverFill={hasError ? theme.icon : undefined}
+                                fill={hasError ? theme.buttonIcon : undefined}
+                                hoverFill={hasError ? theme.buttonIcon : undefined}
                             />
                         )}
                     </ButtonComposed>
@@ -257,7 +257,7 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
                                         height={shouldUseShortForm ? variables.iconSizeExtraSmall : undefined}
                                         src={icons.DownArrow}
                                         additionalStyles={[...(shouldUseShortForm ? [styles.pRelative, styles.t0] : []), isMenuVisible ? styles.flipUpsideDown : undefined]}
-                                        fill={success ? theme.buttonSuccessText : theme.icon}
+                                        fill={success ? theme.buttonSuccessText : theme.buttonIcon}
                                         testID="dropdown-arrow-icon"
                                     />
                                 </View>

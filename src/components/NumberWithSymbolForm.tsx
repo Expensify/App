@@ -97,6 +97,15 @@ type NumberWithSymbolFormProps = {
 
     /** Determines which keyboard to open */
     keyboardType?: KeyboardTypeOptions;
+
+    /** Whether to show the flip (+/-) button */
+    shouldShowFlipButton?: boolean;
+
+    /** Whether to show the currency selection button */
+    shouldShowCurrencyButton?: boolean;
+
+    /** Callback when currency button is pressed */
+    onCurrencyButtonPress?: () => void;
 } & Omit<TextInputWithSymbolProps, 'formattedAmount' | 'onAmountChange' | 'placeholder' | 'onSelectionChange' | 'onKeyPress' | 'onMouseDown' | 'onMouseUp'>;
 
 type NumberWithSymbolFormRef = {
@@ -161,6 +170,9 @@ function NumberWithSymbolForm({
     ref,
     disabled,
     onSubmitEditing,
+    shouldShowFlipButton = false,
+    shouldShowCurrencyButton = false,
+    onCurrencyButtonPress,
     ...props
 }: NumberWithSymbolFormProps) {
     const icons = useMemoizedLazyExpensifyIcons(['DownArrow', 'PlusMinus']);
@@ -388,6 +400,52 @@ function NumberWithSymbolForm({
         return StyleUtils.getAmountInputFontSize(totalLength);
     }, [StyleUtils, formattedNumber.length, hideSymbol, symbol.length, isNegative]);
 
+    /**
+     * Handles pressing the flip button (+/-) to toggle negative sign
+     * Only available in displayAsTextInput mode for manual expense flow
+     */
+    const handleFlipPress = useCallback(() => {
+        // Toggle the minus sign prefix in the value
+        const newValue = currentNumber.startsWith('-') ? currentNumber.slice(1) : `-${currentNumber}`;
+        setCurrentNumber(newValue);
+        onInputChange?.(newValue);
+    }, [currentNumber, onInputChange]);
+
+    /**
+     * Creates the right-hand side component for text input mode
+     * Renders flip (+/-) button and/or currency selection button when enabled
+     * Only shown when clear button is not visible (see TextInput conditional rendering)
+     */
+    const textInputRightHandSideComponent = useMemo(() => {
+        return (
+            <View style={[styles.flexRow, styles.gap2, styles.alignItemsCenter]}>
+                {shouldShowFlipButton && canUseTouchScreen && (
+                    <Button
+                        small
+                        icon={icons.PlusMinus}
+                        onPress={handleFlipPress}
+                        onMouseDown={(e) => e.preventDefault()}
+                        isContentCentered
+                        accessibilityLabel={translate('iou.flip')}
+                        isDisabled={disabled}
+                    />
+                )}
+                {shouldShowCurrencyButton && !!currency && (
+                    <Button
+                        shouldShowRightIcon
+                        small
+                        iconRight={icons.DownArrow}
+                        onPress={onCurrencyButtonPress}
+                        isContentCentered
+                        text={currency}
+                        accessibilityLabel={`${translate('common.selectCurrency')}, ${currency}`}
+                        isDisabled={disabled}
+                    />
+                )}
+            </View>
+        );
+    }, [shouldShowFlipButton, shouldShowCurrencyButton, styles, icons, handleFlipPress, onCurrencyButtonPress, currency, translate]);
+
     if (displayAsTextInput) {
         return (
             <TextInput
@@ -402,6 +460,7 @@ function NumberWithSymbolForm({
                         // eslint-disable-next-line no-param-reassign
                         ref.current = newRef;
                     }
+                    textInput.current = newRef;
                 }}
                 disabled={disabled}
                 prefixCharacter={symbol}
@@ -418,6 +477,7 @@ function NumberWithSymbolForm({
                 autoGrowMarginSide={props.autoGrowMarginSide}
                 onSubmitEditing={onSubmitEditing}
                 onFocus={props.onFocus}
+                rightHandSideComponent={shouldShowCurrencyButton || shouldShowFlipButton ? textInputRightHandSideComponent : undefined}
             />
         );
     }
