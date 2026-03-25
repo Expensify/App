@@ -5,6 +5,7 @@ import {forceClearInput} from '@libs/ComponentUtils';
 import {onSubmitAction} from '@pages/inbox/report/ReportActionCompose/ReportActionCompose';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import * as LHNTestUtils from '../utils/LHNTestUtils';
 import {renderReportActionCompose} from '../utils/ReportActionComposeUtils';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
