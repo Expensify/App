@@ -425,7 +425,7 @@ function NumberWithSymbolForm({
                         icon={icons.PlusMinus}
                         onPress={handleFlipPress}
                         onMouseDown={(e) => e.preventDefault()}
-                        isContentCentered
+                        iconWrapperStyles={styles.justifyContentCenter}
                         accessibilityLabel={translate('iou.flip')}
                         isDisabled={disabled}
                     />
@@ -436,7 +436,7 @@ function NumberWithSymbolForm({
                         small
                         iconRight={icons.DownArrow}
                         onPress={onCurrencyButtonPress}
-                        isContentCentered
+                        iconWrapperStyles={styles.justifyContentCenter}
                         text={currency}
                         accessibilityLabel={`${translate('common.selectCurrency')}, ${currency}`}
                         isDisabled={disabled}
@@ -444,7 +444,7 @@ function NumberWithSymbolForm({
                 )}
             </View>
         );
-    }, [shouldShowFlipButton, shouldShowCurrencyButton, styles, icons, handleFlipPress, onCurrencyButtonPress, currency, translate]);
+    }, [shouldShowFlipButton, shouldShowCurrencyButton, styles, icons, handleFlipPress, onCurrencyButtonPress, currency, translate, disabled]);
 
     if (displayAsTextInput) {
         return (
