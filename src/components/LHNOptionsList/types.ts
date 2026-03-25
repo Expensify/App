@@ -80,9 +80,6 @@ type OptionRowLHNDataProps = {
     /** The transaction linked to the report's last action */
     lastReportActionTransaction?: OnyxEntry<Transaction>;
 
-    /** Whether a report contains a draft */
-    hasDraftComment: boolean;
-
     /** The reportID of the report */
     reportID: string;
 
