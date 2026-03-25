@@ -8339,4 +8339,51 @@ describe('SearchUIUtils', () => {
             });
         });
     });
+
+    describe('isPolicyEligibleForSpendOverTime', () => {
+        const userEmail = 'user@example.com';
+        const approverUserEmail = 'approver@example.com';
+
+        const createPolicy = (overrides: Partial<OnyxTypes.Policy> = {}) => ({
+            id: 'testPolicyID',
+            name: 'Test Policy',
+            type: CONST.POLICY.TYPE.TEAM,
+            role: CONST.POLICY.ROLE.USER,
+            owner: 'owner@example.com',
+            outputCurrency: 'USD',
+            isPolicyExpenseChatEnabled: true,
+            employeeList: {},
+            ...overrides,
+        });
+
+        test('returns true for admin on a paid group policy', () => {
+            expect(SearchUIUtils.isPolicyEligibleForSpendOverTime(createPolicy({role: CONST.POLICY.ROLE.ADMIN}), userEmail)).toBe(true);
+        });
+
+        test('returns true for auditor on a paid group policy', () => {
+            expect(SearchUIUtils.isPolicyEligibleForSpendOverTime(createPolicy({role: CONST.POLICY.ROLE.AUDITOR}), userEmail)).toBe(true);
+        });
+
+        test('returns false for a personal policy even with admin role', () => {
+            expect(SearchUIUtils.isPolicyEligibleForSpendOverTime(createPolicy({type: CONST.POLICY.TYPE.PERSONAL, role: CONST.POLICY.ROLE.ADMIN}), userEmail)).toBe(false);
+        });
+
+        test.each([{field: 'submitsTo'}, {field: 'forwardsTo'}, {field: 'overLimitForwardsTo'}])('returns true for a member who is a policy approver via $field', ({field}) => {
+            const approverPolicy = createPolicy({
+                employeeList: {
+                    [userEmail]: {email: userEmail, role: CONST.POLICY.ROLE.USER, [field]: approverUserEmail},
+                },
+            });
+            expect(SearchUIUtils.isPolicyEligibleForSpendOverTime(approverPolicy, approverUserEmail)).toBe(true);
+        });
+
+        test('returns false for a member who is not an approver', () => {
+            const regularPolicy = createPolicy({
+                employeeList: {
+                    [userEmail]: {email: userEmail, role: CONST.POLICY.ROLE.USER, submitsTo: 'someone.else@example.com'},
+                },
+            });
+            expect(SearchUIUtils.isPolicyEligibleForSpendOverTime(regularPolicy, userEmail)).toBe(false);
+        });
+    });
 });
