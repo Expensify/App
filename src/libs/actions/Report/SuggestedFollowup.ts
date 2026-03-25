@@ -78,10 +78,13 @@ function resolveSuggestedFollowup(
         },
     });
 
+    // Use the full delay as createdOffset so the Concierge response timestamp is
+    // strictly after the user's comment — a 1ms offset was not enough to guarantee
+    // correct sort order when both actions are queued to Onyx near-simultaneously.
     const optimisticConciergeAction = buildOptimisticAddCommentReportAction({
         text: selectedFollowup.response,
         actorAccountID: CONST.ACCOUNT_ID.CONCIERGE,
-        createdOffset: 1,
+        createdOffset: CONCIERGE_RESPONSE_DELAY_MS,
         reportActionID: optimisticConciergeReportActionID,
         reportID,
         isHTML: true,
