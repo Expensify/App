@@ -148,9 +148,9 @@ const DYNAMIC_ROUTES = {
         queryParams: ['fieldName', 'fieldValue', 'policyID'],
     },
     FLAG_COMMENT: {
-        path: 'flag/:reportActionID',
+        path: 'flag/:reportID/:reportActionID',
         entryScreens: [SCREENS.REPORT, SCREENS.RIGHT_MODAL.SEARCH_REPORT, SCREENS.RIGHT_MODAL.EXPENSE_REPORT, SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT],
-        getRoute: (reportActionID: string) => `flag/${reportActionID}`,
+        getRoute: (reportID: string, reportActionID: string) => `flag/${reportID}/${reportActionID}`,
     },
 } as const satisfies DynamicRoutes;
 

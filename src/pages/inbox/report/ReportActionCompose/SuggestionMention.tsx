@@ -14,7 +14,6 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
-import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {areEmailsFromSamePrivateDomain} from '@libs/LoginUtils';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {getPolicyEmployeeAccountIDs} from '@libs/PolicyUtils';
@@ -102,8 +101,7 @@ function SuggestionMention({
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Megaphone', 'FallbackAvatar']);
 
     const {currentReportID} = useCurrentReportIDState();
-    const currentReportOnyxMemberID = getNonEmptyStringOnyxID(currentReportID) ?? CONST.REPORT.UNREPORTED_REPORT_ID;
-    const [currentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${currentReportOnyxMemberID}`);
+    const [currentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${currentReportID}`);
 
     // Smaller weight means higher order in suggestion list
     const getPersonalDetailsWeight = useCallback(
