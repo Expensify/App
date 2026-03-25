@@ -168,7 +168,7 @@ type TransactionEditPermissionsParams = {
 
     policyForMovingExpenses?: OnyxEntry<Policy>;
 
-    parentPolicy?: OnyxEntry<Policy>;
+    policy?: OnyxEntry<Policy>;
 
     transactionThreadReport?: OnyxEntry<Report>;
 
@@ -348,7 +348,7 @@ function getTransactionEditPermissions({
     parentReportAction,
     parentReport,
     policyForMovingExpenses,
-    parentPolicy,
+    policy,
     transactionThreadReport,
     policyCategories,
     policyTags,
@@ -385,20 +385,20 @@ function getTransactionEditPermissions({
     // Matches MoneyRequestView's canEdit.
     // For unreported expenses, parentReportAction may not be loaded; they are
     // always editable by the owner.
-    const canEdit = isUnreported || (isMoneyRequestAction(parentReportAction) && canEditMoneyRequest(parentReportAction, isChatReportArchived, parentReport, parentPolicy, transaction));
+    const canEdit = isUnreported || (isMoneyRequestAction(parentReportAction) && canEditMoneyRequest(parentReportAction, isChatReportArchived, parentReport, policy, transaction));
     if (!canEdit) {
         return NO_EDIT;
     }
 
     const policyTagLists = getTagLists(policyTags);
-    const isPolicyExpenseChat = isReportInGroupPolicy(parentReport, parentPolicy);
+    const isPolicyExpenseChat = isReportInGroupPolicy(parentReport, policy);
     const categoryForDisplay = transaction?.category ?? '';
 
     // For restricted fields, delegate to canEditFieldOfMoneyRequest.
     // Unreported expenses bypass this (all restricted fields editable by owner).
     const canEditRestricted = (field: string) =>
         isUnreported ||
-        canEditFieldOfMoneyRequest(parentReportAction, field as ValueOf<typeof CONST.EDIT_REQUEST_FIELD>, false, isChatReportArchived, undefined, transaction, parentReport, parentPolicy);
+        canEditFieldOfMoneyRequest(parentReportAction, field as ValueOf<typeof CONST.EDIT_REQUEST_FIELD>, false, isChatReportArchived, undefined, transaction, parentReport, policy);
 
     return {
         canEditDate: canEditRestricted(CONST.EDIT_REQUEST_FIELD.DATE),

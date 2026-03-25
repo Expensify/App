@@ -143,7 +143,7 @@ function useTransactionInlineEdit({
         parentReportAction,
         parentReport: parentReport ?? fallbackReport,
         policyForMovingExpenses: policyForPermissions,
-        parentPolicy: policy,
+        policy,
         transactionThreadReport,
         policyCategories,
         policyTags,
