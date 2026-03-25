@@ -6169,15 +6169,17 @@ const CONST = {
             NAVIGATE: 'NAVIGATE',
             SET_PARAMS: 'SET_PARAMS',
             PRELOAD: 'PRELOAD',
+            POP: 'POP',
             POP_TO: 'POP_TO',
             GO_BACK: 'GO_BACK',
+            RESET: 'RESET',
 
             /** These action types are custom for RootNavigator */
             DISMISS_MODAL: 'DISMISS_MODAL',
             REPLACE_FULLSCREEN_UNDER_RHP: 'REPLACE_FULLSCREEN_UNDER_RHP',
             OPEN_WORKSPACE_SPLIT: 'OPEN_WORKSPACE_SPLIT',
             OPEN_DOMAIN_SPLIT: 'OPEN_DOMAIN_SPLIT',
-            SET_HISTORY_PARAM: 'SET_HISTORY_PARAM',
+            PUSH_PARAMS: 'PUSH_PARAMS',
             REPLACE_PARAMS: 'REPLACE_PARAMS',
             TOGGLE_SIDE_PANEL_WITH_HISTORY: 'TOGGLE_SIDE_PANEL_WITH_HISTORY',
         },
