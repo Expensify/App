@@ -147,6 +147,7 @@ import {
     canIOUBePaid as canIOUBePaidAction,
     dismissRejectUseExplanation,
     getNavigationUrlOnMoneyRequestDelete,
+    markReportPaymentReceived,
     markRejectViolationAsResolved,
     payInvoice,
     payMoneyRequest,
@@ -1767,7 +1768,7 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
             text: translate('iou.receivedPayment'),
             icon: expensifyIcons.MoneyBag,
             value: CONST.REPORT.SECONDARY_ACTIONS.RECEIVED_PAYMENT,
-            sentryLabel: CONST.SENTRY_LABEL.MORE_MENU.PAY,
+            sentryLabel: CONST.SENTRY_LABEL.MORE_MENU.RECEIVED_PAYMENT,
             onSelected: async () => {
                 const result = await showConfirmModal({
                     title: translate('iou.confirmPaymentReceived'),
@@ -1780,7 +1781,24 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
                     return;
                 }
 
-                confirmPayment({paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE});
+                if (isDelegateAccessRestricted) {
+                    showDelegateNoAccessModal();
+                    return;
+                }
+
+                if (isAnyTransactionOnHold) {
+                    setSelectedVBBAToPayFromHoldMenu(undefined);
+                    if (getPlatform() === CONST.PLATFORM.IOS) {
+                        // eslint-disable-next-line @typescript-eslint/no-deprecated
+                        InteractionManager.runAfterInteractions(() => setIsHoldMenuVisible(true));
+                    } else {
+                        setIsHoldMenuVisible(true);
+                    }
+                    return;
+                }
+
+                startAnimation();
+                markReportPaymentReceived(chatReport, moneyRequestReport, nextStep);
             },
         },
         [CONST.REPORT.SECONDARY_ACTIONS.UNAPPROVE]: {
