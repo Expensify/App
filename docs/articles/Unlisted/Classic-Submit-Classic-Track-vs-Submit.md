@@ -11,6 +11,27 @@ Expensify includes both legacy personal workspace plans and newer shared workspa
 
 ---
 
+## Which plan am I on in Expensify
+
+If you are asking:
+- "what plan am I on"
+- "which plan am I on"
+- "what workspace type do I have"
+- "am I on collect or control"
+- "is this a personal or shared workspace"
+
+Use this guide:
+
+- If you **cannot invite members**, you are using a **personal workspace (Classic Track or Classic Submit)**
+- If you **can invite members**, you are using a **shared workspace (Submit, Collect, or Control)**
+- If your workspace appears under **Settings > Workspaces > Individual**, it is a **personal (individual) workspace**
+- If your workspace appears under **Workspaces**, it is a **shared (group) workspace**
+
+On web, use the navigation tabs on the left to open **Settings > Workspaces**.  
+On mobile, tap the hamburger menu in the top-left corner, then select **Workspaces**.
+
+---
+
 ## Understand what Classic Track and Classic Submit plans are
 
 **Classic Track** and **Classic Submit** are personal workspace plans used in Expensify Classic.
