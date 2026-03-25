@@ -13266,7 +13266,7 @@ function updateMultipleMoneyRequests({
                 return true;
             }
 
-            return canEditFieldOfMoneyRequest(reportAction, field, undefined, false, undefined, transaction, iouReport, transactionPolicy);
+            return canEditFieldOfMoneyRequest({reportAction, fieldToEdit: field, transaction, report: iouReport, policy: transactionPolicy});
         };
 
         let transactionChanges: TransactionChanges = {};

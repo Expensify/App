@@ -137,12 +137,12 @@ describe('canEditFieldOfMoneyRequest', () => {
                 });
                 await waitForBatchedUpdates();
 
-                const canEditBillable = canEditFieldOfMoneyRequest(reportAction, CONST.EDIT_REQUEST_FIELD.BILLABLE);
+                const canEditBillable = canEditFieldOfMoneyRequest({reportAction, fieldToEdit: CONST.EDIT_REQUEST_FIELD.BILLABLE, transaction: moneyRequestTransaction});
                 expect(canEditBillable).toBe(false);
             });
 
             it('should return true for invoice report action when billable field is edited on an unapproved invoice report', () => {
-                const canEditBillable = canEditFieldOfMoneyRequest(reportAction, CONST.EDIT_REQUEST_FIELD.BILLABLE);
+                const canEditBillable = canEditFieldOfMoneyRequest({reportAction, fieldToEdit: CONST.EDIT_REQUEST_FIELD.BILLABLE, transaction: moneyRequestTransaction});
                 expect(canEditBillable).toBe(true);
             });
         });
