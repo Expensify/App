@@ -33,9 +33,9 @@ import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import CameraPermission from '@pages/iou/request/step/IOURequestStepScan/CameraPermission';
+import NavigationAwareCamera from '@pages/iou/request/step/IOURequestStepScan/components/NavigationAwareCamera/Camera';
 import {cropImageToAspectRatio} from '@pages/iou/request/step/IOURequestStepScan/cropImageToAspectRatio';
 import type {ImageObject} from '@pages/iou/request/step/IOURequestStepScan/cropImageToAspectRatio';
-import NavigationAwareCamera from '@pages/iou/request/step/IOURequestStepScan/NavigationAwareCamera/Camera';
 import StepScreenWrapper from '@pages/iou/request/step/StepScreenWrapper';
 import withFullTransactionOrNotFound from '@pages/iou/request/step/withFullTransactionOrNotFound';
 import type {WithFullTransactionOrNotFoundProps} from '@pages/iou/request/step/withFullTransactionOrNotFound';
@@ -183,8 +183,10 @@ function IOURequestStepOdometerImage({
         }
 
         const file = files.at(0);
-        const imageUri = (file as {uri?: string}).uri ?? '';
-        setMoneyRequestOdometerImage(transactionID, imageType, imageUri, isTransactionDraft);
+        if (!file) {
+            return;
+        }
+        setMoneyRequestOdometerImage(transactionID, imageType, file, isTransactionDraft);
         navigateBack();
     };
 
@@ -237,8 +239,18 @@ function IOURequestStepOdometerImage({
                     .then((photo: PhotoFile) => {
                         const imageObject: ImageObject = {file: photo, filename: photo.path, source: getPhotoSource(photo.path)};
                         cropImageToAspectRatio(imageObject, viewfinderLayout.current?.width, viewfinderLayout.current?.height, undefined, photo.orientation)
-                            .then(({source}) => {
-                                setMoneyRequestOdometerImage(transactionID, imageType, source, isTransactionDraft);
+                            .then(({file, filename, source}) => {
+                                setMoneyRequestOdometerImage(
+                                    transactionID,
+                                    imageType,
+                                    {
+                                        uri: source,
+                                        name: filename,
+                                        type: (file as FileObject | undefined)?.type ?? 'image/jpeg',
+                                        size: (file as FileObject | undefined)?.size,
+                                    },
+                                    isTransactionDraft,
+                                );
                                 navigateBack();
                             })
                             .catch((error: unknown) => {
