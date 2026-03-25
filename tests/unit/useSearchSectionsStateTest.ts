@@ -1,6 +1,6 @@
 import {act, renderHook} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
-import useSearchNavigationState from '@hooks/useSearchNavigationState';
+import useSearchSectionsState from '@hooks/useSearchSectionsState';
 import {clearLastSearchParams, saveLastSearchParams, saveSortedReportIDs} from '@libs/actions/ReportNavigation';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -39,9 +39,9 @@ afterEach(async () => {
     });
 });
 
-describe('useSearchNavigationState', () => {
+describe('useSearchSectionsState', () => {
     it('returns empty allReports and no loading state when Onyx has no data', async () => {
-        const {result} = renderHook(() => useSearchNavigationState());
+        const {result} = renderHook(() => useSearchSectionsState());
         await act(async () => {
             await waitForBatchedUpdatesWithAct();
         });
@@ -58,7 +58,7 @@ describe('useSearchNavigationState', () => {
             await waitForBatchedUpdatesWithAct();
         });
 
-        const {result} = renderHook(() => useSearchNavigationState());
+        const {result} = renderHook(() => useSearchSectionsState());
         await act(async () => {
             await waitForBatchedUpdatesWithAct();
         });
@@ -84,7 +84,7 @@ describe('useSearchNavigationState', () => {
             await waitForBatchedUpdatesWithAct();
         });
 
-        const {result} = renderHook(() => useSearchNavigationState());
+        const {result} = renderHook(() => useSearchSectionsState());
         await act(async () => {
             await waitForBatchedUpdatesWithAct();
         });
@@ -102,7 +102,7 @@ describe('useSearchNavigationState', () => {
             await waitForBatchedUpdatesWithAct();
         });
 
-        const {result} = renderHook(() => useSearchNavigationState());
+        const {result} = renderHook(() => useSearchSectionsState());
         await act(async () => {
             await waitForBatchedUpdatesWithAct();
         });
@@ -117,7 +117,7 @@ describe('useSearchNavigationState', () => {
             await waitForBatchedUpdatesWithAct();
         });
 
-        const {result} = renderHook(() => useSearchNavigationState());
+        const {result} = renderHook(() => useSearchSectionsState());
         await act(async () => {
             await waitForBatchedUpdatesWithAct();
         });
@@ -137,7 +137,7 @@ describe('useSearchNavigationState', () => {
             await waitForBatchedUpdatesWithAct();
         });
 
-        const {result} = renderHook(() => useSearchNavigationState());
+        const {result} = renderHook(() => useSearchSectionsState());
         await act(async () => {
             await waitForBatchedUpdatesWithAct();
         });

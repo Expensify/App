@@ -6,11 +6,10 @@ import {getSortedSections} from '@libs/SearchUIUtils';
 import type {ListItemDataType, SearchDataTypes} from '@src/types/onyx/SearchResults';
 
 /**
- * Sorts search result sections and keeps the sorted report IDs persisted in Onyx
- * so that MoneyRequestReportNavigation can read them via useSearchNavigationState without
- * recomputing getSections.
+ * Sorts search result sections and persists the sorted report IDs to Onyx so that
+ * useSearchSectionsState can read them in MoneyRequestReportNavigation without any recomputation.
  */
-function useSortedSearchResults<T extends SearchDataTypes, S extends SearchStatus>(
+function useSearchSections<T extends SearchDataTypes, S extends SearchStatus>(
     type: T,
     status: S,
     data: ListItemDataType<T, S>,
@@ -20,8 +19,6 @@ function useSortedSearchResults<T extends SearchDataTypes, S extends SearchStatu
     sortOrder?: SortOrder,
     groupBy?: SearchGroupBy,
 ) {
-    // Track the last persisted IDs (joined string) so we skip Onyx writes
-    // when sortedItems is a new reference but the order/content is unchanged.
     const prevSortedKeyRef = useRef('');
 
     const sortedItems = useMemo(
@@ -42,4 +39,4 @@ function useSortedSearchResults<T extends SearchDataTypes, S extends SearchStatu
     return sortedItems;
 }
 
-export default useSortedSearchResults;
+export default useSearchSections;

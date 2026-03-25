@@ -2,7 +2,7 @@ import React, {useEffect} from 'react';
 import {View} from 'react-native';
 import PrevNextButtons from '@components/PrevNextButtons';
 import Text from '@components/Text';
-import useSearchNavigationState from '@hooks/useSearchNavigationState';
+import useSearchSectionsState from '@hooks/useSearchSectionsState';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@navigation/Navigation';
 import {saveLastSearchParams} from '@userActions/ReportNavigation';
@@ -15,7 +15,7 @@ type MoneyRequestReportNavigationProps = {
 };
 
 function MoneyRequestReportNavigation({reportID, shouldDisplayNarrowVersion}: MoneyRequestReportNavigationProps) {
-    const {allReports, isSearchLoading, lastSearchQuery} = useSearchNavigationState();
+    const {allReports, isSearchLoading, lastSearchQuery} = useSearchSectionsState();
 
     const type = lastSearchQuery?.queryJSON?.type;
     const currentIndex = allReports.indexOf(reportID);

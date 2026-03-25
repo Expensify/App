@@ -31,8 +31,8 @@ import usePermissions from '@hooks/usePermissions';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchHighlightAndScroll from '@hooks/useSearchHighlightAndScroll';
+import useSearchSections from '@hooks/useSearchSections';
 import useSearchShouldCalculateTotals from '@hooks/useSearchShouldCalculateTotals';
-import useSortedSearchResults from '@hooks/useSortedSearchResults';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {openOldDotLink} from '@libs/actions/Link';
 import {turnOffMobileSelectionMode, turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
@@ -1162,7 +1162,7 @@ function Search({
     const canSelectMultiple = !isChat && !isTask && (!isSmallScreenWidth || isMobileSelectionModeEnabled);
     const ListItem = getListItem(type, status, validGroupBy);
 
-    const sortedItems = useSortedSearchResults(type, status, filteredData, localeCompare, translate, sortBy, sortOrder, validGroupBy);
+    const sortedItems = useSearchSections(type, status, filteredData, localeCompare, translate, sortBy, sortOrder, validGroupBy);
 
     const sortedData = useMemo(
         () =>
