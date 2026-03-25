@@ -4056,6 +4056,10 @@ function getSortByOptions(columns: SearchColumnType[], translate: LocalizedTrans
     return sortableColumns;
 }
 
+function getSortOrderOptions(translate: LocalizedTranslate) {
+    return Object.values(CONST.SEARCH.SORT_ORDER).map<SingleSelectItem<SortOrder>>((value) => ({text: translate(`search.filters.sortOrder.${value}`), value}));
+}
+
 function getGroupBySections(translate: LocalizedTranslate): GroupBySection[] {
     const getOption = (groupBy: SearchGroupBy): SingleSelectItem<SearchGroupBy> => ({
         text: translate(`search.filters.groupBy.${groupBy}`),
@@ -5010,6 +5014,7 @@ export {
     getTypeOptions,
     getGroupByOptions,
     getSortByOptions,
+    getSortOrderOptions,
     getGroupBySections,
     getViewOptions,
     getGroupCurrencyOptions,

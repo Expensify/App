@@ -24,6 +24,7 @@ import GroupByPopup from './GroupByPopup';
 import SingleSelectPopup from './SingleSelectPopup';
 import SortByPopup from './SortByPopup';
 import TextInputPopup from './TextInputPopup';
+import SortOrderPopup from './SortOrderPopup';
 
 type DisplayPopupProps = {
     queryJSON: SearchQueryJSON;
@@ -43,6 +44,7 @@ function DisplayPopup({queryJSON, searchResults, closeOverlay, onSort}: DisplayP
         | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY
         | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.VIEW
         | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_BY
+        | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_ORDER
         | null
     >(null);
 
@@ -52,9 +54,6 @@ function DisplayPopup({queryJSON, searchResults, closeOverlay, onSort}: DisplayP
     const view = viewOptions.find((option) => option.value === queryJSON.view) ?? viewOptions.at(0) ?? null;
     const shouldShowColumnsButton = isLargeScreenWidth && (queryJSON.type === CONST.SEARCH.DATA_TYPES.EXPENSE || queryJSON.type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT);
 
-    const sortByValue = queryJSON.sortBy;
-    const groupByValue = searchAdvancedFilters[CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY];
-    const viewValue = searchAdvancedFilters[CONST.SEARCH.SYNTAX_ROOT_KEYS.VIEW];
     const limitValue = searchAdvancedFilters[CONST.SEARCH.SYNTAX_ROOT_KEYS.LIMIT];
 
     if (!selectedDisplayFilter) {
@@ -64,12 +63,17 @@ function DisplayPopup({queryJSON, searchResults, closeOverlay, onSort}: DisplayP
 
         const isExpenseType = queryJSON.type === CONST.SEARCH.DATA_TYPES.EXPENSE;
         const isTripType = queryJSON.type === CONST.SEARCH.DATA_TYPES.TRIP;
+        const sortByValue = queryJSON.sortBy;
+        const sortOrderValue = queryJSON.sortOrder;
+        const groupByValue = searchAdvancedFilters[CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY];
+        const viewValue = searchAdvancedFilters[CONST.SEARCH.SYNTAX_ROOT_KEYS.VIEW];
+
         return (
             <View style={[!shouldUseNarrowLayout && styles.pv4]}>
                 <MenuItemWithTopDescription
                     shouldShowRightIcon
                     description={translate('search.display.sortBy')}
-                    title={translate(getSearchColumnTranslationKey(sortByValue))}
+                    title={`${translate(getSearchColumnTranslationKey(sortByValue))} ${CONST.DOT_SEPARATOR} ${translate(`search.filters.sortOrder.${sortOrderValue}`)}`}
                     onPress={() => setSelectedDisplayFilter(CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_BY)}
                 />
                 {(isExpenseType || isTripType) && (
@@ -134,8 +138,17 @@ function DisplayPopup({queryJSON, searchResults, closeOverlay, onSort}: DisplayP
         close(() => Navigation.setParams({q: queryString, rawQuery: undefined}));
     };
 
+    const goBack = () => {
+        if (selectedDisplayFilter === CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_ORDER) {
+            setSelectedDisplayFilter(CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_BY);
+            return;
+        }
+        setSelectedDisplayFilter(null);
+    };
+
     const subtitle = {
         [CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_BY]: translate('search.display.sortBy'),
+        [CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_ORDER]: translate('search.display.sortOrder'),
         [CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY]: translate('search.display.groupBy'),
         [CONST.SEARCH.SYNTAX_ROOT_KEYS.VIEW]: translate('search.view.label'),
         [CONST.SEARCH.SYNTAX_ROOT_KEYS.LIMIT]: translate('search.display.limitResults'),
@@ -147,6 +160,14 @@ function DisplayPopup({queryJSON, searchResults, closeOverlay, onSort}: DisplayP
                 searchResults={searchResults}
                 queryJSON={queryJSON}
                 groupBy={groupBy}
+                onSort={onSort}
+                onSortOrderPress={() => setSelectedDisplayFilter(CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_ORDER)}
+                closeOverlay={() => setSelectedDisplayFilter(null)}
+            />
+        ),
+        [CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_ORDER]: (
+            <SortOrderPopup
+                queryJSON={queryJSON}
                 onSort={onSort}
                 closeOverlay={() => setSelectedDisplayFilter(null)}
             />
@@ -193,7 +214,7 @@ function DisplayPopup({queryJSON, searchResults, closeOverlay, onSort}: DisplayP
                 shouldDisplayHelpButton={false}
                 style={[styles.h10]}
                 subtitle={subtitle[selectedDisplayFilter]}
-                onBackButtonPress={() => setSelectedDisplayFilter(null)}
+                onBackButtonPress={goBack}
             />
             {subPopup[selectedDisplayFilter]}
         </View>
