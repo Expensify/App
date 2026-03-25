@@ -1,12 +1,13 @@
-import {useMemo} from 'react';
+import {useEffect, useMemo} from 'react';
+import {useSearchActionsContext} from '@components/Search/SearchContext';
 import type {SearchColumnType, SearchGroupBy, SearchStatus, SortOrder} from '@components/Search/types';
 import useLocalize from '@hooks/useLocalize';
 import {getSortedSections} from '@libs/SearchUIUtils';
 import type {ListItemDataType, SearchDataTypes} from '@src/types/onyx/SearchResults';
 
 /**
- * Sorts search result sections. The sorted report IDs are persisted to Search context
- * by the caller so that MoneyRequestReportNavigation can read them without any recomputation.
+ * Sorts search result sections and persists the sorted report IDs to Search context
+ * so that MoneyRequestReportNavigation can read them without any recomputation.
  */
 function useSearchSections<T extends SearchDataTypes, S extends SearchStatus>(
     type: T,
@@ -17,11 +18,18 @@ function useSearchSections<T extends SearchDataTypes, S extends SearchStatus>(
     groupBy?: SearchGroupBy,
 ) {
     const {translate, localeCompare} = useLocalize();
+    const {setSortedReportIDs} = useSearchActionsContext();
 
-    return useMemo(
+    const sortedItems = useMemo(
         () => getSortedSections(type, status, data, localeCompare, translate, sortBy, sortOrder, groupBy),
         [type, status, data, localeCompare, translate, sortBy, sortOrder, groupBy],
     );
+
+    useEffect(() => {
+        setSortedReportIDs(sortedItems.map((item) => item.reportID));
+    }, [sortedItems, setSortedReportIDs]);
+
+    return sortedItems;
 }
 
 export default useSearchSections;
