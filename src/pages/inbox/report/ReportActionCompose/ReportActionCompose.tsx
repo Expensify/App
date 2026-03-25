@@ -30,6 +30,7 @@ import useOnyx from '@hooks/useOnyx';
 import usePreferredPolicy from '@hooks/usePreferredPolicy';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useShouldSuppressConciergeIndicators from '@hooks/useShouldSuppressConciergeIndicators';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
@@ -48,9 +49,7 @@ import {
     chatIncludesConcierge,
     getParentReport,
     getReportRecipientAccountIDs,
-    isAdminRoom,
     isChatRoom,
-    isConciergeChatReport,
     isGroupChat,
     isInvoiceReport,
     isReportApproved,
@@ -61,6 +60,7 @@ import {
 import {startSpan} from '@libs/telemetry/activeSpans';
 import {getTransactionID, hasReceipt as hasReceiptTransactionUtils} from '@libs/TransactionUtils';
 import willBlurTextInputOnTapOutsideFunc from '@libs/willBlurTextInputOnTapOutside';
+import {useAgentZeroStatusActions} from '@pages/inbox/AgentZeroStatusContext';
 import ParticipantLocalTime from '@pages/inbox/report/ParticipantLocalTime';
 import ReportTypingIndicator from '@pages/inbox/report/ReportTypingIndicator';
 import {ActionListContext} from '@pages/inbox/ReportScreenContext';
@@ -113,12 +113,15 @@ type ReportActionComposeProps = Pick<ComposerWithSuggestionsProps, 'reportID' | 
 
     /** Whether the main composer was hidden */
     didHideComposerInput?: boolean;
-
-    /** Whether to hide concierge status indicators (agent zero / typing) in the side panel */
-    shouldHideStatusIndicators?: boolean;
-    /** Function to trigger optimistic waiting indicator for Concierge */
-    kickoffWaitingIndicator?: () => void;
 };
+
+function AgentZeroAwareTypingIndicator({reportID}: {reportID: string}) {
+    const shouldSuppress = useShouldSuppressConciergeIndicators(reportID);
+    if (shouldSuppress) {
+        return null;
+    }
+    return <ReportTypingIndicator reportID={reportID} />;
+}
 
 // We want consistent auto focus behavior on input between native and mWeb so we have some auto focus management code that will
 // prevent auto focus on existing chat for mobile device
@@ -141,8 +144,6 @@ function ReportActionCompose({
     didHideComposerInput,
     reportTransactions,
     transactionThreadReportID,
-    shouldHideStatusIndicators = false,
-    kickoffWaitingIndicator,
 }: ReportActionComposeProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -151,6 +152,7 @@ function ReportActionCompose({
     const {isSmallScreenWidth, isMediumScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
     const {isOffline} = useNetwork();
     const isInSidePanel = useIsInSidePanel();
+    const {kickoffWaitingIndicator} = useAgentZeroStatusActions();
     const actionButtonRef = useRef<View | HTMLDivElement | null>(null);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const personalDetails = usePersonalDetails();
@@ -220,9 +222,6 @@ function ReportActionCompose({
     const userBlockedFromConcierge = useMemo(() => isBlockedFromConciergeUserAction(blockedFromConcierge), [blockedFromConcierge]);
     const isBlockedFromConcierge = useMemo(() => includesConcierge && userBlockedFromConcierge, [includesConcierge, userBlockedFromConcierge]);
     const isReportArchived = useReportIsArchived(report?.reportID);
-    const isConciergeChat = useMemo(() => isConciergeChatReport(report), [report]);
-    const shouldShowConciergeIndicator = isConciergeChat || isAdminRoom(report);
-
     const isTransactionThreadView = useMemo(() => isReportTransactionThread(report), [report]);
     const isExpensesReport = useMemo(() => reportTransactions && reportTransactions.length > 1, [reportTransactions]);
 
@@ -339,9 +338,7 @@ function ReportActionCompose({
         (newComment: string) => {
             const newCommentTrimmed = newComment.trim();
 
-            if (shouldShowConciergeIndicator && kickoffWaitingIndicator) {
-                kickoffWaitingIndicator();
-            }
+            kickoffWaitingIndicator();
 
             if (attachmentFileRef.current) {
                 addAttachmentWithComment({
@@ -376,7 +373,6 @@ function ReportActionCompose({
             }
         },
         [
-            shouldShowConciergeIndicator,
             kickoffWaitingIndicator,
             transactionThreadReport,
             report,
@@ -680,7 +676,7 @@ function ReportActionCompose({
                         ]}
                     >
                         {!shouldUseNarrowLayout && <OfflineIndicator containerStyles={[styles.chatItemComposeSecondaryRow]} />}
-                        {!shouldHideStatusIndicators && <ReportTypingIndicator reportID={reportID} />}
+                        <AgentZeroAwareTypingIndicator reportID={reportID} />
                         {!!exceededMaxLength && (
                             <ExceededCommentLength
                                 maxCommentLength={exceededMaxLength}
