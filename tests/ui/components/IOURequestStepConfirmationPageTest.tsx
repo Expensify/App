@@ -56,7 +56,7 @@ jest.mock('@assets/emojis', () => {
 });
 
 jest.mock('@libs/EmojiTrie', () => ({
-    buildEmojisTrie: jest.fn(),
+    buildEmojiSearchIndex: jest.fn(),
 }));
 jest.mock('@libs/actions/IOU', () => {
     const actualNav = jest.requireActual<typeof IOU>('@libs/actions/IOU');

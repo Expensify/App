@@ -2,7 +2,7 @@ import Emojis, {importEmojiLocale} from '@assets/emojis';
 import type {Emoji} from '@assets/emojis/types';
 // eslint-disable-next-line no-restricted-syntax
 import * as Browser from '@libs/Browser';
-import {buildEmojisTrie} from '@libs/EmojiTrie';
+import {buildEmojiSearchIndex} from '@libs/EmojiTrie';
 // eslint-disable-next-line no-restricted-syntax
 import * as EmojiUtils from '@libs/EmojiUtils';
 
@@ -12,9 +12,9 @@ jest.unmock('@expensify/react-native-live-markdown');
 describe('EmojiTest', () => {
     beforeAll(async () => {
         await importEmojiLocale('en');
-        buildEmojisTrie('en');
+        buildEmojiSearchIndex('en');
         await importEmojiLocale('es');
-        buildEmojisTrie('es');
+        buildEmojiSearchIndex('es');
     });
 
     it('matches all the emojis in the list', () => {

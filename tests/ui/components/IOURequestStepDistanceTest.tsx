@@ -50,7 +50,7 @@ jest.mock('@assets/emojis', () => {
 });
 
 jest.mock('@libs/EmojiTrie', () => ({
-    buildEmojisTrie: jest.fn(),
+    buildEmojiSearchIndex: jest.fn(),
 }));
 
 jest.mock('@components/ProductTrainingContext', () => ({

@@ -14,7 +14,7 @@ import type {FrequentlyUsedEmoji, Locale} from '@src/types/onyx';
 import type {ReportActionReaction, UsersReactions} from '@src/types/onyx/ReportActionReactions';
 import type IconAsset from '@src/types/utils/IconAsset';
 import {isSafari} from './Browser';
-import type {getEmojiTrie as getEmojiTrieType} from './EmojiTrie';
+import type {getAllMatchingWords as getAllMatchingWordsType, getEmojiSearchIndex as getEmojiSearchIndexType} from './EmojiTrie';
 import memoize from './memoize';
 
 type HeaderIndices = {code: string; index: number; icon: IconAsset};
@@ -22,7 +22,7 @@ type EmojiSpacer = {code: string; spacer: boolean};
 type EmojiPickerListItem = EmojiSpacer | Emoji | HeaderEmoji;
 type EmojiPickerList = EmojiPickerListItem[];
 type ReplacedEmoji = {text: string; emojis: Emoji[]; cursorPosition?: number};
-type EmojiTrieModule = {getEmojiTrie: typeof getEmojiTrieType};
+type EmojiSearchModule = {getEmojiSearchIndex: typeof getEmojiSearchIndexType; getAllMatchingWords: typeof getAllMatchingWordsType};
 type TextWithEmoji = {
     text: string;
     isEmoji: boolean;
@@ -391,11 +391,11 @@ function getAddedEmojis(currentEmojis: Emoji[], formerEmojis: Emoji[]): Emoji[] 
  * If we're on mobile, we also add a space after the emoji granted there's no text after it.
  */
 function replaceEmojis(text: string, preferredSkinTone: OnyxEntry<number | string> = CONST.EMOJI_DEFAULT_SKIN_TONE, locale: Locale = CONST.LOCALES.DEFAULT): ReplacedEmoji {
-    const {getEmojiTrie: getTrie} = require<EmojiTrieModule>('./EmojiTrie');
+    const {getEmojiSearchIndex} = require<EmojiSearchModule>('./EmojiTrie');
 
     const normalizedLocale = locale && isFullySupportedLocale(locale) ? locale : CONST.LOCALES.EN;
-    const trie = getTrie(normalizedLocale);
-    if (!trie) {
+    const index = getEmojiSearchIndex(normalizedLocale);
+    if (!index) {
         return {text, emojis: []};
     }
 
@@ -409,7 +409,7 @@ function replaceEmojis(text: string, preferredSkinTone: OnyxEntry<number | strin
     const codeBlockRanges = parseExpensiMark(text);
     const replacements: Array<{position: number; shortcode: string; replacement: string; name: string}> = [];
     const shortcodeSearchPositions: Record<string, number> = {};
-    const englishTrie = normalizedLocale !== CONST.LOCALES.DEFAULT ? getTrie(CONST.LOCALES.DEFAULT) : null;
+    const englishIndex = normalizedLocale !== CONST.LOCALES.DEFAULT ? getEmojiSearchIndex(CONST.LOCALES.DEFAULT) : null;
 
     for (const emoji of emojiData) {
         const name = emoji.slice(1, -1);
@@ -424,16 +424,16 @@ function replaceEmojis(text: string, preferredSkinTone: OnyxEntry<number | strin
             continue;
         }
 
-        let checkEmoji = trie.search(name);
-        if (!checkEmoji?.metaData?.code && englishTrie) {
-            checkEmoji = englishTrie.search(name);
+        let checkEmoji = index.exactMap.get(name.toLowerCase());
+        if (!checkEmoji?.code && englishIndex) {
+            checkEmoji = englishIndex.exactMap.get(name.toLowerCase());
         }
-        if (checkEmoji?.metaData?.code && checkEmoji?.metaData?.name) {
-            const emojiReplacement = getEmojiCodeWithSkinColor(checkEmoji.metaData as Emoji, preferredSkinTone);
+        if (checkEmoji?.code && checkEmoji?.name) {
+            const emojiReplacement = getEmojiCodeWithSkinColor(checkEmoji as Emoji, preferredSkinTone);
             emojis.push({
                 name,
-                code: checkEmoji.metaData?.code,
-                types: checkEmoji.metaData.types,
+                code: checkEmoji.code,
+                types: checkEmoji.types,
             });
             replacements.push({
                 position: emojiPosition,
@@ -491,11 +491,11 @@ function replaceAndExtractEmojis(text: string, preferredSkinTone: OnyxEntry<numb
  * @param [limit] - matching emojis limit
  */
 function suggestEmojis(text: string, locale: Locale = CONST.LOCALES.DEFAULT, limit: number = CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_SUGGESTIONS): Emoji[] | undefined {
-    const {getEmojiTrie: getTrie} = require<EmojiTrieModule>('./EmojiTrie');
+    const {getEmojiSearchIndex, getAllMatchingWords: getMatches} = require<EmojiSearchModule>('./EmojiTrie');
 
     const normalizedLocale = locale && isFullySupportedLocale(locale) ? locale : CONST.LOCALES.EN;
-    const trie = getTrie(normalizedLocale);
-    if (!trie) {
+    const index = getEmojiSearchIndex(normalizedLocale);
+    if (!index) {
         return [];
     }
 
@@ -505,7 +505,7 @@ function suggestEmojis(text: string, locale: Locale = CONST.LOCALES.DEFAULT, lim
     }
 
     const matching: Emoji[] = [];
-    const nodes = trie.getAllMatchingWords(emojiData[0].toLowerCase().slice(1), limit);
+    const nodes = getMatches(index, emojiData[0].toLowerCase().slice(1), limit);
     for (const node of nodes) {
         if (node.metaData?.code && !matching.find((obj) => obj.name === node.name)) {
             if (matching.length === limit) {

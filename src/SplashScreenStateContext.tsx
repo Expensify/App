@@ -1,6 +1,7 @@
 import React, {useContext, useEffect, useState} from 'react';
 import type {ValueOf} from 'type-fest';
 import CONST from './CONST';
+import {buildEmojiSearchIndex} from './libs/EmojiTrie';
 import type ChildrenProps from './types/utils/ChildrenProps';
 
 type SplashScreenState = ValueOf<typeof CONST.BOOT_SPLASH_STATE>;
@@ -36,6 +37,7 @@ function SplashScreenStateContextProvider({children}: ChildrenProps) {
             return;
         }
         loadPostSplashScreenModules();
+        buildEmojiSearchIndex(CONST.LOCALES.DEFAULT);
     }, [splashScreenState]);
 
     // Because of the React Compiler we don't need to memoize these context values manually
