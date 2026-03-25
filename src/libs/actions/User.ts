@@ -498,6 +498,7 @@ function requestValidateCodeAction() {
         },
     ];
 
+    // We are using makeRequestWithSideEffects instead of API.write so that the caller can inspect the response and log failures
     // eslint-disable-next-line rulesdir/no-api-side-effects-method
     return API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.RESEND_VALIDATE_CODE, null, {optimisticData, successData, failureData});
 }
