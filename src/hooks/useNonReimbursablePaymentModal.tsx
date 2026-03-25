@@ -30,7 +30,7 @@ function useNonReimbursablePaymentModal(iouReport: OnyxEntry<Report>): UseNonRei
     const nonReimbursablePaymentErrorDecisionModal = (
         <DecisionModal
             title={translate('iou.error.nonReimbursablePayment')}
-            prompt={translate('iou.error.nonReimbursablePaymentDescription')}
+            prompt={translate('iou.error.nonReimbursablePaymentDescription', false)}
             isSmallScreenWidth={isSmallScreenWidth}
             onSecondOptionSubmit={() => setIsModalVisible(false)}
             secondOptionText={translate('common.buttonConfirm')}

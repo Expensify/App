@@ -227,7 +227,7 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
             />
             <DecisionModal
                 title={translate('iou.error.nonReimbursablePayment')}
-                prompt={translate('iou.error.nonReimbursablePaymentDescription')}
+                prompt={translate('iou.error.nonReimbursablePaymentDescription', selectedItemsCount > 1)}
                 isSmallScreenWidth={isSmallScreenWidth}
                 onSecondOptionSubmit={handleNonReimbursablePaymentErrorModalClose}
                 secondOptionText={translate('common.buttonConfirm')}

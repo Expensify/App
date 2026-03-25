@@ -1475,7 +1475,10 @@ const translations = {
             manySplitsProvided: `The maximum splits allowed is ${CONST.IOU.SPLITS_LIMIT}.`,
             dateRangeExceedsMaxDays: `The date range can't exceed ${CONST.IOU.SPLITS_LIMIT} days.`,
             nonReimbursablePayment: 'Cannot pay via Expensify',
-            nonReimbursablePaymentDescription: "The report doesn't have reimbursable expenses. Double check the expenses, or manually mark as paid.",
+            nonReimbursablePaymentDescription: (isMultiple?: boolean) =>
+                isMultiple
+                    ? "One or more selected reports don't have reimbursable expenses. Double check the expenses, or manually mark as paid."
+                    : "The report doesn't have reimbursable expenses. Double check the expenses, or manually mark as paid.",
         },
         dismissReceiptError: 'Dismiss error',
         dismissReceiptErrorConfirmation: 'Heads up! Dismissing this error will remove your uploaded receipt entirely. Are you sure?',
