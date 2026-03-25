@@ -153,7 +153,7 @@ new file mode 100644
 index 0000000..000b569
 --- /dev/null
 +++ b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/text/internal/span/ReactBackgroundDrawSpan.kt
-@@ -0,0 +1,124 @@
+@@ -0,0 +1,118 @@
 +/* Copyright (c) Meta Platforms, Inc. and affiliates.
 + *
 + * This source code is licensed under the MIT license found in the
@@ -234,14 +234,8 @@ index 0000000..000b569
 +      } else {
 +        val isFirstLine = line == startLine
 +        val isLastLine = line == endLine
-+        val isSingleLine = isFirstLine && isLastLine
-+
-+        if (isSingleLine) {
-+          canvas.drawRoundRect(rectF, borderRadius, borderRadius, paint)
-+        } else {
-+          val rtl = layout.getParagraphDirection(line) == Layout.DIR_RIGHT_TO_LEFT
-+          drawSelectiveRoundRect(canvas, rectF, isFirstLine, isLastLine, rtl)
-+        }
++        val rtl = layout.getParagraphDirection(line) == Layout.DIR_RIGHT_TO_LEFT
++        drawSelectiveRoundRect(canvas, rectF, isFirstLine, isLastLine, rtl)
 +      }
 +    }
 +  }
@@ -488,7 +482,7 @@ new file mode 100644
 index 0000000..402cd30
 --- /dev/null
 +++ b/node_modules/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTTextLayoutManagerWithBorderRadius.mm
-@@ -0,0 +1,75 @@
+@@ -0,0 +1,67 @@
 +/*
 + * Copyright (c) Meta Platforms, Inc. and affiliates.
 + *
@@ -531,30 +525,22 @@ index 0000000..402cd30
 +
 +    BOOL isFirstRect = (i == 0);
 +    BOOL isLastRect = (i == rectCount - 1);
-+    BOOL isSingleRect = (rectCount == 1);
 +
-+    UIBezierPath *path;
-+
-+    if (isSingleRect) {
-+      path = [UIBezierPath bezierPathWithRoundedRect:rect cornerRadius:borderRadius];
-+    } else {
-+      UIRectCorner corners = 0;
-+
-+      // For multiline: round left corners on first rect, right corners on last rect.
-+      // NSLayoutManager provides rects in visual (LTR) order, so this handles
-+      // both LTR and RTL correctly - the first rect is always the start of
-+      // the span and the last rect is always the end.
-+      if (isFirstRect) {
-+        corners |= UIRectCornerTopLeft | UIRectCornerBottomLeft;
-+      }
-+      if (isLastRect) {
-+        corners |= UIRectCornerTopRight | UIRectCornerBottomRight;
-+      }
-+
-+      path = [UIBezierPath bezierPathWithRoundedRect:rect
-+                                   byRoundingCorners:corners
-+                                         cornerRadii:CGSizeMake(borderRadius, borderRadius)];
++    // Round left corners on first rect, right corners on last rect.
++    // NSLayoutManager provides rects in visual (LTR) order, so this handles
++    // both LTR and RTL correctly - the first rect is always the start of
++    // the span and the last rect is always the end.
++    UIRectCorner corners = 0;
++    if (isFirstRect) {
++      corners |= UIRectCornerTopLeft | UIRectCornerBottomLeft;
 +    }
++    if (isLastRect) {
++      corners |= UIRectCornerTopRight | UIRectCornerBottomRight;
++    }
++
++    UIBezierPath *path = [UIBezierPath bezierPathWithRoundedRect:rect
++                                               byRoundingCorners:corners
++                                                     cornerRadii:CGSizeMake(borderRadius, borderRadius)];
 +
 +    CGContextAddPath(context, path.CGPath);
 +    CGContextFillPath(context);
