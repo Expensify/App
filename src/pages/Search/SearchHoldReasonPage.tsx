@@ -49,8 +49,8 @@ function SearchHoldReasonPage({route}: SearchHoldReasonPageProps) {
             } else {
                 const transactionIDs = Object.keys(selectedTransactions);
                 for (const transactionID of transactionIDs) {
-                    const transactionReportID = selectedTransactions[transactionID].reportID;
-                    putOnHold(transactionID, comment, transactionReportID, isOffline, ancestors);
+                    const transactionThreadReportID = selectedTransactions[transactionID].reportAction?.childReportID;
+                    putOnHold(transactionID, comment, transactionThreadReportID, isOffline, ancestors);
                 }
                 clearSelectedTransactions();
             }
