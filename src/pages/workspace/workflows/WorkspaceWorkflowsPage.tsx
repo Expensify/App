@@ -466,7 +466,12 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                                         return;
                                     }
                                     if (!shouldShowBankAccount && hasValidExistingAccounts && !shouldShowContinueModal) {
-                                        Navigation.navigate(ROUTES.BANK_ACCOUNT_CONNECT_EXISTING_BUSINESS_BANK_ACCOUNT.getRoute(route.params.policyID));
+                                        Navigation.navigate(
+                                            ROUTES.BANK_ACCOUNT_CONNECT_EXISTING_BUSINESS_BANK_ACCOUNT.getRoute(
+                                                route.params.policyID,
+                                                ROUTES.WORKSPACE_WORKFLOWS.getRoute(route.params.policyID),
+                                            ),
+                                        );
                                         return;
                                     }
                                     navigateToBankAccountRoute({policyID: route.params.policyID, backTo: ROUTES.WORKSPACE_WORKFLOWS.getRoute(route.params.policyID)});
