@@ -5740,6 +5740,10 @@ describe('actions/Report', () => {
             expect(newGroupChatReport?.reportName).toBe(GROUP_CHAT_NAME);
             expect(newGroupChatReport?.chatType).toBe(CONST.REPORT.CHAT_TYPE.GROUP);
             expect(newGroupChatReport?.avatarUrl).toBe(AVATAR_URI);
+
+            // Then guided setup data should have run via the isSelfTourViewed=true path, marking onboarding complete
+            const introSelectedAfter = await getOnyxValue(ONYXKEYS.NVP_INTRO_SELECTED);
+            expect(introSelectedAfter?.isInviteOnboardingComplete).toBe(true);
         });
 
         it('should create group chat when onboarding is already completed and isSelfTourViewed=true', async () => {
