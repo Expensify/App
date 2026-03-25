@@ -793,6 +793,10 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
             if ((!isFocused && !isHoldScreenOpenInRHP && !isReportDetailOpenInRHP) || (!isHoldScreenOpenInRHP && isInNarrowPaneModal)) {
                 return;
             }
+            // Remove the deleted report screen from the navigation state to prevent back button loops
+            if (reportIDFromRoute) {
+                Navigation.removeReportScreen(new Set([reportIDFromRoute]));
+            }
             Navigation.dismissModal();
             if (Navigation.getTopmostReportId() === prevOnyxReportID) {
                 Navigation.isNavigationReady().then(() => {
@@ -853,6 +857,11 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
             return;
         }
 
+        // Remove the deleted report screen from the navigation state to prevent back button loops
+        if (reportIDFromRoute) {
+            Navigation.removeReportScreen(new Set([reportIDFromRoute]));
+        }
+
         // Try to navigate to parent report if available
         if (deletedReportParentID && !isMoneyRequestReportPendingDeletion(deletedReportParentID)) {
             Navigation.isNavigationReady().then(() => {
@@ -865,7 +874,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
         Navigation.isNavigationReady().then(() => {
             navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed);
         });
-    }, [reportWasDeleted, isFocused, deletedReportParentID, conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed]);
+    }, [reportWasDeleted, isFocused, reportIDFromRoute, deletedReportParentID, conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed]);
 
     useEffect(() => {
         if (!isValidReportIDFromPath(reportIDFromRoute)) {

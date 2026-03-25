@@ -844,12 +844,33 @@ function removeScreenByKey(key: string) {
 function removeReportScreen(reportIDSet: Set<string>) {
     isNavigationReady().then(() => {
         navigationRef.current?.dispatch((state) => {
-            const routes = state?.routes.filter((route) => {
-                if (route.name === SCREENS.REPORT && route.params && 'reportID' in route.params) {
-                    return !reportIDSet.has(route.params?.reportID as string);
-                }
-                return true;
-            });
+            const isMatchingReportScreen = (routeName: string, routeParams: Record<string, string | undefined> | undefined) =>
+                routeName === SCREENS.REPORT && typeof routeParams?.reportID === 'string' && reportIDSet.has(routeParams.reportID);
+
+            const routes = state?.routes
+                .map((route) => {
+                    // Filter matching report screens from nested navigator states (e.g., ReportsSplitNavigator)
+                    const nestedRoutes = route.state?.routes;
+                    if (!nestedRoutes) {
+                        return route;
+                    }
+                    const filteredNestedRoutes = nestedRoutes.filter(
+                        (nestedRoute) => !isMatchingReportScreen(nestedRoute.name, nestedRoute.params as Record<string, string | undefined> | undefined),
+                    );
+                    if (filteredNestedRoutes.length === nestedRoutes.length) {
+                        return route;
+                    }
+                    return {
+                        ...route,
+                        state: {
+                            ...route.state,
+                            routes: filteredNestedRoutes,
+                            index: Math.min(route.state?.index ?? filteredNestedRoutes.length - 1, filteredNestedRoutes.length - 1),
+                        },
+                    };
+                })
+                .filter((route) => !isMatchingReportScreen(route.name, route.params as Record<string, string | undefined> | undefined));
+
             return CommonActions.reset({
                 ...state,
                 routes,
