@@ -3,7 +3,8 @@ import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import {useInitialURLState} from '@components/InitialURLContextProvider';
 import useOnyx from '@hooks/useOnyx';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import {isLoggingInAsNewUser as isLoggingInAsNewUserSessionUtils} from '@libs/SessionUtils';
+import {isLoggingInAsDelegate as isLoggingInAsDelegateSessionUtils, isLoggingInAsNewUser as isLoggingInAsNewUserSessionUtils} from '@libs/SessionUtils';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import Navigation from '@navigation/Navigation';
 import type {AuthScreensParamList} from '@navigation/types';
 import {signInWithShortLivedAuthToken, signInWithSupportAuthToken, signOutAndRedirectToSignIn} from '@userActions/Session';
@@ -48,6 +49,11 @@ function LogOutPreviousUserPage({route}: LogOutPreviousUserPageProps) {
             });
             return;
         }
+        const isLoggingInAsDelegate = isLoggingInAsDelegateSessionUtils(transitionURL ?? undefined);
+
+        if (isLoggingInAsDelegate) {
+            return;
+        }
 
         // Even if the user was already authenticated in NewDot, we need to reauthenticate them with shortLivedAuthToken,
         // because the old authToken stored in Onyx may be invalid.
@@ -77,7 +83,10 @@ function LogOutPreviousUserPage({route}: LogOutPreviousUserPageProps) {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [initialURL, isAccountLoading]);
 
-    return <FullScreenLoadingIndicator />;
+    const reasonAttributes: SkeletonSpanReasonAttributes = {
+        context: 'LogOutPreviousUserPage',
+    };
+    return <FullScreenLoadingIndicator reasonAttributes={reasonAttributes} />;
 }
 
 export default LogOutPreviousUserPage;

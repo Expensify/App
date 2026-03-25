@@ -2,7 +2,7 @@ import * as Sentry from '@sentry/react-native';
 import type {MultifactorAuthenticationScenarioResponse} from '@components/MultifactorAuthentication/config/types';
 import type {ErrorState} from '@components/MultifactorAuthentication/Context/types';
 import Log from '@libs/Log';
-import type {AuthTypeName, MultifactorAuthenticationReason} from '@libs/MultifactorAuthentication/Biometrics/types';
+import type {AuthTypeName, MultifactorAuthenticationReason} from '@libs/MultifactorAuthentication/shared/types';
 import CONST from '@src/CONST';
 
 type FailureClassification = 'routine' | 'anomalous' | 'unclassified';
@@ -37,10 +37,10 @@ function trackMFAFlowOutcome(context: MFAFlowOutcomeContext): void {
 
         const tags: Record<string, string> = {};
         if (context.scenario) {
-            tags[CONST.TELEMETRY.TAG_MFA_SCENARIO] = context.scenario;
+            tags[CONST.TELEMETRY.TAGS.MFA_SCENARIO] = context.scenario;
         }
         if (!context.isSuccessful && context.error?.reason) {
-            tags[CONST.TELEMETRY.TAG_MFA_ERROR_REASON] = context.error.reason;
+            tags[CONST.TELEMETRY.TAGS.MFA_ERROR_REASON] = context.error.reason;
         }
 
         const eventMessage = context.isSuccessful ? 'MFA Flow Success' : `MFA Flow Error: ${context.error?.reason ?? ''}`;

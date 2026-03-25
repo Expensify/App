@@ -47,9 +47,6 @@ const shouldOpenRHPVariant: ShouldOpenRHPVariant = () => {
 const handleRHPVariantNavigation: HandleRHPVariantNavigation = (onboardingPolicyID) => {
     Navigation.navigate(ROUTES.WORKSPACE_OVERVIEW.getRoute(onboardingPolicyID));
     SidePanelActions.openSidePanel(true);
-    Navigation.isNavigationReady().then(() => {
-        Navigation.navigate(ROUTES.TEST_DRIVE_MODAL_ROOT.route);
-    });
 };
 
 export {shouldOpenRHPVariant, handleRHPVariantNavigation};

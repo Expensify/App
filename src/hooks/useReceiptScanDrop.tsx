@@ -1,4 +1,5 @@
-import {useMemo} from 'react';
+import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
+import React, {useMemo} from 'react';
 import {setTransactionReport} from '@libs/actions/Transaction';
 import {navigateToParticipantPage} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -21,7 +22,7 @@ import useSelfDMReport from './useSelfDMReport';
 
 /**
  * Encapsulates the receipt scan drag-and-drop logic used by SearchPage and HomePage.
- * Returns the drop handler, PDF validation component, and error modal needed for drag-and-drop receipt scanning.
+ * Returns the drop handler and sibling-safe auxiliary UI needed for receipt scanning.
  */
 function useReceiptScanDrop() {
     const isAnonymousUser = useIsAnonymousUser();
@@ -35,7 +36,7 @@ function useReceiptScanDrop() {
     const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`);
     const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID);
     const [personalPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${personalPolicyID}`);
-    const [draftTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT);
+    const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
 
     // Memoize the new report ID to avoid re-generating it on every render and cause the hook to change, which leads to performance issues.
     const newReportID = useMemo(() => generateReportID(), []);
@@ -52,7 +53,7 @@ function useReceiptScanDrop() {
             currentDate,
             currentUserPersonalDetails,
             hasOnlyPersonalPolicies,
-            draftTransactions,
+            draftTransactionIDs,
         });
 
         const newReceiptFiles: ReceiptFile[] = [];
@@ -120,7 +121,14 @@ function useReceiptScanDrop() {
         validateFiles(files, Array.from(e.dataTransfer?.items ?? []));
     };
 
-    return {initScanRequest, PDFValidationComponent, ErrorModal, isDragDisabled: isAnonymousUser};
+    const auxiliaryUI = (
+        <>
+            {PDFValidationComponent}
+            {ErrorModal}
+        </>
+    );
+
+    return {initScanRequest, auxiliaryUI, isDragDisabled: isAnonymousUser};
 }
 
 export default useReceiptScanDrop;

@@ -10,6 +10,7 @@ import {openReport} from '@libs/actions/Report';
 import getComponentDisplayName from '@libs/getComponentDisplayName';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {canAccessReport} from '@libs/ReportUtils';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import type {
     ParticipantsNavigatorParamList,
     PrivateNotesNavigatorParamList,
@@ -52,6 +53,8 @@ type ScreenProps =
     | PlatformStackScreenProps<ReportDetailsNavigatorParamList, typeof SCREENS.REPORT_DETAILS.ROOT>
     | PlatformStackScreenProps<ReportDetailsNavigatorParamList, typeof SCREENS.REPORT_DETAILS.SHARE_CODE>
     | PlatformStackScreenProps<ReportSettingsNavigatorParamList, typeof SCREENS.REPORT_SETTINGS.ROOT>
+    | PlatformStackScreenProps<ReportSettingsNavigatorParamList, typeof SCREENS.REPORT_SETTINGS.DYNAMIC_SETTINGS_WRITE_CAPABILITY>
+    | PlatformStackScreenProps<ReportSettingsNavigatorParamList, typeof SCREENS.REPORT_SETTINGS.DYNAMIC_SETTINGS_VISIBILITY>
     | PlatformStackScreenProps<RoomMembersNavigatorParamList, typeof SCREENS.ROOM_MEMBERS.DETAILS>
     | PlatformStackScreenProps<ReportChangeWorkspaceNavigatorParamList, typeof SCREENS.REPORT_CHANGE_WORKSPACE.ROOT>
     | PlatformStackScreenProps<ReportChangeApproverParamList, typeof SCREENS.REPORT_CHANGE_APPROVER.ROOT>;
@@ -86,7 +89,7 @@ export default function (shouldRequireReportID = true): <TProps extends WithRepo
                     return;
                 }
 
-                openReport({reportID: props.route.params.reportID, introSelected});
+                openReport({reportID: props.route.params.reportID, introSelected, betas});
                 // eslint-disable-next-line react-hooks/exhaustive-deps
             }, [shouldFetchReport, isReportLoaded, props.route.params.reportID]);
 
@@ -101,7 +104,12 @@ export default function (shouldRequireReportID = true): <TProps extends WithRepo
                 }
 
                 if (shouldShowFullScreenLoadingIndicator) {
-                    return <FullscreenLoadingIndicator />;
+                    const reasonAttributes: SkeletonSpanReasonAttributes = {
+                        context: 'withReportOrNotFound',
+                        isLoadingReportData: isLoadingReportData !== false,
+                        shouldFetchReport,
+                    };
+                    return <FullscreenLoadingIndicator reasonAttributes={reasonAttributes} />;
                 }
 
                 if (shouldShowNotFoundPage) {
