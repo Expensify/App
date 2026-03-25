@@ -892,33 +892,36 @@ function MoneyRequestView({
                         copyable={!!amountCopyValue}
                     />
                 </OfflineWithFeedback>
-                <OfflineWithFeedback pendingAction={getPendingFieldAction('comment')}>
-                    <MenuItemWithTopDescription
-                        description={translate('common.description')}
-                        shouldRenderAsHTML
-                        title={updatedTransactionDescription ?? transactionDescription}
-                        interactive={canEdit}
-                        shouldShowRightIcon={canEdit}
-                        titleStyle={styles.flex1}
-                        onPress={() => {
-                            Navigation.navigate(
-                                ROUTES.MONEY_REQUEST_STEP_DESCRIPTION.getRoute(
-                                    CONST.IOU.ACTION.EDIT,
-                                    iouType,
-                                    transaction.transactionID,
-                                    transactionThreadReport?.reportID,
-                                    getReportRHPActiveRoute(),
-                                ),
-                            );
-                        }}
-                        wrapperStyle={[styles.pv2, styles.taskDescriptionMenuItem]}
-                        brickRoadIndicator={getErrorForField('comment') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                        errorText={getErrorForField('comment')}
-                        numberOfLinesTitle={0}
-                        copyValue={descriptionCopyValue}
-                        copyable={!!descriptionCopyValue}
-                    />
-                </OfflineWithFeedback>
+                {/* Hide description section in merge confirmation when neither expense has a description */}
+                {!(isFromMergeTransaction && !descriptionHTML) && (
+                    <OfflineWithFeedback pendingAction={getPendingFieldAction('comment')}>
+                        <MenuItemWithTopDescription
+                            description={translate('common.description')}
+                            shouldRenderAsHTML
+                            title={updatedTransactionDescription ?? transactionDescription}
+                            interactive={canEdit}
+                            shouldShowRightIcon={canEdit}
+                            titleStyle={styles.flex1}
+                            onPress={() => {
+                                Navigation.navigate(
+                                    ROUTES.MONEY_REQUEST_STEP_DESCRIPTION.getRoute(
+                                        CONST.IOU.ACTION.EDIT,
+                                        iouType,
+                                        transaction.transactionID,
+                                        transactionThreadReport?.reportID,
+                                        getReportRHPActiveRoute(),
+                                    ),
+                                );
+                            }}
+                            wrapperStyle={[styles.pv2, styles.taskDescriptionMenuItem]}
+                            brickRoadIndicator={getErrorForField('comment') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                            errorText={getErrorForField('comment')}
+                            numberOfLinesTitle={0}
+                            copyValue={descriptionCopyValue}
+                            copyable={!!descriptionCopyValue}
+                        />
+                    </OfflineWithFeedback>
+                )}
                 {isManualDistanceRequest || isGPSDistanceRequest || isOdometerDistanceRequest || (isMapDistanceRequest && transaction?.comment?.waypoints) ? (
                     distanceRequestFields
                 ) : (
