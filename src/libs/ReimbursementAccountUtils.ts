@@ -47,6 +47,13 @@ const hasInProgressNonUSDVBBA = (achData?: ACHDataReimbursementAccount): boolean
     return !!achData?.bankAccountID && !!achData?.created;
 };
 
+/**
+ * Returns achData.bankAccountID coerced to a number, defaulting to 0 when missing so VBBA API calls avoid NaN from undefined.
+ */
+function getBankAccountIDAsNumber(achData?: ACHDataReimbursementAccount): number {
+    return Number(achData?.bankAccountID ?? CONST.DEFAULT_NUMBER_ID);
+}
+
 /** Returns true if VBBA flow is in progress */
 const hasInProgressVBBA = (achData?: ACHDataReimbursementAccount, isNonUSDWorkspace?: boolean, policyID?: string) => {
     if (achData?.policyID !== policyID) {
@@ -60,5 +67,5 @@ const hasInProgressVBBA = (achData?: ACHDataReimbursementAccount, isNonUSDWorksp
     return hasInProgressUSDVBBA(achData);
 };
 
-export {getRouteForCurrentStep, hasInProgressUSDVBBA, hasInProgressNonUSDVBBA, hasInProgressVBBA, REIMBURSEMENT_ACCOUNT_ROUTE_NAMES};
+export {getBankAccountIDAsNumber, getRouteForCurrentStep, hasInProgressUSDVBBA, hasInProgressNonUSDVBBA, hasInProgressVBBA, REIMBURSEMENT_ACCOUNT_ROUTE_NAMES};
 export type {ReimbursementAccountStepToOpen};

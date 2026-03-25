@@ -76,6 +76,7 @@ function ProfilePage({route}: ProfilePageProps) {
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [isDebugModeEnabled = false] = useOnyx(ONYXKEYS.IS_DEBUG_MODE_ENABLED);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const guideCalendarLink = account?.guideDetails?.calendarLink ?? '';
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Bug', 'Pencil', 'Phone']);
@@ -165,7 +166,7 @@ function ProfilePage({route}: ProfilePageProps) {
 
     // If it's a self DM, we only want to show the Message button if the self DM report exists because we don't want to optimistically create a report for self DM
     if ((!isCurrentUser || report) && !isAnonymousUserSession()) {
-        promotedActions.push(PromotedActions.message({reportID: report?.reportID, accountID, login: loginParams, currentUserAccountID, introSelected, isSelfTourViewed}));
+        promotedActions.push(PromotedActions.message({reportID: report?.reportID, accountID, login: loginParams, currentUserAccountID, introSelected, isSelfTourViewed, betas}));
     }
 
     return (

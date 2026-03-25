@@ -250,6 +250,7 @@ const translations: TranslationDeepObject<typeof en> = {
         na: 'N/D',
         noResultsFound: 'Aucun résultat trouvé',
         noResultsFoundMatching: (searchString: string) => `Aucun résultat trouvé correspondant à « ${searchString} »`,
+        suggestionsAvailableFor: (searchString: string) => (searchString ? `Suggestions disponibles pour « ${searchString} ».` : 'Suggestions disponibles.'),
         recentDestinations: 'Destinations récentes',
         timePrefix: "C'est",
         conjunctionFor: 'pour',
@@ -260,6 +261,7 @@ const translations: TranslationDeepObject<typeof en> = {
         conjunctionTo: 'à',
         genericErrorMessage: 'Oups... une erreur s’est produite et votre requête n’a pas pu être effectuée. Veuillez réessayer plus tard.',
         percentage: 'Pourcentage',
+        progressBarLabel: "Progression de l'intégration",
         converted: 'Converti',
         error: {
             invalidAmount: 'Montant invalide',
@@ -452,6 +454,8 @@ const translations: TranslationDeepObject<typeof en> = {
         downloadAsCSV: 'Télécharger au format CSV',
         print: 'Imprimer',
         help: 'Aide',
+        collapsed: 'Réduit',
+        expanded: 'Développé',
         expenseReport: 'Note de frais',
         expenseReports: 'Notes de frais',
         rateOutOfPolicy: 'Taux hors politique',
@@ -524,6 +528,8 @@ const translations: TranslationDeepObject<typeof en> = {
         concierge: {sidePanelGreeting: 'Bonjour, comment puis-je vous aider ?', showHistory: 'Afficher l’historique'},
         duplicateReport: 'Note de frais en double',
         approver: 'Approbateur',
+        enterDigitLabel: ({digitIndex, totalDigits}: {digitIndex: number; totalDigits: number}) => `saisir le chiffre ${digitIndex} sur ${totalDigits}`,
+        copyOfReportName: (reportName: string) => `Copie de ${reportName}`,
     },
     socials: {
         podcast: 'Suivez-nous sur Podcast',
@@ -671,6 +677,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 faceId: 'Face ID',
                 touchId: 'Touch ID',
                 opticId: 'Optic ID',
+                passkey: 'Passkey',
             },
             statusNeverRegistered: 'Jamais enregistré',
             statusNotRegistered: 'Non enregistré',
@@ -688,11 +695,10 @@ const translations: TranslationDeepObject<typeof en> = {
         letsVerifyItsYou: 'Vérifions qu’il s’agit bien de vous',
         nowLetsAuthenticateYou: 'Maintenant, procédons à votre authentification…',
         letsAuthenticateYou: 'Authentifions votre identité…',
-        verifyYourself: {
-            biometrics: 'Vérifiez votre identité avec votre visage ou votre empreinte digitale',
-        },
+        verifyYourself: {biometrics: 'Vérifiez votre identité avec votre visage ou votre empreinte digitale', passkeys: 'Vérifiez votre identité avec une clé d’accès'},
         enableQuickVerification: {
             biometrics: 'Activez une vérification rapide et sécurisée à l’aide de votre visage ou de votre empreinte digitale. Aucun mot de passe ni code requis.',
+            passkeys: 'Activez une vérification rapide et sécurisée à l’aide d’une clé d’accès. Aucun mot de passe ni code requis.',
         },
         revoke: {
             title: 'Reconnaissance faciale/empreinte digitale et passkeys',
@@ -722,6 +728,8 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         verificationFailed: 'Échec de la vérification',
         setPin: {didNotShipCard: 'Nous n’avons pas envoyé votre carte. Veuillez réessayer.'},
+        revealPin: {couldNotReveal: "Nous n'avons pas pu afficher votre code PIN. Veuillez réessayer."},
+        changePin: {didNotChange: "Nous n'avons pas modifié votre code PIN. Veuillez réessayer."},
     },
     validateCodeModal: {
         successfulSignInTitle: dedent(`
@@ -761,11 +769,6 @@ const translations: TranslationDeepObject<typeof en> = {
         findMember: 'Trouver un membre',
         searchForSomeone: 'Rechercher une personne',
         userSelected: (username: string) => `${username} sélectionné`,
-    },
-    customApprovalWorkflow: {
-        title: 'Workflow d’approbation personnalisé',
-        description: 'Votre entreprise utilise un flux d’approbation personnalisé sur cet espace de travail. Veuillez effectuer cette action dans Expensify Classic',
-        goToExpensifyClassic: 'Passer à Expensify Classic',
     },
     emptyList: {
         [CONST.IOU.TYPE.CREATE]: {
@@ -991,6 +994,8 @@ const translations: TranslationDeepObject<typeof en> = {
                 title: ({cardName}: {cardName?: string}) => (cardName ? `Réparer la connexion de la carte personnelle ${cardName}` : 'Corriger la connexion de la carte personnelle'),
                 subtitle: 'Portefeuille',
             },
+            validateAccount: {title: 'Validez votre compte pour continuer à utiliser Expensify', subtitle: 'Compte', cta: 'Valider'},
+            fixFailedBilling: {title: 'Nous n’avons pas pu débiter votre carte enregistrée', subtitle: 'Abonnement'},
         },
         assignedCards: 'Vos cartes Expensify',
         assignedCardsRemaining: ({amount}: {amount: string}) => `${amount} restant`,
@@ -1243,6 +1248,8 @@ const translations: TranslationDeepObject<typeof en> = {
         pendingMatch: 'Correspondance en attente',
         pendingMatchWithCreditCardDescription: 'Reçu en attente de rapprochement avec une transaction par carte. Marquez comme paiement en espèces pour annuler.',
         markAsCash: 'Marquer comme espèces',
+        pendingMatchSubmitTitle: 'Soumettre le rapport',
+        pendingMatchSubmitDescription: 'Certaines dépenses sont en attente de rapprochement avec une transaction par carte de crédit. Voulez-vous les marquer comme espèces ?',
         routePending: 'Acheminement en attente...',
         automaticallyEnterExpenseDetails: 'Concierge saisira automatiquement les détails de la dépense pour vous, ou vous pouvez les ajouter manuellement.',
         receiptScanning: () => ({
@@ -2348,21 +2355,34 @@ ${amount} pour ${merchant} - ${date}`,
         },
         setYourPin: 'Définir votre code PIN.',
         confirmYourPin: 'Confirmez votre code PIN.',
+        changeYourPin: 'Saisissez un nouveau code PIN pour votre carte.',
+        confirmYourChangedPin: 'Confirmez votre nouveau code PIN.',
         pinMustBeFourDigits: 'Le code PIN doit comporter exactement 4 chiffres.',
         invalidPin: 'Veuillez choisir un code PIN plus sécurisé.',
         pinMismatch: 'Les codes PIN ne correspondent pas. Veuillez réessayer.',
         revealPin: 'Afficher le code PIN',
         hidePin: 'Masquer le code PIN',
         pin: 'Code PIN',
+        changePin: 'Modifier le code PIN',
+        pinChanged: 'Code PIN modifié !',
+        pinChangedHeader: 'Code PIN modifié',
+        pinChangedDescription: 'Vous êtes maintenant prêt à utiliser votre code PIN.',
+        changePinAtATM: 'Modifiez votre code PIN à n’importe quel distributeur automatique de billets',
+        changePinAtATMDescription: 'Ceci est obligatoire dans votre région. <concierge-link>Contacter Concierge</concierge-link> si vous avez des questions.',
         freezeCard: 'Geler la carte',
         unfreeze: 'Dégeler',
         unfreezeCard: 'Dégeler la carte',
+        askToUnfreeze: 'Demander le dégel',
         freezeDescription: 'Une carte gelée ne peut pas être utilisée pour des achats ni des transactions. Vous pouvez la dégeler à tout moment.',
         unfreezeDescription:
             'Dégeler cette carte permettra à nouveau les achats et les transactions. Continuez uniquement si vous êtes sûr(e) que la carte peut être utilisée en toute sécurité.',
         frozen: 'Gelée',
         youFroze: ({date}: {date: string}) => `Vous avez gelé cette carte le ${date}.`,
         frozenBy: ({person, date}: {person: string; date: string}) => `${person} a gelé cette carte le ${date}.`,
+        frozenByAdminPrefix: ({date}: {date: string}) => `Cette carte a été gelée le ${date} par `,
+        frozenByAdminNeedsUnfreezePrefix: 'Cette carte a été gelée par ',
+        frozenByAdminNeedsUnfreezeSuffix: '. Veuillez contacter un administrateur pour la dégeler.',
+        frozenByAdminNeedsUnfreeze: ({person}: {person: string}) => `Cette carte a été gelée par ${person}. Veuillez contacter un administrateur pour la dégeler.`,
     },
     workflowsPage: {
         workflowTitle: 'Dépense',
@@ -2662,6 +2682,7 @@ ${amount} pour ${merchant} - ${date}`,
                 label: 'Utiliser les paramètres de l’appareil',
             },
         },
+        highContrastMode: 'Mode contraste élevé',
         chooseThemeBelowOrSync: 'Choisissez un thème ci-dessous ou synchronisez avec les réglages de votre appareil.',
     },
     termsOfUse: {
@@ -2675,6 +2696,8 @@ ${amount} pour ${merchant} - ${date}`,
         requiredWhen2FAEnabled: 'Obligatoire lorsque l’authentification à deux facteurs est activée',
         requestNewCode: ({timeRemaining}: {timeRemaining: string}) => `Demander un nouveau code dans <a>${timeRemaining}</a>`,
         requestNewCodeAfterErrorOccurred: 'Demander un nouveau code',
+        timeRemainingAnnouncement: ({timeRemaining}) => `Temps restant : ${timeRemaining} ${timeRemaining === 1 ? 'seconde' : 'secondes'}`,
+        timeExpiredAnnouncement: 'Le temps est écoulé',
         error: {
             pleaseFillMagicCode: 'Veuillez saisir votre code magique',
             incorrectMagicCode: 'Code magique incorrect ou non valide. Veuillez réessayer ou demander un nouveau code.',
@@ -5408,10 +5431,6 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                 removeCardFeed: 'Supprimer le flux de cartes',
                 removeCardFeedTitle: (feedName: string) => `Supprimer le flux ${feedName}`,
                 removeCardFeedDescription: "Voulez-vous vraiment supprimer ce flux de cartes ? Cela retirera l'assignation de toutes les cartes.",
-                assignNewCards: 'Attribuer de nouvelles cartes',
-                assignNewCardsDescription: 'Obtenez les dernières cartes à attribuer depuis votre banque',
-                refreshConnectionSuccess: 'Connexion actualisée',
-                refreshConnectionSuccessDescription: 'Votre connexion bancaire a été ré-authentifiée avec succès. Vous pouvez maintenant attribuer de nouvelles cartes.',
                 error: {
                     feedNameRequired: 'Le nom du flux de carte est obligatoire',
                     statementCloseDateRequired: 'Veuillez sélectionner une date de clôture de relevé.',
@@ -7236,6 +7255,7 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
     search: {
         resultsAreLimited: 'Les résultats de recherche sont limités.',
         viewResults: 'Afficher les résultats',
+        appliedFilters: 'Filtres appliqués',
         resetFilters: 'Réinitialiser les filtres',
         searchResults: {
             emptyResults: {
@@ -7291,6 +7311,7 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
             },
         },
         columns: 'Colonnes',
+        editColumns: 'Modifier les colonnes',
         resetColumns: 'Réinitialiser les colonnes',
         groupColumns: 'Regrouper les colonnes',
         expenseColumns: 'Colonnes de dépenses',
@@ -7391,8 +7412,13 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
                 [CONST.SEARCH.ACTION_FILTERS.EXPORT]: 'Exporter',
             },
         },
+        display: {
+            label: 'Affichage',
+            sortBy: 'Trier par',
+            groupBy: 'Regrouper par',
+            limitResults: 'Limiter les résultats',
+        },
         has: 'A A',
-        groupBy: 'Regrouper par',
         view: {
             label: 'Afficher',
             table: 'Table',
@@ -7554,7 +7580,8 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
                     `La connexion ${feedName} est interrompue. Pour rétablir l’importation des cartes, <a href='${workspaceCompanyCardRoute}'>connectez-vous à votre banque</a>.`,
                 plaidBalanceFailure: ({maskedAccountNumber, walletRoute}: {maskedAccountNumber: string; walletRoute: string}) =>
                     `la connexion Plaid à votre compte bancaire professionnel est rompue. Veuillez <a href='${walletRoute}'>reconnecter votre compte bancaire ${maskedAccountNumber}</a> afin de pouvoir continuer à utiliser vos Cartes Expensify.`,
-                addEmployee: (email: string, role: string) => `a ajouté ${email} en tant que ${role === 'member' ? 'un' : 'un'} ${role}`,
+                addEmployee: (email: string, role: string, didJoinPolicy?: boolean) =>
+                    didJoinPolicy ? `${email} a rejoint via le lien d’invitation de l’espace de travail` : `a ajouté ${email} en tant que ${role === 'member' ? 'a' : 'un'} ${role}`,
                 updateRole: ({email, currentRole, newRole}: UpdateRoleParams) => `a mis à jour le rôle de ${email} en ${newRole} (précédemment ${currentRole})`,
                 updatedCustomField1: (email: string, newValue: string, previousValue: string) => {
                     if (!newValue) {
@@ -7828,12 +7855,17 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
             prompt: 'Voulez-vous vraiment arrêter le suivi GPS et passer à Expensify Classic ?',
             confirm: 'Arrêter et changer',
         },
+        switchAccountWarningTripInProgress: {
+            title: 'Suivi GPS en cours',
+            prompt: 'Voulez-vous vraiment arrêter le suivi GPS et changer de compte ?',
+            confirm: 'Arrêter et passer à autre chose',
+        },
         locationServicesRequiredModal: {
             title: 'Accès à la localisation requis',
             confirm: 'Ouvrir les paramètres',
             prompt: 'Veuillez autoriser l’accès à la localisation dans les réglages de votre appareil pour commencer le suivi de distance GPS.',
         },
-        fabGpsTripExplained: 'Aller à l’écran GPS (action flottante)',
+        gpsFloatingPillText: 'Suivi GPS en cours...',
         liveActivity: {subtitle: 'Suivi de la distance', button: 'Voir la progression'},
     },
     reportCardLostOrDamaged: {
@@ -7861,11 +7893,13 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
         [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.START_CHAT]: {
             buttonText: 'Démarrez une discussion, <success><strong>parrainez un ami</strong></success>.',
             header: 'Commencez une discussion, parrainez un ami',
+            closeAccessibilityLabel: 'Fermer, démarrer un chat, parrainer un ami, bannière',
             body: 'Vous voulez que vos amis utilisent Expensify, eux aussi ? Il vous suffit de commencer une discussion avec eux et nous nous occupons du reste.',
         },
         [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SUBMIT_EXPENSE]: {
             buttonText: 'Soumettez une dépense, <success><strong>parrainez votre équipe</strong></success>.',
             header: 'Soumettez une dépense, parrainez votre équipe',
+            closeAccessibilityLabel: 'Fermer, soumettre une dépense, parrainer votre équipe, bannière',
             body: 'Vous voulez que votre équipe utilise Expensify, elle aussi ? Soumettez-leur simplement une dépense et nous nous occupons du reste.',
         },
         [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.REFER_FRIEND]: {
@@ -8271,6 +8305,8 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
             title: 'Code Expensify',
             discountCode: 'Code de réduction',
             enterCode: 'Saisissez un code Expensify à appliquer à votre abonnement.',
+            discountMessage: (promoDiscount: string, validBillingCycles: string) =>
+                `Vous bénéficierez de ${promoDiscount}% de réduction sur vos ${validBillingCycles ? `${validBillingCycles} ` : ''}prochaines facturations.`,
             apply: 'Appliquer',
             error: {
                 invalid: "Ce code n'est pas valide",
@@ -8298,6 +8334,8 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
                 `<muted-text>En savoir plus sur notre <a href="${CONST.PRICING}">page des tarifs</a> ou discutez avec notre équipe dans votre ${hasAdminsRoom ? `<a href="adminsRoom">Salon #admins.</a>` : 'Salon #admins.'}</muted-text>`,
             estimatedPrice: 'Prix estimé',
             changesBasedOn: 'Cela varie en fonction de votre utilisation de la Carte Expensify et des options d’abonnement ci-dessous.',
+            collectBillingDescription: 'Les espaces de travail Collect sont facturés mensuellement par membre, sans engagement annuel.',
+            pricing: 'Tarification',
         },
         requestEarlyCancellation: {
             title: 'Demander une résiliation anticipée',

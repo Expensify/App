@@ -242,7 +242,10 @@ function ReportActionCompose({
     const isSingleTransactionView = useMemo(() => !!transaction && !!reportTransactions && reportTransactions.length === 1, [transaction, reportTransactions]);
     const parentReportAction = isSingleTransactionView ? iouAction : getReportAction(report?.parentReportID, report?.parentReportActionID);
     const canUserPerformWriteAction = !!canUserPerformWriteActionReportUtils(report, isReportArchived);
-    const canEditReceipt = canUserPerformWriteAction && canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.RECEIPT) && !transaction?.receipt?.isTestDriveReceipt;
+    const canEditReceipt =
+        canUserPerformWriteAction &&
+        canEditFieldOfMoneyRequest({reportAction: parentReportAction, fieldToEdit: CONST.EDIT_REQUEST_FIELD.RECEIPT, transaction}) &&
+        !transaction?.receipt?.isTestDriveReceipt;
     const shouldAddOrReplaceReceipt = (isTransactionThreadView || isSingleTransactionView) && canEditReceipt;
 
     const hasReceipt = useMemo(() => hasReceiptTransactionUtils(transaction), [transaction]);
