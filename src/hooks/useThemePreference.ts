@@ -1,21 +1,24 @@
-import {useMemo} from 'react';
 import {useColorScheme} from 'react-native';
+import type {ThemePreferenceWithoutSystem} from '@styles/theme/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import useOnyx from './useOnyx';
 
-function useThemePreference() {
+function useThemePreference(): ThemePreferenceWithoutSystem {
     const [preferredThemeFromStorage] = useOnyx(ONYXKEYS.PREFERRED_THEME);
     const systemTheme = useColorScheme();
 
-    const themePreference = useMemo(() => {
-        const theme = preferredThemeFromStorage ?? CONST.THEME.DEFAULT;
+    const theme = preferredThemeFromStorage ?? CONST.THEME.DEFAULT;
 
-        // If the user chooses to use the device theme settings, set the theme preference to the system theme
-        return theme === CONST.THEME.SYSTEM ? ((systemTheme ?? CONST.THEME.FALLBACK) as 'light' | 'dark') : theme;
-    }, [preferredThemeFromStorage, systemTheme]);
+    if (theme === CONST.THEME.SYSTEM) {
+        return systemTheme === 'dark' ? CONST.THEME.DARK : CONST.THEME.LIGHT;
+    }
 
-    return themePreference;
+    if (theme === CONST.THEME.SYSTEM_CONTRAST) {
+        return systemTheme === 'dark' ? CONST.THEME.DARK_CONTRAST : CONST.THEME.LIGHT_CONTRAST;
+    }
+
+    return theme as ThemePreferenceWithoutSystem;
 }
 
 export default useThemePreference;
