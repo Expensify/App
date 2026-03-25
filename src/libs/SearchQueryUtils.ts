@@ -1734,6 +1734,42 @@ function buildOptimisticSnapshotData(type: SearchDataTypes, data: Record<string,
     };
 }
 
+/**
+ * Set of filter keys that represent free-text fields where the default `:` (eq) operator
+ * should be treated as a substring/partial match (`contains`) when querying the backend.
+ */
+const TEXT_SEARCH_FIELDS: ReadonlySet<string> = new Set([CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT, CONST.SEARCH.SYNTAX_FILTER_KEYS.DESCRIPTION]);
+
+/**
+ * Recursively traverses a search AST and replaces the `eq` operator with `contains`
+ * for free-text filter fields (merchant, description), enabling partial/substring
+ * matching on the backend while preserving the user-facing `:` syntax.
+ */
+function applyContainsOperatorToTextFields(node: ASTNode): ASTNode {
+    if (typeof node.left === 'string' && TEXT_SEARCH_FIELDS.has(node.left) && node.operator === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO) {
+        return {...node, operator: CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS};
+    }
+
+    return {
+        ...node,
+        left: typeof node.left === 'object' && node.left ? applyContainsOperatorToTextFields(node.left) : node.left,
+        right: typeof node.right === 'object' && !Array.isArray(node.right) && node.right ? applyContainsOperatorToTextFields(node.right) : node.right,
+    };
+}
+
+/**
+ * Transforms rawFilterList to use `contains` operator for text fields, mirroring
+ * the AST transformation done by applyContainsOperatorToTextFields.
+ */
+function applyContainsOperatorToRawFilters(rawFilters: RawQueryFilter[]): RawQueryFilter[] {
+    return rawFilters.map((filter) => {
+        if (TEXT_SEARCH_FIELDS.has(filter.key) && filter.operator === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO) {
+            return {...filter, operator: CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS};
+        }
+        return filter;
+    });
+}
+
 export {
     isSearchDatePreset,
     isFilterSupported,
@@ -1762,4 +1798,6 @@ export {
     shouldResetSortForViewChange,
     buildFilterQueryWithSortDefaults,
     buildOptimisticSnapshotData,
+    applyContainsOperatorToTextFields,
+    applyContainsOperatorToRawFilters,
 };
