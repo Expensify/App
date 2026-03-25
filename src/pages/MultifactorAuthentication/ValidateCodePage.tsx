@@ -22,7 +22,7 @@ import VALUES from '@libs/MultifactorAuthentication/VALUES';
 import {isValidValidateCode} from '@libs/ValidationUtils';
 import Navigation from '@navigation/Navigation';
 import {clearAccountMessages} from '@userActions/Session';
-import {requestValidateCodeAction} from '@userActions/User';
+import {clearValidateCodeActionError, requestValidateCodeAction} from '@userActions/User';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -133,6 +133,9 @@ function MultifactorAuthenticationValidateCodePage() {
     };
 
     const resendValidationCode = () => {
+        if (hasValidateCodeActionError) {
+            clearValidateCodeActionError('actionVerified');
+        }
         requestValidateCodeAction();
         inputRef.current?.clear();
         setInputCode('');
