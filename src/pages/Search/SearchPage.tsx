@@ -67,19 +67,21 @@ function SearchPage({route}: SearchPageProps) {
     const shouldAllowFooterTotals = useSearchShouldCalculateTotals(currentSearchKey, currentSearchQueryJSON?.hash, true);
     const shouldShowFooter = selectedTransactionsKeys.length > 0 || (shouldAllowFooterTotals && !!metadata?.count);
 
+    const shouldUseNarrowLayoutRef = useRef(shouldUseNarrowLayout);
+    shouldUseNarrowLayoutRef.current = shouldUseNarrowLayout;
+
     useEffect(() => {
-        if (shouldUseNarrowLayout) {
+        if (shouldUseNarrowLayoutRef.current) {
             return;
         }
         resetVideoPlayerData();
         return () => {
-            if (shouldUseNarrowLayout) {
+            if (shouldUseNarrowLayoutRef.current) {
                 return;
             }
             resetVideoPlayerData();
         };
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    }, [resetVideoPlayerData]);
 
     const prevIsLoading = usePrevious(currentSearchResults?.isLoading);
 

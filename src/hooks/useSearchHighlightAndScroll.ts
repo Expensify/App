@@ -17,6 +17,8 @@ import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
 import usePrevious from './usePrevious';
 
+const EMPTY_TRANSACTIONS: Transaction[] = [];
+
 type UseSearchHighlightAndScroll = {
     searchResults: OnyxEntry<SearchResults>;
     transactions: OnyxCollection<Transaction>;
@@ -64,15 +66,20 @@ function useSearchHighlightAndScroll({
     });
     const searchResultsData = searchResults?.data;
 
+    // EMPTY_TRANSACTIONS sentinel ensures a stable reference when there are no new transactions.
+    // React Compiler auto-memoizes this variable; the sentinel prevents downstream re-renders
+    // even when transactions/previousTransactions refs change but no keys were actually added.
     const prevTransactionsIDs = Object.keys(previousTransactions ?? {});
-    const newTransactions: Transaction[] = [];
+    let newTransactions: Transaction[] = EMPTY_TRANSACTIONS;
     if (prevTransactionsIDs.length > 0) {
         const previousIDs = new Set(prevTransactionsIDs);
+        const result: Transaction[] = [];
         for (const [id, transaction] of Object.entries(transactions ?? {})) {
             if (!previousIDs.has(id) && transaction) {
-                newTransactions.push(transaction);
+                result.push(transaction);
             }
         }
+        newTransactions = result.length > 0 ? result : EMPTY_TRANSACTIONS;
     }
 
     // Trigger search when a new report action is added while on chat or when a new transaction is added for the other search types.

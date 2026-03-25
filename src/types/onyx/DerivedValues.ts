@@ -243,6 +243,14 @@ type TodoMetadata = {
     currency: string | undefined;
 };
 
+/** Pre-computed SearchResults-compatible data for a single todo category */
+type TodoCategorySearchData = {
+    /** SearchResults-compatible data object keyed by Onyx collection keys */
+    data: Record<string, unknown>;
+    /** Aggregated metadata (count, total, currency) */
+    metadata: TodoMetadata;
+};
+
 /**
  * The derived value for todos.
  */
@@ -257,6 +265,17 @@ type TodosDerivedValue = {
     reportsToExport: Report[];
     /** Transactions grouped by report ID */
     transactionsByReportID: Record<string, Transaction[]>;
+    /** Pre-computed search data per todo category, used by SearchContextProvider */
+    searchData: {
+        /** Search data for reports to submit */
+        submit: TodoCategorySearchData;
+        /** Search data for reports to approve */
+        approve: TodoCategorySearchData;
+        /** Search data for reports to pay */
+        pay: TodoCategorySearchData;
+        /** Search data for reports to export */
+        export: TodoCategorySearchData;
+    };
 };
 
 /**
@@ -289,6 +308,7 @@ export type {
     PersonalAndWorkspaceCardListDerivedValue,
     CardFeedErrorsDerivedValue,
     TodosDerivedValue,
+    TodoCategorySearchData,
     TodoMetadata,
     AllCardFeedErrorsMap,
     CardFeedErrorsObject,
