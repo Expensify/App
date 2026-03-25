@@ -126,9 +126,10 @@ const Pagination: Middleware = (requestResponse, request) => {
         const pagesCollections = pages.get(pageCollectionKey) ?? {};
         const existingPages = pagesCollections[pageKey] ?? [];
 
-        // If the server responds with hasNewerActions: true, strip PAGINATION_START_ID from
-        // cached pages so it doesn't survive the merge and incorrectly mark the result as having no newer actions.
-        const sanitizedExistingPages = shouldMarkNoNewerActions ? existingPages : existingPages.map((page) => page.filter((id) => id !== CONST.PAGINATION_START_ID));
+        // Only strip PAGINATION_START_ID from cached pages when the server explicitly confirms newer actions exist.
+        // Some commands (e.g. GetOlderActions) don't return hasNewerActions at all — in that case, preserve the existing boundary.
+        const shouldStripStartMarker = response.hasNewerActions === true;
+        const sanitizedExistingPages = shouldStripStartMarker ? existingPages.map((page) => page.filter((id) => id !== CONST.PAGINATION_START_ID)) : existingPages;
 
         const mergedPages = PaginationUtils.mergeAndSortContinuousPages(sortedAllItems, [...sanitizedExistingPages, newPage], getItemID);
 
