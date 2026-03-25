@@ -43,11 +43,11 @@ type WorkspaceCompanyCardAddWorkEmailPageProps = PlatformStackScreenProps<Settin
 function WorkspaceCompanyCardAddWorkEmailPage({route}: WorkspaceCompanyCardAddWorkEmailPageProps) {
     const {policyID, feed} = route.params;
     const primaryContactMethod = usePrimaryContactMethod();
-    const [session] = useOnyx(ONYXKEYS.SESSION);
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {isOffline} = useNetwork();
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [onboardingValues] = useOnyx(ONYXKEYS.NVP_ONBOARDING);
     const [loading, setLoading] = useState(false);
     const {cardFeedsByPolicy} = useCardFeedsForActivePolicies();
     const feedInfo = getFeedInfo(feed, cardFeedsByPolicy);
@@ -55,35 +55,40 @@ function WorkspaceCompanyCardAddWorkEmailPage({route}: WorkspaceCompanyCardAddWo
     const {translate, formatPhoneNumber} = useLocalize();
     const styles = useThemeStyles();
     const [email, setEmail] = React.useState('');
-    const isWorkEmailValidated = email ? !!loginList?.[email]?.validatedDate : false;
+    const emailLoginKey = email ? Object.keys(loginList ?? {}).find((login) => login.toLowerCase() === email.toLowerCase()) : undefined;
+    const isWorkEmailValidated = emailLoginKey ? !!loginList?.[emailLoginKey]?.validatedDate : false;
 
     const emailInputRef = useRef<AnimatedTextInputRef>(null);
 
     const handleSubmit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ADD_WORK_EMAIL_FORM>) => {
         const submittedEmail = values[INPUT_IDS.EMAIL].trim();
         const existingLoginKey = Object.keys(loginList ?? {}).find((login) => login.toLowerCase() === submittedEmail.toLowerCase());
-        const isEmailAlreadyUsed = !!loginList?.[submittedEmail]?.validatedDate;
+        const isExistingLoginValidated = existingLoginKey ? !!loginList?.[existingLoginKey]?.validatedDate : false;
 
         if (existingLoginKey) {
-            setContactMethodAsDefault(currentUserPersonalDetails, allPolicies, existingLoginKey, formatPhoneNumber, undefined, true);
-            if (!feedInfo) {
+            if (!isExistingLoginValidated) {
+                setEmail(submittedEmail);
+                Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARD_VERIFY_WORK_EMAIL.getRoute(policyID, feed));
                 return;
             }
-            if (isEmailAlreadyUsed) {
-                setLoading(true);
-                const feedValue = getCardFeedWithDomainID(feedInfo.feed, feedInfo.fundID) as CompanyCardFeedWithDomainID;
-                linkCardFeedToPolicy(Number(feedInfo.fundID), policyID, CONST.COMPANY_CARD.LINK_FEED_TYPE.COMPANY_CARD, feedInfo?.country, feedInfo.feed as CompanyCardFeedWithNumber)
-                    .then(() => {
-                        updateSelectedFeed(feedValue, policyID);
-                        Navigation.closeRHPFlow();
-                    })
-                    .catch((error: TranslationPaths) => {
-                        addErrorMessage({}, INPUT_IDS.EMAIL, translate(error));
-                    })
-                    .finally(() => {
-                        setLoading(false);
-                    });
+            setContactMethodAsDefault(currentUserPersonalDetails, allPolicies, existingLoginKey, formatPhoneNumber, undefined, true);
+            if (!feedInfo) {
+                setEmail(submittedEmail);
+                return;
             }
+            setLoading(true);
+            const feedValue = getCardFeedWithDomainID(feedInfo.feed, feedInfo.fundID) as CompanyCardFeedWithDomainID;
+            linkCardFeedToPolicy(Number(feedInfo.fundID), policyID, CONST.COMPANY_CARD.LINK_FEED_TYPE.COMPANY_CARD, feedInfo?.country, feedInfo.feed as CompanyCardFeedWithNumber)
+                .then(() => {
+                    updateSelectedFeed(feedValue, policyID);
+                    Navigation.closeRHPFlow();
+                })
+                .catch((error: TranslationPaths) => {
+                    addErrorMessage({}, INPUT_IDS.EMAIL, translate(error));
+                })
+                .finally(() => {
+                    setLoading(false);
+                });
         } else {
             AddWorkEmail(submittedEmail);
         }
@@ -91,11 +96,18 @@ function WorkspaceCompanyCardAddWorkEmailPage({route}: WorkspaceCompanyCardAddWo
     };
 
     useEffect(() => {
-        if (!email || !primaryContactMethod || primaryContactMethod.toLowerCase() !== email.toLowerCase() || isWorkEmailValidated) {
+        if (!email) {
+            return;
+        }
+        if (onboardingValues?.shouldValidate) {
+            Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARD_VERIFY_WORK_EMAIL.getRoute(policyID, feed));
+            return;
+        }
+        if (!primaryContactMethod || primaryContactMethod.toLowerCase() !== email.toLowerCase() || isWorkEmailValidated) {
             return;
         }
         Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARD_VERIFY_WORK_EMAIL.getRoute(policyID, feed));
-    }, [primaryContactMethod, email, policyID, feed, isWorkEmailValidated]);
+    }, [primaryContactMethod, email, policyID, feed, isWorkEmailValidated, onboardingValues?.shouldValidate]);
 
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ADD_WORK_EMAIL_FORM>): Errors => {
         const errors = {};
@@ -107,8 +119,6 @@ function WorkspaceCompanyCardAddWorkEmailPage({route}: WorkspaceCompanyCardAddWo
             addErrorMessage(errors, INPUT_IDS.EMAIL, translate('common.error.fieldRequired'));
         } else if (values.email.length > CONST.LOGIN_CHARACTER_LIMIT) {
             addErrorMessage(errors, INPUT_IDS.EMAIL, translate('common.error.characterLimitExceedCounter', values.email.length, CONST.LOGIN_CHARACTER_LIMIT));
-        } else if (session?.email && userEmail.toLowerCase() === session.email.toLowerCase() && !isOffline) {
-            addErrorMessage(errors, INPUT_IDS.EMAIL, translate('onboarding.workEmailValidationError.sameAsSignupEmail'));
         } else if ((!Str.isValidEmail(userEmail) || PUBLIC_DOMAINS_SET.has(domain.toLowerCase())) && !isOffline) {
             Log.hmmm('User is trying to add an invalid work email', {userEmail, domain});
             addErrorMessage(errors, INPUT_IDS.EMAIL, translate('onboarding.workEmailValidationError.publicEmail'));

@@ -53,6 +53,7 @@ function WorkspaceCompanyCardFeedSelectorPage({route}: WorkspaceCompanyCardFeedS
     const [allDomains] = useOnyx(ONYXKEYS.COLLECTION.DOMAIN);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
+    const [onboardingValues] = useOnyx(ONYXKEYS.NVP_ONBOARDING);
     const styles = useThemeStyles();
     const illustrations = useThemeIllustrations();
     const companyCardFeedIcons = useCompanyCardFeedIcons();
@@ -124,6 +125,10 @@ function WorkspaceCompanyCardFeedSelectorPage({route}: WorkspaceCompanyCardFeedS
     const selectOtherFeed = (feed: CardFeedListItem) => {
         if (isUserFromPublicDomain) {
             Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARD_ADD_WORK_EMAIL.getRoute(policyID, feed.value));
+            return;
+        }
+        if (onboardingValues?.shouldValidate) {
+            Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARD_VERIFY_WORK_EMAIL.getRoute(policyID, feed.value));
             return;
         }
         const primaryLoginKey = primaryContactMethod ? Object.keys(loginList ?? {}).find((login) => login.toLowerCase() === primaryContactMethod.toLowerCase()) : undefined;
