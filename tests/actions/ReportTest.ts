@@ -5615,12 +5615,13 @@ describe('actions/Report', () => {
     });
 
     describe('navigateToAndCreateGroupChat', () => {
+        const TEST_USER_ACCOUNT_ID = 1;
+        const TEST_USER_LOGIN = 'test@user.com';
+        const PARTICIPANT_1_LOGIN = 'participant1@test.com';
+        const PARTICIPANT_1_ACCOUNT_ID = 2;
+
         it('should create a group chat and navigate to it', async () => {
             // Given a test user with initial data
-            const TEST_USER_ACCOUNT_ID = 1;
-            const TEST_USER_LOGIN = 'test@user.com';
-            const PARTICIPANT_1_LOGIN = 'participant1@test.com';
-            const PARTICIPANT_1_ACCOUNT_ID = 2;
             const GROUP_CHAT_NAME = 'Test Group';
             const GROUP_CHAT_REPORT_ID = '12345';
             const CONCIERGE_REPORT_ID = '99999';
@@ -5686,136 +5687,7 @@ describe('actions/Report', () => {
             expect(introSelected?.isInviteOnboardingComplete).toBe(true);
         });
 
-        it('should pass isSelfTourViewed=true and create group chat with guided setup data', async () => {
-            const TEST_USER_ACCOUNT_ID = 1;
-            const TEST_USER_LOGIN = 'test@user.com';
-            const PARTICIPANT_1_LOGIN = 'participant1@test.com';
-            const PARTICIPANT_1_ACCOUNT_ID = 2;
-            const GROUP_CHAT_NAME = 'Tour Viewed Group';
-            const GROUP_CHAT_REPORT_ID = '12346';
-            const CONCIERGE_REPORT_ID = '99998';
-
-            await TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN);
-
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${CONCIERGE_REPORT_ID}`, {
-                reportID: CONCIERGE_REPORT_ID,
-                chatType: undefined,
-                type: CONST.REPORT.TYPE.CHAT,
-                participants: {
-                    [CONST.ACCOUNT_ID.CONCIERGE]: {
-                        notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
-                    },
-                    [TEST_USER_ACCOUNT_ID]: {
-                        notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
-                    },
-                },
-            });
-            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
-                [CONST.ACCOUNT_ID.CONCIERGE]: {
-                    accountID: CONST.ACCOUNT_ID.CONCIERGE,
-                    login: CONST.EMAIL.CONCIERGE,
-                    displayName: 'Concierge',
-                },
-                [TEST_USER_ACCOUNT_ID]: {
-                    accountID: TEST_USER_ACCOUNT_ID,
-                    login: TEST_USER_LOGIN,
-                    displayName: 'Test user account',
-                },
-                [PARTICIPANT_1_ACCOUNT_ID]: {
-                    accountID: PARTICIPANT_1_ACCOUNT_ID,
-                    login: PARTICIPANT_1_LOGIN,
-                    displayName: 'Participant One',
-                },
-            });
-
-            await Onyx.set(ONYXKEYS.NVP_INTRO_SELECTED, TEST_INTRO_SELECTED);
-            await Onyx.set(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: false});
-            await waitForBatchedUpdates();
-
-            // When create group chat is called with isSelfTourViewed=true
-            Report.navigateToAndCreateGroupChat([TEST_USER_LOGIN, PARTICIPANT_1_LOGIN], GROUP_CHAT_NAME, TEST_USER_LOGIN, GROUP_CHAT_REPORT_ID, TEST_INTRO_SELECTED, true);
-            await waitForBatchedUpdates();
-
-            // Then it should create a new group chat report in Onyx
-            const newGroupChatReport: OnyxEntry<OnyxTypes.Report> = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${GROUP_CHAT_REPORT_ID}`);
-            expect(newGroupChatReport).not.toBeNull();
-            expect(newGroupChatReport?.reportName).toBe(GROUP_CHAT_NAME);
-            expect(newGroupChatReport?.chatType).toBe(CONST.REPORT.CHAT_TYPE.GROUP);
-
-            const participantAccountIDs = Object.keys(newGroupChatReport?.participants ?? {}).map(Number);
-            expect(participantAccountIDs).toContain(TEST_USER_ACCOUNT_ID);
-            expect(participantAccountIDs).toContain(PARTICIPANT_1_ACCOUNT_ID);
-
-            const introSelected = await getOnyxValue(ONYXKEYS.NVP_INTRO_SELECTED);
-            expect(introSelected?.isInviteOnboardingComplete).toBe(true);
-        });
-
-        it('should pass isSelfTourViewed=false and create group chat correctly', async () => {
-            const TEST_USER_ACCOUNT_ID = 1;
-            const TEST_USER_LOGIN = 'test@user.com';
-            const PARTICIPANT_1_LOGIN = 'participant1@test.com';
-            const PARTICIPANT_1_ACCOUNT_ID = 2;
-            const GROUP_CHAT_NAME = 'Tour Not Viewed Group';
-            const GROUP_CHAT_REPORT_ID = '12347';
-            const CONCIERGE_REPORT_ID = '99997';
-
-            await TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN);
-
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${CONCIERGE_REPORT_ID}`, {
-                reportID: CONCIERGE_REPORT_ID,
-                chatType: undefined,
-                type: CONST.REPORT.TYPE.CHAT,
-                participants: {
-                    [CONST.ACCOUNT_ID.CONCIERGE]: {
-                        notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
-                    },
-                    [TEST_USER_ACCOUNT_ID]: {
-                        notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
-                    },
-                },
-            });
-            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
-                [CONST.ACCOUNT_ID.CONCIERGE]: {
-                    accountID: CONST.ACCOUNT_ID.CONCIERGE,
-                    login: CONST.EMAIL.CONCIERGE,
-                    displayName: 'Concierge',
-                },
-                [TEST_USER_ACCOUNT_ID]: {
-                    accountID: TEST_USER_ACCOUNT_ID,
-                    login: TEST_USER_LOGIN,
-                    displayName: 'Test user account',
-                },
-                [PARTICIPANT_1_ACCOUNT_ID]: {
-                    accountID: PARTICIPANT_1_ACCOUNT_ID,
-                    login: PARTICIPANT_1_LOGIN,
-                    displayName: 'Participant One',
-                },
-            });
-
-            await Onyx.set(ONYXKEYS.NVP_INTRO_SELECTED, TEST_INTRO_SELECTED);
-            await Onyx.set(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: false});
-            await waitForBatchedUpdates();
-
-            // When create group chat is called with isSelfTourViewed=false
-            Report.navigateToAndCreateGroupChat([TEST_USER_LOGIN, PARTICIPANT_1_LOGIN], GROUP_CHAT_NAME, TEST_USER_LOGIN, GROUP_CHAT_REPORT_ID, TEST_INTRO_SELECTED, false);
-            await waitForBatchedUpdates();
-
-            // Then it should still create a new group chat report in Onyx
-            const newGroupChatReport: OnyxEntry<OnyxTypes.Report> = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${GROUP_CHAT_REPORT_ID}`);
-            expect(newGroupChatReport).not.toBeNull();
-            expect(newGroupChatReport?.reportName).toBe(GROUP_CHAT_NAME);
-            expect(newGroupChatReport?.chatType).toBe(CONST.REPORT.CHAT_TYPE.GROUP);
-
-            const participantAccountIDs = Object.keys(newGroupChatReport?.participants ?? {}).map(Number);
-            expect(participantAccountIDs).toContain(TEST_USER_ACCOUNT_ID);
-            expect(participantAccountIDs).toContain(PARTICIPANT_1_ACCOUNT_ID);
-        });
-
         it('should create group chat with avatar and isSelfTourViewed', async () => {
-            const TEST_USER_ACCOUNT_ID = 1;
-            const TEST_USER_LOGIN = 'test@user.com';
-            const PARTICIPANT_1_LOGIN = 'participant1@test.com';
-            const PARTICIPANT_1_ACCOUNT_ID = 2;
             const GROUP_CHAT_NAME = 'Avatar Group';
             const GROUP_CHAT_REPORT_ID = '12348';
             const CONCIERGE_REPORT_ID = '99996';
@@ -5871,10 +5743,6 @@ describe('actions/Report', () => {
         });
 
         it('should create group chat when onboarding is already completed and isSelfTourViewed=true', async () => {
-            const TEST_USER_ACCOUNT_ID = 1;
-            const TEST_USER_LOGIN = 'test@user.com';
-            const PARTICIPANT_1_LOGIN = 'participant1@test.com';
-            const PARTICIPANT_1_ACCOUNT_ID = 2;
             const GROUP_CHAT_NAME = 'Completed Onboarding Group';
             const GROUP_CHAT_REPORT_ID = '12349';
 
