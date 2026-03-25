@@ -55,6 +55,7 @@ import {getEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
 import type WithSentryLabel from '@src/types/utils/SentryLabel';
 import DatePickerFilterPopup from './DatePickerFilterPopup';
+import FeedFilterPopup from './FeedFilterPopup';
 import MultiSelectFilterPopup from './MultiSelectFilterPopup';
 
 type FilterItem = WithSentryLabel & {
@@ -328,9 +329,8 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON, isMobileSelectionModeEn
         updateFilterForm({feed: items.map((item) => item.value)});
     };
     const feedComponent = (props: PopoverComponentProps) => (
-        <MultiSelectFilterPopup
+        <FeedFilterPopup
             closeOverlay={props.closeOverlay}
-            translationKey="search.filters.feed"
             items={feedOptions}
             value={feed}
             onChangeCallback={updateFeedFilterForm}

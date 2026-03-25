@@ -1,27 +1,24 @@
-import {PopoverComponentProps} from '@components/Search/FilterDropdowns/DropdownButton';
-import useFeedKeysWithAssignedCards from '@hooks/useFeedKeysWithAssignedCards';
-import useLocalize from '@hooks/useLocalize';
-import useOnyx from '@hooks/useOnyx';
-import {getFeedOptions} from '@libs/SearchUIUtils';
-import ONYXKEYS from '@src/ONYXKEYS';
+
+import { MultiSelectItem, MultiSelectItem } from '@components/Search/FilterDropdowns/MultiSelectPopup';
 import MultiSelectFilterPopup from './MultiSelectFilterPopup';
 
-function FeedFilterPopup({closeOverlay}: PopoverComponentProps) {
-    const {translate, localeCompare} = useLocalize();
-    const feedKeysWithCards = useFeedKeysWithAssignedCards();
+type FeedFilterPopupProps = {
+            items:  Array<MultiSelectItem<string>>
+            value:  Array<MultiSelectItem<string>>
+   closeOverlay: () => void;
+            onChangeCallback: (items: Array<MultiSelectItem<string>>) => void
+}
 
-    const [allFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER);
-    const [personalAndWorkspaceCards] = useOnyx(ONYXKEYS.DERIVED.PERSONAL_AND_WORKSPACE_CARD_LIST);
+function FeedFilterPopup({ closeOverlay,  items, value, onChangeCallback }: FeedFilterPopupProps) {
 
-    const feedOptions = getFeedOptions(allFeeds, personalAndWorkspaceCards, translate, localeCompare, feedKeysWithCards);
 
     return (
         <MultiSelectFilterPopup
-            closeOverlay={closeOverlay}
+            closeOverlay={closeOverlay} 
             translationKey="search.filters.feed"
-            items={feedOptions}
-            value={feed}
-            onChangeCallback={updateFeedFilterForm}
+            items={items}
+            value={value}
+            onChangeCallback={onChangeCallback}
         />
     );
 }
