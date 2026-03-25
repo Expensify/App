@@ -1,4 +1,4 @@
-import {toZonedTime} from 'date-fns-tz';
+import {format, toZonedTime} from 'date-fns-tz';
 import React, {useMemo, useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import DatePicker from '@components/DatePicker';
@@ -129,7 +129,7 @@ function SetExpiryOptionsStep({policy, stepNames, startStepIndex}: SetExpiryOpti
                             label={translate('workspace.card.issueNewCard.startDate')}
                             maxDate={CONST.CALENDAR_PICKER.MAX_DATE}
                             minDate={minDate}
-                            defaultValue={issueNewCard?.data?.validFrom}
+                            defaultValue={issueNewCard?.data?.validFrom ?? format(minDate, CONST.DATE.FNS_FORMAT_STRING)}
                         />
                         <InputWrapper
                             InputComponent={DatePicker}
