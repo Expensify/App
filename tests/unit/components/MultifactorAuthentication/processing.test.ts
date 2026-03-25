@@ -26,7 +26,7 @@ describe('MultifactorAuthentication processing', () => {
                 type: 'biometric' as const,
                 response: {
                     clientDataJSON: 'encoded-client-data',
-                    biometric: {publicKey: 'public-key-123', algorithm: CONST.COSE_ALGORITHM.EDDSA},
+                    biometric: {publicKey: 'public-key-123', algorithm: CONST.COSE_ALGORITHM.ES256},
                 },
             };
 
@@ -75,7 +75,7 @@ describe('MultifactorAuthentication processing', () => {
             });
 
             const result = await processRegistration({
-                keyInfo: {rawId: 'key', type: 'biometric' as const, response: {clientDataJSON: 'cdj', biometric: {publicKey: 'key', algorithm: CONST.COSE_ALGORITHM.EDDSA}}},
+                keyInfo: {rawId: 'key', type: 'biometric' as const, response: {clientDataJSON: 'cdj', biometric: {publicKey: 'key', algorithm: CONST.COSE_ALGORITHM.ES256}}},
                 authenticationMethod: 'BIOMETRIC_FACE',
             });
 
@@ -92,7 +92,7 @@ describe('MultifactorAuthentication processing', () => {
             });
 
             const result = await processRegistration({
-                keyInfo: {rawId: 'key', type: 'biometric' as const, response: {clientDataJSON: 'cdj', biometric: {publicKey: 'key', algorithm: CONST.COSE_ALGORITHM.EDDSA}}},
+                keyInfo: {rawId: 'key', type: 'biometric' as const, response: {clientDataJSON: 'cdj', biometric: {publicKey: 'key', algorithm: CONST.COSE_ALGORITHM.ES256}}},
                 authenticationMethod: 'BIOMETRIC_FACE',
             });
 
