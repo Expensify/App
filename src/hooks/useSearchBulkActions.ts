@@ -647,6 +647,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             allTransactions,
             allReports,
             userBillingGraceEndPeriods,
+            amountOwed,
         ],
     );
 
