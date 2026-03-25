@@ -17,11 +17,13 @@ import {
 } from '@libs/actions/TransactionInlineEdit';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
-import {isExpenseUnreported} from '@libs/TransactionUtils';
+import {isExpenseUnreported, isPerDiemRequest} from '@libs/TransactionUtils';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, ReportAction, ReportActions} from '@src/types/onyx';
 import useOnyx from './useOnyx';
 import usePolicyForMovingExpenses from './usePolicyForMovingExpenses';
+import usePolicyForTransaction from './usePolicyForTransaction';
 
 type UseTransactionInlineEditParams = {
     transactionID: string;
@@ -116,7 +118,14 @@ function useTransactionInlineEdit({
     const policyID = parentReport?.policyID;
     const chatReportID = parentReport?.chatReportID;
 
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(policyID)}`);
+    const {policy} = usePolicyForTransaction({
+        transaction,
+        reportPolicyID: policyID,
+        action: CONST.IOU.ACTION.EDIT,
+        iouType: CONST.IOU.TYPE.SUBMIT,
+        isPerDiemRequest: isPerDiemRequest(transaction),
+    });
+
     const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(transactionThreadReportID)}`);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getNonEmptyStringOnyxID(policyID)}`);
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(policyID)}`);
