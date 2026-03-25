@@ -5,10 +5,13 @@ import {getTransactionViolations, hasWarningTypeViolation, isViolationDismissed}
 import ViolationsUtils, {filterReceiptViolations, getIsViolationFixed} from '@libs/Violations/ViolationsUtils';
 import CONST from '@src/CONST';
 import en from '@src/languages/en';
+import flattenObject from '@src/languages/flattenObject';
+import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, PolicyCategories, PolicyTagLists, Report, Transaction, TransactionViolation} from '@src/types/onyx';
 import type {TransactionCollectionDataSet} from '@src/types/onyx/Transaction';
 import {translateLocal} from '../utils/TestHelper';
+import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 // Mock getCurrentUserEmail from Report actions
 const MOCK_CURRENT_USER_EMAIL = 'test@expensify.com';
@@ -1399,24 +1402,22 @@ describe('getViolationTranslation', () => {
         const routeDistanceKm = `${(routeDistanceMeters * metersToKm).toFixed(2)} km`;
         const routeDistanceMi = `${(routeDistanceMeters * metersToMiles).toFixed(2)} mi`;
 
-        /* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-explicit-any */
-        const enTranslate = ((path: string, ...params: unknown[]) => {
-            const keys = path.split('.');
-            let value: any = en;
-            for (const key of keys) {
-                value = value?.[key];
-            }
-            if (typeof value === 'function') {
-                return value(...params);
-            }
-            return value ?? path;
-        }) as typeof translateLocal;
-        /* eslint-enable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-explicit-any */
+        const flatEn = flattenObject(en);
+
+        beforeEach(() => {
+            jest.spyOn(IntlStore, 'getCurrentLocale').mockReturnValue(CONST.LOCALES.EN);
+            jest.spyOn(IntlStore, 'get').mockImplementation((key) => flatEn[key] ?? null);
+            return waitForBatchedUpdates();
+        });
+
+        afterEach(() => {
+            jest.restoreAllMocks();
+        });
 
         it('should return formatted message with route distance in km', () => {
             const result = ViolationsUtils.getViolationTranslation(
                 increasedDistanceViolation,
-                enTranslate,
+                translateLocal,
                 true,
                 undefined,
                 undefined,
@@ -1432,7 +1433,7 @@ describe('getViolationTranslation', () => {
         it('should return formatted message with route distance in miles', () => {
             const result = ViolationsUtils.getViolationTranslation(
                 increasedDistanceViolation,
-                enTranslate,
+                translateLocal,
                 true,
                 undefined,
                 undefined,
@@ -1448,7 +1449,7 @@ describe('getViolationTranslation', () => {
         it('should return fallback message when routeDistanceMeters is zero', () => {
             const result = ViolationsUtils.getViolationTranslation(
                 increasedDistanceViolation,
-                enTranslate,
+                translateLocal,
                 true,
                 undefined,
                 undefined,
@@ -1464,7 +1465,7 @@ describe('getViolationTranslation', () => {
         it('should return fallback message when routeDistanceMeters is undefined', () => {
             const result = ViolationsUtils.getViolationTranslation(
                 increasedDistanceViolation,
-                enTranslate,
+                translateLocal,
                 true,
                 undefined,
                 undefined,
@@ -1480,7 +1481,7 @@ describe('getViolationTranslation', () => {
         it('should return fallback message when distanceUnit is undefined', () => {
             const result = ViolationsUtils.getViolationTranslation(
                 increasedDistanceViolation,
-                enTranslate,
+                translateLocal,
                 true,
                 undefined,
                 undefined,
