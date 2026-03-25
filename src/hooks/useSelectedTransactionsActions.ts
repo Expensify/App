@@ -245,7 +245,7 @@ function useSelectedTransactionsActions({
             recentWaypoints,
         });
 
-        clearSelectedTransactions(undefined, true);
+        clearSelectedTransactions(true);
     }, [
         selectedTransactionIDs,
         defaultExpensePolicy,
