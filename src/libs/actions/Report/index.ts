@@ -3142,7 +3142,7 @@ function updateReportField({
     const fieldKey = getReportFieldKey(reportField.fieldID);
     const recentlyUsedValues = recentlyUsedReportFields?.[fieldKey] ?? [];
 
-    const optimisticChangeFieldAction = buildOptimisticChangeFieldAction(reportField, previousReportField);
+    const optimisticChangeFieldAction = buildOptimisticChangeFieldAction(reportField, previousReportField, accountID);
     const predictedNextStatus = policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO ? CONST.REPORT.STATUS_NUM.CLOSED : CONST.REPORT.STATUS_NUM.OPEN;
 
     // buildOptimisticNextStep is used in parallel
@@ -6833,7 +6833,7 @@ function buildOptimisticChangePolicyData(
     });
 
     // 4. Optimistically create a CHANGE_POLICY reportAction on the report using the reportActionID
-    const optimisticMovedReportAction = buildOptimisticChangePolicyReportAction(report.policyID, policy.id);
+    const optimisticMovedReportAction = buildOptimisticChangePolicyReportAction(report.policyID, policy.id, currentUserAccountID);
     optimisticData.push({
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,

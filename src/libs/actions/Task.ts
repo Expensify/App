@@ -730,7 +730,7 @@ function editTaskAssignee(
     isOptimisticReport?: boolean,
 ) {
     // Create the EditedReportAction on the task
-    const editTaskReportAction = ReportUtils.buildOptimisticChangedTaskAssigneeReportAction(assigneeAccountID ?? CONST.DEFAULT_NUMBER_ID);
+    const editTaskReportAction = ReportUtils.buildOptimisticChangedTaskAssigneeReportAction(assigneeAccountID ?? CONST.DEFAULT_NUMBER_ID, currentUserAccountID);
     const reportName = report.reportName?.trim();
 
     let assigneeChatReportOnyxData;
