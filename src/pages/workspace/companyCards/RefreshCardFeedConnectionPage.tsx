@@ -59,7 +59,7 @@ function RefreshCardFeedConnectionPage({route, policy}: RefreshCardFeedConnectio
         Navigation.closeRHPFlow();
     }, [prevFeedExpiration, feedExpiration, isRefreshing]);
 
-    if (!isDirectFeed(feed) || !cardFeeds?.[feed]) {
+    if (!isDirectFeed(feed) || !cardFeeds?.[feed] || !currentStep) {
         return <NotFoundPage />;
     }
 
