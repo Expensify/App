@@ -1385,9 +1385,8 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
         beginExportWithTemplate,
     ]);
 
-    const primaryActionsImplementation = {
-        [CONST.REPORT.PRIMARY_ACTIONS.SUBMIT]: (
-            <AnimatedSubmitButton
+    const submitAction = (
+         <AnimatedSubmitButton
                 success
                 text={translate('common.submit')}
                 onPress={() => handleSubmitReport()}
@@ -1395,17 +1394,19 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
                 onAnimationFinish={stopAnimation}
                 isDisabled={shouldBlockSubmit}
             />
-        ),
-        [CONST.REPORT.PRIMARY_ACTIONS.APPROVE]: (
+    );
+
+    const approveAction = (
             <Button
                 success
                 onPress={() => confirmApproval()}
                 text={translate('iou.approve')}
                 isDisabled={isBlockSubmitDueToPreventSelfApproval}
             />
-        ),
-        [CONST.REPORT.PRIMARY_ACTIONS.PAY]: (
-            <AnimatedSettlementButton
+    )
+
+    const payAction = (
+        <AnimatedSettlementButton
                 isPaidAnimationRunning={isPaidAnimationRunning}
                 isApprovedAnimationRunning={isApprovedAnimationRunning}
                 onAnimationFinish={stopAnimation}
@@ -1425,9 +1426,10 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
                 isDisabled={isOffline && !canAllowSettlement}
                 isLoading={!isOffline && !canAllowSettlement}
             />
-        ),
-        [CONST.REPORT.PRIMARY_ACTIONS.EXPORT_TO_ACCOUNTING]: (
-            <Button
+    )
+
+    const exportToAccountingAction = (
+        <Button
                 success
                 text={translate('workspace.common.exportIntegrationSelected', {
                     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
@@ -1444,9 +1446,10 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
                     exportToIntegration(moneyRequestReport?.reportID, connectedIntegration);
                 }}
             />
-        ),
-        [CONST.REPORT.PRIMARY_ACTIONS.REMOVE_HOLD]: (
-            <Button
+    );
+
+    const removeHoldAction = (
+        <Button
                 success
                 text={translate('iou.unhold')}
                 onPress={() => {
@@ -1473,16 +1476,18 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
                     changeMoneyRequestHoldStatus(moneyRequestAction, getLinkedIOUTransaction(moneyRequestAction, transactions));
                 }}
             />
-        ),
-        [CONST.REPORT.PRIMARY_ACTIONS.MARK_AS_CASH]: (
-            <Button
+    )
+
+    const markAsCashAction = (
+        <Button
                 success
                 text={translate('iou.markAsCash')}
                 onPress={markAsCash}
             />
-        ),
-        [CONST.REPORT.TRANSACTION_PRIMARY_ACTIONS.MARK_AS_RESOLVED]: (
-            <Button
+    )
+
+    const markAsResolvedAction = (
+         <Button
                 success
                 onPress={() => {
                     if (!transaction?.transactionID) {
@@ -1492,9 +1497,10 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
                 }}
                 text={translate('iou.reject.markAsResolved')}
             />
-        ),
-        [CONST.REPORT.PRIMARY_ACTIONS.REVIEW_DUPLICATES]: (
-            <Button
+    )
+
+    const reviewDuplicatesAction = (
+        <Button
                 success
                 text={translate('iou.reviewDuplicates')}
                 onPress={() => {
@@ -1518,6 +1524,31 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
                     Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_PAGE.getRoute(threadID));
                 }}
             />
+    )
+
+    const primaryActionsImplementation = {
+        [CONST.REPORT.PRIMARY_ACTIONS.SUBMIT]: (
+        ),
+        [CONST.REPORT.PRIMARY_ACTIONS.APPROVE]: (
+
+        ),
+        [CONST.REPORT.PRIMARY_ACTIONS.PAY]: (
+           
+        ),
+        [CONST.REPORT.PRIMARY_ACTIONS.EXPORT_TO_ACCOUNTING]: (
+            
+        ),
+        [CONST.REPORT.PRIMARY_ACTIONS.REMOVE_HOLD]: (
+            
+        ),
+        [CONST.REPORT.PRIMARY_ACTIONS.MARK_AS_CASH]: (
+         
+        ),
+        [CONST.REPORT.TRANSACTION_PRIMARY_ACTIONS.MARK_AS_RESOLVED]: (
+           
+        ),
+        [CONST.REPORT.PRIMARY_ACTIONS.REVIEW_DUPLICATES]: (
+            
         ),
     };
 
