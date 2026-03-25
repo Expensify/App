@@ -523,8 +523,8 @@ function buildDuplicateTransactionParams(transaction: OnyxTypes.Transaction, tra
     const transactionParams = {
         ...transactionWithoutLinkedAction,
         ...transactionDetails,
-        amount: Math.abs(transactionDetails?.amount ?? 0),
-        taxAmount: Math.abs(transactionDetails?.taxAmount ?? 0),
+        amount: transactionDetails?.amount ?? 0,
+        taxAmount: transactionDetails?.taxAmount ?? 0,
         convertedAmount: undefined,
         originalAmount: undefined,
         actionableWhisperReportActionID: undefined,
@@ -863,12 +863,17 @@ function duplicateReport({
 
     let currentIOUReport = newReport as OnyxEntry<OnyxTypes.Report>;
 
-    for (const transaction of eligibleTransactions) {
+    for (let i = 0; i < eligibleTransactions.length; i++) {
+        const transaction = eligibleTransactions.at(i);
+        if (!transaction) {
+            continue;
+        }
         const transactionDetails = getTransactionDetails(transaction);
         if (!transactionDetails) {
             continue;
         }
 
+        const isLastExpense = i === eligibleTransactions.length - 1;
         const {transactionParams, waypoints} = buildDuplicateTransactionParams(transaction, transactionDetails);
 
         const params: RequestMoneyInformation = {
@@ -898,6 +903,7 @@ function duplicateReport({
             isSelfTourViewed,
             betas,
             personalDetails,
+            shouldDeferAutoSubmit: !isLastExpense,
         };
 
         const result = createExpenseByType({
