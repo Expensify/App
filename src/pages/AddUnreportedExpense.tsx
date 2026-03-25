@@ -75,6 +75,7 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
     const shouldShowUnreportedTransactionsSkeletons = isLoadingUnreportedTransactions && hasMoreUnreportedTransactionsResults && !isOffline;
     const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
+    const [reportDrafts] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT);
 
     const initialSkeletonReasonAttributes: SkeletonSpanReasonAttributes = {
         context: 'AddUnreportedExpense.InitialSkeleton',
@@ -95,7 +96,7 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
             }
             return Object.values(transactions || {}).filter((item) => {
                 const isUnreported = isUnreportedTransaction(item);
-                const itemReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${item?.reportID}`];
+                const itemReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${item?.reportID}`] ?? reportDrafts?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${item?.reportID}`];
                 const isOnOpenExpenseReport = isOpenExpenseReport(itemReport);
                 if (!isUnreported && !isOnOpenExpenseReport) {
                     return false;
@@ -137,7 +138,7 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
                 return true;
             });
         },
-        [policy, report, cardList, currentUserAccountID, reportID, allReports],
+        [policy, report, cardList, currentUserAccountID, reportID, allReports, reportDrafts],
     );
 
     const [transactions = getEmptyArray<Transaction>()] = useOnyx(
