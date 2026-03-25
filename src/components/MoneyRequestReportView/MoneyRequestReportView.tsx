@@ -152,7 +152,7 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
 
     const parentReportAction = useParentReportAction(report);
 
-    const lastReportAction = [...reportActions, parentReportAction].find((action) => canEditReportAction(action) && !isMoneyRequestAction(action));
+    const lastReportAction = [...reportActions, parentReportAction].find((action) => canEditReportAction(action, undefined) && !isMoneyRequestAction(action));
     const isLoadingInitialReportActions = reportMetadata?.isLoadingInitialReportActions;
     const dismissReportCreationError = useCallback(() => {
         goBackFromSearchMoneyRequest();
