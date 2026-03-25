@@ -3,7 +3,7 @@ import {renderHook} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
 import useHasTeam2025Pricing from '@hooks/useHasTeam2025Pricing';
 import {shouldShowTrialEndedUI} from '@libs/SubscriptionUtils';
-import useTimeSensitiveBilling from '@pages/home/TimeSensitiveSection/hooks/useTimeSensitiveBilling';
+import useTimeSensitiveAddPaymentCard from '@pages/home/TimeSensitiveSection/hooks/useTimeSensitiveAddPaymentCard';
 import ONYXKEYS from '@src/ONYXKEYS';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
@@ -19,7 +19,7 @@ jest.mock('@libs/SubscriptionUtils', () => ({
 const mockedUseHasTeam2025Pricing = useHasTeam2025Pricing as jest.Mock;
 const mockedShouldShowTrialEndedUI = shouldShowTrialEndedUI as jest.Mock;
 
-describe('useTimeSensitiveBilling', () => {
+describe('useTimeSensitiveAddPaymentCard', () => {
     beforeAll(() => {
         Onyx.init({keys: ONYXKEYS});
     });
@@ -39,7 +39,7 @@ describe('useTimeSensitiveBilling', () => {
             mockedUseHasTeam2025Pricing.mockReturnValue(true);
             mockedShouldShowTrialEndedUI.mockReturnValue(false);
 
-            const {result} = renderHook(() => useTimeSensitiveBilling());
+            const {result} = renderHook(() => useTimeSensitiveAddPaymentCard());
 
             expect(result.current.shouldShowAddPaymentCard).toBe(false);
         });
@@ -48,7 +48,7 @@ describe('useTimeSensitiveBilling', () => {
             mockedUseHasTeam2025Pricing.mockReturnValue(false);
             mockedShouldShowTrialEndedUI.mockReturnValue(true);
 
-            const {result} = renderHook(() => useTimeSensitiveBilling());
+            const {result} = renderHook(() => useTimeSensitiveAddPaymentCard());
 
             expect(result.current.shouldShowAddPaymentCard).toBe(false);
         });
@@ -59,7 +59,7 @@ describe('useTimeSensitiveBilling', () => {
             mockedUseHasTeam2025Pricing.mockReturnValue(true);
             mockedShouldShowTrialEndedUI.mockReturnValue(true);
 
-            const {result} = renderHook(() => useTimeSensitiveBilling());
+            const {result} = renderHook(() => useTimeSensitiveAddPaymentCard());
 
             expect(result.current.shouldShowAddPaymentCard).toBe(true);
         });
@@ -76,7 +76,7 @@ describe('useTimeSensitiveBilling', () => {
             mockedUseHasTeam2025Pricing.mockReturnValue(true);
             mockedShouldShowTrialEndedUI.mockReturnValue(false);
 
-            renderHook(() => useTimeSensitiveBilling());
+            renderHook(() => useTimeSensitiveAddPaymentCard());
 
             expect(mockedShouldShowTrialEndedUI).toHaveBeenCalledWith(lastDayFreeTrial, userBillingFundID, {}, undefined, undefined, undefined);
         });

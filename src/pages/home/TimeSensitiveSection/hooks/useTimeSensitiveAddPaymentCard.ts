@@ -4,7 +4,7 @@ import useOnyx from '@hooks/useOnyx';
 import {shouldShowTrialEndedUI} from '@libs/SubscriptionUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 
-function useTimeSensitiveBilling() {
+function useTimeSensitiveAddPaymentCard() {
     const [lastDayFreeTrial] = useOnyx(ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL);
     const [userBillingFundID] = useOnyx(ONYXKEYS.NVP_BILLING_FUND_ID);
     const hasTeam2025Pricing = useHasTeam2025Pricing();
@@ -22,4 +22,4 @@ function useTimeSensitiveBilling() {
     };
 }
 
-export default useTimeSensitiveBilling;
+export default useTimeSensitiveAddPaymentCard;
