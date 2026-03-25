@@ -4,7 +4,8 @@ import {CommonActions, StackActions} from '@react-navigation/native';
 import {Str} from 'expensify-common';
 // eslint-disable-next-line you-dont-need-lodash-underscore/omit
 import omit from 'lodash/omit';
-import {Dimensions} from 'react-native';
+import {nanoid} from 'nanoid/non-secure';
+import {DeviceEventEmitter, Dimensions, InteractionManager} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {Writable} from 'type-fest';
@@ -26,6 +27,7 @@ import SCREENS, {PROTECTED_SCREENS} from '@src/SCREENS';
 import type {Account, SidePanel} from '@src/types/onyx';
 import getInitialSplitNavigatorState from './AppNavigator/createSplitNavigator/getInitialSplitNavigatorState';
 import originalCloseRHPFlow from './helpers/closeRHPFlow';
+import findMatchingDynamicSuffix from './helpers/dynamicRoutesUtils/findMatchingDynamicSuffix';
 import getPathFromState from './helpers/getPathFromState';
 import getStateFromPath from './helpers/getStateFromPath';
 import getTopmostReportParams from './helpers/getTopmostReportParams';
@@ -40,7 +42,6 @@ import setNavigationActionToMicrotaskQueue from './helpers/setNavigationActionTo
 import {linkingConfig} from './linkingConfig';
 import {SPLIT_TO_SIDEBAR} from './linkingConfig/RELATIONS';
 import navigationRef from './navigationRef';
-import TransitionTracker from './TransitionTracker';
 import type {
     NavigationPartialRoute,
     NavigationRef,
@@ -249,7 +250,7 @@ function getActiveRoute(): string {
 function getReportRHPActiveRoute(): string {
     // Safe handling when navigation is not yet initialized
     if (!navigationRef.isReady()) {
-        Log.warn('[src/libs/Navigation/Navigation.ts] NavigationRef is not ready. Returning empty string.');
+        Log.hmmm('[src/libs/Navigation/Navigation.ts] NavigationRef is not ready. Returning empty string.');
         return '';
     }
     if (isReportOpenInRHP(navigationRef.getRootState())) {
@@ -330,18 +331,9 @@ function navigate(route: Route, options?: LinkToOptions) {
         }
     }
 
-    const runImmediately = !options?.waitForTransition;
-    TransitionTracker.runAfterTransitions({
-        callback: () => {
-            const targetRoute = route.startsWith(CONST.SAML_REDIRECT_URL) ? ROUTES.HOME : route;
-            linkTo(navigationRef.current, targetRoute, options);
-            closeSidePanelOnNarrowScreen(route);
-            if (options?.afterTransition) {
-                TransitionTracker.runAfterTransitions({callback: options.afterTransition, waitForUpcomingTransition: true});
-            }
-        },
-        runImmediately,
-    });
+    const targetRoute = route.startsWith(CONST.SAML_REDIRECT_URL) ? ROUTES.HOME : route;
+    linkTo(navigationRef.current, targetRoute, options);
+    closeSidePanelOnNarrowScreen(route);
 }
 /**
  * When routes are compared to determine whether the fallback route passed to the goUp function is in the state,
@@ -406,15 +398,10 @@ type GoBackOptions = {
      * In that case we want to goUp to a country picker with any params so we don't compare them.
      */
     compareParams?: boolean;
-    // Callback to execute after the navigation transition animation completes.
-    afterTransition?: () => void | undefined;
-    // If true, waits for ongoing transitions to finish before going back. Defaults to false (goes back immediately).
-    waitForTransition?: boolean;
 };
 
-const defaultGoBackOptions: Required<Pick<GoBackOptions, 'compareParams' | 'waitForTransition'>> = {
+const defaultGoBackOptions: Required<GoBackOptions> = {
     compareParams: true,
-    waitForTransition: false,
 };
 
 /**
@@ -457,6 +444,22 @@ function goUp(backToRoute: Route, options?: GoBackOptions) {
 
     // If we need to pop more than one route from rootState, we replace the current route to not lose visited routes from the navigation state
     if (indexOfBackToRoute === -1 || (isRootNavigatorState(targetState) && distanceToPop > 1)) {
+        const actionPayload = minimalAction.payload as NavigationRoute;
+
+        // StackRouter's REPLACE drops `path`, use a targeted RESET for dynamic routes to preserve it.
+        if (actionPayload?.path && findMatchingDynamicSuffix(backToRoute)) {
+            const routes = targetState.routes.with(targetState.index ?? targetState.routes.length - 1, {
+                key: `${actionPayload.name}-${nanoid()}`,
+                name: actionPayload.name,
+                params: actionPayload.params,
+                path: actionPayload.path,
+            });
+
+            const resetAction = {type: CONST.NAVIGATION_ACTIONS.RESET, payload: {index: targetState.index, routes}, target: targetState.key} as NavigationAction;
+            navigationRef.current.dispatch(resetAction);
+            return;
+        }
+
         const replaceAction = {...minimalAction, type: CONST.NAVIGATION.ACTION_TYPE.REPLACE} as NavigationAction;
         navigationRef.current.dispatch(replaceAction);
         return;
@@ -487,26 +490,22 @@ function goBack(backToRoute?: Route, options?: GoBackOptions) {
         return;
     }
 
-    const runImmediately = !options?.waitForTransition;
-    TransitionTracker.runAfterTransitions({
-        callback: () => {
-            if (backToRoute) {
-                goUp(backToRoute, options);
-            } else if (shouldPopToSidebar) {
-                popToSidebar();
-            } else if (!navigationRef.current?.canGoBack()) {
-                Log.hmmm('[Navigation] Unable to go back');
-                return;
-            } else {
-                navigationRef.current?.goBack();
-            }
+    if (backToRoute) {
+        goUp(backToRoute, options);
+        return;
+    }
 
-            if (options?.afterTransition) {
-                TransitionTracker.runAfterTransitions({callback: options.afterTransition, waitForUpcomingTransition: true});
-            }
-        },
-        runImmediately,
-    });
+    if (shouldPopToSidebar) {
+        popToSidebar();
+        return;
+    }
+
+    if (!navigationRef.current?.canGoBack()) {
+        Log.hmmm('[Navigation] Unable to go back');
+        return;
+    }
+
+    navigationRef.current?.goBack();
 }
 
 /**
@@ -739,27 +738,25 @@ function getTopmostSuperWideRHPReportID(state: NavigationState = navigationRef.g
  *
  * @param options - Configuration object
  * @param options.ref - Navigation ref to use (defaults to navigationRef)
- * @param options.afterTransition - Optional callback to execute after the navigation transition animation completes.
+ * @param options.callback - Optional callback to execute after the modal has finished closing.
+ *                           The callback fires when RightModalNavigator unmounts.
  *
  * For detailed information about dismissing modals,
  * see the NAVIGATION.md documentation.
  */
-function dismissModal({ref = navigationRef, afterTransition, waitForTransition}: {ref?: NavigationRef; afterTransition?: () => void; waitForTransition?: boolean} = {}) {
+const dismissModal = ({ref = navigationRef, callback}: {ref?: NavigationRef; callback?: () => void} = {}) => {
     clearSelectedTextIfComposerBlurred();
-    const runImmediately = !waitForTransition;
     isNavigationReady().then(() => {
-        TransitionTracker.runAfterTransitions({
-            callback: () => {
-                ref.dispatch({type: CONST.NAVIGATION.ACTION_TYPE.DISMISS_MODAL});
+        if (callback) {
+            const subscription = DeviceEventEmitter.addListener(CONST.MODAL_EVENTS.CLOSED, () => {
+                subscription.remove();
+                callback();
+            });
+        }
 
-                if (afterTransition) {
-                    TransitionTracker.runAfterTransitions({callback: afterTransition, waitForUpcomingTransition: true});
-                }
-            },
-            runImmediately,
-        });
+        ref.dispatch({type: CONST.NAVIGATION.ACTION_TYPE.DISMISS_MODAL});
     });
-}
+};
 
 /**
  * Dismisses the modal and opens the given report.
@@ -796,11 +793,10 @@ const dismissModalWithReport = (
             navigate(reportRoute, {forceReplace: true});
             return;
         }
-
-        dismissModal({
-            afterTransition: () => {
-                navigate(reportRoute);
-            },
+        dismissModal();
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        InteractionManager.runAfterInteractions(() => {
+            navigate(reportRoute);
         });
     });
 };
@@ -885,7 +881,7 @@ function clearPreloadedRoutes() {
  *
  * @param modalStackNames - names of the modal stacks we want to dismiss to
  */
-function dismissToModalStack(modalStackNames: Set<string>, options: {afterTransition?: () => void} = {}) {
+function dismissToModalStack(modalStackNames: Set<string>) {
     const rootState = navigationRef.getRootState();
     if (!rootState) {
         return;
@@ -901,36 +897,32 @@ function dismissToModalStack(modalStackNames: Set<string>, options: {afterTransi
     const routesToPop = rhpState.routes.length - lastFoundModalStackIndex - 1;
 
     if (routesToPop <= 0 || lastFoundModalStackIndex === -1) {
-        dismissModal(options);
+        dismissModal();
         return;
     }
 
     navigationRef.dispatch({...StackActions.pop(routesToPop), target: rhpState.key});
-
-    if (options?.afterTransition) {
-        TransitionTracker.runAfterTransitions({callback: options.afterTransition, waitForUpcomingTransition: true});
-    }
 }
 
 /**
  * Dismiss top layer modal and go back to the Wide/Super Wide RHP.
  */
-function dismissToPreviousRHP(options: {afterTransition?: () => void} = {}) {
-    return dismissToModalStack(ALL_WIDE_RIGHT_MODALS, options);
+function dismissToPreviousRHP() {
+    return dismissToModalStack(ALL_WIDE_RIGHT_MODALS);
 }
 
-function navigateBackToLastSuperWideRHPScreen(options: {afterTransition?: () => void} = {}) {
-    return dismissToModalStack(SUPER_WIDE_RIGHT_MODALS, options);
+function navigateBackToLastSuperWideRHPScreen() {
+    return dismissToModalStack(SUPER_WIDE_RIGHT_MODALS);
 }
 
-function dismissToSuperWideRHP(options: {afterTransition?: () => void} = {}) {
+function dismissToSuperWideRHP() {
     // On narrow layouts (mobile), Super Wide RHP doesn't exist, so just dismiss the modal completely
     if (getIsNarrowLayout()) {
-        dismissModal(options);
+        dismissModal();
         return;
     }
     // On wide layouts, dismiss back to the Super Wide RHP modal stack
-    navigateBackToLastSuperWideRHPScreen(options);
+    navigateBackToLastSuperWideRHPScreen();
 }
 
 /**
