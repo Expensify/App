@@ -343,19 +343,18 @@ const transactionQuarterGroupColumnNamesToSortingProperty: TransactionQuarterGro
     ...transactionGroupBaseSortingProperties,
 };
 
-const expenseStatusActionMapping = {
-    [CONST.SEARCH.STATUS.EXPENSE.DRAFTS]: (expenseReport?: OnyxTypes.Report) =>
-        expenseReport?.stateNum === CONST.REPORT.STATE_NUM.OPEN && expenseReport.statusNum === CONST.REPORT.STATUS_NUM.OPEN,
-    [CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING]: (expenseReport?: OnyxTypes.Report) =>
+type ExpenseStatusPredicate = (expenseReport?: OnyxTypes.Report, transactionReportID?: string) => boolean;
+
+const expenseStatusActionMapping: Record<string, ExpenseStatusPredicate> = {
+    [CONST.SEARCH.STATUS.EXPENSE.DRAFTS]: (expenseReport) => expenseReport?.stateNum === CONST.REPORT.STATE_NUM.OPEN && expenseReport.statusNum === CONST.REPORT.STATUS_NUM.OPEN,
+    [CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING]: (expenseReport) =>
         expenseReport?.stateNum === CONST.REPORT.STATE_NUM.SUBMITTED && expenseReport.statusNum === CONST.REPORT.STATUS_NUM.SUBMITTED,
-    [CONST.SEARCH.STATUS.EXPENSE.APPROVED]: (expenseReport?: OnyxTypes.Report) =>
-        expenseReport?.stateNum === CONST.REPORT.STATE_NUM.APPROVED && expenseReport.statusNum === CONST.REPORT.STATUS_NUM.APPROVED,
-    [CONST.SEARCH.STATUS.EXPENSE.PAID]: (expenseReport?: OnyxTypes.Report) =>
+    [CONST.SEARCH.STATUS.EXPENSE.APPROVED]: (expenseReport) => expenseReport?.stateNum === CONST.REPORT.STATE_NUM.APPROVED && expenseReport.statusNum === CONST.REPORT.STATUS_NUM.APPROVED,
+    [CONST.SEARCH.STATUS.EXPENSE.PAID]: (expenseReport) =>
         (expenseReport?.stateNum ?? 0) >= CONST.REPORT.STATE_NUM.APPROVED && expenseReport?.statusNum === CONST.REPORT.STATUS_NUM.REIMBURSED,
-    [CONST.SEARCH.STATUS.EXPENSE.DONE]: (expenseReport?: OnyxTypes.Report) =>
-        expenseReport?.stateNum === CONST.REPORT.STATE_NUM.APPROVED && expenseReport.statusNum === CONST.REPORT.STATUS_NUM.CLOSED,
-    [CONST.SEARCH.STATUS.EXPENSE.UNREPORTED]: (expenseReport?: OnyxTypes.Report) => !expenseReport,
-    [CONST.SEARCH.STATUS.EXPENSE.DELETED]: (expenseReport?: OnyxTypes.Report) => !expenseReport,
+    [CONST.SEARCH.STATUS.EXPENSE.DONE]: (expenseReport) => expenseReport?.stateNum === CONST.REPORT.STATE_NUM.APPROVED && expenseReport.statusNum === CONST.REPORT.STATUS_NUM.CLOSED,
+    [CONST.SEARCH.STATUS.EXPENSE.UNREPORTED]: (expenseReport, transactionReportID) => !expenseReport && transactionReportID !== CONST.REPORT.TRASH_REPORT_ID,
+    [CONST.SEARCH.STATUS.EXPENSE.DELETED]: (_expenseReport, transactionReportID) => transactionReportID === CONST.REPORT.TRASH_REPORT_ID,
     [CONST.SEARCH.STATUS.EXPENSE.ALL]: () => true,
 };
 
@@ -1742,10 +1741,10 @@ function getTransactionsSections({
                 const status = currentQueryJSON.status;
                 if (Array.isArray(status)) {
                     shouldShow = status.some((expenseStatus) => {
-                        return isValidExpenseStatus(expenseStatus) ? expenseStatusActionMapping[expenseStatus](report) : false;
+                        return isValidExpenseStatus(expenseStatus) ? expenseStatusActionMapping[expenseStatus](report, transactionItem.reportID) : false;
                     });
                 } else {
-                    shouldShow = isValidExpenseStatus(status) ? expenseStatusActionMapping[status](report) : false;
+                    shouldShow = isValidExpenseStatus(status) ? expenseStatusActionMapping[status](report, transactionItem.reportID) : false;
                 }
             }
         }
