@@ -17,7 +17,7 @@ const breadcrumbsIntegration = Sentry.breadcrumbsIntegration({
 });
 
 const consoleIntegration = Sentry.consoleLoggingIntegration({
-    levels: [],
+    levels: ['error'],
 });
 
 export {navigationIntegration, shouldCreateSpanForRequest, browserProfilingIntegration, breadcrumbsIntegration, consoleIntegration};

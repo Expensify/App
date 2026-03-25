@@ -24,11 +24,10 @@ function SaveTheWorldPage() {
     const {translate} = useLocalize();
     const waitForNavigate = useWaitForNavigation();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    useDocumentTitle(translate('sidebarScreen.saveTheWorld'));
     const theme = useTheme();
     const illustrations = useMemoizedLazyIllustrations(['TeachersUnite']);
     const saveTheWorldIllustration = useSaveTheWorldSectionIllustration();
-    useDocumentTitle(`${translate('common.settings')} - ${translate('sidebarScreen.saveTheWorld')}`);
-
     const menuItems = useMemo(() => {
         const baseMenuItems = [
             {
@@ -65,6 +64,7 @@ function SaveTheWorldPage() {
                 title={translate('sidebarScreen.saveTheWorld')}
                 shouldShowBackButton={shouldUseNarrowLayout}
                 shouldDisplaySearchRouter
+                shouldDisplayHelpButton
                 onBackButtonPress={Navigation.goBack}
                 icon={illustrations.TeachersUnite}
                 shouldUseHeadlineHeader

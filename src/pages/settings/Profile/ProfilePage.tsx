@@ -29,6 +29,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsSplitNavigatorParamList} from '@libs/Navigation/types';
 import {getDisplayNameOrDefault, getFormattedAddress} from '@libs/PersonalDetailsUtils';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {getContactMethodsOptions, getLoginListBrickRoadIndicator} from '@libs/UserUtils';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -50,6 +51,7 @@ function ProfilePage() {
     const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const route = useRoute<PlatformStackRouteProp<SettingsSplitNavigatorParamList, typeof SCREENS.SETTINGS.PROFILE.ROOT>>();
+    useDocumentTitle(translate('common.profile'));
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const getPronouns = (): string => {
         const pronounsKey = currentUserPersonalDetails?.pronouns?.replace(CONST.PRONOUNS.PREFIX, '') ?? '';
@@ -71,8 +73,6 @@ function ProfilePage() {
     const [vacationDelegate] = useOnyx(ONYXKEYS.NVP_PRIVATE_VACATION_DELEGATE);
     const {isActingAsDelegate} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
-    useDocumentTitle(`${translate('common.settings')} - ${translate('common.profile')}`);
-
     const publicOptions = [
         {
             description: translate('displayNamePage.headerTitle'),
@@ -164,6 +164,11 @@ function ProfilePage() {
         },
     ];
 
+    const privateSectionReasonAttributes: SkeletonSpanReasonAttributes = {
+        context: 'ProfilePage.privateSection',
+        isLoadingApp: !!isLoadingApp,
+    };
+
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
@@ -181,6 +186,7 @@ function ProfilePage() {
                 }}
                 shouldShowBackButton={shouldUseNarrowLayout}
                 shouldDisplaySearchRouter
+                shouldDisplayHelpButton
                 icon={Profile}
                 shouldUseHeadlineHeader
             />
@@ -201,7 +207,15 @@ function ProfilePage() {
                         >
                             <View style={[styles.pt3, styles.pb6, styles.alignSelfStart, styles.w100]}>
                                 {isEmptyObject(currentUserPersonalDetails) || accountID === -1 || !avatarURL ? (
-                                    <AvatarSkeleton size={CONST.AVATAR_SIZE.X_LARGE} />
+                                    <AvatarSkeleton
+                                        size={CONST.AVATAR_SIZE.X_LARGE}
+                                        reasonAttributes={{
+                                            context: 'ProfilePage',
+                                            isPersonalDetailsEmpty: isEmptyObject(currentUserPersonalDetails),
+                                            isAccountIDInvalid: accountID === -1,
+                                            hasNoAvatarURL: !avatarURL,
+                                        }}
+                                    />
                                 ) : (
                                     <MenuItemGroup shouldUseSingleExecution={false}>
                                         <AvatarButtonWithIcon
@@ -252,7 +266,10 @@ function ProfilePage() {
                         >
                             {isLoadingApp ? (
                                 <View style={[styles.flex1, styles.pRelative, StyleUtils.getBackgroundColorStyle(theme.cardBG)]}>
-                                    <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />
+                                    <ActivityIndicator
+                                        size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
+                                        reasonAttributes={privateSectionReasonAttributes}
+                                    />
                                 </View>
                             ) : (
                                 <MenuItemGroup shouldUseSingleExecution={!isActingAsDelegate}>

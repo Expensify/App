@@ -5,7 +5,7 @@ import Onyx from 'react-native-onyx';
 import {measureRenders} from 'reassure';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
-import {OptionsListContext} from '@components/OptionListContextProvider';
+import {OptionsListActionsContext, OptionsListStateContext} from '@components/OptionListContextProvider';
 import SearchAutocompleteInput from '@components/Search/SearchAutocompleteInput';
 import SearchRouter from '@components/Search/SearchRouter/SearchRouter';
 import type {PrivateIsArchivedMap} from '@hooks/usePrivateIsArchivedMap';
@@ -48,6 +48,16 @@ jest.mock('@src/hooks/useRootNavigationState', () => ({
     // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     default: () => ({contextualReportID: undefined, isSearchRouterScreen: false}),
+}));
+
+jest.mock('@hooks/useExportedToFilterOptions', () => ({
+    // eslint-disable-next-line @typescript-eslint/naming-convention
+    __esModule: true,
+    default: () => ({
+        exportedToFilterOptions: [],
+        combinedUniqueExportTemplates: [],
+        connectedIntegrationNames: new Set<string>(),
+    }),
 }));
 
 jest.mock('@react-navigation/native', () => {
@@ -97,7 +107,7 @@ const mockedReports = getMockedReports(600);
 const mockedBetas = Object.values(CONST.BETAS);
 const mockedPersonalDetails = getMockedPersonalDetails(100);
 const EMPTY_PRIVATE_IS_ARCHIVED_MAP: PrivateIsArchivedMap = {};
-const mockedOptions = createOptionList(mockedPersonalDetails, MOCK_CURRENT_USER_ACCOUNT_ID, EMPTY_PRIVATE_IS_ARCHIVED_MAP, mockedReports);
+const mockedOptions = createOptionList(mockedPersonalDetails, MOCK_CURRENT_USER_ACCOUNT_ID, EMPTY_PRIVATE_IS_ARCHIVED_MAP, mockedReports, undefined);
 
 beforeAll(() =>
     Onyx.init({
@@ -137,9 +147,11 @@ function SearchAutocompleteInputWrapper() {
 function SearchRouterWrapperWithCachedOptions() {
     return (
         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
-            <OptionsListContext.Provider value={useMemo(() => ({options: mockedOptions, initializeOptions: () => {}, resetOptions: () => {}, areOptionsInitialized: true}), [])}>
-                <SearchRouter onRouterClose={mockOnClose} />
-            </OptionsListContext.Provider>
+            <OptionsListStateContext.Provider value={useMemo(() => ({options: mockedOptions, areOptionsInitialized: true}), [])}>
+                <OptionsListActionsContext.Provider value={useMemo(() => ({initializeOptions: () => {}, resetOptions: () => {}}), [])}>
+                    <SearchRouter onRouterClose={mockOnClose} />
+                </OptionsListActionsContext.Provider>
+            </OptionsListStateContext.Provider>
         </ComposeProviders>
     );
 }

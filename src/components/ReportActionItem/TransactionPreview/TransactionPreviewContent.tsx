@@ -1,14 +1,16 @@
 import truncate from 'lodash/truncate';
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
+import Animated from 'react-native-reanimated';
 import Button from '@components/Button';
 import Icon from '@components/Icon';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ReportActionAvatars from '@components/ReportActionAvatars';
 import ReportActionItemImages from '@components/ReportActionItem/ReportActionItemImages';
-import UserInfoCellsWithArrow from '@components/SelectionListWithSections/Search/UserInfoCellsWithArrow';
+import UserInfoCellsWithArrow from '@components/Search/SearchList/ListItem/UserInfoCellsWithArrow';
 import Text from '@components/Text';
 import TransactionPreviewSkeletonView from '@components/TransactionPreviewSkeletonView';
+import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useCardFeedErrors from '@hooks/useCardFeedErrors';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useEnvironment from '@hooks/useEnvironment';
@@ -31,6 +33,7 @@ import {isMarkAsCashActionForTransaction} from '@libs/ReportPrimaryActionUtils';
 import type {TransactionDetails} from '@libs/ReportUtils';
 import {canEditMoneyRequest, getTransactionDetails, isPolicyExpenseChat, isReportApproved, isSettled} from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import type {TranslationPathOrText} from '@libs/TransactionPreviewUtils';
 import {createTransactionPreviewConditionals, getIOUPayerAndReceiver, getTransactionPreviewTextAndTranslationPaths} from '@libs/TransactionPreviewUtils';
 import {isManagedCardTransaction as isCardTransactionUtils, isGPSDistanceRequest, isMapDistanceRequest, isScanning} from '@libs/TransactionUtils';
@@ -63,13 +66,13 @@ function TransactionPreviewContent({
     shouldShowPayerAndReceiver,
     navigateToReviewFields,
     isReviewDuplicateTransactionPage = false,
+    shouldHighlight = false,
 }: TransactionPreviewContentProps) {
     const icons = useMemoizedLazyExpensifyIcons(['DotIndicator', 'Folder', 'Tag'] as const);
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {environmentURL} = useEnvironment();
-
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`);
     const isParentPolicyExpenseChat = isPolicyExpenseChat(chatReport);
     const transactionDetails = useMemo<Partial<TransactionDetails>>(
@@ -234,10 +237,22 @@ function TransactionPreviewContent({
     const previewTextViewGap = (shouldShowCategoryOrTag || !shouldWrapDisplayAmount) && styles.gap2;
     const previewTextMargin = shouldShowIOUHeader && shouldShowMerchantOrDescription && !isBillSplit && !shouldShowCategoryOrTag && styles.mbn1;
 
+    const animatedHighlightStyle = useAnimatedHighlightStyle({
+        shouldHighlight,
+        highlightColor: theme.messageHighlightBG,
+        backgroundColor: theme.cardBG,
+        shouldApplyOtherStyles: false,
+    });
+
     const transactionWrapperStyles = [styles.border, styles.moneyRequestPreviewBox, (isIOUSettled || isApproved) && isSettlementOrApprovalPartial && styles.offlineFeedbackPending];
 
+    const skeletonReasonAttributes: SkeletonSpanReasonAttributes = {
+        context: 'TransactionPreviewContent',
+        shouldShowSkeleton,
+    };
+
     return (
-        <View style={[transactionWrapperStyles, containerStyles]}>
+        <Animated.View style={[transactionWrapperStyles, containerStyles, animatedHighlightStyle]}>
             <OfflineWithFeedback
                 errors={walletTermsErrors}
                 onClose={() => offlineWithFeedbackOnClose}
@@ -248,7 +263,7 @@ function TransactionPreviewContent({
                 shouldDisableOpacity={isDeleted}
                 shouldHideOnDelete={shouldHideOnDelete}
             >
-                <View style={[(isTransactionScanning || isWhisper) && [styles.reportPreviewBoxHoverBorder, styles.reportContainerBorderRadius]]}>
+                <View style={[(isTransactionScanning || isWhisper) && [styles.reportPreviewBoxHoverBorderColor, styles.reportContainerBorderRadius]]}>
                     <ReportActionItemImages
                         images={receiptImages}
                         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
@@ -257,7 +272,10 @@ function TransactionPreviewContent({
                         shouldUseAspectRatio={!isMapDistanceRequest(transaction) && !isGPSDistanceRequest(transaction)}
                     />
                     {shouldShowSkeleton ? (
-                        <TransactionPreviewSkeletonView transactionPreviewWidth={transactionPreviewWidth} />
+                        <TransactionPreviewSkeletonView
+                            transactionPreviewWidth={transactionPreviewWidth}
+                            reasonAttributes={skeletonReasonAttributes}
+                        />
                     ) : (
                         <View style={[styles.expenseAndReportPreviewBoxBody, styles.mtn1]}>
                             <View style={styles.gap3}>
@@ -333,7 +351,7 @@ function TransactionPreviewContent({
                                         <View style={[styles.flexRow, styles.justifyContentEnd]}>
                                             {!!splitShare && (
                                                 <Text style={[isDeleted && styles.lineThrough, styles.textLabel, styles.colorMuted, styles.amountSplitPadding]}>
-                                                    {translate('iou.yourSplit', {amount: convertToDisplayString(splitShare, requestCurrency)})}
+                                                    {translate('iou.yourSplit', convertToDisplayString(splitShare, requestCurrency))}
                                                 </Text>
                                             )}
                                         </View>
@@ -413,7 +431,7 @@ function TransactionPreviewContent({
                     )}
                 </View>
             </OfflineWithFeedback>
-        </View>
+        </Animated.View>
     );
 }
 

@@ -1,0 +1,72 @@
+# Validates that external contributors are authorized to submit PRs.
+# Calls the reusable gate workflow, then closes + locks unauthorized PRs.
+
+name: Validate Contributor PRs
+
+on:
+  pull_request_target:
+    types: [opened, ready_for_review, reopened]
+    branches: [main]
+
+permissions:
+  pull-requests: write
+  issues: write
+
+jobs:
+  validate:
+    if: ${{ !github.event.pull_request.draft && github.event.pull_request.user.type != 'Bot' }}
+    uses: ./.github/workflows/contributorValidationGate.yml
+    with:
+      PR_NUMBER: ${{ github.event.pull_request.number }}
+      PR_AUTHOR: ${{ github.event.pull_request.user.login }}
+      AUTHOR_ASSOCIATION: ${{ github.event.pull_request.author_association }}
+
+  close-if-unauthorized:
+    needs: [validate]
+    if: needs.validate.outputs.IS_AUTHORIZED == 'false'
+    runs-on: blacksmith-2vcpu-ubuntu-2404
+    steps:
+      - name: Close PR and leave comment
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd
+        with:
+          script: |
+            const prNumber = ${{ github.event.pull_request.number }};
+            const prAuthor = '${{ github.event.pull_request.user.login }}';
+
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: prNumber,
+              body: [
+                `👋 Hi @${prAuthor}, thanks for your interest in contributing to Expensify!`,
+                '',
+                "This PR has been automatically closed because it doesn't appear to meet our contribution requirements:",
+                '',
+                '- You are not a member of the Expensify GitHub organization',
+                '- No linked GitHub issue was found in the PR description where you are listed as an assignee',
+                '- No linked GitHub PR was found in the PR description where you are the author or a reviewer',
+                '',
+                'If you\'d like to contribute, please make sure to:',
+                '1. Find an open issue you\'d like to work on',
+                '2. Get assigned to the issue by following our contribution process',
+                '3. Link the issue in your PR description using the format: `$ https://github.com/Expensify/App/issues/<issueID>`',
+                '',
+                'Please review our [contributing guidelines](https://github.com/Expensify/App/blob/main/contributingGuides/CONTRIBUTING.md) for more details.',
+                '',
+                'If you believe this was closed in error, please reach out in the **#expensify-open-source** Slack channel.',
+              ].join('\n'),
+            });
+
+            await github.rest.pulls.update({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: prNumber,
+              state: 'closed',
+            });
+
+            await github.rest.issues.lock({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: prNumber,
+              lock_reason: 'spam',
+            });

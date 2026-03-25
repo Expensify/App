@@ -73,10 +73,7 @@ This document lists all implemented telemetry metrics in the Expensify App.
 **Start**: User clicks inbox/home tab ([`src/components/Navigation/NavigationTabBar/index.tsx`](https://github.com/Expensify/App/blob/8f123f449f1a4533830b18a1040c9a5f1949821d/src/components/Navigation/NavigationTabBar/index.tsx#L160))
 **End**:
 - User sees: Chat list displayed
-- Technical: Sidebar layout complete (onLayout event)
-  - Ordered reports list loaded from Onyx
-  - Reports sorted by priority mode
-  - Sidebar layout rendered ([`src/pages/home/sidebar/SidebarLinksData.tsx`](https://github.com/Expensify/App/blob/8f123f449f1a4533830b18a1040c9a5f1949821d/src/pages/home/sidebar/SidebarLinksData.tsx#L34))
+- Technical: Sidebar layout complete via `onLayout` or screen focus via `useFocusEffect` ([`src/pages/inbox/sidebar/SidebarLinksData.tsx`](https://github.com/Expensify/App/blob/main/src/pages/inbox/sidebar/SidebarLinksData.tsx))
 
 ### Open Search Modal
 
@@ -140,7 +137,7 @@ This document lists all implemented telemetry metrics in the Expensify App.
 
 ### Authentication Failures
 
-**Constants**: `CONST.TELEMETRY.TAG_AUTHENTICATION_FUNCTION`, `CONST.TELEMETRY.TAG_AUTHENTICATION_ERROR_TYPE`, `CONST.TELEMETRY.TAG_AUTHENTICATION_JSON_CODE` ([`src/CONST/index.ts`](https://github.com/Expensify/App/blob/8f123f449f1a4533830b18a1040c9a5f1949821d/src/CONST/index.ts#L1700-L1702))
+**Constants**: `CONST.TELEMETRY.TAGS.AUTHENTICATION_FUNCTION`, `CONST.TELEMETRY.TAGS.AUTHENTICATION_ERROR_TYPE`, `CONST.TELEMETRY.TAGS.AUTHENTICATION_JSON_CODE` ([`src/CONST/index.ts`](https://github.com/Expensify/App/blob/8f123f449f1a4533830b18a1040c9a5f1949821d/src/CONST/index.ts#L1700-L1702))
 **What's Measured**: Number of authentication failures tracked via `Sentry.captureException()` using [`trackAuthenticationError()`](https://github.com/Expensify/App/blob/8f123f449f1a4533830b18a1040c9a5f1949821d/src/libs/telemetry/trackAuthenticationError.ts#L23)
 **Error Types**:
 - `missing_params`: Missing required auth parameters ([`Authentication.ts:66`](https://github.com/Expensify/App/blob/8f123f449f1a4533830b18a1040c9a5f1949821d/src/libs/Authentication.ts#L66))

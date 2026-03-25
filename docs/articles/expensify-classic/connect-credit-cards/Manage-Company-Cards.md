@@ -73,7 +73,7 @@ A CSV upload is a manual method for importing credit card transactions into Expe
 ## American Express
 1. Complete the required [Amex forms](https://drive.google.com/file/d/1zqDA_MCk06jk_fWjzx2y0r4gOyAMqKJe/view?usp=sharing).
 2. Email the forms to American Express.
-3. Submit the provided production file information to Expensify.
+3. Submit the feed details provided by American Express to concierge@expensify.com.
 
 ---
 # CSV Upload: How do I import credit card transactions using a CSV?

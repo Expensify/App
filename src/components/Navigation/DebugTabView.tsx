@@ -11,7 +11,7 @@ import useLocalize from '@hooks/useLocalize';
 import type {IndicatorStatus} from '@hooks/useNavigationTabBarIndicatorChecks';
 import useOnyx from '@hooks/useOnyx';
 import useReportAttributes from '@hooks/useReportAttributes';
-import {useSidebarOrderedReports} from '@hooks/useSidebarOrderedReports';
+import {useSidebarOrderedReportsState} from '@hooks/useSidebarOrderedReports';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -107,7 +107,7 @@ function DebugTabView({selectedTab, chatTabBrickRoad}: DebugTabViewProps) {
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
     const reportAttributes = useReportAttributes();
     const {status, indicatorColor, policyIDWithErrors} = useIndicatorStatus();
-    const {orderedReportIDs} = useSidebarOrderedReports();
+    const {orderedReportIDs} = useSidebarOrderedReportsState();
     const icons = useMemoizedLazyExpensifyIcons(['DotIndicator'] as const);
 
     const message = useMemo((): TranslationPaths | undefined => {
@@ -157,7 +157,7 @@ function DebugTabView({selectedTab, chatTabBrickRoad}: DebugTabViewProps) {
         }
     }, [selectedTab, chatTabBrickRoad, orderedReportIDs, reportAttributes, status, reimbursementAccount, policyIDWithErrors]);
 
-    if (!([NAVIGATION_TABS.INBOX, NAVIGATION_TABS.SETTINGS, NAVIGATION_TABS.WORKSPACES] as string[]).includes(selectedTab ?? '') || !indicator) {
+    if (!([NAVIGATION_TABS.INBOX, NAVIGATION_TABS.SETTINGS, NAVIGATION_TABS.WORKSPACES] as string[]).includes(selectedTab ?? '') || !indicator || !message) {
         return null;
     }
 
