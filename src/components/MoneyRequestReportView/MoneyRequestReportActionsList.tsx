@@ -403,7 +403,6 @@ function MoneyRequestReportActionsList({
         transactionThreadReport,
         hasOlderActions,
         hasNewerActions,
-        enableNewerPagination: true,
         newestFetchedReportActionID: reportMetadata?.newestFetchedReportActionID,
     });
 

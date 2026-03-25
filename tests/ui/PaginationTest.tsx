@@ -149,7 +149,7 @@ function mockOpenReport(messageCount: number, initialID: string) {
                       ]
                     : [],
             hasOlderActions: !comments['1'],
-            hasNewerActions: !!reportID,
+            hasNewerActions: false,
         };
     });
 }
