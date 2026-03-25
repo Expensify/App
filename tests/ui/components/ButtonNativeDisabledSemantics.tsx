@@ -55,6 +55,10 @@ describe('Button native disabled semantics', () => {
             expect.objectContaining({
                 disabled: true,
                 fullDisabled: true,
+                accessible: false,
+                focusable: false,
+                accessibilityElementsHidden: true,
+                importantForAccessibility: 'no-hide-descendants',
             }),
         );
     });
@@ -72,6 +76,10 @@ describe('Button native disabled semantics', () => {
             expect.objectContaining({
                 disabled: true,
                 fullDisabled: true,
+                accessible: false,
+                focusable: false,
+                accessibilityElementsHidden: true,
+                importantForAccessibility: 'no-hide-descendants',
             }),
         );
     });
@@ -91,6 +99,31 @@ describe('Button native disabled semantics', () => {
                 fullDisabled: false,
             }),
         );
+
+        expect(getLastPressableProps()).not.toHaveProperty('accessible');
+        expect(getLastPressableProps()).not.toHaveProperty('focusable');
+        expect(getLastPressableProps()).not.toHaveProperty('accessibilityElementsHidden');
+        expect(getLastPressableProps()).not.toHaveProperty('importantForAccessibility');
+    });
+
+    it('maps loading state to fullDisabled and hides it from native accessibility by default', () => {
+        render(
+            <Button
+                text="Next"
+                isLoading
+            />,
+        );
+
+        expect(getLastPressableProps()).toEqual(
+            expect.objectContaining({
+                disabled: true,
+                fullDisabled: true,
+                accessible: false,
+                focusable: false,
+                accessibilityElementsHidden: true,
+                importantForAccessibility: 'no-hide-descendants',
+            }),
+        );
     });
 
     it('keeps fullDisabled false when button is enabled', () => {
@@ -102,5 +135,10 @@ describe('Button native disabled semantics', () => {
                 fullDisabled: false,
             }),
         );
+
+        expect(getLastPressableProps()).not.toHaveProperty('accessible');
+        expect(getLastPressableProps()).not.toHaveProperty('focusable');
+        expect(getLastPressableProps()).not.toHaveProperty('accessibilityElementsHidden');
+        expect(getLastPressableProps()).not.toHaveProperty('importantForAccessibility');
     });
 });

@@ -21,6 +21,7 @@ import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import type IconAsset from '@src/types/utils/IconAsset';
 import type WithSentryLabel from '@src/types/utils/SentryLabel';
 import enableNativeDisabledDefault from './enableNativeDisabled';
+import getNativeHiddenAccessibilityProps from './getNativeHiddenAccessibilityProps';
 import {getButtonRole} from './utils';
 import validateSubmitShortcut from './validateSubmitShortcut';
 
@@ -187,7 +188,8 @@ type ButtonProps = Partial<ChildrenProps> &
         shouldStayNormalOnDisable?: boolean;
 
         /**
-         * Whether disabled/loading states should also set native disabled semantics on web.
+         * Whether disabled/loading states should opt into platform-specific disabled semantics.
+         * On native, this also hides disabled/loading buttons from accessibility traversal.
          */
         enableNativeDisabled?: boolean;
     };
@@ -459,6 +461,7 @@ function Button({
     }, [buttonStyles, shouldBlendOpacity]);
 
     const isDisabledOrLoading = isLoading || isDisabled;
+    const nativeHiddenAccessibilityProps = getNativeHiddenAccessibilityProps(enableNativeDisabled, isDisabledOrLoading);
 
     return (
         <>
@@ -509,6 +512,8 @@ function Button({
                 shouldBlendOpacity={shouldBlendOpacity}
                 disabled={isDisabledOrLoading}
                 fullDisabled={enableNativeDisabled && isDisabledOrLoading}
+                // eslint-disable-next-line react/jsx-props-no-spreading -- Conditionally apply native-only accessibility hiding props without affecting other platforms or enabled states.
+                {...nativeHiddenAccessibilityProps}
                 wrapperStyle={[
                     isDisabled && !shouldStayNormalOnDisable ? {...styles.cursorDisabled, ...styles.noSelect} : {},
                     styles.buttonContainer,

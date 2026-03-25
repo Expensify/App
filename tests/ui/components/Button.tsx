@@ -56,15 +56,19 @@ describe('Button Component', () => {
         renderButton({isLoading: true});
 
         // Then the loading state is displayed
-        expect(screen.getByText(buttonText)).not.toBeVisible();
+        expect(screen.getByText(buttonText, {includeHiddenElements: true})).not.toBeVisible();
+        expect(screen.queryByRole(CONST.ROLE.BUTTON, {name: buttonText})).not.toBeOnTheScreen();
     });
 
     it('disables button when isDisabled is true', () => {
         // Given the component is rendered with isDisabled set to true
         renderButton({isDisabled: true, onPress});
 
+        // Then the button is hidden from native accessibility traversal
+        expect(screen.queryByRole(CONST.ROLE.BUTTON, {name: buttonText})).not.toBeOnTheScreen();
+
         // When the button is pressed
-        fireEvent.press(getButton());
+        fireEvent.press(screen.getByText(buttonText, {includeHiddenElements: true}));
 
         // Then the onPress function should not be called
         expect(onPress).not.toHaveBeenCalled();
