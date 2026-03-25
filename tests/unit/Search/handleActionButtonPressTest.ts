@@ -326,6 +326,7 @@ describe('handleActionButtonPress', () => {
             lastPaymentMethod: mockLastPaymentMethod,
             personalPolicyID: undefined,
             userBillingGraceEndPeriods: undefined,
+            onHoldMenuOpen: jest.fn(),
         });
         expect(goToItem).not.toHaveBeenCalled();
     });
