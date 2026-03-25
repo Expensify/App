@@ -1,4 +1,4 @@
-import React, {useCallback, useContext, useEffect, useState} from 'react';
+import React, {useContext, useEffect, useState} from 'react';
 import type {ValueOf} from 'type-fest';
 import CONST from './CONST';
 import {addBootsplashBreadcrumb} from './libs/telemetry/bootsplashTelemetry';
@@ -31,13 +31,10 @@ function loadPostSplashScreenModules() {
 function SplashScreenStateContextProvider({children}: ChildrenProps) {
     const [splashScreenState, setSplashScreenStateRaw] = useState<SplashScreenState>(CONST.BOOT_SPLASH_STATE.VISIBLE);
 
-    const setSplashScreenState = useCallback(
-        (state: SplashScreenState) => {
-            addBootsplashBreadcrumb(`splashScreenState changed to ${state}`);
-            setSplashScreenStateRaw(state);
-        },
-        [setSplashScreenStateRaw],
-    );
+    const setSplashScreenState = (state: SplashScreenState) => {
+        addBootsplashBreadcrumb(`splashScreenState changed to ${state}`);
+        setSplashScreenStateRaw(state);
+    };
 
     // Load post-splash-screen modules when the splash screen is hidden
     useEffect(() => {
