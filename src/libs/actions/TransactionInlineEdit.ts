@@ -164,8 +164,6 @@ type TransactionEditPermissionsParams = {
 
     parentReport: OnyxEntry<Report>;
 
-    policyForMovingExpenses?: OnyxEntry<Policy>;
-
     policy?: OnyxEntry<Policy>;
 
     transactionThreadReport?: OnyxEntry<Report>;
@@ -319,7 +317,6 @@ function getTransactionEditPermissions({
     transaction,
     parentReportAction,
     parentReport,
-    policyForMovingExpenses,
     policy,
     transactionThreadReport,
     policyCategories,
@@ -393,8 +390,7 @@ function getTransactionEditPermissions({
         canEditDescription: true,
         // Matches MoneyRequestView's shouldShowCategory logic
         canEditCategory:
-            (isPolicyExpenseChat && (!!categoryForDisplay || hasEnabledOptions(policyCategories ?? {}))) ||
-            (isUnreported && (!policyForMovingExpenses || hasEnabledOptions(policyCategories ?? {}))),
+            (isPolicyExpenseChat && (!!categoryForDisplay || hasEnabledOptions(policyCategories ?? {}))) || (isUnreported && (!policy || hasEnabledOptions(policyCategories ?? {}))),
         canEditAmount: canEditRestricted(CONST.EDIT_REQUEST_FIELD.AMOUNT),
         // single-level tags only (multi-level needs a picker UI not available inline).
         canEditTag: !isMultiLevelTags(policyTags) && (!!transaction?.tag || hasEnabledTags(policyTagLists)),

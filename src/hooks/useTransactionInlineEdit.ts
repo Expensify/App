@@ -17,13 +17,12 @@ import {
 } from '@libs/actions/TransactionInlineEdit';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
-import {isExpenseUnreported, isPerDiemRequest} from '@libs/TransactionUtils';
+import {isPerDiemRequest} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, ReportAction, ReportActions} from '@src/types/onyx';
 import useMobileSelectionMode from './useMobileSelectionMode';
 import useOnyx from './useOnyx';
-import usePolicyForMovingExpenses from './usePolicyForMovingExpenses';
 import usePolicyForTransaction from './usePolicyForTransaction';
 
 type UseTransactionInlineEditParams = {
@@ -135,17 +134,10 @@ function useTransactionInlineEdit({
 
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
 
-    // For unreported expenses (SelfDM), get the user's default policy for moving expenses.
-    // This policy determines whether category/tag editing is allowed.
-    const isUnreported = isExpenseUnreported(transaction);
-    const {policyForMovingExpenses} = usePolicyForMovingExpenses(undefined, undefined);
-    const policyForPermissions = isUnreported ? policyForMovingExpenses : undefined;
-
     const permissions = getTransactionEditPermissions({
         transaction,
         parentReportAction,
         parentReport: parentReport ?? fallbackReport,
-        policyForMovingExpenses: policyForPermissions,
         policy,
         transactionThreadReport,
         policyCategories,
