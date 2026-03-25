@@ -39,6 +39,7 @@ import {search} from '@userActions/Search';
 import ROUTES from '@src/ROUTES';
 import type {SearchResults} from '@src/types/onyx';
 import type {SearchResultsInfo} from '@src/types/onyx/SearchResults';
+import SearchPageTabSelector from './SearchPageTabSelector';
 
 const TOO_CLOSE_TO_TOP_DISTANCE = 10;
 const TOO_CLOSE_TO_BOTTOM_DISTANCE = 10;
@@ -210,19 +211,22 @@ function SearchPageNarrow({queryJSON, searchResults, isMobileSelectionModeEnable
                                         styles.searchTopBarZIndexStyle,
                                     ]}
                                 >
+                                    <SearchPageTabSelector
+                                        queryJSON={queryJSON}
+                                        onTabPress={() => {
+                                            setSearchRouterListVisible(false);
+                                        }}
+                                    />
                                     <View style={[styles.flex1, styles.appBG]}>
                                         {!searchRouterListVisible && (
-                                            <>
-                                                {/* <SearchTypeMenuNarrow queryJSON={queryJSON} /> */}
-                                                <SearchActionsBarNarrow
-                                                    queryJSON={queryJSON}
-                                                    isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
-                                                    isSearchInputVisible={isSearchInputVisible}
-                                                    searchResults={searchResults}
-                                                    onSearchButtonPress={() => setIsSearchInputVisible(true)}
-                                                    onSort={onSortPressedCallback}
-                                                />
-                                            </>
+                                            <SearchActionsBarNarrow
+                                                queryJSON={queryJSON}
+                                                isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
+                                                isSearchInputVisible={isSearchInputVisible}
+                                                searchResults={searchResults}
+                                                onSearchButtonPress={() => setIsSearchInputVisible(true)}
+                                                onSort={onSortPressedCallback}
+                                            />
                                         )}
                                         {isSearchInputVisible && (
                                             <SearchPageInputNarrow
