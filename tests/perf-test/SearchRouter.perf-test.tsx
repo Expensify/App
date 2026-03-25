@@ -101,8 +101,6 @@ const getMockedPersonalDetails = (length = 100) =>
         length,
     );
 
-const MOCK_CURRENT_USER_ACCOUNT_ID = 1;
-
 const mockedReports = getMockedReports(600);
 const mockedBetas = Object.values(CONST.BETAS);
 const mockedPersonalDetails = getMockedPersonalDetails(100);
