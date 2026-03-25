@@ -175,6 +175,25 @@ describe('OnboardingGuard', () => {
             expect(result.type).toBe('ALLOW');
         });
 
+        it('should redirect users with non-personal policies who have not completed onboarding', async () => {
+            // Given a user who signed up but did not complete onboarding, and was later invited to a workspace
+            await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {
+                hasCompletedGuidedSetupFlow: false,
+            });
+            await Onyx.merge(ONYXKEYS.HAS_NON_PERSONAL_POLICY, true);
+            await Onyx.merge(ONYXKEYS.ACCOUNT, {
+                isFromPublicDomain: true,
+            });
+            await waitForBatchedUpdates();
+
+            // When the guard evaluates a navigation action
+            const result = OnboardingGuard.evaluate(mockState, mockAction, authenticatedContext) as {type: 'REDIRECT'; route: string};
+
+            // Then the user should be redirected to onboarding because having a workspace policy should not skip onboarding when the user explicitly started but didn't finish it
+            expect(result.type).toBe('REDIRECT');
+            expect(result.route).toContain('onboarding');
+        });
+
         it('should allow invited users', async () => {
             // Given a user who was invited and has already selected their intro choice (SUBMIT), indicating they came through an invitation link
             await Onyx.merge(ONYXKEYS.NVP_INTRO_SELECTED, {
