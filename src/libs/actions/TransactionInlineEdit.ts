@@ -180,6 +180,9 @@ type TransactionEditPermissionsParams = {
 
     /** Search query context. When provided, applies editable-tab guard for Search table. */
     queryJSON?: SearchQueryJSON;
+
+    /** Whether mobile selection mode is active. When true, all editing is disabled. */
+    isMobileSelectionModeEnabled?: boolean;
 };
 
 /**
@@ -324,7 +327,12 @@ function getTransactionEditPermissions({
     transactionThreadNVP,
     chatReportNVP,
     queryJSON,
+    isMobileSelectionModeEnabled,
 }: TransactionEditPermissionsParams): TransactionEditPermissions {
+    if (isMobileSelectionModeEnabled) {
+        return NO_EDIT;
+    }
+
     // Search-table tab guard
     if (queryJSON !== undefined) {
         const isEditableTab = queryJSON.type === CONST.SEARCH.DATA_TYPES.EXPENSE && CONST.SEARCH.INLINE_EDITABLE_EXPENSE_STATUSES.has((queryJSON.status as string) ?? '');

@@ -21,6 +21,7 @@ import {isExpenseUnreported, isPerDiemRequest} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, ReportAction, ReportActions} from '@src/types/onyx';
+import useMobileSelectionMode from './useMobileSelectionMode';
 import useOnyx from './useOnyx';
 import usePolicyForMovingExpenses from './usePolicyForMovingExpenses';
 import usePolicyForTransaction from './usePolicyForTransaction';
@@ -132,6 +133,8 @@ function useTransactionInlineEdit({
     const [transactionThreadNVP] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${getNonEmptyStringOnyxID(transactionThreadReportID)}`);
     const [chatReportNVP] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${getNonEmptyStringOnyxID(chatReportID)}`);
 
+    const isMobileSelectionModeEnabled = useMobileSelectionMode();
+
     // For unreported expenses (SelfDM), get the user's default policy for moving expenses.
     // This policy determines whether category/tag editing is allowed.
     const isUnreported = isExpenseUnreported(transaction);
@@ -150,6 +153,7 @@ function useTransactionInlineEdit({
         transactionThreadNVP,
         chatReportNVP,
         queryJSON,
+        isMobileSelectionModeEnabled,
     });
 
     const wasEditingOnMouseDownRef = useRef(false);
