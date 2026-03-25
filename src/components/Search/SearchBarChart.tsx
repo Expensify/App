@@ -4,7 +4,7 @@ import type {ChartDataPoint} from '@components/Charts';
 import {convertToFrontendAmountAsInteger} from '@libs/CurrencyUtils';
 import type {SearchChartProps} from './types';
 
-function SearchBarChart({data, title, titleIcon, getLabel, getFilterQuery, onItemPress, isLoading, unit, unitPosition}: SearchChartProps) {
+function SearchBarChart({data, getLabel, getFilterQuery, onItemPress, isLoading, unit, unitPosition}: SearchChartProps) {
     const chartData: ChartDataPoint[] = data.map((item) => {
         const currency = item.currency ?? 'USD';
         const totalInDisplayUnits = convertToFrontendAmountAsInteger(item.total ?? 0, currency);
@@ -32,8 +32,6 @@ function SearchBarChart({data, title, titleIcon, getLabel, getFilterQuery, onIte
     return (
         <BarChart
             data={chartData}
-            title={title}
-            titleIcon={titleIcon}
             isLoading={isLoading}
             onBarPress={handleBarPress}
             yAxisUnit={unit}

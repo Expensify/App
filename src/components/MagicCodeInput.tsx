@@ -5,6 +5,7 @@ import {StyleSheet, View} from 'react-native';
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
 import Animated, {useAnimatedStyle, useSharedValue, withDelay, withRepeat, withSequence, withTiming} from 'react-native-reanimated';
 import type {ValueOf} from 'type-fest';
+import useAccessibilityAnnouncement from '@hooks/useAccessibilityAnnouncement';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -212,6 +213,9 @@ function MagicCodeInput({
         setFocusedIndex(index);
         editIndex.current = index;
     };
+
+    const announcement = focusedIndex !== undefined ? translate('common.enterDigitLabel', {digitIndex: focusedIndex + 1, totalDigits: maxLength}) : undefined;
+    useAccessibilityAnnouncement(announcement, !!announcement, {shouldAnnounceOnNative: true, shouldAnnounceOnWeb: true});
 
     useImperativeHandle(ref, () => ({
         focus() {
@@ -467,7 +471,7 @@ function MagicCodeInput({
                 <GestureDetector gesture={tapGesture}>
                     {/* Android does not handle touch on invisible Views so I created a wrapper around invisible TextInput just to handle taps */}
                     <View
-                        style={[StyleSheet.absoluteFillObject, styles.w100, styles.h100, styles.invisibleOverlay]}
+                        style={[StyleSheet.absoluteFill, styles.w100, styles.h100, styles.invisibleOverlay]}
                         collapsable={false}
                     >
                         <TextInput
@@ -512,6 +516,8 @@ function MagicCodeInput({
 
                     return (
                         <View
+                            accessibilityElementsHidden
+                            importantForAccessibility="no-hide-descendants"
                             key={index}
                             style={maxLength === CONST.MAGIC_CODE_LENGTH ? [styles.w15] : [styles.flex1, index !== 0 && styles.ml3]}
                         >
@@ -533,6 +539,7 @@ function MagicCodeInput({
                                             accessibilityElementsHidden
                                             importantForAccessibility="no-hide-descendants"
                                             accessible={false}
+                                            aria-hidden
                                         >
                                             {!!char && <Text style={[styles.magicCodeInput, styles.textAlignCenter, styles.opacity0]}>{char}</Text>}
                                             <Text style={[styles.magicCodeInput, {width: 1}]}> </Text>

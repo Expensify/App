@@ -15,7 +15,7 @@ const DEFAULT_CONTAINER_HEIGHT = 28;
 const DEFAULT_PILL_HEIGHT = 8;
 const PILL_HEIGHT_RATIO = DEFAULT_PILL_HEIGHT / DEFAULT_CONTAINER_HEIGHT;
 
-type SearchFiltersSkeletonProps = {
+type SearchActionsSkeletonProps = {
     shouldAnimate?: boolean;
     itemCount?: number;
     width?: number;
@@ -23,10 +23,10 @@ type SearchFiltersSkeletonProps = {
     reasonAttributes: SkeletonSpanReasonAttributes;
 };
 
-function SearchFiltersSkeleton({shouldAnimate = true, itemCount = 5, width = 84, height = 28, reasonAttributes}: SearchFiltersSkeletonProps) {
+function SearchActionsSkeleton({shouldAnimate = true, itemCount = 5, width = 84, height = 28, reasonAttributes}: SearchActionsSkeletonProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
-    useSkeletonSpan('SearchFiltersSkeleton', reasonAttributes);
+    useSkeletonSpan('SearchActionsSkeleton', reasonAttributes);
 
     const skeletonCount = new Array(itemCount).fill(0);
 
@@ -73,4 +73,4 @@ function SearchFiltersSkeleton({shouldAnimate = true, itemCount = 5, width = 84,
     );
 }
 
-export default SearchFiltersSkeleton;
+export default SearchActionsSkeleton;
