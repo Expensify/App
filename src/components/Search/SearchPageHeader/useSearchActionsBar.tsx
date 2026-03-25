@@ -251,9 +251,9 @@ function useSearchActionsBar(queryJSON: SearchQueryJSON, isMobileSelectionModeEn
                 dateGroupConfig.syntax,
                 dateGroupConfig.label,
                 `Search-Filter-${dateGroupConfig.syntax}`,
-                searchAdvancedFiltersForm[dateGroupConfig.on] as string | undefined,
-                searchAdvancedFiltersForm[dateGroupConfig.after] as string | undefined,
-                searchAdvancedFiltersForm[dateGroupConfig.before] as string | undefined,
+                searchAdvancedFiltersForm[`${dateGroupConfig.syntax}${CONST.SEARCH.DATE_MODIFIERS.ON}`],
+                searchAdvancedFiltersForm[`${dateGroupConfig.syntax}${CONST.SEARCH.DATE_MODIFIERS.AFTER}`],
+                searchAdvancedFiltersForm[`${dateGroupConfig.syntax}${CONST.SEARCH.DATE_MODIFIERS.BEFORE}`],
                 updateFilterForm,
             );
         }
