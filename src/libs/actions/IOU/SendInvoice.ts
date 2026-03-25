@@ -596,8 +596,8 @@ function getSendInvoiceInformation({
     companyWebsite,
     policyRecentlyUsedCategories,
     policyRecentlyUsedTags,
-    policyTags,
-}: SendInvoiceOptions & {policyTags: OnyxTypes.PolicyTagLists}): SendInvoiceInformation {
+    participantsPolicyTags,
+}: SendInvoiceOptions & {participantsPolicyTags: OnyxTypes.PolicyTagLists}): SendInvoiceInformation {
     const {amount = 0, currency = '', created = '', merchant = '', category = '', tag = '', taxCode = '', taxAmount = 0, billable, comment, participants} = transaction ?? {};
     const trimmedComment = (comment?.comment ?? '').trim();
     const senderWorkspaceID = participants?.find((participant) => participant?.isSender)?.policyID;
@@ -652,9 +652,7 @@ function getSendInvoiceInformation({
 
     const optimisticPolicyRecentlyUsedCategories = mergePolicyRecentlyUsedCategories(category, policyRecentlyUsedCategories);
     const optimisticPolicyRecentlyUsedTags = buildOptimisticPolicyRecentlyUsedTags({
-        // TODO: remove `allPolicyTags` from this file https://github.com/Expensify/App/issues/80048
-        // eslint-disable-next-line
-        policyTags: policyTags ?? {},
+        policyTags: participantsPolicyTags,
         policyRecentlyUsedTags,
         transactionTags: tag,
     });
@@ -744,8 +742,8 @@ function sendInvoice({
     isFromGlobalCreate,
 }: SendInvoiceOptions) {
     // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const policyTags = getPolicyTagsData(transaction?.participants?.find(p => p?.isSender)?.policyID);
-    
+    const participantsPolicyTags = getPolicyTagsData(transaction?.participants?.find((p) => p?.isSender)?.policyID) ?? {};
+
     const parsedComment = getParsedComment(transaction?.comment?.comment?.trim() ?? '');
     if (transaction?.comment) {
         // eslint-disable-next-line no-param-reassign
@@ -778,7 +776,7 @@ function sendInvoice({
         companyWebsite,
         policyRecentlyUsedCategories,
         policyRecentlyUsedTags,
-        policyTags,
+        participantsPolicyTags,
     });
 
     const parameters: SendInvoiceParams = {
