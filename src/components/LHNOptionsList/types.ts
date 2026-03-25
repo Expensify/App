@@ -92,7 +92,6 @@ type OptionRowLHNDataProps = {
     /** The transaction linked to the report's last action */
     lastReportActionTransaction?: OnyxEntry<Transaction>;
 
-
     /** The reportID of the report */
     reportID: string;
 
