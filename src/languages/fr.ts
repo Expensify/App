@@ -6545,8 +6545,7 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
                 eReceiptsHint: `Les e-reçus sont créés automatiquement [pour la plupart des transactions par carte en USD](${CONST.DEEP_DIVE_ERECEIPTS}).`,
                 attendeeTracking: 'Suivi des participants',
                 attendeeTrackingHint: 'Suivez le coût par personne pour chaque dépense.',
-                prohibitedDefaultDescription:
-                    'Signalez tous les reçus où figurent de l’alcool, des jeux d’argent ou d’autres articles restreints. Les dépenses accompagnées de reçus contenant ces postes devront être examinées manuellement.',
+                prohibitedDefaultDescription: 'Signaler les reçus contenant ces postes pour examen manuel.',
                 prohibitedExpenses: 'Dépenses interdites',
                 alcohol: 'Alcool',
                 hotelIncidentals: 'Frais annexes d’hôtel',

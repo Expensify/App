@@ -6487,8 +6487,7 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
                 eReceiptsHint: `eReceipts são criados automaticamente [para a maioria das transações em crédito em USD](${CONST.DEEP_DIVE_ERECEIPTS}).`,
                 attendeeTracking: 'Controle de participantes',
                 attendeeTrackingHint: 'Acompanhe o custo por pessoa de cada despesa.',
-                prohibitedDefaultDescription:
-                    'Marque todos os recibos em que apareçam bebidas alcoólicas, jogos de azar ou outros itens restritos. Despesas com recibos em que esses itens apareçam precisarão de revisão manual.',
+                prohibitedDefaultDescription: 'Marcar recibos com estes itens de linha para revisão manual.',
                 prohibitedExpenses: 'Despesas proibidas',
                 alcohol: 'Álcool',
                 hotelIncidentals: 'Despesas diversas de hotel',

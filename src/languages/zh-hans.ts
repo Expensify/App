@@ -6326,7 +6326,7 @@ ${reportName}
                 eReceiptsHint: `电子收据会自动为[大多数美元信用卡交易](${CONST.DEEP_DIVE_ERECEIPTS})创建。`,
                 attendeeTracking: '参会者跟踪',
                 attendeeTrackingHint: '跟踪每笔报销的单人费用。',
-                prohibitedDefaultDescription: '标记所有包含酒精、赌博或其他受限项目的收据。含有这些项目的收据报销将需要人工审核。',
+                prohibitedDefaultDescription: '将包含这些明细项目的收据标记为人工审核。',
                 prohibitedExpenses: '禁止报销的费用',
                 alcohol: '酒精',
                 hotelIncidentals: '酒店杂费',
