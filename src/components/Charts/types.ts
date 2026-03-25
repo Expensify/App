@@ -1,6 +1,5 @@
 import type {SkParagraph} from '@shopify/react-native-skia';
 import type {ValueOf} from 'type-fest';
-import type IconAsset from '@src/types/utils/IconAsset';
 import type {LABEL_ROTATIONS} from './constants';
 
 type ChartDataPoint = {
@@ -26,12 +25,6 @@ type UnitPosition = 'left' | 'right';
 type ChartProps = {
     /** Data points to display */
     data: ChartDataPoint[];
-
-    /** Chart title (e.g., "Top Categories", "Spend over time") */
-    title?: string;
-
-    /** Icon displayed next to the title */
-    titleIcon?: IconAsset;
 
     /** Whether data is loading */
     isLoading?: boolean;

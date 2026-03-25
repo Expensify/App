@@ -6,7 +6,6 @@ import {useSharedValue} from 'react-native-reanimated';
 import type {CartesianChartRenderArg, ChartBounds, PointsArray, Scale} from 'victory-native';
 import {Bar, CartesianChart} from 'victory-native';
 import ActivityIndicator from '@components/ActivityIndicator';
-import ChartHeader from '@components/Charts/components/ChartHeader';
 import ChartTooltip from '@components/Charts/components/ChartTooltip';
 import ChartXAxisLabels from '@components/Charts/components/ChartXAxisLabels';
 import ChartYAxisLabels from '@components/Charts/components/ChartYAxisLabels';
@@ -15,7 +14,6 @@ import type {ComputeGeometryFn, HitTestArgs} from '@components/Charts/hooks';
 import {useChartFontManager, useChartInteractions, useChartLabelFormats, useChartLabelLayout, useDynamicYDomain, useLabelHitTesting, useTooltipData} from '@components/Charts/hooks';
 import type {CartesianChartProps, ChartDataPoint} from '@components/Charts/types';
 import {calculateMinDomainPadding, DEFAULT_CHART_COLOR, getAdditionalOffset, getChartColor, measureTextWidth, rotatedLabelYOffset} from '@components/Charts/utils';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
@@ -60,7 +58,7 @@ type BarChartProps = CartesianChartProps & {
     useSingleColor?: boolean;
 };
 
-function BarChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUnitPosition = 'left', useSingleColor = false, onBarPress}: BarChartProps) {
+function BarChartContent({data, isLoading, yAxisUnit, yAxisUnitPosition = 'left', useSingleColor = false, onBarPress}: BarChartProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -161,7 +159,7 @@ function BarChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUni
         return args.cursorX >= barLeft && args.cursorX <= barRight && args.cursorY >= barTop && args.cursorY <= barBottom;
     };
 
-    const {customGestures, setPointPositions, activeDataIndex, isTooltipActive, initialTooltipPosition} = useChartInteractions({
+    const {customGestures, setPointPositions, activeDataIndex, isTooltipActive, isOverClickableTarget, initialTooltipPosition} = useChartInteractions({
         handlePress: handleBarPress,
         checkIsOver: checkIsOverBar,
         isCursorOverLabel,
@@ -239,7 +237,7 @@ function BarChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUni
     if (isLoading || !fontMgr) {
         const reasonAttributes: SkeletonSpanReasonAttributes = {context: 'BarChartContent', isLoading, isFontLoading: !fontMgr};
         return (
-            <View style={[styles.barChartContainer, styles.highlightBG, shouldUseNarrowLayout ? styles.p5 : styles.p8, styles.justifyContentCenter, styles.alignItemsCenter]}>
+            <View style={styles.chartActivityIndicator}>
                 <ActivityIndicator
                     size="large"
                     reasonAttributes={reasonAttributes}
@@ -253,56 +251,53 @@ function BarChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUni
     }
 
     return (
-        <View style={[styles.barChartContainer, styles.highlightBG, shouldUseNarrowLayout ? styles.p5 : styles.p8]}>
-            <ChartHeader
-                title={title}
-                titleIcon={titleIcon}
-            />
-            <GestureDetector gesture={customGestures}>
-                <View
-                    style={[styles.barChartChartContainer, dynamicChartStyle]}
-                    onLayout={handleLayout}
-                >
-                    {chartWidth > 0 && (
-                        <CartesianChart
-                            xKey="x"
-                            padding={chartPadding}
-                            yKeys={['y']}
-                            domainPadding={domainPadding}
-                            onChartBoundsChange={handleChartBoundsChange}
-                            onScaleChange={handleScaleChange}
-                            renderOutside={renderOutside}
-                            xAxis={{
-                                tickCount: data.length,
-                                lineWidth: X_AXIS_LINE_WIDTH,
-                            }}
-                            yAxis={[
-                                {
-                                    tickCount: Y_AXIS_TICK_COUNT,
-                                    lineWidth: Y_AXIS_LINE_WIDTH,
-                                    lineColor: theme.border,
-                                    labelOffset: AXIS_LABEL_GAP,
-                                    domain: yAxisDomain,
-                                },
-                            ]}
-                            frame={{lineWidth: 0}}
-                            data={chartData}
-                        >
-                            {({points, chartBounds}) => <>{points.y.map((point) => renderBar(point, chartBounds, points.y.length))}</>}
-                        </CartesianChart>
-                    )}
-                    {isTooltipActive && !!tooltipData && (
-                        <ChartTooltip
-                            label={tooltipData.label}
-                            amount={tooltipData.amount}
-                            percentage={tooltipData.percentage}
-                            chartWidth={chartWidth}
-                            initialTooltipPosition={initialTooltipPosition}
-                        />
-                    )}
-                </View>
-            </GestureDetector>
-        </View>
+        <GestureDetector gesture={customGestures}>
+            <View
+                style={[styles.chartContent, dynamicChartStyle, isOverClickableTarget && styles.cursorPointer]}
+                onLayout={handleLayout}
+            >
+                {chartWidth > 0 && (
+                    <CartesianChart
+                        xKey="x"
+                        padding={chartPadding}
+                        yKeys={['y']}
+                        domainPadding={domainPadding}
+                        onChartBoundsChange={handleChartBoundsChange}
+                        onScaleChange={handleScaleChange}
+                        renderOutside={renderOutside}
+                        xAxis={{
+                            tickCount: data.length,
+                            lineWidth: X_AXIS_LINE_WIDTH,
+                        }}
+                        yAxis={[
+                            {
+                                font,
+                                labelColor: theme.textSupporting,
+                                formatYLabel: formatValue,
+                                tickCount: Y_AXIS_TICK_COUNT,
+                                lineWidth: Y_AXIS_LINE_WIDTH,
+                                lineColor: theme.border,
+                                labelOffset: AXIS_LABEL_GAP,
+                                domain: yAxisDomain,
+                            },
+                        ]}
+                        frame={{lineWidth: 0}}
+                        data={chartData}
+                    >
+                        {({points, chartBounds}) => points.y.map((point) => renderBar(point, chartBounds, points.y.length))}
+                    </CartesianChart>
+                )}
+                {isTooltipActive && !!tooltipData && (
+                    <ChartTooltip
+                        label={tooltipData.label}
+                        amount={tooltipData.amount}
+                        percentage={tooltipData.percentage}
+                        chartWidth={chartWidth}
+                        initialTooltipPosition={initialTooltipPosition}
+                    />
+                )}
+            </View>
+        </GestureDetector>
     );
 }
 
