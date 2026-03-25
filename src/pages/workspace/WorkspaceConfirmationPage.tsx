@@ -4,6 +4,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import WorkspaceConfirmationForm from '@components/WorkspaceConfirmationForm';
 import type {WorkspaceConfirmationSubmitFunctionParams} from '@components/WorkspaceConfirmationForm';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useHasActiveAdminPolicies from '@hooks/useHasActiveAdminPolicies';
 import useOnyx from '@hooks/useOnyx';
 import usePrivateSubscription from '@hooks/usePrivateSubscription';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -28,6 +29,8 @@ function WorkspaceConfirmationPage() {
 
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const privateSubscription = usePrivateSubscription();
+    const hasActiveAdminPolicies = useHasActiveAdminPolicies();
+
     const onSubmit = (params: WorkspaceConfirmationSubmitFunctionParams) => {
         const policyID = params.policyID || generatePolicyID();
         const routeToNavigate = isSmallScreenWidth ? ROUTES.WORKSPACE_INITIAL.getRoute(policyID) : ROUTES.WORKSPACE_OVERVIEW.getRoute(policyID);
@@ -50,6 +53,7 @@ function WorkspaceConfirmationPage() {
             type: params.planType,
             isSelfTourViewed,
             betas,
+            hasActiveAdminPolicies,
         });
     };
     const currentUrl = getCurrentUrl();

@@ -49,6 +49,7 @@ import type {
     PersonalAndWorkspaceCardListDerivedValue,
     ReportAttributesDerivedValue,
     ReportTransactionsAndViolationsDerivedValue,
+    SortedReportActionsDerivedValue,
     TodoMetadata,
     TodosDerivedValue,
     VisibleReportActionsDerivedValue,
@@ -105,7 +106,7 @@ import type {PersonalDetailsList, PersonalDetailsMetadata} from './PersonalDetai
 import type PersonalDetails from './PersonalDetails';
 import type PlaidData from './PlaidData';
 import type Policy from './Policy';
-import type {PolicyConnectionName, PolicyConnectionSyncProgress, PolicyReportField, TaxRate, TaxRates, TaxRatesWithDefault} from './Policy';
+import type {AutoReportingOffset, PolicyConnectionName, PolicyConnectionSyncProgress, PolicyReportField, TaxRate, TaxRates, TaxRatesWithDefault} from './Policy';
 import type {PolicyCategories, PolicyCategory} from './PolicyCategory';
 import type {PolicyEmployeeList} from './PolicyEmployee';
 import type PolicyEmployee from './PolicyEmployee';
@@ -113,6 +114,7 @@ import type PolicyJoinMember from './PolicyJoinMember';
 import type PolicyOwnershipChangeChecks from './PolicyOwnershipChangeChecks';
 import type {PolicyTag, PolicyTagLists, PolicyTags} from './PolicyTag';
 import type PrivatePersonalDetails from './PrivatePersonalDetails';
+import type PrivatePromoDiscount from './PrivatePromoDiscount';
 import type PrivateSubscription from './PrivateSubscription';
 import type PurchaseList from './PurchaseList';
 import type QuickAction from './QuickAction';
@@ -134,8 +136,7 @@ import type ReportNameValuePairs from './ReportNameValuePairs';
 import type LastSearchParams from './ReportNavigation';
 import type ReportNextStepDeprecated from './ReportNextStepDeprecated';
 import type ReportUserIsTyping from './ReportUserIsTyping';
-import type {ReportFieldsViolations, ReportViolationName} from './ReportViolation';
-import type ReportViolations from './ReportViolation';
+import type ReportViolationName from './ReportViolationName';
 import type Request from './Request';
 import type {AnyRequest} from './Request';
 import type Response from './Response';
@@ -259,6 +260,7 @@ export type {
     PolicyConnectionName,
     PolicyConnectionSyncProgress,
     PolicyOwnershipChangeChecks,
+    AutoReportingOffset,
     PolicyTag,
     PolicyTags,
     PolicyTagLists,
@@ -281,8 +283,6 @@ export type {
     ReportMetadata,
     ReportNextStepDeprecated,
     ReportViolationName,
-    ReportViolations,
-    ReportFieldsViolations,
     ReportLayoutGroupBy,
     GroupedTransactions,
     AnyRequest,
@@ -328,6 +328,7 @@ export type {
     SearchResults,
     ReviewDuplicates,
     PrivateSubscription,
+    PrivatePromoDiscount,
     BillingGraceEndPeriod,
     StripeCustomerID,
     BillingStatus,
@@ -362,6 +363,7 @@ export type {
     ReportTransactionsAndViolationsDerivedValue,
     OutstandingReportsByPolicyIDDerivedValue,
     VisibleReportActionsDerivedValue,
+    SortedReportActionsDerivedValue,
     NonPersonalAndWorkspaceCardListDerivedValue,
     PersonalAndWorkspaceCardListDerivedValue,
     CardFeedErrorsDerivedValue,
