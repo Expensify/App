@@ -1,10 +1,10 @@
 import {beforeEach} from '@jest/globals';
 import Onyx from 'react-native-onyx';
 import {convertAmountToDisplayString} from '@libs/CurrencyUtils';
-import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {getTransactionViolations, hasWarningTypeViolation, isViolationDismissed} from '@libs/TransactionUtils';
 import ViolationsUtils, {filterReceiptViolations, getIsViolationFixed} from '@libs/Violations/ViolationsUtils';
 import CONST from '@src/CONST';
+import en from '@src/languages/en';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, PolicyCategories, PolicyTagLists, Report, Transaction, TransactionViolation} from '@src/types/onyx';
 import type {TransactionCollectionDataSet} from '@src/types/onyx/Transaction';
@@ -1393,12 +1393,30 @@ describe('getViolationTranslation', () => {
             type: CONST.VIOLATION_TYPES.VIOLATION,
         };
 
+        // 16840 meters ≈ 16840 * 0.001 km = 16.84 km
+        // 16840 meters ≈ 16840 * 0.000621371 mi ≈ 10.46 mi
+        const routeDistanceMeters = 16840;
+        const routeDistanceKm = '16.84 km';
+        const routeDistanceMi = '10.46 mi';
+
+        /* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-explicit-any */
+        const enTranslate = ((path: string, ...params: unknown[]) => {
+            const keys = path.split('.');
+            let value: any = en;
+            for (const key of keys) {
+                value = value?.[key];
+            }
+            if (typeof value === 'function') {
+                return value(...params);
+            }
+            return value ?? path;
+        }) as typeof translateLocal;
+        /* eslint-enable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-explicit-any */
+
         it('should return formatted message with route distance in km', () => {
-            const routeDistanceMeters = 16840;
-            const distanceUnit = CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS;
             const result = ViolationsUtils.getViolationTranslation(
                 increasedDistanceViolation,
-                translateLocal,
+                enTranslate,
                 true,
                 undefined,
                 undefined,
@@ -1406,19 +1424,15 @@ describe('getViolationTranslation', () => {
                 undefined,
                 undefined,
                 routeDistanceMeters,
-                distanceUnit,
+                CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS,
             );
-            const formattedDistance = DistanceRequestUtils.getDistanceForDisplayLabel(routeDistanceMeters, distanceUnit);
-            const expected = translateLocal('violations.increasedDistance', {formattedRouteDistance: formattedDistance});
-            expect(result).toBe(expected);
+            expect(result).toBe(`Distance exceeds the calculated route of ${routeDistanceKm}`);
         });
 
         it('should return formatted message with route distance in miles', () => {
-            const routeDistanceMeters = 16840;
-            const distanceUnit = CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES;
             const result = ViolationsUtils.getViolationTranslation(
                 increasedDistanceViolation,
-                translateLocal,
+                enTranslate,
                 true,
                 undefined,
                 undefined,
@@ -1426,17 +1440,15 @@ describe('getViolationTranslation', () => {
                 undefined,
                 undefined,
                 routeDistanceMeters,
-                distanceUnit,
+                CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
             );
-            const formattedDistance = DistanceRequestUtils.getDistanceForDisplayLabel(routeDistanceMeters, distanceUnit);
-            const expected = translateLocal('violations.increasedDistance', {formattedRouteDistance: formattedDistance});
-            expect(result).toBe(expected);
+            expect(result).toBe(`Distance exceeds the calculated route of ${routeDistanceMi}`);
         });
 
         it('should return fallback message when routeDistanceMeters is zero', () => {
             const result = ViolationsUtils.getViolationTranslation(
                 increasedDistanceViolation,
-                translateLocal,
+                enTranslate,
                 true,
                 undefined,
                 undefined,
@@ -1446,14 +1458,13 @@ describe('getViolationTranslation', () => {
                 0,
                 CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS,
             );
-            const expected = translateLocal('violations.increasedDistance', {formattedRouteDistance: undefined});
-            expect(result).toBe(expected);
+            expect(result).toBe('Distance exceeds the calculated route');
         });
 
         it('should return fallback message when routeDistanceMeters is undefined', () => {
             const result = ViolationsUtils.getViolationTranslation(
                 increasedDistanceViolation,
-                translateLocal,
+                enTranslate,
                 true,
                 undefined,
                 undefined,
@@ -1463,14 +1474,23 @@ describe('getViolationTranslation', () => {
                 undefined,
                 CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS,
             );
-            const expected = translateLocal('violations.increasedDistance', {formattedRouteDistance: undefined});
-            expect(result).toBe(expected);
+            expect(result).toBe('Distance exceeds the calculated route');
         });
 
         it('should return fallback message when distanceUnit is undefined', () => {
-            const result = ViolationsUtils.getViolationTranslation(increasedDistanceViolation, translateLocal, true, undefined, undefined, undefined, undefined, undefined, 16840, undefined);
-            const expected = translateLocal('violations.increasedDistance', {formattedRouteDistance: undefined});
-            expect(result).toBe(expected);
+            const result = ViolationsUtils.getViolationTranslation(
+                increasedDistanceViolation,
+                enTranslate,
+                true,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                routeDistanceMeters,
+                undefined,
+            );
+            expect(result).toBe('Distance exceeds the calculated route');
         });
     });
 });
