@@ -996,7 +996,13 @@ describe('PolicyUtils', () => {
         it('should return true if user owns a workspace', async () => {
             const currentUserLogin = approverEmail;
             const currentUserAccountID = approverAccountID;
-            const policies = {[`${ONYXKEYS.COLLECTION.POLICY}0`]: {...createRandomPolicy(0, CONST.POLICY.TYPE.TEAM, `John's Workspace`), ownerAccountID: approverAccountID, isPolicyExpenseChatEnabled: true}};
+            const policies = {
+                [`${ONYXKEYS.COLLECTION.POLICY}0`]: {
+                    ...createRandomPolicy(0, CONST.POLICY.TYPE.TEAM, `John's Workspace`),
+                    ownerAccountID: approverAccountID,
+                    isPolicyExpenseChatEnabled: true,
+                },
+            };
 
             await Onyx.set(ONYXKEYS.SESSION, {email: currentUserLogin, accountID: currentUserAccountID});
             await Onyx.setCollection(ONYXKEYS.COLLECTION.POLICY, policies);
