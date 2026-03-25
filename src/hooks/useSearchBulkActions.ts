@@ -396,7 +396,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         InteractionManager.runAfterInteractions(() => {
             clearSelectedTransactions();
         });
-    }, [isOffline, isDelegateAccessRestricted, showDelegateNoAccessModal, selectedReports, selectedTransactions, hash, clearSelectedTransactions, userBillingGraceEndPeriods]);
+    }, [isOffline, isDelegateAccessRestricted, showDelegateNoAccessModal, selectedReports, selectedTransactions, hash, clearSelectedTransactions, userBillingGraceEndPeriods, amountOwed]);
 
     const {expenseCount, uniqueReportCount} = useMemo(() => {
         let expenses = 0;
