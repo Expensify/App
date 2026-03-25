@@ -675,6 +675,7 @@ describe('ReportNameUtils', () => {
                 person: [],
                 originalMessage: {
                     email: 'user@example.com',
+                    feedName: 'US Bank',
                     cardLastFour: '1234',
                 },
             } as unknown as ReportAction;
@@ -695,7 +696,7 @@ describe('ReportNameUtils', () => {
                 reportActionsCollection,
                 currentUserAccountID,
             );
-            expect(name).toBe('assigned user@example.com company card ending in 1234');
+            expect(name).toBe('assigned user@example.com "US Bank" company card ending in 1234');
         });
 
         test('UNASSIGN_COMPANY_CARD parent action', () => {
@@ -710,6 +711,7 @@ describe('ReportNameUtils', () => {
                 person: [],
                 originalMessage: {
                     email: 'user@example.com',
+                    feedName: 'US Bank',
                     cardLastFour: '5678',
                 },
             } as unknown as ReportAction;
@@ -730,7 +732,7 @@ describe('ReportNameUtils', () => {
                 reportActionsCollection,
                 currentUserAccountID,
             );
-            expect(name).toBe('unassigned user@example.com company card ending in 5678');
+            expect(name).toBe('unassigned user@example.com "US Bank" company card ending in 5678');
         });
 
         test('UPDATE_CARD_FEED_LIABILITY parent action with ALLOW type', () => {

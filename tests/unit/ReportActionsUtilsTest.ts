@@ -3211,11 +3211,12 @@ describe('ReportActionsUtils', () => {
                 created: '',
                 originalMessage: {
                     email: 'user@example.com',
+                    feedName: 'US Bank',
                     cardLastFour: '1234',
                 },
             } as ReportAction;
             const result = getAssignedCompanyCardMessage(translateLocal, action);
-            expect(result).toBe('assigned user@example.com company card ending in 1234');
+            expect(result).toBe('assigned user@example.com "US Bank" company card ending in 1234');
         });
     });
 
@@ -3227,11 +3228,12 @@ describe('ReportActionsUtils', () => {
                 created: '',
                 originalMessage: {
                     email: 'user@example.com',
+                    feedName: 'US Bank',
                     cardLastFour: '5678',
                 },
             } as ReportAction;
             const result = getUnassignedCompanyCardMessage(translateLocal, action);
-            expect(result).toBe('unassigned user@example.com company card ending in 5678');
+            expect(result).toBe('unassigned user@example.com "US Bank" company card ending in 5678');
         });
     });
 

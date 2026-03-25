@@ -316,21 +316,21 @@ describe('PureReportActionItem', () => {
         });
 
         it('ASSIGN_COMPANY_CARD action', async () => {
-            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ASSIGN_COMPANY_CARD, {email: 'user@example.com', cardLastFour: '1234'});
+            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ASSIGN_COMPANY_CARD, {email: 'user@example.com', feedName: 'US Bank', cardLastFour: '1234'});
             renderItemWithAction(action);
             await waitForBatchedUpdatesWithAct();
 
             expect(screen.getByText(actorEmail)).toBeOnTheScreen();
-            expect(screen.getByText('assigned user@example.com company card ending in 1234')).toBeOnTheScreen();
+            expect(screen.getByText('assigned user@example.com "US Bank" company card ending in 1234')).toBeOnTheScreen();
         });
 
         it('UNASSIGN_COMPANY_CARD action', async () => {
-            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UNASSIGN_COMPANY_CARD, {email: 'user@example.com', cardLastFour: '5678'});
+            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UNASSIGN_COMPANY_CARD, {email: 'user@example.com', feedName: 'US Bank', cardLastFour: '5678'});
             renderItemWithAction(action);
             await waitForBatchedUpdatesWithAct();
 
             expect(screen.getByText(actorEmail)).toBeOnTheScreen();
-            expect(screen.getByText('unassigned user@example.com company card ending in 5678')).toBeOnTheScreen();
+            expect(screen.getByText('unassigned user@example.com "US Bank" company card ending in 5678')).toBeOnTheScreen();
         });
 
         it('UPDATE_CARD_FEED_LIABILITY action', async () => {

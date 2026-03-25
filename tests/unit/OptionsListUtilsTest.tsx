@@ -4349,7 +4349,7 @@ describe('OptionsListUtils', () => {
                 ...createRandomReportAction(1),
                 actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ASSIGN_COMPANY_CARD,
                 message: [{type: 'COMMENT', text: ''}],
-                originalMessage: {email: 'user@example.com', cardLastFour: '1234'},
+                originalMessage: {email: 'user@example.com', feedName: 'US Bank', cardLastFour: '1234'},
             };
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {
                 [action.reportActionID]: action,
@@ -4370,7 +4370,7 @@ describe('OptionsListUtils', () => {
                 ...createRandomReportAction(1),
                 actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UNASSIGN_COMPANY_CARD,
                 message: [{type: 'COMMENT', text: ''}],
-                originalMessage: {email: 'user@example.com', cardLastFour: '5678'},
+                originalMessage: {email: 'user@example.com', feedName: 'US Bank', cardLastFour: '5678'},
             };
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {
                 [action.reportActionID]: action,

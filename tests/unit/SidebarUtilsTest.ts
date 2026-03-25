@@ -1780,7 +1780,7 @@ describe('SidebarUtils', () => {
             const lastAction: ReportAction = {
                 ...createRandomReportAction(2),
                 actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ASSIGN_COMPANY_CARD,
-                originalMessage: {email: 'user@example.com', cardLastFour: '1234'},
+                originalMessage: {email: 'user@example.com', feedName: 'US Bank', cardLastFour: '1234'},
             };
             const reportActions: ReportActions = {[lastAction.reportActionID]: lastAction};
             await act(async () => {
@@ -1809,7 +1809,7 @@ describe('SidebarUtils', () => {
                 reportAttributesDerived: undefined,
             });
 
-            expect(result?.alternateText).toBe('assigned user@example.com company card ending in 1234');
+            expect(result?.alternateText).toBe('assigned user@example.com "US Bank" company card ending in 1234');
         });
 
         it('returns the correct alternate text for UNASSIGN_COMPANY_CARD action', async () => {
@@ -1820,7 +1820,7 @@ describe('SidebarUtils', () => {
             const lastAction: ReportAction = {
                 ...createRandomReportAction(2),
                 actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UNASSIGN_COMPANY_CARD,
-                originalMessage: {email: 'user@example.com', cardLastFour: '5678'},
+                originalMessage: {email: 'user@example.com', feedName: 'US Bank', cardLastFour: '5678'},
             };
             const reportActions: ReportActions = {[lastAction.reportActionID]: lastAction};
             await act(async () => {
@@ -1849,7 +1849,7 @@ describe('SidebarUtils', () => {
                 reportAttributesDerived: undefined,
             });
 
-            expect(result?.alternateText).toBe('unassigned user@example.com company card ending in 5678');
+            expect(result?.alternateText).toBe('unassigned user@example.com "US Bank" company card ending in 5678');
         });
 
         it('returns the correct alternate text for UPDATE_CARD_FEED_LIABILITY action', async () => {
