@@ -98,20 +98,19 @@ function SageIntacctPrerequisitesPage({route}: SageIntacctPrerequisitesPageProps
                     menuItems={menuItems}
                     shouldUseSingleExecution
                 />
-
-                <FixedFooter
-                    style={[styles.mtAuto]}
-                    addBottomSafeAreaPadding
-                >
-                    <Button
-                        success
-                        text={translate('common.next')}
-                        onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_ENTER_CREDENTIALS.getRoute(policyID))}
-                        pressOnEnter
-                        large
-                    />
-                </FixedFooter>
             </ScrollView>
+            <FixedFooter
+                style={[styles.mtAuto]}
+                addBottomSafeAreaPadding
+            >
+                <Button
+                    success
+                    text={translate('common.next')}
+                    onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_ENTER_CREDENTIALS.getRoute(policyID))}
+                    pressOnEnter
+                    large
+                />
+            </FixedFooter>
         </ScreenWrapper>
     );
 }
