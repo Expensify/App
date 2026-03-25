@@ -732,7 +732,7 @@ const ViolationsUtils = {
             case 'modifiedDate':
                 return translate('violations.modifiedDate');
             case 'increasedDistance': {
-                const distance = Number(routeDistanceMeters) || 0;
+                const distance = routeDistanceMeters ?? 0;
                 const formattedRouteDistance = distance > 0 && distanceUnit ? DistanceRequestUtils.getDistanceForDisplayLabel(distance, distanceUnit) : undefined;
                 return translate('violations.increasedDistance', {formattedRouteDistance});
             }

@@ -78,14 +78,6 @@ type ViolationsModifiedAmountParams = {type?: ViolationDataType; displayPercentV
 
 type ViolationsIncreasedDistanceParams = {formattedRouteDistance?: string};
 
-type ViolationsOverAutoApprovalLimitParams = {formattedLimit: string};
-
-type ViolationsOverCategoryLimitParams = {formattedLimit: string};
-
-type ViolationsOverLimitParams = {formattedLimit: string};
-
-type ViolationsPerDayLimitParams = {formattedLimit: string};
-
 type ViolationsReceiptRequiredParams = {formattedLimit?: string; category?: string};
 
 type ViolationsRterParams = {
@@ -333,10 +325,6 @@ export type {
     ViolationsMissingTagParams,
     ViolationsModifiedAmountParams,
     ViolationsIncreasedDistanceParams,
-    ViolationsOverAutoApprovalLimitParams,
-    ViolationsOverCategoryLimitParams,
-    ViolationsOverLimitParams,
-    ViolationsPerDayLimitParams,
     ViolationsReceiptRequiredParams,
     ViolationsRterParams,
     ViolationsTagOutOfPolicyParams,
