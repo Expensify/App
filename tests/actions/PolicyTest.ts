@@ -2461,7 +2461,7 @@ describe('actions/Policy', () => {
 
     describe('generateDefaultWorkspaceName', () => {
         beforeAll(() => {
-            Onyx.multiSet({[ONYXKEYS.COLLECTION.POLICY]: {}});
+            Onyx.setCollection(ONYXKEYS.COLLECTION.POLICY, {});
         });
 
         it('should generate a workspace name based on the email domain when the domain is not public', () => {
@@ -2508,8 +2508,8 @@ describe('actions/Policy', () => {
 
         it('should generate a workspace name with an incremented number when there are existing policies with similar names', async () => {
             const existingPolicies = {
-                ...createRandomPolicy(0, CONST.POLICY.TYPE.PERSONAL, `${TEST_DISPLAY_NAME}'s Workspace`),
-                ...createRandomPolicy(0, CONST.POLICY.TYPE.PERSONAL, `${TEST_DISPLAY_NAME}'s Workspace 1`),
+                [`${ONYXKEYS.COLLECTION.POLICY}0`]: createRandomPolicy(0, CONST.POLICY.TYPE.PERSONAL, `${TEST_DISPLAY_NAME}'s Workspace`),
+                [`${ONYXKEYS.COLLECTION.POLICY}1`]: createRandomPolicy(1, CONST.POLICY.TYPE.PERSONAL, `${TEST_DISPLAY_NAME}'s Workspace 1`),
             };
 
             jest.spyOn(PersonalDetailsUtils, 'getPersonalDetailByEmail').mockReturnValue({
@@ -2518,7 +2518,7 @@ describe('actions/Policy', () => {
                 accountID: TEST_ACCOUNT_ID,
             });
 
-            await Onyx.multiSet({[ONYXKEYS.COLLECTION.POLICY]: existingPolicies});
+            await Onyx.setCollection(ONYXKEYS.COLLECTION.POLICY, existingPolicies);
 
             const workspaceName = Policy.generateDefaultWorkspaceName(TEST_EMAIL);
             expect(workspaceName).toBe(TestHelper.translateLocal('workspace.new.workspaceName', TEST_DISPLAY_NAME, 2));
@@ -2536,11 +2536,11 @@ describe('actions/Policy', () => {
         });
 
         it('should generate a workspace name with an incremented number even if previous workspaces were created in english lang', async () => {
-            await Onyx.multiSet({[ONYXKEYS.COLLECTION.POLICY]: {}});
+            await Onyx.setCollection(ONYXKEYS.COLLECTION.POLICY, {});
             await IntlStore.load(CONST.LOCALES.ES);
             const existingPolicies = {
-                ...createRandomPolicy(0, CONST.POLICY.TYPE.PERSONAL, `${TEST_DISPLAY_NAME}'s Workspace`),
-                ...createRandomPolicy(0, CONST.POLICY.TYPE.PERSONAL, `${TEST_DISPLAY_NAME}'s Workspace 1`),
+                [`${ONYXKEYS.COLLECTION.POLICY}0`]: createRandomPolicy(0, CONST.POLICY.TYPE.PERSONAL, `${TEST_DISPLAY_NAME}'s Workspace`),
+                [`${ONYXKEYS.COLLECTION.POLICY}1`]: createRandomPolicy(1, CONST.POLICY.TYPE.PERSONAL, `${TEST_DISPLAY_NAME}'s Workspace 1`),
             };
 
             jest.spyOn(PersonalDetailsUtils, 'getPersonalDetailByEmail').mockReturnValue({
@@ -2551,7 +2551,7 @@ describe('actions/Policy', () => {
 
             jest.spyOn(Str, 'UCFirst').mockReturnValue(TEST_DISPLAY_NAME);
 
-            await Onyx.multiSet({[ONYXKEYS.COLLECTION.POLICY]: existingPolicies});
+            await Onyx.setCollection(ONYXKEYS.COLLECTION.POLICY, existingPolicies);
 
             const workspaceName = Policy.generateDefaultWorkspaceName(TEST_EMAIL);
             expect(workspaceName).toBe(TestHelper.translateLocal('workspace.new.workspaceName', TEST_DISPLAY_NAME, 2));

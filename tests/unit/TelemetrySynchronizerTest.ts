@@ -349,32 +349,41 @@ describe('TelemetrySynchronizer', () => {
 
                 jest.clearAllMocks();
 
-                await Onyx.multiSet({[ONYXKEYS.COLLECTION.POLICY]: mockPolicies});
+                await Onyx.setCollection(ONYXKEYS.COLLECTION.POLICY, mockPolicies);
                 await waitForBatchedUpdatesWithAct();
 
                 expect(Sentry.setTag).toHaveBeenCalledWith(CONST.TELEMETRY.TAG_ACTIVE_POLICY, 'policy123');
                 expect(Sentry.setContext).toHaveBeenCalled();
             });
 
-            it('should not call sendPoliciesContext when policies is null', async () => {
+            it('should report empty active policies when all policy members are removed', async () => {
                 const mockSession: Session = {
                     email: 'test@example.com',
                     accountID: 1,
                 };
+                const mockPolicies: Record<string, Policy> = {
+                    [`${ONYXKEYS.COLLECTION.POLICY}123`]: createRandomPolicy(123),
+                };
+                (getActivePolicies as jest.Mock).mockReturnValue([mockPolicies[`${ONYXKEYS.COLLECTION.POLICY}123`]]);
 
                 await Onyx.multiSet({
                     [ONYXKEYS.SESSION]: mockSession,
                     [ONYXKEYS.NVP_ACTIVE_POLICY_ID]: 'policy123',
                 });
+                await Onyx.setCollection(ONYXKEYS.COLLECTION.POLICY, mockPolicies);
                 await waitForBatchedUpdatesWithAct();
 
                 jest.clearAllMocks();
+                (getActivePolicies as jest.Mock).mockReturnValue([]);
 
-                await Onyx.multiSet({[ONYXKEYS.COLLECTION.POLICY]: null});
+                await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}123`, null);
                 await waitForBatchedUpdatesWithAct();
 
-                expect(Sentry.setTag).not.toHaveBeenCalled();
-                expect(Sentry.setContext).not.toHaveBeenCalled();
+                expect(Sentry.setTag).toHaveBeenCalledWith(CONST.TELEMETRY.TAG_POLICIES_COUNT, '0-1');
+                expect(Sentry.setContext).toHaveBeenCalledWith(CONST.TELEMETRY.CONTEXT_POLICIES, {
+                    activePolicyID: 'policy123',
+                    activePolicies: [],
+                });
             });
         });
 
@@ -415,7 +424,7 @@ describe('TelemetrySynchronizer', () => {
             await Onyx.set(ONYXKEYS.NVP_ACTIVE_POLICY_ID, mockActivePolicyID);
             await waitForBatchedUpdatesWithAct();
 
-            await Onyx.multiSet({[ONYXKEYS.COLLECTION.POLICY]: mockPolicies});
+            await Onyx.setCollection(ONYXKEYS.COLLECTION.POLICY, mockPolicies);
             await waitForBatchedUpdatesWithAct();
 
             expect(Sentry.setTag).toHaveBeenCalledWith(CONST.TELEMETRY.TAG_ACTIVE_POLICY, mockActivePolicyID);

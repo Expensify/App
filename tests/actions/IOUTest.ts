@@ -10542,7 +10542,7 @@ describe('actions/IOU', () => {
                 modifiedMerchant: undefined,
             };
 
-            await Onyx.multiSet({[ONYXKEYS.COLLECTION.REPORT]: {[`${ONYXKEYS.COLLECTION.REPORT}${fakeReport.reportID}`]: fakeReport}});
+            await Onyx.setCollection(ONYXKEYS.COLLECTION.REPORT, {[`${ONYXKEYS.COLLECTION.REPORT}${fakeReport.reportID}`]: fakeReport});
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${fakeReport.reportID}`, fakeReport);
             await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${fakeTransaction1.transactionID}`, fakeTransaction1);
             await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${fakeTransaction2.transactionID}`, fakeTransaction2);
