@@ -116,6 +116,14 @@ describe('SearchPageNarrow', () => {
     });
 
     it('NavigationTabBar should be hidden when the search input is focused', async () => {
+        const queryJSON = SearchQueryUtils.buildSearchQueryJSON('');
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.SNAPSHOT}${queryJSON?.hash}`, {
+            data: {},
+            search: {
+                type: queryJSON?.type,
+                status: queryJSON?.status,
+            },
+        });
         renderPage();
 
         await act(async () => {
@@ -128,7 +136,10 @@ describe('SearchPageNarrow', () => {
         let navigationTabBars = screen.getAllByTestId('NavigationTabBar', {includeHiddenElements: true});
         expect(navigationTabBars).toHaveLength(2);
 
-        const searchAutocompleteInput = screen.getByTestId('search-autocomplete-text-input', {includeHiddenElements: true});
+        const searchButton = screen.getByTestId('search-button-narrow');
+        fireEvent.press(searchButton);
+
+        const searchAutocompleteInput = await screen.findByTestId('search-autocomplete-text-input', {includeHiddenElements: true});
         expect(searchAutocompleteInput).toBeTruthy();
 
         // When the search input is focused, the NavigationTabBar from SearchPageNarrow will unmount, and the one from TopLevelNavigationTabBar will be hidden.
