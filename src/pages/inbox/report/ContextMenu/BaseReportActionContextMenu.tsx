@@ -413,6 +413,7 @@ function BaseReportActionContextMenu({
                             encryptedAuthToken,
                             iouTransaction,
                             bankAccountList,
+                            isOffline,
                         };
 
                         if ('renderContent' in contextAction) {
