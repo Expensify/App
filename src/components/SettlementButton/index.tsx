@@ -204,6 +204,7 @@ function SettlementButton({
         policy,
         userBillingGraceEndPeriods,
         ownerBillingGraceEndPeriod,
+        amountOwed,
     ]);
 
     const shortFormPayElsewhereButton = {

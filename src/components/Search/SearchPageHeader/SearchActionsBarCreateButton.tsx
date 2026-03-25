@@ -222,6 +222,7 @@ function SearchActionsBarCreateButton() {
             userBillingGraceEndPeriods,
             openCreateReportConfirmation,
             handleCreateWorkspaceReport,
+            amountOwed,
         ],
     );
 

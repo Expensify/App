@@ -206,7 +206,7 @@ function useAttachmentUploadValidation({
             attachmentUploadType.current = 'receipt';
             validateFiles(files, items, {isValidatingReceipts: true});
         },
-        [policy, userBillingGraceEndPeriods, ownerBillingGraceEndPeriod, shouldAddOrReplaceReceipt, transactionID, validateFiles],
+        [policy, userBillingGraceEndPeriods, ownerBillingGraceEndPeriod, shouldAddOrReplaceReceipt, transactionID, validateFiles, amountOwed],
     );
 
     return {
