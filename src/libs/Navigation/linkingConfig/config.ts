@@ -2105,26 +2105,6 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
             },
         },
 
-        [NAVIGATORS.DOMAIN_SPLIT_NAVIGATOR]: {
-            screens: {
-                [SCREENS.DOMAIN.INITIAL]: {
-                    path: ROUTES.DOMAIN_INITIAL.route,
-                },
-                [SCREENS.DOMAIN.SAML]: {
-                    path: ROUTES.DOMAIN_SAML.route,
-                },
-                [SCREENS.DOMAIN.ADMINS]: {
-                    path: ROUTES.DOMAIN_ADMINS.route,
-                },
-                [SCREENS.DOMAIN.MEMBERS]: {
-                    path: ROUTES.DOMAIN_MEMBERS.route,
-                },
-                [SCREENS.DOMAIN.GROUPS]: {
-                    path: ROUTES.DOMAIN_GROUPS.route,
-                },
-            },
-        },
-
         [NAVIGATORS.SHARE_MODAL_NAVIGATOR]: {
             initialRouteName: SCREENS.SHARE.ROOT,
             screens: {
@@ -2282,6 +2262,25 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         },
                         [SCREENS.WORKSPACE.TIME_TRACKING]: {
                             path: ROUTES.WORKSPACE_TIME_TRACKING.route,
+                        },
+                    },
+                },
+                [NAVIGATORS.DOMAIN_SPLIT_NAVIGATOR]: {
+                    screens: {
+                        [SCREENS.DOMAIN.INITIAL]: {
+                            path: ROUTES.DOMAIN_INITIAL.route,
+                        },
+                        [SCREENS.DOMAIN.SAML]: {
+                            path: ROUTES.DOMAIN_SAML.route,
+                        },
+                        [SCREENS.DOMAIN.ADMINS]: {
+                            path: ROUTES.DOMAIN_ADMINS.route,
+                        },
+                        [SCREENS.DOMAIN.MEMBERS]: {
+                            path: ROUTES.DOMAIN_MEMBERS.route,
+                        },
+                        [SCREENS.DOMAIN.GROUPS]: {
+                            path: ROUTES.DOMAIN_GROUPS.route,
                         },
                     },
                 },

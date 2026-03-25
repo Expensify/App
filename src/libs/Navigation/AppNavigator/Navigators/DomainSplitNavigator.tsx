@@ -6,7 +6,7 @@ import createSplitNavigator from '@libs/Navigation/AppNavigator/createSplitNavig
 import useSplitNavigatorScreenOptions from '@libs/Navigation/AppNavigator/useSplitNavigatorScreenOptions';
 import useEnableBackAnimationWhenOpenedFromTabBar from '@libs/Navigation/helpers/useEnableBackAnimationWhenOpenedFromTabBar';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import type {AuthScreensParamList, DomainSplitNavigatorParamList} from '@libs/Navigation/types';
+import type {DomainSplitNavigatorParamList, RootTabNavigatorParamList} from '@libs/Navigation/types';
 import type NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
 import type ReactComponentModule from '@src/types/utils/ReactComponentModule';
@@ -19,7 +19,7 @@ const loadDomainGroupsPage = () => require<ReactComponentModule>('../../../../pa
 
 const Split = createSplitNavigator<DomainSplitNavigatorParamList>();
 
-function DomainSplitNavigator({route, navigation}: PlatformStackScreenProps<AuthScreensParamList, typeof NAVIGATORS.DOMAIN_SPLIT_NAVIGATOR>) {
+function DomainSplitNavigator({route, navigation}: PlatformStackScreenProps<RootTabNavigatorParamList, typeof NAVIGATORS.DOMAIN_SPLIT_NAVIGATOR>) {
     const splitNavigatorScreenOptions = useSplitNavigatorScreenOptions();
     const styles = useThemeStyles();
 
