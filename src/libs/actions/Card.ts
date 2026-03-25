@@ -679,7 +679,7 @@ function updateSettlementFrequency(
     ];
 
     const parameters = {
-        workspaceAccountID,
+        policyAccountID: workspaceAccountID,
         settlementFrequency,
     };
 
@@ -1451,12 +1451,12 @@ function openCardDetailsPage(cardID: number) {
 function toggleContinuousReconciliation(workspaceAccountID: number, shouldUseContinuousReconciliation: boolean, connectionName: ConnectionName, oldConnectionName?: ConnectionName) {
     const parameters = shouldUseContinuousReconciliation
         ? {
-              workspaceAccountID,
+              policyAccountID: workspaceAccountID,
               shouldUseContinuousReconciliation,
               expensifyCardContinuousReconciliationConnection: connectionName,
           }
         : {
-              workspaceAccountID,
+              policyAccountID: workspaceAccountID,
               shouldUseContinuousReconciliation,
           };
 

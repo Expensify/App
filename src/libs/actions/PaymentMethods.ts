@@ -438,7 +438,7 @@ function hasPaymentMethodError(
             return true;
         }
         const workspaceAccountID = Number(card?.fundID);
-        const policy = policyList.find((p) => p?.workspaceAccountID === workspaceAccountID);
+        const policy = policyList.find((p) => p?.policyAccountID === workspaceAccountID);
         return !!policy && isPolicyUser(policy, currentUserLogin);
     });
     // If there is card with errors, we should display the RBR if user is a member of the workspace.

@@ -11,7 +11,7 @@ export default function useUpdateFeedBrokenConnection({policyID, feed}: {policyI
     const policy = usePolicy(policyID);
     const [cardFeeds] = useCardFeeds(policyID);
     const companyFeeds = getCompanyFeeds(cardFeeds);
-    const workspaceAccountID = policy?.workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID;
+    const workspaceAccountID = policy?.policyAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const domainOrWorkspaceAccountID = feed ? getDomainOrWorkspaceAccountID(workspaceAccountID, companyFeeds[feed]) : CONST.DEFAULT_NUMBER_ID;
     const {cardFeedErrors, cardsWithBrokenFeedConnection} = useCardFeedErrors();
 
