@@ -39,6 +39,7 @@ import type {
 import {WRITE_COMMANDS} from '@libs/API/types';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
+import {registerDeferredWrite} from '@libs/deferredLayoutWrite';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {getMicroSecondOnyxErrorObject, getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import {readFileAsync} from '@libs/fileDownload/FileUtils';
@@ -6430,6 +6431,15 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
         playSound(SOUNDS.DONE);
     }
 
+    // API.write is deferred until the Search screen's actual content (not skeleton)
+    // lays out, so that Onyx optimistic updates don't block the JS thread while
+    // the skeleton→content transition is in progress. The Search component flushes
+    // the registered write from its content onLayout callback.
+    // Only the SUBMIT and default (REQUEST_MONEY) branches wrap the write; the actual
+    // deferral only activates when we navigate to Search (shouldHandleNavigation && !isRetry).
+    // CATEGORIZE and SHARE navigate elsewhere and don't benefit from this deferral.
+    let deferredAPIWrite: (() => void) | undefined;
+
     switch (action) {
         case CONST.IOU.ACTION.SUBMIT: {
             if (!linkedTrackedExpenseReportAction || !linkedTrackedExpenseReportID) {
@@ -6457,42 +6467,44 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
                       }
                     : undefined;
             const isDistanceRequest = isDistanceRequestTransactionUtils(transaction);
-            convertTrackedExpenseToRequest({
-                payerParams: {
-                    accountID: payerAccountID,
-                    email: payerEmail,
-                },
-                transactionParams: {
-                    amount,
-                    distance,
-                    currency,
-                    comment,
-                    merchant,
-                    created,
-                    attendees,
-                    transactionID: transaction.transactionID,
-                    actionableWhisperReportActionID,
-                    linkedTrackedExpenseReportAction,
-                    linkedTrackedExpenseReportID,
-                    transactionThreadReportID: transactionThreadReportID ?? iouAction?.childReportID,
-                    isLinkedTrackedExpenseReportArchived,
-                    isDistance: isDistanceRequest,
-                    customUnitRateID: isDistanceRequest ? customUnitRateID : undefined,
-                    waypoints: isDistanceRequest ? sanitizedWaypoints : undefined,
-                },
-                chatParams: {
-                    reportID: chatReport.reportID,
-                    createdReportActionID: createdChatReportActionID,
-                    reportPreviewReportActionID: reportPreviewAction.reportActionID,
-                },
-                iouParams: {
-                    reportID: iouReport.reportID,
-                    createdReportActionID: createdIOUReportActionID,
-                    reportActionID: iouAction.reportActionID,
-                },
-                onyxData,
-                workspaceParams,
-            });
+            deferredAPIWrite = () => {
+                convertTrackedExpenseToRequest({
+                    payerParams: {
+                        accountID: payerAccountID,
+                        email: payerEmail,
+                    },
+                    transactionParams: {
+                        amount,
+                        distance,
+                        currency,
+                        comment,
+                        merchant,
+                        created,
+                        attendees,
+                        transactionID: transaction.transactionID,
+                        actionableWhisperReportActionID,
+                        linkedTrackedExpenseReportAction,
+                        linkedTrackedExpenseReportID,
+                        transactionThreadReportID: transactionThreadReportID ?? iouAction?.childReportID,
+                        isLinkedTrackedExpenseReportArchived,
+                        isDistance: isDistanceRequest,
+                        customUnitRateID: isDistanceRequest ? customUnitRateID : undefined,
+                        waypoints: isDistanceRequest ? sanitizedWaypoints : undefined,
+                    },
+                    chatParams: {
+                        reportID: chatReport.reportID,
+                        createdReportActionID: createdChatReportActionID,
+                        reportPreviewReportActionID: reportPreviewAction.reportActionID,
+                    },
+                    iouParams: {
+                        reportID: iouReport.reportID,
+                        createdReportActionID: createdIOUReportActionID,
+                        reportActionID: iouAction.reportActionID,
+                    },
+                    onyxData,
+                    workspaceParams,
+                });
+            };
             break;
         }
         default: {
@@ -6551,7 +6563,9 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
                 shouldDeferAutoSubmit,
             };
             // eslint-disable-next-line rulesdir/no-multiple-api-calls
-            API.write(WRITE_COMMANDS.REQUEST_MONEY, parameters, onyxData);
+            deferredAPIWrite = () => {
+                API.write(WRITE_COMMANDS.REQUEST_MONEY, parameters, onyxData);
+            };
         }
     }
 
@@ -6562,6 +6576,18 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
         const trackReport = Navigation.getReportRouteByID(linkedTrackedExpenseReportAction?.childReportID);
         if (trackReport?.key) {
             Navigation.removeScreenByKey(trackReport.key);
+        }
+    }
+
+    // Register the deferred write BEFORE navigation so the Search component's
+    // hasDeferredWrite() check on mount always sees the pending channel.
+    if (deferredAPIWrite) {
+        if (shouldHandleNavigation && !requestMoneyInformation.isRetry && isFromGlobalCreate && !isReportTopmostSplitNavigator()) {
+            registerDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH, deferredAPIWrite, {
+                optimisticWatchKey: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
+            });
+        } else {
+            deferredAPIWrite();
         }
     }
 
@@ -6942,7 +6968,18 @@ function trackExpense(params: CreateTrackExpenseParams) {
                 parameters.actionableWhisperReportActionID = actionableWhisperReportActionIDParam;
             }
 
-            API.write(WRITE_COMMANDS.TRACK_EXPENSE, parameters, onyxData);
+            const shouldDeferWrite = shouldHandleNavigation && !params.isRetry && isFromGlobalCreate && !isReportTopmostSplitNavigator();
+            const apiWrite = () => {
+                API.write(WRITE_COMMANDS.TRACK_EXPENSE, parameters, onyxData);
+            };
+
+            if (shouldDeferWrite) {
+                registerDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH, apiWrite, {
+                    optimisticWatchKey: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction?.transactionID}`,
+                });
+            } else {
+                apiWrite();
+            }
         }
     }
 
@@ -7810,7 +7847,19 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
         playSound(SOUNDS.DONE);
     }
 
-    API.write(WRITE_COMMANDS.CREATE_DISTANCE_REQUEST, parameters, onyxData);
+    const shouldDeferWrite = shouldHandleNavigation && isFromGlobalCreate && !isReportTopmostSplitNavigator();
+    const apiWrite = () => {
+        API.write(WRITE_COMMANDS.CREATE_DISTANCE_REQUEST, parameters, onyxData);
+    };
+
+    if (shouldDeferWrite) {
+        registerDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH, apiWrite, {
+            optimisticWatchKey: `${ONYXKEYS.COLLECTION.TRANSACTION}${parameters.transactionID}`,
+        });
+    } else {
+        apiWrite();
+    }
+
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     InteractionManager.runAfterInteractions(() => removeDraftTransaction(CONST.IOU.OPTIMISTIC_TRANSACTION_ID));
     const activeReportID = isMoneyRequestReport && report?.reportID ? report.reportID : parameters.chatReportID;
