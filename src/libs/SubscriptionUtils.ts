@@ -176,7 +176,7 @@ function shouldShowDiscountBanner(
         return false;
     }
 
-    if (doesUserHavePaymentCardAdded(userBillingFundID)) {
+    if (hasValidPaymentMethod(userBillingFundID, policies)) {
         return false;
     }
 
