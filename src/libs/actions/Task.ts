@@ -1374,7 +1374,13 @@ function canActionTask(
     return false;
 }
 
-function clearTaskErrors(report: OnyxEntry<OnyxTypes.Report>, conciergeReportID: string | undefined, currentUserAccountID: number, introSelected: OnyxEntry<OnyxTypes.IntroSelected>) {
+function clearTaskErrors(
+    report: OnyxEntry<OnyxTypes.Report>,
+    conciergeReportID: string | undefined,
+    currentUserAccountID: number,
+    introSelected: OnyxEntry<OnyxTypes.IntroSelected>,
+    betas: OnyxEntry<OnyxTypes.Beta[]>,
+) {
     const reportID = report?.reportID;
     if (!reportID) {
         return;
@@ -1384,7 +1390,7 @@ function clearTaskErrors(report: OnyxEntry<OnyxTypes.Report>, conciergeReportID:
     if (report?.pendingFields?.createChat === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
         Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`, report.parentReportActionID ? {[report.parentReportActionID]: null} : {});
 
-        navigateToConciergeChatAndDeleteReport(reportID, conciergeReportID, currentUserAccountID, introSelected);
+        navigateToConciergeChatAndDeleteReport(reportID, conciergeReportID, currentUserAccountID, introSelected, betas);
         return;
     }
 

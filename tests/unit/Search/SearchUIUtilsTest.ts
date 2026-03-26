@@ -5681,6 +5681,7 @@ describe('SearchUIUtils', () => {
                 defaultExpensifyCard: undefined,
                 shouldRedirectToExpensifyClassic: false,
                 draftTransactionIDs: [],
+                isTrackIntentUser: false,
             })
                 .map((section) => section.menuItems)
                 .flat();
@@ -5770,6 +5771,7 @@ describe('SearchUIUtils', () => {
                 defaultExpensifyCard: undefined,
                 shouldRedirectToExpensifyClassic: false,
                 draftTransactionIDs: [],
+                isTrackIntentUser: false,
             });
 
             const todoSection = sections.find((section) => section.translationPath === 'common.todo');
@@ -5831,6 +5833,7 @@ describe('SearchUIUtils', () => {
                 defaultExpensifyCard: undefined,
                 shouldRedirectToExpensifyClassic: false,
                 draftTransactionIDs: [],
+                isTrackIntentUser: false,
             });
 
             const monthlyAccrualSection = sections.find((section) => section.translationPath === 'search.monthlyAccrual');
@@ -5878,6 +5881,7 @@ describe('SearchUIUtils', () => {
                 defaultExpensifyCard: undefined,
                 shouldRedirectToExpensifyClassic: false,
                 draftTransactionIDs: [],
+                isTrackIntentUser: false,
             });
 
             const savedSection = sections.find((section) => section.translationPath === 'search.savedSearchesMenuItemTitle');
@@ -5898,6 +5902,7 @@ describe('SearchUIUtils', () => {
                 defaultExpensifyCard: undefined,
                 shouldRedirectToExpensifyClassic: false,
                 draftTransactionIDs: [],
+                isTrackIntentUser: false,
             });
 
             const savedSection = sections.find((section) => section.translationPath === 'search.savedSearchesMenuItemTitle');
@@ -5925,6 +5930,7 @@ describe('SearchUIUtils', () => {
                 defaultExpensifyCard: undefined,
                 shouldRedirectToExpensifyClassic: false,
                 draftTransactionIDs: [],
+                isTrackIntentUser: false,
             });
 
             const savedSection = sections.find((section) => section.translationPath === 'search.savedSearchesMenuItemTitle');
@@ -5952,6 +5958,7 @@ describe('SearchUIUtils', () => {
                 defaultExpensifyCard: undefined,
                 shouldRedirectToExpensifyClassic: false,
                 draftTransactionIDs: [],
+                isTrackIntentUser: false,
             });
 
             const savedSection = sections.find((section) => section.translationPath === 'search.savedSearchesMenuItemTitle');
@@ -5983,6 +5990,7 @@ describe('SearchUIUtils', () => {
                 defaultExpensifyCard: undefined,
                 shouldRedirectToExpensifyClassic: false,
                 draftTransactionIDs: [],
+                isTrackIntentUser: false,
             });
 
             const todoSection = sections.find((section) => section.translationPath === 'common.todo');
@@ -6014,6 +6022,7 @@ describe('SearchUIUtils', () => {
                 defaultExpensifyCard: undefined,
                 shouldRedirectToExpensifyClassic: false,
                 draftTransactionIDs: [],
+                isTrackIntentUser: false,
             });
 
             const monthlyAccrualSection = sections.find((section) => section.translationPath === 'search.monthlyAccrual');
@@ -6057,6 +6066,7 @@ describe('SearchUIUtils', () => {
                 defaultExpensifyCard: undefined,
                 shouldRedirectToExpensifyClassic: false,
                 draftTransactionIDs: [],
+                isTrackIntentUser: false,
             });
 
             const reconciliationSection = sections.find((section) => section.translationPath === 'search.reconciliation');
@@ -6094,6 +6104,7 @@ describe('SearchUIUtils', () => {
                 defaultExpensifyCard: undefined,
                 shouldRedirectToExpensifyClassic: false,
                 draftTransactionIDs: [],
+                isTrackIntentUser: false,
             });
             const reconciliationSection = sections.find((section) => section.translationPath === 'search.reconciliation');
             expect(reconciliationSection).toBeDefined();
@@ -6116,6 +6127,7 @@ describe('SearchUIUtils', () => {
                 defaultExpensifyCard: undefined,
                 shouldRedirectToExpensifyClassic: false,
                 draftTransactionIDs: [],
+                isTrackIntentUser: false,
             })
                 .map((section) => section.menuItems)
                 .flat();
@@ -6189,6 +6201,7 @@ describe('SearchUIUtils', () => {
                 defaultExpensifyCard: undefined,
                 shouldRedirectToExpensifyClassic: false,
                 draftTransactionIDs: [],
+                isTrackIntentUser: false,
             });
             const todoSection = sections.find((section) => section.translationPath === 'common.todo');
             expect(todoSection).toBeDefined();
