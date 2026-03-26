@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useEffect} from 'react';
 import ActivityIndicator from '@components/ActivityIndicator';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
@@ -22,7 +22,7 @@ import {setAddNewPersonalCardStepAndData} from '@userActions/PersonalCards';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
-import type {Card} from '@src/types/onyx';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import openBankConnection from './openBankConnection';
 
 let customWindow: Window | null = null;
@@ -33,19 +33,19 @@ type BankConnectionProps = {
 };
 
 type BankConnectionContentProps = {
-    newCard: Card | null;
+    hasImportError: boolean;
     isPlaid?: boolean;
     onOpenBankConnectionFlow: () => void;
     bankName?: string | null;
     plaidConnectedFeedName?: string;
 };
 
-function BankConnectionContent({newCard, isPlaid, onOpenBankConnectionFlow, bankName, plaidConnectedFeedName}: BankConnectionContentProps) {
+function BankConnectionContent({hasImportError, isPlaid, onOpenBankConnectionFlow, bankName, plaidConnectedFeedName}: BankConnectionContentProps) {
     const illustrations = useMemoizedLazyIllustrations(['PendingBank']);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    if (newCard?.errors) {
-        return <PersonalCardsErrorConfirmation cardID={newCard?.cardID} />;
+    if (hasImportError) {
+        return <PersonalCardsErrorConfirmation />;
     }
     if (!isPlaid) {
         return (
@@ -82,7 +82,6 @@ function BankConnection({route}: BankConnectionProps) {
     const {translate} = useLocalize();
     const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_PERSONAL_CARD);
     const {feed: bankNameFromRoute} = route?.params ?? {};
-    const [shouldBlockWindowOpen, setShouldBlockWindowOpen] = useState(false);
     const bankName = bankNameFromRoute ?? addNewCard?.data?.plaidConnectedFeed ?? addNewCard?.data?.selectedBank;
     const {isOffline} = useNetwork();
     const plaidToken = addNewCard?.data?.publicToken;
@@ -91,6 +90,7 @@ function BankConnection({route}: BankConnectionProps) {
     const headerTitle = translate('workspace.companyCards.addCards');
     const onImportPlaidAccounts = useImportPersonalPlaidAccounts();
     const newCard = useGetNewPersonalCard();
+    const hasImportError = !isEmptyObject(addNewCard?.errors);
 
     const onOpenBankConnectionFlow = () => {
         if (!url) {
@@ -108,24 +108,25 @@ function BankConnection({route}: BankConnectionProps) {
         if ((!url && !isPlaid) || isOffline) {
             return;
         }
-        if (newCard && !newCard?.errors) {
-            setShouldBlockWindowOpen(true);
+        if (hasImportError) {
+            customWindow?.close();
+            return;
+        }
+        if (newCard && !hasImportError) {
             customWindow?.close();
             setAddNewPersonalCardStepAndData({
                 step: CONST.PERSONAL_CARDS.STEP.SUCCESS,
             });
             return;
         }
-        if (!shouldBlockWindowOpen) {
-            if (isPlaid) {
-                onImportPlaidAccounts();
-                return;
-            }
-            if (url) {
-                customWindow = openBankConnection(url);
-            }
+        if (isPlaid) {
+            onImportPlaidAccounts();
+            return;
         }
-    }, [isOffline, isPlaid, newCard, onImportPlaidAccounts, shouldBlockWindowOpen, url]);
+        if (url) {
+            customWindow = openBankConnection(url);
+        }
+    }, [hasImportError, isOffline, isPlaid, newCard, onImportPlaidAccounts, url]);
 
     return (
         <ScreenWrapper
@@ -139,7 +140,7 @@ function BankConnection({route}: BankConnectionProps) {
             <FullPageOfflineBlockingView addBottomSafeAreaPadding>
                 <BankConnectionContent
                     bankName={bankName}
-                    newCard={newCard}
+                    hasImportError={hasImportError}
                     onOpenBankConnectionFlow={onOpenBankConnectionFlow}
                     plaidConnectedFeedName={addNewCard?.data?.plaidConnectedFeedName}
                     isPlaid={isPlaid}

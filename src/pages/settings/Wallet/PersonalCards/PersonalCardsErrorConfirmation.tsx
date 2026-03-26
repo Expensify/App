@@ -6,23 +6,16 @@ import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@navigation/Navigation';
-import {deletePersonalCard, setAddNewPersonalCardStepAndData} from '@userActions/PersonalCards';
+import {clearAddNewPersonalCardErrors, setAddNewPersonalCardStepAndData} from '@userActions/PersonalCards';
 import CONST from '@src/CONST';
 
-function PersonalCardsErrorConfirmation({cardID}: {cardID?: number}) {
+function PersonalCardsErrorConfirmation() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const illustrations = useMemoizedLazyIllustrations(['QuestionMark']);
 
-    const deleteBrokenCard = () => {
-        if (!cardID) {
-            return;
-        }
-        deletePersonalCard(cardID.toString());
-    };
-
     const onButtonPress = () => {
-        deleteBrokenCard();
+        clearAddNewPersonalCardErrors();
         Navigation.closeRHPFlow();
     };
 

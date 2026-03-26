@@ -5,8 +5,7 @@ import {WRITE_COMMANDS} from '@libs/API/types';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {AddNewPersonalCardFeedData, AddNewPersonalCardFeedStep} from '@src/types/onyx/PersonalCard';
-import type {OnyxData} from '@src/types/onyx/Request';
+import type {AddNewPersonalCard, AddNewPersonalCardFeedData, AddNewPersonalCardFeedStep} from '@src/types/onyx/PersonalCard';
 
 type AddNewPersonalCardFlowData = {
     /** Step to be set in Onyx */
@@ -20,7 +19,8 @@ type AddNewPersonalCardFlowData = {
 };
 
 function setAddNewPersonalCardStepAndData({data, isEditing, step}: NullishDeep<AddNewPersonalCardFlowData>) {
-    Onyx.merge(ONYXKEYS.ADD_NEW_PERSONAL_CARD, {data, isEditing, currentStep: step});
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment -- false positive when AddNewPersonalCard includes `errors`; merge fields are NullishDeep<AddNewPersonalCardFlowData>
+    Onyx.merge(ONYXKEYS.ADD_NEW_PERSONAL_CARD, {data, isEditing, currentStep: step} as Partial<AddNewPersonalCard>);
 }
 
 function clearAddNewPersonalCardFlow() {
@@ -28,6 +28,10 @@ function clearAddNewPersonalCardFlow() {
         currentStep: null,
         data: {},
     });
+}
+
+function clearAddNewPersonalCardErrors() {
+    Onyx.merge(ONYXKEYS.ADD_NEW_PERSONAL_CARD, {errors: null});
 }
 
 function updatePersonalCardConnection(cardID: string, lastScrapeResult?: number) {
@@ -56,7 +60,6 @@ function updatePersonalCardConnection(cardID: string, lastScrapeResult?: number)
             key: ONYXKEYS.CARD_LIST,
             value: {
                 [cardID]: {
-                    lastScrapeResult: CONST.JSON_CODE.SUCCESS,
                     isLoadingLastUpdated: false,
                     pendingFields: {
                         lastScrape: null,
@@ -92,49 +95,4 @@ function updatePersonalCardConnection(cardID: string, lastScrapeResult?: number)
     API.write(WRITE_COMMANDS.SYNC_CARD, parameters, {optimisticData, finallyData, failureData});
 }
 
-function deletePersonalCard(cardID: string) {
-    const onyxData: OnyxData<typeof ONYXKEYS.CARD_LIST> = {
-        optimisticData: [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.CARD_LIST,
-                value: {
-                    [cardID]: {
-                        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-                    },
-                },
-            },
-        ],
-
-        successData: [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.CARD_LIST,
-                value: {
-                    [cardID]: null,
-                },
-            },
-        ],
-
-        failureData: [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.CARD_LIST,
-                value: {
-                    [cardID]: {
-                        pendingAction: null,
-                        errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
-                    },
-                },
-            },
-        ],
-    };
-
-    const parameters = {
-        cardID: Number(cardID),
-    };
-
-    API.write(WRITE_COMMANDS.UNASSIGN_CARD, parameters, onyxData);
-}
-
-export {clearAddNewPersonalCardFlow, setAddNewPersonalCardStepAndData, updatePersonalCardConnection, deletePersonalCard};
+export {clearAddNewPersonalCardErrors, clearAddNewPersonalCardFlow, setAddNewPersonalCardStepAndData, updatePersonalCardConnection};

@@ -22,6 +22,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type BankConnectionProps = {
     /** Route params for add new card flow */
@@ -45,7 +46,7 @@ function BankConnection({route}: BankConnectionProps) {
     const headerTitle = translate('workspace.companyCards.addCards');
     const onImportPlaidAccounts = useImportPersonalPlaidAccounts();
     const newCard = useGetNewPersonalCard();
-    const isNewCardError = newCard?.errors;
+    const isNewCardError = !isEmptyObject(addNewCard?.errors);
     const fullscreenReasonAttributes: SkeletonSpanReasonAttributes = {
         context: 'PersonalCardBankConnection',
     };
@@ -53,7 +54,7 @@ function BankConnection({route}: BankConnectionProps) {
         context: 'PersonalCardBankConnection',
         isConnectionCompleted,
         isPlaid,
-        isNewCardError: !!isNewCardError,
+        isNewCardError,
     };
 
     const renderLoading = () => <FullScreenLoadingIndicator reasonAttributes={fullscreenReasonAttributes} />;
@@ -64,6 +65,10 @@ function BankConnection({route}: BankConnectionProps) {
 
     useEffect(() => {
         if (!url && !isPlaid) {
+            return;
+        }
+
+        if (isNewCardError) {
             return;
         }
 
@@ -119,7 +124,7 @@ function BankConnection({route}: BankConnectionProps) {
                         reasonAttributes={activityReasonAttributes}
                     />
                 )}
-                {!!isNewCardError && <PersonalCardsErrorConfirmation cardID={newCard?.cardID} />}
+                {isNewCardError && <PersonalCardsErrorConfirmation />}
             </FullPageOfflineBlockingView>
         </ScreenWrapper>
     );
