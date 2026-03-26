@@ -28,8 +28,7 @@ Card expenses (company cards and Expensify Cards) cannot be duplicated.
 1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Reports > Expenses**
 1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Reports > Expenses**.
 3. Select **More**. 
-4. Choose **Duplicate expense**.
-5. The **Duplicate expense** menu item will briefly change to **Duplicated** to confirm the action.
+4. Choose **Duplicate expense**.The **Duplicate expense** menu item will briefly change to **Duplicated** to confirm the action.
 
 The duplicate expense is created on your primary workspace with the original expense's merchant, amount, category, tags, tax, and billable or reimbursable status. The date is set to today and receipt images are not included.
 
