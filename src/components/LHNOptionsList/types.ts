@@ -90,6 +90,12 @@ type OptionRowLHNDataProps = {
     /** Callback to execute when the OptionList lays out */
     onLayout?: (event: LayoutChangeEvent) => void;
 
+    /** The report attributes for the report */
+    reportAttributes: OnyxEntry<ReportAttributes>;
+
+    /** The derived report attributes for all reports */
+    reportAttributesDerived?: ReportAttributesDerivedValue['reports'];
+
     /** Whether to show the educational tooltip for the GBR or RBR */
     shouldShowRBRorGBRTooltip: boolean;
 
