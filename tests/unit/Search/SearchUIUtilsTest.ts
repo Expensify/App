@@ -3534,6 +3534,14 @@ describe('SearchUIUtils', () => {
                 // The constraint end should be used (earlier date)
                 expect(result.end).toBe('2026-01-15');
             });
+
+            it('should resolve LAST_12_MONTHS preset to span the current month and 11 preceding months', () => {
+                const range = SearchUIUtils.getDateRangeForPreset(CONST.SEARCH.DATE_PRESETS.LAST_12_MONTHS);
+
+                // Clock is frozen at 2026-02-15, so last 12 months = March 2025 through February 2026
+                expect(range.start).toBe('2025-03-01');
+                expect(range.end).toBe('2026-02-28');
+            });
         });
 
         it('should correctly intersect multiple date filters (GREATER_THAN and LOWER_THAN) when expanding quarter groups', () => {
@@ -6695,7 +6703,7 @@ describe('SearchUIUtils', () => {
             // Check that date filter with year-to-date preset exists in flatFilters
             const dateFilter = searchQueryJSON?.flatFilters?.find((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE);
             expect(dateFilter).toBeDefined();
-            expect(dateFilter?.filters?.some((f) => f.value === CONST.SEARCH.DATE_PRESETS.YEAR_TO_DATE)).toBe(true);
+            expect(dateFilter?.filters?.some((f) => f.value === CONST.SEARCH.DATE_PRESETS.LAST_12_MONTHS)).toBe(true);
 
             expect(searchQueryJSON?.view).toBe(CONST.SEARCH.VIEW.LINE);
             expect(searchQueryJSON?.sortBy).toBe(CONST.SEARCH.TABLE_COLUMNS.GROUP_MONTH);
@@ -6717,7 +6725,7 @@ describe('SearchUIUtils', () => {
 
             expect(searchQuery).toContain(`type:${CONST.SEARCH.DATA_TYPES.EXPENSE}`);
             expect(searchQuery).toContain(`groupBy:${CONST.SEARCH.GROUP_BY.MONTH}`);
-            expect(searchQuery).toContain(`date:${CONST.SEARCH.DATE_PRESETS.YEAR_TO_DATE}`);
+            expect(searchQuery).toContain(`date:${CONST.SEARCH.DATE_PRESETS.LAST_12_MONTHS}`);
             expect(searchQuery).toContain(`view:${CONST.SEARCH.VIEW.LINE}`);
             expect(searchQuery).toContain(`sortBy:${CONST.SEARCH.TABLE_COLUMNS.GROUP_MONTH}`);
             expect(searchQuery).toContain(`sortOrder:${CONST.SEARCH.SORT_ORDER.ASC}`);

@@ -438,8 +438,6 @@ type TransactionKey = `${typeof ONYXKEYS.COLLECTION.TRANSACTION}${string}`;
 
 type ReportActionKey = `${typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS}${string}`;
 
-type PolicyKey = `${typeof ONYXKEYS.COLLECTION.POLICY}${string}`;
-
 type ViolationKey = `${typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${string}`;
 
 type SearchGroupKey = `${typeof CONST.SEARCH.GROUP_PREFIX}${string}`;
@@ -957,7 +955,7 @@ function getSuggestedSearches(accountID: number = CONST.DEFAULT_NUMBER_ID, defau
                 {
                     type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                     groupBy: CONST.SEARCH.GROUP_BY.MONTH,
-                    dateOn: CONST.SEARCH.DATE_PRESETS.YEAR_TO_DATE,
+                    dateOn: CONST.SEARCH.DATE_PRESETS.LAST_12_MONTHS,
                     view: CONST.SEARCH.VIEW.LINE,
                 },
                 {
@@ -1178,13 +1176,6 @@ function isReportEntry(key: string): key is ReportKey {
  */
 function isGroupEntry(key: string): key is SearchGroupKey {
     return key.startsWith(CONST.SEARCH.GROUP_PREFIX);
-}
-
-/**
- * @private
- */
-function isPolicyEntry(key: string): key is PolicyKey {
-    return key.startsWith(ONYXKEYS.COLLECTION.POLICY);
 }
 
 function isViolationEntry(key: string): key is ViolationKey {
@@ -2193,10 +2184,6 @@ function getReportActionsSections(data: OnyxTypes.SearchResults['data'], visible
         .filter(isReportEntry)
         .map((key) => data[key]);
 
-    const policies = Object.keys(data)
-        .filter(isPolicyEntry)
-        .map((key) => data[key]);
-
     let n = 0;
 
     for (const key in data) {
@@ -2238,7 +2225,7 @@ function getReportActionsSections(data: OnyxTypes.SearchResults['data'], visible
                     reportID,
                     from,
                     // eslint-disable-next-line @typescript-eslint/no-deprecated
-                    reportName: getSearchReportName({report, policy, personalDetails: data.personalDetailsList, transactions, invoiceReceiverPolicy, reports, policies, isReportArchived}),
+                    reportName: getSearchReportName({report, policy, personalDetails: data.personalDetailsList, transactions, invoiceReceiverPolicy, reports, isReportArchived}),
                     formattedFrom: from?.displayName ?? from?.login ?? '',
                     date: reportAction.created,
                     keyForList: reportAction.reportActionID,
@@ -4117,24 +4104,15 @@ function getFeedOptions(
 }
 
 function getDatePresets(filterKey: SearchDateFilterKeys, hasFeed: boolean): SearchDatePreset[] {
-    const defaultPresets = [CONST.SEARCH.DATE_PRESETS.THIS_MONTH, CONST.SEARCH.DATE_PRESETS.LAST_MONTH, CONST.SEARCH.DATE_PRESETS.NEVER] as SearchDatePreset[];
-
-    if (filterKey.startsWith(CONST.SEARCH.REPORT_FIELD.GLOBAL_PREFIX)) {
-        return [CONST.SEARCH.DATE_PRESETS.THIS_MONTH, CONST.SEARCH.DATE_PRESETS.LAST_MONTH];
-    }
+    const commonPresets = [CONST.SEARCH.DATE_PRESETS.THIS_MONTH, CONST.SEARCH.DATE_PRESETS.LAST_MONTH, CONST.SEARCH.DATE_PRESETS.YEAR_TO_DATE, CONST.SEARCH.DATE_PRESETS.LAST_12_MONTHS];
 
     switch (filterKey) {
-        case CONST.SEARCH.SYNTAX_FILTER_KEYS.POSTED:
-            return [CONST.SEARCH.DATE_PRESETS.THIS_MONTH, CONST.SEARCH.DATE_PRESETS.LAST_MONTH, ...(hasFeed ? [CONST.SEARCH.DATE_PRESETS.LAST_STATEMENT] : [])];
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE:
-            return [CONST.SEARCH.DATE_PRESETS.THIS_MONTH, CONST.SEARCH.DATE_PRESETS.LAST_MONTH, CONST.SEARCH.DATE_PRESETS.YEAR_TO_DATE];
-        case CONST.SEARCH.SYNTAX_FILTER_KEYS.SUBMITTED:
-        case CONST.SEARCH.SYNTAX_FILTER_KEYS.APPROVED:
-        case CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID:
-        case CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED:
-            return [CONST.SEARCH.DATE_PRESETS.THIS_MONTH, CONST.SEARCH.DATE_PRESETS.LAST_MONTH, CONST.SEARCH.DATE_PRESETS.YEAR_TO_DATE, CONST.SEARCH.DATE_PRESETS.NEVER];
+            return commonPresets;
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.POSTED:
+            return [...commonPresets, CONST.SEARCH.DATE_PRESETS.NEVER, ...(hasFeed ? [CONST.SEARCH.DATE_PRESETS.LAST_STATEMENT] : [])];
         default:
-            return defaultPresets;
+            return [...commonPresets, CONST.SEARCH.DATE_PRESETS.NEVER];
     }
 }
 
@@ -4159,6 +4137,10 @@ function getDateRangeForPreset(preset: SearchDatePreset): {start: string; end: s
         case CONST.SEARCH.DATE_PRESETS.YEAR_TO_DATE:
             start = startOfYear(now);
             end = now;
+            break;
+        case CONST.SEARCH.DATE_PRESETS.LAST_12_MONTHS:
+            start = startOfMonth(subMonths(now, 11));
+            end = endOfMonth(now);
             break;
         default:
             return {start: '', end: ''};

@@ -983,7 +983,6 @@ type GetReportNameParams = {
     reportAttributes?: ReportAttributesDerivedValue['reports'];
     transactions?: Transaction[];
     reports?: Report[];
-    policies?: Policy[];
     isReportArchived?: boolean;
     // TODO: Make this required when https://github.com/Expensify/App/issues/66411 is done
     /** Used to identify the Concierge chat so its name can be set to the Concierge display name */
@@ -5817,7 +5816,7 @@ function getReportActionMessage({
  * @deprecated Moved to src/libs/ReportNameUtils.ts.
  */
 function getReportName(reportNameInformation: GetReportNameParams): string {
-    const {report, policy, parentReportActionParam, personalDetails, invoiceReceiverPolicy, reportAttributes, transactions, isReportArchived, reports, policies, conciergeReportID} =
+    const {report, policy, parentReportActionParam, personalDetails, invoiceReceiverPolicy, reportAttributes, transactions, isReportArchived, reports, conciergeReportID} =
         reportNameInformation;
     // Check if we can use report name in derived values - only when we have report but no other params
     const canUseDerivedValue =
@@ -5984,7 +5983,7 @@ function getReportName(reportNameInformation: GetReportNameParams): string {
             // eslint-disable-next-line @typescript-eslint/no-deprecated
             receiverPolicy: invoiceReceiverPolicy ?? getPolicy(invoiceReceiverPolicyID),
             personalDetails,
-            policies,
+            policy,
             currentUserAccountID: deprecatedCurrentUserAccountID,
         });
     }
@@ -6047,7 +6046,6 @@ function getSearchReportName(props: GetReportNameParams): string {
                     transactions: props.transactions,
                     isReportArchived: props.isReportArchived,
                     reports: props.reports,
-                    policies: props.policies,
                 });
             }
 
@@ -6068,7 +6066,6 @@ function getSearchReportName(props: GetReportNameParams): string {
         transactions: props.transactions,
         isReportArchived: props.isReportArchived,
         reports: props.reports,
-        policies: props.policies,
     });
 }
 
@@ -6175,6 +6172,7 @@ function getPendingChatMembers(accountIDs: number[], previousPendingChatMembers:
  */
 function getParentNavigationSubtitle(
     report: OnyxEntry<Report>,
+    policy: OnyxEntry<Policy>,
     conciergeReportID: string | undefined,
     isParentReportArchived = false,
     reportAttributes?: ReportAttributesDerivedValue['reports'],
@@ -6192,7 +6190,7 @@ function getParentNavigationSubtitle(
             return {
                 // eslint-disable-next-line @typescript-eslint/no-deprecated
                 reportName: translateLocal('workspace.common.policyExpenseChatName', reportOwnerDisplayName ?? ''),
-                workspaceName: getPolicyName({report}),
+                workspaceName: getPolicyName({report, policy}),
             };
         }
         if (isIOUReport(report)) {
@@ -6202,7 +6200,7 @@ function getParentNavigationSubtitle(
     }
 
     if (isInvoiceReport(report) || isInvoiceRoom(parentReport)) {
-        const senderWorkspaceName = getPolicyName({report: parentReport});
+        const senderWorkspaceName = getPolicyName({report: parentReport, policy});
         const invoiceReceiverPolicyID = parentReport?.invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS ? parentReport.invoiceReceiver.policyID : undefined;
         const invoiceReceiverPolicy = invoiceReceiverPolicyID ? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${invoiceReceiverPolicyID}`] : undefined;
         const isCurrentUserReceiver = isCurrentUserInvoiceReceiver(parentReport);
@@ -6227,7 +6225,7 @@ function getParentNavigationSubtitle(
         // This will be fixed as follow up https://github.com/Expensify/App/pull/75357
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         reportName: getReportName({report: parentReport, reportAttributes, conciergeReportID}),
-        workspaceName: getPolicyName({report: parentReport, returnEmptyIfNotFound: true}),
+        workspaceName: getPolicyName({report: parentReport, policy, returnEmptyIfNotFound: true}),
     };
 }
 
@@ -10253,6 +10251,14 @@ function isMoneyRequestReportPendingDeletion(reportOrID: OnyxEntry<Report> | str
     return parentReportAction?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 }
 
+/**
+ * Check if a report itself is pending deletion via its own pendingAction or pendingFields.preview.
+ * Unlike isMoneyRequestReportPendingDeletion (which checks the parent report action), this checks the report directly.
+ */
+function isReportPendingDelete(report: OnyxEntry<Pick<Report, 'pendingAction' | 'pendingFields'>>): boolean {
+    return report?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || report?.pendingFields?.preview === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+}
+
 function navigateToLinkedReportAction(
     ancestor: Ancestor,
     isInNarrowPaneModal: boolean,
@@ -13474,6 +13480,7 @@ export {
     isMoneyRequest,
     isMoneyRequestReport,
     isMoneyRequestReportPendingDeletion,
+    isReportPendingDelete,
     isOneOnOneChat,
     isOneTransactionThread,
     isOpenExpenseReport,
