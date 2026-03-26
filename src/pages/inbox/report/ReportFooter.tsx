@@ -58,32 +58,17 @@ type ReportFooterProps = {
     /** The last report action */
     lastReportAction?: OnyxEntry<OnyxTypes.ReportAction>;
 
+    /** Current user's Concierge reportID */
+    conciergeReportID?: string;
+
     /** A method to call when the input is focus */
     onComposerFocus?: () => void;
 
     /** A method to call when the input is blur */
     onComposerBlur?: () => void;
-
-    /** Whether to hide concierge status indicators (agent zero / typing) in the side panel */
-    shouldHideStatusIndicators?: boolean;
-    /** Function to trigger optimistic waiting indicator for Concierge */
-    kickoffWaitingIndicator?: () => void;
-
-    /** Current user's Concierge reportID */
-    conciergeReportID?: string;
 };
 
-function ReportFooter({
-    lastReportAction,
-    report = {reportID: '-1'},
-    onComposerBlur,
-    onComposerFocus,
-    reportTransactions,
-    transactionThreadReportID,
-    shouldHideStatusIndicators,
-    kickoffWaitingIndicator,
-    conciergeReportID,
-}: ReportFooterProps) {
+function ReportFooter({lastReportAction, report = {reportID: '-1'}, onComposerBlur, onComposerFocus, reportTransactions, transactionThreadReportID, conciergeReportID}: ReportFooterProps) {
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
@@ -256,8 +241,6 @@ function ReportFooter({
                             didHideComposerInput={didHideComposerInput}
                             reportTransactions={reportTransactions}
                             transactionThreadReportID={transactionThreadReportID}
-                            shouldHideStatusIndicators={shouldHideStatusIndicators}
-                            kickoffWaitingIndicator={kickoffWaitingIndicator}
                         />
                     </SwipeableView>
                 </View>
