@@ -312,47 +312,45 @@ type ContextMenuActionWithContent = {
 
 type ContextMenuActionWithIcon = WithSentryLabel & {
     textTranslateKey: TranslationPaths;
-    icon:
-        | Extract<
-              ExpensifyIconName,
-              | 'Download'
-              | 'ThreeDots'
-              | 'ChatBubbleReply'
-              | 'ChatBubbleUnread'
-              | 'Mail'
-              | 'Pencil'
-              | 'Stopwatch'
-              | 'Bell'
-              | 'Copy'
-              | 'LinkCopy'
-              | 'Pin'
-              | 'Flag'
-              | 'Bug'
-              | 'Trashcan'
-              | 'Exit'
-              | 'Concierge'
-          >;
+    icon: Extract<
+        ExpensifyIconName,
+        | 'Download'
+        | 'ThreeDots'
+        | 'ChatBubbleReply'
+        | 'ChatBubbleUnread'
+        | 'Mail'
+        | 'Pencil'
+        | 'Stopwatch'
+        | 'Bell'
+        | 'Copy'
+        | 'LinkCopy'
+        | 'Pin'
+        | 'Flag'
+        | 'Bug'
+        | 'Trashcan'
+        | 'Exit'
+        | 'Concierge'
+    >;
     successTextTranslateKey?: TranslationPaths;
-    successIcon?:
-        | Extract<
-              ExpensifyIconName,
-              | 'Download'
-              | 'ChatBubbleReply'
-              | 'ChatBubbleUnread'
-              | 'Checkmark'
-              | 'Mail'
-              | 'Pencil'
-              | 'Stopwatch'
-              | 'Bell'
-              | 'Copy'
-              | 'LinkCopy'
-              | 'Pin'
-              | 'Flag'
-              | 'Bug'
-              | 'Trashcan'
-              | 'ThreeDots'
-              | 'Concierge'
-          >;
+    successIcon?: Extract<
+        ExpensifyIconName,
+        | 'Download'
+        | 'ChatBubbleReply'
+        | 'ChatBubbleUnread'
+        | 'Checkmark'
+        | 'Mail'
+        | 'Pencil'
+        | 'Stopwatch'
+        | 'Bell'
+        | 'Copy'
+        | 'LinkCopy'
+        | 'Pin'
+        | 'Flag'
+        | 'Bug'
+        | 'Trashcan'
+        | 'ThreeDots'
+        | 'Concierge'
+    >;
     onPress: OnPress;
     getDescription: GetDescription;
 };
