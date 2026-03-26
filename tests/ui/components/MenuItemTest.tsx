@@ -109,7 +109,7 @@ describe('MenuItem', () => {
                 <Wrapper>
                     <MenuItem
                         title={title}
-                        icon={Expensicons.Link}
+                        icon={mockLinkIcon}
                         shouldShowContextMenuHint
                         onPress={() => {}}
                     />
@@ -131,7 +131,7 @@ describe('MenuItem', () => {
                 <Wrapper>
                     <MenuItem
                         title={title}
-                        icon={Expensicons.Link}
+                        icon={mockLinkIcon}
                         shouldShowContextMenuHint
                         onPress={() => {}}
                     />
@@ -151,7 +151,7 @@ describe('MenuItem', () => {
                 <Wrapper>
                     <MenuItem
                         title={title}
-                        icon={Expensicons.Link}
+                        icon={mockLinkIcon}
                         shouldShowContextMenuHint
                         onPress={() => {}}
                     />
@@ -169,7 +169,7 @@ describe('MenuItem', () => {
                 <Wrapper>
                     <MenuItem
                         title={title}
-                        icon={Expensicons.Link}
+                        icon={mockLinkIcon}
                         onPress={() => {}}
                     />
                 </Wrapper>,
