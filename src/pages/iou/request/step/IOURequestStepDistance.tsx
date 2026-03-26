@@ -66,6 +66,9 @@ type IOURequestStepDistanceProps = WithCurrentUserPersonalDetailsProps &
     WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_DISTANCE | typeof SCREENS.MONEY_REQUEST.CREATE> & {
         /** The transaction object being modified in Onyx */
         transaction: OnyxEntry<Transaction>;
+
+        /** Whether the transaction data is still loading from Onyx */
+        isLoadingTransaction?: boolean;
     };
 
 function IOURequestStepDistance({
@@ -75,6 +78,7 @@ function IOURequestStepDistance({
     },
     transaction,
     currentUserPersonalDetails,
+    isLoadingTransaction,
 }: IOURequestStepDistanceProps) {
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
@@ -548,7 +552,7 @@ function IOURequestStepDistance({
             headerTitle={translate('common.distance')}
             onBackButtonPress={navigateBack}
             testID="IOURequestStepDistance"
-            shouldShowNotFoundPage={(isEditing && !currentTransaction?.comment?.waypoints) || shouldShowNotFoundPage}
+            shouldShowNotFoundPage={!isLoadingTransaction && ((isEditing && !currentTransaction?.comment?.waypoints) || shouldShowNotFoundPage)}
             shouldShowWrapper={!isCreatingNewRequest}
         >
             <>
