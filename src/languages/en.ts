@@ -550,6 +550,7 @@ const translations = {
         vacationDelegate: 'Vacation delegate',
         expensifyLogo: 'Expensify logo',
         approver: 'Approver',
+        enterDigitLabel: ({digitIndex, totalDigits}: {digitIndex: number; totalDigits: number}) => `enter digit ${digitIndex} of ${totalDigits}`,
     },
     socials: {
         podcast: 'Follow us on Podcast',
@@ -796,11 +797,6 @@ const translations = {
         findMember: 'Find a member',
         searchForSomeone: 'Search for someone',
         userSelected: (username: string) => `${username} selected`,
-    },
-    customApprovalWorkflow: {
-        title: 'Custom approval workflow',
-        description: 'Your company has a custom approval workflow on this workspace. Please take this action in Expensify Classic',
-        goToExpensifyClassic: 'Switch to Expensify Classic',
     },
     emptyList: {
         [CONST.IOU.TYPE.CREATE]: {
@@ -2730,6 +2726,7 @@ const translations = {
                 label: 'Use device settings',
             },
         },
+        highContrastMode: 'High contrast mode',
         chooseThemeBelowOrSync: 'Choose a theme below, or sync with your device settings.',
     },
     termsOfUse: {
@@ -5128,6 +5125,10 @@ const translations = {
                 flipAmountSign: 'Flip amount sign',
                 importButton: 'Import transactions',
             },
+            assignNewCards: {
+                title: 'Assign new cards',
+                description: 'Get the latest cards to assign from your bank',
+            },
         },
         expensifyCard: {
             issueAndManageCards: 'Issue and manage your Expensify Cards',
@@ -7220,6 +7221,7 @@ const translations = {
     search: {
         resultsAreLimited: 'Search results are limited.',
         viewResults: 'View results',
+        appliedFilters: 'Applied filters',
         resetFilters: 'Reset filters',
         searchResults: {
             emptyResults: {
@@ -7276,6 +7278,7 @@ const translations = {
             },
         },
         columns: 'Columns',
+        editColumns: 'Edit columns',
         resetColumns: 'Reset columns',
         groupColumns: 'Group columns',
         expenseColumns: 'Expense Columns',
@@ -7315,6 +7318,7 @@ const translations = {
                     [CONST.SEARCH.DATE_PRESETS.LAST_MONTH]: 'Last month',
                     [CONST.SEARCH.DATE_PRESETS.THIS_MONTH]: 'This month',
                     [CONST.SEARCH.DATE_PRESETS.YEAR_TO_DATE]: 'Year to date',
+                    [CONST.SEARCH.DATE_PRESETS.LAST_12_MONTHS]: 'Last 12 months',
                     [CONST.SEARCH.DATE_PRESETS.LAST_STATEMENT]: 'Last statement',
                 },
             },
@@ -7377,8 +7381,13 @@ const translations = {
                 [CONST.SEARCH.ACTION_FILTERS.EXPORT]: 'Export',
             },
         },
+        display: {
+            label: 'Display',
+            sortBy: 'Sort by',
+            groupBy: 'Group by',
+            limitResults: 'Limit results',
+        },
         has: 'Has',
-        groupBy: 'Group by',
         view: {
             label: 'View',
             table: 'Table',
@@ -7412,6 +7421,10 @@ const translations = {
         searchIn: 'Search in',
         searchPlaceholder: 'Search for something',
         suggestions: 'Suggestions',
+        suggestionsAvailable: ({count}: {count: number}, query = '') => ({
+            one: `Suggestions available${query ? ` for ${query}` : ''}. ${count} result.`,
+            other: (resultCount: number) => `Suggestions available${query ? ` for ${query}` : ''}. ${resultCount} results.`,
+        }),
         exportSearchResults: {
             title: 'Create export',
             description: "Whoa, that's a lot of items! We'll bundle them up, and Concierge will send you a file shortly.",
@@ -7620,6 +7633,9 @@ const translations = {
         scrollToNewestMessages: 'Scroll to newest messages',
         preStyledText: 'Pre-styled text',
         viewAttachment: 'View attachment',
+        contextMenuAvailable: 'Context menu available. Press Shift+F10 to open.',
+        contextMenuAvailableMacOS: 'Context menu available. Press VO-Shift-M to open.',
+        contextMenuAvailableNative: 'Context menu available. Double-tap and hold to open.',
         selectAllFeatures: 'Select all features',
         selectAllTransactions: 'Select all transactions',
         selectAllItems: 'Select all items',

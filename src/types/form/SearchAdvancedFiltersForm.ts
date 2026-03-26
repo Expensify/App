@@ -541,6 +541,11 @@ const ALLOWED_TYPE_FILTERS: Record<string, Set<string>> = {
 
 type SearchAdvancedFiltersKey = ValueOf<typeof FILTER_KEYS> | ReportFieldKey;
 
+type HasFilterValue = ValueOf<typeof CONST.SEARCH.HAS_VALUES>;
+type HasFilterValues = Array<ValueOf<typeof CONST.SEARCH.HAS_VALUES>>;
+type IsFilterValue = ValueOf<typeof CONST.SEARCH.IS_VALUES>;
+type IsFilterValues = Array<ValueOf<typeof CONST.SEARCH.IS_VALUES>>;
+
 type SearchAdvancedFiltersForm = Form<
     SearchAdvancedFiltersKey,
     {
@@ -669,10 +674,10 @@ type SearchAdvancedFiltersForm = Form<
         [FILTER_KEYS.ACTION]: string;
         [FILTER_KEYS.ACTION_NOT]: string;
 
-        [FILTER_KEYS.HAS]: string[];
+        [FILTER_KEYS.HAS]: HasFilterValues;
         [FILTER_KEYS.HAS_NOT]: string[];
 
-        [FILTER_KEYS.IS]: string[];
+        [FILTER_KEYS.IS]: IsFilterValues;
         [FILTER_KEYS.IS_NOT]: string[];
 
         [FILTER_KEYS.PURCHASE_AMOUNT_EQUAL_TO]: string;
@@ -696,6 +701,6 @@ type SearchAdvancedFiltersForm = Form<
         Record<ReportFieldNegatedKey, string>
 >;
 
-export type {SearchAdvancedFiltersForm, SearchAdvancedFiltersKey};
+export type {SearchAdvancedFiltersForm, SearchAdvancedFiltersKey, HasFilterValue, HasFilterValues, IsFilterValue, IsFilterValues};
 export default FILTER_KEYS;
 export {DATE_FILTER_KEYS, ALLOWED_TYPE_FILTERS, FILTER_KEYS, AMOUNT_FILTER_KEYS};
