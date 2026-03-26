@@ -5094,7 +5094,6 @@ const translations = {
                     comment: 'Comment',
                     category: 'Category',
                     tag: 'Tag',
-                    uniqueID: 'Unique ID',
                 },
                 csvErrors: {
                     requiredColumns: (missingColumns: string) => `Please assign a column to each of the attributes: ${missingColumns}.`,
