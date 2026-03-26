@@ -114,7 +114,7 @@ function ScreenWrapperContainer({
     isFocused = true,
     shouldHideFromAccessibility = false,
     ref,
-    forwardedFSClass,
+    forwardedFSClass = CONST.FULLSTORY.CLASS.UNMASK,
 }: ScreenWrapperContainerProps) {
     const {windowHeight} = useWindowDimensions(shouldUseCachedViewportHeight);
     const {initialHeight} = useInitialDimensions();
