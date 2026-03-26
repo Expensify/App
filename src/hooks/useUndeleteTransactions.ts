@@ -1,4 +1,3 @@
-import {useCallback} from 'react';
 import {changeTransactionsReport} from '@libs/actions/Transaction';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -17,23 +16,18 @@ function useUndeleteTransactions() {
     const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${personalPolicyID}`);
 
-    const undeleteTransactions = useCallback(
-        (transactionIDs: string[]) => {
-            changeTransactionsReport({
-                transactionIDs,
-                isASAPSubmitBetaEnabled,
-                accountID: currentUserPersonalDetails.accountID ?? CONST.DEFAULT_NUMBER_ID,
-                email: currentUserPersonalDetails.email ?? '',
-                policy,
-                allTransactions,
-                translate,
-                toLocaleDigit,
-            });
-        },
-        [isASAPSubmitBetaEnabled, currentUserPersonalDetails.accountID, currentUserPersonalDetails.email, policy, allTransactions, translate, toLocaleDigit],
-    );
-
-    return undeleteTransactions;
+    return (transactionIDs: string[]) => {
+        changeTransactionsReport({
+            transactionIDs,
+            isASAPSubmitBetaEnabled,
+            accountID: currentUserPersonalDetails.accountID ?? CONST.DEFAULT_NUMBER_ID,
+            email: currentUserPersonalDetails.email ?? '',
+            policy,
+            allTransactions,
+            translate,
+            toLocaleDigit,
+        });
+    };
 }
 
 export default useUndeleteTransactions;

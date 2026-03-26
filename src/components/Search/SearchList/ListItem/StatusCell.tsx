@@ -25,8 +25,8 @@ function StatusCell({stateNum, statusNum, isPending, isDeleted}: StatusCellProps
     const theme = useTheme();
     const {translate} = useLocalize();
 
-    const statusText = useMemo(() => getReportStatusTranslation({stateNum, statusNum, isDeleted, translate}), [stateNum, statusNum, translate, isDeleted]);
-    const reportStatusColorStyle = useMemo(() => getReportStatusColorStyle(theme, stateNum, statusNum, isDeleted), [theme, stateNum, statusNum, isDeleted]);
+    const statusText = getReportStatusTranslation({stateNum, statusNum, isDeleted, translate});
+    const reportStatusColorStyle = getReportStatusColorStyle(theme, stateNum, statusNum, isDeleted);
 
     if (!statusText || !reportStatusColorStyle) {
         return null;
