@@ -27,6 +27,7 @@ function MultiSelectListItem<TItem extends ListItem>({
     wrapperStyle,
     titleStyles,
     accessibilityState,
+    shouldHighlightSelectedItem = false,
 }: MultiSelectListItemProps<TItem>) {
     const styles = useThemeStyles();
     const icon = item.icons?.at(0);
@@ -87,6 +88,7 @@ function MultiSelectListItem<TItem extends ListItem>({
             wrapperStyle={computedWrapperStyle}
             titleStyles={titleStyles}
             accessibilityState={accessibilityState}
+            shouldHighlightSelectedItem={shouldHighlightSelectedItem}
         />
     );
 }
