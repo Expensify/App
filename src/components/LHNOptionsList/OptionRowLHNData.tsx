@@ -61,11 +61,11 @@ function OptionRowLHNData({
             const scopedVisibleReportActions: VisibleReportActionsDerivedValue = {};
 
             if (data[reportID]) {
-                scopedVisibleReportActions[reportID] = data[reportID];
+                scopedVisibleReportActions[reportID] = {...data[reportID]};
             }
 
             if (transactionThreadReportID && data[transactionThreadReportID]) {
-                scopedVisibleReportActions[transactionThreadReportID] = data[transactionThreadReportID];
+                scopedVisibleReportActions[transactionThreadReportID] = {...data[transactionThreadReportID]};
             }
 
             return scopedVisibleReportActions;
@@ -75,10 +75,7 @@ function OptionRowLHNData({
     const [visibleReportActionsData] = useOnyx(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS, {selector: visibleReportActionsSelector});
 
     const canUserPerformWrite = canUserPerformWriteActionUtil(fullReport, isReportArchived);
-    const lastAction = useMemo(
-        () => getLastVisibleActionIncludingTransactionThread(reportID, canUserPerformWrite, undefined, visibleReportActionsData, transactionThreadReportID),
-        [reportID, canUserPerformWrite, visibleReportActionsData, transactionThreadReportID],
-    );
+    const lastAction = getLastVisibleActionIncludingTransactionThread(reportID, canUserPerformWrite, undefined, visibleReportActionsData, transactionThreadReportID);
 
     const iouReportIDOfLastAction = getIOUReportIDOfLastAction(fullReport, reportNameValuePairs?.private_isArchived, undefined, lastAction);
     const [iouReportReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(iouReportIDOfLastAction)}`);
