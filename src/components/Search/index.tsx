@@ -1473,7 +1473,7 @@ function Search({
     }, [shouldShowTableHeader, isTask, styles, canSelectMultiple, columnsToShow, type, onSortPress, sortOrder, sortBy, searchResults, isExpenseReportType, validGroupBy]);
 
     const searchListContentContainerStyle = useMemo(() => [styles.pb3, contentContainerStyle], [styles.pb3, contentContainerStyle]);
-    const searchListContainerStyle = useMemo(() => [styles.pv0, !tableHeaderVisible && !isSmallScreenWidth && styles.pt1], [styles.pv0, styles.pt1, tableHeaderVisible, isSmallScreenWidth]);
+    const searchListContainerStyle = useMemo(() => [styles.pv0, !tableHeaderVisible && !isSmallScreenWidth && styles.pt3], [styles.pv0, styles.pt3, tableHeaderVisible, isSmallScreenWidth]);
 
     // This is a performance optimization for the submit-expense->search path only.
     // The SearchPage skeleton (useSearchLoadingState) doesn't cover this case because
@@ -1599,37 +1599,9 @@ function Search({
                     canSelectMultiple={canSelectMultiple}
                     selectedTransactions={selectedTransactions}
                     shouldPreventLongPressRow={isChat || isTask}
-<<<<<<< Updated upstream
-                    SearchTableHeader={
-                        !shouldShowTableHeader ? undefined : (
-                            <View style={[!isTask && styles.pr8, styles.flex1]}>
-                                <SearchTableHeader
-                                    canSelectMultiple={canSelectMultiple}
-                                    columns={columnsToShow}
-                                    type={type}
-                                    onSortPress={onSortPress}
-                                    sortOrder={sortOrder}
-                                    sortBy={sortBy}
-                                    shouldShowYear={shouldShowYearCreated}
-                                    shouldShowYearSubmitted={shouldShowYearSubmitted}
-                                    shouldShowYearApproved={shouldShowYearApproved}
-                                    shouldShowYearPosted={shouldShowYearPosted}
-                                    shouldShowYearExported={shouldShowYearExported}
-                                    isAmountColumnWide={shouldShowAmountInWideColumn}
-                                    isTaxAmountColumnWide={shouldShowTaxAmountInWideColumn}
-                                    shouldShowSorting
-                                    groupBy={validGroupBy}
-                                />
-                            </View>
-                        )
-                    }
-                    contentContainerStyle={[styles.pb3, contentContainerStyle]}
-                    containerStyle={[styles.pv0, !tableHeaderVisible && !isSmallScreenWidth && styles.pt3]}
-=======
                     SearchTableHeader={searchTableHeaderElement}
                     contentContainerStyle={searchListContentContainerStyle}
                     containerStyle={searchListContainerStyle}
->>>>>>> Stashed changes
                     shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
                     onScroll={onSearchListScroll}
                     onEndReachedThreshold={0.75}
