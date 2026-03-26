@@ -1,7 +1,8 @@
-import React from 'react';
+import React, {useContext} from 'react';
 import FocusableMenuItem from '@components/FocusableMenuItem';
 import type {MenuItemProps} from '@components/MenuItem';
 import CONST from '@src/CONST';
+import FABFirstItemRefContext from './FABFirstItemRefContext';
 import useFABMenuItem from './useFABMenuItem';
 
 type FABFocusableMenuItemProps = Omit<MenuItemProps, 'focused' | 'onFocus' | 'wrapperStyle' | 'shouldCheckActionAllowedOnPress' | 'role' | 'onPress'> & {
@@ -13,6 +14,7 @@ type FABFocusableMenuItemProps = Omit<MenuItemProps, 'focused' | 'onFocus' | 'wr
 
 function FABFocusableMenuItem({itemId, isVisible = true, onPress, shouldCallAfterModalHide, ...props}: FABFocusableMenuItemProps) {
     const {itemIndex, isFocused, wrapperStyle, setFocusedIndex, onItemPress} = useFABMenuItem(itemId, isVisible);
+    const firstItemRef = useContext(FABFirstItemRefContext);
 
     if (!isVisible) {
         return null;
@@ -23,6 +25,7 @@ function FABFocusableMenuItem({itemId, isVisible = true, onPress, shouldCallAfte
             // FABFocusableMenuItemProps is a strict subset of MenuItemProps — spreading forwards all remaining props safely
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...(props as MenuItemProps)}
+            ref={itemIndex === 0 ? firstItemRef : undefined}
             focused={isFocused}
             onFocus={() => setFocusedIndex(itemIndex)}
             wrapperStyle={wrapperStyle}
