@@ -226,7 +226,7 @@ The skill provides guidance on:
 
 ### Sentry analysis
 
-Use Sentry skill whenever user wants to analyse any data from Sentry. It may be: spans, metrics, crashes, crash free rate etc.
+Use Sentry skill whenever user wants to analyze any data from Sentry. It may be: spans, metrics, crashes, crash free rate etc.
 
 ## Command Reference
 
