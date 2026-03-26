@@ -1,9 +1,11 @@
-import React, {useEffect, useMemo, useState} from 'react';
+import React, {useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
+import type {ListItem, SelectionListHandle} from '@components/SelectionList/types';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import CONST from '@src/CONST';
 import {ALL_NAICS, NAICS, NAICS_MAPPING_WITH_ID} from '@src/NAICS';
 
 type IndustryCodeSelectorProps = {
@@ -14,10 +16,21 @@ type IndustryCodeSelectorProps = {
 
 function IndustryCodeSelector({onInputChange, value, errorText}: IndustryCodeSelectorProps) {
     const styles = useThemeStyles();
+    const selectionListRef = useRef<SelectionListHandle<ListItem>>(null);
     const [searchValue, setSearchValue] = useState<string | undefined>(value);
+    const [isReady, setIsReady] = useState(false);
 
     const [shouldDisplayChildItems, setShouldDisplayChildItems] = useState(false);
     const {translate} = useLocalize();
+
+    useEffect(() => {
+        const timeout = setTimeout(() => {
+            setIsReady(true);
+            selectionListRef.current?.focusTextInput();
+        }, CONST.ANIMATED_TRANSITION);
+
+        return () => clearTimeout(timeout);
+    }, []);
 
     const codeOptions = useMemo(() => {
         if (!searchValue) {
@@ -62,6 +75,7 @@ function IndustryCodeSelector({onInputChange, value, errorText}: IndustryCodeSel
                 onInputChange?.(val);
             },
             value: searchValue,
+            disableAutoFocus: true,
             errorText,
         }),
         [errorText, onInputChange, searchValue, translate],
@@ -70,7 +84,8 @@ function IndustryCodeSelector({onInputChange, value, errorText}: IndustryCodeSel
     return (
         <View style={styles.flexGrow1}>
             <SelectionList
-                data={codeOptions}
+                ref={selectionListRef}
+                data={isReady ? codeOptions : []}
                 ListItem={RadioListItem}
                 onSelectRow={(item) => {
                     setSearchValue(item.value);
