@@ -681,6 +681,9 @@ function duplicateExpenseTransaction({
         return;
     }
 
+    // Skip highlight animation for duplicated transactions on the search route
+    Onyx.set(ONYXKEYS.SHOULD_SKIP_NEXT_TRANSACTION_HIGHLIGHT, true);
+
     const userAccountID = getUserAccountID();
     const currentUserEmail = getCurrentUserEmail();
 
@@ -820,6 +823,9 @@ function duplicateReport({
     if (!targetPolicy || !parentChatReport) {
         return;
     }
+
+    // Skip highlight animation for duplicated transactions on the search route
+    Onyx.set(ONYXKEYS.SHOULD_SKIP_NEXT_TRANSACTION_HIGHLIGHT, true);
 
     const userAccountID = getUserAccountID();
     const currentUserEmailValue = getCurrentUserEmail();

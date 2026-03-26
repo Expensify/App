@@ -686,6 +686,9 @@ const ONYXKEYS = {
     /** The transaction IDs to be highlighted when opening the Expenses search route page */
     TRANSACTION_IDS_HIGHLIGHT_ON_SEARCH_ROUTE: 'transactionIdsHighlightOnSearchRoute',
 
+    /** Whether to skip highlighting the next new transaction on the search route (e.g. after duplicating an expense) */
+    SHOULD_SKIP_NEXT_TRANSACTION_HIGHLIGHT: 'shouldSkipNextTransactionHighlight',
+
     /** Collection Keys */
     COLLECTION: {
         ATTACHMENT: 'attachment_',
@@ -1475,6 +1478,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.IS_OPEN_CONFIRM_NAVIGATE_EXPENSIFY_CLASSIC_MODAL_OPEN]: boolean;
     [ONYXKEYS.PERSONAL_POLICY_ID]: string;
     [ONYXKEYS.TRANSACTION_IDS_HIGHLIGHT_ON_SEARCH_ROUTE]: Record<string, Record<string, boolean>>;
+    [ONYXKEYS.SHOULD_SKIP_NEXT_TRANSACTION_HIGHLIGHT]: boolean;
     [ONYXKEYS.DEVICE_BIOMETRICS]: OnyxTypes.DeviceBiometrics;
 };
 

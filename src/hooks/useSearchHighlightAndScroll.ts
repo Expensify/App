@@ -1,6 +1,7 @@
 import {useIsFocused} from '@react-navigation/native';
 import {useCallback, useEffect, useRef, useState} from 'react';
 import {InteractionManager} from 'react-native';
+import Onyx from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {SearchListItem, TransactionGroupListItemType, TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
 import type {SearchQueryJSON} from '@components/Search/types';
@@ -62,6 +63,7 @@ function useSearchHighlightAndScroll({
     const [transactionIDsToHighlight] = useOnyx(ONYXKEYS.TRANSACTION_IDS_HIGHLIGHT_ON_SEARCH_ROUTE, {
         selector: transactionIDsToHighlightSelector,
     });
+    const [shouldSkipNextHighlight] = useOnyx(ONYXKEYS.SHOULD_SKIP_NEXT_TRANSACTION_HIGHLIGHT);
     const searchResultsData = searchResults?.data;
 
     const prevTransactionsIDs = Object.keys(previousTransactions ?? {});
@@ -221,6 +223,12 @@ function useSearchHighlightAndScroll({
                 return;
             }
 
+            // Skip highlight for duplicated expenses
+            if (shouldSkipNextHighlight) {
+                Onyx.set(ONYXKEYS.SHOULD_SKIP_NEXT_TRANSACTION_HIGHLIGHT, false);
+                return;
+            }
+
             const newKeys = new Set<string>();
             for (const id of newTransactionIDs) {
                 const newTransactionKey = `${ONYXKEYS.COLLECTION.TRANSACTION}${id}`;
@@ -229,7 +237,7 @@ function useSearchHighlightAndScroll({
             }
             setNewSearchResultKeys(newKeys);
         }
-    }, [searchResults?.data, previousSearchResults, isChat, transactionIDsToHighlight]);
+    }, [searchResults?.data, previousSearchResults, isChat, transactionIDsToHighlight, shouldSkipNextHighlight]);
 
     // Reset transactionIDsToHighlight after they have been highlighted
     useEffect(() => {
