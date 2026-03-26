@@ -108,6 +108,7 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
     // Per-key Onyx subscriptions
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`);
+    const [grandParentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${parentReport?.parentReportID}`);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`);
     const [parentReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.parentReportID}`, {canEvict: false});
     const parentReportAction = report?.parentReportActionID ? parentReportActions?.[report.parentReportActionID] : undefined;
@@ -252,18 +253,19 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
         if (!transaction || !parentReportAction || !parentReport) {
             return [];
         }
-        return getSecondaryTransactionThreadActions(
-            currentUserLogin ?? '',
-            accountID,
+        return getSecondaryTransactionThreadActions({
+            currentUserLogin: currentUserLogin ?? '',
+            currentUserAccountID: accountID,
             parentReport,
-            transaction,
-            parentReportAction,
+            reportTransaction: transaction,
+            reportAction: parentReportAction,
             originalTransaction,
             policy,
-            report,
+            transactionThreadReport: report,
             outstandingReportsByPolicyID,
-            isChatIOUReportArchived,
-        );
+            isChatReportArchived: isChatIOUReportArchived,
+            grandParentReport,
+        });
     })();
 
     const secondaryActionsImplementation: Partial<

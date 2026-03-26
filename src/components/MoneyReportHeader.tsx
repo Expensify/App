@@ -1559,7 +1559,6 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
         nonPendingDeleteTransactions,
         originalIOUTransaction,
         violations,
-        bankAccountList,
         policy,
         reportNameValuePairs,
         reportActions,

@@ -1098,8 +1098,7 @@ function updateSplitTransactions({
     const splitExpenses = transactionData?.splitExpenses ?? [];
 
     // Get all children once (including orphaned), then filter for non-orphaned
-    const allChildTransactions = getChildTransactions(allTransactionsList, originalTransactionID);
-    const originalChildTransactions = allChildTransactions;
+    const originalChildTransactions = getChildTransactions(allTransactionsList, originalTransactionID);
     const processedChildTransactionIDs: string[] = [];
 
     const splitExpensesTotal = transactionData?.splitExpensesTotal ?? 0;
@@ -1107,8 +1106,7 @@ function updateSplitTransactions({
     const isCreationOfSplits = originalChildTransactions.length === 0;
     const hasEditableSplitExpensesLeft = splitExpenses.some((expense) => (expense.statusNum ?? 0) < CONST.REPORT.STATUS_NUM.SUBMITTED);
     // Don't revert split if there are orphaned children (reportID '0') - they're still part of the split
-    const isReverseSplitOperation =
-        splitExpenses.length === 1 && originalChildTransactions.length > 0 && hasEditableSplitExpensesLeft && allChildTransactions.length === originalChildTransactions.length;
+    const isReverseSplitOperation = splitExpenses.length === 1 && originalChildTransactions.length > 0 && hasEditableSplitExpensesLeft;
 
     let changesInReportTotal = 0;
     // Validate custom unit rate before proceeding with split
@@ -1158,6 +1156,8 @@ function updateSplitTransactions({
         optimisticData: [],
     };
 
+    const selfDMReport = Object.values(allReportsList ?? {}).find((r) => isSelfDM(r));
+
     // The split transactions can be in different reports, so we need to calculate the total for each report.
     const reportTotals = new Map<string, number>();
     const expenseReportID = expenseReport?.reportID;
@@ -1194,8 +1194,7 @@ function updateSplitTransactions({
         // context (e.g. saving from a workspace split screen where none of transactionReport/
         // expenseReport/chatReport are selfDM), fall back to finding it in allReportsList.
         if (isSelfDMSplit && !selfDMReportID) {
-            const foundSelfDMReport = Object.values(allReportsList ?? {}).find((r) => isSelfDM(r));
-            selfDMReportID = foundSelfDMReport?.reportID;
+            selfDMReportID = selfDMReport?.reportID;
         }
 
         // If the existing transaction already lives in a real workspace report, it is NOT a selfDM split.
