@@ -69,8 +69,10 @@ const useSearchTypeMenuSections = (queryParams?: UseSearchTypeMenuSectionsParams
     const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES);
     const shouldRedirectToExpensifyClassic = useMemo(() => areAllGroupPoliciesExpenseChatDisabled(allPolicies ?? {}), [allPolicies]);
     const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
-    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const isTrackIntentUser = introSelected?.choice === CONST.ONBOARDING_CHOICES.PERSONAL_SPEND || introSelected?.choice === CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE;
+    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {
+        selector: (introSelected) =>
+            introSelected?.choice === CONST.ONBOARDING_CHOICES.PERSONAL_SPEND || introSelected?.choice === CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE,
+    });
     const [pendingReportCreation, setPendingReportCreation] = useState<{policyID: string; policyName?: string; onConfirm: (shouldDismissEmptyReportsConfirmation: boolean) => void} | null>(
         null,
     );
