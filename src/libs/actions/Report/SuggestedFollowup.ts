@@ -32,6 +32,7 @@ function resolveSuggestedFollowup(
     selectedFollowup: Followup,
     timezoneParam: Timezone,
     currentUserAccountID: number,
+    currentUserEmail: string | undefined,
     ancestors: Ancestor[] = [],
 ) {
     const reportID = report?.reportID;
@@ -80,8 +81,12 @@ function resolveSuggestedFollowup(
     const optimisticConciergeAction = buildOptimisticAddCommentReportAction({
         text: selectedFollowup.response,
         actorAccountID: CONST.ACCOUNT_ID.CONCIERGE,
+        createdOffset: 1,
         reportActionID: optimisticConciergeReportActionID,
         reportID,
+        isHTML: true,
+        currentUserEmail,
+        currentUserAccountID,
     });
 
     addOptimisticConciergeActionWithDelay(reportID, optimisticConciergeAction);
