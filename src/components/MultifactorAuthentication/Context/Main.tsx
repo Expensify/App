@@ -8,6 +8,7 @@ import type {MultifactorAuthenticationScenario, MultifactorAuthenticationScenari
 import addMFABreadcrumb from '@components/MultifactorAuthentication/observability/breadcrumbs';
 import trackMFAFlowOutcome from '@components/MultifactorAuthentication/observability/trackMFAFlowOutcome';
 import type {CredentialsState} from '@components/MultifactorAuthentication/observability/trackMFAFlowOutcome';
+import trackMFAFlowStart from '@components/MultifactorAuthentication/observability/trackMFAFlowStart';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useNetwork from '@hooks/useNetwork';
 import {requestValidateCodeAction} from '@libs/actions/User';
@@ -526,13 +527,20 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
         async <T extends MultifactorAuthenticationScenario>(scenario: T, params?: ExecuteScenarioParams<T>): Promise<void> => {
             startStateRef.current = await captureCredentialsState();
 
-            addMFABreadcrumb('Flow started', {
+            const breadcrumbData = {
                 scenario,
                 hasPayload: params !== undefined && Object.keys(params).length > 0,
                 platform,
                 isOffline,
                 hasAcceptedSoftPrompt: startStateRef.current.hasEverAcceptedSoftPrompt,
                 serverHasAnyCredentials: startStateRef.current.hasServerCredentials,
+            };
+
+            addMFABreadcrumb('Flow started', breadcrumbData);
+            trackMFAFlowStart({
+                scenario,
+                isOffline,
+                credentialsState: startStateRef.current,
             });
             dispatch({
                 type: 'INIT',
