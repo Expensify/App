@@ -7,6 +7,7 @@ import useGetExpensifyCardFromReportAction from '@hooks/useGetExpensifyCardFromR
 import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+import {getIOUReportIDFromReportActionPreview} from '@libs/ReportActionsUtils';
 import SidebarUtils from '@libs/SidebarUtils';
 import CONST from '@src/CONST';
 import {getMovedReportID} from '@src/libs/ModifiedExpenseMessage';
@@ -54,6 +55,10 @@ function OptionRowLHNData({
     const reportAttributesSelector = useCallback((data: ReportAttributesDerivedValue | undefined) => data?.reports?.[reportID], [reportID]);
     const [reportAttributes] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {selector: reportAttributesSelector});
 
+    const iouReportID = getIOUReportIDFromReportActionPreview(lastAction);
+    const iouReportAttributesSelector = useCallback((data: ReportAttributesDerivedValue | undefined) => (iouReportID ? data?.reports?.[iouReportID] : undefined), [iouReportID]);
+    const [iouReportAttributes] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {selector: iouReportAttributesSelector});
+
     // Look up the one-transaction thread report using the ID from our own attributes.
     const [oneTransactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportAttributes?.oneTransactionThreadReportID)}`);
 
@@ -79,11 +84,18 @@ function OptionRowLHNData({
     });
 
     const reportAttributesDerived = useMemo(() => {
-        if (!reportAttributes) {
+        if (!reportAttributes && !iouReportAttributes) {
             return undefined;
         }
-        return {[reportID]: reportAttributes} as ReportAttributesDerivedValue['reports'];
-    }, [reportID, reportAttributes]);
+        const result: ReportAttributesDerivedValue['reports'] = {};
+        if (reportAttributes) {
+            result[reportID] = reportAttributes;
+        }
+        if (iouReportID && iouReportAttributes) {
+            result[iouReportID] = iouReportAttributes;
+        }
+        return result;
+    }, [reportID, reportAttributes, iouReportID, iouReportAttributes]);
 
     const optionItem = useMemo(() => {
         // Note: ideally we'd have this as a dependent selector in onyx!
