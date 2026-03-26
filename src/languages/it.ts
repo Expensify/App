@@ -86,6 +86,7 @@ import type {
     UpdateRoleParams,
     UpgradeSuccessMessageParams,
     UserIsAlreadyMemberParams,
+    ViolationsIncreasedDistanceParams,
     ViolationsMissingTagParams,
     ViolationsModifiedAmountParams,
     ViolationsProhibitedExpenseParams,
@@ -528,6 +529,7 @@ const translations: TranslationDeepObject<typeof en> = {
         concierge: {sidePanelGreeting: 'Ciao, come posso aiutarti?', showHistory: 'Mostra cronologia'},
         duplicateReport: 'Report duplicato',
         approver: 'Approvante',
+        enterDigitLabel: ({digitIndex, totalDigits}: {digitIndex: number; totalDigits: number}) => `inserire la cifra ${digitIndex} di ${totalDigits}`,
         copyOfReportName: (reportName: string) => `Copia di ${reportName}`,
     },
     socials: {
@@ -767,11 +769,6 @@ const translations: TranslationDeepObject<typeof en> = {
         findMember: 'Trova un membro',
         searchForSomeone: 'Cerca qualcuno',
         userSelected: (username: string) => `${username} selezionato`,
-    },
-    customApprovalWorkflow: {
-        title: 'Flusso di approvazione personalizzato',
-        description: 'La tua azienda utilizza un flusso di approvazione personalizzato in questo spazio di lavoro. Esegui questa azione in Expensify Classic',
-        goToExpensifyClassic: 'Passa a Expensify Classic',
     },
     emptyList: {
         [CONST.IOU.TYPE.CREATE]: {
@@ -1247,6 +1244,8 @@ const translations: TranslationDeepObject<typeof en> = {
         pendingMatch: 'Corrispondenza in sospeso',
         pendingMatchWithCreditCardDescription: 'Ricevuta in attesa di abbinamento con la transazione della carta. Contrassegna come contante per annullare.',
         markAsCash: 'Segna come contante',
+        pendingMatchSubmitTitle: 'Invia report',
+        pendingMatchSubmitDescription: 'Alcune spese sono in attesa di abbinamento con una transazione della carta di credito. Vuoi segnarle come contante?',
         routePending: 'Instradamento in sospeso...',
         automaticallyEnterExpenseDetails: 'Concierge inserirà automaticamente i dettagli della spesa per te, oppure puoi aggiungerli manualmente.',
         receiptScanning: () => ({
@@ -2673,6 +2672,7 @@ ${amount} per ${merchant} - ${date}`,
                 label: 'Usa le impostazioni del dispositivo',
             },
         },
+        highContrastMode: 'Modalità alto contrasto',
         chooseThemeBelowOrSync: 'Scegli un tema qui sotto o sincronizza con le impostazioni del tuo dispositivo.',
     },
     termsOfUse: {
@@ -5113,6 +5113,7 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
                 flipAmountSign: 'Inverti segno importo',
                 importButton: 'Importa transazioni',
             },
+            assignNewCards: {title: 'Assegna nuove carte', description: 'Ottieni le ultime carte da assegnare dalla tua banca'},
         },
         expensifyCard: {
             issueAndManageCards: 'Emetti e gestisci le tue Carte Expensify',
@@ -7219,6 +7220,7 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
     search: {
         resultsAreLimited: 'I risultati di ricerca sono limitati.',
         viewResults: 'Visualizza risultati',
+        appliedFilters: 'Filtri applicati',
         resetFilters: 'Reimposta filtri',
         searchResults: {
             emptyResults: {
@@ -7275,6 +7277,7 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
             },
         },
         columns: 'Colonne',
+        editColumns: 'Modifica colonne',
         resetColumns: 'Reimposta colonne',
         groupColumns: 'Raggruppa colonne',
         expenseColumns: 'Colonne spese',
@@ -7313,6 +7316,7 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
                     [CONST.SEARCH.DATE_PRESETS.LAST_MONTH]: 'Il mese scorso',
                     [CONST.SEARCH.DATE_PRESETS.THIS_MONTH]: 'Questo mese',
                     [CONST.SEARCH.DATE_PRESETS.YEAR_TO_DATE]: 'Da inizio anno',
+                    [CONST.SEARCH.DATE_PRESETS.LAST_12_MONTHS]: 'Ultimi 12 mesi',
                     [CONST.SEARCH.DATE_PRESETS.LAST_STATEMENT]: 'Ultimo estratto conto',
                 },
             },
@@ -7375,8 +7379,13 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
                 [CONST.SEARCH.ACTION_FILTERS.EXPORT]: 'Esporta',
             },
         },
+        display: {
+            label: 'Visualizza',
+            sortBy: 'Ordina per',
+            groupBy: 'Raggruppa per',
+            limitResults: 'Limita i risultati',
+        },
         has: 'Ha',
-        groupBy: 'Raggruppa per',
         view: {
             label: 'Visualizza',
             table: 'Tabella',
@@ -7410,6 +7419,10 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
         searchIn: 'Cerca in',
         searchPlaceholder: 'Cerca qualcosa',
         suggestions: 'Suggerimenti',
+        suggestionsAvailable: ({count}: {count: number}, query = '') => ({
+            one: `Suggerimenti disponibili${query ? ` per ${query}` : ''}. ${count} risultato.`,
+            other: (resultCount: number) => `Suggerimenti disponibili${query ? ` per ${query}` : ''}. ${resultCount} risultati.`,
+        }),
         exportSearchResults: {
             title: 'Crea esportazione',
             description: 'Wow, sono davvero tanti elementi! Li raggrupperemo e Concierge ti invierà un file a breve.',
@@ -7622,6 +7635,9 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
         scrollToNewestMessages: 'Scorri ai messaggi più recenti',
         preStyledText: 'Testo preformattato',
         viewAttachment: 'Visualizza allegato',
+        contextMenuAvailable: 'Menu contestuale disponibile. Premi Shift+F10 per aprirlo.',
+        contextMenuAvailableMacOS: 'Menu contestuale disponibile. Premi VO-Shift-M per aprirlo.',
+        contextMenuAvailableNative: 'Menu contestuale disponibile. Tocca due volte e tieni premuto per aprirlo.',
         selectAllFeatures: 'Seleziona tutte le funzionalità',
         selectAllTransactions: 'Seleziona tutte le transazioni',
         selectAllItems: 'Seleziona tutti gli elementi',
@@ -7907,6 +7923,8 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
             }
         },
         modifiedDate: 'Data diversa dalla ricevuta scansionata',
+        increasedDistance: ({formattedRouteDistance}: ViolationsIncreasedDistanceParams) =>
+            formattedRouteDistance ? `La distanza supera il percorso calcolato di ${formattedRouteDistance}` : 'La distanza supera il percorso calcolato',
         nonExpensiworksExpense: 'Spesa non-Expensiworks',
         overAutoApprovalLimit: (formattedLimit: string) => `La spesa supera il limite di approvazione automatica di ${formattedLimit}`,
         overCategoryLimit: (formattedLimit: string) => `Importo superiore al limite di categoria di ${formattedLimit}/persona`,
