@@ -25,7 +25,7 @@ import {cancelSpan, endSpan} from '@libs/telemetry/activeSpans';
 import {getDefaultTaxCode, getTaxValue} from '@libs/TransactionUtils';
 import useScanCapture from '@pages/iou/request/step/IOURequestStepScan/hooks/useScanCapture';
 import {getLocationPermission} from '@pages/iou/request/step/IOURequestStepScan/LocationPermission';
-import type {ReceiptFile, ScanRoute} from '@pages/iou/request/step/IOURequestStepScan/types';
+import type {ReceiptFile} from '@pages/iou/request/step/IOURequestStepScan/types';
 import buildReceiptFiles from '@pages/iou/request/step/IOURequestStepScan/utils/buildReceiptFiles';
 import getFileSource from '@pages/iou/request/step/IOURequestStepScan/utils/getFileSource';
 import startScanProcessSpan from '@pages/iou/request/step/IOURequestStepScan/utils/startScanProcessSpan';
@@ -45,6 +45,7 @@ import GpsPermissionGate from './GpsPermissionGate';
 import {useMultiScanState} from './MultiScanContext';
 import MultiScanEducationalModal from './MultiScanEducationalModal';
 import ReceiptPreviews from './ReceiptPreviews';
+import {useScanRouteParams} from './ScanRouteContext';
 
 /**
  * ScanSkipConfirmation — skip-confirmation variant.
@@ -52,12 +53,8 @@ import ReceiptPreviews from './ReceiptPreviews';
  *
  * Press handler: directly calls requestMoney/trackExpense/startSplitBill
  */
-type ScanSkipConfirmationProps = {
-    route: ScanRoute;
-};
-
-function ScanSkipConfirmation({route}: ScanSkipConfirmationProps) {
-    const {action, iouType, reportID, transactionID: initialTransactionID, backTo, backToReport} = route.params;
+function ScanSkipConfirmation() {
+    const {action, iouType, reportID, transactionID: initialTransactionID, backTo, backToReport} = useScanRouteParams();
 
     const styles = useThemeStyles();
     const {translate} = useLocalize();

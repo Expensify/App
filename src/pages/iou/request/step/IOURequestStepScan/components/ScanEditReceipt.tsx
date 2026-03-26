@@ -8,7 +8,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import {endSpan} from '@libs/telemetry/activeSpans';
 import useScanCapture from '@pages/iou/request/step/IOURequestStepScan/hooks/useScanCapture';
-import type {ScanRoute} from '@pages/iou/request/step/IOURequestStepScan/types';
 import getFileSource from '@pages/iou/request/step/IOURequestStepScan/utils/getFileSource';
 import useScanFileReadabilityCheck from '@pages/iou/request/step/IOURequestStepScan/utils/useScanFileReadabilityCheck';
 import StepScreenWrapper from '@pages/iou/request/step/StepScreenWrapper';
@@ -17,6 +16,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {FileObject} from '@src/types/utils/Attachment';
 import Camera from './Camera';
+import {useScanRouteParams} from './ScanRouteContext';
 
 /**
  * ScanEditReceipt — the simplest scan variant.
@@ -24,12 +24,8 @@ import Camera from './Camera';
  *
  * Press handler: replaceReceipt -> navigateBack
  */
-type ScanEditReceiptProps = {
-    route: ScanRoute;
-};
-
-function ScanEditReceipt({route}: ScanEditReceiptProps) {
-    const {action, reportID, transactionID: initialTransactionID, backTo} = route.params;
+function ScanEditReceipt() {
+    const {action, reportID, transactionID: initialTransactionID, backTo} = useScanRouteParams();
 
     const styles = useThemeStyles();
     const {translate} = useLocalize();

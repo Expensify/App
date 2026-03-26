@@ -9,7 +9,7 @@ import {navigateToConfirmationPage} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {endSpan} from '@libs/telemetry/activeSpans';
 import useScanCapture from '@pages/iou/request/step/IOURequestStepScan/hooks/useScanCapture';
-import type {ReceiptFile, ScanRoute} from '@pages/iou/request/step/IOURequestStepScan/types';
+import type {ReceiptFile} from '@pages/iou/request/step/IOURequestStepScan/types';
 import buildReceiptFiles from '@pages/iou/request/step/IOURequestStepScan/utils/buildReceiptFiles';
 import getFileSource from '@pages/iou/request/step/IOURequestStepScan/utils/getFileSource';
 import startScanProcessSpan from '@pages/iou/request/step/IOURequestStepScan/utils/startScanProcessSpan';
@@ -24,6 +24,7 @@ import Camera from './Camera';
 import {useMultiScanState} from './MultiScanContext';
 import MultiScanEducationalModal from './MultiScanEducationalModal';
 import ReceiptPreviews from './ReceiptPreviews';
+import {useScanRouteParams} from './ScanRouteContext';
 
 /**
  * ScanFromReport — the most common scan flow.
@@ -31,12 +32,8 @@ import ReceiptPreviews from './ReceiptPreviews';
  *
  * Press handler: setMultipleMoneyRequestParticipantsFromReport -> navigateToConfirmationPage
  */
-type ScanFromReportProps = {
-    route: ScanRoute;
-};
-
-function ScanFromReport({route}: ScanFromReportProps) {
-    const {action, iouType, reportID, transactionID: initialTransactionID, backTo, backToReport} = route.params;
+function ScanFromReport() {
+    const {action, iouType, reportID, transactionID: initialTransactionID, backTo, backToReport} = useScanRouteParams();
 
     const styles = useThemeStyles();
     const {translate} = useLocalize();

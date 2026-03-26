@@ -14,7 +14,6 @@ import {getPolicyExpenseChat, isSelfDM} from '@libs/ReportUtils';
 import shouldUseDefaultExpensePolicy from '@libs/shouldUseDefaultExpensePolicy';
 import {endSpan} from '@libs/telemetry/activeSpans';
 import useScanCapture from '@pages/iou/request/step/IOURequestStepScan/hooks/useScanCapture';
-import type {ScanRoute} from '@pages/iou/request/step/IOURequestStepScan/types';
 import buildReceiptFiles from '@pages/iou/request/step/IOURequestStepScan/utils/buildReceiptFiles';
 import getFileSource from '@pages/iou/request/step/IOURequestStepScan/utils/getFileSource';
 import startScanProcessSpan from '@pages/iou/request/step/IOURequestStepScan/utils/startScanProcessSpan';
@@ -31,6 +30,7 @@ import Camera from './Camera';
 import {useMultiScanState} from './MultiScanContext';
 import MultiScanEducationalModal from './MultiScanEducationalModal';
 import ReceiptPreviews from './ReceiptPreviews';
+import {useScanRouteParams} from './ScanRouteContext';
 
 /**
  * ScanGlobalCreate — global create flow.
@@ -38,12 +38,8 @@ import ReceiptPreviews from './ReceiptPreviews';
  *
  * Press handler: shouldUseDefaultExpensePolicy -> determine target -> set participants -> navigate
  */
-type ScanGlobalCreateProps = {
-    route: ScanRoute;
-};
-
-function ScanGlobalCreate({route}: ScanGlobalCreateProps) {
-    const {action, iouType, reportID, transactionID: initialTransactionID, backTo, backToReport} = route.params;
+function ScanGlobalCreate() {
+    const {action, iouType, reportID, transactionID: initialTransactionID, backTo, backToReport} = useScanRouteParams();
 
     const styles = useThemeStyles();
     const {translate} = useLocalize();

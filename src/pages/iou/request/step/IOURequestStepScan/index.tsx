@@ -11,6 +11,7 @@ import {MultiScanGate} from './components/MultiScanContext';
 import ScanEditReceipt from './components/ScanEditReceipt';
 import ScanFromReport from './components/ScanFromReport';
 import ScanGlobalCreate from './components/ScanGlobalCreate';
+import {ScanRouteProvider} from './components/ScanRouteContext';
 import ScanSkipConfirmation from './components/ScanSkipConfirmation';
 import type IOURequestStepScanProps from './types';
 
@@ -33,30 +34,28 @@ function IOURequestStepScan({report, route, transaction: initialTransaction}: Om
     const shouldSkipConfirmation =
         !!skipConfirmation && !!report?.reportID && !isArchived && !(isPolicyExpenseChat(report) && ((policy?.requiresCategory ?? false) || (policy?.requiresTag ?? false)));
 
+    let content: React.ReactNode;
     if (backTo || isEditing) {
-        return <ScanEditReceipt route={route} />;
-    }
-
-    if (!isFromGlobalCreate && !isArchived && iouType !== CONST.IOU.TYPE.CREATE) {
-        if (shouldSkipConfirmation) {
-            return (
-                <MultiScanGate route={route}>
-                    <ScanSkipConfirmation route={route} />
-                </MultiScanGate>
-            );
-        }
-        return (
-            <MultiScanGate route={route}>
-                <ScanFromReport route={route} />
+        content = <ScanEditReceipt />;
+    } else if (!isFromGlobalCreate && !isArchived && iouType !== CONST.IOU.TYPE.CREATE) {
+        content = shouldSkipConfirmation ? (
+            <MultiScanGate>
+                <ScanSkipConfirmation />
+            </MultiScanGate>
+        ) : (
+            <MultiScanGate>
+                <ScanFromReport />
+            </MultiScanGate>
+        );
+    } else {
+        content = (
+            <MultiScanGate>
+                <ScanGlobalCreate />
             </MultiScanGate>
         );
     }
 
-    return (
-        <MultiScanGate route={route}>
-            <ScanGlobalCreate route={route} />
-        </MultiScanGate>
-    );
+    return <ScanRouteProvider route={route}>{content}</ScanRouteProvider>;
 }
 
 // eslint-disable-next-line rulesdir/no-negated-variables
