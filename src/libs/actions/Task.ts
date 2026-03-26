@@ -14,6 +14,7 @@ import NetworkConnection from '@libs/NetworkConnection';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
+import {getReportName} from '@libs/ReportNameUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import {buildOptimisticSnapshotData} from '@libs/SearchQueryUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
@@ -222,6 +223,8 @@ function createTaskAndNavigate(params: CreateTaskAndNavigateParams) {
             parentReportID,
             title,
             assigneeChatReport,
+            currentUserEmail,
+            currentUserAccountID,
         );
 
         optimisticData.push(...assigneeChatReportOnyxData.optimisticData);
@@ -719,6 +722,7 @@ function editTaskAssignee(
     parentReport: OnyxEntry<OnyxTypes.Report>,
     sessionAccountID: number,
     assigneeEmail: string,
+    currentUserEmail: string,
     currentUserAccountID: number,
     hasOutstandingChildTask: boolean,
     assigneeAccountID: number | null = 0,
@@ -839,6 +843,8 @@ function editTaskAssignee(
             report.parentReportID,
             reportName ?? '',
             assigneeChatReport,
+            currentUserEmail,
+            currentUserAccountID,
             isOptimisticReport,
         );
 
@@ -1068,7 +1074,7 @@ function getShareDestination(
     reports: OnyxCollection<OnyxTypes.Report>,
     personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>,
     localeCompare: LocaleContextProps['localeCompare'],
-    conciergeReportID: string | undefined,
+    reportAttributes?: OnyxTypes.ReportAttributesDerivedValue['reports'],
 ): ShareDestination {
     const report = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
 
@@ -1096,9 +1102,7 @@ function getShareDestination(
     }
     return {
         icons: ReportUtils.getIcons(report, LocalePhoneNumber.formatPhoneNumber, personalDetails, Expensicons.FallbackAvatar),
-        // Will be fixed in https://github.com/Expensify/App/issues/76852
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        displayName: ReportUtils.getReportName({report, conciergeReportID}),
+        displayName: getReportName(report, reportAttributes),
         subtitle,
         displayNamesWithTooltips,
         shouldUseFullTitleToDisplay: ReportUtils.shouldUseFullTitleToDisplay(report),
@@ -1323,7 +1327,8 @@ function canModifyTask(taskReport: OnyxEntry<OnyxTypes.Report>, sessionAccountID
 }
 
 /**
- * Check if you can change the status of the task (mark complete or incomplete). Only the task owner and task assignee can do this.
+ * Check if you can change the status of the task (mark complete or incomplete).
+ * The task owner and task assignee can always do this. When a task has no assignee, any participant of the parent report can do this.
  */
 function canActionTask(
     taskReport: OnyxEntry<OnyxTypes.Report>,
@@ -1355,11 +1360,27 @@ function canActionTask(
         return false;
     }
 
-    // The task can only be actioned by the task report owner or the task assignee
-    return sessionAccountID === taskReport?.ownerAccountID || sessionAccountID === getTaskAssigneeAccountID(taskReport, parentReportAction);
+    // The task can be actioned by the task owner or the explicit assignee
+    const assigneeAccountID = getTaskAssigneeAccountID(taskReport, parentReportAction);
+    if (sessionAccountID === taskReport?.ownerAccountID || sessionAccountID === assigneeAccountID) {
+        return true;
+    }
+
+    // When the task has no assignee, any participant of the parent report can action it
+    if (!assigneeAccountID) {
+        return !!parentReport?.participants?.[sessionAccountID];
+    }
+
+    return false;
 }
 
-function clearTaskErrors(report: OnyxEntry<OnyxTypes.Report>, conciergeReportID: string | undefined, currentUserAccountID: number, introSelected: OnyxEntry<OnyxTypes.IntroSelected>) {
+function clearTaskErrors(
+    report: OnyxEntry<OnyxTypes.Report>,
+    conciergeReportID: string | undefined,
+    currentUserAccountID: number,
+    introSelected: OnyxEntry<OnyxTypes.IntroSelected>,
+    betas: OnyxEntry<OnyxTypes.Beta[]>,
+) {
     const reportID = report?.reportID;
     if (!reportID) {
         return;
@@ -1369,7 +1390,7 @@ function clearTaskErrors(report: OnyxEntry<OnyxTypes.Report>, conciergeReportID:
     if (report?.pendingFields?.createChat === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
         Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`, report.parentReportActionID ? {[report.parentReportActionID]: null} : {});
 
-        navigateToConciergeChatAndDeleteReport(reportID, conciergeReportID, currentUserAccountID, introSelected);
+        navigateToConciergeChatAndDeleteReport(reportID, conciergeReportID, currentUserAccountID, introSelected, betas);
         return;
     }
 
