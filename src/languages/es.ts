@@ -5208,8 +5208,7 @@ ${amount} para ${merchant} - ${date}`,
                             monthlySpendLimitLabel: 'Límite de gasto mensual por miembro',
                             monthlySpendLimitDescription: 'El monto máximo que cada miembro puede gastar en viajes por mes.',
                             reduceLimitTitle: '¿Reducir el límite de gasto en viajes?',
-                            reduceLimitWarning:
-                                'Si reduces el límite, los miembros que ya hayan gastado más de este monto no podrán hacer nuevas reservas de viaje hasta el próximo mes.',
+                            reduceLimitWarning: 'Si reduces el límite, los miembros que ya hayan gastado más de este monto no podrán hacer nuevas reservas de viaje hasta el próximo mes.',
                         },
                     },
                     disableModal: {
