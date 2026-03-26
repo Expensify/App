@@ -18,6 +18,7 @@ import type {
     Transaction,
     TransactionViolation,
 } from '@src/types/onyx';
+import type {ReportAttributes, ReportAttributesDerivedValue} from '@src/types/onyx/DerivedValues';
 
 type OptionMode = ValueOf<typeof CONST.OPTION_MODE>;
 
@@ -74,6 +75,9 @@ type OptionRowLHNDataProps = {
     /** The full data of the report */
     fullReport: OnyxEntry<Report>;
 
+    /** The transaction thread report associated with the current report, if any */
+    oneTransactionThreadReport: OnyxEntry<Report>;
+
     /** Array of report name value pairs for this report */
     reportNameValuePairs: OnyxEntry<ReportNameValuePairs>;
 
@@ -91,9 +95,6 @@ type OptionRowLHNDataProps = {
 
     /** The transaction linked to the report's last action */
     lastReportActionTransaction?: OnyxEntry<Transaction>;
-
-    /** Whether a report contains a draft */
-    hasDraftComment: boolean;
 
     /** The reportID of the report */
     reportID: string;
@@ -123,6 +124,12 @@ type OptionRowLHNDataProps = {
 
     /** Callback to execute when the OptionList lays out */
     onLayout?: (event: LayoutChangeEvent) => void;
+
+    /** The report attributes for the report */
+    reportAttributes: OnyxEntry<ReportAttributes>;
+
+    /** The derived report attributes for all reports */
+    reportAttributesDerived?: ReportAttributesDerivedValue['reports'];
 
     /** Whether to show the educational tooltip for the GBR or RBR */
     shouldShowRBRorGBRTooltip: boolean;
