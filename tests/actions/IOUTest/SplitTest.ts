@@ -2520,7 +2520,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
         });
         await waitForBatchedUpdates();
 
-        // Verify the original transaction is restored with correct data
+        // Step 4: Verify the original transaction is restored with correct data
         const restoredTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`);
         expect(restoredTransaction).toBeDefined();
         expect(restoredTransaction?.transactionID).toBe(originalTransactionID);
@@ -2535,6 +2535,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
         const deletedSplit2 = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${splitTransactionID2}`);
         expect(deletedSplit2?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
 
+        // Step 5: Verify the new IOU action for the restored original transaction
         const revertExpenseReportID = reports.expenseReport?.reportID;
         let newIOUAction: ReportAction | undefined;
         await getOnyxData({
@@ -2548,16 +2549,24 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             },
         });
 
+        expect(newIOUAction).toBeDefined();
+        expect(newIOUAction?.actionName).toBe(CONST.REPORT.ACTIONS.TYPE.IOU);
+        const newIOUOriginalMessage = getOriginalMessage(newIOUAction as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>);
+        expect(newIOUOriginalMessage?.IOUTransactionID).toBe(originalTransactionID);
+        expect(newIOUOriginalMessage?.amount).toBe(amount);
+        expect(newIOUOriginalMessage?.currency).toBe(CONST.CURRENCY.USD);
+        expect(newIOUOriginalMessage?.type).toBe(CONST.IOU.REPORT_ACTION_TYPE.CREATE);
+
         const newThreadReportID = newIOUAction?.childReportID;
         expect(newThreadReportID).toBeDefined();
         expect(newThreadReportID).not.toBe(splitThreadReportID);
 
-        // Step 4: Verify the new transaction thread report exists
+        // Step 6: Verify the new transaction thread report exists
         const newThreadReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${newThreadReportID}`);
         expect(newThreadReport).toBeDefined();
         expect(newThreadReport?.reportID).toBe(newThreadReportID);
 
-        // Step 5: Verify the comment was migrated to the new thread
+        // Step 7: Verify the comment was migrated to the new thread
         const newThreadActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${newThreadReportID}`);
         expect(newThreadActions?.[commentReportActionID]).toBeDefined();
         expect(newThreadActions?.[commentReportActionID]?.reportID).toBe(newThreadReportID);
