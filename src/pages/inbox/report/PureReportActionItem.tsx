@@ -239,6 +239,7 @@ import {
 } from '@userActions/Report';
 import {isAnonymousUser, signOutAndRedirectToSignIn} from '@userActions/Session';
 import {isBlockedFromConcierge} from '@userActions/User';
+import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -549,6 +550,7 @@ function PureReportActionItem({
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const [ownerBillingGraceEndPeriod] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const {transitionActionSheetState} = ActionSheetAwareScrollView.useActionSheetAwareScrollViewActions();
+    const isTrackIntentUser = isTrackIntentUserSelector(introSelected);
     const {translate, formatPhoneNumber, localeCompare, formatTravelDate, getLocalDateFromDatetime, datetimeToCalendarTime} = useLocalize();
     const {showConfirmModal} = useConfirmModal();
     const personalDetail = useCurrentUserPersonalDetails();
@@ -1353,7 +1355,9 @@ function PureReportActionItem({
             const isDEWPolicy = hasDynamicExternalWorkflow(policy);
 
             const isPendingAdd = action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD;
-            if (wasSubmittedViaHarvesting) {
+            if (isTrackIntentUser) {
+                children = <ReportActionItemBasicMessage message={translate('iou.markedAsDone', getOriginalMessage(action)?.message)} />;
+            } else if (wasSubmittedViaHarvesting) {
                 children = (
                     <ReportActionItemMessageWithExplain
                         message={translate('iou.automaticallySubmitted')}
@@ -1375,7 +1379,9 @@ function PureReportActionItem({
             const isDEWPolicy = hasDynamicExternalWorkflow(policy);
             const isPendingAdd = action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD;
 
-            if (wasAutoApproved) {
+            if (isTrackIntentUser) {
+                children = <ReportActionItemBasicMessage message={translate('iou.markedAsDone')} />;
+            } else if (wasAutoApproved) {
                 children = (
                     <ReportActionItemMessageWithExplain
                         message={translate('iou.automaticallyApproved')}

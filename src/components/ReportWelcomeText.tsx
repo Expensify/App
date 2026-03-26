@@ -9,6 +9,7 @@ import usePreferredPolicy from '@hooks/usePreferredPolicy';
 import useReportAttributes from '@hooks/useReportAttributes';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import Navigation from '@libs/Navigation/Navigation';
 import {getPersonalDetailsForAccountIDs} from '@libs/OptionsListUtils';
 import {getReportName} from '@libs/ReportNameUtils';
@@ -54,6 +55,7 @@ function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
     const [invoiceReceiverPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${invoiceReceiverPolicyID}`);
     const isReportArchived = useReportIsArchived(report?.reportID);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const isConciergeChat = isConciergeChatReport(report, conciergeReportID);
     const isChatRoom = isChatRoomReportUtils(report);
     const isSelfDM = isSelfDMReportUtils(report);
@@ -124,6 +126,7 @@ function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
         reportDetailsLink,
         shouldShowUsePlusButtonText,
         additionalText,
+        isTrackIntentUser: !!isTrackIntentUser,
     });
 
     return (

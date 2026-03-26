@@ -203,6 +203,7 @@ type WelcomeMessageParams = {
     reportDetailsLink?: string;
     shouldShowUsePlusButtonText?: boolean;
     additionalText?: string;
+    isTrackIntentUser?: boolean;
 };
 
 function compareStringDates(a: string, b: string): 0 | 1 | -1 {
@@ -1247,6 +1248,7 @@ function getWelcomeMessage(params: WelcomeMessageParams): WelcomeMessage {
         reportDetailsLink = '',
         shouldShowUsePlusButtonText = false,
         additionalText = '',
+        isTrackIntentUser = false,
     } = params;
 
     const welcomeMessage: WelcomeMessage = {};
@@ -1259,7 +1261,10 @@ function getWelcomeMessage(params: WelcomeMessageParams): WelcomeMessage {
     }
 
     if (isPolicyExpenseChat(report)) {
-        if (policy?.description) {
+        if (isTrackIntentUser) {
+            welcomeMessage.messageHtml = translate('reportActionsView.beginningOfChatHistoryPolicyExpenseChatTrack');
+            welcomeMessage.messageText = Parser.htmlToText(welcomeMessage.messageHtml);
+        } else if (policy?.description) {
             welcomeMessage.messageHtml = policy.description;
             welcomeMessage.messageText = Parser.htmlToText(welcomeMessage.messageHtml);
         } else {

@@ -7,6 +7,7 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import {canSubmitAndIsAwaitingForCurrentUser, getReportTransactions, hasViolations as hasViolationsReportUtils} from '@libs/ReportUtils';
+import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import {hasAnyPendingRTERViolation as hasAnyPendingRTERViolationTransactionUtils} from '@libs/TransactionUtils';
 import {submitReport} from '@userActions/IOU';
 import {markPendingRTERTransactionsAsCash} from '@userActions/Transaction';
@@ -37,6 +38,7 @@ function SubmitActionButton({iouReportID, chatReportID, isSubmittingAnimationRun
     const [ownerBillingGraceEndPeriod] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportID}`);
+    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const {isOffline} = useNetwork();
     const transactions = getReportTransactions(iouReportID).filter((t) => isOffline || t.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
 
@@ -64,7 +66,7 @@ function SubmitActionButton({iouReportID, chatReportID, isSubmittingAnimationRun
     return (
         <AnimatedSubmitButton
             success={isWaitingForSubmissionFromCurrentUser}
-            text={translate('common.submit')}
+            text={isTrackIntentUser ? translate('common.markAsDone') : translate('common.submit')}
             onPress={() => {
                 confirmPendingRTERAndProceed(() => {
                     submitReport({

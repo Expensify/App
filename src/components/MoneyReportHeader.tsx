@@ -1,7 +1,7 @@
 import {useRoute} from '@react-navigation/native';
 import {isUserValidatedSelector} from '@selectors/Account';
 import {shouldFailAllRequestsSelector} from '@selectors/Network';
-import {hasSeenTourSelector} from '@selectors/Onboarding';
+import {hasSeenTourSelector, isTrackIntentUserSelector} from '@selectors/Onboarding';
 import {getArchiveReason} from '@selectors/Report';
 import {validTransactionDraftsSelector} from '@selectors/TransactionDraft';
 import truncate from 'lodash/truncate';
@@ -253,6 +253,7 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
+    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
 
     const activePolicy = usePolicy(activePolicyID);
     const [integrationsExportTemplates] = useOnyx(ONYXKEYS.NVP_INTEGRATION_SERVER_EXPORT_TEMPLATES);
@@ -1385,11 +1386,14 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
         beginExportWithTemplate,
     ]);
 
+    const submitButtonText = isTrackIntentUser ? translate('common.markAsDone') : translate('common.submit');
+    const approveButtonText = isTrackIntentUser ? translate('common.markAsDone') : translate('iou.approve');
+
     const primaryActionsImplementation = {
         [CONST.REPORT.PRIMARY_ACTIONS.SUBMIT]: (
             <AnimatedSubmitButton
                 success
-                text={translate('common.submit')}
+                text={submitButtonText}
                 onPress={() => handleSubmitReport()}
                 isSubmittingAnimationRunning={isSubmittingAnimationRunning}
                 onAnimationFinish={stopAnimation}
@@ -1400,7 +1404,7 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
             <Button
                 success
                 onPress={() => confirmApproval()}
-                text={translate('iou.approve')}
+                text={approveButtonText}
                 isDisabled={isBlockSubmitDueToPreventSelfApproval}
             />
         ),
@@ -1599,7 +1603,7 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
         const actions: Array<DropdownOption<string> & Pick<PopoverMenuItem, 'backButtonText' | 'rightIcon'>> = [];
         if (hasSubmitAction && !shouldBlockSubmit) {
             actions.push({
-                text: translate('common.submit'),
+                text: submitButtonText,
                 icon: expensifyIcons.Send,
                 value: CONST.REPORT.PRIMARY_ACTIONS.SUBMIT,
                 onSelected: () => handleSubmitReport(true),
@@ -1607,7 +1611,7 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
         }
         if (hasApproveAction && !isBlockSubmitDueToPreventSelfApproval) {
             actions.push({
-                text: translate('iou.approve'),
+                text: approveButtonText,
                 icon: expensifyIcons.ThumbsUp,
                 value: CONST.REPORT.PRIMARY_ACTIONS.APPROVE,
                 onSelected: () => {
@@ -1731,7 +1735,7 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
         },
         [CONST.REPORT.SECONDARY_ACTIONS.SUBMIT]: {
             value: CONST.REPORT.SECONDARY_ACTIONS.SUBMIT,
-            text: translate('common.submit'),
+            text: submitButtonText,
             icon: expensifyIcons.Send,
             sentryLabel: CONST.SENTRY_LABEL.MORE_MENU.SUBMIT,
             onSelected: () => {
@@ -1756,7 +1760,7 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
             },
         },
         [CONST.REPORT.SECONDARY_ACTIONS.APPROVE]: {
-            text: translate('iou.approve'),
+            text: approveButtonText,
             icon: expensifyIcons.ThumbsUp,
             value: CONST.REPORT.SECONDARY_ACTIONS.APPROVE,
             sentryLabel: CONST.SENTRY_LABEL.MORE_MENU.APPROVE,
