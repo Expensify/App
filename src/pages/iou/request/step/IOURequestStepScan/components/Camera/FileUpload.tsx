@@ -21,12 +21,12 @@ import type {CameraProps} from './types';
  * Renders a drag-and-drop zone + file picker button + receipt alternative methods.
  * Calls `onCapture(file, source)` for each file picked, or `onDrop(files, items)` for drag-and-drop.
  */
-function FileUpload({onCapture, onDrop, shouldAcceptMultipleFiles = false, onLayout, isReplacing = false}: CameraProps) {
+function FileUpload({onCapture, onDrop, shouldAcceptMultipleFiles = false, onLayout}: CameraProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const lazyIllustrations = useMemoizedLazyIllustrations(['ReceiptStack']);
-    const lazyIcons = useMemoizedLazyExpensifyIcons(['ReplaceReceipt', 'SmartScan']);
+    const lazyIcons = useMemoizedLazyExpensifyIcons(['SmartScan']);
 
     const panResponderRef = useRef(
         PanResponder.create({
@@ -120,9 +120,9 @@ function FileUpload({onCapture, onDrop, shouldAcceptMultipleFiles = false, onLay
             </View>
             <DragAndDropConsumer onDrop={handleDrop}>
                 <DropZoneUI
-                    icon={isReplacing ? lazyIcons.ReplaceReceipt : lazyIcons.SmartScan}
+                    icon={lazyIcons.SmartScan}
                     dropStyles={styles.receiptDropOverlay(true)}
-                    dropTitle={isReplacing ? translate('dropzone.replaceReceipt') : translate(shouldAcceptMultipleFiles ? 'dropzone.scanReceipts' : 'quickAction.scanReceipt')}
+                    dropTitle={translate(shouldAcceptMultipleFiles ? 'dropzone.scanReceipts' : 'quickAction.scanReceipt')}
                     dropTextStyles={styles.receiptDropText}
                     dashedBorderStyles={[styles.dropzoneArea, styles.easeInOpacityTransition, styles.activeDropzoneDashedBorder(theme.receiptDropBorderColorActive, true)]}
                 />

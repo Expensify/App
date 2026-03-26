@@ -1,6 +1,5 @@
 import React, {useEffect} from 'react';
 import {View} from 'react-native';
-import useFilesValidation from '@hooks/useFilesValidation';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useOptimisticDraftTransactions from '@hooks/useOptimisticDraftTransactions';
@@ -8,6 +7,7 @@ import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import {endSpan} from '@libs/telemetry/activeSpans';
+import useScanCapture from '@pages/iou/request/step/IOURequestStepScan/hooks/useScanCapture';
 import type {ScanRoute} from '@pages/iou/request/step/IOURequestStepScan/types';
 import getFileSource from '@pages/iou/request/step/IOURequestStepScan/utils/getFileSource';
 import useScanFileReadabilityCheck from '@pages/iou/request/step/IOURequestStepScan/utils/useScanFileReadabilityCheck';
@@ -64,15 +64,7 @@ function ScanEditReceipt({route}: ScanEditReceiptProps) {
         updateScanAndNavigate(file, source);
     }
 
-    const {validateFiles, PDFValidationComponent, ErrorModal} = useFilesValidation((files: FileObject[]) => {
-        onFilesAccepted(files);
-    });
-
-    function onCapture(file: FileObject, source: string) {
-        const fileWithUri = file;
-        fileWithUri.uri = source;
-        onFilesAccepted([fileWithUri]);
-    }
+    const {onCapture, validateFiles, PDFValidationComponent, ErrorModal} = useScanCapture(onFilesAccepted);
 
     // End the create expense span on mount
     useEffect(() => {
@@ -95,7 +87,6 @@ function ScanEditReceipt({route}: ScanEditReceiptProps) {
                     onCapture={onCapture}
                     onDrop={validateFiles}
                     shouldAcceptMultipleFiles={false}
-                    isReplacing={isEditing}
                 />
                 {ErrorModal}
             </View>

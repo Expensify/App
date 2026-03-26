@@ -12,9 +12,6 @@ type CameraProps = {
 
     /** Called on desktop drag-and-drop with both files and DataTransferItems (for folder detection) */
     onDrop?: (files: FileObject[], items: DataTransferItem[]) => void;
-
-    /** Whether the user is replacing an existing receipt (edit mode) */
-    isReplacing?: boolean;
 };
 
 export default CameraProps;

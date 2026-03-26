@@ -4,7 +4,6 @@ import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 import {RESULTS} from 'react-native-permissions';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import useFilesValidation from '@hooks/useFilesValidation';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useOptimisticDraftTransactions from '@hooks/useOptimisticDraftTransactions';
@@ -24,6 +23,7 @@ import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
 import {isPolicyExpenseChat} from '@libs/ReportUtils';
 import {cancelSpan, endSpan} from '@libs/telemetry/activeSpans';
 import {getDefaultTaxCode, getTaxValue} from '@libs/TransactionUtils';
+import useScanCapture from '@pages/iou/request/step/IOURequestStepScan/hooks/useScanCapture';
 import {getLocationPermission} from '@pages/iou/request/step/IOURequestStepScan/LocationPermission';
 import type {ReceiptFile, ScanRoute} from '@pages/iou/request/step/IOURequestStepScan/types';
 import buildReceiptFiles from '@pages/iou/request/step/IOURequestStepScan/utils/buildReceiptFiles';
@@ -321,15 +321,7 @@ function ScanSkipConfirmation({route}: ScanSkipConfirmationProps) {
         navigateToConfirmationStep(newReceiptFiles, false);
     }
 
-    const {validateFiles, PDFValidationComponent, ErrorModal} = useFilesValidation((files: FileObject[]) => {
-        onFilesAccepted(files);
-    });
-
-    function onCapture(file: FileObject, source: string) {
-        const fileWithUri = file;
-        fileWithUri.uri = source;
-        onFilesAccepted([fileWithUri]);
-    }
+    const {onCapture, validateFiles, PDFValidationComponent, ErrorModal} = useScanCapture(onFilesAccepted);
 
     // End the create expense span on mount
     useEffect(() => {

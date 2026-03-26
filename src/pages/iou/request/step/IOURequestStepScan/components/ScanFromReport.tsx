@@ -1,7 +1,6 @@
 import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import useFilesValidation from '@hooks/useFilesValidation';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useOptimisticDraftTransactions from '@hooks/useOptimisticDraftTransactions';
@@ -9,6 +8,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {navigateToConfirmationPage} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {endSpan} from '@libs/telemetry/activeSpans';
+import useScanCapture from '@pages/iou/request/step/IOURequestStepScan/hooks/useScanCapture';
 import type {ReceiptFile, ScanRoute} from '@pages/iou/request/step/IOURequestStepScan/types';
 import buildReceiptFiles from '@pages/iou/request/step/IOURequestStepScan/utils/buildReceiptFiles';
 import getFileSource from '@pages/iou/request/step/IOURequestStepScan/utils/getFileSource';
@@ -108,15 +108,7 @@ function ScanFromReport({route}: ScanFromReportProps) {
         );
     }
 
-    const {validateFiles, PDFValidationComponent, ErrorModal} = useFilesValidation((files: FileObject[]) => {
-        onFilesAccepted(files);
-    });
-
-    function onCapture(file: FileObject, source: string) {
-        const fileWithUri = file;
-        fileWithUri.uri = source;
-        onFilesAccepted([fileWithUri]);
-    }
+    const {onCapture, validateFiles, PDFValidationComponent, ErrorModal} = useScanCapture(onFilesAccepted);
 
     // End the create expense span on mount
     useEffect(() => {
