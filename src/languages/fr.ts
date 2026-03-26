@@ -86,6 +86,7 @@ import type {
     UpdateRoleParams,
     UpgradeSuccessMessageParams,
     UserIsAlreadyMemberParams,
+    ViolationsIncreasedDistanceParams,
     ViolationsMissingTagParams,
     ViolationsModifiedAmountParams,
     ViolationsProhibitedExpenseParams,
@@ -3293,6 +3294,13 @@ ${
             `Oups ! Il semble que la devise de votre espace de travail soit définie sur une devise différente du dollar américain (USD). Pour continuer, veuillez accéder aux <a href="${workspaceRoute}">paramètres de votre espace de travail</a>, la définir sur USD, puis réessayer.`,
         bbaAdded: 'Compte bancaire professionnel ajouté !',
         bbaAddedDescription: 'Il est prêt à être utilisé pour les paiements.',
+        lockedBankAccount: 'Compte bancaire verrouillé',
+        unlockBankAccount: 'Déverrouiller le compte bancaire',
+        youCantPayThis: `Vous ne pouvez pas payer ce rapport car vous avez un <a href="${CONST.UNLOCK_BANK_ACCOUNT_HELP_URL}">compte bancaire verrouillé</a>. Appuyez ci-dessous et le Concierge vous aidera à le déverrouiller.`,
+        htmlUnlockMessage: (maskedAccountNumber: string) =>
+            `<h1>Expensify Business Bank Account ${maskedAccountNumber}</h1><p>Merci d'avoir soumis une demande de déblocage de votre compte bancaire. Les demandes de retrait peuvent être rejetées en raison de fonds insuffisants ou si le compte bancaire n'a pas été activé pour le prélèvement automatique. Nous examinerons votre dossier et vous contacterons si nous avons besoin d'informations supplémentaires pour résoudre ce problème.</p>`,
+        textUnlockMessage: (maskedAccountNumber: string) =>
+            `Expensify Business Bank Account ${maskedAccountNumber}\nMerci d'avoir soumis une demande de déblocage de votre compte bancaire. Les demandes de retrait peuvent être rejetées en raison de fonds insuffisants ou si le compte bancaire n'a pas été activé pour le prélèvement automatique. Nous examinerons votre dossier et vous contacterons si nous avons besoin d'informations supplémentaires pour résoudre ce problème.`,
         error: {
             youNeedToSelectAnOption: 'Veuillez sélectionner une option pour continuer',
             noBankAccountAvailable: 'Désolé, aucun compte bancaire n’est disponible',
@@ -5141,6 +5149,7 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                 flipAmountSign: 'Inverser le signe du montant',
                 importButton: 'Importer des transactions',
             },
+            assignNewCards: {title: 'Assigner de nouvelles cartes', description: 'Obtenez les dernières cartes à assigner depuis votre banque'},
         },
         expensifyCard: {
             issueAndManageCards: 'Émettre et gérer vos Cartes Expensify',
@@ -6462,21 +6471,24 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
         },
         downgrade: {
             commonFeatures: {
-                title: 'Passer au forfait Collect inférieur',
-                note: 'Si vous rétrogradez, vous perdrez l’accès à ces fonctionnalités et plus encore :',
+                title: 'Rétrograder vers Collect',
+                note: "Vous perdrez l'accès aux fonctionnalités suivantes",
                 benefits: {
-                    note: 'Pour une comparaison complète de nos offres, consultez notre',
-                    pricingPage: 'page des tarifs',
-                    confirm: 'Voulez-vous vraiment rétrograder et supprimer vos configurations ?',
-                    warning: 'Cette action est irréversible.',
-                    benefit1: 'Connexions comptables (sauf QuickBooks Online et Xero)',
-                    benefit2: 'Règles de dépenses intelligentes',
-                    benefit3: 'Flux d’approbation multi-niveaux',
-                    benefit4: 'Contrôles de sécurité renforcés',
+                    confirm: 'Vous devrez modifier le « Type de plan » de chaque espace de travail en « Collect » afin de bénéficier du tarif Collect.',
+                    benefit1: 'NetSuite, Sage Intacct, QuickBooks Desktop, Oracle, Microsoft Dynamics',
+                    benefit2: 'Workday, Certinia',
+                    benefit3: 'SSO/SAML',
+                    benefit4: 'Règles de dépenses intelligentes, indemnités journalières, approbations multi-niveaux, rapports personnalisés et budgétisation',
                     headsUp: 'Attention !',
                     multiWorkspaceNote: 'Vous devrez rétrograder tous vos espaces de travail avant votre premier paiement mensuel pour commencer un abonnement au tarif Collect. Cliquez',
                     selectStep: '> sélectionnez chaque espace de travail > modifiez le type d’abonnement en',
+                    benefit1Label: 'Intégrations ERP',
+                    benefit2Label: 'Intégrations RH',
+                    benefit3Label: 'Sécurité',
+                    benefit4Label: 'Avancé',
+                    important: 'IMPORTANT :',
                 },
+                noteAndMore: 'et plus :',
             },
             completed: {
                 headline: 'Votre espace de travail a été rétrogradé',
@@ -7453,6 +7465,10 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
         searchIn: 'Rechercher dans',
         searchPlaceholder: 'Rechercher quelque chose',
         suggestions: 'Suggestions',
+        suggestionsAvailable: ({count}: {count: number}, query = '') => ({
+            one: `Suggestions disponibles${query ? ` pour ${query}` : ''}. ${count} résultat.`,
+            other: (resultCount: number) => `Suggestions disponibles${query ? ` pour ${query}` : ''}. ${resultCount} résultats.`,
+        }),
         exportSearchResults: {
             title: 'Créer l’export',
             description: 'Ouah, ça fait beaucoup d’éléments ! Nous allons les regrouper et Concierge vous enverra un fichier sous peu.',
@@ -7665,6 +7681,9 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
         scrollToNewestMessages: 'Aller au dernier message',
         preStyledText: 'Texte pré-stylé',
         viewAttachment: 'Afficher la pièce jointe',
+        contextMenuAvailable: 'Menu contextuel disponible. Appuyez sur Shift+F10 pour l’ouvrir.',
+        contextMenuAvailableMacOS: 'Menu contextuel disponible. Appuyez sur VO-Shift-M pour l’ouvrir.',
+        contextMenuAvailableNative: 'Menu contextuel disponible. Appuyez deux fois et maintenez pour l’ouvrir.',
         selectAllFeatures: 'Sélectionner toutes les fonctionnalités',
         selectAllTransactions: 'Sélectionner toutes les transactions',
         selectAllItems: 'Sélectionner tous les éléments',
@@ -7950,6 +7969,8 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
             }
         },
         modifiedDate: 'La date diffère du reçu scanné',
+        increasedDistance: ({formattedRouteDistance}: ViolationsIncreasedDistanceParams) =>
+            formattedRouteDistance ? `La distance dépasse l'itinéraire calculé de ${formattedRouteDistance}` : "La distance dépasse l'itinéraire calculé",
         nonExpensiworksExpense: 'Dépense non Expensiworks',
         overAutoApprovalLimit: (formattedLimit: string) => `La dépense dépasse la limite d’auto-approbation de ${formattedLimit}`,
         overCategoryLimit: (formattedLimit: string) => `Montant dépassant la limite de catégorie de ${formattedLimit}/personne`,
@@ -8496,6 +8517,7 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
             theresWasAProblemDuringAWorkspaceConnectionSync: 'Un problème est survenu lors de la synchronisation de connexion de l’espace de travail',
             theresAProblemWithYourWallet: 'Il y a un problème avec votre portefeuille',
             theresAProblemWithYourWalletTerms: 'Il y a un problème avec les conditions de votre portefeuille',
+            aBankAccountIsLocked: 'Un compte bancaire est verrouillé',
         },
     },
     emptySearchView: {

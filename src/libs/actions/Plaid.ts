@@ -141,7 +141,24 @@ function importPlaidAccounts(
         plaidAccessToken,
     };
 
-    API.write(WRITE_COMMANDS.IMPORT_PLAID_ACCOUNTS, parameters);
+    const onyxData = {
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.ASSIGN_CARD,
+                value: {isRefreshing: null},
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.ASSIGN_CARD,
+                value: {isRefreshing: null},
+            },
+        ],
+    };
+
+    API.write(WRITE_COMMANDS.IMPORT_PLAID_ACCOUNTS, parameters, onyxData);
 }
 
 export {openPlaidBankAccountSelector, openPlaidBankLogin, openPlaidCompanyCardLogin, importPlaidAccounts};

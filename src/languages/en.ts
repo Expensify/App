@@ -74,6 +74,7 @@ import type {
     UpdateRoleParams,
     UpgradeSuccessMessageParams,
     UserIsAlreadyMemberParams,
+    ViolationsIncreasedDistanceParams,
     ViolationsMissingTagParams,
     ViolationsModifiedAmountParams,
     ViolationsProhibitedExpenseParams,
@@ -3342,6 +3343,13 @@ const translations = {
             `Oops! It appears that your workspace currency is set to a different currency than USD. To proceed, please go to <a href="${workspaceRoute}">your workspace settings</a> to set it to USD and try again.`,
         bbaAdded: 'Business bank account added!',
         bbaAddedDescription: "It's ready to be used for payments.",
+        lockedBankAccount: 'Locked bank account',
+        unlockBankAccount: 'Unlock bank account',
+        youCantPayThis: `You can't pay this report because you have a <a href="${CONST.UNLOCK_BANK_ACCOUNT_HELP_URL}">locked bank account</a>. Tap below and Concierge will help with the next steps to unlock it.`,
+        htmlUnlockMessage: (maskedAccountNumber: string) =>
+            `<h1>Expensify Business Bank Account ${maskedAccountNumber}</h1><p>Thank you for submitting a request to unlock your bank account. Withdrawal requests can be rejected due to insufficient funds, or if the bank account has not been enabled for direct debit. We will review your case and reach out to you if we need anything else to resolve this issue.</p>`,
+        textUnlockMessage: (maskedAccountNumber: string) =>
+            `Expensify Business Bank Account ${maskedAccountNumber}\nThank you for submitting a request to unlock your bank account. Withdrawal requests can be rejected due to insufficient funds, or if the bank account has not been enabled for direct debit. We will review your case and reach out to you if we need anything else to resolve this issue.`,
         error: {
             youNeedToSelectAnOption: 'Please select an option to proceed',
             noBankAccountAvailable: "Sorry, there's no bank account available",
@@ -5124,6 +5132,10 @@ const translations = {
                 flipAmountSign: 'Flip amount sign',
                 importButton: 'Import transactions',
             },
+            assignNewCards: {
+                title: 'Assign new cards',
+                description: 'Get the latest cards to assign from your bank',
+            },
         },
         expensifyCard: {
             issueAndManageCards: 'Issue and manage your Expensify Cards',
@@ -6417,17 +6429,20 @@ const translations = {
         },
         downgrade: {
             commonFeatures: {
-                title: 'Downgrade to the Collect plan',
-                note: 'If you downgrade, you’ll lose access to these features and more:',
+                title: 'Downgrade to Collect',
+                note: "You'll lose access to the following features",
+                noteAndMore: 'and more:',
                 benefits: {
-                    note: 'For a full comparison of our plans, check out our',
-                    pricingPage: 'pricing page',
-                    confirm: 'Are you sure you want to downgrade and remove your configurations?',
-                    warning: 'This cannot be undone.',
-                    benefit1: 'Accounting connections (except QuickBooks Online and Xero)',
-                    benefit2: 'Smart expense rules',
-                    benefit3: 'Multi-level approval workflows',
-                    benefit4: 'Enhanced security controls',
+                    important: 'IMPORTANT: ',
+                    confirm: 'You\'ll need to change the "Plan type" of every workspace to "Collect" in order to secure the Collect rate.',
+                    benefit1Label: 'ERP integrations',
+                    benefit1: 'NetSuite, Sage Intacct, QuickBooks Desktop, Oracle, Microsoft Dynamics',
+                    benefit2Label: 'HR integrations',
+                    benefit2: 'Workday, Certinia',
+                    benefit3Label: 'Security',
+                    benefit3: 'SSO/SAML',
+                    benefit4Label: 'Advanced',
+                    benefit4: 'Smart expense rules, per diems, multi-level approvals, custom reporting, and budgeting',
                     headsUp: 'Heads up!',
                     multiWorkspaceNote: 'You’ll need to downgrade all your workspaces before your first monthly payment to begin a subscription at the Collect rate. Click',
                     selectStep: '> select each workspace > change the plan type to',
@@ -7416,6 +7431,10 @@ const translations = {
         searchIn: 'Search in',
         searchPlaceholder: 'Search for something',
         suggestions: 'Suggestions',
+        suggestionsAvailable: ({count}: {count: number}, query = '') => ({
+            one: `Suggestions available${query ? ` for ${query}` : ''}. ${count} result.`,
+            other: (resultCount: number) => `Suggestions available${query ? ` for ${query}` : ''}. ${resultCount} results.`,
+        }),
         exportSearchResults: {
             title: 'Create export',
             description: "Whoa, that's a lot of items! We'll bundle them up, and Concierge will send you a file shortly.",
@@ -7624,6 +7643,9 @@ const translations = {
         scrollToNewestMessages: 'Scroll to newest messages',
         preStyledText: 'Pre-styled text',
         viewAttachment: 'View attachment',
+        contextMenuAvailable: 'Context menu available. Press Shift+F10 to open.',
+        contextMenuAvailableMacOS: 'Context menu available. Press VO-Shift-M to open.',
+        contextMenuAvailableNative: 'Context menu available. Double-tap and hold to open.',
         selectAllFeatures: 'Select all features',
         selectAllTransactions: 'Select all transactions',
         selectAllItems: 'Select all items',
@@ -7911,6 +7933,8 @@ const translations = {
             }
         },
         modifiedDate: 'Date differs from scanned receipt',
+        increasedDistance: ({formattedRouteDistance}: ViolationsIncreasedDistanceParams) =>
+            formattedRouteDistance ? `Distance exceeds the calculated route of ${formattedRouteDistance}` : 'Distance exceeds the calculated route',
         nonExpensiworksExpense: 'Non-Expensiworks expense',
         overAutoApprovalLimit: (formattedLimit: string) => `Expense exceeds auto-approval limit of ${formattedLimit}`,
         overCategoryLimit: (formattedLimit: string) => `Amount over ${formattedLimit}/person category limit`,
@@ -8457,6 +8481,7 @@ const translations = {
             theresWasAProblemDuringAWorkspaceConnectionSync: 'There was a problem during a workspace connection sync',
             theresAProblemWithYourWallet: "There's a problem with your wallet",
             theresAProblemWithYourWalletTerms: "There's a problem with your wallet terms",
+            aBankAccountIsLocked: 'A bank account is locked',
         },
     },
     emptySearchView: {

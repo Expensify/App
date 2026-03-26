@@ -44,7 +44,9 @@ import {
     getDeletedApprovalRuleMessage,
     getDeletedBudgetMessage,
     getDismissedViolationMessageText,
+    getDynamicExternalWorkflowApproveFailedActionMessage,
     getDynamicExternalWorkflowRoutedMessage,
+    getDynamicExternalWorkflowSubmitFailedActionMessage,
     getExportIntegrationMessageHTML,
     getForeignCurrencyDefaultTaxUpdateMessage,
     getForwardsToUpdateMessage,
@@ -126,6 +128,8 @@ import {
     isCreatedAction,
     isCreatedTaskReportAction,
     isDeletedAction as isDeletedActionReportActionsUtils,
+    isDynamicExternalWorkflowApproveFailedAction,
+    isDynamicExternalWorkflowSubmitFailedAction,
     isMarkAsClosedAction,
     isMemberChangeAction,
     isMessageDeleted,
@@ -1116,6 +1120,10 @@ const ContextMenuActions: ContextMenuAction[] = [
                         translate,
                     );
                     setClipboardMessage(displayMessage);
+                } else if (isDynamicExternalWorkflowSubmitFailedAction(reportAction)) {
+                    setClipboardMessage(getDynamicExternalWorkflowSubmitFailedActionMessage(translate, reportAction));
+                } else if (isDynamicExternalWorkflowApproveFailedAction(reportAction)) {
+                    setClipboardMessage(getDynamicExternalWorkflowApproveFailedActionMessage(translate, reportAction));
                 } else if (content) {
                     setClipboardMessage(
                         content.replaceAll(/(<mention-user>)(.*?)(<\/mention-user>)/gi, (match, openTag: string, innerContent: string, closeTag: string): string => {
