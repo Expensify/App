@@ -30,14 +30,6 @@ const ONYXKEYS = {
     /** A unique ID for the device */
     DEVICE_ID: 'deviceID',
 
-    /** Holds information about device-specific biometrics which:
-     * - does need to be persisted
-     * - does not need to be kept in secure storage
-     * - does not persist across uninstallations
-     * (secure storage persists across uninstallation)
-     */
-    DEVICE_BIOMETRICS: 'deviceBiometrics',
-
     /** Boolean flag set whenever the sidebar has loaded */
     IS_SIDEBAR_LOADED: 'isSidebarLoaded',
 
@@ -394,6 +386,9 @@ const ONYXKEYS = {
 
     /** Set when we are loading fresh subscription/billing data from the server */
     IS_LOADING_SUBSCRIPTION_DATA: 'isLoadingSubscriptionData',
+
+    /** Set whether we are loading the search filters card data */
+    IS_SEARCH_FILTERS_CARD_DATA_LOADED: 'isSearchFiltersCardDataLoaded',
 
     /** Set when OpenSearchPage has been fetched for the first time */
     IS_SEARCH_PAGE_DATA_LOADED: 'isSearchPageDataLoaded',
@@ -811,6 +806,13 @@ const ONYXKEYS = {
          * Key format: passkey_${userId}
          */
         PASSKEY_CREDENTIALS: 'passkeyCredentials_',
+
+        /** Holds information about device-specific biometrics which:
+         * - does need to be persisted across logout (but not uninstallation)
+         * - does not need to be kept in secure storage
+         * Key format: deviceBiometrics_${accountID}
+         */
+        DEVICE_BIOMETRICS: 'deviceBiometrics_',
     },
 
     /** List of Form ids */
@@ -1248,6 +1250,7 @@ type OnyxCollectionValuesMapping = {
     [ONYXKEYS.COLLECTION.DOMAIN_ERRORS]: OnyxTypes.DomainErrors;
     [ONYXKEYS.COLLECTION.CODING_RULE_MATCHING_TRANSACTION]: OnyxTypes.CodingRuleMatchingTransaction;
     [ONYXKEYS.COLLECTION.PASSKEY_CREDENTIALS]: OnyxTypes.LocalPasskeyCredentialsEntry;
+    [ONYXKEYS.COLLECTION.DEVICE_BIOMETRICS]: OnyxTypes.DeviceBiometrics;
 };
 
 type OnyxValuesMapping = {
@@ -1363,6 +1366,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.IS_LOADING_PAYMENT_METHODS]: boolean;
     [ONYXKEYS.IS_LOADING_SHARE_BANK_ACCOUNTS]: boolean;
     [ONYXKEYS.IS_LOADING_POLICY_CODING_RULES_PREVIEW]: boolean;
+    [ONYXKEYS.IS_SEARCH_FILTERS_CARD_DATA_LOADED]: boolean;
     [ONYXKEYS.IS_LOADING_SUBSCRIPTION_DATA]: boolean;
     [ONYXKEYS.IS_SEARCH_PAGE_DATA_LOADED]: boolean;
     [ONYXKEYS.IS_LOADING_REPORT_DATA]: boolean;
@@ -1476,7 +1480,6 @@ type OnyxValuesMapping = {
     [ONYXKEYS.IS_OPEN_CONFIRM_NAVIGATE_EXPENSIFY_CLASSIC_MODAL_OPEN]: boolean;
     [ONYXKEYS.PERSONAL_POLICY_ID]: string;
     [ONYXKEYS.TRANSACTION_IDS_HIGHLIGHT_ON_SEARCH_ROUTE]: Record<string, Record<string, boolean>>;
-    [ONYXKEYS.DEVICE_BIOMETRICS]: OnyxTypes.DeviceBiometrics;
 };
 
 type OnyxDerivedValuesMapping = {

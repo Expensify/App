@@ -5141,6 +5141,7 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                 flipAmountSign: 'Inverser le signe du montant',
                 importButton: 'Importer des transactions',
             },
+            assignNewCards: {title: 'Assigner de nouvelles cartes', description: 'Obtenez les dernières cartes à assigner depuis votre banque'},
         },
         expensifyCard: {
             issueAndManageCards: 'Émettre et gérer vos Cartes Expensify',
@@ -7350,6 +7351,7 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
                     [CONST.SEARCH.DATE_PRESETS.LAST_MONTH]: 'Mois dernier',
                     [CONST.SEARCH.DATE_PRESETS.THIS_MONTH]: 'Ce mois-ci',
                     [CONST.SEARCH.DATE_PRESETS.YEAR_TO_DATE]: 'Depuis le début de l’année',
+                    [CONST.SEARCH.DATE_PRESETS.LAST_12_MONTHS]: '12 derniers mois',
                     [CONST.SEARCH.DATE_PRESETS.LAST_STATEMENT]: 'Dernier relevé',
                 },
             },
@@ -7452,6 +7454,10 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
         searchIn: 'Rechercher dans',
         searchPlaceholder: 'Rechercher quelque chose',
         suggestions: 'Suggestions',
+        suggestionsAvailable: ({count}: {count: number}, query = '') => ({
+            one: `Suggestions disponibles${query ? ` pour ${query}` : ''}. ${count} résultat.`,
+            other: (resultCount: number) => `Suggestions disponibles${query ? ` pour ${query}` : ''}. ${resultCount} résultats.`,
+        }),
         exportSearchResults: {
             title: 'Créer l’export',
             description: 'Ouah, ça fait beaucoup d’éléments ! Nous allons les regrouper et Concierge vous enverra un fichier sous peu.',
@@ -7664,6 +7670,9 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
         scrollToNewestMessages: 'Aller au dernier message',
         preStyledText: 'Texte pré-stylé',
         viewAttachment: 'Afficher la pièce jointe',
+        contextMenuAvailable: 'Menu contextuel disponible. Appuyez sur Shift+F10 pour l’ouvrir.',
+        contextMenuAvailableMacOS: 'Menu contextuel disponible. Appuyez sur VO-Shift-M pour l’ouvrir.',
+        contextMenuAvailableNative: 'Menu contextuel disponible. Appuyez deux fois et maintenez pour l’ouvrir.',
         selectAllFeatures: 'Sélectionner toutes les fonctionnalités',
         selectAllTransactions: 'Sélectionner toutes les transactions',
         selectAllItems: 'Sélectionner tous les éléments',

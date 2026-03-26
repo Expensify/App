@@ -50,7 +50,7 @@ We hire and pay external contributors via [Upwork.com](https://www.upwork.com). 
 
 Please add your Upwork profile link in your GitHub Bio to help ensure prompt payment.  If you're using Slack or Expensify for discussions, please add your Upwork profile link **and** your GitHub username in your Slack Title and Expensify Status. 
 
-Payment for your contributions will be made no less than 7 days after the pull request is deployed to production to allow for [regression](https://github.com/Expensify/App/blob/main/contributingGuides/CONTRIBUTING.md#regressions) testing. If you have not received payment after 8 days of the PR being deployed to production, and there are no [regressions](https://github.com/Expensify/App/blob/main/contributingGuides/CONTRIBUTING.md#regressions), please add a comment to the issue mentioning the BugZero team member (Look for the melvin-bot "Triggered auto assignment to... (`Bug`)" to see who this is).
+Payment for your contributions will be made no less than 7 days after the pull request is deployed to production to allow for [regression](https://github.com/Expensify/App/blob/main/contributingGuides/CONTRIBUTING.md#regressions) testing. If you have not received payment after 8 days of the PR being deployed to production, and there are no [regressions](https://github.com/Expensify/App/blob/main/contributingGuides/CONTRIBUTING.md#regressions), please add a comment to the issue mentioning the team member assigned to pay (Look for the melvin-bot "Triggered auto assignment to... (`Awaiting Payment`)" to see who this is).
 
 New contributors are limited to working on one job at a time, **do not submit proposals for new jobs until your first PR has been merged**. Experienced contributors may work on numerous jobs simultaneously.
 

@@ -440,6 +440,18 @@ function openSearchPage({includePartiallySetupBankAccounts}: OpenSearchPageParam
     API.read(READ_COMMANDS.OPEN_SEARCH_PAGE, {includePartiallySetupBankAccounts}, {successData});
 }
 
+function openSearchCardFiltersPage() {
+    const finallyData: Array<OnyxUpdate<typeof ONYXKEYS.IS_SEARCH_FILTERS_CARD_DATA_LOADED>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.IS_SEARCH_FILTERS_CARD_DATA_LOADED,
+            value: true,
+        },
+    ];
+
+    API.read(READ_COMMANDS.OPEN_SEARCH_CARD_FILTERS_PAGE, null, {finallyData});
+}
+
 // Tracks in-flight search requests by hash+offset to prevent duplicate API calls
 // when both page-level (useSearchPageSetup) and Search-internal (handleSearch) effects
 // fire for the same query. Cleared when the request completes.
@@ -1707,5 +1719,6 @@ export {
     setOptimisticDataForTransactionThreadPreview,
     getPayMoneyOnSearchInvoiceParams,
     handlePreventSearchAPI,
+    openSearchCardFiltersPage,
 };
 export type {TransactionPreviewData};

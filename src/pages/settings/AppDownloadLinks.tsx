@@ -84,6 +84,7 @@ function AppDownloadLinksPage() {
                         icon={item.icon}
                         iconRight={item.iconRight}
                         shouldBlockSelection
+                        shouldShowContextMenuHint
                         shouldShowRightIcon
                         role={CONST.ROLE.LINK}
                     />
