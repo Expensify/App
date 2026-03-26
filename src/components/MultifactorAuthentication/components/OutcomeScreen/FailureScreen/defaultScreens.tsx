@@ -50,4 +50,5 @@ const NoEligibleMethodsFailureScreen = createScreenWithDefaults(
     'NoEligibleMethodsFailureScreen',
 );
 
+export {default as UnsupportedDeviceFailureScreen} from './UnsupportedDeviceFailureScreen';
 export {DefaultClientFailureScreen, DefaultServerFailureScreen, OutOfTimeFailureScreen, NoEligibleMethodsFailureScreen};
