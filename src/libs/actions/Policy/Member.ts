@@ -340,6 +340,59 @@ function removeMembers(policy: OnyxEntry<Policy>, selectedMemberEmails: string[]
     const policyKey = `${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const;
 
     const workspaceChats = ReportUtils.getWorkspaceChats(policyID, accountIDs);
+
+    // When a member is removed from a workspace, clean up their open (draft) expense reports
+    // by unreporting all transactions and deleting the reports. This prevents draft reports
+    // from being stuck in the workspace with no way to submit or remove them.
+    // See: https://github.com/Expensify/App/issues/86415
+    const openExpenseReports = ReportUtils.getAllWorkspaceReports(policyID).filter(
+        (report) => ReportUtils.isExpenseReport(report) && ReportUtils.isOpenExpenseReport(report) && report?.ownerAccountID && accountIDs.includes(report.ownerAccountID),
+    );
+    const openExpenseReportCleanupData: {
+        optimisticData: OnyxUpdate[];
+        failureData: OnyxUpdate[];
+    } = {optimisticData: [], failureData: []};
+
+    for (const expenseReport of openExpenseReports) {
+        if (!expenseReport?.reportID) {
+            continue;
+        }
+        const transactions = ReportUtils.getReportTransactions(expenseReport.reportID);
+
+        // Unreport all transactions by setting their reportID to UNREPORTED_REPORT_ID
+        for (const transaction of transactions) {
+            if (!transaction?.transactionID) {
+                continue;
+            }
+            openExpenseReportCleanupData.optimisticData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
+                value: {
+                    reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+                },
+            });
+            openExpenseReportCleanupData.failureData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
+                value: {
+                    reportID: expenseReport.reportID,
+                },
+            });
+        }
+
+        // Delete the expense report
+        openExpenseReportCleanupData.optimisticData.push({
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`,
+            value: null,
+        });
+        openExpenseReportCleanupData.failureData.push({
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`,
+            value: expenseReport,
+        });
+    }
+
     // comment out for time this issue would be resolved https://github.com/Expensify/App/issues/35952
     // const optimisticClosedReportActions = workspaceChats.map(() =>
     //     ReportUtils.buildOptimisticClosedReportAction(currentUserEmail, policy?.name ?? '', CONST.REPORT.ARCHIVE_REASON.REMOVED_FROM_POLICY),
@@ -447,7 +500,7 @@ function removeMembers(policy: OnyxEntry<Policy>, selectedMemberEmails: string[]
     const optimisticApprovalRules = approvalRules.filter((rule) => !selectedMemberEmails.includes(rule?.approver ?? ''));
 
     const optimisticData: Array<
-        OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY | typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_METADATA | typeof ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS>
+        OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY | typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_METADATA | typeof ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS | typeof ONYXKEYS.COLLECTION.TRANSACTION>
     > = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -463,6 +516,7 @@ function removeMembers(policy: OnyxEntry<Policy>, selectedMemberEmails: string[]
         },
     ];
     optimisticData.push(...(announceRoomMembers.optimisticData ?? []), ...(adminRoomMembers.optimisticData ?? []), ...(preferredExporterOnyxData.optimisticData ?? []));
+    optimisticData.push(...openExpenseReportCleanupData.optimisticData);
 
     const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY | typeof ONYXKEYS.COLLECTION.REPORT_METADATA>> = [
         {
@@ -474,7 +528,7 @@ function removeMembers(policy: OnyxEntry<Policy>, selectedMemberEmails: string[]
     successData.push(...(announceRoomMembers.successData ?? []), ...(adminRoomMembers.successData ?? []), ...(preferredExporterOnyxData.successData ?? []));
 
     const failureData: Array<
-        OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY | typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_METADATA | typeof ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS>
+        OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY | typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_METADATA | typeof ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS | typeof ONYXKEYS.COLLECTION.TRANSACTION>
     > = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -483,6 +537,7 @@ function removeMembers(policy: OnyxEntry<Policy>, selectedMemberEmails: string[]
         },
     ];
     failureData.push(...(announceRoomMembers.failureData ?? []), ...(adminRoomMembers.failureData ?? []), ...(preferredExporterOnyxData.failureData ?? []));
+    failureData.push(...openExpenseReportCleanupData.failureData);
 
     const pendingChatMembers = ReportUtils.getPendingChatMembers(accountIDs, [], CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
 
