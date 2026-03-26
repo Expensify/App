@@ -141,7 +141,7 @@ function PlaidConnectionStep({feed, onExit}: {feed?: CompanyCardFeedWithDomainID
             Navigation.goBack();
             return;
         }
-        setAddNewPersonalCardStepAndData({step: isUSCountry ? CONST.COMPANY_CARDS.STEP.SELECT_BANK : CONST.COMPANY_CARDS.STEP.SELECT_COUNTRY});
+        setAddNewPersonalCardStepAndData({step: isUSCountry ? CONST.PERSONAL_CARDS.STEP.SELECT_BANK : CONST.PERSONAL_CARDS.STEP.SELECT_COUNTRY});
     };
     const handlePlaidLinkError = (error: ErrorEvent | null) => {
         Log.hmmm('[PlaidLink] Error: ', error?.message);

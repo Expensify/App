@@ -45,7 +45,7 @@ function SelectCountryStep() {
     const isUS = currentCountry === CONST.COUNTRY.US;
 
     const submit = () => {
-        if (!currentCountry) {
+        if (!currentCountry || !CONST.PLAID_SUPPORT_COUNTRIES.includes(currentCountry)) {
             setHasError(true);
         } else {
             if (addNewPersonalCard?.data.selectedCountry !== currentCountry) {

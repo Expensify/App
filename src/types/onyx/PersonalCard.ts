@@ -7,9 +7,6 @@ import type * as OnyxCommon from './OnyxCommon';
 /** Card feed */
 type PersonalCardFeed = ValueOf<typeof CONST.PERSONAL_CARDS.BANK_NAME>;
 
-/** Company card feed with domain ID */
-type PersonalCardFeedWithDomainID = `${PersonalCardFeed}${typeof CONST.PERSONAL_CARDS.FEED_KEY_SEPARATOR}${string}`;
-
 /** Card feed provider */
 type PersonalCardFeedProvider = typeof CONST.PERSONAL_CARDS.BANK_NAME.AMEX_DIRECT;
 
@@ -179,7 +176,6 @@ export type {
     PersonalCardFeedProvider,
     PersonalCardFeedData,
     CardFeeds,
-    PersonalCardFeedWithDomainID,
     CompanyCardNicknames,
     FundID,
     PersonalCardDomainSettings,
