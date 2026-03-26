@@ -49,11 +49,10 @@ const shouldOpenRHPVariant: ShouldOpenRHPVariant = () => {
 const handleRHPVariantNavigation: HandleRHPVariantNavigation = (onboardingPolicyID) => {
     if (onboardingRHPVariant === CONST.ONBOARDING_RHP_VARIANT.RHP_HOME_PAGE) {
         Navigation.navigate(ROUTES.HOME);
-        SidePanelActions.openSidePanel(true);
-        return;
+    } else {
+        Navigation.navigate(ROUTES.WORKSPACE_OVERVIEW.getRoute(onboardingPolicyID));
     }
 
-    Navigation.navigate(ROUTES.WORKSPACE_OVERVIEW.getRoute(onboardingPolicyID));
     SidePanelActions.openSidePanel(true);
 };
 
