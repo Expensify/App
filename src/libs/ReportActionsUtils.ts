@@ -1109,7 +1109,7 @@ function isResolvedActionableWhisper(reportAction: OnyxEntry<ReportAction>, allA
             // Prefer the stored reportActionID from the whisper's originalMessage when available (set for
             // whispers created during message edits, which don't follow the parentID+1 ID convention).
             // Fall back to offset arithmetic for legacy whispers that predate this field.
-            const storedParentID = isActionableMentionWhisper(reportAction) ? (originalMessage as {reportActionID?: string}).reportActionID : undefined;
+            const storedParentID = isActionableMentionWhisper(reportAction) ? (originalMessage as {parentReportActionID?: string}).parentReportActionID : undefined;
             const parentActionID = storedParentID ?? String(BigInt(reportAction.reportActionID) - (isActionableReportMentionWhisper(reportAction) ? 2n : 1n));
             const parentAction = actions[parentActionID];
             if (parentAction && !isDeletedAction(parentAction)) {
