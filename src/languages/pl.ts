@@ -5095,6 +5095,7 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
                 flipAmountSign: 'Odwróć znak kwoty',
                 importButton: 'Importuj transakcje',
             },
+            assignNewCards: {title: 'Przydziel nowe karty', description: 'Pobierz z banku najnowsze karty do przypisania'},
         },
         expensifyCard: {
             issueAndManageCards: 'Wydawaj i zarządzaj Kartami Expensify',
@@ -7384,6 +7385,10 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
         searchIn: 'Szukaj w',
         searchPlaceholder: 'Wyszukaj coś',
         suggestions: 'Sugestie',
+        suggestionsAvailable: ({count}: {count: number}, query = '') => ({
+            one: `Dostępne sugestie${query ? ` dla ${query}` : ''}. ${count} wynik.`,
+            other: (resultCount: number) => `Dostępne sugestie${query ? ` dla ${query}` : ''}. ${resultCount} wyniki.`,
+        }),
         exportSearchResults: {
             title: 'Utwórz eksport',
             description: 'Wow, ale dużo pozycji! Spakujemy je, a Concierge wkrótce wyśle Ci plik.',
@@ -7595,6 +7600,9 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
         scrollToNewestMessages: 'Przewiń do najnowszych wiadomości',
         preStyledText: 'Wstępnie ostylowany tekst',
         viewAttachment: 'Zobacz załącznik',
+        contextMenuAvailable: 'Menu kontekstowe jest dostępne. Naciśnij Shift+F10, aby je otworzyć.',
+        contextMenuAvailableMacOS: 'Menu kontekstowe jest dostępne. Naciśnij VO-Shift-M, aby je otworzyć.',
+        contextMenuAvailableNative: 'Menu kontekstowe jest dostępne. Dotknij dwukrotnie i przytrzymaj, aby je otworzyć.',
         selectAllFeatures: 'Zaznacz wszystkie funkcje',
         selectAllTransactions: 'Zaznacz wszystkie transakcje',
         selectAllItems: 'Zaznacz wszystkie elementy',

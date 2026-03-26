@@ -1,5 +1,5 @@
 import {addYears, endOfMonth, format, isAfter, isBefore, isSameDay, isValid, isWithinInterval, parse, parseISO, startOfDay, subYears} from 'date-fns';
-import {PUBLIC_DOMAINS_SET, Str, Url} from 'expensify-common';
+import {PUBLIC_DOMAINS_SET, Str, TLD_REGEX, Url} from 'expensify-common';
 import isEmpty from 'lodash/isEmpty';
 import isObject from 'lodash/isObject';
 import type {OnyxCollection} from 'react-native-onyx';
@@ -549,6 +549,24 @@ function isValidEmail(email: string): boolean {
     return Str.isValidEmail(email);
 }
 
+const VALID_TLD_REGEX = new RegExp(`^(${TLD_REGEX})$`, 'i');
+
+/**
+ * Validates the given value if it is correct email address including TLD check against IANA list.
+ * @param email
+ */
+function isValidEmailWithTLD(email: string): boolean {
+    if (!Str.isValidEmail(email)) {
+        return false;
+    }
+    const domain = Str.extractEmailDomain(email);
+    if (!domain) {
+        return false;
+    }
+    const tld = domain.split('.').pop() ?? '';
+    return VALID_TLD_REGEX.test(tld);
+}
+
 /**
  * Validates the given value if it is correct phone number in E164 format (international standard).
  * @param phoneNumber
@@ -834,6 +852,7 @@ export {
     isExistingTaxCode,
     isPublicDomain,
     isValidEmail,
+    isValidEmailWithTLD,
     isValidPhoneInternational,
     isValidZipCodeInternational,
     isValidOwnershipPercentage,

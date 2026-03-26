@@ -5130,6 +5130,7 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                 flipAmountSign: 'Betragsvorzeichen umkehren',
                 importButton: 'Transaktionen importieren',
             },
+            assignNewCards: {title: 'Neue Karten zuweisen', description: 'Holen Sie die neuesten Karten zum Zuweisen von Ihrer Bank'},
         },
         expensifyCard: {
             issueAndManageCards: 'Geben Sie Expensify Karten aus und verwalten Sie sie',
@@ -7429,6 +7430,10 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
         searchIn: 'Suchen in',
         searchPlaceholder: 'Nach etwas suchen',
         suggestions: 'Vorschläge',
+        suggestionsAvailable: ({count}: {count: number}, query = '') => ({
+            one: `Vorschläge verfügbar${query ? ` für ${query}` : ''}. ${count} Ergebnis.`,
+            other: (resultCount: number) => `Vorschläge verfügbar${query ? ` für ${query}` : ''}. ${resultCount} Ergebnisse.`,
+        }),
         exportSearchResults: {
             title: 'Export erstellen',
             description: 'Wow, das sind aber viele Elemente! Wir bündeln sie, und Concierge schickt dir in Kürze eine Datei.',
@@ -7641,6 +7646,9 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
         scrollToNewestMessages: 'Zu neuesten Nachrichten scrollen',
         preStyledText: 'Vorgestylter Text',
         viewAttachment: 'Anhang anzeigen',
+        contextMenuAvailable: 'Kontextmenü verfügbar. Drücken Sie Shift+F10, um es zu öffnen.',
+        contextMenuAvailableMacOS: 'Kontextmenü verfügbar. Drücken Sie VO-Shift-M, um es zu öffnen.',
+        contextMenuAvailableNative: 'Kontextmenü verfügbar. Doppeltippen und halten, um es zu öffnen.',
         selectAllFeatures: 'Alle Funktionen auswählen',
         selectAllTransactions: 'Alle Transaktionen auswählen',
         selectAllItems: 'Alle Einträge auswählen',

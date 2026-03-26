@@ -77,7 +77,6 @@ function SidebarOrderedReportsContextProvider({
     const [reportNameValuePairs, {sourceValue: reportNameValuePairsUpdates}] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
     const [reportsDrafts, {sourceValue: reportsDraftsUpdates}] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
-    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const reportAttributes = useReportAttributes();
     const [currentReportsToDisplay, setCurrentReportsToDisplay] = useState<ReportsToDisplayInLHN>({});
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -251,10 +250,10 @@ function SidebarOrderedReportsContextProvider({
     }, [reportsToDisplayInLHN]);
 
     const getOrderedReportIDs = useCallback(
-        () => SidebarUtils.sortReportsToDisplayInLHN(reportsToDisplayInLHN, priorityMode, localeCompare, hasDraftByReportID, reportNameValuePairs, conciergeReportID),
+        () => SidebarUtils.sortReportsToDisplayInLHN(reportsToDisplayInLHN, priorityMode, localeCompare, hasDraftByReportID, reportNameValuePairs, reportAttributes),
         // Rule disabled intentionally - reports should be sorted only when the reportsToDisplayInLHN changes
         // eslint-disable-next-line react-hooks/exhaustive-deps
-        [reportsToDisplayInLHN, localeCompare, hasDraftByReportID, conciergeReportID],
+        [reportsToDisplayInLHN, localeCompare, hasDraftByReportID, reportAttributes],
     );
 
     const orderedReportIDs = useMemo(() => getOrderedReportIDs(), [getOrderedReportIDs]);

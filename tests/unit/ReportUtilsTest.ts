@@ -119,6 +119,7 @@ import {
     isPayer,
     isReportIneligibleForMoveExpenses,
     isReportOutstanding,
+    isReportPendingDelete,
     isRootGroupChat,
     isSelfDMOrSelfDMThread,
     isWorkspaceMemberLeavingWorkspaceRoom,
@@ -5003,6 +5004,32 @@ describe('ReportUtils', () => {
             });
 
             expect(canDeleteMoneyRequestReport(expenseReport, [], [])).toBe(true);
+        });
+    });
+
+    describe('isReportPendingDelete', () => {
+        it('should return true when pendingAction is DELETE', () => {
+            expect(isReportPendingDelete({pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE})).toBe(true);
+        });
+
+        it('should return true when pendingFields.preview is DELETE', () => {
+            expect(isReportPendingDelete({pendingFields: {preview: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}})).toBe(true);
+        });
+
+        it('should return true when both pendingAction and pendingFields.preview are DELETE', () => {
+            expect(isReportPendingDelete({pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE, pendingFields: {preview: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}})).toBe(true);
+        });
+
+        it('should return false when neither field indicates deletion', () => {
+            expect(isReportPendingDelete({pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD})).toBe(false);
+        });
+
+        it('should return false for undefined report', () => {
+            expect(isReportPendingDelete(undefined)).toBe(false);
+        });
+
+        it('should return false when pendingFields exists but preview is not DELETE', () => {
+            expect(isReportPendingDelete({pendingFields: {preview: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}})).toBe(false);
         });
     });
 
