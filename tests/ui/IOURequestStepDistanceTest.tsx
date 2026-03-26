@@ -85,6 +85,16 @@ jest.mock('@libs/actions/TransactionEdit', () => ({
 jest.mock('@components/ProductTrainingContext', () => ({
     useProductTrainingContext: () => [false],
 }));
+
+jest.mock('@react-navigation/material-top-tabs', () => {
+    const React2 = require('react');
+    return {
+        createMaterialTopTabNavigator: () => ({
+            Navigator: ({children}: {children: React.ReactNode}) => React2.createElement(React2.Fragment, null, children),
+            Screen: ({children}: {children: () => React.ReactNode}) => React2.createElement(React2.Fragment, null, typeof children === 'function' ? children() : children),
+        }),
+    };
+});
 jest.mock('@src/hooks/useResponsiveLayout');
 
 jest.mock('@libs/Navigation/navigationRef', () => ({
