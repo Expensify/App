@@ -1,4 +1,3 @@
-import {hasSeenTourSelector} from '@selectors/Onboarding';
 import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 import ConfirmModal from '@components/ConfirmModal';
@@ -25,7 +24,6 @@ function AddPersonalNewCardPage() {
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
-    const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const {currentStep} = addNewPersonalCardFeed ?? {};
     const [isModalVisible, setIsModalVisible] = useState(false);
     const {translate} = useLocalize();
@@ -83,7 +81,7 @@ function AddPersonalNewCardPage() {
                 onCancel={() => setIsModalVisible(false)}
                 onConfirm={() => {
                     setIsModalVisible(false);
-                    navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas, false);
+                    navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, false, betas);
                 }}
             />
         </>
