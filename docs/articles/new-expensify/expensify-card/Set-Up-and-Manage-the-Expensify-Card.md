@@ -9,7 +9,8 @@ Workspace Admins can enable and issue Expensify Visa® Commercial Cards to manag
 **The Expensify Card offers powerful spend control tools, including:**
 
 - Unlimited virtual cards
-- Individual monthly or fixed spend limits
+- Individual Smart, Monthly, Fixed, or Single-use spend limits
+- Optional expiration dates for time-bound spending
 - Custom names for easier categorization
 - Spend restrictions by employee and merchant
 - Real-time visibility and cash back rewards
@@ -25,7 +26,7 @@ To turn on Expensify Cards for your workspace:
 1. From the left-hand menu, select **Settings > Workspaces > [Workspace Name] > More features**
 2. Under **Spend**, toggle on **Expensify Card**
 
-![Click the toggle next to Expensify Card]({{site.url}}/assets/images/ExpensifyHelp-WorkspaceFeeds_01.png){:width="100%"}
+![Click the toggle next to Expensify Card]({{site.url}}/assets/images/ExpensifyHelp-ExpensifyCard_01.png){:width="100%"}
 
 ---
 
@@ -37,7 +38,7 @@ Link a U.S. business bank account to pay the card balance:
 2. Click **Issue new card**
 3. Choose an existing account or [add a new bank account](https://help.expensify.com/articles/new-expensify/expenses-and-payments/Connect-a-Business-Bank-Account) as the settlement account.
 
-![Click the issue card button]({{site.url}}/assets/images/ExpensifyHelp-WorkspaceFeeds_02.png){:width="100%"}
+![Click the issue card button]({{site.url}}/assets/images/ExpensifyHelp-ExpensifyCard_02.png){:width="100%"}
 
 ---
 
@@ -49,15 +50,23 @@ You can issue virtual or physical cards to employees:
 2. Click **Issue new card**
 3. Select the employee
 4. Choose **Virtual** or **Physical**
-5. Pick a limit type:
+5. Choose a limit type:
    - **Smart limit**: Spend up to a threshold before needing approval
-   - **Monthly limit**: Capped monthly spend
-   - **Fixed limit**: One-time cap, card closes when reached
+   - **Monthly limit**: Limit renews monthly
+   - **Fixed limit**: Spend until the limit is reached
+   - **Single-use (virtual only)**: Expires after one transaction
 6. Enter the spending limit
-7. Name the card for easier tracking
-8. Click **Issue card** to confirm
+7. (Optional for virtual cards) Toggle **Set expiration date** to define:
+   - **Start date**
+   - **End date**
+   - **When enabled:** Both dates are required. The card activates at 12:00 AM local time on the Start date and expires at 11:59 PM local time on the End date.
+   - **When disabled:** The card does not expire automatically.
+8. Name the card for easier tracking
+9. Click **Issue card** to confirm
 
-![Click issue card to confirm and issue the card]({{site.url}}/assets/images/ExpensifyHelp-WorkspaceFeeds_04.png){:width="100%"}
+![Choose a Smart limit type]({{site.url}}/assets/images/ExpensifyHelp-ExpensifyCard_03.png){:width="100%"}
+
+![Click issue card to confirm and issue the card]({{site.url}}/assets/images/ExpensifyHelp-ExpensifyCard_04.png){:width="100%"}
 
 ---
 
@@ -74,11 +83,14 @@ You can issue virtual or physical cards to employees:
    - Deactivation
 4. To change the linked bank account or update settlement frequency, click **Settings**.
 
-![Click Expensify Card in the left menu to see a list of cards]({{site.url}}/assets/images/ExpensifyHelp-WorkspaceFeeds_05.png){:width="100%"}
+![Click Expensify Card in the left menu to see a list of cards]({{site.url}}/assets/images/ExpensifyHelp-ExpensifyCard_05.png){:width="100%"}
 
-![Click the card row to view the card details and make settings adjustments]({{site.url}}/assets/images/ExpensifyHelp-WorkspaceFeeds_06.png){:width="100%"}
+![Click the card row to view the card details and make settings adjustments]({{site.url}}/assets/images/ExpensifyHelp-ExpensifyCard_06.png){:width="100%"}
 
-![Click Settings to adjust the settlement account or frequency]({{site.url}}/assets/images/ExpensifyHelp-WorkspaceFeeds_07.png){:width="100%"}
+![Click Settings to adjust the settlement account or frequency]({{site.url}}/assets/images/ExpensifyHelp-ExpensifyCard_08.png){:width="100%"}
+
+If a Single-use card completes its first successful transaction, it automatically deactivates.
+If a card reaches its expiration date, it automatically deactivates and declines new transactions.
 
 ---
 
@@ -111,4 +123,12 @@ The limit is the maximum combined spending limit for all Expensify Cards in your
 - **Available funds:** A sudden drop in your linked bank account can reduce your Domain Limit.
 - **Pending expenses:** Large, unprocessed purchases temporarily reduce your spending capacity.
 - **Processing settlements:** Until the previous cycle settles, your limit adjusts dynamically.
+
+## What is a Single-use Expensify Card?
+
+A Single-use virtual card automatically deactivates after its first successful authorization. It's ideal for one-time purchases like flights, vendor payments, or event registration.
+
+## What happens when a card reaches its expiration date?
+
+The card automatically deactivates at 11:59 PM local time on the selected End date and declines new transactions.
 

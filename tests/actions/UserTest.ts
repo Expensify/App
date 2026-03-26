@@ -2,7 +2,7 @@
 import Onyx from 'react-native-onyx';
 import type {OnyxMergeInput} from 'react-native-onyx';
 import * as API from '@libs/API';
-import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
+import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import CONST from '@src/CONST';
 import type {OnyxKey} from '@src/ONYXKEYS';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -579,6 +579,16 @@ describe('actions/User', () => {
         });
     });
 
+    describe('openMultifactorAuthenticationRevokePage', () => {
+        it('should call API.read with the correct command', () => {
+            // When the function is called
+            UserActions.openMultifactorAuthenticationRevokePage();
+
+            // Then it should issue a read API call with the correct command
+            expect(mockAPI.read).toHaveBeenCalledWith(READ_COMMANDS.OPEN_MULTIFACTOR_AUTHENTICATION_REVOKE_PAGE, null);
+        });
+    });
+
     describe('lockAccount', () => {
         it('should execute with explicit accountID ', async () => {
             const accountID = 123456;
@@ -799,6 +809,79 @@ describe('actions/User', () => {
             await waitForBatchedUpdates();
 
             expect(mockAPI.write).toHaveBeenCalledWith(WRITE_COMMANDS.REQUEST_UNLOCK_ACCOUNT, {accountID: currentAccountID});
+        });
+    });
+
+    describe('respondToProactiveAppReview', () => {
+        const TEST_USER_ACCOUNT_ID = 42;
+        const TEST_USER_EMAIL = 'user@example.com';
+        const TEST_CONCIERGE_REPORT_ID = '999';
+
+        it('should call RESPOND_TO_PROACTIVE_APP_REVIEW API with the given response', async () => {
+            UserActions.respondToProactiveAppReview('positive', undefined, TEST_USER_EMAIL, TEST_USER_ACCOUNT_ID);
+            await waitForBatchedUpdates();
+
+            expect(mockAPI.write).toHaveBeenCalledWith(WRITE_COMMANDS.RESPOND_TO_PROACTIVE_APP_REVIEW, expect.objectContaining({response: 'positive'}), expect.anything());
+        });
+
+        it('should call RESPOND_TO_PROACTIVE_APP_REVIEW API with skip response', async () => {
+            UserActions.respondToProactiveAppReview('skip', undefined, TEST_USER_EMAIL, TEST_USER_ACCOUNT_ID);
+            await waitForBatchedUpdates();
+
+            expect(mockAPI.write).toHaveBeenCalledWith(WRITE_COMMANDS.RESPOND_TO_PROACTIVE_APP_REVIEW, expect.objectContaining({response: 'skip'}), expect.anything());
+        });
+
+        it('should include optimisticReportActionID when message and conciergeChatReportID are provided for non-skip response', async () => {
+            UserActions.respondToProactiveAppReview('positive', undefined, TEST_USER_EMAIL, TEST_USER_ACCOUNT_ID, 'Great app!', TEST_CONCIERGE_REPORT_ID);
+            await waitForBatchedUpdates();
+
+            expect(mockAPI.write).toHaveBeenCalledWith(
+                WRITE_COMMANDS.RESPOND_TO_PROACTIVE_APP_REVIEW,
+                expect.objectContaining({
+                    response: 'positive',
+                    optimisticReportActionID: expect.any(String) as string,
+                }),
+                expect.anything(),
+            );
+        });
+
+        it('should NOT include optimisticReportActionID when response is skip even with message', async () => {
+            UserActions.respondToProactiveAppReview('skip', undefined, TEST_USER_EMAIL, TEST_USER_ACCOUNT_ID, 'Some message', TEST_CONCIERGE_REPORT_ID);
+            await waitForBatchedUpdates();
+
+            expect(mockAPI.write).toHaveBeenCalledWith(
+                WRITE_COMMANDS.RESPOND_TO_PROACTIVE_APP_REVIEW,
+                expect.not.objectContaining({optimisticReportActionID: expect.any(String) as string}),
+                expect.anything(),
+            );
+        });
+
+        it('should optimistically update NVP_APP_REVIEW with the response', async () => {
+            const currentReview = {response: 'positive' as const, lastPrompt: '2024-01-01 00:00:00.000'};
+            await Onyx.merge(ONYXKEYS.NVP_APP_REVIEW, currentReview);
+            await waitForBatchedUpdates();
+
+            UserActions.respondToProactiveAppReview('negative', currentReview, TEST_USER_EMAIL, TEST_USER_ACCOUNT_ID);
+            await waitForBatchedUpdates();
+
+            expect(mockAPI.write).toHaveBeenCalledWith(
+                WRITE_COMMANDS.RESPOND_TO_PROACTIVE_APP_REVIEW,
+                expect.objectContaining({response: 'negative'}),
+                expect.objectContaining({
+                    optimisticData: expect.arrayContaining([
+                        expect.objectContaining({
+                            key: ONYXKEYS.NVP_APP_REVIEW,
+                            value: expect.objectContaining({response: 'negative'}),
+                        }),
+                    ]),
+                    failureData: expect.arrayContaining([
+                        expect.objectContaining({
+                            key: ONYXKEYS.NVP_APP_REVIEW,
+                            value: expect.objectContaining({response: 'positive'}),
+                        }),
+                    ]),
+                }),
+            );
         });
     });
 });

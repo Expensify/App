@@ -141,8 +141,8 @@ function DropdownButton({label, value, viewportOffsetTop, PopoverComponent, medi
             >
                 <CaretWrapper
                     style={[styles.flex1, styles.mw100, caretWrapperStyle]}
-                    caretWidth={variables.iconSizeSmall}
-                    caretHeight={variables.iconSizeSmall}
+                    caretWidth={medium ? variables.iconSizeSmall : variables.iconSizeExtraSmall}
+                    caretHeight={medium ? variables.iconSizeSmall : variables.iconSizeExtraSmall}
                     isActive={isOverlayVisible}
                 >
                     <Text
@@ -183,5 +183,5 @@ function DropdownButton({label, value, viewportOffsetTop, PopoverComponent, medi
     );
 }
 
-export type {PopoverComponentProps};
+export type {PopoverComponentProps, DropdownButtonProps};
 export default withViewportOffsetTop(DropdownButton);

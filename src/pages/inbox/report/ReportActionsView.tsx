@@ -4,8 +4,11 @@ import {InteractionManager} from 'react-native';
 import type {LayoutChangeEvent} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
+import useConciergeSidePanelReportActions from '@hooks/useConciergeSidePanelReportActions';
 import useCopySelectionHelper from '@hooks/useCopySelectionHelper';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLoadReportActions from '@hooks/useLoadReportActions';
+import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePendingConciergeResponse from '@hooks/usePendingConciergeResponse';
@@ -15,7 +18,6 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
 import {getReportPreviewAction} from '@libs/actions/IOU';
 import {updateLoadingInitialReportAction} from '@libs/actions/Report';
-import type {ReasoningEntry} from '@libs/ConciergeReasoningStore';
 import DateUtils from '@libs/DateUtils';
 import getIsReportFullyVisible from '@libs/getIsReportFullyVisible';
 import {getAllNonDeletedTransactions} from '@libs/MoneyRequestReportUtils';
@@ -56,6 +58,9 @@ type ReportActionsViewProps = {
     /** The report metadata loading states */
     isLoadingInitialReportActions?: boolean;
 
+    /** Whether report actions have been successfully loaded at least once */
+    hasOnceLoadedReportActions?: boolean;
+
     /** The reportID of the transaction thread report associated with this current report, if any */
     // eslint-disable-next-line react/no-unused-prop-types
     transactionThreadReportID?: string | null;
@@ -69,14 +74,14 @@ type ReportActionsViewProps = {
     /** If the report is a transaction thread report */
     isReportTransactionThread?: boolean;
 
-    /** Whether Concierge is currently processing */
-    isConciergeProcessing?: boolean;
+    /** Whether this is the concierge chat report displayed in the side panel */
+    isConciergeSidePanel?: boolean;
 
-    /** Concierge reasoning history */
-    conciergeReasoningHistory?: ReasoningEntry[];
+    /** Whether the current user has sent a message in this side panel session */
+    hasUserSentMessage?: boolean;
 
-    /** Concierge status label */
-    conciergeStatusLabel?: string;
+    /** DB-time string marking when the current side panel session started */
+    sessionStartTime?: string | null;
 
     /** Callback executed on layout */
     onLayout?: (event: LayoutChangeEvent) => void;
@@ -89,18 +94,21 @@ function ReportActionsView({
     parentReportAction,
     reportActions: allReportActions,
     isLoadingInitialReportActions,
+    hasOnceLoadedReportActions,
     transactionThreadReportID,
     hasNewerActions,
     hasOlderActions,
     isReportTransactionThread,
-    isConciergeProcessing,
-    conciergeReasoningHistory,
-    conciergeStatusLabel,
+    isConciergeSidePanel = false,
+    hasUserSentMessage = false,
+    sessionStartTime = null,
     onLayout,
 }: ReportActionsViewProps) {
     useCopySelectionHelper();
+    const {translate} = useLocalize();
     usePendingConciergeResponse(report.reportID);
     const route = useRoute<PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>>();
+    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const isReportArchived = useReportIsArchived(report?.reportID);
     const canPerformWriteAction = useMemo(() => canUserPerformWriteAction(report, isReportArchived), [report, isReportArchived]);
 
@@ -142,7 +150,8 @@ function ReportActionsView({
 
     const lastAction = allReportActions?.at(-1);
     const isInitiallyLoadingTransactionThread = isReportTransactionThread && (!!isLoadingInitialReportActions || (allReportActions ?? [])?.length <= 1);
-    const shouldAddCreatedAction = !isCreatedAction(lastAction) && (isMoneyRequestReport(report) || isInvoiceReport(report) || isInitiallyLoadingTransactionThread);
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    const shouldAddCreatedAction = !isCreatedAction(lastAction) && (isMoneyRequestReport(report) || isInvoiceReport(report) || isInitiallyLoadingTransactionThread || isConciergeSidePanel);
 
     useEffect(() => {
         // When we linked to message - we do not need to wait for initial actions - they already exists
@@ -283,12 +292,31 @@ function ReportActionsView({
 
     const {loadOlderChats, loadNewerChats} = useLoadReportActions({
         reportID,
-        reportActionID,
         reportActions,
         allReportActionIDs,
         transactionThreadReport,
         hasOlderActions,
         hasNewerActions,
+    });
+
+    const {
+        filteredVisibleActions: conciergeSidePanelFilteredVisibleActions,
+        filteredReportActions: conciergeSidePanelFilteredReportActions,
+        showConciergeSidePanelWelcome,
+        showFullHistory,
+        hasPreviousMessages,
+        handleShowPreviousMessages,
+    } = useConciergeSidePanelReportActions({
+        report,
+        reportActions,
+        visibleReportActions,
+        isConciergeSidePanel,
+        hasUserSentMessage,
+        hasOlderActions,
+        sessionStartTime,
+        currentUserAccountID,
+        greetingText: translate('common.concierge.sidePanelGreeting'),
+        loadOlderChats,
     });
 
     /**
@@ -340,7 +368,15 @@ function ReportActionsView({
 
     // Show skeleton while the app is loading and we're online
     const shouldShowSkeletonForAppLoad = isLoadingApp && !isOffline;
-    const shouldShowSkeleton = shouldShowSkeletonForInitialLoad ?? shouldShowSkeletonForAppLoad;
+
+    // Show skeleton for the Concierge side panel until report data has been
+    // loaded at least once. Before the first openReport response, hasOlderActions
+    // is unreliable, so we can't determine whether to show the greeting or
+    // onboarding messages. The skeleton avoids flashing wrong content.
+    const shouldShowSkeletonForConciergePanel = isConciergeSidePanel && !hasOnceLoadedReportActions && !isOffline;
+
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    const shouldShowSkeleton = shouldShowSkeletonForConciergePanel || shouldShowSkeletonForInitialLoad || shouldShowSkeletonForAppLoad;
 
     useEffect(() => {
         if (!shouldShowSkeleton) {
@@ -354,7 +390,7 @@ function ReportActionsView({
     }
 
     const hasDerivedValueTimingIssue = reportActions.length > 0 && isMissingReportActions;
-    if (hasDerivedValueTimingIssue || (!isReportTransactionThread && isMissingReportActions)) {
+    if ((hasDerivedValueTimingIssue || (!isReportTransactionThread && isMissingReportActions)) && !showConciergeSidePanelWelcome) {
         return <ReportActionsSkeletonView shouldAnimate={false} />;
     }
 
@@ -368,17 +404,18 @@ function ReportActionsView({
                 parentReportAction={parentReportAction}
                 parentReportActionForTransactionThread={parentReportActionForTransactionThread}
                 onLayout={recordTimeToMeasureItemLayout}
-                sortedReportActions={reportActions}
-                sortedVisibleReportActions={visibleReportActions}
+                sortedReportActions={conciergeSidePanelFilteredReportActions}
+                sortedVisibleReportActions={conciergeSidePanelFilteredVisibleActions}
                 mostRecentIOUReportActionID={mostRecentIOUReportActionID}
                 loadOlderChats={loadOlderChats}
                 loadNewerChats={loadNewerChats}
                 listID={listID}
                 shouldEnableAutoScrollToTopThreshold={shouldEnableAutoScroll}
                 hasCreatedActionAdded={shouldAddCreatedAction}
-                isConciergeProcessing={isConciergeProcessing}
-                conciergeReasoningHistory={conciergeReasoningHistory}
-                conciergeStatusLabel={conciergeStatusLabel}
+                isConciergeSidePanel={isConciergeSidePanel}
+                showHiddenHistory={!showFullHistory}
+                hasPreviousMessages={hasPreviousMessages}
+                onShowPreviousMessages={handleShowPreviousMessages}
             />
             <UserTypingEventListener report={report} />
         </>
