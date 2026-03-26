@@ -13,7 +13,6 @@ import {getTranslationKeyForLimitType} from '@libs/CardUtils';
 import {convertToShortDisplayString} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
-import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {PersonalDetails} from '@src/types/onyx';
 import type {CardLimitType} from '@src/types/onyx/Card';
