@@ -19,9 +19,8 @@ import type {CameraProps} from './types';
 /**
  * FileUpload — desktop web capture variant.
  * Renders a drag-and-drop zone + file picker button + receipt alternative methods.
- * Calls `onCapture(file, source)` for each file picked, or `onDrop(files, items)` for drag-and-drop.
  */
-function FileUpload({onCapture, onDrop, shouldAcceptMultipleFiles = false, onLayout}: CameraProps) {
+function FileUpload({onDrop, shouldAcceptMultipleFiles = false, onLayout}: CameraProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -43,13 +42,6 @@ function FileUpload({onCapture, onDrop, shouldAcceptMultipleFiles = false, onLay
     const chooseFilesPaddingVertical = Number(styles.chooseFilesView(false).paddingVertical);
     const shouldHideAlternativeMethods = altMethodsHeight + uploadViewHeight + chooseFilesPaddingVertical * 2 > containerHeight;
 
-    const emitFiles = (files: FileObject[]) => {
-        for (const file of files) {
-            const source = file.uri ?? URL.createObjectURL(file as Blob);
-            onCapture(file, source);
-        }
-    };
-
     const handleDrop = (e: DragEvent) => {
         const rawFiles = Array.from(e?.dataTransfer?.files ?? []);
         if (rawFiles.length === 0) {
@@ -63,10 +55,7 @@ function FileUpload({onCapture, onDrop, shouldAcceptMultipleFiles = false, onLay
 
         if (onDrop) {
             onDrop(files, Array.from(e.dataTransfer?.items ?? []));
-            return;
         }
-
-        emitFiles(files);
     };
 
     return (
@@ -108,7 +97,7 @@ function FileUpload({onCapture, onDrop, shouldAcceptMultipleFiles = false, onLay
                                     style={[styles.p5]}
                                     onPress={() => {
                                         openPicker({
-                                            onPicked: (data) => emitFiles(data),
+                                            onPicked: (data) => onDrop?.(data, []),
                                         });
                                     }}
                                     sentryLabel={CONST.SENTRY_LABEL.IOU_REQUEST_STEP.SCAN_SUBMIT_BUTTON}
