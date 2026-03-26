@@ -53,7 +53,7 @@ const handleRHPVariantNavigation: HandleRHPVariantNavigation = (onboardingPolicy
     } else {
         Navigation.navigate(ROUTES.WORKSPACE_OVERVIEW.getRoute(onboardingPolicyID));
     }
-    SidePanelActions.openSidePanel(false);
+    SidePanelActions.openSidePanel(true);
 };
 
 export {shouldOpenRHPVariant, handleRHPVariantNavigation};
