@@ -1840,6 +1840,9 @@ const CONST = {
         ACTIVITY_INDICATOR_TIMEOUT: 10000,
         MIN_SMOOTH_SCROLL_EVENT_THROTTLE: 16,
     },
+    DEFERRED_LAYOUT_WRITE_KEYS: {
+        SEARCH: 'search',
+    },
     TELEMETRY: {
         CONTEXT_FULLSTORY: 'Fullstory',
         CONTEXT_MEMORY: 'Memory',
@@ -1952,6 +1955,7 @@ const CONST = {
         ATTRIBUTE_MIN_DURATION: 'min_duration',
         ATTRIBUTE_FINISHED_MANUALLY: 'finished_manually',
         ATTRIBUTE_IS_WARM: 'is_warm',
+        ATTRIBUTE_WAS_LIST_EMPTY: 'was_list_empty',
         ATTRIBUTE_SKELETON_PREFIX: 'skeleton.',
         ATTRIBUTE_SCENARIO: 'scenario',
         ATTRIBUTE_HAS_RECEIPT: 'has_receipt',
@@ -2786,6 +2790,17 @@ const CONST = {
                 JOBS: 'jobs',
             },
         },
+        NETSUITE_ADD_CUSTOM_SEGMENT: {
+            STEP_INDEX_LIST: ['1', '2', '3', '4', '5', '6'],
+            PAGE_NAME: {
+                TYPE: 'type',
+                NAME: 'name',
+                INTERNAL_ID: 'internal-id',
+                SCRIPT_ID: 'script-id',
+                MAPPING_TITLE: 'mapping-title',
+                CONFIRM: 'confirm',
+            },
+        },
         NETSUITE_ADD_CUSTOM_LIST: {
             STEP_INDEX_LIST: ['1', '2', '3', '4'],
             PAGE_NAME: {
@@ -2795,7 +2810,6 @@ const CONST = {
                 CONFIRM: 'confirm',
             },
         },
-        NETSUITE_ADD_CUSTOM_SEGMENT_STEP_NAMES: ['1', '2,', '3', '4', '5', '6,'],
     },
 
     NETSUITE_CUSTOM_FIELD_SUBSTEP_INDEXES: {
@@ -6163,15 +6177,17 @@ const CONST = {
             NAVIGATE: 'NAVIGATE',
             SET_PARAMS: 'SET_PARAMS',
             PRELOAD: 'PRELOAD',
+            POP: 'POP',
             POP_TO: 'POP_TO',
             GO_BACK: 'GO_BACK',
+            RESET: 'RESET',
 
             /** These action types are custom for RootNavigator */
             DISMISS_MODAL: 'DISMISS_MODAL',
             REPLACE_FULLSCREEN_UNDER_RHP: 'REPLACE_FULLSCREEN_UNDER_RHP',
             OPEN_WORKSPACE_SPLIT: 'OPEN_WORKSPACE_SPLIT',
             OPEN_DOMAIN_SPLIT: 'OPEN_DOMAIN_SPLIT',
-            SET_HISTORY_PARAM: 'SET_HISTORY_PARAM',
+            PUSH_PARAMS: 'PUSH_PARAMS',
             REPLACE_PARAMS: 'REPLACE_PARAMS',
             TOGGLE_SIDE_PANEL_WITH_HISTORY: 'TOGGLE_SIDE_PANEL_WITH_HISTORY',
         },
@@ -7916,6 +7932,7 @@ const CONST = {
             LAST_MONTH: 'last-month',
             THIS_MONTH: 'this-month',
             YEAR_TO_DATE: 'year-to-date',
+            LAST_12_MONTHS: 'last-12-months',
             LAST_STATEMENT: 'last-statement',
         },
         SNAPSHOT_ONYX_KEYS: [

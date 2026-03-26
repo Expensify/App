@@ -7317,6 +7317,7 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
                     [CONST.SEARCH.DATE_PRESETS.LAST_MONTH]: 'Il mese scorso',
                     [CONST.SEARCH.DATE_PRESETS.THIS_MONTH]: 'Questo mese',
                     [CONST.SEARCH.DATE_PRESETS.YEAR_TO_DATE]: 'Da inizio anno',
+                    [CONST.SEARCH.DATE_PRESETS.LAST_12_MONTHS]: 'Ultimi 12 mesi',
                     [CONST.SEARCH.DATE_PRESETS.LAST_STATEMENT]: 'Ultimo estratto conto',
                 },
             },
@@ -7419,6 +7420,10 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
         searchIn: 'Cerca in',
         searchPlaceholder: 'Cerca qualcosa',
         suggestions: 'Suggerimenti',
+        suggestionsAvailable: ({count}: {count: number}, query = '') => ({
+            one: `Suggerimenti disponibili${query ? ` per ${query}` : ''}. ${count} risultato.`,
+            other: (resultCount: number) => `Suggerimenti disponibili${query ? ` per ${query}` : ''}. ${resultCount} risultati.`,
+        }),
         exportSearchResults: {
             title: 'Crea esportazione',
             description: 'Wow, sono davvero tanti elementi! Li raggrupperemo e Concierge ti invierà un file a breve.',
