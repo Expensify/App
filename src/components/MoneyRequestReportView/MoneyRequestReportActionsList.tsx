@@ -753,7 +753,6 @@ function MoneyRequestReportActionsList({
             isReportArchived,
             reportNameValuePairs?.origin,
             reportNameValuePairs?.originalID,
-            isOffline,
         ],
     );
 

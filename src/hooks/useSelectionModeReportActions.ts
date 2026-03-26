@@ -8,19 +8,17 @@ import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import {KYCWallContext} from '@components/KYCWall/KYCWallContext';
 import {useLockedAccountActions, useLockedAccountState} from '@components/LockedAccountModalProvider';
-import {ModalActions} from '@components/Modal/Global/ModalContext';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import type {ActionHandledType} from '@components/ProcessMoneyReportHoldMenu';
 import {useSearchActionsContext, useSearchStateContext} from '@components/Search/SearchContext';
 import type {PaymentActionParams} from '@components/SettlementButton/types';
 import {approveMoneyRequest, canApproveIOU, canIOUBePaid as canIOUBePaidAction, payInvoice, payMoneyRequest, submitReport} from '@libs/actions/IOU';
-import {openOldDotLink} from '@libs/actions/Link';
 import {search} from '@libs/actions/Search';
 import getPlatform from '@libs/getPlatform';
 import {getTotalAmountForIOUReportPreviewButton} from '@libs/MoneyRequestReportUtils';
 import type {KYCFlowEvent, TriggerKYCFlow} from '@libs/PaymentUtils';
 import {handleUnvalidatedAccount, selectPaymentType} from '@libs/PaymentUtils';
-import {hasDynamicExternalWorkflow, sortPoliciesByName} from '@libs/PolicyUtils';
+import {sortPoliciesByName} from '@libs/PolicyUtils';
 import {hasRequestFromCurrentAccount} from '@libs/ReportActionsUtils';
 import {getReportPrimaryAction} from '@libs/ReportPrimaryActionUtils';
 import {getSecondaryReportActions} from '@libs/ReportSecondaryActionUtils';
@@ -37,13 +35,14 @@ import {
     isReportOwner,
     shouldBlockSubmitDueToStrictPolicyRules,
 } from '@libs/ReportUtils';
-import {isExpensifyCardTransaction, isPending} from '@libs/TransactionUtils';
+import {hasAnyPendingRTERViolation as hasAnyPendingRTERViolationTransactionUtils, isExpensifyCardTransaction, isPending} from '@libs/TransactionUtils';
+import {markPendingRTERTransactionsAsCash} from '@userActions/Transaction';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import useActiveAdminPolicies from './useActiveAdminPolicies';
-import useConfirmModal from './useConfirmModal';
+import useConfirmPendingRTERAndProceed from './useConfirmPendingRTERAndProceed';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons} from './useLazyAsset';
 import useLocalize from './useLocalize';
@@ -78,7 +77,6 @@ function useSelectionModeReportActions({
     selectedTransactionIDs,
 }: UseSelectionModeReportActionsParams) {
     const {translate, localeCompare} = useLocalize();
-    const {showConfirmModal} = useConfirmModal();
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const {isBetaEnabled} = usePermissions();
     const {areStrictPolicyRulesEnabled} = useStrictPolicyRules();
@@ -120,11 +118,21 @@ function useSelectionModeReportActions({
 
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Send', 'ThumbsUp', 'Cash', 'ArrowRight', 'Building'] as const);
 
-    const isDEWBetaEnabled = isBetaEnabled(CONST.BETAS.NEW_DOT_DEW);
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
 
     const currentUserEmail = session?.email;
     const hasViolations = hasViolationsReportUtils(report?.reportID, allTransactionViolations, currentUserAccountID, currentUserEmail ?? '');
+
+    const hasAnyPendingRTERViolation = useMemo(
+        () => hasAnyPendingRTERViolationTransactionUtils(transactions, allTransactionViolations, currentUserEmail ?? '', currentUserAccountID, report, policy),
+        [transactions, allTransactionViolations, currentUserEmail, currentUserAccountID, report, policy],
+    );
+
+    const handleMarkPendingRTERTransactionsAsCash = useCallback(() => {
+        markPendingRTERTransactionsAsCash(transactions, allTransactionViolations, reportActions);
+    }, [transactions, allTransactionViolations, reportActions]);
+
+    const confirmPendingRTERAndProceed = useConfirmPendingRTERAndProceed(hasAnyPendingRTERViolation, handleMarkPendingRTERTransactionsAsCash);
 
     const nextApproverAccountID = getNextApproverAccountID(report);
     const isSubmitterSameAsNextApprover = isReportOwner(report) && (nextApproverAccountID === report?.ownerAccountID || report?.managerID === report?.ownerAccountID);
@@ -313,18 +321,6 @@ function useSelectionModeReportActions({
         isSelectionModePaymentRef.current = false;
     }, [selectedTransactionIDs.length]);
 
-    const showDWEModal = useCallback(async () => {
-        const result = await showConfirmModal({
-            confirmText: translate('customApprovalWorkflow.goToExpensifyClassic'),
-            title: translate('customApprovalWorkflow.title'),
-            prompt: translate('customApprovalWorkflow.description'),
-            shouldShowCancelButton: false,
-        });
-        if (result.action === ModalActions.CONFIRM) {
-            openOldDotLink(CONST.OLDDOT_URLS.INBOX);
-        }
-    }, [showConfirmModal, translate]);
-
     const checkForNecessaryAction = useCallback(() => {
         if (isDelegateAccessRestricted) {
             showDelegateNoAccessModal();
@@ -345,39 +341,36 @@ function useSelectionModeReportActions({
         if (!report || shouldBlockSubmit) {
             return;
         }
-        if (hasDynamicExternalWorkflow(policy) && !isDEWBetaEnabled) {
-            showDWEModal();
-            return;
-        }
-        submitReport({
-            expenseReport: report,
-            policy,
-            currentUserAccountIDParam: currentUserAccountID,
-            currentUserEmailParam: currentUserEmail ?? '',
-            hasViolations,
-            isASAPSubmitBetaEnabled,
-            expenseReportCurrentNextStepDeprecated: nextStep,
-            userBillingGraceEndPeriods,
-            amountOwed,
-            ownerBillingGraceEndPeriod,
-        });
-        if (currentSearchQueryJSON && !isOffline) {
-            search({
-                searchKey: currentSearchKey,
-                shouldCalculateTotals,
-                offset: 0,
-                queryJSON: currentSearchQueryJSON,
-                isOffline,
-                isLoading: !!currentSearchResults?.search?.isLoading,
+        const doSubmit = () => {
+            submitReport({
+                expenseReport: report,
+                policy,
+                currentUserAccountIDParam: currentUserAccountID,
+                currentUserEmailParam: currentUserEmail ?? '',
+                hasViolations,
+                isASAPSubmitBetaEnabled,
+                expenseReportCurrentNextStepDeprecated: nextStep,
+                userBillingGraceEndPeriods,
+                amountOwed,
+                ownerBillingGraceEndPeriod,
             });
-        }
-        clearSelectedTransactions(true);
+            if (currentSearchQueryJSON && !isOffline) {
+                search({
+                    searchKey: currentSearchKey,
+                    shouldCalculateTotals,
+                    offset: 0,
+                    queryJSON: currentSearchQueryJSON,
+                    isOffline,
+                    isLoading: !!currentSearchResults?.search?.isLoading,
+                });
+            }
+            clearSelectedTransactions(true);
+        };
+        confirmPendingRTERAndProceed(doSubmit);
     }, [
         report,
         shouldBlockSubmit,
         policy,
-        isDEWBetaEnabled,
-        showDWEModal,
         currentUserAccountID,
         currentUserEmail,
         hasViolations,
@@ -392,13 +385,10 @@ function useSelectionModeReportActions({
         shouldCalculateTotals,
         currentSearchResults?.search?.isLoading,
         clearSelectedTransactions,
+        confirmPendingRTERAndProceed,
     ]);
 
     const confirmApproval = useCallback(() => {
-        if (hasDynamicExternalWorkflow(policy) && !isDEWBetaEnabled) {
-            showDWEModal();
-            return;
-        }
         setRequestType(CONST.IOU.REPORT_ACTION_TYPE.APPROVE);
         if (isDelegateAccessRestricted) {
             showDelegateNoAccessModal();
@@ -423,8 +413,6 @@ function useSelectionModeReportActions({
         }
     }, [
         policy,
-        isDEWBetaEnabled,
-        showDWEModal,
         isDelegateAccessRestricted,
         showDelegateNoAccessModal,
         isAnyTransactionOnHold,
