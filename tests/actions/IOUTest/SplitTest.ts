@@ -2551,6 +2551,10 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
         expect(newThreadActions?.[commentReportActionID]?.actorAccountID).toBe(RORY_ACCOUNT_ID);
         expect(newThreadActions?.[commentReportActionID]?.created).toBe(commentCreated);
         expect(newThreadActions?.[commentReportActionID]?.message).toEqual(reportAction.message);
+
+        // The comment should no longer be accessible from the old split thread (thread is deleted during revert)
+        const updatedSplitThreadActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${splitThreadReportID}`);
+        expect(updatedSplitThreadActions?.[commentReportActionID] ?? null).toBeFalsy();
     });
 
     it('should set navigate-back URL and navigate to parent chat when reverse-split deletes the last transaction in expense report', async () => {
