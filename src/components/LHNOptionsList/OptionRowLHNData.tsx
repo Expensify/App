@@ -1,5 +1,5 @@
 import {deepEqual} from 'fast-equals';
-import React, {useMemo, useRef} from 'react';
+import React, {useCallback, useMemo, useRef} from 'react';
 import useReportPreviewSenderID from '@components/ReportActionAvatars/useReportPreviewSenderID';
 import {useCurrentReportIDState} from '@hooks/useCurrentReportID';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -7,11 +7,13 @@ import useGetExpensifyCardFromReportAction from '@hooks/useGetExpensifyCardFromR
 import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+import {getIOUReportIDFromReportActionPreview} from '@libs/ReportActionsUtils';
 import SidebarUtils from '@libs/SidebarUtils';
 import CONST from '@src/CONST';
 import {getMovedReportID} from '@src/libs/ModifiedExpenseMessage';
 import type {OptionData} from '@src/libs/ReportUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {ReportAttributesDerivedValue} from '@src/types/onyx/DerivedValues';
 import type {Icon} from '@src/types/onyx/OnyxCommon';
 import OptionRowLHN from './OptionRowLHN';
 import type {OptionRowLHNDataProps} from './types';
@@ -25,9 +27,6 @@ import type {OptionRowLHNDataProps} from './types';
 function OptionRowLHNData({
     isOptionFocused = false,
     fullReport,
-    reportAttributes,
-    reportAttributesDerived,
-    oneTransactionThreadReport,
     reportNameValuePairs,
     reportActions,
     personalDetails = {},
@@ -59,6 +58,17 @@ function OptionRowLHNData({
     const [draftComment] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`);
     const {login} = useCurrentUserPersonalDetails();
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fullReport?.policyID}`);
+
+    const reportAttributesSelector = useCallback((data: ReportAttributesDerivedValue | undefined) => data?.reports?.[reportID], [reportID]);
+    const [reportAttributes] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {selector: reportAttributesSelector});
+
+    const iouReportID = getIOUReportIDFromReportActionPreview(lastAction);
+    const iouReportAttributesSelector = useCallback((data: ReportAttributesDerivedValue | undefined) => (iouReportID ? data?.reports?.[iouReportID] : undefined), [iouReportID]);
+    const [iouReportAttributes] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {selector: iouReportAttributesSelector});
+
+    // Look up the one-transaction thread report using the ID from our own attributes.
+    const [oneTransactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportAttributes?.oneTransactionThreadReportID)}`);
+
     // Check the report errors equality to avoid re-rendering when there are no changes
     const prevReportErrors = usePrevious(reportAttributes?.reportErrors);
     const areReportErrorsEqual = useMemo(() => deepEqual(prevReportErrors, reportAttributes?.reportErrors), [prevReportErrors, reportAttributes?.reportErrors]);
@@ -73,6 +83,20 @@ function OptionRowLHNData({
         action: parentReportAction,
         chatReport: chatReportForIOU,
     });
+
+    const reportAttributesDerived = useMemo(() => {
+        if (!reportAttributes && !iouReportAttributes) {
+            return undefined;
+        }
+        const result: ReportAttributesDerivedValue['reports'] = {};
+        if (reportAttributes) {
+            result[reportID] = reportAttributes;
+        }
+        if (iouReportID && iouReportAttributes) {
+            result[iouReportID] = iouReportAttributes;
+        }
+        return result;
+    }, [reportID, reportAttributes, iouReportID, iouReportAttributes]);
 
     const optionItem = useMemo(() => {
         // Note: ideally we'd have this as a dependent selector in onyx!
