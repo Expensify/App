@@ -56,6 +56,27 @@ jest.mock('@libs/EmojiTrie', () => ({
 jest.mock('@components/ProductTrainingContext', () => ({
     useProductTrainingContext: () => [false],
 }));
+
+jest.mock('@libs/Navigation/OnyxTabNavigator', () => {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    const React2 = require('react');
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+    const OnyxTabNavigator = ({children}: {children: React.ReactNode}) => React2.createElement(React2.Fragment, null, children);
+    const TopTab = {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+        Screen: ({children}: {children: () => React.ReactNode}) => React2.createElement(React2.Fragment, null, typeof children === 'function' ? children() : children),
+    };
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+    const TabScreenWithFocusTrapWrapper = ({children}: {children: React.ReactNode}) => React2.createElement(React2.Fragment, null, children);
+    return {
+        // eslint-disable-next-line @typescript-eslint/naming-convention
+        __esModule: true,
+        default: OnyxTabNavigator,
+        TopTab,
+        TabScreenWithFocusTrapWrapper,
+    };
+});
+
 jest.mock('@src/hooks/useResponsiveLayout');
 
 jest.mock('@libs/Navigation/navigationRef', () => ({
