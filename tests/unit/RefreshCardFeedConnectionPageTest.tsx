@@ -4,6 +4,7 @@ import Onyx from 'react-native-onyx';
 import {clearAssignCardStepAndData} from '@libs/actions/CompanyCards';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 // Bypass the HOC and render the inner component directly
@@ -246,5 +247,20 @@ describe('RefreshCardFeedConnectionPage', () => {
         unmount();
 
         expect(clearAssignCardStepAndData).toHaveBeenCalledTimes(1);
+    });
+});
+
+describe('Related route getRoute helpers', () => {
+    it('WORKSPACE_COMPANY_CARDS_REFRESH_CARD_FEED_CONNECTION encodes feed in URL', () => {
+        const result = ROUTES.WORKSPACE_COMPANY_CARDS_REFRESH_CARD_FEED_CONNECTION.getRoute('pol1', 'oauth.chase 99999' as never);
+        expect(result).toBe('workspaces/pol1/company-cards/oauth.chase%2099999/refresh-card-feed-connection');
+    });
+
+    it('WORKSPACE_COMPANY_CARDS_VERIFY_ACCOUNT returns route without feed when omitted', () => {
+        expect(ROUTES.WORKSPACE_COMPANY_CARDS_VERIFY_ACCOUNT.getRoute('pol1')).toBe('workspaces/pol1/company-cards/verify-account');
+    });
+
+    it('WORKSPACE_COMPANY_CARDS_VERIFY_ACCOUNT returns route with encoded feed when provided', () => {
+        expect(ROUTES.WORKSPACE_COMPANY_CARDS_VERIFY_ACCOUNT.getRoute('pol1', 'oauth.amex 1001' as never)).toBe('workspaces/pol1/company-cards/verify-account?feed=oauth.amex%201001');
     });
 });
