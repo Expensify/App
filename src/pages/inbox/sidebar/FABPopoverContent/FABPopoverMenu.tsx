@@ -30,6 +30,7 @@ const FAB_ITEM_ORDER = [
 ] as const;
 
 const MAX_FIRST_MENU_ITEM_FOCUS_RETRIES = 5;
+const FIRST_MENU_ITEM_NATIVE_FOCUS_RETRY_DELAY_MS = 50;
 
 type FABPopoverMenuProps = {
     isVisible: boolean;
@@ -56,6 +57,7 @@ function FABPopoverMenu({isVisible, onClose, onItemSelected, anchorRef, animatio
     const firstItemRef = useRef<RNView>(null);
     const isVisibleRef = useRef(isVisible);
     const hasFocusedFirstItemOnCurrentOpenRef = useRef(false);
+    const firstMenuItemFocusRetryTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const [shouldEnableBottomDockedDismissAccessibility, setShouldEnableBottomDockedDismissAccessibility] = useState(!shouldDeferDismissButtonAccessibility);
 
     const registeredItems = FAB_ITEM_ORDER.filter((id) => registeredSet.has(id));
@@ -89,12 +91,22 @@ function FABPopoverMenu({isVisible, onClose, onItemSelected, anchorRef, animatio
         isActive: isVisible,
     });
 
+    const clearScheduledFirstMenuItemFocus = useCallback(() => {
+        if (!firstMenuItemFocusRetryTimeoutRef.current) {
+            return;
+        }
+
+        clearTimeout(firstMenuItemFocusRetryTimeoutRef.current);
+        firstMenuItemFocusRetryTimeoutRef.current = null;
+    }, []);
+
     const markFirstMenuItemUnfocused = useCallback(() => {
+        clearScheduledFirstMenuItemFocus();
         hasFocusedFirstItemOnCurrentOpenRef.current = false;
         if (shouldDeferDismissButtonAccessibility) {
             setShouldEnableBottomDockedDismissAccessibility(false);
         }
-    }, [shouldDeferDismissButtonAccessibility]);
+    }, [clearScheduledFirstMenuItemFocus, shouldDeferDismissButtonAccessibility]);
 
     useEffect(() => {
         isVisibleRef.current = isVisible;
@@ -103,6 +115,13 @@ function FABPopoverMenu({isVisible, onClose, onItemSelected, anchorRef, animatio
         }
         markFirstMenuItemUnfocused();
     }, [isVisible]);
+
+    useEffect(
+        () => () => {
+            clearScheduledFirstMenuItemFocus();
+        },
+        [clearScheduledFirstMenuItemFocus],
+    );
 
     const handleClose = () => {
         setFocusedIndex(-1);
@@ -130,11 +149,12 @@ function FABPopoverMenu({isVisible, onClose, onItemSelected, anchorRef, animatio
     }, []);
 
     const markFirstMenuItemFocused = useCallback(() => {
+        clearScheduledFirstMenuItemFocus();
         hasFocusedFirstItemOnCurrentOpenRef.current = true;
         if (shouldDeferDismissButtonAccessibility) {
             setShouldEnableBottomDockedDismissAccessibility(true);
         }
-    }, [shouldDeferDismissButtonAccessibility]);
+    }, [clearScheduledFirstMenuItemFocus, shouldDeferDismissButtonAccessibility]);
 
     const focusFirstMenuItemOnWeb = useCallback(() => {
         const target = getFirstMenuItemTarget();
@@ -159,9 +179,11 @@ function FABPopoverMenu({isVisible, onClose, onItemSelected, anchorRef, animatio
         }
 
         Accessibility.moveAccessibilityFocus(firstItemRef);
-        markFirstMenuItemFocused();
+        if (!shouldDeferDismissButtonAccessibility) {
+            markFirstMenuItemFocused();
+        }
         return true;
-    }, [getFirstMenuItemTarget, isAndroid, markFirstMenuItemFocused]);
+    }, [getFirstMenuItemTarget, isAndroid, markFirstMenuItemFocused, shouldDeferDismissButtonAccessibility]);
 
     const focusFirstMenuItem = useCallback(() => {
         if (isWeb) {
@@ -192,18 +214,36 @@ function FABPopoverMenu({isVisible, onClose, onItemSelected, anchorRef, animatio
     }, [focusFirstMenuItem]);
 
     const scheduleFocusFirstMenuItemOnNative = useCallback(() => {
-        const focusTarget = () => {
+        const focusFirstMenuItemWithRetries = (retries = MAX_FIRST_MENU_ITEM_FOCUS_RETRIES) => {
             requestAnimationFrame(() => {
                 if (!isVisibleRef.current || hasFocusedFirstItemOnCurrentOpenRef.current) {
                     return;
                 }
 
                 focusFirstMenuItem();
+
+                if (!shouldDeferDismissButtonAccessibility || hasFocusedFirstItemOnCurrentOpenRef.current) {
+                    return;
+                }
+
+                if (retries <= 0) {
+                    markFirstMenuItemFocused();
+                    return;
+                }
+
+                firstMenuItemFocusRetryTimeoutRef.current = setTimeout(() => {
+                    firstMenuItemFocusRetryTimeoutRef.current = null;
+                    focusFirstMenuItemWithRetries(retries - 1);
+                }, FIRST_MENU_ITEM_NATIVE_FOCUS_RETRY_DELAY_MS);
             });
         };
 
-        setTimeout(focusTarget, isIOS ? (animationInTiming ?? 0) : 0);
-    }, [animationInTiming, focusFirstMenuItem, isIOS]);
+        clearScheduledFirstMenuItemFocus();
+        firstMenuItemFocusRetryTimeoutRef.current = setTimeout(() => {
+            firstMenuItemFocusRetryTimeoutRef.current = null;
+            focusFirstMenuItemWithRetries();
+        }, isIOS ? (animationInTiming ?? 0) : 0);
+    }, [animationInTiming, clearScheduledFirstMenuItemFocus, focusFirstMenuItem, isIOS, markFirstMenuItemFocused, shouldDeferDismissButtonAccessibility]);
 
     const scheduleFocusFirstMenuItem = useCallback(() => {
         if (isWeb) {
@@ -229,6 +269,14 @@ function FABPopoverMenu({isVisible, onClose, onItemSelected, anchorRef, animatio
 
         scheduleFocusFirstMenuItem();
     }, [isVisible, scheduleFocusFirstMenuItem, shouldUseNarrowLayout]);
+
+    useEffect(() => {
+        if (!isVisible || !shouldDeferDismissButtonAccessibility || focusedIndex !== 0 || hasFocusedFirstItemOnCurrentOpenRef.current) {
+            return;
+        }
+
+        markFirstMenuItemFocused();
+    }, [focusedIndex, isVisible, markFirstMenuItemFocused, shouldDeferDismissButtonAccessibility]);
 
     return (
         <FABMenuContext.Provider
