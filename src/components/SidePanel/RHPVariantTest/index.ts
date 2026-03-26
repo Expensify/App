@@ -41,11 +41,18 @@ const shouldOpenRHPVariant: ShouldOpenRHPVariant = () => {
 
 /**
  * Handles navigation for RHP experiment variants (B/C/D):
- * All variants navigate to the workspace overview and open the side panel without overlay.
+ * Variants B and C navigate to the workspace overview, Variant D navigates to home.
+ * All variants open the side panel without overlay.
  * The control variant is handled separately in navigateAfterOnboarding.
  */
 const handleRHPVariantNavigation: HandleRHPVariantNavigation = (onboardingPolicyID) => {
-    Navigation.navigate(ROUTES.WORKSPACE_OVERVIEW.getRoute(onboardingPolicyID));
+    const isRHPHomePage = onboardingRHPVariant === CONST.ONBOARDING_RHP_VARIANT.RHP_HOME_PAGE;
+
+    if (isRHPHomePage) {
+        Navigation.navigate(ROUTES.HOME);
+    } else {
+        Navigation.navigate(ROUTES.WORKSPACE_OVERVIEW.getRoute(onboardingPolicyID));
+    }
     SidePanelActions.openSidePanel(false);
 };
 
