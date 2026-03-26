@@ -170,7 +170,7 @@ function SearchAutocompleteList({
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['History', 'MagnifyingGlass']);
     const taxRates = getAllTaxRates(policies);
 
-    const {options: listOptions, isLoading} = useFilteredOptions({enabled: true, isSearching: !!autocompleteQueryValue.trim(), betas: betas ?? []});
+    const {options: listOptions, isLoading: isLoadingOptions} = useFilteredOptions({enabled: true, isSearching: !!autocompleteQueryValue.trim(), betas: betas ?? []});
 
     const isRecentSearchesDataLoaded = !isLoadingOnyxValue(recentSearchesMetadata);
 
@@ -187,10 +187,10 @@ function SearchAutocompleteList({
         }
         const parentSpan = getSpan(CONST.TELEMETRY.SPAN_OPEN_SEARCH_ROUTER);
         if (parentSpan) {
-            parentSpan.setAttribute(CONST.TELEMETRY.ATTRIBUTE_COLD_START, isLoading);
+            parentSpan.setAttribute(CONST.TELEMETRY.ATTRIBUTE_COLD_START, isLoadingOptions);
             coldStartAttributeSet.current = true;
         }
-    }, [isLoading]);
+    }, [isLoadingOptions]);
 
     const searchOptions = (() => {
         if (listOptions === null) {
@@ -426,12 +426,12 @@ function SearchAutocompleteList({
     const sectionItemText = sections?.at(1)?.data?.[0]?.text ?? '';
     const normalizedReferenceText = sectionItemText.toLowerCase();
     const trimmedAutocompleteQueryValue = autocompleteQueryValue.trim();
-    const isLoadingFullData = !isRecentSearchesDataLoaded || isLoading;
+    const isLoading = !isRecentSearchesDataLoaded || isLoadingOptions;
     const suggestionsAnnouncement = suggestionsCount > 0 ? translate('search.suggestionsAvailable', {count: suggestionsCount}, trimmedAutocompleteQueryValue) : '';
     useDebouncedAccessibilityAnnouncement(suggestionsAnnouncement, !!suggestionsAnnouncement, autocompleteQueryValue);
 
     const noResultsFoundText = translate('common.noResultsFound');
-    const shouldAnnounceNoResults = !isLoadingFullData && suggestionsCount === 0 && !!trimmedAutocompleteQueryValue;
+    const shouldAnnounceNoResults = !isLoading && suggestionsCount === 0 && !!trimmedAutocompleteQueryValue;
     useDebouncedAccessibilityAnnouncement(noResultsFoundText, shouldAnnounceNoResults, autocompleteQueryValue);
 
     const firstRecentReportKey = styledRecentReports.at(0)?.keyForList;
@@ -461,13 +461,13 @@ function SearchAutocompleteList({
     // because useState(initialFocusedIndex) in useArrowKeyFocusManager only reads the initial value.
     // Imperatively focus the first recent report once options become available (desktop only).
     useEffect(() => {
-        if (shouldUseNarrowLayout || isLoading || hasSetInitialFocusRef.current || firstRecentReportFlatIndex === -1) {
+        if (shouldUseNarrowLayout || isLoadingOptions || hasSetInitialFocusRef.current || firstRecentReportFlatIndex === -1) {
             return;
         }
         hasSetInitialFocusRef.current = true;
 
         innerListRef.current?.updateAndScrollToFocusedIndex(firstRecentReportFlatIndex, false);
-    }, [isLoading, firstRecentReportFlatIndex, shouldUseNarrowLayout]);
+    }, [isLoadingOptions, firstRecentReportFlatIndex, shouldUseNarrowLayout]);
 
     useEffect(() => {
         const targetText = autocompleteQueryValue;
@@ -480,10 +480,10 @@ function SearchAutocompleteList({
     const reasonAttributes: SkeletonSpanReasonAttributes = {
         context: 'SearchAutocompleteList',
         isRecentSearchesDataLoaded,
-        isLoading,
+        isLoadingOptions,
     };
 
-    if (isLoadingFullData) {
+    if (isLoading) {
         return (
             <OptionsListSkeletonView
                 fixedNumItems={4}
