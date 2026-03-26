@@ -100,6 +100,7 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
                 action,
                 personalDetails,
                 countryCode,
+                sortedActions: undefined,
             },
         );
 

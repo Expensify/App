@@ -106,6 +106,7 @@ const ValidOptionsConfig = {
     includeMultipleParticipantReports: true,
     includeSelfDM: true,
     includeOwnedWorkspaceChats: true,
+    sortedActions: undefined,
 };
 
 const loginList = {};
@@ -205,6 +206,7 @@ describe('OptionsListUtils', () => {
                     includeSelfDM: true,
                     searchString: '',
                     includeUserToInvite: false,
+                    sortedActions: undefined,
                 },
             ),
         );

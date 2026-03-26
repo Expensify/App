@@ -2415,7 +2415,7 @@ function isManagerMcTestReport(report: SearchOption<Report>): boolean {
  * Centralizes restriction logic to avoid scattering conditions across the codebase.
  */
 function getRestrictedLogins(
-    config: GetOptionsConfig,
+    config: Omit<GetOptionsConfig, 'sortedActions'>,
     options: OptionList,
     canShowManagerMcTest: boolean,
     nvpDismissedProductTraining: OnyxEntry<DismissedProductTraining>,
@@ -2465,7 +2465,7 @@ function getValidOptions(
         reportAttributesDerived,
         sortedActions,
         ...config
-    }: GetOptionsConfig = {},
+    }: GetOptionsConfig = {sortedActions: undefined},
 ): Options {
     const restrictedLogins = getRestrictedLogins(config, options, canShowManagerMcTest, nvpDismissedProductTraining);
 

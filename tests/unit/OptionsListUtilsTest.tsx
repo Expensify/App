@@ -1108,6 +1108,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_EMAIL,
                 {
                     excludeLogins: {[CONST.EMAIL.CONCIERGE]: true},
+                    sortedActions: undefined,
                 },
             );
 
@@ -1130,6 +1131,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_EMAIL,
                 {
                     excludeLogins: {[CONST.EMAIL.CHRONOS]: true},
+                    sortedActions: undefined,
                 },
             );
 
@@ -1155,6 +1157,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_EMAIL,
                 {
                     excludeLogins: {[CONST.EMAIL.RECEIPTS]: true},
+                    sortedActions: undefined,
                 },
             );
 
@@ -1184,6 +1187,7 @@ describe('OptionsListUtils', () => {
                     includeP2P: true,
                     canShowManagerMcTest: true,
                     betas: [CONST.BETAS.NEWDOT_MANAGER_MCTEST],
+                    sortedActions: undefined,
                 },
             );
 
@@ -1208,6 +1212,7 @@ describe('OptionsListUtils', () => {
                     includeP2P: true,
                     canShowManagerMcTest: false,
                     betas: [CONST.BETAS.NEWDOT_MANAGER_MCTEST],
+                    sortedActions: undefined,
                 },
             );
 
@@ -1241,6 +1246,7 @@ describe('OptionsListUtils', () => {
                             includeP2P: true,
                             canShowManagerMcTest: true,
                             betas: [CONST.BETAS.NEWDOT_MANAGER_MCTEST],
+                            sortedActions: undefined,
                         },
                     );
 
@@ -1296,6 +1302,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_EMAIL,
                 {
                     includeMultipleParticipantReports: true,
+                    sortedActions: undefined,
                 },
             );
             const adminRoomOption = results.recentReports.find((report) => report.reportID === '1455140530846319');
@@ -1351,6 +1358,7 @@ describe('OptionsListUtils', () => {
                 {
                     includeMultipleParticipantReports: true,
                     showRBR: true,
+                    sortedActions: undefined,
                 },
             );
             expect(results.recentReports.at(0)?.brickRoadIndicator).toBe(CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR);
@@ -1403,6 +1411,7 @@ describe('OptionsListUtils', () => {
                 {
                     includeMultipleParticipantReports: true,
                     showRBR: false,
+                    sortedActions: undefined,
                 },
             );
             expect(results.recentReports.at(0)?.brickRoadIndicator).toBe(null);
@@ -1460,6 +1469,7 @@ describe('OptionsListUtils', () => {
                     includeRecentReports: true,
                     shouldUnreadBeBold: true,
                     includeMultipleParticipantReports: true,
+                    sortedActions: undefined,
                 },
             );
 
@@ -1493,6 +1503,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_EMAIL,
                 {
                     personalDetails: customPersonalDetails,
+                    sortedActions: undefined,
                 },
             );
 
@@ -1512,6 +1523,7 @@ describe('OptionsListUtils', () => {
                 includeMultipleParticipantReports: true,
                 includeP2P: true,
                 includeOwnedWorkspaceChats: true,
+                sortedActions: undefined,
             });
 
             // Then the result should include all reports except the currently logged in user
@@ -1546,6 +1558,7 @@ describe('OptionsListUtils', () => {
                 includeOwnedWorkspaceChats: true,
                 shouldSeparateWorkspaceChat: true,
                 personalDetails: customPersonalDetails,
+                sortedActions: undefined,
             });
 
             // Then the function should process without errors and return workspace chats
@@ -1564,6 +1577,7 @@ describe('OptionsListUtils', () => {
                 includeOwnedWorkspaceChats: true,
                 shouldSeparateWorkspaceChat: true,
                 personalDetails: undefined,
+                sortedActions: undefined,
             });
 
             // Then the function should fall back to allPersonalDetails and process without errors
@@ -1581,6 +1595,7 @@ describe('OptionsListUtils', () => {
                 includeOwnedWorkspaceChats: true,
                 shouldSeparateWorkspaceChat: true,
                 personalDetails: {},
+                sortedActions: undefined,
             });
 
             // Then the function should fall back to allPersonalDetails and process without errors
@@ -1598,6 +1613,7 @@ describe('OptionsListUtils', () => {
                 includeOwnedWorkspaceChats: true,
                 shouldSeparateWorkspaceChat: true,
                 personalDetails: {},
+                sortedActions: undefined,
             });
 
             // Then the function should fall back to allPersonalDetails and process without errors
@@ -1641,6 +1657,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_EMAIL,
                 {
                     excludeLogins: {'peterparker@expensify.com': true},
+                    sortedActions: undefined,
                 },
             );
 
@@ -1684,6 +1701,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_EMAIL,
                 {
                     excludeLogins: {[CONST.EMAIL.CONCIERGE]: true},
+                    sortedActions: undefined,
                 },
             );
 
@@ -1707,6 +1725,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_EMAIL,
                 {
                     excludeLogins: {[CONST.EMAIL.CHRONOS]: true},
+                    sortedActions: undefined,
                 },
             );
 
@@ -1733,6 +1752,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_EMAIL,
                 {
                     excludeLogins: {[CONST.EMAIL.RECEIPTS]: true},
+                    sortedActions: undefined,
                 },
             );
 
@@ -1757,6 +1777,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_EMAIL,
                 {
                     maxRecentReportElements: maxRecentReports,
+                    sortedActions: undefined,
                 },
             );
 
@@ -1786,6 +1807,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_EMAIL,
                 {
                     maxRecentReportElements: 2,
+                    sortedActions: undefined,
                 },
             );
 
@@ -1815,6 +1837,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_EMAIL,
                 {
                     maxRecentReportElements: 2,
+                    sortedActions: undefined,
                 },
             );
 
@@ -1838,6 +1861,7 @@ describe('OptionsListUtils', () => {
                 {
                     maxElements: maxTotalElements,
                     maxRecentReportElements: maxRecentReports,
+                    sortedActions: undefined,
                 },
             );
 
@@ -1882,6 +1906,7 @@ describe('OptionsListUtils', () => {
                     includeSelfDM: true,
                     searchString: '',
                     includeUserToInvite: false,
+                    sortedActions: undefined,
                 },
             );
 
@@ -1923,6 +1948,7 @@ describe('OptionsListUtils', () => {
                     includeSelfDM: true,
                     searchString: '',
                     includeUserToInvite: false,
+                    sortedActions: undefined,
                 },
             );
 
@@ -2393,6 +2419,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_EMAIL,
                 {
                     excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
+                    sortedActions: undefined,
                 },
             );
             // When we call filterAndOrderOptions with a search value and excluded logins list
@@ -2517,6 +2544,7 @@ describe('OptionsListUtils', () => {
                     includeSelfDM: true,
                     searchString: '',
                     includeUserToInvite: false,
+                    sortedActions: undefined,
                 },
             );
             // When we pass the returned options to filterAndOrderOptions with a search value that does not match the group chat name
@@ -2559,6 +2587,7 @@ describe('OptionsListUtils', () => {
                     includeSelfDM: true,
                     searchString: '',
                     includeUserToInvite: false,
+                    sortedActions: undefined,
                 },
             );
             // When we pass the returned options to filterAndOrderOptions with a search value that matches the group chat name
@@ -2601,6 +2630,7 @@ describe('OptionsListUtils', () => {
                     includeSelfDM: true,
                     searchString: '',
                     includeUserToInvite: false,
+                    sortedActions: undefined,
                 },
             );
             // When we pass the returned options to filterAndOrderOptions with a search value that does not match the group chat name
@@ -3028,6 +3058,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_EMAIL,
                 {
                     includeUserToInvite: true,
+                    sortedActions: undefined,
                 },
             );
 
@@ -3052,6 +3083,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_EMAIL,
                 {
                     includeUserToInvite: true,
+                    sortedActions: undefined,
                 },
             );
 
@@ -5161,6 +5193,7 @@ describe('OptionsListUtils', () => {
                 {
                     betas: [],
                     includeRecentReports: true,
+                    sortedActions: undefined,
                 },
             );
 
