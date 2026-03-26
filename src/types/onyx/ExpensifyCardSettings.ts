@@ -62,6 +62,9 @@ type ExpensifyCardSettingsBase = {
     /** Credit limit for the card program */
     limit?: number;
 
+    /** Per-user monthly spend limit for travel invoicing cards (in cents) */
+    monthlySpendLimitPerUser?: number;
+
     /** Currency for the card program (e.g. USD, GBP, EUR) */
     currency?: string;
 
