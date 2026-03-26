@@ -354,6 +354,12 @@ function SearchAutocompleteList({
         debounceHandleSearch();
     }, [autocompleteQueryWithoutFilters, debounceHandleSearch]);
 
+    const reasonAttributes: SkeletonSpanReasonAttributes = {
+        context: 'SearchAutocompleteList',
+        isRecentSearchesDataLoaded,
+        areOptionsInitialized,
+    };
+
     /* Sections generation */
     const {sections, styledRecentReports, suggestionsCount} = useMemo(() => {
         const nextSections: Array<Section<AutocompleteListItem>> = [];
@@ -412,6 +418,11 @@ function SearchAutocompleteList({
                         fixedNumItems={3}
                         shouldStyleAsTable
                         speed={CONST.TIMING.SKELETON_ANIMATION_SPEED}
+                        reasonAttributes={{
+                            context: 'SearchAutocompleteList',
+                            isRecentSearchesDataLoaded,
+                            areOptionsInitialized,
+                        }}
                     />
                 ),
             });
@@ -434,7 +445,20 @@ function SearchAutocompleteList({
         }
 
         return {sections: nextSections, styledRecentReports: nextStyledRecentReports, suggestionsCount: nextSuggestionsCount};
-    }, [autocompleteQueryValue, autocompleteSuggestions, expensifyIcons, getAdditionalSections, recentReportsOptions, recentSearchesData, searchOptions, searchQueryItem, styles, translate, areOptionsInitialized]);
+    }, [
+        autocompleteQueryValue,
+        autocompleteSuggestions,
+        expensifyIcons,
+        getAdditionalSections,
+        recentReportsOptions,
+        recentSearchesData,
+        searchOptions,
+        searchQueryItem,
+        styles,
+        translate,
+        areOptionsInitialized,
+        isRecentSearchesDataLoaded,
+    ]);
 
     const sectionItemText = sections?.at(1)?.data?.[0]?.text ?? '';
     const normalizedReferenceText = sectionItemText.toLowerCase();
@@ -489,12 +513,6 @@ function SearchAutocompleteList({
             onHighlightFirstItem?.();
         }
     }, [autocompleteQueryValue, onHighlightFirstItem, normalizedReferenceText]);
-
-    const reasonAttributes: SkeletonSpanReasonAttributes = {
-        context: 'SearchAutocompleteList',
-        isRecentSearchesDataLoaded,
-        areOptionsInitialized,
-    };
 
     if (isLoading) {
         return (
