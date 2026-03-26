@@ -1,3 +1,4 @@
+import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import React from 'react';
 import AnimatedSubmitButton from '@components/AnimatedSubmitButton';
 import useConfirmPendingRTERAndProceed from '@hooks/useConfirmPendingRTERAndProceed';
@@ -7,7 +8,6 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import {canSubmitAndIsAwaitingForCurrentUser, getReportTransactions, hasViolations as hasViolationsReportUtils} from '@libs/ReportUtils';
-import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import {hasAnyPendingRTERViolation as hasAnyPendingRTERViolationTransactionUtils} from '@libs/TransactionUtils';
 import {submitReport} from '@userActions/IOU';
 import {markPendingRTERTransactionsAsCash} from '@userActions/Transaction';
