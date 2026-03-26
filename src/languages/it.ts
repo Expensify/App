@@ -958,15 +958,6 @@ const translations: TranslationDeepObject<typeof en> = {
         forYou: 'Per te',
         timeSensitiveSection: {
             title: 'Sensibile al tempo',
-            cta: 'Richiesta',
-            offer50off: {
-                title: 'Ottieni il 50% di sconto sul primo anno!',
-                subtitle: ({formattedTime}: {formattedTime: string}) => `${formattedTime} rimanenti`,
-            },
-            offer25off: {
-                title: 'Ottieni il 25% di sconto sul tuo primo anno!',
-                subtitle: ({days}: {days: number}) => `Restano ${days} ${days === 1 ? 'giorno' : 'giorni'}`,
-            },
             addShippingAddress: {title: 'Ci serve il tuo indirizzo di spedizione', subtitle: 'Fornisci un indirizzo per ricevere la tua Carta Expensify.', cta: 'Aggiungi indirizzo'},
             addPaymentCard: {title: 'Aggiungi una carta di pagamento per continuare a usare Expensify', subtitle: 'Account > Abbonamento', cta: 'Aggiungi'},
             activateCard: {title: 'Attiva la tua Carta Expensify', subtitle: 'Convalida la tua carta e inizia a spendere.', cta: 'Attiva'},
@@ -1053,6 +1044,15 @@ const translations: TranslationDeepObject<typeof en> = {
             inOneWeek: 'Tra 1 settimana',
             inDays: () => ({one: 'Tra 1 giorno', other: (count: number) => `Tra ${count} giorni`}),
             today: 'Oggi',
+        },
+        freeTrialSection: {
+            title: ({days}: {days: number}) => `Prova gratuita: ${days} ${days === 1 ? 'giorno' : 'giorni'} rimanenti!`,
+            offer50Body: 'Ottieni il 50% di sconto sul tuo primo anno!',
+            offer25Body: 'Ottieni il 25% di sconto sul tuo primo anno!',
+            addCardBody: 'Non aspettare! Aggiungi subito la tua carta di pagamento.',
+            ctaClaim: 'Richiesta',
+            ctaAdd: 'Aggiungi carta',
+            timeRemaining: ({formattedTime}: {formattedTime: string}) => `Tempo rimanente: ${formattedTime}`,
         },
     },
     allSettingsScreen: {

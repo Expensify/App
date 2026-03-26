@@ -927,15 +927,6 @@ const translations: TranslationDeepObject<typeof en> = {
         forYou: '为你',
         timeSensitiveSection: {
             title: '时间敏感',
-            cta: '报销申请',
-            offer50off: {
-                title: '首年立享 5 折优惠！',
-                subtitle: ({formattedTime}: {formattedTime: string}) => `剩余 ${formattedTime}`,
-            },
-            offer25off: {
-                title: '首年立享 75 折优惠！',
-                subtitle: ({days}: {days: number}) => `剩余 ${days} ${days === 1 ? '天' : '天'}`,
-            },
             addShippingAddress: {title: '我们需要您的收货地址', subtitle: '请提供一个地址以接收您的 Expensify 卡。', cta: '添加地址'},
             addPaymentCard: {title: '添加支付卡以继续使用 Expensify', subtitle: '账户 ＞ 订阅', cta: '添加'},
             activateCard: {title: '激活你的 Expensify 卡', subtitle: '验证您的银行卡并开始消费。', cta: '启用'},
@@ -1019,6 +1010,15 @@ const translations: TranslationDeepObject<typeof en> = {
             inOneWeek: '1 周后',
             inDays: () => ({one: '1 天后', other: (count: number) => `在 ${count} 天后`}),
             today: '今天',
+        },
+        freeTrialSection: {
+            title: ({days}: {days: number}) => `免费试用：剩余 ${days} ${days === 1 ? '天' : '天'} 天！`,
+            offer50Body: '首年可享受五折优惠！',
+            offer25Body: '首年可享 75 折优惠！',
+            addCardBody: '别再犹豫！现在就添加你的付款卡。',
+            ctaClaim: '报销申请',
+            ctaAdd: '添加卡片',
+            timeRemaining: ({formattedTime}: {formattedTime: string}) => `剩余时间：${formattedTime}`,
         },
     },
     allSettingsScreen: {

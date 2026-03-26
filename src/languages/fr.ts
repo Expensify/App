@@ -961,15 +961,6 @@ const translations: TranslationDeepObject<typeof en> = {
         forYou: 'Pour vous',
         timeSensitiveSection: {
             title: 'Urgent',
-            cta: 'Réclamer',
-            offer50off: {
-                title: 'Bénéficiez de 50 % de réduction sur votre première année !',
-                subtitle: ({formattedTime}: {formattedTime: string}) => `${formattedTime} restant`,
-            },
-            offer25off: {
-                title: 'Bénéficiez de 25 % de réduction sur votre première année !',
-                subtitle: ({days}: {days: number}) => `${days} ${days === 1 ? 'jour' : 'jours'} restants`,
-            },
             addShippingAddress: {title: 'Nous avons besoin de votre adresse de livraison', subtitle: 'Indiquez une adresse pour recevoir votre Carte Expensify.', cta: 'Ajouter une adresse'},
             addPaymentCard: {title: 'Ajoutez une carte de paiement pour continuer à utiliser Expensify', subtitle: 'Compte > Abonnement', cta: 'Ajouter'},
             activateCard: {title: 'Activer votre Carte Expensify', subtitle: 'Validez votre carte et commencez à dépenser.', cta: 'Activer'},
@@ -1056,6 +1047,15 @@ const translations: TranslationDeepObject<typeof en> = {
             inOneWeek: 'Dans 1 semaine',
             inDays: () => ({one: 'Dans 1 jour', other: (count: number) => `Dans ${count} jours`}),
             today: 'Aujourd’hui',
+        },
+        freeTrialSection: {
+            title: ({days}: {days: number}) => `Essai gratuit : plus que ${days} ${days === 1 ? 'jour' : 'jours'} !`,
+            offer50Body: 'Profitez de 50 % de réduction sur votre première année !',
+            offer25Body: 'Obtenez 25 % de réduction sur votre première année !',
+            addCardBody: 'N’attendez pas ! Ajoutez votre carte de paiement maintenant.',
+            ctaClaim: 'Demande',
+            ctaAdd: 'Ajouter une carte',
+            timeRemaining: ({formattedTime}: {formattedTime: string}) => `Temps restant : ${formattedTime}`,
         },
     },
     allSettingsScreen: {

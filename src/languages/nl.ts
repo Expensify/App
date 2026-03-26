@@ -957,15 +957,6 @@ const translations: TranslationDeepObject<typeof en> = {
         forYou: 'Voor jou',
         timeSensitiveSection: {
             title: 'Tijdgevoelig',
-            cta: 'Declaratie',
-            offer50off: {
-                title: 'Krijg 50% korting op je eerste jaar!',
-                subtitle: ({formattedTime}: {formattedTime: string}) => `Nog ${formattedTime} resterend`,
-            },
-            offer25off: {
-                title: 'Krijg 25% korting op je eerste jaar!',
-                subtitle: ({days}: {days: number}) => `${days} ${days === 1 ? 'dag' : 'dagen'} resterend`,
-            },
             addShippingAddress: {title: 'We hebben je verzendadres nodig', subtitle: 'Geef een adres op om je Expensify Kaart te ontvangen.', cta: 'Adres toevoegen'},
             addPaymentCard: {title: 'Voeg een betaalkaart toe om Expensify te blijven gebruiken', subtitle: 'Account > Abonnement', cta: 'Toevoegen'},
             activateCard: {title: 'Activeer je Expensify Kaart', subtitle: 'Valideer je kaart en begin met uitgeven.', cta: 'Activeren'},
@@ -1052,6 +1043,15 @@ const translations: TranslationDeepObject<typeof en> = {
             inOneWeek: 'Over 1 week',
             inDays: () => ({one: 'Over 1 dag', other: (count: number) => `Over ${count} dagen`}),
             today: 'Vandaag',
+        },
+        freeTrialSection: {
+            title: ({days}: {days: number}) => `Proefperiode: nog ${days} ${days === 1 ? 'dag' : 'dagen'}!`,
+            offer50Body: 'Krijg 50% korting op je eerste jaar!',
+            offer25Body: 'Krijg 25% korting op je eerste jaar!',
+            addCardBody: 'Wacht niet! Voeg nu je betaalkaart toe.',
+            ctaClaim: 'Declareren',
+            ctaAdd: 'Kaart toevoegen',
+            timeRemaining: ({formattedTime}: {formattedTime: string}) => `Resterende tijd: ${formattedTime}`,
         },
     },
     allSettingsScreen: {

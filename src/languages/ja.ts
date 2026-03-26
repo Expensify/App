@@ -944,15 +944,6 @@ const translations: TranslationDeepObject<typeof en> = {
         forYou: 'あなた向け',
         timeSensitiveSection: {
             title: '時間に敏感',
-            cta: '申請',
-            offer50off: {
-                title: '初年度が50％オフ！',
-                subtitle: ({formattedTime}: {formattedTime: string}) => `残り${formattedTime}`,
-            },
-            offer25off: {
-                title: '初年度が25％オフになります！',
-                subtitle: ({days}: {days: number}) => `残り ${days} ${days === 1 ? '日' : '日数'} 日`,
-            },
             addShippingAddress: {title: '配送先住所が必要です', subtitle: 'Expensify カードを受け取る住所を入力してください。', cta: '住所を追加'},
             addPaymentCard: {title: 'Expensify を引き続きご利用いただくには、支払いカードを追加してください', subtitle: 'アカウント ＞ サブスクリプション', cta: '追加'},
             activateCard: {title: 'Expensify カードを有効化する', subtitle: 'カードを認証して支出を始めましょう。', cta: '有効化'},
@@ -1036,6 +1027,15 @@ const translations: TranslationDeepObject<typeof en> = {
             inOneWeek: '1週間後',
             inDays: () => ({one: '1日後', other: (count: number) => `${count}日後`}),
             today: '今日',
+        },
+        freeTrialSection: {
+            title: ({days}: {days: number}) => `無料トライアル：あと ${days} ${days === 1 ? '日' : '日数'} 日！`,
+            offer50Body: '初年度が50％オフになります！',
+            offer25Body: '初年度が25％オフになります！',
+            addCardBody: '今すぐ追加しましょう！お支払い用カードを登録してください。',
+            ctaClaim: '申請',
+            ctaAdd: 'カードを追加',
+            timeRemaining: ({formattedTime}: {formattedTime: string}) => `残り時間：${formattedTime}`,
         },
     },
     allSettingsScreen: {
