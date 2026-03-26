@@ -305,10 +305,10 @@ index 5d3a675..a92904d 100644
  RCT_EXPORT_SHADOW_PROPERTY(placeholder, NSString)
 diff --git a/node_modules/react-native/Libraries/Text/TextInput/RCTPasteHandlerUtil.h b/node_modules/react-native/Libraries/Text/TextInput/RCTPasteHandlerUtil.h
 new file mode 100644
-index 0000000..68e7f03
+index 0000000..24b5994
 --- /dev/null
 +++ b/node_modules/react-native/Libraries/Text/TextInput/RCTPasteHandlerUtil.h
-@@ -0,0 +1,57 @@
+@@ -0,0 +1,58 @@
 +/*
 + * Copyright (c) Meta Platforms, Inc. and affiliates.
 + *
@@ -316,56 +316,58 @@ index 0000000..68e7f03
 + * LICENSE file in the root directory of this source tree.
 + */
 +
-+#import <Foundation/Foundation.h>
-+#import <UIKit/UIKit.h>
-+
-+NS_ASSUME_NONNULL_BEGIN
-+
-+/**
-+ * Utility class for handling paste operations from UIPasteboard.
-+ * Processes pasteboard items and returns them in a standardized format
-+ * suitable for the TextInput onPaste event.
-+ */
-+@interface RCTPasteHandlerUtil : NSObject
-+
-+/**
-+ * Process the UIPasteboard and returns an array of info dictionaries for pasted items.
-+ *
-+ * Each dictionary contains:
-+ * - type: (NSString) the MIME type of the content.
-+ * - data: (NSString) either the string content or a file:// URI for binary data.
-+ *
-+ * This method will process text, URLs, images, and other file types.
-+ * Binary data (images, files) are written to temporary files and returned as file:// URIs.
-+ *
-+ * @param pasteboard The UIPasteboard instance to process.
-+ * @return An array of info dictionaries with "type" and "data" keys.
-+ */
-++ (NSArray<NSDictionary<NSString *, NSString *> *> *)itemInfosFromPasteboard:(UIPasteboard *)pasteboard;
-+
-+/**
-+ * Checks if the provided pasteboard has pasteable content.
-+ *
-+ * @param pasteboard The UIPasteboard instance to check.
-+ * @return YES if there is content that can be pasted, NO otherwise.
-+ */
-++ (BOOL)hasPasteableContent:(UIPasteboard *)pasteboard;
-+
-+/**
-+ * Checks whether any pasteboard item exposes a file URL representation.
-+ *
-+ * Some copied files, such as CSV documents, also expose a string payload.
-+ * Callers can use this to avoid taking the plain-text fast path and preserve
-+ * the attachment as a file paste.
-+ *
-+ * @param pasteboard The UIPasteboard instance to inspect.
-+ * @return YES if any pasteboard item includes a file URL representation.
-+ */
-++ (BOOL)containsFileURLRepresentation:(UIPasteboard *)pasteboard;
-+
-+@end
-+
-+NS_ASSUME_NONNULL_END
++ #import <Foundation/Foundation.h>
++ #import <UIKit/UIKit.h>
++ 
++ NS_ASSUME_NONNULL_BEGIN
++ 
++ /**
++  * Utility class for handling paste operations from UIPasteboard.
++  * Processes pasteboard items and returns them in a standardized format
++  * suitable for the TextInput onPaste event.
++  */
++ @interface RCTPasteHandlerUtil : NSObject
++ 
++ /**
++  * Process the UIPasteboard and returns an array of info dictionaries for pasted items.
++  *
++  * Each dictionary contains:
++  * - type: (NSString) the MIME type of the content.
++  * - data: (NSString) either the string content or a file:// URI for binary data.
++  *
++  * This method will process text, URLs, images, and other file types.
++  * Binary data (images, files) are written to temporary files and returned as file:// URIs.
++  *
++  * @param pasteboard The UIPasteboard instance to process.
++  * @return An array of info dictionaries with "type" and "data" keys.
++  */
++ + (NSArray<NSDictionary<NSString *, NSString *> *> *)itemInfosFromPasteboard:(UIPasteboard *)pasteboard;
++ 
++ /**
++  * Checks if the provided pasteboard has pasteable content.
++  *
++  * @param pasteboard The UIPasteboard instance to check.
++  * @return YES if there is content that can be pasted, NO otherwise.
++  */
++ + (BOOL)hasPasteableContent:(UIPasteboard *)pasteboard;
++ 
++ /**
++  * Checks whether any pasteboard item exposes a file URL representation.
++  *
++  * Some copied files, such as CSV documents, also expose a string payload.
++  * Callers can use this to avoid taking the plain-text fast path and preserve
++  * the attachment as a file paste.
++  *
++  * @param pasteboard The UIPasteboard instance to inspect.
++  * @return YES if any pasteboard item includes a file URL representation.
++  */
++ + (BOOL)containsFileURLRepresentation:(UIPasteboard *)pasteboard;
++ 
++ @end
++ 
++ NS_ASSUME_NONNULL_END
++ 
+\ No newline at end of file
 diff --git a/node_modules/react-native/Libraries/Text/TextInput/RCTPasteHandlerUtil.mm b/node_modules/react-native/Libraries/Text/TextInput/RCTPasteHandlerUtil.mm
 new file mode 100644
 index 0000000..645ac52
