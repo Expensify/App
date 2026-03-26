@@ -1,5 +1,5 @@
 import {deepEqual} from 'fast-equals';
-import React, {useMemo, useRef} from 'react';
+import React, {useCallback, useMemo, useRef} from 'react';
 import useReportPreviewSenderID from '@components/ReportActionAvatars/useReportPreviewSenderID';
 import {useCurrentReportIDState} from '@hooks/useCurrentReportID';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -7,11 +7,21 @@ import useGetExpensifyCardFromReportAction from '@hooks/useGetExpensifyCardFromR
 import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+import {getIOUReportIDOfLastAction} from '@libs/OptionsListUtils';
+import {
+    getLastVisibleActionIncludingTransactionThread,
+    getOriginalMessage,
+    isActionableTrackExpense,
+    isInviteOrRemovedAction,
+    isMoneyRequestAction,
+} from '@libs/ReportActionsUtils';
+import {canUserPerformWriteAction as canUserPerformWriteActionUtil} from '@libs/ReportUtils';
 import SidebarUtils from '@libs/SidebarUtils';
 import CONST from '@src/CONST';
 import {getMovedReportID} from '@src/libs/ModifiedExpenseMessage';
 import type {OptionData} from '@src/libs/ReportUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {VisibleReportActionsDerivedValue} from '@src/types/onyx/DerivedValues';
 import type {Icon} from '@src/types/onyx/OnyxCommon';
 import OptionRowLHN from './OptionRowLHN';
 import type {OptionRowLHNDataProps} from './types';
@@ -35,16 +45,9 @@ function OptionRowLHNData({
     policy,
     invoiceReceiverPolicy,
     parentReportAction,
-    iouReportReportActions,
     transaction,
-    lastReportActionTransaction,
-    transactionViolations,
-    lastMessageTextFromReport,
     localeCompare,
     translate,
-    isReportArchived = false,
-    lastAction,
-    lastActionReport,
     currentUserAccountID,
     ...propsToForward
 }: OptionRowLHNDataProps) {
@@ -52,6 +55,56 @@ function OptionRowLHNData({
     const {currentReportID: currentReportIDValue} = useCurrentReportIDState();
     const isReportFocused = isOptionFocused && currentReportIDValue === reportID;
     const optionItemRef = useRef<OptionData | undefined>(undefined);
+    const isReportArchived = !!reportNameValuePairs?.private_isArchived;
+
+    const transactionThreadReportID = oneTransactionThreadReport?.reportID;
+    const visibleReportActionsSelector = useCallback(
+        (data: VisibleReportActionsDerivedValue | undefined) => {
+            if (!data) {
+                return undefined;
+            }
+
+            const scopedVisibleReportActions: VisibleReportActionsDerivedValue = {};
+
+            if (data[reportID]) {
+                scopedVisibleReportActions[reportID] = data[reportID];
+            }
+
+            if (transactionThreadReportID && data[transactionThreadReportID]) {
+                scopedVisibleReportActions[transactionThreadReportID] = data[transactionThreadReportID];
+            }
+
+            return scopedVisibleReportActions;
+        },
+        [reportID, transactionThreadReportID],
+    );
+    const [visibleReportActionsData] = useOnyx(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS, {selector: visibleReportActionsSelector});
+
+    const canUserPerformWrite = canUserPerformWriteActionUtil(fullReport, isReportArchived);
+    const lastAction = useMemo(
+        () => getLastVisibleActionIncludingTransactionThread(reportID, canUserPerformWrite, undefined, visibleReportActionsData, transactionThreadReportID),
+        [reportID, canUserPerformWrite, visibleReportActionsData, transactionThreadReportID],
+    );
+
+    const iouReportIDOfLastAction = getIOUReportIDOfLastAction(fullReport, reportNameValuePairs?.private_isArchived, undefined, lastAction);
+    const [iouReportReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(iouReportIDOfLastAction)}`);
+
+    const lastReportActionTransactionID = isMoneyRequestAction(lastAction) ? (getOriginalMessage(lastAction)?.IOUTransactionID ?? CONST.DEFAULT_NUMBER_ID) : CONST.DEFAULT_NUMBER_ID;
+    const [lastReportActionTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${lastReportActionTransactionID}`);
+
+    const whisperTransactionID = isActionableTrackExpense(lastAction) ? getOriginalMessage(lastAction)?.transactionID : undefined;
+    const [whisperTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${whisperTransactionID ?? CONST.DEFAULT_NUMBER_ID}`);
+    const lastMessageTextFromReport = useMemo(() => {
+        if (!whisperTransactionID || whisperTransaction) {
+            return undefined;
+        }
+
+        // Prevent showing stale text when a track expense whisper's transaction has been deleted.
+        return '';
+    }, [whisperTransaction, whisperTransactionID]);
+
+    const lastActionReportID = isInviteOrRemovedAction(lastAction) ? String(getOriginalMessage(lastAction)?.reportID ?? '') : undefined;
+    const [lastActionReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(lastActionReportID)}`);
 
     const [movedFromReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getMovedReportID(lastAction, CONST.REPORT.MOVE_TYPE.FROM)}`);
     const [movedToReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getMovedReportID(lastAction, CONST.REPORT.MOVE_TYPE.TO)}`);

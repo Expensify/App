@@ -5,7 +5,6 @@ import {FlashList} from '@shopify/flash-list';
 import type {ReactElement} from 'react';
 import React, {memo, useCallback, useContext, useEffect, useMemo, useRef} from 'react';
 import {StyleSheet, View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
 import type {BlockingViewProps} from '@components/BlockingViews/BlockingView';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import Icon from '@components/Icon';
@@ -24,9 +23,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getPlatform from '@libs/getPlatform';
 import Log from '@libs/Log';
-import {getIOUReportIDOfLastAction} from '@libs/OptionsListUtils';
-import {getLastVisibleActionIncludingTransactionThread, getOriginalMessage, isActionableTrackExpense, isInviteOrRemovedAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
-import {canUserPerformWriteAction as canUserPerformWriteActionUtil} from '@libs/ReportUtils';
+import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
@@ -55,12 +52,10 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
     const [policy] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
-    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [onboarding] = useOnyx(ONYXKEYS.NVP_ONBOARDING);
     const [isFullscreenVisible] = useOnyx(ONYXKEYS.FULLSCREEN_VISIBILITY);
-    const [visibleReportActionsData] = useOnyx(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS);
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
 
     const theme = useTheme();
@@ -184,38 +179,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
                 ? (getOriginalMessage(itemParentReportAction)?.IOUTransactionID ?? CONST.DEFAULT_NUMBER_ID)
                 : CONST.DEFAULT_NUMBER_ID;
             const itemTransaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
-            const isReportArchived = !!itemReportNameValuePairs?.private_isArchived;
-            const canUserPerformWrite = canUserPerformWriteActionUtil(item, isReportArchived);
-
-            const lastAction = getLastVisibleActionIncludingTransactionThread(
-                reportID,
-                canUserPerformWrite,
-                reportActions,
-                visibleReportActionsData,
-                itemOneTransactionThreadReport?.reportID,
-            );
-
-            const iouReportIDOfLastAction = getIOUReportIDOfLastAction(item, itemReportNameValuePairs?.private_isArchived, visibleReportActionsData, lastAction);
-            const itemIouReportReportActions = iouReportIDOfLastAction ? reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportIDOfLastAction}`] : undefined;
-
-            const lastReportActionTransactionID = isMoneyRequestAction(lastAction) ? (getOriginalMessage(lastAction)?.IOUTransactionID ?? CONST.DEFAULT_NUMBER_ID) : CONST.DEFAULT_NUMBER_ID;
-            const lastReportActionTransaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${lastReportActionTransactionID}`];
-
-            // Only override lastMessageTextFromReport when a track expense whisper's transaction has been deleted, to prevent showing stale text.
-            let lastMessageTextFromReport: string | undefined;
-            if (isActionableTrackExpense(lastAction)) {
-                const whisperTransactionID = getOriginalMessage(lastAction)?.transactionID;
-                if (whisperTransactionID && !transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${whisperTransactionID}`]) {
-                    lastMessageTextFromReport = '';
-                }
-            }
             const shouldShowRBRorGBRTooltip = firstReportIDWithGBRorRBR === reportID;
-
-            let lastActionReport: OnyxEntry<Report> | undefined;
-            if (isInviteOrRemovedAction(lastAction)) {
-                const lastActionOriginalMessage = lastAction?.actionName ? getOriginalMessage(lastAction) : null;
-                lastActionReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${lastActionOriginalMessage?.reportID}`];
-            }
 
             return (
                 <OptionRowLHNData
@@ -227,18 +191,14 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
                     reportNameValuePairs={itemReportNameValuePairs}
                     reportActions={itemReportActions}
                     parentReportAction={itemParentReportAction}
-                    iouReportReportActions={itemIouReportReportActions}
                     policy={itemPolicy}
                     invoiceReceiverPolicy={itemInvoiceReceiverPolicy}
                     personalDetails={personalDetails ?? {}}
                     transaction={itemTransaction}
-                    lastReportActionTransaction={lastReportActionTransaction}
                     viewMode={optionMode}
                     isOptionFocused={!shouldDisableFocusOptions}
-                    lastMessageTextFromReport={lastMessageTextFromReport}
                     onSelectRow={onSelectRow}
                     preferredLocale={preferredLocale}
-                    transactionViolations={transactionViolations}
                     onLayout={onLayoutItem}
                     shouldShowRBRorGBRTooltip={shouldShowRBRorGBRTooltip}
                     activePolicyID={activePolicyID}
@@ -250,9 +210,6 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
                     localeCompare={localeCompare}
                     translate={translate}
                     testID={index}
-                    isReportArchived={isReportArchived}
-                    lastAction={lastAction}
-                    lastActionReport={lastActionReport}
                     currentUserAccountID={currentUserAccountID}
                 />
             );
@@ -271,7 +228,6 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
             shouldDisableFocusOptions,
             onSelectRow,
             preferredLocale,
-            transactionViolations,
             onLayoutItem,
             activePolicyID,
             introSelected?.choice,
@@ -280,7 +236,6 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
             isScreenFocused,
             localeCompare,
             translate,
-            visibleReportActionsData,
             currentUserAccountID,
         ],
     );
@@ -291,7 +246,6 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
             reports,
             reportAttributes,
             reportNameValuePairs,
-            transactionViolations,
             policy,
             personalDetails,
             data.length,
@@ -301,14 +255,12 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
             isOffline,
             isScreenFocused,
             isReportsSplitNavigatorLast,
-            visibleReportActionsData,
         ],
         [
             reportActions,
             reports,
             reportAttributes,
             reportNameValuePairs,
-            transactionViolations,
             policy,
             personalDetails,
             data.length,
@@ -318,7 +270,6 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
             isOffline,
             isScreenFocused,
             isReportsSplitNavigatorLast,
-            visibleReportActionsData,
         ],
     );
 
