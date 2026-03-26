@@ -594,6 +594,16 @@ function getSubscriptionPlanInfo(
     };
 }
 
+function hasValidPaymentMethod(userBillingFundID: number | undefined, policies: OnyxCollection<Policy>): boolean {
+    if (doesUserHavePaymentCardAdded(userBillingFundID)) {
+        return true;
+    }
+    if (getOwnedPaidPolicies(policies, currentUserAccountID)?.some((policy) => !!policy?.invoice?.bankAccount?.transferBankAccountID)) {
+        return true;
+    }
+    return false;
+}
+
 function shouldShowTrialEndedUI(
     lastDayFreeTrial: string | undefined,
     userBillingFundID: number | undefined,
@@ -611,7 +621,7 @@ function shouldShowTrialEndedUI(
     if (isSubscriptionTypeOfInvoicing(privateSubscriptionType)) {
         return false;
     }
-    if (doesUserHavePaymentCardAdded(userBillingFundID)) {
+    if (hasValidPaymentMethod(userBillingFundID, policies)) {
         return false;
     }
     return hasUserFreeTrialEnded(lastDayFreeTrial);
