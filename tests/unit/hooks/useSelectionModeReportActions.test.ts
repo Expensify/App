@@ -54,7 +54,9 @@ jest.mock('@hooks/useEnvironment', () => ({
 
 jest.mock('@hooks/usePermissions', () => ({
     __esModule: true,
-    default: jest.fn(() => ({isBetaEnabled: () => false})),
+    default: jest.fn(() => ({
+        isBetaEnabled: (beta: string) => beta === 'selectionModeReportActions',
+    })),
 }));
 
 jest.mock('@hooks/useStrictPolicyRules', () => ({

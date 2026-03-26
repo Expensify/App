@@ -851,6 +851,7 @@ const CONST = {
         SUGGESTED_FOLLOWUPS: 'suggestedFollowups',
         FREEZE_CARD: 'freezeCard',
         NEW_MANUAL_EXPENSE_FLOW: 'newManualExpenseFlow',
+        SELECTION_MODE_REPORT_ACTIONS: 'selectionModeReportActions',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',

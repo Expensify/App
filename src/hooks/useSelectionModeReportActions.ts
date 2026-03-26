@@ -13,6 +13,7 @@ import type {ActionHandledType} from '@components/ProcessMoneyReportHoldMenu';
 import {useSearchActionsContext, useSearchStateContext} from '@components/Search/SearchContext';
 import type {PaymentActionParams} from '@components/SettlementButton/types';
 import {approveMoneyRequest, canApproveIOU, canIOUBePaid as canIOUBePaidAction, payInvoice, payMoneyRequest, submitReport} from '@libs/actions/IOU';
+import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {search} from '@libs/actions/Search';
 import getPlatform from '@libs/getPlatform';
 import {getTotalAmountForIOUReportPreviewButton} from '@libs/MoneyRequestReportUtils';
@@ -119,6 +120,7 @@ function useSelectionModeReportActions({
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Send', 'ThumbsUp', 'Cash', 'ArrowRight', 'Building'] as const);
 
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
+    const isSelectionModeReportActionsEnabled = isBetaEnabled(CONST.BETAS.SELECTION_MODE_REPORT_ACTIONS);
 
     const currentUserEmail = session?.email;
     const hasViolations = hasViolationsReportUtils(report?.reportID, allTransactionViolations, currentUserAccountID, currentUserEmail ?? '');
@@ -365,6 +367,7 @@ function useSelectionModeReportActions({
                 });
             }
             clearSelectedTransactions(true);
+            turnOffMobileSelectionMode();
         };
         confirmPendingRTERAndProceed(doSubmit);
     }, [
@@ -410,6 +413,7 @@ function useSelectionModeReportActions({
                 full: true,
             });
             clearSelectedTransactions(true);
+            turnOffMobileSelectionMode();
         }
     }, [
         policy,
@@ -464,6 +468,7 @@ function useSelectionModeReportActions({
                     isSelfTourViewed,
                 });
                 clearSelectedTransactions(true);
+                turnOffMobileSelectionMode();
             } else {
                 payMoneyRequest({
                     paymentType: type,
@@ -492,6 +497,7 @@ function useSelectionModeReportActions({
                     });
                 }
                 clearSelectedTransactions(true);
+                turnOffMobileSelectionMode();
             }
         },
         [
@@ -590,10 +596,13 @@ function useSelectionModeReportActions({
     );
 
     const hasActualPaymentOptions = paymentButtonOptions.some((opt) => Object.values(CONST.IOU.PAYMENT_TYPE).some((type) => type === opt.value));
-    const hasPayInSelectionMode = allExpensesSelected && hasPayAction && hasActualPaymentOptions;
+    const hasPayInSelectionMode = allExpensesSelected && hasPayAction && hasActualPaymentOptions && isSelectionModeReportActionsEnabled;
 
     /* eslint-disable react-hooks/refs -- onSelected callbacks are event handlers, not invoked during render */
     const selectionModeReportLevelActions = useMemo(() => {
+        if (!isSelectionModeReportActionsEnabled) {
+            return [];
+        }
         const actions: Array<DropdownOption<string> & Pick<PopoverMenuItem, 'backButtonText' | 'rightIcon' | 'subMenuItems'>> = [];
         if (hasSubmitAction && !shouldBlockSubmit) {
             actions.push({
@@ -630,6 +639,7 @@ function useSelectionModeReportActions({
         }
         return actions;
     }, [
+        isSelectionModeReportActionsEnabled,
         hasSubmitAction,
         shouldBlockSubmit,
         hasApproveAction,
@@ -660,6 +670,7 @@ function useSelectionModeReportActions({
 
     const handleHoldMenuConfirm = useCallback(() => {
         clearSelectedTransactions(true);
+        turnOffMobileSelectionMode();
     }, [clearSelectedTransactions]);
 
     return {
