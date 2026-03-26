@@ -629,7 +629,7 @@ function MoneyRequestView({
 
             updateMoneyRequestTaxRate({
                 transactionID: transaction?.transactionID,
-                transactionThreadReport: transactionThreadReport,
+                transactionThreadReport,
                 parentReport,
                 taxCode: '',
                 taxValue: '',
