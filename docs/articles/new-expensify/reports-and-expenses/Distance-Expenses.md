@@ -83,7 +83,7 @@ To create an expense using your vehicle's odometer readings:
    - (Optional) Add a description, category, or tag.
 8. Select **Create expense**.
 
-Once a Distance expense is created, it can be submitted on a report. To learn how to add expenses to a report, see [Create and Submit Reports](https://help.expensify.com/articles/new-expensify/reports-and-expenses/Create-and-Submit-Reports).
+Once a Distance expense is created, it can be submitted on a report. To learn how to add expenses to a report, see [Create and Submit Reports](/articles/new-expensify/reports-and-expenses/Create-and-Submit-Reports).
 
 ---
 
@@ -96,7 +96,7 @@ If you are creating expenses on a Workspace:
 - Workspace Admins set and manage the reimbursement rates for the workspace's distance unit (miles or kilometers).
 - When creating a Distance expense, the available reimbursement rates will show for selection.
 
-[Learn how to manage distance rates as a Workspace Admin](https://help.expensify.com/articles/new-expensify/reports-and-expenses/Managing-Distance-Rates)
+[Learn how to manage distance rates as a Workspace Admin](/articles/new-expensify/reports-and-expenses/Managing-Distance-Rates)
 
 ### Distance expenses created for personal tracking
 
@@ -129,7 +129,7 @@ The expense amount is automatically calculated by multiplying the distance by th
 
 ## Can I edit a Distance expense after I’ve created it?
 
-Yes! You can edit the expense before it is approved. To learn how to edit an expense, see [Managing Expenses in a Report](https://help.expensify.com/articles/new-expensify/reports-and-expenses/Managing-Expenses-in-a-Report).
+Yes! You can edit the expense before it is approved. To learn how to edit an expense, see [Managing Expenses in a Report](/articles/new-expensify/reports-and-expenses/Managing-Expenses-in-a-Report).
 
 ## Can I update the Distance expense unit or rate?
 
@@ -163,5 +163,5 @@ Yes. Manual readings are required, but you have the option to attach images of t
 
 ## Can I add two odometer images to a distance expense?
 
-When you add two odometer images to a distance expense, they will be merged into a single image for easy viewing. Select the image preview to view the original uncropped images. You'll be able to replace or remove the combined image if you need to make a correction.
+Yes. When you add two odometer images to a distance expense, they will be merged into a single image for easy viewing.
 
