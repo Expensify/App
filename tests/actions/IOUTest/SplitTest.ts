@@ -9,7 +9,7 @@ import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
 import {createWorkspace, generatePolicyID, setWorkspaceApprovalMode} from '@libs/actions/Policy/Policy';
 import initSplitExpense from '@libs/actions/SplitExpenses';
 import {rand64} from '@libs/NumberUtils';
-import {getOriginalMessage, isActionOfType, isDeletedAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
+import {getOriginalMessage, isActionOfType, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {buildOptimisticIOUReportAction, getReportOrDraftReport} from '@libs/ReportUtils';
 import {
     addSplitExpenseField,
@@ -2288,7 +2288,8 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             isSelfTourViewed: false,
             hasActiveAdminPolicies: false,
         });
-        setWorkspaceApprovalMode(policyID, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC);
+        const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+        setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC);
         await waitForBatchedUpdates();
 
         await getOnyxData({
