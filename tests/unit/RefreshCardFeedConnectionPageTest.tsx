@@ -50,11 +50,23 @@ jest.mock('@pages/LoadingPage', () => ({
     },
 }));
 
+jest.mock('@pages/ErrorPage/NotFoundPage', () => ({
+    // eslint-disable-next-line @typescript-eslint/naming-convention
+    __esModule: true,
+    // eslint-disable-next-line react/display-name
+    default: () => {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-var-requires
+        const {View} = require('react-native');
+        return <View testID="NotFoundPage" />;
+    },
+}));
+
 jest.mock('@libs/Navigation/Navigation', () => ({
     closeRHPFlow: mockCloseRHPFlow,
     navigate: jest.fn(),
     goBack: jest.fn(),
     setNavigationActionToMicrotaskQueue: jest.fn(),
+    getTopmostReportId: jest.fn(),
 }));
 
 jest.mock('@libs/actions/CompanyCards', () => ({
@@ -92,7 +104,27 @@ describe('RefreshCardFeedConnectionPage', () => {
         useCardFeeds.mockReturnValue([{[MOCK_FEED]: {expiration: '2024-01-01'}}, {status: 'loaded'}]);
     });
 
-    it('renders LoadingPage while currentStep is not set', async () => {
+    it('renders NotFoundPage when currentStep is not set', async () => {
+        render(
+            <RefreshCardFeedConnectionPage
+                policy={MOCK_POLICY}
+                route={MOCK_ROUTE}
+            />,
+        );
+        await act(async () => {
+            await waitForBatchedUpdates();
+        });
+
+        expect(screen.getByTestId('NotFoundPage')).toBeTruthy();
+        expect(screen.queryByTestId('BankConnection')).toBeNull();
+    });
+
+    it('renders LoadingPage when currentStep is an unrecognized value', async () => {
+        await Onyx.merge(ONYXKEYS.ASSIGN_CARD, {
+            currentStep: 'UNKNOWN_STEP' as typeof CONST.COMPANY_CARD.STEP.BANK_CONNECTION,
+            isRefreshing: true,
+        });
+
         render(
             <RefreshCardFeedConnectionPage
                 policy={MOCK_POLICY}
