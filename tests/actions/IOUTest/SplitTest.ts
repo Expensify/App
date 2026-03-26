@@ -2520,7 +2520,21 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
         });
         await waitForBatchedUpdates();
 
-        // Verify the new IOU action
+        // Verify the original transaction is restored with correct data
+        const restoredTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`);
+        expect(restoredTransaction).toBeDefined();
+        expect(restoredTransaction?.transactionID).toBe(originalTransactionID);
+        expect(restoredTransaction?.amount).toBe(-amount);
+        expect(restoredTransaction?.currency).toBe(CONST.CURRENCY.USD);
+
+        // The chosen split (split1) is force-deleted
+        const deletedSplit1 = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${splitTransactionID1}`);
+        expect(deletedSplit1).toBeFalsy();
+
+        // The other split (split2) is marked pendingAction: delete
+        const deletedSplit2 = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${splitTransactionID2}`);
+        expect(deletedSplit2?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+
         const revertExpenseReportID = reports.expenseReport?.reportID;
         let newIOUAction: ReportAction | undefined;
         await getOnyxData({
