@@ -1,0 +1,276 @@
+---
+title: Concierge AI internal guide
+description: Internal overview of Concierge AI's current capabilities, and future planned capabilities. Not for public search indexing.
+noindex: true
+sitemap: false
+---
+
+# Concierge And Concierge AI internal guide
+
+This guide helps you quickly understand what Concierge (AgentZero) can do and how to translate those capabilities into clear customer value.
+
+Use this when:
+- Explaining Concierge AI to customers 
+- Handling objections about AI or automation
+- Identifying expansion opportunities
+- 
+---
+
+## How Concierge AI delivers customer support 
+
+**What it does:**
+- Instantly answers product questions using knowledge from Expensify's help site.
+- It has insight into account details like platform, role, and workspace configuration
+- Escalates to a human when:
+    - The answer can't confidently be found on the help site (Example: the help site information contradicts itself)
+    - Dealing with a known scenario that requires human support (Example: Expensify Card disputes)
+    - The customer requests it (Example: Can I speak with a human)
+
+**Customer value:**
+- No waiting for support responses
+- Faster issue resolution
+- Less back-and-forth
+- Speak to a human at any time
+
+**Talk track:**
+- “Instead of submitting a ticket and waiting, your team gets answers instantly inside the product.”
+
+---
+
+## How Concierge AI Balances Automation With Human Support
+
+**What it does:**
+- Automatically escalates to humans for:
+  - Complex issues
+  - Sensitive cases (fraud, account access)
+  - Frustration signals
+- Covers 25+ escalation scenarios
+
+**Customer value:**
+- No risk of getting stuck with a bot
+- High trust in the system
+- Best of both: speed + expertise
+
+**Talk track:**
+- “AI handles the simple stuff instantly, and humans step in when it actually matters.”
+
+---
+
+## How Concierge AI Takes Actions Instead Of Just Answering Questions
+
+**What it does:**
+- Creates expenses (receipt, cash, distance)
+- Extracts receipt data automatically
+- Deletes expenses when requested
+
+**Customer value:**
+- Reduces manual data entry
+- Saves time for employees
+- Turns chat into action
+
+**Talk track:**
+- “It doesn’t just tell you what to do—it actually does the work for you.”
+
+---
+
+## How Concierge AI Edits And Maintains Expenses Automatically
+
+**What it does:**
+- Updates expense fields:
+  - Amount, merchant, category, tag
+  - Date, attendees, tax, billable/reimbursable status
+- Supports natural language (e.g., “change this to yesterday”)
+
+**Customer value:**
+- Faster corrections
+- Less friction for employees
+- Cleaner, more accurate data
+
+**Talk track:**
+- “You can just say what you want changed, and it updates the expense instantly.”
+
+---
+
+## How SmartScan And AI Work Together To Eliminate Receipt Work
+
+**What it does:**
+- Extracts merchant, date, amount from receipts
+- Uses confidence thresholds with human fallback (ExpensiWorks)
+- Supports multiple file types (JPG, PNG, PDF, etc.)
+
+**Customer value:**
+- No manual receipt entry
+- High accuracy
+- Works at scale
+
+**Talk track:**
+- “Receipts are automatically turned into expenses with high accuracy—and reviewed if needed.”
+
+---
+
+## How Concierge AI Automatically Categorizes Expenses
+
+**What it does:**
+- Assigns categories based on:
+  - Historical behavior
+  - Workspace rules
+- Suggests options when confidence is lower
+- Maps corporate card MCC codes to categories
+
+**Customer value:**
+- Less manual categorization
+- More consistent reporting
+- Faster submissions
+
+**Talk track:**
+- “Expenses are categorized for you, and it gets smarter over time.”
+
+---
+
+## How Concierge AI Explains Its Decisions
+
+**What it does:**
+- Provides explanations for:
+  - Categorization
+  - Auto-submission
+  - Reimbursements
+- Answers “Why did this happen?”
+
+**Customer value:**
+- Transparency
+- Trust in automation
+- Easier troubleshooting
+
+**Talk track:**
+- “You can always ask ‘why,’ and it will explain exactly what it did.”
+
+---
+
+## How VirtualCFO Turns Expense Data Into Insights
+
+**What it does:**
+- Generates monthly spend summaries
+- Highlights:
+  - Trends and anomalies
+  - Top spend categories and merchants
+  - Recurring costs and renewals
+  - Risk areas
+
+**Customer value:**
+- Finance insights without manual analysis
+- Better cost control
+- Executive visibility
+
+**Talk track:**
+- “It’s like having a built-in finance analyst reviewing your spend every month.”
+
+---
+
+## How Concierge AI Supports Workspace Admins And Controls
+
+**What it does:**
+- Reads workspace configuration
+- Updates settings (admin-only)
+- Suggests improvements to workflows
+
+**Customer value:**
+- Easier workspace management
+- Better policy enforcement
+- Reduced admin overhead
+
+**Talk track:**
+- “Admins can manage settings directly through chat instead of digging through menus.”
+
+---
+
+## How Concierge AI Helps With Sales And Onboarding
+
+**What it does:**
+- Qualifies leads (company size, accounting software, Expensify Card interest, travel interest)
+- Routes to:
+  - Self-service (≤10 employees)
+  - Setup specialists (≥11 employees)
+
+**Customer value:**
+- Faster onboarding
+- Better guided setup
+- Less friction in getting started
+
+**Talk track:**
+- “It helps new customers get set up quickly without needing a full onboarding team.”
+
+---
+
+## How Concierge AI Detects Risk And Prevents Churn
+
+**What it does:**
+- Monitors signals like:
+  - Broken integrations
+  - Bank connection issues
+  - Card feed failures
+  - Workspace downgrades or feature changes
+- Proactively reaches out
+
+**Customer value:**
+- Issues caught early
+- Less disruption
+- Better retention outcomes
+
+**Talk track:**
+- “It doesn’t wait for problems—it flags and addresses them proactively.”
+
+---
+
+## How Concierge AI Drives Engagement With Proactive Messaging
+
+**What it does:**
+- Triggers messages for:
+  - First receipt scan
+  - First integrations
+  - Misrouted receipts
+  - Low NPS scores
+  - Automated submission summaries
+
+**Customer value:**
+- Guided adoption
+- Better feature usage
+- Faster time to value
+
+**Talk track:**
+- “It nudges users at the right moments so they don’t get stuck.”
+
+---
+
+## How Concierge AI Improves Itself Over Time
+
+**What it does:**
+- Learns from:
+  - Human agent edits
+  - Weekly retraining processes
+- Continuously improves responses
+
+**Customer value:**
+- Increasing accuracy over time
+- Better automation coverage
+- Future-proof system
+
+**Talk track:**
+- “The system gets smarter with every interaction—it’s constantly improving.”
+
+---
+
+## Planned And Emerging Capabilities To Position
+
+- Broader VirtualCFO rollout
+- Expanded auto-categorization
+- Smarter suggested follow-ups
+- Continuous AI retraining improvements
+
+**Positioning:**
+- “This is evolving from support into a fully autonomous assistant.”
+
+---
+
+## How To Summarize Concierge AI In One Sentence
+
+- “Concierge is an AI-powered assistant that answers questions, takes actions, and proactively manages expenses—so your team doesn’t have to.”
