@@ -58,10 +58,7 @@ function setupMergeTransactionDataAndNavigate(
     if (transactions.length === 1) {
         const transaction = transactions.at(0);
         if (transaction) {
-            setupMergeTransactionData(navigationTransactionID, {
-                targetTransactionID: transaction.transactionID,
-                targetTransactionThreadReportID: getTransactionThreadReportID(transaction),
-            });
+            setupMergeTransactionData(navigationTransactionID, {targetTransactionID: transaction.transactionID});
             Navigation.navigate(ROUTES.MERGE_TRANSACTION_LIST_PAGE.getRoute(transaction.transactionID, Navigation.getActiveRoute(), isOnSearch));
             return;
         }
@@ -80,7 +77,7 @@ function setupMergeTransactionDataAndNavigate(
     const setupData = {
         targetTransactionID: targetTransaction?.transactionID,
         sourceTransactionID: sourceTransaction?.transactionID,
-        targetTransactionThreadReportID: getTransactionThreadReportID(targetTransaction),
+        targetTransactionThreadReportID: targetTransaction.transactionThreadReportID ?? getTransactionThreadReportID(targetTransaction),
     };
     if (isSelectingSourceTransaction) {
         setMergeTransactionKey(navigationTransactionID, setupData);

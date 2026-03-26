@@ -1,13 +1,7 @@
 import Onyx from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {getReportPreviewAction} from '@libs/actions/IOU';
-import {
-    areTransactionsEligibleForMerge,
-    mergeTransactionRequest,
-    setMergeTransactionKey,
-    setupMergeTransactionData,
-    setupMergeTransactionDataAndNavigate,
-} from '@libs/actions/MergeTransaction';
+import {areTransactionsEligibleForMerge, mergeTransactionRequest, setMergeTransactionKey, setupMergeTransactionData, setupMergeTransactionDataAndNavigate} from '@libs/actions/MergeTransaction';
 import {addComment, openReport} from '@libs/actions/Report';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import Navigation from '@libs/Navigation/Navigation';
@@ -16,7 +10,6 @@ import {getReportAction} from '@libs/ReportActionsUtils';
 import {buildTransactionThread} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import type {
     MergeTransaction as MergeTransactionType,
     OriginalMessageIOU,
@@ -1082,48 +1075,14 @@ describe('setupMergeTransactionDataAndNavigate', () => {
         return Onyx.clear().then(waitForBatchedUpdates);
     });
 
-    it('should persist targetTransactionThreadReportID for the list page entry flow', async () => {
-        const transactionID = 'target-transaction-123';
-        const threadReportID = 'thread-report-123';
-        const transaction = {
-            ...createRandomTransaction(1),
-            transactionID,
-            transactionThreadReportID: threadReportID,
-        };
-
-        const navigateSpy = jest.spyOn(Navigation, 'navigate').mockImplementation(jest.fn());
-        const getActiveRouteSpy = jest.spyOn(Navigation, 'getActiveRoute').mockReturnValue('/reports/expenses');
-
-        setupMergeTransactionDataAndNavigate(transactionID, [transaction], mockLocaleCompare, [], false, true);
-        await waitForBatchedUpdates();
-
-        const mergeTransaction = await new Promise<MergeTransactionType | null>((resolve) => {
-            const connection = Onyx.connect({
-                key: `${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${transactionID}`,
-                callback: (currentMergeTransaction) => {
-                    Onyx.disconnect(connection);
-                    resolve(currentMergeTransaction ?? null);
-                },
-            });
-        });
-
-        expect(mergeTransaction).toEqual({
-            targetTransactionID: transactionID,
-            targetTransactionThreadReportID: threadReportID,
-        });
-        expect(navigateSpy).toHaveBeenCalledWith(ROUTES.MERGE_TRANSACTION_LIST_PAGE.getRoute(transactionID, '/reports/expenses', true));
-
-        navigateSpy.mockRestore();
-        getActiveRouteSpy.mockRestore();
-    });
-
     it('should persist targetTransactionThreadReportID for the bulk merge flow', async () => {
         const transactionID = 'merge-transaction-123';
+        const threadReportID = 'thread-report-123';
         const targetTransaction = {
             ...createRandomTransaction(1),
             transactionID: 'target-transaction-123',
             reportID: 'report-123',
-            transactionThreadReportID: 'thread-report-123',
+            transactionThreadReportID: threadReportID,
             managedCard: false,
             bank: CONST.COMPANY_CARD.FEED_BANK_NAME.UPLOAD,
             cardName: CONST.EXPENSE.TYPE.CASH_CARD_NAME,
@@ -1150,7 +1109,7 @@ describe('setupMergeTransactionDataAndNavigate', () => {
         const navigateSpy = jest.spyOn(Navigation, 'navigate').mockImplementation(jest.fn());
         const getActiveRouteSpy = jest.spyOn(Navigation, 'getActiveRoute').mockReturnValue('/reports/expenses');
 
-        setupMergeTransactionDataAndNavigate(transactionID, [targetTransaction, sourceTransaction], mockLocaleCompare, [], true, true);
+        setupMergeTransactionDataAndNavigate(transactionID, [targetTransaction, sourceTransaction], mockLocaleCompare, [], false, true);
         await waitForBatchedUpdates();
 
         const mergeTransaction = await new Promise<MergeTransactionType | null>((resolve) => {
@@ -1166,7 +1125,7 @@ describe('setupMergeTransactionDataAndNavigate', () => {
         expect(mergeTransaction).toEqual({
             targetTransactionID: targetTransaction.transactionID,
             sourceTransactionID: sourceTransaction.transactionID,
-            targetTransactionThreadReportID: targetTransaction.transactionThreadReportID,
+            targetTransactionThreadReportID: threadReportID,
         });
         expect(navigateSpy).toHaveBeenCalled();
 
@@ -1221,7 +1180,7 @@ describe('setMergeTransactionKey', () => {
         });
     });
 
-    it('should preserve targetTransactionThreadReportID when updating the selected source transaction', async () => {
+    it('should preserve targetTransactionThreadReportID when updating merge state for confirmation', async () => {
         const transactionID = 'test-transaction-456';
         const existingMergeTransaction = {
             targetTransactionID: transactionID,
@@ -1231,11 +1190,8 @@ describe('setMergeTransactionKey', () => {
 
         await Onyx.set(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${transactionID}`, existingMergeTransaction);
 
-        setupMergeTransactionData(transactionID, {
-            targetTransactionID: transactionID,
-            targetTransactionThreadReportID: existingMergeTransaction.targetTransactionThreadReportID,
+        setMergeTransactionKey(transactionID, {
             sourceTransactionID: 'source-transaction-456',
-            eligibleTransactions: existingMergeTransaction.eligibleTransactions,
         });
         await waitForBatchedUpdates();
 

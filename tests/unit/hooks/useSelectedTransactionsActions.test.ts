@@ -12,7 +12,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {ReportAction, Session} from '@src/types/onyx';
+import type {ReportAction, SearchResults, Session} from '@src/types/onyx';
 import createRandomPolicy from '../../utils/collections/policies';
 import createRandomReportAction from '../../utils/collections/reportActions';
 import {createRandomReport} from '../../utils/collections/reports';
@@ -62,12 +62,14 @@ const mockClearSelectedTransactions = jest.fn();
 const mockSelectedTransactionIDs: string[] = [];
 const mockSelectedTransactions: SelectedTransactions = {};
 const mockCurrentSearchHash = 12345;
+let mockCurrentSearchResults: SearchResults | undefined;
 
 jest.mock('@components/Search/SearchContext', () => ({
     useSearchStateContext: () => ({
         selectedTransactionIDs: mockSelectedTransactionIDs,
         currentSearchHash: mockCurrentSearchHash,
         selectedTransactions: mockSelectedTransactions,
+        currentSearchResults: mockCurrentSearchResults,
     }),
     useSearchActionsContext: () => ({
         clearSelectedTransactions: mockClearSelectedTransactions,
@@ -139,6 +141,7 @@ describe('useSelectedTransactionsActions', () => {
             delete mockSelectedTransactions[key];
         }
         mockIsOffline = false;
+        mockCurrentSearchResults = undefined;
     });
 
     afterEach(async () => {
@@ -742,5 +745,118 @@ describe('useSelectedTransactionsActions', () => {
         mergeOption?.onSelected?.();
 
         expect(setupMergeTransactionDataAndNavigate).toHaveBeenCalledWith(transaction.transactionID, [transaction], mockLocalCompare, [], false, false, undefined);
+    });
+
+    it('should pass isOnSearch=true for search-origin report checkbox merge', async () => {
+        const transactionID = 'search-transaction-123';
+        const report = createRandomReport(1, undefined);
+        report.type = CONST.REPORT.TYPE.EXPENSE;
+        report.statusNum = 0;
+        report.stateNum = 0;
+        const policy = createRandomPolicy(1);
+        const reportActions: ReportAction[] = [];
+        const transaction = createRandomTransaction(1);
+        transaction.transactionID = transactionID;
+        transaction.managedCard = false;
+        transaction.cardName = CONST.EXPENSE.TYPE.CASH_CARD_NAME;
+
+        mockSelectedTransactionIDs.push(transactionID);
+
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction);
+
+        jest.spyOn(require('@libs/ReportSecondaryActionUtils'), 'isMergeActionForSelectedTransactions').mockReturnValue(true);
+
+        await Onyx.merge(ONYXKEYS.SESSION, {accountID: 1});
+        const {result} = renderHook(() =>
+            useSelectedTransactionsActions({
+                report,
+                reportActions,
+                allTransactionsLength: 1,
+                policy,
+                beginExportWithTemplate: mockBeginExportWithTemplate,
+                isOnSearch: true,
+            }),
+        );
+
+        await waitFor(() => {
+            const mergeOption = result.current.options.find((option) => option.value === 'MERGE');
+            expect(mergeOption).toBeDefined();
+        });
+
+        const mergeOption = result.current.options.find((option) => option.value === 'MERGE');
+        mergeOption?.onSelected?.();
+
+        expect(setupMergeTransactionDataAndNavigate).toHaveBeenCalledWith(transaction.transactionID, [transaction], mockLocalCompare, [], false, true, undefined);
+    });
+
+    it('should preserve snapshot thread metadata when selected search-origin transactions are merged', async () => {
+        const transactionID = 'snapshot-transaction-123';
+        const threadReportID = 'thread-report-123';
+        const report = createRandomReport(1, undefined);
+        report.type = CONST.REPORT.TYPE.EXPENSE;
+        report.statusNum = 0;
+        report.stateNum = 0;
+        const policy = createRandomPolicy(1);
+        const reportActions: ReportAction[] = [];
+        const onyxTransaction = createRandomTransaction(1);
+        onyxTransaction.transactionID = transactionID;
+        onyxTransaction.managedCard = false;
+        onyxTransaction.cardName = CONST.EXPENSE.TYPE.CASH_CARD_NAME;
+        onyxTransaction.transactionThreadReportID = undefined;
+
+        const snapshotTransaction = {
+            ...onyxTransaction,
+            transactionThreadReportID: threadReportID,
+        };
+
+        mockCurrentSearchResults = {
+            search: {
+                offset: 0,
+                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                status: CONST.SEARCH.STATUS.EXPENSE.ALL,
+                hasMoreResults: false,
+                hasResults: true,
+                isLoading: false,
+            },
+            data: {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: snapshotTransaction,
+            },
+        } as SearchResults;
+
+        mockSelectedTransactionIDs.push(transactionID);
+
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, onyxTransaction);
+
+        jest.spyOn(require('@libs/ReportSecondaryActionUtils'), 'isMergeActionForSelectedTransactions').mockReturnValue(true);
+
+        await Onyx.merge(ONYXKEYS.SESSION, {accountID: 1});
+        const {result} = renderHook(() =>
+            useSelectedTransactionsActions({
+                report,
+                reportActions,
+                allTransactionsLength: 1,
+                policy,
+                beginExportWithTemplate: mockBeginExportWithTemplate,
+                isOnSearch: true,
+            }),
+        );
+
+        await waitFor(() => {
+            const mergeOption = result.current.options.find((option) => option.value === 'MERGE');
+            expect(mergeOption).toBeDefined();
+        });
+
+        const mergeOption = result.current.options.find((option) => option.value === 'MERGE');
+        mergeOption?.onSelected?.();
+
+        expect(setupMergeTransactionDataAndNavigate).toHaveBeenCalledWith(
+            transactionID,
+            [expect.objectContaining({transactionID, transactionThreadReportID: threadReportID})],
+            mockLocalCompare,
+            [],
+            false,
+            true,
+            undefined,
+        );
     });
 });

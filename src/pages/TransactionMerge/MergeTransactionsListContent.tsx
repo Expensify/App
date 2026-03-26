@@ -31,12 +31,11 @@ import MergeTransactionItem from './MergeTransactionItem';
 type MergeTransactionsListContentProps = {
     transactionID: string;
     mergeTransaction: OnyxEntry<MergeTransaction>;
-    isOnSearch?: boolean;
 };
 
 type MergeTransactionListItemType = Transaction & ListItem;
 
-function MergeTransactionsListContent({transactionID, mergeTransaction, isOnSearch}: MergeTransactionsListContentProps) {
+function MergeTransactionsListContent({transactionID, mergeTransaction}: MergeTransactionsListContentProps) {
     const illustrations = useMemoizedLazyIllustrations(['EmptyShelves']);
     const {translate, localeCompare} = useLocalize();
     const styles = useThemeStyles();
@@ -121,7 +120,6 @@ function MergeTransactionsListContent({transactionID, mergeTransaction, isOnSear
         // Clear the merge transaction data when select a new source transaction to merge
         setupMergeTransactionData(transactionID, {
             targetTransactionID: transactionID,
-            targetTransactionThreadReportID: mergeTransaction?.targetTransactionThreadReportID,
             sourceTransactionID: item.transactionID,
             eligibleTransactions: mergeTransaction?.eligibleTransactions,
         });
@@ -158,7 +156,7 @@ function MergeTransactionsListContent({transactionID, mergeTransaction, isOnSear
         }
 
         const reports = targetTransactionReport && sourceTransactionReport ? [targetTransactionReport, sourceTransactionReport] : undefined;
-        setupMergeTransactionDataAndNavigate(transactionID, [targetTransaction, sourceTransaction], localeCompare, reports, true, isOnSearch, [
+        setupMergeTransactionDataAndNavigate(transactionID, [targetTransaction, sourceTransaction], localeCompare, reports, true, undefined, [
             targetTransactionPolicy,
             sourceTransactionPolicy,
         ]);
