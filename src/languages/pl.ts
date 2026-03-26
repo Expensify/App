@@ -86,6 +86,7 @@ import type {
     UpdateRoleParams,
     UpgradeSuccessMessageParams,
     UserIsAlreadyMemberParams,
+    ViolationsIncreasedDistanceParams,
     ViolationsMissingTagParams,
     ViolationsModifiedAmountParams,
     ViolationsProhibitedExpenseParams,
@@ -7883,6 +7884,8 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
             }
         },
         modifiedDate: 'Data różni się od zeskanowanego paragonu',
+        increasedDistance: ({formattedRouteDistance}: ViolationsIncreasedDistanceParams) =>
+            formattedRouteDistance ? `Dystans przekracza obliczoną trasę ${formattedRouteDistance}` : 'Dystans przekracza obliczoną trasę',
         nonExpensiworksExpense: 'Wydatek spoza Expensiworks',
         overAutoApprovalLimit: (formattedLimit: string) => `Wydatek przekracza automatyczny limit zatwierdzania w wysokości ${formattedLimit}`,
         overCategoryLimit: (formattedLimit: string) => `Kwota przekracza limit kategorii w wysokości ${formattedLimit}/osobę`,

@@ -76,6 +76,8 @@ type ViolationsMissingTagParams = {tagName?: string} | undefined;
 
 type ViolationsModifiedAmountParams = {type?: ViolationDataType; displayPercentVariance?: number};
 
+type ViolationsIncreasedDistanceParams = {formattedRouteDistance?: string};
+
 type ViolationsReceiptRequiredParams = {formattedLimit?: string; category?: string};
 
 type ViolationsRterParams = {
@@ -322,6 +324,7 @@ export type {
     UserIsAlreadyMemberParams,
     ViolationsMissingTagParams,
     ViolationsModifiedAmountParams,
+    ViolationsIncreasedDistanceParams,
     ViolationsReceiptRequiredParams,
     ViolationsRterParams,
     ViolationsTagOutOfPolicyParams,

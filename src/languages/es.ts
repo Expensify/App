@@ -8195,6 +8195,8 @@ ${amount} para ${merchant} - ${date}`,
             }
         },
         modifiedDate: 'Fecha difiere del recibo escaneado',
+        increasedDistance: ({formattedRouteDistance}) =>
+            formattedRouteDistance ? `La distancia supera la ruta calculada de ${formattedRouteDistance}` : 'La distancia supera la ruta calculada',
         nonExpensiworksExpense: 'Gasto no proviene de Expensiworks',
         overAutoApprovalLimit: (formattedLimit) => `Importe supera el límite de aprobación automática${formattedLimit ? ` de ${formattedLimit}` : ''}`,
         overCategoryLimit: (formattedLimit) => `Importe supera el límite para la categoría${formattedLimit ? ` de ${formattedLimit}/persona` : ''}`,
