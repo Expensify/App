@@ -84,7 +84,7 @@ function OptionRowLHNData({
     const [lastReportActionTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${lastReportActionTransactionID}`);
 
     const whisperTransactionID = isActionableTrackExpense(lastAction) ? getOriginalMessage(lastAction)?.transactionID : undefined;
-    const [whisperTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${whisperTransactionID ?? CONST.DEFAULT_NUMBER_ID}`);
+    const [whisperTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(whisperTransactionID)}`);
     const lastMessageTextFromReport = useMemo(() => {
         if (!whisperTransactionID || whisperTransaction) {
             return undefined;
@@ -94,7 +94,7 @@ function OptionRowLHNData({
         return '';
     }, [whisperTransaction, whisperTransactionID]);
 
-    const lastActionReportID = isInviteOrRemovedAction(lastAction) ? String(getOriginalMessage(lastAction)?.reportID ?? '') : undefined;
+    const lastActionReportID = isInviteOrRemovedAction(lastAction) ? getOriginalMessage(lastAction)?.reportID?.toString() : undefined;
     const [lastActionReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(lastActionReportID)}`);
 
     const [movedFromReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getMovedReportID(lastAction, CONST.REPORT.MOVE_TYPE.FROM)}`);
