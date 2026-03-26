@@ -1,4 +1,4 @@
-import personalDetailsSelector from '@selectors/PersonalDetails';
+import {personalDetailsSelector} from '@selectors/PersonalDetails';
 import React from 'react';
 import useOnyx from '@hooks/useOnyx';
 import Navigation from '@navigation/Navigation';

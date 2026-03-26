@@ -13,6 +13,7 @@ import SwipeableView from '@components/SwipeableView';
 import useAncestors from '@hooks/useAncestors';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useIsAnonymousUser from '@hooks/useIsAnonymousUser';
+import useIsInSidePanel from '@hooks/useIsInSidePanel';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -21,7 +22,6 @@ import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useShortMentionsList from '@hooks/useShortMentionsList';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import {addComment} from '@libs/actions/Report';
 import {createTaskAndNavigate, setNewOptimisticAssignee} from '@libs/actions/Task';
 import {isEmailPublicDomain} from '@libs/LoginUtils';
@@ -36,7 +36,6 @@ import {
     isSystemChat as isSystemChatUtil,
 } from '@libs/ReportUtils';
 import {generateAccountID} from '@libs/UserUtils';
-import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -64,16 +63,13 @@ type ReportFooterProps = {
 
     /** A method to call when the input is blur */
     onComposerBlur?: () => void;
-
-    /** Whether the report screen is being displayed in the side panel */
-    isInSidePanel?: boolean;
 };
 
-function ReportFooter({lastReportAction, report = {reportID: '-1'}, onComposerBlur, onComposerFocus, reportTransactions, transactionThreadReportID, isInSidePanel}: ReportFooterProps) {
+function ReportFooter({lastReportAction, report = {reportID: '-1'}, onComposerBlur, onComposerFocus, reportTransactions, transactionThreadReportID}: ReportFooterProps) {
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
-    const {windowWidth} = useWindowDimensions();
+    const isInSidePanel = useIsInSidePanel();
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
     const personalDetail = useCurrentUserPersonalDetails();
@@ -99,8 +95,6 @@ function ReportFooter({lastReportAction, report = {reportID: '-1'}, onComposerBl
     const isReportArchived = useReportIsArchived(report?.reportID);
     const ancestors = useAncestors(report);
     const isArchivedRoom = isArchivedNonExpenseReport(report, isReportArchived);
-
-    const isSmallSizeLayout = windowWidth - (shouldUseNarrowLayout ? 0 : variables.sideBarWithLHBWidth) < variables.anonymousReportFooterBreakpoint;
 
     // If a user just signed in and is viewing a public report, optimistically show the composer while loading the report, since they will have write access when the response comes back.
     const shouldShowComposerOptimistically = !isAnonymousUser && isPublicRoom(report) && !!isLoadingInitialReportActions;
@@ -209,18 +203,8 @@ function ReportFooter({lastReportAction, report = {reportID: '-1'}, onComposerBl
                         shouldUseNarrowLayout ? styles.mb5 : null,
                     ]}
                 >
-                    {isAnonymousUser && !isArchivedRoom && (
-                        <AnonymousReportFooter
-                            report={report}
-                            isSmallSizeLayout={isSmallSizeLayout || isInSidePanel}
-                        />
-                    )}
-                    {isArchivedRoom && (
-                        <ArchivedReportFooter
-                            report={report}
-                            currentUserAccountID={personalDetail.accountID}
-                        />
-                    )}
+                    {isAnonymousUser && !isArchivedRoom && <AnonymousReportFooter reportID={report.reportID} />}
+                    {isArchivedRoom && <ArchivedReportFooter reportID={report.reportID} />}
                     {!isArchivedRoom && !!isBlockedFromChat && <BlockedReportFooter />}
                     {!isAnonymousUser && !canWriteInReport && isSystemChat && <SystemChatReportFooterMessage />}
                     {isAdminsOnlyPostingRoom && !isUserPolicyAdmin && !isArchivedRoom && !isAnonymousUser && !isBlockedFromChat && (
@@ -251,7 +235,6 @@ function ReportFooter({lastReportAction, report = {reportID: '-1'}, onComposerBl
                             didHideComposerInput={didHideComposerInput}
                             reportTransactions={reportTransactions}
                             transactionThreadReportID={transactionThreadReportID}
-                            isInSidePanel={isInSidePanel}
                         />
                     </SwipeableView>
                 </View>

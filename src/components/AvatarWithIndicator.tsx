@@ -35,7 +35,7 @@ function AvatarWithIndicator({source, accountID, tooltipText = '', fallbackIcon,
         <Tooltip text={tooltipText}>
             <View style={[styles.sidebarAvatar]}>
                 {isLoading ? (
-                    <AvatarSkeleton />
+                    <AvatarSkeleton reasonAttributes={{context: 'AvatarWithIndicator', isLoading}} />
                 ) : (
                     <>
                         <Avatar

@@ -265,6 +265,9 @@ type ReportActionBase = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Flag for checking if data is from optimistic data */
     isOptimisticAction?: boolean;
 
+    /** Whether the original report related to this action was deleted */
+    isOriginalReportDeleted?: boolean;
+
     /** The admins's ID */
     adminAccountID?: number;
 

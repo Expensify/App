@@ -1,4 +1,4 @@
-import React, {useCallback} from 'react';
+import React from 'react';
 import {InteractionManager} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
@@ -42,21 +42,16 @@ function AddUnreportedExpenseFooter({selectedIds, report, reportToConfirm, repor
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const session = useSession();
     const personalDetails = usePersonalDetails();
-    const getSelectedTransactions = useCallback(
-        (allTransactions: OnyxCollection<Transaction>) => {
-            if (!allTransactions) {
-                return {};
-            }
-            return Array.from(selectedIds).reduce<Record<string, Transaction>>((acc, id) => {
-                const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`];
-                if (transaction) {
-                    acc[transaction.transactionID] = transaction;
-                }
-                return acc;
-            }, {});
-        },
-        [selectedIds],
-    );
+    const getSelectedTransactions = (allTransactions: OnyxCollection<Transaction>) =>
+        !allTransactions
+            ? {}
+            : Array.from(selectedIds).reduce<Record<string, Transaction>>((acc, id) => {
+                  const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`];
+                  if (transaction) {
+                      acc[`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`] = transaction;
+                  }
+                  return acc;
+              }, {});
     const [selectedTransactions = CONST.EMPTY_OBJECT] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {selector: getSelectedTransactions});
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [policyRecentlyUsedCurrencies] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES);
