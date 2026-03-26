@@ -57,7 +57,7 @@ function SearchFiltersGroupByPage() {
             shouldEnableMaxHeight
         >
             <HeaderWithBackButton
-                title={translate('search.groupBy')}
+                title={translate('search.display.groupBy')}
                 onBackButtonPress={() => {
                     Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS.getRoute());
                 }}
