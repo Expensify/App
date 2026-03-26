@@ -217,7 +217,7 @@ function SettlementButton({
                     return;
                 }
                 pressLockedBankAccount(policy?.achAccount?.bankAccountID, translate, conciergeReportID);
-                navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID);
+                navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed);
             });
             return true;
         }
@@ -242,11 +242,12 @@ function SettlementButton({
         reportID,
         showConfirmModal,
         translate,
+        styles.renderHTML,
+        styles.flexRow,
         conciergeReportID,
         introSelected,
         currentUserAccountID,
-        styles.renderHTML,
-        styles.flexRow,
+        isSelfTourViewed,
     ]);
 
     const shortFormPayElsewhereButton = {
@@ -500,6 +501,7 @@ function SettlementButton({
                     betas,
                     userBillingGraceEndPeriods,
                     amountOwed,
+                    ownerBillingGraceEndPeriod,
                     full: false,
                 });
             }

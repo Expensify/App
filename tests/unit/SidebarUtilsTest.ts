@@ -10,13 +10,13 @@ import {getLastActorDisplayName} from '@libs/OptionsListUtils';
 import type * as PolicyUtils from '@libs/PolicyUtils';
 import {getOriginalMessage, getReportActionMessageText} from '@libs/ReportActionsUtils';
 import {formatReportLastMessageText, generateReportID, getAllReportErrors, getReasonAndReportActionThatRequiresAttention, getReportPreviewMessage} from '@libs/ReportUtils';
-import SidebarUtils from '@libs/SidebarUtils';
+import SidebarUtils, {_categorizeReportsForLHN, _combineReportCategories, _sortCategorizedReports} from '@libs/SidebarUtils';
 import initOnyxDerivedValues from '@userActions/OnyxDerived';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {OriginalMessageIOU, PersonalDetails, Policy, Report, ReportAction, ReportActions, Transaction, TransactionViolation, TransactionViolations} from '@src/types/onyx';
-import type {ReportAttributes} from '@src/types/onyx/DerivedValues';
+import type {ReportAttributes, ReportAttributesDerivedValue} from '@src/types/onyx/DerivedValues';
 import type {ReportCollectionDataSet} from '@src/types/onyx/Report';
 import type {TransactionViolationsCollectionDataSet} from '@src/types/onyx/TransactionViolation';
 import {actionR14932 as mockIOUAction} from '../../__mocks__/reportData/actions';
@@ -1038,6 +1038,9 @@ describe('SidebarUtils', () => {
                     .then(() => {
                         // Simulate how components call getWelcomeMessage() by using the hook useReportIsArchived() to see if the report is archived
                         const {result: isReportArchived} = renderHook(() => useReportIsArchived(MOCK_REPORT?.reportID));
+                        const reportAttributes = {
+                            [MOCK_REPORT.reportID]: {reportName: 'Report (archived)'},
+                        } as ReportAttributesDerivedValue['reports'];
                         return SidebarUtils.getWelcomeMessage({
                             report: MOCK_REPORT,
                             policy: undefined,
@@ -1046,6 +1049,7 @@ describe('SidebarUtils', () => {
                             translate: translateLocal,
                             localeCompare,
                             conciergeReportID: MOCK_CONCIERGE_REPORT_ID,
+                            reportAttributes,
                             isReportArchived: isReportArchived.current,
                         });
                     })
@@ -1232,6 +1236,10 @@ describe('SidebarUtils', () => {
                 },
             };
 
+            const reportAttributes = {
+                [archivedInvoiceRoom.reportID]: {reportName: `${senderPolicy.name} owes ${invoiceReceiverPolicy.name}`},
+            } as ReportAttributesDerivedValue['reports'];
+
             const result = SidebarUtils.getWelcomeMessage({
                 report: archivedInvoiceRoom,
                 policy: senderPolicy,
@@ -1240,6 +1248,7 @@ describe('SidebarUtils', () => {
                 translate: translateLocal,
                 localeCompare,
                 conciergeReportID: MOCK_CONCIERGE_REPORT_ID,
+                reportAttributes,
                 isReportArchived: true,
                 reportDetailsLink: 'https://example.com/report',
             });
@@ -2856,7 +2865,7 @@ describe('SidebarUtils', () => {
                 };
 
                 // When the reports are categorized
-                const result = SidebarUtils.categorizeReportsForLHN(reports, reportsDrafts, '', reportNameValuePairs);
+                const result = _categorizeReportsForLHN(reports, reportsDrafts, undefined, reportNameValuePairs);
 
                 // Then the reports are categorized into the correct groups
                 expect(result.pinnedAndGBRReports).toHaveLength(1);
@@ -2883,7 +2892,7 @@ describe('SidebarUtils', () => {
                 ]);
 
                 // When the reports are categorized
-                const result = SidebarUtils.categorizeReportsForLHN(reports, undefined, '', undefined);
+                const result = _categorizeReportsForLHN(reports, undefined, undefined, undefined);
 
                 // Then the reports are categorized into the correct groups
                 expect(result.pinnedAndGBRReports).toHaveLength(1);
@@ -2910,7 +2919,7 @@ describe('SidebarUtils', () => {
                 };
 
                 // When the reports are categorized
-                const result = SidebarUtils.categorizeReportsForLHN(reports, {}, '');
+                const result = _categorizeReportsForLHN(reports, {}, undefined);
 
                 // Then the reports are categorized into the correct groups
                 expect(result.pinnedAndGBRReports).toHaveLength(0);
@@ -2924,7 +2933,7 @@ describe('SidebarUtils', () => {
 
             it('should handle empty reports object', () => {
                 // Given the reports are empty
-                const result = SidebarUtils.categorizeReportsForLHN({}, {}, '');
+                const result = _categorizeReportsForLHN({}, {}, undefined);
 
                 // Then the reports are categorized into the correct groups
                 expect(result.pinnedAndGBRReports).toHaveLength(0);
@@ -2964,7 +2973,7 @@ describe('SidebarUtils', () => {
                 };
 
                 // When the reports are sorted
-                const result = SidebarUtils.sortCategorizedReports(categories, true, mockLocaleCompare);
+                const result = _sortCategorizedReports(categories, true, mockLocaleCompare);
 
                 // Then the pinned reports are sorted by display name
                 expect(result.pinnedAndGBRReports.at(0)?.displayName).toBe('Alpha');
@@ -3013,7 +3022,7 @@ describe('SidebarUtils', () => {
                 };
 
                 // When the reports are sorted
-                const result = SidebarUtils.sortCategorizedReports(categories, false, mockLocaleCompare);
+                const result = _sortCategorizedReports(categories, false, mockLocaleCompare);
 
                 // Then the pinned reports are sorted by display name in focus mode
                 expect(result.pinnedAndGBRReports.at(0)?.displayName).toBe('Alpha');
@@ -3050,7 +3059,7 @@ describe('SidebarUtils', () => {
                 };
 
                 // When the reports are sorted
-                const result = SidebarUtils.sortCategorizedReports(categories, true, mockLocaleCompare);
+                const result = _sortCategorizedReports(categories, true, mockLocaleCompare);
 
                 // Then the pinned reports are sorted by display name
                 expect(result.pinnedAndGBRReports).toHaveLength(2);
@@ -3070,7 +3079,7 @@ describe('SidebarUtils', () => {
                 };
 
                 // When the reports are sorted
-                const result = SidebarUtils.sortCategorizedReports(categories, true, mockLocaleCompare);
+                const result = _sortCategorizedReports(categories, true, mockLocaleCompare);
 
                 // Then the non-archived reports are sorted by display name
                 expect(result.nonArchivedReports.at(0)?.displayName).toBe('Alpha');
@@ -3103,7 +3112,7 @@ describe('SidebarUtils', () => {
                 ];
 
                 // When the reports are combined
-                const result = SidebarUtils.combineReportCategories(pinnedAndGBRReports, errorReports, draftReports, nonArchivedReports, archivedReports);
+                const result = _combineReportCategories(pinnedAndGBRReports, errorReports, draftReports, nonArchivedReports, archivedReports);
 
                 // Then the reports are combined in the correct order
                 expect(result).toEqual(['1', '2', '3', '4', '5', '6', '7', '8', '9', '10']);
@@ -3121,7 +3130,7 @@ describe('SidebarUtils', () => {
                 const archivedReports: Array<{reportID?: string; displayName: string; lastVisibleActionCreated?: string}> = [];
 
                 // When the reports are combined
-                const result = SidebarUtils.combineReportCategories(pinnedAndGBRReports, errorReports, draftReports, nonArchivedReports, archivedReports);
+                const result = _combineReportCategories(pinnedAndGBRReports, errorReports, draftReports, nonArchivedReports, archivedReports);
 
                 // Then the reports are combined in the correct order
                 expect(result).toEqual(['1', '2']);
@@ -3129,7 +3138,7 @@ describe('SidebarUtils', () => {
 
             it('should handle empty categories', () => {
                 // Given the reports are empty
-                const result = SidebarUtils.combineReportCategories([], [], [], [], []);
+                const result = _combineReportCategories([], [], [], [], []);
 
                 // Then the reports are combined in the correct order
                 expect(result).toEqual([]);
@@ -3161,7 +3170,7 @@ describe('SidebarUtils', () => {
                 const priorityMode = CONST.PRIORITY_MODE.DEFAULT;
 
                 // When the reports are sorted
-                const result = SidebarUtils.sortReportsToDisplayInLHN(reports, priorityMode, mockLocaleCompare, undefined, undefined, '');
+                const result = SidebarUtils.sortReportsToDisplayInLHN(reports, priorityMode, mockLocaleCompare, undefined, undefined, undefined);
 
                 // Then the reports are sorted in the correct order
                 expect(result).toEqual(['0', '1', '2']); // Pinned first, Error second, Normal third
@@ -3187,10 +3196,10 @@ describe('SidebarUtils', () => {
                 const mockLocaleCompare = (a: string, b: string) => a.localeCompare(b);
 
                 // When the reports are sorted in default mode
-                const defaultResult = SidebarUtils.sortReportsToDisplayInLHN(reports, CONST.PRIORITY_MODE.DEFAULT, mockLocaleCompare, undefined, undefined, '');
+                const defaultResult = SidebarUtils.sortReportsToDisplayInLHN(reports, CONST.PRIORITY_MODE.DEFAULT, mockLocaleCompare, undefined, undefined, undefined);
 
                 // When the reports are sorted in GSD mode
-                const gsdResult = SidebarUtils.sortReportsToDisplayInLHN(reports, CONST.PRIORITY_MODE.GSD, mockLocaleCompare, undefined, undefined, '');
+                const gsdResult = SidebarUtils.sortReportsToDisplayInLHN(reports, CONST.PRIORITY_MODE.GSD, mockLocaleCompare, undefined, undefined, undefined);
 
                 // Then the reports are sorted in the correct order
                 expect(defaultResult).toEqual(['1', '0']); // Most recent first (index 1 has later date)
