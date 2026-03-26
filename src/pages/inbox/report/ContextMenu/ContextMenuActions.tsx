@@ -206,7 +206,6 @@ import type {
     Report as ReportType,
     Transaction,
 } from '@src/types/onyx';
-import type IconAsset from '@src/types/utils/IconAsset';
 import type WithSentryLabel from '@src/types/utils/SentryLabel';
 import KeyboardUtils from '@src/utils/keyboard';
 import type {ContextMenuAnchor} from './ReportActionContextMenu';
@@ -314,7 +313,6 @@ type ContextMenuActionWithContent = {
 type ContextMenuActionWithIcon = WithSentryLabel & {
     textTranslateKey: TranslationPaths;
     icon:
-        | IconAsset
         | Extract<
               ExpensifyIconName,
               | 'Download'
@@ -336,7 +334,6 @@ type ContextMenuActionWithIcon = WithSentryLabel & {
           >;
     successTextTranslateKey?: TranslationPaths;
     successIcon?:
-        | IconAsset
         | Extract<
               ExpensifyIconName,
               | 'Download'
