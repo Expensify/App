@@ -245,6 +245,9 @@ function SuggestionMention({
             const trimmedCommentAfterMention = trimLeadingSpace(commentAfterMention);
             const spacer = !trimmedCommentAfterMention || !CONST.REGEX.STARTS_WITH_PUNCTUATION.test(trimmedCommentAfterMention) ? ' ' : '';
 
+            // We block suggestions from showing up for a moment to prevent the menu from reappearing
+            // immediately after selecting a suggestion due to the comment update triggering the suggestion logic.
+            shouldBlockCalc.current = true;
             updateComment(`${commentBeforeAtSign}${mentionCode}${dotToAppend}${spacer}${trimmedCommentAfterMention}`, true);
             const selectionPosition = suggestionValues.atSignIndex + mentionCode.length + dotToAppend.length + spacer.length;
             setSelection({
