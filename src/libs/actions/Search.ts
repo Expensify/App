@@ -121,9 +121,6 @@ type BulkDeleteReportsParams = {
     reportTransactions: Record<string, Transaction>;
     transactionsViolations: Record<string, TransactionViolations>;
     bankAccountList: OnyxEntry<BankAccountList>;
-    personalPolicy: Pick<Policy, 'id' | 'type' | 'autoReporting' | 'outputCurrency'> | undefined;
-    translate: LocaleContextProps['translate'];
-    toLocaleDigit: LocaleContextProps['toLocaleDigit'];
     transactions?: OnyxCollection<Transaction>;
     allReportNameValuePairs: OnyxCollection<ReportNameValuePairs>;
 };
@@ -885,9 +882,6 @@ function bulkDeleteReports({
     reportTransactions,
     transactionsViolations,
     bankAccountList,
-    personalPolicy,
-    translate,
-    toLocaleDigit,
     transactions,
     allReportNameValuePairs,
 }: BulkDeleteReportsParams) {
@@ -962,9 +956,6 @@ function bulkDeleteReports({
                 reportTransactions,
                 allTransactionViolations: transactionsViolations,
                 bankAccountList,
-                personalPolicy,
-                translate,
-                toLocaleDigit,
             });
         }
     }

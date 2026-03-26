@@ -852,8 +852,6 @@ type ChangeTransactionsReportProps = {
     reportNextStep?: OnyxEntry<ReportNextStepDeprecated>;
     policyCategories?: OnyxEntry<PolicyCategories>;
     allTransactions: OnyxCollection<Transaction>;
-    translate: LocaleContextProps['translate'];
-    toLocaleDigit: LocaleContextProps['toLocaleDigit'];
 };
 
 function changeTransactionsReport({
@@ -866,8 +864,6 @@ function changeTransactionsReport({
     reportNextStep,
     policyCategories,
     allTransactions,
-    translate,
-    toLocaleDigit,
 }: ChangeTransactionsReportProps) {
     const reportID = newReport?.reportID ?? CONST.REPORT.UNREPORTED_REPORT_ID;
 
