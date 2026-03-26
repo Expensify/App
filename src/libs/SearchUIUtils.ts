@@ -4340,7 +4340,7 @@ function mapFiltersFormToLabelValueList<T extends Record<string, unknown>>(
         }
         const extra = mapper?.(key) ?? ({} as T);
 
-        // --- Date group filters (on/after/before siblings collapse into one chip) ---
+        // Date group filters (on/after/before) siblings collapse into one chip
         const dateGroupConfig = DATE_FILTER_GROUP_MAP[key];
         if (dateGroupConfig) {
             if (addedDateGroups.has(dateGroupConfig.label)) {
