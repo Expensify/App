@@ -290,7 +290,6 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
             reportActions,
             reportAttributes,
             reports,
-            reportAttributes,
             reportNameValuePairs,
             policy,
             personalDetails,
