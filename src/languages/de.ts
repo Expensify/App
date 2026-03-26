@@ -4130,8 +4130,8 @@ ${
             deepDiveExpensifyCard: `<muted-text-label>Transaktionen der Expensify Karte werden automatisch in ein „Expensify Karte Verbindlichkeitskonto“ exportiert, das mit <a href="${CONST.DEEP_DIVE_EXPENSIFY_CARD}">unserer Integration</a> erstellt wird.</muted-text-label>`,
         },
         createdForClient: {
-            title: "You've created a workspace for your client!",
-            description: 'Great news 🎉. Reach out to us if they need any help with the setup.',
+            title: 'Du hast einen Workspace für deinen Kunden erstellt!',
+            description: 'Großartige Neuigkeiten 🎉. Kontaktiere uns, wenn sie Hilfe bei der Einrichtung benötigen.',
         },
         receiptPartners: {
             uber: {

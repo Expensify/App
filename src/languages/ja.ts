@@ -4086,8 +4086,8 @@ ${
             budgetTypeForNotificationMessage: {tag: 'タグ', category: 'カテゴリ'},
         },
         createdForClient: {
-            title: "You've created a workspace for your client!",
-            description: 'Great news 🎉. Reach out to us if they need any help with the setup.',
+            title: 'クライアントのワークスペースを作成しました！',
+            description: '素晴らしいニュースです 🎉。セットアップにサポートが必要な場合はお問い合わせください。',
         },
         receiptPartners: {
             uber: {

@@ -4022,8 +4022,8 @@ ${
             deepDiveExpensifyCard: `<muted-text-label>Expensify 卡交易将自动导出到使用<a href="${CONST.DEEP_DIVE_EXPENSIFY_CARD}">我们的集成</a>创建的“Expensify 卡负债账户”。</muted-text-label>`,
         },
         createdForClient: {
-            title: "You've created a workspace for your client!",
-            description: 'Great news 🎉. Reach out to us if they need any help with the setup.',
+            title: '您已为客户创建了工作区！',
+            description: '好消息 🎉。如果他们在设置方面需要帮助，请联系我们。',
         },
         receiptPartners: {
             uber: {
