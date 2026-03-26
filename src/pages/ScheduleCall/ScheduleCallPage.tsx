@@ -58,14 +58,10 @@ function ScheduleCallPage() {
 
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`);
-    const adminsRoomReportID = useMemo(() => {
-        // Task reports in #admins room have chatType as policyAdmins
-        // So for task report, we need to send the real #admins room i.e. the parent report.
-        if (isTaskReport(report) && parentReport?.reportID && isAdminRoom(parentReport)) {
-            return parentReport.reportID;
-        }
-        return reportID;
-    }, [report, parentReport, reportID]);
+
+    // Task reports in #admins room have chatType as policyAdmins,
+    // So for a task report, we need to send the real #admins room i.e., the parent report.
+    const adminsRoomReportID = isTaskReport(report) && parentReport?.reportID && isAdminRoom(parentReport) ? parentReport.reportID : reportID;
 
     const [adminReportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${adminsRoomReportID}`, {
         selector: adminReportNameValuePairsSelector,
