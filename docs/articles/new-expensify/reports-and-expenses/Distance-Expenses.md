@@ -73,7 +73,7 @@ To create an expense using your vehicle's odometer readings:
 3. Enter the **Start reading** from your odometer before the trip.
 4. Enter the **End reading** from your odometer after the trip.
    - The total distance is calculated automatically as you type.
-5. (Optional) Tap the image icon next to each reading to attach a photo of your odometer.
+5. (Optional) Select the image icon next to each reading to attach a photo of your odometer.
 6. Select **Next**.
 7. On the confirmation screen, review and confirm:
    - Distance
@@ -163,5 +163,5 @@ Yes. Manual readings are required, but you have the option to attach images of t
 
 ## Can I add two odometer images to a distance expense?
 
-When you add two odometer images to a distance expense, they will be merged into a single image for easy viewing. Click on the image preview to view the original uncropped images. You'll be able to replace or remove the combined image if you need to make a correction.
+When you add two odometer images to a distance expense, they will be merged into a single image for easy viewing. Select the image preview to view the original uncropped images. You'll be able to replace or remove the combined image if you need to make a correction.
 
