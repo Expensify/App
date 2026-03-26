@@ -15,11 +15,11 @@ function SearchFiltersAttendeePage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {canBeMissing: true});
+    const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
 
     return (
         <ScreenWrapper
-            testID={SearchFiltersAttendeePage.displayName}
+            testID="SearchFiltersAttendeePage"
             includeSafeAreaPaddingBottom
             shouldShowOfflineIndicatorInWideScreen
             offlineIndicatorStyle={styles.mtAuto}
@@ -39,12 +39,11 @@ function SearchFiltersAttendeePage() {
                             attendee: selectedAccountIDs,
                         });
                     }}
+                    shouldAllowNameOnlyOptions
                 />
             </View>
         </ScreenWrapper>
     );
 }
-
-SearchFiltersAttendeePage.displayName = 'SearchFiltersAttendeePage';
 
 export default SearchFiltersAttendeePage;

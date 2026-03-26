@@ -44,7 +44,7 @@ declare module 'group-ib-fp' {
       setTargetURL(url: string, errorCallback: (e: string) => void): void;
       setGlobalIdURL(url: string, errorCallback: (e: string) => void): void;
       setSessionId(id: string, errorCallback: (e: string) => void): void;
-      setAttributeTitle(key: string, value: string, format: FPAttributeFormat, errorCallback: (e: string) => void): void;
+      setAttributeTitle(key: string, value: string, format: FPAttributeFormat, isSendOnce: boolean, errorCallback: (e: string) => void): void;
       run(errorCallback?: (e: string) => void): void;
     }
   }

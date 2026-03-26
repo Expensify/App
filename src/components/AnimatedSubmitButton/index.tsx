@@ -1,13 +1,16 @@
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import Animated, {Keyframe, runOnJS, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
+import type {View} from 'react-native';
+import Animated, {Keyframe, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
+import {scheduleOnRN} from 'react-native-worklets';
 import Button from '@components/Button';
-import * as Expensicons from '@components/Icon/Expensicons';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
+import type WithSentryLabel from '@src/types/utils/SentryLabel';
 
-type AnimatedSubmitButtonProps = {
+type AnimatedSubmitButtonProps = WithSentryLabel & {
     // Whether to show the success state
     success: boolean | undefined;
 
@@ -27,7 +30,7 @@ type AnimatedSubmitButtonProps = {
     isDisabled?: boolean;
 };
 
-function AnimatedSubmitButton({success, text, onPress, isSubmittingAnimationRunning, onAnimationFinish, isDisabled}: AnimatedSubmitButtonProps) {
+function AnimatedSubmitButton({success, text, onPress, isSubmittingAnimationRunning, onAnimationFinish, isDisabled, sentryLabel}: AnimatedSubmitButtonProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const isAnimationRunning = isSubmittingAnimationRunning;
@@ -49,10 +52,10 @@ function AnimatedSubmitButton({success, text, onPress, isSubmittingAnimationRunn
         'worklet';
 
         if (canShow) {
-            runOnJS(onAnimationFinish)();
+            scheduleOnRN(onAnimationFinish);
             return;
         }
-        height.set(withTiming(0, {duration: buttonDuration}, () => runOnJS(onAnimationFinish)()));
+        height.set(withTiming(0, {duration: buttonDuration}, () => scheduleOnRN(onAnimationFinish)));
     }, [buttonDuration, height, onAnimationFinish, canShow]);
 
     const buttonAnimation = useMemo(
@@ -71,7 +74,8 @@ function AnimatedSubmitButton({success, text, onPress, isSubmittingAnimationRunn
                 .withCallback(stretchOutY),
         [buttonDuration, stretchOutY],
     );
-    const icon = isAnimationRunning ? Expensicons.Send : null;
+    const icons = useMemoizedLazyExpensifyIcons(['Send'] as const);
+    const icon = isAnimationRunning ? icons.Send : null;
 
     useEffect(() => {
         if (!isAnimationRunning) {
@@ -103,14 +107,13 @@ function AnimatedSubmitButton({success, text, onPress, isSubmittingAnimationRunn
         return () => clearTimeout(timer);
     }, [isAnimationRunning, isShowingLoading]);
 
-    // eslint-disable-next-line react-compiler/react-compiler
     const showLoading = isShowingLoading || (!viewRef.current && isAnimationRunning);
 
     return (
         <Animated.View style={[containerStyles, {minWidth}]}>
             {isAnimationRunning && canShow && (
                 <Animated.View
-                    ref={(el) => {
+                    ref={(el: View | null) => {
                         viewRef.current = el as HTMLElement | null;
                     }}
                     exiting={buttonAnimation}
@@ -132,12 +135,11 @@ function AnimatedSubmitButton({success, text, onPress, isSubmittingAnimationRunn
                     onPress={onPress}
                     icon={icon}
                     isDisabled={isDisabled}
+                    sentryLabel={sentryLabel}
                 />
             )}
         </Animated.View>
     );
 }
-
-AnimatedSubmitButton.displayName = 'AnimatedSubmitButton';
 
 export default AnimatedSubmitButton;

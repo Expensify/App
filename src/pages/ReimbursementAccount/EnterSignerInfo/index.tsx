@@ -30,9 +30,9 @@ function EnterSignerInfo({route}: EnterSignerInfoProps) {
     const {translate} = useLocalize();
     const bankAccountID = Number(route.params.bankAccountID);
     const policyID = route.params.policyID;
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: false});
-    const [enterSignerInfoForm] = useOnyx(ONYXKEYS.FORMS.ENTER_SINGER_INFO_FORM, {canBeMissing: true});
-    const [enterSignerInfoFormDraft] = useOnyx(ONYXKEYS.FORMS.ENTER_SINGER_INFO_FORM_DRAFT, {canBeMissing: true});
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+    const [enterSignerInfoForm] = useOnyx(ONYXKEYS.FORMS.ENTER_SINGER_INFO_FORM);
+    const [enterSignerInfoFormDraft] = useOnyx(ONYXKEYS.FORMS.ENTER_SINGER_INFO_FORM_DRAFT);
 
     const submit = useCallback(() => {
         const {signerDetails, signerFiles} = getSignerDetailsAndSignerFiles(enterSignerInfoFormDraft, account?.primaryLogin ?? '');
@@ -68,7 +68,7 @@ function EnterSignerInfo({route}: EnterSignerInfoProps) {
         return () => {
             clearEnterSignerInformationFormSave();
         };
-    }, [enterSignerInfoForm]);
+    }, [enterSignerInfoForm?.errors, enterSignerInfoForm?.isSavingSignerInformation, enterSignerInfoForm?.isSuccess]);
 
     useEffect(() => {
         return clearErrors(ONYXKEYS.FORMS.ENTER_SINGER_INFO_FORM);
@@ -90,7 +90,7 @@ function EnterSignerInfo({route}: EnterSignerInfoProps) {
 
     return (
         <InteractiveStepWrapper
-            wrapperID={EnterSignerInfo.displayName}
+            wrapperID="EnterSignerInfo"
             handleBackButtonPress={handleBackButtonPress}
             headerTitle={translate('signerInfoStep.signerInfo')}
         >
@@ -103,7 +103,5 @@ function EnterSignerInfo({route}: EnterSignerInfoProps) {
         </InteractiveStepWrapper>
     );
 }
-
-EnterSignerInfo.displayName = 'EnterSignerInfo';
 
 export default EnterSignerInfo;

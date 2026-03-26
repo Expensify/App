@@ -20,9 +20,6 @@ inputs:
     ANDROID:
         description: "Android job result ('success', 'failure', 'cancelled', or 'skipped')"
         required: true
-    DESKTOP:
-        description: "Desktop job result ('success', 'failure', 'cancelled', or 'skipped')"
-        required: true
     IOS:
         description: "iOS job result ('success', 'failure', 'cancelled', or 'skipped')"
         required: true
@@ -34,6 +31,12 @@ inputs:
         required: false
     NOTE:
         description: "Additional note from the deployer"
+        required: false
+    ANDROID_SENTRY_URL:
+        description: "URL to Sentry size analysis for Android"
+        required: false
+    IOS_SENTRY_URL:
+        description: "URL to Sentry size analysis for iOS"
         required: false
 runs:
     using: "node20"

@@ -4,15 +4,17 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import {revealVirtualCardDetails} from '@libs/actions/Card';
 import {requestValidateCodeAction, resetValidateActionCodeSent} from '@libs/actions/User';
+import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {DomainCardNavigatorParamList, SettingsNavigatorParamList} from '@libs/Navigation/types';
+import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {ExpensifyCardDetails} from '@src/types/onyx/Card';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
-import useExpensifyCardContext from './useExpensifyCardContext';
+import {useExpensifyCardActions} from './ExpensifyCardContextProvider';
 
 type ExpensifyCardVerifyAccountPageProps =
     | PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.WALLET.DOMAIN_CARD_CONFIRM_MAGIC_CODE>
@@ -22,9 +24,9 @@ function ExpensifyCardVerifyAccountPage({route}: ExpensifyCardVerifyAccountPageP
     const {cardID} = route.params;
     const {translate} = useLocalize();
     const [validateError, setValidateError] = useState<Errors>({});
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: false});
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const primaryLogin = account?.primaryLogin ?? '';
-    const {setIsCardDetailsLoading, setCardsDetails, setCardsDetailsErrors} = useExpensifyCardContext();
+    const {setIsCardDetailsLoading, setCardsDetails, setCardsDetailsErrors} = useExpensifyCardActions();
 
     const navigateBack = () => {
         if (route.name === SCREENS.DOMAIN_CARD.DOMAIN_CARD_CONFIRM_MAGIC_CODE) {
@@ -52,12 +54,8 @@ function ExpensifyCardVerifyAccountPage({route}: ExpensifyCardVerifyAccountPageP
                 }));
                 navigateBack();
             })
-            .catch((error: string) => {
-                // Displaying magic code errors is handled in the modal, no need to set it on the card
-                setCardsDetailsErrors((prevState) => ({
-                    ...prevState,
-                    [cardID]: error,
-                }));
+            .catch((error: TranslationPaths) => {
+                setValidateError(getMicroSecondOnyxErrorWithTranslationKey(error));
             })
             .finally(() => {
                 setIsCardDetailsLoading((prevState: Record<number, boolean>) => ({...prevState, [cardID]: false}));
@@ -67,7 +65,7 @@ function ExpensifyCardVerifyAccountPage({route}: ExpensifyCardVerifyAccountPageP
     return (
         <ValidateCodeActionContent
             title={translate('cardPage.validateCardTitle')}
-            descriptionPrimary={translate('cardPage.enterMagicCode', {contactMethod: primaryLogin})}
+            descriptionPrimary={translate('cardPage.enterMagicCode', primaryLogin)}
             sendValidateCode={() => requestValidateCodeAction()}
             validateCodeActionErrorField="revealExpensifyCardDetails"
             handleSubmitForm={handleRevealCardDetails}
@@ -80,7 +78,5 @@ function ExpensifyCardVerifyAccountPage({route}: ExpensifyCardVerifyAccountPageP
         />
     );
 }
-
-ExpensifyCardVerifyAccountPage.displayName = 'ExpensifyCardVerifyAccountPage';
 
 export default ExpensifyCardVerifyAccountPage;

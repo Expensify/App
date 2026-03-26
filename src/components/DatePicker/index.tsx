@@ -1,14 +1,12 @@
 import {format, setYear} from 'date-fns';
-import React, {forwardRef, useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import type {ForwardedRef} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
-import * as Expensicons from '@components/Icon/Expensicons';
 import TextInput from '@components/TextInput';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import mergeRefs from '@libs/mergeRefs';
 import {setDraftValues} from '@userActions/FormActions';
 import CONST from '@src/CONST';
 import DatePickerModal from './DatePickerModal';
@@ -16,29 +14,30 @@ import type {DateInputWithPickerProps} from './types';
 
 const PADDING_MODAL_DATE_PICKER = 8;
 
-function DatePicker(
-    {
-        defaultValue,
-        disabled,
-        errorText,
-        inputID,
-        label,
-        minDate = setYear(new Date(), CONST.CALENDAR_PICKER.MIN_YEAR),
-        maxDate = setYear(new Date(), CONST.CALENDAR_PICKER.MAX_YEAR),
-        onInputChange,
-        onTouched = () => {},
-        placeholder,
-        value,
-        shouldSaveDraft = false,
-        formID,
-        autoFocus = false,
-        shouldHideClearButton = false,
-    }: DateInputWithPickerProps,
-    ref: ForwardedRef<BaseTextInputRef>,
-) {
+function DatePicker({
+    defaultValue,
+    disabled,
+    errorText,
+    inputID,
+    label,
+    minDate = setYear(new Date(), CONST.CALENDAR_PICKER.MIN_YEAR),
+    maxDate = setYear(new Date(), CONST.CALENDAR_PICKER.MAX_YEAR),
+    onInputChange,
+    onTouched = () => {},
+    placeholder,
+    value,
+    shouldSaveDraft = false,
+    formID,
+    autoFocus = false,
+    shouldHideClearButton = false,
+    autoComplete = 'off',
+    forwardedFSClass,
+}: DateInputWithPickerProps) {
+    const icons = useMemoizedLazyExpensifyIcons(['Calendar']);
     const styles = useThemeStyles();
     const {windowHeight, windowWidth} = useWindowDimensions();
     const {translate} = useLocalize();
+
     const [isModalVisible, setIsModalVisible] = useState(false);
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const [selectedDate, setSelectedDate] = useState(value || defaultValue || undefined);
@@ -71,13 +70,14 @@ function DatePicker(
         });
     }, [windowHeight]);
 
-    const handlePress = useCallback(() => {
+    const showDatePickerModal = useCallback(() => {
+        // Blur the input before showing the modal, so the focus won't be returned after the modal is closed
+        textInputRef.current?.blur();
         calculatePopoverPosition();
         setIsModalVisible(true);
     }, [calculatePopoverPosition]);
 
     const closeDatePicker = useCallback(() => {
-        textInputRef.current?.blur();
         setIsModalVisible(false);
     }, []);
 
@@ -108,9 +108,9 @@ function DatePicker(
         isAutoFocused.current = true;
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
-            handlePress();
+            textInputRef.current?.focus();
         });
-    }, [handlePress, autoFocus]);
+    }, [autoFocus]);
 
     const getValidDateForCalendar = useMemo(() => {
         if (!selectedDate) {
@@ -127,10 +127,10 @@ function DatePicker(
                 style={styles.mv2}
             >
                 <TextInput
-                    ref={mergeRefs(ref, textInputRef)}
+                    ref={textInputRef}
                     inputID={inputID}
                     forceActiveLabel
-                    icon={selectedDate ? null : Expensicons.Calendar}
+                    icon={selectedDate ? null : icons.Calendar}
                     iconContainerStyle={styles.pr0}
                     label={label}
                     accessibilityLabel={label}
@@ -140,11 +140,13 @@ function DatePicker(
                     errorText={errorText}
                     inputStyle={styles.pointerEventsNone}
                     disabled={disabled}
-                    readOnly
-                    onPress={handlePress}
+                    onFocus={showDatePickerModal}
                     textInputContainerStyles={isModalVisible ? styles.borderColorFocus : {}}
                     shouldHideClearButton={shouldHideClearButton}
                     onClearInput={handleClear}
+                    forwardedFSClass={forwardedFSClass}
+                    autoComplete={autoComplete}
+                    disableKeyboard
                 />
             </View>
 
@@ -158,11 +160,10 @@ function DatePicker(
                 onClose={closeDatePicker}
                 anchorPosition={popoverPosition}
                 shouldPositionFromTop={!isInverted}
+                forwardedFSClass={forwardedFSClass}
             />
         </>
     );
 }
 
-DatePicker.displayName = 'DatePicker';
-
-export default forwardRef(DatePicker);
+export default DatePicker;

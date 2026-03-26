@@ -3,7 +3,6 @@
  * has limited functionality. This is a better version of it that allows logging a subtree of
  * the app.
  */
-
 /* eslint-disable  no-console, testing-library/no-node-access, testing-library/no-debugging-utils, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-return, @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/prefer-nullish-coalescing */
 import type {NewPlugin} from 'pretty-format';
 import prettyFormat, {plugins} from 'pretty-format';

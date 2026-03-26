@@ -27,8 +27,8 @@ function IntroSchoolPrincipalPage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isProduction} = useEnvironment();
-    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST, {canBeMissing: true});
-    const [formState] = useOnyx(ONYXKEYS.FORMS.INTRO_SCHOOL_PRINCIPAL_FORM, {canBeMissing: true});
+    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
+    const [formState] = useOnyx(ONYXKEYS.FORMS.INTRO_SCHOOL_PRINCIPAL_FORM);
     const {localCurrencyCode, login, accountID} = useCurrentUserPersonalDetails();
     const optimisticReportID = useRef(generateReportID());
     const hasSubmittedRef = useRef(false);
@@ -69,26 +69,12 @@ function IntroSchoolPrincipalPage() {
             if (!values.firstName || !isValidPersonName(values.firstName)) {
                 addErrorMessage(errors, 'firstName', translate('bankAccount.error.firstName'));
             } else if (values.firstName.length > CONST.NAME.MAX_LENGTH) {
-                addErrorMessage(
-                    errors,
-                    'firstName',
-                    translate('common.error.characterLimitExceedCounter', {
-                        length: values.firstName.length,
-                        limit: CONST.NAME.MAX_LENGTH,
-                    }),
-                );
+                addErrorMessage(errors, 'firstName', translate('common.error.characterLimitExceedCounter', values.firstName.length, CONST.NAME.MAX_LENGTH));
             }
             if (!values.lastName || !isValidPersonName(values.lastName)) {
                 addErrorMessage(errors, 'lastName', translate('bankAccount.error.lastName'));
             } else if (values.lastName.length > CONST.NAME.MAX_LENGTH) {
-                addErrorMessage(
-                    errors,
-                    'lastName',
-                    translate('common.error.characterLimitExceedCounter', {
-                        length: values.lastName.length,
-                        limit: CONST.NAME.MAX_LENGTH,
-                    }),
-                );
+                addErrorMessage(errors, 'lastName', translate('common.error.characterLimitExceedCounter', values.lastName.length, CONST.NAME.MAX_LENGTH));
             }
             if (!values.partnerUserID) {
                 addErrorMessage(errors, 'partnerUserID', translate('teachersUnitePage.error.enterEmail'));
@@ -111,7 +97,7 @@ function IntroSchoolPrincipalPage() {
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom
-            testID={IntroSchoolPrincipalPage.displayName}
+            testID="IntroSchoolPrincipalPage"
         >
             <HeaderWithBackButton
                 title={translate('teachersUnitePage.introSchoolPrincipal')}
@@ -135,6 +121,7 @@ function IntroSchoolPrincipalPage() {
                         accessibilityLabel={translate('teachersUnitePage.principalFirstName')}
                         role={CONST.ROLE.PRESENTATION}
                         autoCapitalize="words"
+                        autoComplete="given-name"
                     />
                 </View>
                 <View style={styles.mv4}>
@@ -146,6 +133,7 @@ function IntroSchoolPrincipalPage() {
                         accessibilityLabel={translate('teachersUnitePage.principalLastName')}
                         role={CONST.ROLE.PRESENTATION}
                         autoCapitalize="words"
+                        autoComplete="family-name"
                     />
                 </View>
                 <View>
@@ -158,13 +146,12 @@ function IntroSchoolPrincipalPage() {
                         role={CONST.ROLE.PRESENTATION}
                         inputMode={CONST.INPUT_MODE.EMAIL}
                         autoCapitalize="none"
+                        autoComplete="email"
                     />
                 </View>
             </FormProvider>
         </ScreenWrapper>
     );
 }
-
-IntroSchoolPrincipalPage.displayName = 'IntroSchoolPrincipalPage';
 
 export default IntroSchoolPrincipalPage;

@@ -15,6 +15,4 @@ function OnboardingWorkspaceConfirmation({...rest}: OnboardingWorkspaceConfirmat
     );
 }
 
-OnboardingWorkspaceConfirmation.displayName = 'OnboardingWorkspaceConfirmation';
-
 export default OnboardingWorkspaceConfirmation;

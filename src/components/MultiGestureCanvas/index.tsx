@@ -6,7 +6,8 @@ import type {GestureType} from 'react-native-gesture-handler';
 import type {GestureRef} from 'react-native-gesture-handler/lib/typescript/handlers/gestures/gesture';
 import type PagerView from 'react-native-pager-view';
 import type {SharedValue} from 'react-native-reanimated';
-import Animated, {cancelAnimation, runOnUI, useAnimatedReaction, useAnimatedStyle, useDerivedValue, useSharedValue, withSpring} from 'react-native-reanimated';
+import Animated, {cancelAnimation, useAnimatedReaction, useAnimatedStyle, useDerivedValue, useSharedValue, withSpring} from 'react-native-reanimated';
+import {scheduleOnUI} from 'react-native-worklets';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
@@ -126,7 +127,7 @@ function MultiGestureCanvas({
             if (!isUsedInCarousel) {
                 return;
             }
-            // eslint-disable-next-line react-compiler/react-compiler, no-param-reassign
+            // eslint-disable-next-line no-param-reassign
             isPagerScrollEnabled.set(!current);
         },
     );
@@ -194,7 +195,6 @@ function MultiGestureCanvas({
         onTap,
         shouldDisableTransformationGestures,
     });
-    // eslint-disable-next-line react-compiler/react-compiler
     const singleTapGesture = baseSingleTapGesture.requireExternalGestureToFail(doubleTapGesture, panGestureRef);
 
     const panGestureSimultaneousList = useMemo(
@@ -217,7 +217,6 @@ function MultiGestureCanvas({
         onSwipeDown,
     })
         .simultaneousWithExternalGesture(...panGestureSimultaneousList)
-        // eslint-disable-next-line react-compiler/react-compiler
         .withRef(panGestureRef);
 
     const pinchGesture = usePinchGesture({
@@ -243,7 +242,7 @@ function MultiGestureCanvas({
         }
 
         if (!isActive) {
-            runOnUI(reset)(false);
+            scheduleOnUI(reset, false);
         }
     }, [isActive, mounted, reset]);
 
@@ -293,7 +292,6 @@ function MultiGestureCanvas({
         </View>
     );
 }
-MultiGestureCanvas.displayName = 'MultiGestureCanvas';
 
 export default MultiGestureCanvas;
 export {DEFAULT_ZOOM_RANGE};

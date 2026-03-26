@@ -13,16 +13,18 @@ import ComposeProviders from './components/ComposeProviders';
 import {CurrentUserPersonalDetailsProvider} from './components/CurrentUserPersonalDetailsProvider';
 import CustomStatusBarAndBackground from './components/CustomStatusBarAndBackground';
 import CustomStatusBarAndBackgroundContextProvider from './components/CustomStatusBarAndBackground/CustomStatusBarAndBackgroundContextProvider';
-import {EnvironmentProvider} from './components/EnvironmentContext';
+import EnvironmentProvider from './components/EnvironmentContextProvider';
 import ErrorBoundary from './components/ErrorBoundary';
 import FullScreenBlockingViewContextProvider from './components/FullScreenBlockingViewContextProvider';
 import FullScreenLoaderContextProvider from './components/FullScreenLoaderContext';
 import HTMLEngineProvider from './components/HTMLEngineProvider';
 import InitialURLContextProvider from './components/InitialURLContextProvider';
 import {InputBlurContextProvider} from './components/InputBlurContext';
+import {KeyboardDismissibleFlatListContextProvider} from './components/KeyboardDismissibleFlatList/KeyboardDismissibleFlatListContext';
 import KeyboardProvider from './components/KeyboardProvider';
 import KYCWallContextProvider from './components/KYCWall/KYCWallContext';
 import {LocaleContextProvider} from './components/LocaleContextProvider';
+import {ModalProvider} from './components/Modal/Global/ModalContext';
 import NavigationBar from './components/NavigationBar';
 import OnyxListItemProvider from './components/OnyxListItemProvider';
 import PopoverContextProvider from './components/PopoverProvider';
@@ -34,8 +36,8 @@ import SidePanelContextProvider from './components/SidePanel/SidePanelContextPro
 import SVGDefinitionsProvider from './components/SVGDefinitionsProvider';
 import ThemeIllustrationsProvider from './components/ThemeIllustrationsProvider';
 import ThemeProvider from './components/ThemeProvider';
-import ThemeStylesProvider from './components/ThemeStylesProvider';
-import {FullScreenContextProvider} from './components/VideoPlayerContexts/FullScreenContext';
+import ThemeStylesProvider from './components/ThemeStylesContextProvider';
+import FullScreenContextProvider from './components/VideoPlayerContexts/FullScreenContextProvider';
 import {PlaybackContextProvider} from './components/VideoPlayerContexts/PlaybackContext';
 import {VideoPopoverMenuContextProvider} from './components/VideoPlayerContexts/VideoPopoverMenuContext';
 import {VolumeContextProvider} from './components/VideoPlayerContexts/VolumeContext';
@@ -51,6 +53,8 @@ import OnyxUpdateManager from './libs/actions/OnyxUpdateManager';
 import './libs/HybridApp';
 import {AttachmentModalContextProvider} from './pages/media/AttachmentModalScreen/AttachmentModalContext';
 import ExpensifyCardContextProvider from './pages/settings/Wallet/ExpensifyCardPage/ExpensifyCardContextProvider';
+import TravelCVVContextProvider from './pages/settings/Wallet/TravelCVVPage/TravelCVVContextProvider';
+import './setup/backgroundLocationTrackingTask';
 import './setup/backgroundTask';
 import './setup/fraudProtection';
 import './setup/hybridApp';
@@ -96,6 +100,7 @@ function App() {
                                     components={[
                                         OnyxListItemProvider,
                                         CurrentUserPersonalDetailsProvider,
+                                        LocaleContextProvider,
                                         ThemeProvider,
                                         ThemeStylesProvider,
                                         ThemeIllustrationsProvider,
@@ -103,7 +108,6 @@ function App() {
                                         HTMLEngineProvider,
                                         PortalProvider,
                                         SafeArea,
-                                        LocaleContextProvider,
                                         PopoverContextProvider,
                                         CurrentReportIDContextProvider,
                                         ScrollOffsetContextProvider,
@@ -119,13 +123,16 @@ function App() {
                                         VideoPopoverMenuContextProvider,
                                         KeyboardProvider,
                                         KeyboardStateProvider,
+                                        KeyboardDismissibleFlatListContextProvider,
                                         SearchRouterContextProvider,
                                         ProductTrainingContextProvider,
                                         InputBlurContextProvider,
                                         FullScreenBlockingViewContextProvider,
                                         FullScreenLoaderContextProvider,
+                                        ModalProvider,
                                         SidePanelContextProvider,
                                         ExpensifyCardContextProvider,
+                                        TravelCVVContextProvider,
                                         KYCWallContextProvider,
                                         WideRHPContextProvider,
                                     ]}
@@ -146,8 +153,6 @@ function App() {
         </StrictModeWrapper>
     );
 }
-
-App.displayName = 'App';
 
 const WrappedApp = Sentry.wrap(App);
 WrappedApp.displayName = 'App';

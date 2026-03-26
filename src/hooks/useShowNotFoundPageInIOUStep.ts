@@ -1,5 +1,6 @@
 import {useCallback, useMemo} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {canEditMoneyRequest} from '@libs/ReportUtils';
 import {areRequiredFieldsEmpty} from '@libs/TransactionUtils';
@@ -21,9 +22,9 @@ const useShowNotFoundPageInIOUStep = (action: IOUAction, iouType: IOUType, repor
     const isSplitBill = iouType === CONST.IOU.TYPE.SPLIT;
     const isSplitExpense = iouType === CONST.IOU.TYPE.SPLIT_EXPENSE;
 
-    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true});
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`, {canBeMissing: true});
-    const [iouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`, {canBeMissing: true});
+    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`);
+    const [iouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(transaction?.reportID)}`);
 
     const reportActionsReportID = useMemo(() => {
         let actionsReportID;
@@ -46,14 +47,13 @@ const useShowNotFoundPageInIOUStep = (action: IOUAction, iouType: IOUType, repor
         {
             canEvict: false,
             selector: getReportActionSelector,
-            canBeMissing: true,
         },
         [getReportActionSelector],
     );
 
     // eslint-disable-next-line rulesdir/no-negated-variables
     let shouldShowNotFoundPage = false;
-    const canEditSplitBill = isSplitBill && reportAction && session?.accountID === reportAction.actorAccountID && areRequiredFieldsEmpty(transaction);
+    const canEditSplitBill = isSplitBill && reportAction && session?.accountID === reportAction.actorAccountID && areRequiredFieldsEmpty(transaction, iouReport);
     const canEditSplitExpense = isSplitExpense && !!transaction;
 
     if (isEditing) {

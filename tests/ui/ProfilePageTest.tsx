@@ -26,15 +26,13 @@ jest.mock('@libs/Navigation/Navigation', () => ({
     navigate: jest.fn(),
     goBack: jest.fn(),
     getActiveRoute: jest.fn(() => ''),
-    getShouldPopToSidebar: jest.fn(() => false),
-    popToSidebar: jest.fn(),
 }));
 
 jest.mock('@react-navigation/native', () => {
     const actualNav = jest.requireActual<typeof ReactNavigation>('@react-navigation/native');
     return {
         ...actualNav,
-        useRoute: jest.fn(),
+        useRoute: jest.fn(() => ({params: {}})),
         createNavigationContainerRef: () => ({
             getState: () => jest.fn(),
         }),
@@ -92,7 +90,7 @@ describe('ProfilePage contact method indicator', () => {
 
         renderPage();
 
-        // Description for contact method is 'contacts.contactMethod' via mocked translate
+        // Description for contact methods is 'contacts.contactMethods' via mocked translate
         let node = screen.getByText('error-brickRoadIndicator');
         expect(node).toBeDefined();
 

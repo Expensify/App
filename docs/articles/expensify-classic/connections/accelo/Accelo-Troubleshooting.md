@@ -4,7 +4,7 @@ description: Learn how to troubleshoot and resolve common issues with the Accelo
 keywords: [Accelo, Expensify Classic]
 ---
 
-The Accelo integration with Expensify primarily operates on Accelo’s end. For detailed support, refer to their [help site](https://help.accelo.com/guides/integrations-guide/expensify/) and [FAQs](https://help.accelo.com/guides/integrations-guide/expensify/#faq).
+The Accelo integration with Expensify primarily operates on Accelo's end. For detailed support, refer to their [help site](https://help.accelo.com/guides/integrations-guide/expensify/) and [FAQs](https://help.accelo.com/guides/integrations-guide/expensify/#faq).
 
 ---
 
@@ -36,23 +36,22 @@ Expense report statuses in Expensify correspond to specific statuses in Accelo, 
 
 | Expensify Report Status | Accelo Expense Status |
 |-------------------------|-----------------------|
-| Open                    | Submitted             |
-| Submitted               | Submitted             |
+| Draft                   | Submitted             |
+| Outstanding             | Submitted             |
 | Approved                | Approved              |
-| Reimbursed              | Approved              |
+| Paid                    | Approved              |
 | Rejected                | Declined              |
 | Archived                | Approved              |
-| Closed                  | Approved              |
+| Paid                    | Approved              |
 
 ---
 
 # Using Accelo and an Accounting Integration Together
 
-Yes, you can integrate Accelo and an accounting system simultaneously in Expensify. However, to sync Accelo Projects, Tickets, or Retainers as tags in Expensify, you’ll need a special setting enabled.  
+Yes, you can integrate Accelo and an accounting system simultaneously in Expensify. However, to sync Accelo Projects, Tickets, or Retainers as tags in Expensify, you'll need a special setting enabled.  
 
 **To request this setting:** Contact Concierge and ask for the **"Indirect Tag Uploads"** switch to be enabled.
 
 ---
 
 For further assistance, visit the [Accelo help site](https://help.accelo.com/guides/integrations-guide/expensify/) or reach out to Concierge.
-

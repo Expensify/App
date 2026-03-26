@@ -20159,6 +20159,9 @@ const CONST = {
     },
     COMMENT: {
         TYPE_BOT: 'Bot',
+        NAME_MELVIN_BOT: 'melvin-bot[bot]',
+        NAME_MELVIN_USER: 'MelvinBot',
+        NAME_CODEX: 'chatgpt-codex-connector',
         NAME_GITHUB_ACTIONS: 'github-actions',
     },
     ACTIONS: {
@@ -20184,6 +20187,8 @@ const CONST = {
     TEST_WORKFLOW_NAME: 'Jest Unit Tests',
     TEST_WORKFLOW_PATH: '.github/workflows/test.yml',
     PROPOSAL_KEYWORD: 'Proposal',
+    PROPOSAL_HEADER_A: 'what is the root cause of that problem?',
+    PROPOSAL_HEADER_B: 'what changes do you think we should make in order to solve the problem?',
     DATE_FORMAT_STRING: 'yyyy-MM-dd',
     PULL_REQUEST_REGEX: new RegExp(`${GITHUB_BASE_URL_REGEX.source}/.*/.*/pull/([0-9]+).*`),
     ISSUE_REGEX: new RegExp(`${GITHUB_BASE_URL_REGEX.source}/.*/.*/issues/([0-9]+).*`),
@@ -20250,9 +20255,7 @@ const utils_1 = __nccwpck_require__(3030);
 const plugin_paginate_rest_1 = __nccwpck_require__(4193);
 const plugin_throttling_1 = __nccwpck_require__(9968);
 const request_error_1 = __nccwpck_require__(537);
-const arrayDifference_1 = __importDefault(__nccwpck_require__(7532));
 const CONST_1 = __importDefault(__nccwpck_require__(9873));
-const isEmptyObject_1 = __nccwpck_require__(6497);
 class GithubUtils {
     static internalOctokit;
     /**
@@ -20332,215 +20335,6 @@ class GithubUtils {
         return this.internalOctokit.paginate;
     }
     /**
-     * Finds one open `StagingDeployCash` issue via GitHub octokit library.
-     */
-    static getStagingDeployCash() {
-        return this.octokit.issues
-            .listForRepo({
-            owner: CONST_1.default.GITHUB_OWNER,
-            repo: CONST_1.default.APP_REPO,
-            labels: CONST_1.default.LABELS.STAGING_DEPLOY,
-            state: 'open',
-        })
-            .then(({ data }) => {
-            if (!data.length) {
-                throw new Error(`Unable to find ${CONST_1.default.LABELS.STAGING_DEPLOY} issue.`);
-            }
-            if (data.length > 1) {
-                throw new Error(`Found more than one ${CONST_1.default.LABELS.STAGING_DEPLOY} issue.`);
-            }
-            const issue = data.at(0);
-            if (!issue) {
-                throw new Error(`Found an undefined ${CONST_1.default.LABELS.STAGING_DEPLOY} issue.`);
-            }
-            return this.getStagingDeployCashData(issue);
-        });
-    }
-    /**
-     * Takes in a GitHub issue object and returns the data we want.
-     */
-    static getStagingDeployCashData(issue) {
-        try {
-            const versionRegex = new RegExp('([0-9]+)\\.([0-9]+)\\.([0-9]+)(?:-([0-9]+))?', 'g');
-            const version = (issue.body?.match(versionRegex)?.[0] ?? '').replace(/`/g, '');
-            return {
-                title: issue.title,
-                url: issue.url,
-                number: this.getIssueOrPullRequestNumberFromURL(issue.url),
-                labels: issue.labels,
-                PRList: this.getStagingDeployCashPRList(issue),
-                PRListMobileExpensify: this.getStagingDeployCashPRListMobileExpensify(issue),
-                deployBlockers: this.getStagingDeployCashDeployBlockers(issue),
-                internalQAPRList: this.getStagingDeployCashInternalQA(issue),
-                isFirebaseChecked: issue.body ? /-\s\[x]\sI checked \[Firebase Crashlytics]/.test(issue.body) : false,
-                isGHStatusChecked: issue.body ? /-\s\[x]\sI checked \[GitHub Status]/.test(issue.body) : false,
-                version,
-                tag: `${version}-staging`,
-            };
-        }
-        catch (exception) {
-            throw new Error(`Unable to find ${CONST_1.default.LABELS.STAGING_DEPLOY} issue with correct data.`);
-        }
-    }
-    /**
-     * Parse the PRList and Internal QA section of the StagingDeployCash issue body.
-     *
-     * @private
-     */
-    static getStagingDeployCashPRList(issue) {
-        let PRListSection = issue.body?.match(/pull requests:\*\*\r?\n((?:-.*\r?\n)+)\r?\n\r?\n?/) ?? null;
-        if (PRListSection?.length !== 2) {
-            // No PRs, return an empty array
-            console.log('Hmmm...The open StagingDeployCash does not list any pull requests, continuing...');
-            return [];
-        }
-        PRListSection = PRListSection[1];
-        const PRList = [...PRListSection.matchAll(new RegExp(`- \\[([ x])] (${CONST_1.default.PULL_REQUEST_REGEX.source})`, 'g'))].map((match) => ({
-            url: match[2],
-            number: Number.parseInt(match[3], 10),
-            isVerified: match[1] === 'x',
-        }));
-        return PRList.sort((a, b) => a.number - b.number);
-    }
-    static getStagingDeployCashPRListMobileExpensify(issue) {
-        let mobileExpensifySection = issue.body?.match(/Mobile-Expensify PRs:\*\*\r?\n((?:-.*\r?\n)+)/) ?? null;
-        if (mobileExpensifySection?.length !== 2) {
-            return [];
-        }
-        mobileExpensifySection = mobileExpensifySection[1];
-        const mobileExpensifyPRs = [...mobileExpensifySection.matchAll(new RegExp(`- \\[([ x])]\\s(${CONST_1.default.ISSUE_OR_PULL_REQUEST_REGEX.source})`, 'g'))].map((match) => ({
-            url: match[2],
-            number: Number.parseInt(match[3], 10),
-            isVerified: match[1] === 'x',
-        }));
-        return mobileExpensifyPRs.sort((a, b) => a.number - b.number);
-    }
-    /**
-     * Parse DeployBlocker section of the StagingDeployCash issue body.
-     *
-     * @private
-     */
-    static getStagingDeployCashDeployBlockers(issue) {
-        let deployBlockerSection = issue.body?.match(/Deploy Blockers:\*\*\r?\n((?:-.*\r?\n)+)/) ?? null;
-        if (deployBlockerSection?.length !== 2) {
-            return [];
-        }
-        deployBlockerSection = deployBlockerSection[1];
-        const deployBlockers = [...deployBlockerSection.matchAll(new RegExp(`- \\[([ x])]\\s(${CONST_1.default.ISSUE_OR_PULL_REQUEST_REGEX.source})`, 'g'))].map((match) => ({
-            url: match[2],
-            number: Number.parseInt(match[3], 10),
-            isResolved: match[1] === 'x',
-        }));
-        return deployBlockers.sort((a, b) => a.number - b.number);
-    }
-    /**
-     * Parse InternalQA section of the StagingDeployCash issue body.
-     *
-     * @private
-     */
-    static getStagingDeployCashInternalQA(issue) {
-        let internalQASection = issue.body?.match(/Internal QA:\*\*\r?\n((?:- \[[ x]].*\r?\n)+)/) ?? null;
-        if (internalQASection?.length !== 2) {
-            return [];
-        }
-        internalQASection = internalQASection[1];
-        const internalQAPRs = [...internalQASection.matchAll(new RegExp(`- \\[([ x])]\\s(${CONST_1.default.PULL_REQUEST_REGEX.source})`, 'g'))].map((match) => ({
-            url: match[2].split('-').at(0)?.trim() ?? '',
-            number: Number.parseInt(match[3], 10),
-            isResolved: match[1] === 'x',
-        }));
-        return internalQAPRs.sort((a, b) => a.number - b.number);
-    }
-    /**
-     * Generate the issue body and assignees for a StagingDeployCash.
-     */
-    static generateStagingDeployCashBodyAndAssignees(tag, PRList, PRListMobileExpensify, verifiedPRList = [], verifiedPRListMobileExpensify = [], deployBlockers = [], resolvedDeployBlockers = [], resolvedInternalQAPRs = [], isFirebaseChecked = false, isGHStatusChecked = false) {
-        return this.fetchAllPullRequests(PRList.map((pr) => this.getPullRequestNumberFromURL(pr)))
-            .then((data) => {
-            const internalQAPRs = Array.isArray(data) ? data.filter((pr) => !(0, isEmptyObject_1.isEmptyObject)(pr.labels.find((item) => item.name === CONST_1.default.LABELS.INTERNAL_QA))) : [];
-            return Promise.all(internalQAPRs.map((pr) => this.getPullRequestMergerLogin(pr.number).then((mergerLogin) => ({ url: pr.html_url, mergerLogin })))).then((results) => {
-                // The format of this map is following:
-                // {
-                //    'https://github.com/Expensify/App/pull/9641': 'PauloGasparSv',
-                //    'https://github.com/Expensify/App/pull/9642': 'mountiny'
-                // }
-                const internalQAPRMap = results.reduce((acc, { url, mergerLogin }) => {
-                    acc[url] = mergerLogin;
-                    return acc;
-                }, {});
-                console.log('Found the following Internal QA PRs:', internalQAPRMap);
-                const noQAPRs = Array.isArray(data) ? data.filter((PR) => /\[No\s?QA]/i.test(PR.title)).map((item) => item.html_url) : [];
-                console.log('Found the following NO QA PRs:', noQAPRs);
-                const verifiedOrNoQAPRs = [...new Set([...verifiedPRList, ...verifiedPRListMobileExpensify, ...noQAPRs])];
-                const sortedPRList = [...new Set((0, arrayDifference_1.default)(PRList, Object.keys(internalQAPRMap)))].sort((a, b) => GithubUtils.getPullRequestNumberFromURL(a) - GithubUtils.getPullRequestNumberFromURL(b));
-                const sortedPRListMobileExpensify = [...new Set(PRListMobileExpensify)].sort((a, b) => GithubUtils.getPullRequestNumberFromURL(a) - GithubUtils.getPullRequestNumberFromURL(b));
-                const sortedDeployBlockers = [...new Set(deployBlockers)].sort((a, b) => GithubUtils.getIssueOrPullRequestNumberFromURL(a) - GithubUtils.getIssueOrPullRequestNumberFromURL(b));
-                // Tag version and comparison URL
-                // eslint-disable-next-line max-len
-                let issueBody = `**Release Version:** \`${tag}\`\r\n**Compare Changes:** https://github.com/${process.env.GITHUB_REPOSITORY}/compare/production...staging\r\n`;
-                // Add Mobile-Expensify compare link if there are Mobile-Expensify PRs
-                if (sortedPRListMobileExpensify.length > 0) {
-                    issueBody += `**Mobile-Expensify Changes:** https://github.com/${CONST_1.default.GITHUB_OWNER}/${CONST_1.default.MOBILE_EXPENSIFY_REPO}/compare/production...staging\r\n`;
-                }
-                issueBody += '\r\n';
-                // PR list
-                if (sortedPRList.length > 0) {
-                    issueBody += '**This release contains changes from the following pull requests:**\r\n';
-                    sortedPRList.forEach((URL) => {
-                        issueBody += verifiedOrNoQAPRs.includes(URL) ? '- [x]' : '- [ ]';
-                        issueBody += ` ${URL}\r\n`;
-                    });
-                    issueBody += '\r\n\r\n';
-                }
-                // Mobile-Expensify PR list
-                if (sortedPRListMobileExpensify.length > 0) {
-                    issueBody += '**Mobile-Expensify PRs:**\r\n';
-                    sortedPRListMobileExpensify.forEach((URL) => {
-                        issueBody += verifiedOrNoQAPRs.includes(URL) ? '- [x]' : '- [ ]';
-                        issueBody += ` ${URL}\r\n`;
-                    });
-                    issueBody += '\r\n\r\n';
-                }
-                // Internal QA PR list
-                if (!(0, isEmptyObject_1.isEmptyObject)(internalQAPRMap)) {
-                    console.log('Found the following verified Internal QA PRs:', resolvedInternalQAPRs);
-                    issueBody += '**Internal QA:**\r\n';
-                    Object.keys(internalQAPRMap).forEach((URL) => {
-                        const merger = internalQAPRMap[URL];
-                        const mergerMention = `@${merger}`;
-                        issueBody += `${resolvedInternalQAPRs.includes(URL) ? '- [x]' : '- [ ]'} `;
-                        issueBody += `${URL}`;
-                        issueBody += ` - ${mergerMention}`;
-                        issueBody += '\r\n';
-                    });
-                    issueBody += '\r\n\r\n';
-                }
-                // Deploy blockers
-                if (deployBlockers.length > 0) {
-                    issueBody += '**Deploy Blockers:**\r\n';
-                    sortedDeployBlockers.forEach((URL) => {
-                        issueBody += resolvedDeployBlockers.includes(URL) ? '- [x] ' : '- [ ] ';
-                        issueBody += URL;
-                        issueBody += '\r\n';
-                    });
-                    issueBody += '\r\n\r\n';
-                }
-                issueBody += '**Deployer verifications:**';
-                // eslint-disable-next-line max-len
-                issueBody += `\r\n- [${isFirebaseChecked ? 'x' : ' '}] I checked [Firebase Crashlytics](https://console.firebase.google.com/u/0/project/expensify-mobile-app/crashlytics/app/ios:com.expensify.expensifylite/issues?state=open&time=last-seven-days&types=crash&tag=all&sort=eventCount) for **this release version** and verified that this release does not introduce any new crashes. More detailed instructions on this verification can be found [here](https://stackoverflowteams.com/c/expensify/questions/15095/15096).`;
-                // eslint-disable-next-line max-len
-                issueBody += `\r\n- [${isFirebaseChecked ? 'x' : ' '}] I checked [Firebase Crashlytics](https://console.firebase.google.com/u/0/project/expensify-mobile-app/crashlytics/app/android:org.me.mobiexpensifyg/issues?state=open&time=last-seven-days&types=crash&tag=all&sort=eventCount) for **the previous release version** and verified that the release did not introduce any new crashes. More detailed instructions on this verification can be found [here](https://stackoverflowteams.com/c/expensify/questions/15095/15096).`;
-                // eslint-disable-next-line max-len
-                issueBody += `\r\n- [${isGHStatusChecked ? 'x' : ' '}] I checked [GitHub Status](https://www.githubstatus.com/) and verified there is no reported incident with Actions.`;
-                issueBody += '\r\n\r\ncc @Expensify/applauseleads\r\n';
-                const issueAssignees = [...new Set(Object.values(internalQAPRMap))];
-                const issue = { issueBody, issueAssignees };
-                return issue;
-            });
-        })
-            .catch((err) => console.warn('Error generating StagingDeployCash issue body! Continuing...', err));
-    }
-    /**
      * Fetch all pull requests given a list of PR numbers.
      */
     static fetchAllPullRequests(pullRequestNumbers) {
@@ -20578,6 +20372,20 @@ class GithubUtils {
             pull_number: pullRequestNumber,
         })
             .then(({ data: pullRequestComment }) => pullRequestComment.body);
+    }
+    static async getPullRequestMergeBaseSHA(pullRequestNumber) {
+        const { data: pullRequest } = await this.octokit.pulls.get({
+            owner: CONST_1.default.GITHUB_OWNER,
+            repo: CONST_1.default.APP_REPO,
+            pull_number: pullRequestNumber,
+        });
+        const { data: comparison } = await this.octokit.repos.compareCommits({
+            owner: CONST_1.default.GITHUB_OWNER,
+            repo: CONST_1.default.APP_REPO,
+            base: pullRequest.base.ref,
+            head: pullRequest.head.sha,
+        });
+        return comparison.merge_base_commit.sha;
     }
     static getAllReviewComments(pullRequestNumber) {
         return this.paginate(this.octokit.pulls.listReviews, {
@@ -20639,6 +20447,26 @@ class GithubUtils {
             per_page: options.per_page ?? 50,
             ...(options.status && { status: options.status }),
         });
+    }
+    /**
+     * Get the workflow run URL for a specific commit SHA and workflow file.
+     * Returns the HTML URL of the matching run, or undefined if not found.
+     */
+    static async getWorkflowRunURLForCommit(commitSha, workflowFile) {
+        try {
+            const response = await this.octokit.actions.listWorkflowRuns({
+                owner: CONST_1.default.GITHUB_OWNER,
+                repo: CONST_1.default.APP_REPO,
+                workflow_id: workflowFile,
+                head_sha: commitSha,
+                per_page: 1,
+            });
+            return response.data.workflow_runs.at(0)?.html_url;
+        }
+        catch (error) {
+            console.warn(`Failed to find workflow run for commit ${commitSha}:`, error);
+            return undefined;
+        }
     }
     /**
      * Generate the URL of an New Expensify pull request given the PR number.
@@ -20797,6 +20625,7 @@ class GithubUtils {
                 commit: commit.sha,
                 subject: commit.commit.message,
                 authorName: commit.commit.author?.name ?? 'Unknown',
+                date: commit.commit.committer?.date ?? '',
             }));
         }
         catch (error) {
@@ -20825,38 +20654,6 @@ class GithubUtils {
     }
 }
 exports["default"] = GithubUtils;
-
-
-/***/ }),
-
-/***/ 7532:
-/***/ ((__unused_webpack_module, exports) => {
-
-"use strict";
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-/**
- * This function is an equivalent of _.difference, it takes two arrays and returns the difference between them.
- * It returns an array of items that are in the first array but not in the second array.
- */
-function arrayDifference(array1, array2) {
-    return [array1, array2].reduce((a, b) => a.filter((c) => !b.includes(c)));
-}
-exports["default"] = arrayDifference;
-
-
-/***/ }),
-
-/***/ 6497:
-/***/ ((__unused_webpack_module, exports) => {
-
-"use strict";
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.isEmptyObject = isEmptyObject;
-function isEmptyObject(obj) {
-    return Object.keys(obj ?? {}).length === 0;
-}
 
 
 /***/ }),
@@ -21042,7 +20839,9 @@ function validateSvgFiles(filePaths) {
     }
     if (errors.length) {
         console.error('Validation errors:');
-        errors.forEach((error) => console.error(`   ${error}`));
+        for (const error of errors) {
+            console.error(`   ${error}`);
+        }
         throw new Error('SVG file validation failed');
     }
     return validFiles;
@@ -21073,19 +20872,19 @@ function logIgnoredFiles(ignoredFiles) {
         return;
     }
     console.log('\nFiles skipped (ignore-compression):');
-    ignoredFiles.forEach((filePath) => {
+    for (const filePath of ignoredFiles) {
         console.log(`${filePath}: ⏭️  Skipped`);
-    });
+    }
 }
 function logSummary(summary) {
     const { totalFiles, totalCompressedFilesLength, totalOriginalSize, totalCompressedSize, totalSavings, totalSavingsPercent, results, ignoredFiles } = summary;
     logIgnoredFiles(ignoredFiles);
     if (totalCompressedFilesLength) {
         console.log('\nFiles compressed:');
-        results.forEach((result) => {
+        for (const result of results) {
             const { compressedSize, originalSize, savings, savingsPercent, filePath } = result;
             if (!result.savings) {
-                return;
+                continue;
             }
             const prefix = `${filePath}: ✅`;
             console.log(getSummarySavingString({
@@ -21095,7 +20894,7 @@ function logSummary(summary) {
                 savings,
                 savingsPercent,
             }));
-        });
+        }
         const ignoreFilesLength = ignoredFiles.length;
         console.log(`\nFiles processed: ${totalFiles}`);
         console.log(`Files already properly compressed: ${totalFiles - ignoreFilesLength - totalCompressedFilesLength}`);
@@ -21116,10 +20915,10 @@ function logSummary(summary) {
 function logSummaryCheck(summary) {
     const { totalFiles, totalCompressedFilesLength, results, ignoredFiles } = summary;
     console.log('');
-    results.forEach((result) => {
+    for (const result of results) {
         const { filePath, savings } = result;
         console.log(`${filePath}: ${savings > 0 ? 'Not properly compressed ❌' : 'Compressed ✅'}`);
-    });
+    }
     logIgnoredFiles(ignoredFiles);
     console.log(`\nFiles processed: ${totalFiles}`);
     console.log(`Files ignored: ${ignoredFiles.length}`);

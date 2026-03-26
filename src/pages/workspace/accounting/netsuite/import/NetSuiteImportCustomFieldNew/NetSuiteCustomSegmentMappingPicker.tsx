@@ -61,5 +61,4 @@ function NetSuiteCustomSegmentMappingPicker({value, errorText, onInputChange}: N
     );
 }
 
-NetSuiteCustomSegmentMappingPicker.displayName = 'NetSuiteCustomSegmentMappingPicker';
 export default NetSuiteCustomSegmentMappingPicker;

@@ -1,11 +1,14 @@
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import type {ReportNameValuePairs} from '@src/types/onyx';
-import mapOnyxCollectionItems from '@src/utils/mapOnyxCollectionItems';
 
-type ReportNameValuePairsSelector<T> = (reportNameValuePairs: OnyxEntry<ReportNameValuePairs>) => T;
+/**
+ * Selector that extracts only the private_isArchived value from a single ReportNameValuePairs entry
+ */
+const privateIsArchivedSelector = (reportNameValuePairs: OnyxEntry<ReportNameValuePairs>): string | undefined => reportNameValuePairs?.private_isArchived;
 
-const createReportNameValuePairsSelector = <T>(reportNameValuePairs: OnyxCollection<ReportNameValuePairs>, reportNameValuePairsSelector: ReportNameValuePairsSelector<T>) =>
-    mapOnyxCollectionItems(reportNameValuePairs, reportNameValuePairsSelector);
+/**
+ * Selector that extracts and trims the agentZeroProcessingRequestIndicator value
+ */
+const agentZeroProcessingIndicatorSelector = (reportNameValuePairs: OnyxEntry<ReportNameValuePairs>): string => reportNameValuePairs?.agentZeroProcessingRequestIndicator?.trim() ?? '';
 
-// eslint-disable-next-line import/prefer-default-export
-export {createReportNameValuePairsSelector};
+export {privateIsArchivedSelector, agentZeroProcessingIndicatorSelector};

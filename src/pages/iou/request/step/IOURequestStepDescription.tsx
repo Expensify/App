@@ -1,5 +1,5 @@
 import lodashIsEmpty from 'lodash/isEmpty';
-import React, {useCallback, useMemo, useRef} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
@@ -7,8 +7,11 @@ import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import TextInput from '@components/TextInput';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDiscardChangesConfirmation from '@hooks/useDiscardChangesConfirmation';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import useRestartOnReceiptFailure from '@hooks/useRestartOnReceiptFailure';
@@ -20,15 +23,16 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {shouldUseTransactionDraft} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import Parser from '@libs/Parser';
-import {getPersonalPolicy} from '@libs/PolicyUtils';
+import {hasReceipt} from '@libs/TransactionUtils';
 import variables from '@styles/variables';
-import {setDraftSplitTransaction, setMoneyRequestDescription, updateMoneyRequestDescription} from '@userActions/IOU';
+import {setMoneyRequestDescription, updateMoneyRequestDescription} from '@userActions/IOU';
+import {setDraftSplitTransaction} from '@userActions/IOU/Split';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/MoneyRequestDescriptionForm';
 import type * as OnyxTypes from '@src/types/onyx';
-import DiscardChangesConfirmation from './DiscardChangesConfirmation';
+import KEYBOARD_SUBMIT_BEHAVIOR from './shouldDismissKeyboardBeforeDescriptionSubmit';
 import StepScreenWrapper from './StepScreenWrapper';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
@@ -47,10 +51,14 @@ function IOURequestStepDescription({
     report,
 }: IOURequestStepDescriptionProps) {
     const policy = usePolicy(report?.policyID);
-    const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`, {canBeMissing: true});
-    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report?.policyID}`, {canBeMissing: true});
+    const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
+    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report?.policyID}`);
+    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
+    const [parentReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
 
-    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${report?.policyID}`, {canBeMissing: true});
+    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${report?.policyID}`);
+
+    const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID);
 
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -67,16 +75,23 @@ function IOURequestStepDescription({
         return isEditingSplit && !lodashIsEmpty(splitDraftTransaction) ? (splitDraftTransaction?.comment?.comment ?? '') : (transaction?.comment?.comment ?? '');
     }, [isTransactionDraft, iouType, isEditingSplit, splitDraftTransaction, transaction?.comment?.comment]);
 
-    const descriptionRef = useRef(currentDescriptionInMarkdown);
-    const isSavedRef = useRef(false);
+    const [currentDescription, setCurrentDescription] = useState(currentDescriptionInMarkdown);
+    const [isSaved, setIsSaved] = useState(false);
+    const [isDiscardModalVisible, setIsDiscardModalVisible] = useState(false);
+    const shouldNavigateAfterSaveRef = useRef(false);
     useRestartOnReceiptFailure(transaction, reportID, iouType, action);
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const currentUserAccountIDParam = currentUserPersonalDetails.accountID;
+    const currentUserEmailParam = currentUserPersonalDetails.login ?? '';
+    const {isBetaEnabled} = usePermissions();
+    const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
 
     const {policyForMovingExpensesID} = usePolicyForMovingExpenses();
 
-    const [transactionDraft] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${getNonEmptyStringOnyxID(transaction?.transactionID)}`, {canBeMissing: true});
+    const [transactionDraft] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${getNonEmptyStringOnyxID(transaction?.transactionID)}`);
 
     const movingExpensesPolicy = usePolicy(policyForMovingExpensesID);
-    const [movingExpensesPolicyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyForMovingExpensesID}`, {canBeMissing: true});
+    const [movingExpensesPolicyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyForMovingExpensesID}`);
 
     const isDescriptionRequired = useMemo(() => {
         const categoriesToUse = policyCategories ?? movingExpensesPolicyCategories;
@@ -93,11 +108,7 @@ function IOURequestStepDescription({
             const errors = {};
 
             if (values.moneyRequestComment.length > CONST.DESCRIPTION_LIMIT) {
-                addErrorMessage(
-                    errors,
-                    'moneyRequestComment',
-                    translate('common.error.characterLimitExceedCounter', {length: values.moneyRequestComment.length, limit: CONST.DESCRIPTION_LIMIT}),
-                );
+                addErrorMessage(errors, 'moneyRequestComment', translate('common.error.characterLimitExceedCounter', values.moneyRequestComment.length, CONST.DESCRIPTION_LIMIT));
             }
 
             if (isDescriptionRequired && !values.moneyRequestComment) {
@@ -109,12 +120,20 @@ function IOURequestStepDescription({
         [isDescriptionRequired, translate],
     );
 
-    const navigateBack = () => {
+    const navigateBack = useCallback(() => {
         Navigation.goBack(backTo);
-    };
+    }, [backTo]);
+
+    useEffect(() => {
+        if (!isSaved || !shouldNavigateAfterSaveRef.current) {
+            return;
+        }
+        shouldNavigateAfterSaveRef.current = false;
+        navigateBack();
+    }, [isSaved, navigateBack]);
 
     const updateDescriptionRef = (value: string) => {
-        descriptionRef.current = value;
+        setCurrentDescription(value);
     };
 
     const updateComment = (value: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_DESCRIPTION_FORM>) => {
@@ -122,45 +141,73 @@ function IOURequestStepDescription({
             return;
         }
 
-        isSavedRef.current = true;
         const newComment = value.moneyRequestComment.trim();
 
-        // Only update comment if it has changed
         if (newComment === currentDescriptionInMarkdown) {
-            navigateBack();
+            setIsSaved(true);
+            shouldNavigateAfterSaveRef.current = true;
             return;
         }
 
-        // In the split flow, when editing we use SPLIT_TRANSACTION_DRAFT to save draft value
         if (isEditingSplit) {
             setDraftSplitTransaction(transaction?.transactionID, splitDraftTransaction, {comment: newComment});
-            navigateBack();
+            setIsSaved(true);
+            shouldNavigateAfterSaveRef.current = true;
             return;
         }
 
-        setMoneyRequestDescription(transaction?.transactionID, newComment, isTransactionDraft);
+        setMoneyRequestDescription(transaction?.transactionID, newComment, isTransactionDraft, hasReceipt(transaction));
 
         if (action === CONST.IOU.ACTION.EDIT) {
-            updateMoneyRequestDescription(transaction?.transactionID, reportID, newComment, policy, policyTags, policyCategories);
+            updateMoneyRequestDescription({
+                transactionID: transaction?.transactionID,
+                transactionThreadReport: report,
+                parentReport,
+                comment: newComment,
+                policy,
+                policyTagList: policyTags,
+                policyCategories,
+                currentUserAccountIDParam,
+                currentUserEmailParam,
+                isASAPSubmitBetaEnabled,
+                parentReportNextStep,
+            });
         }
 
-        navigateBack();
+        setIsSaved(true);
+        shouldNavigateAfterSaveRef.current = true;
     };
 
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundPage = useShowNotFoundPageInIOUStep(action, iouType, reportActionID, report, transaction);
 
-    const isReportInGroupPolicy = !!report?.policyID && report.policyID !== CONST.POLICY.ID_FAKE && getPersonalPolicy()?.id !== report.policyID;
+    const isReportInGroupPolicy = !!report?.policyID && report.policyID !== CONST.POLICY.ID_FAKE && personalPolicyID !== report.policyID;
     const getDescriptionHint = () => {
         return transaction?.category && policyCategories ? (policyCategories[transaction?.category]?.commentHint ?? '') : '';
     };
+
+    useDiscardChangesConfirmation({
+        onCancel: () => {
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
+            InteractionManager.runAfterInteractions(() => {
+                inputRef.current?.focus();
+            });
+        },
+        getHasUnsavedChanges: () => {
+            if (isSaved) {
+                return false;
+            }
+            return currentDescription !== currentDescriptionInMarkdown;
+        },
+        onVisibilityChange: setIsDiscardModalVisible,
+    });
 
     return (
         <StepScreenWrapper
             headerTitle={translate('common.description')}
             onBackButtonPress={navigateBack}
             shouldShowWrapper
-            testID={IOURequestStepDescription.displayName}
+            testID="IOURequestStepDescription"
             shouldShowNotFoundPage={shouldShowNotFoundPage}
         >
             <FormProvider
@@ -171,6 +218,7 @@ function IOURequestStepDescription({
                 submitButtonText={translate('common.save')}
                 enabledWhenOffline
                 shouldHideFixErrorsAlert
+                keyboardSubmitBehavior={KEYBOARD_SUBMIT_BEHAVIOR}
             >
                 <View style={styles.mb4}>
                     <InputWrapper
@@ -183,6 +231,7 @@ function IOURequestStepDescription({
                         label={translate('moneyRequestConfirmationList.whatsItFor')}
                         accessibilityLabel={translate('moneyRequestConfirmationList.whatsItFor')}
                         role={CONST.ROLE.PRESENTATION}
+                        editable={!isDiscardModalVisible}
                         autoGrowHeight
                         maxAutoGrowHeight={variables.textInputAutoGrowMaxHeight}
                         shouldSubmitForm
@@ -193,25 +242,9 @@ function IOURequestStepDescription({
                     />
                 </View>
             </FormProvider>
-            <DiscardChangesConfirmation
-                onCancel={() => {
-                    // eslint-disable-next-line @typescript-eslint/no-deprecated
-                    InteractionManager.runAfterInteractions(() => {
-                        inputRef.current?.focus();
-                    });
-                }}
-                getHasUnsavedChanges={() => {
-                    if (isSavedRef.current) {
-                        return false;
-                    }
-                    return descriptionRef.current !== currentDescriptionInMarkdown;
-                }}
-            />
         </StepScreenWrapper>
     );
 }
-
-IOURequestStepDescription.displayName = 'IOURequestStepDescription';
 
 // eslint-disable-next-line rulesdir/no-negated-variables
 const IOURequestStepDescriptionWithFullTransactionOrNotFound = withFullTransactionOrNotFound(IOURequestStepDescription);

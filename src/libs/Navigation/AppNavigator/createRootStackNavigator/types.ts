@@ -1,6 +1,7 @@
 import type {CommonActions, StackActionType, StackRouterOptions} from '@react-navigation/native';
-import type {WorkspaceScreenName} from '@libs/Navigation/types';
+import type {DomainScreenName, WorkspaceScreenName} from '@libs/Navigation/types';
 import type CONST from '@src/CONST';
+import type {Route} from '@src/ROUTES';
 
 type RootStackNavigatorActionType =
     | {
@@ -13,10 +14,21 @@ type RootStackNavigatorActionType =
           type: typeof CONST.NAVIGATION.ACTION_TYPE.DISMISS_MODAL;
       }
     | {
+          type: typeof CONST.NAVIGATION.ACTION_TYPE.REPLACE_FULLSCREEN_UNDER_RHP;
+          payload: {route: Route};
+      }
+    | {
           type: typeof CONST.NAVIGATION.ACTION_TYPE.OPEN_WORKSPACE_SPLIT;
           payload: {
               policyID: string;
               screenName: WorkspaceScreenName;
+          };
+      }
+    | {
+          type: typeof CONST.NAVIGATION.ACTION_TYPE.OPEN_DOMAIN_SPLIT;
+          payload: {
+              domainAccountID: number;
+              screenName: DomainScreenName;
           };
       }
     | {
@@ -34,6 +46,10 @@ type OpenWorkspaceSplitActionType = RootStackNavigatorActionType & {
     type: typeof CONST.NAVIGATION.ACTION_TYPE.OPEN_WORKSPACE_SPLIT;
 };
 
+type OpenDomainSplitActionType = RootStackNavigatorActionType & {
+    type: typeof CONST.NAVIGATION.ACTION_TYPE.OPEN_DOMAIN_SPLIT;
+};
+
 type ToggleSidePanelWithHistoryActionType = RootStackNavigatorActionType & {
     type: typeof CONST.NAVIGATION.ACTION_TYPE.TOGGLE_SIDE_PANEL_WITH_HISTORY;
 };
@@ -48,16 +64,23 @@ type DismissModalActionType = RootStackNavigatorActionType & {
     type: typeof CONST.NAVIGATION.ACTION_TYPE.DISMISS_MODAL;
 };
 
+type ReplaceFullscreenUnderRHPActionType = RootStackNavigatorActionType & {
+    type: typeof CONST.NAVIGATION.ACTION_TYPE.REPLACE_FULLSCREEN_UNDER_RHP;
+    payload: {route: Route};
+};
+
 type RootStackNavigatorRouterOptions = StackRouterOptions;
 
 type RootStackNavigatorAction = CommonActions.Action | StackActionType | RootStackNavigatorActionType;
 
 export type {
     OpenWorkspaceSplitActionType,
+    OpenDomainSplitActionType,
     PushActionType,
     ReplaceActionType,
     DismissModalActionType,
     PreloadActionType,
+    ReplaceFullscreenUnderRHPActionType,
     RootStackNavigatorAction,
     RootStackNavigatorRouterOptions,
     ToggleSidePanelWithHistoryActionType,

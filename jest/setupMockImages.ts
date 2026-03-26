@@ -4,11 +4,11 @@ import path from 'path';
 function mockImages(imagePath: string) {
     const imageFilenames = fs.readdirSync(path.resolve(__dirname, `../assets/${imagePath}/`));
     // eslint-disable-next-line rulesdir/prefer-early-return
-    imageFilenames.forEach((fileName) => {
+    for (const fileName of imageFilenames) {
         if (/\.svg/.test(fileName)) {
             jest.mock(`../assets/${imagePath}/${fileName}`, () => () => '');
         }
-    });
+    }
 }
 
 // We are mocking all images so that Icons and other assets cannot break tests. In the testing environment, importing things like .svg

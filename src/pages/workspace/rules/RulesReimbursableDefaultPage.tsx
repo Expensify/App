@@ -5,6 +5,7 @@ import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getCashExpenseReimbursableMode, setPolicyReimbursableMode} from '@libs/actions/Policy/Policy';
 import Navigation from '@libs/Navigation/Navigation';
@@ -23,7 +24,9 @@ function RulesReimbursableDefaultPage({
 }: RulesReimbursableDefaultPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const reimbursableMode = getCashExpenseReimbursableMode(policyID);
+    const policy = usePolicy(policyID);
+
+    const reimbursableMode = getCashExpenseReimbursableMode(policy);
 
     const reimbursableModes = Object.values(CONST.POLICY.CASH_EXPENSE_REIMBURSEMENT_CHOICES).map((mode) => ({
         text: translate(`workspace.rules.individualExpenseRules.${mode}`),
@@ -42,7 +45,7 @@ function RulesReimbursableDefaultPage({
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
                 shouldEnableMaxHeight
-                testID={RulesReimbursableDefaultPage.displayName}
+                testID="RulesReimbursableDefaultPage"
             >
                 <HeaderWithBackButton
                     title={translate('workspace.rules.individualExpenseRules.cashExpenseDefault')}
@@ -55,7 +58,7 @@ function RulesReimbursableDefaultPage({
                     data={reimbursableModes}
                     ListItem={RadioListItem}
                     onSelectRow={(item) => {
-                        setPolicyReimbursableMode(policyID, item.value);
+                        setPolicyReimbursableMode(policyID, item.value, policy?.defaultReimbursable, policy?.disabledFields?.reimbursable);
                         Navigation.setNavigationActionToMicrotaskQueue(Navigation.goBack);
                     }}
                     shouldSingleExecuteRowSelect
@@ -67,7 +70,5 @@ function RulesReimbursableDefaultPage({
         </AccessOrNotFoundWrapper>
     );
 }
-
-RulesReimbursableDefaultPage.displayName = 'RulesReimbursableDefaultPage';
 
 export default RulesReimbursableDefaultPage;

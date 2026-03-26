@@ -2,11 +2,12 @@ import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {View} from 'react-native';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import useReportIsArchived from '@hooks/useReportIsArchived';
 import {openReport} from '@libs/actions/Report';
-import validateAttachmentFile from '@libs/AttachmentUtils';
-import type {AttachmentValidationResult} from '@libs/AttachmentUtils';
-import {isReportNotFound} from '@libs/ReportUtils';
-import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
+import {getValidatedImageSource} from '@libs/AvatarUtils';
+import Navigation from '@libs/Navigation/Navigation';
+import {canUserPerformWriteAction, isReportNotFound} from '@libs/ReportUtils';
+import validateAttachmentFile from '@libs/validateAttachmentFile';
 import type {AttachmentModalBaseContentProps} from '@pages/media/AttachmentModalScreen/AttachmentModalBaseContent/types';
 import AttachmentModalContainer from '@pages/media/AttachmentModalScreen/AttachmentModalContainer';
 import useDownloadAttachment from '@pages/media/AttachmentModalScreen/routes/hooks/useDownloadAttachment';
@@ -37,16 +38,16 @@ function ReportAddAttachmentModalContent({route, navigation}: AttachmentModalScr
         onClose,
     } = route.params;
 
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: false});
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
         canEvict: false,
-        canBeMissing: true,
     });
-    const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`, {
-        canBeMissing: false,
-    });
-
-    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
+    const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`);
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const isReportArchived = useReportIsArchived(reportID);
+    const canPerformWriteAction = canUserPerformWriteAction(report, isReportArchived);
+    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const {isOffline} = useNetwork();
 
     const submitRef = useRef<View | HTMLElement>(null);
@@ -59,8 +60,16 @@ function ReportAddAttachmentModalContent({route, navigation}: AttachmentModalScr
     }, [reportActions, reportActionID]);
 
     const fetchReport = useCallback(() => {
-        openReport(reportID, reportActionID);
-    }, [reportID, reportActionID]);
+        openReport({reportID, introSelected, reportActionID, betas});
+    }, [reportID, introSelected, reportActionID, betas]);
+
+    // Close the modal if user loses write access (e.g., admin switches "Who can post" to Admins only)
+    useEffect(() => {
+        if (canPerformWriteAction || !report || isEmptyObject(report)) {
+            return;
+        }
+        Navigation.dismissModal();
+    }, [canPerformWriteAction, report]);
 
     useEffect(() => {
         if (!reportID || !shouldFetchReport) {
@@ -70,43 +79,31 @@ function ReportAddAttachmentModalContent({route, navigation}: AttachmentModalScr
         fetchReport();
     }, [reportID, fetchReport, shouldFetchReport]);
 
-    const [source, setSource] = useState(() => Number(sourceParam) || (typeof sourceParam === 'string' ? tryResolveUrlFromApiRoot(decodeURIComponent(sourceParam)) : undefined));
+    const [source, setSource] = useState(() => getValidatedImageSource(sourceParam));
 
     const [validFiles, setValidFiles] = useState<FileObject | FileObject[] | undefined>(fileParam);
     useEffect(() => {
-        if (!fileParam) {
-            return;
-        }
-
-        function updateState(result: AttachmentValidationResult | AttachmentValidationResult[]) {
-            if (Array.isArray(result)) {
-                const validResults = result.filter((r) => r.isValid);
-                if (validResults.length === 0) {
-                    return;
-                }
-
-                const validatedFiles = validResults.map((r) => r.file);
-                const firstValidSource = validResults.at(0)?.source;
-
-                setSource(firstValidSource);
-                setValidFiles(validatedFiles);
+        async function validateFiles() {
+            if (!fileParam) {
                 return;
             }
 
-            if (!result.isValid) {
+            const files = Array.isArray(fileParam) ? fileParam : [fileParam];
+            const results = await Promise.all(files.map(async (file) => validateAttachmentFile(file)));
+
+            const validResults = results.filter((r) => r.isValid);
+            if (validResults.length === 0) {
                 return;
             }
 
-            setSource(result.source);
-            setValidFiles(result.file);
+            const validatedFiles = validResults.map((r) => r.file);
+            const firstValidSource = validResults.at(0)?.file.uri;
+
+            setSource(firstValidSource);
+            setValidFiles(validatedFiles);
         }
 
-        if (Array.isArray(fileParam)) {
-            Promise.all(fileParam.map((f) => validateAttachmentFile(f))).then(updateState);
-            return;
-        }
-
-        validateAttachmentFile(fileParam).then(updateState);
+        validateFiles();
     }, [fileParam]);
 
     const modalType = useReportAttachmentModalType(source, validFiles);
@@ -185,6 +182,5 @@ function ReportAddAttachmentModalContent({route, navigation}: AttachmentModalScr
         />
     );
 }
-ReportAddAttachmentModalContent.displayName = 'ReportAddAttachmentModalContent';
 
 export default ReportAddAttachmentModalContent;

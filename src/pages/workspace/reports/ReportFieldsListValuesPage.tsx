@@ -6,18 +6,16 @@ import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import ConfirmModal from '@components/ConfirmModal';
 import EmptyStateComponent from '@components/EmptyStateComponent';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import * as Expensicons from '@components/Icon/Expensicons';
-import * as Illustrations from '@components/Icon/Illustrations';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import SearchBar from '@components/SearchBar';
+import TableListItem from '@components/SelectionList/ListItem/TableListItem';
+import type {ListItem} from '@components/SelectionList/types';
 import SelectionListWithModal from '@components/SelectionListWithModal';
 import CustomListHeader from '@components/SelectionListWithModal/CustomListHeader';
-import TableListItem from '@components/SelectionListWithSections/TableListItem';
-import type {ListItem} from '@components/SelectionListWithSections/types';
-import TableListItemSkeleton from '@components/Skeletons/TableRowSkeleton';
 import Switch from '@components/Switch';
 import Text from '@components/Text';
+import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useOnyx from '@hooks/useOnyx';
@@ -73,8 +71,9 @@ function ReportFieldsListValuesPage({
     // See https://github.com/Expensify/App/issues/48724 for more details
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
-    const [formDraft] = useOnyx(ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM_DRAFT, {canBeMissing: true});
+    const [formDraft] = useOnyx(ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM_DRAFT);
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
+    const illustrations = useMemoizedLazyIllustrations(['FolderWithPapers']);
 
     const [selectedValues, setSelectedValues] = useState<Record<string, boolean>>({});
     const [deleteValuesConfirmModalVisible, setDeleteValuesConfirmModalVisible] = useState(false);
@@ -149,7 +148,7 @@ function ReportFieldsListValuesPage({
     }, []);
     const sortListValues = useCallback((values: ValueListItem[]) => values.sort((a, b) => localeCompare(a.value, b.value)), [localeCompare]);
     const [inputValue, setInputValue, filteredListValues] = useSearchResults(data, filterListValue, sortListValues);
-    const sections = useMemo(() => [{data: filteredListValues, isDisabled: false}], [filteredListValues]);
+    const icons = useMemoizedLazyExpensifyIcons(['Checkmark', 'Close', 'Plus', 'Trashcan'] as const);
 
     const filteredListValuesArray = filteredListValues.map((item) => item.value);
 
@@ -223,7 +222,7 @@ function ReportFieldsListValuesPage({
         if (isSmallScreenWidth ? isMobileSelectionModeEnabled : selectedValuesArray.length > 0) {
             if (selectedValuesArray.length > 0 && !hasAccountingConnections) {
                 options.push({
-                    icon: Expensicons.Trashcan,
+                    icon: icons.Trashcan,
                     text: translate(selectedValuesArray.length === 1 ? 'workspace.reportFields.deleteValue' : 'workspace.reportFields.deleteValues'),
                     value: CONST.POLICY.BULK_ACTION_TYPES.DELETE,
                     onSelected: () => setDeleteValuesConfirmModalVisible(true),
@@ -245,7 +244,7 @@ function ReportFieldsListValuesPage({
                 }, []);
 
                 options.push({
-                    icon: Expensicons.Close,
+                    icon: icons.Close,
                     text: translate(enabledValues.length === 1 ? 'workspace.reportFields.disableValue' : 'workspace.reportFields.disableValues'),
                     value: CONST.POLICY.BULK_ACTION_TYPES.DISABLE,
                     onSelected: () => {
@@ -281,7 +280,7 @@ function ReportFieldsListValuesPage({
                 }, []);
 
                 options.push({
-                    icon: Expensicons.Checkmark,
+                    icon: icons.Checkmark,
                     text: translate(disabledValues.length === 1 ? 'workspace.reportFields.enableValue' : 'workspace.reportFields.enableValues'),
                     value: CONST.POLICY.BULK_ACTION_TYPES.ENABLE,
                     onSelected: () => {
@@ -320,7 +319,7 @@ function ReportFieldsListValuesPage({
                 <Button
                     style={[isSmallScreenWidth && styles.flexGrow1, isSmallScreenWidth && styles.mb3]}
                     success
-                    icon={Expensicons.Plus}
+                    icon={icons.Plus}
                     text={translate('workspace.reportFields.addValue')}
                     onPress={() => Navigation.navigate(ROUTES.WORKSPACE_REPORT_FIELDS_ADD_VALUE.getRoute(policyID, reportFieldID))}
                 />
@@ -355,7 +354,7 @@ function ReportFieldsListValuesPage({
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
                 style={styles.defaultModalContainer}
-                testID={ReportFieldsListValuesPage.displayName}
+                testID="ReportFieldsListValuesPage"
                 shouldEnableMaxHeight
             >
                 <HeaderWithBackButton
@@ -378,33 +377,30 @@ function ReportFieldsListValuesPage({
                         <EmptyStateComponent
                             title={translate('workspace.reportFields.emptyReportFieldsValues.title')}
                             subtitle={translate('workspace.reportFields.emptyReportFieldsValues.subtitle')}
-                            SkeletonComponent={TableListItemSkeleton}
-                            headerMediaType={CONST.EMPTY_STATE_MEDIA.ILLUSTRATION}
-                            headerMedia={Illustrations.FolderWithPapers}
-                            headerStyles={styles.emptyFolderDarkBG}
+                            headerMedia={illustrations.FolderWithPapers}
+                            headerStyles={styles.emptyStateCardIllustrationContainer}
                             headerContentStyles={styles.emptyStateFolderWithPaperIconSize}
                         />
                     </ScrollView>
                 )}
                 {!shouldShowEmptyState && (
                     <SelectionListWithModal
-                        addBottomSafeAreaPadding
-                        canSelectMultiple={canSelectMultiple}
-                        turnOnSelectionModeOnLongPress
-                        onTurnOnSelectionMode={(item) => item && toggleValue(item)}
-                        sections={sections}
-                        selectedItems={selectedValuesArray}
-                        shouldUseDefaultRightHandSideCheckmark={false}
-                        onCheckboxPress={toggleValue}
-                        onSelectRow={openListValuePage}
-                        onSelectAll={filteredListValues.length > 0 ? toggleAllValues : undefined}
+                        data={filteredListValues}
                         ListItem={TableListItem}
-                        listHeaderContent={headerContent}
-                        customListHeader={getCustomListHeader()}
-                        shouldShowListEmptyContent={false}
+                        onSelectRow={openListValuePage}
+                        selectedItems={selectedValuesArray}
+                        onSelectAll={filteredListValues.length > 0 ? toggleAllValues : undefined}
+                        onTurnOnSelectionMode={(item) => item && toggleValue(item)}
                         shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
-                        listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
+                        shouldUseDefaultRightHandSideCheckmark={false}
+                        customListHeader={getCustomListHeader()}
+                        customListHeaderContent={headerContent}
+                        canSelectMultiple={canSelectMultiple}
+                        onCheckboxPress={toggleValue}
+                        shouldShowListEmptyContent={false}
                         showScrollIndicator={false}
+                        turnOnSelectionModeOnLongPress
+                        shouldHeaderBeInsideList
                         shouldShowRightCaret
                     />
                 )}
@@ -422,7 +418,5 @@ function ReportFieldsListValuesPage({
         </AccessOrNotFoundWrapper>
     );
 }
-
-ReportFieldsListValuesPage.displayName = 'ReportFieldsListValuesPage';
 
 export default withPolicyAndFullscreenLoading(ReportFieldsListValuesPage);

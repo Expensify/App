@@ -2,11 +2,23 @@ import type {RefObject} from 'react';
 import type {LayoutChangeEvent, StyleProp, TextStyle, View, ViewStyle} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
-import type {LocaleContextProps} from '@components/LocaleContextProvider';
+import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 import type CONST from '@src/CONST';
 import type {OptionData} from '@src/libs/ReportUtils';
-import type {Locale, OnboardingPurpose, PersonalDetailsList, Policy, Report, ReportAction, ReportActions, ReportNameValuePairs, Transaction, TransactionViolation} from '@src/types/onyx';
-import type {ReportAttributes} from '@src/types/onyx/DerivedValues';
+import type {
+    Locale,
+    Onboarding,
+    OnboardingPurpose,
+    PersonalDetailsList,
+    Policy,
+    Report,
+    ReportAction,
+    ReportActions,
+    ReportNameValuePairs,
+    Transaction,
+    TransactionViolation,
+} from '@src/types/onyx';
+import type {ReportAttributes, ReportAttributesDerivedValue} from '@src/types/onyx/DerivedValues';
 
 type OptionMode = ValueOf<typeof CONST.OPTION_MODE>;
 
@@ -51,6 +63,9 @@ type OptionRowLHNDataProps = {
     /** The onboarding purpose */
     onboardingPurpose?: OnboardingPurpose;
 
+    /** The onboarding NVP value */
+    onboarding?: OnyxEntry<Onboarding>;
+
     /** Whether the fullscreen is visible */
     isFullscreenVisible?: boolean;
 
@@ -81,12 +96,6 @@ type OptionRowLHNDataProps = {
     /** The transaction linked to the report's last action */
     lastReportActionTransaction?: OnyxEntry<Transaction>;
 
-    /** Whether a report contains a draft */
-    hasDraftComment: boolean;
-
-    /** The receipt transaction from the parent report action */
-    receiptTransactions: OnyxCollection<Transaction>;
-
     /** The reportID of the report */
     reportID: string;
 
@@ -108,7 +117,7 @@ type OptionRowLHNDataProps = {
     viewMode?: OptionMode;
 
     /** The last message text from the report */
-    lastMessageTextFromReport: string;
+    lastMessageTextFromReport?: string;
 
     /** A function that is called when an option is selected. Selected option is passed as a param */
     onSelectRow?: (optionItem: OptionData, popoverAnchor: RefObject<View | null>) => void;
@@ -119,6 +128,9 @@ type OptionRowLHNDataProps = {
     /** The report attributes for the report */
     reportAttributes: OnyxEntry<ReportAttributes>;
 
+    /** The derived report attributes for all reports */
+    reportAttributesDerived?: ReportAttributesDerivedValue['reports'];
+
     /** Whether to show the educational tooltip for the GBR or RBR */
     shouldShowRBRorGBRTooltip: boolean;
 
@@ -127,6 +139,9 @@ type OptionRowLHNDataProps = {
 
     /** Function to compare locale strings */
     localeCompare: LocaleContextProps['localeCompare'];
+
+    /** Function to translate locale strings */
+    translate: LocalizedTranslate;
 
     /** TestID of the row, indicating order */
     testID: number;
@@ -138,6 +153,9 @@ type OptionRowLHNDataProps = {
     lastAction: ReportAction | undefined;
 
     lastActionReport: OnyxEntry<Report> | undefined;
+
+    /** The current user's account ID */
+    currentUserAccountID: number;
 };
 
 type OptionRowLHNProps = {
@@ -165,6 +183,9 @@ type OptionRowLHNProps = {
     /** The onboarding purpose */
     onboardingPurpose?: OnboardingPurpose;
 
+    /** The onboarding NVP value */
+    onboarding?: OnyxEntry<Onboarding>;
+
     /** Whether the fullscreen is visible */
     isFullscreenVisible?: boolean;
 
@@ -184,6 +205,9 @@ type OptionRowLHNProps = {
 
     /** The testID of the row */
     testID: number;
+
+    /** The concierge report ID from Onyx */
+    conciergeReportID: OnyxEntry<string>;
 };
 
 type RenderItemProps = {item: Report; index: number};

@@ -1,7 +1,7 @@
 import type {OnyxEntry} from 'react-native-onyx';
 import CONST from '@src/CONST';
 import type {ReimbursementAccountForm} from '@src/types/form';
-import type {BeneficialOwnerDataKey, SignerInfoStepProps} from '@src/types/form/ReimbursementAccountForm';
+import type {BeneficialOwnerDataKey} from '@src/types/form/ReimbursementAccountForm';
 import type {FileObject} from '@src/types/utils/Attachment';
 import SafeString from '@src/utils/SafeString';
 
@@ -22,48 +22,62 @@ const signerDetailsFields = [FULL_NAME, EMAIL, JOB_TITLE, DATE_OF_BIRTH, STREET,
 const signerFilesFields = [PROOF_OF_DIRECTORS, ADDRESS_PROOF, COPY_OF_ID, CODICE_FISCALE];
 const beneficialOwnerFields = [FIRST_NAME, LAST_NAME, DOB, BENEFICIAL_STREET, BENEFICIAL_CITY, BENEFICIAL_STATE, BENEFICIAL_ZIP_CODE];
 
+// These fields are required by the backend and must always be included in the request
+// so that proper validation errors can be returned if they're missing
+const requiredSignerFields = new Set<string>([FULL_NAME, DATE_OF_BIRTH, JOB_TITLE]);
+
 function getSignerDetailsAndSignerFilesForSignerInfo(reimbursementAccountDraft: OnyxEntry<ReimbursementAccountForm>, signerEmail: string, isUserBeneficialOwner: boolean) {
     const signerDetails: Record<string, string | boolean | FileObject[]> = {};
     const signerFiles: Record<string, string | FileObject | boolean> = {};
 
-    signerDetailsFields.forEach((fieldName: keyof SignerInfoStepProps) => {
+    for (const fieldName of signerDetailsFields) {
         if (fieldName === EMAIL) {
             signerDetails[fieldName] = signerEmail;
-            return;
-        }
-
-        if (!reimbursementAccountDraft?.[fieldName]) {
-            return;
+            continue;
         }
 
         if (fieldName === STREET || fieldName === CITY || fieldName === STATE || fieldName === ZIP_CODE) {
-            signerDetails[ADDRESS] = signerDetails[ADDRESS]
-                ? `${SafeString(signerDetails[ADDRESS])}, ${SafeString(reimbursementAccountDraft?.[fieldName])}`
-                : reimbursementAccountDraft?.[fieldName];
-            return;
+            if (reimbursementAccountDraft?.[fieldName]) {
+                signerDetails[ADDRESS] = signerDetails[ADDRESS]
+                    ? `${SafeString(signerDetails[ADDRESS])}, ${SafeString(reimbursementAccountDraft?.[fieldName])}`
+                    : SafeString(reimbursementAccountDraft?.[fieldName]);
+            }
+            continue;
         }
 
-        signerDetails[fieldName] = reimbursementAccountDraft?.[fieldName];
-    });
+        // Preserve type for DOWNLOADED_PDS_AND_FSG since they are boolean values
+        if (fieldName === DOWNLOADED_PDS_AND_FSG) {
+            if (reimbursementAccountDraft?.[fieldName]) {
+                signerDetails[fieldName] = reimbursementAccountDraft[fieldName];
+            }
+            continue;
+        }
+
+        // Always include required fields (with empty string if not present) so Auth validation can catch them
+        // For non-required fields, only include if they have a value
+        if (requiredSignerFields.has(fieldName) || reimbursementAccountDraft?.[fieldName]) {
+            signerDetails[fieldName] = SafeString(reimbursementAccountDraft?.[fieldName]);
+        }
+    }
 
     if (isUserBeneficialOwner) {
         signerDetails[FULL_NAME] = '';
         signerDetails[DATE_OF_BIRTH] = '';
         signerDetails[ADDRESS] = '';
 
-        beneficialOwnerFields.forEach((fieldName) => {
+        for (const fieldName of beneficialOwnerFields) {
             const beneficialFieldKey: BeneficialOwnerDataKey = `${BENEFICIAL_PREFIX}_${CONST.NON_USD_BANK_ACCOUNT.CURRENT_USER_KEY}_${fieldName}`;
 
             if (fieldName === FIRST_NAME || fieldName === LAST_NAME) {
                 signerDetails[FULL_NAME] = signerDetails[FULL_NAME]
                     ? `${SafeString(signerDetails[FULL_NAME])} ${SafeString(reimbursementAccountDraft?.[beneficialFieldKey])}`
                     : SafeString(reimbursementAccountDraft?.[beneficialFieldKey]);
-                return;
+                continue;
             }
 
             if (fieldName === DOB) {
                 signerDetails[DATE_OF_BIRTH] = SafeString(reimbursementAccountDraft?.[beneficialFieldKey]);
-                return;
+                continue;
             }
 
             if (fieldName === BENEFICIAL_STREET || fieldName === BENEFICIAL_CITY || fieldName === BENEFICIAL_STATE || fieldName === BENEFICIAL_ZIP_CODE) {
@@ -71,17 +85,17 @@ function getSignerDetailsAndSignerFilesForSignerInfo(reimbursementAccountDraft: 
                     ? `${SafeString(signerDetails[ADDRESS])}, ${SafeString(reimbursementAccountDraft?.[beneficialFieldKey])}`
                     : SafeString(reimbursementAccountDraft?.[beneficialFieldKey]);
             }
-        });
+        }
     }
 
-    signerFilesFields.forEach((fieldName) => {
+    for (const fieldName of signerFilesFields) {
         if (!reimbursementAccountDraft?.[fieldName]) {
-            return;
+            continue;
         }
 
         // eslint-disable-next-line rulesdir/prefer-at
         signerFiles[fieldName] = reimbursementAccountDraft?.[fieldName][0];
-    });
+    }
 
     return {signerDetails, signerFiles};
 }

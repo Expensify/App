@@ -1,12 +1,13 @@
 import {useRoute} from '@react-navigation/native';
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
 import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
-import SelectionList from '@components/SelectionListWithSections';
-import RadioListItem from '@components/SelectionListWithSections/RadioListItem';
+import SelectionList from '@components/SelectionList';
+import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import Text from '@components/Text';
+import {useCurrencyListState} from '@hooks/useCurrencyList';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -14,7 +15,6 @@ import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getPlaidCountry, isPlaidSupportedCountry} from '@libs/CardUtils';
 import searchOptions from '@libs/searchOptions';
-import type {Option} from '@libs/searchOptions';
 import StringUtils from '@libs/StringUtils';
 import Navigation from '@navigation/Navigation';
 import type {PlatformStackRouteProp} from '@navigation/PlatformStackNavigation/types';
@@ -24,8 +24,6 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
-import type {CurrencyList} from '@src/types/onyx';
-import {getEmptyObject} from '@src/types/utils/EmptyObject';
 
 type CountryStepProps = {
     policyID?: string;
@@ -36,21 +34,15 @@ function SelectCountryStep({policyID}: CountryStepProps) {
     const route = useRoute<PlatformStackRouteProp<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS_ADD_NEW>>();
     const styles = useThemeStyles();
     const policy = usePolicy(policyID);
-    const [currencyList = getEmptyObject<CurrencyList>()] = useOnyx(ONYXKEYS.CURRENCY_LIST, {canBeMissing: true});
-    const [countryByIp] = useOnyx(ONYXKEYS.COUNTRY, {canBeMissing: false});
-    const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD, {canBeMissing: true});
+    const {currencyList} = useCurrencyListState();
+    const [countryByIp] = useOnyx(ONYXKEYS.COUNTRY);
+    const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD);
 
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
 
-    const getCountry = useCallback(() => {
-        if (addNewCard?.data?.selectedCountry) {
-            return addNewCard.data.selectedCountry;
-        }
+    const [selectedCountry, setSelectedCountry] = useState<string | null>(null);
+    const currentCountry = selectedCountry ?? addNewCard?.data?.selectedCountry ?? getPlaidCountry(policy?.outputCurrency, currencyList, countryByIp);
 
-        return getPlaidCountry(policy?.outputCurrency, currencyList, countryByIp);
-    }, [addNewCard?.data.selectedCountry, countryByIp, currencyList, policy?.outputCurrency]);
-
-    const [currentCountry, setCurrentCountry] = useState<string | undefined>(getCountry);
     const [hasError, setHasError] = useState(false);
     const doesCountrySupportPlaid = isPlaidSupportedCountry(currentCountry);
 
@@ -72,10 +64,6 @@ function SelectCountryStep({policyID}: CountryStepProps) {
         }
     };
 
-    useEffect(() => {
-        setCurrentCountry(getCountry());
-    }, [getCountry]);
-
     const handleBackButtonPress = () => {
         if (route?.params?.backTo) {
             Navigation.navigate(route.params.backTo);
@@ -84,33 +72,38 @@ function SelectCountryStep({policyID}: CountryStepProps) {
         Navigation.goBack();
     };
 
-    const onSelectionChange = useCallback((country: Option) => {
-        setCurrentCountry(country.value);
-    }, []);
-
-    const countries = useMemo(
-        () =>
-            Object.keys(CONST.ALL_COUNTRIES)
-                .filter((countryISO) => !CONST.PLAID_EXCLUDED_COUNTRIES.includes(countryISO))
-                .map((countryISO) => {
-                    const countryName = translate(`allCountries.${countryISO}` as TranslationPaths);
-                    return {
-                        value: countryISO,
-                        keyForList: countryISO,
-                        text: countryName,
-                        isSelected: currentCountry === countryISO,
-                        searchValue: StringUtils.sanitizeString(`${countryISO}${countryName}`),
-                    };
-                }),
-        [translate, currentCountry],
-    );
+    const countries = Object.keys(CONST.ALL_COUNTRIES)
+        .filter((countryISO) => !CONST.PLAID_EXCLUDED_COUNTRIES.includes(countryISO))
+        .map((countryISO) => {
+            const countryName = translate(`allCountries.${countryISO}` as TranslationPaths);
+            return {
+                value: countryISO,
+                keyForList: countryISO,
+                text: countryName,
+                isSelected: currentCountry === countryISO,
+                searchValue: StringUtils.sanitizeString(`${countryISO}${countryName}`),
+            };
+        });
 
     const searchResults = searchOptions(debouncedSearchValue, countries);
     const headerMessage = debouncedSearchValue.trim() && !searchResults.length ? translate('common.noResultsFound') : '';
 
+    const textInputOptions = {
+        headerMessage,
+        value: searchValue,
+        label: translate('common.search'),
+        onChangeText: setSearchValue,
+    };
+
+    const confirmButtonOptions = {
+        onConfirm: submit,
+        showButton: true,
+        text: translate('common.next'),
+    };
+
     return (
         <ScreenWrapper
-            testID={SelectCountryStep.displayName}
+            testID="SelectCountryStep"
             enableEdgeToEdgeBottomSafeAreaPadding
             shouldEnablePickerAvoiding={false}
             shouldEnableMaxHeight
@@ -122,22 +115,19 @@ function SelectCountryStep({policyID}: CountryStepProps) {
 
             <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mv3]}>{translate('workspace.companyCards.addNewCard.whereIsYourBankLocated')}</Text>
             <SelectionList
-                headerMessage={headerMessage}
-                sections={[{data: searchResults}]}
-                textInputValue={searchValue}
-                textInputLabel={translate('common.search')}
-                onChangeText={setSearchValue}
-                onSelectRow={onSelectionChange}
-                onConfirm={submit}
+                data={searchResults}
                 ListItem={RadioListItem}
-                initiallyFocusedOptionKey={currentCountry}
+                onSelectRow={(countryOption) => {
+                    setSelectedCountry(countryOption.value ?? null);
+                }}
+                textInputOptions={textInputOptions}
+                confirmButtonOptions={confirmButtonOptions}
+                initiallyFocusedItemKey={currentCountry}
+                disableMaintainingScrollPosition
                 shouldSingleExecuteRowSelect
-                shouldStopPropagation
-                shouldUseDynamicMaxToRenderPerBatch
-                showConfirmButton
-                addBottomSafeAreaPadding
-                confirmButtonText={translate('common.next')}
                 shouldUpdateFocusedIndex
+                addBottomSafeAreaPadding
+                shouldStopPropagation
             >
                 {hasError && (
                     <View style={[styles.ph3, styles.mb3]}>
@@ -151,7 +141,5 @@ function SelectCountryStep({policyID}: CountryStepProps) {
         </ScreenWrapper>
     );
 }
-
-SelectCountryStep.displayName = 'SelectCountryStep';
 
 export default SelectCountryStep;

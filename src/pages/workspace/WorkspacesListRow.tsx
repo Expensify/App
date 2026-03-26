@@ -1,5 +1,6 @@
+import {useIsFocused} from '@react-navigation/native';
 import {Str} from 'expensify-common';
-import React, {useEffect, useRef} from 'react';
+import React, {useCallback, useEffect, useRef} from 'react';
 import {View} from 'react-native';
 import type {StyleProp, ViewStyle} from 'react-native';
 import Animated from 'react-native-reanimated';
@@ -7,9 +8,8 @@ import type {ValueOf} from 'type-fest';
 import Avatar from '@components/Avatar';
 import Badge from '@components/Badge';
 import Icon from '@components/Icon';
-import * as Expensicons from '@components/Icon/Expensicons';
-import * as Illustrations from '@components/Icon/Illustrations';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
+import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import Text from '@components/Text';
 import TextWithTooltip from '@components/TextWithTooltip';
 import ThreeDotsMenu from '@components/ThreeDotsMenu';
@@ -18,13 +18,14 @@ import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentU
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import WorkspacesListRowDisplayName from '@components/WorkspacesListRowDisplayName';
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
+import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getDisplayNameOrDefault, getPersonalDetailsByIDs} from '@libs/PersonalDetailsUtils';
 import {getUserFriendlyWorkspaceType} from '@libs/PolicyUtils';
-import type {AvatarSource} from '@libs/UserUtils';
+import type {AvatarSource} from '@libs/UserAvatarUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
@@ -84,29 +85,25 @@ type WorkspacesListRowProps = WithCurrentUserPersonalDetailsProps & {
 
     /** Whether the list item is hovered */
     isHovered?: boolean;
+
+    /** Whether the row press is disabled */
+    disabled?: boolean;
+
+    /** Callback when the row is pressed */
+    onPress?: () => void;
 };
 
 type BrickRoadIndicatorIconProps = {
     brickRoadIndicator?: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS>;
 };
 
-const workspaceTypeIcon = (workspaceType: WorkspacesListRowProps['workspaceType']): IconAsset => {
-    switch (workspaceType) {
-        case CONST.POLICY.TYPE.CORPORATE:
-            return Illustrations.ShieldYellow;
-        case CONST.POLICY.TYPE.TEAM:
-            return Illustrations.Mailbox;
-        default:
-            return Illustrations.Mailbox;
-    }
-};
-
 function BrickRoadIndicatorIcon({brickRoadIndicator}: BrickRoadIndicatorIconProps) {
     const theme = useTheme();
+    const icons = useMemoizedLazyExpensifyIcons(['DotIndicator'] as const);
 
     return brickRoadIndicator ? (
         <Icon
-            src={Expensicons.DotIndicator}
+            src={icons.DotIndicator}
             fill={brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR ? theme.danger : theme.iconSuccessFill}
         />
     ) : null;
@@ -132,12 +129,31 @@ function WorkspacesListRow({
     isLoadingBill,
     resetLoadingSpinnerIconIndex,
     isHovered,
+    disabled,
+    onPress,
 }: WorkspacesListRowProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const theme = useTheme();
+    const isFocused = useIsFocused();
     const isNarrow = layoutWidth === CONST.LAYOUT_WIDTH.NARROW;
+    const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'Hourglass'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['Mailbox', 'ShieldYellow']);
+
+    const workspaceTypeIcon = useCallback(
+        (type: WorkspacesListRowProps['workspaceType']): IconAsset => {
+            switch (type) {
+                case CONST.POLICY.TYPE.CORPORATE:
+                    return illustrations.ShieldYellow;
+                case CONST.POLICY.TYPE.TEAM:
+                    return illustrations.Mailbox;
+                default:
+                    return illustrations.Mailbox;
+            }
+        },
+        [illustrations.Mailbox, illustrations.ShieldYellow],
+    );
 
     const ownerDetails = ownerAccountID && getPersonalDetailsByIDs({accountIDs: [ownerAccountID], currentUserAccountID: currentUserPersonalDetails.accountID}).at(0);
     const threeDotsMenuRef = useRef<{hidePopoverMenu: () => void; isPopupMenuVisible: boolean}>(null);
@@ -170,56 +186,92 @@ function WorkspacesListRow({
 
     const isDeleted = style && Array.isArray(style) ? style.includes(styles.offlineFeedbackDeleted) : false;
 
+    const ownerName = ownerDetails ? getDisplayNameOrDefault(ownerDetails) : '';
+    const workspaceTypeName = workspaceType ? getUserFriendlyWorkspaceType(workspaceType, translate) : '';
+    const accessibilityLabel = [
+        `${translate('workspace.common.workspaceName')}: ${title}`,
+        isDefault ? translate('common.default') : '',
+        isJoinRequestPending ? translate('workspace.common.requested') : '',
+        ownerName ? `${translate('workspace.common.workspaceOwner')}: ${ownerName}` : '',
+        workspaceTypeName ? `${translate('workspace.common.workspaceType')}: ${workspaceTypeName}` : '',
+    ]
+        .filter(Boolean)
+        .join(', ');
+
+    const RequestedBadge = isJoinRequestPending ? (
+        <View style={[styles.flexRow, styles.gap2, styles.alignItemsCenter, styles.justifyContentEnd]}>
+            <Badge
+                text={translate('workspace.common.requested')}
+                textStyles={styles.textStrong}
+                badgeStyles={styles.alignSelfCenter}
+                icon={icons.Hourglass}
+            />
+        </View>
+    ) : null;
+
+    const DefaultBadge = isDefault ? (
+        <Tooltip
+            maxWidth={variables.w184}
+            text={translate('workspace.common.defaultNote')}
+            numberOfLines={4}
+        >
+            <View style={[styles.flexRow, styles.gap2, styles.alignItemsCenter, styles.justifyContentEnd]}>
+                <Badge
+                    text={translate('common.default')}
+                    textStyles={styles.textStrong}
+                    badgeStyles={styles.alignSelfCenter}
+                />
+            </View>
+        </Tooltip>
+    ) : null;
+
+    const ThreeDotsSection = !isJoinRequestPending ? (
+        <View style={[styles.flexRow, styles.gap1, !isNarrow && styles.ml2, isNarrow && styles.alignItemsCenter]}>
+            <View style={[styles.flexRow, styles.gap2, styles.alignItemsCenter]}>
+                <BrickRoadIndicatorIcon brickRoadIndicator={brickRoadIndicator} />
+            </View>
+            <ThreeDotsMenu
+                isContainerFocused={isFocused}
+                shouldSelfPosition
+                menuItems={menuItems}
+                anchorAlignment={{horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP}}
+                shouldOverlay
+                disabled={shouldDisableThreeDotsMenu}
+                isNested
+                threeDotsMenuRef={threeDotsMenuRef}
+                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.LIST.THREE_DOT_MENU}
+            />
+        </View>
+    ) : null;
+
+    const NarrowBadges =
+        isJoinRequestPending || isDefault ? (
+            <View style={[styles.flexRow, styles.gap1, styles.alignItemsCenter]}>
+                {RequestedBadge}
+                {DefaultBadge}
+            </View>
+        ) : null;
+
     const ThreeDotMenuOrPendingIcon = (
         <View style={[styles.flexRow, !shouldUseNarrowLayout && styles.workspaceThreeDotMenu]}>
-            {!!isJoinRequestPending && (
-                <View style={[styles.flexRow, styles.gap2, styles.alignItemsCenter, styles.justifyContentEnd]}>
-                    <Badge
-                        text={translate('workspace.common.requested')}
-                        textStyles={styles.textStrong}
-                        badgeStyles={[styles.alignSelfCenter, styles.badgeBordered]}
-                        icon={Expensicons.Hourglass}
-                    />
-                </View>
-            )}
-            {!!isDefault && (
-                <Tooltip
-                    maxWidth={variables.w184}
-                    text={translate('workspace.common.defaultNote')}
-                    numberOfLines={4}
-                >
-                    <View style={[styles.flexRow, styles.gap2, styles.alignItemsCenter, styles.justifyContentEnd]}>
-                        <Badge
-                            text={translate('common.default')}
-                            textStyles={styles.textStrong}
-                            badgeStyles={[styles.alignSelfCenter, styles.badgeBordered, styles.badgeSuccess]}
-                        />
-                    </View>
-                </Tooltip>
-            )}
-            {!isJoinRequestPending && (
-                <View style={[styles.flexRow, styles.ml2, styles.gap1]}>
-                    <View style={[styles.flexRow, styles.gap2, styles.alignItemsCenter, isNarrow && styles.workspaceListRBR]}>
-                        <BrickRoadIndicatorIcon brickRoadIndicator={brickRoadIndicator} />
-                    </View>
-                    <ThreeDotsMenu
-                        shouldSelfPosition
-                        menuItems={menuItems}
-                        anchorAlignment={{horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP}}
-                        shouldOverlay
-                        disabled={shouldDisableThreeDotsMenu}
-                        isNested
-                        threeDotsMenuRef={threeDotsMenuRef}
-                    />
-                </View>
-            )}
+            {RequestedBadge}
+            {DefaultBadge}
+            {ThreeDotsSection}
         </View>
     );
 
     return (
         <View style={[styles.flexRow, styles.highlightBG, rowStyles, style, styles.br3]}>
-            <Animated.View style={[styles.flex1, styles.flexRow, styles.bgTransparent, isWide && styles.gap5, styles.p5, animatedHighlightStyle]}>
-                <View style={[isWide ? styles.flexRow : styles.flexColumn, styles.flex1, isWide && styles.gap5]}>
+            <Animated.View style={[styles.flex1, styles.flexRow, styles.bgTransparent, isWide ? styles.gap5 : styles.gap2, styles.p5, styles.pr3, animatedHighlightStyle]}>
+                <PressableWithoutFeedback
+                    accessible
+                    accessibilityLabel={accessibilityLabel}
+                    role={CONST.ROLE.LINK}
+                    onPress={onPress}
+                    disabled={disabled}
+                    style={[isWide ? styles.flexRow : styles.flexColumn, styles.flex1, isWide && styles.gap5]}
+                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.LIST.ROW}
+                >
                     <View style={[styles.flexRow, styles.justifyContentBetween, styles.flex2, isNarrow && styles.mb3, styles.alignItemsCenter]}>
                         <View style={[styles.flexRow, styles.gap3, styles.flex1, styles.alignItemsCenter]}>
                             <Avatar
@@ -237,7 +289,7 @@ function WorkspacesListRow({
                                 style={[styles.flex1, styles.flexGrow1, styles.textStrong, isDeleted ? styles.offlineFeedbackDeleted : {}]}
                             />
                         </View>
-                        {isNarrow && ThreeDotMenuOrPendingIcon}
+                        {isNarrow && NarrowBadges}
                     </View>
                     <View style={[styles.flexRow, isWide && styles.flex1, isWide && styles.workspaceOwnerSectionMinWidth, styles.gap2, styles.alignItemsCenter]}>
                         {!!ownerDetails && (
@@ -288,25 +340,32 @@ function WorkspacesListRow({
                             </Text>
                         </View>
                     </View>
-                </View>
+                </PressableWithoutFeedback>
 
-                {!isNarrow && ThreeDotMenuOrPendingIcon}
-                {!isNarrow && (
-                    <View style={[styles.justifyContentCenter, styles.alignItemsCenter, styles.mln4]}>
-                        <Icon
-                            src={Expensicons.ArrowRight}
-                            fill={theme.icon}
-                            additionalStyles={[styles.alignSelfCenter, !isHovered && styles.opacitySemiTransparent]}
-                            isButtonIcon
-                            medium
-                        />
-                    </View>
-                )}
+                <View style={[styles.flexRow, styles.alignItemsCenter, isNarrow && styles.alignSelfStart]}>
+                    {isNarrow && ThreeDotsSection}
+                    {!isNarrow && ThreeDotMenuOrPendingIcon}
+                    {!isNarrow && (
+                        <PressableWithoutFeedback
+                            onPress={onPress}
+                            disabled={disabled}
+                            accessible={false}
+                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.LIST.ROW_ARROW}
+                            style={[styles.justifyContentCenter, styles.alignItemsCenter, styles.touchableButtonImage]}
+                        >
+                            <Icon
+                                src={icons.ArrowRight}
+                                fill={theme.icon}
+                                additionalStyles={[styles.alignSelfCenter, !isHovered && styles.opacitySemiTransparent]}
+                                isButtonIcon
+                                medium
+                            />
+                        </PressableWithoutFeedback>
+                    )}
+                </View>
             </Animated.View>
         </View>
     );
 }
-
-WorkspacesListRow.displayName = 'WorkspacesListRow';
 
 export default withCurrentUserPersonalDetails(WorkspacesListRow);

@@ -5,7 +5,8 @@ import type {ValueOf} from 'type-fest';
 import useOnyx from '@hooks/useOnyx';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {CompanyCardFeed, InvitedEmailsToAccountIDs, ReportAction} from '@src/types/onyx';
+import type {InvitedEmailsToAccountIDs, Policy, Report, ReportAction} from '@src/types/onyx';
+import type {CardFeed} from '@src/types/onyx/CardFeeds';
 import type {HorizontalStacking} from './ReportActionAvatar';
 import ReportActionAvatar from './ReportActionAvatar';
 import useReportActionAvatars from './useReportActionAvatars';
@@ -16,11 +17,17 @@ type ReportActionAvatarsProps = {
     /** Report ID for the report action avatars */
     reportID?: string;
 
+    /** Report data for the report action avatars. When provided, this will be used as a fallback if the snapshot is undefined */
+    report?: OnyxEntry<Report>;
+
     /** Action for the report action avatars */
     action?: OnyxEntry<ReportAction>;
 
     /** Policy ID for the workspace avatar */
     policyID?: string;
+
+    /** Policy data for the workspace avatar. When provided, this will be used as a fallback if the snapshot is undefined */
+    policy?: OnyxEntry<Policy>;
 
     /** Single avatar container styles */
     singleAvatarContainerStyle?: ViewStyle[];
@@ -50,7 +57,7 @@ type ReportActionAvatarsProps = {
     subscriptAvatarBorderColor?: ColorValue;
 
     /** Subscript card feed to display instead of the second avatar */
-    subscriptCardFeed?: CompanyCardFeed | typeof CONST.EXPENSIFY_CARD.BANK;
+    subscriptCardFeed?: CardFeed;
 
     /** Whether we want to be redirected to profile on avatars click */
     useProfileNavigationWrapper?: boolean;
@@ -63,6 +70,9 @@ type ReportActionAvatarsProps = {
 
     /** Whether to use custom fallback avatar */
     shouldUseCustomFallbackAvatar?: boolean;
+
+    /** chatReportID needed for the avatars logic. When provided, this will be used as a fallback if the snapshot is undefined */
+    chatReportID?: string;
 };
 
 /**
@@ -76,9 +86,11 @@ type ReportActionAvatarsProps = {
  */
 function ReportActionAvatars({
     reportID: potentialReportID,
+    report: reportProp,
     action,
     accountIDs: passedAccountIDs = [],
     policyID,
+    policy: policyProp,
     size = CONST.AVATAR_SIZE.DEFAULT,
     shouldShowTooltip = true,
     horizontalStacking,
@@ -93,6 +105,7 @@ function ReportActionAvatars({
     fallbackDisplayName,
     invitedEmailsToAccountIDs,
     shouldUseCustomFallbackAvatar = false,
+    chatReportID,
 }: ReportActionAvatarsProps) {
     const accountIDs = passedAccountIDs.filter((accountID) => accountID !== CONST.DEFAULT_NUMBER_ID);
 
@@ -102,7 +115,10 @@ function ReportActionAvatars({
 
     // reportID can be an empty string causing Onyx to fetch the whole collection
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID || undefined}`, {canBeMissing: true});
+    const [reportFromOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID || undefined}`);
+    // When the search hash changes, report from the snapshot will be undefined if it hasn't been fetched yet.
+    // Therefore, we will fall back to reportProp while the data is being fetched.
+    const report = reportFromOnyx ?? reportProp;
 
     const shouldStackHorizontally = !!horizontalStacking;
     const isHorizontalStackingAnObject = shouldStackHorizontally && typeof horizontalStacking !== 'boolean';
@@ -120,9 +136,11 @@ function ReportActionAvatars({
         shouldUseCardFeed: !!subscriptCardFeed,
         accountIDs,
         policyID,
+        policy: policyProp,
         fallbackDisplayName,
         invitedEmailsToAccountIDs,
         shouldUseCustomFallbackAvatar,
+        chatReportID,
     });
 
     let avatarType: ValueOf<typeof CONST.REPORT_ACTION_AVATARS.TYPE> = notPreciseAvatarType;

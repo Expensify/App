@@ -1,4 +1,5 @@
 import {Image} from 'expo-image';
+import type {ImageProps as ExpoImageProps} from 'expo-image';
 import React, {useEffect, useState} from 'react';
 import {InteractionManager} from 'react-native';
 import type {ImageSourcePropType} from 'react-native';
@@ -8,7 +9,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isAnonymousUser} from '@libs/actions/Session';
 import CONST from '@src/CONST';
-import {useSplashScreenStateContext} from '@src/SplashScreenStateContext';
+import {useSplashScreenState} from '@src/SplashScreenStateContext';
 import type BackgroundImageProps from './types';
 
 function BackgroundImage({width}: BackgroundImageProps) {
@@ -42,10 +43,10 @@ function BackgroundImage({width}: BackgroundImageProps) {
         return () => {
             interactionTask.cancel();
         };
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    const {splashScreenState} = useSplashScreenStateContext();
+    const {splashScreenState} = useSplashScreenState();
     // Prevent rendering the background image until the splash screen is hidden.
     // See issue: https://github.com/Expensify/App/issues/34696
     if (splashScreenState !== CONST.BOOT_SPLASH_STATE.HIDDEN || (!isInteractionComplete && isAnonymous)) {
@@ -58,13 +59,11 @@ function BackgroundImage({width}: BackgroundImageProps) {
                 source={MobileBackgroundImage as ImageSourcePropType}
                 onLoadEnd={() => setOpacityAnimation()}
                 pointerEvents="none"
-                style={[styles.signInBackground, StyleUtils.getWidthStyle(width)]}
+                style={[styles.signInBackground, StyleUtils.getWidthStyle(width) as ExpoImageProps['style']]}
                 transition={CONST.BACKGROUND_IMAGE_TRANSITION_DURATION}
             />
         </Reanimated.View>
     );
 }
-
-BackgroundImage.displayName = 'BackgroundImage';
 
 export default BackgroundImage;

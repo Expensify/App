@@ -31,7 +31,7 @@ function CategoryDescriptionHintPage({
 }: EditCategoryPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, {canBeMissing: true});
+    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
     const decodedCategoryName = getDecodedCategoryName(categoryName);
 
     const {inputCallbackRef} = useAutoFocusInput();
@@ -47,7 +47,7 @@ function CategoryDescriptionHintPage({
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
                 style={[styles.defaultModalContainer]}
-                testID={CategoryDescriptionHintPage.displayName}
+                testID="CategoryDescriptionHintPage"
                 shouldEnableMaxHeight
             >
                 <HeaderWithBackButton
@@ -67,7 +67,7 @@ function CategoryDescriptionHintPage({
                     addBottomSafeAreaPadding
                 >
                     <View style={styles.mb4}>
-                        <Text style={styles.pb5}>{translate('workspace.rules.categoryRules.descriptionHintDescription', {categoryName: decodedCategoryName})}</Text>
+                        <Text style={styles.pb5}>{translate('workspace.rules.categoryRules.descriptionHintDescription', decodedCategoryName)}</Text>
                         <InputWrapper
                             InputComponent={TextInput}
                             inputID={INPUT_IDS.COMMENT_HINT}
@@ -83,7 +83,5 @@ function CategoryDescriptionHintPage({
         </AccessOrNotFoundWrapper>
     );
 }
-
-CategoryDescriptionHintPage.displayName = 'CategoryDescriptionHintPage';
 
 export default CategoryDescriptionHintPage;

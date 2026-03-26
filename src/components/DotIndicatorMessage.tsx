@@ -1,8 +1,11 @@
 /* eslint-disable react/no-array-index-key */
+import {Str} from 'expensify-common';
 import type {ReactElement} from 'react';
-import React, {useState} from 'react';
+import React from 'react';
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import {View} from 'react-native';
+import useConfirmModal from '@hooks/useConfirmModal';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -10,13 +13,12 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {isReceiptError, isTranslationKeyError} from '@libs/ErrorUtils';
 import fileDownload from '@libs/fileDownload';
 import handleRetryPress from '@libs/ReceiptUploadRetryHandler';
+import CONST from '@src/CONST';
 import type {TranslationKeyError} from '@src/types/onyx/OnyxCommon';
 import type {ReceiptError} from '@src/types/onyx/Transaction';
-import ConfirmModal from './ConfirmModal';
 import Icon from './Icon';
-import * as Expensicons from './Icon/Expensicons';
+import RenderHTML from './RenderHTML';
 import Text from './Text';
-import TextLink from './TextLink';
 
 type DotIndicatorMessageProps = {
     /**
@@ -46,8 +48,8 @@ function DotIndicatorMessage({messages = {}, style, type, textStyles, dismissErr
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
-
-    const [shouldShowErrorModal, setShouldShowErrorModal] = useState(false);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['DotIndicator']);
+    const {showConfirmModal} = useConfirmModal();
 
     if (Object.keys(messages).length === 0) {
         return null;
@@ -62,64 +64,63 @@ function DotIndicatorMessage({messages = {}, style, type, textStyles, dismissErr
     const uniqueMessages: Array<ReceiptError | string> = [...new Set(sortedMessages)].map((message) => message);
 
     const isErrorMessage = type === 'error';
+    const receiptError = uniqueMessages.find(isReceiptError);
+    const handleLinkPress = (href: string) => {
+        if (!receiptError) {
+            return;
+        }
+
+        if (href.endsWith('retry')) {
+            handleRetryPress(receiptError, dismissError, () => {
+                showConfirmModal({
+                    prompt: translate('common.genericErrorMessage'),
+                    confirmText: translate('common.ok'),
+                    shouldShowCancelButton: false,
+                });
+            });
+        } else if (href.endsWith('download')) {
+            fileDownload(translate, receiptError.source, receiptError.filename).finally(() => dismissError());
+        }
+    };
 
     const renderMessage = (message: string | ReceiptError | ReactElement, index: number) => {
         if (isReceiptError(message)) {
             return (
-                <>
-                    <Text
-                        key={index}
-                        style={styles.offlineFeedbackText}
-                    >
-                        <Text style={[StyleUtils.getDotIndicatorTextStyles(isErrorMessage)]}>{translate('iou.error.receiptFailureMessage')}</Text>
-                        <TextLink
-                            style={[StyleUtils.getDotIndicatorTextStyles(), styles.link]}
-                            onPress={() => handleRetryPress(message, dismissError, setShouldShowErrorModal)}
-                        >
-                            {translate('iou.error.tryAgainMessage')}
-                        </TextLink>
-                        <Text style={[StyleUtils.getDotIndicatorTextStyles(isErrorMessage)]}>{translate('common.or')}</Text>
-                        <TextLink
-                            style={[StyleUtils.getDotIndicatorTextStyles(), styles.link]}
-                            onPress={() => {
-                                fileDownload(message.source, message.filename).finally(() => dismissError());
-                            }}
-                        >
-                            {translate('iou.error.saveFileMessage')}
-                        </TextLink>
-
-                        <Text style={[StyleUtils.getDotIndicatorTextStyles(isErrorMessage)]}>{translate('iou.error.uploadLaterMessage')}</Text>
-                    </Text>
-
-                    <ConfirmModal
-                        isVisible={shouldShowErrorModal}
-                        onConfirm={() => {
-                            setShouldShowErrorModal(false);
-                        }}
-                        prompt={translate('common.genericErrorMessage')}
-                        confirmText={translate('common.ok')}
-                        shouldShowCancelButton={false}
+                <View style={[styles.renderHTML, styles.flexRow]}>
+                    <RenderHTML
+                        html={translate('iou.error.receiptFailureMessage')}
+                        onLinkPress={(_evt, href) => handleLinkPress(href)}
                     />
-                </>
+                </View>
             );
         }
+
+        const displayMessage = isTranslationKeyError(message) ? translate(message.translationKey) : message;
+        const formattedMessage = typeof displayMessage === 'string' ? Str.htmlDecode(displayMessage) : displayMessage;
 
         return (
             <Text
                 // eslint-disable-next-line react/no-array-index-key
                 key={index}
                 style={[StyleUtils.getDotIndicatorTextStyles(isErrorMessage), textStyles]}
+                accessibilityRole={isErrorMessage ? CONST.ROLE.ALERT : undefined}
+                accessibilityLiveRegion={isErrorMessage ? 'assertive' : undefined}
             >
-                {isTranslationKeyError(message) ? translate(message.translationKey) : message}
+                {formattedMessage}
             </Text>
         );
     };
 
     return (
         <View style={[styles.dotIndicatorMessage, style]}>
-            <View style={styles.offlineFeedbackErrorDot}>
+            <View
+                style={styles.offlineFeedbackErrorDot}
+                accessible={isErrorMessage}
+                role={isErrorMessage ? CONST.ROLE.IMG : undefined}
+                accessibilityLabel={isErrorMessage ? (CONST.ACCESSIBILITY_LABELS.ERROR as string) : undefined}
+            >
                 <Icon
-                    src={Expensicons.DotIndicator}
+                    src={expensifyIcons.DotIndicator}
                     fill={isErrorMessage ? theme.danger : theme.success}
                 />
             </View>
@@ -127,7 +128,5 @@ function DotIndicatorMessage({messages = {}, style, type, textStyles, dismissErr
         </View>
     );
 }
-
-DotIndicatorMessage.displayName = 'DotIndicatorMessage';
 
 export default DotIndicatorMessage;

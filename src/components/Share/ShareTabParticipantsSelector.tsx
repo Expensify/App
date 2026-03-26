@@ -1,31 +1,43 @@
-import React, {forwardRef} from 'react';
+import type {Ref} from 'react';
+import React from 'react';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useOnyx from '@hooks/useOnyx';
+import {clearMoneyRequest} from '@libs/actions/IOU';
 import {saveUnknownUserDetails} from '@libs/actions/Share';
 import Navigation from '@libs/Navigation/Navigation';
 import MoneyRequestParticipantsSelector from '@pages/iou/request/MoneyRequestParticipantsSelector';
 import {getOptimisticChatReport, saveReportDraft} from '@userActions/Report';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type ROUTES from '@src/ROUTES';
+import {validTransactionDraftIDsSelector} from '@src/selectors/TransactionDraft';
 
 type ShareTabParticipantsSelectorProps = {
     detailsPageRouteObject: typeof ROUTES.SHARE_SUBMIT_DETAILS | typeof ROUTES.SHARE_DETAILS;
+    ref?: Ref<InputFocusRef>;
 };
 
 type InputFocusRef = {
     focus?: () => void;
 };
 
-function ShareTabParticipantsSelectorComponent({detailsPageRouteObject}: ShareTabParticipantsSelectorProps, ref: React.Ref<InputFocusRef>) {
+function ShareTabParticipantsSelectorComponent({detailsPageRouteObject, ref}: ShareTabParticipantsSelectorProps) {
+    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
+    const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
     return (
         <MoneyRequestParticipantsSelector
             ref={ref}
             iouType={CONST.IOU.TYPE.SUBMIT}
             onParticipantsAdded={(value) => {
+                // clear the existing draft transaction from the previous flow to prevent the old data from being displayed
+                clearMoneyRequest(CONST.IOU.OPTIMISTIC_TRANSACTION_ID, draftTransactionIDs);
+
                 const participant = value.at(0);
                 let reportID = participant?.reportID ?? CONST.DEFAULT_NUMBER_ID;
                 const accountID = participant?.accountID;
                 if (accountID && !reportID) {
                     saveUnknownUserDetails(participant);
-                    const optimisticReport = getOptimisticChatReport(accountID);
+                    const optimisticReport = getOptimisticChatReport(accountID, currentUserAccountID);
                     reportID = optimisticReport.reportID;
 
                     saveReportDraft(reportID, optimisticReport).then(() => {
@@ -40,4 +52,4 @@ function ShareTabParticipantsSelectorComponent({detailsPageRouteObject}: ShareTa
     );
 }
 
-export default forwardRef<InputFocusRef, ShareTabParticipantsSelectorProps>(ShareTabParticipantsSelectorComponent);
+export default ShareTabParticipantsSelectorComponent;

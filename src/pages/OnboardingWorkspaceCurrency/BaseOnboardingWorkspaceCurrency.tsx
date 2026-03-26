@@ -7,6 +7,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
+import useOnboardingStepCounter from '@hooks/useOnboardingStepCounter';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -15,6 +16,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
 import type {BaseOnboardingWorkspaceCurrencyProps} from './types';
 
 function BaseOnboardingWorkspaceCurrency({route, shouldUseNativeStyles}: BaseOnboardingWorkspaceCurrencyProps) {
@@ -23,7 +25,8 @@ function BaseOnboardingWorkspaceCurrency({route, shouldUseNativeStyles}: BaseOnb
     const {onboardingIsMediumOrLargerScreenWidth} = useResponsiveLayout();
 
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const [draftValues] = useOnyx(ONYXKEYS.FORMS.ONBOARDING_WORKSPACE_DETAILS_FORM_DRAFT, {canBeMissing: true});
+    const onboardingStep = useOnboardingStepCounter(SCREENS.ONBOARDING.WORKSPACE_CURRENCY);
+    const [draftValues] = useOnyx(ONYXKEYS.FORMS.ONBOARDING_WORKSPACE_DETAILS_FORM_DRAFT);
 
     const value = draftValues?.currency ?? currentUserPersonalDetails?.localCurrencyCode ?? CONST.CURRENCY.USD;
 
@@ -48,20 +51,31 @@ function BaseOnboardingWorkspaceCurrency({route, shouldUseNativeStyles}: BaseOnb
         <ScreenWrapper
             enableEdgeToEdgeBottomSafeAreaPadding
             shouldEnableMaxHeight
-            testID={BaseOnboardingWorkspaceCurrency.displayName}
+            testID="BaseOnboardingWorkspaceCurrency"
             style={[styles.defaultModalContainer, shouldUseNativeStyles && styles.pt8]}
             shouldShowOfflineIndicator={!onboardingIsMediumOrLargerScreenWidth}
         >
             <HeaderWithBackButton
-                progressBarPercentage={100}
+                stepCounter={onboardingStep?.stepCounter}
+                progressBarPercentage={onboardingStep?.progressBarPercentage}
                 onBackButtonPress={goBack}
+                shouldDisplayHelpButton={false}
             />
             <View style={[onboardingIsMediumOrLargerScreenWidth ? styles.mh8 : styles.mh5, onboardingIsMediumOrLargerScreenWidth ? styles.flexRow : styles.flexColumn, styles.mb5]}>
-                <Text style={styles.textHeadlineH1}>{translate('common.currency')}</Text>
+                <Text
+                    style={styles.textHeadlineH1}
+                    accessibilityRole={CONST.ROLE.HEADER}
+                >
+                    {translate('common.currency')}
+                </Text>
             </View>
             <CurrencySelectionList
-                listItemWrapperStyle={onboardingIsMediumOrLargerScreenWidth ? [styles.pl8, styles.pr8] : []}
-                textInputStyle={onboardingIsMediumOrLargerScreenWidth ? styles.ph8 : styles.ph5}
+                style={{listItemWrapperStyle: onboardingIsMediumOrLargerScreenWidth ? [styles.pl8, styles.pr8] : []}}
+                textInputOptions={{
+                    style: {
+                        containerStyle: onboardingIsMediumOrLargerScreenWidth ? styles.ph8 : styles.ph5,
+                    },
+                }}
                 initiallySelectedCurrencyCode={value}
                 onSelect={updateInput}
                 searchInputLabel={translate('common.search')}
@@ -70,7 +84,5 @@ function BaseOnboardingWorkspaceCurrency({route, shouldUseNativeStyles}: BaseOnb
         </ScreenWrapper>
     );
 }
-
-BaseOnboardingWorkspaceCurrency.displayName = 'BaseOnboardingWorkspaceCurrency';
 
 export default BaseOnboardingWorkspaceCurrency;

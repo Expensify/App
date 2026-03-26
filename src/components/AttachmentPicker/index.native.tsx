@@ -8,17 +8,18 @@ import RNFetchBlob from 'react-native-blob-util';
 import {launchImageLibrary} from 'react-native-image-picker';
 import type {Asset, Callback, CameraOptions, ImageLibraryOptions, ImagePickerResponse} from 'react-native-image-picker';
 import ImageSize from 'react-native-image-size';
-import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import Popover from '@components/Popover';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {cleanFileName, resizeImageIfNeeded, showCameraPermissionsAlert, verifyFileFormat} from '@libs/fileDownload/FileUtils';
+import Log from '@libs/Log';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type {FileObject, ImagePickerResponse as FileResponse} from '@src/types/utils/Attachment';
@@ -123,6 +124,7 @@ function AttachmentPicker({
     fileLimit = 1,
     onOpenPicker,
 }: AttachmentPickerProps) {
+    const icons = useMemoizedLazyExpensifyIcons(['Camera', 'Gallery', 'Paperclip']);
     const styles = useThemeStyles();
     const [isVisible, setIsVisible] = useState(false);
     const StyleUtils = useStyleUtils();
@@ -163,7 +165,7 @@ function AttachmentPicker({
                     if (response.errorCode) {
                         switch (response.errorCode) {
                             case 'permission':
-                                showCameraPermissionsAlert();
+                                showCameraPermissionsAlert(translate);
                                 return resolve();
                             default:
                                 showGeneralAlert();
@@ -188,10 +190,10 @@ function AttachmentPicker({
                         }
                     };
 
-                    assets.forEach((asset) => {
+                    for (const asset of assets) {
                         if (!asset.uri) {
                             checkAllProcessed();
-                            return;
+                            continue;
                         }
 
                         if (asset.type?.startsWith('image')) {
@@ -218,7 +220,9 @@ function AttachmentPicker({
                                                 checkAllProcessed();
                                             })
                                             .catch((error: Error) => {
-                                                showGeneralAlert(error.message ?? 'An unknown error occurred');
+                                                Log.warn('Failed to convert HEIC image, falling back to original', {error: error.message});
+                                                const fallbackAsset = processAssetWithFallbacks(asset);
+                                                processedAssets.push(fallbackAsset);
                                                 checkAllProcessed();
                                             });
                                     } else {
@@ -238,10 +242,10 @@ function AttachmentPicker({
                             processedAssets.push(processedAsset);
                             checkAllProcessed();
                         }
-                    });
+                    }
                 });
             }),
-        [fileLimit, showGeneralAlert, type],
+        [fileLimit, showGeneralAlert, translate, type],
     );
     /**
      * Launch the DocumentPicker. Results are in the same format as ImagePicker
@@ -281,28 +285,28 @@ function AttachmentPicker({
     const menuItemData: Item[] = useMemo(() => {
         const data: Item[] = [
             {
-                icon: Expensicons.Paperclip,
+                icon: icons.Paperclip,
                 textTranslationKey: 'attachmentPicker.chooseDocument',
                 pickAttachment: showDocumentPicker,
             },
         ];
         if (!shouldHideGalleryOption) {
             data.unshift({
-                icon: Expensicons.Gallery,
+                icon: icons.Gallery,
                 textTranslationKey: 'attachmentPicker.chooseFromGallery',
                 pickAttachment: () => showImagePicker(launchImageLibrary),
             });
         }
         if (!shouldHideCameraOption) {
             data.unshift({
-                icon: Expensicons.Camera,
+                icon: icons.Camera,
                 textTranslationKey: 'attachmentPicker.takePhoto',
                 pickAttachment: () => showImagePicker(launchCamera),
             });
         }
 
         return data;
-    }, [showDocumentPicker, shouldHideGalleryOption, shouldHideCameraOption, showImagePicker]);
+    }, [icons.Camera, icons.Paperclip, icons.Gallery, showDocumentPicker, shouldHideGalleryOption, shouldHideCameraOption, showImagePicker]);
 
     const [focusedIndex, setFocusedIndex] = useArrowKeyFocusManager({initialFocusedIndex: -1, maxIndex: menuItemData.length - 1, isActive: isVisible});
 
@@ -314,13 +318,31 @@ function AttachmentPicker({
     }, [translate]);
 
     /**
+     * Handles errors during image processing (resize, dimension check, etc.)
+     */
+    const handleImageProcessingError = useCallback(
+        (error: unknown) => {
+            const errorMessage = error instanceof Error ? error.message : undefined;
+
+            if (errorMessage === CONST.FILE_VALIDATION_ERRORS.IMAGE_DIMENSIONS_TOO_LARGE) {
+                showGeneralAlert(translate('attachmentPicker.imageDimensionsTooLarge'));
+            } else if (errorMessage) {
+                showGeneralAlert(errorMessage);
+            } else {
+                showImageCorruptionAlert();
+            }
+            return null;
+        },
+        [showGeneralAlert, showImageCorruptionAlert, translate],
+    );
+
+    /**
      * Opens the attachment modal
      *
      * @param onPickedHandler A callback that will be called with the selected attachment
      * @param onCanceledHandler A callback that will be called without a selected attachment
      */
     const open = (onPickedHandler: (files: FileObject[]) => void, onCanceledHandler: () => void = () => {}, onClosedHandler: () => void = () => {}) => {
-        // eslint-disable-next-line react-compiler/react-compiler
         completeAttachmentSelection.current = onPickedHandler;
         onCanceled.current = onCanceledHandler;
         onClosed.current = onClosedHandler;
@@ -373,10 +395,7 @@ function AttachmentPicker({
                                 height,
                             })),
                         )
-                        .catch(() => {
-                            showImageCorruptionAlert();
-                            return null;
-                        });
+                        .catch(handleImageProcessingError);
                 }
 
                 if (fileDataName && Str.isImage(fileDataName)) {
@@ -396,10 +415,7 @@ function AttachmentPicker({
                                 };
                             }),
                         )
-                        .catch(() => {
-                            showImageCorruptionAlert();
-                            return null;
-                        });
+                        .catch(handleImageProcessingError);
                 }
 
                 return getDataForUpload(fileDataObject).catch((error: Error) => {
@@ -425,7 +441,7 @@ function AttachmentPicker({
                     }
                 });
         },
-        [shouldValidateImage, showGeneralAlert, showImageCorruptionAlert],
+        [handleImageProcessingError, shouldValidateImage, showGeneralAlert, showImageCorruptionAlert],
     );
 
     /**
@@ -497,7 +513,6 @@ function AttachmentPicker({
                 }}
                 isVisible={isVisible}
                 anchorRef={popoverRef}
-                // eslint-disable-next-line react-compiler/react-compiler
                 onModalHide={() => onModalHide.current?.()}
             >
                 <View style={!shouldUseNarrowLayout && styles.createMenuContainer}>
@@ -513,12 +528,9 @@ function AttachmentPicker({
                     ))}
                 </View>
             </Popover>
-            {/* eslint-disable-next-line react-compiler/react-compiler */}
             {renderChildren()}
         </>
     );
 }
-
-AttachmentPicker.displayName = 'AttachmentPicker';
 
 export default AttachmentPicker;

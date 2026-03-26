@@ -7,6 +7,7 @@ import useOnyx from '@hooks/useOnyx';
 import useSubStep from '@hooks/useSubStep';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {getBankAccountIDAsNumber} from '@libs/ReimbursementAccountUtils';
 import {updateBeneficialOwnersForBankAccount} from '@userActions/BankAccounts';
 import {setDraftValues} from '@userActions/FormActions';
 import CONST from '@src/CONST';
@@ -34,8 +35,8 @@ function BeneficialOwnersStep({onBackButtonPress}: BeneficialOwnersStepProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
-    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: false});
-    const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT, {canBeMissing: true});
+    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
+    const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
 
     const companyName = reimbursementAccount?.achData?.companyName ?? '';
     const policyID = reimbursementAccount?.achData?.policyID;
@@ -69,7 +70,7 @@ function BeneficialOwnersStep({onBackButtonPress}: BeneficialOwnersStepProps) {
         );
 
         updateBeneficialOwnersForBankAccount(
-            Number(reimbursementAccount?.achData?.bankAccountID ?? CONST.DEFAULT_NUMBER_ID),
+            getBankAccountIDAsNumber(reimbursementAccount?.achData),
             {
                 ownsMoreThan25Percent: isUserUBO,
                 beneficialOwners: JSON.stringify(beneficialOwners),
@@ -109,6 +110,7 @@ function BeneficialOwnersStep({onBackButtonPress}: BeneficialOwnersStepProps) {
         moveTo,
         resetScreenIndex,
         goToTheLastStep,
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
     } = useSubStep<BeneficialOwnerSubStepProps>({
         bodyContent,
         startFrom: 0,
@@ -211,7 +213,7 @@ function BeneficialOwnersStep({onBackButtonPress}: BeneficialOwnersStepProps) {
 
     return (
         <InteractiveStepWrapper
-            wrapperID={BeneficialOwnersStep.displayName}
+            wrapperID="BeneficialOwnersStep"
             shouldEnablePickerAvoiding={false}
             shouldEnableMaxHeight
             headerTitle={translate('beneficialOwnerInfoStep.companyOwner')}
@@ -222,7 +224,7 @@ function BeneficialOwnersStep({onBackButtonPress}: BeneficialOwnersStepProps) {
         >
             {currentUBOSubStep === SUBSTEP.IS_USER_UBO && (
                 <YesNoStep
-                    title={translate('beneficialOwnerInfoStep.doYouOwn25percent', {companyName})}
+                    title={translate('beneficialOwnerInfoStep.doYouOwn25percent', companyName)}
                     description={translate('beneficialOwnerInfoStep.regulationRequiresUsToVerifyTheIdentity')}
                     submitButtonStyles={[styles.mb0]}
                     defaultValue={isUserUBO}
@@ -232,7 +234,7 @@ function BeneficialOwnersStep({onBackButtonPress}: BeneficialOwnersStepProps) {
 
             {currentUBOSubStep === SUBSTEP.IS_ANYONE_ELSE_UBO && (
                 <YesNoStep
-                    title={translate('beneficialOwnerInfoStep.doAnyIndividualOwn25percent', {companyName})}
+                    title={translate('beneficialOwnerInfoStep.doAnyIndividualOwn25percent', companyName)}
                     description={translate('beneficialOwnerInfoStep.regulationRequiresUsToVerifyTheIdentity')}
                     submitButtonStyles={[styles.mb0]}
                     defaultValue={isAnyoneElseUBO}
@@ -252,7 +254,7 @@ function BeneficialOwnersStep({onBackButtonPress}: BeneficialOwnersStepProps) {
 
             {currentUBOSubStep === SUBSTEP.ARE_THERE_MORE_UBOS && (
                 <YesNoStep
-                    title={translate('beneficialOwnerInfoStep.areThereMoreIndividualsWhoOwn25percent', {companyName})}
+                    title={translate('beneficialOwnerInfoStep.areThereMoreIndividualsWhoOwn25percent', companyName)}
                     description={translate('beneficialOwnerInfoStep.regulationRequiresUsToVerifyTheIdentity')}
                     submitButtonStyles={[styles.mb0]}
                     onSelectedValue={handleNextUBOSubstep}
@@ -272,7 +274,5 @@ function BeneficialOwnersStep({onBackButtonPress}: BeneficialOwnersStepProps) {
         </InteractiveStepWrapper>
     );
 }
-
-BeneficialOwnersStep.displayName = 'BeneficialOwnersStep';
 
 export default BeneficialOwnersStep;

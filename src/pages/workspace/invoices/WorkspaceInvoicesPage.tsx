@@ -2,8 +2,10 @@ import React from 'react';
 import {View} from 'react-native';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
@@ -16,10 +18,12 @@ import WorkspaceInvoicingDetailsSection from './WorkspaceInvoicingDetailsSection
 
 type WorkspaceInvoicesPageProps = PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.INVOICES>;
 function WorkspaceInvoicesPage({route}: WorkspaceInvoicesPageProps) {
+    const policy = usePolicy(route.params.policyID);
+    useWorkspaceDocumentTitle(policy?.name, 'workspace.common.invoices');
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const illustrations = useMemoizedLazyIllustrations(['InvoiceBlue'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['InvoiceBlue']);
 
     return (
         <AccessOrNotFoundWrapper
@@ -47,7 +51,5 @@ function WorkspaceInvoicesPage({route}: WorkspaceInvoicesPageProps) {
         </AccessOrNotFoundWrapper>
     );
 }
-
-WorkspaceInvoicesPage.displayName = 'WorkspaceInvoicesPage';
 
 export default WorkspaceInvoicesPage;

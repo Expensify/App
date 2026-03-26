@@ -36,6 +36,4 @@ function SpendCategorySelectorListItem<TItem extends ListItem>({item, onSelectRo
     );
 }
 
-SpendCategorySelectorListItem.displayName = 'SpendCategorySelectorListItem';
-
 export default SpendCategorySelectorListItem;

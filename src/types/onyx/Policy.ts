@@ -59,6 +59,9 @@ type Rate = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** Subrates of the given rate */
         subRates?: Subrate[];
+
+        /** Sort order index for displaying rates */
+        index?: number;
     },
     keyof TaxRateAttributes
 >;
@@ -106,6 +109,9 @@ type CustomUnit = OnyxCommon.OnyxValueWithOfflineFeedback<
 type CompanyAddress = {
     /** Street address */
     addressStreet: string;
+
+    /** Street address line 2 */
+    addressStreet2?: string;
 
     /** City */
     city: string;
@@ -507,6 +513,12 @@ type QBOConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
      */
     autoCreateVendor: boolean;
 
+    /** Default vendor ID for travel expenses */
+    travelInvoicingVendorID?: string;
+
+    /** Account ID that receives the exported travel payable */
+    travelInvoicingPayableAccountID?: string;
+
     /** TODO: Will be handled in another issue */
     hasChosenAutoSyncOption: boolean;
 
@@ -537,7 +549,7 @@ type QBOConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Configuration of the export */
     export: {
         /** E-mail of the exporter */
-        exporter: string;
+        exporter?: string;
     };
 
     /** Collections of form field errors */
@@ -667,7 +679,7 @@ type XeroExportConfig = {
     billable: ExpenseTypesValues;
 
     /** The e-mail of the exporter */
-    exporter: string;
+    exporter?: string;
 
     /** TODO: Will be handled in another issue */
     nonReimbursable: ExpenseTypesValues;
@@ -1038,7 +1050,7 @@ type NetSuiteConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<
         autoCreateEntities: boolean;
 
         /** The account to run auto export */
-        exporter: string;
+        exporter?: string;
 
         /** The transaction date to set upon export */
         exportDate?: NetSuiteExportDateOptions;
@@ -1248,7 +1260,7 @@ type SageIntacctExportConfig = {
     exportDate: ValueOf<typeof CONST.SAGE_INTACCT_EXPORT_DATE>;
 
     /** The e-mail of the exporter */
-    exporter: string;
+    exporter?: string;
 
     /** Defines how non-reimbursable expenses are exported */
     nonReimbursable: ValueOf<typeof CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE>;
@@ -1361,7 +1373,7 @@ type QBDConnectionData = {
  */
 type QBDExportConfig = {
     /** E-mail of the exporter */
-    exporter: string;
+    exporter?: string;
 
     /** Defines how reimbursable expenses are exported */
     reimbursable: QBDReimbursableExportAccountType;
@@ -1460,6 +1472,9 @@ type Connections = {
 
     /** QuickBooks Desktop integration connection */
     [CONST.POLICY.CONNECTIONS.NAME.QBD]: Connection<QBDConnectionData, QBDConnectionConfig>;
+
+    /** Certinia integration connection */
+    [CONST.POLICY.CONNECTIONS.NAME.CERTINIA]: Connection<Record<string, never>, Record<string, never>>;
 };
 
 /** All integration connections, including unsupported ones */
@@ -1509,6 +1524,9 @@ type ACHAccount = {
 
     /** Bank account state */
     state?: string;
+
+    /** Emails of users who have had the bank account shared with them */
+    sharees?: string[];
 };
 
 /** Prohibited expense types */
@@ -1682,6 +1700,73 @@ type ExpenseRule = {
     id?: string;
 };
 
+/** Coding rule filter condition */
+type CodingRuleFilter = {
+    /** The left side of the filter condition (e.g., 'merchant') */
+    left: string;
+
+    /** The operator for the filter, defined in CONST.SEARCH.SYNTAX_OPERATORS */
+    operator: ValueOf<typeof CONST.SEARCH.SYNTAX_OPERATORS>;
+
+    /** The right side of the filter condition (e.g., 'Snoop') */
+    right: string;
+};
+
+/** Tax configuration for coding rule */
+type CodingRuleTax = {
+    /** Object wrapping the tax field - field_id_TAX matches the backend API format */
+    // eslint-disable-next-line @typescript-eslint/naming-convention
+    field_id_TAX: {
+        /** The external ID of the tax rate */
+        externalID: string;
+
+        /** The tax rate value (e.g., "8.5%") */
+        value: string;
+
+        /** The name of the tax rate */
+        name: string;
+    };
+};
+
+/** Policy coding rule data model */
+type CodingRule = {
+    /** Unique identifier for the rule */
+    ruleID?: string;
+
+    /** Filter conditions for when this rule applies */
+    filters: CodingRuleFilter;
+
+    /** The merchant name to set on matching expenses */
+    merchant?: string;
+
+    /** Whether the expense should be billable */
+    billable?: boolean;
+
+    /** The category to set on matching expenses */
+    category?: string;
+
+    /** The comment/description to set on matching expenses */
+    comment?: string;
+
+    /** Whether the expense should be reimbursable */
+    reimbursable?: boolean;
+
+    /** The tag to set on matching expenses */
+    tag?: string;
+
+    /** Tax configuration for the expense */
+    tax?: CodingRuleTax;
+
+    /** When this rule was created */
+    created?: string;
+
+    /** The type of action that's pending  */
+    pendingAction?: OnyxCommon.PendingAction;
+
+    /** Error objects keyed by field name containing errors keyed by microtime */
+    errors?: OnyxCommon.Errors;
+};
+
 /** Model of policy data */
 type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
     {
@@ -1712,6 +1797,9 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** The URL for the policy avatar */
         avatarURL?: string;
 
+        /** The client ID set by an Approved! Accountant for tracking purposes */
+        clientID?: string;
+
         /** Error objects keyed by field name containing errors keyed by microtime */
         errorFields?: OnyxCommon.ErrorFields;
 
@@ -1723,6 +1811,9 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** When this policy was last modified */
         lastModified?: string;
+
+        /** When this policy was created */
+        created?: string;
 
         /** The custom units data for this policy */
         customUnits?: Record<string, CustomUnit>;
@@ -1790,7 +1881,7 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         autoApproval?: OnyxCommon.OnyxValueWithOfflineFeedback<
             {
                 /**
-                 * The maximum report total allowed to trigger auto approval.
+                 * The maximum per-expense amount allowed to trigger auto approval.
                  */
                 limit?: number;
                 /**
@@ -1806,9 +1897,6 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** Original file name which is used for the policy avatar */
         originalFileName?: string;
-
-        /** Alert message for the policy */
-        alertMessage?: string;
 
         /** Informative messages about which policy members were added with primary logins when invited with their secondary login */
         primaryLoginsInvited?: Record<string, string>;
@@ -1867,6 +1955,18 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Collection of tax rates attached to a policy */
         taxRates?: TaxRatesWithDefault;
 
+        /** Units configuration */
+        units?: {
+            /** Time tracking configuration */
+            time?: {
+                /** Whether time tracking is enabled */
+                enabled?: boolean;
+
+                /** Default hourly rate */
+                rate?: number;
+            };
+        };
+
         /** A set of rules related to the workspace */
         rules?: {
             /** A set of rules related to the workspace approvals */
@@ -1874,16 +1974,19 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
 
             /** A set of rules related to the workspace expenses */
             expenseRules?: ExpenseRule[];
+
+            /** A set of coding rules for automatic expense field population based on merchant matching */
+            codingRules?: Record<string, CodingRule>;
         };
 
         /** A set of custom rules defined with natural language */
         customRules?: string;
 
-        /** ReportID of the admins room for this workspace */
-        chatReportIDAdmins?: number;
+        /** ReportID of the admins room for this workspace - This should be a string, we are keeping the number for backward compatibility */
+        chatReportIDAdmins?: string | number;
 
-        /** ReportID of the announce room for this workspace */
-        chatReportIDAnnounce?: number;
+        /** ReportID of the announce room for this workspace - This should be a string, we are keeping the number for backward compatibility */
+        chatReportIDAnnounce?: string | number;
 
         /** All the integration connections attached to the policy */
         connections?: Connections;
@@ -1902,6 +2005,9 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** Whether the Distance Rates feature is enabled */
         areDistanceRatesEnabled?: boolean;
+
+        /** Whether the Travel feature is enabled */
+        isTravelEnabled?: boolean;
 
         /** Whether the Per diem rates feature is enabled */
         arePerDiemRatesEnabled?: boolean;
@@ -1942,6 +2048,9 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Indicates the Policy's SetWorkspaceReimbursement call loading state */
         isLoadingWorkspaceReimbursement?: boolean;
 
+        /** Indicates if the receipt partners page is loading */
+        isLoadingReceiptPartners?: boolean;
+
         /** Indicates if the Policy ownership change is successful */
         isChangeOwnerSuccessful?: boolean;
 
@@ -1965,6 +2074,9 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** Max amount for an expense with no receipt violation */
         maxExpenseAmountNoReceipt?: number;
+
+        /** Max amount for an expense with no itemized receipt violation */
+        maxExpenseAmountNoItemizedReceipt?: number;
 
         /** Whether GL codes are enabled */
         glCodes?: boolean;
@@ -1995,8 +2107,11 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** Whether Attendee Tracking is enabled */
         isAttendeeTrackingEnabled?: boolean;
+
+        /** Whether the policy requires purchases to be on a company card */
+        requireCompanyCardsEnabled?: boolean;
     } & Partial<PendingJoinRequestPolicy>,
-    'addWorkspaceRoom' | keyof ACHAccount | keyof Attributes
+    'addWorkspaceRoom' | keyof ACHAccount | keyof Attributes | 'isTimeTrackingEnabled' | 'timeTrackingDefaultRate'
 >;
 
 /** Stages of policy connection sync */
@@ -2020,6 +2135,7 @@ type PolicyConnectionSyncProgress = {
 export default Policy;
 
 export type {
+    AutoReportingOffset,
     PolicyReportField,
     PolicyReportFieldType,
     Unit,
@@ -2074,8 +2190,12 @@ export type {
     ACHAccount,
     ApprovalRule,
     ExpenseRule,
+    CodingRule,
+    CodingRuleFilter,
+    CodingRuleTax,
     NetSuiteConnectionConfig,
     MccGroup,
     Subrate,
     ProhibitedExpenses,
+    NetSuiteConnectionData,
 };

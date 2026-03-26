@@ -1,7 +1,6 @@
 /**
  * @jest-environment node
  */
-
 /* eslint-disable @typescript-eslint/naming-convention */
 import CONST from '../../.github/libs/CONST';
 import type {InternalOctokit} from '../../.github/libs/GithubUtils';
@@ -81,11 +80,12 @@ function mockGetInputDefaultImplementation(key: string): boolean | string {
             return version;
         case 'IOS':
         case 'ANDROID':
-        case 'DESKTOP':
         case 'WEB':
             return 'success';
         case 'DATE':
         case 'NOTE':
+        case 'ANDROID_SENTRY_URL':
+        case 'IOS_SENTRY_URL':
             return '';
         default:
             throw new Error(`Trying to access invalid input: ${key}`);
@@ -192,7 +192,6 @@ describe('markPullRequestsAsDeployed', () => {
 
 platform | result
 ---|---
-🖥 desktop 🖥|success ✅
 🕸 web 🕸|success ✅
 🤖 android 🤖|success ✅
 🍎 iOS 🍎|success ✅`,
@@ -222,7 +221,6 @@ platform | result
 
 platform | result
 ---|---
-🖥 desktop 🖥|success ✅
 🕸 web 🕸|success ✅
 🤖 android 🤖|success ✅
 🍎 iOS 🍎|success ✅`,
@@ -281,7 +279,6 @@ platform | result
 
 platform | result
 ---|---
-🖥 desktop 🖥|success ✅
 🕸 web 🕸|success ✅
 🤖 android 🤖|success ✅
 🍎 iOS 🍎|success ✅`,
@@ -299,9 +296,6 @@ platform | result
             if (key === 'IOS') {
                 return 'failed';
             }
-            if (key === 'DESKTOP') {
-                return 'cancelled';
-            }
             return mockGetInputDefaultImplementation(key);
         });
 
@@ -316,7 +310,6 @@ platform | result
 
 platform | result
 ---|---
-🖥 desktop 🖥|cancelled 🔪
 🕸 web 🕸|success ✅
 🤖 android 🤖|skipped 🚫
 🍎 iOS 🍎|failed ❌`,

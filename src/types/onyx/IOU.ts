@@ -1,9 +1,10 @@
 import type {ValueOf} from 'type-fest';
-import type {AvatarSource} from '@libs/UserUtils';
+import type {AvatarSource} from '@libs/UserAvatarUtils';
 import type CONST from '@src/CONST';
 import type {IOUType} from '@src/CONST';
 import type {Icon} from './OnyxCommon';
 import type Report from './Report';
+import type {Routes, TransactionCustomUnit, WaypointCollection} from './Transaction';
 
 /** Model of IOU participant */
 type Participant = {
@@ -159,6 +160,23 @@ type SplitExpense = {
 
     /** Whether the split expense is reimbursable (out-of-pocket) or non-reimbursable (company spend) */
     reimbursable?: boolean;
+
+    /** Custom unit data for distance requests */
+    customUnit?: TransactionCustomUnit;
+
+    /** Collection of waypoints associated with the transaction */
+    waypoints?: WaypointCollection;
+
+    /** Odometer start reading for distance expenses */
+    odometerStart?: number;
+
+    /** Odometer end reading for distance expenses */
+    odometerEnd?: number;
+
+    /** Existing routes */
+    routes?: Routes;
+    /** Whether this split has been manually edited by the user (locks the value from auto-adjustment) */
+    isManuallyEdited?: boolean;
 };
 
 /** Model of IOU request */

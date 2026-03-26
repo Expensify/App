@@ -1,8 +1,6 @@
 import {Str} from 'expensify-common';
-import {formatE164PhoneNumber, getPhoneNumberWithoutSpecialChars} from '@libs/LoginUtils';
+import {formatE164PhoneNumber, getPhoneNumberWithoutSpecialChars, sanitizePhoneOrEmail} from '@libs/LoginUtils';
 import CONST from '@src/CONST';
-
-const sanitizePhoneOrEmail = (value: string) => value.replace(/\s/g, '').toLowerCase();
 
 const validatePhoneOrEmail = (inputValue: string, storedValue: string, translate: (key: string) => string, countryCode?: number) => {
     const errors: {phoneOrEmail?: string} = {};
@@ -35,10 +33,10 @@ describe('CloseAccountPage Validation', () => {
             const testCases = ['+1 (234) 567-8901', '+12345678901', '+1 234 567 8901'];
             const countryCode = 1;
 
-            testCases.forEach((inputPhone) => {
+            for (const inputPhone of testCases) {
                 const errors = validatePhoneOrEmail(inputPhone, storedPhone, mockTranslate, countryCode);
                 expect(errors.phoneOrEmail).toBeUndefined();
-            });
+            }
         });
 
         it('Should reject non-matching phone numbers', () => {
@@ -46,10 +44,10 @@ describe('CloseAccountPage Validation', () => {
             const wrongNumbers = ['+1 (234) 567-8902', '+1 (555) 123-4567', '+44 20 8759 9036'];
             const countryCode = 1;
 
-            wrongNumbers.forEach((inputPhone) => {
+            for (const inputPhone of wrongNumbers) {
                 const errors = validatePhoneOrEmail(inputPhone, storedPhone, mockTranslate, countryCode);
                 expect(errors.phoneOrEmail).toBe('Please enter your default contact method');
-            });
+            }
         });
 
         it('Should handle international phone numbers', () => {
@@ -57,10 +55,10 @@ describe('CloseAccountPage Validation', () => {
             const validInputs = ['+44 20 8759 9036', '+442087599036', '44 20 8759 9036'];
             const countryCode = 44;
 
-            validInputs.forEach((inputPhone) => {
+            for (const inputPhone of validInputs) {
                 const errors = validatePhoneOrEmail(inputPhone, storedPhone, mockTranslate, countryCode);
                 expect(errors.phoneOrEmail).toBeUndefined();
-            });
+            }
         });
     });
 
@@ -69,20 +67,20 @@ describe('CloseAccountPage Validation', () => {
             const storedEmail = 'user@example.com';
             const testCases = ['user@example.com', 'USER@EXAMPLE.COM', ' user@example.com ', 'User@Example.Com'];
 
-            testCases.forEach((inputEmail) => {
+            for (const inputEmail of testCases) {
                 const errors = validatePhoneOrEmail(inputEmail, storedEmail, mockTranslate);
                 expect(errors.phoneOrEmail).toBeUndefined();
-            });
+            }
         });
 
         it('Should reject non-matching emails', () => {
             const storedEmail = 'user@example.com';
             const wrongEmails = ['different@example.com', 'user@different.com', 'user@example.net'];
 
-            wrongEmails.forEach((inputEmail) => {
+            for (const inputEmail of wrongEmails) {
                 const errors = validatePhoneOrEmail(inputEmail, storedEmail, mockTranslate);
                 expect(errors.phoneOrEmail).toBe('Please enter your default contact method');
-            });
+            }
         });
     });
 
@@ -114,10 +112,10 @@ describe('CloseAccountPage Validation', () => {
             const storedPhone = '+1 (234) 567-8901';
             const invalidInputs = ['invalid-phone', '123', 'not-a-number'];
 
-            invalidInputs.forEach((inputPhone) => {
+            for (const inputPhone of invalidInputs) {
                 const errors = validatePhoneOrEmail(inputPhone, storedPhone, mockTranslate);
                 expect(errors.phoneOrEmail).toBe('Please enter your default contact method');
-            });
+            }
         });
     });
 });

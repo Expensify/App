@@ -33,7 +33,7 @@ type InitialListValueSelectorModalProps = {
 function InitialListValueSelectorModal({isVisible, currentValue, label, subtitle, onValueSelected, onClose}: InitialListValueSelectorModalProps) {
     const styles = useThemeStyles();
 
-    const [formDraft] = useOnyx(ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM_DRAFT, {canBeMissing: true});
+    const [formDraft] = useOnyx(ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM_DRAFT);
 
     return (
         <Modal
@@ -47,7 +47,7 @@ function InitialListValueSelectorModal({isVisible, currentValue, label, subtitle
                 style={styles.pb0}
                 includePaddingTop={false}
                 enableEdgeToEdgeBottomSafeAreaPadding
-                testID={InitialListValueSelectorModal.displayName}
+                testID="InitialListValueSelectorModal"
             >
                 <HeaderWithBackButton
                     title={label}
@@ -67,7 +67,5 @@ function InitialListValueSelectorModal({isVisible, currentValue, label, subtitle
         </Modal>
     );
 }
-
-InitialListValueSelectorModal.displayName = 'InitialListValueSelectorModal';
 
 export default InitialListValueSelectorModal;

@@ -7,6 +7,7 @@ type IntroSelectedTask =
     | typeof CONST.ONBOARDING_TASK_TYPE.VIEW_TOUR
     | typeof CONST.ONBOARDING_TASK_TYPE.CREATE_WORKSPACE
     | typeof CONST.ONBOARDING_TASK_TYPE.SETUP_CATEGORIES
+    | typeof CONST.ONBOARDING_TASK_TYPE.SETUP_CATEGORIES_AND_TAGS
     | typeof CONST.ONBOARDING_TASK_TYPE.REVIEW_WORKSPACE_SETTINGS;
 
 /** Model of onboarding */
@@ -34,6 +35,14 @@ type IntroSelected = {
 
     /** Task reportID for 'reviewWorkspaceSettings' type */
     reviewWorkspaceSettings?: string;
+    /** Task reportID for 'addExpenseApprovals' type */
+    addExpenseApprovals?: string;
+
+    /** Task reportID for 'setupTags' type */
+    setupTags?: string;
+
+    /** Task reportID for 'setupCategoriesAndTags' type */
+    setupCategoriesAndTags?: string;
 
     /** The previous onboarding choices of the user */
     previousChoices?: OnboardingPurpose[];

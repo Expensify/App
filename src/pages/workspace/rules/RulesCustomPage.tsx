@@ -7,6 +7,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import TextInput from '@components/TextInput';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
+import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
@@ -32,6 +33,7 @@ function RulesCustomPage({
     const {inputCallbackRef} = useAutoFocusInput();
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const {isBetaEnabled} = usePermissions();
 
     const [customRulesValue, setCustomRulesValue] = useState(() => Parser.htmlToMarkdown(policy?.customRules ?? ''));
 
@@ -43,11 +45,12 @@ function RulesCustomPage({
         <AccessOrNotFoundWrapper
             policyID={policyID}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
+            shouldBeBlocked={!isBetaEnabled(CONST.BETAS.CUSTOM_RULES)}
         >
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
                 shouldEnableMaxHeight
-                testID={RulesCustomPage.displayName}
+                testID="RulesCustomPage"
             >
                 <HeaderWithBackButton
                     title={translate('workspace.rules.customRules.title')}
@@ -84,7 +87,5 @@ function RulesCustomPage({
         </AccessOrNotFoundWrapper>
     );
 }
-
-RulesCustomPage.displayName = 'RulesCustomPage';
 
 export default RulesCustomPage;

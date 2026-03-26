@@ -6,19 +6,19 @@ import SidebarUtils from '@libs/SidebarUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails, TransactionViolation} from '@src/types/onyx';
-import type Policy from '@src/types/onyx/Policy';
 import type Report from '@src/types/onyx/Report';
 import createCollection from '../utils/collections/createCollection';
 import createPersonalDetails from '../utils/collections/personalDetails';
 import createRandomPolicy from '../utils/collections/policies';
 import createRandomReportAction, {getRandomDate} from '../utils/collections/reportActions';
 import {createRandomReport} from '../utils/collections/reports';
-import {localeCompare} from '../utils/TestHelper';
+import {localeCompare, translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 const REPORTS_COUNT = 15000;
 const REPORT_THRESHOLD = 5;
 const PERSONAL_DETAILS_LIST_COUNT = 1000;
+const CURRENT_USER_LOGIN = 'test@example.com';
 
 const allReports = createCollection<Report>(
     (item) => `${ONYXKEYS.COLLECTION.REPORT}${item.reportID}`,
@@ -40,16 +40,10 @@ const personalDetails = createCollection<PersonalDetails>(
     PERSONAL_DETAILS_LIST_COUNT,
 );
 
-const policies = createCollection<Policy>(
-    (item) => `${ONYXKEYS.COLLECTION.POLICY}${item.id}`,
-    (index) => createRandomPolicy(index),
-);
-
 const mockedBetas = Object.values(CONST.BETAS);
 
 const currentReportId = '1';
 const transactionViolations = {} as OnyxCollection<TransactionViolation[]>;
-
 describe('SidebarUtils', () => {
     beforeAll(() => {
         Onyx.init({
@@ -82,24 +76,29 @@ describe('SidebarUtils', () => {
                 reportNameValuePairs,
                 personalDetails,
                 policy,
+                invoiceReceiverPolicy: undefined,
                 parentReportAction,
+                conciergeReportID: '',
                 oneTransactionThreadReport: undefined,
                 card: undefined,
                 lastAction: undefined,
+                translate: translateLocal,
                 localeCompare,
                 lastActionReport: undefined,
                 isReportArchived: undefined,
+                currentUserAccountID: 1,
+                currentUserLogin: CURRENT_USER_LOGIN,
             }),
         );
     });
 
     test('[SidebarUtils] getReportsToDisplayInLHN on 15k reports for default priorityMode', async () => {
         await waitForBatchedUpdates();
-        await measureFunction(() => SidebarUtils.getReportsToDisplayInLHN(currentReportId, allReports, mockedBetas, policies, CONST.PRIORITY_MODE.DEFAULT, {}, transactionViolations));
+        await measureFunction(() => SidebarUtils.getReportsToDisplayInLHN(currentReportId, allReports, mockedBetas, CONST.PRIORITY_MODE.DEFAULT, {}, transactionViolations, {}));
     });
 
     test('[SidebarUtils] getReportsToDisplayInLHN on 15k reports for GSD priorityMode', async () => {
         await waitForBatchedUpdates();
-        await measureFunction(() => SidebarUtils.getReportsToDisplayInLHN(currentReportId, allReports, mockedBetas, policies, CONST.PRIORITY_MODE.GSD, {}, transactionViolations));
+        await measureFunction(() => SidebarUtils.getReportsToDisplayInLHN(currentReportId, allReports, mockedBetas, CONST.PRIORITY_MODE.GSD, {}, transactionViolations, {}));
     });
 });

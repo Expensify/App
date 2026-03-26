@@ -77,11 +77,17 @@ function OnfidoPrivacy({walletOnfidoData = DEFAULT_WALLET_ONFIDO_DATA}: OnfidoPr
                     </FixedFooter>
                 </>
             ) : null}
-            {hasAcceptedPrivacyPolicy && isLoading ? <FullscreenLoadingIndicator /> : null}
+            {hasAcceptedPrivacyPolicy && isLoading ? (
+                <FullscreenLoadingIndicator
+                    reasonAttributes={{
+                        context: 'OnfidoPrivacy',
+                        hasAcceptedPrivacyPolicy,
+                        isLoading,
+                    }}
+                />
+            ) : null}
         </View>
     );
 }
-
-OnfidoPrivacy.displayName = 'OnfidoPrivacy';
 
 export default OnfidoPrivacy;

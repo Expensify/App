@@ -3,6 +3,8 @@ import type {TranslationPaths} from '@src/languages/types';
 import type {FileObject} from '@src/types/utils/Attachment';
 import {splitExtensionFromFileName, validateImageForCorruption} from './fileDownload/FileUtils';
 import getImageResolution from './fileDownload/getImageResolution';
+import tryResolveUrlFromApiRoot from './tryResolveUrlFromApiRoot';
+import type {AvatarSource} from './UserUtils';
 
 /**
  * Validation result containing error information if validation fails
@@ -108,4 +110,18 @@ async function validateAvatarImage(image: FileObject): Promise<ValidationResult>
     return {isValid: true};
 }
 
-export {isValidExtension, isValidSize, isValidResolution, validateAvatarImage};
+function getValidatedImageSource(source: AvatarSource | undefined) {
+    const numberSource = Number(source);
+
+    if (!Number.isNaN(numberSource) && numberSource !== 0) {
+        return numberSource;
+    }
+
+    if (typeof source === 'string') {
+        return tryResolveUrlFromApiRoot(decodeURIComponent(source));
+    }
+
+    return undefined;
+}
+
+export {isValidExtension, isValidSize, isValidResolution, validateAvatarImage, getValidatedImageSource};

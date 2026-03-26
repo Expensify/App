@@ -6,8 +6,8 @@ import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import {forceClearInput} from '@libs/ComponentUtils';
-import type {ReportActionComposeProps} from '@pages/home/report/ReportActionCompose/ReportActionCompose';
-import ReportActionCompose, {onSubmitAction} from '@pages/home/report/ReportActionCompose/ReportActionCompose';
+import type {ReportActionComposeProps} from '@pages/inbox/report/ReportActionCompose/ReportActionCompose';
+import ReportActionCompose, {onSubmitAction} from '@pages/inbox/report/ReportActionCompose/ReportActionCompose';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
@@ -26,6 +26,13 @@ jest.mock('@hooks/useLocalize', () =>
         numberFormat: jest.fn((num: number) => num.toString()),
     })),
 );
+
+jest.mock('@components/DropZone/DualDropZone', () => {
+    const RN = jest.requireActual<Record<string, React.ComponentType<{testID?: string; children?: React.ReactNode}>>>('react-native');
+    return ({shouldAcceptSingleReceipt}: {shouldAcceptSingleReceipt?: boolean}) => (
+        <RN.Text testID="dual-drop-zone">{shouldAcceptSingleReceipt ? 'receipt-editable' : 'receipt-not-editable'}</RN.Text>
+    );
+});
 
 jest.mock('@react-navigation/native', () => ({
     ...((): typeof NativeNavigation => {
@@ -227,7 +234,143 @@ describe('ReportActionCompose Integration Tests', () => {
         });
     });
 
+    describe('Receipt edit check', () => {
+        const currentUserAccountID = 1;
+        const policyID = 'policy_receipt_test';
+        const expenseReportID = 'expense_receipt_123';
+        const parentReportActionID = 'parent_action_1';
+        const transactionID = 'txn_receipt_test';
+
+        const setupReceiptTestData = async (threadReportID: string, isSettledReport = false) => {
+            const iouReportAction = {
+                ...LHNTestUtils.getFakeReportAction(),
+                reportActionID: parentReportActionID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                actorAccountID: currentUserAccountID,
+                originalMessage: {
+                    IOUReportID: expenseReportID,
+                    type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                    IOUTransactionID: transactionID,
+                    amount: 100,
+                    currency: CONST.CURRENCY.USD,
+                },
+            };
+
+            const transaction = {
+                transactionID,
+                reportID: expenseReportID,
+                amount: 100,
+                currency: CONST.CURRENCY.USD,
+                created: '2025-01-01',
+                merchant: 'Test Merchant',
+                comment: {},
+            };
+
+            await act(async () => {
+                // Session so canEditFieldOfMoneyRequest knows the current user
+                await Onyx.merge(ONYXKEYS.SESSION, {accountID: currentUserAccountID, email: 'test@test.com'});
+                // Policy where the user is admin
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
+                    id: policyID,
+                    type: CONST.POLICY.TYPE.TEAM,
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    name: 'Test Policy',
+                    owner: 'test@test.com',
+                    outputCurrency: CONST.CURRENCY.USD,
+                    isPolicyExpenseChatEnabled: true,
+                });
+                // Parent expense report (the IOUReportID in the action's originalMessage)
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${expenseReportID}`, {
+                    reportID: expenseReportID,
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                    policyID,
+                    ownerAccountID: currentUserAccountID,
+                    managerID: currentUserAccountID,
+                    stateNum: isSettledReport ? CONST.REPORT.STATE_NUM.APPROVED : CONST.REPORT.STATE_NUM.SUBMITTED,
+                    statusNum: isSettledReport ? CONST.REPORT.STATUS_NUM.REIMBURSED : CONST.REPORT.STATUS_NUM.SUBMITTED,
+                });
+                // IOU report action on the parent expense report (needed for isTransactionThread + isExpenseRequest)
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReportID}`, {
+                    [parentReportActionID]: iouReportAction,
+                });
+                // Also store the same action under the thread report ID so the component can find it via useOnyx
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${threadReportID}`, {
+                    [parentReportActionID]: iouReportAction,
+                });
+                // Transaction
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction);
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            return transaction;
+        };
+
+        it('should display the receipt-editable dual drop zone when the user can edit the receipt', async () => {
+            // Build a thread report that points to the parent expense report + parent IOU action
+            // so isReportTransactionThread, canUserPerformWriteAction, and canEditFieldOfMoneyRequest all work with real data
+            const threadReport = {
+                ...LHNTestUtils.getFakeReport(),
+                parentReportID: expenseReportID,
+                parentReportActionID,
+            };
+
+            // Given real Onyx data where the user is admin and the report is open (not settled)
+            const transaction = await setupReceiptTestData(threadReport.reportID);
+
+            // When rendering with the transaction thread report
+            const {unmount} = renderReportActionCompose({
+                report: threadReport,
+                reportID: threadReport.reportID,
+                reportTransactions: [transaction as never],
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the DualDropZone should be rendered because canEditFieldOfMoneyRequest returns true
+            await waitFor(() => {
+                expect(screen.getByTestId('dual-drop-zone')).toBeOnTheScreen();
+                expect(screen.getByText('receipt-editable')).toBeOnTheScreen();
+            });
+
+            unmount();
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        it('should not display the dual drop zone when the expense report is settled', async () => {
+            const threadReport = {
+                ...LHNTestUtils.getFakeReport(),
+                parentReportID: expenseReportID,
+                parentReportActionID,
+            };
+
+            // Given real Onyx data where the expense report is settled/reimbursed
+            const transaction = await setupReceiptTestData(threadReport.reportID, true);
+
+            // When rendering with the transaction thread report
+            const {unmount} = renderReportActionCompose({
+                report: threadReport,
+                reportID: threadReport.reportID,
+                reportTransactions: [transaction as never],
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the DualDropZone should NOT be rendered because canEditFieldOfMoneyRequest returns false for settled reports
+            expect(screen.queryByTestId('dual-drop-zone')).toBeNull();
+            expect(screen.queryByText('receipt-editable')).toBeNull();
+
+            unmount();
+            await waitForBatchedUpdatesWithAct();
+        });
+    });
+
     describe('Message validation', () => {
+        beforeEach(() => {
+            jest.useFakeTimers();
+        });
+
+        afterEach(() => {
+            jest.useRealTimers();
+        });
+
         it('should send when length is within the limit', async () => {
             renderReportActionCompose();
             const composer = screen.getByTestId('composer');
@@ -238,6 +381,11 @@ describe('ReportActionCompose Integration Tests', () => {
 
             // When the message is submitted
             act(onSubmitAction);
+
+            // scheduleOnUI mock uses setTimeout(() => ..., 0)
+            act(() => {
+                jest.advanceTimersByTime(1);
+            });
 
             // Then the message should be sent
             expect(mockForceClearInput).toHaveBeenCalledTimes(1);

@@ -4,14 +4,22 @@ import type {ParamListBase, Router} from '@react-navigation/routers';
 import SCREENS_WITH_NAVIGATION_TAB_BAR from '@components/Navigation/TopLevelNavigationTabBar/SCREENS_WITH_NAVIGATION_TAB_BAR';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import Log from '@libs/Log';
-import {isSplitNavigatorName} from '@libs/Navigation/helpers/isNavigatorName';
+import getStateFromPath from '@libs/Navigation/helpers/getStateFromPath';
+import {isFullScreenName, isSplitNavigatorName} from '@libs/Navigation/helpers/isNavigatorName';
 import {SPLIT_TO_SIDEBAR} from '@libs/Navigation/linkingConfig/RELATIONS';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
-import type {OpenWorkspaceSplitActionType, PushActionType, ReplaceActionType, ToggleSidePanelWithHistoryActionType} from './types';
+import type {
+    OpenDomainSplitActionType,
+    OpenWorkspaceSplitActionType,
+    PushActionType,
+    ReplaceActionType,
+    ReplaceFullscreenUnderRHPActionType,
+    ToggleSidePanelWithHistoryActionType,
+} from './types';
 
-const MODAL_ROUTES_TO_DISMISS: string[] = [
+const MODAL_ROUTES_TO_DISMISS = new Set<string>([
     NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR,
     NAVIGATORS.RIGHT_MODAL_NAVIGATOR,
     NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR,
@@ -23,20 +31,61 @@ const MODAL_ROUTES_TO_DISMISS: string[] = [
     SCREENS.REPORT_ADD_ATTACHMENT,
     SCREENS.TRANSACTION_RECEIPT,
     SCREENS.MONEY_REQUEST.RECEIPT_PREVIEW,
+    SCREENS.MONEY_REQUEST.ODOMETER_PREVIEW,
     SCREENS.PROFILE_AVATAR,
     SCREENS.WORKSPACE_AVATAR,
     SCREENS.REPORT_AVATAR,
     SCREENS.CONCIERGE,
-];
+]);
 
-const workspaceSplitsWithoutEnteringAnimation = new Set<string>();
+const workspaceOrDomainSplitsWithoutEnteringAnimation = new Set<string>();
 
 const screensWithEnteringAnimation = new Set<string>();
+
+/**
+ * Util function with common logic for handling OPEN_WORKSPACE_SPLIT and OPEN_DOMAIN_SPLIT actions.
+ *
+ * Pushes the workspace hub split navigator first and then pushes the split navigator.
+ * This allows the user to swipe back on the iOS to the workspace hub split navigator underneath.
+ */
+function prepareStateUnderWorkspaceOrDomainNavigator(
+    state: StackNavigationState<ParamListBase>,
+    configOptions: RouterConfigOptions,
+    stackRouter: Router<StackNavigationState<ParamListBase>, CommonActions.Action | StackActionType>,
+    actionToPushWorkspaceSplitNavigator: StackActionType,
+    splitNavigatorName: typeof NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR | typeof NAVIGATORS.DOMAIN_SPLIT_NAVIGATOR,
+) {
+    const actionToPushWorkspacesList = StackActions.push(SCREENS.WORKSPACES_LIST);
+
+    const stateWithWorkspacesList = stackRouter.getStateForAction(state, actionToPushWorkspacesList, configOptions);
+
+    if (!stateWithWorkspacesList) {
+        Log.hmmm('[handleOpenWorkspaceOrDomainSplitAction] WorkspacesList has not been found in the navigation state.');
+        return null;
+    }
+
+    const rehydratedStateWithWorkspacesList = stackRouter.getRehydratedState(stateWithWorkspacesList, configOptions);
+    const stateWithSplitNavigator = stackRouter.getStateForAction(rehydratedStateWithWorkspacesList, actionToPushWorkspaceSplitNavigator, configOptions);
+
+    if (!stateWithSplitNavigator) {
+        Log.hmmm(`[handleOpenWorkspaceOrDomainSplitAction] ${splitNavigatorName} has not been found in the navigation state.`);
+        return null;
+    }
+
+    const lastFullScreenRoute = stateWithSplitNavigator.routes.at(-1);
+
+    if (lastFullScreenRoute?.key) {
+        // If the user opened the workspace/domain split navigator from a different tab, we don't want to animate the entering transition.
+        // To make it feel like bottom tab navigator.
+        workspaceOrDomainSplitsWithoutEnteringAnimation.add(lastFullScreenRoute.key);
+    }
+
+    return stateWithSplitNavigator;
+}
+
 /**
  * Handles the OPEN_WORKSPACE_SPLIT action.
  * If the user is on other tab than workspaces and the workspace split is "remembered", this action will be called after pressing the settings tab.
- * It will push the workspace hub split navigator first and then push the workspace split navigator.
- * This allows the user to swipe back on the iOS to the workspace hub split navigator underneath.
  */
 function handleOpenWorkspaceSplitAction(
     state: StackNavigationState<ParamListBase>,
@@ -44,15 +93,6 @@ function handleOpenWorkspaceSplitAction(
     configOptions: RouterConfigOptions,
     stackRouter: Router<StackNavigationState<ParamListBase>, CommonActions.Action | StackActionType>,
 ) {
-    const actionToPushWorkspacesList = StackActions.push(SCREENS.WORKSPACES_LIST);
-
-    const stateWithWorkspacesList = stackRouter.getStateForAction(state, actionToPushWorkspacesList, configOptions);
-
-    if (!stateWithWorkspacesList) {
-        Log.hmmm('[handleOpenWorkspaceSplitAction] WorkspacesList has not been found in the navigation state.');
-        return null;
-    }
-
     const actionToPushWorkspaceSplitNavigator = StackActions.push(NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR, {
         screen: action.payload.screenName,
         params: {
@@ -60,23 +100,41 @@ function handleOpenWorkspaceSplitAction(
         },
     });
 
-    const rehydratedStateWithWorkspacesList = stackRouter.getRehydratedState(stateWithWorkspacesList, configOptions);
-    const stateWithWorkspaceSplitNavigator = stackRouter.getStateForAction(rehydratedStateWithWorkspacesList, actionToPushWorkspaceSplitNavigator, configOptions);
+    return prepareStateUnderWorkspaceOrDomainNavigator(state, configOptions, stackRouter, actionToPushWorkspaceSplitNavigator, NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR);
+}
 
-    if (!stateWithWorkspaceSplitNavigator) {
-        Log.hmmm('[handleOpenWorkspaceSplitAction] WorkspaceSplitNavigator has not been found in the navigation state.');
-        return null;
-    }
+/**
+ * Handles the OPEN_DOMAIN_SPLIT action.
+ * If the user is on other tab than workspaces and the domain split is "remembered", this action will be called after pressing the settings tab.
+ */
+function handleOpenDomainSplitAction(
+    state: StackNavigationState<ParamListBase>,
+    action: OpenDomainSplitActionType,
+    configOptions: RouterConfigOptions,
+    stackRouter: Router<StackNavigationState<ParamListBase>, CommonActions.Action | StackActionType>,
+) {
+    const actionToPushDomainSplitNavigator = StackActions.push(NAVIGATORS.DOMAIN_SPLIT_NAVIGATOR, {
+        screen: action.payload.screenName,
+        params: {
+            domainAccountID: action.payload.domainAccountID,
+        },
+    });
 
-    const lastFullScreenRoute = stateWithWorkspaceSplitNavigator.routes.at(-1);
+    return prepareStateUnderWorkspaceOrDomainNavigator(state, configOptions, stackRouter, actionToPushDomainSplitNavigator, NAVIGATORS.DOMAIN_SPLIT_NAVIGATOR);
+}
 
-    if (lastFullScreenRoute?.key) {
-        // If the user opened the workspace split navigator from a different tab, we don't want to animate the entering transition.
-        // To make it feel like bottom tab navigator.
-        workspaceSplitsWithoutEnteringAnimation.add(lastFullScreenRoute.key);
-    }
+/**
+ * Filters preloaded routes when navigating to a central screen of a split navigator on narrow layout.
+ * This removes the sidebar screen from the state so only the central screen is shown.
+ */
+function getStateWithFilteredPreloadedRoutes(state: StackNavigationState<ParamListBase>, navigatorName: string, targetScreen?: string) {
+    const shouldFilterPreloadedRoutes =
+        getIsNarrowLayout() &&
+        isSplitNavigatorName(navigatorName) &&
+        targetScreen !== SPLIT_TO_SIDEBAR[navigatorName] &&
+        state.preloadedRoutes?.some((preloadedRoute) => preloadedRoute.name === navigatorName);
 
-    return stateWithWorkspaceSplitNavigator;
+    return shouldFilterPreloadedRoutes ? {...state, preloadedRoutes: state.preloadedRoutes.filter((preloadedRoute) => preloadedRoute.name !== navigatorName)} : state;
 }
 
 function handlePushFullscreenAction(
@@ -87,15 +145,7 @@ function handlePushFullscreenAction(
 ) {
     const targetScreen = action.payload?.params && 'screen' in action.payload.params ? (action.payload?.params?.screen as string) : undefined;
     const navigatorName = action.payload.name;
-
-    // If we navigate to the central screen of the split navigator, we need to filter this navigator from preloadedRoutes to remove a sidebar screen from the state
-    const shouldFilterPreloadedRoutes =
-        getIsNarrowLayout() &&
-        isSplitNavigatorName(navigatorName) &&
-        targetScreen !== SPLIT_TO_SIDEBAR[navigatorName] &&
-        state.preloadedRoutes?.some((preloadedRoute) => preloadedRoute.name === navigatorName);
-
-    const adjustedState = shouldFilterPreloadedRoutes ? {...state, preloadedRoutes: state.preloadedRoutes.filter((preloadedRoute) => preloadedRoute.name !== navigatorName)} : state;
+    const adjustedState = getStateWithFilteredPreloadedRoutes(state, navigatorName, targetScreen);
     const stateWithNavigator = stackRouter.getStateForAction(adjustedState, action, configOptions);
 
     if (!stateWithNavigator) {
@@ -119,7 +169,10 @@ function handleReplaceReportsSplitNavigatorAction(
     configOptions: RouterConfigOptions,
     stackRouter: Router<StackNavigationState<ParamListBase>, CommonActions.Action | StackActionType>,
 ) {
-    const stateWithReportsSplitNavigator = stackRouter.getStateForAction(state, action, configOptions);
+    const targetScreen = action.payload?.params && 'screen' in action.payload.params ? (action.payload?.params?.screen as string) : undefined;
+    const navigatorName = action.payload.name;
+    const adjustedState = getStateWithFilteredPreloadedRoutes(state, navigatorName, targetScreen);
+    const stateWithReportsSplitNavigator = stackRouter.getStateForAction(adjustedState, action, configOptions);
 
     if (!stateWithReportsSplitNavigator) {
         Log.hmmm('[handleReplaceReportsSplitNavigatorAction] ReportsSplitNavigator has not been found in the navigation state.');
@@ -137,6 +190,80 @@ function handleReplaceReportsSplitNavigatorAction(
 }
 
 /**
+ * Handles the REPLACE_FULLSCREEN_UNDER_RHP action.
+ *
+ * Inserts a new fullscreen route (e.g. SearchFullscreenNavigator) underneath the
+ * currently open modal (RHP) without destroying the original fullscreen route.
+ *
+ * State transition: [Home, RHP] -> [Home, Search, RHP]
+ *
+ * This is intentionally different from a REPLACE (which would yield [Search, RHP]
+ * and destroy the Home route). Preserving Home is critical for correct browser
+ * history: when the RHP is dismissed in the next animation frame, useLinking sees
+ * that the Home+RHP browser-history entry is stale and correctly replaces it with
+ * a new Search entry, producing browser history [Home, Search].
+ *
+ * The companion history-preservation logic lives in addRootHistoryRouterExtension
+ * which keeps `state.history` unchanged for this action so that no browser history
+ * update is triggered during the insert step itself.
+ *
+ * @see revealRouteBeforeDismissingModal in Navigation.ts - the caller that orchestrates
+ *      this action followed by a DISMISS_MODAL on the next animation frame.
+ */
+function handleReplaceFullscreenUnderRHP(
+    state: StackNavigationState<ParamListBase>,
+    action: ReplaceFullscreenUnderRHPActionType,
+    configOptions: RouterConfigOptions,
+    stackRouter: Router<StackNavigationState<ParamListBase>, CommonActions.Action | StackActionType>,
+) {
+    const stateFromPath = getStateFromPath(action.payload.route);
+    const targetRoute = stateFromPath?.routes.findLast((r) => isFullScreenName(r.name));
+    if (!targetRoute) {
+        return null;
+    }
+
+    // Only operates when a modal (e.g. RHP) sits on top of the stack.
+    const rhpRoute = state.routes.at(-1);
+    if (!rhpRoute || isFullScreenName(rhpRoute.name)) {
+        return null;
+    }
+
+    // 1. Pop the modal to get the clean fullscreen-only state.
+    const stateAfterPop = stackRouter.getStateForAction(state, StackActions.pop(), configOptions);
+    if (!stateAfterPop) {
+        return null;
+    }
+
+    // 2. Push the target fullscreen route on top of the existing one(s).
+    //    getStateFromPath returns nested state (e.g. { name: 'SearchFullscreenNavigator', state: { routes: [{ name: 'Search_Central', params: { q: '...' } }] } })
+    //    but StackActions.push expects { screen, params } format, so we convert the nested state.
+    let pushParams = targetRoute.params as Record<string, unknown> | undefined;
+    const nestedRoute = targetRoute.state?.routes?.at(-1);
+    if (nestedRoute) {
+        pushParams = {
+            ...pushParams,
+            screen: nestedRoute.name,
+            params: nestedRoute.params,
+        };
+    }
+
+    const rehydratedStateAfterPop = stackRouter.getRehydratedState(stateAfterPop, configOptions);
+    const stateAfterPush = stackRouter.getStateForAction(rehydratedStateAfterPop, StackActions.push(targetRoute.name, pushParams), configOptions);
+    if (!stateAfterPush) {
+        return null;
+    }
+
+    // 3. Re-add the modal on top so visually nothing changes yet - the user still sees
+    //    the RHP, but the new fullscreen route is now rendered behind it.
+    const rehydratedStateAfterPush = stackRouter.getRehydratedState(stateAfterPush, configOptions);
+    return {
+        ...rehydratedStateAfterPush,
+        routes: [...rehydratedStateAfterPush.routes, rhpRoute],
+        index: rehydratedStateAfterPush.routes.length,
+    };
+}
+
+/**
  * Handles the DISMISS_MODAL action.
  * If the last route is a modal route, it has to be popped from the navigation stack.
  */
@@ -148,7 +275,7 @@ function handleDismissModalAction(
     const lastRoute = state.routes.at(-1);
     const newAction = StackActions.pop();
 
-    if (!lastRoute?.name || !MODAL_ROUTES_TO_DISMISS.includes(lastRoute?.name)) {
+    if (!lastRoute?.name || !MODAL_ROUTES_TO_DISMISS.has(lastRoute?.name)) {
         Log.hmmm('[Navigation] dismissModal failed because there is no modal stack to dismiss');
         return null;
     }
@@ -193,9 +320,11 @@ export {
     handleDismissModalAction,
     handleNavigatingToModalFromModal,
     handleOpenWorkspaceSplitAction,
+    handleOpenDomainSplitAction,
     handlePushFullscreenAction,
+    handleReplaceFullscreenUnderRHP,
     handleReplaceReportsSplitNavigatorAction,
     screensWithEnteringAnimation,
-    workspaceSplitsWithoutEnteringAnimation,
+    workspaceOrDomainSplitsWithoutEnteringAnimation,
     handleToggleSidePanelWithHistoryAction,
 };

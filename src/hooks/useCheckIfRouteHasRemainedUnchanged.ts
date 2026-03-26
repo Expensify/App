@@ -59,7 +59,6 @@ function useCheckIfRouteHasRemainedUnchanged(videoUrl: string) {
             // Thus, it can be considered as still being on the rendered route.
             isOnInitialRenderedRouteRef.current = navigation.isFocused() || route?.name === SCREENS.REPORT_ATTACHMENTS;
         });
-        // eslint-disable-next-line react-compiler/react-compiler
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 

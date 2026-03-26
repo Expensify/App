@@ -1,16 +1,16 @@
-import React from 'react';
+import React, {useMemo} from 'react';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {useSession} from '@components/OnyxListItemProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
-import SelectionList from '@components/SelectionListWithSections';
-import UserListItem from '@components/SelectionListWithSections/UserListItem';
+import SelectionList from '@components/SelectionList';
+import type {WorkspaceListItemType} from '@components/SelectionList/ListItem/types';
+import UserListItem from '@components/SelectionList/ListItem/UserListItem';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import type {WorkspaceListItem} from '@hooks/useWorkspaceList';
 import useWorkspaceList from '@hooks/useWorkspaceList';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
@@ -30,9 +30,9 @@ function SetDefaultWorkspacePage({route}: SetDefaultWorkspacePageProps) {
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const {translate, localeCompare} = useLocalize();
 
-    const [policies, fetchStatus] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false});
-    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: false});
-    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: false});
+    const [policies, fetchStatus] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
+    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
 
     const shouldShowLoadingIndicator = isLoadingApp && !isOffline;
     const session = useSession();
@@ -59,7 +59,7 @@ function SetDefaultWorkspacePage({route}: SetDefaultWorkspacePageProps) {
         Navigation.goBack();
     };
 
-    const {sections, shouldShowNoResultsFoundMessage, shouldShowSearchInput} = useWorkspaceList({
+    const {data, shouldShowNoResultsFoundMessage, shouldShowSearchInput} = useWorkspaceList({
         policies,
         currentUserLogin: session?.email,
         shouldShowPendingDeletePolicy: false,
@@ -69,9 +69,19 @@ function SetDefaultWorkspacePage({route}: SetDefaultWorkspacePageProps) {
         additionalFilter: (newPolicy) => isPaidGroupPolicy(newPolicy),
     });
 
+    const textInputOptions = useMemo(
+        () => ({
+            label: shouldShowSearchInput ? translate('common.search') : undefined,
+            value: searchTerm,
+            onChangeText: setSearchTerm,
+            headerMessage: shouldShowNoResultsFoundMessage ? translate('common.noResultsFound') : '',
+        }),
+        [searchTerm, setSearchTerm, shouldShowNoResultsFoundMessage, shouldShowSearchInput, translate],
+    );
+
     return (
         <ScreenWrapper
-            testID={SetDefaultWorkspacePage.displayName}
+            testID="SetDefaultWorkspacePage"
             includeSafeAreaPaddingBottom
             shouldEnableMaxHeight
         >
@@ -82,17 +92,18 @@ function SetDefaultWorkspacePage({route}: SetDefaultWorkspacePageProps) {
                         onBackButtonPress={Navigation.goBack}
                     />
                     {shouldShowLoadingIndicator ? (
-                        <FullScreenLoadingIndicator style={[styles.flex1, styles.pRelative]} />
+                        <FullScreenLoadingIndicator
+                            style={[styles.flex1, styles.pRelative]}
+                            reasonAttributes={{context: 'SetDefaultWorkspacePage', isLoadingApp: !!isLoadingApp}}
+                        />
                     ) : (
-                        <SelectionList<WorkspaceListItem>
+                        <SelectionList<WorkspaceListItemType>
+                            data={data}
                             ListItem={UserListItem}
-                            sections={sections}
+                            textInputOptions={textInputOptions}
                             onSelectRow={(option) => selectPolicy(option.policyID)}
-                            textInputLabel={shouldShowSearchInput ? translate('common.search') : undefined}
-                            textInputValue={searchTerm}
-                            onChangeText={setSearchTerm}
-                            headerMessage={shouldShowNoResultsFoundMessage ? translate('common.noResultsFound') : ''}
-                            showLoadingPlaceholder={fetchStatus.status === 'loading' || !didScreenTransitionEnd}
+                            shouldShowLoadingPlaceholder={fetchStatus.status === 'loading' || !didScreenTransitionEnd}
+                            disableMaintainingScrollPosition
                         />
                     )}
                 </>
@@ -100,7 +111,5 @@ function SetDefaultWorkspacePage({route}: SetDefaultWorkspacePageProps) {
         </ScreenWrapper>
     );
 }
-
-SetDefaultWorkspacePage.displayName = 'SetDefaultWorkspacePage';
 
 export default SetDefaultWorkspacePage;

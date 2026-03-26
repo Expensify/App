@@ -222,7 +222,7 @@ describe('SidebarLinksData', () => {
             expect(getDisplayNames()).toHaveLength(1);
 
             // And the draft icon should be shown, indicating there is unsent content.
-            expect(screen.getByTestId('Pencil Icon')).toBeOnTheScreen();
+            expect(screen.getByTestId('Pencil Icon', {includeHiddenElements: true})).toBeOnTheScreen();
         });
 
         it('should display pinned report', async () => {
@@ -250,7 +250,7 @@ describe('SidebarLinksData', () => {
             expect(getOptionRows()).toHaveLength(1);
 
             // And the pin icon should be shown
-            expect(screen.getByTestId('Pin Icon')).toBeOnTheScreen();
+            expect(screen.getByTestId('Pin Icon', {includeHiddenElements: true})).toBeOnTheScreen();
         });
 
         it('should display the report with violations', async () => {
@@ -261,6 +261,8 @@ describe('SidebarLinksData', () => {
             const report: Report = {
                 ...createReport(true, undefined, undefined, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT, TEST_POLICY_ID),
                 ownerAccountID: TEST_USER_ACCOUNT_ID,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
             };
 
             await initializeState({
@@ -277,6 +279,8 @@ describe('SidebarLinksData', () => {
                 ownerAccountID: TEST_USER_ACCOUNT_ID,
                 type: CONST.REPORT.TYPE.EXPENSE,
                 chatReportID: report.reportID,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
             };
             const transaction = LHNTestUtils.getFakeTransaction(expenseReport.reportID);
             const transactionViolation = createFakeTransactionViolation();
@@ -295,7 +299,61 @@ describe('SidebarLinksData', () => {
             await waitForBatchedUpdatesWithAct();
 
             // Then the RBR icon should be shown
-            expect(screen.getByTestId('RBR Icon')).toBeOnTheScreen();
+            expect(screen.getByTestId('RBR Icon', {includeHiddenElements: true})).toBeOnTheScreen();
+        });
+
+        it('should display the GBR on the parent task when it has an open subtask', async () => {
+            // Given the SidebarLinks are rendered.
+            LHNTestUtils.getDefaultRenderedSidebarLinks();
+
+            const parentTaskReport: Report = {
+                ...createReport(false, [TEST_USER_ACCOUNT_ID, 2], 0),
+                reportID: 'parent-task-report',
+                reportName: 'Parent task report',
+                type: CONST.REPORT.TYPE.TASK,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                ownerAccountID: TEST_USER_ACCOUNT_ID,
+                hasOutstandingChildTask: true,
+            };
+
+            const subtaskReportAction: ReportAction = {
+                ...LHNTestUtils.getFakeReportAction(),
+                reportActionID: 'parent-task-action',
+                childReportID: 'subtask-report',
+                childType: CONST.REPORT.TYPE.TASK,
+                childStateNum: CONST.REPORT.STATE_NUM.OPEN,
+                childStatusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            };
+
+            const subtaskReport: Report = {
+                ...createReport(false, [TEST_USER_ACCOUNT_ID, 2], 0),
+                reportID: 'subtask-report',
+                reportName: 'Subtask report',
+                type: CONST.REPORT.TYPE.TASK,
+                parentReportID: parentTaskReport.reportID,
+                parentReportActionID: subtaskReportAction.reportActionID,
+                managerID: TEST_USER_ACCOUNT_ID,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            };
+
+            // When the Onyx state includes a parent task and an open subtask that is waiting on the assignee.
+            await initializeState({
+                [`${ONYXKEYS.COLLECTION.REPORT}${parentTaskReport.reportID}`]: parentTaskReport,
+                [`${ONYXKEYS.COLLECTION.REPORT}${subtaskReport.reportID}`]: subtaskReport,
+            });
+
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentTaskReport.reportID}`, {
+                    [subtaskReportAction.reportActionID]: subtaskReportAction,
+                });
+            });
+
+            await waitForBatchedUpdatesWithAct();
+
+            // That the GBR icon should be shown.
+            expect(screen.getAllByTestId('GBR Icon', {includeHiddenElements: true})).toHaveLength(1);
         });
 
         it('should display the report awaiting user action', async () => {
@@ -317,7 +375,7 @@ describe('SidebarLinksData', () => {
             expect(getOptionRows()).toHaveLength(1);
 
             // And a green dot icon should be shown
-            expect(screen.getByTestId('GBR Icon')).toBeOnTheScreen();
+            expect(screen.getByTestId('GBR Icon', {includeHiddenElements: true})).toBeOnTheScreen();
         });
 
         it('should display the archived report in the default mode', async () => {
@@ -541,7 +599,14 @@ describe('SidebarLinksData', () => {
         it('should not display the single transaction thread', async () => {
             // Given the SidebarLinks are rendered
             LHNTestUtils.getDefaultRenderedSidebarLinks();
-            const expenseReport = buildOptimisticExpenseReport(chatReportR14932.reportID, '123', 100, 122, 'USD');
+            const expenseReport = buildOptimisticExpenseReport({
+                chatReportID: chatReportR14932.reportID,
+                policyID: '123',
+                payeeAccountID: 100,
+                total: 122,
+                currency: 'USD',
+                betas: [CONST.BETAS.ALL],
+            });
             const expenseTransaction = buildOptimisticTransaction({
                 transactionParams: {
                     amount: 100,
@@ -696,6 +761,52 @@ describe('SidebarLinksData', () => {
             // Then the report should not be displayed in the sidebar
             expect(getOptionRows()).toHaveLength(0);
             expect(getDisplayNames()).toHaveLength(0);
+        });
+    });
+
+    describe('Inbox - GBR', () => {
+        it('should display the report with GBR when the report has outstanding child task', async () => {
+            // Given SidebarLinks are rendered initially.
+            LHNTestUtils.getDefaultRenderedSidebarLinks();
+            const reportWithOutstandingChildTask: Report = {
+                ...createReport(false, [1, 2], 0),
+                hasOutstandingChildTask: true,
+            };
+
+            // When Onyx state is initialized with a draft report.
+            await initializeState({
+                [`${ONYXKEYS.COLLECTION.REPORT}${reportWithOutstandingChildTask.reportID}`]: reportWithOutstandingChildTask,
+            });
+
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the sidebar should display the outstanding report.
+            expect(getDisplayNames()).toHaveLength(1);
+
+            // And the GBR icon should be shown, indicating there is require action from current user.
+            expect(screen.getByTestId('GBR Icon', {includeHiddenElements: true})).toBeOnTheScreen();
+        });
+
+        it('should display the report with GRB when the report has unread mention', async () => {
+            LHNTestUtils.getDefaultRenderedSidebarLinks();
+            const reportWithUnreadMention: Report = {
+                ...createReport(false, [1, 2], 0),
+                lastReadTime: '2025-01-01 00:00:00',
+                lastMentionedTime: '2025-01-01 00:00:01',
+            };
+
+            // When Onyx state is initialized with a draft report.
+            await initializeState({
+                [`${ONYXKEYS.COLLECTION.REPORT}${reportWithUnreadMention.reportID}`]: reportWithUnreadMention,
+            });
+
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the sidebar should display the report with unread mention.
+            expect(getDisplayNames()).toHaveLength(1);
+
+            // And the GRB icon should be shown, indicating there is unread mention.
+            expect(screen.getByTestId('GBR Icon', {includeHiddenElements: true})).toBeOnTheScreen();
         });
     });
 });

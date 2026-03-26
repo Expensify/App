@@ -1,4 +1,5 @@
 import React from 'react';
+import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import Checkbox from '@components/Checkbox';
 import {PressableWithFeedback} from '@components/Pressable';
@@ -12,17 +13,20 @@ type ListHeaderProps<TItem extends ListItem> = {
     /** Data details containing selection state and items info */
     dataDetails: DataDetailsType<TItem>;
 
-    /** Message to display above the list */
-    aboveListHeaderMessage?: string;
-
     /** Custom header content to render instead of the default select all header */
     customListHeader?: React.ReactNode;
 
     /** Whether multiple items can be selected */
     canSelectMultiple: boolean;
 
+    /** Styles for the list header wrapper */
+    headerStyle?: StyleProp<ViewStyle>;
+
     /** Function called when the select all button is pressed */
-    onSelectAll?: () => void;
+    onSelectAll: () => void;
+
+    /** Whether to show 'Select all' button */
+    shouldShowSelectAllButton: boolean;
 
     /** Whether to prevent default focus when selecting rows */
     shouldPreventDefaultFocusOnSelectRow?: boolean;
@@ -30,20 +34,17 @@ type ListHeaderProps<TItem extends ListItem> = {
 
 function ListHeader<TItem extends ListItem>({
     dataDetails,
-    aboveListHeaderMessage,
     customListHeader,
     canSelectMultiple,
     onSelectAll,
+    headerStyle,
+    shouldShowSelectAllButton,
     shouldPreventDefaultFocusOnSelectRow,
 }: ListHeaderProps<TItem>) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    if (aboveListHeaderMessage) {
-        return null;
-    }
-
-    if (!canSelectMultiple || !onSelectAll) {
+    if (!canSelectMultiple || !shouldShowSelectAllButton) {
         return customListHeader;
     }
 
@@ -58,12 +59,13 @@ function ListHeader<TItem extends ListItem>({
 
     return (
         <View
-            style={[styles.userSelectNone, styles.peopleRow, styles.ph5, styles.pb3, styles.selectionListStickyHeader]}
-            accessibilityRole="header"
+            style={[styles.userSelectNone, styles.peopleRow, styles.ph5, styles.pb3, headerStyle, styles.selectionListStickyHeader]}
+            accessibilityRole={CONST.ROLE.HEADER}
         >
             <View style={[styles.flexRow, styles.alignItemsCenter]}>
                 <Checkbox
-                    accessibilityLabel={translate('workspace.people.selectAll')}
+                    testID="selection-list-select-all-checkbox"
+                    accessibilityLabel={translate('accessibilityHints.selectAllItems')}
                     isChecked={dataDetails.allSelected}
                     isIndeterminate={dataDetails.someSelected}
                     onPress={onSelectAll}
@@ -74,7 +76,8 @@ function ListHeader<TItem extends ListItem>({
                     <PressableWithFeedback
                         style={[styles.userSelectNone, styles.flexRow, styles.alignItemsCenter]}
                         onPress={onSelectAll}
-                        accessibilityLabel={translate('workspace.people.selectAll')}
+                        accessibilityLabel={translate('accessibilityHints.selectAllItems')}
+                        sentryLabel={CONST.SENTRY_LABEL.SELECTION_LIST.LIST_HEADER_SELECT_ALL}
                         accessibilityRole="button"
                         accessibilityState={{checked: dataDetails.allSelected, disabled: allDisabled}}
                         disabled={allDisabled}
@@ -89,5 +92,7 @@ function ListHeader<TItem extends ListItem>({
         </View>
     );
 }
+
+ListHeader.displayName = 'ListHeader';
 
 export default React.memo(ListHeader);

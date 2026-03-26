@@ -1,7 +1,5 @@
 require('dotenv').config();
 
-const IS_E2E_TESTING = process.env.E2E_TESTING === 'true';
-
 const ReactCompilerConfig = {
     target: '19',
     environment: {
@@ -48,17 +46,12 @@ const defaultPluginsForWebpack = [
     '@babel/plugin-transform-export-namespace-from',
 ];
 
-// The Fullstory annotate plugin generated a few errors when executed in Electron. Let's
-// ignore it for desktop builds.
-if (!process.env.ELECTRON_ENV && process.env.npm_lifecycle_event !== 'desktop') {
-    console.debug('This is not a desktop build, adding babel-plugin-annotate-react');
-    defaultPluginsForWebpack.push([
-        '@fullstory/babel-plugin-annotate-react',
-        {
-            native: true,
-        },
-    ]);
-}
+defaultPluginsForWebpack.push([
+    '@fullstory/babel-plugin-annotate-react',
+    {
+        native: true,
+    },
+]);
 
 if (process.env.DEBUG_BABEL_TRACE) {
     defaultPluginsForWebpack.push(traceTransformer);
@@ -125,7 +118,6 @@ const metro = {
                     // This path is provide alias for files like `ONYXKEYS` and `CONST`.
                     '@src': './src',
                     '@userActions': './src/libs/actions',
-                    '@desktop': './desktop',
                     '@github': './.github',
                     '@selectors': './src/selectors',
                 },
@@ -137,8 +129,7 @@ const metro = {
     ],
     env: {
         production: {
-            // Keep console logs for e2e tests
-            plugins: IS_E2E_TESTING ? [] : [['transform-remove-console', {exclude: ['error', 'warn']}]],
+            plugins: [['transform-remove-console', {exclude: ['error', 'warn']}]],
         },
     },
 };

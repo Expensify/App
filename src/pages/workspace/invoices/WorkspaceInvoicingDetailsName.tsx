@@ -31,12 +31,12 @@ function WorkspaceInvoicingDetailsName({route}: WorkspaceInvoicingDetailsNamePro
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
 
     const submit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_INVOICES_COMPANY_NAME_FORM>) => {
-        updateInvoiceCompanyName(policyID, values[INPUT_IDS.COMPANY_NAME]);
+        updateInvoiceCompanyName(policyID, values[INPUT_IDS.COMPANY_NAME], policy?.invoice?.companyName);
         Navigation.goBack();
     };
 
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_INVOICES_COMPANY_NAME_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_INVOICES_COMPANY_NAME_FORM> =>
-        getFieldRequiredErrors(values, [INPUT_IDS.COMPANY_NAME]);
+        getFieldRequiredErrors(values, [INPUT_IDS.COMPANY_NAME], translate);
 
     return (
         <AccessOrNotFoundWrapper
@@ -45,7 +45,7 @@ function WorkspaceInvoicingDetailsName({route}: WorkspaceInvoicingDetailsNamePro
             featureName={CONST.POLICY.MORE_FEATURES.ARE_INVOICES_ENABLED}
         >
             <ScreenWrapper
-                testID={WorkspaceInvoicingDetailsName.displayName}
+                testID="WorkspaceInvoicingDetailsName"
                 shouldEnablePickerAvoiding={false}
                 shouldEnableMaxHeight
                 enableEdgeToEdgeBottomSafeAreaPadding
@@ -75,7 +75,5 @@ function WorkspaceInvoicingDetailsName({route}: WorkspaceInvoicingDetailsNamePro
         </AccessOrNotFoundWrapper>
     );
 }
-
-WorkspaceInvoicingDetailsName.displayName = 'WorkspaceInvoicingDetailsName';
 
 export default WorkspaceInvoicingDetailsName;

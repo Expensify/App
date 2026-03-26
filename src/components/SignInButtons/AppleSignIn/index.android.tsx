@@ -1,4 +1,5 @@
 import {appleAuthAndroid} from '@invertase/react-native-apple-authentication';
+import type {AndroidConfig} from '@invertase/react-native-apple-authentication';
 import React from 'react';
 import IconButton from '@components/SignInButtons/IconButton';
 import useOnyx from '@hooks/useOnyx';
@@ -12,11 +13,12 @@ import type {AppleSignInProps} from '.';
 /**
  * Apple Sign In Configuration for Android.
  */
-const config = {
+const config: AndroidConfig = {
     clientId: CONFIG.APPLE_SIGN_IN.SERVICE_ID,
     redirectUri: CONFIG.APPLE_SIGN_IN.REDIRECT_URI,
     responseType: appleAuthAndroid.ResponseType.ALL,
     scope: appleAuthAndroid.Scope.ALL,
+    fullScreen: false,
 };
 
 /**
@@ -37,7 +39,7 @@ function appleSignInRequest(): Promise<string | undefined> {
  * Apple Sign In button for Android.
  */
 function AppleSignIn({onPress = () => {}}: AppleSignInProps) {
-    const [preferredLocale] = useOnyx(ONYXKEYS.NVP_PREFERRED_LOCALE, {canBeMissing: true});
+    const [preferredLocale] = useOnyx(ONYXKEYS.NVP_PREFERRED_LOCALE);
     const handleSignIn = () => {
         appleSignInRequest()
             .then((token) => beginAppleSignIn(token, preferredLocale))
@@ -58,7 +60,5 @@ function AppleSignIn({onPress = () => {}}: AppleSignInProps) {
         />
     );
 }
-
-AppleSignIn.displayName = 'AppleSignIn';
 
 export default AppleSignIn;

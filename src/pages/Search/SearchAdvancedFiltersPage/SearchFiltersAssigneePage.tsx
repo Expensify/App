@@ -15,11 +15,11 @@ function SearchFiltersAssigneePage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {canBeMissing: false});
+    const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
 
     return (
         <ScreenWrapper
-            testID={SearchFiltersAssigneePage.displayName}
+            testID="SearchFiltersAssigneePage"
             includeSafeAreaPaddingBottom
             shouldShowOfflineIndicatorInWideScreen
             offlineIndicatorStyle={styles.mtAuto}
@@ -44,7 +44,5 @@ function SearchFiltersAssigneePage() {
         </ScreenWrapper>
     );
 }
-
-SearchFiltersAssigneePage.displayName = 'SearchFiltersAssigneePage';
 
 export default SearchFiltersAssigneePage;

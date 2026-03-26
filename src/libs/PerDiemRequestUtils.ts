@@ -2,21 +2,18 @@ import {addDays, differenceInDays, differenceInMinutes, format, isSameDay, start
 import lodashSortBy from 'lodash/sortBy';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
+import type {Section} from '@components/SelectionList/SelectionListWithSections/types';
 import CONST from '@src/CONST';
-import type {Report, Transaction} from '@src/types/onyx';
+import type {Policy, Report, Transaction} from '@src/types/onyx';
 import type {CustomUnit, Rate} from '@src/types/onyx/Policy';
-import type {OptionTree, SectionBase} from './OptionsListUtils';
-import {getPolicy} from './PolicyUtils';
+import type {OptionTree} from './OptionsListUtils';
 import {isPolicyExpenseChat} from './ReportUtils';
 import tokenizedSearch from './tokenizedSearch';
 
 /**
  * Returns custom unit ID for the per diem transaction
  */
-function getCustomUnitID(report: OnyxEntry<Report>, parentReport: OnyxEntry<Report>) {
-    // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const policy = getPolicy(report?.policyID ?? parentReport?.policyID);
+function getCustomUnitID(report: OnyxEntry<Report>, parentReport: OnyxEntry<Report>, policy: OnyxEntry<Policy>) {
     let customUnitID: string = CONST.CUSTOM_UNITS.FAKE_P2P_ID;
     let category: string | undefined;
 
@@ -34,10 +31,7 @@ type ModifiedOptionTree = OptionTree & {
     currency: string;
 };
 
-type DestinationTreeSection = SectionBase & {
-    data: ModifiedOptionTree[];
-    indexOffset?: number;
-};
+type DestinationTreeSection = Section<ModifiedOptionTree>;
 
 type Destination = {
     name: string;
@@ -56,9 +50,9 @@ type Destination = {
  */
 function getDestinationOptionTree(options: Destination[]): ModifiedOptionTree[] {
     const optionCollection = new Map<string, ModifiedOptionTree>();
-    Object.values(options).forEach((option) => {
+    for (const option of Object.values(options)) {
         if (optionCollection.has(option.rateID)) {
-            return;
+            continue;
         }
 
         optionCollection.set(option.rateID, {
@@ -70,7 +64,7 @@ function getDestinationOptionTree(options: Destination[]): ModifiedOptionTree[] 
             isSelected: !!option.isSelected,
             currency: option.currency,
         });
-    });
+    }
 
     return Array.from(optionCollection.values());
 }
@@ -110,9 +104,8 @@ function getDestinationListSections({
         destinationSections.push({
             // "Search" section
             title: '',
-            shouldShow: true,
             data,
-            indexOffset: data.length,
+            sectionIndex: 0,
         });
 
         return destinationSections;
@@ -123,16 +116,15 @@ function getDestinationListSections({
         destinationSections.push({
             // "Selected" section
             title: '',
-            shouldShow: false,
             data,
-            indexOffset: data.length,
+            sectionIndex: 1,
         });
     }
 
-    const selectedOptionRateIDs = selectedOptions.map((selectedOption) => selectedOption.rateID);
+    const selectedOptionRateIDs = new Set(selectedOptions.map((selectedOption) => selectedOption.rateID));
 
     if (sortedDestinations.length < CONST.STANDARD_LIST_ITEM_LIMIT) {
-        const filteredNonSelectedDestinations = sortedDestinations.filter(({rateID}) => !selectedOptionRateIDs.includes(rateID));
+        const filteredNonSelectedDestinations = sortedDestinations.filter(({rateID}) => !selectedOptionRateIDs.has(rateID));
         if (filteredNonSelectedDestinations.length === 0) {
             return destinationSections;
         }
@@ -140,15 +132,14 @@ function getDestinationListSections({
         destinationSections.push({
             // "All" section when items amount less than the threshold
             title: '',
-            shouldShow: false,
             data,
-            indexOffset: data.length,
+            sectionIndex: 2,
         });
 
         return destinationSections;
     }
 
-    const filteredRecentlyUsedDestinations = sortedDestinations.filter(({rateID}) => recentlyUsedDestinations.includes(rateID) && !selectedOptionRateIDs.includes(rateID));
+    const filteredRecentlyUsedDestinations = sortedDestinations.filter(({rateID}) => recentlyUsedDestinations.includes(rateID) && !selectedOptionRateIDs.has(rateID));
 
     if (filteredRecentlyUsedDestinations.length > 0) {
         const cutRecentlyUsedDestinations = filteredRecentlyUsedDestinations.slice(0, maxRecentReportsToShow);
@@ -157,9 +148,8 @@ function getDestinationListSections({
         destinationSections.push({
             // "Recent" section
             title: translate('common.recent'),
-            shouldShow: true,
             data,
-            indexOffset: data.length,
+            sectionIndex: 3,
         });
     }
 
@@ -167,9 +157,8 @@ function getDestinationListSections({
     destinationSections.push({
         // "All" section when items amount more than the threshold
         title: translate('common.all'),
-        shouldShow: true,
         data,
-        indexOffset: data.length,
+        sectionIndex: 4,
     });
 
     return destinationSections;

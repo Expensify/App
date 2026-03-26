@@ -1,6 +1,5 @@
 import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
-import type {CurrentUserPersonalDetails} from '@components/CurrentUserPersonalDetailsProvider';
 import type {FormOnyxValues} from '@components/Form/types';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import * as API from '@libs/API';
@@ -24,15 +23,44 @@ import * as ErrorUtils from '@libs/ErrorUtils';
 import * as LoginUtils from '@libs/LoginUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
-import * as UserUtils from '@libs/UserUtils';
+import * as UserAvatarUtils from '@libs/UserAvatarUtils';
 import type {Country} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {DateOfBirthForm} from '@src/types/form';
 import type {PersonalDetails} from '@src/types/onyx';
-import type {SelectedTimezone, Timezone} from '@src/types/onyx/PersonalDetails';
+import type {CurrentUserPersonalDetails, SelectedTimezone, Timezone} from '@src/types/onyx/PersonalDetails';
 import type {Address} from '@src/types/onyx/PrivatePersonalDetails';
+
+type PersonalDetailsFormValues = {
+    legalFirstName?: string;
+    legalLastName?: string;
+    phoneNumber?: string;
+    city: string;
+    addressLine1?: string;
+    addressLine2?: string;
+    zipPostCode?: string;
+    country: Country | '';
+    addressState?: string;
+    state: string;
+    dob: string;
+};
+
+function buildSetPersonalDetailsAndShipExpensifyCardsParams(values: PersonalDetailsFormValues, countryCode: number): Omit<SetPersonalDetailsAndShipExpensifyCardsParams, 'validateCode'> {
+    return {
+        legalFirstName: values.legalFirstName?.trim() ?? '',
+        legalLastName: values.legalLastName?.trim() ?? '',
+        phoneNumber: LoginUtils.appendCountryCode(values.phoneNumber?.trim() ?? '', countryCode),
+        addressCity: values.city.trim(),
+        addressStreet: values.addressLine1?.trim() ?? '',
+        addressStreet2: values.addressLine2?.trim() ?? '',
+        addressZip: values.zipPostCode?.trim().toUpperCase() ?? '',
+        addressCountry: values.country,
+        addressState: (values.addressState ?? values.state).trim(),
+        dob: values.dob,
+    };
+}
 
 function updatePronouns(pronouns: string, currentUserAccountID: number) {
     if (!currentUserAccountID) {
@@ -115,7 +143,7 @@ function updateLegalName(
     currentUserPersonalDetail: Pick<CurrentUserPersonalDetails, 'firstName' | 'lastName' | 'accountID' | 'email'>,
 ) {
     const parameters: UpdateLegalNameParams = {legalFirstName, legalLastName};
-    const optimisticData: OnyxUpdate[] = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.PRIVATE_PERSONAL_DETAILS | typeof ONYXKEYS.PERSONAL_DETAILS_LIST>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
@@ -223,7 +251,10 @@ function updateAddress(addresses: Address[], street: string, street2: string, ci
     if (country !== CONST.COUNTRY.US) {
         parameters.addressStateLong = state;
     }
-
+    const updatedAddresses = addresses.map((address) => ({
+        ...address,
+        current: false,
+    }));
     API.write(WRITE_COMMANDS.UPDATE_HOME_ADDRESS, parameters, {
         optimisticData: [
             {
@@ -231,7 +262,7 @@ function updateAddress(addresses: Address[], street: string, street2: string, ci
                 key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
                 value: {
                     addresses: [
-                        ...addresses,
+                        ...updatedAddresses,
                         {
                             street: PersonalDetailsUtils.getFormattedStreet(street, street2),
                             city,
@@ -316,7 +347,7 @@ function updateSelectedTimezone(selectedTimezone: SelectedTimezone, currentUserA
  * but the profile page will use other info (e.g. contact methods and pronouns) if they are already available in Onyx
  */
 function openPublicProfilePage(accountID: number) {
-    const optimisticData: OnyxUpdate[] = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.PERSONAL_DETAILS_METADATA>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.PERSONAL_DETAILS_METADATA,
@@ -328,7 +359,7 @@ function openPublicProfilePage(accountID: number) {
         },
     ];
 
-    const successData: OnyxUpdate[] = [
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.PERSONAL_DETAILS_METADATA>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.PERSONAL_DETAILS_METADATA,
@@ -340,7 +371,7 @@ function openPublicProfilePage(accountID: number) {
         },
     ];
 
-    const failureData: OnyxUpdate[] = [
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.PERSONAL_DETAILS_METADATA>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.PERSONAL_DETAILS_METADATA,
@@ -377,7 +408,7 @@ function updateAvatar(
         return;
     }
 
-    const optimisticData: OnyxUpdate[] = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.PERSONAL_DETAILS_LIST>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
@@ -398,7 +429,7 @@ function updateAvatar(
             },
         },
     ];
-    const successData: OnyxUpdate[] = [
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.PERSONAL_DETAILS_LIST>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
@@ -411,7 +442,7 @@ function updateAvatar(
             },
         },
     ];
-    const failureData: OnyxUpdate[] = [
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.PERSONAL_DETAILS_LIST>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
@@ -442,9 +473,9 @@ function deleteAvatar(currentUserPersonalDetails: Pick<CurrentUserPersonalDetail
     }
 
     // We want to use the old dot avatar here as this affects both platforms.
-    const defaultAvatar = UserUtils.getDefaultAvatarURL(currentUserPersonalDetails.accountID, currentUserPersonalDetails.email);
+    const defaultAvatar = UserAvatarUtils.getDefaultAvatarURL({accountID: currentUserPersonalDetails.accountID, accountEmail: currentUserPersonalDetails.email});
 
-    const optimisticData: OnyxUpdate[] = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.PERSONAL_DETAILS_LIST>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
@@ -456,7 +487,7 @@ function deleteAvatar(currentUserPersonalDetails: Pick<CurrentUserPersonalDetail
             },
         },
     ];
-    const failureData: OnyxUpdate[] = [
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.PERSONAL_DETAILS_LIST>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
@@ -503,16 +534,7 @@ function clearPersonalDetailsErrors() {
 
 function updatePersonalDetailsAndShipExpensifyCards(values: FormOnyxValues<typeof ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM>, validateCode: string, countryCode: number) {
     const parameters: SetPersonalDetailsAndShipExpensifyCardsParams = {
-        legalFirstName: values.legalFirstName?.trim() ?? '',
-        legalLastName: values.legalLastName?.trim() ?? '',
-        phoneNumber: LoginUtils.appendCountryCode(values.phoneNumber?.trim() ?? '', countryCode),
-        addressCity: values.city.trim(),
-        addressStreet: values.addressLine1?.trim() ?? '',
-        addressStreet2: values.addressLine2?.trim() ?? '',
-        addressZip: values.zipPostCode?.trim().toUpperCase() ?? '',
-        addressCountry: values.country,
-        addressState: values.state.trim(),
-        dob: values.dob,
+        ...buildSetPersonalDetailsAndShipExpensifyCardsParams(values, countryCode),
         validateCode,
     };
 
@@ -555,4 +577,5 @@ export {
     updateSelectedTimezone,
     updatePersonalDetailsAndShipExpensifyCards,
     clearPersonalDetailsErrors,
+    buildSetPersonalDetailsAndShipExpensifyCardsParams,
 };

@@ -6,6 +6,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import Navigation from '@libs/Navigation/Navigation';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {openEnablePaymentsPage} from '@userActions/Wallet';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -22,7 +23,6 @@ function EnablePaymentsPage() {
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET, {
-        canBeMissing: true,
         // We want to refresh the wallet each time the user attempts to activate the wallet so we won't use the
         // stored values here.
         initWithStoredValues: false,
@@ -44,16 +44,20 @@ function EnablePaymentsPage() {
         openEnablePaymentsPage();
     }, [isOffline, isPendingOnfidoResult, hasFailedOnfido]);
 
-    if (isEmptyObject(userWallet)) {
-        return <FullScreenLoadingIndicator />;
+    const isUserWalletEmpty = isEmptyObject(userWallet);
+    if (isUserWalletEmpty) {
+        const reasonAttributes: SkeletonSpanReasonAttributes = {
+            context: 'EnablePaymentsPage',
+            isUserWalletEmpty,
+        };
+        return <FullScreenLoadingIndicator reasonAttributes={reasonAttributes} />;
     }
 
     return (
         <ScreenWrapper
             shouldShowOfflineIndicator={userWallet?.currentStep !== CONST.WALLET.STEP.ONFIDO}
             includeSafeAreaPaddingBottom
-            testID={EnablePaymentsPage.displayName}
-            forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
+            testID="EnablePaymentsPage"
         >
             {() => {
                 if (userWallet?.errorCode === CONST.WALLET.ERROR.KYC) {
@@ -87,7 +91,5 @@ function EnablePaymentsPage() {
         </ScreenWrapper>
     );
 }
-
-EnablePaymentsPage.displayName = 'EnablePaymentsPage';
 
 export default EnablePaymentsPage;

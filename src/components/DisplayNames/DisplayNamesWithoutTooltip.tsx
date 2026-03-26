@@ -32,6 +32,4 @@ function DisplayNamesWithoutTooltip({textStyles = [], numberOfLines = 1, fullTit
     );
 }
 
-DisplayNamesWithoutTooltip.displayName = 'DisplayNamesWithoutTooltip';
-
 export default DisplayNamesWithoutTooltip;

@@ -1,17 +1,19 @@
-import React, {useEffect} from 'react';
+import React, {useState} from 'react';
 import type {ReactNode} from 'react';
 import {View} from 'react-native';
 import type {StyleProp, ViewStyle} from 'react-native';
-import Animated, {runOnJS, useAnimatedStyle, useDerivedValue, useSharedValue, withTiming} from 'react-native-reanimated';
+import Animated, {useAnimatedStyle, useDerivedValue, useSharedValue, withTiming} from 'react-native-reanimated';
+import {scheduleOnRN} from 'react-native-worklets';
 import Icon from '@components/Icon';
-import * as Expensicons from '@components/Icon/Expensicons';
 import {easing} from '@components/Modal/ReanimatedModal/utils';
 import {PressableWithFeedback} from '@components/Pressable';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
+import type WithSentryLabel from '@src/types/utils/SentryLabel';
 
-type AnimatedCollapsibleProps = {
+type AnimatedCollapsibleProps = WithSentryLabel & {
     /** Whether the component is expanded */
     isExpanded: boolean;
 
@@ -66,19 +68,22 @@ function AnimatedCollapsible({
     disabled = false,
     shouldShowToggleButton = true,
     borderBottomStyle,
+    sentryLabel,
 }: AnimatedCollapsibleProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['UpArrow', 'DownArrow']);
     const contentHeight = useSharedValue(0);
     const descriptionHeight = useSharedValue(0);
     const hasExpanded = useSharedValue(isExpanded);
-    const [isRendered, setIsRendered] = React.useState(isExpanded);
-    useEffect(() => {
-        hasExpanded.set(isExpanded);
-        if (isExpanded) {
-            setIsRendered(true);
-        }
-    }, [isExpanded, hasExpanded]);
+    const [isRendered, setIsRendered] = useState(isExpanded);
+
+    // Keep Reanimated shared value in sync with prop (idempotent when unchanged)
+    hasExpanded.set(isExpanded);
+    // Mount content for collapse animation once expanded; unmount after animation via scheduleOnRN
+    if (isExpanded && !isRendered) {
+        setIsRendered(true);
+    }
 
     const animatedHeight = useDerivedValue(() => {
         if (!contentHeight.get()) {
@@ -91,7 +96,7 @@ function AnimatedCollapsible({
             if (!finished || target) {
                 return;
             }
-            runOnJS(setIsRendered)(false);
+            scheduleOnRN(setIsRendered, false);
         });
     }, []);
 
@@ -114,9 +119,10 @@ function AnimatedCollapsible({
     const descriptionAnimatedStyle = useAnimatedStyle(() => {
         return {
             opacity: descriptionOpacity.get(),
-            height: descriptionAnimatedHeight.get(),
+            // The row is collapsed by default, so we don't need to animate the height when it's not expanded
+            height: isRendered ? descriptionAnimatedHeight.get() : undefined,
         };
-    }, []);
+    }, [isRendered]);
 
     const contentAnimatedStyle = useAnimatedStyle(() => {
         return {
@@ -136,10 +142,11 @@ function AnimatedCollapsible({
                         style={[styles.p3Half, styles.justifyContentCenter, styles.alignItemsCenter, expandButtonStyle]}
                         accessibilityRole={CONST.ROLE.BUTTON}
                         accessibilityLabel={isExpanded ? CONST.ACCESSIBILITY_LABELS.COLLAPSE : CONST.ACCESSIBILITY_LABELS.EXPAND}
+                        sentryLabel={sentryLabel}
                     >
                         {({hovered}) => (
                             <Icon
-                                src={isExpanded ? Expensicons.UpArrow : Expensicons.DownArrow}
+                                src={isExpanded ? expensifyIcons.UpArrow : expensifyIcons.DownArrow}
                                 fill={theme.icon}
                                 additionalStyles={!hovered && styles.opacitySemiTransparent}
                                 small
@@ -148,9 +155,10 @@ function AnimatedCollapsible({
                     </PressableWithFeedback>
                 )}
             </View>
-            {!!description && (
-                <Animated.View style={descriptionAnimatedStyle}>
-                    <View
+            <Animated.View style={descriptionAnimatedStyle}>
+                {!!description && !isExpanded && (
+                    <Animated.View
+                        style={isRendered && styles.stickToTop}
                         onLayout={(e) => {
                             const height = e.nativeEvent.layout.height;
                             if (height) {
@@ -159,9 +167,9 @@ function AnimatedCollapsible({
                         }}
                     >
                         {description}
-                    </View>
-                </Animated.View>
-            )}
+                    </Animated.View>
+                )}
+            </Animated.View>
             <Animated.View style={[contentAnimatedStyle, contentStyle]}>
                 {isExpanded || isRendered ? (
                     <Animated.View
@@ -184,7 +192,5 @@ function AnimatedCollapsible({
         </View>
     );
 }
-
-AnimatedCollapsible.displayName = 'AnimatedCollapsible';
 
 export default AnimatedCollapsible;

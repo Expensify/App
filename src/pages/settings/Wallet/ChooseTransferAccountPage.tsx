@@ -4,17 +4,18 @@ import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
 import getBankIcon from '@components/Icon/BankIcons';
-import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import ScreenWrapper from '@components/ScreenWrapper';
-import SelectionList from '@components/SelectionListWithSections';
-import RadioListItem from '@components/SelectionListWithSections/RadioListItem';
-import type {ListItem} from '@components/SelectionListWithSections/types';
+import SelectionList from '@components/SelectionList';
+import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
+import type {ListItem} from '@components/SelectionList/types';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getLastFourDigits} from '@libs/BankAccountUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {openPersonalBankAccountSetupView} from '@userActions/BankAccounts';
 import {saveWalletTransferAccountTypeAndID} from '@userActions/PaymentMethods';
 import CONST from '@src/CONST';
@@ -30,7 +31,7 @@ type BankAccountListItem = ListItem & {
 };
 
 function ChooseTransferAccountPage() {
-    const [walletTransfer, walletTransferResult] = useOnyx(ONYXKEYS.WALLET_TRANSFER, {canBeMissing: true});
+    const [walletTransfer, walletTransferResult] = useOnyx(ONYXKEYS.WALLET_TRANSFER);
 
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -56,10 +57,11 @@ function ChooseTransferAccountPage() {
         openPersonalBankAccountSetupView({});
     };
 
-    const [bankAccountsList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
+    const [bankAccountsList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
+    const icons = useMemoizedLazyExpensifyIcons(['Plus'] as const);
     const selectedAccountID = walletTransfer?.selectedAccountID;
-    const data = useMemo(() => {
-        const options = Object.values(bankAccountsList ?? {}).map((bankAccount): BankAccountListItem => {
+    const bankAccountOptions = useMemo(() => {
+        const options = Object.values(bankAccountsList ?? {}).map((bankAccount, index): BankAccountListItem => {
             const bankName = (bankAccount.accountData?.additionalData?.bankName ?? '') as BankName;
             const bankAccountNumber = bankAccount.accountData?.accountNumber ?? '';
             const bankAccountID = bankAccount.accountData?.bankAccountID ?? bankAccount.methodID;
@@ -78,7 +80,7 @@ function ChooseTransferAccountPage() {
                     </View>
                 ) : null,
                 alternateText: `${translate('workspace.expensifyCard.accountEndingIn')} ${getLastFourDigits(bankAccountNumber)}`,
-                keyForList: bankAccountID?.toString(),
+                keyForList: `${bankAccountID}-${index}`,
                 isSelected: bankAccountID?.toString() === selectedAccountID,
                 bankAccount,
             };
@@ -86,19 +88,28 @@ function ChooseTransferAccountPage() {
         return options;
     }, [bankAccountsList, selectedAccountID, styles, translate]);
 
+    const initiallyFocusedItemKey = useMemo(() => {
+        if (!selectedAccountID) {
+            return undefined;
+        }
+        const selectedOption = bankAccountOptions.find((option) => option.value?.toString() === selectedAccountID.toString());
+        return selectedOption?.keyForList;
+    }, [bankAccountOptions, selectedAccountID]);
+
     if (isLoadingOnyxValue(walletTransferResult)) {
-        return <FullscreenLoadingIndicator />;
+        const reasonAttributes: SkeletonSpanReasonAttributes = {context: 'ChooseTransferAccountPage', walletTransferLoaded: false};
+        return <FullscreenLoadingIndicator reasonAttributes={reasonAttributes} />;
     }
 
     return (
-        <ScreenWrapper testID={ChooseTransferAccountPage.displayName}>
+        <ScreenWrapper testID="ChooseTransferAccountPage">
             <HeaderWithBackButton
                 title={translate('chooseTransferAccountPage.chooseAccount')}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WALLET_TRANSFER_BALANCE)}
             />
 
             <SelectionList
-                sections={[{data}]}
+                data={bankAccountOptions}
                 ListItem={RadioListItem}
                 onSelectRow={(value) => {
                     const accountType = value?.bankAccount?.accountType;
@@ -107,7 +118,7 @@ function ChooseTransferAccountPage() {
                 }}
                 shouldSingleExecuteRowSelect
                 shouldUpdateFocusedIndex
-                initiallyFocusedOptionKey={walletTransfer?.selectedAccountID?.toString()}
+                initiallyFocusedItemKey={initiallyFocusedItemKey}
                 listFooterContent={
                     <MenuItem
                         onPress={navigateToAddPaymentMethodPage}
@@ -116,14 +127,12 @@ function ChooseTransferAccountPage() {
                                 ? translate('paymentMethodList.addNewBankAccount')
                                 : translate('paymentMethodList.addNewDebitCard')
                         }
-                        icon={Expensicons.Plus}
+                        icon={icons.Plus}
                     />
                 }
             />
         </ScreenWrapper>
     );
 }
-
-ChooseTransferAccountPage.displayName = 'ChooseTransferAccountPage';
 
 export default ChooseTransferAccountPage;

@@ -1,5 +1,7 @@
+import {randomInt} from 'crypto';
 import Onyx from 'react-native-onyx';
 import {measureFunction} from 'reassure';
+import type PolicyData from '@hooks/usePolicyData/types';
 import {
     canDeleteReportAction,
     canShowReportRecipientLocalTime,
@@ -8,26 +10,32 @@ import {
     getIcons,
     getIconsForParticipants,
     getIOUReportActionDisplayMessage,
+    // Will be fixed in https://github.com/Expensify/App/issues/76852
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     getReportName,
     getReportPreviewMessage,
     getReportRecipientAccountIDs,
     getTransactionDetails,
     getWorkspaceChats,
     getWorkspaceIcon,
+    pushTransactionViolationsOnyxData,
     shouldReportBeInOptionList,
     temporary_getMoneyRequestOptions,
 } from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PersonalDetails, Policy, Report, ReportAction} from '@src/types/onyx';
+import type {PersonalDetails, Policy, Report, ReportAction, ReportTransactionsAndViolationsDerivedValue} from '@src/types/onyx';
+import type {OnyxData} from '@src/types/onyx/Request';
 import {chatReportR14932 as chatReport} from '../../__mocks__/reportData/reports';
 import createCollection from '../utils/collections/createCollection';
 import createPersonalDetails from '../utils/collections/personalDetails';
 import createRandomPolicy from '../utils/collections/policies';
+import createRandomPolicyCategories from '../utils/collections/policyCategory';
+import createRandomPolicyTags from '../utils/collections/policyTags';
 import createRandomReportAction from '../utils/collections/reportActions';
 import {createRandomReport} from '../utils/collections/reports';
 import createRandomTransaction from '../utils/collections/transaction';
-import {localeCompare} from '../utils/TestHelper';
+import {formatPhoneNumber, localeCompare, translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 const getMockedReports = (length = 500) =>
@@ -120,7 +128,7 @@ describe('ReportUtils', () => {
         const defaultIconId = -1;
 
         await waitForBatchedUpdates();
-        await measureFunction(() => getIcons(report, personalDetails, defaultIcon, defaultName, defaultIconId, policy));
+        await measureFunction(() => getIcons(report, formatPhoneNumber, personalDetails, defaultIcon, defaultName, defaultIconId, policy));
     });
 
     test('[ReportUtils] getDisplayNamesWithTooltips 1k participants', async () => {
@@ -128,7 +136,7 @@ describe('ReportUtils', () => {
         const shouldFallbackToHidden = true;
 
         await waitForBatchedUpdates();
-        await measureFunction(() => getDisplayNamesWithTooltips(personalDetails, isMultipleParticipantReport, localeCompare, shouldFallbackToHidden));
+        await measureFunction(() => getDisplayNamesWithTooltips(personalDetails, isMultipleParticipantReport, localeCompare, formatPhoneNumber, shouldFallbackToHidden));
     });
 
     test('[ReportUtils] getReportPreviewMessage on 1k policies', async () => {
@@ -147,7 +155,9 @@ describe('ReportUtils', () => {
         const policy = createRandomPolicy(1);
 
         await waitForBatchedUpdates();
-        await measureFunction(() => getReportName(report, policy));
+        // Will be fixed in https://github.com/Expensify/App/issues/76852
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        await measureFunction(() => getReportName({report, policy}));
     });
 
     test('[ReportUtils] canShowReportRecipientLocalTime on 1k participants', async () => {
@@ -194,7 +204,7 @@ describe('ReportUtils', () => {
         const reportParticipants = Array.from({length: 1000}, (v, i) => i + 1);
 
         await waitForBatchedUpdates();
-        await measureFunction(() => temporary_getMoneyRequestOptions(report, policy, reportParticipants));
+        await measureFunction(() => temporary_getMoneyRequestOptions(report, policy, reportParticipants, [CONST.BETAS.ALL]));
     });
 
     test('[ReportUtils] getWorkspaceChat on 1k policies', async () => {
@@ -210,6 +220,61 @@ describe('ReportUtils', () => {
 
         await waitForBatchedUpdates();
         await measureFunction(() => getTransactionDetails(transaction, 'yyyy-MM-dd'));
+    });
+
+    test('[ReportUtils] pushTransactionViolationsOnyxData on 1k reports with random expenses on each report', async () => {
+        const policyID = '1';
+
+        // Link report to the policy
+        const reports = Object.values(getMockedReports(1000)).map((report) => ({
+            ...report,
+            policyID,
+        }));
+
+        const policyData: PolicyData = {
+            reports,
+            tags: createRandomPolicyTags('Tags', 8),
+            categories: createRandomPolicyCategories(8),
+            // Current policy with categories and tags enabled but does not require them
+            policy: {
+                ...createRandomPolicy(Number(policyID)),
+                areCategoriesEnabled: true,
+                areTagsEnabled: true,
+                requiresCategory: false,
+                requiresTag: false,
+            },
+            transactionsAndViolations: reports.reduce<ReportTransactionsAndViolationsDerivedValue>((acc, report, reportIndex) => {
+                // Random number of transactions between 2 and 8
+                const numOfTransactionsInReport = randomInt(2, 8);
+
+                acc[report.reportID] = {transactions: {}, violations: {}};
+
+                // Create transactions with no tag or category assigned and no violations, so `pushTransactionViolationsOnyxData` has to create the violations onyx data
+                for (let transactionID = reportIndex * numOfTransactionsInReport; transactionID < (reportIndex + 1) * numOfTransactionsInReport; transactionID++) {
+                    acc[report.reportID].transactions[transactionID] = {
+                        ...createRandomTransaction(transactionID),
+                        reportID: report.reportID,
+                        category: undefined,
+                        tag: undefined,
+                    };
+                }
+                return acc;
+            }, {}),
+        };
+
+        // Simulate a policy update data when requires categories and tags is updated eg (setRequiresCategory)
+        const policyUpdateData: Partial<Policy> = {
+            requiresCategory: true,
+            requiresTag: true,
+        };
+
+        const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS> = {
+            optimisticData: [],
+            failureData: [],
+            successData: [],
+        };
+
+        await measureFunction(() => pushTransactionViolationsOnyxData(onyxData, policyData, policyUpdateData));
     });
 
     test('[ReportUtils] getIOUReportActionDisplayMessage on 1k policies', async () => {
@@ -228,6 +293,6 @@ describe('ReportUtils', () => {
         };
 
         await waitForBatchedUpdates();
-        await measureFunction(() => getIOUReportActionDisplayMessage(reportAction));
+        await measureFunction(() => getIOUReportActionDisplayMessage(translateLocal, reportAction));
     });
 });

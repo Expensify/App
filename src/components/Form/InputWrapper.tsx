@@ -1,5 +1,6 @@
 import type {ComponentPropsWithoutRef, ComponentType, ForwardedRef} from 'react';
 import React, {useContext} from 'react';
+import type {SubmitBehavior} from 'react-native';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import RoomNameInput from '@components/RoomNameInput';
 import type RoomNameInputProps from '@components/RoomNameInput/types';
@@ -10,14 +11,14 @@ import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 import FormContext from './FormContext';
 import type {InputComponentBaseProps, InputComponentValueProps, ValidInputs, ValueTypeKey} from './types';
 
-type TextInputBasedComponents = [ComponentType<BaseTextInputProps>, ComponentType<RoomNameInputProps>];
+type TextInputBasedComponents = Set<ComponentType<BaseTextInputProps> | ComponentType<RoomNameInputProps>>;
 
-const textInputBasedComponents: TextInputBasedComponents = [TextInput, RoomNameInput];
+const textInputBasedComponents: TextInputBasedComponents = new Set([TextInput, RoomNameInput]);
 
 type ComputedComponentSpecificRegistrationParams = {
     shouldSubmitForm: boolean;
     shouldSetTouchedOnBlurOnly: boolean;
-    blurOnSubmit: boolean | undefined;
+    submitBehavior?: SubmitBehavior;
 };
 
 function computeComponentSpecificRegistrationParams({
@@ -25,9 +26,9 @@ function computeComponentSpecificRegistrationParams({
     shouldSubmitForm,
     multiline,
     autoGrowHeight,
-    blurOnSubmit,
+    submitBehavior,
 }: InputComponentBaseProps): ComputedComponentSpecificRegistrationParams {
-    if (textInputBasedComponents.includes(InputComponent)) {
+    if (textInputBasedComponents.has(InputComponent)) {
         const isEffectivelyMultiline = !!multiline || !!autoGrowHeight;
 
         // If the user can use the hardware keyboard, they have access to an alternative way of inserting a new line
@@ -46,7 +47,7 @@ function computeComponentSpecificRegistrationParams({
             // calling some methods too early or twice, so we had to add this check to prevent that side effect.
             // For now this side effect happened only in `TextInput` components.
             shouldSetTouchedOnBlurOnly: true,
-            blurOnSubmit: (isEffectivelyMultiline && shouldReallySubmitForm) || blurOnSubmit,
+            submitBehavior: isEffectivelyMultiline && shouldReallySubmitForm ? 'blurAndSubmit' : submitBehavior,
             shouldSubmitForm: shouldReallySubmitForm,
         };
     }
@@ -54,7 +55,7 @@ function computeComponentSpecificRegistrationParams({
     return {
         shouldSetTouchedOnBlurOnly: false,
         // Forward the originally provided value
-        blurOnSubmit,
+        submitBehavior,
         shouldSubmitForm: !!shouldSubmitForm,
     };
 }
@@ -80,9 +81,8 @@ function InputWrapper<TInput extends ValidInputs, TValue extends ValueTypeKey>({
     const {InputComponent, inputID, valueType = 'string', shouldSubmitForm: propShouldSubmitForm, ...rest} = props as InputComponentBaseProps;
     const {registerInput} = useContext(FormContext);
 
-    const {shouldSetTouchedOnBlurOnly, blurOnSubmit, shouldSubmitForm} = computeComponentSpecificRegistrationParams(props as InputComponentBaseProps);
-    // eslint-disable-next-line react-compiler/react-compiler
-    const {key, ...registerInputProps} = registerInput(inputID, shouldSubmitForm, {ref, valueType, ...rest, shouldSetTouchedOnBlurOnly, blurOnSubmit});
+    const {shouldSetTouchedOnBlurOnly, submitBehavior, shouldSubmitForm} = computeComponentSpecificRegistrationParams(props as InputComponentBaseProps);
+    const {key, ...registerInputProps} = registerInput(inputID, shouldSubmitForm, {ref, valueType, ...rest, shouldSetTouchedOnBlurOnly, submitBehavior});
 
     return (
         <InputComponent
@@ -93,7 +93,5 @@ function InputWrapper<TInput extends ValidInputs, TValue extends ValueTypeKey>({
         />
     );
 }
-
-InputWrapper.displayName = 'InputWrapper';
 
 export default InputWrapper;

@@ -11,7 +11,7 @@ const prepareRequestPayload: PrepareRequestPayload = (command, data, initiatedOf
     const formData = new FormData();
     let promiseChain = Promise.resolve();
 
-    Object.keys(data).forEach((key) => {
+    for (const key of Object.keys(data)) {
         promiseChain = promiseChain.then(() => {
             const value = data[key];
 
@@ -38,14 +38,16 @@ const prepareRequestPayload: PrepareRequestPayload = (command, data, initiatedOf
             }
 
             if (key === 'file' && initiatedOffline) {
-                const {uri: path = '', source} = value as File;
+                const {uri: path = '', source, name, type} = value as File;
                 if (!source) {
                     validateFormDataParameter(command, key, value);
                     formData.append(key, value as string | Blob);
 
                     return Promise.resolve();
                 }
-                return readFileAsync(source, path, () => {}).then((file) => {
+                // Use the actual file name if available, otherwise fall back to extracting from path/uri
+                const fileName = name || (path ? (path.split('/').pop() ?? '') : '') || '';
+                return readFileAsync(source, fileName, () => {}, undefined, type).then((file) => {
                     if (!file) {
                         return;
                     }
@@ -60,7 +62,7 @@ const prepareRequestPayload: PrepareRequestPayload = (command, data, initiatedOf
 
             return Promise.resolve();
         });
-    });
+    }
 
     return promiseChain.then(() => formData);
 };

@@ -6,12 +6,12 @@ import type {ValueOf} from 'type-fest';
 import ConfirmationPage from '@components/ConfirmationPage';
 import type {ConfirmationPageProps} from '@components/ConfirmationPage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import * as Illustrations from '@components/Icon/Illustrations';
 import LottieAnimations from '@components/LottieAnimations';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TextLink from '@components/TextLink';
 import useEnvironment from '@hooks/useEnvironment';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -25,19 +25,22 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
+import {isTrackingSelector} from '@src/selectors/GPSDraftDetails';
 
 function MergeResultPage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [userEmailOrPhone] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector, canBeMissing: true});
+    const [userEmailOrPhone] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector});
+    const [isTrackingGPS = false] = useOnyx(ONYXKEYS.GPS_DRAFT_DETAILS, {selector: isTrackingSelector});
     const {params} = useRoute<PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.MERGE_ACCOUNTS.MERGE_RESULT>>();
     const {environmentURL} = useEnvironment();
     const {result, login, backTo} = params;
+    const lazyIllustrations = useMemoizedLazyIllustrations(['RunningTurtle', 'LockClosedOrange']);
 
     const defaultResult = {
         heading: translate('mergeAccountsPage.mergeFailureGenericHeading'),
         buttonText: translate('common.buttonConfirm'),
-        illustration: Illustrations.LockClosedOrange,
+        illustration: lazyIllustrations.LockClosedOrange,
     };
 
     const results: Record<ValueOf<typeof CONST.MERGE_ACCOUNT_RESULTS>, ConfirmationPageProps> = useMemo(() => {
@@ -46,7 +49,7 @@ function MergeResultPage() {
                 heading: translate('mergeAccountsPage.mergeSuccess.accountsMerged'),
                 descriptionComponent: (
                     <View style={[styles.renderHTML, styles.w100, styles.flexRow]}>
-                        <RenderHTML html={translate('mergeAccountsPage.mergeSuccess.description', {from: login, to: userEmailOrPhone ?? ''})} />
+                        <RenderHTML html={translate('mergeAccountsPage.mergeSuccess.description', login, userEmailOrPhone ?? '')} />
                     </View>
                 ),
                 buttonText: translate('common.buttonConfirm'),
@@ -58,52 +61,47 @@ function MergeResultPage() {
                 heading: translate('mergeAccountsPage.mergeFailureGenericHeading'),
                 descriptionComponent: (
                     <View style={[styles.renderHTML, styles.w100, styles.flexRow]}>
-                        <RenderHTML
-                            html={translate('mergeAccountsPage.mergeFailureUncreatedAccountDescription', {
-                                email: login,
-                                contactMethodLink: `${environmentURL}/${ROUTES.SETTINGS_CONTACT_METHODS.route}`,
-                            })}
-                        />
+                        <RenderHTML html={translate('mergeAccountsPage.mergeFailureUncreatedAccountDescription', login, `${environmentURL}/${ROUTES.SETTINGS_CONTACT_METHODS.route}`)} />
                     </View>
                 ),
                 onButtonPress: () => Navigation.goBack(ROUTES.SETTINGS_SECURITY),
                 buttonText: translate('common.buttonConfirm'),
-                illustration: Illustrations.LockClosedOrange,
+                illustration: lazyIllustrations.LockClosedOrange,
             },
             [CONST.MERGE_ACCOUNT_RESULTS.ERR_2FA]: {
                 heading: translate('mergeAccountsPage.mergeFailureGenericHeading'),
                 descriptionComponent: (
                     <View style={[styles.renderHTML, styles.w100, styles.flexRow]}>
-                        <RenderHTML html={translate('mergeAccountsPage.mergeFailure2FA.description', {email: login})} />
+                        <RenderHTML html={translate('mergeAccountsPage.mergeFailure2FA.description', login)} />
                     </View>
                 ),
                 cta: <TextLink href={CONST.MERGE_ACCOUNT_HELP_URL}>{translate('mergeAccountsPage.mergeFailure2FA.learnMore')}</TextLink>,
                 ctaStyle: {...styles.mt2, ...styles.textSupporting},
                 onButtonPress: () => Navigation.goBack(ROUTES.SETTINGS_SECURITY),
                 buttonText: translate('common.buttonConfirm'),
-                illustration: Illustrations.LockClosedOrange,
+                illustration: lazyIllustrations.LockClosedOrange,
             },
             [CONST.MERGE_ACCOUNT_RESULTS.ERR_SMART_SCANNER]: {
                 heading: translate('mergeAccountsPage.mergeFailureGenericHeading'),
                 descriptionComponent: (
                     <View style={[styles.renderHTML, styles.w100, styles.flexRow]}>
-                        <RenderHTML html={translate('mergeAccountsPage.mergeFailureSmartScannerAccountDescription', {email: login})} />
+                        <RenderHTML html={translate('mergeAccountsPage.mergeFailureSmartScannerAccountDescription', login)} />
                     </View>
                 ),
                 buttonText: translate('common.buttonConfirm'),
-                illustration: Illustrations.LockClosedOrange,
+                illustration: lazyIllustrations.LockClosedOrange,
                 onButtonPress: () => Navigation.goBack(ROUTES.SETTINGS_SECURITY),
             },
             [CONST.MERGE_ACCOUNT_RESULTS.ERR_SAML_DOMAIN_CONTROL]: {
                 heading: translate('mergeAccountsPage.mergeFailureGenericHeading'),
                 descriptionComponent: (
                     <View style={[styles.renderHTML, styles.w100, styles.flexRow]}>
-                        <RenderHTML html={translate('mergeAccountsPage.mergeFailureSAMLDomainControlDescription', {email: login})} />
+                        <RenderHTML html={translate('mergeAccountsPage.mergeFailureSAMLDomainControlDescription', login)} />
                     </View>
                 ),
                 buttonText: translate('common.buttonConfirm'),
                 onButtonPress: () => Navigation.goBack(ROUTES.SETTINGS_SECURITY),
-                illustration: Illustrations.LockClosedOrange,
+                illustration: lazyIllustrations.LockClosedOrange,
             },
             [CONST.MERGE_ACCOUNT_RESULTS.ERR_SAML_NOT_SUPPORTED]: {
                 heading: translate('mergeAccountsPage.mergePendingSAML.weAreWorkingOnIt'),
@@ -116,7 +114,7 @@ function MergeResultPage() {
                 secondaryButtonText: translate('mergeAccountsPage.mergePendingSAML.goToExpensifyClassic'),
                 onSecondaryButtonPress: () => {
                     if (CONFIG.IS_HYBRID_APP) {
-                        closeReactNativeApp({shouldSetNVP: true});
+                        closeReactNativeApp({shouldSetNVP: true, isTrackingGPS});
                         return;
                     }
                     openOldDotLink(CONST.OLDDOT_URLS.INBOX, false);
@@ -124,65 +122,65 @@ function MergeResultPage() {
                 shouldShowSecondaryButton: true,
                 buttonText: translate('common.buttonConfirm'),
                 onButtonPress: () => Navigation.goBack(ROUTES.SETTINGS_SECURITY),
-                illustration: Illustrations.RunningTurtle,
+                illustration: lazyIllustrations.RunningTurtle,
                 illustrationStyle: {width: 132, height: 150},
             },
             [CONST.MERGE_ACCOUNT_RESULTS.ERR_SAML_PRIMARY_LOGIN]: {
                 heading: translate('mergeAccountsPage.mergeFailureGenericHeading'),
                 descriptionComponent: (
                     <View style={[styles.renderHTML, styles.w100, styles.flexRow]}>
-                        <RenderHTML html={translate('mergeAccountsPage.mergeFailureSAMLAccountDescription', {email: login})} />
+                        <RenderHTML html={translate('mergeAccountsPage.mergeFailureSAMLAccountDescription', login)} />
                     </View>
                 ),
                 buttonText: translate('common.buttonConfirm'),
                 onButtonPress: () => Navigation.goBack(ROUTES.SETTINGS_SECURITY),
-                illustration: Illustrations.LockClosedOrange,
+                illustration: lazyIllustrations.LockClosedOrange,
             },
             [CONST.MERGE_ACCOUNT_RESULTS.ERR_ACCOUNT_LOCKED]: {
                 heading: translate('mergeAccountsPage.mergeFailureGenericHeading'),
                 descriptionComponent: (
                     <View style={[styles.renderHTML, styles.w100, styles.flexRow]}>
-                        <RenderHTML html={translate('mergeAccountsPage.mergeFailureAccountLockedDescription', {email: login})} />
+                        <RenderHTML html={translate('mergeAccountsPage.mergeFailureAccountLockedDescription', login)} />
                     </View>
                 ),
                 buttonText: translate('common.buttonConfirm'),
                 onButtonPress: () => Navigation.goBack(ROUTES.SETTINGS_SECURITY),
-                illustration: Illustrations.LockClosedOrange,
+                illustration: lazyIllustrations.LockClosedOrange,
             },
             [CONST.MERGE_ACCOUNT_RESULTS.ERR_INVOICING]: {
                 heading: translate('mergeAccountsPage.mergeFailureGenericHeading'),
                 descriptionComponent: (
                     <View style={[styles.renderHTML, styles.w100, styles.flexRow]}>
-                        <RenderHTML html={translate('mergeAccountsPage.mergeFailureInvoicedAccountDescription', {email: login})} />
+                        <RenderHTML html={translate('mergeAccountsPage.mergeFailureInvoicedAccountDescription', login)} />
                     </View>
                 ),
                 buttonText: translate('common.buttonConfirm'),
                 onButtonPress: () => Navigation.goBack(ROUTES.SETTINGS_SECURITY),
-                illustration: Illustrations.LockClosedOrange,
+                illustration: lazyIllustrations.LockClosedOrange,
             },
             [CONST.MERGE_ACCOUNT_RESULTS.TOO_MANY_ATTEMPTS]: {
                 heading: translate('mergeAccountsPage.mergeFailureTooManyAttempts.heading'),
                 description: translate('mergeAccountsPage.mergeFailureTooManyAttempts.description'),
                 buttonText: translate('common.buttonConfirm'),
                 onButtonPress: () => Navigation.goBack(ROUTES.SETTINGS_SECURITY),
-                illustration: Illustrations.LockClosedOrange,
+                illustration: lazyIllustrations.LockClosedOrange,
             },
             [CONST.MERGE_ACCOUNT_RESULTS.ACCOUNT_UNVALIDATED]: {
                 heading: translate('mergeAccountsPage.mergeFailureGenericHeading'),
                 description: translate('mergeAccountsPage.mergeFailureUnvalidatedAccount.description'),
                 buttonText: translate('common.buttonConfirm'),
                 onButtonPress: () => Navigation.goBack(ROUTES.SETTINGS_SECURITY),
-                illustration: Illustrations.LockClosedOrange,
+                illustration: lazyIllustrations.LockClosedOrange,
             },
             [CONST.MERGE_ACCOUNT_RESULTS.ERR_MERGE_SELF]: {
                 heading: translate('mergeAccountsPage.mergeFailureGenericHeading'),
                 description: translate('mergeAccountsPage.mergeFailureSelfMerge.description'),
                 buttonText: translate('common.buttonConfirm'),
                 onButtonPress: () => Navigation.goBack(ROUTES.SETTINGS_SECURITY),
-                illustration: Illustrations.LockClosedOrange,
+                illustration: lazyIllustrations.LockClosedOrange,
             },
         };
-    }, [login, translate, userEmailOrPhone, styles, environmentURL]);
+    }, [login, translate, userEmailOrPhone, styles, isTrackingGPS, environmentURL, lazyIllustrations.LockClosedOrange, lazyIllustrations.RunningTurtle]);
 
     useEffect(() => {
         /**
@@ -220,7 +218,7 @@ function MergeResultPage() {
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom
-            testID={MergeResultPage.displayName}
+            testID="MergeResultPage"
         >
             <HeaderWithBackButton
                 title={translate('mergeAccountsPage.mergeAccount')}
@@ -228,7 +226,6 @@ function MergeResultPage() {
                 onBackButtonPress={() => {
                     Navigation.goBack(backTo ?? ROUTES.SETTINGS_MERGE_ACCOUNTS.getRoute());
                 }}
-                shouldDisplayHelpButton={false}
             />
             <ConfirmationPage
                 containerStyle={{...styles.flexGrow1, ...styles.mt3}}
@@ -252,7 +249,5 @@ function MergeResultPage() {
         </ScreenWrapper>
     );
 }
-
-MergeResultPage.displayName = 'MergeResultPage';
 
 export default MergeResultPage;

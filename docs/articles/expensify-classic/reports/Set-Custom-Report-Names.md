@@ -11,10 +11,10 @@ Automatically generate standardized report titles across your workspace using fo
 # Customize Report Titles Using Formulas
 
 **To set a custom report title on your workspace:**
-1. Head to **Settings > Workspace > [Workspace Name] > Rules**.
+1. Head to **Settings > Workspace > [Workspace Name] > Reports**.
 2. Scroll to **Custom Report Names**.
-3. Configure the title formula using your preferred formulas (see below).
-4. To prevent members from editing the title, enable the **Enforce Custom Report Names** toggle.
+3. Choose from the available formulas below.
+4. Enable the **Enforce Custom Report Names** toggle to prevent members from editing the title (optional). 
 
 **Example formula:**  
 `{report:type} - {report:submit:from:firstname} {report:startdate}`  
@@ -96,4 +96,28 @@ Add `|` functions to format results:
 | `substr:x` | `{report:policyname|substr:20}` → Sales Expenses | Trims to first `x` characters |
 | `substr:x:y` | `{report:policyname|substr:20|frontpart}` → Sales | Chains multiple functions |
 | `domain` | `{report:submit:from:email|domain}` → email.com | Returns email domain |
+
+# FAQ
+
+## Can members edit their report names?
+
+Only if the **Enforce Custom Report Names** toggle is turned off. When enforcement is enabled, members won’t be able to change report titles manually.
+
+## Why did a report title stop updating?
+
+Custom report titles stop updating after the report is **Approved** or **Reimbursed**. To change the title, you’ll need to manually edit it or unapprove and resubmit the report.
+
+## What happens if I change a member’s name or a report field?
+
+Custom report names are based on a snapshot at the time of submission. For example, if a member updates their name after submitting a report, the report title won’t update automatically. You’ll need to manually change the report title or have the report resubmitted.
+
+## Can I use custom fields in report titles?
+
+Yes! You can reference any custom field from your workspace in the report title using the format:  
+`{field:Your Custom Field Name}`  
+Make sure the field name matches exactly.
+
+## Are custom report names available on mobile?
+
+Yes, report names appear on both mobile and web. However, the **Custom Report Names** setting must be configured from the web.
 

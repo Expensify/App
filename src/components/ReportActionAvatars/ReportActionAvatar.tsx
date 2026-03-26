@@ -11,6 +11,7 @@ import PressableWithoutFocus from '@components/Pressable/PressableWithoutFocus';
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
 import UserDetailsTooltip from '@components/UserDetailsTooltip';
+import {useCompanyCardFeedIcons} from '@hooks/useCompanyCardIcons';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -19,13 +20,13 @@ import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getCardFeedIcon} from '@libs/CardUtils';
 import {getUserDetailTooltipText, sortIconsByName} from '@libs/ReportUtils';
-import type {AvatarSource} from '@libs/UserUtils';
+import type {AvatarSource} from '@libs/UserAvatarUtils';
 import Navigation from '@navigation/Navigation';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {CompanyCardFeed} from '@src/types/onyx';
+import type {CardFeed} from '@src/types/onyx/CardFeeds';
 import type {Icon as IconType} from '@src/types/onyx/OnyxCommon';
 
 type SortingOptions = ValueOf<typeof CONST.REPORT_ACTION_AVATARS.SORT_BY>;
@@ -95,6 +96,7 @@ function ProfileAvatar(props: Parameters<typeof Avatar>[0] & {useProfileNavigati
             onPress={onPress}
             accessibilityLabel={translate(isWorkspace ? 'common.workspaces' : 'common.profile')}
             accessibilityRole={CONST.ROLE.BUTTON}
+            sentryLabel={CONST.SENTRY_LABEL.REPORT.REPORT_ACTION_AVATAR}
         >
             {/* eslint-disable-next-line react/jsx-props-no-spreading */}
             <Avatar {...{...props, useProfileNavigationWrapper: undefined}} />
@@ -178,7 +180,7 @@ function ReportActionAvatarSubscript({
     shouldShowTooltip: boolean;
     noRightMarginOnContainer?: boolean;
     subscriptAvatarBorderColor?: ColorValue;
-    subscriptCardFeed?: CompanyCardFeed | typeof CONST.EXPENSIFY_CARD.BANK;
+    subscriptCardFeed?: CardFeed;
     fallbackDisplayName?: string;
     useProfileNavigationWrapper?: boolean;
     reportID?: string;
@@ -187,6 +189,7 @@ function ReportActionAvatarSubscript({
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const illustrations = useThemeIllustrations();
+    const companyCardFeedIcons = useCompanyCardFeedIcons();
 
     const isSmall = size === CONST.AVATAR_SIZE.SMALL;
     const containerStyle = StyleUtils.getContainerStyles(size);
@@ -244,12 +247,7 @@ function ReportActionAvatarSubscript({
                     accountID={Number(secondaryAvatar.id ?? CONST.DEFAULT_NUMBER_ID)}
                     icon={secondaryAvatar}
                 >
-                    <View
-                        style={[size === CONST.AVATAR_SIZE.SMALL_NORMAL ? styles.flex1 : {}, subscriptAvatarStyle]}
-                        // Hover on overflowed part of icon will not work on Electron if dragArea is true
-                        // https://stackoverflow.com/questions/56338939/hover-in-css-is-not-working-with-electron
-                        dataSet={{dragArea: false}}
-                    >
+                    <View style={[size === CONST.AVATAR_SIZE.SMALL_NORMAL ? styles.flex1 : {}, subscriptAvatarStyle]}>
                         <ProfileAvatar
                             useProfileNavigationWrapper={useProfileNavigationWrapper}
                             iconAdditionalStyles={[
@@ -280,12 +278,9 @@ function ReportActionAvatarSubscript({
                         styles.dFlex,
                         styles.justifyContentCenter,
                     ]}
-                    // Hover on overflowed part of icon will not work on Electron if dragArea is true
-                    // https://stackoverflow.com/questions/56338939/hover-in-css-is-not-working-with-electron
-                    dataSet={{dragArea: false}}
                 >
                     <Icon
-                        src={getCardFeedIcon(subscriptCardFeed, illustrations)}
+                        src={getCardFeedIcon(subscriptCardFeed, illustrations, companyCardFeedIcons)}
                         width={variables.cardAvatarWidth}
                         height={variables.cardAvatarHeight}
                         additionalStyles={styles.alignSelfCenter}
@@ -325,11 +320,9 @@ function ReportActionAvatarMultipleHorizontal({
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const {localeCompare} = useLocalize();
+    const {localeCompare, formatPhoneNumber} = useLocalize();
 
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
-        canBeMissing: true,
-    });
+    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
 
     const oneAvatarSize = StyleUtils.getAvatarStyle(size);
     const overlapSize = oneAvatarSize.width / overlapDivider;
@@ -366,7 +359,10 @@ function ReportActionAvatarMultipleHorizontal({
         return [firstRow, secondRow];
     }, [icons, maxAvatarsInRow, shouldDisplayAvatarsInRows]);
 
-    const tooltipTexts = useMemo(() => (shouldShowTooltip ? icons.map((icon) => getUserDetailTooltipText(Number(icon.id), icon.name)) : ['']), [shouldShowTooltip, icons]);
+    const tooltipTexts = useMemo(
+        () => (shouldShowTooltip ? icons.map((icon) => getUserDetailTooltipText(Number(icon.id), formatPhoneNumber, icon.name)) : ['']),
+        [shouldShowTooltip, icons, formatPhoneNumber],
+    );
 
     return avatarRows.map((avatars, rowIndex) => (
         <View
@@ -476,8 +472,12 @@ function ReportActionAvatarMultipleDiagonal({
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
+    const {formatPhoneNumber} = useLocalize();
 
-    const tooltipTexts = useMemo(() => (shouldShowTooltip ? icons.map((icon) => getUserDetailTooltipText(Number(icon.id), icon.name)) : ['']), [shouldShowTooltip, icons]);
+    const tooltipTexts = useMemo(
+        () => (shouldShowTooltip ? icons.map((icon) => getUserDetailTooltipText(Number(icon.id), formatPhoneNumber, icon.name)) : ['']),
+        [shouldShowTooltip, icons, formatPhoneNumber],
+    );
     const removeRightMargin = icons.length === 2 && size === CONST.AVATAR_SIZE.X_LARGE;
     const avatarContainerStyles = StyleUtils.getContainerStyles(size, isInReportAction);
 

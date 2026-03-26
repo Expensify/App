@@ -1,9 +1,10 @@
 import React from 'react';
 import {View} from 'react-native';
-import {Shield} from '@components/Icon/Expensicons';
-import {ShieldYellow} from '@components/Icon/Illustrations';
+import {loadIllustration} from '@components/Icon/IllustrationLoader';
+import type {IllustrationName} from '@components/Icon/IllustrationLoader';
 import Section from '@components/Section';
 import Text from '@components/Text';
+import {useMemoizedLazyAsset, useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -18,6 +19,8 @@ function Enable2FACard({policyID}: Enable2FACardProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {asset: ShieldYellow} = useMemoizedLazyAsset(() => loadIllustration('ShieldYellow' as IllustrationName));
+    const icons = useMemoizedLazyExpensifyIcons(['Shield'] as const);
 
     return (
         <Section
@@ -29,8 +32,8 @@ function Enable2FACard({policyID}: Enable2FACardProps) {
                 {
                     title: translate('connectBankAccountStep.secureYourAccount'),
                     // Assuming user is validated here, validation is checked at the beginning of ConnectBank Flow
-                    onPress: () => Navigation.navigate(ROUTES.SETTINGS_2FA_ROOT.getRoute(ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute(policyID))),
-                    icon: Shield,
+                    onPress: () => Navigation.navigate(ROUTES.SETTINGS_2FA_ROOT.getRoute(ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute({policyID}))),
+                    icon: icons.Shield,
                     shouldShowRightIcon: true,
                     outerWrapperStyle: shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8,
                 },
@@ -42,7 +45,5 @@ function Enable2FACard({policyID}: Enable2FACardProps) {
         </Section>
     );
 }
-
-Enable2FACard.displayName = 'Enable2FAPrompt';
 
 export default Enable2FACard;

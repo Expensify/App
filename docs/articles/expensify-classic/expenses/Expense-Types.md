@@ -69,12 +69,12 @@ Use filters to narrow down the data:
 2. Adjust the filters at the top of the page:
    - **Date Range** – Select a specific time frame.
    - **Merchant Name** – Find expenses from a particular vendor (partial searches work).
-   - **Workspace** – View expenses for a specific Group or Individual Workspace.
+   - **Workspace** – View expenses for a specific workspace.
    - **Categories** – Filter by category to refine your search.
    - **Tags** – Locate expenses based on assigned tags.
    - **Submitters** – Find expenses by employee or vendor.
    - **Personal Expenses** – Show expenses that have not yet been added to a report.
-   - **Open, Processing, Approved, Reimbursed, Closed** – View expenses at different reporting stages.
+   - **Draft, Outstanding, Approved, Paid, Done** – View expenses at different reporting stages.
 
 **Note:** Some filters adjust dynamically based on your current selections. If results aren’t as expected, click **Reset** to clear all filters.
 
@@ -95,7 +95,7 @@ For example:
 - A report with **-$400** and **$500** expenses results in a **$100** total.
 
 ## Can I permanently delete a cash expense?
-Permanently deleting cash expenses is restricted to ensure accurate financial records. It is possible to delete company card expenses, as long as the expenses have not been submitted, by un-assigning the employee's card at the domain level. 
+Permanently deleting cash expenses is restricted to ensure accurate financial records. It is possible to delete company card expenses, as long as the expenses have not been submitted, by unassigning the employee's card at the domain level. 
 
 ## How do I find my deleted expenses?  
 Use the **Filters** option in the **Expenses** tab and select **Deleted** to view all soft-deleted expenses.  

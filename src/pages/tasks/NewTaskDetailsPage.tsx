@@ -1,4 +1,4 @@
-import React, {useEffect, useMemo, useState} from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
@@ -6,6 +6,7 @@ import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TextInput from '@components/TextInput';
+import useAncestors from '@hooks/useAncestors';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
@@ -28,26 +29,25 @@ import INPUT_IDS from '@src/types/form/NewTaskForm';
 type NewTaskDetailsPageProps = PlatformStackScreenProps<NewTaskNavigatorParamList, typeof SCREENS.NEW_TASK.DETAILS>;
 
 function NewTaskDetailsPage({route}: NewTaskDetailsPageProps) {
-    const [task] = useOnyx(ONYXKEYS.TASK, {canBeMissing: true});
-    const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE, {canBeMissing: true});
+    const [task] = useOnyx(ONYXKEYS.TASK);
+    const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
+    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${task?.parentReportID}`, undefined, [task?.parentReportID]);
+    const ancestors = useAncestors(parentReport);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [taskTitle, setTaskTitle] = useState(task?.title ?? '');
-    const [taskDescription, setTaskDescription] = useState(task?.description ?? '');
-    const titleDefaultValue = useMemo(() => Parser.htmlToMarkdown(Parser.replace(taskTitle)), [taskTitle]);
-    const descriptionDefaultValue = useMemo(() => Parser.htmlToMarkdown(Parser.replace(taskDescription)), [taskDescription]);
+    const [localTitle, setLocalTitle] = useState<string>();
+    const [localDescription, setLocalDescription] = useState<string>();
+    const taskTitle = localTitle ?? Parser.htmlToMarkdown(Parser.replace(task?.title ?? ''));
+    const taskDescription = localDescription ?? Parser.htmlToMarkdown(Parser.replace(task?.description ?? ''));
 
+    const titleDefaultValue = Parser.htmlToMarkdown(Parser.replace(taskTitle));
+    const descriptionDefaultValue = Parser.htmlToMarkdown(Parser.replace(taskDescription));
     const {inputCallbackRef} = useAutoFocusInput();
 
     const backTo = route.params?.backTo;
     const skipConfirmation = task?.skipConfirmation && task?.assigneeAccountID && task?.parentReportID;
     const buttonText = skipConfirmation ? translate('newTaskPage.assignTask') : translate('common.next');
-
-    useEffect(() => {
-        setTaskTitle(Parser.htmlToMarkdown(Parser.replace(task?.title ?? '')));
-        setTaskDescription(Parser.htmlToMarkdown(Parser.replace(task?.description ?? '')));
-    }, [task]);
 
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.NEW_TASK_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.NEW_TASK_FORM> => {
         const errors = {};
@@ -56,11 +56,11 @@ function NewTaskDetailsPage({route}: NewTaskDetailsPageProps) {
             // We error if the user doesn't enter a task name
             addErrorMessage(errors, 'taskTitle', translate('newTaskPage.pleaseEnterTaskName'));
         } else if (values.taskTitle.length > CONST.TASK_TITLE_CHARACTER_LIMIT) {
-            addErrorMessage(errors, 'taskTitle', translate('common.error.characterLimitExceedCounter', {length: values.taskTitle.length, limit: CONST.TASK_TITLE_CHARACTER_LIMIT}));
+            addErrorMessage(errors, 'taskTitle', translate('common.error.characterLimitExceedCounter', values.taskTitle.length, CONST.TASK_TITLE_CHARACTER_LIMIT));
         }
         const taskDescriptionLength = getCommentLength(values.taskDescription);
         if (taskDescriptionLength > CONST.DESCRIPTION_LIMIT) {
-            addErrorMessage(errors, 'taskDescription', translate('common.error.characterLimitExceedCounter', {length: taskDescriptionLength, limit: CONST.DESCRIPTION_LIMIT}));
+            addErrorMessage(errors, 'taskDescription', translate('common.error.characterLimitExceedCounter', taskDescriptionLength, CONST.DESCRIPTION_LIMIT));
         }
 
         return errors;
@@ -74,7 +74,7 @@ function NewTaskDetailsPage({route}: NewTaskDetailsPageProps) {
         if (skipConfirmation) {
             setShareDestinationValue(task?.parentReportID);
             createTaskAndNavigate({
-                parentReportID: task?.parentReportID,
+                parentReport,
                 title: values.taskTitle,
                 description: values.taskDescription ?? '',
                 assigneeEmail: task?.assignee ?? '',
@@ -85,6 +85,7 @@ function NewTaskDetailsPage({route}: NewTaskDetailsPageProps) {
                 policyID: CONST.POLICY.OWNER_EMAIL_FAKE,
                 isCreatedUsingMarkdown: false,
                 quickAction,
+                ancestors,
             });
         } else {
             Navigation.navigate(ROUTES.NEW_TASK.getRoute(backTo));
@@ -95,7 +96,7 @@ function NewTaskDetailsPage({route}: NewTaskDetailsPageProps) {
         <ScreenWrapper
             includeSafeAreaPaddingBottom
             shouldEnableMaxHeight
-            testID={NewTaskDetailsPage.displayName}
+            testID="NewTaskDetailsPage"
         >
             <HeaderWithBackButton
                 title={translate('newTaskPage.assignTask')}
@@ -121,7 +122,7 @@ function NewTaskDetailsPage({route}: NewTaskDetailsPageProps) {
                         accessibilityLabel={translate('task.title')}
                         defaultValue={titleDefaultValue}
                         value={taskTitle}
-                        onValueChange={setTaskTitle}
+                        onValueChange={setLocalTitle}
                         autoCorrect={false}
                         type="markdown"
                         autoGrowHeight
@@ -141,7 +142,7 @@ function NewTaskDetailsPage({route}: NewTaskDetailsPageProps) {
                         shouldSubmitForm
                         defaultValue={descriptionDefaultValue}
                         value={taskDescription}
-                        onValueChange={setTaskDescription}
+                        onValueChange={setLocalDescription}
                         type="markdown"
                     />
                 </View>
@@ -149,7 +150,5 @@ function NewTaskDetailsPage({route}: NewTaskDetailsPageProps) {
         </ScreenWrapper>
     );
 }
-
-NewTaskDetailsPage.displayName = 'NewTaskDetailsPage';
 
 export default NewTaskDetailsPage;

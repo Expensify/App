@@ -1,10 +1,11 @@
-import React, {useEffect} from 'react';
-import Animated, {interpolateColor, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
+import React, {useLayoutEffect, useMemo, useRef} from 'react';
+import Animated, {cancelAnimation, interpolateColor, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import Icon from './Icon';
-import * as Expensicons from './Icon/Expensicons';
 import PressableWithFeedback from './Pressable/PressableWithFeedback';
 
 type SwitchProps = {
@@ -34,12 +35,32 @@ const OFFSET_X = {
 
 function Switch({isOn, onToggle, accessibilityLabel, disabled, showLockIcon, disabledAction}: SwitchProps) {
     const styles = useThemeStyles();
+    const {translate} = useLocalize();
     const offsetX = useSharedValue(isOn ? OFFSET_X.ON : OFFSET_X.OFF);
     const theme = useTheme();
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Lock']);
 
-    useEffect(() => {
-        offsetX.set(withTiming(isOn ? OFFSET_X.ON : OFFSET_X.OFF, {duration: 300}));
-    }, [isOn, offsetX]);
+    const targetOffsetX = isOn ? OFFSET_X.ON : OFFSET_X.OFF;
+    const prevIsOn = useRef(isOn);
+    const hasUserToggled = useRef(false);
+
+    // Track when user toggles vs when props change due to recycling
+    useLayoutEffect(() => {
+        if (prevIsOn.current === isOn) {
+            return;
+        }
+        if (hasUserToggled.current) {
+            // User just toggled - animate to new position
+            offsetX.set(withTiming(targetOffsetX, {duration: 300}));
+            hasUserToggled.current = false;
+        } else {
+            // Props changed due to list recycling - immediately set position without animation
+            // This prevents the visual glitch where switches appear to auto-toggle during scrolling
+            cancelAnimation(offsetX);
+            offsetX.set(targetOffsetX);
+        }
+        prevIsOn.current = isOn;
+    }, [isOn, offsetX, targetOffsetX]);
 
     const handleSwitchPress = () => {
         requestAnimationFrame(() => {
@@ -47,7 +68,15 @@ function Switch({isOn, onToggle, accessibilityLabel, disabled, showLockIcon, dis
                 disabledAction?.();
                 return;
             }
+            hasUserToggled.current = true;
             onToggle(!isOn);
+
+            // If onToggle doesn't result in an isOn change (e.g., a modal is shown instead),
+            // useLayoutEffect won't fire to clear hasUserToggled. Clear it in the next frame
+            // to prevent stale flags from misclassifying future recycled prop changes.
+            requestAnimationFrame(() => {
+                hasUserToggled.current = false;
+            });
         });
     };
 
@@ -59,6 +88,14 @@ function Switch({isOn, onToggle, accessibilityLabel, disabled, showLockIcon, dis
         backgroundColor: interpolateColor(offsetX.get(), [OFFSET_X.OFF, OFFSET_X.ON], [theme.icon, theme.success]),
     }));
 
+    // Enhance accessibility label to include locked state when disabled
+    const enhancedAccessibilityLabel = useMemo(() => {
+        if (disabled) {
+            return `${accessibilityLabel}, ${translate('common.locked')}`;
+        }
+        return accessibilityLabel;
+    }, [accessibilityLabel, disabled, translate]);
+
     return (
         <PressableWithFeedback
             disabled={!disabledAction && disabled}
@@ -66,16 +103,17 @@ function Switch({isOn, onToggle, accessibilityLabel, disabled, showLockIcon, dis
             onLongPress={handleSwitchPress}
             role={CONST.ROLE.SWITCH}
             aria-checked={isOn}
-            accessibilityLabel={accessibilityLabel}
+            accessibilityLabel={enhancedAccessibilityLabel}
             // disable hover dim for switch
             hoverDimmingValue={1}
             pressDimmingValue={0.8}
+            sentryLabel={enhancedAccessibilityLabel}
         >
             <Animated.View style={[styles.switchTrack, animatedSwitchTrackStyle]}>
                 <Animated.View style={[styles.switchThumb, animatedThumbStyle]}>
                     {(!!disabled || !!showLockIcon) && (
                         <Icon
-                            src={Expensicons.Lock}
+                            src={expensifyIcons.Lock}
                             fill={isOn ? theme.text : theme.icon}
                             width={styles.toggleSwitchLockIcon.width}
                             height={styles.toggleSwitchLockIcon.height}
@@ -87,5 +125,4 @@ function Switch({isOn, onToggle, accessibilityLabel, disabled, showLockIcon, dis
     );
 }
 
-Switch.displayName = 'Switch';
 export default Switch;

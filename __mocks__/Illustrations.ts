@@ -2,7 +2,6 @@ const Abracadabra = 'Abracadabra';
 const BrokenMagnifyingGlass = 'BrokenMagnifyingGlass';
 const ChatBubbles = 'ChatBubbles';
 const EmailAddress = 'EmailAddress';
-const EmptyCardState = 'EmptyCardState';
 const EmptyStateExpenses = 'EmptyStateExpenses';
 const EnvelopeReceipt = 'EnvelopeReceipt';
 const FolderOpen = 'FolderOpen';
@@ -21,6 +20,7 @@ const CreditCardsNew = 'CreditCardsNew';
 const CreditCardsNewGreen = 'CreditCardsNewGreen';
 const InvoiceBlue = 'InvoiceBlue';
 const LaptopWithSecondScreenAndHourglass = 'LaptopWithSecondScreenAndHourglass';
+const RunningTurtle = 'RunningTurtle';
 const LockOpen = 'LockOpen';
 const Luggage = 'Luggage';
 const MoneyIntoWallet = 'MoneyIntoWallet';
@@ -29,6 +29,7 @@ const ConciergeBubble = 'ConciergeBubble';
 const TreasureChest = 'TreasureChest';
 const ThumbsUpStars = 'ThumbsUpStars';
 const Hands = 'Hands';
+const Hand = 'Hand';
 const SmartScan = 'SmartScan';
 const Hourglass = 'Hourglass';
 const CommentBubbles = 'CommentBubbles';
@@ -54,8 +55,12 @@ const TeachersUnite = 'TeachersUnite';
 const Abacus = 'Abacus';
 const Binoculars = 'Binoculars';
 const CompanyCard = 'CompanyCard';
+const ReceiptStack = 'ReceiptStack';
 const ReceiptUpload = 'ReceiptUpload';
 const ExpensifyCardIllustration = 'ExpensifyCardIllustration';
+const ExpensifyCardImage = 'ExpensifyCardImage';
+const MultiScan = 'MultiScan';
+const Shutter = 'Shutter';
 const SplitBill = 'SplitBill';
 const PiggyBank = 'PiggyBank';
 const Pillow = 'Pillow';
@@ -82,11 +87,14 @@ const Tire = 'Tire';
 const Filters = 'Filters';
 const MagnifyingGlassMoney = 'MagnifyingGlassMoney';
 const Rules = 'Rules';
-const CompanyCardsEmptyState = 'CompanyCardsEmptyState';
 const CompanyCardsPendingState = 'CompanyCardsPendingState';
+const LaptopAssignCard = 'LaptopAssignCard';
+const LaptopReviewCard = 'LaptopReviewCard';
+const ExpensifyCardCoins = 'ExpensifyCardCoins';
 const VisaCompanyCardDetail = 'VisaCompanyCardDetail';
 const MasterCardCompanyCardDetail = 'MasterCardCompanyCardDetail';
 const AmexCardCompanyCardDetail = 'AmexCardCompanyCardDetail';
+const TravelCVV = 'TravelCVV';
 const TurtleInShell = 'TurtleInShell';
 const BankOfAmericaCompanyCardDetail = 'BankOfAmericaCompanyCardDetail';
 const BrexCompanyCardDetail = 'BrexCompanyCardDetail';
@@ -115,7 +123,6 @@ export {
     BrokenMagnifyingGlass,
     ChatBubbles,
     EmailAddress,
-    EmptyCardState,
     EmptyStateExpenses,
     EnvelopeReceipt,
     FolderOpen,
@@ -134,6 +141,7 @@ export {
     CreditCardsNewGreen,
     InvoiceBlue,
     LaptopWithSecondScreenAndHourglass,
+    RunningTurtle,
     LockOpen,
     Luggage,
     MoneyIntoWallet,
@@ -142,6 +150,7 @@ export {
     TreasureChest,
     ThumbsUpStars,
     Hands,
+    Hand,
     SmartScan,
     Hourglass,
     CommentBubbles,
@@ -167,8 +176,12 @@ export {
     Abacus,
     Binoculars,
     CompanyCard,
+    ReceiptStack,
     ReceiptUpload,
     ExpensifyCardIllustration,
+    ExpensifyCardImage,
+    MultiScan,
+    Shutter,
     SplitBill,
     PiggyBank,
     Pillow,
@@ -195,11 +208,14 @@ export {
     Filters,
     MagnifyingGlassMoney,
     Rules,
-    CompanyCardsEmptyState,
     CompanyCardsPendingState,
+    LaptopAssignCard,
+    LaptopReviewCard,
+    ExpensifyCardCoins,
     VisaCompanyCardDetail,
     MasterCardCompanyCardDetail,
     AmexCardCompanyCardDetail,
+    TravelCVV,
     TurtleInShell,
     BankOfAmericaCompanyCardDetail,
     BrexCompanyCardDetail,

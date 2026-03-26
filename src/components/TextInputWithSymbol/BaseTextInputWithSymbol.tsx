@@ -24,7 +24,9 @@ function BaseTextInputWithSymbol({
     style,
     symbolTextStyle,
     isNegative = false,
+    rightHandSideComponent,
     ref,
+    disabled,
     ...rest
 }: BaseTextInputWithSymbolProps) {
     const {fromLocaleDigit} = useLocalize();
@@ -58,12 +60,14 @@ function BaseTextInputWithSymbol({
                 onChangeAmount={setFormattedAmount}
                 placeholder={placeholder}
                 ref={ref}
+                disabled={disabled}
                 selection={selection}
                 onSelectionChange={(event: TextInputSelectionChangeEvent) => {
                     onSelectionChange(event);
                 }}
                 onKeyPress={onKeyPress}
                 style={[styles.pr1, style]}
+                rightHandSideComponent={rightHandSideComponent}
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...rest}
             />
@@ -78,7 +82,5 @@ function BaseTextInputWithSymbol({
         </>
     );
 }
-
-BaseTextInputWithSymbol.displayName = 'BaseTextInputWithSymbol';
 
 export default BaseTextInputWithSymbol;

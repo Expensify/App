@@ -32,6 +32,4 @@ function FocusTrapForModal({children, active, initialFocus = false, shouldPreven
     );
 }
 
-FocusTrapForModal.displayName = 'FocusTrapForModal';
-
 export default FocusTrapForModal;

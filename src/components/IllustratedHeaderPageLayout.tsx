@@ -51,6 +51,4 @@ function IllustratedHeaderPageLayout({backgroundColor, children, illustration, t
     );
 }
 
-IllustratedHeaderPageLayout.displayName = 'IllustratedHeaderPageLayout';
-
 export default IllustratedHeaderPageLayout;

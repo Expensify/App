@@ -5,7 +5,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useWalletAdditionalDetailsStepFormSubmit from '@hooks/useWalletAdditionalDetailsStepFormSubmit';
-import * as ValidationUtils from '@libs/ValidationUtils';
+import {getFieldRequiredErrors, isValidSSNFullNine, isValidSSNLastFour} from '@libs/ValidationUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/WalletAdditionalDetailsForm';
@@ -22,13 +22,13 @@ function SocialSecurityNumberStep({onNext, onMove, isEditing}: SubStepProps) {
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS>): FormInputErrors<typeof ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS> => {
-            const errors = ValidationUtils.getFieldRequiredErrors(values, STEP_FIELDS);
+            const errors = getFieldRequiredErrors(values, STEP_FIELDS, translate);
 
             if (shouldAskForFullSSN) {
-                if (values.ssn && !ValidationUtils.isValidSSNFullNine(values.ssn)) {
+                if (values.ssn && !isValidSSNFullNine(values.ssn)) {
                     errors.ssn = translate('additionalDetailsStep.ssnFull9Error');
                 }
-            } else if (values.ssn && !ValidationUtils.isValidSSNLastFour(values.ssn)) {
+            } else if (values.ssn && !isValidSSNLastFour(values.ssn)) {
                 errors.ssn = translate('bankAccount.error.ssnLast4');
             }
 
@@ -58,10 +58,10 @@ function SocialSecurityNumberStep({onNext, onMove, isEditing}: SubStepProps) {
             inputMode={CONST.INPUT_MODE.NUMERIC}
             defaultValue={defaultSsnLast4}
             maxLength={shouldAskForFullSSN ? CONST.BANK_ACCOUNT.MAX_LENGTH.FULL_SSN : CONST.BANK_ACCOUNT.MAX_LENGTH.SSN}
+            shouldShowPatriotActLink
+            forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
         />
     );
 }
-
-SocialSecurityNumberStep.displayName = 'SocialSecurityNumberStep';
 
 export default SocialSecurityNumberStep;

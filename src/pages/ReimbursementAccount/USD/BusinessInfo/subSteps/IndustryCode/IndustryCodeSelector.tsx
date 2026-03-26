@@ -1,7 +1,7 @@
 import React, {useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
-import SelectionList from '@components/SelectionListWithSections';
-import RadioListItem from '@components/SelectionListWithSections/RadioListItem';
+import SelectionList from '@components/SelectionList';
+import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {ALL_NAICS, NAICS, NAICS_MAPPING_WITH_ID} from '@src/NAICS';
@@ -19,56 +19,58 @@ function IndustryCodeSelector({onInputChange, value, errorText}: IndustryCodeSel
     const [shouldDisplayChildItems, setShouldDisplayChildItems] = useState(false);
     const {translate} = useLocalize();
 
-    const sections = useMemo(() => {
+    const codeOptions = useMemo(() => {
         if (!searchValue) {
-            return [
-                {
-                    data: NAICS.map((item) => {
-                        return {
-                            value: `${item.id}`,
-                            text: `${item.id} - ${item.value}`,
-                            keyForList: `${item.id}`,
-                        };
-                    }),
-                },
-            ];
+            return NAICS.map((item) => {
+                return {
+                    value: `${item.id}`,
+                    text: `${item.id} - ${item.value}`,
+                    keyForList: `${item.id}`,
+                };
+            });
         }
 
         if (shouldDisplayChildItems) {
-            return [
-                {
-                    data: (NAICS_MAPPING_WITH_ID[searchValue] ?? []).map((item) => {
-                        return {
-                            value: `${item.id}`,
-                            text: `${item.id} - ${item.value}`,
-                            keyForList: `${item.id}`,
-                        };
-                    }),
-                },
-            ];
+            return (NAICS_MAPPING_WITH_ID[searchValue] ?? []).map((item) => {
+                return {
+                    value: `${item.id}`,
+                    text: `${item.id} - ${item.value}`,
+                    keyForList: `${item.id}`,
+                };
+            });
         }
 
-        return [
-            {
-                data: ALL_NAICS.filter((item) => item.id.toString().toLowerCase().startsWith(searchValue.toLowerCase())).map((item) => {
-                    return {
-                        value: `${item.id}`,
-                        text: `${item.id} - ${item.value}`,
-                        keyForList: `${item.id}`,
-                    };
-                }),
-            },
-        ];
+        return ALL_NAICS.filter((item) => item.id.toString().toLowerCase().startsWith(searchValue.toLowerCase())).map((item) => {
+            return {
+                value: `${item.id}`,
+                text: `${item.id} - ${item.value}`,
+                keyForList: `${item.id}`,
+            };
+        });
     }, [searchValue, shouldDisplayChildItems]);
 
     useEffect(() => {
         setSearchValue(value);
     }, [value]);
 
+    const textInputOptions = useMemo(
+        () => ({
+            label: translate('companyStep.industryClassificationCodePlaceholder'),
+            onChangeText: (val: string | undefined) => {
+                setSearchValue(val);
+                setShouldDisplayChildItems(false);
+                onInputChange?.(val);
+            },
+            value: searchValue,
+            errorText,
+        }),
+        [errorText, onInputChange, searchValue, translate],
+    );
+
     return (
         <View style={styles.flexGrow1}>
             <SelectionList
-                sections={sections}
+                data={codeOptions}
                 ListItem={RadioListItem}
                 onSelectRow={(item) => {
                     setSearchValue(item.value);
@@ -76,19 +78,10 @@ function IndustryCodeSelector({onInputChange, value, errorText}: IndustryCodeSel
                     onInputChange?.(item.value);
                 }}
                 shouldStopPropagation
-                textInputLabel={translate('companyStep.industryClassificationCodePlaceholder')}
-                onChangeText={(val) => {
-                    setSearchValue(val);
-                    setShouldDisplayChildItems(false);
-                    onInputChange?.(val);
-                }}
-                textInputValue={searchValue}
-                errorText={errorText}
+                textInputOptions={textInputOptions}
             />
         </View>
     );
 }
-
-IndustryCodeSelector.displayName = 'IndustryCodeSelector';
 
 export default IndustryCodeSelector;
