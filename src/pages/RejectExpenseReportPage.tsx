@@ -150,7 +150,7 @@ function RejectExpenseReportPage({route}: RejectExpenseReportPageProps) {
             currentUserPersonalDetails?.displayName,
             currentUserPersonalDetails?.avatar,
         );
-        Navigation.dismissModal();
+        Navigation.goBack();
     };
 
     return (
