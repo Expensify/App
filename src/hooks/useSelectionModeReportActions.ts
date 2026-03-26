@@ -548,24 +548,27 @@ function useSelectionModeReportActions({
             if (checkForNecessaryAction()) {
                 return;
             }
-            selectPaymentType({
-                event,
-                iouPaymentType,
-                triggerKYCFlow,
-                policy,
-                onPress: confirmPayment,
-                currentAccountID: currentUserAccountID,
-                currentEmail: currentUserEmail ?? '',
-                hasViolations,
-                isASAPSubmitBetaEnabled,
-                isUserValidated,
-                confirmApproval: () => confirmApproval(),
-                iouReport: report,
-                iouReportNextStep: nextStep,
-                betas,
-                userBillingGraceEndPeriods,
-                amountOwed,
-                ownerBillingGraceEndPeriod,
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
+            InteractionManager.runAfterInteractions(() => {
+                selectPaymentType({
+                    event,
+                    iouPaymentType,
+                    triggerKYCFlow,
+                    policy,
+                    onPress: confirmPayment,
+                    currentAccountID: currentUserAccountID,
+                    currentEmail: currentUserEmail ?? '',
+                    hasViolations,
+                    isASAPSubmitBetaEnabled,
+                    isUserValidated,
+                    confirmApproval: () => confirmApproval(),
+                    iouReport: report,
+                    iouReportNextStep: nextStep,
+                    betas,
+                    userBillingGraceEndPeriods,
+                    amountOwed,
+                    ownerBillingGraceEndPeriod,
+                });
             });
         },
         [

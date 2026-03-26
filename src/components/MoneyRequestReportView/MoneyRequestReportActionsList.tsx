@@ -823,17 +823,19 @@ function MoneyRequestReportActionsList({
             {shouldUseNarrowLayout && isMobileSelectionModeEnabled && (
                 <OfflineWithFeedback pendingAction={reportPendingAction}>
                     {hasPayInSelectionMode ? (
-                        <MoneyReportHeaderKYCDropdown
-                            chatReportID={chatReport?.reportID}
-                            iouReport={report}
-                            onPaymentSelect={onSelectionModePaymentSelect}
-                            onSuccessfulKYC={selectionModeKYCSuccess}
-                            primaryAction={primaryAction}
-                            applicableSecondaryActions={selectedTransactionsOptions}
-                            customText={translate('workspace.common.selected', {count: selectedTransactionIDs.length})}
-                            shouldShowSuccessStyle
-                            ref={kycWallRef}
-                        />
+                        <View style={styles.ph5}>
+                            <MoneyReportHeaderKYCDropdown
+                                chatReportID={chatReport?.reportID}
+                                iouReport={report}
+                                onPaymentSelect={onSelectionModePaymentSelect}
+                                onSuccessfulKYC={selectionModeKYCSuccess}
+                                primaryAction={primaryAction}
+                                applicableSecondaryActions={selectedTransactionsOptions}
+                                customText={translate('workspace.common.selected', {count: selectedTransactionIDs.length})}
+                                shouldShowSuccessStyle
+                                ref={kycWallRef}
+                            />
+                        </View>
                     ) : (
                         <ButtonWithDropdownMenu
                             onPress={() => null}
