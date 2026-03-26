@@ -187,7 +187,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
                 canUserPerformWrite,
                 reportActions,
                 visibleReportActionsData,
-                reports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportAttributes?.[reportID]?.oneTransactionThreadReportID}`]?.reportID,
+                reportAttributes?.[reportID]?.oneTransactionThreadReportID,
             );
 
             // Only override lastMessageTextFromReport when a track expense whisper's transaction has been deleted, to prevent showing stale text.
