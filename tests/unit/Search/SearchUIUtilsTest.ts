@@ -3521,6 +3521,14 @@ describe('SearchUIUtils', () => {
                 // The constraint end should be used (earlier date)
                 expect(result.end).toBe('2026-01-15');
             });
+
+            it('should resolve LAST_12_MONTHS preset to span the current month and 11 preceding months', () => {
+                const range = SearchUIUtils.getDateRangeForPreset(CONST.SEARCH.DATE_PRESETS.LAST_12_MONTHS);
+
+                // Clock is frozen at 2026-02-15, so last 12 months = March 2025 through February 2026
+                expect(range.start).toBe('2025-03-01');
+                expect(range.end).toBe('2026-02-28');
+            });
         });
 
         it('should correctly intersect multiple date filters (GREATER_THAN and LOWER_THAN) when expanding quarter groups', () => {
@@ -6708,7 +6716,7 @@ describe('SearchUIUtils', () => {
             // Check that date filter with year-to-date preset exists in flatFilters
             const dateFilter = searchQueryJSON?.flatFilters?.find((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE);
             expect(dateFilter).toBeDefined();
-            expect(dateFilter?.filters?.some((f) => f.value === CONST.SEARCH.DATE_PRESETS.YEAR_TO_DATE)).toBe(true);
+            expect(dateFilter?.filters?.some((f) => f.value === CONST.SEARCH.DATE_PRESETS.LAST_12_MONTHS)).toBe(true);
 
             expect(searchQueryJSON?.view).toBe(CONST.SEARCH.VIEW.LINE);
             expect(searchQueryJSON?.sortBy).toBe(CONST.SEARCH.TABLE_COLUMNS.GROUP_MONTH);
@@ -6730,7 +6738,7 @@ describe('SearchUIUtils', () => {
 
             expect(searchQuery).toContain(`type:${CONST.SEARCH.DATA_TYPES.EXPENSE}`);
             expect(searchQuery).toContain(`groupBy:${CONST.SEARCH.GROUP_BY.MONTH}`);
-            expect(searchQuery).toContain(`date:${CONST.SEARCH.DATE_PRESETS.YEAR_TO_DATE}`);
+            expect(searchQuery).toContain(`date:${CONST.SEARCH.DATE_PRESETS.LAST_12_MONTHS}`);
             expect(searchQuery).toContain(`view:${CONST.SEARCH.VIEW.LINE}`);
             expect(searchQuery).toContain(`sortBy:${CONST.SEARCH.TABLE_COLUMNS.GROUP_MONTH}`);
             expect(searchQuery).toContain(`sortOrder:${CONST.SEARCH.SORT_ORDER.ASC}`);
@@ -6819,18 +6827,18 @@ describe('SearchUIUtils', () => {
     });
 
     describe('Test getSuggestedSearches sort defaults', () => {
-        test('Should default Top Categories to sortBy groupCategory and sortOrder asc', () => {
+        test('Should default Top Categories to sortBy groupTotal and sortOrder desc', () => {
             const suggestedSearches = SearchUIUtils.getSuggestedSearches(adminAccountID);
             const topCategories = suggestedSearches[CONST.SEARCH.SEARCH_KEYS.TOP_CATEGORIES];
-            expect(topCategories.searchQueryJSON?.sortBy).toBe(CONST.SEARCH.TABLE_COLUMNS.GROUP_CATEGORY);
-            expect(topCategories.searchQueryJSON?.sortOrder).toBe(CONST.SEARCH.SORT_ORDER.ASC);
+            expect(topCategories.searchQueryJSON?.sortBy).toBe(CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL);
+            expect(topCategories.searchQueryJSON?.sortOrder).toBe(CONST.SEARCH.SORT_ORDER.DESC);
         });
 
-        test('Should default Top Merchants to sortBy groupMerchant and sortOrder asc', () => {
+        test('Should default Top Merchants to sortBy groupTotal and sortOrder desc', () => {
             const suggestedSearches = SearchUIUtils.getSuggestedSearches(adminAccountID);
             const topMerchants = suggestedSearches[CONST.SEARCH.SEARCH_KEYS.TOP_MERCHANTS];
-            expect(topMerchants.searchQueryJSON?.sortBy).toBe(CONST.SEARCH.TABLE_COLUMNS.GROUP_MERCHANT);
-            expect(topMerchants.searchQueryJSON?.sortOrder).toBe(CONST.SEARCH.SORT_ORDER.ASC);
+            expect(topMerchants.searchQueryJSON?.sortBy).toBe(CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL);
+            expect(topMerchants.searchQueryJSON?.sortOrder).toBe(CONST.SEARCH.SORT_ORDER.DESC);
         });
     });
 
@@ -8322,6 +8330,53 @@ describe('SearchUIUtils', () => {
                 expect(result.originalItem).toBe(item);
                 expect(result.itemWithSelection).not.toBe(item);
             });
+        });
+    });
+
+    describe('isPolicyEligibleForSpendOverTime', () => {
+        const userEmail = 'user@example.com';
+        const approverUserEmail = 'approver@example.com';
+
+        const createPolicy = (overrides: Partial<OnyxTypes.Policy> = {}) => ({
+            id: 'testPolicyID',
+            name: 'Test Policy',
+            type: CONST.POLICY.TYPE.TEAM,
+            role: CONST.POLICY.ROLE.USER,
+            owner: 'owner@example.com',
+            outputCurrency: 'USD',
+            isPolicyExpenseChatEnabled: true,
+            employeeList: {},
+            ...overrides,
+        });
+
+        test('returns true for admin on a paid group policy', () => {
+            expect(SearchUIUtils.isPolicyEligibleForSpendOverTime(createPolicy({role: CONST.POLICY.ROLE.ADMIN}), userEmail)).toBe(true);
+        });
+
+        test('returns true for auditor on a paid group policy', () => {
+            expect(SearchUIUtils.isPolicyEligibleForSpendOverTime(createPolicy({role: CONST.POLICY.ROLE.AUDITOR}), userEmail)).toBe(true);
+        });
+
+        test('returns false for a personal policy even with admin role', () => {
+            expect(SearchUIUtils.isPolicyEligibleForSpendOverTime(createPolicy({type: CONST.POLICY.TYPE.PERSONAL, role: CONST.POLICY.ROLE.ADMIN}), userEmail)).toBe(false);
+        });
+
+        test.each([{field: 'submitsTo'}, {field: 'forwardsTo'}, {field: 'overLimitForwardsTo'}])('returns true for a member who is a policy approver via $field', ({field}) => {
+            const approverPolicy = createPolicy({
+                employeeList: {
+                    [userEmail]: {email: userEmail, role: CONST.POLICY.ROLE.USER, [field]: approverUserEmail},
+                },
+            });
+            expect(SearchUIUtils.isPolicyEligibleForSpendOverTime(approverPolicy, approverUserEmail)).toBe(true);
+        });
+
+        test('returns false for a member who is not an approver', () => {
+            const regularPolicy = createPolicy({
+                employeeList: {
+                    [userEmail]: {email: userEmail, role: CONST.POLICY.ROLE.USER, submitsTo: 'someone.else@example.com'},
+                },
+            });
+            expect(SearchUIUtils.isPolicyEligibleForSpendOverTime(regularPolicy, userEmail)).toBe(false);
         });
     });
 });

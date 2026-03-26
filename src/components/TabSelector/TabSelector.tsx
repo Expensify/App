@@ -12,6 +12,7 @@ function TabSelector({
     state,
     navigation,
     onTabPress = () => {},
+    onLongTabPress,
     position,
     onFocusTrapContainerElementChanged,
     shouldShowLabelWhenInactive = true,
@@ -66,6 +67,7 @@ function TabSelector({
                     tabs={tabs}
                     activeTabKey={activeRouteName}
                     onTabPress={handleTabPress}
+                    onLongTabPress={onLongTabPress}
                     position={position}
                     shouldShowLabelWhenInactive={shouldShowLabelWhenInactive}
                     shouldShowProductTrainingTooltip={shouldShowProductTrainingTooltip}

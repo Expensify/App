@@ -25,7 +25,6 @@ import useScrollToEndOnNewMessageReceived from '@hooks/useScrollToEndOnNewMessag
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {isSafari} from '@libs/Browser';
-import type {ReasoningEntry} from '@libs/ConciergeReasoningStore';
 import DateUtils from '@libs/DateUtils';
 import FS from '@libs/Fullstory';
 import durationHighlightItem from '@libs/Navigation/helpers/getDurationHighlightItem';
@@ -75,7 +74,7 @@ import FloatingMessageCounter from './FloatingMessageCounter';
 import getInitialNumToRender from './getInitialNumReportActionsToRender';
 import ListBoundaryLoader from './ListBoundaryLoader';
 import ReportActionsListItemRenderer from './ReportActionsListItemRenderer';
-import shouldDisplayNewMarkerOnReportAction from './shouldDisplayNewMarkerOnReportAction';
+import {getUnreadMarkerReportAction} from './shouldDisplayNewMarkerOnReportAction';
 import StaticReportActionsPreview from './StaticReportActionsPreview';
 import useReportUnreadMessageScrollTracking from './useReportUnreadMessageScrollTracking';
 
@@ -136,14 +135,6 @@ type ReportActionsListProps = {
 
     /** Callback to show previous messages */
     onShowPreviousMessages?: () => void;
-    /** If concierge is currently processing a request */
-    isConciergeProcessing?: boolean;
-
-    /** Concierge reasoning history for display */
-    conciergeReasoningHistory?: ReasoningEntry[];
-
-    /** Concierge status label */
-    conciergeStatusLabel?: string;
 };
 
 // In the component we are subscribing to the arrival of new actions.
@@ -187,9 +178,6 @@ function ReportActionsList({
     showHiddenHistory,
     hasPreviousMessages,
     onShowPreviousMessages,
-    isConciergeProcessing = false,
-    conciergeReasoningHistory,
-    conciergeStatusLabel,
 }: ReportActionsListProps) {
     const prevHasCreatedActionAdded = usePrevious(hasCreatedActionAdded);
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
@@ -301,48 +289,18 @@ function ReportActionsList({
     /**
      * The reportActionID the unread marker should display above
      */
-    const [unreadMarkerReportActionID, unreadMarkerReportActionIndex] = useMemo(() => {
-        if (isAnonymousUser) {
-            return [null, -1];
-        }
-
-        // If there are message that were received while offline,
-        // we can skip checking all messages later than the earliest received offline message.
-        const startIndex = earliestReceivedOfflineMessageIndex ?? 0;
-
-        // Scan through each visible report action until we find the appropriate action to show the unread marker
-        for (let index = startIndex; index < sortedVisibleReportActions.length; index++) {
-            const reportAction = sortedVisibleReportActions.at(index);
-
-            if (reportAction?.reportActionID === CONST.CONCIERGE_GREETING_ACTION_ID) {
-                continue;
-            }
-
-            let nextAction = sortedVisibleReportActions.at(index + 1);
-            if (nextAction?.reportActionID === CONST.CONCIERGE_GREETING_ACTION_ID) {
-                nextAction = sortedVisibleReportActions.at(index + 2);
-            }
-            const isEarliestReceivedOfflineMessage = index === earliestReceivedOfflineMessageIndex;
-
-            const shouldDisplayNewMarker =
-                reportAction &&
-                shouldDisplayNewMarkerOnReportAction({
-                    message: reportAction,
-                    nextMessage: nextAction,
-                    isEarliestReceivedOfflineMessage,
-                    currentUserAccountID,
-                    prevSortedVisibleReportActionsObjects,
-                    unreadMarkerTime,
-                    scrollingVerticalOffset: scrollOffsetRef.current,
-                    prevUnreadMarkerReportActionID: prevUnreadMarkerReportActionID.current,
-                });
-            if (shouldDisplayNewMarker) {
-                return [reportAction.reportActionID, index];
-            }
-        }
-
-        return [null, -1];
-    }, [currentUserAccountID, isAnonymousUser, earliestReceivedOfflineMessageIndex, prevSortedVisibleReportActionsObjects, scrollOffsetRef, sortedVisibleReportActions, unreadMarkerTime]);
+    const [unreadMarkerReportActionID, unreadMarkerReportActionIndex] = getUnreadMarkerReportAction({
+        visibleReportActions: sortedVisibleReportActions,
+        earliestReceivedOfflineMessageIndex,
+        currentUserAccountID,
+        prevSortedVisibleReportActionsObjects,
+        unreadMarkerTime,
+        scrollingVerticalOffset: scrollOffsetRef.current,
+        prevUnreadMarkerReportActionID: prevUnreadMarkerReportActionID.current,
+        isOffline,
+        isReversed: false,
+        isAnonymousUser,
+    });
     prevUnreadMarkerReportActionID.current = unreadMarkerReportActionID;
 
     /**
@@ -791,6 +749,7 @@ function ReportActionsList({
             styles,
             translate,
             expensifyIcons.UpArrow,
+            isOffline,
         ],
     );
 
@@ -833,20 +792,14 @@ function ReportActionsList({
 
         return (
             <>
-                {isConciergeProcessing && (
-                    <ConciergeThinkingMessage
-                        report={report}
-                        reasoningHistory={conciergeReasoningHistory}
-                        statusLabel={conciergeStatusLabel}
-                    />
-                )}
+                <ConciergeThinkingMessage report={report} />
                 <ListBoundaryLoader
                     type={CONST.LIST_COMPONENTS.HEADER}
                     onRetry={retryLoadNewerChatsError}
                 />
             </>
         );
-    }, [canShowHeader, isConciergeProcessing, report, conciergeReasoningHistory, conciergeStatusLabel, retryLoadNewerChatsError]);
+    }, [canShowHeader, report, retryLoadNewerChatsError]);
 
     const shouldShowSkeleton = isOffline && !sortedVisibleReportActions.some((action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED);
 
