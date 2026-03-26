@@ -19,11 +19,27 @@ const prepareReportKeys = (keys: string[]) => {
                 key
                     .replace(ONYXKEYS.COLLECTION.REPORT_METADATA, ONYXKEYS.COLLECTION.REPORT)
                     .replace(ONYXKEYS.COLLECTION.REPORT_ACTIONS, ONYXKEYS.COLLECTION.REPORT)
-                    .replace(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, ONYXKEYS.COLLECTION.REPORT)
-                    .replace(ONYXKEYS.COLLECTION.REPORT_VIOLATIONS, ONYXKEYS.COLLECTION.REPORT),
+                    .replace(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, ONYXKEYS.COLLECTION.REPORT),
             ),
         ),
     ];
+};
+
+const hasPolicyRelevantFieldChanged = (prev: Policy | null | undefined, next: Policy | null | undefined): boolean => {
+    if (!prev && !next) {
+        return false;
+    }
+    if (!prev || !next) {
+        return true;
+    }
+    return (
+        prev.type !== next.type ||
+        prev.approvalMode !== next.approvalMode ||
+        prev.reimbursementChoice !== next.reimbursementChoice ||
+        prev.autoReimbursementLimit !== next.autoReimbursementLimit ||
+        prev.role !== next.role ||
+        prev.autoReimbursement?.limit !== next.autoReimbursement?.limit
+    );
 };
 
 const checkDisplayNamesChanged = (personalDetails: OnyxEntry<PersonalDetailsList>) => {
@@ -71,11 +87,11 @@ export default createOnyxDerivedValueConfig({
         ONYXKEYS.SESSION,
         ONYXKEYS.COLLECTION.POLICY,
         ONYXKEYS.COLLECTION.POLICY_TAGS,
-        ONYXKEYS.COLLECTION.REPORT_VIOLATIONS,
         ONYXKEYS.COLLECTION.REPORT_METADATA,
+        ONYXKEYS.CONCIERGE_REPORT_ID,
     ],
     compute: (
-        [reports, preferredLocale, transactionViolations, reportActions, reportNameValuePairs, transactions, personalDetails, session, policies, policyTags, reportViolations],
+        [reports, preferredLocale, transactionViolations, reportActions, reportNameValuePairs, transactions, personalDetails, session, policies, policyTags],
         {currentValue, sourceValues},
     ) => {
         // Check if display names changed when personal details are updated
@@ -94,12 +110,31 @@ export default createOnyxDerivedValueConfig({
         // A full recompute is needed when locale changes (report names are locale-dependent) or display names change.
         // We compare preferredLocale against currentValue?.locale so that the first locale load on startup
         // (where both equal the same persisted value) does not trigger an unnecessary full recompute.
-        let needsFullRecompute = (hasKeyTriggeredCompute(ONYXKEYS.NVP_PREFERRED_LOCALE, sourceValues) && preferredLocale !== currentValue?.locale) || displayNamesChanged;
+        let needsFullRecompute =
+            (hasKeyTriggeredCompute(ONYXKEYS.NVP_PREFERRED_LOCALE, sourceValues) && preferredLocale !== currentValue?.locale) ||
+            displayNamesChanged ||
+            hasKeyTriggeredCompute(ONYXKEYS.CONCIERGE_REPORT_ID, sourceValues);
 
         // if policies are loaded first time, we need to recompute all report attributes to get correct action badge in LHN, such as Approve because it depends on policy's type (see canApproveIOU function)
+        const policyChangedReportKeys: string[] = [];
         if (hasKeyTriggeredCompute(ONYXKEYS.COLLECTION.POLICY, sourceValues)) {
             if (Object.keys(previousPolicies ?? {}).length === 0 && Object.keys(policies ?? {}).length > 0) {
                 needsFullRecompute = true;
+            } else if (!needsFullRecompute) {
+                // Policy updated — only recompute reports whose relevant fields actually changed
+                const changedPolicyIDs = new Set<string>();
+                for (const key of Object.keys(sourceValues?.[ONYXKEYS.COLLECTION.POLICY] ?? {})) {
+                    if (hasPolicyRelevantFieldChanged(previousPolicies?.[key], policies?.[key])) {
+                        changedPolicyIDs.add(key.replace(ONYXKEYS.COLLECTION.POLICY, ''));
+                    }
+                }
+                if (changedPolicyIDs.size > 0) {
+                    for (const [reportKey, report] of Object.entries(reports ?? {})) {
+                        if (report?.policyID && changedPolicyIDs.has(report.policyID)) {
+                            policyChangedReportKeys.push(reportKey);
+                        }
+                    }
+                }
             }
             previousPolicies = policies;
         }
@@ -117,7 +152,6 @@ export default createOnyxDerivedValueConfig({
         const reportMetadataUpdates = sourceValues?.[ONYXKEYS.COLLECTION.REPORT_METADATA] ?? {};
         const reportActionsUpdates = sourceValues?.[ONYXKEYS.COLLECTION.REPORT_ACTIONS] ?? {};
         const reportNameValuePairsUpdates = sourceValues?.[ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS] ?? {};
-        const reportViolationsUpdates = sourceValues?.[ONYXKEYS.COLLECTION.REPORT_VIOLATIONS] ?? {};
         const transactionsUpdates = sourceValues?.[ONYXKEYS.COLLECTION.TRANSACTION];
         const transactionViolationsUpdates = sourceValues?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS];
         const policyTagsUpdates = sourceValues?.[ONYXKEYS.COLLECTION.POLICY_TAGS];
@@ -144,8 +178,8 @@ export default createOnyxDerivedValueConfig({
             ...Object.keys(reportMetadataUpdates),
             ...Object.keys(reportActionsUpdates),
             ...Object.keys(reportNameValuePairsUpdates),
-            ...Object.keys(reportViolationsUpdates),
             ...Array.from(reportUpdatesRelatedToReportActions),
+            ...policyChangedReportKeys,
         ];
 
         if (useIncrementalUpdates) {
@@ -234,7 +268,7 @@ export default createOnyxDerivedValueConfig({
             });
 
             const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
-            const hasFieldViolations = hasVisibleReportFieldViolations(report, policy, reportViolations?.[`${ONYXKEYS.COLLECTION.REPORT_VIOLATIONS}${report.reportID}`]);
+            const hasFieldViolations = hasVisibleReportFieldViolations(report, policy);
 
             let brickRoadStatus;
             let actionBadge;
@@ -320,3 +354,5 @@ export default createOnyxDerivedValueConfig({
         };
     },
 });
+
+export {hasPolicyRelevantFieldChanged};
