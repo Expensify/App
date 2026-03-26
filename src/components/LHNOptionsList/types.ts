@@ -121,12 +121,6 @@ type OptionRowLHNDataProps = {
 
     /** The current user's account ID */
     currentUserAccountID: number;
-
-    /** The report attributes for the report */
-    reportAttributes: OnyxEntry<ReportAttributes>;
-
-    /** The derived report attributes for all reports */
-    reportAttributesDerived?: ReportAttributesDerivedValue['reports'];
 };
 
 type OptionRowLHNProps = {
