@@ -168,14 +168,14 @@ function CategorySettingsPage({
     }, [policyCategory?.pendingFields, policy?.isAttendeeTrackingEnabled]);
 
     // eslint-disable-next-line rulesdir/no-negated-variables
-    const showCannotDeleteOrDisableLastCategoryModal = () => {
+    const showCannotDeleteOrDisableLastCategoryModal = useCallback(() => {
         showConfirmModal({
             title: translate('workspace.categories.cannotDeleteOrDisableAllCategories.title'),
             prompt: translate('workspace.categories.cannotDeleteOrDisableAllCategories.description'),
             confirmText: translate('common.buttonConfirm'),
             shouldShowCancelButton: false,
         });
-    };
+    }, [showConfirmModal, translate]);
 
     const updateWorkspaceCategoryEnabled = useCallback(
         (value: boolean) => {
@@ -200,8 +200,8 @@ function CategorySettingsPage({
                 policyHasTags,
             });
         },
-        // eslint-disable-next-line react-hooks/exhaustive-deps
         [
+            showCannotDeleteOrDisableLastCategoryModal,
             shouldPreventDisableOrDelete,
             policyData,
             policyCategory?.name,

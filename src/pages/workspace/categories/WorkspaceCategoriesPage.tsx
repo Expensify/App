@@ -166,14 +166,14 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     });
 
     // eslint-disable-next-line rulesdir/no-negated-variables
-    const showCannotDeleteOrDisableLastCategoryModal = () => {
+    const showCannotDeleteOrDisableLastCategoryModal = useCallback(() => {
         showConfirmModal({
             title: translate('workspace.categories.cannotDeleteOrDisableAllCategories.title'),
             prompt: translate('workspace.categories.cannotDeleteOrDisableAllCategories.description'),
             confirmText: translate('common.buttonConfirm'),
             shouldShowCancelButton: false,
         });
-    };
+    }, [showConfirmModal, translate]);
 
     const updateWorkspaceCategoryEnabled = useCallback(
         (value: boolean, categoryName: string) => {
@@ -302,8 +302,8 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
 
             return acc;
         }, []);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [
+        showCannotDeleteOrDisableLastCategoryModal,
         policyCategories,
         isOffline,
         translate,
@@ -435,7 +435,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
 
     const policyHasAccountingConnections = hasAccountingConnections(policy);
 
-    const showOfflineModal = () => {
+    const showOfflineModal = useCallback(() => {
         close(() => {
             showConfirmModal({
                 title: translate('common.youAppearToBeOffline'),
@@ -444,7 +444,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                 shouldShowCancelButton: false,
             });
         });
-    };
+    }, [showConfirmModal, translate]);
 
     const navigateToImportSpreadsheet = useCallback(() => {
         if (isOffline) {
@@ -456,8 +456,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                 ? ROUTES.SETTINGS_CATEGORIES_IMPORT.getRoute(policyId, ROUTES.SETTINGS_CATEGORIES_ROOT.getRoute(policyId, backTo))
                 : ROUTES.WORKSPACE_CATEGORIES_IMPORT.getRoute(policyId),
         );
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [backTo, isOffline, isQuickSettingsFlow, policyId]);
+    }, [backTo, isOffline, isQuickSettingsFlow, policyId, showOfflineModal]);
 
     const secondaryActions = useMemo(() => {
         const menuItems = [];
@@ -499,8 +498,8 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
         }
 
         return menuItems;
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [
+        showOfflineModal,
         icons.Download,
         icons.Gear,
         icons.Table,
