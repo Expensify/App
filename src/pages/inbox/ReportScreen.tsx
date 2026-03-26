@@ -412,7 +412,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     }, [transactionThreadReportID, route?.params?.reportActionID, linkedAction, reportID, navigation, report, childReport]);
 
     const isReportArchived = useReportIsArchived(report?.reportID);
-    const {isEditingDisabled, isCurrentReportLoadedFromOnyx} = useIsReportReadyToDisplay(report, reportIDFromRoute, isReportArchived);
+    const {isEditingDisabled} = useIsReportReadyToDisplay(report, reportIDFromRoute, isReportArchived);
 
     const isLinkedActionDeleted = useMemo(() => {
         if (!linkedAction) {
@@ -1097,7 +1097,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
                                                     reportPendingAction={reportPendingAction}
                                                 />
                                             ) : null}
-                                            {isCurrentReportLoadedFromOnyx ? <ReportFooter /> : null}
+                                            <ReportFooter />
                                         </View>
                                     </AgentZeroStatusProvider>
                                 </View>

@@ -56,6 +56,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import ReportActionsList from './ReportActionsList';
 import UserTypingEventListener from './UserTypingEventListener';
 
@@ -77,7 +78,7 @@ function ReportActionsView({reportID, onLayout}: ReportActionsViewProps) {
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const {isOffline} = useNetwork();
 
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+    const [report, reportResult] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
 
     const reportActionID = route?.params?.reportActionID;
     const {reportActions: unfilteredReportActions, hasNewerActions, hasOlderActions} = usePaginatedReportActions(reportID, reportActionID);
@@ -375,7 +376,7 @@ function ReportActionsView({reportID, onLayout}: ReportActionsViewProps) {
         markOpenReportEnd(report, {warm: false});
     }, [report, shouldShowSkeleton]);
 
-    if (!report) {
+    if (isLoadingOnyxValue(reportResult) || !report) {
         return <ReportActionsSkeletonView />;
     }
 
