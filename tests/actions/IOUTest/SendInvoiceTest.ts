@@ -22,6 +22,7 @@ import getOnyxValue from '../../utils/getOnyxValue';
 import type {MockFetch} from '../../utils/TestHelper';
 import {getGlobalFetchMock} from '../../utils/TestHelper';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
+import {getPolicyTags} from '@libs/actions/IOU';
 
 const topMostReportID = '23423423';
 jest.mock('@src/libs/Navigation/Navigation', () => ({
@@ -121,39 +122,33 @@ describe('actions/SendInvoice', () => {
             expect(result).toBe(CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL);
         });
     });
+
+    const baseParticipants = [
+        {accountID: 123, isSender: true, policyID: 'workspace_test'},
+        {accountID: 456, isSender: false},
+    ];
+
+    const baseSenderPolicyID = baseParticipants.find((p) => p.isSender)?.policyID;
+    const baseParticipantsPolicyTags = getPolicyTags()?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${baseSenderPolicyID}`] ?? {};
+
+    const baseTransaction = {
+        transactionID: 'transaction_base',
+        reportID: 'report_base',
+        amount: 100,
+        currency: 'USD',
+        created: '2024-02-01',
+        merchant: 'Test Merchant',
+        participants: baseParticipants,
+    };
+
     describe('getSendInvoiceInformation', () => {
         it('should merge policyRecentlyUsedCategories when provided', () => {
-            // Given: Transaction with a category and existing recently used categories
-            const mockTransaction = {
-                transactionID: 'transaction_categories',
-                reportID: 'report_categories',
-                amount: 200,
-                currency: 'USD',
-                created: '2024-02-01',
-                merchant: 'Category Test',
-                category: 'Meals',
-                comment: {
-                    comment: 'Invoice with categories',
-                },
-                participants: [
-                    {
-                        accountID: 123,
-                        isSender: true,
-                        policyID: 'workspace_categories',
-                    },
-                    {
-                        accountID: 456,
-                        isSender: false,
-                    },
-                ],
-            };
-
             const currentUserAccountID = 123;
             const existingRecentlyUsedCategories: OnyxEntry<RecentlyUsedCategories> = [];
 
             // When: Call getSendInvoiceInformation with policyRecentlyUsedCategories
             const result = getSendInvoiceInformation({
-                transaction: mockTransaction as OnyxEntry<Transaction>,
+                transaction: baseTransaction as OnyxEntry<Transaction>,
                 currentUserAccountID,
                 policyRecentlyUsedCurrencies: [],
                 invoiceChatReport: undefined,
@@ -164,7 +159,7 @@ describe('actions/SendInvoice', () => {
                 companyName: undefined,
                 companyWebsite: undefined,
                 policyRecentlyUsedCategories: existingRecentlyUsedCategories,
-                participantsPolicyTags: {},
+                participantsPolicyTags: baseParticipantsPolicyTags,
             });
 
             // Then: Verify optimistic data is generated when policyRecentlyUsedCategories are provided
@@ -174,34 +169,11 @@ describe('actions/SendInvoice', () => {
         it('should merge policyRecentlyUsedCurrencies when currency is provided in transaction', () => {
             const testCurrency = CONST.CURRENCY.EUR;
             const initialCurrencies = [CONST.CURRENCY.USD, CONST.CURRENCY.GBP];
-            const mockTransaction = {
-                transactionID: 'transaction_currency',
-                reportID: 'report_currency',
-                amount: 200,
-                currency: testCurrency,
-                created: '2024-02-01',
-                merchant: 'Currency Test',
-                category: 'Meals',
-                comment: {
-                    comment: 'Invoice with currency',
-                },
-                participants: [
-                    {
-                        accountID: 123,
-                        isSender: true,
-                        policyID: 'workspace_currency',
-                    },
-                    {
-                        accountID: 456,
-                        isSender: false,
-                    },
-                ],
-            };
 
             const currentUserAccountID = 123;
 
             const result = getSendInvoiceInformation({
-                transaction: mockTransaction as OnyxEntry<Transaction>,
+                transaction: {...baseTransaction, currency: CONST.CURRENCY.EUR} as OnyxEntry<Transaction>,
                 currentUserAccountID,
                 policyRecentlyUsedCurrencies: initialCurrencies,
                 invoiceChatReport: undefined,
@@ -212,7 +184,7 @@ describe('actions/SendInvoice', () => {
                 companyName: undefined,
                 companyWebsite: undefined,
                 policyRecentlyUsedCategories: undefined,
-                participantsPolicyTags: {},
+                participantsPolicyTags: baseParticipantsPolicyTags,
             });
 
             expect(result.onyxData.optimisticData).toBeDefined();
@@ -226,34 +198,6 @@ describe('actions/SendInvoice', () => {
 
         it('should return correct invoice information with new chat report', () => {
             // Given: Mock transaction data
-            const mockTransaction = {
-                transactionID: 'transaction_123',
-                reportID: 'report_123',
-                amount: 500,
-                currency: 'USD',
-                created: '2024-01-15',
-                merchant: 'Test Company',
-                category: 'Services',
-                tag: 'Project B',
-                taxCode: 'TAX001',
-                taxAmount: 50,
-                billable: true,
-                comment: {
-                    comment: 'Invoice for consulting services',
-                },
-                participants: [
-                    {
-                        accountID: 123,
-                        isSender: true,
-                        policyID: 'workspace_123',
-                    },
-                    {
-                        accountID: 456,
-                        isSender: false,
-                    },
-                ],
-            };
-
             const currentUserAccountID = 123;
             const mockPolicy = createRandomPolicy(1);
 
@@ -280,7 +224,7 @@ describe('actions/SendInvoice', () => {
 
             // When: Call getSendInvoiceInformation
             const result = getSendInvoiceInformation({
-                transaction: mockTransaction as OnyxEntry<Transaction>,
+                transaction: baseTransaction as OnyxEntry<Transaction>,
                 currentUserAccountID,
                 policyRecentlyUsedCurrencies: [],
                 invoiceChatReport: undefined,
@@ -296,7 +240,7 @@ describe('actions/SendInvoice', () => {
 
             // Then: Verify the result structure and key values
             expect(result).toMatchObject({
-                senderWorkspaceID: 'workspace_123',
+                senderWorkspaceID: 'workspace_test',
                 invoiceReportID: expect.any(String),
                 transactionID: expect.any(String),
                 transactionThreadReportID: expect.any(String),
@@ -350,39 +294,14 @@ describe('actions/SendInvoice', () => {
                 },
             };
 
-            const mockTransaction = {
-                transactionID: 'transaction_456',
-                reportID: 'report_456',
-                amount: 750,
-                currency: 'EUR',
-                created: '2024-01-20',
-                merchant: 'Client Company',
-                category: 'Development',
-                tag: 'Project C',
-                taxCode: 'TAX002',
-                taxAmount: 75,
-                billable: true,
-                comment: {
-                    comment: 'Invoice for development work',
-                },
-                participants: [
-                    {
-                        accountID: 123,
-                        isSender: true,
-                        policyID: 'workspace_456',
-                    },
-                    {
-                        accountID: 456,
-                        isSender: false,
-                    },
-                ],
-            };
-
             const currentUserAccountID = 123;
 
             // When: Call getSendInvoiceInformation with existing chat report
             const result = getSendInvoiceInformation({
-                transaction: mockTransaction as OnyxEntry<Transaction>,
+                transaction: {
+                    ...baseTransaction,
+                    participants: [{...baseParticipants.at(0), policyID: 'workspace_456'}, baseParticipants.at(1)],
+                } as OnyxEntry<Transaction>,
                 currentUserAccountID,
                 policyRecentlyUsedCurrencies: [],
                 invoiceChatReport: existingInvoiceChatReport as OnyxEntry<Report>,
@@ -393,7 +312,7 @@ describe('actions/SendInvoice', () => {
                 companyName: 'Client Company Ltd.',
                 companyWebsite: 'https://clientcompany.com',
                 policyRecentlyUsedCategories: [],
-                participantsPolicyTags: {},
+                participantsPolicyTags: baseParticipantsPolicyTags,
             });
 
             // Then: Verify the result uses existing chat report
@@ -407,33 +326,6 @@ describe('actions/SendInvoice', () => {
 
         it('should handle receipt attachment correctly', () => {
             // Given: Transaction with receipt
-            const mockTransaction = {
-                transactionID: 'transaction_789',
-                reportID: 'report_789',
-                amount: 300,
-                currency: 'USD',
-                created: '2024-01-25',
-                merchant: 'Receipt Company',
-                category: 'Equipment',
-                tag: 'Hardware',
-                taxCode: 'TAX003',
-                taxAmount: 30,
-                billable: true,
-                comment: {
-                    comment: 'Invoice with receipt',
-                },
-                participants: [
-                    {
-                        accountID: 123,
-                        isSender: true,
-                        policyID: 'workspace_789',
-                    },
-                    {
-                        accountID: 456,
-                        isSender: false,
-                    },
-                ],
-            };
 
             const mockReceipt = {
                 source: 'receipt_source_123',
@@ -445,7 +337,7 @@ describe('actions/SendInvoice', () => {
 
             // When: Call getSendInvoiceInformation with receipt
             const result = getSendInvoiceInformation({
-                transaction: mockTransaction as OnyxEntry<Transaction>,
+                transaction: baseTransaction as OnyxEntry<Transaction>,
                 currentUserAccountID,
                 policyRecentlyUsedCurrencies: [],
                 invoiceChatReport: undefined,
@@ -456,7 +348,7 @@ describe('actions/SendInvoice', () => {
                 companyName: undefined,
                 companyWebsite: undefined,
                 policyRecentlyUsedCategories: [],
-                participantsPolicyTags: {},
+                participantsPolicyTags: baseParticipantsPolicyTags,
             });
 
             // Then: Verify receipt handling
@@ -505,7 +397,7 @@ describe('actions/SendInvoice', () => {
                 companyName: undefined,
                 companyWebsite: undefined,
                 policyRecentlyUsedCategories: [],
-                participantsPolicyTags: {},
+                participantsPolicyTags: baseParticipantsPolicyTags,
             });
 
             // Then: Verify function handles missing data gracefully
@@ -519,33 +411,11 @@ describe('actions/SendInvoice', () => {
 
         it('should use provided invoiceChatReportID when creating new invoice chat', () => {
             const preGeneratedReportID = 'pre_generated_invoice_chat_123';
-            const mockTransaction = {
-                transactionID: 'transaction_with_report_id',
-                reportID: 'report_with_id',
-                amount: 500,
-                currency: 'USD',
-                created: '2024-02-01',
-                merchant: 'Test Merchant',
-                comment: {
-                    comment: 'Invoice with pre-generated report ID',
-                },
-                participants: [
-                    {
-                        accountID: 123,
-                        isSender: true,
-                        policyID: 'workspace_test',
-                    },
-                    {
-                        accountID: 456,
-                        isSender: false,
-                    },
-                ],
-            };
 
             const currentUserAccountID = 123;
 
             const result = getSendInvoiceInformation({
-                transaction: mockTransaction as OnyxEntry<Transaction>,
+                transaction: baseTransaction as OnyxEntry<Transaction>,
                 currentUserAccountID,
                 policyRecentlyUsedCurrencies: [],
                 invoiceChatReport: undefined,
@@ -557,7 +427,7 @@ describe('actions/SendInvoice', () => {
                 companyName: undefined,
                 companyWebsite: undefined,
                 policyRecentlyUsedCategories: [],
-                participantsPolicyTags: {},
+                participantsPolicyTags: baseParticipantsPolicyTags,
             });
 
             expect(result.invoiceRoom).toBeDefined();
@@ -594,30 +464,10 @@ describe('actions/SendInvoice', () => {
                 },
             };
 
-            const mockTransaction = {
-                transactionID: 'transaction_existing_chat',
-                reportID: 'report_existing',
-                amount: 300,
-                currency: 'USD',
-                created: '2024-02-01',
-                merchant: 'Existing Chat Test',
-                participants: [
-                    {
-                        accountID: 123,
-                        isSender: true,
-                        policyID: 'workspace_existing',
-                    },
-                    {
-                        accountID: receiverAccountID,
-                        isSender: false,
-                    },
-                ],
-            };
-
             const currentUserAccountID = 123;
 
             const result = getSendInvoiceInformation({
-                transaction: mockTransaction as OnyxEntry<Transaction>,
+                transaction: baseTransaction as OnyxEntry<Transaction>,
                 currentUserAccountID,
                 policyRecentlyUsedCurrencies: [],
                 invoiceChatReport: existingInvoiceChatReport as OnyxEntry<Report>,
@@ -629,7 +479,7 @@ describe('actions/SendInvoice', () => {
                 companyName: undefined,
                 companyWebsite: undefined,
                 policyRecentlyUsedCategories: [],
-                participantsPolicyTags: {},
+                participantsPolicyTags: baseParticipantsPolicyTags,
             });
 
             expect(result.invoiceRoom).toBeDefined();
