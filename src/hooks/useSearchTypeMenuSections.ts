@@ -3,7 +3,8 @@ import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
 import {useCallback, useEffect, useMemo, useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {areAllGroupPoliciesExpenseChatDisabled} from '@libs/PolicyUtils';
-import {createTypeMenuSections} from '@libs/SearchUIUtils';
+import {createTypeMenuSections, doesSearchItemMatchSort} from '@libs/SearchUIUtils';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Session} from '@src/types/onyx';
 import useCardFeedsForDisplay from './useCardFeedsForDisplay';
@@ -46,6 +47,9 @@ const currentUserLoginAndAccountIDSelector = (session: OnyxEntry<Session>) => ({
 type UseSearchTypeMenuSectionsParams = {
     hash?: number;
     similarSearchHash?: number;
+    sortBy?: string;
+    sortOrder?: string;
+    type?: string;
 };
 
 /**
@@ -53,7 +57,7 @@ type UseSearchTypeMenuSectionsParams = {
  * currently focused search, based on the hash
  */
 const useSearchTypeMenuSections = (queryParams?: UseSearchTypeMenuSectionsParams) => {
-    const {hash, similarSearchHash} = queryParams ?? {};
+    const {hash, similarSearchHash, sortBy, sortOrder, type} = queryParams ?? {};
     const [defaultExpensifyCard] = useOnyx(ONYXKEYS.DERIVED.NON_PERSONAL_AND_WORKSPACE_CARD_LIST, {selector: defaultExpensifyCardSelector});
 
     const {defaultCardFeed, cardFeedsByPolicy} = useCardFeedsForDisplay();
@@ -81,7 +85,7 @@ const useSearchTypeMenuSections = (queryParams?: UseSearchTypeMenuSectionsParams
         setPendingReportCreation(null);
     }, [setPendingReportCreation]);
 
-    const {openCreateReportConfirmation, CreateReportConfirmationModal} = useCreateEmptyReportConfirmation({
+    const {openCreateReportConfirmation} = useCreateEmptyReportConfirmation({
         policyID: pendingReportCreation?.policyID,
         policyName: pendingReportCreation?.policyName ?? '',
         onConfirm: handlePendingConfirm,
@@ -94,10 +98,6 @@ const useSearchTypeMenuSections = (queryParams?: UseSearchTypeMenuSectionsParams
         }
         openCreateReportConfirmation();
     }, [pendingReportCreation, openCreateReportConfirmation]);
-
-    const isSuggestedSearchDataReady = useMemo(() => {
-        return Object.values(allPolicies ?? {}).some((policy) => policy?.employeeList !== undefined && policy?.exporter !== undefined);
-    }, [allPolicies]);
 
     const typeMenuSections = useMemo(
         () =>
@@ -138,19 +138,41 @@ const useSearchTypeMenuSections = (queryParams?: UseSearchTypeMenuSectionsParams
 
         let index = 0;
         for (const section of typeMenuSections) {
-            const found = section.menuItems.findIndex((item) => item.similarSearchHash === similarSearchHash);
+            const found = section.menuItems.findIndex((item) => {
+                if (item.similarSearchHash !== similarSearchHash) {
+                    return false;
+                }
+                return doesSearchItemMatchSort(item.key, item.searchQueryJSON?.sortBy, item.searchQueryJSON?.sortOrder, sortBy, sortOrder);
+            });
             if (found !== -1) {
                 return index + found;
             }
             index += section.menuItems.length;
         }
+
+        // Fallback: if no exact match found, select the generic search key matching the type
+        const typeToGenericKey: Record<string, string> = {
+            [CONST.SEARCH.DATA_TYPES.EXPENSE]: CONST.SEARCH.SEARCH_KEYS.EXPENSES,
+            [CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT]: CONST.SEARCH.SEARCH_KEYS.REPORTS,
+            [CONST.SEARCH.DATA_TYPES.CHAT]: CONST.SEARCH.SEARCH_KEYS.CHATS,
+        };
+        const fallbackKey = type ? typeToGenericKey[type] : undefined;
+        if (fallbackKey) {
+            let fallbackIndex = 0;
+            for (const section of typeMenuSections) {
+                const found = section.menuItems.findIndex((item) => item.key === fallbackKey);
+                if (found !== -1) {
+                    return fallbackIndex + found;
+                }
+                fallbackIndex += section.menuItems.length;
+            }
+        }
+
         return -1;
-    }, [typeMenuSections, savedSearches, hash, similarSearchHash]);
+    }, [typeMenuSections, savedSearches, hash, similarSearchHash, sortBy, sortOrder, type]);
 
     return {
         typeMenuSections,
-        CreateReportConfirmationModal,
-        shouldShowSuggestedSearchSkeleton: !isSuggestedSearchDataReady && !isOffline,
         activeItemIndex,
     };
 };

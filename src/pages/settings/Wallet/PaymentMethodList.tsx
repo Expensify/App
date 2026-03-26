@@ -32,6 +32,7 @@ import {
     isExpensifyCardPendingAction,
     isExpiredCard,
     isPersonalCard,
+    isTravelCard,
     lastFourNumbersFromCardName,
     maskCardNumber,
 } from '@libs/CardUtils';
@@ -175,8 +176,6 @@ function PaymentMethodList({
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Plus', 'ThreeDots', 'LuggageWithLines'] as const);
     const illustrations = useThemeIllustrations();
     const companyCardFeedIcons = useCompanyCardFeedIcons();
-    const [workspaceCardList] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST);
-
     const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {
         selector: isUserValidatedSelector,
     });
@@ -315,10 +314,9 @@ function PaymentMethodList({
                 }
 
                 const isAdminIssuedVirtualCard = !!card?.nameValuePairs?.issuedBy && !!card?.nameValuePairs?.isVirtual;
-                const isTravelCard = card?.nameValuePairs?.feedCountry === CONST.TRAVEL.PROGRAM_TRAVEL_US;
 
                 // Travel cards are handled by the dedicated travelCardGrouped section below
-                if (isTravelCard) {
+                if (isTravelCard(card)) {
                     continue;
                 }
 
@@ -382,8 +380,8 @@ function PaymentMethodList({
             }
 
             const travelCardGrouped: PaymentMethodItem[] = [];
-            const travelCard = getTravelInvoicingCard(workspaceCardList);
-            if (isTravelCVVEligible(isBetaEnabled(CONST.BETAS.TRAVEL_INVOICING), workspaceCardList) && travelCard) {
+            const travelCard = getTravelInvoicingCard(cardList);
+            if (isTravelCVVEligible(isBetaEnabled(CONST.BETAS.TRAVEL_INVOICING), cardList) && travelCard) {
                 travelCardGrouped.push({
                     title: translate('walletPage.travelCVV.title'),
                     description: translate('walletPage.travelCVV.subtitle'),
@@ -478,7 +476,6 @@ function PaymentMethodList({
         filterCurrency,
         isLoadingCardList,
         cardList,
-        workspaceCardList,
         isBetaEnabled,
         onPress,
         policiesForAssignedCards,
