@@ -76,14 +76,13 @@ function trackMFAFlowOutcome(context: MFAFlowOutcomeContext): void {
             endState: context.endState,
         };
 
-        Sentry.captureMessage(eventMessage, {
-            level,
-            tags,
-            extra,
-            fingerprint: ['mfa-flow-outcome', context.isSuccessful ? 'success' : 'error', context.error?.reason ?? context.scenarioResponse?.reason ?? 'unknown'],
-        });
-
         if (level === 'error') {
+            Sentry.captureMessage(eventMessage, {
+                level,
+                tags,
+                extra,
+                fingerprint: ['mfa-flow-outcome', 'error', context.error?.reason ?? context.scenarioResponse?.reason ?? 'unknown'],
+            });
             Log.warn(`[MFA] ${eventMessage}`, {mfa: extra});
         } else {
             Log.info(`[MFA] ${eventMessage}`, false, {mfa: extra});
