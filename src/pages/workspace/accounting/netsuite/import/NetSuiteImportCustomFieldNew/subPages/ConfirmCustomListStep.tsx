@@ -1,5 +1,5 @@
 import React from 'react';
-import {StyleSheet, View} from 'react-native';
+import {View} from 'react-native';
 import ActivityIndicator from '@components/ActivityIndicator';
 import Button from '@components/Button';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
@@ -24,7 +24,7 @@ function ConfirmCustomListStep({onMove, netSuiteCustomFieldFormValues: values, o
 
     if (!values.mapping) {
         return (
-            <View style={[StyleSheet.absoluteFill, styles.fullScreenLoading, styles.w100]}>
+            <View style={[styles.flex1, styles.fullScreenLoading]}>
                 <ActivityIndicator
                     size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
                     reasonAttributes={{context: 'ConfirmCustomListStep'}}
