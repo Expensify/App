@@ -17,6 +17,8 @@ const requiresTwoFactorAuthSelector = (data: OnyxEntry<Account>) => data?.requir
 
 const accountGuideDetailsSelector = (account: OnyxEntry<Account>) => account?.guideDetails;
 
+const mfaCredentialIDsSelector = (data: OnyxEntry<Account>) => data?.multifactorAuthenticationPublicKeyIDs;
+
 const isFromInternalDomainSelector = (account: OnyxEntry<Account>) => account?.isFromInternalDomain;
 
 export {
@@ -28,5 +30,6 @@ export {
     isAccountLoadingSelector,
     requiresTwoFactorAuthSelector,
     accountGuideDetailsSelector,
+    mfaCredentialIDsSelector,
     isFromInternalDomainSelector,
 };
