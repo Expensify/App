@@ -167,7 +167,6 @@ type FeatureTrainingModalSVGProps = {
 // This page requires either an icon or a video/animation, but not both
 type FeatureTrainingModalProps = BaseFeatureTrainingModalProps & MergeExclusive<FeatureTrainingModalVideoProps, FeatureTrainingModalSVGProps>;
 
-const LANDSCAPE_MODAL_MAX_HEIGHT_TO_WINDOW_HEIGHT_RATIO = 0.75;
 const LANDSCAPE_ILLUSTRATION_MAX_HEIGHT_TO_WINDOW_HEIGHT_RATIO = 0.7;
 
 function FeatureTrainingModal({
@@ -453,7 +452,7 @@ function FeatureTrainingModal({
                 style={[
                     onboardingIsMediumOrLargerScreenWidth && StyleUtils.getWidthStyle(width),
                     wrapperStyles.style,
-                    isInLandscapeMode ? {maxHeight: windowHeight * LANDSCAPE_MODAL_MAX_HEIGHT_TO_WINDOW_HEIGHT_RATIO} : styles.mh100,
+                    isInLandscapeMode ? {maxHeight: windowHeight * CONST.MODAL_MAX_HEIGHT_TO_WINDOW_HEIGHT_RATIO_LANDSCAPE_MODE} : styles.mh100,
                 ]}
                 contentContainerStyle={wrapperStyles.containerStyle}
                 keyboardShouldPersistTaps={shouldUseScrollView ? 'handled' : undefined}
