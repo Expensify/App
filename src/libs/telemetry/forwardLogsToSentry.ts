@@ -2,8 +2,16 @@ import * as Sentry from '@sentry/react-native';
 
 type SentryLogLevel = 'debug' | 'info' | 'warn' | 'error';
 
-const PARAMETERS_WHITELIST = new Set(['timestamp', 'error', 'command', 'isSupportAuthTokenUsed', 'mfa']);
+/**
+ * Whitelist of parameter key patterns allowed to be forwarded to Sentry.
+ * Exact strings match the key literally, regexes match against the flattened dot-notation key.
+ * Example: /^mfa\./ matches all keys under the `mfa` namespace (mfa.scenario, mfa.isOffline, etc.).
+ */
+const PARAMETERS_WHITELIST: ReadonlyArray<string | RegExp> = ['timestamp', 'error', 'command', 'isSupportAuthTokenUsed', /^mfa\./];
 
+/**
+ * Only log lines whose message contains one of these prefixes are forwarded to Sentry.
+ */
 const FORWARDED_LOG_PREFIXES = ['[Reauthenticate]', '[MFA]'] as const;
 
 /**
@@ -35,8 +43,12 @@ function isPlainObject(value: unknown): value is Record<string, unknown> {
     return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
+function isKeyWhitelisted(key: string): boolean {
+    return PARAMETERS_WHITELIST.some((pattern) => (typeof pattern === 'string' ? key === pattern : pattern.test(key)));
+}
+
 function filterWhitelistedParameters(parameters: Record<string, unknown>): Record<string, unknown> {
-    return Object.fromEntries(Object.entries(parameters).filter(([key]) => PARAMETERS_WHITELIST.has(key)));
+    return Object.fromEntries(Object.entries(parameters).filter(([key]) => isKeyWhitelisted(key)));
 }
 
 function flattenNestedParameters(parameters: Record<string, unknown>, prefix = ''): Record<string, unknown> {
@@ -59,7 +71,7 @@ function prepareParametersForSentry(parameters: Record<string, unknown> | undefi
         return undefined;
     }
 
-    return flattenNestedParameters(filterWhitelistedParameters(parameters));
+    return filterWhitelistedParameters(flattenNestedParameters(parameters));
 }
 
 function forwardLogsToSentry(logPacket: string | undefined) {
