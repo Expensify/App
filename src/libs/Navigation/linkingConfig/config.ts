@@ -149,13 +149,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                 },
             },
         },
+        [SCREENS.SEARCH_ROUTER.ROOT]: ROUTES.SEARCH_ROUTER,
         [NAVIGATORS.RIGHT_MODAL_NAVIGATOR]: {
             screens: {
-                [SCREENS.RIGHT_MODAL.SEARCH_ROUTER]: {
-                    screens: {
-                        [SCREENS.SEARCH_ROUTER.ROOT]: ROUTES.SEARCH_ROUTER,
-                    },
-                },
                 [SCREENS.RIGHT_MODAL.SETTINGS]: {
                     screens: {
                         [SCREENS.SETTINGS.PREFERENCES.PRIORITY_MODE]: {
@@ -878,6 +874,12 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.COMPANY_CARDS_BROKEN_CARD_FEED_CONNECTION]: {
                             path: ROUTES.WORKSPACE_COMPANY_CARDS_BROKEN_CARD_FEED_CONNECTION.route,
                         },
+                        [SCREENS.WORKSPACE.COMPANY_CARDS_REFRESH_CARD_FEED_CONNECTION]: {
+                            path: ROUTES.WORKSPACE_COMPANY_CARDS_REFRESH_CARD_FEED_CONNECTION.route,
+                        },
+                        [SCREENS.WORKSPACE.COMPANY_CARDS_VERIFY_ACCOUNT]: {
+                            path: ROUTES.WORKSPACE_COMPANY_CARDS_VERIFY_ACCOUNT.route,
+                        },
                         [SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD_ASSIGNEE]: {
                             path: ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_ASSIGNEE.route,
                         },
@@ -1153,6 +1155,10 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         },
                         [SCREENS.REIMBURSEMENT_ACCOUNT]: {
                             path: ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.route,
+                            exact: true,
+                        },
+                        [SCREENS.REIMBURSEMENT_ACCOUNT_NON_USD]: {
+                            path: ROUTES.BANK_ACCOUNT_NON_USD_SETUP.route,
                             exact: true,
                         },
                         [SCREENS.REIMBURSEMENT_ACCOUNT_VERIFY_ACCOUNT]: {
@@ -1947,6 +1953,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.SEARCH.ADVANCED_FILTERS_REPORT_FIELD_RHP]: ROUTES.SEARCH_ADVANCED_FILTERS.getRoute(CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.REPORT_FIELD),
                     },
                 },
+                [SCREENS.RIGHT_MODAL.SEARCH_SAVE]: ROUTES.SEARCH_SAVE,
                 [SCREENS.RIGHT_MODAL.SEARCH_SAVED_SEARCH]: {
                     screens: {
                         [SCREENS.SEARCH.SAVED_SEARCH_RENAME_RHP]: ROUTES.SEARCH_SAVED_SEARCH_RENAME.route,
