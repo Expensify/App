@@ -1,9 +1,9 @@
-import React, {useEffect, useRef} from 'react';
+import React, {useCallback, useEffect, useRef} from 'react';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import useSubStep from '@hooks/useSubStep';
-import type {SubStepProps} from '@hooks/useSubStep/types';
+import useSubPage from '@hooks/useSubPage';
+import type {SubPageProps} from '@hooks/useSubPage/types';
 import getPlaidOAuthReceivedRedirectURI from '@libs/getPlaidOAuthReceivedRedirectURI';
 import {getBankAccountIDAsNumber} from '@libs/ReimbursementAccountUtils';
 import getSubStepValues from '@pages/ReimbursementAccount/utils/getSubStepValues';
@@ -11,6 +11,7 @@ import {connectBankAccountManually, connectBankAccountWithPlaid} from '@userActi
 import {hideBankAccountErrors} from '@userActions/ReimbursementAccount';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type {ReimbursementAccountForm} from '@src/types/form';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 import Manual from './subSteps/Manual';
@@ -27,12 +28,13 @@ type BankInfoProps = {
     policyID: string;
 };
 
-type BankInfoSubStepProps = SubStepProps;
-
 const BANK_INFO_STEP_KEYS = INPUT_IDS.BANK_INFO_STEP;
-const manualSubSteps: Array<React.ComponentType<BankInfoSubStepProps>> = [Manual];
-const plaidSubSteps: Array<React.ComponentType<BankInfoSubStepProps>> = [Plaid];
+const PAGE_NAMES = CONST.BANK_ACCOUNT.PAGE_NAMES;
+const SUB_PAGE_NAMES = CONST.BANK_ACCOUNT.BANK_INFO_STEP.SUB_PAGE_NAMES;
 const receivedRedirectURI = getPlaidOAuthReceivedRedirectURI();
+
+const manualPages = [{pageName: SUB_PAGE_NAMES.MANUAL, component: Manual}];
+const plaidPages = [{pageName: SUB_PAGE_NAMES.PLAID, component: Plaid}];
 
 function BankInfo({onBackButtonPress, onSubmit, policyID}: BankInfoProps) {
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
@@ -85,9 +87,14 @@ function BankInfo({onBackButtonPress, onSubmit, policyID}: BankInfoProps) {
         onSubmit?.();
     };
 
-    const bodyContent = setupType === CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID ? plaidSubSteps : manualSubSteps;
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const {componentToRender: SubStep, isEditing, screenIndex, nextScreen, prevScreen, moveTo} = useSubStep<BankInfoSubStepProps>({bodyContent, startFrom: 0, onFinished: submit});
+    const pages = setupType === CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID ? plaidPages : manualPages;
+
+    const buildRoute = useCallback(
+        (pageName: string, action?: 'edit') => ROUTES.BANK_ACCOUNT_USD_SETUP.getRoute({policyID, step: PAGE_NAMES.BANK_ACCOUNT, subPage: pageName, action}),
+        [policyID],
+    );
+
+    const {CurrentPage, isEditing, pageIndex, nextPage, prevPage, moveTo} = useSubPage<SubPageProps>({pages, startFrom: 0, onFinished: submit, buildRoute});
 
     // Some services user connects to via Plaid return dummy account numbers and routing numbers e.g. Chase
     // In this case we need to redirect user to manual flow to enter real account number and routing number
@@ -102,11 +109,11 @@ function BankInfo({onBackButtonPress, onSubmit, policyID}: BankInfoProps) {
     }, [setupType, values.bankName]);
 
     const handleBackButtonPress = () => {
-        if (screenIndex === 0) {
+        if (pageIndex === 0) {
             onBackButtonPress();
             hideBankAccountErrors();
         } else {
-            prevScreen();
+            prevPage();
         }
     };
 
@@ -119,9 +126,9 @@ function BankInfo({onBackButtonPress, onSubmit, policyID}: BankInfoProps) {
             startStepIndex={1}
             stepNames={CONST.BANK_ACCOUNT.STEP_NAMES}
         >
-            <SubStep
+            <CurrentPage
                 isEditing={isEditing}
-                onNext={nextScreen}
+                onNext={nextPage}
                 onMove={moveTo}
             />
         </InteractiveStepWrapper>

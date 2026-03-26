@@ -1,17 +1,20 @@
 import type {ForwardedRef} from 'react';
 import React, {useCallback, useMemo} from 'react';
 import type {View} from 'react-native';
+import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import useSubStep from '@hooks/useSubStep';
-import type {SubStepProps} from '@hooks/useSubStep/types';
+import useSubPage from '@hooks/useSubPage';
+import type {SubPageProps} from '@hooks/useSubPage/types';
+import Navigation from '@libs/Navigation/Navigation';
 import {getBankAccountIDAsNumber} from '@libs/ReimbursementAccountUtils';
 import getInitialSubStepForPersonalInfo from '@pages/ReimbursementAccount/USD/utils/getInitialSubStepForPersonalInfo';
 import getSubStepValues from '@pages/ReimbursementAccount/utils/getSubStepValues';
 import {updatePersonalInformationForBankAccount} from '@userActions/BankAccounts';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 import Address from './subSteps/Address';
 import Confirmation from './subSteps/Confirmation';
@@ -31,7 +34,16 @@ type PersonalInfoProps = {
 };
 
 const PERSONAL_INFO_STEP_KEYS = INPUT_IDS.PERSONAL_INFO_STEP;
-const bodyContent: Array<React.ComponentType<SubStepProps>> = [FullName, DateOfBirth, SocialSecurityNumber, Address, Confirmation];
+const PAGE_NAMES = CONST.BANK_ACCOUNT.PAGE_NAMES;
+const SUB_PAGE_NAMES = CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.SUB_PAGE_NAMES;
+
+const pages = [
+    {pageName: SUB_PAGE_NAMES.FULL_NAME, component: FullName},
+    {pageName: SUB_PAGE_NAMES.DATE_OF_BIRTH, component: DateOfBirth},
+    {pageName: SUB_PAGE_NAMES.SSN, component: SocialSecurityNumber},
+    {pageName: SUB_PAGE_NAMES.ADDRESS, component: Address},
+    {pageName: SUB_PAGE_NAMES.CONFIRMATION, component: Confirmation},
+];
 
 function PersonalInfo({onBackButtonPress, onSubmit, ref}: PersonalInfoProps) {
     const {translate} = useLocalize();
@@ -51,34 +63,32 @@ function PersonalInfo({onBackButtonPress, onSubmit, ref}: PersonalInfoProps) {
     const isBankAccountVerifying = reimbursementAccount?.achData?.state === CONST.BANK_ACCOUNT.STATE.VERIFYING;
     const startFrom = useMemo(() => (isBankAccountVerifying ? 0 : getInitialSubStepForPersonalInfo(values)), [values, isBankAccountVerifying]);
 
-    const {
-        componentToRender: SubStep,
-        isEditing,
-        screenIndex,
-        nextScreen,
-        prevScreen,
-        moveTo,
-        goToTheLastStep,
-    } = useSubStep({
-        bodyContent,
+    const buildRoute = useCallback(
+        (pageName: string, action?: 'edit') => ROUTES.BANK_ACCOUNT_USD_SETUP.getRoute({policyID, step: PAGE_NAMES.REQUESTOR, subPage: pageName, action}),
+        [policyID],
+    );
+
+    const {CurrentPage, isEditing, currentPageName, pageIndex, nextPage, prevPage, moveTo, isRedirecting} = useSubPage<SubPageProps>({
+        pages,
         startFrom,
         onFinished: () => {
             submit(true);
             onSubmit?.();
         },
-        onNextSubStep: () => submit(false),
+        onPageChange: () => submit(false),
+        buildRoute,
     });
 
     const handleBackButtonPress = () => {
         if (isEditing) {
-            goToTheLastStep();
+            Navigation.goBack(buildRoute(SUB_PAGE_NAMES.CONFIRMATION));
             return;
         }
 
-        if (screenIndex === 0) {
+        if (pageIndex === 0) {
             onBackButtonPress();
         } else {
-            prevScreen();
+            prevPage();
         }
     };
 
@@ -93,11 +103,16 @@ function PersonalInfo({onBackButtonPress, onSubmit, ref}: PersonalInfoProps) {
             startStepIndex={2}
             stepNames={CONST.BANK_ACCOUNT.STEP_NAMES}
         >
-            <SubStep
-                isEditing={isEditing}
-                onNext={nextScreen}
-                onMove={moveTo}
-            />
+            {isRedirecting ? (
+                <FullScreenLoadingIndicator reasonAttributes={{context: 'PersonalInfo', isRedirecting}} />
+            ) : (
+                <CurrentPage
+                    isEditing={isEditing}
+                    onNext={nextPage}
+                    onMove={moveTo}
+                    currentPageName={currentPageName}
+                />
+            )}
         </InteractiveStepWrapper>
     );
 }

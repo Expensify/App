@@ -1,11 +1,13 @@
 import {Str} from 'expensify-common';
 import lodashPick from 'lodash/pick';
 import React, {useCallback, useMemo} from 'react';
+import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import useSubStep from '@hooks/useSubStep';
-import type {SubStepProps} from '@hooks/useSubStep/types';
+import useSubPage from '@hooks/useSubPage';
+import type {SubPageProps} from '@hooks/useSubPage/types';
+import Navigation from '@libs/Navigation/Navigation';
 import {parsePhoneNumber} from '@libs/PhoneNumber';
 import {getBankAccountIDAsNumber} from '@libs/ReimbursementAccountUtils';
 import {isValidWebsite} from '@libs/ValidationUtils';
@@ -14,6 +16,7 @@ import getSubStepValues from '@pages/ReimbursementAccount/utils/getSubStepValues
 import {updateCompanyInformationForBankAccount} from '@userActions/BankAccounts';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 import AddressBusiness from './subSteps/AddressBusiness';
 import ConfirmationBusiness from './subSteps/ConfirmationBusiness';
@@ -35,18 +38,20 @@ type BusinessInfoProps = {
 };
 
 const BUSINESS_INFO_STEP_KEYS = INPUT_IDS.BUSINESS_INFO_STEP;
+const PAGE_NAMES = CONST.BANK_ACCOUNT.PAGE_NAMES;
+const SUB_PAGE_NAMES = CONST.BANK_ACCOUNT.BUSINESS_INFO_STEP.SUB_PAGE_NAMES;
 
-const bodyContent: Array<React.ComponentType<SubStepProps>> = [
-    NameBusiness,
-    TaxIdBusiness,
-    WebsiteBusiness,
-    PhoneNumberBusiness,
-    AddressBusiness,
-    TypeBusiness,
-    IncorporationDateBusiness,
-    IncorporationStateBusiness,
-    IncorporationCode,
-    ConfirmationBusiness,
+const pages = [
+    {pageName: SUB_PAGE_NAMES.NAME, component: NameBusiness},
+    {pageName: SUB_PAGE_NAMES.TAX_ID, component: TaxIdBusiness},
+    {pageName: SUB_PAGE_NAMES.WEBSITE, component: WebsiteBusiness},
+    {pageName: SUB_PAGE_NAMES.PHONE, component: PhoneNumberBusiness},
+    {pageName: SUB_PAGE_NAMES.ADDRESS, component: AddressBusiness},
+    {pageName: SUB_PAGE_NAMES.TYPE, component: TypeBusiness},
+    {pageName: SUB_PAGE_NAMES.INCORPORATION_DATE, component: IncorporationDateBusiness},
+    {pageName: SUB_PAGE_NAMES.INCORPORATION_STATE, component: IncorporationStateBusiness},
+    {pageName: SUB_PAGE_NAMES.INCORPORATION_CODE, component: IncorporationCode},
+    {pageName: SUB_PAGE_NAMES.CONFIRMATION, component: ConfirmationBusiness},
 ];
 
 function BusinessInfo({onBackButtonPress, onSubmit}: BusinessInfoProps) {
@@ -88,34 +93,32 @@ function BusinessInfo({onBackButtonPress, onSubmit}: BusinessInfoProps) {
     const isBankAccountVerifying = reimbursementAccount?.achData?.state === CONST.BANK_ACCOUNT.STATE.VERIFYING;
     const startFrom = useMemo(() => (isBankAccountVerifying ? 0 : getInitialSubStepForBusinessInfo(values)), [values, isBankAccountVerifying]);
 
-    const {
-        componentToRender: SubStep,
-        isEditing,
-        screenIndex,
-        nextScreen,
-        prevScreen,
-        moveTo,
-        goToTheLastStep,
-    } = useSubStep({
-        bodyContent,
+    const buildRoute = useCallback(
+        (pageName: string, action?: 'edit') => ROUTES.BANK_ACCOUNT_USD_SETUP.getRoute({policyID, step: PAGE_NAMES.COMPANY, subPage: pageName, action}),
+        [policyID],
+    );
+
+    const {CurrentPage, isEditing, currentPageName, pageIndex, nextPage, prevPage, moveTo, isRedirecting} = useSubPage<SubPageProps>({
+        pages,
         startFrom,
         onFinished: () => {
             submit(true);
             onSubmit?.();
         },
-        onNextSubStep: () => submit(false),
+        onPageChange: () => submit(false),
+        buildRoute,
     });
 
     const handleBackButtonPress = () => {
         if (isEditing) {
-            goToTheLastStep();
+            Navigation.goBack(buildRoute(SUB_PAGE_NAMES.CONFIRMATION));
             return;
         }
 
-        if (screenIndex === 0) {
+        if (pageIndex === 0) {
             onBackButtonPress();
         } else {
-            prevScreen();
+            prevPage();
         }
     };
 
@@ -129,11 +132,16 @@ function BusinessInfo({onBackButtonPress, onSubmit}: BusinessInfoProps) {
             startStepIndex={4}
             stepNames={CONST.BANK_ACCOUNT.STEP_NAMES}
         >
-            <SubStep
-                isEditing={isEditing}
-                onNext={nextScreen}
-                onMove={moveTo}
-            />
+            {isRedirecting ? (
+                <FullScreenLoadingIndicator reasonAttributes={{context: 'BusinessInfo', isRedirecting}} />
+            ) : (
+                <CurrentPage
+                    isEditing={isEditing}
+                    onNext={nextPage}
+                    onMove={moveTo}
+                    currentPageName={currentPageName}
+                />
+            )}
         </InteractiveStepWrapper>
     );
 }

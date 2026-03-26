@@ -19,19 +19,46 @@ import RequestorStep from './Requestor/RequestorStep';
 import type USDPageProps from './types';
 
 const PAGE_NAMES = CONST.BANK_ACCOUNT.PAGE_NAMES;
+const BANK_INFO_SUB_PAGES = CONST.BANK_ACCOUNT.BANK_INFO_STEP.SUB_PAGE_NAMES;
+const PERSONAL_INFO_SUB_PAGES = CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.SUB_PAGE_NAMES;
+const BUSINESS_INFO_SUB_PAGES = CONST.BANK_ACCOUNT.BUSINESS_INFO_STEP.SUB_PAGE_NAMES;
+const BENEFICIAL_OWNERS_SUB_PAGES = CONST.BANK_ACCOUNT.BENEFICIAL_OWNERS_STEP.SUB_PAGE_NAMES;
+const COMPLETE_VERIFICATION_SUB_PAGES = CONST.BANK_ACCOUNT.COMPLETE_VERIFICATION_STEP.SUB_PAGE_NAMES;
 
 type PageEntry = {
     pageName: string;
     component: React.ComponentType<USDPageProps>;
+    firstSubPage?: string;
+    lastSubPage?: string;
 };
 
 const pages: PageEntry[] = [
     {pageName: PAGE_NAMES.COUNTRY, component: Country as React.ComponentType<USDPageProps>},
-    {pageName: PAGE_NAMES.BANK_ACCOUNT, component: BankInfo as React.ComponentType<USDPageProps>},
-    {pageName: PAGE_NAMES.REQUESTOR, component: RequestorStep as React.ComponentType<USDPageProps>},
-    {pageName: PAGE_NAMES.COMPANY, component: BusinessInfo as React.ComponentType<USDPageProps>},
-    {pageName: PAGE_NAMES.BENEFICIAL_OWNERS, component: BeneficialOwnersStep as React.ComponentType<USDPageProps>},
-    {pageName: PAGE_NAMES.ACH_CONTRACT, component: CompleteVerification as React.ComponentType<USDPageProps>},
+    {pageName: PAGE_NAMES.BANK_ACCOUNT, component: BankInfo as React.ComponentType<USDPageProps>, firstSubPage: BANK_INFO_SUB_PAGES.PLAID, lastSubPage: BANK_INFO_SUB_PAGES.PLAID},
+    {
+        pageName: PAGE_NAMES.REQUESTOR,
+        component: RequestorStep as React.ComponentType<USDPageProps>,
+        firstSubPage: PERSONAL_INFO_SUB_PAGES.FULL_NAME,
+        lastSubPage: PERSONAL_INFO_SUB_PAGES.CONFIRMATION,
+    },
+    {
+        pageName: PAGE_NAMES.COMPANY,
+        component: BusinessInfo as React.ComponentType<USDPageProps>,
+        firstSubPage: BUSINESS_INFO_SUB_PAGES.NAME,
+        lastSubPage: BUSINESS_INFO_SUB_PAGES.CONFIRMATION,
+    },
+    {
+        pageName: PAGE_NAMES.BENEFICIAL_OWNERS,
+        component: BeneficialOwnersStep as React.ComponentType<USDPageProps>,
+        firstSubPage: BENEFICIAL_OWNERS_SUB_PAGES.IS_USER_UBO,
+        lastSubPage: BENEFICIAL_OWNERS_SUB_PAGES.UBOS_LIST,
+    },
+    {
+        pageName: PAGE_NAMES.ACH_CONTRACT,
+        component: CompleteVerification as React.ComponentType<USDPageProps>,
+        firstSubPage: COMPLETE_VERIFICATION_SUB_PAGES.CONFIRM_AGREEMENTS,
+        lastSubPage: COMPLETE_VERIFICATION_SUB_PAGES.CONFIRM_AGREEMENTS,
+    },
     {pageName: PAGE_NAMES.VALIDATION, component: ConnectBankAccount as React.ComponentType<USDPageProps>},
 ];
 
@@ -63,7 +90,7 @@ function USDVerifiedBankAccountFlowPage({route}: USDVerifiedBankAccountFlowPageP
             return;
         }
         const nextPage = pages.at(nextIndex);
-        Navigation.navigate(ROUTES.BANK_ACCOUNT_USD_SETUP.getRoute({policyID, step: nextPage?.pageName}));
+        Navigation.navigate(ROUTES.BANK_ACCOUNT_USD_SETUP.getRoute({policyID, step: nextPage?.pageName, subPage: nextPage?.firstSubPage}));
     }, [currentPageIndex, policyID]);
 
     const onBackButtonPress = useCallback(() => {
@@ -73,7 +100,7 @@ function USDVerifiedBankAccountFlowPage({route}: USDVerifiedBankAccountFlowPageP
             return;
         }
         const prevPage = pages.at(prevIndex);
-        Navigation.goBack(ROUTES.BANK_ACCOUNT_USD_SETUP.getRoute({policyID, step: prevPage?.pageName}));
+        Navigation.navigate(ROUTES.BANK_ACCOUNT_USD_SETUP.getRoute({policyID, step: prevPage?.pageName, subPage: prevPage?.lastSubPage}));
     }, [currentPageIndex, policyID]);
 
     const shouldShowOnfido = !!(onfidoToken && !reimbursementAccount?.achData?.isOnfidoSetupComplete);

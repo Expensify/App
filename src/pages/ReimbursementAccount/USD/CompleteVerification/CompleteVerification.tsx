@@ -1,15 +1,16 @@
 import React, {useCallback, useMemo} from 'react';
-import type {ComponentType} from 'react';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import useSubStep from '@hooks/useSubStep';
-import type {SubStepProps} from '@hooks/useSubStep/types';
+import useSubPage from '@hooks/useSubPage';
+import type {SubPageProps} from '@hooks/useSubPage/types';
+import Navigation from '@libs/Navigation/Navigation';
 import {getBankAccountIDAsNumber} from '@libs/ReimbursementAccountUtils';
 import getSubStepValues from '@pages/ReimbursementAccount/utils/getSubStepValues';
 import {acceptACHContractForBankAccount} from '@userActions/BankAccounts';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 import ConfirmAgreements from './subSteps/ConfirmAgreements';
 
@@ -22,7 +23,10 @@ type CompleteVerificationProps = {
 };
 
 const COMPLETE_VERIFICATION_KEYS = INPUT_IDS.COMPLETE_VERIFICATION;
-const bodyContent: Array<ComponentType<SubStepProps>> = [ConfirmAgreements];
+const PAGE_NAMES = CONST.BANK_ACCOUNT.PAGE_NAMES;
+const SUB_PAGE_NAMES = CONST.BANK_ACCOUNT.COMPLETE_VERIFICATION_STEP.SUB_PAGE_NAMES;
+
+const pages = [{pageName: SUB_PAGE_NAMES.CONFIRM_AGREEMENTS, component: ConfirmAgreements}];
 
 function CompleteVerification({onBackButtonPress, onSubmit}: CompleteVerificationProps) {
     const {translate} = useLocalize();
@@ -49,19 +53,23 @@ function CompleteVerification({onBackButtonPress, onSubmit}: CompleteVerificatio
         onSubmit?.();
     }, [bankAccountID, values.isAuthorizedToUseBankAccount, values.certifyTrueInformation, values.acceptTermsAndConditions, policyID, lastPaymentMethod, onSubmit]);
 
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const {componentToRender: SubStep, isEditing, screenIndex, nextScreen, prevScreen, moveTo, goToTheLastStep} = useSubStep({bodyContent, startFrom: 0, onFinished: submit});
+    const buildRoute = useCallback(
+        (pageName: string, action?: 'edit') => ROUTES.BANK_ACCOUNT_USD_SETUP.getRoute({policyID, step: PAGE_NAMES.ACH_CONTRACT, subPage: pageName, action}),
+        [policyID],
+    );
+
+    const {CurrentPage, isEditing, pageIndex, nextPage, prevPage, moveTo} = useSubPage<SubPageProps>({pages, startFrom: 0, onFinished: submit, buildRoute});
 
     const handleBackButtonPress = () => {
         if (isEditing) {
-            goToTheLastStep();
+            Navigation.goBack(buildRoute(SUB_PAGE_NAMES.CONFIRM_AGREEMENTS));
             return;
         }
 
-        if (screenIndex === 0) {
+        if (pageIndex === 0) {
             onBackButtonPress();
         } else {
-            prevScreen();
+            prevPage();
         }
     };
 
@@ -75,9 +83,9 @@ function CompleteVerification({onBackButtonPress, onSubmit}: CompleteVerificatio
             startStepIndex={6}
             stepNames={CONST.BANK_ACCOUNT.STEP_NAMES}
         >
-            <SubStep
+            <CurrentPage
                 isEditing={isEditing}
-                onNext={nextScreen}
+                onNext={nextPage}
                 onMove={moveTo}
             />
         </InteractiveStepWrapper>
