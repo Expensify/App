@@ -46,7 +46,7 @@ function ReportFooter() {
 
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
+    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth -- isSmallScreenWidth guards composer visibility on mobile during keyboard events, shouldUseNarrowLayout would wrongly hide it in RHP
     const {isSmallScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Lightbulb']);
     const isAnonymousUser = useIsAnonymousUser();
