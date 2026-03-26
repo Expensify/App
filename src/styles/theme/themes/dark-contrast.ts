@@ -11,8 +11,11 @@ const darkContrastTheme = {
     bordersBold: colors.productDark700,
     buttonIcon: colors.productDark900,
     mentionText: colors.blue600,
+    mentionBG: colors.blue200,
     textLight: colors.productLight900,
     iconColorfulBackground: colors.yellow800,
+    badgeSuccessBG: colors.green500,
+    badgeDangerBG: colors.tangerine500,
 } satisfies ThemeColors;
 
 export default darkContrastTheme;

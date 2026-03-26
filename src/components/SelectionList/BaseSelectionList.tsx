@@ -263,8 +263,8 @@ function BaseSelectionList<TItem extends ListItem>({
         selectRow(focusedOption);
     };
 
-    // Disable `Enter` shortcut if the active element is a button or checkbox
-    const disableEnterShortcut = activeElementRole && [CONST.ROLE.BUTTON, CONST.ROLE.CHECKBOX].includes(activeElementRole as ButtonOrCheckBoxRoles);
+    // Disable `Enter` shortcut if the active element is a button, checkbox, or switch
+    const disableEnterShortcut = activeElementRole && [CONST.ROLE.BUTTON, CONST.ROLE.CHECKBOX, CONST.ROLE.SWITCH].includes(activeElementRole as ButtonOrCheckBoxRoles);
 
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ENTER, selectFocusedOption, {
         captureOnInputs: true,
