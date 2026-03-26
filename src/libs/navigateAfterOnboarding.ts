@@ -8,7 +8,7 @@ import type {ArchivedReportsIDSet} from './SearchUIUtils';
 
 /**
  * Determines the report ID to navigate to after onboarding for control variant or ineligible users.
- * On large screens, navigates to the admins chat if available. On small screens, finds the last
+ * On large screens, returns undefined so the caller navigates to Home. On small screens, finds the last
  * accessed report while avoiding self DM, Concierge chat, and reports from the onboarding policy.
  */
 function getReportIDAfterOnboarding(
@@ -24,9 +24,6 @@ function getReportIDAfterOnboarding(
     // On small screens, this removal redirects navigation to HOME. Dismissing the modal doesn't work properly,
     // so we need to specifically navigate to the last accessed report.
     if (!isSmallScreenWidth) {
-        if (onboardingAdminsChatReportID && !shouldPreventOpenAdminRoom) {
-            return onboardingAdminsChatReportID;
-        }
         return undefined;
     }
 
