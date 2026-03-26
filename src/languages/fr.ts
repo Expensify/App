@@ -5339,10 +5339,11 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                             settlementFrequencyLabel: 'Fréquence de règlement',
                             settlementFrequencyDescription:
                                 'Fréquence à laquelle Expensify prélèvera sur votre compte bancaire professionnel pour régler les transactions récentes d’Expensify Travel.',
-                            monthlySpendLimitLabel: 'Monthly spend limit per member',
-                            monthlySpendLimitDescription: 'The maximum amount each member can spend on travel per month.',
-                            reduceLimitTitle: 'Reduce travel spend limit?',
-                            reduceLimitWarning: 'If you reduce the limit, members who have already spent more than this amount will be unable to make new travel bookings until next month.',
+                            monthlySpendLimitLabel: 'Limite de dépenses mensuelle par membre',
+                            monthlySpendLimitDescription: 'Le montant maximum que chaque membre peut dépenser en déplacements par mois.',
+                            reduceLimitTitle: 'Réduire la limite de dépenses de voyage\u00A0?',
+                            reduceLimitWarning:
+                                'Si vous réduisez la limite, les membres ayant déjà dépensé plus que ce montant ne pourront pas effectuer de nouvelles réservations de voyage avant le mois prochain.',
                         },
                     },
                     disableModal: {
