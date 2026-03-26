@@ -21,7 +21,7 @@ import * as NumberUtils from '@libs/NumberUtils';
 import Parser from '@libs/Parser';
 import {addSMSDomainIfPhoneNumber} from '@libs/PhoneNumber';
 import {getDistanceRateCustomUnitRate} from '@libs/PolicyUtils';
-import {getAllReportActions, getOriginalMessage, getReportAction, getReportActionHtml, getReportActionText, isMoneyRequestAction} from '@libs/ReportActionsUtils';
+import {getAllReportActions, getOriginalMessage, getReportAction, getReportActionHtml, getReportActionText, isDeletedAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {
     buildOptimisticChatReport,
     buildOptimisticCreatedReportAction,
@@ -1080,6 +1080,26 @@ function updateSplitTransactions({
     const isReverseSplitOperation =
         splitExpenses.length === 1 && originalChildTransactions.length > 0 && hasEditableSplitExpensesLeft && allChildTransactions.length === originalChildTransactions.length;
 
+    let splitThreadUserComments: OnyxTypes.ReportAction[] = [];
+    let splitTransactionThreadReportID: string | undefined;
+
+    if (isReverseSplitOperation) {
+        const revertSplitTransactionID = splitExpenses.at(0)?.transactionID;
+        const revertSplitTransaction = allTransactionsList?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${revertSplitTransactionID}`];
+        const revertSplitReportActions = getAllReportActions(revertSplitTransaction?.reportID);
+        const revertSplitIOUAction = Object.values(revertSplitReportActions).find((action) => {
+            const IOUTransactionID = isMoneyRequestAction(action) ? (getOriginalMessage(action)?.IOUTransactionID ?? CONST.DEFAULT_NUMBER_ID) : CONST.DEFAULT_NUMBER_ID;
+            return IOUTransactionID === revertSplitTransactionID;
+        });
+        splitTransactionThreadReportID = revertSplitIOUAction?.childReportID;
+        if (splitTransactionThreadReportID) {
+            const splitTransactionThreadActions = getAllReportActions(splitTransactionThreadReportID);
+            splitThreadUserComments = Object.values(splitTransactionThreadActions).filter(
+                (action): action is OnyxTypes.ReportAction => action.actionName === CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT && !isDeletedAction(action) && (action.actorAccountID ?? 0) > 0,
+            );
+        }
+    }
+
     let changesInReportTotal = 0;
     // Validate custom unit rate before proceeding with split
     const customUnitRateID = originalTransaction?.comment?.customUnit?.customUnitRateID;
@@ -1265,7 +1285,7 @@ function updateSplitTransactions({
             currentUserEmailParam: currentUserPersonalDetails?.login ?? '',
             transactionViolations,
             quickAction,
-            shouldGenerateTransactionThreadReport: !isReverseSplitOperation,
+            shouldGenerateTransactionThreadReport: !isReverseSplitOperation || splitThreadUserComments.length > 0,
             policyRecentlyUsedCurrencies,
             betas,
             personalDetails,
@@ -1571,6 +1591,59 @@ function updateSplitTransactions({
                     },
                 });
             }
+        }
+
+        const originalTransactionThreadReportID = splits.at(0)?.transactionThreadReportID;
+        if (splitThreadUserComments.length > 0 && originalTransactionThreadReportID && splitTransactionThreadReportID) {
+            const optimisticMovedComments: Record<string, OnyxTypes.ReportAction> = {};
+            const optimisticRemovedComments: Record<string, null> = {};
+            const successMovedComments: Record<string, Partial<OnyxTypes.ReportAction>> = {};
+            const failureMovedCommentsRemoval: Record<string, null> = {};
+            const failureRestoredComments: Record<string, OnyxTypes.ReportAction> = {};
+
+            for (const comment of splitThreadUserComments) {
+                optimisticMovedComments[comment.reportActionID] = {
+                    ...comment,
+                    reportID: originalTransactionThreadReportID,
+                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                };
+                optimisticRemovedComments[comment.reportActionID] = null;
+                successMovedComments[comment.reportActionID] = {pendingAction: null};
+                failureMovedCommentsRemoval[comment.reportActionID] = null;
+                failureRestoredComments[comment.reportActionID] = comment;
+            }
+
+            onyxData.optimisticData?.push(
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${originalTransactionThreadReportID}`,
+                    value: optimisticMovedComments,
+                },
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${splitTransactionThreadReportID}`,
+                    value: optimisticRemovedComments,
+                },
+            );
+
+            onyxData.successData?.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${originalTransactionThreadReportID}`,
+                value: successMovedComments,
+            });
+
+            onyxData.failureData?.push(
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${originalTransactionThreadReportID}`,
+                    value: failureMovedCommentsRemoval,
+                },
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${splitTransactionThreadReportID}`,
+                    value: failureRestoredComments,
+                },
+            );
         }
     }
 
