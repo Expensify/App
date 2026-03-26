@@ -7,6 +7,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {rand64} from '@libs/NumberUtils';
 import {getTransactionDetails, isOpenReport} from '@libs/ReportUtils';
 import {buildOptimisticTransaction, getChildTransactions, getOriginalTransactionWithSplitInfo, isDistanceRequest} from '@libs/TransactionUtils';
+import {getStoredDefaultP2PMileageRate} from '@userActions/Transaction';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -94,7 +95,7 @@ function initSplitExpense(transaction: OnyxEntry<Transaction>, policy?: OnyxEntr
     const splitMerchants: Array<string | undefined> = [undefined, undefined];
 
     if (isDistanceRequest(transaction)) {
-        const mileageRate = DistanceRequestUtils.getRate({transaction, policy: policy ?? undefined});
+        const mileageRate = DistanceRequestUtils.getRate({transaction, policy: policy ?? undefined, defaultP2PMileageRate: getStoredDefaultP2PMileageRate()});
         const {unit, rate} = mileageRate;
 
         if (rate && rate > 0 && transaction?.comment?.customUnit) {

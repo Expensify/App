@@ -204,6 +204,7 @@ function getTransactionPreviewTextAndTranslationPaths({
     currentUserEmail,
     currentUserAccountID,
     originalTransaction,
+    defaultP2PMileageRate,
 }: {
     iouReport: OnyxEntry<OnyxTypes.Report>;
     policy: OnyxEntry<OnyxTypes.Policy>;
@@ -218,6 +219,7 @@ function getTransactionPreviewTextAndTranslationPaths({
     currentUserEmail: string;
     currentUserAccountID: number;
     originalTransaction?: OnyxEntry<OnyxTypes.Transaction>;
+    defaultP2PMileageRate?: OnyxTypes.DefaultP2PMileageRate | null;
 }) {
     const isFetchingWaypoints = isFetchingWaypointsFromServer(transaction);
     const isTransactionOnHold = isOnHold(transaction);
@@ -293,7 +295,7 @@ function getTransactionPreviewTextAndTranslationPaths({
     let previewHeaderText: TranslationPathOrText[] = [{translationPath: getExpenseTypeTranslationKey(getTransactionType(transaction))}];
 
     if (isDistanceRequest(transaction)) {
-        if (RBRMessage === undefined && isUnreportedAndHasInvalidDistanceRateTransaction(transaction, policy)) {
+        if (RBRMessage === undefined && isUnreportedAndHasInvalidDistanceRateTransaction(transaction, policy, defaultP2PMileageRate)) {
             RBRMessage = {translationPath: 'violations.customUnitOutOfPolicy'};
         }
     } else if (isTransactionScanning) {
@@ -371,6 +373,7 @@ function createTransactionPreviewConditionals({
     currentUserEmail,
     currentUserAccountID,
     reportActions,
+    defaultP2PMileageRate,
 }: {
     iouReport: OnyxEntry<OnyxTypes.Report>;
     policy: OnyxEntry<OnyxTypes.Policy>;
@@ -384,6 +387,7 @@ function createTransactionPreviewConditionals({
     currentUserEmail: string;
     currentUserAccountID: number;
     reportActions?: OnyxTypes.ReportActions;
+    defaultP2PMileageRate?: OnyxTypes.DefaultP2PMileageRate | null;
 }) {
     const {amount: requestAmount, comment: requestComment, merchant, tag, category} = transactionDetails;
 
@@ -412,7 +416,7 @@ function createTransactionPreviewConditionals({
     const shouldShowCategory = !!categoryForDisplay && isReportAPolicyExpenseChat;
 
     const hasAnyViolations =
-        isUnreportedAndHasInvalidDistanceRateTransaction(transaction, policy) ||
+        isUnreportedAndHasInvalidDistanceRateTransaction(transaction, policy, defaultP2PMileageRate) ||
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         hasViolationsOfTypeNotice ||
         hasWarningTypeViolation(transaction, violations, currentUserEmail ?? '', currentUserAccountID, iouReport ?? undefined, policy) ||

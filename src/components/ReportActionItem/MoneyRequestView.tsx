@@ -335,6 +335,7 @@ function MoneyRequestView({
     const [transactionReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`);
     const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
+    const [defaultP2PMileageRate] = useOnyx(ONYXKEYS.DEFAULT_P2P_MILEAGE_RATE);
     const hasMultipleSplits = useMemo(
         () => hasMultipleSplitChildren(allTransactions, allReports, transaction?.comment?.originalTransactionID),
         [allTransactions, allReports, transaction?.comment?.originalTransactionID],
@@ -452,7 +453,7 @@ function MoneyRequestView({
     let amountDescription = `${translate('iou.amount')}`;
     let dateDescription = `${translate('common.date')}`;
 
-    const {unit, rate, name: rateName} = DistanceRequestUtils.getRate({transaction: updatedTransaction ?? transaction, policy});
+    const {unit, rate, name: rateName} = DistanceRequestUtils.getRate({transaction: updatedTransaction ?? transaction, policy, defaultP2PMileageRate});
     const distance = getDistanceInMeters(transactionBackup ?? updatedTransaction ?? transaction, unit);
     const currency = transactionCurrency ?? CONST.CURRENCY.USD;
     const hasRequiredCompanyCardViolation = transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.COMPANY_CARD_REQUIRED);

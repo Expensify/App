@@ -14,7 +14,7 @@ import shouldUseDefaultExpensePolicy from '@libs/shouldUseDefaultExpensePolicy';
 import {cancelSpan} from '@libs/telemetry/activeSpans';
 import {getValidWaypoints} from '@libs/TransactionUtils';
 import type {ReceiptFile} from '@pages/iou/request/step/IOURequestStepScan/types';
-import {setTransactionReport} from '@userActions/Transaction';
+import {getStoredDefaultP2PMileageRate, setTransactionReport} from '@userActions/Transaction';
 import type {IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
@@ -643,7 +643,7 @@ function handleMoneyRequestStepDistanceNavigation({
             let merchant = translate('iou.fieldPending');
             if (isManualDistance && distance !== undefined && unit) {
                 const distanceInMeters = DistanceRequestUtils.convertToDistanceInMeters(distance, unit);
-                const mileageRate = DistanceRequestUtils.getRate({transaction, policy});
+                const mileageRate = DistanceRequestUtils.getRate({transaction, policy, defaultP2PMileageRate: getStoredDefaultP2PMileageRate()});
                 amount = DistanceRequestUtils.getDistanceRequestAmount(distanceInMeters, unit, mileageRate?.rate ?? 0);
                 merchant = DistanceRequestUtils.getDistanceMerchant(
                     true,
@@ -767,7 +767,7 @@ function handleMoneyRequestStepDistanceNavigation({
         // and because of this this report is converted to selfDM here
         if (isSelfDMReport && distance !== undefined && unit) {
             const personalCurrency = personalOutputCurrency ?? CONST.CURRENCY.USD;
-            const personalDistanceUnit = DistanceRequestUtils.getRateForP2P(personalCurrency, transaction).unit;
+            const personalDistanceUnit = DistanceRequestUtils.getRateForP2P(personalCurrency, transaction, getStoredDefaultP2PMileageRate()).unit;
             const distanceInMeters = DistanceRequestUtils.convertToDistanceInMeters(distance, unit);
             const distanceUsingPersonalDistanceUnit = roundToTwoDecimalPlaces(DistanceRequestUtils.convertDistanceUnit(distanceInMeters, personalDistanceUnit));
             setMoneyRequestDistance(transactionID, distanceUsingPersonalDistanceUnit, true, personalDistanceUnit);

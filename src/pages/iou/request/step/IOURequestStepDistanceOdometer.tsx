@@ -97,6 +97,7 @@ function IOURequestStepDistanceOdometer({
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`);
     const isArchived = isArchivedReport(reportNameValuePairs);
     const [lastSelectedDistanceRates] = useOnyx(ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES);
+    const [defaultP2PMileageRate] = useOnyx(ONYXKEYS.DEFAULT_P2P_MILEAGE_RATE);
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const reportAttributesDerived = useReportAttributes();
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
@@ -139,7 +140,11 @@ function IOURequestStepDistanceOdometer({
     );
     const customUnitRateID = getRateID(transaction);
 
-    const mileageRate = DistanceRequestUtils.getRate({transaction: currentTransaction, policy: shouldUseDefaultExpensePolicy ? defaultExpensePolicy : policy});
+    const mileageRate = DistanceRequestUtils.getRate({
+        transaction: currentTransaction,
+        policy: shouldUseDefaultExpensePolicy ? defaultExpensePolicy : policy,
+        defaultP2PMileageRate,
+    });
     const unit = mileageRate.unit;
     const rate = mileageRate.rate ?? 0;
 

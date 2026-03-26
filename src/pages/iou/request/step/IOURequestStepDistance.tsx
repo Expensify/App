@@ -100,6 +100,7 @@ function IOURequestStepDistance({
     const [ownerBillingGraceEndPeriod] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const [skipConfirmation] = useOnyx(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${transactionID}`);
     const [lastSelectedDistanceRates] = useOnyx(ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES);
+    const [defaultP2PMileageRate] = useOnyx(ONYXKEYS.DEFAULT_P2P_MILEAGE_RATE);
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
     const [optimisticWaypoints, setOptimisticWaypoints] = useState<WaypointCollection | null>(null);
     const [policyRecentlyUsedCurrencies] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES);
@@ -196,7 +197,7 @@ function IOURequestStepDistance({
             const mileageRates = DistanceRequestUtils.getMileageRates(IOUpolicy);
             const defaultMileageRate = DistanceRequestUtils.getDefaultMileageRate(IOUpolicy);
             const mileageRate: MileageRate | undefined = isCustomUnitRateIDForP2P(transaction)
-                ? DistanceRequestUtils.getRateForP2P(policyCurrency, transaction)
+                ? DistanceRequestUtils.getRateForP2P(policyCurrency, transaction, defaultP2PMileageRate)
                 : // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                   (customUnitRateID && mileageRates?.[customUnitRateID]) || defaultMileageRate;
 
@@ -211,7 +212,7 @@ function IOURequestStepDistance({
                 setSplitShares(transaction, amount, currency ?? '', participantAccountIDs ?? []);
             }
         },
-        [report, allReports, transaction, transactionID, isSplitRequest, policy?.outputCurrency, reportID, customUnitRateID, personalPolicy?.outputCurrency],
+        [report, allReports, transaction, transactionID, isSplitRequest, policy?.outputCurrency, reportID, customUnitRateID, personalPolicy?.outputCurrency, defaultP2PMileageRate],
     );
 
     // For quick button actions, we'll skip the confirmation page unless the report is archived or this is a workspace

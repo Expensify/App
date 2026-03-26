@@ -179,6 +179,7 @@ import {
     resolveOpenReportDuplicationConflictAction,
 } from '@userActions/RequestConflictUtils';
 import {isAnonymousUser} from '@userActions/Session';
+import {getStoredDefaultP2PMileageRate} from '@userActions/Transaction';
 import {onServerDataReady} from '@userActions/Welcome';
 import {getOnboardingMessages} from '@userActions/Welcome/OnboardingFlow';
 import type {OnboardingCompanySize, OnboardingMessage} from '@userActions/Welcome/OnboardingFlow';
@@ -5765,6 +5766,7 @@ function deleteAppReport({
                 personalPolicy?.outputCurrency,
                 translate,
                 toLocaleDigit,
+                getStoredDefaultP2PMileageRate(),
             );
 
             optimisticData.push(

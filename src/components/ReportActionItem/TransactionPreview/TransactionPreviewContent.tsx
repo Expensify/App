@@ -74,6 +74,7 @@ function TransactionPreviewContent({
     const {translate} = useLocalize();
     const {environmentURL} = useEnvironment();
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`);
+    const [defaultP2PMileageRate] = useOnyx(ONYXKEYS.DEFAULT_P2P_MILEAGE_RATE);
     const isParentPolicyExpenseChat = isPolicyExpenseChat(chatReport);
     const transactionDetails = useMemo<Partial<TransactionDetails>>(
         () => getTransactionDetails(transaction, undefined, policy, isParentPolicyExpenseChat) ?? {},
@@ -114,8 +115,9 @@ function TransactionPreviewContent({
                 currentUserEmail,
                 currentUserAccountID,
                 reportActions,
+                defaultP2PMileageRate,
             }),
-        [areThereDuplicates, transactionPreviewCommonArguments, isReportAPolicyExpenseChat, currentUserEmail, currentUserAccountID, reportActions],
+        [areThereDuplicates, transactionPreviewCommonArguments, isReportAPolicyExpenseChat, currentUserEmail, currentUserAccountID, reportActions, defaultP2PMileageRate],
     );
 
     const {shouldShowRBR, shouldShowMerchant, shouldShowSplitShare, shouldShowTag, shouldShowCategory, shouldShowSkeleton, shouldShowDescription} = conditionals;
@@ -156,8 +158,9 @@ function TransactionPreviewContent({
                 currentUserEmail,
                 currentUserAccountID,
                 originalTransaction,
+                defaultP2PMileageRate,
             }),
-        [transactionPreviewCommonArguments, shouldShowRBR, violationMessage, reportActions, currentUserEmail, currentUserAccountID, originalTransaction],
+        [transactionPreviewCommonArguments, shouldShowRBR, violationMessage, reportActions, currentUserEmail, currentUserAccountID, originalTransaction, defaultP2PMileageRate],
     );
     const getTranslatedText = (item: TranslationPathOrText) => (item.translationPath ? translate(item.translationPath) : (item.text ?? ''));
 

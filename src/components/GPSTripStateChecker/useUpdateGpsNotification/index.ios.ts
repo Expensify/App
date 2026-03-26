@@ -38,11 +38,12 @@ function useUpdateGpsNotificationOnUnitChange() {
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const [ownerBillingGraceEndPeriod] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`);
+    const [defaultP2PMileageRate] = useOnyx(ONYXKEYS.DEFAULT_P2P_MILEAGE_RATE);
 
     const defaultExpensePolicy = useDefaultExpensePolicy();
     const shouldUseDefaultExpensePolicy = shouldUseDefaultExpensePolicyUtil(CONST.IOU.TYPE.CREATE, defaultExpensePolicy, amountOwed, ownerBillingGraceEndPeriod);
 
-    const unit = DistanceRequestUtils.getRate({transaction, policy: shouldUseDefaultExpensePolicy ? defaultExpensePolicy : undefined}).unit;
+    const unit = DistanceRequestUtils.getRate({transaction, policy: shouldUseDefaultExpensePolicy ? defaultExpensePolicy : undefined, defaultP2PMileageRate}).unit;
 
     useEffect(() => {
         if (!shouldUpdateGpsNotificationUnit()) {
@@ -50,7 +51,7 @@ function useUpdateGpsNotificationOnUnitChange() {
         }
 
         updateGpsTripNotificationUnit(translate, unit);
-    }, [unit, translate]);
+    }, [unit, translate, defaultP2PMileageRate]);
 }
 
 export default useUpdateGpsNotification;

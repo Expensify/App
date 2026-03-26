@@ -236,7 +236,13 @@ import type {BuildPolicyDataKeys} from '@userActions/Policy/Policy';
 import {buildOptimisticPolicyRecentlyUsedTags} from '@userActions/Policy/Tag';
 import type {GuidedSetupData} from '@userActions/Report';
 import {buildInviteToRoomOnyxData, completeOnboarding, notifyNewAction, optimisticReportLastData} from '@userActions/Report';
-import {fetchDefaultP2PMileageRate, mergeTransactionIdsHighlightOnSearchRoute, sanitizeWaypointsForAPI, stringifyWaypointsForAPI} from '@userActions/Transaction';
+import {
+    fetchDefaultP2PMileageRate,
+    getStoredDefaultP2PMileageRate,
+    mergeTransactionIdsHighlightOnSearchRoute,
+    sanitizeWaypointsForAPI,
+    stringifyWaypointsForAPI,
+} from '@userActions/Transaction';
 import {getRemoveDraftTransactionsByIDsData, removeDraftTransaction, removeDraftTransactionsByIDs} from '@userActions/TransactionEdit';
 import {getOnboardingMessages} from '@userActions/Welcome/OnboardingFlow';
 import type {OnboardingCompanySize} from '@userActions/Welcome/OnboardingFlow';
@@ -1603,7 +1609,7 @@ function setCustomUnitRateID(transactionID: string, customUnitRateID: string | u
 
     if (customUnitRateID && transaction) {
         const distanceRate = isFakeP2PRate
-            ? DistanceRequestUtils.getRate({transaction, useTransactionDistanceUnit: false, policy})
+            ? DistanceRequestUtils.getRate({transaction, useTransactionDistanceUnit: false, policy, defaultP2PMileageRate: getStoredDefaultP2PMileageRate()})
             : DistanceRequestUtils.getRateByCustomUnitRateID({policy, customUnitRateID});
 
         const transactionDistanceUnit = transaction.comment?.customUnit?.distanceUnit;
@@ -4142,6 +4148,7 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
               isFromExpenseReport,
               isSplitTransaction,
               policy,
+              defaultP2PMileageRate: getStoredDefaultP2PMileageRate(),
           })
         : undefined;
 
@@ -4698,6 +4705,7 @@ function getUpdateTrackExpenseParams(
               transactionChanges,
               isFromExpenseReport: false,
               policy,
+              defaultP2PMileageRate: getStoredDefaultP2PMileageRate(),
           })
         : null;
     const transactionDetails = getTransactionDetails(updatedTransaction);

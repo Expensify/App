@@ -53,6 +53,7 @@ import ViolationsUtils from '@libs/Violations/ViolationsUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {
+    DefaultP2PMileageRate,
     PersonalDetails,
     Policy,
     PolicyCategories,
@@ -101,6 +102,18 @@ Onyx.connect({
     key: ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS,
     callback: (val) => (allTransactionViolations = val ?? []),
 });
+
+let storedDefaultP2PMileageRate: DefaultP2PMileageRate | undefined;
+Onyx.connect({
+    key: ONYXKEYS.DEFAULT_P2P_MILEAGE_RATE,
+    callback: (value) => {
+        storedDefaultP2PMileageRate = value ?? undefined;
+    },
+});
+
+function getStoredDefaultP2PMileageRate(): DefaultP2PMileageRate | undefined {
+    return storedDefaultP2PMileageRate;
+}
 
 /**
  * @deprecated This function uses Onyx.connect and should be replaced with useOnyx for reactive data access.
@@ -831,11 +844,6 @@ function openDraftDistanceExpense() {
     API.read(READ_COMMANDS.OPEN_DRAFT_DISTANCE_EXPENSE, null, onyxData);
 }
 
-/**
- * Fetches the default P2P mileage rate from Auth.
- * Auth determines the rate from the user's personal policy currency.
- * The rate is stored in Onyx via the onyxData returned by Auth.
- */
 function fetchDefaultP2PMileageRate() {
     API.read(READ_COMMANDS.GET_DEFAULT_P2P_MILEAGE_RATE, {}, {});
 }
@@ -1055,7 +1063,7 @@ function changeTransactionsReport({
         };
 
         const {comment, modifiedAmount, modifiedCurrency, modifiedMerchant} = isUnreported
-            ? recalculateUnreportedTransactionDetails(transaction, destinationCurrency, translate, toLocaleDigit)
+            ? recalculateUnreportedTransactionDetails(transaction, destinationCurrency, translate, toLocaleDigit, storedDefaultP2PMileageRate)
             : {};
 
         // 1. Optimistically change the reportID on the passed transactions
@@ -1694,4 +1702,5 @@ export {
     setTransactionReport,
     mergeTransactionIdsHighlightOnSearchRoute,
     getDuplicateTransactionDetails,
+    getStoredDefaultP2PMileageRate,
 };
