@@ -1008,6 +1008,29 @@ describe('SubscriptionUtils', () => {
             expect(shouldShowDiscountBanner(true, 'corporate', firstDayFreeTrial, lastDayFreeTrial, undefined, policies)).toBeTruthy();
         });
 
+        it('should return false if an owned policy has a bank account set as invoice payment method', async () => {
+            const firstDayFreeTrial = formatDate(subDays(new Date(), 1), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING);
+            const lastDayFreeTrial = formatDate(addDays(new Date(), 10), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING);
+            const policiesWithBA = {
+                [`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]: {
+                    ...createRandomPolicy(Number(policyID)),
+                    ownerAccountID,
+                    type: CONST.POLICY.TYPE.CORPORATE,
+                    invoice: {
+                        bankAccount: {
+                            transferBankAccountID: 12345,
+                        },
+                    },
+                },
+            };
+            await Onyx.multiSet({
+                [ONYXKEYS.SESSION]: {accountID: ownerAccountID},
+                [ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL]: firstDayFreeTrial,
+                [ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL]: lastDayFreeTrial,
+            });
+            expect(shouldShowDiscountBanner(true, 'corporate', firstDayFreeTrial, lastDayFreeTrial, undefined, policiesWithBA)).toBeFalsy();
+        });
+
         it("should return false if user's trial is during the discount period but has no workspaces", async () => {
             const firstDayFreeTrial = formatDate(subDays(new Date(), 1), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING);
             await Onyx.multiSet({
@@ -1262,6 +1285,22 @@ describe('SubscriptionUtils', () => {
 
         it('should return false if the user has a payment card added', () => {
             expect(shouldShowTrialEndedUI(lastDayFreeTrialEnded, 8010, policies, undefined, undefined, undefined)).toBeFalsy();
+        });
+
+        it('should return false if an owned policy has a bank account set as invoice payment method', () => {
+            const policiesWithBA = {
+                [`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]: {
+                    ...createRandomPolicy(Number(policyID)),
+                    ownerAccountID,
+                    type: CONST.POLICY.TYPE.CORPORATE,
+                    invoice: {
+                        bankAccount: {
+                            transferBankAccountID: 12345,
+                        },
+                    },
+                },
+            };
+            expect(shouldShowTrialEndedUI(lastDayFreeTrialEnded, undefined, policiesWithBA, undefined, undefined, undefined)).toBeFalsy();
         });
 
         it('should return false if the trial has not ended yet', () => {
