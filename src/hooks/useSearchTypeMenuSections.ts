@@ -117,7 +117,7 @@ const useSearchTypeMenuSections = (queryParams?: UseSearchTypeMenuSectionsParams
                 defaultExpensifyCard,
                 shouldRedirectToExpensifyClassic,
                 draftTransactionIDs,
-                isTrackIntentUser,
+                isTrackIntentUser: isTrackIntentUser ?? false,
             }),
         [
             currentUserLoginAndAccountID?.email,
