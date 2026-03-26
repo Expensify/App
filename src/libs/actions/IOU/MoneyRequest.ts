@@ -294,7 +294,10 @@ function getMoneyRequestParticipantOptions(
     const selectedParticipants = getMoneyRequestParticipantsFromReport(report, currentUserAccountID);
     return selectedParticipants.map((participant) => {
         const participantAccountID = participant?.accountID ?? CONST.DEFAULT_NUMBER_ID;
-        return participantAccountID ? getParticipantsOption(participant, personalDetails) : getReportOption(participant, privateIsArchived, policy, personalDetails, reportAttributesDerived);
+        // TODO: We'll pass the conciergeReportID in the next PR. Refactor issue: https://github.com/Expensify/App/issues/66411
+        return participantAccountID
+            ? getParticipantsOption(participant, personalDetails)
+            : getReportOption(participant, privateIsArchived, policy, personalDetails, undefined, reportAttributesDerived);
     });
 }
 
