@@ -91,7 +91,7 @@ If Expensify cannot detect a potential match between a SmartScanned receipt and 
 # Actions for Invoices and IOUs
 
 ## Invoices - As the Receiver
-- Use **Pay** to reimburse.
+- Select the three dots **(⋮)** for options like **Download**, **Print**, and **View Details**.
 - Tap **More** for options like **Download**, **Print**, and **View Details**.
 
 ## Invoices - As the Sender
