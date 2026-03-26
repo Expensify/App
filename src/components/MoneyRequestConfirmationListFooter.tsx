@@ -609,7 +609,7 @@ function MoneyRequestConfirmationListFooter({
                             errorText={shouldShowAmountRequiredError ? translate('common.error.fieldRequired') : ''}
                             onInputChange={handleAmountChange}
                             allowNegativeInput={allowNegative}
-                            shouldShowFlipButton
+                            shouldShowFlipButton={allowNegative}
                             shouldShowCurrencyButton
                             shouldShowBigNumberPad={false}
                             onCurrencyButtonPress={showCurrencyPicker}
