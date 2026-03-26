@@ -47,7 +47,7 @@ function openSubscriptionPage(ownerAccountID?: number, currentGracePeriod?: Bill
     // it will be restored from the response. If it was deleted (billing resolved), it stays null.
     // On failure, the previous value is restored so the restriction isn't incorrectly lifted.
     if (ownerAccountID) {
-        const gracePeriodKey = `${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END}${ownerAccountID}`;
+        const gracePeriodKey = `${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END}${ownerAccountID}` as const;
         optimisticData.push({
             onyxMethod: Onyx.METHOD.SET,
             key: gracePeriodKey,
