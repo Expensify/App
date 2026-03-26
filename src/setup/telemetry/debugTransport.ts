@@ -1,6 +1,7 @@
-import type {BaseTransportOptions, Transport, TransportRequest, TransportRequestExecutor} from '@sentry/core';
-import {createTransport} from '@sentry/core';
+import {makeFetchTransport} from '@sentry/browser';
+import type {BaseTransportOptions, Envelope, Transport} from '@sentry/core';
 import Onyx from 'react-native-onyx';
+import CONFIG from '@src/CONFIG';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 /**
@@ -52,22 +53,13 @@ function isHighlightedSpanOp(op: string): boolean {
     return highlightedSpanOps.some((highlightedOp) => op === highlightedOp || op.startsWith(`${highlightedOp}.`));
 }
 
-function parseEnvelopeBody(body: string | Uint8Array): unknown[] {
-    let bodyString: string;
-    if (body instanceof Uint8Array) {
-        bodyString = new TextDecoder().decode(body);
-    } else {
-        bodyString = body;
+function flattenEnvelope(envelope: Envelope): unknown[] {
+    const [header, items] = envelope;
+    const result: unknown[] = [header];
+    for (const [itemHeader, itemPayload] of items) {
+        result.push(itemHeader, itemPayload);
     }
-
-    const lines = bodyString.split('\n').filter(Boolean);
-    return lines.map((line) => {
-        try {
-            return JSON.parse(line) as unknown;
-        } catch {
-            return line;
-        }
-    });
+    return result;
 }
 
 function logSpan(span: Record<string, unknown>): void {
@@ -167,23 +159,25 @@ function processEnvelopeItems(items: unknown[]): void {
 }
 
 function makeDebugTransport(options: BaseTransportOptions): Transport {
-    const makeRequest: TransportRequestExecutor = async (request: TransportRequest) => {
-        if (isSentryDebugEnabled) {
-            const items = parseEnvelopeBody(request.body);
-            processEnvelopeItems(items);
-        }
+    const sentryTransport = makeFetchTransport(options);
 
-        const CONTENT_TYPE_HEADER = 'Content-Type';
-        const response = await fetch(options.url, {
-            method: 'POST',
-            headers: {[CONTENT_TYPE_HEADER]: 'application/x-sentry-envelope', ...options.headers},
-            body: typeof request.body === 'string' ? request.body : new TextDecoder().decode(request.body),
-        });
+    return {
+        send(envelope: Envelope) {
+            if (isSentryDebugEnabled) {
+                const items = flattenEnvelope(envelope);
+                processEnvelopeItems(items);
+            }
 
-        return {statusCode: response.status};
+            if (!CONFIG.ENABLE_SENTRY_ON_DEV) {
+                return Promise.resolve({});
+            }
+
+            return sentryTransport.send(envelope);
+        },
+        flush(timeout?: number) {
+            return sentryTransport.flush(timeout);
+        },
     };
-
-    return createTransport(options, makeRequest);
 }
 
 export default makeDebugTransport;

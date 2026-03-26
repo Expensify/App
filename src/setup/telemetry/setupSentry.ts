@@ -8,16 +8,15 @@ import pkg from '../../../package.json';
 import makeDebugTransport from './debugTransport';
 
 function setupSentry(): void {
-    // With Sentry enabled in dev mode, profiling on iOS and Android does not work
-    // If you want to enable Sentry in dev, set ENABLE_SENTRY_ON_DEV=true in .env
-    if (isDevelopment() && !CONFIG.ENABLE_SENTRY_ON_DEV) {
-        return;
-    }
-
     const integrations = [navigationIntegration, tracingIntegration, browserProfilingIntegration, breadcrumbsIntegration, consoleIntegration];
 
     Sentry.init({
         dsn: CONFIG.SENTRY_DSN,
+        // In development, debugTransport replaces the default Sentry transport.
+        // When ENABLE_SENTRY_ON_DEV=true, it forwards envelopes to Sentry via fetch.
+        // When ENABLE_SENTRY_ON_DEV=false, it silently discards envelopes (returns 200 noop),
+        // so Sentry is initialized and collects data locally but nothing is sent to the server.
+        // In both modes, when Sentry debug is enabled in the Troubleshoot panel, it logs envelope contents to the console.
         transport: isDevelopment() ? makeDebugTransport : undefined,
         tracesSampleRate: 1.0,
         // 1. Profiling for Android is currently disabled because it causes crashes sometimes.
