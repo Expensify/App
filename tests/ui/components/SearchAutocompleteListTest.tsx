@@ -132,10 +132,21 @@ describe('SearchAutocompleteList', () => {
 
     it('should call Parser.htmlToText when parentReportAction is not ADD_COMMENT', async () => {
         const reportID = '10';
+        const parentReportID = '20';
+        const parentActionID = '100';
+        const parentReportAction = {
+            ...createRandomReportAction(Number(parentActionID)),
+            actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
+        };
 
         await act(async () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
                 reportID,
+                parentReportID,
+                parentReportActionID: parentActionID,
+            });
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`, {
+                [parentActionID]: parentReportAction,
             });
         });
 

@@ -343,7 +343,7 @@ function SearchAutocompleteList({
     const styledRecentReports = recentReportsOptions.map((option) => {
         const report = getReportOrDraftReport(option.reportID);
         const reportAction = getReportAction(report?.parentReportID, report?.parentReportActionID);
-        const shouldParserToHTML = reportAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT;
+        const shouldParserToHTML = !!reportAction && reportAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT;
         const shouldParseAlternateText = report?.lastActionType !== CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT;
         const keyForList = option.keyForList ?? option.reportID ?? (option.accountID ? String(option.accountID) : undefined);
         return {
