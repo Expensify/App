@@ -20,9 +20,6 @@ import type IOURequestStepScanProps from './types';
  * Each variant is a self-contained component that reads its own route params and Onyx data.
  * The router only subscribes to per-key data needed for branching.
  */
-// We pass the parent route explicitly because variant components are rendered
-// inside a TopTab.Screen, where useRoute() would return the tab navigator's
-// route (which has no params) instead of the MoneyRequest navigator's route.
 function IOURequestStepScan({report, route, transaction: initialTransaction}: Omit<IOURequestStepScanProps, 'user'>) {
     const {action, iouType, transactionID: initialTransactionID, backTo} = route.params;
     const policy = usePolicy(report?.policyID);
