@@ -182,7 +182,7 @@ function TransactionListItem<TItem extends ListItem>({
                 onPress={isDeletedTransaction ? undefined : () => onSelectRow(item, transactionPreviewData)}
                 disabled={isDisabled && !item.isSelected}
                 accessibilityLabel={item.text ?? ''}
-                role={getButtonRole(true)}
+                role={isDeletedTransaction ? getButtonRole(true): 'none'}
                 isNested
                 onMouseDown={(e) => e.preventDefault()}
                 hoverStyle={[!item.isDisabled && styles.hoveredComponentBG, item.isSelected && styles.activeComponentBG]}
