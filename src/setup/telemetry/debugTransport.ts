@@ -1,5 +1,6 @@
-import {makeFetchTransport} from '@sentry/browser';
 import type {BaseTransportOptions, Envelope, Transport} from '@sentry/core';
+import {makeFetchTransport} from '@sentry/react';
+import {makeNativeTransportFactory} from '@sentry/react-native/dist/js/transports/native';
 import Onyx from 'react-native-onyx';
 import CONFIG from '@src/CONFIG';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -159,7 +160,8 @@ function processEnvelopeItems(items: unknown[]): void {
 }
 
 function makeDebugTransport(options: BaseTransportOptions): Transport {
-    const sentryTransport = makeFetchTransport(options);
+    const transportFactory = makeNativeTransportFactory({enableNative: true}) ?? makeFetchTransport;
+    const sentryTransport = transportFactory(options);
 
     return {
         send(envelope: Envelope) {
