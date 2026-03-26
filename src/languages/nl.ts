@@ -2853,7 +2853,7 @@ ${amount} voor ${merchant} - ${date}`,
                 description: dedent(`
                     *Dien een uitgave in* door een bedrag in te voeren of een bon te scannen.
 
-                    1. Klik op de knop ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}.
+                    1. Klik op de knop ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE} *+*.
                     2. Kies *Uitgave maken*.
                     3. Voer een bedrag in of scan een bon.
                     4. Voeg het e-mailadres of telefoonnummer van je manager toe.
@@ -2867,7 +2867,7 @@ ${amount} voor ${merchant} - ${date}`,
                 description: dedent(`
                     *Dien een uitgave in* door een bedrag in te voeren of een bon te scannen.
 
-                    1. Klik op de knop ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}.
+                    1. Klik op de knop ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE} *+*.
                     2. Kies *Uitgave maken*.
                     3. Voer een bedrag in of scan een bon.
                     4. Bevestig de details.
@@ -2881,7 +2881,7 @@ ${amount} voor ${merchant} - ${date}`,
                 description: dedent(`
                     *Volg een uitgave* in elke valuta, of je nu een bon hebt of niet.
 
-                    1. Klik op de knop ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}.
+                    1. Klik op de knop ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE} *+*.
                     2. Kies *Uitgave maken*.
                     3. Voer een bedrag in of scan een bon.
                     4. Kies je *persoonlijke* ruimte.
@@ -2983,7 +2983,7 @@ ${
                 description: dedent(`
                     *Start een chat* met iedereen via hun e-mailadres of telefoonnummer.
 
-                    1. Klik op de knop ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}.
+                    1. Klik op de knop ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE} *+*.
                     2. Kies *Chat starten*.
                     3. Voer een e-mailadres of telefoonnummer in.
 
@@ -2997,7 +2997,7 @@ ${
                 description: dedent(`
                     *Kosten splitsen* met één of meer personen.
 
-                    1. Klik op de knop ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}.
+                    1. Klik op de knop ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE} *+*.
                     2. Kies *Chat starten*.
                     3. Voer e-mailadressen of telefoonnummers in.
                     4. Klik in de chat op de grijze knop *+* > *Kosten splitsen*.
@@ -3021,7 +3021,7 @@ ${
                 description: dedent(`
                     Zo maak je een rapport:
 
-                    1. Klik op de knop ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}.
+                    1. Klik op de knop ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE} *+*.
                     2. Kies *Rapport maken*.
                     3. Klik op *Uitgave toevoegen*.
                     4. Voeg je eerste uitgave toe.
@@ -7208,19 +7208,19 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
             emptyExpenseResults: {
                 title: 'Je hebt nog geen uitgaven aangemaakt',
                 subtitle: 'Maak een uitgave aan of maak een testrit met Expensify om meer te leren.',
-                subtitleWithOnlyCreateButton: 'Gebruik de groene knop hieronder om een uitgave aan te maken.',
+                subtitleWithOnlyCreateButton: 'Gebruik de groene *+* knop hieronder om een uitgave aan te maken.',
             },
             emptyReportResults: {
                 title: 'Je hebt nog geen rapporten gemaakt',
                 subtitle: 'Maak een rapport of probeer Expensify uit om meer te weten te komen.',
-                subtitleWithOnlyCreateButton: 'Gebruik de groene knop hieronder om een rapport te maken.',
+                subtitleWithOnlyCreateButton: 'Gebruik de groene *+* knop hieronder om een rapport te maken.',
             },
             emptyInvoiceResults: {
                 title: dedent(`
                     Je hebt nog geen facturen aangemaakt
                 `),
                 subtitle: 'Stuur een factuur of maak een testrit met Expensify om meer te weten te komen.',
-                subtitleWithOnlyCreateButton: 'Gebruik de groene knop hieronder om een factuur te versturen.',
+                subtitleWithOnlyCreateButton: 'Gebruik de groene *+* knop hieronder om een factuur te versturen.',
             },
             emptyTripResults: {
                 title: 'Geen reizen om weer te geven',

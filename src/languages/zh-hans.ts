@@ -2782,7 +2782,7 @@ ${amount}，商户：${merchant} - 日期：${date}`,
                 description: dedent(`
                     通过输入金额或扫描收据来*提交一笔报销*。
 
-                    1. 点击 ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE} 按钮。
+                    1. 点击 ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE} *+* 按钮。
                     2. 选择 *创建报销*。
                     3. 输入金额或扫描收据。
                     4. 添加你老板的邮箱或电话号码。
@@ -2796,7 +2796,7 @@ ${amount}，商户：${merchant} - 日期：${date}`,
                 description: dedent(`
                     通过输入金额或扫描收据来*提交报销*。
 
-                    1. 点击 ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE} 按钮。
+                    1. 点击 ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE} *+* 按钮。
                     2. 选择*创建报销*。
                     3. 输入金额或扫描收据。
                     4. 确认详细信息。
@@ -2810,7 +2810,7 @@ ${amount}，商户：${merchant} - 日期：${date}`,
                 description: dedent(`
                     *以任意货币*记录一笔报销，无论你是否有收据。
 
-                    1. 点击 ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE} 按钮。
+                    1. 点击 ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE} *+* 按钮。
                     2. 选择 *创建报销*。
                     3. 输入金额或扫描收据。
                     4. 选择你的*个人*空间。
@@ -2912,7 +2912,7 @@ ${
                 description: dedent(`
                     *开始聊天*，只需输入对方的邮箱或电话号码。
 
-                    1. 点击 ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE} 按钮。
+                    1. 点击 ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE} *+* 按钮。
                     2. 选择 *开始聊天*。
                     3. 输入邮箱或电话号码。
 
@@ -2926,7 +2926,7 @@ ${
                 description: dedent(`
                     与一人或多人*平摊费用*。
 
-                    1. 点击 ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE} 按钮。
+                    1. 点击 ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE} *+* 按钮。
                     2. 选择 *开始聊天*。
                     3. 输入邮箱或电话号码。
                     4. 在聊天中点击灰色的 *+* 按钮 > *分摊费用*。
@@ -2950,7 +2950,7 @@ ${
                 description: dedent(`
                     创建报表步骤如下：
 
-                    1. 点击 ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE} 按钮。
+                    1. 点击 ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE} *+* 按钮。
                     2. 选择 *创建报表*。
                     3. 点击 *添加报销*。
                     4. 添加你的第一笔报销。
@@ -7019,19 +7019,19 @@ ${reportName}
             emptyExpenseResults: {
                 title: '你还没有创建任何报销记录',
                 subtitle: '创建一笔报销，或试用 Expensify 以了解更多。',
-                subtitleWithOnlyCreateButton: '使用下面的绿色按钮来创建一笔报销。',
+                subtitleWithOnlyCreateButton: '使用下面的绿色 *+* 按钮来创建一笔报销。',
             },
             emptyReportResults: {
                 title: '你还没有创建任何报销报告',
                 subtitle: '创建报表或试用 Expensify，了解更多信息。',
-                subtitleWithOnlyCreateButton: '使用下方的绿色按钮创建报表。',
+                subtitleWithOnlyCreateButton: '使用下方的绿色 *+* 按钮创建报表。',
             },
             emptyInvoiceResults: {
                 title: dedent(`
                     你还没有创建任何发票
                 `),
                 subtitle: '发送发票或试用 Expensify，了解更多信息。',
-                subtitleWithOnlyCreateButton: '使用下方的绿色按钮发送发票。',
+                subtitleWithOnlyCreateButton: '使用下方的绿色 *+* 按钮发送发票。',
             },
             emptyTripResults: {
                 title: '没有行程可显示',

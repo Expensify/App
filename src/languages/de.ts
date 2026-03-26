@@ -2861,7 +2861,7 @@ ${amount} für ${merchant} – ${date}`,
                 description: dedent(`
                     *Reiche eine Ausgabe ein*, indem du einen Betrag eingibst oder einen Beleg einscannst.
 
-                    1. Klicke auf die Schaltfläche ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}.
+                    1. Klicke auf die Schaltfläche ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE} *+*.
                     2. Wähle *Ausgabe erstellen*.
                     3. Gib einen Betrag ein oder scanne einen Beleg.
                     4. Füge die E-Mail-Adresse oder Telefonnummer deiner Führungskraft hinzu.
@@ -2875,7 +2875,7 @@ ${amount} für ${merchant} – ${date}`,
                 description: dedent(`
                     *Reiche eine Ausgabe ein*, indem du einen Betrag eingibst oder einen Beleg scannst.
 
-                    1. Klicke auf die Schaltfläche ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}.
+                    1. Klicke auf die Schaltfläche ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE} *+*.
                     2. Wähle *Ausgabe erstellen*.
                     3. Gib einen Betrag ein oder scanne einen Beleg.
                     4. Bestätige die Details.
@@ -2889,7 +2889,7 @@ ${amount} für ${merchant} – ${date}`,
                 description: dedent(`
                     *Verfolge eine Ausgabe* in jeder Währung, egal ob du eine Quittung hast oder nicht.
 
-                    1. Klicke auf die Schaltfläche ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}.
+                    1. Klicke auf die Schaltfläche ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE} *+*.
                     2. Wähle *Ausgabe erstellen*.
                     3. Gib einen Betrag ein oder scanne eine Quittung.
                     4. Wähle deinen *persönlichen* Bereich.
@@ -2991,7 +2991,7 @@ ${
                 description: dedent(`
                     *Starte einen Chat* mit jeder Person über ihre E‑Mail-Adresse oder Telefonnummer.
 
-                    1. Klicke auf die Schaltfläche ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}.
+                    1. Klicke auf die Schaltfläche ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE} *+*.
                     2. Wähle *Chat starten*.
                     3. Gib eine E‑Mail-Adresse oder Telefonnummer ein.
 
@@ -3005,7 +3005,7 @@ ${
                 description: dedent(`
                     *Spalte Ausgaben* mit einer oder mehreren Personen.
 
-                    1. Klicke auf die Schaltfläche ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}.
+                    1. Klicke auf die Schaltfläche ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE} *+*.
                     2. Wähle *Chat starten*.
                     3. Gib E-Mail-Adressen oder Telefonnummern ein.
                     4. Klicke im Chat auf die graue *+*-Schaltfläche > *Ausgabe aufteilen*.
@@ -3029,7 +3029,7 @@ ${
                 description: dedent(`
                     So erstellst du einen Bericht:
 
-                    1. Klicke auf die Schaltfläche ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}.
+                    1. Klicke auf die Schaltfläche ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE} *+*.
                     2. Wähle *Bericht erstellen*.
                     3. Klicke auf *Ausgabe hinzufügen*.
                     4. Füge deine erste Ausgabe hinzu.
@@ -7242,19 +7242,19 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
             emptyExpenseResults: {
                 title: 'Du hast noch keine Ausgaben erstellt',
                 subtitle: 'Erstelle eine Ausgabe oder mache eine Probefahrt mit Expensify, um mehr zu erfahren.',
-                subtitleWithOnlyCreateButton: 'Verwende die grüne Schaltfläche unten, um eine Ausgabe zu erstellen.',
+                subtitleWithOnlyCreateButton: 'Verwende die grüne *+* Schaltfläche unten, um eine Ausgabe zu erstellen.',
             },
             emptyReportResults: {
                 title: 'Du hast noch keine Berichte erstellt',
                 subtitle: 'Erstelle einen Bericht oder mache eine Probefahrt mit Expensify, um mehr zu erfahren.',
-                subtitleWithOnlyCreateButton: 'Verwende die grüne Schaltfläche unten, um einen Bericht zu erstellen.',
+                subtitleWithOnlyCreateButton: 'Verwende die grüne *+* Schaltfläche unten, um einen Bericht zu erstellen.',
             },
             emptyInvoiceResults: {
                 title: dedent(`
                     Sie haben noch keine Rechnungen erstellt
                 `),
                 subtitle: 'Sende eine Rechnung oder mache eine Probefahrt mit Expensify, um mehr zu erfahren.',
-                subtitleWithOnlyCreateButton: 'Verwende die grüne Schaltfläche unten, um eine Rechnung zu senden.',
+                subtitleWithOnlyCreateButton: 'Verwende die grüne *+* Schaltfläche unten, um eine Rechnung zu senden.',
             },
             emptyTripResults: {
                 title: 'Keine Reisen zum Anzeigen',

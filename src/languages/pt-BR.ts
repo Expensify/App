@@ -2846,7 +2846,7 @@ ${amount} para ${merchant} - ${date}`,
                 description: dedent(`
                     *Envie uma despesa* inserindo um valor ou digitalizando um recibo.
 
-                    1. Clique no botão ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}.
+                    1. Clique no botão ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE} *+*.
                     2. Escolha *Criar despesa*.
                     3. Insira um valor ou digitalize um recibo.
                     4. Adicione o e-mail ou telefone da sua chefia.
@@ -2860,7 +2860,7 @@ ${amount} para ${merchant} - ${date}`,
                 description: dedent(`
                     *Envie uma despesa* inserindo um valor ou escaneando um recibo.
 
-                    1. Clique no botão ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}.
+                    1. Clique no botão ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE} *+*.
                     2. Escolha *Criar despesa*.
                     3. Insira um valor ou escaneie um recibo.
                     4. Confirme os detalhes.
@@ -2874,7 +2874,7 @@ ${amount} para ${merchant} - ${date}`,
                 description: dedent(`
                     *Acompanhe uma despesa* em qualquer moeda, com ou sem recibo.
 
-                    1. Clique no botão ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}.
+                    1. Clique no botão ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE} *+*.
                     2. Escolha *Criar despesa*.
                     3. Informe um valor ou escaneie um recibo.
                     4. Escolha seu espaço *pessoal*.
@@ -2976,7 +2976,7 @@ ${
                 description: dedent(`
                     *Inicie um chat* com qualquer pessoa usando o e-mail ou número de telefone dela.
 
-                    1. Clique no botão ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}.
+                    1. Clique no botão ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE} *+*.
                     2. Escolha *Iniciar chat*.
                     3. Digite um e-mail ou número de telefone.
 
@@ -2990,7 +2990,7 @@ ${
                 description: dedent(`
                     *Divida despesas* com uma ou mais pessoas.
 
-                    1. Clique no botão ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}.
+                    1. Clique no botão ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE} *+*.
                     2. Escolha *Iniciar chat*.
                     3. Digite e-mails ou números de telefone.
                     4. Clique no botão cinza *+* no chat > *Dividir despesa*.
@@ -3014,7 +3014,7 @@ ${
                 description: dedent(`
                     Veja como criar um relatório:
 
-                    1. Clique no botão ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}.
+                    1. Clique no botão ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE} *+*.
                     2. Escolha *Criar relatório*.
                     3. Clique em *Adicionar despesa*.
                     4. Adicione sua primeira despesa.
@@ -7199,12 +7199,12 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
             emptyExpenseResults: {
                 title: 'Você ainda não criou nenhuma despesa',
                 subtitle: 'Crie uma despesa ou faça um test drive do Expensify para saber mais.',
-                subtitleWithOnlyCreateButton: 'Use o botão verde abaixo para criar uma despesa.',
+                subtitleWithOnlyCreateButton: 'Use o botão verde *+* abaixo para criar uma despesa.',
             },
             emptyReportResults: {
                 title: 'Você ainda não criou nenhum relatório',
                 subtitle: 'Crie um relatório ou faça um test drive do Expensify para saber mais.',
-                subtitleWithOnlyCreateButton: 'Use o botão verde abaixo para criar um relatório.',
+                subtitleWithOnlyCreateButton: 'Use o botão verde *+* abaixo para criar um relatório.',
             },
             emptyInvoiceResults: {
                 title: dedent(`
@@ -7212,7 +7212,7 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
                     fatura
                 `),
                 subtitle: 'Envie uma fatura ou faça um test drive do Expensify para saber mais.',
-                subtitleWithOnlyCreateButton: 'Use o botão verde abaixo para enviar uma fatura.',
+                subtitleWithOnlyCreateButton: 'Use o botão verde *+* abaixo para enviar uma fatura.',
             },
             emptyTripResults: {
                 title: 'Nenhuma viagem para exibir',
