@@ -1102,7 +1102,8 @@ function updateSplitTransactions({
         if (splitTransactionThreadReportID) {
             const splitTransactionThreadActions = getAllReportActions(splitTransactionThreadReportID);
             splitThreadComments = Object.values(splitTransactionThreadActions).filter(
-                (action): action is OnyxTypes.ReportAction => isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT) && !isDeletedAction(action) && (action.actorAccountID ?? 0) > 0,
+                (action): action is OnyxTypes.ReportAction =>
+                    isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT) && !isDeletedAction(action) && (action.actorAccountID ?? CONST.DEFAULT_NUMBER_ID) > 0,
             );
         }
     }
