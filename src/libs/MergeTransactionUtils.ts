@@ -1,8 +1,8 @@
 import {deepEqual} from 'fast-equals';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {TupleToUnion} from 'type-fest';
-import type {SelectedTransactionInfo} from '@components/Search/types';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
+import type {SelectedTransactionInfo} from '@components/Search/types';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
