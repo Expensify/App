@@ -1,3 +1,4 @@
+import {hasSeenTourSelector} from '@selectors/Onboarding';
 import React, {useCallback, useMemo, useRef} from 'react';
 import {View} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
@@ -11,6 +12,7 @@ import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import Text from '@components/Text';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDocumentTitle from '@hooks/useDocumentTitle';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -60,9 +62,11 @@ function AboutPage() {
     const popoverAnchor = useRef<View>(null);
     const waitForNavigate = useWaitForNavigation();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    useDocumentTitle(translate('initialSettingsPage.about'));
     const aboutIllustration = useAboutSectionIllustration();
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
 
     const menuItems = useMemo(() => {
@@ -105,7 +109,7 @@ function AboutPage() {
                 translationKey: 'initialSettingsPage.aboutPage.reportABug',
                 icon: icons.Bug,
                 sentryLabel: CONST.SENTRY_LABEL.SETTINGS_ABOUT.REPORT_A_BUG,
-                action: waitForNavigate(() => navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, false)),
+                action: waitForNavigate(() => navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, false)),
             },
         ];
 
@@ -116,6 +120,7 @@ function AboutPage() {
             iconRight,
             onPress: action,
             shouldShowRightIcon: true,
+            shouldShowContextMenuHint: !!link,
             onSecondaryInteraction: link
                 ? (event: GestureResponderEvent | MouseEvent) =>
                       showContextMenu({
@@ -130,7 +135,7 @@ function AboutPage() {
             wrapperStyle: [styles.sectionMenuItemTopDescription],
             sentryLabel,
         }));
-    }, [icons, styles, translate, waitForNavigate, conciergeReportID, introSelected, currentUserAccountID]);
+    }, [icons, styles, translate, waitForNavigate, conciergeReportID, introSelected, isSelfTourViewed, currentUserAccountID]);
 
     const overlayContent = useCallback(
         () => (
@@ -185,8 +190,8 @@ function AboutPage() {
                         </View>
                     </Section>
                 </View>
-                <View style={[styles.renderHTML, styles.pl5, styles.mb5]}>
-                    <RenderHTML html={translate('initialSettingsPage.readTheTermsAndPrivacy')} />
+                <View style={[styles.renderHTML, styles.ph5, styles.mb5]}>
+                    <RenderHTML html={`<muted-text-micro>${translate('initialSettingsPage.readTheTermsAndPrivacy')} ${translate('termsOfUse.license')}</muted-text-micro>`} />
                 </View>
             </ScrollView>
         </ScreenWrapper>

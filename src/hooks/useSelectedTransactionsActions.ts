@@ -329,7 +329,7 @@ function useSelectedTransactionsActions({
             }
             const iouReportAction = getIOUActionForTransactionID(reportActions, transaction.transactionID);
 
-            const canMoveExpense = canEditFieldOfMoneyRequest(iouReportAction, CONST.EDIT_REQUEST_FIELD.REPORT, undefined, undefined, outstandingReportsByPolicyID);
+            const canMoveExpense = canEditFieldOfMoneyRequest({reportAction: iouReportAction, fieldToEdit: CONST.EDIT_REQUEST_FIELD.REPORT, outstandingReportsByPolicyID, transaction});
             return canMoveExpense;
         });
 
@@ -341,7 +341,16 @@ function useSelectedTransactionsActions({
                     text: translate('common.merge'),
                     icon: expensifyIcons.ArrowCollapse,
                     value: MERGE,
-                    onSelected: () => setupMergeTransactionDataAndNavigate(transactionID, selectedTransactionsList, localeCompare, [], false, isOnSearch),
+                    onSelected: () =>
+                        setupMergeTransactionDataAndNavigate(
+                            transactionID,
+                            selectedTransactionsList,
+                            localeCompare,
+                            [],
+                            false,
+                            isOnSearch,
+                            selectedTransactionsList.length > 1 ? [policy, policy] : undefined,
+                        ),
                 });
             }
         }

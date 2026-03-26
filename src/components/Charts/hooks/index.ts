@@ -4,3 +4,5 @@ export type {HitTestArgs} from './useChartInteractions';
 export {default as useChartLabelFormats} from './useChartLabelFormats';
 export {default as useDynamicYDomain} from './useDynamicYDomain';
 export {useTooltipData} from './useTooltipData';
+export {default as useLabelHitTesting} from './useLabelHitTesting';
+export type {ComputeGeometryFn, ComputeGeometryInput} from './useLabelHitTesting';

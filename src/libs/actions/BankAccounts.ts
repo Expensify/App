@@ -14,6 +14,7 @@ import type {
     OpenReimbursementAccountPageParams,
     SaveCorpayOnboardingBeneficialOwnerParams,
     SendReminderForCorpaySignerInformationParams,
+    ShareBankAccountAndSetPayerParams,
     ShareBankAccountParams,
     UnshareBankAccountParams,
     ValidateBankAccountWithTransactionsParams,
@@ -24,13 +25,14 @@ import type {SaveCorpayOnboardingCompanyDetails} from '@libs/API/parameters/Save
 import type SaveCorpayOnboardingDirectorInformationParams from '@libs/API/parameters/SaveCorpayOnboardingDirectorInformationParams';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {MemberForList} from '@libs/OptionsListUtils';
 import {getFormattedStreet} from '@libs/PersonalDetailsUtils';
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import type {InternationalBankAccountForm, PersonalBankAccountForm} from '@src/types/form';
 import type {ACHContractStepProps, BeneficialOwnersStepProps, CompanyStepProps, ReimbursementAccountForm, RequestorStepProps} from '@src/types/form/ReimbursementAccountForm';
@@ -117,7 +119,7 @@ function openPersonalBankAccountSetupView({exitReportID, policyID, source, shoul
             Onyx.merge(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {source});
         }
         if (!isUserValidated) {
-            Navigation.navigate(ROUTES.SETTINGS_ADD_BANK_ACCOUNT_VERIFY_ACCOUNT.getRoute({backTo: Navigation.getActiveRoute()}));
+            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.ADD_BANK_ACCOUNT_VERIFY_ACCOUNT.path));
             return;
         }
         if (shouldSetUpUSBankAccount) {
@@ -253,8 +255,24 @@ function getOnyxDataForConnectingVBBAAndLastPaymentMethod(
  * Submit Bank Account step with Plaid data so php can perform some checks.
  */
 function connectBankAccountWithPlaid(bankAccountID: number, selectedPlaidBankAccount: PlaidBankAccount, policyID: string) {
+    const isChaseBank = selectedPlaidBankAccount.bankName?.toLowerCase() === CONST.BANK_NAMES.CHASE;
+    if (bankAccountID === CONST.DEFAULT_NUMBER_ID && isChaseBank) {
+        Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {
+            achData: {
+                currentStep: CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT,
+                subStep: CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL,
+            },
+            errors: null,
+        });
+        Onyx.merge(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT, {
+            accountNumber: '',
+            routingNumber: '',
+        });
+        return;
+    }
+
     const parameters: ConnectBankAccountParams = {
-        bankAccountID,
+        bankAccountID: !Number.isNaN(bankAccountID) ? bankAccountID : CONST.DEFAULT_NUMBER_ID,
         routingNumber: selectedPlaidBankAccount.routingNumber,
         accountNumber: selectedPlaidBankAccount.accountNumber,
         bank: selectedPlaidBankAccount.bankName,
@@ -1160,7 +1178,7 @@ function acceptACHContractForBankAccount(bankAccountID: number, params: ACHContr
  */
 function connectBankAccountManually(bankAccountID: number, bankAccount: PlaidBankAccount, policyID: string) {
     const parameters: ConnectBankAccountParams = {
-        bankAccountID,
+        bankAccountID: !Number.isNaN(bankAccountID) ? bankAccountID : CONST.DEFAULT_NUMBER_ID,
         routingNumber: bankAccount.routingNumber,
         accountNumber: bankAccount.accountNumber,
         bank: bankAccount.bankName,
@@ -1452,6 +1470,51 @@ function shareBankAccount(bankAccountID: number, emailList: string[]) {
     API.write(WRITE_COMMANDS.SHARE_BANK_ACCOUNT, parameters, onyxData);
 }
 
+function shareBankAccountAndSetPayer(bankAccountID: number, shareeAccountID: number, policyID: string) {
+    const parameters: ShareBankAccountAndSetPayerParams = {
+        bankAccountID,
+        shareeAccountID,
+        policyID,
+    };
+
+    const onyxData: OnyxData<typeof ONYXKEYS.SHARE_BANK_ACCOUNT> = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.SHARE_BANK_ACCOUNT,
+                value: {
+                    isLoading: true,
+                    errors: null,
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.SHARE_BANK_ACCOUNT,
+                value: {
+                    isLoading: false,
+                    errors: null,
+                    admins: null,
+                    shouldShowSuccess: true,
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.SHARE_BANK_ACCOUNT,
+                value: {
+                    isLoading: false,
+                    errors: getMicroSecondOnyxErrorWithTranslationKey('walletPage.shareBankAccountFailure'),
+                },
+            },
+        ],
+    };
+
+    API.write(WRITE_COMMANDS.SHARE_BANK_ACCOUNT_AND_UPDATE_POLICY_REIMBURSER, parameters, onyxData);
+}
+
 /**
  * Get bank account from bankAccountID
  */
@@ -1537,6 +1600,7 @@ export {
     clearReimbursementAccountSaveCorpayOnboardingDirectorInformation,
     clearCorpayBankAccountFields,
     finishCorpayBankAccountOnboarding,
+    shareBankAccountAndSetPayer,
     clearReimbursementAccountFinishCorpayBankAccountOnboarding,
     enableGlobalReimbursementsForUSDBankAccount,
     clearEnableGlobalReimbursementsForUSDBankAccount,

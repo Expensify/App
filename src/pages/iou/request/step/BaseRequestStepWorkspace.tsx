@@ -44,6 +44,7 @@ function BaseRequestStepWorkspace({transaction, getPolicies, onSelectWorkspace}:
 
     const {login: currentUserLogin} = useCurrentUserPersonalDetails();
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [ownerBillingGraceEndPeriod] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const selectedWorkspace = transaction?.participants?.[0];
     const customUnitPolicy = getPolicyByCustomUnitID(transaction, allPolicies);
     const initiallyFocusedKey = selectedWorkspace?.policyID ?? customUnitPolicy?.id;
@@ -78,7 +79,7 @@ function BaseRequestStepWorkspace({transaction, getPolicies, onSelectWorkspace}:
 
     const selectWorkspace = (item: WorkspaceListItem) => {
         const policyID = item.policyID;
-        if (shouldRestrictUserBillableActions(policyID)) {
+        if (shouldRestrictUserBillableActions(policyID, undefined, undefined, ownerBillingGraceEndPeriod)) {
             Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policyID));
             return;
         }

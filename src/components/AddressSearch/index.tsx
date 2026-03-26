@@ -8,6 +8,7 @@ import LocationErrorMessage from '@components/LocationErrorMessage';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
+import useDebouncedAccessibilityAnnouncement from '@hooks/useDebouncedAccessibilityAnnouncement';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -18,6 +19,7 @@ import {getCommandURL} from '@libs/ApiUtils';
 import getCurrentPosition from '@libs/getCurrentPosition';
 import type {GeolocationErrorCodeType} from '@libs/getCurrentPosition/getCurrentPosition.types';
 import {getAddressComponents, getPlaceAutocompleteTerms} from '@libs/GooglePlacesUtils';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {Address} from '@src/types/onyx/PrivatePersonalDetails';
@@ -46,6 +48,44 @@ function isPlaceMatchForSearch(search: string, place: PredefinedPlace): boolean 
 // react-native-google-places-autocomplete repo and replace the
 // VirtualizedList component with a VirtualizedList-backed instead
 LogBox.ignoreLogs(['VirtualizedLists should never be nested']);
+
+function AddressSearchListEmptyComponent({searchValue, onEmptyChange}: {searchValue: string; onEmptyChange: (isEmpty: boolean) => void}) {
+    const styles = useThemeStyles();
+    const {translate} = useLocalize();
+    const noResultsFoundText = translate('common.noResultsFound');
+
+    useDebouncedAccessibilityAnnouncement(noResultsFoundText, true, searchValue);
+
+    useEffect(() => {
+        onEmptyChange(true);
+        return () => onEmptyChange(false);
+    }, [onEmptyChange]);
+
+    return (
+        <Text
+            style={[styles.textLabel, styles.colorMuted, styles.pv4, styles.ph3, styles.overflowAuto]}
+            aria-hidden
+        >
+            {noResultsFoundText}
+        </Text>
+    );
+}
+
+function AddressSearchListLoader({onLoadingChange}: {onLoadingChange: (isLoading: boolean) => void}) {
+    const styles = useThemeStyles();
+    const reasonAttributes: SkeletonSpanReasonAttributes = {context: 'AddressSearch.listLoader'};
+
+    useEffect(() => {
+        onLoadingChange(true);
+        return () => onLoadingChange(false);
+    }, [onLoadingChange]);
+
+    return (
+        <View style={[styles.pv4]}>
+            <ActivityIndicator reasonAttributes={reasonAttributes} />
+        </View>
+    );
+}
 
 function AddressSearch({
     canUseCurrentLocation = false,
@@ -93,9 +133,18 @@ function AddressSearch({
     const [searchValue, setSearchValue] = useState('');
     const [locationErrorCode, setLocationErrorCode] = useState<GeolocationErrorCodeType>(null);
     const [isFetchingCurrentLocation, setIsFetchingCurrentLocation] = useState(false);
+    const [isLoadingResults, setIsLoadingResults] = useState(false);
+    const [isListEmpty, setIsListEmpty] = useState(false);
     const shouldTriggerGeolocationCallbacks = useRef(true);
     const [shouldHidePredefinedPlaces, setShouldHidePredefinedPlaces] = useState(false);
     const containerRef = useRef<View>(null);
+
+    useDebouncedAccessibilityAnnouncement(
+        translate('common.suggestionsAvailableFor', searchValue.trim()),
+        displayListViewBorder && isTyping && !isLoadingResults && !isListEmpty,
+        searchValue,
+    );
+
     const query = useMemo(
         () => ({
             language: preferredLocale,
@@ -326,19 +375,19 @@ function AddressSearch({
         return predefinedPlaces?.filter((predefinedPlace) => isPlaceMatchForSearch(searchValue, predefinedPlace)) ?? [];
     }, [predefinedPlaces, searchValue, shouldHidePredefinedPlaces]);
 
-    const listEmptyComponent = useMemo(
-        () => (!isTyping ? undefined : <Text style={[styles.textLabel, styles.colorMuted, styles.pv4, styles.ph3, styles.overflowAuto]}>{translate('common.noResultsFound')}</Text>),
-        [isTyping, styles, translate],
-    );
+    const listEmptyComponent = isTyping ? (
+        <AddressSearchListEmptyComponent
+            searchValue={searchValue}
+            onEmptyChange={setIsListEmpty}
+        />
+    ) : undefined;
 
-    const listLoader = useMemo(
-        () => (
-            <View style={[styles.pv4]}>
-                <ActivityIndicator />
-            </View>
-        ),
-        [styles.pv4],
-    );
+    const listLoader = useMemo(() => <AddressSearchListLoader onLoadingChange={setIsLoadingResults} />, []);
+
+    const fetchingLocationReasonAttributes: SkeletonSpanReasonAttributes = {
+        context: 'AddressSearch.isFetchingCurrentLocation',
+        isFetchingCurrentLocation,
+    };
 
     return (
         /*
@@ -479,8 +528,11 @@ function AddressSearch({
                 </View>
             </ScrollView>
             {isFetchingCurrentLocation && (
-                <View style={[StyleSheet.absoluteFillObject, styles.fullScreenLoading, styles.w100]}>
-                    <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />
+                <View style={[StyleSheet.absoluteFill, styles.fullScreenLoading, styles.w100]}>
+                    <ActivityIndicator
+                        size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
+                        reasonAttributes={fetchingLocationReasonAttributes}
+                    />
                 </View>
             )}
         </>

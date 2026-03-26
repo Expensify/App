@@ -2,8 +2,9 @@ import {useIsFocused} from '@react-navigation/native';
 import {useCallback, useEffect, useRef, useState} from 'react';
 import {InteractionManager} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {SearchListItem, TransactionGroupListItemType, TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
 import type {SearchQueryJSON} from '@components/Search/types';
-import type {SearchListItem, SelectionListHandle, TransactionGroupListItemType, TransactionListItemType} from '@components/SelectionListWithSections/types';
+import type {SelectionListHandle} from '@components/SelectionList/types';
 import {search} from '@libs/actions/Search';
 import {mergeTransactionIdsHighlightOnSearchRoute} from '@libs/actions/Transaction';
 import {isReportActionEntry} from '@libs/SearchUIUtils';
@@ -280,7 +281,7 @@ function useSearchHighlightAndScroll({
     /**
      * Callback to handle scrolling to the new search result.
      */
-    const handleSelectionListScroll = (data: SearchListItem[], ref: SelectionListHandle | null) => {
+    const handleSelectionListScroll = (data: SearchListItem[], ref: SelectionListHandle<SearchListItem> | null) => {
         // Early return if there's no ref, new transaction wasn't brought in by this hook
         // or there's no new search result key
         const newSearchResultKey = newSearchResultKeys?.values().next().value;

@@ -11,28 +11,25 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import type {ListItem, SelectionListWithSectionsHandle} from '@components/SelectionList/SelectionListWithSections/types';
 import WorkspaceEmptyStateSection from '@components/WorkspaceEmptyStateSection';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {fetchPerDiemRates} from '@libs/actions/Policy/PerDiem';
 import {setTransactionReport} from '@libs/actions/Transaction';
+import {getInitialPerDiemTargetReport} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getPerDiemCustomUnit, getPolicyByCustomUnitID, isPolicyAdmin} from '@libs/PolicyUtils';
 import {findSelfDMReportID, getPolicyExpenseChat} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import variables from '@styles/variables';
-import {
-    clearSubrates,
-    getIOURequestPolicyID,
-    setCustomUnitID,
-    setCustomUnitRateID,
-    setMoneyRequestCategory,
-    setMoneyRequestCurrency,
-    setMoneyRequestParticipantsFromReport,
-} from '@userActions/IOU';
+import {getIOURequestPolicyID, setCustomUnitID, setCustomUnitRateID, setMoneyRequestCategory, setMoneyRequestCurrency, setMoneyRequestParticipantsFromReport} from '@userActions/IOU';
+import {clearSubrates} from '@userActions/IOU/PerDiem';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -68,16 +65,18 @@ function IOURequestStepDestination({
     ref,
 }: IOURequestStepDestinationProps) {
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [ownerBillingGraceEndPeriod] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const reportPolicyID = getIOURequestPolicyID(transaction, report);
     const policyID = reportPolicyID === CONST.POLICY.ID_FAKE ? getPolicyByCustomUnitID(transaction, allPolicies)?.id : reportPolicyID;
     const [policy, policyMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${explicitPolicyID ?? policyID}`);
     const {accountID} = useCurrentUserPersonalDetails();
     const policyExpenseReport = policy?.id ? getPolicyExpenseChat(accountID, policy.id) : undefined;
+    const defaultExpensePolicy = useDefaultExpensePolicy();
+    const personalPolicy = usePersonalPolicy();
     const {top} = useSafeAreaInsets();
     const customUnit = getPerDiemCustomUnit(policy);
     const selectedDestination = transaction?.comment?.customUnit?.customUnitRateID;
     const [selfDMReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${findSelfDMReportID()}`);
-    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
     const styles = useThemeStyles();
     const illustrations = useMemoizedLazyIllustrations(['EmptyStateExpenses']);
@@ -96,13 +95,19 @@ function IOURequestStepDestination({
     const isLoading = !isOffline && (!customUnit?.rates || isLoadingOnyxValue(policyMetadata));
     const shouldShowEmptyState = isEmptyObject(customUnit?.rates) && !isOffline && !isLoading;
     const shouldShowOfflineView = isEmptyObject(customUnit?.rates) && isOffline;
+    const reasonAttributes: SkeletonSpanReasonAttributes = {
+        context: 'IOURequestStepDestination',
+        isLoading,
+        isOffline,
+        hasCustomUnitRates: !isEmptyObject(customUnit?.rates),
+    };
 
     const navigateBack = () => {
         Navigation.goBack(backTo);
     };
 
     const updateDestination = (destination: ListItem & {currency: string}) => {
-        if (openedFromStartPage && policy?.id && shouldRestrictUserBillableActions(policy.id)) {
+        if (openedFromStartPage && policy?.id && shouldRestrictUserBillableActions(policy.id, undefined, undefined, ownerBillingGraceEndPeriod)) {
             Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
             return;
         }
@@ -110,15 +115,21 @@ function IOURequestStepDestination({
         if (isEmptyObject(customUnit)) {
             return;
         }
-        const targetReport: OnyxEntry<Report> = explicitPolicyID && transaction?.isFromGlobalCreate ? policyExpenseReport : report;
+        let targetReport: OnyxEntry<Report> = explicitPolicyID && transaction?.isFromGlobalCreate ? policyExpenseReport : report;
+        let targetIouType = iouType;
+        let transactionReportID;
         if (selectedDestination !== destination.keyForList) {
             if (openedFromStartPage) {
-                setTransactionReport(transactionID, {reportID: targetReport?.reportID}, true);
-                if (iouType === CONST.IOU.TYPE.TRACK) {
-                    setMoneyRequestParticipantsFromReport(transactionID, selfDMReport, currentUserPersonalDetails.accountID, false);
-                } else {
-                    setMoneyRequestParticipantsFromReport(transactionID, targetReport, accountID);
-                }
+                ({targetReport, targetIouType, transactionReportID} = getInitialPerDiemTargetReport(
+                    targetReport,
+                    selfDMReport,
+                    targetIouType,
+                    defaultExpensePolicy,
+                    personalPolicy,
+                    transaction?.isFromGlobalCreate ?? false,
+                ));
+                setTransactionReport(transactionID, {reportID: transactionReportID}, true);
+                setMoneyRequestParticipantsFromReport(transactionID, targetReport, accountID, targetIouType !== CONST.IOU.TYPE.TRACK);
                 setCustomUnitID(transactionID, customUnit.customUnitID);
                 setMoneyRequestCategory(transactionID, customUnit?.defaultCategory ?? '', undefined);
             }
@@ -130,7 +141,7 @@ function IOURequestStepDestination({
         if (backTo) {
             navigateBack();
         } else {
-            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_TIME.getRoute(action, iouType, transactionID, targetReport?.reportID ?? reportID));
+            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_TIME.getRoute(action, targetIouType, transactionID, targetReport?.reportID ?? reportID));
         }
     };
 
@@ -186,6 +197,7 @@ function IOURequestStepDestination({
                     <ActivityIndicator
                         size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
                         style={[styles.flex1]}
+                        reasonAttributes={reasonAttributes}
                     />
                 )}
                 {shouldShowOfflineView && <FullPageOfflineBlockingView>{null}</FullPageOfflineBlockingView>}

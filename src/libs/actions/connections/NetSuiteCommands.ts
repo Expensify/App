@@ -18,7 +18,11 @@ type SubsidiaryParam = {
     subsidiary: string;
 };
 
-function connectPolicyToNetSuite(policyID: string, credentials: Omit<ConnectPolicyToNetSuiteParams, 'policyID'>) {
+function writeNetSuiteCredentials(
+    command: typeof WRITE_COMMANDS.CONNECT_POLICY_TO_NETSUITE | typeof WRITE_COMMANDS.UPDATE_NETSUITE_TOKENS,
+    policyID: string,
+    credentials: Omit<ConnectPolicyToNetSuiteParams, 'policyID'>,
+) {
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -34,7 +38,15 @@ function connectPolicyToNetSuite(policyID: string, credentials: Omit<ConnectPoli
         policyID,
         ...credentials,
     };
-    API.write(WRITE_COMMANDS.CONNECT_POLICY_TO_NETSUITE, parameters, {optimisticData});
+    API.write(command, parameters, {optimisticData});
+}
+
+function connectPolicyToNetSuite(policyID: string, credentials: Omit<ConnectPolicyToNetSuiteParams, 'policyID'>) {
+    writeNetSuiteCredentials(WRITE_COMMANDS.CONNECT_POLICY_TO_NETSUITE, policyID, credentials);
+}
+
+function updateNetSuiteTokens(policyID: string, credentials: Omit<ConnectPolicyToNetSuiteParams, 'policyID'>) {
+    writeNetSuiteCredentials(WRITE_COMMANDS.UPDATE_NETSUITE_TOKENS, policyID, credentials);
 }
 
 function createPendingFields<TSettingName extends keyof Connections['netsuite']['options']['config']>(
@@ -583,12 +595,16 @@ function updateNetSuiteCrossSubsidiaryCustomersConfiguration(policyID: string, i
 }
 
 function updateNetSuiteCustomSegments(
-    policyID: string,
+    policyID: string | undefined,
     records: NetSuiteCustomSegment[],
     oldRecords: NetSuiteCustomSegment[],
     modifiedSegmentID: string,
     pendingAction: OnyxCommon.PendingAction,
 ) {
+    if (!policyID) {
+        return;
+    }
+
     const onyxData = updateNetSuiteSyncOptionsOnyxData(policyID, CONST.NETSUITE_CONFIG.IMPORT_CUSTOM_FIELDS.CUSTOM_SEGMENTS, records, oldRecords, modifiedSegmentID, pendingAction);
 
     API.write(
@@ -601,7 +617,17 @@ function updateNetSuiteCustomSegments(
     );
 }
 
-function updateNetSuiteCustomLists(policyID: string, records: NetSuiteCustomList[], oldRecords: NetSuiteCustomList[], modifiedListID: string, pendingAction: OnyxCommon.PendingAction) {
+function updateNetSuiteCustomLists(
+    policyID: string | undefined,
+    records: NetSuiteCustomList[],
+    oldRecords: NetSuiteCustomList[],
+    modifiedListID: string,
+    pendingAction: OnyxCommon.PendingAction,
+) {
+    if (!policyID) {
+        return;
+    }
+
     const onyxData = updateNetSuiteSyncOptionsOnyxData(policyID, CONST.NETSUITE_CONFIG.IMPORT_CUSTOM_FIELDS.CUSTOM_LISTS, records, oldRecords, modifiedListID, pendingAction);
     API.write(
         WRITE_COMMANDS.UPDATE_NETSUITE_CUSTOM_LISTS,
@@ -1038,6 +1064,7 @@ function updateNetSuiteCustomFormIDOptions(
 
 export {
     connectPolicyToNetSuite,
+    updateNetSuiteTokens,
     updateNetSuiteSubsidiary,
     updateNetSuiteSyncTaxConfiguration,
     updateNetSuiteExporter,
