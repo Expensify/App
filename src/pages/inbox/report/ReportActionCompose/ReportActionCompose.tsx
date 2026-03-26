@@ -181,8 +181,8 @@ function ReportActionCompose({reportID}: ReportActionComposeProps) {
 
     const shouldFocusComposerOnScreenFocus = shouldFocusInputOnScreenFocus || !!draftComment;
 
-    const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${effectiveTransactionThreadReportID}`);
-    const ancestors = useAncestors(transactionThreadReport ?? report);
+    const [targetReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${effectiveTransactionThreadReportID ?? reportID}`);
+    const ancestors = useAncestors(targetReport);
     const {scrollOffsetRef} = useContext(ActionListContext);
 
     /**
@@ -354,7 +354,7 @@ function ReportActionCompose({reportID}: ReportActionComposeProps) {
 
             if (attachmentFileRef.current) {
                 addAttachmentWithComment({
-                    report: transactionThreadReport ?? report,
+                    report: targetReport,
                     notifyReportID: reportID,
                     ancestors,
                     attachments: attachmentFileRef.current,
@@ -426,7 +426,7 @@ function ReportActionCompose({reportID}: ReportActionComposeProps) {
                     });
                 }
                 addComment({
-                    report: transactionThreadReport ?? report,
+                    report: targetReport,
                     notifyReportID: reportID,
                     ancestors,
                     text: newCommentTrimmed,
@@ -440,8 +440,7 @@ function ReportActionCompose({reportID}: ReportActionComposeProps) {
         },
         [
             kickoffWaitingIndicator,
-            transactionThreadReport,
-            report,
+            targetReport,
             reportID,
             ancestors,
             currentUserPersonalDetails.accountID,
