@@ -1598,7 +1598,7 @@ function updateSplitTransactions({
         if (splitThreadUserComments.length > 0 && originalTransactionThreadReportID && splitTransactionThreadReportID && iouActionReportActionID && expenseReportID) {
             const optimisticMovedComments: Record<string, OnyxTypes.ReportAction> = {};
             const optimisticRemovedComments: Record<string, null> = {};
-            const successMovedComments: Record<string, Partial<OnyxTypes.ReportAction>> = {};
+            const successMovedComments: OnyxCollection<NullishDeep<OnyxTypes.ReportAction>> = {};
             const failureMovedCommentsRemoval: Record<string, null> = {};
             const failureRestoredComments: Record<string, OnyxTypes.ReportAction> = {};
 
