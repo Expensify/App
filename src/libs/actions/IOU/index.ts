@@ -1764,7 +1764,7 @@ function removeMoneyRequestOdometerImage(transactionID: string, imageType: Odome
  * Used when creating a new transaction or moving an existing one from Self DM
  */
 function setMoneyRequestDistanceRate(currentTransaction: OnyxEntry<OnyxTypes.Transaction>, customUnitRateID: string, policy: OnyxEntry<OnyxTypes.Policy>, isDraft: boolean) {
-    if (!currentTransaction && !isDraft) {
+    if (!currentTransaction) {
         Log.warn('setMoneyRequestDistanceRate is called without a valid transaction, skipping setting distance rate.');
         return;
     }

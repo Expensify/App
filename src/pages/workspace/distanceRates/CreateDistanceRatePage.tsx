@@ -45,7 +45,7 @@ function CreateDistanceRatePage({
     const customUnitRateID = generateCustomUnitID();
     const {inputCallbackRef} = useAutoFocusInput();
     const isDistanceRateUpgrade = transactionID && reportID;
-    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`);
+    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${getNonEmptyStringOnyxID(transactionID)}`);
 
     const FullPageBlockingView = !customUnitID ? FullPageOfflineBlockingView : View;
 
