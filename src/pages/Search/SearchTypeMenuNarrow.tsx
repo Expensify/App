@@ -15,6 +15,7 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import useReportAttributes from '@hooks/useReportAttributes';
 import useSearchTypeMenuSections from '@hooks/useSearchTypeMenuSections';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setSearchContext} from '@libs/actions/Search';
@@ -52,7 +53,7 @@ function SearchTypeMenuNarrow({queryJSON, onTabPress}: SearchTypeMenuNarrowProps
     const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES);
     const [reportCounts = CONST.EMPTY_TODOS_REPORT_COUNTS] = useOnyx(ONYXKEYS.DERIVED.TODOS, {selector: todosReportCountsSelector});
     const [currentUserAccountID = -1] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
-    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const reportAttributes = useReportAttributes();
 
     const taxRates = getAllTaxRates(allPolicies);
     const cardsForSavedSearchDisplay = mergeCardListWithWorkspaceFeeds(workspaceCardList ?? CONST.EMPTY_OBJECT, cardList);
@@ -105,7 +106,7 @@ function SearchTypeMenuNarrow({queryJSON, onTabPress}: SearchTypeMenuNarrowProps
                           autoCompleteWithSpace: false,
                           translate,
                           feedKeysWithCards,
-                          conciergeReportID,
+                          reportAttributes,
                       });
                   }
 
