@@ -21,7 +21,17 @@ import * as NumberUtils from '@libs/NumberUtils';
 import Parser from '@libs/Parser';
 import {addSMSDomainIfPhoneNumber} from '@libs/PhoneNumber';
 import {getDistanceRateCustomUnitRate} from '@libs/PolicyUtils';
-import {getAllReportActions, getOriginalMessage, getReportAction, getReportActionHtml, getReportActionText, isDeletedAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
+import {
+    getAllReportActions,
+    getIOUActionForTransactionID,
+    getOriginalMessage,
+    getReportAction,
+    getReportActionHtml,
+    getReportActionText,
+    isActionOfType,
+    isDeletedAction,
+    isMoneyRequestAction,
+} from '@libs/ReportActionsUtils';
 import {
     buildOptimisticChatReport,
     buildOptimisticCreatedReportAction,
@@ -1087,15 +1097,12 @@ function updateSplitTransactions({
         const revertSplitTransactionID = splitExpenses.at(0)?.transactionID;
         const revertSplitTransaction = allTransactionsList?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${revertSplitTransactionID}`];
         const revertSplitReportActions = getAllReportActions(revertSplitTransaction?.reportID);
-        const revertSplitIOUAction = Object.values(revertSplitReportActions).find((action) => {
-            const IOUTransactionID = isMoneyRequestAction(action) ? (getOriginalMessage(action)?.IOUTransactionID ?? CONST.DEFAULT_NUMBER_ID) : CONST.DEFAULT_NUMBER_ID;
-            return IOUTransactionID === revertSplitTransactionID;
-        });
+        const revertSplitIOUAction = revertSplitTransactionID ? getIOUActionForTransactionID(Object.values(revertSplitReportActions ?? {}), revertSplitTransactionID) : undefined;
         splitTransactionThreadReportID = revertSplitIOUAction?.childReportID;
         if (splitTransactionThreadReportID) {
             const splitTransactionThreadActions = getAllReportActions(splitTransactionThreadReportID);
             splitThreadUserComments = Object.values(splitTransactionThreadActions).filter(
-                (action): action is OnyxTypes.ReportAction => action.actionName === CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT && !isDeletedAction(action) && (action.actorAccountID ?? 0) > 0,
+                (action): action is OnyxTypes.ReportAction => isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT) && !isDeletedAction(action) && (action.actorAccountID ?? 0) > 0,
             );
         }
     }
