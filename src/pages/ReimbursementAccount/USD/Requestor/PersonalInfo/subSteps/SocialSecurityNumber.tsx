@@ -68,6 +68,7 @@ function SocialSecurityNumber({onNext, onMove, isEditing}: SubPageProps) {
             maxLength={CONST.BANK_ACCOUNT.MAX_LENGTH.SSN}
             enabledWhenOffline
             forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
+            shouldDelayAutoFocus
         />
     );
 }

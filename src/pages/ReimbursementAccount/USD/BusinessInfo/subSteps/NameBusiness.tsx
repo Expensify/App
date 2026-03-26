@@ -63,6 +63,7 @@ function NameBusiness({onNext, onMove, isEditing}: SubPageProps) {
             shouldUseDefaultValue={shouldDisableCompanyName}
             disabled={shouldDisableCompanyName}
             shouldShowHelpLinks={false}
+            shouldDelayAutoFocus
         />
     );
 }

@@ -74,6 +74,7 @@ function WebsiteBusiness({onNext, onMove, isEditing}: SubPageProps) {
             defaultValue={defaultCompanyWebsite}
             inputMode={CONST.INPUT_MODE.URL}
             shouldShowHelpLinks={false}
+            shouldDelayAutoFocus
         />
     );
 }

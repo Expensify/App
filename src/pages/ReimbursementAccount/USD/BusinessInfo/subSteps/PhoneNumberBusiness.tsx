@@ -67,6 +67,7 @@ function PhoneNumberBusiness({onNext, onMove, isEditing}: SubPageProps) {
             defaultValue={defaultCompanyPhoneNumber}
             shouldShowHelpLinks={false}
             placeholder={translate('common.phoneNumberPlaceholder')}
+            shouldDelayAutoFocus
         />
     );
 }

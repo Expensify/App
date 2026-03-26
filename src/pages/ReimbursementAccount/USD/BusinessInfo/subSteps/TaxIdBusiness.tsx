@@ -77,6 +77,7 @@ function TaxIdBusiness({onNext, onMove, isEditing}: SubPageProps) {
             shouldShowHelpLinks={false}
             placeholder={translate('businessInfoStep.taxIDNumberPlaceholder')}
             inputMode={CONST.INPUT_MODE.NUMERIC}
+            shouldDelayAutoFocus
         />
     );
 }
