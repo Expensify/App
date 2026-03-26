@@ -263,7 +263,6 @@ const SCREENS = {
     RIGHT_MODAL: {
         SETTINGS: 'Settings',
         TWO_FACTOR_AUTH: 'TwoFactorAuth',
-        SEARCH_ROUTER: 'Search_Router',
         NEW_CHAT: 'NewChat',
         DETAILS: 'Details',
         PROFILE: 'Profile',
@@ -300,6 +299,7 @@ const SCREENS = {
 
         SEARCH_COLUMNS: 'SearchColumns',
         SEARCH_ADVANCED_FILTERS: 'SearchAdvancedFilters',
+        SEARCH_SAVE: 'SearchSave',
         SEARCH_SAVED_SEARCH: 'SearchSavedSearch',
         SETTINGS_CATEGORIES: 'SettingsCategories',
         SETTINGS_TAGS: 'SettingsTags',
@@ -639,6 +639,8 @@ const SCREENS = {
         PROFILE: 'Workspace_Overview',
         COMPANY_CARDS: 'Workspace_CompanyCards',
         COMPANY_CARDS_BROKEN_CARD_FEED_CONNECTION: 'Workspace_CompanyCards_BrokenCardFeedConnection',
+        COMPANY_CARDS_REFRESH_CARD_FEED_CONNECTION: 'Workspace_CompanyCards_RefreshCardFeedConnection',
+        COMPANY_CARDS_VERIFY_ACCOUNT: 'Workspace_CompanyCards_VerifyAccount',
         COMPANY_CARDS_ASSIGN_CARD_ASSIGNEE: 'Workspace_CompanyCards_AssignCard_Assignee',
         COMPANY_CARDS_ASSIGN_CARD_BANK_CONNECTION: 'Workspace_CompanyCards_AssignCard_Bank_Connection',
         COMPANY_CARDS_ASSIGN_CARD_PLAID_CONNECTION: 'Workspace_CompanyCards_AssignCard_Plaid_Connection',
@@ -899,6 +901,7 @@ const SCREENS = {
     },
     FLAG_COMMENT_ROOT: 'FlagComment_Root',
     REIMBURSEMENT_ACCOUNT: 'ReimbursementAccount',
+    REIMBURSEMENT_ACCOUNT_NON_USD: 'Reimbursement_Account_Non_USD',
     REIMBURSEMENT_ACCOUNT_ENTER_SIGNER_INFO: 'Reimbursement_Account_Signer_Info',
     REFERRAL_DETAILS: 'Referral_Details',
     REPORT_VERIFY_ACCOUNT: 'Report_Verify_Account',
