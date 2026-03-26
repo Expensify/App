@@ -3400,6 +3400,7 @@ function navigateToConciergeChat(
     introSelected: OnyxEntry<IntroSelected>,
     currentUserAccountID: number,
     isSelfTourViewed: boolean | undefined,
+    betas: OnyxEntry<Beta[]>,
     shouldDismissModal = false,
     checkIfCurrentPageActive = () => true,
     linkToOptions?: LinkToOptions,
@@ -3415,7 +3416,7 @@ function navigateToConciergeChat(
             if (!checkIfCurrentPageActive()) {
                 return;
             }
-            navigateToAndOpenReport([CONST.EMAIL.CONCIERGE], currentUserAccountID, introSelected, isSelfTourViewed, undefined, shouldDismissModal);
+            navigateToAndOpenReport([CONST.EMAIL.CONCIERGE], currentUserAccountID, introSelected, isSelfTourViewed, betas, shouldDismissModal);
         });
     } else if (shouldDismissModal) {
         Navigation.dismissModalWithReport({reportID: conciergeReportID, reportActionID});
@@ -3879,6 +3880,7 @@ function navigateToConciergeChatAndDeleteReport(
     conciergeReportID: string | undefined,
     currentUserAccountID: number,
     introSelected: OnyxEntry<IntroSelected>,
+    betas: OnyxEntry<Beta[]>,
     shouldPopToTop = false,
     shouldDeleteChildReports = false,
 ) {
@@ -3889,14 +3891,20 @@ function navigateToConciergeChatAndDeleteReport(
         Navigation.goBack();
     }
     // TODO: We'll pass isSelfTourViewed in the next PR. Refactor issue: https://github.com/Expensify/App/issues/66424
-    navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, undefined, false);
+    navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, undefined, betas, false);
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     InteractionManager.runAfterInteractions(() => {
         deleteReport(reportID, shouldDeleteChildReports);
     });
 }
 
-function clearCreateChatError(report: OnyxEntry<Report>, conciergeReportID: string | undefined, introSelected: OnyxEntry<IntroSelected>, currentUserAccountID: number) {
+function clearCreateChatError(
+    report: OnyxEntry<Report>,
+    conciergeReportID: string | undefined,
+    introSelected: OnyxEntry<IntroSelected>,
+    currentUserAccountID: number,
+    betas: OnyxEntry<Beta[]>,
+) {
     const metaData = getReportMetadata(report?.reportID);
     const isOptimisticReport = metaData?.isOptimisticReport;
     if (report?.errorFields?.createChat && !isOptimisticReport) {
@@ -3904,7 +3912,7 @@ function clearCreateChatError(report: OnyxEntry<Report>, conciergeReportID: stri
         return;
     }
 
-    navigateToConciergeChatAndDeleteReport(report?.reportID, conciergeReportID, currentUserAccountID, introSelected, undefined, true);
+    navigateToConciergeChatAndDeleteReport(report?.reportID, conciergeReportID, currentUserAccountID, introSelected, betas, undefined, true);
 }
 
 /**
@@ -4244,7 +4252,13 @@ function doneCheckingPublicRoom() {
     Onyx.set(ONYXKEYS.IS_CHECKING_PUBLIC_ROOM, false);
 }
 
-function navigateToMostRecentReport(currentReport: OnyxEntry<Report>, conciergeReportID: string | undefined, currentUserAccountID: number, introSelected: OnyxEntry<IntroSelected>) {
+function navigateToMostRecentReport(
+    currentReport: OnyxEntry<Report>,
+    conciergeReportID: string | undefined,
+    currentUserAccountID: number,
+    introSelected: OnyxEntry<IntroSelected>,
+    betas: OnyxEntry<Beta[]>,
+) {
     const lastAccessedReportID = findLastAccessedReport(false, false, currentReport?.reportID)?.reportID;
 
     if (lastAccessedReportID) {
@@ -4266,7 +4280,7 @@ function navigateToMostRecentReport(currentReport: OnyxEntry<Report>, conciergeR
         }
 
         // TODO: We'll pass isSelfTourViewed in the next PR. Refactor issue: https://github.com/Expensify/App/issues/66424
-        navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, undefined, false, () => true, {forceReplace: true});
+        navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, undefined, betas, false, () => true, {forceReplace: true});
     }
 }
 
@@ -4289,7 +4303,14 @@ function joinRoom(report: OnyxEntry<Report>, currentUserAccountID: number) {
     );
 }
 
-function leaveGroupChat(report: Report, shouldClearQuickAction: boolean, currentUserAccountID: number, conciergeReportID: string | undefined, introSelected: OnyxEntry<IntroSelected>) {
+function leaveGroupChat(
+    report: Report,
+    shouldClearQuickAction: boolean,
+    currentUserAccountID: number,
+    conciergeReportID: string | undefined,
+    introSelected: OnyxEntry<IntroSelected>,
+    betas: OnyxEntry<Beta[]>,
+) {
     const reportID = report.reportID;
     // Use merge instead of set to avoid deleting the report too quickly, which could cause a brief "not found" page to appear.
     // The remaining parts of the report object will be removed after the API call is successful.
@@ -4336,7 +4357,7 @@ function leaveGroupChat(report: Report, shouldClearQuickAction: boolean, current
         },
     ];
 
-    navigateToMostRecentReport(report, conciergeReportID, currentUserAccountID, introSelected);
+    navigateToMostRecentReport(report, conciergeReportID, currentUserAccountID, introSelected, betas);
     API.write(WRITE_COMMANDS.LEAVE_GROUP_CHAT, {reportID}, {optimisticData, successData, failureData});
 }
 
@@ -4346,6 +4367,7 @@ function leaveRoom(
     currentUserAccountID: number,
     conciergeReportID: string | undefined,
     introSelected: OnyxEntry<IntroSelected>,
+    betas: OnyxEntry<Beta[]>,
     isWorkspaceMemberLeavingWorkspaceRoom = false,
 ) {
     const reportID = report.reportID;
@@ -4451,7 +4473,7 @@ function leaveRoom(
         return;
     }
     // In other cases, the report is deleted and we should move the user to another report.
-    navigateToMostRecentReport(report, conciergeReportID, currentUserAccountID, introSelected);
+    navigateToMostRecentReport(report, conciergeReportID, currentUserAccountID, introSelected, betas);
 }
 
 function buildInviteToRoomOnyxData(report: Report, inviteeEmailsToAccountIDs: InvitedEmailsToAccountIDs, formatPhoneNumber: LocaleContextProps['formatPhoneNumber']) {

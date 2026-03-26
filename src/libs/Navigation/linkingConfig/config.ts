@@ -149,13 +149,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                 },
             },
         },
+        [SCREENS.SEARCH_ROUTER.ROOT]: ROUTES.SEARCH_ROUTER,
         [NAVIGATORS.RIGHT_MODAL_NAVIGATOR]: {
             screens: {
-                [SCREENS.RIGHT_MODAL.SEARCH_ROUTER]: {
-                    screens: {
-                        [SCREENS.SEARCH_ROUTER.ROOT]: ROUTES.SEARCH_ROUTER,
-                    },
-                },
                 [SCREENS.RIGHT_MODAL.SETTINGS]: {
                     screens: {
                         [SCREENS.SETTINGS.PREFERENCES.PRIORITY_MODE]: {
@@ -877,6 +873,12 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         },
                         [SCREENS.WORKSPACE.COMPANY_CARDS_BROKEN_CARD_FEED_CONNECTION]: {
                             path: ROUTES.WORKSPACE_COMPANY_CARDS_BROKEN_CARD_FEED_CONNECTION.route,
+                        },
+                        [SCREENS.WORKSPACE.COMPANY_CARDS_REFRESH_CARD_FEED_CONNECTION]: {
+                            path: ROUTES.WORKSPACE_COMPANY_CARDS_REFRESH_CARD_FEED_CONNECTION.route,
+                        },
+                        [SCREENS.WORKSPACE.COMPANY_CARDS_VERIFY_ACCOUNT]: {
+                            path: ROUTES.WORKSPACE_COMPANY_CARDS_VERIFY_ACCOUNT.route,
                         },
                         [SCREENS.WORKSPACE.COMPANY_CARD_ADD_WORK_EMAIL]: {
                             path: ROUTES.WORKSPACE_COMPANY_CARD_ADD_WORK_EMAIL.route,

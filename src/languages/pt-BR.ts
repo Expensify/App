@@ -5098,6 +5098,7 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
                 flipAmountSign: 'Inverter sinal do valor',
                 importButton: 'Importar transações',
             },
+            assignNewCards: {title: 'Atribuir novos cartões', description: 'Obtenha do seu banco os cartões mais recentes para atribuir'},
         },
         expensifyCard: {
             issueAndManageCards: 'Emita e gerencie seus Cartões Expensify',

@@ -5098,6 +5098,7 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
                 flipAmountSign: 'Odwróć znak kwoty',
                 importButton: 'Importuj transakcje',
             },
+            assignNewCards: {title: 'Przydziel nowe karty', description: 'Pobierz z banku najnowsze karty do przypisania'},
         },
         expensifyCard: {
             issueAndManageCards: 'Wydawaj i zarządzaj Kartami Expensify',
