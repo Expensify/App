@@ -154,59 +154,73 @@ function DisplayPopup({queryJSON, searchResults, closeOverlay, onSort}: DisplayP
         [CONST.SEARCH.SYNTAX_ROOT_KEYS.LIMIT]: translate('search.display.limitResults'),
     };
 
-    const subPopup = {
-        [CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_BY]: (
-            <SortByPopup
-                searchResults={searchResults}
-                queryJSON={queryJSON}
-                groupBy={groupBy}
-                onSort={onSort}
-                onSortOrderPress={() => setSelectedDisplayFilter(CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_ORDER)}
-                closeOverlay={() => setSelectedDisplayFilter(null)}
-            />
-        ),
-        [CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_ORDER]: (
-            <SortOrderPopup
-                queryJSON={queryJSON}
-                onSort={onSort}
-                closeOverlay={() => setSelectedDisplayFilter(null)}
-            />
-        ),
-        [CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY]: (
-            <GroupByPopup
-                style={styles.p0}
-                sections={groupBySections}
-                value={groupBy}
-                closeOverlay={() => setSelectedDisplayFilter(null)}
-                onChange={(item) => {
-                    const newValue = item?.value;
-                    if (!newValue) {
-                        updateFilterForm({groupBy: undefined, groupCurrency: undefined});
-                    } else {
-                        updateFilterForm({groupBy: newValue});
-                    }
-                }}
-            />
-        ),
-        [CONST.SEARCH.SYNTAX_ROOT_KEYS.VIEW]: (
-            <SingleSelectPopup
-                style={styles.p0}
-                items={viewOptions}
-                value={view}
-                closeOverlay={() => setSelectedDisplayFilter(null)}
-                onChange={(item) => updateFilterForm({view: item?.value ?? CONST.SEARCH.VIEW.TABLE})}
-            />
-        ),
-        [CONST.SEARCH.SYNTAX_ROOT_KEYS.LIMIT]: (
-            <TextInputPopup
-                style={styles.pv0}
-                placeholder={translate('search.filters.limit')}
-                defaultValue={limitValue}
-                closeOverlay={() => setSelectedDisplayFilter(null)}
-                onChange={(value) => updateFilterForm({limit: value})}
-            />
-        ),
-    };
+    let subPopup: React.JSX.Element | null = null;
+
+    switch (selectedDisplayFilter) {
+        case CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_BY:
+            subPopup = (
+                <SortByPopup
+                    searchResults={searchResults}
+                    queryJSON={queryJSON}
+                    groupBy={groupBy}
+                    onSort={onSort}
+                    onSortOrderPress={() => setSelectedDisplayFilter(CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_ORDER)}
+                    closeOverlay={() => setSelectedDisplayFilter(null)}
+                />
+            );
+            break;
+        case CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_ORDER:
+            subPopup = (
+                <SortOrderPopup
+                    queryJSON={queryJSON}
+                    onSort={onSort}
+                    closeOverlay={() => setSelectedDisplayFilter(null)}
+                />
+            );
+            break;
+        case CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY:
+            subPopup = (
+                <GroupByPopup
+                    style={styles.p0}
+                    sections={groupBySections}
+                    value={groupBy}
+                    closeOverlay={() => setSelectedDisplayFilter(null)}
+                    onChange={(item) => {
+                        const newValue = item?.value;
+                        if (!newValue) {
+                            updateFilterForm({groupBy: undefined, groupCurrency: undefined});
+                        } else {
+                            updateFilterForm({groupBy: newValue});
+                        }
+                    }}
+                />
+            );
+            break;
+        case CONST.SEARCH.SYNTAX_ROOT_KEYS.VIEW:
+            subPopup = (
+                <SingleSelectPopup
+                    style={styles.p0}
+                    items={viewOptions}
+                    value={view}
+                    closeOverlay={() => setSelectedDisplayFilter(null)}
+                    onChange={(item) => updateFilterForm({view: item?.value ?? CONST.SEARCH.VIEW.TABLE})}
+                />
+            );
+            break;
+        case CONST.SEARCH.SYNTAX_ROOT_KEYS.LIMIT:
+            subPopup = (
+                <TextInputPopup
+                    style={styles.pv0}
+                    placeholder={translate('search.filters.limit')}
+                    defaultValue={limitValue}
+                    closeOverlay={() => setSelectedDisplayFilter(null)}
+                    onChange={(value) => updateFilterForm({limit: value})}
+                />
+            );
+            break;
+        default:
+            break;
+    }
 
     return (
         <View style={[!shouldUseNarrowLayout && styles.pv4]}>
@@ -216,7 +230,7 @@ function DisplayPopup({queryJSON, searchResults, closeOverlay, onSort}: DisplayP
                 subtitle={subtitle[selectedDisplayFilter]}
                 onBackButtonPress={goBack}
             />
-            {subPopup[selectedDisplayFilter]}
+            {subPopup}
         </View>
     );
 }
