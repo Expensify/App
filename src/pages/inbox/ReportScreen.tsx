@@ -109,7 +109,7 @@ import HeaderView from './HeaderView';
 import useReportWasDeleted from './hooks/useReportWasDeleted';
 import ReactionListWrapper from './ReactionListWrapper';
 import ReportActionsView from './report/ReportActionsView';
-import ReportFooter from './ReportFooter';
+import ReportFooter from './report/ReportFooter';
 import {ActionListContext} from './ReportScreenContext';
 
 type ReportScreenNavigationProps =
