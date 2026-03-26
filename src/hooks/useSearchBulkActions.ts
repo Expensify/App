@@ -1040,8 +1040,8 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                         icon: expensifyIcons.ArrowCollapse,
                         value: CONST.SEARCH.BULK_ACTION_TYPES.MERGE,
                         onSelected: () => {
-                            const transactionKey = `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`;
-                            const searchSnapshotTransaction = currentSearchResults?.data?.[transactionKey] as Transaction | undefined;
+                            const transactionKey: `${typeof ONYXKEYS.COLLECTION.TRANSACTION}${string}` = `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`;
+                            const searchSnapshotTransaction = currentSearchResults?.data?.[transactionKey];
                             const selectedTransactionInfo = selectedTransactions[transactionID];
                             const isSingleSelection = selectedTransactionsKeys.length === 1;
                             let targetTransactionThreadReportIDOverride = isSingleSelection

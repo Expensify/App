@@ -1149,7 +1149,7 @@ describe('setupMergeTransactionDataAndNavigate', () => {
         };
 
         const navigateSpy = jest.spyOn(Navigation, 'navigate').mockImplementation(jest.fn());
-        const getActiveRouteSpy = jest.spyOn(Navigation, 'getActiveRoute').mockReturnValue('/search?q=type%3Aexpense');
+        const getActiveRouteSpy = jest.spyOn(Navigation, 'getActiveRoute').mockReturnValue('/search?q=type:expense');
 
         setupMergeTransactionDataAndNavigate(transactionID, [targetTransaction], mockLocaleCompare, [], false, true, undefined, threadReportID);
         await waitForBatchedUpdates();

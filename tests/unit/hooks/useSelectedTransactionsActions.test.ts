@@ -820,6 +820,7 @@ describe('useSelectedTransactionsActions', () => {
         const policy = createRandomPolicy(1);
         const reportAction = createRandomReportAction(1);
         reportAction.actionName = CONST.REPORT.ACTIONS.TYPE.IOU;
+        // eslint-disable-next-line @typescript-eslint/no-deprecated -- This test needs a legacy IOU action fixture because the production lookup still reads originalMessage.
         reportAction.originalMessage = {
             IOUTransactionID: transactionID,
         } as never;
@@ -940,7 +941,7 @@ describe('useSelectedTransactionsActions', () => {
             data: {
                 [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: snapshotTransaction,
             },
-        } as SearchResults;
+        } as unknown as SearchResults;
 
         mockSelectedTransactionIDs.push(transactionID);
 

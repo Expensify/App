@@ -19,6 +19,7 @@ import {isFromCreditCardImport} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import createRandomMergeTransaction from '../utils/collections/mergeTransaction';
+import createRandomReportAction from '../utils/collections/reportActions';
 import {createRandomReport} from '../utils/collections/reports';
 import createRandomTransaction, {createRandomDistanceRequestTransaction} from '../utils/collections/transaction';
 import {translateLocal} from '../utils/TestHelper';
@@ -99,6 +100,9 @@ describe('MergeTransactionUtils', () => {
                 ...createRandomTransaction(0),
                 transactionThreadReportID: 'transaction-thread-report-id',
             };
+            const reportAction = createRandomReportAction(1);
+            reportAction.reportActionID = 'report-action-id';
+            reportAction.childReportID = 'child-report-id';
 
             const result = getTargetTransactionThreadReportIDForSearchSelection(transaction, {
                 isSelected: true,
@@ -114,10 +118,7 @@ describe('MergeTransactionUtils', () => {
                 amount: 0,
                 currency: 'USD',
                 isFromOneTransactionReport: false,
-                reportAction: {
-                    reportActionID: 'report-action-id',
-                    childReportID: 'child-report-id',
-                },
+                reportAction,
             });
 
             expect(result).toBe('child-report-id');
