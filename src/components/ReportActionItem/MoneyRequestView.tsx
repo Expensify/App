@@ -350,38 +350,54 @@ function MoneyRequestView({
     const canEditAmount =
         !isGPSDistanceRequest &&
         isEditable &&
-        (canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.AMOUNT, undefined, isChatReportArchived) || (shouldShowSplitIndicator && isSplitAvailable));
+        (canEditFieldOfMoneyRequest({reportAction: parentReportAction, fieldToEdit: CONST.EDIT_REQUEST_FIELD.AMOUNT, isChatReportArchived, transaction}) ||
+            (shouldShowSplitIndicator && isSplitAvailable));
     const canEditMerchant =
-        isEditable && canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.MERCHANT, undefined, isChatReportArchived, undefined, transaction, moneyRequestReport, policy);
+        isEditable &&
+        canEditFieldOfMoneyRequest({reportAction: parentReportAction, fieldToEdit: CONST.EDIT_REQUEST_FIELD.MERCHANT, isChatReportArchived, transaction, report: moneyRequestReport, policy});
 
     const canEditDate =
-        isEditable && canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.DATE, undefined, isChatReportArchived, undefined, transaction, moneyRequestReport, policy);
+        isEditable &&
+        canEditFieldOfMoneyRequest({reportAction: parentReportAction, fieldToEdit: CONST.EDIT_REQUEST_FIELD.DATE, isChatReportArchived, transaction, report: moneyRequestReport, policy});
 
     const canEditDistanceOrRate = isPolicyAccessible(policy, currentUserEmailParam) || isP2PDistanceRequest;
 
     const canEditDistance =
         !isGPSDistanceRequest &&
         isEditable &&
-        canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.DISTANCE, undefined, isChatReportArchived, undefined, transaction, moneyRequestReport, policy) &&
+        canEditFieldOfMoneyRequest({
+            reportAction: parentReportAction,
+            fieldToEdit: CONST.EDIT_REQUEST_FIELD.DISTANCE,
+            isChatReportArchived,
+            transaction,
+            report: moneyRequestReport,
+            policy,
+        }) &&
         canEditDistanceOrRate;
 
     const canEditDistanceRate =
         isEditable &&
-        canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.DISTANCE_RATE, undefined, isChatReportArchived, undefined, transaction, moneyRequestReport, policy) &&
+        canEditFieldOfMoneyRequest({
+            reportAction: parentReportAction,
+            fieldToEdit: CONST.EDIT_REQUEST_FIELD.DISTANCE_RATE,
+            isChatReportArchived,
+            transaction,
+            report: moneyRequestReport,
+            policy,
+        }) &&
         canEditDistanceOrRate;
 
     const canEditReport =
         isEditable &&
-        canEditFieldOfMoneyRequest(
-            parentReportAction,
-            CONST.EDIT_REQUEST_FIELD.REPORT,
-            undefined,
+        canEditFieldOfMoneyRequest({
+            reportAction: parentReportAction,
+            fieldToEdit: CONST.EDIT_REQUEST_FIELD.REPORT,
             isChatReportArchived,
             outstandingReportsByPolicyID,
             transaction,
-            moneyRequestReport,
+            report: moneyRequestReport,
             policy,
-        ) &&
+        }) &&
         (!isPerDiemRequest || canSubmitPerDiemExpenseFromWorkspace(policy) || (isExpenseUnreported && !!perDiemOriginalPolicy));
 
     // A flag for verifying that the current report is a sub-report of a expense chat
@@ -412,7 +428,14 @@ function MoneyRequestView({
         !isInvoice;
     const canEditReimbursable =
         isEditable &&
-        canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.REIMBURSABLE, undefined, isChatReportArchived, undefined, transaction, moneyRequestReport, policy);
+        canEditFieldOfMoneyRequest({
+            reportAction: parentReportAction,
+            fieldToEdit: CONST.EDIT_REQUEST_FIELD.REIMBURSABLE,
+            isChatReportArchived,
+            transaction,
+            report: moneyRequestReport,
+            policy,
+        });
     const shouldShowAttendees = shouldShowAttendeesTransactionUtils(iouType, policy);
 
     const shouldShowTax = isTaxTrackingEnabled(isPolicyExpenseChat || isExpenseUnreported, policy, isDistanceRequest, isPerDiemRequest, isTimeRequest) || !!transaction?.taxName;
