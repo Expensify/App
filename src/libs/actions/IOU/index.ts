@@ -1347,7 +1347,7 @@ function initMoneyRequest({
             comment.odometerEndImage = undefined;
         }
 
-        fetchDefaultP2PMileageRate(currency);
+        fetchDefaultP2PMileageRate();
     }
 
     if (newIouRequestType === CONST.IOU.REQUEST_TYPE.PER_DIEM) {

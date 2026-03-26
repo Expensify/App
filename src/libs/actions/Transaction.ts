@@ -793,11 +793,12 @@ function openDraftDistanceExpense() {
 }
 
 /**
- * Fetches the default P2P mileage rate from Auth for the given currency.
+ * Fetches the default P2P mileage rate from Auth.
+ * Auth determines the rate from the user's personal policy currency.
  * The rate is stored in Onyx via the onyxData returned by Auth.
  */
-function fetchDefaultP2PMileageRate(currency: string) {
-    API.read(READ_COMMANDS.GET_DEFAULT_P2P_MILEAGE_RATE, {currency}, {});
+function fetchDefaultP2PMileageRate() {
+    API.read(READ_COMMANDS.GET_DEFAULT_P2P_MILEAGE_RATE, {}, {});
 }
 
 /**
@@ -1028,7 +1029,7 @@ function changeTransactionsReport({
             // Let's also set the defaultP2PRate and update the distanceUnit, the quantity, the amount, the currency and the merchant to match the P2P rate.
             if (isDistanceRequest(transaction)) {
                 const currency = destinationCurrency ?? CONST.CURRENCY.USD;
-                const {rate, unit} = DistanceRequestUtils.getDefaultP2PMileageRate(currency);
+                const {rate, unit} = DistanceRequestUtils.getDefaultP2PMileageRate();
                 const distance = parseFloat(
                     DistanceRequestUtils.getRoundedDistanceInUnits(
                         getDistanceInMeters(transaction, transaction?.comment?.customUnit?.distanceUnit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES),

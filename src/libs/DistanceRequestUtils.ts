@@ -281,9 +281,7 @@ function getDistanceMerchant(
  * Returns the default P2P mileage rate from Auth (stored in Onyx).
  * Falls back to USD defaults if the server-fetched rate hasn't loaded yet.
  */
-// `currency` is unused; kept for call-site compatibility while the rate comes from Onyx (or USD fallback).
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-function getDefaultP2PMileageRate(currency: string): {rate: number; unit: Unit} {
+function getDefaultP2PMileageRate(): {rate: number; unit: Unit} {
     if (defaultP2PMileageRate) {
         return defaultP2PMileageRate;
     }
@@ -294,7 +292,7 @@ function getDefaultP2PMileageRate(currency: string): {rate: number; unit: Unit} 
  * Retrieves the rate and unit for a P2P distance expense.
  */
 function getRateForP2P(currency: string, transaction: OnyxEntry<Transaction>): MileageRate {
-    const mileageRate = getDefaultP2PMileageRate(currency);
+    const mileageRate = getDefaultP2PMileageRate();
 
     // Ensure the rate is updated when the currency changes, otherwise use the stored rate
     const rate = getCurrency(transaction) === currency ? (transaction?.comment?.customUnit?.defaultP2PRate ?? mileageRate.rate) : mileageRate.rate;
