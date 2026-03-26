@@ -201,20 +201,18 @@ function IOURequestStepDistance({
     });
     const distanceUnit = mileageRate.unit;
     const distanceRate = mileageRate.rate ?? 0;
-    const distanceInMeters = getDistanceInMeters(
-        currentTransaction,
-        currentTransaction?.comment?.customUnit?.distanceUnit ? currentTransaction.comment.customUnit.distanceUnit : distanceUnit,
-    );
+    const currentTransactionDistanceUnit = currentTransaction?.comment?.customUnit?.distanceUnit;
+    const distanceInMeters = getDistanceInMeters(currentTransaction, currentTransactionDistanceUnit ?? distanceUnit);
     const currentDistance = useMemo(
         () => (distanceInMeters > 0 ? roundToTwoDecimalPlaces(DistanceRequestUtils.convertDistanceUnit(distanceInMeters, distanceUnit)) : undefined),
         [distanceInMeters, distanceUnit],
     );
 
-    // Keep the manual tab's NumberWithSymbolForm in sync when the distance changes
-    // externally (e.g. route recalculated after waypoint edits on the map tab).
-    useEffect(() => {
-        manualNumberFormRef.current?.updateNumber(currentDistance?.toString() ?? '');
-    }, [currentDistance]);
+    // For the manual distance input, prefer quantity (the user's manually edited value) over
+    // routes.route0.distance (the route-calculated value). This ensures that after a manual edit,
+    // re-opening the distance editor shows the manually entered value, not the route distance.
+    const quantity = currentTransaction?.comment?.customUnit?.quantity;
+    const manualInputDistance = useMemo(() => (quantity ? roundToTwoDecimalPlaces(quantity) : currentDistance), [quantity, currentDistance]);
 
     // Sets `amount` and `split` share data before moving to the next step to avoid briefly showing `0.00` as the split share for participants
     const setDistanceRequestData = useCallback(
@@ -515,6 +513,11 @@ function IOURequestStepDistance({
                 return;
             }
             if (transaction?.transactionID && report?.reportID) {
+                // When waypoints change, include the route-calculated distance so the server
+                // updates quantity to match the new route instead of keeping the old value.
+                const routeDistanceInMeters = transaction?.routes?.route0?.distance;
+                const routeDistanceInUnit = routeDistanceInMeters ? roundToTwoDecimalPlaces(DistanceRequestUtils.convertDistanceUnit(routeDistanceInMeters, distanceUnit)) : undefined;
+
                 updateMoneyRequestDistance({
                     transactionID: transaction?.transactionID,
                     transactionThreadReport: report,
@@ -522,6 +525,7 @@ function IOURequestStepDistance({
                     waypoints,
                     recentWaypoints,
                     ...(hasRouteChanged ? {routes: transaction?.routes} : {}),
+                    ...(routeDistanceInUnit ? {distance: routeDistanceInUnit} : {}),
                     policy,
                     policyTagList: policyTags,
                     policyCategories,
@@ -566,6 +570,7 @@ function IOURequestStepDistance({
         currentUserEmailParam,
         isASAPSubmitBetaEnabled,
         parentReportNextStep,
+        distanceUnit,
     ]);
 
     const submitManualDistance = useCallback(() => {
@@ -589,7 +594,7 @@ function IOURequestStepDistance({
         }
 
         const transactionDistanceUnit = currentTransaction?.comment?.customUnit?.distanceUnit;
-        const isDistanceChanged = currentDistance !== distanceAsFloat;
+        const isDistanceChanged = manualInputDistance !== distanceAsFloat;
         const isDistanceUnitChanged = transactionDistanceUnit && transactionDistanceUnit !== distanceUnit;
 
         if (!isDistanceChanged && !isDistanceUnitChanged) {
@@ -629,7 +634,7 @@ function IOURequestStepDistance({
         splitDraftTransaction,
         policy,
         navigateBack,
-        currentDistance,
+        manualInputDistance,
         waypoints,
         transactionBackup,
         report,
@@ -702,9 +707,10 @@ function IOURequestStepDistance({
 
     const manualTabContent = (
         <NumberWithSymbolForm
+            key={manualInputDistance}
             ref={manualTextInputRef}
             numberFormRef={manualNumberFormRef}
-            value={currentDistance?.toString()}
+            value={manualInputDistance?.toString()}
             onInputChange={() => {
                 if (!manualFormError) {
                     return;
