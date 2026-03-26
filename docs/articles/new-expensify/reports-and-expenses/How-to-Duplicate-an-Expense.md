@@ -1,7 +1,7 @@
 ---
 title: How to Duplicate an Expense
 description: Learn how to create a copy of an existing expense in Expensify using the Duplicate option.
-keywords: [New Expensify, duplicate expense, copy expense, duplicate cash expense, duplicate distance expense, duplicate per diem expense, create copy of expense, copy expense]
+keywords: [New Expensify, duplicate expense, copy expense, duplicate cash expense, duplicate distance expense, duplicate per diem expense, create copy of expense]
 internalScope: Audience is expense submitters. Covers how to duplicate a single cash, distance, or per diem expense. Does not cover duplicate detection, resolving flagged duplicates, or merging expenses.
 ---
 
