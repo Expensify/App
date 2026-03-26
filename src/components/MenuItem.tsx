@@ -644,12 +644,37 @@ function MenuItem({
 
     const descriptionTextStyles = StyleUtils.combineStyles<TextStyle>([
         styles.textLabelSupporting,
-        icon && !Array.isArray(icon) ? styles.ml3 : {},
-        title ? descriptionVerticalMargin : StyleUtils.getFontSizeStyle(variables.fontSizeNormal),
+        styles.flex1,
+        title ? {} : StyleUtils.getFontSizeStyle(variables.fontSizeNormal),
         title ? styles.textLineHeightNormal : StyleUtils.getLineHeightStyle(variables.fontSizeNormalHeight),
         (descriptionTextStyle as TextStyle) || styles.breakWord,
+        descriptionAddon ? styles.ml2 : {},
         isDeleted ? styles.offlineFeedbackDeleted : {},
     ]);
+
+    const descriptionContainerStyle = StyleUtils.combineStyles<ViewStyle>([
+        styles.flexRow,
+        styles.alignItemsCenter,
+        icon && !Array.isArray(icon) ? styles.ml3 : {},
+        title ? descriptionVerticalMargin : {},
+    ]);
+
+    const renderDescriptionView = () => {
+        if (!description && !descriptionAddon) {
+            return;
+        }
+        return (
+            <View style={descriptionContainerStyle}>
+                {descriptionAddon}
+                <Text
+                    style={descriptionTextStyles}
+                    numberOfLines={numberOfLinesDescription}
+                >
+                    {description}
+                </Text>
+            </View>
+        );
+    };
 
     const html = useMemo(() => {
         if (!title || !shouldParseTitle) {
@@ -942,14 +967,7 @@ function MenuItem({
                                                             titleContainerStyle,
                                                         ]}
                                                     >
-                                                        {!!description && shouldShowDescriptionOnTop && (
-                                                            <Text
-                                                                style={descriptionTextStyles}
-                                                                numberOfLines={numberOfLinesDescription}
-                                                            >
-                                                                {description}
-                                                            </Text>
-                                                        )}
+                                                        {shouldShowDescriptionOnTop && renderDescriptionView()}
                                                         {(!!title || !!shouldShowTitleIcon) && (
                                                             <View
                                                                 style={[styles.flexRow, styles.alignItemsCenter, styles.mw100, titleWrapperStyle]}
@@ -980,27 +998,7 @@ function MenuItem({
                                                                 )}
                                                             </View>
                                                         )}
-                                                        {!shouldShowDescriptionOnTop && !descriptionAddon && !!description && (
-                                                            <Text
-                                                                style={[descriptionTextStyles]}
-                                                                numberOfLines={numberOfLinesDescription}
-                                                            >
-                                                                {description}
-                                                            </Text>
-                                                        )}
-                                                        {!shouldShowDescriptionOnTop && !!descriptionAddon && (
-                                                            <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2, styles.ml3, styles.mt1]}>
-                                                                {descriptionAddon}
-                                                                {!!description && (
-                                                                    <Text
-                                                                        style={[descriptionTextStyles, styles.flexShrink1, styles.ml0]}
-                                                                        numberOfLines={numberOfLinesDescription}
-                                                                    >
-                                                                        {description}
-                                                                    </Text>
-                                                                )}
-                                                            </View>
-                                                        )}
+                                                        {!shouldShowDescriptionOnTop && renderDescriptionView()}
                                                         {!!furtherDetails && (
                                                             <View style={[styles.flexRow, styles.mt1, styles.alignItemsCenter]}>
                                                                 {!!furtherDetailsIcon && (
