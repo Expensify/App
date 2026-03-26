@@ -1,9 +1,9 @@
 import {useEffect, useMemo} from 'react';
 import {useSearchActionsContext} from '@components/Search/SearchContext';
 import type {SearchColumnType, SearchGroupBy, SearchStatus, SortOrder} from '@components/Search/types';
-import useLocalize from '@hooks/useLocalize';
 import {getSortedSections} from '@libs/SearchUIUtils';
 import type {ListItemDataType, SearchDataTypes} from '@src/types/onyx/SearchResults';
+import useLocalize from './useLocalize';
 
 /**
  * Sorts search result sections and persists the sorted report IDs to Search context
