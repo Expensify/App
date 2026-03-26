@@ -132,7 +132,6 @@
     "expo-image-manipulator": "55.0.2",
     "expo-location": "55.0.3",
     "expo-modules-core": "55.0.4",
-    "expo-secure-store": "~14.2.4",
     "expo-store-review": "~9.0.8",
     "expo-task-manager": "55.0.2",
     "expo-video": "55.0.3",
@@ -422,7 +421,6 @@
       ],
       "android": {
         "buildFromSource": [
-          "expo-secure-store"
         ]
       }
     }
