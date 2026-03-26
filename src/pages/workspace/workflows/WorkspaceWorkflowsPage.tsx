@@ -1,3 +1,4 @@
+import {hasSeenTourSelector} from '@selectors/Onboarding';
 import {Str} from 'expensify-common';
 import React, {useCallback, useEffect, useMemo} from 'react';
 import {InteractionManager, View} from 'react-native';
@@ -124,6 +125,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const isUserReimburser = policy?.achAccount?.reimburser !== undefined && account?.primaryLogin !== undefined && policy?.achAccount?.reimburser === account?.primaryLogin;
     const {approvalWorkflows, availableMembers, usedApproverEmails} = convertPolicyEmployeesToApprovalWorkflows({
@@ -449,7 +451,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                                         // User who is reimburser can initiate unlocking process
                                         if (state === CONST.BANK_ACCOUNT.STATE.LOCKED && bankAccountID && isUserReimburser) {
                                             pressLockedBankAccount(bankAccountID, translate, conciergeReportID ?? undefined);
-                                            navigateToConciergeChat(conciergeReportID ?? undefined, introSelected, currentUserAccountID);
+                                            navigateToConciergeChat(conciergeReportID ?? undefined, introSelected, currentUserAccountID, isSelfTourViewed);
                                             return;
                                         }
 
@@ -572,29 +574,30 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         theme.textSupporting,
         accountManagerReportID,
         filteredApprovalWorkflows.length,
-        searchFilteredWorkflows,
         workflowSearchInput,
         setWorkflowSearchInput,
+        searchFilteredWorkflows,
         addApprovalAction,
         isOffline,
         isPolicyAdmin,
         displayNameForAuthorizedPayer,
         route.params.policyID,
         updateApprovalMode,
-        showConfirmModal,
-        confirmDisableApprovals,
         allReportNextSteps,
         transactionViolations,
         betas,
+        showConfirmModal,
+        confirmDisableApprovals,
         isAccountLocked,
         isUserReimburser,
         showLockedAccountModal,
-        hasValidExistingAccounts,
-        shouldShowContinueModal,
-        confirmCurrencyChangeAndHideModal,
         conciergeReportID,
         introSelected,
         currentUserAccountID,
+        isSelfTourViewed,
+        hasValidExistingAccounts,
+        shouldShowContinueModal,
+        confirmCurrencyChangeAndHideModal,
     ]);
 
     const renderOptionItem = (item: ToggleSettingOptionRowProps, index: number) => (
