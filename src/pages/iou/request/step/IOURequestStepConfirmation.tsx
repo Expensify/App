@@ -434,13 +434,13 @@ function IOURequestStepConfirmation({
         }
     }, [isOffline, policy?.pendingAction, policyExpenseChatPolicyID, senderPolicyID]);
 
-    const odometerStartImage = transaction?.comment?.odometerStartImage;
-    const odometerEndImage = transaction?.comment?.odometerEndImage;
-
     useEffect(() => {
         if (!isOdometerDistanceRequest || !isFocused) {
             return;
         }
+
+        const odometerStartImage = transaction?.comment?.odometerStartImage;
+        const odometerEndImage = transaction?.comment?.odometerEndImage;
 
         // Skip stitching when source images haven't changed (compare by URI not reference
         // because Onyx may create new object instances when restoring a backup transaction)
@@ -507,7 +507,7 @@ function IOURequestStepConfirmation({
         return () => {
             ignore = true;
         };
-    }, [isOdometerDistanceRequest, isFocused, currentTransactionID, odometerStartImage, odometerEndImage, action, translate, iouType]);
+    }, [isOdometerDistanceRequest, isFocused, currentTransactionID, transaction?.comment?.odometerStartImage, transaction?.comment?.odometerEndImage, action, translate, iouType]);
 
     const defaultBillable = !!policy?.defaultBillable;
     useEffect(() => {
