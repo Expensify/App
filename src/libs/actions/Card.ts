@@ -378,8 +378,8 @@ function syncCard(cardID: number, lastScrapeResult?: number, breakConnection?: b
     };
 
     if (breakConnection) {
-        // Simulate "Account not found" error code for testing
-        parameters.breakConnection = 434;
+        // Simulate "Account refresh required" error code for testing
+        parameters.breakConnection = 438;
     }
 
     API.write(WRITE_COMMANDS.SYNC_CARD, parameters, {optimisticData, finallyData, failureData});
@@ -620,12 +620,6 @@ function revealVirtualCardDetails(cardID: number, validateCode: string): Promise
                     if (response?.jsonCode === CONST.JSON_CODE.INCORRECT_MAGIC_CODE) {
                         // eslint-disable-next-line prefer-promise-reject-errors
                         reject('validateCodeForm.error.incorrectMagicCode');
-                        return;
-                    }
-
-                    if (response?.jsonCode === 404) {
-                        // eslint-disable-next-line prefer-promise-reject-errors
-                        reject('cardPage.missingPrivateDetails');
                         return;
                     }
 
