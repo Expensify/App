@@ -2272,8 +2272,8 @@ function prepareReportOptionsForDisplay(
     policiesCollection: OnyxCollection<Policy>,
     currentUserAccountID: number,
     config: GetValidReportsConfig,
-    visibleReportActionsData: VisibleReportActionsDerivedValue = {},
     sortedActions: Record<string, ReportAction[]> | undefined,
+    visibleReportActionsData: VisibleReportActionsDerivedValue = {},
     reportAttributesDerived?: ReportAttributesDerivedValue['reports'],
     policyTags?: OnyxCollection<PolicyTagLists>,
 ): Array<SearchOption<Report>> {
@@ -2566,8 +2566,8 @@ function getValidOptions(
                     shouldShowGBR,
                     personalDetails,
                 },
-                visibleReportActionsData,
                 sortedActions,
+                visibleReportActionsData,
                 reportAttributesDerived,
 
                 allPolicyTags,
@@ -2590,8 +2590,8 @@ function getValidOptions(
                 shouldShowGBR,
                 personalDetails,
             },
-            visibleReportActionsData,
             sortedActions,
+            visibleReportActionsData,
             reportAttributesDerived,
             allPolicyTags,
         );
@@ -2609,8 +2609,8 @@ function getValidOptions(
                 shouldShowGBR,
                 personalDetails,
             },
-            visibleReportActionsData,
             sortedActions,
+            visibleReportActionsData,
             reportAttributesDerived,
             allPolicyTags,
         );
