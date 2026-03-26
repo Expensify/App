@@ -7303,6 +7303,7 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
                     [CONST.SEARCH.DATE_PRESETS.LAST_MONTH]: 'W zeszłym miesiącu',
                     [CONST.SEARCH.DATE_PRESETS.THIS_MONTH]: 'Ten miesiąc',
                     [CONST.SEARCH.DATE_PRESETS.YEAR_TO_DATE]: 'Od początku roku',
+                    [CONST.SEARCH.DATE_PRESETS.LAST_12_MONTHS]: 'Ostatnie 12 miesięcy',
                     [CONST.SEARCH.DATE_PRESETS.LAST_STATEMENT]: 'Ostatnie zestawienie',
                 },
             },
@@ -7405,6 +7406,10 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
         searchIn: 'Szukaj w',
         searchPlaceholder: 'Wyszukaj coś',
         suggestions: 'Sugestie',
+        suggestionsAvailable: ({count}: {count: number}, query = '') => ({
+            one: `Dostępne sugestie${query ? ` dla ${query}` : ''}. ${count} wynik.`,
+            other: (resultCount: number) => `Dostępne sugestie${query ? ` dla ${query}` : ''}. ${resultCount} wyniki.`,
+        }),
         exportSearchResults: {
             title: 'Utwórz eksport',
             description: 'Wow, ale dużo pozycji! Spakujemy je, a Concierge wkrótce wyśle Ci plik.',
