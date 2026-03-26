@@ -7384,6 +7384,10 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
         searchIn: 'Zoeken in',
         searchPlaceholder: 'Zoek iets',
         suggestions: 'Suggesties',
+        suggestionsAvailable: ({count}: {count: number}, query = '') => ({
+            one: `Suggesties beschikbaar${query ? ` voor ${query}` : ''}. ${count} resultaat.`,
+            other: (resultCount: number) => `Suggesties beschikbaar${query ? ` voor ${query}` : ''}. ${resultCount} resultaten.`,
+        }),
         exportSearchResults: {
             title: 'Export maken',
             description: 'Wow, dat zijn veel items! We bundelen ze, en Concierge stuurt je binnenkort een bestand.',
