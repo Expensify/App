@@ -10,7 +10,7 @@ import type {PopoverMenuItem} from '@components/PopoverMenu';
 import {useSearchActionsContext, useSearchStateContext} from '@components/Search/SearchContext';
 import type {BulkPaySelectionData, PaymentData, SearchQueryJSON} from '@components/Search/types';
 import {setupMergeTransactionDataAndNavigate} from '@libs/actions/MergeTransaction';
-import {deleteAppReport, markAsManuallyExported, moveIOUReportToPolicy, moveIOUReportToPolicyAndInviteSubmitter} from '@libs/actions/Report';
+import {createTransactionThreadReport, deleteAppReport, markAsManuallyExported, moveIOUReportToPolicy, moveIOUReportToPolicyAndInviteSubmitter} from '@libs/actions/Report';
 import {
     approveMoneyRequestOnSearch,
     bulkDeleteReports,
@@ -32,7 +32,7 @@ import {
 } from '@libs/actions/Search';
 import initSplitExpense from '@libs/actions/SplitExpenses';
 import {setNameValuePair} from '@libs/actions/User';
-import {getTransactionsAndReportsFromSearch} from '@libs/MergeTransactionUtils';
+import {getTargetTransactionThreadReportIDForSearchSelection, getTransactionsAndReportsFromSearch} from '@libs/MergeTransactionUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getConnectedIntegration} from '@libs/PolicyUtils';
 import {getSecondaryExportReportActions, isMergeActionForSelectedTransactions} from '@libs/ReportSecondaryActionUtils';
@@ -101,6 +101,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     const [csvExportLayouts] = useOnyx(ONYXKEYS.NVP_CSV_EXPORT_LAYOUTS);
     const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const personalPolicy = usePersonalPolicy();
     const [userBillingGraceEndPeriods] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
 
@@ -1038,7 +1039,48 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                         text: translate('common.merge'),
                         icon: expensifyIcons.ArrowCollapse,
                         value: CONST.SEARCH.BULK_ACTION_TYPES.MERGE,
-                        onSelected: () => setupMergeTransactionDataAndNavigate(transactionID, searchedTransactions, localeCompare, reports, false, true),
+                        onSelected: () => {
+                            const transactionKey = `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`;
+                            const searchSnapshotTransaction = currentSearchResults?.data?.[transactionKey] as Transaction | undefined;
+                            const selectedTransactionInfo = selectedTransactions[transactionID];
+                            const isSingleSelection = selectedTransactionsKeys.length === 1;
+                            let targetTransactionThreadReportIDOverride = isSingleSelection
+                                ? getTargetTransactionThreadReportIDForSearchSelection(searchSnapshotTransaction ?? searchedTransactions.at(0), selectedTransactionInfo)
+                                : undefined;
+
+                            if (!targetTransactionThreadReportIDOverride && isSingleSelection) {
+                                const selectedReport = selectedTransactionInfo?.report ?? reports.at(0) ?? getReportOrDraftReport(searchSnapshotTransaction?.reportID);
+                                const selectedReportAction = selectedTransactionInfo?.reportAction;
+                                const targetTransaction = searchSnapshotTransaction ?? searchedTransactions.at(0);
+                                const shouldPassTransactionData = !selectedReportAction?.reportActionID || targetTransaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
+                                const transactionViolations = targetTransaction
+                                    ? allTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${targetTransaction.transactionID}`]
+                                    : undefined;
+                                const createdThreadReport = targetTransaction
+                                    ? createTransactionThreadReport(
+                                          introSelected,
+                                          currentUserPersonalDetails.login ?? '',
+                                          currentUserPersonalDetails.accountID,
+                                          selectedReport,
+                                          selectedReportAction,
+                                          shouldPassTransactionData ? targetTransaction : undefined,
+                                          shouldPassTransactionData ? transactionViolations : undefined,
+                                      )
+                                    : undefined;
+                                targetTransactionThreadReportIDOverride = createdThreadReport?.reportID;
+                            }
+
+                            setupMergeTransactionDataAndNavigate(
+                                transactionID,
+                                searchedTransactions,
+                                localeCompare,
+                                reports,
+                                false,
+                                true,
+                                undefined,
+                                targetTransactionThreadReportIDOverride,
+                            );
+                        },
                     });
                 }
             }
@@ -1185,6 +1227,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         firstTransaction,
         firstTransactionPolicy,
         handleDeleteSelectedTransactions,
+        introSelected,
         theme.icon,
         styles.colorMuted,
         styles.fontWeightNormal,

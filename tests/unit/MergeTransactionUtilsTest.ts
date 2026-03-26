@@ -7,6 +7,7 @@ import {
     getMergeFieldErrorText,
     getMergeFieldTranslationKey,
     getMergeFieldUpdatedValues,
+    getTargetTransactionThreadReportIDForSearchSelection,
     getMergeFieldValue,
     getRateFromMerchant,
     isEmptyMergeValue,
@@ -89,6 +90,92 @@ describe('MergeTransactionUtils', () => {
 
             // Then it should return false because distance requests skip receipt review
             expect(result).toBe(false);
+        });
+    });
+
+    describe('getTargetTransactionThreadReportIDForSearchSelection', () => {
+        it('should prefer selected report action childReportID', () => {
+            const transaction = {
+                ...createRandomTransaction(0),
+                transactionThreadReportID: 'transaction-thread-report-id',
+            };
+
+            const result = getTargetTransactionThreadReportIDForSearchSelection(transaction, {
+                isSelected: true,
+                canReject: false,
+                canHold: false,
+                canSplit: false,
+                hasBeenSplit: false,
+                canChangeReport: false,
+                isHeld: false,
+                canUnhold: false,
+                action: CONST.SEARCH.ACTION_TYPES.VIEW,
+                policyID: undefined,
+                amount: 0,
+                currency: 'USD',
+                isFromOneTransactionReport: false,
+                reportAction: {
+                    reportActionID: 'report-action-id',
+                    childReportID: 'child-report-id',
+                },
+            });
+
+            expect(result).toBe('child-report-id');
+        });
+
+        it('should fall back to selected transaction threadReportID before snapshot transaction fields', () => {
+            const transaction = {
+                ...createRandomTransaction(0),
+                transactionThreadReportID: 'snapshot-thread-report-id',
+            };
+
+            const result = getTargetTransactionThreadReportIDForSearchSelection(transaction, {
+                isSelected: true,
+                canReject: false,
+                canHold: false,
+                canSplit: false,
+                hasBeenSplit: false,
+                canChangeReport: false,
+                isHeld: false,
+                canUnhold: false,
+                action: CONST.SEARCH.ACTION_TYPES.VIEW,
+                policyID: undefined,
+                amount: 0,
+                currency: 'USD',
+                isFromOneTransactionReport: false,
+                transaction: {
+                    ...createRandomTransaction(1),
+                    transactionThreadReportID: 'selected-thread-report-id',
+                },
+            });
+
+            expect(result).toBe('selected-thread-report-id');
+        });
+
+        it('should return undefined when no thread metadata is available', () => {
+            const transaction = {
+                ...createRandomTransaction(0),
+                transactionThreadReportID: undefined,
+                reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+            };
+
+            const result = getTargetTransactionThreadReportIDForSearchSelection(transaction, {
+                isSelected: true,
+                canReject: false,
+                canHold: false,
+                canSplit: false,
+                hasBeenSplit: false,
+                canChangeReport: false,
+                isHeld: false,
+                canUnhold: false,
+                action: CONST.SEARCH.ACTION_TYPES.VIEW,
+                policyID: undefined,
+                amount: 0,
+                currency: 'USD',
+                isFromOneTransactionReport: false,
+            });
+
+            expect(result).toBeUndefined();
         });
     });
 

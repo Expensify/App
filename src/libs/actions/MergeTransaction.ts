@@ -50,6 +50,7 @@ function setupMergeTransactionDataAndNavigate(
     isSelectingSourceTransaction?: boolean,
     isOnSearch?: boolean,
     policies?: Array<OnyxEntry<Policy>>,
+    targetTransactionThreadReportIDOverride?: string,
 ) {
     if (!transactions.length || transactions.length > 2) {
         return;
@@ -58,7 +59,11 @@ function setupMergeTransactionDataAndNavigate(
     if (transactions.length === 1) {
         const transaction = transactions.at(0);
         if (transaction) {
-            setupMergeTransactionData(navigationTransactionID, {targetTransactionID: transaction.transactionID});
+            const storedTargetTransactionThreadReportID = targetTransactionThreadReportIDOverride ?? transaction.transactionThreadReportID ?? getTransactionThreadReportID(transaction);
+            setupMergeTransactionData(navigationTransactionID, {
+                targetTransactionID: transaction.transactionID,
+                targetTransactionThreadReportID: storedTargetTransactionThreadReportID,
+            });
             Navigation.navigate(ROUTES.MERGE_TRANSACTION_LIST_PAGE.getRoute(transaction.transactionID, Navigation.getActiveRoute(), isOnSearch));
             return;
         }
@@ -74,10 +79,11 @@ function setupMergeTransactionDataAndNavigate(
         return;
     }
 
+    const storedTargetTransactionThreadReportID = targetTransactionThreadReportIDOverride ?? targetTransaction.transactionThreadReportID ?? getTransactionThreadReportID(targetTransaction);
     const setupData = {
         targetTransactionID: targetTransaction?.transactionID,
         sourceTransactionID: sourceTransaction?.transactionID,
-        targetTransactionThreadReportID: targetTransaction.transactionThreadReportID ?? getTransactionThreadReportID(targetTransaction),
+        targetTransactionThreadReportID: storedTargetTransactionThreadReportID,
     };
     if (isSelectingSourceTransaction) {
         setMergeTransactionKey(navigationTransactionID, setupData);

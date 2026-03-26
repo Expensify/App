@@ -1132,6 +1132,98 @@ describe('setupMergeTransactionDataAndNavigate', () => {
         navigateSpy.mockRestore();
         getActiveRouteSpy.mockRestore();
     });
+
+    it('should persist targetTransactionThreadReportID for the single-selection merge flow when an override is provided', async () => {
+        const transactionID = 'merge-transaction-single-123';
+        const threadReportID = 'thread-report-single-123';
+        const targetTransaction = {
+            ...createRandomTransaction(1),
+            transactionID: 'target-transaction-single-123',
+            reportID: 'report-single-123',
+        };
+
+        const navigateSpy = jest.spyOn(Navigation, 'navigate').mockImplementation(jest.fn());
+        const getActiveRouteSpy = jest.spyOn(Navigation, 'getActiveRoute').mockReturnValue('/search?q=type%3Aexpense');
+
+        setupMergeTransactionDataAndNavigate(transactionID, [targetTransaction], mockLocaleCompare, [], false, true, undefined, threadReportID);
+        await waitForBatchedUpdates();
+
+        const mergeTransaction = await new Promise<MergeTransactionType | null>((resolve) => {
+            const connection = Onyx.connect({
+                key: `${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${transactionID}`,
+                callback: (currentMergeTransaction) => {
+                    Onyx.disconnect(connection);
+                    resolve(currentMergeTransaction ?? null);
+                },
+            });
+        });
+
+        expect(mergeTransaction).toEqual({
+            targetTransactionID: targetTransaction.transactionID,
+            targetTransactionThreadReportID: threadReportID,
+        });
+        expect(navigateSpy).toHaveBeenCalled();
+
+        navigateSpy.mockRestore();
+        getActiveRouteSpy.mockRestore();
+    });
+
+    it('should persist the override when reseeding the two-transaction merge flow from the list page', async () => {
+        const transactionID = 'merge-transaction-override-123';
+        const threadReportID = 'thread-report-override-123';
+        const targetTransaction = {
+            ...createRandomTransaction(1),
+            transactionID: 'target-transaction-override-123',
+            reportID: 'report-override-123',
+            managedCard: false,
+            bank: CONST.COMPANY_CARD.FEED_BANK_NAME.UPLOAD,
+            cardName: CONST.EXPENSE.TYPE.CASH_CARD_NAME,
+            cardNumber: undefined,
+            receipt: undefined,
+            comment: {
+                comment: 'target',
+            },
+        };
+        const sourceTransaction = {
+            ...createRandomTransaction(2),
+            transactionID: 'source-transaction-override-123',
+            reportID: 'report-override-456',
+            managedCard: false,
+            bank: CONST.COMPANY_CARD.FEED_BANK_NAME.UPLOAD,
+            cardName: CONST.EXPENSE.TYPE.CASH_CARD_NAME,
+            cardNumber: undefined,
+            receipt: undefined,
+            comment: {
+                comment: 'source',
+            },
+        };
+
+        const navigateSpy = jest.spyOn(Navigation, 'navigate').mockImplementation(jest.fn());
+        const getActiveRouteSpy = jest.spyOn(Navigation, 'getActiveRoute').mockReturnValue('/merge/test');
+
+        setupMergeTransactionDataAndNavigate(transactionID, [targetTransaction, sourceTransaction], mockLocaleCompare, [], true, true, undefined, threadReportID);
+        await waitForBatchedUpdates();
+
+        const mergeTransaction = await new Promise<MergeTransactionType | null>((resolve) => {
+            const connection = Onyx.connect({
+                key: `${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${transactionID}`,
+                callback: (currentMergeTransaction) => {
+                    Onyx.disconnect(connection);
+                    resolve(currentMergeTransaction ?? null);
+                },
+            });
+        });
+
+        expect(mergeTransaction).toEqual({
+            targetTransactionID: targetTransaction.transactionID,
+            sourceTransactionID: sourceTransaction.transactionID,
+            targetTransactionThreadReportID: threadReportID,
+        });
+        expect(navigateSpy).toHaveBeenCalled();
+
+        navigateSpy.mockRestore();
+        getActiveRouteSpy.mockRestore();
+    });
 });
 
 describe('setMergeTransactionKey', () => {
