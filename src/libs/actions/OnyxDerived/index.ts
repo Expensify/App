@@ -8,7 +8,7 @@
 import Onyx from 'react-native-onyx';
 import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
 import Log from '@libs/Log';
-import {endSpan, startSpan} from '@libs/telemetry/activeSpans';
+import {endSpan, getSpan, startSpan} from '@libs/telemetry/activeSpans';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -82,6 +82,7 @@ function init() {
                 startSpan(spanId, {
                     name: CONST.TELEMETRY.SPAN_ONYX_DERIVED_COMPUTE,
                     op: CONST.TELEMETRY.SPAN_ONYX_DERIVED_COMPUTE,
+                    parentSpan: getSpan(CONST.TELEMETRY.SPAN_APP_STARTUP),
                     attributes: {derivedKey: key},
                 });
 
