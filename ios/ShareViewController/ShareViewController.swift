@@ -129,36 +129,22 @@ class ShareViewController: UIViewController {
                     }
                 }
             }
-        } else if attachment.hasItemConformingToTypeIdentifier(UTType.image.identifier) {
-            os_log("Loading image via loadFileRepresentation API")
-            attachment.loadFileRepresentation(forTypeIdentifier: UTType.image.identifier) { url, error in
-                // Read data before leaving this closure — the temp file is deleted when it returns
-                let imageData: Data?
-                let filename: String
-                if let url = url {
-                    imageData = try? Data(contentsOf: url)
-                    filename = url.lastPathComponent
-                } else {
-                    imageData = nil
-                    filename = "shared_image.png"
-                }
+        } else if attachment.canLoadObject(ofClass: UIImage.self) {
+            os_log("Loading image via loadObject API")
+            attachment.loadObject(ofClass: UIImage.self) { reading, error in
                 DispatchQueue.main.async {
                     if let error = error {
-                        os_log("Image file load error: %@", error.localizedDescription)
+                        os_log("Image load error: %@", error.localizedDescription)
                         completion(.CouldNotLoad)
                         return
                     }
-                    guard let imageData = imageData else {
-                        os_log("Could not read image file data")
+                    guard let image = reading as? UIImage else {
+                        os_log("Could not cast loaded object to UIImage")
                         completion(.CouldNotLoad)
                         return
                     }
-                    os_log("Loaded image file: %@", filename)
-                    if let image = UIImage(data: imageData) {
-                        self.handleImageData(image, folder: folder, completion: completion)
-                    } else {
-                        self.processAndSave(data: imageData, filename: filename, folder: folder, completion: completion)
-                    }
+                    os_log("Loaded image via loadObject")
+                    self.handleImageData(image, folder: folder, completion: completion)
                 }
             }
         } else {
