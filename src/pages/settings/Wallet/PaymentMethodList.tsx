@@ -116,6 +116,9 @@ type PaymentMethodListProps = {
     /* Currency of payment method to filter by */
     filterCurrency?: string;
 
+    /** Account states to exclude from the list */
+    excludeStates?: Array<ValueOf<typeof CONST.BANK_ACCOUNT.STATE>>;
+
     /** Whether to show the default badge for the payment method */
     shouldHideDefaultBadge?: boolean;
 
@@ -166,6 +169,7 @@ function PaymentMethodList({
     itemIconRight,
     filterType,
     filterCurrency,
+    excludeStates,
     shouldHideDefaultBadge = false,
     threeDotsMenuItems,
     onThreeDotsMenuPress,
@@ -425,6 +429,13 @@ function PaymentMethodList({
             });
         }
 
+        if (excludeStates?.length) {
+            combinedPaymentMethods = combinedPaymentMethods.filter((paymentMethod) => {
+                const account = paymentMethod as BankAccount;
+                return !excludeStates.includes(account.accountData?.state as ValueOf<typeof CONST.BANK_ACCOUNT.STATE>);
+            });
+        }
+
         combinedPaymentMethods = combinedPaymentMethods.map((paymentMethod) => {
             const pressHandler = onPress as PaymentMethodPressHandler;
             const isMethodActive = isPaymentMethodActive(actionPaymentMethodType, activePaymentMethodID, paymentMethod);
@@ -474,6 +485,7 @@ function PaymentMethodList({
         isOffline,
         filterType,
         filterCurrency,
+        excludeStates,
         isLoadingCardList,
         cardList,
         isBetaEnabled,
