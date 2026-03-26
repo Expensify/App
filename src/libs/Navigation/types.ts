@@ -1304,6 +1304,16 @@ type SettingsNavigatorParamList = {
         // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
         backTo?: Routes;
     };
+    [SCREENS.WORKSPACE.COMPANY_CARDS_REFRESH_CARD_FEED_CONNECTION]: {
+        policyID: string;
+        feed: CompanyCardFeedWithDomainID;
+    };
+    [SCREENS.WORKSPACE.COMPANY_CARDS_VERIFY_ACCOUNT]: {
+        policyID: string;
+
+        /** Present when verifying before a feed refresh; absent when verifying before adding a new feed */
+        feed?: CompanyCardFeedWithDomainID;
+    };
     [SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD_ASSIGNEE]: {
         policyID: string;
         feed: CompanyCardFeedWithDomainID;
@@ -1581,10 +1591,6 @@ type DomainCardNavigatorParamList = {
     [SCREENS.DOMAIN_CARD.DOMAIN_CARD_CONFIRM_MAGIC_CODE]: {
         cardID: string;
     };
-};
-
-type SearchRouterParamsList = {
-    [SCREENS.SEARCH_ROUTER.ROOT]: undefined;
 };
 
 type TwoFactorAuthNavigatorParamList = {
@@ -2425,7 +2431,6 @@ type WorkspacesDomainModalNavigatorParamList = {
 type RightModalNavigatorParamList = {
     [SCREENS.RIGHT_MODAL.SETTINGS]: NavigatorScreenParams<SettingsNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.TWO_FACTOR_AUTH]: NavigatorScreenParams<TwoFactorAuthNavigatorParamList>;
-    [SCREENS.RIGHT_MODAL.SEARCH_ROUTER]: NavigatorScreenParams<SearchRouterParamsList>;
     [SCREENS.RIGHT_MODAL.NEW_CHAT]: NavigatorScreenParams<NewChatNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.DETAILS]: NavigatorScreenParams<DetailsNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.PROFILE]: NavigatorScreenParams<ProfileNavigatorParamList>;
@@ -2983,6 +2988,7 @@ type AuthScreensParamList = SharedScreensParamList &
             email: string;
         };
         [SCREENS.NOT_FOUND]: undefined;
+        [SCREENS.SEARCH_ROUTER.ROOT]: undefined;
         [NAVIGATORS.REPORTS_SPLIT_NAVIGATOR]: NavigatorScreenParams<ReportsSplitNavigatorParamList>;
         [NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR]: NavigatorScreenParams<SettingsSplitNavigatorParamList>;
         [NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR]: NavigatorScreenParams<WorkspaceSplitNavigatorParamList>;
