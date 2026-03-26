@@ -2619,38 +2619,6 @@ function isMoneyRequestReport(reportOrID: OnyxInputOrEntry<Report> | string, rep
 }
 
 /**
- * Determines the Help Panel report type based on the given report.
- */
-function getHelpPaneReportType(report: OnyxEntry<Report>, conciergeReportID: string): ValueOf<typeof CONST.REPORT.HELP_TYPE> | undefined {
-    if (!report) {
-        return undefined;
-    }
-
-    if (isConciergeChatReport(report, conciergeReportID)) {
-        return CONST.REPORT.HELP_TYPE.CHAT_CONCIERGE;
-    }
-
-    if (report?.chatType) {
-        return getChatType(report);
-    }
-
-    switch (report?.type) {
-        case CONST.REPORT.TYPE.EXPENSE:
-            return CONST.REPORT.HELP_TYPE.EXPENSE_REPORT;
-        case CONST.REPORT.TYPE.CHAT:
-            return CONST.REPORT.HELP_TYPE.CHAT;
-        case CONST.REPORT.TYPE.IOU:
-            return CONST.REPORT.HELP_TYPE.IOU;
-        case CONST.REPORT.TYPE.INVOICE:
-            return CONST.REPORT.HELP_TYPE.INVOICE;
-        case CONST.REPORT.TYPE.TASK:
-            return CONST.REPORT.HELP_TYPE.TASK;
-        default:
-            return undefined;
-    }
-}
-
-/**
  * Checks if a report contains only Non-Reimbursable transactions
  */
 function hasOnlyNonReimbursableTransactions(iouReportID: string | undefined): boolean {
@@ -13574,7 +13542,6 @@ export {
     canBeExported,
     isExported,
     hasExportError,
-    getHelpPaneReportType,
     hasOnlyNonReimbursableTransactions,
     getReportLastMessage,
     getReportLastVisibleActionCreated,
