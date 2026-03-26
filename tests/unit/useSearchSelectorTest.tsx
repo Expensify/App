@@ -227,7 +227,7 @@ describe('useSearchSelector sortedActions integration', () => {
         expect(latestCallConfig?.sortedActions).toEqual(updatedData.sortedActions);
     });
 
-    it('does not pass sortedActions to getSearchOptions for SEARCH context', async () => {
+    it('passes sortedActions to getSearchOptions for SEARCH context', async () => {
         const mockData = buildMockSortedActions(['1']);
 
         await act(async () => {
@@ -246,6 +246,6 @@ describe('useSearchSelector sortedActions integration', () => {
         expect(mockGetSearchOptions).toHaveBeenCalled();
         const lastSearchCall = mockGetSearchOptions.mock.calls.at(-1);
         const searchConfig = lastSearchCall?.[0];
-        expect(searchConfig).not.toHaveProperty('sortedActions');
+        expect(searchConfig).toHaveProperty('sortedActions');
     });
 });

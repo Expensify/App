@@ -819,6 +819,7 @@ describe('OptionsListUtils', () => {
                 currentUserEmail: CURRENT_USER_EMAIL,
                 policyCollection: allPolicies,
                 personalDetails: PERSONAL_DETAILS,
+                sortedActions: undefined,
             });
 
             // Then all personal details (including those that have reports) should be returned
@@ -848,6 +849,7 @@ describe('OptionsListUtils', () => {
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 currentUserEmail: CURRENT_USER_EMAIL,
                 personalDetails: PERSONAL_DETAILS,
+                sortedActions: undefined,
             });
 
             // Then the current user should be included in personalDetails
@@ -879,6 +881,7 @@ describe('OptionsListUtils', () => {
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 currentUserEmail: CURRENT_USER_EMAIL,
                 personalDetails: PERSONAL_DETAILS,
+                sortedActions: undefined,
             });
 
             // Then the current user should not be included in personalDetails
@@ -908,6 +911,7 @@ describe('OptionsListUtils', () => {
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 currentUserEmail: CURRENT_USER_EMAIL,
                 personalDetails: PERSONAL_DETAILS,
+                sortedActions: undefined,
             });
 
             // Then recent reports should include the workspace room
@@ -937,6 +941,7 @@ describe('OptionsListUtils', () => {
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 currentUserEmail: CURRENT_USER_EMAIL,
                 personalDetails: PERSONAL_DETAILS,
+                sortedActions: undefined,
             });
 
             // Then it should still return personal details
@@ -965,6 +970,7 @@ describe('OptionsListUtils', () => {
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 currentUserEmail: CURRENT_USER_EMAIL,
                 personalDetails: PERSONAL_DETAILS,
+                sortedActions: undefined,
             });
 
             // Then it should still return personal details
@@ -2114,6 +2120,7 @@ describe('OptionsListUtils', () => {
                 currentUserEmail: CURRENT_USER_EMAIL,
                 policyCollection: allPolicies,
                 personalDetails: PERSONAL_DETAILS,
+                sortedActions: undefined,
             });
             // When we pass the returned options to filterAndOrderOptions with an empty search value
             const filteredOptions = filterAndOrderOptions(options, '', COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS);
@@ -2137,6 +2144,7 @@ describe('OptionsListUtils', () => {
                 currentUserEmail: CURRENT_USER_EMAIL,
                 policyCollection: allPolicies,
                 personalDetails: PERSONAL_DETAILS,
+                sortedActions: undefined,
             });
             // When we pass the returned options to filterAndOrderOptions with a search value and sortByReportTypeInSearch param
             const filteredOptions = filterAndOrderOptions(options, searchText, COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS, {
@@ -2169,6 +2177,7 @@ describe('OptionsListUtils', () => {
                 currentUserEmail: CURRENT_USER_EMAIL,
                 policyCollection: allPolicies,
                 personalDetails: PERSONAL_DETAILS,
+                sortedActions: undefined,
             });
             // When we pass the returned options to filterAndOrderOptions with a search value
             const filteredOptions = filterAndOrderOptions(options, searchText, COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS);
@@ -2198,6 +2207,7 @@ describe('OptionsListUtils', () => {
                 currentUserEmail: CURRENT_USER_EMAIL,
                 policyCollection: allPolicies,
                 personalDetails: PERSONAL_DETAILS,
+                sortedActions: undefined,
             });
             // When we pass the returned options to filterAndOrderOptions with a search value
             const filteredOptions = filterAndOrderOptions(options, searchText, COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS);
@@ -2224,6 +2234,7 @@ describe('OptionsListUtils', () => {
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 currentUserEmail: CURRENT_USER_EMAIL,
                 personalDetails: PERSONAL_DETAILS_WITH_PERIODS,
+                sortedActions: undefined,
             });
             // When we pass the returned options to filterAndOrderOptions with a search value and sortByReportTypeInSearch param
             const filteredOptions = filterAndOrderOptions(options, searchText, COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS_WITH_PERIODS, {
@@ -2250,6 +2261,7 @@ describe('OptionsListUtils', () => {
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 currentUserEmail: CURRENT_USER_EMAIL,
                 personalDetails: PERSONAL_DETAILS,
+                sortedActions: undefined,
             });
             // When we pass the returned options to filterAndOrderOptions with a search value
             const filteredOptions = filterAndOrderOptions(options, searchText, COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS);
@@ -2274,6 +2286,7 @@ describe('OptionsListUtils', () => {
                 currentUserEmail: CURRENT_USER_EMAIL,
                 policyCollection: allPolicies,
                 personalDetails: PERSONAL_DETAILS,
+                sortedActions: undefined,
             });
             // When we pass the returned options to filterAndOrderOptions with a search value
             const filteredOptions = filterAndOrderOptions(options, searchText, COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS);
@@ -2307,6 +2320,7 @@ describe('OptionsListUtils', () => {
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 currentUserEmail: CURRENT_USER_EMAIL,
                 personalDetails: PERSONAL_DETAILS,
+                sortedActions: undefined,
             });
             // When we pass the returned options to filterAndOrderOptions with a search value
             const filterOptions = filterAndOrderOptions(options, searchText, COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS);
@@ -2331,6 +2345,7 @@ describe('OptionsListUtils', () => {
                 currentUserEmail: CURRENT_USER_EMAIL,
                 policyCollection: allPolicies,
                 personalDetails: PERSONAL_DETAILS,
+                sortedActions: undefined,
             });
             // When we call filterAndOrderOptions with a search value
             const filteredOptions = filterAndOrderOptions(options, searchText, COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS);
@@ -2356,6 +2371,7 @@ describe('OptionsListUtils', () => {
                 currentUserEmail: CURRENT_USER_EMAIL,
                 policyCollection: allPolicies,
                 personalDetails: PERSONAL_DETAILS,
+                sortedActions: undefined,
             });
             // When we call filterAndOrderOptions with a search value
             const filteredOptions = filterAndOrderOptions(options, searchText, COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS);
@@ -2401,6 +2417,7 @@ describe('OptionsListUtils', () => {
                 currentUserEmail: CURRENT_USER_EMAIL,
                 policyCollection: allPolicies,
                 personalDetails: PERSONAL_DETAILS,
+                sortedActions: undefined,
             });
             // When we call filterAndOrderOptions with a search value and excludeLogins
             const filteredOptions = filterAndOrderOptions(options, searchText, COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS, {
@@ -2424,6 +2441,7 @@ describe('OptionsListUtils', () => {
                 currentUserEmail: CURRENT_USER_EMAIL,
                 policyCollection: allPolicies,
                 personalDetails: PERSONAL_DETAILS,
+                sortedActions: undefined,
             });
             // When we call filterAndOrderOptions with a search value and maxRecentReportsToShow set to 2
             const filteredOptions = filterAndOrderOptions(options, searchText, COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS, {
@@ -2457,6 +2475,7 @@ describe('OptionsListUtils', () => {
                 currentUserEmail: CURRENT_USER_EMAIL,
                 policyCollection: allPolicies,
                 personalDetails: PERSONAL_DETAILS,
+                sortedActions: undefined,
             });
             // When we call filterAndOrderOptions with a search value
             const filteredOptions = filterAndOrderOptions(options, searchText, COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS);
@@ -2646,6 +2665,7 @@ describe('OptionsListUtils', () => {
                 personalDetails: PERSONAL_DETAILS,
                 searchQuery: 'Spider-Man',
                 policyCollection: allPolicies,
+                sortedActions: undefined,
             });
 
             // Then one report should be returned
@@ -2687,6 +2707,7 @@ describe('OptionsListUtils', () => {
                 personalDetails: PERSONAL_DETAILS,
                 searchQuery: 'peterparker@expensify.com',
                 policyCollection: allPolicies,
+                sortedActions: undefined,
             });
 
             // Then one report should be returned
@@ -2728,6 +2749,7 @@ describe('OptionsListUtils', () => {
                 personalDetails: PERSONAL_DETAILS,
                 searchQuery: 'Black Panther',
                 policyCollection: allPolicies,
+                sortedActions: undefined,
             });
 
             // Then one report should be returned
@@ -2769,6 +2791,7 @@ describe('OptionsListUtils', () => {
                 personalDetails: PERSONAL_DETAILS,
                 searchQuery: 'Wolverine',
                 policyCollection: allPolicies,
+                sortedActions: undefined,
             });
 
             // Then no reports should be returned
@@ -2812,6 +2835,7 @@ describe('OptionsListUtils', () => {
                 currentUserEmail: CURRENT_USER_EMAIL,
                 personalDetails: PERSONAL_DETAILS,
                 policyCollection: allPolicies,
+                sortedActions: undefined,
             });
 
             // When we pass the returned options to filterAndOrderOptions with any search value
@@ -3121,6 +3145,7 @@ describe('OptionsListUtils', () => {
                 currentUserEmail: CURRENT_USER_EMAIL,
                 policyCollection: allPolicies,
                 personalDetails: PERSONAL_DETAILS,
+                sortedActions: undefined,
             });
             // When we call filterAndOrderOptions with a search value that matches a personal detail
             const filteredOptions = filterAndOrderOptions(options, 'spider', COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS);
@@ -3143,6 +3168,7 @@ describe('OptionsListUtils', () => {
                 currentUserEmail: CURRENT_USER_EMAIL,
                 policyCollection: allPolicies,
                 personalDetails: PERSONAL_DETAILS,
+                sortedActions: undefined,
             });
             // When we call filterAndOrderOptions with a search value that matches multiple items
             const filteredOptions = filterAndOrderOptions(options, 'fantastic', COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS);
@@ -3169,6 +3195,7 @@ describe('OptionsListUtils', () => {
                         currentUserEmail: CURRENT_USER_EMAIL,
                         policyCollection: allPolicies,
                         personalDetails: PERSONAL_DETAILS_WITH_PERIODS,
+                        sortedActions: undefined,
                     });
                     // When we pass the returned options to filterAndOrderOptions with a search value
                     const filteredResults = filterAndOrderOptions(
@@ -3209,6 +3236,7 @@ describe('OptionsListUtils', () => {
                 currentUserEmail: CURRENT_USER_EMAIL,
                 policyCollection: allPolicies,
                 personalDetails: PERSONAL_DETAILS,
+                sortedActions: undefined,
             });
             // When we call filterAndOrderOptions with a an empty search value
             const filteredOptions = filterAndOrderOptions(options, '', COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS);
@@ -3235,6 +3263,7 @@ describe('OptionsListUtils', () => {
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 currentUserEmail: CURRENT_USER_EMAIL,
                 personalDetails: PERSONAL_DETAILS,
+                sortedActions: undefined,
             });
             // When we call filterAndOrderOptions with a search value
             const filteredOptions = filterAndOrderOptions(options, searchTerm, COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS);
@@ -6558,9 +6587,29 @@ describe('OptionsListUtils', () => {
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 currentUserEmail: CURRENT_USER_EMAIL,
                 personalDetails: PERSONAL_DETAILS,
+                sortedActions: undefined,
             });
 
             // Then the function should complete without errors and return valid results
+            expect(options).toBeDefined();
+            expect(options.recentReports).toBeDefined();
+            expect(options.personalDetails).toBeDefined();
+        });
+
+        it('getSearchOptions should forward sortedActions to getValidOptions', () => {
+            const sortedActions = {};
+            const options = getSearchOptions({
+                options: OPTIONS,
+                draftComments: {},
+                nvpDismissedProductTraining,
+                loginList,
+                policyCollection: {},
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                currentUserEmail: CURRENT_USER_EMAIL,
+                personalDetails: PERSONAL_DETAILS,
+                sortedActions,
+            });
+
             expect(options).toBeDefined();
             expect(options.recentReports).toBeDefined();
             expect(options.personalDetails).toBeDefined();

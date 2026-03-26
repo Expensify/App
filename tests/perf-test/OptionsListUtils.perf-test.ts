@@ -141,6 +141,7 @@ describe('OptionsListUtils', () => {
                 currentUserEmail: MOCK_CURRENT_USER_EMAIL,
                 policyCollection: allPolicies,
                 personalDetails,
+                sortedActions: undefined,
             }),
         );
     });
@@ -308,6 +309,7 @@ describe('OptionsListUtils', () => {
                 policyCollection: allPolicies,
                 personalDetails,
                 maxResults: 20,
+                sortedActions: undefined,
             }),
         );
     });
