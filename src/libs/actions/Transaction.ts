@@ -1045,9 +1045,7 @@ function changeTransactionsReport({
             created: oldIOUAction?.created ?? DateUtils.getDBTime(),
         };
 
-        const {comment, modifiedAmount, modifiedCurrency, modifiedMerchant} = isUnreported
-            ? recalculateUnreportedTransactionDetails(transaction, destinationCurrency, translate, toLocaleDigit)
-            : {};
+        const {comment} = isUnreported ? recalculateUnreportedTransactionDetails() : {};
 
         // 1. Optimistically change the reportID on the passed transactions
         // Only set pendingAction for transactions that need convertedAmount recalculation
@@ -1057,9 +1055,6 @@ function changeTransactionsReport({
             value: {
                 reportID,
                 comment,
-                modifiedAmount,
-                modifiedCurrency,
-                modifiedMerchant,
                 ...(shouldClearAmount && {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
                 ...(shouldClearAmount && {convertedAmount: null}),
                 ...(oldIOUAction ? {linkedTrackedExpenseReportAction: newIOUAction} : {}),
@@ -1081,9 +1076,6 @@ function changeTransactionsReport({
             value: {
                 reportID: transaction.reportID,
                 comment: transaction.comment,
-                modifiedAmount: transaction.modifiedAmount,
-                modifiedCurrency: transaction.modifiedCurrency,
-                modifiedMerchant: transaction.modifiedMerchant,
                 ...(shouldClearAmount && {pendingAction: transaction.pendingAction ?? null}),
                 ...(shouldClearAmount && {convertedAmount: transaction.convertedAmount}),
             },
@@ -1175,29 +1167,18 @@ function changeTransactionsReport({
 
         // 3. Keep track of the new report totals
         const targetReportID = isUnreported ? selfDMReportID : reportID;
-        const {amount: oldTransactionAmount = 0, currency: oldTransactionCurrency} = getTransactionDetails(transaction, undefined, undefined, allowNegative) ?? {};
-        const {amount: newTransactionAmount = 0, currency: newTransactionCurrency} =
-            getTransactionDetails(
-                {
-                    ...transaction,
-                    modifiedAmount: modifiedAmount ?? transaction.modifiedAmount,
-                    modifiedCurrency: modifiedCurrency ?? transaction.modifiedCurrency,
-                },
-                undefined,
-                undefined,
-                allowNegative,
-            ) ?? {};
+        const {amount: transactionAmount = 0, currency: transactionCurrency} = getTransactionDetails(transaction, undefined, undefined, allowNegative) ?? {};
         const oldReportTotal = oldReport?.total ?? 0;
-        const updatedReportTotal = oldTransactionAmount < 0 ? oldReportTotal - oldTransactionAmount : oldReportTotal + oldTransactionAmount;
+        const updatedReportTotal = transactionAmount < 0 ? oldReportTotal - transactionAmount : oldReportTotal + transactionAmount;
 
-        if (oldReport && oldReport.currency === oldTransactionCurrency) {
+        if (oldReport && oldReport.currency === transactionCurrency) {
             updatedReportTotals[oldReportID] = updatedReportTotals[oldReportID] ? updatedReportTotals[oldReportID] : updatedReportTotal;
             updatedReportNonReimbursableTotals[oldReportID] =
                 (updatedReportNonReimbursableTotals[oldReportID] ? updatedReportNonReimbursableTotals[oldReportID] : (oldReport?.nonReimbursableTotal ?? 0)) +
-                (transaction?.reimbursable ? 0 : oldTransactionAmount);
+                (transaction?.reimbursable ? 0 : transactionAmount);
             updatedReportUnheldNonReimbursableTotals[oldReportID] =
                 (updatedReportUnheldNonReimbursableTotals[oldReportID] ? updatedReportUnheldNonReimbursableTotals[oldReportID] : (oldReport?.unheldNonReimbursableTotal ?? 0)) +
-                (transaction?.reimbursable && !isOnHold(transaction) ? 0 : oldTransactionAmount);
+                (transaction?.reimbursable && !isOnHold(transaction) ? 0 : transactionAmount);
         }
 
         if (targetReportID) {
@@ -1205,15 +1186,15 @@ function changeTransactionsReport({
             const targetReport =
                 allReports?.[targetReportKey] ?? (targetReportID === newReport?.reportID ? newReport : undefined) ?? (targetReportID === selfDMReport?.reportID ? selfDMReport : undefined);
 
-            if (newTransactionCurrency === targetReport?.currency) {
+            if (transactionCurrency === targetReport?.currency) {
                 const currentTotal = updatedReportTotals[targetReportID] ?? targetReport?.total ?? 0;
-                updatedReportTotals[targetReportID] = currentTotal - newTransactionAmount;
+                updatedReportTotals[targetReportID] = currentTotal - transactionAmount;
 
                 const currentNonReimbursableTotal = updatedReportNonReimbursableTotals[targetReportID] ?? targetReport?.nonReimbursableTotal ?? 0;
-                updatedReportNonReimbursableTotals[targetReportID] = currentNonReimbursableTotal - (transactionReimbursable ? 0 : newTransactionAmount);
+                updatedReportNonReimbursableTotals[targetReportID] = currentNonReimbursableTotal - (transactionReimbursable ? 0 : transactionAmount);
 
                 const currentUnheldNonReimbursableTotal = updatedReportUnheldNonReimbursableTotals[targetReportID] ?? targetReport?.unheldNonReimbursableTotal ?? 0;
-                updatedReportUnheldNonReimbursableTotals[targetReportID] = currentUnheldNonReimbursableTotal - (transactionReimbursable && !isOnHold(transaction) ? 0 : newTransactionAmount);
+                updatedReportUnheldNonReimbursableTotals[targetReportID] = currentUnheldNonReimbursableTotal - (transactionReimbursable && !isOnHold(transaction) ? 0 : transactionAmount);
             } else if (!shouldClearAmount && transaction.convertedAmount && oldReport?.currency === targetReport?.currency) {
                 // Use convertedAmount when transaction currency differs but workspace currency is the same
                 const {convertedAmount} = transaction;

@@ -5736,18 +5736,13 @@ function deleteAppReport({
             const transaction = reportTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
             const transactionViolations = allTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`] ?? [];
 
-            const {comment, modifiedAmount, modifiedCurrency, modifiedMerchant} = recalculateUnreportedTransactionDetails(
-                transaction,
-                personalPolicy?.outputCurrency,
-                translate,
-                toLocaleDigit,
-            );
+            const {comment} = recalculateUnreportedTransactionDetails();
 
             optimisticData.push(
                 {
                     onyxMethod: Onyx.METHOD.MERGE,
                     key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
-                    value: {reportID: CONST.REPORT.UNREPORTED_REPORT_ID, comment, modifiedAmount, modifiedCurrency, modifiedMerchant},
+                    value: {reportID: CONST.REPORT.UNREPORTED_REPORT_ID, comment},
                 },
                 {
                     onyxMethod: Onyx.METHOD.MERGE,
@@ -5763,9 +5758,6 @@ function deleteAppReport({
                     value: {
                         reportID: transaction?.reportID,
                         comment: transaction?.comment,
-                        modifiedAmount: transaction?.modifiedAmount,
-                        modifiedCurrency: transaction?.modifiedCurrency,
-                        modifiedMerchant: transaction?.modifiedMerchant,
                     },
                 },
                 {
