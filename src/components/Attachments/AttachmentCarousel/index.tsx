@@ -1,6 +1,6 @@
 import {deepEqual} from 'fast-equals';
 import React, {useCallback, useEffect, useState} from 'react';
-import {StyleSheet, View} from 'react-native';
+import {View} from 'react-native';
 import ActivityIndicator from '@components/ActivityIndicator';
 import type {Attachment} from '@components/Attachments/types';
 import useOnyx from '@hooks/useOnyx';
@@ -102,12 +102,10 @@ function AttachmentCarousel({
     if (page == null) {
         return (
             <View style={[styles.flex1, styles.attachmentCarouselContainer]}>
-                <View style={[StyleSheet.absoluteFill, styles.fullScreenLoading, styles.w100]}>
-                    <ActivityIndicator
-                        size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
-                        reasonAttributes={{context: 'AttachmentCarousel'}}
-                    />
-                </View>
+                <ActivityIndicator
+                    size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
+                    reasonAttributes={{context: 'AttachmentCarousel'}}
+                />
             </View>
         );
     }
