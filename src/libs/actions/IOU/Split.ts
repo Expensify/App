@@ -1,6 +1,6 @@
 import {eachDayOfInterval, format, parse} from 'date-fns';
 import {InteractionManager} from 'react-native';
-import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {SearchActionsContextValue, SearchStateContextValue} from '@components/Search/types';
@@ -1594,12 +1594,16 @@ function updateSplitTransactions({
         }
 
         const originalTransactionThreadReportID = splits.at(0)?.transactionThreadReportID;
-        if (splitThreadUserComments.length > 0 && originalTransactionThreadReportID && splitTransactionThreadReportID) {
+        const iouActionReportActionID = splits.at(0)?.splitReportActionID;
+        if (splitThreadUserComments.length > 0 && originalTransactionThreadReportID && splitTransactionThreadReportID && iouActionReportActionID && expenseReportID) {
             const optimisticMovedComments: Record<string, OnyxTypes.ReportAction> = {};
             const optimisticRemovedComments: Record<string, null> = {};
             const successMovedComments: Record<string, Partial<OnyxTypes.ReportAction>> = {};
             const failureMovedCommentsRemoval: Record<string, null> = {};
             const failureRestoredComments: Record<string, OnyxTypes.ReportAction> = {};
+
+            const commenterAccountIDs = new Set<number>();
+            let latestCommentCreated = '';
 
             for (const comment of splitThreadUserComments) {
                 optimisticMovedComments[comment.reportActionID] = {
@@ -1611,6 +1615,13 @@ function updateSplitTransactions({
                 successMovedComments[comment.reportActionID] = {pendingAction: null};
                 failureMovedCommentsRemoval[comment.reportActionID] = null;
                 failureRestoredComments[comment.reportActionID] = comment;
+
+                if (comment.actorAccountID && comment.actorAccountID > 0) {
+                    commenterAccountIDs.add(comment.actorAccountID);
+                }
+                if (comment.created && comment.created > latestCommentCreated) {
+                    latestCommentCreated = comment.created;
+                }
             }
 
             onyxData.optimisticData?.push(
@@ -1623,6 +1634,18 @@ function updateSplitTransactions({
                     onyxMethod: Onyx.METHOD.MERGE,
                     key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${splitTransactionThreadReportID}`,
                     value: optimisticRemovedComments,
+                },
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReportID}`,
+                    value: {
+                        [iouActionReportActionID]: {
+                            childVisibleActionCount: splitThreadUserComments.length,
+                            childCommenterCount: commenterAccountIDs.size,
+                            childLastVisibleActionCreated: latestCommentCreated,
+                            childOldestFourAccountIDs: [...commenterAccountIDs].slice(0, 4).join(','),
+                        },
+                    },
                 },
             );
 
@@ -1642,6 +1665,18 @@ function updateSplitTransactions({
                     onyxMethod: Onyx.METHOD.MERGE,
                     key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${splitTransactionThreadReportID}`,
                     value: failureRestoredComments,
+                },
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReportID}`,
+                    value: {
+                        [iouActionReportActionID]: {
+                            childVisibleActionCount: 0,
+                            childCommenterCount: 0,
+                            childLastVisibleActionCreated: '',
+                            childOldestFourAccountIDs: '',
+                        },
+                    },
                 },
             );
         }
