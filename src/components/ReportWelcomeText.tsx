@@ -119,6 +119,7 @@ function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
         translate,
         localeCompare,
         conciergeReportID,
+        reportAttributes,
         isReportArchived,
         reportDetailsLink,
         shouldShowUsePlusButtonText,
