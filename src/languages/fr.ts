@@ -5141,6 +5141,7 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                 flipAmountSign: 'Inverser le signe du montant',
                 importButton: 'Importer des transactions',
             },
+            assignNewCards: {title: 'Assigner de nouvelles cartes', description: 'Obtenez les dernières cartes à assigner depuis votre banque'},
         },
         expensifyCard: {
             issueAndManageCards: 'Émettre et gérer vos Cartes Expensify',
