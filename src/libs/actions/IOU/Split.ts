@@ -1090,7 +1090,7 @@ function updateSplitTransactions({
     const isReverseSplitOperation =
         splitExpenses.length === 1 && originalChildTransactions.length > 0 && hasEditableSplitExpensesLeft && allChildTransactions.length === originalChildTransactions.length;
 
-    let splitThreadUserComments: OnyxTypes.ReportAction[] = [];
+    let splitThreadComments: OnyxTypes.ReportAction[] = [];
     let splitTransactionThreadReportID: string | undefined;
 
     if (isReverseSplitOperation) {
@@ -1101,7 +1101,7 @@ function updateSplitTransactions({
         splitTransactionThreadReportID = revertSplitIOUAction?.childReportID;
         if (splitTransactionThreadReportID) {
             const splitTransactionThreadActions = getAllReportActions(splitTransactionThreadReportID);
-            splitThreadUserComments = Object.values(splitTransactionThreadActions).filter(
+            splitThreadComments = Object.values(splitTransactionThreadActions).filter(
                 (action): action is OnyxTypes.ReportAction => isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT) && !isDeletedAction(action) && (action.actorAccountID ?? 0) > 0,
             );
         }
@@ -1292,7 +1292,7 @@ function updateSplitTransactions({
             currentUserEmailParam: currentUserPersonalDetails?.login ?? '',
             transactionViolations,
             quickAction,
-            shouldGenerateTransactionThreadReport: !isReverseSplitOperation || splitThreadUserComments.length > 0,
+            shouldGenerateTransactionThreadReport: !isReverseSplitOperation || splitThreadComments.length > 0,
             policyRecentlyUsedCurrencies,
             betas,
             personalDetails,
@@ -1602,7 +1602,7 @@ function updateSplitTransactions({
 
         const originalTransactionThreadReportID = splits.at(0)?.transactionThreadReportID;
         const iouActionReportActionID = splits.at(0)?.splitReportActionID;
-        if (splitThreadUserComments.length > 0 && originalTransactionThreadReportID && splitTransactionThreadReportID && iouActionReportActionID && expenseReportID) {
+        if (splitThreadComments.length > 0 && originalTransactionThreadReportID && splitTransactionThreadReportID && iouActionReportActionID && expenseReportID) {
             const optimisticMovedComments: Record<string, OnyxTypes.ReportAction> = {};
             const optimisticRemovedComments: Record<string, null> = {};
             const successMovedComments: OnyxCollection<NullishDeep<OnyxTypes.ReportAction>> = {};
@@ -1612,7 +1612,7 @@ function updateSplitTransactions({
             const commenterAccountIDs = new Set<number>();
             let latestCommentCreated = '';
 
-            for (const comment of splitThreadUserComments) {
+            for (const comment of splitThreadComments) {
                 optimisticMovedComments[comment.reportActionID] = {
                     ...comment,
                     reportID: originalTransactionThreadReportID,
@@ -1647,7 +1647,7 @@ function updateSplitTransactions({
                     key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReportID}`,
                     value: {
                         [iouActionReportActionID]: {
-                            childVisibleActionCount: splitThreadUserComments.length,
+                            childVisibleActionCount: splitThreadComments.length,
                             childCommenterCount: commenterAccountIDs.size,
                             childLastVisibleActionCreated: latestCommentCreated,
                             childOldestFourAccountIDs: [...commenterAccountIDs].slice(0, 4).join(','),
