@@ -5,7 +5,7 @@ import type {ValueOf} from 'type-fest';
 import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 import type CONST from '@src/CONST';
 import type {OptionData} from '@src/libs/ReportUtils';
-import type {Locale, Onboarding, OnboardingPurpose, PersonalDetailsList, Policy, Report, ReportAction, ReportActions, ReportNameValuePairs, Transaction} from '@src/types/onyx';
+import type {Onboarding, OnboardingPurpose, PersonalDetailsList, Policy, Report, ReportAction, ReportNameValuePairs} from '@src/types/onyx';
 import type {ReportAttributes, ReportAttributesDerivedValue} from '@src/types/onyx/DerivedValues';
 
 type OptionMode = ValueOf<typeof CONST.OPTION_MODE>;
@@ -42,12 +42,6 @@ type OptionRowLHNDataProps = {
     /** List of users' personal details */
     personalDetails?: PersonalDetailsList;
 
-    /** The preferred language for the app */
-    preferredLocale?: OnyxEntry<Locale>;
-
-    /** The active policy ID */
-    activePolicyID?: string;
-
     /** The onboarding purpose */
     onboardingPurpose?: OnboardingPurpose;
 
@@ -78,14 +72,11 @@ type OptionRowLHNDataProps = {
     /** The action from the parent report */
     parentReportAction?: OnyxEntry<ReportAction>;
 
-    /** The transaction from the parent report action */
-    transaction: OnyxEntry<Transaction>;
+    /** Whether a report contains a draft */
+    hasDraftComment: boolean;
 
     /** The reportID of the report */
     reportID: string;
-
-    /** Array of report actions for this report */
-    reportActions: OnyxEntry<ReportActions>;
 
     /** Toggle between compact and default view */
     viewMode?: OptionMode;

@@ -23,7 +23,6 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getPlatform from '@libs/getPlatform';
 import Log from '@libs/Log';
-import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
@@ -51,8 +50,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
     const [reportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
     const [policy] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
-    const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
-    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
+    const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [onboarding] = useOnyx(ONYXKEYS.NVP_ONBOARDING);
     const [isFullscreenVisible] = useOnyx(ONYXKEYS.FULLSCREEN_VISIBILITY);
@@ -60,7 +58,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
 
     const theme = useTheme();
     const styles = useThemeStyles();
-    const {translate, preferredLocale, localeCompare} = useLocalize();
+    const {translate, localeCompare} = useLocalize();
     const isReportsSplitNavigatorLast = useRootNavigationState((state) => state?.routes?.at(-1)?.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR);
     const shouldShowEmptyLHN = data.length === 0;
     const estimatedItemSize = optionMode === CONST.OPTION_MODE.COMPACT ? variables.optionRowHeightCompact : variables.optionRowHeight;
@@ -160,7 +158,6 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
             const itemReportAttributes = reportAttributes?.[reportID];
             const itemParentReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${item.parentReportID}`];
             const itemReportNameValuePairs = reportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`];
-            const itemReportActions = reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`];
             const itemOneTransactionThreadReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${itemReportAttributes?.oneTransactionThreadReportID}`];
             const itemParentReportActions = reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${item?.parentReportID}`];
             const itemParentReportAction = item?.parentReportActionID ? itemParentReportActions?.[item?.parentReportActionID] : undefined;
@@ -175,10 +172,9 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
             const itemInvoiceReceiverPolicy = policy?.[`${ONYXKEYS.COLLECTION.POLICY}${invoiceReceiverPolicyID}`];
 
             const itemPolicy = policy?.[`${ONYXKEYS.COLLECTION.POLICY}${item?.policyID}`];
-            const transactionID = isMoneyRequestAction(itemParentReportAction)
-                ? (getOriginalMessage(itemParentReportAction)?.IOUTransactionID ?? CONST.DEFAULT_NUMBER_ID)
-                : CONST.DEFAULT_NUMBER_ID;
-            const itemTransaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
+            const hasDraftComment =
+                !!draftComments?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`] &&
+                !draftComments?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`]?.match(CONST.REGEX.EMPTY_COMMENT);
             const shouldShowRBRorGBRTooltip = firstReportIDWithGBRorRBR === reportID;
 
             return (
@@ -189,19 +185,16 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
                     reportAttributesDerived={reportAttributes}
                     oneTransactionThreadReport={itemOneTransactionThreadReport}
                     reportNameValuePairs={itemReportNameValuePairs}
-                    reportActions={itemReportActions}
                     parentReportAction={itemParentReportAction}
                     policy={itemPolicy}
                     invoiceReceiverPolicy={itemInvoiceReceiverPolicy}
                     personalDetails={personalDetails ?? {}}
-                    transaction={itemTransaction}
                     viewMode={optionMode}
                     isOptionFocused={!shouldDisableFocusOptions}
                     onSelectRow={onSelectRow}
-                    preferredLocale={preferredLocale}
+                    hasDraftComment={hasDraftComment}
                     onLayout={onLayoutItem}
                     shouldShowRBRorGBRTooltip={shouldShowRBRorGBRTooltip}
-                    activePolicyID={activePolicyID}
                     onboardingPurpose={introSelected?.choice}
                     onboarding={onboarding}
                     isFullscreenVisible={isFullscreenVisible}
@@ -220,16 +213,14 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
             reportNameValuePairs,
             reportActions,
             policy,
-            transactions,
+            draftComments,
             personalDetails,
             firstReportIDWithGBRorRBR,
             isFullscreenVisible,
             optionMode,
             shouldDisableFocusOptions,
             onSelectRow,
-            preferredLocale,
             onLayoutItem,
-            activePolicyID,
             introSelected?.choice,
             onboarding,
             isReportsSplitNavigatorLast,
@@ -250,23 +241,21 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
             personalDetails,
             data.length,
             optionMode,
-            preferredLocale,
-            transactions,
+            draftComments,
             isOffline,
             isScreenFocused,
             isReportsSplitNavigatorLast,
         ],
         [
             reportActions,
-            reports,
             reportAttributes,
+            reports,
             reportNameValuePairs,
             policy,
             personalDetails,
             data.length,
             optionMode,
-            preferredLocale,
-            transactions,
+            draftComments,
             isOffline,
             isScreenFocused,
             isReportsSplitNavigatorLast,
