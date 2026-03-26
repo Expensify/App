@@ -586,6 +586,53 @@ describe('useSelectedTransactionsActions', () => {
         expect(moveOption?.text).toBe('iou.moveExpenses');
     });
 
+    it('should forward transaction when calling canEditFieldOfMoneyRequest for move eligibility', async () => {
+        const transactionID = '123';
+        const report = createRandomReport(1, undefined);
+        report.type = CONST.REPORT.TYPE.EXPENSE;
+        const reportActions: ReportAction[] = [
+            {
+                ...createRandomReportAction(1),
+                reportActionID: 'action1',
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                originalMessage: {
+                    IOUReportID: 'iou123',
+                    type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                    transactionID,
+                },
+            },
+        ];
+        const transaction = createRandomTransaction(1);
+        transaction.transactionID = transactionID;
+        transaction.reportID = report.reportID;
+
+        mockSelectedTransactionIDs.push(transactionID);
+
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction);
+
+        const canEditFieldSpy = jest.spyOn(require('@libs/ReportUtils'), 'canEditFieldOfMoneyRequest').mockReturnValue(true);
+        jest.spyOn(require('@libs/ReportUtils'), 'canUserPerformWriteAction').mockReturnValue(true);
+
+        const {result} = renderHook(() =>
+            useSelectedTransactionsActions({
+                report,
+                reportActions,
+                allTransactionsLength: 1,
+                beginExportWithTemplate: mockBeginExportWithTemplate,
+            }),
+        );
+
+        await waitFor(() => {
+            const moveOption = result.current.options.find((option) => option.value === 'MOVE');
+            expect(moveOption).toBeDefined();
+        });
+
+        // Verify canEditFieldOfMoneyRequest was called with the transaction in the object argument
+        const lastCall = canEditFieldSpy.mock.calls.at(canEditFieldSpy.mock.calls.length - 1)?.at(0) as Record<string, unknown>;
+        expect(lastCall.fieldToEdit).toBe(CONST.EDIT_REQUEST_FIELD.REPORT);
+        expect(lastCall.transaction).toEqual(expect.objectContaining({transactionID}));
+    });
+
     it('should show split option when transaction can be split', async () => {
         const transactionID = '123';
         const report = {
