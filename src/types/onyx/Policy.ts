@@ -927,6 +927,9 @@ type NetSuiteCustomSegment = {
 
     /** Whether we import this segment as a report field or tag */
     mapping: NetSuiteCustomFieldMapping;
+
+    /** Whether this is a custom segment or custom record */
+    segmentType?: string;
 };
 
 /** The custom form ID object */

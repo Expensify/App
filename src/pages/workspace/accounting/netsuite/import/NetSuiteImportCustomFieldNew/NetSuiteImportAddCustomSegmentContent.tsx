@@ -55,6 +55,7 @@ function NetSuiteImportAddCustomSegmentContent({policy, draftValues}: NetSuiteIm
                     internalID: values[INPUT_IDS.INTERNAL_ID],
                     scriptID: values[INPUT_IDS.SCRIPT_ID],
                     mapping: values[INPUT_IDS.MAPPING] ?? CONST.INTEGRATION_ENTITY_MAP_TYPES.TAG,
+                    segmentType: values[INPUT_IDS.SEGMENT_TYPE],
                 },
             ]);
             updateNetSuiteCustomSegments(
