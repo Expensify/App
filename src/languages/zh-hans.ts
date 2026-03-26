@@ -7103,6 +7103,7 @@ ${reportName}
                     [CONST.SEARCH.DATE_PRESETS.LAST_MONTH]: '上个月',
                     [CONST.SEARCH.DATE_PRESETS.THIS_MONTH]: '本月',
                     [CONST.SEARCH.DATE_PRESETS.YEAR_TO_DATE]: '本年度至今',
+                    [CONST.SEARCH.DATE_PRESETS.LAST_12_MONTHS]: '过去 12 个月',
                     [CONST.SEARCH.DATE_PRESETS.LAST_STATEMENT]: '上一期对账单',
                 },
             },
@@ -7199,6 +7200,10 @@ ${reportName}
         searchIn: '搜索范围',
         searchPlaceholder: '搜索内容',
         suggestions: '建议',
+        suggestionsAvailable: ({count}: {count: number}, query = '') => ({
+            one: `有可用建议${query ? `：${query}` : ''}。共${count}条结果。`,
+            other: (resultCount: number) => `有可用建议${query ? `：${query}` : ''}。共${resultCount}条结果。`,
+        }),
         exportSearchResults: {
             title: '创建导出',
             description: '哇，项目真不少！我们会把它们打包好，Concierge 很快就会给你发送一个文件。',
