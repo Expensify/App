@@ -5286,6 +5286,10 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
                             settlementAccountLabel: 'Konto rozliczeniowe',
                             settlementFrequencyLabel: 'Częstotliwość rozliczeń',
                             settlementFrequencyDescription: 'Jak często Expensify będzie pobierać środki z firmowego konta bankowego, aby rozliczyć ostatnie transakcje Expensify Travel.',
+                            monthlySpendLimitLabel: 'Monthly spend limit per member',
+                            monthlySpendLimitDescription: 'The maximum amount each member can spend on travel per month.',
+                            reduceLimitTitle: 'Reduce travel spend limit?',
+                            reduceLimitWarning: 'If you reduce the limit, members who have already spent more than this amount will be unable to make new travel bookings until next month.',
                         },
                     },
                     disableModal: {

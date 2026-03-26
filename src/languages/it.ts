@@ -5310,6 +5310,10 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
                             settlementFrequencyLabel: 'Frequenza di regolamento',
                             settlementFrequencyDescription:
                                 'Con quale frequenza Expensify preleverà dal tuo conto bancario aziendale per saldare le recenti transazioni di Expensify Travel.',
+                            monthlySpendLimitLabel: 'Monthly spend limit per member',
+                            monthlySpendLimitDescription: 'The maximum amount each member can spend on travel per month.',
+                            reduceLimitTitle: 'Reduce travel spend limit?',
+                            reduceLimitWarning: 'If you reduce the limit, members who have already spent more than this amount will be unable to make new travel bookings until next month.',
                         },
                     },
                     disableModal: {
