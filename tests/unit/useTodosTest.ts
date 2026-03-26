@@ -56,7 +56,7 @@ describe('useTodos', () => {
                 reportsToExport: [],
                 transactionsByReportID: {},
                 searchData: {
-                    submit: {data: {}, metadata: {count: 0, total: 0, currency: ''}},
+                    submit: {data: {[`${ONYXKEYS.COLLECTION.REPORT}report1`]: mockReport}, metadata: {count: 1, total: 0, currency: ''}},
                     approve: {data: {}, metadata: {count: 0, total: 0, currency: ''}},
                     pay: {data: {}, metadata: {count: 0, total: 0, currency: ''}},
                     export: {data: {}, metadata: {count: 0, total: 0, currency: ''}},
@@ -94,7 +94,10 @@ describe('useTodos', () => {
                     report1: [mockTransaction],
                 },
                 searchData: {
-                    submit: {data: {}, metadata: {count: 0, total: 0, currency: ''}},
+                    submit: {
+                        data: {[`${ONYXKEYS.COLLECTION.REPORT}report1`]: mockReport, [`${ONYXKEYS.COLLECTION.TRANSACTION}trans1`]: mockTransaction},
+                        metadata: {count: 1, total: -100, currency: 'USD'},
+                    },
                     approve: {data: {}, metadata: {count: 0, total: 0, currency: ''}},
                     pay: {data: {}, metadata: {count: 0, total: 0, currency: ''}},
                     export: {data: {}, metadata: {count: 0, total: 0, currency: ''}},
@@ -111,7 +114,7 @@ describe('useTodos', () => {
 
             const submitMetadata = result.current[CONST.SEARCH.SEARCH_KEYS.SUBMIT].metadata;
             expect(submitMetadata.count).toBe(1);
-            expect(submitMetadata.total).toBe(-100); // groupAmount is subtracted
+            expect(submitMetadata.total).toBe(-100);
             expect(submitMetadata.currency).toBe('USD');
         });
 
@@ -135,7 +138,10 @@ describe('useTodos', () => {
                     report1: [mockTransaction],
                 },
                 searchData: {
-                    submit: {data: {}, metadata: {count: 0, total: 0, currency: ''}},
+                    submit: {
+                        data: {[`${ONYXKEYS.COLLECTION.REPORT}report1`]: mockReport, [`${ONYXKEYS.COLLECTION.TRANSACTION}trans1`]: mockTransaction},
+                        metadata: {count: 1, total: 0, currency: ''},
+                    },
                     approve: {data: {}, metadata: {count: 0, total: 0, currency: ''}},
                     pay: {data: {}, metadata: {count: 0, total: 0, currency: ''}},
                     export: {data: {}, metadata: {count: 0, total: 0, currency: ''}},
@@ -181,7 +187,14 @@ describe('useTodos', () => {
                     report1: [mockTransaction1, mockTransaction2],
                 },
                 searchData: {
-                    submit: {data: {}, metadata: {count: 0, total: 0, currency: ''}},
+                    submit: {
+                        data: {
+                            [`${ONYXKEYS.COLLECTION.REPORT}report1`]: mockReport,
+                            [`${ONYXKEYS.COLLECTION.TRANSACTION}trans1`]: mockTransaction1,
+                            [`${ONYXKEYS.COLLECTION.TRANSACTION}trans2`]: mockTransaction2,
+                        },
+                        metadata: {count: 2, total: -125, currency: 'USD'},
+                    },
                     approve: {data: {}, metadata: {count: 0, total: 0, currency: ''}},
                     pay: {data: {}, metadata: {count: 0, total: 0, currency: ''}},
                     export: {data: {}, metadata: {count: 0, total: 0, currency: ''}},
