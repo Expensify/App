@@ -11,6 +11,7 @@ import Log from './libs/Log';
 import {endSpan} from './libs/telemetry/activeSpans';
 import ONYXKEYS from './ONYXKEYS';
 import type {Route} from './ROUTES';
+import {hasSeenTourSelector} from './selectors/Onboarding';
 import isLoadingOnyxValue from './types/utils/isLoadingOnyxValue';
 
 type DeepLinkHandlerProps = {
@@ -30,6 +31,7 @@ function DeepLinkHandler({onInitialUrl}: DeepLinkHandlerProps) {
     const [, sessionMetadata] = useOnyx(ONYXKEYS.SESSION);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const isAuthenticated = useIsAuthenticated();
 
@@ -48,7 +50,7 @@ function DeepLinkHandler({onInitialUrl}: DeepLinkHandlerProps) {
                 if (introSelected === undefined) {
                     Log.info('[Deep link] introSelected is undefined when processing initial URL', false, {url});
                 }
-                openReportFromDeepLink(url, allReports, isAuthenticated, conciergeReportID, introSelected, betas);
+                openReportFromDeepLink(url, allReports, isAuthenticated, conciergeReportID, introSelected, isSelfTourViewed, betas);
             } else {
                 Report.doneCheckingPublicRoom();
             }
@@ -65,14 +67,14 @@ function DeepLinkHandler({onInitialUrl}: DeepLinkHandlerProps) {
                 Log.info('[Deep link] introSelected is undefined when processing URL change', false, {url: state.url});
             }
             const isCurrentlyAuthenticated = hasAuthToken();
-            openReportFromDeepLink(state.url, allReports, isCurrentlyAuthenticated, conciergeReportID, introSelected, betas);
+            openReportFromDeepLink(state.url, allReports, isCurrentlyAuthenticated, conciergeReportID, introSelected, isSelfTourViewed, betas);
         });
 
         return () => {
             linkingChangeListener.current?.remove();
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps -- we only want this effect to re-run when conciergeReportID changes
-    }, [sessionMetadata?.status, conciergeReportID, introSelected, betas]);
+    }, [sessionMetadata?.status, conciergeReportID, introSelected, isSelfTourViewed, betas]);
 
     return null;
 }
