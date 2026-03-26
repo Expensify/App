@@ -6525,8 +6525,7 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
                 eReceiptsHint: `Le eReceipt vengono create automaticamente [per la maggior parte delle transazioni con carta in USD](${CONST.DEEP_DIVE_ERECEIPTS}).`,
                 attendeeTracking: 'Monitoraggio partecipanti',
                 attendeeTrackingHint: 'Tieni traccia del costo per persona per ogni spesa.',
-                prohibitedDefaultDescription:
-                    'Contrassegna tutte le ricevute in cui compaiono alcolici, gioco d’azzardo o altri articoli soggetti a restrizioni. Le spese con ricevute che includono queste voci richiederanno una revisione manuale.',
+                prohibitedDefaultDescription: 'Contrassegna le ricevute con queste voci di riga per una revisione manuale.',
                 prohibitedExpenses: 'Spese vietate',
                 alcohol: 'Alcol',
                 hotelIncidentals: 'Spese accessorie dell’hotel',

@@ -6454,8 +6454,7 @@ ${reportName}
                 eReceiptsHint: `eReceiptsは[ほとんどの米ドル建てクレジット取引に対して自動作成されます](${CONST.DEEP_DIVE_ERECEIPTS})。`,
                 attendeeTracking: '出席者の追跡',
                 attendeeTrackingHint: '各経費について、1人あたりの費用を追跡します。',
-                prohibitedDefaultDescription:
-                    'アルコール、ギャンブル、その他の制限対象品目が含まれている領収書にフラグを付けてください。これらの品目が記載された領収書の経費は、手動での確認が必要になります。',
+                prohibitedDefaultDescription: 'これらの明細項目を含むレシートにフラグを付けて、手動で確認します。',
                 prohibitedExpenses: '禁止経費',
                 alcohol: 'アルコール',
                 hotelIncidentals: 'ホテル付帯費用',
