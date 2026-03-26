@@ -1,3 +1,4 @@
+import {hasSeenTourSelector} from '@selectors/Onboarding';
 import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 import ConfirmModal from '@components/ConfirmModal';
@@ -8,7 +9,6 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {navigateToConciergeChat} from '@libs/actions/Report';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
-import {hasSeenTourSelector} from '@selectors/Onboarding';
 import {clearAddNewPersonalCardFlow} from '@userActions/PersonalCards';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
