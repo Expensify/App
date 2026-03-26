@@ -39,9 +39,10 @@ function ImportSpreadsheetConfirmModal({isVisible, closeImportPageAndModal, onMo
             confirmText: translate('common.buttonConfirm'),
             shouldShowCancelButton: false,
             shouldHandleNavigationBack,
-            onModalHide,
-        }).then(() => {
-            closeImportPageAndModal();
+            onModalHide: () => {
+                closeImportPageAndModal();
+                onModalHide?.();
+            },
         });
     }, [isVisible, titleText, promptText, closeImportPageAndModal, onModalHide, shouldHandleNavigationBack, showConfirmModal, translate, spreadsheet?.importFinalModal]);
 
