@@ -5,18 +5,7 @@ import type {ValueOf} from 'type-fest';
 import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 import type CONST from '@src/CONST';
 import type {OptionData} from '@src/libs/ReportUtils';
-import type {
-    Locale,
-    Onboarding,
-    OnboardingPurpose,
-    PersonalDetailsList,
-    Policy,
-    Report,
-    ReportAction,
-    ReportActions,
-    ReportNameValuePairs,
-    Transaction,
-} from '@src/types/onyx';
+import type {Locale, Onboarding, OnboardingPurpose, PersonalDetailsList, Policy, Report, ReportAction, ReportActions, ReportNameValuePairs, Transaction} from '@src/types/onyx';
 import type {ReportAttributes, ReportAttributesDerivedValue} from '@src/types/onyx/DerivedValues';
 
 type OptionMode = ValueOf<typeof CONST.OPTION_MODE>;
