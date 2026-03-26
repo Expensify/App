@@ -197,8 +197,13 @@ function BaseListItem<TItem extends ListItem>({
                     style={[
                         wrapperStyle,
                         isFocused &&
-                            shouldHighlightSelectedItem &&
-                            StyleUtils.getItemBackgroundColorStyle(!!item.isSelected, !!isFocused, !!item.isDisabled, theme.activeComponentBG, theme.hoverComponentBG),
+                            StyleUtils.getItemBackgroundColorStyle(
+                                shouldHighlightSelectedItem && !!item.isSelected,
+                                !!isFocused,
+                                !!item.isDisabled,
+                                theme.activeComponentBG,
+                                theme.hoverComponentBG,
+                            ),
                     ]}
                     fsClass={forwardedFSClass}
                 >
