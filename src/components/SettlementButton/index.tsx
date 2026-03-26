@@ -171,7 +171,7 @@ function SettlementButton({
         return formattedPaymentMethods.filter((ba) => (ba.accountData as AccountData)?.type === CONST.BANK_ACCOUNT.TYPE.PERSONAL);
     }
 
-    const checkForNecessaryAction = useCallback(() => {
+    const checkForNecessaryAction = useCallback((paymentType?: string) => {
         if (isDelegateAccessRestricted) {
             showDelegateNoAccessModal();
             return true;
@@ -182,7 +182,8 @@ function SettlementButton({
             return true;
         }
 
-        if (!isUserValidated) {
+        // Skip account validation check for manual "pay elsewhere" payments since they don't require a validated account
+        if (!isUserValidated && paymentType !== CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {
             handleUnvalidatedUserNavigation(chatReportID, reportID);
             return true;
         }
@@ -397,7 +398,7 @@ function SettlementButton({
                         value: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
                         shouldUpdateSelectedIndex: true,
                         onSelected: () => {
-                            if (checkForNecessaryAction()) {
+                            if (checkForNecessaryAction(CONST.IOU.PAYMENT_TYPE.ELSEWHERE)) {
                                 return;
                             }
                             onPress({paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE, payAsBusiness});
@@ -506,7 +507,7 @@ function SettlementButton({
     };
 
     const handlePaymentSelection = (event: GestureResponderEvent | KeyboardEvent | undefined, selectedOption: string, triggerKYCFlow: (params: ContinueActionParams) => void) => {
-        if (checkForNecessaryAction()) {
+        if (checkForNecessaryAction(selectedOption)) {
             return;
         }
 
