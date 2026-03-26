@@ -44,6 +44,8 @@ jest.mock('@libs/PolicyUtils', () => ({
     isPreferredExporter: jest.fn().mockReturnValue(true),
     hasAccountingConnections: jest.fn().mockReturnValue(true),
     isPolicyAdmin: jest.fn().mockReturnValue(true),
+    isPolicyApprover: (...args: Parameters<typeof PolicyUtils.isPolicyApprover>) => jest.requireActual<typeof PolicyUtils>('@libs/PolicyUtils').isPolicyApprover(...args),
+    isPolicyAuditor: (...args: Parameters<typeof PolicyUtils.isPolicyAuditor>) => jest.requireActual<typeof PolicyUtils>('@libs/PolicyUtils').isPolicyAuditor(...args),
     getValidConnectedIntegration: jest.fn().mockReturnValue('netsuite'),
     isPaidGroupPolicy: jest.fn().mockReturnValue(true),
 }));
@@ -2256,7 +2258,7 @@ describe('getSecondaryAction', () => {
             policy,
             reportActions,
         });
-        expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.DUPLICATE)).toBe(true);
+        expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.DUPLICATE_EXPENSE)).toBe(true);
     });
 
     it('does not include DUPLICATE option if there are no transactions', async () => {
@@ -2286,7 +2288,7 @@ describe('getSecondaryAction', () => {
             originalTransaction: {} as Transaction,
             policy,
         });
-        expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.DUPLICATE)).toBe(false);
+        expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.DUPLICATE_EXPENSE)).toBe(false);
     });
 
     it('does not include DUPLICATE option for expense report with multiple transactions', () => {
@@ -2346,7 +2348,7 @@ describe('getSecondaryAction', () => {
             policy,
             reportActions,
         });
-        expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.DUPLICATE)).toBe(false);
+        expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.DUPLICATE_EXPENSE)).toBe(false);
     });
 
     it('does not include DUPLICATE option for card transaction', async () => {
@@ -2386,7 +2388,7 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
         });
-        expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.DUPLICATE)).toBe(false);
+        expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.DUPLICATE_EXPENSE)).toBe(false);
     });
 
     it('does not include DUPLICATE option for expenses from other users', () => {
@@ -2431,7 +2433,7 @@ describe('getSecondaryAction', () => {
             policy,
             reportActions,
         });
-        expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.DUPLICATE)).toBe(false);
+        expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.DUPLICATE_EXPENSE)).toBe(false);
     });
 
     it('includes MOVE_EXPENSE option for single expense report when user can move expense', async () => {
