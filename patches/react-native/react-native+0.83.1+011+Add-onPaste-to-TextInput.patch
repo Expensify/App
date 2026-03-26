@@ -136,7 +136,7 @@ index c78ce40..ede5607 100644
     * The string that will be rendered before text input has been entered.
     */
 diff --git a/node_modules/react-native/Libraries/Text/TextInput/Multiline/RCTUITextView.mm b/node_modules/react-native/Libraries/Text/TextInput/Multiline/RCTUITextView.mm
-index 6e9c384..6d09b07 100644
+index 6e9c384..804afdc 100644
 --- a/node_modules/react-native/Libraries/Text/TextInput/Multiline/RCTUITextView.mm
 +++ b/node_modules/react-native/Libraries/Text/TextInput/Multiline/RCTUITextView.mm
 @@ -13,6 +13,12 @@
@@ -152,7 +152,7 @@ index 6e9c384..6d09b07 100644
  @implementation RCTUITextView {
    UILabel *_placeholderView;
    UITextView *_detachedTextView;
-@@ -209,7 +215,26 @@ static UIColor *defaultPlaceholderColor(void)
+@@ -209,7 +215,27 @@ static UIColor *defaultPlaceholderColor(void)
  - (void)paste:(id)sender
  {
    _textWasPasted = YES;
@@ -160,7 +160,8 @@ index 6e9c384..6d09b07 100644
 +  UIPasteboard *clipboard = [UIPasteboard generalPasteboard];
 +
 +  // Fast path for plain text - also call super to insert the text
-+  if (clipboard.hasStrings && clipboard.string != nil) {
++  if (clipboard.hasStrings && clipboard.string != nil &&
++      ![RCTPasteHandlerUtil containsFileURLRepresentation:clipboard]) {
 +    NSDictionary<NSString *, NSString *> *stringItem = @{@"type": @"text/plain", @"data": clipboard.string};
 +    [_textInputDelegateAdapter didPaste:@[stringItem]];
 +    [super paste:sender];
@@ -180,7 +181,7 @@ index 6e9c384..6d09b07 100644
  }
  
  // Turn off scroll animation to fix flaky scrolling.
-@@ -301,6 +326,10 @@ static UIColor *defaultPlaceholderColor(void)
+@@ -301,6 +327,10 @@ static UIColor *defaultPlaceholderColor(void)
      return NO;
    }
  
@@ -304,10 +305,10 @@ index 5d3a675..a92904d 100644
  RCT_EXPORT_SHADOW_PROPERTY(placeholder, NSString)
 diff --git a/node_modules/react-native/Libraries/Text/TextInput/RCTPasteHandlerUtil.h b/node_modules/react-native/Libraries/Text/TextInput/RCTPasteHandlerUtil.h
 new file mode 100644
-index 0000000..d3db3d8
+index 0000000..68e7f03
 --- /dev/null
 +++ b/node_modules/react-native/Libraries/Text/TextInput/RCTPasteHandlerUtil.h
-@@ -0,0 +1,45 @@
+@@ -0,0 +1,57 @@
 +/*
 + * Copyright (c) Meta Platforms, Inc. and affiliates.
 + *
@@ -350,16 +351,27 @@ index 0000000..d3db3d8
 + */
 ++ (BOOL)hasPasteableContent:(UIPasteboard *)pasteboard;
 +
++/**
++ * Checks whether any pasteboard item exposes a file URL representation.
++ *
++ * Some copied files, such as CSV documents, also expose a string payload.
++ * Callers can use this to avoid taking the plain-text fast path and preserve
++ * the attachment as a file paste.
++ *
++ * @param pasteboard The UIPasteboard instance to inspect.
++ * @return YES if any pasteboard item includes a file URL representation.
++ */
+++ (BOOL)containsFileURLRepresentation:(UIPasteboard *)pasteboard;
++
 +@end
 +
 +NS_ASSUME_NONNULL_END
-\ No newline at end of file
 diff --git a/node_modules/react-native/Libraries/Text/TextInput/RCTPasteHandlerUtil.mm b/node_modules/react-native/Libraries/Text/TextInput/RCTPasteHandlerUtil.mm
 new file mode 100644
-index 0000000..df18d5d
+index 0000000..645ac52
 --- /dev/null
 +++ b/node_modules/react-native/Libraries/Text/TextInput/RCTPasteHandlerUtil.mm
-@@ -0,0 +1,223 @@
+@@ -0,0 +1,238 @@
 +/*
 + * Copyright (c) Meta Platforms, Inc. and affiliates.
 + *
@@ -411,6 +423,21 @@ index 0000000..df18d5d
 +
 +  // Check if there are any other pasteable items
 +  return pasteboard.numberOfItems > 0;
++}
++
+++ (BOOL)containsFileURLRepresentation:(UIPasteboard *)pasteboard
++{
++  for (NSDictionary *item in pasteboard.items) {
++    if (![item isKindOfClass:[NSDictionary class]]) {
++      continue;
++    }
++
++    if ([item.allKeys containsObject:(NSString *)kUTTypeFileURL]) {
++      return YES;
++    }
++  }
++
++  return NO;
 +}
 +
 +#pragma mark - Private Methods
@@ -583,9 +610,8 @@ index 0000000..df18d5d
 +}
 +
 +@end
-\ No newline at end of file
 diff --git a/node_modules/react-native/Libraries/Text/TextInput/Singleline/RCTUITextField.mm b/node_modules/react-native/Libraries/Text/TextInput/Singleline/RCTUITextField.mm
-index 377f41e..e329b95 100644
+index 377f41e..fb851ae 100644
 --- a/node_modules/react-native/Libraries/Text/TextInput/Singleline/RCTUITextField.mm
 +++ b/node_modules/react-native/Libraries/Text/TextInput/Singleline/RCTUITextField.mm
 @@ -12,6 +12,12 @@
@@ -612,7 +638,7 @@ index 377f41e..e329b95 100644
    return [super canPerformAction:action withSender:sender];
  }
  
-@@ -263,7 +273,26 @@
+@@ -263,7 +273,27 @@
  - (void)paste:(id)sender
  {
    _textWasPasted = YES;
@@ -620,7 +646,8 @@ index 377f41e..e329b95 100644
 +  UIPasteboard *clipboard = [UIPasteboard generalPasteboard];
 +
 +  // Fast path for plain text - also call super to insert the text
-+  if (clipboard.hasStrings && clipboard.string != nil) {
++  if (clipboard.hasStrings && clipboard.string != nil &&
++      ![RCTPasteHandlerUtil containsFileURLRepresentation:clipboard]) {
 +    NSDictionary<NSString *, NSString *> *stringItem = @{@"type": @"text/plain", @"data": clipboard.string};
 +    [_textInputDelegateAdapter didPaste:@[stringItem]];
 +    [super paste:sender];
@@ -703,7 +730,7 @@ index 0000000..a2475b3
 +}
 \ No newline at end of file
 diff --git a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/textinput/ReactEditText.kt b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/textinput/ReactEditText.kt
-index fb8f4b1..4397f77 100644
+index fb8f4b1..b5ab9a1 100644
 --- a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/textinput/ReactEditText.kt
 +++ b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/textinput/ReactEditText.kt
 @@ -8,13 +8,20 @@
@@ -743,7 +770,7 @@ index fb8f4b1..4397f77 100644
      textAttributes = TextAttributes()
  
      applyTextAttributes()
-@@ -367,10 +376,66 @@ public open class ReactEditText public constructor(context: Context) : AppCompat
+@@ -367,10 +376,73 @@ public open class ReactEditText public constructor(context: Context) : AppCompat
     * Called when a context menu option for the text view is selected.
     * React Native replaces copy (as rich text) with copy as plain text.
     */
@@ -766,6 +793,26 @@ index fb8f4b1..4397f77 100644
 +
 +      for (i in 0 until clip.itemCount) {
 +          val item = clip.getItemAt(i)
++          val itemUri = item.uri
++          val itemIntent = item.intent
++
++          // Prefer file/content payloads over text payloads when both are present so copied files
++          // do not get downgraded to their string contents.
++          itemUri?.let { uri ->
++              val mime = runCatching { context.contentResolver.getType(uri) }.getOrNull()
++                  ?: if (uri.scheme == ContentResolver.SCHEME_FILE) "application/octet-stream"
++                  else ClipDescription.MIMETYPE_TEXT_URILIST
++              items += Pair(mime, uri.toString())
++          }
++
++          // Intent payloads (rare, but valid clipboard data)
++          itemIntent?.let { intent ->
++              items += Pair("application/vnd.android.intent", intent.toUri(Intent.URI_INTENT_SCHEME))
++          }
++
++          if (itemUri != null || itemIntent != null) {
++              continue
++          }
 +
 +          // Plain text
 +          item.text?.toString()?.takeIf { it.isNotEmpty() }?.let {
@@ -777,21 +824,8 @@ index fb8f4b1..4397f77 100644
 +              items += Pair(ClipDescription.MIMETYPE_TEXT_HTML, it)
 +          }
 +
-+          // URI (files/content/image/etc)
-+          item.uri?.let { uri ->
-+              val mime = runCatching { context.contentResolver.getType(uri) }.getOrNull()
-+                  ?: if (uri.scheme == ContentResolver.SCHEME_FILE) "application/octet-stream"
-+                  else ClipDescription.MIMETYPE_TEXT_URILIST
-+              items += Pair(mime, uri.toString())
-+          }
-+
-+          // Intent payloads (rare, but valid clipboard data)
-+          item.intent?.let { intent ->
-+              items += Pair("application/vnd.android.intent", intent.toUri(Intent.URI_INTENT_SCHEME))
-+          }
-+
 +          // Fallback if nothing above was populated
-+          if (item.text == null && item.htmlText == null && item.uri == null && item.intent == null) {
++          if (item.text == null && item.htmlText == null) {
 +              item.coerceToText(context)?.toString()?.takeIf { it.isNotEmpty() }?.let {
 +                  items += Pair(ClipDescription.MIMETYPE_TEXT_PLAIN, it)
 +              }
@@ -814,7 +848,7 @@ index fb8f4b1..4397f77 100644
  
    internal fun clearFocusAndMaybeRefocus() {
      if (Build.VERSION.SDK_INT > Build.VERSION_CODES.P || !isInTouchMode) {
-@@ -433,6 +498,10 @@ public open class ReactEditText public constructor(context: Context) : AppCompat
+@@ -433,6 +505,10 @@ public open class ReactEditText public constructor(context: Context) : AppCompat
      this.scrollWatcher = scrollWatcher
    }
  
