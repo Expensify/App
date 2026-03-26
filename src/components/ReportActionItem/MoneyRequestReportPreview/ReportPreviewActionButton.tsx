@@ -90,7 +90,7 @@ function ReportPreviewActionButton({
 
     const canIOUBePaid = canIOUBePaidIOUActions(iouReport, chatReport, policy, bankAccountList, transactions, false, undefined, invoiceReceiverPolicy);
     const onlyShowPayElsewhere = !canIOUBePaid && canIOUBePaidIOUActions(iouReport, chatReport, policy, bankAccountList, transactions, true, undefined, invoiceReceiverPolicy);
-    const shouldShowPayButton = isPaidAnimationRunning ?? canIOUBePaid ?? onlyShowPayElsewhere;
+    const shouldShowPayButton = isPaidAnimationRunning || canIOUBePaid || onlyShowPayElsewhere;
 
     const buttonMaxWidth =
         !shouldUseNarrowLayout && transactionPreviewCarouselWidth >= CONST.REPORT.TRANSACTION_PREVIEW.CAROUSEL.MIN_WIDE_WIDTH ? {maxWidth: transactionPreviewCarouselWidth} : {};
