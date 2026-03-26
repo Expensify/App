@@ -93,7 +93,6 @@ function useTransactionInlineEdit({
     reportActionID,
     parentReportAction: externalParentReportAction,
     hash,
-    queryJSON,
     fallbackReport,
 }: UseTransactionInlineEditParams): UseTransactionInlineEditReturn {
     // Look up the parent IOU report action from live Onyx. If the caller already
@@ -144,7 +143,6 @@ function useTransactionInlineEdit({
         policyTags,
         transactionThreadNVP,
         chatReportNVP,
-        queryJSON,
         isMobileSelectionModeEnabled,
     });
 

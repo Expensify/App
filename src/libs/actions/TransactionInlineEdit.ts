@@ -7,7 +7,6 @@
 import Onyx from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
-import type {SearchQueryJSON} from '@components/Search/types';
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
 import Permissions from '@libs/Permissions';
 import {getTagLists, isMultiLevelTags} from '@libs/PolicyUtils';
@@ -176,9 +175,6 @@ type TransactionEditPermissionsParams = {
 
     chatReportNVP?: OnyxEntry<ReportNameValuePairs>;
 
-    /** Search query context. When provided, applies editable-tab guard for Search table. */
-    queryJSON?: SearchQueryJSON;
-
     /** Whether mobile selection mode is active. When true, all editing is disabled. */
     isMobileSelectionModeEnabled?: boolean;
 };
@@ -323,20 +319,10 @@ function getTransactionEditPermissions({
     policyTags,
     transactionThreadNVP,
     chatReportNVP,
-    queryJSON,
     isMobileSelectionModeEnabled,
 }: TransactionEditPermissionsParams): TransactionEditPermissions {
     if (isMobileSelectionModeEnabled) {
         return NO_EDIT;
-    }
-
-    // Search-table tab guard
-    if (queryJSON !== undefined) {
-        const statuses = Array.isArray(queryJSON.status) ? queryJSON.status : [queryJSON.status];
-        const isEditableTab = queryJSON.type === CONST.SEARCH.DATA_TYPES.EXPENSE && statuses.every((status) => CONST.SEARCH.INLINE_EDITABLE_EXPENSE_STATUSES.has(status));
-        if (!isEditableTab) {
-            return NO_EDIT;
-        }
     }
 
     if (!transaction) {
