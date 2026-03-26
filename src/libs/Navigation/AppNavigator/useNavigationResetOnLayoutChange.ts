@@ -31,7 +31,6 @@ function useNavigationResetOnLayoutChange({navigation}: CustomEffectsHookProps<P
                 ...currentState,
                 preloadedRoutes: currentState.preloadedRoutes?.filter(
                     (route: NavigationPartialRoute) =>
-                        route.name !== NAVIGATORS.REPORTS_SPLIT_NAVIGATOR &&
                         !(route.name === NAVIGATORS.ROOT_TAB_NAVIGATOR && route.params && 'screen' in route.params && route.params.screen === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR),
                 ),
             };

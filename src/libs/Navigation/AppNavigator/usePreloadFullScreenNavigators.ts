@@ -24,7 +24,7 @@ import {getPreservedNavigatorState} from './createSplitNavigator/usePreserveNavi
 // This timing is used to call the preload function after a tab change, when the initial tab screen has already been rendered.
 const TIMING_TO_CALL_PRELOAD = 1000;
 
-// Currently the Workspaces and Account tabs are preloaded, while Search and Inbox are not preloaded due to their potential complexity.
+// No tabs are currently preloaded. Search and Inbox are skipped due to their potential complexity, and Workspaces/Settings preloading is disabled with the ROOT_TAB_NAVIGATOR.
 const TABS_TO_PRELOAD: ValueOf<typeof NAVIGATION_TABS>[] = [];
 
 function getEffectiveFullScreenFromState(state: {routes: {name: string; state?: {routes: {name: string}[]; index?: number}}[]}): FullScreenName | undefined {
@@ -48,9 +48,18 @@ function getPreloadedRouteEffectiveScreen(preloadedRoute: NavigationRoute<AuthSc
 
 function preloadWorkspacesTab(navigation: PlatformStackNavigationProp<AuthScreensParamList>) {
     const state = getWorkspacesTabStateFromSessionStorage() ?? navigation.getState();
-    const lastWorkspacesSplitNavigator = state.routes.findLast((route) => route.name === NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR);
 
-    if (lastWorkspacesSplitNavigator) {
+    // WORKSPACE_SPLIT_NAVIGATOR can be at root level or nested inside ROOT_TAB_NAVIGATOR
+    const hasWorkspaceSplitAtRoot = state.routes.some((route) => route.name === NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR);
+    const hasWorkspaceSplitInTab = state.routes.some((route) => {
+        if (route.name !== NAVIGATORS.ROOT_TAB_NAVIGATOR) {
+            return false;
+        }
+        const tabState = route.state as {routes: {name: string}[]} | undefined;
+        return tabState?.routes?.some((tabRoute) => tabRoute.name === NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR);
+    });
+
+    if (hasWorkspaceSplitAtRoot || hasWorkspaceSplitInTab) {
         return;
     }
     navigation.preload(NAVIGATORS.ROOT_TAB_NAVIGATOR, {screen: SCREENS.WORKSPACES_LIST, params: {}});
@@ -58,12 +67,9 @@ function preloadWorkspacesTab(navigation: PlatformStackNavigationProp<AuthScreen
 
 function preloadReportsTab(navigation: PlatformStackNavigationProp<AuthScreensParamList>) {
     const rootState = navigation.getState();
-    let lastSearchNavigator = rootState.routes.findLast((route) => route.name === NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR);
-    if (!lastSearchNavigator) {
-        const rootTabRoute = rootState.routes.findLast((route) => route.name === NAVIGATORS.ROOT_TAB_NAVIGATOR);
-        const tabState = rootTabRoute?.state as {routes: {name: string; key?: string}[]} | undefined;
-        lastSearchNavigator = tabState?.routes?.findLast((route) => route.name === NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR);
-    }
+    const rootTabRoute = rootState.routes.findLast((route) => route.name === NAVIGATORS.ROOT_TAB_NAVIGATOR);
+    const tabState = rootTabRoute?.state as {routes: {name: string; key?: string}[]} | undefined;
+    const lastSearchNavigator = tabState?.routes?.findLast((route) => route.name === NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR);
     const lastSearchNavigatorState = lastSearchNavigator?.key ? getPreservedNavigatorState(lastSearchNavigator.key) : undefined;
     const lastSearchRoute = lastSearchNavigatorState?.routes?.findLast((route) => route.name === SCREENS.SEARCH.ROOT);
 
@@ -141,6 +147,7 @@ function isPreloadedRouteSubscriptionScreen(preloadedRoute: NavigationRoute<Auth
 function usePreloadFullScreenNavigators() {
     const navigation = useNavigation<PlatformStackNavigationProp<AuthScreensParamList>>();
     const state = navigation.getState();
+    const effectiveFullScreen = getEffectiveFullScreenFromState(state);
     // The fallback is used to prevent crashing from the UI test
     const preloadedRoutes = useMemo(() => state.preloadedRoutes ?? [], [state.preloadedRoutes]);
     const subscriptionPlan = useSubscriptionPlan();
@@ -180,7 +187,6 @@ function usePreloadFullScreenNavigators() {
             }
             hasPreloadedRef.current = true;
             setTimeout(() => {
-                const effectiveFullScreen = getEffectiveFullScreenFromState(state);
                 for (const tabName of TABS_TO_PRELOAD) {
                     // Don't preload the current tab
                     const isCurrentTab = effectiveFullScreen && TAB_TO_FULLSCREEN[tabName].includes(effectiveFullScreen);
@@ -201,7 +207,7 @@ function usePreloadFullScreenNavigators() {
                     preloadTab(tabName, navigation, subscriptionPlan);
                 }
             }, TIMING_TO_CALL_PRELOAD);
-        }, [isAuthenticated, isSingleNewDotEntry, state, preloadedRoutes, navigation, subscriptionPlan]),
+        }, [isAuthenticated, isSingleNewDotEntry, effectiveFullScreen, preloadedRoutes, navigation, subscriptionPlan]),
     );
 }
 

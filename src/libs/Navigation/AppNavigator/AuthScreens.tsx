@@ -65,6 +65,9 @@ const loadTrackExpensePage = () => require<ReactComponentModule>('../../../pages
 const loadSubmitExpensePage = () => require<ReactComponentModule>('../../../pages/SubmitExpensePage').default;
 const loadWorkspaceJoinUser = () => require<ReactComponentModule>('@pages/workspace/WorkspaceJoinUserPage').default;
 
+const loadDomainSplitNavigator = () => require<ReactComponentModule>('./Navigators/DomainSplitNavigator').default;
+const loadWorkspaceSplitNavigator = () => require<ReactComponentModule>('./Navigators/WorkspaceSplitNavigator').default;
+
 const RootStack = createRootStackNavigator<AuthScreensParamList>();
 
 // We want to delay the re-rendering for components(e.g. ReportActionCompose)
@@ -142,20 +145,19 @@ function AuthScreens() {
         };
     };
 
-    // Animation is enabled when navigating to any screen different than split sidebar screen
-    const getFullscreenNavigatorOptions = ({route}: {route: RouteProp<AuthScreensParamList>}) => {
-        // We don't need to do anything special for the wide screen.
+    // Dynamic options for ROOT_TAB_NAVIGATOR: supports entering animation for pushed instances
+    const getRootTabNavigatorOptions = ({route}: {route: RouteProp<AuthScreensParamList>}) => {
         if (!shouldUseNarrowLayout) {
-            return rootNavigatorScreenOptions.splitNavigator;
+            return rootNavigatorScreenOptions.fullScreenTabPage;
         }
 
-        // On the narrow screen, we want to animate this navigator if pushed SplitNavigator includes desired screen
         const animationEnabled = screensWithEnteringAnimation.has(route.key);
         return {
-            ...rootNavigatorScreenOptions.splitNavigator,
+            ...rootNavigatorScreenOptions.fullScreenTabPage,
             animation: animationEnabled ? Animations.SLIDE_FROM_RIGHT : Animations.NONE,
+            gestureEnabled: animationEnabled,
             web: {
-                ...rootNavigatorScreenOptions.splitNavigator.web,
+                ...rootNavigatorScreenOptions.fullScreenTabPage.web,
                 cardStyleInterpolator: (props: StackCardInterpolationProps) => modalCardStyleInterpolator({props, isFullScreenModal: true, animationEnabled}),
             },
         };
@@ -183,8 +185,18 @@ function AuthScreens() {
                         {/* ROOT_TAB_NAVIGATOR (containing Home and Workspaces) has to be the first navigator in auth screens. */}
                         <RootStack.Screen
                             name={NAVIGATORS.ROOT_TAB_NAVIGATOR}
-                            options={rootNavigatorScreenOptions.fullScreenTabPage}
+                            options={getRootTabNavigatorOptions}
                             component={RootTabNavigator}
+                        />
+                        <RootStack.Screen
+                            name={NAVIGATORS.DOMAIN_SPLIT_NAVIGATOR}
+                            options={getWorkspaceOrDomainSplitNavigatorOptions}
+                            getComponent={loadDomainSplitNavigator}
+                        />
+                        <RootStack.Screen
+                            name={NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR}
+                            options={getWorkspaceOrDomainSplitNavigatorOptions}
+                            getComponent={loadWorkspaceSplitNavigator}
                         />
                         <RootStack.Screen
                             name={SCREENS.VALIDATE_LOGIN}

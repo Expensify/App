@@ -28,8 +28,9 @@ import originalCloseRHPFlow from './helpers/closeRHPFlow';
 import getPathFromState from './helpers/getPathFromState';
 import getStateFromPath from './helpers/getStateFromPath';
 import getTopmostReportParams from './helpers/getTopmostReportParams';
-import {isFullScreenName, isOnboardingFlowName, isSplitNavigatorName} from './helpers/isNavigatorName';
+import {isOnboardingFlowName, isSplitNavigatorName} from './helpers/isNavigatorName';
 import isReportOpenInRHP from './helpers/isReportOpenInRHP';
+import isReportTopmostSplitNavigator from './helpers/isReportTopmostSplitNavigator';
 import isSideModalNavigator from './helpers/isSideModalNavigator';
 import linkTo from './helpers/linkTo';
 import getMinimalAction from './helpers/linkTo/getMinimalAction';
@@ -747,7 +748,6 @@ const dismissModal = ({ref = navigationRef, callback}: {ref?: NavigationRef; cal
  */
 const dismissModalWithReport = (
     {reportID, reportActionID, referrer, backTo}: ReportsSplitNavigatorParamList[typeof SCREENS.REPORT],
-    ref = navigationRef,
     options?: {onBeforeNavigate?: (willOpenReport: boolean) => void},
 ) => {
     isNavigationReady().then(() => {
@@ -762,7 +762,7 @@ const dismissModalWithReport = (
 
         const topmostReportID = getTopmostReportId();
         areReportsIDsDefined = !!topmostReportID && !!reportID;
-        const isReportsSplitTopmostFullScreen = ref.getRootState().routes.findLast((route) => isFullScreenName(route.name))?.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR;
+        const isReportsSplitTopmostFullScreen = isReportTopmostSplitNavigator();
         if (topmostReportID === reportID && areReportsIDsDefined && isReportsSplitTopmostFullScreen) {
             options?.onBeforeNavigate?.(false);
             dismissModal();

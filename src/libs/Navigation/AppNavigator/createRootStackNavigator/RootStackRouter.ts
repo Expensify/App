@@ -145,7 +145,11 @@ function RootStackRouter(options: RootStackNavigatorRouterOptions) {
                 return handleDismissModalAction(state, configOptions, stackRouter);
             }
 
-            if (isReplaceAction(action) && action.payload.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR) {
+            if (
+                isReplaceAction(action) &&
+                (action.payload.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR ||
+                    (action.payload.name === NAVIGATORS.ROOT_TAB_NAVIGATOR && (action.payload.params as {screen?: string} | undefined)?.screen === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR))
+            ) {
                 return handleReplaceReportsSplitNavigatorAction(state, action, configOptions, stackRouter);
             }
 

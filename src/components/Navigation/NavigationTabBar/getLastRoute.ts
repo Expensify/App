@@ -8,7 +8,7 @@ function getLastRoute(rootState: NavigationState, navigator: ValueOf<typeof NAVI
     // Navigators can be at root level or nested inside RootTabNavigator
     let lastNavigator = rootState.routes.findLast((route) => route.name === navigator);
 
-    if (!lastNavigator && rootState.routes.some((route) => route.name === NAVIGATORS.ROOT_TAB_NAVIGATOR)) {
+    if (!lastNavigator) {
         const rootTabRoute = rootState.routes.findLast((route) => route.name === NAVIGATORS.ROOT_TAB_NAVIGATOR);
         const tabState = rootTabRoute?.state as {routes: {name: string; key?: string}[]} | undefined;
         lastNavigator = tabState?.routes?.findLast((route) => route.name === navigator);

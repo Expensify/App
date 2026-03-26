@@ -434,7 +434,10 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
             >
                 <HeaderWithBackButton
                     title={policyName}
-                    onBackButtonPress={() => Navigation.goBack(route.params?.backTo ?? ROUTES.WORKSPACES_LIST.route)}
+                    onBackButtonPress={() =>
+                        // On narrow, goBack() pops the workspace split; goBack with a route can't resolve inside ROOT_TAB_NAVIGATOR.
+                        shouldUseNarrowLayout && !route.params?.backTo ? Navigation.goBack() : Navigation.goBack(route.params?.backTo ?? ROUTES.WORKSPACES_LIST.route)
+                    }
                     policyAvatar={policyAvatar}
                     shouldDisplayHelpButton={shouldUseNarrowLayout}
                 />

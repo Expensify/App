@@ -10,7 +10,7 @@ import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
 import type {OpenDomainSplitActionType, OpenWorkspaceSplitActionType, PushActionType, ReplaceActionType, ToggleSidePanelWithHistoryActionType} from './types';
 
-const SCREENS_WITH_NAVIGATION_TAB_BAR = new Set([...Object.keys(SIDEBAR_TO_SPLIT), NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR, SCREENS.SEARCH.ROOT]);
+const SCREENS_WITH_NAVIGATION_TAB_BAR = new Set([...Object.keys(SIDEBAR_TO_SPLIT), NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR, SCREENS.SEARCH.ROOT, SCREENS.HOME]);
 
 const MODAL_ROUTES_TO_DISMISS = new Set<string>([
     NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR,
@@ -125,14 +125,36 @@ function handlePushFullscreenAction(
     const targetScreen = action.payload?.params && 'screen' in action.payload.params ? (action.payload?.params?.screen as string) : undefined;
     const navigatorName = action.payload.name;
 
+    // When pushing ROOT_TAB_NAVIGATOR, the inner split name is in targetScreen
+    const innerSplitName = navigatorName === NAVIGATORS.ROOT_TAB_NAVIGATOR ? targetScreen : navigatorName;
+
     // If we navigate to the central screen of the split navigator, we need to filter this navigator from preloadedRoutes to remove a sidebar screen from the state
     const shouldFilterPreloadedRoutes =
         getIsNarrowLayout() &&
-        isSplitNavigatorName(navigatorName) &&
-        targetScreen !== SPLIT_TO_SIDEBAR[navigatorName] &&
-        state.preloadedRoutes?.some((preloadedRoute) => preloadedRoute.name === navigatorName);
+        innerSplitName &&
+        isSplitNavigatorName(innerSplitName) &&
+        targetScreen !== SPLIT_TO_SIDEBAR[innerSplitName] &&
+        state.preloadedRoutes?.some(
+            (preloadedRoute) =>
+                preloadedRoute.name === innerSplitName ||
+                (preloadedRoute.name === NAVIGATORS.ROOT_TAB_NAVIGATOR && preloadedRoute.params && 'screen' in preloadedRoute.params && preloadedRoute.params.screen === innerSplitName),
+        );
 
-    const adjustedState = shouldFilterPreloadedRoutes ? {...state, preloadedRoutes: state.preloadedRoutes.filter((preloadedRoute) => preloadedRoute.name !== navigatorName)} : state;
+    const adjustedState = shouldFilterPreloadedRoutes
+        ? {
+              ...state,
+              preloadedRoutes: state.preloadedRoutes.filter(
+                  (preloadedRoute) =>
+                      preloadedRoute.name !== innerSplitName &&
+                      !(
+                          preloadedRoute.name === NAVIGATORS.ROOT_TAB_NAVIGATOR &&
+                          preloadedRoute.params &&
+                          'screen' in preloadedRoute.params &&
+                          preloadedRoute.params.screen === innerSplitName
+                      ),
+              ),
+          }
+        : state;
     const stateWithNavigator = stackRouter.getStateForAction(adjustedState, action, configOptions);
 
     if (!stateWithNavigator) {
