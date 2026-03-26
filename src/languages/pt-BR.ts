@@ -86,6 +86,7 @@ import type {
     UpdateRoleParams,
     UpgradeSuccessMessageParams,
     UserIsAlreadyMemberParams,
+    ViolationsIncreasedDistanceParams,
     ViolationsMissingTagParams,
     ViolationsModifiedAmountParams,
     ViolationsProhibitedExpenseParams,
@@ -250,6 +251,7 @@ const translations: TranslationDeepObject<typeof en> = {
         na: 'N/D',
         noResultsFound: 'Nenhum resultado encontrado',
         noResultsFoundMatching: (searchString: string) => `Nenhum resultado encontrado para "${searchString}"`,
+        suggestionsAvailableFor: (searchString: string) => (searchString ? `Sugestões disponíveis para "${searchString}".` : 'Sugestões disponíveis.'),
         recentDestinations: 'Destinos recentes',
         timePrefix: 'É',
         conjunctionFor: 'para',
@@ -525,6 +527,7 @@ const translations: TranslationDeepObject<typeof en> = {
         concierge: {sidePanelGreeting: 'Oi, como posso ajudar?', showHistory: 'Mostrar histórico'},
         duplicateReport: 'Duplicar relatório',
         approver: 'Aprovador',
+        enterDigitLabel: ({digitIndex, totalDigits}: {digitIndex: number; totalDigits: number}) => `inserir dígito ${digitIndex} de ${totalDigits}`,
         copyOfReportName: (reportName: string) => `Cópia de ${reportName}`,
     },
     socials: {
@@ -765,11 +768,6 @@ const translations: TranslationDeepObject<typeof en> = {
         searchForSomeone: 'Buscar alguém',
         userSelected: (username: string) => `${username} selecionado`,
     },
-    customApprovalWorkflow: {
-        title: 'Fluxo de aprovação personalizado',
-        description: 'Sua empresa tem um fluxo de aprovação personalizado neste workspace. Faça essa ação no Expensify Classic',
-        goToExpensifyClassic: 'Mudar para o Expensify Clássico',
-    },
     emptyList: {
         [CONST.IOU.TYPE.CREATE]: {
             title: 'Envie uma despesa, indique sua equipe',
@@ -993,6 +991,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 subtitle: 'Carteira',
             },
             validateAccount: {title: 'Valide sua conta para continuar usando o Expensify', subtitle: 'Conta', cta: 'Validar'},
+            fixFailedBilling: {title: 'Não foi possível cobrar o cartão cadastrado', subtitle: 'Assinatura'},
         },
         assignedCards: 'Seus Cartões Expensify',
         assignedCardsRemaining: ({amount}: {amount: string}) => `${amount} restante`,
@@ -1243,6 +1242,8 @@ const translations: TranslationDeepObject<typeof en> = {
         pendingMatch: 'Correspondência pendente',
         pendingMatchWithCreditCardDescription: 'Recibo aguardando correspondência com transação do cartão. Marque como dinheiro para cancelar.',
         markAsCash: 'Marcar como dinheiro',
+        pendingMatchSubmitTitle: 'Enviar relatório',
+        pendingMatchSubmitDescription: 'Algumas despesas estão pendentes de correspondência com uma transação de cartão de crédito. Deseja marcá-las como dinheiro?',
         routePending: 'Rota pendente...',
         automaticallyEnterExpenseDetails: 'O Concierge inserirá automaticamente os detalhes da despesa para você, ou você pode adicioná-los manualmente.',
         receiptScanning: () => ({
@@ -2353,11 +2354,16 @@ ${amount} para ${merchant} - ${date}`,
         freezeCard: 'Bloquear cartão',
         unfreeze: 'Desbloquear',
         unfreezeCard: 'Desbloquear cartão',
+        askToUnfreeze: 'Pedir desbloqueio',
         freezeDescription: 'Um cartão bloqueado não pode ser usado para compras e transações. Você pode desbloqueá-lo a qualquer momento.',
         unfreezeDescription: 'Ao desbloquear este cartão, compras e transações voltarão a ser permitidas. Continue apenas se tiver certeza de que o cartão é seguro para uso.',
         frozen: 'Congelado',
         youFroze: ({date}: {date: string}) => `Você bloqueou este cartão em ${date}.`,
         frozenBy: ({person, date}: {person: string; date: string}) => `${person} bloqueou este cartão em ${date}.`,
+        frozenByAdminPrefix: ({date}: {date: string}) => `Este cartão foi bloqueado em ${date} por `,
+        frozenByAdminNeedsUnfreezePrefix: 'Este cartão foi bloqueado por ',
+        frozenByAdminNeedsUnfreezeSuffix: '. Entre em contato com um administrador para desbloqueá-lo.',
+        frozenByAdminNeedsUnfreeze: ({person}: {person: string}) => `Este cartão foi bloqueado por ${person}. Entre em contato com um administrador para desbloqueá-lo.`,
     },
     workflowsPage: {
         workflowTitle: 'Gastos',
@@ -2657,6 +2663,7 @@ ${amount} para ${merchant} - ${date}`,
                 label: 'Usar configurações do dispositivo',
             },
         },
+        highContrastMode: 'Modo de alto contraste',
         chooseThemeBelowOrSync: 'Escolha um tema abaixo ou sincronize com as configurações do seu dispositivo.',
     },
     termsOfUse: {
@@ -2670,6 +2677,8 @@ ${amount} para ${merchant} - ${date}`,
         requiredWhen2FAEnabled: 'Obrigatório quando a 2FA estiver ativada',
         requestNewCode: ({timeRemaining}: {timeRemaining: string}) => `Solicite um novo código em <a>${timeRemaining}</a>`,
         requestNewCodeAfterErrorOccurred: 'Solicitar um novo código',
+        timeRemainingAnnouncement: ({timeRemaining}) => `Tempo restante: ${timeRemaining} ${timeRemaining === 1 ? 'segundo' : 'segundos'}`,
+        timeExpiredAnnouncement: 'O tempo expirou',
         error: {
             pleaseFillMagicCode: 'Insira seu código mágico',
             incorrectMagicCode: 'Código mágico incorreto ou inválido. Tente novamente ou solicite um novo código.',
@@ -3255,6 +3264,13 @@ ${
             `Ops! Parece que a moeda do seu workspace está definida como diferente de USD. Para continuar, acesse as <a href="${workspaceRoute}">configurações do seu workspace</a>, defina-a como USD e tente novamente.`,
         bbaAdded: 'Conta bancária empresarial adicionada!',
         bbaAddedDescription: 'Está pronto para ser usado para pagamentos.',
+        lockedBankAccount: 'Conta bancária bloqueada',
+        unlockBankAccount: 'Desbloquear conta bancária',
+        youCantPayThis: `Você não pode pagar este relatório porque tem uma <a href="${CONST.UNLOCK_BANK_ACCOUNT_HELP_URL}">conta bancária bloqueada</a>. Toque abaixo e o Concierge ajudará com os próximos passos para desbloqueá-la.`,
+        htmlUnlockMessage: (maskedAccountNumber: string) =>
+            `<h1>Expensify Business Bank Account ${maskedAccountNumber}</h1><p>Obrigado por enviar uma solicitação para desbloquear sua conta bancária. Solicitações de saque podem ser rejeitadas por insuficiência de fundos ou se a conta bancária não foi habilitada para débito direto. Analisaremos seu caso e entraremos em contato se precisarmos de mais informações para resolver este problema.</p>`,
+        textUnlockMessage: (maskedAccountNumber: string) =>
+            `Expensify Business Bank Account ${maskedAccountNumber}\nObrigado por enviar uma solicitação para desbloquear sua conta bancária. Solicitações de saque podem ser rejeitadas por insuficiência de fundos ou se a conta bancária não foi habilitada para débito direto. Analisaremos seu caso e entraremos em contato se precisarmos de mais informações para resolver este problema.`,
         error: {
             youNeedToSelectAnOption: 'Selecione uma opção para continuar',
             noBankAccountAvailable: 'Desculpe, não há nenhuma conta bancária disponível',
@@ -5087,6 +5103,7 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
                 flipAmountSign: 'Inverter sinal do valor',
                 importButton: 'Importar transações',
             },
+            assignNewCards: {title: 'Atribuir novos cartões', description: 'Obtenha do seu banco os cartões mais recentes para atribuir'},
         },
         expensifyCard: {
             issueAndManageCards: 'Emita e gerencie seus Cartões Expensify',
@@ -6395,22 +6412,25 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
         },
         downgrade: {
             commonFeatures: {
-                title: 'Fazer downgrade para o plano Collect',
-                note: 'Se você fizer o downgrade, perderá acesso a estes e outros recursos:',
+                title: 'Rebaixar para Collect',
+                note: 'Você perderá acesso aos seguintes recursos',
                 benefits: {
-                    note: 'Para ver uma comparação completa dos nossos planos, confira nossa',
-                    pricingPage: 'página de preços',
-                    confirm: 'Tem certeza de que deseja fazer o downgrade e remover suas configurações?',
-                    warning: 'Isso não pode ser desfeito.',
-                    benefit1: 'Conexões contábeis (exceto QuickBooks Online e Xero)',
-                    benefit2: 'Regras inteligentes de despesa',
-                    benefit3: 'Fluxos de aprovação em múltiplos níveis',
-                    benefit4: 'Controles de segurança aprimorados',
+                    confirm: 'Você precisará alterar o “Tipo de plano” de todos os espaços de trabalho para “Collect” para garantir a tarifa Collect.',
+                    benefit1: 'NetSuite, Sage Intacct, QuickBooks Desktop, Oracle, Microsoft Dynamics',
+                    benefit2: 'Workday, Certinia',
+                    benefit3: 'SSO/SAML',
+                    benefit4: 'Regras inteligentes de despesas, diárias, aprovações em vários níveis, relatórios personalizados e orçamento',
                     headsUp: 'Atenção!',
                     multiWorkspaceNote:
                         'Você precisará fazer o downgrade de todos os seus espaços de trabalho antes do seu primeiro pagamento mensal para começar uma assinatura na tarifa Collect. Clique',
                     selectStep: '> selecione cada espaço de trabalho > altere o tipo de plano para',
+                    benefit1Label: 'Integrações com ERP',
+                    benefit2Label: 'Integrações de RH',
+                    benefit3Label: 'Segurança',
+                    benefit4Label: 'Avançado',
+                    important: 'IMPORTANTE:',
                 },
+                noteAndMore: 'e mais:',
             },
             completed: {
                 headline: 'Seu workspace foi rebaixado',
@@ -7180,6 +7200,7 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
     search: {
         resultsAreLimited: 'Os resultados da pesquisa são limitados.',
         viewResults: 'Ver resultados',
+        appliedFilters: 'Filtros aplicados',
         resetFilters: 'Redefinir filtros',
         searchResults: {
             emptyResults: {
@@ -7236,6 +7257,7 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
             },
         },
         columns: 'Colunas',
+        editColumns: 'Editar colunas',
         resetColumns: 'Redefinir colunas',
         groupColumns: 'Agrupar colunas',
         expenseColumns: 'Colunas de despesas',
@@ -7273,7 +7295,8 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
                     [CONST.SEARCH.DATE_PRESETS.NEVER]: 'Nunca',
                     [CONST.SEARCH.DATE_PRESETS.LAST_MONTH]: 'Mês passado',
                     [CONST.SEARCH.DATE_PRESETS.THIS_MONTH]: 'Este mês',
-                    [CONST.SEARCH.DATE_PRESETS.YEAR_TO_DATE]: 'Ano até a data',
+                    [CONST.SEARCH.DATE_PRESETS.YEAR_TO_DATE]: 'Ano até agora',
+                    [CONST.SEARCH.DATE_PRESETS.LAST_12_MONTHS]: 'Últimos 12 meses',
                     [CONST.SEARCH.DATE_PRESETS.LAST_STATEMENT]: 'Último extrato',
                 },
             },
@@ -7336,8 +7359,13 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
                 [CONST.SEARCH.ACTION_FILTERS.EXPORT]: 'Exportar',
             },
         },
+        display: {
+            label: 'Exibir',
+            sortBy: 'Ordenar por',
+            groupBy: 'Agrupar por',
+            limitResults: 'Limitar resultados',
+        },
         has: 'Tem',
-        groupBy: 'Agrupar por',
         view: {
             label: 'Visualizar',
             table: 'Tabela',
@@ -7355,6 +7383,10 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
         searchIn: 'Pesquisar em',
         searchPlaceholder: 'Pesquisar algo',
         suggestions: 'Sugestões',
+        suggestionsAvailable: ({count}: {count: number}, query = '') => ({
+            one: `Sugestões disponíveis${query ? ` para ${query}` : ''}. ${count} resultado.`,
+            other: (resultCount: number) => `Sugestões disponíveis${query ? ` para ${query}` : ''}. ${resultCount} resultados.`,
+        }),
         exportSearchResults: {
             title: 'Criar exportação',
             description: 'Uau, são muitos itens! Vamos agrupá-los e o Concierge enviará um arquivo para você em breve.',
@@ -7583,6 +7615,9 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
         scrollToNewestMessages: 'Rolar até as mensagens mais recentes',
         preStyledText: 'Texto pré-formatado',
         viewAttachment: 'Ver anexo',
+        contextMenuAvailable: 'Menu de contexto disponível. Pressione Shift+F10 para abrir.',
+        contextMenuAvailableMacOS: 'Menu de contexto disponível. Pressione VO-Shift-M para abrir.',
+        contextMenuAvailableNative: 'Menu de contexto disponível. Toque duas vezes e mantenha pressionado para abrir.',
         selectAllFeatures: 'Selecionar todos os recursos',
         selectAllTransactions: 'Selecionar todas as transações',
         selectAllItems: 'Selecionar todos os itens',
@@ -7773,12 +7808,17 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
             prompt: 'Tem certeza de que deseja parar o rastreamento por GPS e mudar para o Expensify Classic?',
             confirm: 'Parar e mudar',
         },
+        switchAccountWarningTripInProgress: {
+            title: 'Rastreamento por GPS em andamento',
+            prompt: 'Tem certeza de que quer parar o rastreamento por GPS e mudar de conta?',
+            confirm: 'Parar e trocar',
+        },
         locationServicesRequiredModal: {
             title: 'Acesso à localização necessário',
             confirm: 'Abrir configurações',
             prompt: 'Permita o acesso à localização nas configurações do seu dispositivo para iniciar o rastreamento de distância por GPS.',
         },
-        fabGpsTripExplained: 'Ir para a tela de GPS (Ação flutuante)',
+        gpsFloatingPillText: 'Rastreamento por GPS em andamento...',
         liveActivity: {subtitle: 'Rastreamento de distância', button: 'Ver progresso'},
     },
     reportCardLostOrDamaged: {
@@ -7862,6 +7902,8 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
             }
         },
         modifiedDate: 'Data diferente do recibo digitalizado',
+        increasedDistance: ({formattedRouteDistance}: ViolationsIncreasedDistanceParams) =>
+            formattedRouteDistance ? `A distância excede a rota calculada de ${formattedRouteDistance}` : 'A distância excede a rota calculada',
         nonExpensiworksExpense: 'Despesa fora do Expensiworks',
         overAutoApprovalLimit: (formattedLimit: string) => `Despesa excede o limite de aprovação automática de ${formattedLimit}`,
         overCategoryLimit: (formattedLimit: string) => `Valor acima do limite de categoria de ${formattedLimit}/pessoa`,
@@ -8407,6 +8449,7 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
             theresWasAProblemDuringAWorkspaceConnectionSync: 'Houve um problema durante a sincronização da conexão do workspace',
             theresAProblemWithYourWallet: 'Há um problema com sua carteira',
             theresAProblemWithYourWalletTerms: 'Há um problema com os termos da sua carteira',
+            aBankAccountIsLocked: 'Uma conta bancária está bloqueada',
         },
     },
     emptySearchView: {
