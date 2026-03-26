@@ -682,6 +682,7 @@ const translations = {
         unsupportedDevice: {
             unsupportedDevice: 'Unsupported device',
             pleaseDownloadMobileApp: `This action is not supported on your device. Please download the Expensify app from the <a href="${CONST.APP_DOWNLOAD_LINKS.IOS}">App Store</a> or <a href="${CONST.APP_DOWNLOAD_LINKS.ANDROID}">Google Play Store</a> and try again.`,
+            pleaseUseWebApp: `This action is not supported on your device. Please use the <a href="${CONST.NEW_EXPENSIFY_URL}">Expensify web app</a> and try again.`,
         },
         biometricsTest: {
             biometricsTest: 'Biometrics test',
