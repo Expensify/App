@@ -8,7 +8,7 @@ import useNetwork from '@hooks/useNetwork';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {PlatformStackNavigationState} from '@libs/Navigation/PlatformStackNavigation/types';
-import SearchTypeMenu from '@pages/Search/SearchTypeMenu';
+import SearchTypeMenuWide from '@pages/Search/SearchTypeMenuWide';
 import SCREENS from '@src/SCREENS';
 import NavigationTabBar from './NavigationTabBar';
 import NAVIGATION_TABS from './NavigationTabBar/NAVIGATION_TABS';
@@ -55,7 +55,7 @@ function SearchSidebar({state}: SearchSidebarProps) {
                     shouldDisplaySearch={false}
                     shouldDisplayHelpButton={false}
                 />
-                <SearchTypeMenu queryJSON={currentSearchQueryJSON} />
+                <SearchTypeMenuWide queryJSON={currentSearchQueryJSON} />
             </View>
             <NavigationTabBar selectedTab={NAVIGATION_TABS.SEARCH} />
         </View>

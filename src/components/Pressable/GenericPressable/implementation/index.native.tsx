@@ -11,6 +11,7 @@ function NativeGenericPressable({ref, ...props}: PressableProps) {
             {...props}
             accessibilityHint={props.accessibilityHint ?? props.accessibilityLabel}
             ref={ref}
+            accessibilityHint={props.accessibilityHint ?? props.accessibilityLabel}
         />
     );
 }
