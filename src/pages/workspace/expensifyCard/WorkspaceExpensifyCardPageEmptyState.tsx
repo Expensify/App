@@ -69,7 +69,6 @@ function WorkspaceExpensifyCardPageEmptyState({route, policy}: WorkspaceExpensif
             Navigation.navigate(
                 ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute({
                     policyID: policy?.id,
-                    stepToOpen: REIMBURSEMENT_ACCOUNT_ROUTE_NAMES.NEW,
                     backTo: ROUTES.WORKSPACE_EXPENSIFY_CARD.getRoute(policy?.id),
                 }),
             );

@@ -62,14 +62,14 @@ function BeneficialOwnersStep({onBackButtonPress, onSubmit, currentSubPage, poli
 
     const navigateToSubPage = useCallback(
         (subPage: string) => {
-            Navigation.navigate(ROUTES.BANK_ACCOUNT_USD_SETUP.getRoute({policyID, step: PAGE_NAMES.BENEFICIAL_OWNERS, subPage}));
+            Navigation.navigate(ROUTES.BANK_ACCOUNT_USD_SETUP.getRoute({policyID, page: PAGE_NAMES.BENEFICIAL_OWNERS, subPage}));
         },
         [policyID],
     );
 
     const navigateBackToSubPage = useCallback(
         (subPage: string) => {
-            Navigation.goBack(ROUTES.BANK_ACCOUNT_USD_SETUP.getRoute({policyID, step: PAGE_NAMES.BENEFICIAL_OWNERS, subPage}));
+            Navigation.goBack(ROUTES.BANK_ACCOUNT_USD_SETUP.getRoute({policyID, page: PAGE_NAMES.BENEFICIAL_OWNERS, subPage}));
         },
         [policyID],
     );

@@ -64,7 +64,7 @@ function PersonalInfo({onBackButtonPress, onSubmit, ref}: PersonalInfoProps) {
     const startFrom = useMemo(() => (isBankAccountVerifying ? 0 : getInitialSubStepForPersonalInfo(values)), [values, isBankAccountVerifying]);
 
     const buildRoute = useCallback(
-        (pageName: string, action?: 'edit') => ROUTES.BANK_ACCOUNT_USD_SETUP.getRoute({policyID, step: PAGE_NAMES.REQUESTOR, subPage: pageName, action}),
+        (pageName: string, action?: 'edit') => ROUTES.BANK_ACCOUNT_USD_SETUP.getRoute({policyID, page: PAGE_NAMES.REQUESTOR, subPage: pageName, action}),
         [policyID],
     );
 

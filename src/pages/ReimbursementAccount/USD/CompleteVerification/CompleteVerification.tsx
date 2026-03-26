@@ -54,7 +54,7 @@ function CompleteVerification({onBackButtonPress, onSubmit}: CompleteVerificatio
     }, [bankAccountID, values.isAuthorizedToUseBankAccount, values.certifyTrueInformation, values.acceptTermsAndConditions, policyID, lastPaymentMethod, onSubmit]);
 
     const buildRoute = useCallback(
-        (pageName: string, action?: 'edit') => ROUTES.BANK_ACCOUNT_USD_SETUP.getRoute({policyID, step: PAGE_NAMES.ACH_CONTRACT, subPage: pageName, action}),
+        (pageName: string, action?: 'edit') => ROUTES.BANK_ACCOUNT_USD_SETUP.getRoute({policyID, page: PAGE_NAMES.ACH_CONTRACT, subPage: pageName, action}),
         [policyID],
     );
 

@@ -90,7 +90,7 @@ function BankInfo({onBackButtonPress, onSubmit, policyID}: BankInfoProps) {
     const pages = setupType === CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID ? plaidPages : manualPages;
 
     const buildRoute = useCallback(
-        (pageName: string, action?: 'edit') => ROUTES.BANK_ACCOUNT_USD_SETUP.getRoute({policyID, step: PAGE_NAMES.BANK_ACCOUNT, subPage: pageName, action}),
+        (pageName: string, action?: 'edit') => ROUTES.BANK_ACCOUNT_USD_SETUP.getRoute({policyID, page: PAGE_NAMES.BANK_ACCOUNT, subPage: pageName, action}),
         [policyID],
     );
 

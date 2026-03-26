@@ -97,7 +97,6 @@ function WorkspaceTravelInvoicingSettlementAccountPage({route}: WorkspaceTravelI
         Navigation.navigate(
             ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute({
                 policyID,
-                stepToOpen: REIMBURSEMENT_ACCOUNT_ROUTE_NAMES.NEW,
                 backTo: ROUTES.WORKSPACE_TRAVEL_SETTINGS_ACCOUNT.getRoute(policyID),
             }),
         );

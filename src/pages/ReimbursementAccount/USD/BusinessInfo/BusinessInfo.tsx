@@ -94,7 +94,7 @@ function BusinessInfo({onBackButtonPress, onSubmit}: BusinessInfoProps) {
     const startFrom = useMemo(() => (isBankAccountVerifying ? 0 : getInitialSubStepForBusinessInfo(values)), [values, isBankAccountVerifying]);
 
     const buildRoute = useCallback(
-        (pageName: string, action?: 'edit') => ROUTES.BANK_ACCOUNT_USD_SETUP.getRoute({policyID, step: PAGE_NAMES.COMPANY, subPage: pageName, action}),
+        (pageName: string, action?: 'edit') => ROUTES.BANK_ACCOUNT_USD_SETUP.getRoute({policyID, page: PAGE_NAMES.COMPANY, subPage: pageName, action}),
         [policyID],
     );
 

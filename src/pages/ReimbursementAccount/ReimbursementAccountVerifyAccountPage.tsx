@@ -15,7 +15,8 @@ function ReimbursementAccountVerifyAccountPage({route}: ReimbursementAccountVeri
         <VerifyAccountPageBase
             navigateBackTo={ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute({policyID, backTo})}
             handleClose={() => {
-                Navigation.goBack(ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute({policyID, backTo, subStepToOpen: CONST.BANK_ACCOUNT.STEP.COUNTRY}), {compareParams: false});
+                // TODO: check if it's not breaking
+                Navigation.goBack(ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute({policyID, backTo}), {compareParams: false});
             }}
         />
     );

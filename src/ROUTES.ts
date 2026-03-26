@@ -268,36 +268,32 @@ const ROUTES = {
         // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
         getRoute: (policyID?: string, backTo?: string) => getUrlWithBackToParam(`bank-account/${VERIFY_ACCOUNT}?policyID=${policyID}`, backTo),
     },
-    BANK_ACCOUNT_NEW: 'bank-account/new',
     BANK_ACCOUNT_PERSONAL: 'bank-account/personal',
+    // TODO: rename the route as no longer accepts step
     BANK_ACCOUNT_WITH_STEP_TO_OPEN: {
-        route: 'bank-account/:stepToOpen?',
+        route: 'bank-account/new',
         getRoute: ({
             policyID,
-            stepToOpen = '',
             bankAccountID,
             backTo,
-            subStepToOpen,
         }: {
             policyID: string | undefined;
-            stepToOpen?: ReimbursementAccountStepToOpen;
             bankAccountID?: number;
             backTo?: string;
-            subStepToOpen?: typeof CONST.BANK_ACCOUNT.STEP.COUNTRY;
         }) => {
             if (!policyID && !bankAccountID) {
                 // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-                return getUrlWithBackToParam(`bank-account/${stepToOpen}`, backTo);
+                return getUrlWithBackToParam(`bank-account/new`, backTo);
             }
 
             if (bankAccountID) {
                 // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-                return getUrlWithBackToParam(`bank-account/${stepToOpen}?bankAccountID=${bankAccountID}`, backTo);
+                return getUrlWithBackToParam(`bank-account/new?bankAccountID=${bankAccountID}`, backTo);
             }
             // TODO this backTo comes from drilling it through bank account form screens
             // should be removed once https://github.com/Expensify/App/pull/72219 is resolved
             // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-            return getUrlWithBackToParam(`bank-account/${stepToOpen}?policyID=${policyID}${subStepToOpen ? `&subStep=${subStepToOpen}` : ''}`, backTo);
+            return getUrlWithBackToParam(`bank-account/new?policyID=${policyID}`, backTo);
         },
     },
     BANK_ACCOUNT_ENTER_SIGNER_INFO: {
@@ -330,16 +326,16 @@ const ROUTES = {
         },
     },
     BANK_ACCOUNT_USD_SETUP: {
-        route: 'bank-account/us/:step?/:subPage?/:action?',
+        route: 'bank-account/new/us/:step?/:subPage?/:action?',
         // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-        getRoute: ({policyID, step, subPage, action, backTo}: {policyID?: string; step?: string; subPage?: string; action?: 'edit'; backTo?: string}) => {
-            const base = 'bank-account/us';
-            const stepPart = step ? `/${step}` : '';
+        getRoute: ({policyID, page, subPage, action, backTo}: {policyID?: string; page?: string; subPage?: string; action?: 'edit'; backTo?: string}) => {
+            const base = 'bank-account/new/us';
+            const pagePart = page ? `/${page}` : '';
             const subStepPart = subPage ? `/${subPage}` : '';
             const actionPart = action ? `/${action}` : '';
             const queryString = policyID ? `?policyID=${policyID}` : '';
             // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-            return getUrlWithBackToParam(`${base}${stepPart}${subStepPart}${actionPart}${queryString}`, backTo);
+            return getUrlWithBackToParam(`${base}${pagePart}${subStepPart}${actionPart}${queryString}`, backTo);
         },
     },
     SETTINGS: 'settings',

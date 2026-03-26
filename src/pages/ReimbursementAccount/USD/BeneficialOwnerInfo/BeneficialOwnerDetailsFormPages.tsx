@@ -56,7 +56,7 @@ function BeneficialOwnerDetailsFormPages({
     const {translate} = useLocalize();
 
     const buildRoute = useCallback(
-        (pageName: string, action?: 'edit') => ROUTES.BANK_ACCOUNT_USD_SETUP.getRoute({policyID, step: PAGE_NAMES.BENEFICIAL_OWNERS, subPage: pageName, action}),
+        (pageName: string, action?: 'edit') => ROUTES.BANK_ACCOUNT_USD_SETUP.getRoute({policyID, page: PAGE_NAMES.BENEFICIAL_OWNERS, subPage: pageName, action}),
         [policyID],
     );
 

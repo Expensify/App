@@ -2252,7 +2252,7 @@ type ReimbursementAccountNavigatorParamList = {
         subStep?: typeof CONST.BANK_ACCOUNT.STEP.COUNTRY;
     };
     [SCREENS.REIMBURSEMENT_ACCOUNT_USD]: {
-        step?: string;
+        page?: string;
         subPage?: string;
         action?: 'edit';
         policyID?: string;
