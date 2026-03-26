@@ -25,7 +25,7 @@ import {setDraftSplitTransaction} from '@libs/actions/IOU/Split';
 import {convertToBackendAmount} from '@libs/CurrencyUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import {shouldUseTransactionDraft} from '@libs/IOUUtils';
+import {isMovingTransactionFromTrackExpense as isMovingTransactionFromTrackExpenseUtil, shouldUseTransactionDraft} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getDistanceRateCustomUnitRate, isTaxTrackingEnabled} from '@libs/PolicyUtils';
 import {isReportInGroupPolicy} from '@libs/ReportUtils';
@@ -97,6 +97,8 @@ function IOURequestStepDistanceRate({
     const [pendingRateID, setPendingRateID] = useState<string | undefined>();
 
     const rates = DistanceRequestUtils.getMileageRates(policy, false, currentRateID);
+    const isMovingTransactionFromTrackExpense = isMovingTransactionFromTrackExpenseUtil(action);
+    const transactionUnit = transaction?.comment?.customUnit?.distanceUnit;
     const sortedRates = useMemo(() => Object.values(rates).sort((a, b) => localeCompare(a.name ?? '', b.name ?? '')), [rates, localeCompare]);
 
     const navigateBack = () => {
@@ -104,9 +106,15 @@ function IOURequestStepDistanceRate({
     };
 
     const options = sortedRates.map((rate) => {
-        const unit = currentTransaction?.comment?.customUnit?.customUnitRateID === rate.customUnitRateID ? DistanceRequestUtils.getDistanceUnit(currentTransaction, rate) : rate.unit;
+        const hasUnitMismatchForMovingTrackExpense = isMovingTransactionFromTrackExpense && transactionUnit !== rate.unit;
+        const unit =
+            currentTransaction?.comment?.customUnit?.customUnitRateID === rate.customUnitRateID && !hasUnitMismatchForMovingTrackExpense
+                ? DistanceRequestUtils.getDistanceUnit(currentTransaction, rate)
+                : rate.unit;
         const effectiveRateID = pendingRateID ?? currentRateID;
-        const isSelected = effectiveRateID ? effectiveRateID === rate.customUnitRateID : DistanceRequestUtils.getDefaultMileageRate(policy)?.customUnitRateID === rate.customUnitRateID;
+        const isSelected = effectiveRateID
+            ? effectiveRateID === rate.customUnitRateID && !hasUnitMismatchForMovingTrackExpense
+            : DistanceRequestUtils.getDefaultMileageRate(policy)?.customUnitRateID === rate.customUnitRateID;
         const rateForDisplay = DistanceRequestUtils.getFormattedRateValue(unit, rate.rate, isSelected ? transactionCurrency : rate.currency, translate, toLocaleDigit, getCurrencySymbol);
         return {
             text: rate.name ?? rateForDisplay,
@@ -161,7 +169,7 @@ function IOURequestStepDistanceRate({
             setMoneyRequestTaxValue(transactionID, taxValue ?? null, shouldUseTransactionDraft(action));
         }
 
-        if (currentRateID !== customUnitRateID) {
+        if (currentRateID !== customUnitRateID || (isMovingTransactionFromTrackExpense && transactionUnit !== selectedRateUnit)) {
             // In the split flow, when editing we use SPLIT_TRANSACTION_DRAFT to save draft value
             if (isEditingSplit && transaction) {
                 setDraftSplitTransaction(transaction.transactionID, splitDraftTransaction, {customUnitRateID}, policy);
