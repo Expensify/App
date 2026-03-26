@@ -13,7 +13,7 @@ import MenuItem from '@components/MenuItem';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import NavigationTabBar from '@components/Navigation/NavigationTabBar';
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
-import TopBar from '@components/Navigation/TopBar';
+import TopBarWithLoadingBar from '@components/Navigation/TopBarWithLoadingBar';
 import {PressableWithFeedback} from '@components/Pressable';
 import ScreenWrapper from '@components/ScreenWrapper';
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
@@ -469,7 +469,9 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                             ref={popoverAnchor}
                             shouldBlockSelection={!!item.link}
                             onSecondaryInteraction={item.link ? (event) => openPopover(item.link, event) : undefined}
+                            shouldShowContextMenuHint={!!item.link}
                             focused={isFocused}
+                            role={CONST.ROLE.TAB}
                             isPaneMenu
                             sentryLabel={item.sentryLabel}
                             iconRight={item.iconRight}
@@ -560,7 +562,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
         >
             {shouldDisplayLHB && <NavigationTabBar selectedTab={NAVIGATION_TABS.SETTINGS} />}
             {shouldUseNarrowLayout && (
-                <TopBar
+                <TopBarWithLoadingBar
                     breadcrumbLabel={translate('initialSettingsPage.account')}
                     shouldDisplaySearch
                     shouldDisplayHelpButton

@@ -84,6 +84,8 @@ function mockGetInputDefaultImplementation(key: string): boolean | string {
             return 'success';
         case 'DATE':
         case 'NOTE':
+        case 'ANDROID_SENTRY_URL':
+        case 'IOS_SENTRY_URL':
             return '';
         default:
             throw new Error(`Trying to access invalid input: ${key}`);

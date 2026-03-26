@@ -5,6 +5,7 @@ import {useSearchActionsContext, useSearchStateContext} from '@components/Search
 import useAncestors from '@hooks/useAncestors';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import {clearErrorFields, clearErrors} from '@libs/actions/FormActions';
 import {putTransactionsOnHold} from '@libs/actions/IOU/Hold';
@@ -30,6 +31,7 @@ function SearchHoldReasonPage({route}: SearchHoldReasonPageProps) {
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+    const {isOffline} = useNetwork();
 
     const selectedTransactionsList = Object.values(selectedTransactions);
     const isSubmitter = report ? report.ownerAccountID === currentUserAccountID : selectedTransactionsList.some((t) => t.ownerAccountID === currentUserAccountID);
@@ -46,7 +48,7 @@ function SearchHoldReasonPage({route}: SearchHoldReasonPageProps) {
             }
 
             if (route.name === SCREENS.SEARCH.MONEY_REQUEST_REPORT_HOLD_TRANSACTIONS) {
-                putTransactionsOnHold(selectedTransactionIDs, comment, reportID, ancestors);
+                putTransactionsOnHold(selectedTransactionIDs, comment, reportID, isOffline, ancestors);
                 clearSelectedTransactions(true);
             } else {
                 holdMoneyRequestOnSearch(currentSearchHash, Object.keys(selectedTransactions), comment, allTransactions, allReportActions);
@@ -65,6 +67,7 @@ function SearchHoldReasonPage({route}: SearchHoldReasonPageProps) {
             allTransactions,
             allReportActions,
             ancestors,
+            isOffline,
             isDelegateAccessRestricted,
             showDelegateNoAccessModal,
         ],

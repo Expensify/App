@@ -1,0 +1,518 @@
+diff --git a/node_modules/react-native/Libraries/Interaction/InteractionManager.js b/node_modules/react-native/Libraries/Interaction/InteractionManager.js
+index 410dfe3..d36fb18 100644
+--- a/node_modules/react-native/Libraries/Interaction/InteractionManager.js
++++ b/node_modules/react-native/Libraries/Interaction/InteractionManager.js
+@@ -10,28 +10,45 @@
+ 
+ import type {EventSubscription} from '../vendor/emitter/EventEmitter';
+ 
+-const invariant = require('invariant');
+-
+ export type SimpleTask = {
+-  name: string,
+-  run: () => void,
++    name: string,
++    run: () => void,
+ };
+ export type PromiseTask = {
+-  name: string,
+-  gen: () => Promise<void>,
++    name: string,
++    gen: () => Promise<void>,
+ };
+-export type Task = SimpleTask | PromiseTask | (() => void);
+ 
+ export type Handle = number;
+ 
+ // NOTE: The original implementation of `InteractionManager` never rejected
+ // the returned promise. This preserves that behavior in the stub.
+ function reject(error: Error): void {
+-  setTimeout(() => {
+-    throw error;
+-  }, 0);
++    setTimeout(() => {
++        throw error;
++    }, 0);
+ }
+ 
++import type {Task} from './TaskQueue';
++
++import EventEmitter from '../vendor/emitter/EventEmitter';
++
++const BatchedBridge = require('../BatchedBridge/BatchedBridge').default;
++const TaskQueue = require('./TaskQueue').default;
++const invariant = require('invariant');
++
++export type {Task, SimpleTask, PromiseTask} from './TaskQueue';
++
++export type Handle = number;
++
++const _emitter = new EventEmitter<{
++    interactionComplete: [],
++    interactionStart: [],
++}>();
++
++const DEBUG_DELAY: 0 = 0;
++const DEBUG: false = false;
++
+ /**
+  * InteractionManager allows long-running work to be scheduled after any
+  * interactions/animations have completed. In particular, this allows JavaScript
+@@ -83,106 +100,154 @@ function reject(error: Error): void {
+  *
+  * @deprecated
+  */
+-const InteractionManagerStub = {
+-  Events: {
+-    interactionStart: 'interactionStart',
+-    interactionComplete: 'interactionComplete',
+-  },
+-
+-  /**
+-   * Schedule a function to run after all interactions have completed. Returns a cancellable
+-   * "promise".
+-   *
+-   * @deprecated
+-   */
+-  runAfterInteractions(task: ?Task): {
+-    then: <U>(
+-      onFulfill?: ?(void) => ?(Promise<U> | U),
+-      onReject?: ?(error: mixed) => ?(Promise<U> | U),
+-    ) => Promise<U>,
+-    cancel: () => void,
+-    ...
+-  } {
+-    let immediateID: ?$FlowFixMe;
+-    const promise = new Promise(resolve => {
+-      immediateID = setImmediate(() => {
+-        if (typeof task === 'object' && task !== null) {
+-          if (typeof task.gen === 'function') {
+-            task.gen().then(resolve, reject);
+-          } else if (typeof task.run === 'function') {
+-            try {
+-              task.run();
+-              resolve();
+-            } catch (error) {
+-              reject(error);
++const InteractionManagerImpl = {
++    Events: {
++        interactionStart: 'interactionStart',
++        interactionComplete: 'interactionComplete',
++    },
++
++    /**
++     * Schedule a function to run after all interactions have completed. Returns a cancellable
++     * "promise".
++     */
++    runAfterInteractions(task: ?Task): {
++        then: <U>(
++            onFulfill?: ?(void) => ?(Promise<U> | U),
++            onReject?: ?(error: mixed) => ?(Promise<U> | U),
++        ) => Promise<U>,
++        cancel: () => void,
++        ...
++    } {
++        const tasks: Array<Task> = [];
++        const promise = new Promise((resolve: () => void) => {
++            _scheduleUpdate();
++            if (task) {
++                tasks.push(task);
+             }
+-          } else {
+-            reject(new TypeError(`Task "${task.name}" missing gen or run.`));
+-          }
+-        } else if (typeof task === 'function') {
+-          try {
+-            task();
+-            resolve();
+-          } catch (error) {
+-            reject(error);
+-          }
++            tasks.push({
++                run: resolve,
++                name: 'resolve ' + ((task && task.name) || '?'),
++            });
++            _taskQueue.enqueueTasks(tasks);
++        });
++        return {
++            // $FlowFixMe[method-unbinding] added when improving typing for this parameters
++            then: promise.then.bind(promise),
++            cancel: function () {
++                _taskQueue.cancelTasks(tasks);
++            },
++        };
++    },
++
++    /**
++     * Notify manager that an interaction has started.
++     */
++    createInteractionHandle(): Handle {
++        /* $FlowFixMe[constant-condition] Error discovered during Constant
++         * Condition roll out. See https://fburl.com/workplace/1v97vimq. */
++        DEBUG && console.log('InteractionManager: create interaction handle');
++        _scheduleUpdate();
++        const handle = ++_inc;
++        _addInteractionSet.add(handle);
++        return handle;
++    },
++
++    /**
++     * Notify manager that an interaction has completed.
++     */
++    clearInteractionHandle(handle: Handle) {
++        /* $FlowFixMe[constant-condition] Error discovered during Constant
++         * Condition roll out. See https://fburl.com/workplace/1v97vimq. */
++        DEBUG && console.log('InteractionManager: clear interaction handle');
++        invariant(!!handle, 'InteractionManager: Must provide a handle to clear.');
++        _scheduleUpdate();
++        _addInteractionSet.delete(handle);
++        _deleteInteractionSet.add(handle);
++    },
++
++    // $FlowFixMe[unclear-type] unclear type of _emitter
++    // $FlowFixMe[method-unbinding] added when improving typing for this parameters
++    addListener: _emitter.addListener.bind(_emitter) as (
++        eventType: string,
++        // $FlowFixMe[unclear-type] unclear type of arguments
++        listener: (...args: any) => mixed,
++        context: mixed,
++    ) => EventSubscription,
++
++    /**
++     * A positive number will use setTimeout to schedule any tasks after the
++     * eventLoopRunningTime hits the deadline value, otherwise all tasks will be
++     * executed in one setImmediate batch (default).
++     */
++    setDeadline(deadline: number) {
++    _deadline = deadline;
++    },
++};
++
++const _interactionSet = new Set<number | Handle>();
++const _addInteractionSet = new Set<number | Handle>();
++const _deleteInteractionSet = new Set<Handle>();
++const _taskQueue = new TaskQueue({onMoreTasks: _scheduleUpdate});
++let _nextUpdateHandle: $FlowFixMe | TimeoutID = 0;
++let _inc = 0;
++let _deadline = -1;
++
++/**
++ * Schedule an asynchronous update to the interaction state.
++ */
++function _scheduleUpdate() {
++    if (!_nextUpdateHandle) {
++        if (_deadline > 0) {
++            _nextUpdateHandle = setTimeout(_processUpdate, 0 + DEBUG_DELAY);
+         } else {
+-          reject(new TypeError('Invalid task of type: ' + typeof task));
++            _nextUpdateHandle = setImmediate(_processUpdate);
+         }
+-      });
+-    });
+-
+-    return {
+-      // $FlowFixMe[method-unbinding] added when improving typing for this parameters
+-      then: promise.then.bind(promise),
+-      cancel() {
+-        clearImmediate(immediateID);
+-      },
+-    };
+-  },
+-
+-  /**
+-   * Notify manager that an interaction has started.
+-   *
+-   * @deprecated
+-   */
+-  createInteractionHandle(): Handle {
+-    return -1;
+-  },
+-
+-  /**
+-   * Notify manager that an interaction has completed.
+-   *
+-   * @deprecated
+-   */
+-  clearInteractionHandle(handle: Handle) {
+-    invariant(!!handle, 'InteractionManager: Must provide a handle to clear.');
+-  },
+-
+-  /**
+-   * @deprecated
+-   */
+-  addListener(
+-    eventType: string,
+-    // $FlowFixMe[unclear-type]
+-    listener: (...args: any) => mixed,
+-    context: mixed,
+-  ): EventSubscription {
+-    return {
+-      remove() {},
+-    };
+-  },
+-
+-  /**
+-   * A positive number will use setTimeout to schedule any tasks after the
+-   * eventLoopRunningTime hits the deadline value, otherwise all tasks will be
+-   * executed in one setImmediate batch (default).
+-   *
+-   * @deprecated
+-   */
+-  setDeadline(deadline: number) {
+-    // Do nothing.
+-  },
+-};
++    }
++}
++
++/**
++ * Notify listeners, process queue, etc
++ */
++function _processUpdate() {
++    _nextUpdateHandle = 0;
++
++    const interactionCount = _interactionSet.size;
++    _addInteractionSet.forEach(handle => _interactionSet.add(handle));
++    _deleteInteractionSet.forEach(handle => _interactionSet.delete(handle));
++    const nextInteractionCount = _interactionSet.size;
++
++    if (interactionCount !== 0 && nextInteractionCount === 0) {
++        // transition from 1+ --> 0 interactions
++        /* $FlowFixMe[prop-missing] Natural Inference rollout. See
++         * https://fburl.com/workplace/6291gfvu */
++        /* $FlowFixMe[invalid-computed-prop] Natural Inference rollout. See
++         * https://fburl.com/workplace/6291gfvu */
++        _emitter.emit(InteractionManagerImpl.Events.interactionComplete);
++    } else if (interactionCount === 0 && nextInteractionCount !== 0) {
++        // transition from 0 --> 1+ interactions
++        /* $FlowFixMe[prop-missing] Natural Inference rollout. See
++         * https://fburl.com/workplace/6291gfvu */
++        /* $FlowFixMe[invalid-computed-prop] Natural Inference rollout. See
++         * https://fburl.com/workplace/6291gfvu */
++        _emitter.emit(InteractionManagerImpl.Events.interactionStart);
++    }
++
++    // process the queue regardless of a transition
++    if (nextInteractionCount === 0) {
++        while (_taskQueue.hasTasksToProcess()) {
++            _taskQueue.processNext();
++            if (
++                _deadline > 0 &&
++                BatchedBridge.getEventLoopRunningTime() >= _deadline
++            ) {
++                // Hit deadline before processing all tasks, so process more later.
++                _scheduleUpdate();
++                break;
++            }
++        }
++    }
++    _addInteractionSet.clear();
++    _deleteInteractionSet.clear();
++}
+ 
+-export default InteractionManagerStub;
++export default InteractionManagerImpl;
+diff --git a/node_modules/react-native/Libraries/Interaction/TaskQueue.js b/node_modules/react-native/Libraries/Interaction/TaskQueue.js
+new file mode 100644
+index 0000000..70e6314
+--- /dev/null
++++ b/node_modules/react-native/Libraries/Interaction/TaskQueue.js
+@@ -0,0 +1,198 @@
++/**
++ * Copyright (c) Meta Platforms, Inc. and affiliates.
++ *
++ * This source code is licensed under the MIT license found in the
++ * LICENSE file in the root directory of this source tree.
++ *
++ * @flow strict
++ * @format
++ */
++
++'use strict';
++
++const invariant = require('invariant');
++
++export type SimpleTask = {
++  name: string,
++  run: () => void,
++};
++export type PromiseTask = {
++  name: string,
++  gen: () => Promise<void>,
++};
++export type Task = SimpleTask | PromiseTask | (() => void);
++
++const DEBUG: false = false;
++
++/**
++ * TaskQueue - A system for queueing and executing a mix of simple callbacks and
++ * trees of dependent tasks based on Promises. No tasks are executed unless
++ * `processNext` is called.
++ *
++ * `enqueue` takes a Task object with either a simple `run` callback, or a
++ * `gen` function that returns a `Promise` and puts it in the queue.  If a gen
++ * function is supplied, then the promise it returns will block execution of
++ * tasks already in the queue until it resolves. This can be used to make sure
++ * the first task is fully resolved (including asynchronous dependencies that
++ * also schedule more tasks via `enqueue`) before starting on the next task.
++ * The `onMoreTasks` constructor argument is used to inform the owner that an
++ * async task has resolved and that the queue should be processed again.
++ *
++ * Note: Tasks are only actually executed with explicit calls to `processNext`.
++ */
++class TaskQueue {
++  /**
++   * TaskQueue instances are self contained and independent, so multiple tasks
++   * of varying semantics and priority can operate together.
++   *
++   * `onMoreTasks` is invoked when `PromiseTask`s resolve if there are more
++   * tasks to process.
++   */
++  constructor({ onMoreTasks }: { onMoreTasks: () => void, ... }) {
++    this._onMoreTasks = onMoreTasks;
++    this._queueStack = [{ tasks: [], popable: false }];
++  }
++
++  /**
++   * Add a task to the queue.  It is recommended to name your tasks for easier
++   * async debugging. Tasks will not be executed until `processNext` is called
++   * explicitly.
++   */
++  enqueue(task: Task): void {
++    this._getCurrentQueue().push(task);
++  }
++
++  enqueueTasks(tasks: Array<Task>): void {
++    tasks.forEach(task => this.enqueue(task));
++  }
++
++  cancelTasks(tasksToCancel: Array<Task>): void {
++    // search through all tasks and remove them.
++    this._queueStack = this._queueStack
++      .map(queue => ({
++        ...queue,
++        tasks: queue.tasks.filter(task => tasksToCancel.indexOf(task) === -1),
++      }))
++      .filter((queue, idx) => queue.tasks.length > 0 || idx === 0);
++  }
++
++  /**
++   * Check to see if `processNext` should be called.
++   *
++   * @returns {boolean} Returns true if there are tasks that are ready to be
++   * processed with `processNext`, or returns false if there are no more tasks
++   * to be processed right now, although there may be tasks in the queue that
++   * are blocked by earlier `PromiseTask`s that haven't resolved yet.
++   * `onMoreTasks` will be called after each `PromiseTask` resolves if there are
++   * tasks ready to run at that point.
++   */
++  hasTasksToProcess(): boolean {
++    return this._getCurrentQueue().length > 0;
++  }
++
++  /**
++   * Executes the next task in the queue.
++   */
++  processNext(): void {
++    const queue = this._getCurrentQueue();
++    if (queue.length) {
++      const task = queue.shift();
++      try {
++        if (typeof task === 'object' && task.gen) {
++          /* $FlowFixMe[constant-condition] Error discovered during Constant
++           * Condition roll out. See https://fburl.com/workplace/1v97vimq. */
++          DEBUG && console.log('TaskQueue: genPromise for task ' + task.name);
++          this._genPromise(task);
++        } else if (typeof task === 'object' && task.run) {
++          /* $FlowFixMe[constant-condition] Error discovered during Constant
++           * Condition roll out. See https://fburl.com/workplace/1v97vimq. */
++          DEBUG && console.log('TaskQueue: run task ' + task.name);
++          task.run();
++        } else {
++          invariant(
++            typeof task === 'function',
++            'Expected Function, SimpleTask, or PromiseTask, but got:\n' +
++              JSON.stringify(task, null, 2),
++          );
++          /* $FlowFixMe[constant-condition] Error discovered during Constant
++           * Condition roll out. See https://fburl.com/workplace/1v97vimq. */
++          DEBUG && console.log('TaskQueue: run anonymous task');
++          task();
++        }
++      } catch (e) {
++        e.message =
++          // $FlowFixMe[incompatible-type]
++          // $FlowFixMe[incompatible-use]
++          'TaskQueue: Error with task ' + (task.name || '') + ': ' + e.message;
++        throw e;
++      }
++    }
++  }
++
++  _queueStack: Array<{
++    tasks: Array<Task>,
++    popable: boolean,
++    ...
++  }>;
++  _onMoreTasks: () => void;
++
++  _getCurrentQueue(): Array<Task> {
++    const stackIdx = this._queueStack.length - 1;
++    const queue = this._queueStack[stackIdx];
++    if (
++      queue.popable &&
++      queue.tasks.length === 0 &&
++      this._queueStack.length > 1
++    ) {
++      this._queueStack.pop();
++      /* $FlowFixMe[constant-condition] Error discovered during Constant
++       * Condition roll out. See https://fburl.com/workplace/1v97vimq. */
++      DEBUG &&
++        console.log('TaskQueue: popped queue: ', {
++          stackIdx,
++          queueStackSize: this._queueStack.length,
++        });
++      return this._getCurrentQueue();
++    } else {
++      return queue.tasks;
++    }
++  }
++
++  _genPromise(task: PromiseTask) {
++    // Each async task pushes it's own queue onto the queue stack. This
++    // effectively defers execution of previously queued tasks until the promise
++    // resolves, at which point we allow the new queue to be popped, which
++    // happens once it is fully processed.
++    this._queueStack.push({ tasks: [], popable: false });
++    const stackIdx = this._queueStack.length - 1;
++    const stackItem = this._queueStack[stackIdx];
++    /* $FlowFixMe[constant-condition] Error discovered during Constant
++     * Condition roll out. See https://fburl.com/workplace/1v97vimq. */
++    DEBUG && console.log('TaskQueue: push new queue: ', { stackIdx });
++    /* $FlowFixMe[constant-condition] Error discovered during Constant
++     * Condition roll out. See https://fburl.com/workplace/1v97vimq. */
++    DEBUG && console.log('TaskQueue: exec gen task ' + task.name);
++    task
++      .gen()
++      .then(() => {
++        /* $FlowFixMe[constant-condition] Error discovered during Constant
++         * Condition roll out. See https://fburl.com/workplace/1v97vimq. */
++        DEBUG &&
++          console.log('TaskQueue: onThen for gen task ' + task.name, {
++            stackIdx,
++            queueStackSize: this._queueStack.length,
++          });
++        stackItem.popable = true;
++        this.hasTasksToProcess() && this._onMoreTasks();
++      })
++      .catch(ex => {
++        setTimeout(() => {
++          ex.message = `TaskQueue: Error resolving Promise in task ${task.name}: ${ex.message}`;
++          throw ex;
++        }, 0);
++      });
++  }
++}
++
++export default TaskQueue;
++

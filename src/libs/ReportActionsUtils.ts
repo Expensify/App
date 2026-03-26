@@ -60,6 +60,7 @@ import stripFollowupListFromHtml from './ReportActionFollowupUtils/stripFollowup
 import type {getReportName, OptimisticIOUReportAction, PartialReportAction} from './ReportUtils';
 import StringUtils from './StringUtils';
 import {getReportFieldTypeTranslationKey} from './WorkspaceReportFieldUtils';
+import {getWorkspaceAddressStreetLines} from './WorkspacesSettingsUtils';
 
 type LastVisibleMessage = {
     lastMessageText: string;
@@ -108,10 +109,10 @@ Onyx.connect({
     },
 });
 
-let isNetworkOffline = false;
+let deprecatedIsNetworkOffline = false;
 Onyx.connect({
     key: ONYXKEYS.NETWORK,
-    callback: (val) => (isNetworkOffline = val?.isOffline ?? false),
+    callback: (val) => (deprecatedIsNetworkOffline = val?.isOffline ?? false),
 });
 
 let deprecatedCurrentUserAccountID: number | undefined;
@@ -222,16 +223,22 @@ function isDeletedAction(reportAction: OnyxInputOrEntry<ReportAction | Optimisti
 
 /**
  * This function will add attachment ID attribute on img and video HTML tags inside the passed html content
- * of a report action. This attachment id is the reportActionID concatenated with the order index that the attachment
- * appears inside the report action message so as to identify attachments with identical source inside a report action.
+ * of a report action. For newer attachments, it will use the existing attachmentID unique id value. otherwise, it falls back to the reportActionID concatenated
+ * with the order index that the attachment appears inside the report action message, so as to identify
+ * attachments with identical source inside a report action.
  */
 function getHtmlWithAttachmentID(html: string, reportActionID: string | undefined) {
     if (!reportActionID) {
         return html;
     }
 
-    let attachmentID = 0;
-    return html.replaceAll(/<img |<video /g, (m) => m.concat(`${CONST.ATTACHMENT_ID_ATTRIBUTE}="${reportActionID}_${++attachmentID}" `));
+    let index = 0;
+    return html.replaceAll(CONST.REGEX.ATTACHMENT.ATTACHMENT, (match) => {
+        const attachmentID = match.match(CONST.REGEX.ATTACHMENT.ATTACHMENT_ID)?.[2];
+
+        // If the attachment ID is already present, skip it
+        return attachmentID ? match : match.replaceAll(CONST.REGEX.ATTACHMENT.ATTACHMENT_REGEX, (m) => m.concat(`${CONST.ATTACHMENT_ID_ATTRIBUTE}="${reportActionID}_${++index}" `));
+    });
 }
 
 function getReportActionMessage(reportAction: PartialReportAction) {
@@ -785,13 +792,13 @@ function extractLinksFromMessageHtmlString(message: string): string {
  * @param reportActions - all actions
  * @param actionIndex - index of the action
  */
-function findPreviousAction(reportActions: ReportAction[], actionIndex: number): OnyxEntry<ReportAction> {
+function findPreviousAction(reportActions: ReportAction[], actionIndex: number, isOffline: boolean): OnyxEntry<ReportAction> {
     for (let i = actionIndex + 1; i < reportActions.length; i++) {
         const action = reportActions.at(i);
 
         // Find the next non-pending deletion report action, as the pending delete action means that it is not displayed in the UI, but still is in the report actions list.
         // If we are offline, all actions are pending but shown in the UI, so we take the previous action, even if it is a delete.
-        if (!isNetworkOffline && action?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+        if (!isOffline && action?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
             continue;
         }
 
@@ -810,13 +817,13 @@ function findPreviousAction(reportActions: ReportAction[], actionIndex: number):
  * @param reportActions - all actions
  * @param actionIndex - index of the action
  */
-function findNextAction(reportActions: ReportAction[], actionIndex: number): OnyxEntry<ReportAction> {
+function findNextAction(reportActions: ReportAction[], actionIndex: number, isOffline: boolean): OnyxEntry<ReportAction> {
     for (let i = actionIndex - 1; i >= 0; i--) {
         const action = reportActions.at(i);
 
         // Find the next non-pending deletion report action, as the pending delete action means that it is not displayed in the UI, but still is in the report actions list.
         // If we are offline, all actions are pending but shown in the UI, so we take the previous action, even if it is a delete.
-        if (!isNetworkOffline && action?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+        if (!isOffline && action?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
             continue;
         }
 
@@ -837,8 +844,8 @@ function findNextAction(reportActions: ReportAction[], actionIndex: number): Ony
  * @param reportActions - report actions ordered from latest
  * @param actionIndex - index of the comment item in state to check
  */
-function isConsecutiveActionMadeByPreviousActor(reportActions: ReportAction[], actionIndex: number): boolean {
-    const previousAction = findPreviousAction(reportActions, actionIndex);
+function isConsecutiveActionMadeByPreviousActor(reportActions: ReportAction[], actionIndex: number, isOffline: boolean): boolean {
+    const previousAction = findPreviousAction(reportActions, actionIndex, isOffline);
     const currentAction = reportActions.at(actionIndex);
 
     return canActionsBeGrouped(currentAction, previousAction);
@@ -851,9 +858,9 @@ function isConsecutiveActionMadeByPreviousActor(reportActions: ReportAction[], a
  * @param reportActions - report actions ordered from oldest
  * @param actionIndex - index of the comment item in state to check
  */
-function hasNextActionMadeBySameActor(reportActions: ReportAction[], actionIndex: number) {
+function hasNextActionMadeBySameActor(reportActions: ReportAction[], actionIndex: number, isOffline: boolean) {
     const currentAction = reportActions.at(actionIndex);
-    const nextAction = findNextAction(reportActions, actionIndex);
+    const nextAction = findNextAction(reportActions, actionIndex, isOffline);
 
     if (actionIndex === 0) {
         return false;
@@ -988,8 +995,8 @@ function isChronosAutomaticTimerAction(reportAction: OnyxInputOrEntry<ReportActi
  * If the user sends consecutive actions to Chronos to automatically start/stop the timer,
  * then detect that and show each individually so that the user can easily see when they were sent.
  */
-function isConsecutiveChronosAutomaticTimerAction(reportActions: ReportAction[], actionIndex: number, isChronosReport: boolean): boolean {
-    const previousAction = findPreviousAction(reportActions, actionIndex);
+function isConsecutiveChronosAutomaticTimerAction(reportActions: ReportAction[], actionIndex: number, isChronosReport: boolean, isOffline: boolean): boolean {
+    const previousAction = findPreviousAction(reportActions, actionIndex, isOffline);
     const currentAction = reportActions?.at(actionIndex);
     return isChronosAutomaticTimerAction(currentAction, isChronosReport) && isChronosAutomaticTimerAction(previousAction, isChronosReport);
 }
@@ -1077,10 +1084,38 @@ const supportedActionTypes = new Set<ReportActionName>([...Object.values(otherAc
  * Checks whether an action is actionable track expense and resolved.
  *
  */
-function isResolvedActionableWhisper(reportAction: OnyxEntry<ReportAction>): boolean {
+function isResolvedActionableWhisper(reportAction: OnyxEntry<ReportAction>, allActionsForReport?: OnyxEntry<ReportActions>): boolean {
     const originalMessage = getOriginalMessage(reportAction);
-    const resolution = originalMessage && typeof originalMessage === 'object' && 'resolution' in originalMessage ? originalMessage?.resolution : null;
-    return !!resolution;
+    if (!originalMessage || typeof originalMessage !== 'object') {
+        return false;
+    }
+    const resolution = 'resolution' in originalMessage ? originalMessage?.resolution : null;
+    if (resolution) {
+        return true;
+    }
+
+    const deleted = 'deleted' in originalMessage ? originalMessage?.deleted : null;
+    if (!deleted) {
+        return false;
+    }
+
+    // For mention whispers, only treat as deleted if the parent comment is also deleted.
+    // This distinguishes cascade deletion (parent deleted -> whisper should hide) from
+    // the backend's one-per-user cleanup (parent still exists -> whisper should stay visible).
+    if (reportAction?.reportActionID && (isActionableMentionWhisper(reportAction) || isActionableReportMentionWhisper(reportAction))) {
+        const reportID = reportAction.reportID;
+        const actions = allActionsForReport ?? (reportID ? allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`] : undefined);
+        if (actions) {
+            const parentOffset = isActionableReportMentionWhisper(reportAction) ? 2n : 1n;
+            const parentActionID = String(BigInt(reportAction.reportActionID) - parentOffset);
+            const parentAction = actions[parentActionID];
+            if (parentAction && !isDeletedAction(parentAction)) {
+                return false;
+            }
+        }
+    }
+
+    return true;
 }
 
 /**
@@ -1105,7 +1140,13 @@ function isResolvedConciergeDescriptionOptions(reportAction: OnyxEntry<ReportAct
  * Checks if a reportAction is fit for display, meaning that it's not deprecated, is of a valid
  * and supported type, it's not deleted and also not closed.
  */
-function shouldReportActionBeVisible(reportAction: OnyxEntry<ReportAction>, key: string | number, canUserPerformWriteAction?: boolean, reportsParam?: OnyxCollection<Report>): boolean {
+function shouldReportActionBeVisible(
+    reportAction: OnyxEntry<ReportAction>,
+    key: string | number,
+    canUserPerformWriteAction?: boolean,
+    reportsParam?: OnyxCollection<Report>,
+    allActionsForReport?: OnyxEntry<ReportActions>,
+): boolean {
     if (!reportAction) {
         return false;
     }
@@ -1182,7 +1223,7 @@ function shouldReportActionBeVisible(reportAction: OnyxEntry<ReportAction>, key:
     }
 
     // If action is actionable whisper and resolved by user, then we don't want to render anything
-    if (isActionableWhisper(reportAction) && isResolvedActionableWhisper(reportAction)) {
+    if (isActionableWhisper(reportAction) && isResolvedActionableWhisper(reportAction, allActionsForReport)) {
         return false;
     }
 
@@ -1197,11 +1238,11 @@ function shouldReportActionBeVisible(reportAction: OnyxEntry<ReportAction>, key:
 /**
  * Checks if the new marker should be hidden for the report action.
  */
-function shouldHideNewMarker(reportAction: OnyxEntry<ReportAction>): boolean {
+function shouldHideNewMarker(reportAction: OnyxEntry<ReportAction>, isOffline: boolean): boolean {
     if (!reportAction) {
         return true;
     }
-    return !isNetworkOffline && reportAction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+    return !isOffline && reportAction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 }
 
 /**
@@ -1218,22 +1259,27 @@ function isReportActionVisible(
         return false;
     }
 
+    // Look up all actions for this report so the parent-check in isResolvedActionableWhisper
+    // can determine whether a whisper's `deleted` flag reflects a real cascade deletion
+    // (parent comment deleted) vs. the backend's one-per-user cleanup (parent still exists).
+    const reportActionsForReport = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`];
+
     // Actions with pendingAction are optimistic or in-flight, so their visibility may differ
     // from what's cached in visibleReportActions (which reflects persisted Onyx data).
     // We must recalculate visibility at runtime to ensure accuracy for these transient states.
     if (reportAction.pendingAction) {
-        return shouldReportActionBeVisible(reportAction, reportAction.reportActionID, canUserPerformWriteAction);
+        return shouldReportActionBeVisible(reportAction, reportAction.reportActionID, canUserPerformWriteAction, undefined, reportActionsForReport);
     }
 
     if (visibleReportActions) {
         const reportCache = visibleReportActions[reportID];
         if (!reportCache) {
-            return shouldReportActionBeVisible(reportAction, reportAction.reportActionID, canUserPerformWriteAction);
+            return shouldReportActionBeVisible(reportAction, reportAction.reportActionID, canUserPerformWriteAction, undefined, reportActionsForReport);
         }
         const staticVisibility = reportCache[reportAction.reportActionID];
         // If action is not in derived value cache, fall back to runtime calculation
         if (staticVisibility === undefined) {
-            return shouldReportActionBeVisible(reportAction, reportAction.reportActionID, canUserPerformWriteAction);
+            return shouldReportActionBeVisible(reportAction, reportAction.reportActionID, canUserPerformWriteAction, undefined, reportActionsForReport);
         }
         if (!staticVisibility) {
             return false;
@@ -1243,7 +1289,7 @@ function isReportActionVisible(
         }
         return true;
     }
-    return shouldReportActionBeVisible(reportAction, reportAction.reportActionID, canUserPerformWriteAction);
+    return shouldReportActionBeVisible(reportAction, reportAction.reportActionID, canUserPerformWriteAction, undefined, reportActionsForReport);
 }
 
 /**
@@ -1831,7 +1877,7 @@ function getOneTransactionThreadReportAction(
             iouRequestTypesSet.has(actionType) &&
             !!originalMessage?.IOUTransactionID &&
             // Include deleted IOU reportActions if the action is pending deletion and the user is offline
-            (!isDeletedAction(action) || (action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && (isOffline ?? isNetworkOffline)))
+            (!isDeletedAction(action) || (action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && (isOffline ?? deprecatedIsNetworkOffline)))
         ) {
             if (iouRequestAction !== null) {
                 // We found a second action so this is for sure not a one-transaction report
@@ -2103,7 +2149,9 @@ function getMessageOfOldDotReportAction(translate: LocalizedTranslate, oldDotAct
         case CONST.REPORT.ACTIONS.TYPE.OUTDATED_BANK_ACCOUNT:
             return translate('report.actions.type.outdatedBankAccount');
         case CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_ACH_BOUNCE:
-            return translate('report.actions.type.reimbursementACHBounce');
+            return originalMessage?.returnReason
+                ? translate('report.actions.type.reimbursementACHBounceWithReason', {returnReason: originalMessage.returnReason})
+                : translate('report.actions.type.reimbursementACHBounceDefault');
         case CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_ACH_CANCELED:
             return translate('report.actions.type.reimbursementACHCancelled');
         case CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_ACCOUNT_CHANGED:
@@ -2236,6 +2284,28 @@ function getTravelUpdateMessage(
     }
 }
 
+function getDynamicExternalWorkflowSubmitFailedActionMessage(translate: LocalizedTranslate, action: ReportAction): string {
+    if (!isDynamicExternalWorkflowSubmitFailedAction(action)) {
+        return '';
+    }
+    const originalMessage = getOriginalMessage(action);
+    const wasSubmittedViaHarvesting = originalMessage?.harvesting ?? false;
+    const message = originalMessage?.message ?? translate('iou.error.genericCreateFailureMessage');
+    const failedSubmitReason = wasSubmittedViaHarvesting ? translate('iou.failedToAutoSubmitViaDEW', message) : translate('iou.failedToSubmitViaDEW', message);
+    return failedSubmitReason;
+}
+
+function getDynamicExternalWorkflowApproveFailedActionMessage(translate: LocalizedTranslate, action: ReportAction): string {
+    if (!isDynamicExternalWorkflowApproveFailedAction(action)) {
+        return '';
+    }
+    const originalMessage = getOriginalMessage(action);
+    const wasAutoApproveAction = originalMessage?.automaticAction ?? false;
+    const message = originalMessage?.message ?? translate('iou.error.genericCreateFailureMessage');
+    const failedApproveReason = wasAutoApproveAction ? translate('iou.failedToAutoApproveViaDEW', message) : translate('iou.failedToApproveViaDEW', message);
+    return failedApproveReason;
+}
+
 // eslint-disable-next-line @typescript-eslint/no-deprecated
 function getMemberChangeMessageFragment(translate: LocalizedTranslate, reportAction: OnyxEntry<ReportAction>, getReportNameCallback: typeof getReportName): Message {
     const messageElements: readonly MemberChangeMessageElement[] = getMemberChangeMessageElements(translate, reportAction, getReportNameCallback);
@@ -2321,18 +2391,12 @@ function getReportActionMessageFragments(translate: LocalizedTranslate, action: 
     }
 
     if (isDynamicExternalWorkflowSubmitFailedAction(action)) {
-        const originalMessage = getOriginalMessage(action);
-        const wasSubmittedViaHarvesting = originalMessage?.harvesting ?? false;
-        const message = originalMessage?.message ?? translate('iou.error.genericCreateFailureMessage');
-        const failedSubmitReason = wasSubmittedViaHarvesting ? translate('iou.failedToAutoSubmitViaDEW', message) : translate('iou.failedToSubmitViaDEW', message);
+        const failedSubmitReason = getDynamicExternalWorkflowSubmitFailedActionMessage(translate, action);
         return [{text: failedSubmitReason, html: `<muted-text>${failedSubmitReason}</muted-text>`, type: 'COMMENT'}];
     }
 
     if (isDynamicExternalWorkflowApproveFailedAction(action)) {
-        const originalMessage = getOriginalMessage(action);
-        const wasAutoApproveAction = originalMessage?.automaticAction ?? false;
-        const message = originalMessage?.message ?? translate('iou.error.genericCreateFailureMessage');
-        const failedApproveReason = wasAutoApproveAction ? translate('iou.failedToAutoApproveViaDEW', message) : translate('iou.failedToApproveViaDEW', message);
+        const failedApproveReason = getDynamicExternalWorkflowApproveFailedActionMessage(translate, action);
         return [{text: failedApproveReason, html: `<muted-text>${failedApproveReason}</muted-text>`, type: 'COMMENT'}];
     }
 
@@ -2696,7 +2760,7 @@ function getPolicyChangeLogAddEmployeeMessage(translate: LocalizedTranslate, rep
     const email = originalMessage?.email ?? '';
     const role = translate('workspace.common.roleName', originalMessage?.role ?? '').toLowerCase();
     const formattedEmail = formatPhoneNumber(email);
-    return translate('report.actions.type.addEmployee', formattedEmail, role);
+    return translate('report.actions.type.addEmployee', formattedEmail, role, originalMessage?.didJoinPolicy);
 }
 
 function isPolicyChangeLogChangeRoleMessage(reportAction: OnyxInputOrEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_EMPLOYEE> {
@@ -2912,7 +2976,7 @@ function getWorkspaceCategoriesUpdatedMessage(translate: LocalizedTranslate, act
     const parsedCount = typeof count === 'number' ? count : Number(count);
 
     if (!Number.isNaN(parsedCount)) {
-        return translate('workspaceActions.updateCategories', {count: parsedCount});
+        return translate('workspaceActions.updateCategories', parsedCount);
     }
 
     return getReportActionText(action);
@@ -3046,9 +3110,7 @@ function getTagListNameUpdatedMessage(translate: LocalizedTranslate, action: Rep
 function getTagListUpdatedMessage(translate: LocalizedTranslate, action: ReportAction): string {
     const {tagListName} = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_TAG_LIST>) ?? {};
     if (tagListName) {
-        return translate('workspaceActions.updateTagList', {
-            tagListName,
-        });
+        return translate('workspaceActions.updateTagList', tagListName);
     }
     return getReportActionText(action);
 }
@@ -3068,9 +3130,7 @@ function getWorkspaceCustomUnitUpdatedMessage(translate: LocalizedTranslate, act
     const {oldValue, newValue, customUnitName, updatedField} = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT>) ?? {};
 
     if (customUnitName === 'Distance' && updatedField === 'taxEnabled' && typeof newValue === 'boolean') {
-        return translate('workspaceActions.updateCustomUnitTaxEnabled', {
-            newValue,
-        });
+        return translate('workspaceActions.updateCustomUnitTaxEnabled', newValue);
     }
 
     if (customUnitName && typeof oldValue === 'string' && typeof newValue === 'string' && updatedField === 'defaultCategory') {
@@ -3097,9 +3157,7 @@ function getWorkspaceCustomUnitRateImportedMessage(translate: LocalizedTranslate
     const {customUnitName} = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.IMPORT_CUSTOM_UNIT_RATES>) ?? {};
 
     if (customUnitName) {
-        return translate('workspaceActions.importCustomUnitRates', {
-            customUnitName,
-        });
+        return translate('workspaceActions.importCustomUnitRates', customUnitName);
     }
 
     return getReportActionText(action);
@@ -3301,8 +3359,8 @@ function getWorkspaceUpdateFieldMessage(translate: LocalizedTranslate, action: R
 }
 
 type CompanyAddressOriginalMessage = {
-    newAddress: {addressStreet?: string; city?: string; state?: string; zipCode?: string; country?: string};
-    oldAddress?: {addressStreet?: string; city?: string; state?: string; zipCode?: string; country?: string} | null;
+    newAddress: {addressStreet?: string; addressStreet2?: string; city?: string; state?: string; zipCode?: string; country?: string};
+    oldAddress?: {addressStreet?: string; addressStreet2?: string; city?: string; state?: string; zipCode?: string; country?: string} | null;
 };
 
 /**
@@ -3313,10 +3371,7 @@ function formatAddressToString(address: CompanyAddressOriginalMessage['newAddres
         return '';
     }
 
-    const [street1Raw, street2Raw] = (address.addressStreet ?? '').split('\n');
-    const street1 = street1Raw?.trim() ?? '';
-    const street2 = street2Raw?.trim() ?? '';
-
+    const {streetLineOne: street1, streetLineTwo: street2} = getWorkspaceAddressStreetLines(address.addressStreet, address.addressStreet2);
     const parts: string[] = [];
 
     if (street1) {
@@ -3536,7 +3591,7 @@ function getWorkspaceReimbursementUpdateMessage(translate: LocalizedTranslate, a
     const {enabled} = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_REIMBURSEMENT_ENABLED>) ?? {};
 
     if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_REIMBURSEMENT_ENABLED && typeof enabled === 'boolean') {
-        return translate('workspaceActions.updateReimbursementEnabled', {enabled});
+        return translate('workspaceActions.updateReimbursementEnabled', enabled);
     }
 
     return getReportActionText(action);
@@ -3913,7 +3968,7 @@ function getUpdatedTimeEnabledMessage(translate: LocalizedTranslate, reportActio
     const {enabled} = getOriginalMessage(reportAction as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_TIME_ENABLED>) ?? {};
 
     if (typeof enabled === 'boolean') {
-        return translate('workspaceActions.updatedTimeEnabled', {enabled});
+        return translate('workspaceActions.updatedTimeEnabled', enabled);
     }
 
     return getReportActionText(reportAction);
@@ -3989,7 +4044,7 @@ function getUpdatedAutoHarvestingMessage(translate: LocalizedTranslate, reportAc
     const {value} = getOriginalMessage(reportAction as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUTO_HARVESTING>) ?? {};
 
     if (typeof value === 'boolean') {
-        return translate('workspaceActions.updatedAutoHarvesting', {enabled: value});
+        return translate('workspaceActions.updatedAutoHarvesting', value);
     }
 
     return getReportActionText(reportAction);
@@ -4561,6 +4616,7 @@ export {
     getWorkspaceAttendeeTrackingUpdateMessage,
     getAutoPayApprovedReportsEnabledMessage,
     getAutoReimbursementMessage,
+    formatAddressToString,
     getCompanyAddressUpdateMessage,
     getDefaultApproverUpdateMessage,
     getSubmitsToUpdateMessage,
@@ -4642,6 +4698,8 @@ export {
     getReportActionActorAccountID,
     getSettlementAccountLockedMessage,
     stripFollowupListFromHtml,
+    getDynamicExternalWorkflowSubmitFailedActionMessage,
+    getDynamicExternalWorkflowApproveFailedActionMessage,
 };
 
 export type {LastVisibleMessage};
