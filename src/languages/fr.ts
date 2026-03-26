@@ -1056,6 +1056,10 @@ const translations: TranslationDeepObject<typeof en> = {
             ctaClaim: 'Demande',
             ctaAdd: 'Ajouter une carte',
             timeRemaining: ({formattedTime}: {formattedTime: string}) => `Temps restant : ${formattedTime}`,
+            timeRemainingDays: () => ({
+                one: 'Temps restant : 1 jour',
+                other: (pluralCount: number) => `Temps restant : ${pluralCount} jours`,
+            }),
         },
     },
     allSettingsScreen: {

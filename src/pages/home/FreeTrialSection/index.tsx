@@ -12,12 +12,28 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import type {DiscountInfo} from '@libs/SubscriptionUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import useFreeTrial from './useFreeTrial';
+import type {DiscountType} from './useFreeTrial';
 
 const ILLUSTRATION_SIZE = variables.componentSizeNormal;
+
+function getCountdownSubtitle(translate: ReturnType<typeof useLocalize>['translate'], discountType: DiscountType, discountInfo: DiscountInfo | null): string | undefined {
+    if (!discountInfo) {
+        return undefined;
+    }
+
+    if (discountType === 25 && discountInfo.days > 0) {
+        return translate('homePage.freeTrialSection.timeRemainingDays', {count: discountInfo.days});
+    }
+
+    return translate('homePage.freeTrialSection.timeRemaining', {
+        formattedTime: DateUtils.formatCountdownTimer(translate, discountInfo.hours, discountInfo.minutes, discountInfo.seconds),
+    });
+}
 
 function FreeTrialSection() {
     const {translate} = useLocalize();
@@ -48,9 +64,7 @@ function FreeTrialSection() {
         ctaText = translate('homePage.freeTrialSection.ctaAdd');
     }
 
-    const countdownSubtitle = discountInfo
-        ? translate('homePage.freeTrialSection.timeRemaining', {formattedTime: DateUtils.formatCountdownTimer(translate, discountInfo.hours, discountInfo.minutes, discountInfo.seconds)})
-        : undefined;
+    const countdownSubtitle = getCountdownSubtitle(translate, discountType, discountInfo);
 
     return (
         <WidgetContainer

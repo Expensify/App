@@ -1036,6 +1036,10 @@ const translations: TranslationDeepObject<typeof en> = {
             ctaClaim: '申請',
             ctaAdd: 'カードを追加',
             timeRemaining: ({formattedTime}: {formattedTime: string}) => `残り時間：${formattedTime}`,
+            timeRemainingDays: () => ({
+                one: '残り時間：1日',
+                other: (pluralCount: number) => `残り時間：${pluralCount}日`,
+            }),
         },
     },
     allSettingsScreen: {

@@ -1019,6 +1019,10 @@ const translations: TranslationDeepObject<typeof en> = {
             ctaClaim: '报销申请',
             ctaAdd: '添加卡片',
             timeRemaining: ({formattedTime}: {formattedTime: string}) => `剩余时间：${formattedTime}`,
+            timeRemainingDays: () => ({
+                one: '剩余时间：1天',
+                other: (pluralCount: number) => `剩余时间：${pluralCount}天`,
+            }),
         },
     },
     allSettingsScreen: {

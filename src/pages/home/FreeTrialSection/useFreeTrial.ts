@@ -7,13 +7,18 @@ import {calculateRemainingFreeTrialDays, doesUserHavePaymentCardAdded, getEarlyD
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
-type DiscountType = 50 | 25 | null;
+const DISCOUNT_TYPE = {
+    HALF_OFF: 50,
+    QUARTER_OFF: 25,
+} as const;
+
+type DiscountType = (typeof DISCOUNT_TYPE)[keyof typeof DISCOUNT_TYPE] | null;
 
 function getDiscountType(showDiscount: boolean, discountInfo: DiscountInfo | null): DiscountType {
     if (!showDiscount || !discountInfo) {
         return null;
     }
-    return discountInfo.discountType === 50 ? 50 : 25;
+    return discountInfo.discountType === DISCOUNT_TYPE.HALF_OFF ? DISCOUNT_TYPE.HALF_OFF : DISCOUNT_TYPE.QUARTER_OFF;
 }
 
 type FreeTrialState = {

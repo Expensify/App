@@ -1040,6 +1040,10 @@ const translations = {
             ctaClaim: 'Claim',
             ctaAdd: 'Add card',
             timeRemaining: ({formattedTime}: {formattedTime: string}) => `Time remaining: ${formattedTime}`,
+            timeRemainingDays: () => ({
+                one: 'Time remaining: 1 day',
+                other: (pluralCount: number) => `Time remaining: ${pluralCount} days`,
+            }),
         },
         assignedCards: 'Your Expensify Cards',
         assignedCardsRemaining: ({amount}: {amount: string}) => `${amount} remaining`,
