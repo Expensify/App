@@ -5008,6 +5008,10 @@ ${amount} para ${merchant} - ${date}`,
                 flipAmountSign: 'Invertir el signo del monto',
                 importButton: 'Importar transacciones',
             },
+            assignNewCards: {
+                title: 'Asignar nuevas tarjetas',
+                description: 'Obtén las últimas tarjetas para asignar desde tu banco',
+            },
         },
         expensifyCard: {
             issueAndManageCards: 'Emitir y gestionar Tarjetas Expensify',

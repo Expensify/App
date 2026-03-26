@@ -5124,6 +5124,10 @@ const translations = {
                 flipAmountSign: 'Flip amount sign',
                 importButton: 'Import transactions',
             },
+            assignNewCards: {
+                title: 'Assign new cards',
+                description: 'Get the latest cards to assign from your bank',
+            },
         },
         expensifyCard: {
             issueAndManageCards: 'Issue and manage your Expensify Cards',
