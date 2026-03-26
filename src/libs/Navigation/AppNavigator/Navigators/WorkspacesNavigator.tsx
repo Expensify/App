@@ -1,11 +1,12 @@
 /**
  * Stack Navigator containing WorkspacesList and WorkspaceSplit screens.
  */
-import {createStackNavigator} from '@react-navigation/stack';
 import React from 'react';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import Animations from '@libs/Navigation/PlatformStackNavigation/navigationOptions/animation';
-import type {WorkspaceNavigatorParamList} from '@libs/Navigation/types';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {AuthScreensParamList, WorkspaceNavigatorParamList} from '@libs/Navigation/types';
+import createWorkspacesNavigator from '@navigation/AppNavigator/createWorkspacesNavigator';
 import WorkspacesListPage from '@pages/workspace/WorkspacesListPage';
 import variables from '@styles/variables';
 import NAVIGATORS from '@src/NAVIGATORS';
@@ -13,9 +14,9 @@ import SCREENS from '@src/SCREENS';
 import DomainSplitNavigator from './DomainSplitNavigator';
 import WorkspaceSplitNavigator from './WorkspaceSplitNavigator';
 
-const Stack = createStackNavigator<WorkspaceNavigatorParamList>();
+const Stack = createWorkspacesNavigator<WorkspaceNavigatorParamList>();
 
-function WorkspacesNavigator() {
+function WorkspacesNavigator({route}: PlatformStackScreenProps<AuthScreensParamList, typeof NAVIGATORS.WORKSPACE_NAVIGATOR>) {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const splitNavigatorAnimation = shouldUseNarrowLayout ? Animations.SLIDE_FROM_RIGHT : Animations.NONE;
 
@@ -25,11 +26,12 @@ function WorkspacesNavigator() {
                 headerShown: false,
                 animation: Animations.NONE,
             }}
+            parentRoute={route}
         >
             <Stack.Screen
                 name={SCREENS.WORKSPACES_LIST}
                 component={WorkspacesListPage}
-                options={{cardStyle: [!shouldUseNarrowLayout && {paddingLeft: variables.navigationTabBarSize}]}}
+                options={{web: {cardStyle: [!shouldUseNarrowLayout && {paddingLeft: variables.navigationTabBarSize}]}}}
             />
             <Stack.Screen
                 name={NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR}
