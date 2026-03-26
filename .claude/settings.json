@@ -52,7 +52,6 @@
             "mcp__sentry__search_events",
             "mcp__sentry__search_issue_events",
             "mcp__sentry__search_issues",
-            "mcp__sentry__analyze_issue_with_seer",
             "mcp__sentry__whoami"
         ]
     },
