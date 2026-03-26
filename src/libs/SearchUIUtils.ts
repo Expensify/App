@@ -440,6 +440,8 @@ type TransactionKey = `${typeof ONYXKEYS.COLLECTION.TRANSACTION}${string}`;
 
 type ReportActionKey = `${typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS}${string}`;
 
+type PolicyKey = `${typeof ONYXKEYS.COLLECTION.POLICY}${string}`;
+
 type ViolationKey = `${typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${string}`;
 
 type SearchGroupKey = `${typeof CONST.SEARCH.GROUP_PREFIX}${string}`;
@@ -1189,6 +1191,13 @@ function isReportActionEntry(key: string): key is ReportActionKey {
  */
 function isTransactionEntry(key: string): key is TransactionKey {
     return key.startsWith(ONYXKEYS.COLLECTION.TRANSACTION);
+}
+
+/**
+ * @private
+ */
+function isPolicyEntry(key: string): key is PolicyKey {
+    return key.startsWith(ONYXKEYS.COLLECTION.POLICY);
 }
 
 /**
