@@ -84,7 +84,7 @@ This sends spans to the real Sentry project instead of the local console.
 
 Defined in `src/CONST/index.ts` under `CONST.TELEMETRY`:
 - Span names: `SPAN_OPEN_REPORT`, `SPAN_SEND_MESSAGE`
-- Tag names: `TAG_ACTIVE_POLICY`, `TAG_AUTHENTICATION_ERROR_TYPE`
+- Tag names: `TAGS.ACTIVE_POLICY`, `TAGS.AUTHENTICATION_ERROR_TYPE`
 - Attribute names: `ATTRIBUTE_REPORT_ID`, `ATTRIBUTE_MESSAGE_LENGTH`
 - Configuration: `CONFIG.SKELETON_MIN_DURATION`
 
@@ -163,7 +163,9 @@ Add span name, tags, and attributes to `src/CONST/index.ts`:
 ```typescript
 TELEMETRY: {
     SPAN_YOUR_OPERATION: 'ManualYourOperation',
-    TAG_YOUR_TAG: 'your_tag',
+    TAGS: {
+        YOUR_TAG: 'your_tag',
+    },
     ATTRIBUTE_YOUR_ATTR: 'your_attr'
 }
 ```
@@ -182,7 +184,7 @@ startSpan(spanId, {
 ```typescript
 const span = getSpan(spanId);
 span?.setAttribute(CONST.TELEMETRY.ATTRIBUTE_YOUR_ATTR, value);
-span?.setTag(CONST.TELEMETRY.TAG_YOUR_TAG, value);
+span?.setTag(CONST.TELEMETRY.TAGS.YOUR_TAG, value);
 ```
 
 #### 5. Finish Span

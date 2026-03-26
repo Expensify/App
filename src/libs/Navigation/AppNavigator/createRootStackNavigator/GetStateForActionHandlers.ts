@@ -204,7 +204,7 @@ function handleReplaceReportsSplitNavigatorAction(
  * that the Home+RHP browser-history entry is stale and correctly replaces it with
  * a new Search entry, producing browser history [Home, Search].
  *
- * The companion history-preservation logic lives in addCustomHistoryRouterExtension
+ * The companion history-preservation logic lives in addRootHistoryRouterExtension
  * which keeps `state.history` unchanged for this action so that no browser history
  * update is triggered during the insert step itself.
  *
