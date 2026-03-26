@@ -591,7 +591,7 @@ function IOURequestStepDistance({
 
         if (isEditingSplit && transaction) {
             setMoneyRequestDistance(transactionID, distanceAsFloat, shouldUseTransactionDraft(action), distanceUnit);
-            setDraftSplitTransaction(transaction.transactionID, splitDraftTransaction, {distance: distanceAsFloat}, policy);
+            setDraftSplitTransaction(CONST.IOU.OPTIMISTIC_TRANSACTION_ID, splitDraftTransaction, {distance: distanceAsFloat}, policy);
             navigateBack();
             return;
         }
@@ -600,7 +600,14 @@ function IOURequestStepDistance({
         const isDistanceChanged = manualInputDistance !== distanceAsFloat;
         const isDistanceUnitChanged = transactionDistanceUnit && transactionDistanceUnit !== distanceUnit;
 
-        if (!isDistanceChanged && !isDistanceUnitChanged) {
+        // Check if waypoints were edited on the map tab before the user switched to manual.
+        // If so, we must still send the update even if the distance value itself didn't change.
+        const oldWaypoints = transactionBackup?.comment?.waypoints ?? {};
+        const oldAddresses = Object.fromEntries(Object.entries(oldWaypoints).map(([key, waypoint]) => [key, 'address' in waypoint ? waypoint.address : {}]));
+        const currentAddresses = Object.fromEntries(Object.entries(waypoints).map(([key, waypoint]) => [key, 'address' in waypoint ? waypoint.address : {}]));
+        const haveWaypointsChanged = !deepEqual(oldAddresses, currentAddresses);
+
+        if (!isDistanceChanged && !isDistanceUnitChanged && !haveWaypointsChanged) {
             transactionWasSaved.current = true;
             navigateBack();
             return;
