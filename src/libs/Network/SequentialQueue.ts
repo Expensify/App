@@ -249,7 +249,7 @@ function process(): Promise<void> {
                         command: requestToProcess.command,
                         errorMessage: error.message,
                     });
-                    Onyx.update(requestToProcess.failureData ?? []);
+                    Onyx.update([...(requestToProcess.failureData ?? []), ...(requestToProcess.finallyData ?? [])]);
                     endPersistedRequestAndRemoveFromQueue(requestToProcess);
                     sequentialQueueRequestThrottle.clear();
                     if (requestToProcess.command === WRITE_COMMANDS.OPEN_APP) {
