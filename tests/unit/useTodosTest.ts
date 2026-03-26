@@ -55,6 +55,12 @@ describe('useTodos', () => {
                 reportsToPay: [],
                 reportsToExport: [],
                 transactionsByReportID: {},
+                searchData: {
+                    submit: {data: {}, metadata: {count: 0, total: 0, currency: ''}},
+                    approve: {data: {}, metadata: {count: 0, total: 0, currency: ''}},
+                    pay: {data: {}, metadata: {count: 0, total: 0, currency: ''}},
+                    export: {data: {}, metadata: {count: 0, total: 0, currency: ''}},
+                },
             };
             await Onyx.set(ONYXKEYS.DERIVED.TODOS, mockTodos);
             await waitForBatchedUpdatesWithAct();
@@ -86,6 +92,12 @@ describe('useTodos', () => {
                 reportsToExport: [],
                 transactionsByReportID: {
                     report1: [mockTransaction],
+                },
+                searchData: {
+                    submit: {data: {}, metadata: {count: 0, total: 0, currency: ''}},
+                    approve: {data: {}, metadata: {count: 0, total: 0, currency: ''}},
+                    pay: {data: {}, metadata: {count: 0, total: 0, currency: ''}},
+                    export: {data: {}, metadata: {count: 0, total: 0, currency: ''}},
                 },
             };
 
@@ -121,6 +133,12 @@ describe('useTodos', () => {
                 reportsToExport: [],
                 transactionsByReportID: {
                     report1: [mockTransaction],
+                },
+                searchData: {
+                    submit: {data: {}, metadata: {count: 0, total: 0, currency: ''}},
+                    approve: {data: {}, metadata: {count: 0, total: 0, currency: ''}},
+                    pay: {data: {}, metadata: {count: 0, total: 0, currency: ''}},
+                    export: {data: {}, metadata: {count: 0, total: 0, currency: ''}},
                 },
             };
 
@@ -161,6 +179,12 @@ describe('useTodos', () => {
                 reportsToExport: [],
                 transactionsByReportID: {
                     report1: [mockTransaction1, mockTransaction2],
+                },
+                searchData: {
+                    submit: {data: {}, metadata: {count: 0, total: 0, currency: ''}},
+                    approve: {data: {}, metadata: {count: 0, total: 0, currency: ''}},
+                    pay: {data: {}, metadata: {count: 0, total: 0, currency: ''}},
+                    export: {data: {}, metadata: {count: 0, total: 0, currency: ''}},
                 },
             };
 

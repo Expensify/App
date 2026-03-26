@@ -16,6 +16,12 @@ describe('todosReportCountsSelector', () => {
             reportsToPay: [{reportID: '6'}] as TodosDerivedValue['reportsToPay'],
             reportsToExport: [{reportID: '7'}, {reportID: '8'}, {reportID: '9'}, {reportID: '10'}] as TodosDerivedValue['reportsToExport'],
             transactionsByReportID: {},
+            searchData: {
+                submit: {data: {}, metadata: {count: 0, total: 0, currency: ''}},
+                approve: {data: {}, metadata: {count: 0, total: 0, currency: ''}},
+                pay: {data: {}, metadata: {count: 0, total: 0, currency: ''}},
+                export: {data: {}, metadata: {count: 0, total: 0, currency: ''}},
+            },
         };
 
         const result = todosReportCountsSelector(todos);
@@ -35,6 +41,12 @@ describe('todosReportCountsSelector', () => {
             reportsToPay: [],
             reportsToExport: [],
             transactionsByReportID: {},
+            searchData: {
+                submit: {data: {}, metadata: {count: 0, total: 0, currency: ''}},
+                approve: {data: {}, metadata: {count: 0, total: 0, currency: ''}},
+                pay: {data: {}, metadata: {count: 0, total: 0, currency: ''}},
+                export: {data: {}, metadata: {count: 0, total: 0, currency: ''}},
+            },
         };
 
         const result = todosReportCountsSelector(todos);
@@ -54,6 +66,12 @@ describe('todosReportCountsSelector', () => {
             reportsToPay: [],
             reportsToExport: [{reportID: '3'}] as TodosDerivedValue['reportsToExport'],
             transactionsByReportID: {},
+            searchData: {
+                submit: {data: {}, metadata: {count: 0, total: 0, currency: ''}},
+                approve: {data: {}, metadata: {count: 0, total: 0, currency: ''}},
+                pay: {data: {}, metadata: {count: 0, total: 0, currency: ''}},
+                export: {data: {}, metadata: {count: 0, total: 0, currency: ''}},
+            },
         };
 
         const result = todosReportCountsSelector(todos);
@@ -81,6 +99,12 @@ describe('todosReportCountsSelector', () => {
                 .fill(null)
                 .map((_, i) => ({reportID: `export_${i}`})) as TodosDerivedValue['reportsToExport'],
             transactionsByReportID: {},
+            searchData: {
+                submit: {data: {}, metadata: {count: 0, total: 0, currency: ''}},
+                approve: {data: {}, metadata: {count: 0, total: 0, currency: ''}},
+                pay: {data: {}, metadata: {count: 0, total: 0, currency: ''}},
+                export: {data: {}, metadata: {count: 0, total: 0, currency: ''}},
+            },
         };
 
         const result = todosReportCountsSelector(todos);
