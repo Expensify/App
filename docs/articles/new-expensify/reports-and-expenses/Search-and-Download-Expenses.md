@@ -1,7 +1,7 @@
 ---
 title: Export Expenses and Reports
 description: Learn how to export your expenses and reports in CSV or PDF format using default or custom templates in New Expensify.
-keywords: [New Expensify, export expenses, export reports, CSV export, PDF export, download reports, accounting integration, report templates]
+keywords: [New Expensify, export expenses, export reports, CSV export, PDF export, download reports, accounting integration, report templates, bulk export, export to QuickBooks, export to Xero, export to NetSuite, export to Sage Intacct, mark as exported]
 ---
 
 
@@ -14,6 +14,42 @@ Expensify offers flexible options to search and export expenses and reports in v
 - **PDF export**: Download full reports, including receipts and notes.
 
 > **Note:** You can export from both the web and mobile apps.
+
+# How to export reports to an accounting integration
+
+If your workspace is connected to an accounting integration (such as QuickBooks Online, Xero, NetSuite, or Sage Intacct), you can export one or more approved reports directly from the Reports page.
+
+## Web
+
+1. In the navigation tabs on the left, select **Reports > Expense Reports**.
+2. Check the box next to each report you want to export.
+3. Click **Selected** at the top.
+4. Select **Export** from the dropdown.
+5. Select the name of your connected accounting integration (e.g., **QuickBooks Online**).
+6. If any selected reports have already been exported, a confirmation modal will appear. Click **Export again** to proceed, or **Cancel** to go back.
+
+## Mobile
+
+1. In the navigation tabs at the bottom, select **Reports > Expense Reports**.
+2. Tap the three-line icon in the top-right corner and choose **Reports**.
+3. Check the box next to each report you want to export.
+4. Tap **Selected**, then choose **Export**.
+5. Select the name of your connected accounting integration.
+6. If any selected reports have already been exported, a confirmation modal will appear. Tap **Export again** to proceed, or **Cancel** to go back.
+
+> **Note:** The accounting integration export option only appears when all selected reports belong to the same workspace and that workspace has a connected accounting integration. Only reports that are eligible for export will show this option.
+
+## How to mark reports as exported
+
+If you exported reports outside of Expensify and want to track them as exported, you can mark them as manually exported in bulk:
+
+1. Select one or more reports on the **Reports** page.
+2. Click **Selected** at the top.
+3. Select **Export** from the dropdown.
+4. Select **Mark as exported**.
+5. If any selected reports have already been exported, a confirmation modal will appear. Click **Export again** to proceed, or **Cancel** to go back.
+
+---
 
 # Export as CSV
 
@@ -78,7 +114,7 @@ No, the columns follow a fixed template.
 
 ## How do I export to an accounting integration?
 
-Ensure your workspace is connected to a supported accounting platform. [Click here](https://docs.expensify.com) for connection instructions.
+Your workspace must be connected to a supported accounting platform. Select one or more approved reports on the **Reports** page, click **Selected > Export**, and choose your connected integration name from the dropdown. Learn how to connect an integration in the [QuickBooks Online](/articles/new-expensify/connections/quickbooks-online/Connect-to-QuickBooks-Online), [Xero](/articles/new-expensify/connections/xero/Connect-to-Xero), [NetSuite](/articles/new-expensify/connections/netsuite/Connect-To-NetSuite), or [Sage Intacct](/articles/new-expensify/connections/sage-intacct/Connect-to-Sage-Intacct) connection guide.
 
 ## How do I receive my export?
 
