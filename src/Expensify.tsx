@@ -181,7 +181,9 @@ function Expensify() {
         Navigation.setIsNavigationReady();
     }, []);
 
+    const [splashHideHasBeenCalled, setSplashHideHasBeenCalled] = useState(false);
     const onSplashHide = useCallback(() => {
+        setSplashHideHasBeenCalled(true);
         setSplashScreenState(CONST.BOOT_SPLASH_STATE.HIDDEN);
         endSpan(CONST.TELEMETRY.SPAN_OD_ND_TRANSITION);
         endSpan(CONST.TELEMETRY.SPAN_APP_STARTUP);
@@ -285,7 +287,12 @@ function Expensify() {
                     initialUrl={initialUrl}
                 />
             )}
-            {shouldHideSplash && <SplashScreenHider onHide={onSplashHide} />}
+            {!splashHideHasBeenCalled && (
+                <SplashScreenHider
+                    shouldHideSplash={shouldHideSplash}
+                    onHide={onSplashHide}
+                />
+            )}
         </>
     );
 }
