@@ -6,8 +6,8 @@ import {
     DefaultServerFailureScreen,
     NoEligibleMethodsFailureScreen,
     OutOfTimeFailureScreen,
-    UnsupportedDeviceFailureScreen,
 } from '@components/MultifactorAuthentication/components/OutcomeScreen/FailureScreen/defaultScreens';
+import UnsupportedDeviceFailureScreen from '@components/MultifactorAuthentication/components/OutcomeScreen/FailureScreen/UnsupportedDeviceFailureScreen';
 import DefaultSuccessScreen from '@components/MultifactorAuthentication/components/OutcomeScreen/SuccessScreen/defaultScreens';
 import type {
     MultifactorAuthenticationScenario,
