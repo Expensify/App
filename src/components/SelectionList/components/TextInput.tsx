@@ -86,8 +86,15 @@ function TextInput({
     const isNoResultsFoundMessage = headerMessage === noResultsFoundText;
     const noData = dataLength === 0 && !shouldShowLoadingPlaceholder;
     const shouldShowHeaderMessage = !!shouldShowTextInput && !!headerMessage && (!isLoadingNewOptions || !isNoResultsFoundMessage || noData);
+    const trimmedSearchValue = value?.trim() ?? '';
+    const suggestionsCount = dataLength ?? 0;
+    const suggestionsAnnouncement =
+        !!shouldShowTextInput && !shouldShowLoadingPlaceholder && !isLoadingNewOptions && suggestionsCount > 0
+            ? translate('search.suggestionsAvailable', {count: suggestionsCount}, trimmedSearchValue)
+            : '';
 
     useDebouncedAccessibilityAnnouncement(headerMessage ?? '', shouldShowHeaderMessage, value ?? '');
+    useDebouncedAccessibilityAnnouncement(suggestionsAnnouncement, !!suggestionsAnnouncement, value ?? '');
 
     const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const mergedRef = mergeRefs<BaseTextInputRef>(ref, optionsRef);
