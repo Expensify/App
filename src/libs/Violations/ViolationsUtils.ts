@@ -23,6 +23,15 @@ import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type {ReceiptError, ReceiptErrors} from '@src/types/onyx/Transaction';
 import type ViolationFixParams from './types';
 
+type ViolationTranslationOptions = {
+    canEdit?: boolean;
+    tags?: PolicyTagLists;
+    companyCardPageURL?: string;
+    connectionLink?: string;
+    card?: Card;
+    isMarkAsCash?: boolean;
+};
+
 /**
  * Filters out receiptRequired violation when itemizedReceiptRequired is also present.
  * Itemized receipt requirement supersedes regular receipt requirement.
@@ -661,16 +670,8 @@ const ViolationsUtils = {
      * possible values could be either translation keys that resolve to  strings or translation keys that resolve to
      * functions.
      */
-    getViolationTranslation(
-        violation: TransactionViolation,
-        translate: LocaleContextProps['translate'],
-        canEdit = true,
-        tags?: PolicyTagLists,
-        companyCardPageURL?: string,
-        connectionLink?: string,
-        card?: Card,
-        isMarkAsCash?: boolean,
-    ): string {
+    getViolationTranslation(violation: TransactionViolation, translate: LocaleContextProps['translate'], options?: ViolationTranslationOptions): string {
+        const {canEdit = true, tags, companyCardPageURL, connectionLink, card, isMarkAsCash} = options ?? {};
         const {
             brokenBankConnection = false,
             isAdmin = false,
@@ -829,7 +830,7 @@ const ViolationsUtils = {
             ...filteredViolations.map((violation) => {
                 const cardID = violation?.data?.cardID;
                 const card = cardID ? cardList?.[cardID] : undefined;
-                const message = ViolationsUtils.getViolationTranslation(violation, translate, true, tags, companyCardPageURL, connectionLink, card, isMarkAsCash);
+                const message = ViolationsUtils.getViolationTranslation(violation, translate, {tags, companyCardPageURL, connectionLink, card, isMarkAsCash});
                 if (!message) {
                     return;
                 }
@@ -877,6 +878,6 @@ const ViolationsUtils = {
 };
 
 export {getIsViolationFixed};
-export type {ViolationFixParams};
+export type {ViolationFixParams, ViolationTranslationOptions};
 export default ViolationsUtils;
 export {filterReceiptViolations};

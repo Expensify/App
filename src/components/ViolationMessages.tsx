@@ -32,7 +32,7 @@ export default function ViolationMessages({violations, isLast, containerStyle, t
             filteredViolations.map((violation) => {
                 const cardID = violation.data?.cardID;
                 const card = cardID ? cardList?.[cardID] : undefined;
-                return [violation.name, ViolationsUtils.getViolationTranslation(violation, translate, canEdit, undefined, companyCardPageURL, connectionLink, card, isMarkAsCash)];
+                return [violation.name, ViolationsUtils.getViolationTranslation(violation, translate, {canEdit, companyCardPageURL, connectionLink, card, isMarkAsCash})];
             }),
         [canEdit, translate, filteredViolations, companyCardPageURL, connectionLink, cardList, isMarkAsCash],
     );
