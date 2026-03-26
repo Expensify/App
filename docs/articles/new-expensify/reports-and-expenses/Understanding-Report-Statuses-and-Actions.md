@@ -34,7 +34,7 @@ The grey **More** button is always visible in the report header. Tap it to acces
 - Hold / Unhold
 - Unapprove
 - Download as CSV
-- Print
+- **Print**
 - Change Workspace
 - View Details
 - Delete
