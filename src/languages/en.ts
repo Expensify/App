@@ -253,6 +253,7 @@ const translations = {
         na: 'N/A',
         noResultsFound: 'No results found',
         noResultsFoundMatching: (searchString: string) => `No results found matching "${searchString}"`,
+        suggestionsAvailableFor: (searchString: string) => (searchString ? `Suggestions available for "${searchString}".` : 'Suggestions available.'),
         recentDestinations: 'Recent destinations',
         timePrefix: "It's",
         conjunctionFor: 'for',
@@ -263,6 +264,7 @@ const translations = {
         conjunctionTo: 'to',
         genericErrorMessage: 'Oops... something went wrong and your request could not be completed. Please try again later.',
         percentage: 'Percentage',
+        progressBarLabel: 'Onboarding progress',
         converted: 'Converted',
         error: {
             invalidAmount: 'Invalid amount',
@@ -471,6 +473,8 @@ const translations = {
         downloadAsCSV: 'Download as CSV',
         print: 'Print',
         help: 'Help',
+        collapsed: 'Collapsed',
+        expanded: 'Expanded',
         expenseReport: 'Expense Report',
         expenseReports: 'Expense Reports',
         // @context Rate as a noun, not a verb
@@ -509,6 +513,8 @@ const translations = {
         headsUp: 'Heads up!',
         submitTo: 'Submit to',
         forwardTo: 'Forward to',
+        approvalLimit: 'Approval limit',
+        overLimitForwardTo: 'Over limit forward to',
         merge: 'Merge',
         none: 'None',
         unstableInternetConnection: 'Unstable internet connection. Please check your network and try again.',
@@ -527,6 +533,7 @@ const translations = {
         duplicated: 'Duplicated',
         duplicateExpense: 'Duplicate expense',
         duplicateReport: 'Duplicate report',
+        copyOfReportName: (reportName: string) => `Copy of ${reportName}`,
         exchangeRate: 'Exchange rate',
         reimbursableTotal: 'Reimbursable total',
         nonReimbursableTotal: 'Non-reimbursable total',
@@ -543,6 +550,7 @@ const translations = {
         vacationDelegate: 'Vacation delegate',
         expensifyLogo: 'Expensify logo',
         approver: 'Approver',
+        enterDigitLabel: ({digitIndex, totalDigits}: {digitIndex: number; totalDigits: number}) => `enter digit ${digitIndex} of ${totalDigits}`,
     },
     socials: {
         podcast: 'Follow us on Podcast',
@@ -697,6 +705,7 @@ const translations = {
                 faceId: 'Face ID',
                 touchId: 'Touch ID',
                 opticId: 'Optic ID',
+                passkey: 'Passkey',
             },
         },
         pleaseEnableInSystemSettings: {
@@ -713,9 +722,11 @@ const translations = {
         letsAuthenticateYou: "Let's authenticate you...",
         verifyYourself: {
             biometrics: 'Verify yourself with your face or fingerprint',
+            passkeys: 'Verify yourself with a passkey',
         },
         enableQuickVerification: {
             biometrics: 'Enable quick, secure verification using your face or fingerprint. No passwords or codes required.',
+            passkeys: 'Enable quick, secure verification using a passkey. No passwords or codes required.',
         },
         revoke: {
             revoke: 'Revoke',
@@ -739,6 +750,12 @@ const translations = {
         },
         setPin: {
             didNotShipCard: "We didn't ship your card. Please try again.",
+        },
+        revealPin: {
+            couldNotReveal: "We couldn't reveal your PIN. Please try again.",
+        },
+        changePin: {
+            didNotChange: "We didn't change your PIN. Please try again.",
         },
     },
     validateCodeModal: {
@@ -780,11 +797,6 @@ const translations = {
         findMember: 'Find a member',
         searchForSomeone: 'Search for someone',
         userSelected: (username: string) => `${username} selected`,
-    },
-    customApprovalWorkflow: {
-        title: 'Custom approval workflow',
-        description: 'Your company has a custom approval workflow on this workspace. Please take this action in Expensify Classic',
-        goToExpensifyClassic: 'Switch to Expensify Classic',
     },
     emptyList: {
         [CONST.IOU.TYPE.CREATE]: {
@@ -1019,6 +1031,15 @@ const translations = {
                 subtitle: 'Expensify Card',
                 cta: 'Review',
             },
+            validateAccount: {
+                title: 'Validate your account to continue using Expensify',
+                subtitle: 'Account',
+                cta: 'Validate',
+            },
+            fixFailedBilling: {
+                title: "We couldn't bill your card on file",
+                subtitle: 'Subscription',
+            },
         },
         assignedCards: 'Your Expensify Cards',
         assignedCardsRemaining: ({amount}: {amount: string}) => `${amount} remaining`,
@@ -1177,6 +1198,7 @@ const translations = {
         deleteReceipt: 'Delete receipt',
         deleteConfirmation: 'Are you sure you want to delete this receipt?',
         addReceipt: 'Add receipt',
+        addAdditionalReceipt: 'Add additional receipt',
         scanFailed: "The receipt couldn't be scanned, as it's missing a merchant, date, or amount.",
         crop: 'Crop',
         addAReceipt: {
@@ -1270,6 +1292,8 @@ const translations = {
         pendingMatch: 'Pending match',
         pendingMatchWithCreditCardDescription: 'Receipt pending match with card transaction. Mark as cash to cancel.',
         markAsCash: 'Mark as cash',
+        pendingMatchSubmitTitle: 'Submit report',
+        pendingMatchSubmitDescription: 'Some expenses are awaiting a match with a credit card transaction. Do you want to mark them as cash?',
         routePending: 'Route pending...',
         automaticallyEnterExpenseDetails: 'Concierge will automatically enter the expense details for you, or you can add them manually.',
         receiptScanning: () => ({
@@ -2135,6 +2159,12 @@ const translations = {
         twoFactorAuthIsRequiredCompany: 'Your company requires two-factor authentication.',
         twoFactorAuthCannotDisable: 'Cannot disable 2FA',
         twoFactorAuthRequired: 'Two-factor authentication (2FA) is required for your Xero connection and cannot be disabled.',
+        replaceDevice: 'Replace device',
+        replaceDeviceTitle: 'Replace two-factor device',
+        verifyOldDeviceTitle: 'Verify old device',
+        verifyOldDeviceDescription: 'Enter the six-digit code from your current authenticator app to confirm you have access to it.',
+        verifyNewDeviceTitle: 'Set up new device',
+        verifyNewDeviceDescription: 'Scan the QR code with your new device, then enter the code to complete setup.',
     },
     recoveryCodeForm: {
         error: {
@@ -2359,7 +2389,6 @@ const translations = {
         cardDetailsLoadingFailure: 'An error occurred while loading the card details. Please check your internet connection and try again.',
         validateCardTitle: "Let's make sure it's you",
         enterMagicCode: (contactMethod: string) => `Please enter the magic code sent to ${contactMethod} to view your card details. It should arrive within a minute or two.`,
-        missingPrivateDetails: ({missingDetailsLink}: {missingDetailsLink: string}) => `Please <a href="${missingDetailsLink}">add your personal details</a>, then try again.`,
         unexpectedError: 'There was an error trying to get your Expensify card details. Please try again.',
         cardFraudAlert: {
             confirmButtonText: 'Yes, I do',
@@ -2371,20 +2400,33 @@ const translations = {
         },
         setYourPin: 'Set the PIN for your card.',
         confirmYourPin: 'Enter your PIN again to confirm.',
+        changeYourPin: 'Enter a new PIN for your card.',
+        confirmYourChangedPin: 'Confirm your new PIN.',
         pinMustBeFourDigits: 'PIN must be exactly 4 digits.',
         invalidPin: 'Please choose a more secure PIN.',
         pinMismatch: 'PINs do not match. Please try again.',
         revealPin: 'Reveal PIN',
         hidePin: 'Hide PIN',
         pin: 'PIN',
+        pinChanged: 'PIN changed!',
+        pinChangedHeader: 'PIN changed',
+        pinChangedDescription: "You're all set to use your PIN now.",
+        changePin: 'Change PIN',
+        changePinAtATM: 'Change your PIN at any ATM',
+        changePinAtATMDescription: 'This is required in your region. <concierge-link>Reach out to Concierge</concierge-link> if you have any questions.',
         freezeCard: 'Freeze card',
         unfreeze: 'Unfreeze',
         unfreezeCard: 'Unfreeze card',
+        askToUnfreeze: 'Ask to unfreeze',
         freezeDescription: 'A frozen card cannot be used for purchases and transactions. You can unfreeze it at any time.',
         unfreezeDescription: "Unfreezing this card will start allowing purchases and transactions again. Only proceed if you're sure the card is safe to use.",
         frozen: 'Frozen',
         youFroze: ({date}: {date: string}) => `You froze this card on ${date}.`,
         frozenBy: ({person, date}: {person: string; date: string}) => `${person} froze this card on ${date}.`,
+        frozenByAdminPrefix: ({date}: {date: string}) => `This card was frozen on ${date} by `,
+        frozenByAdminNeedsUnfreezePrefix: 'This card was frozen by ',
+        frozenByAdminNeedsUnfreezeSuffix: '. Please contact an admin to unfreeze it.',
+        frozenByAdminNeedsUnfreeze: ({person}: {person: string}) => `This card was frozen by ${person}. Please contact an admin to unfreeze it.`,
     },
     workflowsPage: {
         workflowTitle: 'Spend',
@@ -2495,6 +2537,16 @@ const translations = {
         admins: 'Admins',
         payer: 'Payer',
         paymentAccount: 'Payment account',
+        shareBankAccount: {
+            shareTitle: 'Share bank account access?',
+            shareDescription: ({admin}: {admin: string}) => `You'll need to share bank account access with ${admin} to make them the payer.`,
+            validationTitle: 'Bank account awaiting validation',
+            validationDescription: ({admin}: {admin: string}) =>
+                `You need to <a href="#">validate this bank account</a>. Once that's done, you can share bank account access with ${admin} to make them the payer.`,
+            errorTitle: "Can't change payer",
+            errorDescription: ({admin, owner}: {admin: string; owner: string}) =>
+                `${admin} doesn't have access to this bank account, so you can't make them the payer. <a href="#">Chat with ${owner}</a> if the bank account should be shared.`,
+        },
     },
     reportFraudPage: {
         title: 'Report virtual card fraud',
@@ -2674,6 +2726,7 @@ const translations = {
                 label: 'Use device settings',
             },
         },
+        highContrastMode: 'High contrast mode',
         chooseThemeBelowOrSync: 'Choose a theme below, or sync with your device settings.',
     },
     termsOfUse: {
@@ -2687,6 +2740,8 @@ const translations = {
         requiredWhen2FAEnabled: 'Required when 2FA is enabled',
         requestNewCode: ({timeRemaining}: {timeRemaining: string}) => `Request a new code in <a>${timeRemaining}</a>`,
         requestNewCodeAfterErrorOccurred: 'Request a new code',
+        timeRemainingAnnouncement: ({timeRemaining}: {timeRemaining: number}) => `Time remaining: ${timeRemaining} ${timeRemaining === 1 ? 'second' : 'seconds'}`,
+        timeExpiredAnnouncement: 'The time has expired',
         error: {
             pleaseFillMagicCode: 'Please enter your magic code',
             incorrectMagicCode: 'Incorrect or invalid magic code. Please try again or request a new code.',
@@ -7161,6 +7216,7 @@ const translations = {
     search: {
         resultsAreLimited: 'Search results are limited.',
         viewResults: 'View results',
+        appliedFilters: 'Applied filters',
         resetFilters: 'Reset filters',
         searchResults: {
             emptyResults: {
@@ -7217,6 +7273,7 @@ const translations = {
             },
         },
         columns: 'Columns',
+        editColumns: 'Edit columns',
         resetColumns: 'Reset columns',
         groupColumns: 'Group columns',
         expenseColumns: 'Expense Columns',
@@ -7256,6 +7313,7 @@ const translations = {
                     [CONST.SEARCH.DATE_PRESETS.LAST_MONTH]: 'Last month',
                     [CONST.SEARCH.DATE_PRESETS.THIS_MONTH]: 'This month',
                     [CONST.SEARCH.DATE_PRESETS.YEAR_TO_DATE]: 'Year to date',
+                    [CONST.SEARCH.DATE_PRESETS.LAST_12_MONTHS]: 'Last 12 months',
                     [CONST.SEARCH.DATE_PRESETS.LAST_STATEMENT]: 'Last statement',
                 },
             },
@@ -7318,8 +7376,13 @@ const translations = {
                 [CONST.SEARCH.ACTION_FILTERS.EXPORT]: 'Export',
             },
         },
+        display: {
+            label: 'Display',
+            sortBy: 'Sort by',
+            groupBy: 'Group by',
+            limitResults: 'Limit results',
+        },
         has: 'Has',
-        groupBy: 'Group by',
         view: {
             label: 'View',
             table: 'Table',
@@ -7353,6 +7416,10 @@ const translations = {
         searchIn: 'Search in',
         searchPlaceholder: 'Search for something',
         suggestions: 'Suggestions',
+        suggestionsAvailable: ({count}: {count: number}, query = '') => ({
+            one: `Suggestions available${query ? ` for ${query}` : ''}. ${count} result.`,
+            other: (resultCount: number) => `Suggestions available${query ? ` for ${query}` : ''}. ${resultCount} results.`,
+        }),
         exportSearchResults: {
             title: 'Create export',
             description: "Whoa, that's a lot of items! We'll bundle them up, and Concierge will send you a file shortly.",
@@ -7462,7 +7529,8 @@ const translations = {
                 markedReimbursed: (amount: string, currency: string) => `paid ${currency}${amount} elsewhere`,
                 markedReimbursedFromIntegration: ({amount, currency}: MarkReimbursedFromIntegrationParams) => `paid ${currency}${amount} via integration`,
                 outdatedBankAccount: `couldn’t process the payment due to a problem with the payer’s bank account`,
-                reimbursementACHBounce: `couldn't process the payment due to a bank account issue`,
+                reimbursementACHBounceDefault: `couldn't process the payment due to an incorrect routing/account number or closed account`,
+                reimbursementACHBounceWithReason: ({returnReason}: {returnReason: string}) => `couldn't process the payment: ${returnReason}`,
                 reimbursementACHCancelled: `canceled the payment`,
                 reimbursementAccountChanged: `couldn’t process the payment, as the payer changed bank accounts`,
                 reimbursementDelayed: `processed the payment but it’s delayed by 1-2 more business days`,
@@ -7482,7 +7550,8 @@ const translations = {
                     `The ${feedName} connection is broken. To restore card imports, <a href='${workspaceCompanyCardRoute}'>log into your bank</a>.`,
                 plaidBalanceFailure: ({maskedAccountNumber, walletRoute}: {maskedAccountNumber: string; walletRoute: string}) =>
                     `the Plaid connection to your business bank account is broken. Please <a href='${walletRoute}'>reconnect your bank account ${maskedAccountNumber}</a> so you can continue to use your Expensify Cards.`,
-                addEmployee: (email: string, role: string) => `added ${email} as ${role === 'member' ? 'a' : 'an'} ${role}`,
+                addEmployee: (email: string, role: string, didJoinPolicy?: boolean) =>
+                    didJoinPolicy ? `${email} joined via the workspace invite link` : `added ${email} as ${role === 'member' ? 'a' : 'an'} ${role}`,
                 updateRole: ({email, currentRole, newRole}: UpdateRoleParams) => `updated the role of ${email} to ${newRole} (previously ${currentRole})`,
                 updatedCustomField1: (email: string, newValue: string, previousValue: string) => {
                     if (!newValue) {
@@ -7749,12 +7818,17 @@ const translations = {
             prompt: 'Are you sure you want to stop GPS tracking and switch to Expensify Classic?',
             confirm: 'Stop and switch',
         },
+        switchAccountWarningTripInProgress: {
+            title: 'GPS tracking in progress',
+            prompt: 'Are you sure you want to stop GPS tracking and switch accounts?',
+            confirm: 'Stop and switch',
+        },
         locationServicesRequiredModal: {
             title: 'Location access required',
             confirm: 'Open settings',
             prompt: 'Please allow location access in your device settings to start GPS distance tracking.',
         },
-        fabGpsTripExplained: 'Go to GPS screen (Floating action)',
+        gpsFloatingPillText: 'GPS tracking in progress...',
         liveActivity: {
             subtitle: 'Tracking distance',
             button: 'View progress',
@@ -7785,11 +7859,13 @@ const translations = {
         [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.START_CHAT]: {
             buttonText: 'Start a chat, <success><strong>refer a friend</strong></success>.',
             header: 'Start a chat, refer a friend',
+            closeAccessibilityLabel: 'Close, start a chat, refer a friend, banner',
             body: "Want your friends to use Expensify, too? Just start a chat with them and we'll take care of the rest.",
         },
         [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SUBMIT_EXPENSE]: {
             buttonText: 'Submit an expense, <success><strong>refer your team</strong></success>.',
             header: 'Submit an expense, refer your team',
+            closeAccessibilityLabel: 'Close, submit an expense, refer your team, banner',
             body: "Want your team to use Expensify, too? Just submit an expense to them and we'll take care of the rest.",
         },
         [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.REFER_FRIEND]: {
@@ -8195,6 +8271,8 @@ const translations = {
             title: 'Expensify code',
             discountCode: 'Discount code',
             enterCode: 'Enter an Expensify code to apply to your subscription.',
+            discountMessage: (promoDiscount: string, validBillingCycles: string) =>
+                `You will get a ${promoDiscount}% discount on your next ${validBillingCycles ? `${validBillingCycles} ` : ''}billing charges.`,
             apply: 'Apply',
             error: {
                 invalid: 'This code is invalid',
@@ -8222,6 +8300,8 @@ const translations = {
                 `<muted-text>Learn more on our <a href="${CONST.PRICING}">pricing page</a> or chat with our team in your ${hasAdminsRoom ? `<a href="adminsRoom">#admins room.</a>` : '#admins room.'}</muted-text>`,
             estimatedPrice: 'Estimated price',
             changesBasedOn: 'This changes based on your Expensify Card usage and the subscription options below.',
+            collectBillingDescription: 'Collect workspaces are billed monthly per member, with no annual commitment.',
+            pricing: 'Pricing',
         },
         requestEarlyCancellation: {
             title: 'Request early cancellation',

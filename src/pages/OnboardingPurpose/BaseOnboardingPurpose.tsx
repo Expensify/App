@@ -9,9 +9,11 @@ import type {MenuItemProps} from '@components/MenuItem';
 import MenuItemList from '@components/MenuItemList';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
+import useAutoCreateTrackWorkspace from '@hooks/useAutoCreateTrackWorkspace';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnboardingMessages from '@hooks/useOnboardingMessages';
+import useOnboardingStepCounter from '@hooks/useOnboardingStepCounter';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
@@ -25,6 +27,7 @@ import {setOnboardingErrorMessage, setOnboardingPurposeSelected} from '@userActi
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
 import type {OnboardingPurpose} from '@src/types/onyx';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
@@ -56,6 +59,7 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, ro
         [illustrations.Abacus, illustrations.Binoculars, illustrations.ReceiptUpload, illustrations.PiggyBank, illustrations.SplitBill],
     );
     const {onboardingIsMediumOrLargerScreenWidth} = useResponsiveLayout();
+    const onboardingStep = useOnboardingStepCounter(SCREENS.ONBOARDING.PURPOSE);
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const {onboardingMessages} = useOnboardingMessages();
 
@@ -70,6 +74,7 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, ro
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const autoCreateTrackWorkspace = useAutoCreateTrackWorkspace();
     const paddingHorizontal = onboardingIsMediumOrLargerScreenWidth ? styles.ph8 : styles.ph5;
 
     const [customChoices = getEmptyArray<OnboardingPurpose>()] = useOnyx(ONYXKEYS.ONBOARDING_CUSTOM_CHOICES);
@@ -99,7 +104,7 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, ro
 
                 if (isPrivateDomainAndHasAccessiblePolicies && personalDetailsForm?.firstName) {
                     if (choice === CONST.ONBOARDING_CHOICES.PERSONAL_SPEND) {
-                        Navigation.navigate(ROUTES.ONBOARDING_WORKSPACE.getRoute(route.params?.backTo));
+                        autoCreateTrackWorkspace(personalDetailsForm.firstName, personalDetailsForm.lastName ?? '', choice);
                         return;
                     }
                     completeOnboarding({
@@ -145,7 +150,8 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, ro
                 <HeaderWithBackButton
                     shouldShowBackButton={false}
                     iconFill={theme.iconColorfulBackground}
-                    progressBarPercentage={isPrivateDomainAndHasAccessiblePolicies ? 60 : 20}
+                    stepCounter={onboardingStep?.stepCounter}
+                    progressBarPercentage={onboardingStep?.progressBarPercentage}
                     shouldDisplayHelpButton={false}
                 />
             </View>
