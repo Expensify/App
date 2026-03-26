@@ -1441,7 +1441,7 @@ function Search({
             <SearchRowSkeleton
                 shouldAnimate
                 onLayout={onSkeletonLayout}
-                containerStyle={shouldUseNarrowLayout ? styles.searchListContentContainerStyles : styles.mt3}
+                containerStyle={shouldUseNarrowLayout ? styles.searchListContentContainerStyles(!!isSearchInputVisible) : styles.mt3}
                 reasonAttributes={deferredWorkReasonAttributes}
             />
         );
@@ -1457,7 +1457,7 @@ function Search({
         const isInvalidQuery = searchRequestResponseStatusCode === CONST.JSON_CODE.INVALID_SEARCH_QUERY;
         cancelNavigationSpans();
         return (
-            <View style={[shouldUseNarrowLayout ? styles.searchListContentContainerStyles(isSearchInputVisible) : styles.mt3, styles.flex1]}>
+            <View style={[shouldUseNarrowLayout ? styles.searchListContentContainerStyles(!!isSearchInputVisible) : styles.mt3, styles.flex1]}>
                 <FullPageErrorView
                     shouldShow
                     containerStyle={styles.searchBlockingErrorViewContainer}
@@ -1486,7 +1486,7 @@ function Search({
     ) {
         cancelNavigationSpans();
         return (
-            <View style={[shouldUseNarrowLayout ? styles.searchListContentContainerStyles(isSearchInputVisible) : styles.mt3, styles.flex1]}>
+            <View style={[shouldUseNarrowLayout ? styles.searchListContentContainerStyles(!!isSearchInputVisible) : styles.mt3, styles.flex1]}>
                 <EmptySearchView
                     similarSearchHash={similarSearchHash}
                     type={type}
@@ -1546,7 +1546,7 @@ function Search({
                     onLayout={onLayoutChart}
                     scrollEventThrottle={CONST.TIMING.MIN_SMOOTH_SCROLL_EVENT_THROTTLE}
                 >
-                    <View style={[shouldUseNarrowLayout ? styles.searchListContentContainerStyles(isSearchInputVisible) : styles.mt3, styles.mh4, styles.mb4, styles.flex1]}>
+                    <View style={[shouldUseNarrowLayout ? styles.searchListContentContainerStyles(!!isSearchInputVisible) : styles.mt3, styles.mh4, styles.mb4, styles.flex1]}>
                         <SearchChartWrapper
                             title={chartTitle}
                             groupBy={validGroupBy}

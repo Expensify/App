@@ -6214,7 +6214,7 @@ const dynamicStyles = (theme: ThemeColors) =>
             maxWidth: shouldUseNarrowLayout ? '100%' : 300,
         }),
 
-        searchListContentContainerStyles: (isSearchInputVisible) => ({
+        searchListContentContainerStyles: (isSearchInputVisible: boolean) => ({
             paddingTop: isSearchInputVisible ? variables.searchListContentWithInputMarginTop : variables.searchListContentMarginTop,
         }),
 
