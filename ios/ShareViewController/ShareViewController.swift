@@ -110,10 +110,11 @@ class ShareViewController: UIViewController {
     
     private func loadData(for attachment: NSItemProvider, in folder: URL, group: DispatchGroup, completion: @escaping (FileSaveError?) -> Void) {
         os_log("Loading data for attachment")
+        os_log("Registered type identifiers: %@", attachment.registeredTypeIdentifiers.joined(separator: ", "))
         let isURL = attachment.hasItemConformingToTypeIdentifier("public.url") && !attachment.hasItemConformingToTypeIdentifier("public.file-url")
 
         if isURL {
-            attachment.loadItem(forTypeIdentifier: kUTTypeURL as String, options: nil) { (data, error) in
+            attachment.loadItem(forTypeIdentifier: UTType.url.identifier, options: nil) { (data, error) in
                 DispatchQueue.main.async {
                     if let error = error {
                         os_log("Sharing error: %@", error.localizedDescription)
@@ -128,26 +129,40 @@ class ShareViewController: UIViewController {
                     }
                 }
             }
-        } else if attachment.canLoadObject(ofClass: UIImage.self) {
-            os_log("Loading image via loadObject API")
-            attachment.loadObject(ofClass: UIImage.self) { (object, error) in
+        } else if attachment.hasItemConformingToTypeIdentifier(UTType.image.identifier) {
+            os_log("Loading image via loadFileRepresentation API")
+            attachment.loadFileRepresentation(forTypeIdentifier: UTType.image.identifier) { url, error in
+                // Read data before leaving this closure — the temp file is deleted when it returns
+                let imageData: Data?
+                let filename: String
+                if let url = url {
+                    imageData = try? Data(contentsOf: url)
+                    filename = url.lastPathComponent
+                } else {
+                    imageData = nil
+                    filename = "shared_image.png"
+                }
                 DispatchQueue.main.async {
                     if let error = error {
-                        os_log("Image load error: %@", error.localizedDescription)
+                        os_log("Image file load error: %@", error.localizedDescription)
                         completion(.CouldNotLoad)
                         return
                     }
-                    if let image = object as? UIImage {
-                        os_log("Handling image from loadObject")
+                    guard let imageData = imageData else {
+                        os_log("Could not read image file data")
+                        completion(.CouldNotLoad)
+                        return
+                    }
+                    os_log("Loaded image file: %@", filename)
+                    if let image = UIImage(data: imageData) {
                         self.handleImageData(image, folder: folder, completion: completion)
                     } else {
-                        os_log("loadObject returned nil image")
-                        completion(.CouldNotLoad)
+                        self.processAndSave(data: imageData, filename: filename, folder: folder, completion: completion)
                     }
                 }
             }
         } else {
-            attachment.loadItem(forTypeIdentifier: kUTTypeData as String, options: nil) { (data, error) in
+            attachment.loadItem(forTypeIdentifier: UTType.data.identifier, options: nil) { (data, error) in
                 DispatchQueue.main.async {
                     if let error = error {
                         os_log("Sharing error: %@", error.localizedDescription)
