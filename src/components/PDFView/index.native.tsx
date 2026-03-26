@@ -114,7 +114,6 @@ function PDFView({onToggleKeyboard, onLoadComplete, fileName, onPress, isFocused
      * @param pdfPassword Password submitted via PDFPasswordForm
      */
     const attemptPDFLoadWithPassword = (pdfPassword: string) => {
-        Keyboard.dismiss();
         // Render react-native-pdf/PDF so that it can validate the password.
         // Note that at this point in the password challenge, shouldRequestPassword is true.
         // Thus react-native-pdf/PDF will be rendered - but not visible.
@@ -130,6 +129,7 @@ function PDFView({onToggleKeyboard, onLoadComplete, fileName, onPress, isFocused
      * @param path - Path to cache location
      */
     const finishPDFLoad = (numberOfPages: number, path: string) => {
+        Keyboard.dismiss();
         setShouldRequestPassword(false);
         setShouldShowLoadingIndicator(false);
         setSuccessToLoadPDF(true);
