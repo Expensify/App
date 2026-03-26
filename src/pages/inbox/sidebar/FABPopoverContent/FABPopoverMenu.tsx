@@ -239,10 +239,13 @@ function FABPopoverMenu({isVisible, onClose, onItemSelected, anchorRef, animatio
         };
 
         clearScheduledFirstMenuItemFocus();
-        firstMenuItemFocusRetryTimeoutRef.current = setTimeout(() => {
-            firstMenuItemFocusRetryTimeoutRef.current = null;
-            focusFirstMenuItemWithRetries();
-        }, isIOS ? (animationInTiming ?? 0) : 0);
+        firstMenuItemFocusRetryTimeoutRef.current = setTimeout(
+            () => {
+                firstMenuItemFocusRetryTimeoutRef.current = null;
+                focusFirstMenuItemWithRetries();
+            },
+            isIOS ? (animationInTiming ?? 0) : 0,
+        );
     }, [animationInTiming, clearScheduledFirstMenuItemFocus, focusFirstMenuItem, isIOS, markFirstMenuItemFocused, shouldDeferDismissButtonAccessibility]);
 
     const scheduleFocusFirstMenuItem = useCallback(() => {
