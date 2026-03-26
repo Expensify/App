@@ -57,7 +57,7 @@ function WorkspaceAutoReportingFrequencyPage({policy, route}: WorkspaceAutoRepor
         if (!policy?.id) {
             return;
         }
-        setWorkspaceAutoReportingFrequency(policy.id, item.keyForList as AutoReportingFrequencyKey);
+        setWorkspaceAutoReportingFrequency(policy.id, item.keyForList as AutoReportingFrequencyKey, policy.autoReportingFrequency, policy.harvesting);
 
         if (item.keyForList === CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MONTHLY) {
             return;
