@@ -149,13 +149,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                 },
             },
         },
+        [SCREENS.SEARCH_ROUTER.ROOT]: ROUTES.SEARCH_ROUTER,
         [NAVIGATORS.RIGHT_MODAL_NAVIGATOR]: {
             screens: {
-                [SCREENS.RIGHT_MODAL.SEARCH_ROUTER]: {
-                    screens: {
-                        [SCREENS.SEARCH_ROUTER.ROOT]: ROUTES.SEARCH_ROUTER,
-                    },
-                },
                 [SCREENS.RIGHT_MODAL.SETTINGS]: {
                     screens: {
                         [SCREENS.SETTINGS.PREFERENCES.PRIORITY_MODE]: {

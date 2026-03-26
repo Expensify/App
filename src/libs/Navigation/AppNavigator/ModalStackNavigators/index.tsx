@@ -924,10 +924,6 @@ const TwoFactorAuthenticatorStackNavigator = createModalStackNavigator<EnablePay
     [SCREENS.TWO_FACTOR_AUTH.REPLACE_VERIFY_NEW]: () => require<ReactComponentModule>('../../../../pages/settings/Security/TwoFactorAuth/ReplaceDeviceVerifyNewPage').default,
 });
 
-const SearchRouterModalStackNavigator = createModalStackNavigator({
-    [SCREENS.SEARCH_ROUTER.ROOT]: () => require<ReactComponentModule>('../../../../components/Search/SearchRouter/SearchRouterPage').default,
-});
-
 const EnablePaymentsStackNavigator = createModalStackNavigator<EnablePaymentsNavigatorParamList>({
     [SCREENS.ENABLE_PAYMENTS_ROOT]: () => require<ReactComponentModule>('../../../../pages/EnablePayments/EnablePaymentsPage').default,
 });
@@ -1149,5 +1145,4 @@ export {
     WorkspaceDuplicateModalStackNavigator,
     WorkspacesDomainModalStackNavigator,
     MultifactorAuthenticationStackNavigator,
-    SearchRouterModalStackNavigator,
 };
