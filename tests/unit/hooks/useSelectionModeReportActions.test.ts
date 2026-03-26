@@ -67,6 +67,11 @@ jest.mock('@hooks/useConfirmModal', () => ({
     default: jest.fn(() => ({showConfirmModal: jest.fn()})),
 }));
 
+jest.mock('@hooks/useConfirmPendingRTERAndProceed', () => ({
+    __esModule: true,
+    default: jest.fn(() => (onProceed: () => void) => onProceed()),
+}));
+
 jest.mock('@hooks/useReportIsArchived', () => ({
     __esModule: true,
     default: jest.fn(() => false),
@@ -218,8 +223,14 @@ jest.mock('@libs/PaymentUtils', () => ({
 
 jest.mock('@libs/TransactionUtils', () => ({
     __esModule: true,
+    hasAnyPendingRTERViolation: jest.fn(() => false),
     isExpensifyCardTransaction: jest.fn(() => false),
     isPending: jest.fn(() => false),
+}));
+
+jest.mock('@userActions/Transaction', () => ({
+    __esModule: true,
+    markPendingRTERTransactionsAsCash: jest.fn(),
 }));
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports
@@ -230,6 +241,8 @@ const DelegateProvider = require('@components/DelegateNoAccessModalProvider') as
 const LockedProvider = require('@components/LockedAccountModalProvider') as Record<string, jest.Mock>;
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const IOUActions = require('@libs/actions/IOU') as Record<string, jest.Mock>;
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const usePaymentOptionsMock = require('@hooks/usePaymentOptions') as {default: jest.Mock};
 
 function resetMocksToDefaults() {
     ReportUtils.hasHeldExpenses.mockReturnValue(false);
@@ -412,6 +425,7 @@ describe('useSelectionModeReportActions', () => {
     describe('hasPayInSelectionMode', () => {
         it('returns true when all expenses selected and pay action exists', () => {
             mockPrimaryAction = CONST.REPORT.PRIMARY_ACTIONS.PAY;
+            usePaymentOptionsMock.default.mockReturnValue([{value: CONST.IOU.PAYMENT_TYPE.ELSEWHERE, text: 'Pay elsewhere'}]);
             const transactions = [buildTransaction(1), buildTransaction(2)];
 
             const {result} = renderSelectionModeHook({
@@ -420,6 +434,7 @@ describe('useSelectionModeReportActions', () => {
             });
 
             expect(result.current.hasPayInSelectionMode).toBe(true);
+            usePaymentOptionsMock.default.mockReturnValue([]);
         });
 
         it('returns false when not all expenses are selected', () => {
