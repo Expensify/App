@@ -248,6 +248,7 @@ function SettlementButton({
         introSelected,
         currentUserAccountID,
         isSelfTourViewed,
+        betas
     ]);
 
     const shortFormPayElsewhereButton = {
