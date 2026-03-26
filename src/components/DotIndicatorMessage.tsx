@@ -86,6 +86,8 @@ function DotIndicatorMessage({messages = {}, style, type, textStyles, dismissErr
         }
     };
 
+    const isTextSelectable = !canUseTouchScreen() || !shouldUseNarrowLayout;
+
     const renderMessage = (message: string | ReceiptError | ReactElement, index: number) => {
         if (isReceiptError(message)) {
             return (
@@ -105,7 +107,7 @@ function DotIndicatorMessage({messages = {}, style, type, textStyles, dismissErr
             <Text
                 // eslint-disable-next-line react/no-array-index-key
                 key={index}
-                style={[StyleUtils.getDotIndicatorTextStyles(isErrorMessage), textStyles, !canUseTouchScreen() || !shouldUseNarrowLayout ? styles.userSelectText : styles.userSelectNone]}
+                style={[StyleUtils.getDotIndicatorTextStyles(isErrorMessage), textStyles, isTextSelectable ? styles.userSelectText : styles.userSelectNone]}
                 accessibilityRole={isErrorMessage ? CONST.ROLE.ALERT : undefined}
                 accessibilityLiveRegion={isErrorMessage ? 'assertive' : undefined}
             >
