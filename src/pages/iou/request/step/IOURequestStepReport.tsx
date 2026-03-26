@@ -3,7 +3,7 @@ import {InteractionManager} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {usePersonalDetails, useSession} from '@components/OnyxListItemProvider';
 import {useSearchActionsContext} from '@components/Search/SearchContext';
-import type {ListItem} from '@components/SelectionListWithSections/types';
+import type {ListItem} from '@components/SelectionList/types';
 import useConditionalCreateEmptyReportConfirmation from '@hooks/useConditionalCreateEmptyReportConfirmation';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -247,10 +247,10 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
 
         const policyForNewReport = isPerDiemTransaction && perDiemOriginalPolicy ? perDiemOriginalPolicy : policyForMovingExpenses;
         const optimisticReport = createNewReport(ownerPersonalDetails, hasViolations, isASAPSubmitBetaEnabled, policyForNewReport, betas, false, shouldDismissEmptyReportsConfirmation);
-        handleRegularReportSelection({value: optimisticReport.reportID}, optimisticReport);
+        handleRegularReportSelection({value: optimisticReport.reportID, keyForList: optimisticReport.reportID}, optimisticReport);
     };
 
-    const {handleCreateReport, CreateReportConfirmationModal} = useConditionalCreateEmptyReportConfirmation({
+    const {handleCreateReport} = useConditionalCreateEmptyReportConfirmation({
         policyID: policyForMovingExpensesID,
         policyName: policyForMovingExpenses?.name ?? '',
         onCreateReport: createReportForPolicy,
@@ -285,25 +285,22 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
     }
 
     return (
-        <>
-            {CreateReportConfirmationModal}
-            <IOURequestEditReportCommon
-                backTo={backTo}
-                selectReport={selectReport}
-                transactionIDs={transaction ? [transaction.transactionID] : []}
-                selectedReportID={selectedReportID}
-                selectedPolicyID={selectedPolicyID}
-                transactionPolicyID={transactionPolicyID}
-                removeFromReport={removeFromReport}
-                isEditing={isEditing}
-                isUnreported={isUnreported}
-                shouldShowNotFoundPage={shouldShowNotFoundPage}
-                isPerDiemRequest={transaction ? isPerDiemRequest(transaction) : false}
-                isTimeRequest={transaction ? isTimeRequestUtil(transaction) : false}
-                createReport={policyForMovingExpensesID || shouldSelectPolicy || isPerDiemTransaction ? createReport : undefined}
-                targetOwnerAccountID={ownerAccountID}
-            />
-        </>
+        <IOURequestEditReportCommon
+            backTo={backTo}
+            selectReport={selectReport}
+            transactionIDs={transaction ? [transaction.transactionID] : []}
+            selectedReportID={selectedReportID}
+            selectedPolicyID={selectedPolicyID}
+            transactionPolicyID={transactionPolicyID}
+            removeFromReport={removeFromReport}
+            isEditing={isEditing}
+            isUnreported={isUnreported}
+            shouldShowNotFoundPage={shouldShowNotFoundPage}
+            isPerDiemRequest={transaction ? isPerDiemRequest(transaction) : false}
+            isTimeRequest={transaction ? isTimeRequestUtil(transaction) : false}
+            createReport={policyForMovingExpensesID || shouldSelectPolicy || isPerDiemTransaction ? createReport : undefined}
+            targetOwnerAccountID={ownerAccountID}
+        />
     );
 }
 
