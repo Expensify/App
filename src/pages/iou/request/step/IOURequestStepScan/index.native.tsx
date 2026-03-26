@@ -83,7 +83,7 @@ function IOURequestStepScan({
         Navigation.goBack(backTo);
     }, [backTo]);
     const hasFlash = !!device?.hasFlash;
-    const [cameraInstance, setCameraInstance] = useState<Camera | null>(null);
+    const camera = useRef<Camera>(null);
     const [flash, setFlash] = useState(false);
     const lazyIllustrations = useMemoizedLazyIllustrations(['MultiScan', 'Hand', 'Shutter']);
     const lazyIcons = useMemoizedLazyExpensifyIcons(['Bolt', 'Gallery', 'ReceiptMultiple', 'boltSlash']);
@@ -195,11 +195,11 @@ function IOURequestStepScan({
     }));
 
     const focusCamera = (point: Point) => {
-        if (!cameraInstance) {
+        if (!camera.current) {
             return;
         }
 
-        cameraInstance.focus(point).catch((error: Record<string, unknown>) => {
+        camera.current.focus(point).catch((error: Record<string, unknown>) => {
             if (error.message === '[unknown/unknown] Cancelled by another startFocusAndMetering()') {
                 return;
             }
@@ -335,7 +335,7 @@ function IOURequestStepScan({
             });
         }
 
-        if (!cameraInstance && (cameraPermissionStatus === RESULTS.DENIED || cameraPermissionStatus === RESULTS.BLOCKED)) {
+        if (!camera.current && (cameraPermissionStatus === RESULTS.DENIED || cameraPermissionStatus === RESULTS.BLOCKED)) {
             maybeCancelShutterSpan();
             askForPermissions();
             return;
@@ -345,7 +345,7 @@ function IOURequestStepScan({
             Alert.alert(translate('receipt.cameraErrorTitle'), translate('receipt.cameraErrorMessage'));
         };
 
-        if (!cameraInstance) {
+        if (!camera.current) {
             maybeCancelShutterSpan();
             showCameraAlert();
             return;
@@ -368,7 +368,7 @@ function IOURequestStepScan({
 
         const path = getReceiptsUploadFolderPath();
 
-        cameraInstance
+        camera.current
             .takePhoto({
                 flash: flash && hasFlash ? 'on' : 'off',
                 enableShutterSound: !isPlatformMuted,
@@ -441,7 +441,6 @@ function IOURequestStepScan({
         updateScanAndNavigate,
         askForPermissions,
         maybeCancelShutterSpan,
-        cameraInstance,
     ]);
 
     const cameraLoadingReasonAttributes: SkeletonSpanReasonAttributes = {
@@ -511,7 +510,7 @@ function IOURequestStepScan({
                             <GestureDetector gesture={tapGesture}>
                                 <View style={StyleUtils.getCameraViewfinderStyle(cameraAspectRatio)}>
                                     <NavigationAwareCamera
-                                        ref={setCameraInstance}
+                                        ref={camera}
                                         device={device}
                                         format={format}
                                         style={styles.flex1}

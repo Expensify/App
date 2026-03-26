@@ -131,7 +131,7 @@ function IOURequestStepScan({
             removeTransactionReceipt(CONST.IOU.OPTIMISTIC_TRANSACTION_ID);
             removeDraftTransactionsByIDs(draftTransactionIDs, true);
         });
-    }, [setIsMultiScanEnabled, transactions]);
+    }, [setIsMultiScanEnabled, transactions, draftTransactionIDs]);
 
     // this effect will pre-fetch location in web if the location permission is already granted to optimize the flow
     useEffect(() => {
