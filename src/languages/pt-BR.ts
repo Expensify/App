@@ -86,6 +86,7 @@ import type {
     UpdateRoleParams,
     UpgradeSuccessMessageParams,
     UserIsAlreadyMemberParams,
+    ViolationsIncreasedDistanceParams,
     ViolationsMissingTagParams,
     ViolationsModifiedAmountParams,
     ViolationsProhibitedExpenseParams,
@@ -6404,22 +6405,25 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
         },
         downgrade: {
             commonFeatures: {
-                title: 'Fazer downgrade para o plano Collect',
-                note: 'Se você fizer o downgrade, perderá acesso a estes e outros recursos:',
+                title: 'Rebaixar para Collect',
+                note: 'Você perderá acesso aos seguintes recursos',
                 benefits: {
-                    note: 'Para ver uma comparação completa dos nossos planos, confira nossa',
-                    pricingPage: 'página de preços',
-                    confirm: 'Tem certeza de que deseja fazer o downgrade e remover suas configurações?',
-                    warning: 'Isso não pode ser desfeito.',
-                    benefit1: 'Conexões contábeis (exceto QuickBooks Online e Xero)',
-                    benefit2: 'Regras inteligentes de despesa',
-                    benefit3: 'Fluxos de aprovação em múltiplos níveis',
-                    benefit4: 'Controles de segurança aprimorados',
+                    confirm: 'Você precisará alterar o “Tipo de plano” de todos os espaços de trabalho para “Collect” para garantir a tarifa Collect.',
+                    benefit1: 'NetSuite, Sage Intacct, QuickBooks Desktop, Oracle, Microsoft Dynamics',
+                    benefit2: 'Workday, Certinia',
+                    benefit3: 'SSO/SAML',
+                    benefit4: 'Regras inteligentes de despesas, diárias, aprovações em vários níveis, relatórios personalizados e orçamento',
                     headsUp: 'Atenção!',
                     multiWorkspaceNote:
                         'Você precisará fazer o downgrade de todos os seus espaços de trabalho antes do seu primeiro pagamento mensal para começar uma assinatura na tarifa Collect. Clique',
                     selectStep: '> selecione cada espaço de trabalho > altere o tipo de plano para',
+                    benefit1Label: 'Integrações com ERP',
+                    benefit2Label: 'Integrações de RH',
+                    benefit3Label: 'Segurança',
+                    benefit4Label: 'Avançado',
+                    important: 'IMPORTANTE:',
                 },
+                noteAndMore: 'e mais:',
             },
             completed: {
                 headline: 'Seu workspace foi rebaixado',
@@ -7891,6 +7895,8 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
             }
         },
         modifiedDate: 'Data diferente do recibo digitalizado',
+        increasedDistance: ({formattedRouteDistance}: ViolationsIncreasedDistanceParams) =>
+            formattedRouteDistance ? `A distância excede a rota calculada de ${formattedRouteDistance}` : 'A distância excede a rota calculada',
         nonExpensiworksExpense: 'Despesa fora do Expensiworks',
         overAutoApprovalLimit: (formattedLimit: string) => `Despesa excede o limite de aprovação automática de ${formattedLimit}`,
         overCategoryLimit: (formattedLimit: string) => `Valor acima do limite de categoria de ${formattedLimit}/pessoa`,

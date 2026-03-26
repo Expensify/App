@@ -31,7 +31,6 @@ import enhanceParameters from '@libs/Network/enhanceParameters';
 import {rand64} from '@libs/NumberUtils';
 import {getActivePaymentType} from '@libs/PaymentUtils';
 import {getSubmitToAccountID, getValidConnectedIntegration, isDelayedSubmissionEnabled} from '@libs/PolicyUtils';
-import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
 import type {OptimisticExportIntegrationAction} from '@libs/ReportUtils';
 import {
     buildOptimisticExportIntegrationAction,
@@ -65,7 +64,6 @@ import type {
     Policy,
     Report,
     ReportAction,
-    ReportActions,
     ReportNameValuePairs,
     Transaction,
     TransactionViolations,
@@ -570,35 +568,6 @@ function search({
     });
 }
 
-function holdMoneyRequestOnSearch(hash: number, transactionIDList: string[], comment: string, allTransactions: OnyxCollection<Transaction>, allReportActions: OnyxCollection<ReportActions>) {
-    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.SNAPSHOT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [];
-    const finallyData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.SNAPSHOT>> = [];
-
-    const onyxLoadingData = getOnyxLoadingData(hash);
-
-    optimisticData.push(...(onyxLoadingData.optimisticData ?? []));
-    finallyData.push(...(onyxLoadingData.finallyData ?? []));
-
-    for (const transactionID of transactionIDList) {
-        const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
-        const reportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transaction?.reportID}`] ?? {};
-        const iouReportAction = getIOUActionForTransactionID(Object.values(reportActions ?? {}), transactionID);
-        if (iouReportAction) {
-            optimisticData.push({
-                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transaction?.reportID}`,
-                onyxMethod: Onyx.METHOD.MERGE,
-                value: {
-                    [iouReportAction.reportActionID]: {
-                        childVisibleActionCount: (iouReportAction?.childVisibleActionCount ?? 0) + 1,
-                    },
-                },
-            });
-        }
-    }
-
-    API.write(WRITE_COMMANDS.HOLD_MONEY_REQUEST_ON_SEARCH, {hash, transactionIDList, comment}, {optimisticData, finallyData});
-}
-
 function submitMoneyRequestOnSearch(hash: number, reportList: Report[], policy: Policy[], currentSearchKey?: SearchKey) {
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_METADATA>> = [
         {
@@ -880,12 +849,6 @@ function payMoneyRequestOnSearch(hash: number, paymentData: PaymentData[], curre
         }
         playSound(SOUNDS.SUCCESS);
     });
-}
-
-function unholdMoneyRequestOnSearch(hash: number, transactionIDList: string[]) {
-    const {optimisticData, finallyData} = getOnyxLoadingData(hash);
-
-    API.write(WRITE_COMMANDS.UNHOLD_MONEY_REQUEST_ON_SEARCH, {hash, transactionIDList}, {optimisticData, finallyData});
 }
 
 function bulkDeleteReports({
@@ -1690,9 +1653,7 @@ export {
     saveSearch,
     search,
     revertSplitTransactionOnSearch,
-    holdMoneyRequestOnSearch,
     bulkDeleteReports,
-    unholdMoneyRequestOnSearch,
     rejectMoneyRequestsOnSearch,
     exportSearchItemsToCSV,
     queueExportSearchItemsToCSV,

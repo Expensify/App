@@ -86,6 +86,7 @@ import type {
     UpdateRoleParams,
     UpgradeSuccessMessageParams,
     UserIsAlreadyMemberParams,
+    ViolationsIncreasedDistanceParams,
     ViolationsMissingTagParams,
     ViolationsModifiedAmountParams,
     ViolationsProhibitedExpenseParams,
@@ -6439,22 +6440,25 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
         },
         downgrade: {
             commonFeatures: {
-                title: 'Zum Collect-Tarif wechseln',
-                note: 'Wenn du herabstufst, verlierst du den Zugriff auf diese und weitere Funktionen:',
+                title: 'Herabstufen auf Collect',
+                note: 'Sie verlieren den Zugriff auf die folgenden Funktionen',
                 benefits: {
-                    note: 'Für einen vollständigen Vergleich unserer Tarife sehen Sie sich unsere',
-                    pricingPage: 'Preisseite',
-                    confirm: 'Bist du sicher, dass du ein Downgrade durchführen und deine Konfigurationen entfernen möchtest?',
-                    warning: 'Dies kann nicht rückgängig gemacht werden.',
-                    benefit1: 'Buchhaltungsverbindungen (außer QuickBooks Online und Xero)',
-                    benefit2: 'Intelligente Ausgabenregeln',
-                    benefit3: 'Genehmigungs-Workflows mit mehreren Ebenen',
-                    benefit4: 'Erweiterte Sicherheitskontrollen',
+                    confirm: 'Sie müssen den „Plantyp“ jedes Arbeitsbereichs auf „Collect“ ändern, um den Collect-Tarif zu sichern.',
+                    benefit1: 'NetSuite, Sage Intacct, QuickBooks Desktop, Oracle, Microsoft Dynamics',
+                    benefit2: 'Workday, Certinia',
+                    benefit3: 'SSO/SAML',
+                    benefit4: 'Intelligente Spesenregeln, Tagegelder, Genehmigungen mit mehreren Ebenen, benutzerdefinierte Berichte und Budgetierung',
                     headsUp: 'Achtung!',
                     multiWorkspaceNote:
                         'Sie müssen alle Ihre Workspaces herabstufen, bevor Ihre erste monatliche Zahlung fällig ist, um ein Abonnement zum Collect-Tarif zu beginnen. Klicken Sie',
                     selectStep: '> Wähle jeden Workspace aus > ändere den Plantyp in',
+                    benefit1Label: 'ERP-Integrationen',
+                    benefit2Label: 'HR-Integrationen',
+                    benefit3Label: 'Sicherheit',
+                    benefit4Label: 'Erweitert',
+                    important: 'WICHTIG:',
                 },
+                noteAndMore: 'und mehr:',
             },
             completed: {
                 headline: 'Dein Workspace wurde herabgestuft',
@@ -7933,6 +7937,8 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
             }
         },
         modifiedDate: 'Datum weicht vom gescannten Beleg ab',
+        increasedDistance: ({formattedRouteDistance}: ViolationsIncreasedDistanceParams) =>
+            formattedRouteDistance ? `Die Entfernung übersteigt die berechnete Route von ${formattedRouteDistance}` : 'Entfernung übersteigt die berechnete Route',
         nonExpensiworksExpense: 'Nicht-Expensiworks-Ausgabe',
         overAutoApprovalLimit: (formattedLimit: string) => `Ausgabe überschreitet das Auto-Genehmigungslimit von ${formattedLimit}`,
         overCategoryLimit: (formattedLimit: string) => `Betrag über dem Kategorie-Limit von ${formattedLimit}/Person`,

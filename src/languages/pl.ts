@@ -86,6 +86,7 @@ import type {
     UpdateRoleParams,
     UpgradeSuccessMessageParams,
     UserIsAlreadyMemberParams,
+    ViolationsIncreasedDistanceParams,
     ViolationsMissingTagParams,
     ViolationsModifiedAmountParams,
     ViolationsProhibitedExpenseParams,
@@ -6401,21 +6402,24 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
         downgrade: {
             commonFeatures: {
                 title: 'Zmień plan na Collect',
-                note: 'Jeśli przejdziesz na niższy plan, utracisz dostęp do tych funkcji i wielu innych:',
+                note: 'Stracisz dostęp do następujących funkcji',
                 benefits: {
-                    note: 'Aby zobaczyć pełne porównanie naszych planów, sprawdź nasz',
-                    pricingPage: 'strona cenowa',
-                    confirm: 'Czy na pewno chcesz obniżyć plan i usunąć swoje konfiguracje?',
-                    warning: 'Tej operacji nie można cofnąć.',
-                    benefit1: 'Połączenia księgowe (z wyjątkiem QuickBooks Online i Xero)',
-                    benefit2: 'Inteligentne reguły wydatków',
-                    benefit3: 'Wielopoziomowe przepływy zatwierdzania',
-                    benefit4: 'Zaawansowane mechanizmy zabezpieczeń',
+                    confirm: 'Musisz zmienić „Typ planu” każdego obszaru roboczego na „Collect”, aby uzyskać stawkę Collect.',
+                    benefit1: 'NetSuite, Sage Intacct, QuickBooks Desktop, Oracle, Microsoft Dynamics',
+                    benefit2: 'Workday, Certinia',
+                    benefit3: 'SSO/SAML',
+                    benefit4: 'Inteligentne reguły wydatków, diety, wielopoziomowe zatwierdzanie, raportowanie niestandardowe i budżetowanie',
                     headsUp: 'Uwaga!',
                     multiWorkspaceNote:
                         'Przed pierwszą miesięczną płatnością musisz obniżyć pakiet wszystkich swoich przestrzeni roboczych, aby rozpocząć subskrypcję w taryfie Collect. Kliknij',
                     selectStep: '> wybierz każdą przestrzeń roboczą > zmień typ planu na',
+                    benefit1Label: 'Integracje ERP',
+                    benefit2Label: 'Integracje HR',
+                    benefit3Label: 'Bezpieczeństwo',
+                    benefit4Label: 'Zaawansowane',
+                    important: 'WAŻNE:',
                 },
+                noteAndMore: 'i więcej:',
             },
             completed: {
                 headline: 'Twoje środowisko pracy zostało zdegradowane',
@@ -7883,6 +7887,8 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
             }
         },
         modifiedDate: 'Data różni się od zeskanowanego paragonu',
+        increasedDistance: ({formattedRouteDistance}: ViolationsIncreasedDistanceParams) =>
+            formattedRouteDistance ? `Dystans przekracza obliczoną trasę ${formattedRouteDistance}` : 'Dystans przekracza obliczoną trasę',
         nonExpensiworksExpense: 'Wydatek spoza Expensiworks',
         overAutoApprovalLimit: (formattedLimit: string) => `Wydatek przekracza automatyczny limit zatwierdzania w wysokości ${formattedLimit}`,
         overCategoryLimit: (formattedLimit: string) => `Kwota przekracza limit kategorii w wysokości ${formattedLimit}/osobę`,
