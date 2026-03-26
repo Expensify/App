@@ -41,7 +41,7 @@ jest.mock('@assets/emojis', () => ({
     getEmojiCodeWithSkinColor: jest.fn(),
 }));
 jest.mock('@libs/EmojiTrie', () => ({
-    buildEmojisTrie: jest.fn(),
+    buildEmojiSearchIndex: jest.fn(),
 }));
 
 // Mock the context menu

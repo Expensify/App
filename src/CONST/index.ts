@@ -1933,6 +1933,7 @@ const CONST = {
             ROOT: 'BootsplashVisibleLocale',
             TRANSLATIONS_LOAD: 'LocaleTranslationsLoad',
             EMOJI_IMPORT: 'LocaleEmojiImport',
+            EMOJI_SEARCH_INDEX_BUILD: 'LocaleEmojiSearchIndexBuild',
         },
         SPAN_NAVIGATION: {
             ROOT: 'BootsplashVisibleNavigation',
