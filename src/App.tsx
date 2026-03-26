@@ -6,9 +6,11 @@ import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import {PickerStateProvider} from 'react-native-picker-select';
 import {SafeAreaProvider} from 'react-native-safe-area-context';
 import '../wdyr';
+import {ActionSheetAwareScrollViewProvider} from './components/ActionSheetAwareScrollView';
 import ActiveElementRoleProvider from './components/ActiveElementRoleProvider';
 import ColorSchemeWrapper from './components/ColorSchemeWrapper';
 import ComposeProviders from './components/ComposeProviders';
+import {CurrentUserPersonalDetailsProvider} from './components/CurrentUserPersonalDetailsProvider';
 import CustomStatusBarAndBackground from './components/CustomStatusBarAndBackground';
 import CustomStatusBarAndBackgroundContextProvider from './components/CustomStatusBarAndBackground/CustomStatusBarAndBackgroundContextProvider';
 import EnvironmentProvider from './components/EnvironmentContextProvider';
@@ -25,6 +27,8 @@ import NavigationBar from './components/NavigationBar';
 import OnyxListItemProvider from './components/OnyxListItemProvider';
 import PopoverContextProvider from './components/PopoverProvider';
 import SafeArea from './components/SafeArea';
+import ScrollOffsetContextProvider from './components/ScrollOffsetContextProvider';
+import SidePanelContextProvider from './components/SidePanel/SidePanelContextProvider';
 import SVGDefinitionsProvider from './components/SVGDefinitionsProvider';
 import ThemeIllustrationsProvider from './components/ThemeIllustrationsProvider';
 import ThemeProvider from './components/ThemeProvider';
@@ -33,6 +37,7 @@ import {KeyboardStateProvider} from './components/withKeyboardState';
 import CONFIG from './CONFIG';
 import CONST from './CONST';
 import Expensify from './Expensify';
+import {CurrentReportIDContextProvider} from './hooks/useCurrentReportID';
 import useDefaultDragAndDrop from './hooks/useDefaultDragAndDrop';
 import HybridAppHandler from './HybridAppHandler';
 import OnyxUpdateManager from './libs/actions/OnyxUpdateManager';
@@ -82,6 +87,7 @@ function App() {
                                 <ComposeProviders
                                     components={[
                                         OnyxListItemProvider,
+                                        CurrentUserPersonalDetailsProvider,
                                         LocaleContextProvider,
                                         ThemeProvider,
                                         ThemeStylesProvider,
@@ -91,16 +97,20 @@ function App() {
                                         PortalProvider,
                                         SafeArea,
                                         PopoverContextProvider,
+                                        CurrentReportIDContextProvider,
+                                        ScrollOffsetContextProvider,
                                         PickerStateProvider,
                                         EnvironmentProvider,
                                         CustomStatusBarAndBackgroundContextProvider,
                                         ActiveElementRoleProvider,
+                                        ActionSheetAwareScrollViewProvider,
                                         KeyboardProvider,
                                         KeyboardStateProvider,
                                         InputBlurContextProvider,
                                         FullScreenBlockingViewContextProvider,
                                         FullScreenLoaderContextProvider,
                                         ModalProvider,
+                                        SidePanelContextProvider,
                                     ]}
                                 >
                                     <CustomStatusBarAndBackground />
