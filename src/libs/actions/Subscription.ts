@@ -7,45 +7,60 @@ import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import CONST from '@src/CONST';
 import type {FeedbackSurveyOptionID, SubscriptionType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {BillingGraceEndPeriod} from '@src/types/onyx';
 import type {OnyxData} from '@src/types/onyx/Request';
 
 /**
  * Fetches data when the user opens the SubscriptionSettingsPage
  * @param ownerAccountID - Optional workspace owner's account ID. If provided, their billing grace period
  *                         will be optimistically cleared to handle stale cache when billing was resolved.
+ * @param currentGracePeriod - The current grace period value for the owner, used to rollback on API failure.
  */
-function openSubscriptionPage(ownerAccountID?: number) {
+function openSubscriptionPage(ownerAccountID?: number, currentGracePeriod?: BillingGraceEndPeriod | null) {
+    type SubscriptionOnyxKeys = typeof ONYXKEYS.IS_LOADING_SUBSCRIPTION_DATA | typeof ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END;
+
+    const optimisticData: Array<OnyxUpdate<SubscriptionOnyxKeys>> = [
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: ONYXKEYS.IS_LOADING_SUBSCRIPTION_DATA,
+            value: true,
+        },
+    ];
+
+    const successData: Array<OnyxUpdate<SubscriptionOnyxKeys>> = [
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: ONYXKEYS.IS_LOADING_SUBSCRIPTION_DATA,
+            value: false,
+        },
+    ];
+
+    const failureData: Array<OnyxUpdate<SubscriptionOnyxKeys>> = [
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: ONYXKEYS.IS_LOADING_SUBSCRIPTION_DATA,
+            value: false,
+        },
+    ];
+
     // Clear the owner's billing grace period optimistically. If the server still has it,
     // it will be restored from the response. If it was deleted (billing resolved), it stays null.
+    // On failure, the previous value is restored so the restriction isn't incorrectly lifted.
     if (ownerAccountID) {
-        Onyx.set(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END}${ownerAccountID}`, null);
+        const gracePeriodKey = `${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END}${ownerAccountID}`;
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.SET,
+            key: gracePeriodKey,
+            value: null,
+        });
+        failureData.push({
+            onyxMethod: Onyx.METHOD.SET,
+            key: gracePeriodKey,
+            value: currentGracePeriod ?? null,
+        });
     }
 
-    const onyxData: OnyxData<typeof ONYXKEYS.IS_LOADING_SUBSCRIPTION_DATA> = {
-        optimisticData: [
-            {
-                onyxMethod: Onyx.METHOD.SET,
-                key: ONYXKEYS.IS_LOADING_SUBSCRIPTION_DATA,
-                value: true,
-            },
-        ],
-        successData: [
-            {
-                onyxMethod: Onyx.METHOD.SET,
-                key: ONYXKEYS.IS_LOADING_SUBSCRIPTION_DATA,
-                value: false,
-            },
-        ],
-        failureData: [
-            {
-                onyxMethod: Onyx.METHOD.SET,
-                key: ONYXKEYS.IS_LOADING_SUBSCRIPTION_DATA,
-                value: false,
-            },
-        ],
-    };
-
-    API.read(READ_COMMANDS.OPEN_SUBSCRIPTION_PAGE, null, onyxData);
+    API.read(READ_COMMANDS.OPEN_SUBSCRIPTION_PAGE, null, {optimisticData, successData, failureData});
 }
 
 function updateSubscriptionType(type: SubscriptionType) {

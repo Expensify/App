@@ -1,4 +1,4 @@
-import React, {useEffect} from 'react';
+import React, {useEffect, useRef} from 'react';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -30,20 +30,32 @@ function WorkspaceRestrictedActionPage({
     const policy = usePolicy(policyID);
     const styles = useThemeStyles();
     const [isLoadingSubscriptionData] = useOnyx(ONYXKEYS.IS_LOADING_SUBSCRIPTION_DATA);
+
+    // Watch billing NVPs so the component re-renders when fresh data arrives from the server.
+    const [userBillingGracePeriods] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
+    const [ownerBillingGraceEndPeriod] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
+
+    // Track the owner's grace period in a ref so openSubscriptionPage can roll back on failure
+    // without adding the grace period to effect dependencies (which would re-trigger the fetch
+    // on every optimistic update).
+    const ownerGracePeriod = policy?.ownerAccountID
+        ? userBillingGracePeriods?.[`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END}${policy.ownerAccountID}`]
+        : undefined;
+    const ownerGracePeriodRef = useRef(ownerGracePeriod);
+    useEffect(() => {
+        ownerGracePeriodRef.current = ownerGracePeriod;
+    }, [ownerGracePeriod]);
+
     const {isOffline} = useNetwork({
-        onReconnect: () => openSubscriptionPage(policy?.ownerAccountID),
+        onReconnect: () => openSubscriptionPage(policy?.ownerAccountID, ownerGracePeriodRef.current),
     });
 
     // Fetch fresh billing NVPs from the server on mount.
     // The cached billing data may be stale, causing the restriction to persist
     // even after the workspace owner has resolved their billing issue.
     useEffect(() => {
-        openSubscriptionPage(policy?.ownerAccountID);
+        openSubscriptionPage(policy?.ownerAccountID, ownerGracePeriodRef.current);
     }, [policy?.ownerAccountID]);
-
-    // Watch billing NVPs so the component re-renders when fresh data arrives from the server.
-    const [userBillingGracePeriods] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
-    const [ownerBillingGraceEndPeriod] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
 
     // Navigate back if the fresh server data shows the restriction no longer applies.
     useEffect(() => {
