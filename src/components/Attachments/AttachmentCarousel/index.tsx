@@ -101,7 +101,7 @@ function AttachmentCarousel({
 
     if (page == null) {
         return (
-            <View style={[styles.flex1, styles.attachmentCarouselContainer]}>
+            <View style={[styles.flex1, styles.attachmentCarouselContainer, styles.fullScreenLoading]}>
                 <ActivityIndicator
                     size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
                     reasonAttributes={{context: 'AttachmentCarousel'}}
