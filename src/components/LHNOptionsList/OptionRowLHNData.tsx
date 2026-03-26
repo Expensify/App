@@ -51,7 +51,11 @@ function OptionRowLHNData({
     const reportAttributesSelector = useCallback((data: ReportAttributesDerivedValue | undefined) => data?.reports?.[reportID], [reportID]);
     const [reportAttributes] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {selector: reportAttributesSelector});
 
-    const iouReportID = getIOUReportIDFromReportActionPreview(lastAction);
+    // When lastAction is a REPORT_PREVIEW we can extract the IOU report ID directly.
+    // When it's an IOU CREATE from a one-transaction thread, getLastMessageTextForReport
+    // internally swaps lastReportAction to the parent's REPORT_PREVIEW, so we fall back
+    // to fullReport.iouReportID which points to the same expense report.
+    const iouReportID = getIOUReportIDFromReportActionPreview(lastAction) ?? fullReport?.iouReportID;
     const iouReportAttributesSelector = useCallback((data: ReportAttributesDerivedValue | undefined) => (iouReportID ? data?.reports?.[iouReportID] : undefined), [iouReportID]);
     const [iouReportAttributes] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {selector: iouReportAttributesSelector});
 
