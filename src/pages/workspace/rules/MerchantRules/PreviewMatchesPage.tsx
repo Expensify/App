@@ -73,8 +73,9 @@ function PreviewMatchesPage({route}: PreviewMatchesPageProps) {
         <UnreportedExpenseListItem
             readOnly
             showTooltip
-            item={item}
+            item={{...item, keyForList: item.transactionID, errors: undefined}}
             onSelectRow={() => {}}
+            keyForList={item.transactionID}
         />
     );
 

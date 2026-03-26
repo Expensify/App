@@ -179,16 +179,23 @@ describe('actions/Task', () => {
                 expect(canActionTask(taskReportArchived, undefined, 0)).toBe(false);
             });
 
-            it('returns false if the user modifying the task is not the author', () => {
-                const {result: parentReport} = renderHook(() => useParentReport(taskReport.reportID));
-                const {result: isParentReportArchived} = renderHook(() => useReportIsArchived(parentReport.current?.reportID));
-                expect(canActionTask(taskReport, undefined, employeeAccountID, parentReport.current, isParentReportArchived.current)).toBe(false);
-            });
-
-            it('returns true if the user modifying the task is the author', () => {
+            it('returns true if the user is the author (no assignee)', () => {
                 const {result: parentReport} = renderHook(() => useParentReport(taskReport.reportID));
                 const {result: isParentReportArchived} = renderHook(() => useReportIsArchived(parentReport.current?.reportID));
                 expect(canActionTask(taskReport, undefined, managerAccountID, parentReport.current, isParentReportArchived.current)).toBe(true);
+            });
+
+            it('returns true if the user is a participant of the parent report and the task has no assignee', () => {
+                const {result: parentReport} = renderHook(() => useParentReport(taskReport.reportID));
+                const {result: isParentReportArchived} = renderHook(() => useReportIsArchived(parentReport.current?.reportID));
+                expect(canActionTask(taskReport, undefined, employeeAccountID, parentReport.current, isParentReportArchived.current)).toBe(true);
+            });
+
+            it('returns false if the user is not a participant of the parent report and the task has no assignee', () => {
+                const {result: parentReport} = renderHook(() => useParentReport(taskReport.reportID));
+                const {result: isParentReportArchived} = renderHook(() => useReportIsArchived(parentReport.current?.reportID));
+                const nonParticipantAccountID = 999;
+                expect(canActionTask(taskReport, undefined, nonParticipantAccountID, parentReport.current, isParentReportArchived.current)).toBe(false);
             });
 
             // Looking up the task assignee is usually based on the report action
