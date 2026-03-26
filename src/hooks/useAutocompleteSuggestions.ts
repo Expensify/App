@@ -1,3 +1,4 @@
+import {policyTagListSelector} from '@selectors/PolicyTagList';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import type {SearchFilterKey, UserFriendlyKey} from '@components/Search/types';
@@ -17,7 +18,6 @@ import {
 } from '@libs/SearchAutocompleteUtils';
 import {getUserFriendlyKey, getUserFriendlyValue} from '@libs/SearchQueryUtils';
 import {getDatePresets, getHasOptions} from '@libs/SearchUIUtils';
-import {policyTagListSelector} from '@selectors/PolicyTagList';
 import CONST, {CONTINUATION_DETECTION_SEARCH_FILTER_KEYS} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Beta, CardFeeds, CardList, DismissedProductTraining, PersonalDetailsList, Policy} from '@src/types/onyx';

@@ -1,3 +1,4 @@
+import {policyTagListSelector} from '@selectors/PolicyTagList';
 import React, {useEffect, useState} from 'react';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import {useOptionsList} from '@components/OptionListContextProvider';
@@ -17,7 +18,6 @@ import type {Option} from '@libs/OptionsListUtils';
 import type {OptionWithKey, SelectionListSections} from '@libs/OptionsListUtils/types';
 import type {OptionData} from '@libs/ReportUtils';
 import Navigation from '@navigation/Navigation';
-import {policyTagListSelector} from '@selectors/PolicyTagList';
 import {searchInServer} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';

@@ -1,3 +1,4 @@
+import {policyTagListSelector} from '@selectors/PolicyTagList';
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import type {OnyxCollection} from 'react-native-onyx';
@@ -10,7 +11,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {updateAdvancedFilters} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
 import {getCleanedTagName, getTagNamesFromTagsLists} from '@libs/PolicyUtils';
-import {policyTagListSelector} from '@selectors/PolicyTagList';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';

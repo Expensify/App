@@ -1,3 +1,4 @@
+import {policyTagListSelector} from '@selectors/PolicyTagList';
 import {sortedActionsSelector} from '@selectors/SortedReportActions';
 import {useCallback, useMemo, useState} from 'react';
 import type {PermissionStatus} from 'react-native-permissions';
@@ -6,7 +7,6 @@ import {useOptionsList} from '@components/OptionListContextProvider';
 import type {GetOptionsConfig, Option, Options, SearchOption} from '@libs/OptionsListUtils';
 import {getEmptyOptions, getPersonalDetailSearchTerms, getSearchOptions, getSearchValueForPhoneOrEmail, getValidOptions} from '@libs/OptionsListUtils';
 import type {OptionData} from '@libs/ReportUtils';
-import {policyTagListSelector} from '@selectors/PolicyTagList';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';

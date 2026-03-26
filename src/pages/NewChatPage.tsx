@@ -1,7 +1,6 @@
 import {useFocusEffect} from '@react-navigation/native';
 import {hasSeenTourSelector} from '@selectors/Onboarding';
 import {policyTagListSelector} from '@selectors/PolicyTagList';
-import {sortedActionsSelector} from '@selectors/SortedReportActions';
 import reject from 'lodash/reject';
 import type {Ref} from 'react';
 import React, {useEffect, useImperativeHandle, useRef, useState} from 'react';
@@ -48,6 +47,7 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import {sortedActionsSelector} from '@src/selectors/SortedReportActions';
 import type {ReportAttributesDerivedValue} from '@src/types/onyx/DerivedValues';
 import type {SelectedParticipant} from '@src/types/onyx/NewGroupChatDraft';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
@@ -75,6 +75,8 @@ function useOptions(reportAttributesDerived: ReportAttributesDerivedValue['repor
     const {contacts} = useContactImport();
     const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT);
     const allPersonalDetails = usePersonalDetails();
+    const isScreenFocusedRef = useIsFocusedRef();
+    const [sortedActions] = useOnyx(ONYXKEYS.DERIVED.SORTED_REPORT_ACTIONS, {selector: sortedActionsSelector});
     const [allPolicyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS, {selector: policyTagListSelector});
 
     const {

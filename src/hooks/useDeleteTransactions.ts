@@ -1,3 +1,4 @@
+import {policyTagListSelector} from '@selectors/PolicyTagList';
 import {useCallback} from 'react';
 import type {OnyxCollection} from 'react-native-onyx';
 import {deleteMoneyRequest, getIOURequestPolicyID} from '@libs/actions/IOU';
@@ -6,7 +7,6 @@ import {initSplitExpenseItemData, updateSplitTransactions} from '@libs/actions/I
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {getChildTransactions, getOriginalTransactionWithSplitInfo} from '@libs/TransactionUtils';
-import {policyTagListSelector} from '@selectors/PolicyTagList';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report, ReportAction, Transaction, TransactionViolations} from '@src/types/onyx';
