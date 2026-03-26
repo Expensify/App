@@ -53,7 +53,6 @@ import ViolationsUtils from '@libs/Violations/ViolationsUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {
-    DefaultP2PMileageRate,
     PersonalDetails,
     Policy,
     PolicyCategories,
@@ -71,6 +70,7 @@ import type {OnyxData} from '@src/types/onyx/Request';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 import type {Waypoint, WaypointCollection} from '@src/types/onyx/Transaction';
 import type TransactionState from '@src/types/utils/TransactionStateType';
+import {getStoredDefaultP2PMileageRate} from './DefaultP2PMileageRateStore';
 import {getPolicyTags} from './IOU/index';
 
 let allReports: OnyxCollection<Report> = {};
@@ -103,17 +103,6 @@ Onyx.connect({
     callback: (val) => (allTransactionViolations = val ?? []),
 });
 
-let storedDefaultP2PMileageRate: DefaultP2PMileageRate | undefined;
-Onyx.connect({
-    key: ONYXKEYS.DEFAULT_P2P_MILEAGE_RATE,
-    callback: (value) => {
-        storedDefaultP2PMileageRate = value ?? undefined;
-    },
-});
-
-function getStoredDefaultP2PMileageRate(): DefaultP2PMileageRate | undefined {
-    return storedDefaultP2PMileageRate;
-}
 
 /**
  * @deprecated This function uses Onyx.connect and should be replaced with useOnyx for reactive data access.
@@ -1063,7 +1052,7 @@ function changeTransactionsReport({
         };
 
         const {comment, modifiedAmount, modifiedCurrency, modifiedMerchant} = isUnreported
-            ? recalculateUnreportedTransactionDetails(transaction, destinationCurrency, translate, toLocaleDigit, storedDefaultP2PMileageRate)
+            ? recalculateUnreportedTransactionDetails(transaction, destinationCurrency, translate, toLocaleDigit, getStoredDefaultP2PMileageRate())
             : {};
 
         // 1. Optimistically change the reportID on the passed transactions

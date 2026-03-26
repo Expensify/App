@@ -179,7 +179,7 @@ import {
     resolveOpenReportDuplicationConflictAction,
 } from '@userActions/RequestConflictUtils';
 import {isAnonymousUser} from '@userActions/Session';
-import {getStoredDefaultP2PMileageRate} from '@userActions/Transaction';
+import {getStoredDefaultP2PMileageRate} from '@userActions/DefaultP2PMileageRateStore';
 import {onServerDataReady} from '@userActions/Welcome';
 import {getOnboardingMessages} from '@userActions/Welcome/OnboardingFlow';
 import type {OnboardingCompanySize, OnboardingMessage} from '@userActions/Welcome/OnboardingFlow';
