@@ -596,6 +596,18 @@ function Search({
         conciergeReportID,
     ]);
 
+    // Refs for values that are only read (never compared) inside toggleTransaction.
+    // Keeping them in refs prevents new toggleTransaction/onSelectRow references on every
+    // data-loading commit, which would otherwise force all visible list rows to re-render.
+    const filteredDataRef = useRef(filteredData);
+    filteredDataRef.current = filteredData;
+    const transactionsRef = useRef(transactions);
+    transactionsRef.current = transactions;
+    const searchResultsDataRef = useRef(searchResults?.data);
+    searchResultsDataRef.current = searchResults?.data;
+    const outstandingReportsByPolicyIDRef = useRef(outstandingReportsByPolicyID);
+    outstandingReportsByPolicyIDRef.current = outstandingReportsByPolicyID;
+
     const hasLoadedAllTransactions = useMemo(() => {
         if (!validGroupBy) {
             return true;
@@ -933,8 +945,8 @@ function Search({
                 if (isTransactionPendingDelete(item)) {
                     return;
                 }
-                const itemTransaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${item.transactionID}`] as OnyxEntry<Transaction>;
-                const originalItemTransaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${itemTransaction?.comment?.originalTransactionID}`];
+                const itemTransaction = transactionsRef.current?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${item.transactionID}`] as OnyxEntry<Transaction>;
+                const originalItemTransaction = transactionsRef.current?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${itemTransaction?.comment?.originalTransactionID}`];
                 const updatedTransactions = prepareTransactionsList(
                     item,
                     itemTransaction,
@@ -942,9 +954,9 @@ function Search({
                     selectedTransactions,
                     email ?? '',
                     accountID,
-                    outstandingReportsByPolicyID,
+                    outstandingReportsByPolicyIDRef.current,
                 );
-                setSelectedTransactions(updatedTransactions, filteredData);
+                setSelectedTransactions(updatedTransactions, filteredDataRef.current);
                 updateSelectAllMatchingItemsState(updatedTransactions);
                 return;
             }
@@ -968,7 +980,7 @@ function Search({
                         ...selectedTransactions,
                     };
                     delete reducedSelectedTransactions[reportKey];
-                    setSelectedTransactions(reducedSelectedTransactions, filteredData);
+                    setSelectedTransactions(reducedSelectedTransactions, filteredDataRef.current);
                     updateSelectAllMatchingItemsState(reducedSelectedTransactions);
                     return;
                 }
@@ -978,7 +990,7 @@ function Search({
                     ...selectedTransactions,
                     [reportKey]: emptyReportSelection,
                 };
-                setSelectedTransactions(updatedTransactions, filteredData);
+                setSelectedTransactions(updatedTransactions, filteredDataRef.current);
                 updateSelectAllMatchingItemsState(updatedTransactions);
                 return;
             }
@@ -992,7 +1004,7 @@ function Search({
                     delete reducedSelectedTransactions[transaction.keyForList];
                 }
 
-                setSelectedTransactions(reducedSelectedTransactions, filteredData);
+                setSelectedTransactions(reducedSelectedTransactions, filteredDataRef.current);
                 updateSelectAllMatchingItemsState(reducedSelectedTransactions);
                 return;
             }
@@ -1003,19 +1015,26 @@ function Search({
                     currentTransactions
                         .filter((t) => !isTransactionPendingDelete(t))
                         .map((transactionItem) => {
-                            const itemTransaction = (searchResults?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionItem.transactionID}`] ??
-                                transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionItem.transactionID}`]) as OnyxEntry<Transaction>;
+                            const itemTransaction = (searchResultsDataRef.current?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionItem.transactionID}`] ??
+                                transactionsRef.current?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionItem.transactionID}`]) as OnyxEntry<Transaction>;
                             const originalItemTransaction =
-                                searchResults?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${itemTransaction?.comment?.originalTransactionID}`] ??
-                                transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${itemTransaction?.comment?.originalTransactionID}`];
-                            return mapTransactionItemToSelectedEntry(transactionItem, itemTransaction, originalItemTransaction, email ?? '', accountID, outstandingReportsByPolicyID);
+                                searchResultsDataRef.current?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${itemTransaction?.comment?.originalTransactionID}`] ??
+                                transactionsRef.current?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${itemTransaction?.comment?.originalTransactionID}`];
+                            return mapTransactionItemToSelectedEntry(
+                                transactionItem,
+                                itemTransaction,
+                                originalItemTransaction,
+                                email ?? '',
+                                accountID,
+                                outstandingReportsByPolicyIDRef.current,
+                            );
                         }),
                 ),
             };
-            setSelectedTransactions(updatedTransactions, filteredData);
+            setSelectedTransactions(updatedTransactions, filteredDataRef.current);
             updateSelectAllMatchingItemsState(updatedTransactions);
         },
-        [selectedTransactions, setSelectedTransactions, filteredData, updateSelectAllMatchingItemsState, transactions, email, accountID, outstandingReportsByPolicyID, searchResults?.data],
+        [selectedTransactions, setSelectedTransactions, updateSelectAllMatchingItemsState, email, accountID],
     );
 
     const onSelectRow = useCallback(
@@ -1403,6 +1422,59 @@ function Search({
     // dep-free useEffect above — see comment on didBailToFallbackState.
     didBailToFallbackState.current = false;
 
+    const onSortPress = useCallback(
+        (column: SearchColumnType, order: SortOrder) => {
+            clearSelectedTransactions();
+            const newQuery = buildSearchQueryString({
+                ...queryJSON,
+                sortBy: column,
+                sortOrder: order,
+            });
+            onSortPressedCallback?.();
+            // We want to explicitly clear stale rawQuery since it's only used for manually typed-in queries.
+            navigation.setParams({q: newQuery, rawQuery: undefined});
+        },
+        [clearSelectedTransactions, queryJSON, onSortPressedCallback, navigation],
+    );
+
+    const shouldShowTableHeader = isLargeScreenWidth && !isChat;
+    const tableHeaderVisible = canSelectMultiple || shouldShowTableHeader;
+
+    const searchTableHeaderElement = useMemo(() => {
+        if (!shouldShowTableHeader || !searchResults) {
+            return undefined;
+        }
+        const {shouldShowYearCreated, shouldShowYearSubmitted, shouldShowYearApproved, shouldShowYearPosted, shouldShowYearExported} = shouldShowYearUtil(
+            searchResults.data,
+            isExpenseReportType ?? false,
+        );
+        const {shouldShowAmountInWideColumn, shouldShowTaxAmountInWideColumn} = getWideAmountIndicators(searchResults.data);
+        return (
+            <View style={[!isTask && styles.pr8, styles.flex1]}>
+                <SearchTableHeader
+                    canSelectMultiple={canSelectMultiple}
+                    columns={columnsToShow}
+                    type={type}
+                    onSortPress={onSortPress}
+                    sortOrder={sortOrder}
+                    sortBy={sortBy}
+                    shouldShowYear={shouldShowYearCreated}
+                    shouldShowYearSubmitted={shouldShowYearSubmitted}
+                    shouldShowYearApproved={shouldShowYearApproved}
+                    shouldShowYearPosted={shouldShowYearPosted}
+                    shouldShowYearExported={shouldShowYearExported}
+                    isAmountColumnWide={shouldShowAmountInWideColumn}
+                    isTaxAmountColumnWide={shouldShowTaxAmountInWideColumn}
+                    shouldShowSorting
+                    groupBy={validGroupBy}
+                />
+            </View>
+        );
+    }, [shouldShowTableHeader, isTask, styles, canSelectMultiple, columnsToShow, type, onSortPress, sortOrder, sortBy, searchResults, isExpenseReportType, validGroupBy]);
+
+    const searchListContentContainerStyle = useMemo(() => [styles.pb3, contentContainerStyle], [styles.pb3, contentContainerStyle]);
+    const searchListContainerStyle = useMemo(() => [styles.pv0, !tableHeaderVisible && !isSmallScreenWidth && styles.pt1], [styles.pv0, styles.pt1, tableHeaderVisible, isSmallScreenWidth]);
+
     // This is a performance optimization for the submit-expense->search path only.
     // The SearchPage skeleton (useSearchLoadingState) doesn't cover this case because
     // Search must mount for its onLayout to flush the deferred CreateMoneyRequest API write, which would block the JS thread causing a slowdown on post expense creation navigation
@@ -1467,26 +1539,6 @@ function Search({
         );
     }
 
-    const onSortPress = (column: SearchColumnType, order: SortOrder) => {
-        clearSelectedTransactions();
-        const newQuery = buildSearchQueryString({
-            ...queryJSON,
-            sortBy: column,
-            sortOrder: order,
-        });
-        onSortPressedCallback?.();
-        // We want to explicitly clear stale rawQuery since it's only used for manually typed-in queries.
-        navigation.setParams({q: newQuery, rawQuery: undefined});
-    };
-
-    const {shouldShowYearCreated, shouldShowYearSubmitted, shouldShowYearApproved, shouldShowYearPosted, shouldShowYearExported} = shouldShowYearUtil(
-        searchResults?.data,
-        isExpenseReportType ?? false,
-    );
-    const {shouldShowAmountInWideColumn, shouldShowTaxAmountInWideColumn} = getWideAmountIndicators(searchResults?.data);
-    const shouldShowTableHeader = isLargeScreenWidth && !isChat;
-    const tableHeaderVisible = canSelectMultiple || shouldShowTableHeader;
-
     const shouldShowChartView = (view === CONST.SEARCH.VIEW.BAR || view === CONST.SEARCH.VIEW.LINE || view === CONST.SEARCH.VIEW.PIE) && !!validGroupBy;
 
     if (shouldShowChartView && isGroupedItemArray(sortedData)) {
@@ -1547,6 +1599,7 @@ function Search({
                     canSelectMultiple={canSelectMultiple}
                     selectedTransactions={selectedTransactions}
                     shouldPreventLongPressRow={isChat || isTask}
+<<<<<<< Updated upstream
                     SearchTableHeader={
                         !shouldShowTableHeader ? undefined : (
                             <View style={[!isTask && styles.pr8, styles.flex1]}>
@@ -1572,6 +1625,11 @@ function Search({
                     }
                     contentContainerStyle={[styles.pb3, contentContainerStyle]}
                     containerStyle={[styles.pv0, !tableHeaderVisible && !isSmallScreenWidth && styles.pt3]}
+=======
+                    SearchTableHeader={searchTableHeaderElement}
+                    contentContainerStyle={searchListContentContainerStyle}
+                    containerStyle={searchListContainerStyle}
+>>>>>>> Stashed changes
                     shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
                     onScroll={onSearchListScroll}
                     onEndReachedThreshold={0.75}
