@@ -19,7 +19,7 @@ export default function useGetNewPersonalCard() {
         }
 
         // Find the first card that is either new or has a fresh import timestamp
-        const latestChange = Object.values(cardList).find(card => {
+        const latestChange = Object.values(cardList).find((card) => {
             const prev = prevCardListRef.current?.[card.cardID];
             return !prev || card.lastImportAttempt !== prev.lastImportAttempt;
         });
