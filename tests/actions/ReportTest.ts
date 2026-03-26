@@ -5863,6 +5863,7 @@ describe('actions/Report', () => {
 
         it('should pass isSelfTourViewed=true to navigateToConciergeChat when selfTour has been viewed', async () => {
             const mockNavigateToConciergeChat = jest.fn();
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-return
             jest.mock('@userActions/Report', () => ({
                 ...jest.requireActual('@userActions/Report'),
                 navigateToConciergeChat: mockNavigateToConciergeChat,
