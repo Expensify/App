@@ -5783,7 +5783,7 @@ describe('OptionsListUtils', () => {
 
             const participant = {reportID};
 
-            const option = getReportOption(participant, undefined, POLICY, CURRENT_USER_ACCOUNT_ID, {}, conciergeReportID);
+            const option = getReportOption(participant, undefined, POLICY, {}, conciergeReportID);
 
             expect(option).toBeDefined();
             expect(option.reportID).toBe(reportID);
@@ -5802,7 +5802,7 @@ describe('OptionsListUtils', () => {
 
             const participant = {reportID};
 
-            const option = getReportOption(participant, undefined, POLICY, CURRENT_USER_ACCOUNT_ID, {}, undefined);
+            const option = getReportOption(participant, undefined, POLICY, {}, undefined);
 
             expect(option).toBeDefined();
             expect(option.reportID).toBe(reportID);
@@ -5837,7 +5837,7 @@ describe('OptionsListUtils', () => {
 
             // Passing conciergeReportID matching the reportID identifies this as the Concierge chat,
             // which affects getMovedTransactionMessage to use CONST.CONCIERGE_DISPLAY_NAME ('Concierge')
-            const option = getReportOption(participant, undefined, POLICY, CURRENT_USER_ACCOUNT_ID, testPersonalDetails, conciergeReportID);
+            const option = getReportOption(participant, undefined, POLICY, testPersonalDetails, conciergeReportID);
 
             expect(option).toBeDefined();
             expect(option.reportID).toBe(reportID);
@@ -5857,8 +5857,8 @@ describe('OptionsListUtils', () => {
 
             const participant = {reportID};
 
-            const optionWithConcierge = getReportOption(participant, undefined, POLICY, CURRENT_USER_ACCOUNT_ID, {}, differentConciergeReportID);
-            const optionWithoutConcierge = getReportOption(participant, undefined, POLICY, CURRENT_USER_ACCOUNT_ID, {}, undefined);
+            const optionWithConcierge = getReportOption(participant, undefined, POLICY, {}, differentConciergeReportID);
+            const optionWithoutConcierge = getReportOption(participant, undefined, POLICY, {}, undefined);
 
             // Both should produce the same result since the IDs don't match
             expect(optionWithConcierge.reportID).toBe(optionWithoutConcierge.reportID);
