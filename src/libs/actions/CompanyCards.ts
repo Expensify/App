@@ -73,7 +73,11 @@ function getColumnIndex(columnMappings: string[], columnName: string): number {
 }
 
 function parseCSVAmount(value: string): number | undefined {
-    const parsedAmount = Math.round(Number(String(value).replaceAll(/[^\d.-]/g, '')) * 100);
+    const sanitized = String(value).replaceAll(/[^\d.-]/g, '');
+    if (!sanitized) {
+        return undefined;
+    }
+    const parsedAmount = Math.round(Number(sanitized) * 100);
     if (Number.isNaN(parsedAmount)) {
         return undefined;
     }
