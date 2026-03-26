@@ -1,7 +1,7 @@
 ---
 title: Export Expenses and Reports
-description: Learn how to export your expenses and reports in CSV or PDF format, or print reports directly from New Expensify.
-keywords: [New Expensify, export expenses, export reports, CSV export, PDF export, download reports, print report, accounting integration, report templates]
+description: Learn how to export your expenses and reports in CSV or PDF format using default or custom templates in New Expensify.
+keywords: [New Expensify, export expenses, export reports, CSV export, PDF export, download reports, accounting integration, report templates]
 ---
 
 
@@ -57,19 +57,7 @@ The PDF will include:
 - Attached receipts
 - Report notes
 
-# How to print a report
-
-1. Open the individual report you want to print.
-2. Click **More** in the top-right corner.
-3. Select **Print**.
-
-This opens the report in a printable format in a new browser tab and automatically triggers the browser's print dialog. You can print the report directly or save it as a PDF from the print dialog.
-
 # FAQ
-
-## What is the difference between Download as PDF and Print?
-
-**Download as PDF** generates a PDF file that is saved to your device. **Print** opens the report in a printable format in a new tab and triggers the print dialog, so you can send it directly to a printer or save it as a PDF.
 
 ## Can I export one line per report?
 
