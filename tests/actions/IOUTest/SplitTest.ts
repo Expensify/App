@@ -2557,6 +2557,12 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
         expect(newIOUOriginalMessage?.currency).toBe(CONST.CURRENCY.USD);
         expect(newIOUOriginalMessage?.type).toBe(CONST.IOU.REPORT_ACTION_TYPE.CREATE);
 
+        // Verify the IOU action child counts
+        expect(newIOUAction?.childCommenterCount).toBe(1);
+        expect(newIOUAction?.childOldestFourAccountIDs).toBe(`${RORY_ACCOUNT_ID}`);
+        expect(newIOUAction?.childVisibleActionCount).toBe(1);
+        expect(newIOUAction?.childLastVisibleActionCreated).toBe(commentCreated);
+
         const newThreadReportID = newIOUAction?.childReportID;
         expect(newThreadReportID).toBeDefined();
         expect(newThreadReportID).not.toBe(splitThreadReportID);
