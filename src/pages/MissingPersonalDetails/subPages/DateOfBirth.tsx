@@ -2,6 +2,7 @@ import React from 'react';
 import DateOfBirthStep from '@components/SubStepForms/DateOfBirthStep';
 import useLocalize from '@hooks/useLocalize';
 import usePersonalDetailsFormSubmit from '@hooks/usePersonalDetailsFormSubmit';
+import {isValidDate} from '@libs/ValidationUtils';
 import type {CustomSubPageProps} from '@pages/MissingPersonalDetails/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/PersonalDetailsForm';
@@ -27,7 +28,7 @@ function DateOfBirth({isEditing, onNext, onMove, personalDetailsValues}: CustomS
             onSubmit={handleSubmit}
             stepFields={STEP_FIELDS}
             dobInputID={INPUT_IDS.DATE_OF_BIRTH}
-            dobDefaultValue={personalDetailsValues[INPUT_IDS.DATE_OF_BIRTH]}
+            dobDefaultValue={isValidDate(personalDetailsValues[INPUT_IDS.DATE_OF_BIRTH]) ? personalDetailsValues[INPUT_IDS.DATE_OF_BIRTH] : ''}
         />
     );
 }
