@@ -1384,7 +1384,8 @@ function clearTaskErrors(report: OnyxEntry<OnyxTypes.Report>, conciergeReportID:
     if (report?.pendingFields?.createChat === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
         Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`, report.parentReportActionID ? {[report.parentReportActionID]: null} : {});
 
-        navigateToConciergeChatAndDeleteReport(reportID, conciergeReportID, currentUserAccountID, introSelected);
+        // TODO: We'll pass isSelfTourViewed in the next PR. Refactor issue: https://github.com/Expensify/App/issues/66424
+        navigateToConciergeChatAndDeleteReport(reportID, conciergeReportID, currentUserAccountID, introSelected, undefined);
         return;
     }
 
