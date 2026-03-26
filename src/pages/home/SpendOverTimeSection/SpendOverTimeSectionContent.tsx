@@ -64,7 +64,7 @@ function SpendOverTimeSectionContent() {
                     containerStyle={[{minHeight: CHART_CONTENT_MIN_HEIGHT}, styles.gap5]}
                 />
             )}
-            {shouldShowErrorIndicator && (
+            {!shouldShowErrorIndicator && (
                 <BlockingView
                     icon={illustrations.BrokenMagnifyingGlass}
                     iconHeight={variables.iconSizeMegaLarge}
@@ -76,10 +76,9 @@ function SpendOverTimeSectionContent() {
                     subtitleStyle={styles.textSupporting}
                     containerStyle={[{minHeight: CHART_CONTENT_MIN_HEIGHT}, styles.gap5]}
                     contentFitImage="contain"
-
                 />
             )}
-            {!shouldShowOfflineIndicator && !shouldShowErrorIndicator && (
+            {!shouldShowOfflineIndicator && shouldShowErrorIndicator && (
                 <View style={[shouldUseNarrowLayout ? styles.ph5 : [styles.ph8, styles.pt3]]}>
                     <SearchChartView
                         queryJSON={queryJSON}
