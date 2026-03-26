@@ -96,6 +96,9 @@ type MenuItemBaseProps = ForwardedFSClassProps &
         /** Whether the badge should use condensed (smaller) sizing */
         isBadgeCondensed?: boolean;
 
+        /** Whether the badge should be shown as error */
+        isBadgeError?: boolean;
+
         /** Callback to fire when the badge is pressed */
         onBadgePress?: (event?: GestureResponderEvent | KeyboardEvent) => void;
 
@@ -466,6 +469,7 @@ function MenuItem({
     isBadgeSuccess,
     isBadgeStrong,
     isBadgeCondensed,
+    isBadgeError,
     onBadgePress,
     shouldShowBadgeInSeparateRow = false,
     shouldShowBadgeBelow = false,
@@ -1037,6 +1041,7 @@ function MenuItem({
                                                         success={isBadgeSuccess}
                                                         isStrong={isBadgeStrong}
                                                         isCondensed={isBadgeCondensed}
+                                                        error={isBadgeError}
                                                         onPress={onBadgePress}
                                                         pressable={!!onBadgePress}
                                                     />

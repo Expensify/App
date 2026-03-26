@@ -500,3 +500,4 @@ export type {default as RevealCardPINParams} from './RevealCardPINParams';
 export type {default as DenyTransactionParams} from './DenyTransactionParams';
 export type {default as ChangeCardPINParams} from './ChangeCardPINParams';
 export type {default as ExportDomainMembersCSVParams} from './ExportDomainMembersCSVParams';
+export type {default as InitiateBankAccountUnlockParams} from './InitiateBankAccountUnlockParams';
