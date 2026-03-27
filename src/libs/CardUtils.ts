@@ -1528,6 +1528,43 @@ function getCardHintText(validFrom: string | undefined, validThru: string | unde
     return translate('workspace.card.issueNewCard.validFromTo', {startDate, endDate});
 }
 
+/**
+ * Resolves card-related fields on transactions for report layout display.
+ * The search API pre-resolves cardName and isCardFeedDeleted, but local Onyx transactions have raw values.
+ * This ensures the report layout matches the search page.
+ */
+function resolveTransactionCardFields<T extends {cardID?: number; cardName?: string; bank?: string}>(
+    transactions: T[],
+    cardList: CardList | undefined,
+    cardFeeds: OnyxCollection<CardFeeds> | undefined,
+    translate: LocalizedTranslate,
+): Array<T & {isCardFeedDeleted?: boolean}> {
+    return transactions.map((transaction) => {
+        let updates: Partial<T & {isCardFeedDeleted?: boolean}> = {};
+
+        // Resolve card name from cardList
+        if (cardList) {
+            const card = transaction.cardID ? cardList[transaction.cardID] : undefined;
+            if (card) {
+                const resolvedCardName = getCardDescription(card, translate);
+                if (resolvedCardName && resolvedCardName !== transaction.cardName) {
+                    updates = {...updates, cardName: resolvedCardName};
+                }
+            }
+        }
+
+        // Resolve isCardFeedDeleted
+        if (cardFeeds !== undefined) {
+            updates = {...updates, isCardFeedDeleted: !!transaction.bank && !doesCardFeedExist(transaction.bank as CompanyCardFeed, cardFeeds)};
+        }
+
+        if (Object.keys(updates).length === 0) {
+            return transaction;
+        }
+        return {...transaction, ...updates};
+    });
+}
+
 export {
     getAssignedCardSortKey,
     getDefaultExpensifyCardLimitType,
@@ -1626,6 +1663,7 @@ export {
     isExpiredCard,
     getCardCurrency,
     getCardHintText,
+    resolveTransactionCardFields,
 };
 
 export type {CompanyCardFeedIcons, CompanyCardBankIcons, CardProgramKey};

@@ -5016,6 +5016,7 @@ ${amount} para ${merchant} - ${date}`,
                 flipAmountSign: 'Invertir el signo del monto',
                 importButton: 'Importar transacciones',
             },
+            deletedCard: 'Tarjeta eliminada',
             assignNewCards: {
                 title: 'Asignar nuevas tarjetas',
                 description: 'Obtén las últimas tarjetas para asignar desde tu banco',
