@@ -295,7 +295,6 @@ function Search({
     const [allReportMetadata] = useOnyx(ONYXKEYS.COLLECTION.REPORT_METADATA);
     const [visibleColumns] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {selector: columnsSelector});
     const [customCardNames] = useOnyx(ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES);
-    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
 
     const isExpenseReportType = type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
@@ -508,7 +507,6 @@ function Search({
             allTransactionViolations: violations,
             customCardNames,
             allReportMetadata,
-            cardList,
             conciergeReportID,
             onyxPersonalDetailsList,
         });
@@ -535,7 +533,6 @@ function Search({
         violations,
         customCardNames,
         allReportMetadata,
-        cardList,
         conciergeReportID,
         onyxPersonalDetailsList,
     ]);
@@ -573,7 +570,6 @@ function Search({
                 isActionLoadingSet,
                 cardFeeds,
                 allReportMetadata,
-                cardList,
                 conciergeReportID,
             });
             return {
@@ -597,7 +593,6 @@ function Search({
         cardFeeds,
         bankAccountList,
         allReportMetadata,
-        cardList,
         conciergeReportID,
     ]);
 
