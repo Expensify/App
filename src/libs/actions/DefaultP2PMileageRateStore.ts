@@ -14,4 +14,4 @@ function getStoredDefaultP2PMileageRate(): DefaultP2PMileageRate | undefined {
     return storedDefaultP2PMileageRate;
 }
 
-export {getStoredDefaultP2PMileageRate};
+export default getStoredDefaultP2PMileageRate;

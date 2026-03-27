@@ -72,7 +72,7 @@ import type {OnyxData} from '@src/types/onyx/Request';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 import type {Waypoint, WaypointCollection} from '@src/types/onyx/Transaction';
 import type TransactionState from '@src/types/utils/TransactionStateType';
-import {getStoredDefaultP2PMileageRate} from './DefaultP2PMileageRateStore';
+import getStoredDefaultP2PMileageRate from './DefaultP2PMileageRateStore';
 import {getPolicyTags} from './IOU/index';
 
 let allReports: OnyxCollection<Report> = {};

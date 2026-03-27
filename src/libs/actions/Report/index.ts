@@ -165,7 +165,7 @@ import addTrailingForwardSlash from '@libs/UrlUtils';
 import Visibility from '@libs/Visibility';
 import {cacheAttachment, removeCachedAttachment} from '@userActions/Attachment';
 import {clearByKey} from '@userActions/CachedPDFPaths';
-import {getStoredDefaultP2PMileageRate} from '@userActions/DefaultP2PMileageRateStore';
+import getStoredDefaultP2PMileageRate from '@userActions/DefaultP2PMileageRateStore';
 import {setDownload} from '@userActions/Download';
 import {close} from '@userActions/Modal';
 import navigateFromNotification from '@userActions/navigateFromNotification';
