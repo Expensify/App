@@ -55,7 +55,6 @@ function ReportsSplitNavigator({route}: PlatformStackScreenProps<RootTabNavigato
         return initialReport?.reportID ?? '';
     });
 
-
     const reportScreenInitialParams = {
         reportID: initialReportID,
         openOnAdminRoom: isOpenOnAdminRoom ? true : undefined,
