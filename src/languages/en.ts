@@ -6629,6 +6629,8 @@ const translations = {
             spendRules: {
                 title: 'Spend',
                 subtitle: 'Approve or decline Expensify Card transactions in real time.',
+                defaultRuleDescription: 'All cards',
+                defaultRuleTitle: 'Categories: Adult services, ATMs, gambling, money transfers',
             },
         },
         planTypePage: {
