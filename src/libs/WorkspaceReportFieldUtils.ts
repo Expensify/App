@@ -131,6 +131,7 @@ function getUnsupportedReportFieldFormulaParts(initialValue?: string): string[] 
         FORMULA_PART_TYPES: {REPORT: string};
     };
 
+    // cspell:ignore oldid
     const supportedReportFields = new Set([
         'id',
         'oldid',
