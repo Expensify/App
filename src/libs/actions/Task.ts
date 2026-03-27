@@ -613,9 +613,9 @@ function reopenTask(taskReport: OnyxEntry<OnyxTypes.Report>, parentReport: OnyxE
     API.write(WRITE_COMMANDS.REOPEN_TASK, parameters, {optimisticData, successData, failureData});
 }
 
-function editTask(report: OnyxTypes.Report, {title, description}: OnyxTypes.Task) {
+function editTask(report: OnyxTypes.Report, {title, description}: OnyxTypes.Task, delegateEmail: string | undefined) {
     // Create the EditedReportAction on the task
-    const editTaskReportAction = ReportUtils.buildOptimisticEditedTaskFieldReportAction({title, description});
+    const editTaskReportAction = ReportUtils.buildOptimisticEditedTaskFieldReportAction({title, description}, delegateEmail);
 
     // Ensure title is defined before parsing it with getParsedComment. If title is undefined, fall back to reportName from report.
     // Trim the final parsed title for consistency.
@@ -1374,7 +1374,13 @@ function canActionTask(
     return false;
 }
 
-function clearTaskErrors(report: OnyxEntry<OnyxTypes.Report>, conciergeReportID: string | undefined, currentUserAccountID: number, introSelected: OnyxEntry<OnyxTypes.IntroSelected>) {
+function clearTaskErrors(
+    report: OnyxEntry<OnyxTypes.Report>,
+    conciergeReportID: string | undefined,
+    currentUserAccountID: number,
+    introSelected: OnyxEntry<OnyxTypes.IntroSelected>,
+    betas: OnyxEntry<OnyxTypes.Beta[]>,
+) {
     const reportID = report?.reportID;
     if (!reportID) {
         return;
@@ -1384,7 +1390,7 @@ function clearTaskErrors(report: OnyxEntry<OnyxTypes.Report>, conciergeReportID:
     if (report?.pendingFields?.createChat === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
         Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`, report.parentReportActionID ? {[report.parentReportActionID]: null} : {});
 
-        navigateToConciergeChatAndDeleteReport(reportID, conciergeReportID, currentUserAccountID, introSelected);
+        navigateToConciergeChatAndDeleteReport(reportID, conciergeReportID, currentUserAccountID, introSelected, betas);
         return;
     }
 
