@@ -22,7 +22,7 @@ It’s a free and simple way to replace manual expense tracking (like spreadshee
 
 ---
 
-## Create a Submit workspace during onboarding
+## How to create a Submit workspace during onboarding
 
 If you’re new to Expensify, you can create a Submit workspace during setup.
 
@@ -30,7 +30,9 @@ If you’re new to Expensify, you can create a Submit workspace during setup.
 2. Select **Get paid back by my employer** when prompted.
 3. Choose to create a new workspace (if you don’t join an existing one).
 
-![Get paid back intent](https://github.com/user-attachments/assets/82358073-bef0-4896-8e72-a09f2697eca6)
+<!-- SCREENSHOT:
+Onboarding flow showing the “Get paid back by my employer” selection option
+-->
 
 You’ll be taken directly to your workspace to start setting it up.
 
@@ -93,7 +95,9 @@ Once your workspace is set up, you can submit reports for approval.
 
 Your manager will receive an email with a link to review the report.
 
-![Submit report to manager popover](https://github.com/user-attachments/assets/ed59c9b2-47ac-44c1-af55-62c91760b286)
+<!-- SCREENSHOT:
+Submit report confirmation modal where a member enters a manager email and clicks Confirm
+-->
 ---
 
 ## Track reimbursement outside of Expensify
@@ -103,7 +107,9 @@ If your manager reimburses you outside of Expensify, you can track it manually.
 1. Open a submitted report
 2. Click **More** > **Payment received**
 
-![Paymemt received](https://github.com/user-attachments/assets/4c82cc8e-4c1b-4a8c-8327-b3b0b8ccce51)
+<!-- SCREENSHOT:
+Report view showing the More menu with the “Payment received” option selected
+-->
 
 This helps you track which reports are complete without requiring your manager to take action in Expensify.
 
