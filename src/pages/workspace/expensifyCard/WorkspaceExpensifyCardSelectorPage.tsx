@@ -3,7 +3,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
-import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
+import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import useDefaultFundID from '@hooks/useDefaultFundID';
 import useExpensifyCardFeeds from '@hooks/useExpensifyCardFeeds';
@@ -85,7 +85,7 @@ function WorkspaceExpensifyCardSelectorPage({route}: WorkspaceExpensifyCardSelec
                     onBackButtonPress={goBack}
                 />
                 <SelectionList
-                    ListItem={RadioListItem}
+                    ListItem={SingleSelectListItem}
                     onSelectRow={selectFeed}
                     data={feeds}
                     alternateNumberOfSupportedLines={2}

@@ -3,11 +3,10 @@ import {renderHook} from '@testing-library/react-native';
 import type {OnyxCollection} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import * as defaultWorkspaceAvatars from '@components/Icon/WorkspaceDefaultAvatars';
-import type {SelectedTransactionInfo} from '@components/Search/types';
-import ChatListItem from '@components/SelectionListWithSections/ChatListItem';
-import ExpenseReportListItem from '@components/SelectionListWithSections/Search/ExpenseReportListItem';
-import TransactionGroupListItem from '@components/SelectionListWithSections/Search/TransactionGroupListItem';
-import TransactionListItem from '@components/SelectionListWithSections/Search/TransactionListItem';
+import ChatListItem from '@components/Search/SearchList/ListItem/ChatListItem';
+import ExpenseReportListItem from '@components/Search/SearchList/ListItem/ExpenseReportListItem';
+import TransactionGroupListItem from '@components/Search/SearchList/ListItem/TransactionGroupListItem';
+import TransactionListItem from '@components/Search/SearchList/ListItem/TransactionListItem';
 import type {
     ReportActionListItemType,
     TaskListItemType,
@@ -24,7 +23,8 @@ import type {
     TransactionWeekGroupListItemType,
     TransactionWithdrawalIDGroupListItemType,
     TransactionYearGroupListItemType,
-} from '@components/SelectionListWithSections/types';
+} from '@components/Search/SearchList/ListItem/types';
+import type {SelectedTransactionInfo} from '@components/Search/types';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import Navigation from '@navigation/Navigation';
 // eslint-disable-next-line no-restricted-syntax
@@ -36,6 +36,7 @@ import {setOptimisticDataForTransactionThreadPreview} from '@userActions/Search'
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import type {CardFeedForDisplay} from '@src/libs/CardFeedUtils';
+import {getCardDescriptionForSearchTable} from '@src/libs/CardUtils';
 import DateUtils from '@src/libs/DateUtils';
 import {getUserFriendlyValue} from '@src/libs/SearchQueryUtils';
 import * as SearchUIUtils from '@src/libs/SearchUIUtils';
@@ -1561,6 +1562,7 @@ const transactionMemberGroupListItems: TransactionMemberGroupListItemType[] = [
         total: 70,
         transactions: [],
         transactionsQueryJSON: undefined,
+        keyForList: 'group_18439984',
     },
     {
         accountID: 1111111,
@@ -1574,6 +1576,7 @@ const transactionMemberGroupListItems: TransactionMemberGroupListItemType[] = [
         total: 30,
         transactions: [],
         transactionsQueryJSON: undefined,
+        keyForList: 'group_1111111',
     },
 ];
 
@@ -1590,6 +1593,7 @@ const transactionMemberGroupListItemsSorted: TransactionMemberGroupListItemType[
         total: 70,
         transactions: [],
         transactionsQueryJSON: undefined,
+        keyForList: 'group_18439984',
     },
     {
         accountID: 1111111,
@@ -1603,6 +1607,7 @@ const transactionMemberGroupListItemsSorted: TransactionMemberGroupListItemType[
         total: 30,
         transactions: [],
         transactionsQueryJSON: undefined,
+        keyForList: 'group_1111111',
     },
 ];
 
@@ -1616,7 +1621,7 @@ const transactionCardGroupListItems: TransactionCardGroupListItemType[] = [
         count: 4,
         currency: 'USD',
         displayName: 'Zara',
-        formattedCardName: ' • 1234',
+        formattedCardName: "Zara's card • 1234",
         formattedFeedName: 'chase',
         groupedBy: 'card',
         lastFourPAN: '1234',
@@ -1624,6 +1629,7 @@ const transactionCardGroupListItems: TransactionCardGroupListItemType[] = [
         total: 40,
         transactions: [],
         transactionsQueryJSON: undefined,
+        keyForList: 'group_20202020',
     },
     {
         accountID: 1111111,
@@ -1634,7 +1640,7 @@ const transactionCardGroupListItems: TransactionCardGroupListItemType[] = [
         count: 6,
         currency: 'USD',
         displayName: 'Andrew',
-        formattedCardName: ' • 1234',
+        formattedCardName: "Andrew's card • 1234",
         formattedFeedName: 'americanexpress',
         groupedBy: 'card',
         lastFourPAN: '1234',
@@ -1642,6 +1648,7 @@ const transactionCardGroupListItems: TransactionCardGroupListItemType[] = [
         total: 20,
         transactions: [],
         transactionsQueryJSON: undefined,
+        keyForList: 'group_30303030',
     },
 ];
 
@@ -1655,7 +1662,7 @@ const transactionCardGroupListItemsSorted: TransactionCardGroupListItemType[] = 
         count: 4,
         currency: 'USD',
         displayName: 'Zara',
-        formattedCardName: ' • 1234',
+        formattedCardName: "Zara's card • 1234",
         formattedFeedName: 'chase',
         groupedBy: 'card',
         lastFourPAN: '1234',
@@ -1663,6 +1670,7 @@ const transactionCardGroupListItemsSorted: TransactionCardGroupListItemType[] = 
         total: 40,
         transactions: [],
         transactionsQueryJSON: undefined,
+        keyForList: 'group_20202020',
     },
     {
         accountID: 1111111,
@@ -1673,7 +1681,7 @@ const transactionCardGroupListItemsSorted: TransactionCardGroupListItemType[] = 
         count: 6,
         currency: 'USD',
         displayName: 'Andrew',
-        formattedCardName: ' • 1234',
+        formattedCardName: "Andrew's card • 1234",
         formattedFeedName: 'americanexpress',
         groupedBy: 'card',
         lastFourPAN: '1234',
@@ -1681,6 +1689,7 @@ const transactionCardGroupListItemsSorted: TransactionCardGroupListItemType[] = 
         total: 20,
         transactions: [],
         transactionsQueryJSON: undefined,
+        keyForList: 'group_30303030',
     },
 ];
 
@@ -1698,6 +1707,7 @@ const transactionWithdrawalIDGroupListItems: TransactionWithdrawalIDGroupListIte
         formattedWithdrawalID: '5',
         transactions: [],
         transactionsQueryJSON: undefined,
+        keyForList: 'group_5',
     },
     {
         bankName: CONST.BANK_NAMES.CITIBANK,
@@ -1712,6 +1722,7 @@ const transactionWithdrawalIDGroupListItems: TransactionWithdrawalIDGroupListIte
         formattedWithdrawalID: '6',
         transactions: [],
         transactionsQueryJSON: undefined,
+        keyForList: 'group_30303030',
     },
 ];
 
@@ -1729,6 +1740,7 @@ const transactionWithdrawalIDGroupListItemsSorted: TransactionWithdrawalIDGroupL
         formattedWithdrawalID: '5',
         transactions: [],
         transactionsQueryJSON: undefined,
+        keyForList: 'group_5',
     },
     {
         bankName: CONST.BANK_NAMES.CITIBANK,
@@ -1743,6 +1755,7 @@ const transactionWithdrawalIDGroupListItemsSorted: TransactionWithdrawalIDGroupL
         formattedWithdrawalID: '6',
         transactions: [],
         transactionsQueryJSON: undefined,
+        keyForList: 'group_30303030',
     },
 ];
 
@@ -1756,6 +1769,7 @@ const transactionCategoryGroupListItems: TransactionCategoryGroupListItemType[] 
         formattedCategory: categoryName1,
         transactions: [],
         transactionsQueryJSON: undefined,
+        keyForList: 'group_Travel',
     },
     {
         category: categoryName2,
@@ -1766,6 +1780,7 @@ const transactionCategoryGroupListItems: TransactionCategoryGroupListItemType[] 
         formattedCategory: categoryName2,
         transactions: [],
         transactionsQueryJSON: undefined,
+        keyForList: 'group_Food & Drink',
     },
 ];
 
@@ -1779,6 +1794,7 @@ const transactionCategoryGroupListItemsSorted: TransactionCategoryGroupListItemT
         formattedCategory: categoryName1,
         transactions: [],
         transactionsQueryJSON: undefined,
+        keyForList: 'group_Travel',
     },
     {
         category: categoryName2,
@@ -1789,6 +1805,7 @@ const transactionCategoryGroupListItemsSorted: TransactionCategoryGroupListItemT
         formattedCategory: categoryName2,
         transactions: [],
         transactionsQueryJSON: undefined,
+        keyForList: 'group_Food & Drink',
     },
 ];
 
@@ -1837,6 +1854,7 @@ const transactionMerchantGroupListItems: TransactionMerchantGroupListItemType[] 
         formattedMerchant: merchantName1,
         transactions: [],
         transactionsQueryJSON: undefined,
+        keyForList: 'group_1234567890',
     },
     {
         merchant: merchantName2,
@@ -1847,6 +1865,7 @@ const transactionMerchantGroupListItems: TransactionMerchantGroupListItemType[] 
         formattedMerchant: merchantName2,
         transactions: [],
         transactionsQueryJSON: undefined,
+        keyForList: 'group_9876543210',
     },
 ];
 
@@ -1892,6 +1911,7 @@ const transactionTagGroupListItems: TransactionTagGroupListItemType[] = [
         formattedTag: tagName1,
         transactions: [],
         transactionsQueryJSON: undefined,
+        keyForList: 'group_Project A',
     },
     {
         tag: tagName2,
@@ -1902,23 +1922,9 @@ const transactionTagGroupListItems: TransactionTagGroupListItemType[] = [
         formattedTag: tagName2,
         transactions: [],
         transactionsQueryJSON: undefined,
+        keyForList: 'group_Project B',
     },
 ];
-
-const cardListMock = {
-    [cardID]: {
-        state: 1,
-        bank: 'vcf',
-        fundID: '5555',
-        lastFourPAN: '1234',
-    },
-    [cardID2]: {
-        state: 1,
-        bank: CONST.EXPENSIFY_CARD.BANK,
-        fundID: '5555',
-        lastFourPAN: '1234',
-    },
-} as unknown as OnyxTypes.CardList;
 
 const transactionMerchantGroupListItemsSorted: TransactionMerchantGroupListItemType[] = [
     {
@@ -1930,6 +1936,7 @@ const transactionMerchantGroupListItemsSorted: TransactionMerchantGroupListItemT
         formattedMerchant: merchantName1,
         transactions: [],
         transactionsQueryJSON: undefined,
+        keyForList: 'group_1234567890',
     },
     {
         merchant: merchantName2,
@@ -1940,6 +1947,7 @@ const transactionMerchantGroupListItemsSorted: TransactionMerchantGroupListItemT
         formattedMerchant: merchantName2,
         transactions: [],
         transactionsQueryJSON: undefined,
+        keyForList: 'group_9876543210',
     },
 ];
 
@@ -2925,7 +2933,6 @@ describe('SearchUIUtils', () => {
                     bankAccountList: {},
                     groupBy: CONST.SEARCH.GROUP_BY.CARD,
                     cardFeeds: mockCardFeeds,
-                    cardList: cardListMock,
                     allReportMetadata: {},
                     conciergeReportID: undefined,
                 })[0],
@@ -3038,6 +3045,7 @@ describe('SearchUIUtils', () => {
                 formattedCategory: 'Travel',
                 transactions: [],
                 transactionsQueryJSON: undefined,
+                keyForList: 'group_Travel',
             };
 
             expect(SearchUIUtils.isTransactionCategoryGroupListItemType(categoryItem)).toBe(true);
@@ -3056,6 +3064,7 @@ describe('SearchUIUtils', () => {
                     sortKey: 202601,
                     transactions: [],
                     transactionsQueryJSON: undefined,
+                    keyForList: 'group_2026_1',
                 },
                 {
                     year: 2025,
@@ -3068,6 +3077,7 @@ describe('SearchUIUtils', () => {
                     sortKey: 202512,
                     transactions: [],
                     transactionsQueryJSON: undefined,
+                    keyForList: 'group_2025_12',
                 },
             ];
 
@@ -3155,6 +3165,7 @@ describe('SearchUIUtils', () => {
                 sortKey: 202601,
                 transactions: [],
                 transactionsQueryJSON: undefined,
+                keyForList: 'group_2026_1',
             };
 
             expect(SearchUIUtils.isTransactionMonthGroupListItemType(monthItem)).toBe(true);
@@ -3170,6 +3181,7 @@ describe('SearchUIUtils', () => {
                 formattedWeek: 'Jan 25 - Jan 31, 2026',
                 transactions: [],
                 transactionsQueryJSON: undefined,
+                keyForList: '2026-01-25-01-25',
             };
 
             expect(SearchUIUtils.isTransactionWeekGroupListItemType(weekItem)).toBe(true);
@@ -3187,6 +3199,7 @@ describe('SearchUIUtils', () => {
                     sortKey: 2026,
                     transactions: [],
                     transactionsQueryJSON: undefined,
+                    keyForList: 'group_2026',
                 },
                 {
                     year: 2025,
@@ -3198,6 +3211,7 @@ describe('SearchUIUtils', () => {
                     sortKey: 2025,
                     transactions: [],
                     transactionsQueryJSON: undefined,
+                    keyForList: 'group_2025',
                 },
             ];
 
@@ -3282,6 +3296,7 @@ describe('SearchUIUtils', () => {
                 sortKey: 2026,
                 transactions: [],
                 transactionsQueryJSON: undefined,
+                keyForList: '2026',
             };
 
             expect(SearchUIUtils.isTransactionYearGroupListItemType(yearItem)).toBe(true);
@@ -3506,6 +3521,14 @@ describe('SearchUIUtils', () => {
                 // The constraint end should be used (earlier date)
                 expect(result.end).toBe('2026-01-15');
             });
+
+            it('should resolve LAST_12_MONTHS preset to span the current month and 11 preceding months', () => {
+                const range = SearchUIUtils.getDateRangeForPreset(CONST.SEARCH.DATE_PRESETS.LAST_12_MONTHS);
+
+                // Clock is frozen at 2026-02-15, so last 12 months = March 2025 through February 2026
+                expect(range.start).toBe('2025-03-01');
+                expect(range.end).toBe('2026-02-28');
+            });
         });
 
         it('should correctly intersect multiple date filters (GREATER_THAN and LOWER_THAN) when expanding quarter groups', () => {
@@ -3607,6 +3630,7 @@ describe('SearchUIUtils', () => {
                     sortKey: 20261,
                     transactions: [],
                     transactionsQueryJSON: undefined,
+                    keyForList: 'group_2026_1',
                 },
                 {
                     year: 2025,
@@ -3619,6 +3643,7 @@ describe('SearchUIUtils', () => {
                     sortKey: 20254,
                     transactions: [],
                     transactionsQueryJSON: undefined,
+                    keyForList: 'group_2025_4',
                 },
             ];
 
@@ -3706,6 +3731,7 @@ describe('SearchUIUtils', () => {
                 sortKey: 20261,
                 transactions: [],
                 transactionsQueryJSON: undefined,
+                keyForList: '202601',
             };
 
             expect(SearchUIUtils.isTransactionQuarterGroupListItemType(quarterItem)).toBe(true);
@@ -3721,6 +3747,7 @@ describe('SearchUIUtils', () => {
                     formattedWeek: 'Jan 25 - Jan 31, 2026',
                     transactions: [],
                     transactionsQueryJSON: undefined,
+                    keyForList: 'group_2026-01-25',
                 },
                 {
                     week: '2025-12-21',
@@ -3731,6 +3758,7 @@ describe('SearchUIUtils', () => {
                     formattedWeek: 'Dec 21 - Dec 27, 2025',
                     transactions: [],
                     transactionsQueryJSON: undefined,
+                    keyForList: 'group_2025-12-21',
                 },
             ];
 
@@ -3799,6 +3827,7 @@ describe('SearchUIUtils', () => {
                 total: 100,
                 transactions: [],
                 transactionsQueryJSON: undefined,
+                keyForList: '123',
             };
 
             expect(SearchUIUtils.isTransactionCategoryGroupListItemType(memberItem)).toBe(false);
@@ -4257,6 +4286,7 @@ describe('SearchUIUtils', () => {
                 formattedMerchant: 'Starbucks',
                 transactions: [],
                 transactionsQueryJSON: undefined,
+                keyForList: 'merchantName1',
             };
 
             expect(SearchUIUtils.isTransactionMerchantGroupListItemType(merchantItem)).toBe(true);
@@ -4272,6 +4302,7 @@ describe('SearchUIUtils', () => {
                 formattedCategory: 'Travel',
                 transactions: [],
                 transactionsQueryJSON: undefined,
+                keyForList: 'categoryName1',
             };
 
             expect(SearchUIUtils.isTransactionMerchantGroupListItemType(categoryItem)).toBe(false);
@@ -4525,6 +4556,7 @@ describe('SearchUIUtils', () => {
                 formattedTag: 'Project A',
                 transactions: [],
                 transactionsQueryJSON: undefined,
+                keyForList: 'tagName1',
             };
 
             expect(SearchUIUtils.isTransactionTagGroupListItemType(tagItem)).toBe(true);
@@ -4540,6 +4572,7 @@ describe('SearchUIUtils', () => {
                 formattedCategory: 'Travel',
                 transactions: [],
                 transactionsQueryJSON: undefined,
+                keyForList: 'categoryName1',
             };
 
             expect(SearchUIUtils.isTransactionTagGroupListItemType(categoryItem)).toBe(false);
@@ -5410,6 +5443,7 @@ describe('SearchUIUtils', () => {
                     formattedMerchant: 'No merchant', // Translated by getMerchantSections
                     transactions: [],
                     transactionsQueryJSON: undefined,
+                    keyForList: 'noMerchant',
                 },
                 {
                     merchant: 'Apple Store',
@@ -5420,6 +5454,7 @@ describe('SearchUIUtils', () => {
                     formattedMerchant: 'Apple Store',
                     transactions: [],
                     transactionsQueryJSON: undefined,
+                    keyForList: 'appleStore',
                 },
                 {
                     merchant: 'Zebra Coffee',
@@ -5430,6 +5465,7 @@ describe('SearchUIUtils', () => {
                     formattedMerchant: 'Zebra Coffee',
                     transactions: [],
                     transactionsQueryJSON: undefined,
+                    keyForList: 'zebraCoffee',
                 },
             ];
 
@@ -5634,6 +5670,7 @@ describe('SearchUIUtils', () => {
                 defaultExpensifyCard: undefined,
                 shouldRedirectToExpensifyClassic: false,
                 draftTransactionIDs: [],
+                isTrackIntentUser: false,
             })
                 .map((section) => section.menuItems)
                 .flat();
@@ -5725,6 +5762,7 @@ describe('SearchUIUtils', () => {
                 defaultExpensifyCard: undefined,
                 shouldRedirectToExpensifyClassic: false,
                 draftTransactionIDs: [],
+                isTrackIntentUser: false,
             });
 
             const todoSection = sections.find((section) => section.translationPath === 'common.todo');
@@ -5788,6 +5826,7 @@ describe('SearchUIUtils', () => {
                 defaultExpensifyCard: undefined,
                 shouldRedirectToExpensifyClassic: false,
                 draftTransactionIDs: [],
+                isTrackIntentUser: false,
             });
 
             const monthlyAccrualSection = sections.find((section) => section.translationPath === 'search.monthlyAccrual');
@@ -5837,6 +5876,7 @@ describe('SearchUIUtils', () => {
                 defaultExpensifyCard: undefined,
                 shouldRedirectToExpensifyClassic: false,
                 draftTransactionIDs: [],
+                isTrackIntentUser: false,
             });
 
             const savedSection = sections.find((section) => section.translationPath === 'search.savedSearchesMenuItemTitle');
@@ -5859,6 +5899,7 @@ describe('SearchUIUtils', () => {
                 defaultExpensifyCard: undefined,
                 shouldRedirectToExpensifyClassic: false,
                 draftTransactionIDs: [],
+                isTrackIntentUser: false,
             });
 
             const savedSection = sections.find((section) => section.translationPath === 'search.savedSearchesMenuItemTitle');
@@ -5888,6 +5929,7 @@ describe('SearchUIUtils', () => {
                 defaultExpensifyCard: undefined,
                 shouldRedirectToExpensifyClassic: false,
                 draftTransactionIDs: [],
+                isTrackIntentUser: false,
             });
 
             const savedSection = sections.find((section) => section.translationPath === 'search.savedSearchesMenuItemTitle');
@@ -5917,6 +5959,7 @@ describe('SearchUIUtils', () => {
                 defaultExpensifyCard: undefined,
                 shouldRedirectToExpensifyClassic: false,
                 draftTransactionIDs: [],
+                isTrackIntentUser: false,
             });
 
             const savedSection = sections.find((section) => section.translationPath === 'search.savedSearchesMenuItemTitle');
@@ -5950,6 +5993,7 @@ describe('SearchUIUtils', () => {
                 defaultExpensifyCard: undefined,
                 shouldRedirectToExpensifyClassic: false,
                 draftTransactionIDs: [],
+                isTrackIntentUser: false,
             });
 
             const todoSection = sections.find((section) => section.translationPath === 'common.todo');
@@ -5983,6 +6027,7 @@ describe('SearchUIUtils', () => {
                 defaultExpensifyCard: undefined,
                 shouldRedirectToExpensifyClassic: false,
                 draftTransactionIDs: [],
+                isTrackIntentUser: false,
             });
 
             const monthlyAccrualSection = sections.find((section) => section.translationPath === 'search.monthlyAccrual');
@@ -6028,6 +6073,7 @@ describe('SearchUIUtils', () => {
                 defaultExpensifyCard: undefined,
                 shouldRedirectToExpensifyClassic: false,
                 draftTransactionIDs: [],
+                isTrackIntentUser: false,
             });
 
             const reconciliationSection = sections.find((section) => section.translationPath === 'search.reconciliation');
@@ -6067,6 +6113,7 @@ describe('SearchUIUtils', () => {
                 defaultExpensifyCard: undefined,
                 shouldRedirectToExpensifyClassic: false,
                 draftTransactionIDs: [],
+                isTrackIntentUser: false,
             });
             const reconciliationSection = sections.find((section) => section.translationPath === 'search.reconciliation');
             expect(reconciliationSection).toBeDefined();
@@ -6091,6 +6138,7 @@ describe('SearchUIUtils', () => {
                 defaultExpensifyCard: undefined,
                 shouldRedirectToExpensifyClassic: false,
                 draftTransactionIDs: [],
+                isTrackIntentUser: false,
             })
                 .map((section) => section.menuItems)
                 .flat();
@@ -6166,6 +6214,7 @@ describe('SearchUIUtils', () => {
                 defaultExpensifyCard: undefined,
                 shouldRedirectToExpensifyClassic: false,
                 draftTransactionIDs: [],
+                isTrackIntentUser: false,
             });
             const todoSection = sections.find((section) => section.translationPath === 'common.todo');
             expect(todoSection).toBeDefined();
@@ -6680,7 +6729,7 @@ describe('SearchUIUtils', () => {
             // Check that date filter with year-to-date preset exists in flatFilters
             const dateFilter = searchQueryJSON?.flatFilters?.find((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE);
             expect(dateFilter).toBeDefined();
-            expect(dateFilter?.filters?.some((f) => f.value === CONST.SEARCH.DATE_PRESETS.YEAR_TO_DATE)).toBe(true);
+            expect(dateFilter?.filters?.some((f) => f.value === CONST.SEARCH.DATE_PRESETS.LAST_12_MONTHS)).toBe(true);
 
             expect(searchQueryJSON?.view).toBe(CONST.SEARCH.VIEW.LINE);
             expect(searchQueryJSON?.sortBy).toBe(CONST.SEARCH.TABLE_COLUMNS.GROUP_MONTH);
@@ -6702,7 +6751,7 @@ describe('SearchUIUtils', () => {
 
             expect(searchQuery).toContain(`type:${CONST.SEARCH.DATA_TYPES.EXPENSE}`);
             expect(searchQuery).toContain(`groupBy:${CONST.SEARCH.GROUP_BY.MONTH}`);
-            expect(searchQuery).toContain(`date:${CONST.SEARCH.DATE_PRESETS.YEAR_TO_DATE}`);
+            expect(searchQuery).toContain(`date:${CONST.SEARCH.DATE_PRESETS.LAST_12_MONTHS}`);
             expect(searchQuery).toContain(`view:${CONST.SEARCH.VIEW.LINE}`);
             expect(searchQuery).toContain(`sortBy:${CONST.SEARCH.TABLE_COLUMNS.GROUP_MONTH}`);
             expect(searchQuery).toContain(`sortOrder:${CONST.SEARCH.SORT_ORDER.ASC}`);
@@ -6791,18 +6840,18 @@ describe('SearchUIUtils', () => {
     });
 
     describe('Test getSuggestedSearches sort defaults', () => {
-        test('Should default Top Categories to sortBy groupCategory and sortOrder asc', () => {
+        test('Should default Top Categories to sortBy groupTotal and sortOrder desc', () => {
             const suggestedSearches = SearchUIUtils.getSuggestedSearches(adminAccountID);
             const topCategories = suggestedSearches[CONST.SEARCH.SEARCH_KEYS.TOP_CATEGORIES];
-            expect(topCategories.searchQueryJSON?.sortBy).toBe(CONST.SEARCH.TABLE_COLUMNS.GROUP_CATEGORY);
-            expect(topCategories.searchQueryJSON?.sortOrder).toBe(CONST.SEARCH.SORT_ORDER.ASC);
+            expect(topCategories.searchQueryJSON?.sortBy).toBe(CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL);
+            expect(topCategories.searchQueryJSON?.sortOrder).toBe(CONST.SEARCH.SORT_ORDER.DESC);
         });
 
-        test('Should default Top Merchants to sortBy groupMerchant and sortOrder asc', () => {
+        test('Should default Top Merchants to sortBy groupTotal and sortOrder desc', () => {
             const suggestedSearches = SearchUIUtils.getSuggestedSearches(adminAccountID);
             const topMerchants = suggestedSearches[CONST.SEARCH.SEARCH_KEYS.TOP_MERCHANTS];
-            expect(topMerchants.searchQueryJSON?.sortBy).toBe(CONST.SEARCH.TABLE_COLUMNS.GROUP_MERCHANT);
-            expect(topMerchants.searchQueryJSON?.sortOrder).toBe(CONST.SEARCH.SORT_ORDER.ASC);
+            expect(topMerchants.searchQueryJSON?.sortBy).toBe(CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL);
+            expect(topMerchants.searchQueryJSON?.sortOrder).toBe(CONST.SEARCH.SORT_ORDER.DESC);
         });
     });
 
@@ -8295,5 +8344,121 @@ describe('SearchUIUtils', () => {
                 expect(result.itemWithSelection).not.toBe(item);
             });
         });
+    });
+
+    describe('isPolicyEligibleForSpendOverTime', () => {
+        const userEmail = 'user@example.com';
+        const approverUserEmail = 'approver@example.com';
+
+        const createPolicy = (overrides: Partial<OnyxTypes.Policy> = {}) => ({
+            id: 'testPolicyID',
+            name: 'Test Policy',
+            type: CONST.POLICY.TYPE.TEAM,
+            role: CONST.POLICY.ROLE.USER,
+            owner: 'owner@example.com',
+            outputCurrency: 'USD',
+            isPolicyExpenseChatEnabled: true,
+            employeeList: {},
+            ...overrides,
+        });
+
+        test('returns true for admin on a paid group policy', () => {
+            expect(SearchUIUtils.isPolicyEligibleForSpendOverTime(createPolicy({role: CONST.POLICY.ROLE.ADMIN}), userEmail)).toBe(true);
+        });
+
+        test('returns true for auditor on a paid group policy', () => {
+            expect(SearchUIUtils.isPolicyEligibleForSpendOverTime(createPolicy({role: CONST.POLICY.ROLE.AUDITOR}), userEmail)).toBe(true);
+        });
+
+        test('returns false for a personal policy even with admin role', () => {
+            expect(SearchUIUtils.isPolicyEligibleForSpendOverTime(createPolicy({type: CONST.POLICY.TYPE.PERSONAL, role: CONST.POLICY.ROLE.ADMIN}), userEmail)).toBe(false);
+        });
+
+        test.each([{field: 'submitsTo'}, {field: 'forwardsTo'}, {field: 'overLimitForwardsTo'}])('returns true for a member who is a policy approver via $field', ({field}) => {
+            const approverPolicy = createPolicy({
+                employeeList: {
+                    [userEmail]: {email: userEmail, role: CONST.POLICY.ROLE.USER, [field]: approverUserEmail},
+                },
+            });
+            expect(SearchUIUtils.isPolicyEligibleForSpendOverTime(approverPolicy, approverUserEmail)).toBe(true);
+        });
+
+        test('returns false for a member who is not an approver', () => {
+            const regularPolicy = createPolicy({
+                employeeList: {
+                    [userEmail]: {email: userEmail, role: CONST.POLICY.ROLE.USER, submitsTo: 'someone.else@example.com'},
+                },
+            });
+            expect(SearchUIUtils.isPolicyEligibleForSpendOverTime(regularPolicy, userEmail)).toBe(false);
+        });
+    });
+});
+
+describe('getCardDescriptionForSearchTable', () => {
+    const baseCompanyCard: OnyxTypes.Card = {
+        accountID: 18439984,
+        bank: CONST.COMPANY_CARD.FEED_BANK_NAME.VISA,
+        cardID: 21310091,
+        cardName: '480801XXXXXX2554',
+        domainName: 'expensify-policy41314f4dc5ce25af.exfy',
+        fraud: 'none',
+        fundID: '1',
+        lastFourPAN: '2554',
+        lastUpdated: '',
+        lastScrape: '2024-11-27 11:00:53',
+        scrapeMinDate: '2024-10-17',
+        state: 3,
+    };
+
+    it('returns an empty string when card is undefined', () => {
+        expect(getCardDescriptionForSearchTable(undefined)).toBe('');
+    });
+
+    it('returns CSV/upload card title from nameValuePairs for UPLOAD bank', () => {
+        const card: OnyxTypes.Card = {
+            ...baseCompanyCard,
+            bank: CONST.COMPANY_CARD.FEED_BANK_NAME.UPLOAD,
+            nameValuePairs: {
+                cardTitle: 'Uploaded spend card',
+            } as OnyxTypes.Card['nameValuePairs'],
+        };
+        expect(getCardDescriptionForSearchTable(card)).toBe('Uploaded spend card');
+    });
+
+    it('returns CSV card title when bank is CSV feed', () => {
+        const card: OnyxTypes.Card = {
+            ...baseCompanyCard,
+            bank: CONST.COMPANY_CARD.FEED_BANK_NAME.CSV,
+            cardName: 'CSV_CARD_ID_123',
+            nameValuePairs: {
+                cardTitle: 'Marketing Team Card',
+            } as OnyxTypes.Card['nameValuePairs'],
+        };
+        expect(getCardDescriptionForSearchTable(card)).toBe('Marketing Team Card');
+    });
+
+    it('falls back to cardName for CSV/upload when cardTitle is missing', () => {
+        const card: OnyxTypes.Card = {
+            ...baseCompanyCard,
+            bank: CONST.COMPANY_CARD.FEED_BANK_NAME.CSV,
+            cardName: 'Fallback CSV label',
+        };
+        expect(getCardDescriptionForSearchTable(card)).toBe('Fallback CSV label');
+    });
+
+    it('returns default cardholder label and last four for non-CSV cards when displayName is provided', () => {
+        expect(getCardDescriptionForSearchTable(baseCompanyCard, 'Jane')).toBe(`Jane's card ${CONST.DOT_SEPARATOR} 2554`);
+    });
+
+    it('omits the dot separator when lastFourPAN is empty', () => {
+        const card: OnyxTypes.Card = {
+            ...baseCompanyCard,
+            lastFourPAN: '',
+        };
+        expect(getCardDescriptionForSearchTable(card, 'Jane')).toBe(`Jane's card`);
+    });
+
+    it('uses only last four with leading separator when displayName is missing (search table card group shape)', () => {
+        expect(getCardDescriptionForSearchTable(baseCompanyCard)).toBe(` ${CONST.DOT_SEPARATOR} 2554`);
     });
 });

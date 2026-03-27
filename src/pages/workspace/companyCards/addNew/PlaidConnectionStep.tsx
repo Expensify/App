@@ -27,7 +27,14 @@ import type {CompanyCardFeedWithDomainID} from '@src/types/onyx';
 import type {CardFeedWithNumber} from '@src/types/onyx/CardFeeds';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-function PlaidConnectionStep({feed, policyID, onExit}: {feed?: CompanyCardFeedWithDomainID; policyID?: string; onExit?: () => void}) {
+type PlaidConnectionStepProps = {
+    feed?: CompanyCardFeedWithDomainID;
+    policyID?: string;
+    onExit?: () => void;
+    title?: string;
+};
+
+function PlaidConnectionStep({feed, policyID, onExit, title}: PlaidConnectionStepProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD);
@@ -218,7 +225,7 @@ function PlaidConnectionStep({feed, policyID, onExit}: {feed?: CompanyCardFeedWi
             shouldEnableMaxHeight
         >
             <HeaderWithBackButton
-                title={translate('workspace.companyCards.addCards')}
+                title={title ?? translate('workspace.companyCards.addCards')}
                 onBackButtonPress={handleBackButtonPress}
             />
             {isPlaidDisabled ? (

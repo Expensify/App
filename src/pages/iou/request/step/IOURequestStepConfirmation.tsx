@@ -36,6 +36,7 @@ import useRestartOnOdometerImagesFailure from '@hooks/useRestartOnOdometerImages
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {completeTestDriveTask} from '@libs/actions/Task';
+import {isMobileSafari} from '@libs/Browser';
 import {getCurrencySymbol} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
@@ -56,7 +57,7 @@ import Log from '@libs/Log';
 import navigateAfterInteraction from '@libs/Navigation/navigateAfterInteraction';
 import Navigation from '@libs/Navigation/Navigation';
 import {rand64, roundToTwoDecimalPlaces} from '@libs/NumberUtils';
-import {getOdometerImageUri} from '@libs/OdometerImageUtils';
+import {getOdometerImageName, getOdometerImageType, getOdometerImageUri} from '@libs/OdometerImageUtils';
 import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
 import {isPaidGroupPolicy} from '@libs/PolicyUtils';
 import {
@@ -170,6 +171,7 @@ function IOURequestStepConfirmation({
 
     const [transactions] = useOptimisticDraftTransactions(initialTransaction);
     const hasMultipleTransactions = transactions.length > 1;
+
     // Depend on transactions.length to avoid updating transactionIDs when only the transaction details change
     // eslint-disable-next-line react-hooks/exhaustive-deps
     const transactionIDs = useMemo(() => transactions?.map((transaction) => transaction.transactionID), [transactions.length]);
@@ -198,6 +200,7 @@ function IOURequestStepConfirmation({
     const [reportDrafts] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT);
     const [gpsDraftDetails] = useOnyx(ONYXKEYS.GPS_DRAFT_DETAILS);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
 
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['ReplaceReceipt', 'SmartScan']);
 
@@ -356,9 +359,18 @@ function IOURequestStepConfirmation({
                 const privateIsArchived = privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${participant.reportID}`];
                 return participant.accountID
                     ? getParticipantsOption(participant, personalDetails)
-                    : getReportOption(participant, privateIsArchived, policy, currentUserPersonalDetails.accountID, personalDetails, reportAttributesDerived, reportDrafts);
+                    : getReportOption(
+                          participant,
+                          privateIsArchived,
+                          policy,
+                          currentUserPersonalDetails.accountID,
+                          personalDetails,
+                          conciergeReportID,
+                          reportAttributesDerived,
+                          reportDrafts,
+                      );
             }) ?? [],
-        [transaction?.participants, iouType, personalDetails, reportAttributesDerived, reportDrafts, privateIsArchivedMap, policy, currentUserPersonalDetails.accountID],
+        [transaction?.participants, iouType, personalDetails, reportAttributesDerived, reportDrafts, privateIsArchivedMap, policy, currentUserPersonalDetails.accountID, conciergeReportID],
     );
     const participantsPolicyTags = useParticipantsPolicyTags(participants ?? []);
     const isPolicyExpenseChat = useMemo(() => participants?.some((participant) => participant.isPolicyExpenseChat), [participants]);
@@ -367,7 +379,7 @@ function IOURequestStepConfirmation({
 
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
 
-    useFetchRoute(transaction, transaction?.comment?.waypoints, action, shouldUseTransactionDraft(action) ? CONST.TRANSACTION.STATE.DRAFT : CONST.TRANSACTION.STATE.CURRENT);
+    useFetchRoute(transaction, transaction?.comment?.waypoints, action, shouldUseTransactionDraft(action, iouType) ? CONST.TRANSACTION.STATE.DRAFT : CONST.TRANSACTION.STATE.CURRENT);
 
     useEffect(() => {
         endSpan(CONST.TELEMETRY.SPAN_OPEN_CREATE_EXPENSE);
@@ -426,13 +438,13 @@ function IOURequestStepConfirmation({
 
     useRestartOnOdometerImagesFailure(isOdometerDistanceRequest ? transaction : undefined, reportID, iouType, action);
 
-    const odometerStartImage = transaction?.comment?.odometerStartImage;
-    const odometerEndImage = transaction?.comment?.odometerEndImage;
-
     useEffect(() => {
         if (!isOdometerDistanceRequest || !isFocused) {
             return;
         }
+
+        const odometerStartImage = transaction?.comment?.odometerStartImage;
+        const odometerEndImage = transaction?.comment?.odometerEndImage;
 
         // Skip stitching when source images haven't changed (compare by URI not reference
         // because Onyx may create new object instances when restoring a backup transaction)
@@ -453,9 +465,13 @@ function IOURequestStepConfirmation({
                 return;
             }
 
-            const getImageName = (img: typeof singleImage): string => (typeof img === 'string' ? (img.split('/').pop() ?? '') : (img.name ?? ''));
-
-            setMoneyRequestReceipt(currentTransactionID, getOdometerImageUri(singleImage) ?? '', getImageName(singleImage), shouldUseTransactionDraft(action));
+            setMoneyRequestReceipt(
+                currentTransactionID,
+                getOdometerImageUri(singleImage),
+                getOdometerImageName(singleImage),
+                shouldUseTransactionDraft(action, iouType),
+                getOdometerImageType(singleImage),
+            );
             lastStitchedImages.current = {startImage: odometerStartImage, endImage: odometerEndImage};
             return;
         }
@@ -470,18 +486,13 @@ function IOURequestStepConfirmation({
                     if (ignore || !stitchedImage) {
                         return;
                     }
-                    const uri = stitchedImage?.uri ?? startUri ?? endUri ?? '';
-                    const name =
-                        stitchedImage?.name ??
-                        (typeof odometerStartImage !== 'string' ? odometerStartImage?.name : odometerStartImage?.split('/').pop()) ??
-                        (typeof odometerEndImage !== 'string' ? odometerEndImage?.name : odometerEndImage?.split('/').pop()) ??
-                        '';
-                    const type =
-                        stitchedImage?.type ??
-                        (typeof odometerStartImage !== 'string' ? odometerStartImage?.type : getMimeTypeFromUri(odometerStartImage)) ??
-                        (typeof odometerEndImage !== 'string' ? odometerEndImage?.type : getMimeTypeFromUri(odometerEndImage)) ??
-                        'image/jpeg';
-                    setMoneyRequestReceipt(currentTransactionID, uri, name, shouldUseTransactionDraft(action), type);
+                    setMoneyRequestReceipt(
+                        currentTransactionID,
+                        getOdometerImageUri(stitchedImage),
+                        getOdometerImageName(stitchedImage),
+                        shouldUseTransactionDraft(action, iouType),
+                        getOdometerImageType(stitchedImage),
+                    );
                     lastStitchedImages.current = {startImage: odometerStartImage, endImage: odometerEndImage};
                 })
                 .catch((error: unknown) => {
@@ -500,7 +511,6 @@ function IOURequestStepConfirmation({
         };
 
         // Pre-flight: verify blob URLs haven't expired before attempting to stitch (edge case guard)
-        const getOdometerFilename = (img: typeof odometerStartImage): string => (typeof img === 'object' ? img?.name : undefined) ?? 'odometer-image.jpg';
         const localImages = [
             {uri: startUri, image: odometerStartImage},
             {uri: endUri, image: odometerEndImage},
@@ -510,7 +520,7 @@ function IOURequestStepConfirmation({
             Promise.all(
                 localImages.map(({uri, image}) =>
                     checkIfLocalFileIsAccessible(
-                        getOdometerFilename(image),
+                        getOdometerImageName(image),
                         uri,
                         typeof image === 'object' ? image?.type : undefined,
                         () => {},
@@ -539,7 +549,7 @@ function IOURequestStepConfirmation({
         return () => {
             ignore = true;
         };
-    }, [isOdometerDistanceRequest, isFocused, currentTransactionID, odometerStartImage, odometerEndImage, action, translate, draftTransactionIDs, requestType, iouType, reportID]);
+    }, [isOdometerDistanceRequest, isFocused, currentTransactionID, transaction?.comment?.odometerStartImage, transaction?.comment?.odometerEndImage, action, translate, iouType, draftTransactionIDs, requestType, reportID]);
 
     const defaultBillable = !!policy?.defaultBillable;
     useEffect(() => {
@@ -653,7 +663,7 @@ function IOURequestStepConfirmation({
         }
 
         // This has selected the participants from the beginning and the participant field shouldn't be editable.
-        navigateToStartMoneyRequestStep(requestType, iouType, initialTransactionID, reportID, action);
+        navigateToStartMoneyRequestStep(requestType, iouType, initialTransactionID, reportID, action, backToReport);
     }, [
         action,
         isPerDiemRequest,
@@ -671,6 +681,7 @@ function IOURequestStepConfirmation({
         isMovingTransactionFromTrackExpense,
         participantsAutoAssignedFromRoute,
         backTo,
+        backToReport,
     ]);
 
     // When the component mounts, if there is a receipt, see if the image can be read from the disk. If not, redirect the user to the starting step of the flow.
@@ -756,6 +767,9 @@ function IOURequestStepConfirmation({
                 const isLinkedTrackedExpenseReportArchived =
                     !!item.linkedTrackedExpenseReportID && !!privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${item.linkedTrackedExpenseReportID}`];
 
+                const itemAmount = isTestReceipt ? CONST.TEST_RECEIPT.AMOUNT : item.amount;
+                const itemCurrency = isTestReceipt ? CONST.TEST_RECEIPT.CURRENCY : item.currency;
+
                 if (isTestDriveReceipt) {
                     completeTestDriveTask(
                         viewTourTaskReport,
@@ -812,10 +826,10 @@ function IOURequestStepConfirmation({
                     gpsPoint,
                     action,
                     transactionParams: {
-                        amount: isTestReceipt ? CONST.TEST_RECEIPT.AMOUNT : item.amount,
+                        amount: itemAmount,
                         distance: isManualDistanceRequest && typeof item.comment?.customUnit?.quantity === 'number' ? roundToTwoDecimalPlaces(item.comment.customUnit.quantity) : undefined,
                         attendees: item.comment?.attendees,
-                        currency: isTestReceipt ? CONST.TEST_RECEIPT.CURRENCY : item.currency,
+                        currency: itemCurrency,
                         created: item.created,
                         merchant: merchantToUse,
                         comment: item?.comment?.comment?.trim() ?? '',
@@ -860,7 +874,6 @@ function IOURequestStepConfirmation({
             }
         },
         [
-            transactionIDs,
             transactions,
             receiptFiles,
             privateIsArchivedMap,
@@ -1674,7 +1687,8 @@ function IOURequestStepConfirmation({
     const shouldShowSmartScanFields = !!transaction?.receipt?.isTestDriveReceipt || isMovingTransactionFromTrackExpense || requestType !== CONST.IOU.REQUEST_TYPE.SCAN;
     return (
         <ScreenWrapper
-            shouldEnableMaxHeight={canUseTouchScreen()}
+            shouldEnableMaxHeight={canUseTouchScreen() && !isMobileSafari()}
+            shouldAvoidScrollOnVirtualViewport={!isMobileSafari()}
             testID="IOURequestStepConfirmation"
         >
             <DragAndDropProvider isDisabled={!showReceiptEmptyState || isOdometerDistanceRequest}>

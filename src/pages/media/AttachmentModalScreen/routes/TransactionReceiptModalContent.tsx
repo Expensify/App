@@ -154,8 +154,8 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
     const [sourceUri, setSourceUri] = useState<ReceiptSource>('');
 
     const parentReportAction = getReportAction(report?.parentReportID, report?.parentReportActionID);
-    const canEditReceipt = canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.RECEIPT);
-    const canDeleteReceipt = canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.RECEIPT, true);
+    const canEditReceipt = canEditFieldOfMoneyRequest({reportAction: parentReportAction, fieldToEdit: CONST.EDIT_REQUEST_FIELD.RECEIPT, transaction});
+    const canDeleteReceipt = canEditFieldOfMoneyRequest({reportAction: parentReportAction, fieldToEdit: CONST.EDIT_REQUEST_FIELD.RECEIPT, isDeleteAction: true, transaction});
 
     const receiptFilename = transaction?.receipt?.filename;
     const isStitchedOdometerReceipt = isOdometerDistanceRequest(transaction) && !imageType;
@@ -210,7 +210,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
     const receiptPath = transaction?.receipt?.source;
 
     useEffect(() => {
-        if (!isDraftTransaction || !iouType || !transaction) {
+        if (!isDraftTransaction || !iouType || !transaction || isOdometerImage) {
             return;
         }
 
@@ -275,8 +275,13 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
             return;
         }
         removeMoneyRequestOdometerImage(transaction.transactionID, imageType, isDraftTransaction, !isEditingConfirmation);
-        navigation.goBack();
-    }, [transaction?.transactionID, imageType, isDraftTransaction, isEditingConfirmation, navigation]);
+        const odometerGoBackRoute =
+            isOdometerImage &&
+            (isEditingConfirmation === true
+                ? ROUTES.MONEY_REQUEST_STEP_DISTANCE_ODOMETER.getRoute(action ?? CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID)
+                : ROUTES.DISTANCE_REQUEST_CREATE_TAB_ODOMETER.getRoute(action ?? CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID, backToReport));
+        Navigation.goBack(odometerGoBackRoute || undefined);
+    }, [transaction?.transactionID, imageType, isOdometerImage, isDraftTransaction, isEditingConfirmation, action, iouType, transactionID, reportID, backToReport]);
 
     const onDownloadAttachment = useDownloadAttachment({
         isAuthTokenRequired,
@@ -331,7 +336,21 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
             .catch(() => {
                 setIsRotating(false);
             });
-    }, [transaction?.transactionID, isDraftTransaction, isOdometerImage, imageType, sourceUri, isImage, receiptFilename, fileName, fileType, policyCategories, transaction?.receipt, policy]);
+    }, [
+        transaction?.transactionID,
+        isDraftTransaction,
+        isOdometerImage,
+        imageType,
+        sourceUri,
+        isImage,
+        receiptFilename,
+        fileName,
+        fileType,
+        policyCategories,
+        transaction?.receipt,
+        policy,
+        isEditingConfirmation,
+    ]);
 
     const shouldShowRotateAndCropReceiptButton = useMemo(
         () =>
@@ -431,6 +450,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
         policyCategories,
         policy,
         exitCropMode,
+        isEditingConfirmation,
     ]);
 
     const threeDotsMenuItems: ThreeDotsMenuItemFactory = useCallback(

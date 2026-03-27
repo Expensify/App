@@ -31,7 +31,6 @@ import {handleMoneyRequestStepDistanceNavigation} from '@libs/actions/IOU/MoneyR
 import {setDraftSplitTransaction} from '@libs/actions/IOU/Split';
 import {createBackupTransaction, removeBackupTransactionWithImageCleanup, restoreOriginalTransactionFromBackupWithImageCleanup} from '@libs/actions/TransactionEdit';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
-import {getMimeTypeFromUri} from '@libs/fileDownload/FileUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {shouldUseTransactionDraft} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -96,6 +95,8 @@ function IOURequestStepDistanceOdometer({
     const initialStartImageRef = useRef<FileObject | string | undefined>(undefined);
     const initialEndImageRef = useRef<FileObject | string | undefined>(undefined);
     const prevSelectedTabRef = useRef<string | undefined>(undefined);
+    const transactionWasSaved = useRef(false);
+    const backupHandledManually = useRef(false);
 
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`);
     const isArchived = isArchivedReport(reportNameValuePairs);
@@ -117,6 +118,7 @@ function IOURequestStepDistanceOdometer({
     const personalPolicy = usePersonalPolicy();
     const defaultExpensePolicy = useDefaultExpensePolicy();
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
+    const [ownerBillingGraceEndPeriod] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const selfDMReport = useSelfDMReport();
     const {policyForMovingExpenses} = usePolicyForMovingExpenses();
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
@@ -135,7 +137,10 @@ function IOURequestStepDistanceOdometer({
     const currentUserEmailParam = currentUserPersonalDetails.login ?? '';
     const [shouldEnableDiscardConfirmation, setShouldEnableDiscardConfirmation] = useState(!isEditingConfirmation && !isEditing);
 
-    const shouldUseDefaultExpensePolicy = useMemo(() => shouldUseDefaultExpensePolicyUtil(iouType, defaultExpensePolicy, amountOwed), [iouType, defaultExpensePolicy, amountOwed]);
+    const shouldUseDefaultExpensePolicy = useMemo(
+        () => shouldUseDefaultExpensePolicyUtil(iouType, defaultExpensePolicy, amountOwed, ownerBillingGraceEndPeriod),
+        [iouType, defaultExpensePolicy, amountOwed, ownerBillingGraceEndPeriod],
+    );
     const customUnitRateID = getRateID(transaction);
 
     const mileageRate = DistanceRequestUtils.getRate({transaction: currentTransaction, policy: shouldUseDefaultExpensePolicy ? defaultExpensePolicy : policy});
@@ -234,9 +239,21 @@ function IOURequestStepDistanceOdometer({
 
     useEffect(() => {
         if (!isEditingConfirmation) {
-            return;
+            return () => {};
         }
-        createBackupTransaction(currentTransaction, isTransactionDraft, true);
+        createBackupTransaction(transaction, isTransactionDraft, true);
+
+        return () => {
+            if (backupHandledManually.current) {
+                return;
+            }
+            if (transactionWasSaved.current) {
+                removeBackupTransactionWithImageCleanup(transactionID, isTransactionDraft);
+                return;
+            }
+            restoreOriginalTransactionFromBackupWithImageCleanup(transactionID, isTransactionDraft);
+        };
+        // We only want to create the backup once on mount and restore/remove it on unmount
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
@@ -357,7 +374,7 @@ function IOURequestStepDistanceOdometer({
 
     const navigateBack = useCallback(() => {
         if (isEditingConfirmation) {
-            // User didn't saved - we restore original from backup and cleanup blob urls of new images
+            backupHandledManually.current = true;
             restoreOriginalTransactionFromBackupWithImageCleanup(transactionID, isTransactionDraft, () => {
                 Navigation.goBack(confirmationRoute);
             });
@@ -442,10 +459,8 @@ function IOURequestStepDistanceOdometer({
         }
 
         if (isEditingConfirmation) {
-            // User saved - we cleanup blob urls of original images from backup
-            removeBackupTransactionWithImageCleanup(transactionID, isTransactionDraft, () => {
-                Navigation.goBack(confirmationRoute);
-            });
+            transactionWasSaved.current = true;
+            Navigation.goBack(confirmationRoute);
             return;
         }
 
@@ -491,6 +506,7 @@ function IOURequestStepDistanceOdometer({
             draftTransactionIDs,
             isSelfTourViewed: !!isSelfTourViewed,
             amountOwed,
+            ownerBillingGraceEndPeriod,
         });
     };
 
