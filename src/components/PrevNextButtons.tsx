@@ -5,6 +5,7 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import Icon from './Icon';
 import PressableWithFeedback from './Pressable/PressableWithFeedback';
@@ -39,6 +40,7 @@ function PrevNextButtons({isPrevButtonDisabled, isNextButtonDisabled, onNext, on
                 sentryLabel={CONST.SENTRY_LABEL.HEADER.PREVIOUS_BUTTON}
                 style={[styles.h7, styles.mr1, styles.alignItemsCenter, styles.justifyContentCenter]}
                 onPress={onPrevious}
+                sentryLabel={CONST.SENTRY_LABEL.PREV_NEXT_BUTTONS.PREV_BUTTON}
             >
                 <View style={[styles.reportActionContextMenuMiniButton, {backgroundColor: theme.borderLighter}, isPrevButtonDisabled && styles.buttonOpacityDisabled]}>
                     <Icon
@@ -57,13 +59,14 @@ function PrevNextButtons({isPrevButtonDisabled, isNextButtonDisabled, onNext, on
                 sentryLabel={CONST.SENTRY_LABEL.HEADER.NEXT_BUTTON}
                 style={[styles.h7, styles.alignItemsCenter, styles.justifyContentCenter]}
                 onPress={onNext}
+                sentryLabel={CONST.SENTRY_LABEL.PREV_NEXT_BUTTONS.NEXT_BUTTON}
             >
                 <View style={[styles.reportActionContextMenuMiniButton, {backgroundColor: theme.borderLighter}, isNextButtonDisabled && styles.buttonOpacityDisabled]}>
                     <Icon
                         src={icons.ArrowRight}
-                        small
                         fill={theme.icon}
-                        isButtonIcon
+                        width={variables.iconSizeNormal}
+                        height={variables.iconSizeNormal}
                     />
                 </View>
             </PressableWithFeedback>
