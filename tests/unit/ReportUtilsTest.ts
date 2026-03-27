@@ -9409,12 +9409,12 @@ describe('ReportUtils', () => {
         });
 
         it('should return "Deleted" when isDeleted is true regardless of stateNum and statusNum', () => {
-            expect(
-                getReportStatusTranslation({stateNum: CONST.REPORT.STATE_NUM.SUBMITTED, statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED, isDeleted: true, translate: mockTranslate}),
-            ).toBe(mockTranslate('iou.deleted'));
-            expect(
-                getReportStatusTranslation({stateNum: CONST.REPORT.STATE_NUM.APPROVED, statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED, isDeleted: true, translate: mockTranslate}),
-            ).toBe(mockTranslate('iou.deleted'));
+            expect(getReportStatusTranslation({stateNum: CONST.REPORT.STATE_NUM.SUBMITTED, statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED, isDeleted: true, translate: mockTranslate})).toBe(
+                mockTranslate('iou.deleted'),
+            );
+            expect(getReportStatusTranslation({stateNum: CONST.REPORT.STATE_NUM.APPROVED, statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED, isDeleted: true, translate: mockTranslate})).toBe(
+                mockTranslate('iou.deleted'),
+            );
             expect(getReportStatusTranslation({stateNum: undefined, statusNum: undefined, isDeleted: true, translate: mockTranslate})).toBe(mockTranslate('iou.deleted'));
         });
     });
