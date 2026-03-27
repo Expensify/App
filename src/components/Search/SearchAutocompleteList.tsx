@@ -5,7 +5,6 @@ import {OptionsListStateContext, useOptionsList} from '@components/OptionListCon
 import OptionsListSkeletonView from '@components/OptionsListSkeletonView';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import type {ListItem as NewListItem, UserListItemProps} from '@components/SelectionList/ListItem/types';
-import UserListItem from '@components/SelectionList/ListItem/UserListItem';
 import SelectionListWithSections from '@components/SelectionList/SelectionListWithSections';
 import type {Section, SelectionListWithSectionsHandle} from '@components/SelectionList/SelectionListWithSections/types';
 import useAutocompleteSuggestions from '@hooks/useAutocompleteSuggestions';
@@ -36,6 +35,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {CardFeeds, CardList, PersonalDetailsList, Policy, Report} from '@src/types/onyx';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+import NewChatListItem from './NewChatListItem';
 import type {SearchQueryItem, SearchQueryListItemProps} from './SearchList/ListItem/SearchQueryListItem';
 import SearchQueryListItem, {isSearchQueryItem} from './SearchList/ListItem/SearchQueryListItem';
 import {getSubstitutionMapKey} from './SearchRouter/getQueryWithSubstitutions';
@@ -118,14 +118,39 @@ function SearchRouterItem(props: UserListItemProps<AutocompleteListItem> | Searc
         );
     }
 
-    const fsClass = FS.getChatFSClass((props.item as SearchOption<Report> | undefined)?.item);
+    const {
+        item,
+        isFocused,
+        showTooltip,
+        isDisabled,
+        canSelectMultiple,
+        onSelectRow,
+        onDismissError,
+        shouldPreventEnterKeySubmit,
+        rightHandSideComponent,
+        onFocus,
+        shouldSyncFocus,
+        wrapperStyle,
+    } = props;
+    const fsClass = FS.getChatFSClass((item as SearchOption<Report> | undefined)?.item);
 
     return (
-        <UserListItem
+        <NewChatListItem
+            item={item}
+            keyForList={item.keyForList}
+            isFocused={isFocused}
+            showTooltip={showTooltip}
+            isDisabled={isDisabled}
+            canSelectMultiple={canSelectMultiple}
+            onSelectRow={onSelectRow}
+            onDismissError={onDismissError}
+            shouldPreventEnterKeySubmit={shouldPreventEnterKeySubmit}
+            rightHandSideComponent={rightHandSideComponent}
+            onFocus={onFocus}
+            shouldSyncFocus={shouldSyncFocus}
+            wrapperStyle={wrapperStyle}
             pressableStyle={[styles.br2, styles.ph3]}
             forwardedFSClass={fsClass}
-            // eslint-disable-next-line react/jsx-props-no-spreading
-            {...props}
         />
     );
 }
@@ -294,9 +319,11 @@ function SearchAutocompleteList({
 
     const autocompleteQueryWithoutFilters = getQueryWithoutFilters(autocompleteQueryValue);
 
-    const sortedRecentSearches = Object.values(recentSearches ?? {}).sort((a, b) => localeCompare(b.timestamp, a.timestamp));
+    const sortedRecentSearches = Object.entries(recentSearches ?? {}).sort(([, firstRecentSearch], [, secondRecentSearch]) =>
+        localeCompare(secondRecentSearch.timestamp, firstRecentSearch.timestamp),
+    );
 
-    const recentSearchesData = sortedRecentSearches?.slice(0, 5).map(({query, timestamp}) => {
+    const recentSearchesData = sortedRecentSearches?.slice(0, 5).map(([recentSearchHash, {query}]) => {
         const searchQueryJSON = buildSearchQueryJSON(query);
         return {
             text: searchQueryJSON
@@ -317,7 +344,7 @@ function SearchAutocompleteList({
                 : query,
             singleIcon: expensifyIcons.History,
             searchQuery: query,
-            keyForList: timestamp,
+            keyForList: recentSearchHash,
             searchItemType: CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.SEARCH,
         };
     });
@@ -351,6 +378,12 @@ function SearchAutocompleteList({
     useEffect(() => {
         debounceHandleSearch();
     }, [autocompleteQueryWithoutFilters, debounceHandleSearch]);
+
+    const reasonAttributes: SkeletonSpanReasonAttributes = {
+        context: 'SearchAutocompleteList',
+        isRecentSearchesDataLoaded,
+        areOptionsInitialized,
+    };
 
     /* Sections generation */
     const {sections, styledRecentReports, suggestionsCount} = useMemo(() => {
@@ -394,11 +427,31 @@ function SearchAutocompleteList({
             } as AutocompleteListItem;
         });
 
-        pushSection({
-            title: autocompleteQueryValue.trim() === '' ? translate('search.recentChats') : undefined,
-            data: nextStyledRecentReports,
-            sectionIndex: sectionIndex++,
-        });
+        if (areOptionsInitialized) {
+            pushSection({
+                title: autocompleteQueryValue.trim() === '' ? translate('search.recentChats') : undefined,
+                data: nextStyledRecentReports,
+                sectionIndex: sectionIndex++,
+            });
+        } else if (autocompleteQueryValue.trim() === '') {
+            pushSection({
+                title: translate('search.recentChats'),
+                data: [],
+                sectionIndex: sectionIndex++,
+                customHeader: (
+                    <OptionsListSkeletonView
+                        fixedNumItems={3}
+                        shouldStyleAsTable
+                        speed={CONST.TIMING.SKELETON_ANIMATION_SPEED}
+                        reasonAttributes={{
+                            context: 'SearchAutocompleteList',
+                            isRecentSearchesDataLoaded,
+                            areOptionsInitialized,
+                        }}
+                    />
+                ),
+            });
+        }
 
         if (autocompleteSuggestions.length > 0) {
             const autocompleteData: AutocompleteListItem[] = autocompleteSuggestions.map(({filterKey, text, autocompleteID, mapKey}) => {
@@ -417,12 +470,25 @@ function SearchAutocompleteList({
         }
 
         return {sections: nextSections, styledRecentReports: nextStyledRecentReports, suggestionsCount: nextSuggestionsCount};
-    }, [autocompleteQueryValue, autocompleteSuggestions, expensifyIcons, getAdditionalSections, recentReportsOptions, recentSearchesData, searchOptions, searchQueryItem, styles, translate]);
+    }, [
+        autocompleteQueryValue,
+        autocompleteSuggestions,
+        expensifyIcons,
+        getAdditionalSections,
+        recentReportsOptions,
+        recentSearchesData,
+        searchOptions,
+        searchQueryItem,
+        styles,
+        translate,
+        areOptionsInitialized,
+        isRecentSearchesDataLoaded,
+    ]);
 
     const sectionItemText = sections?.at(1)?.data?.[0]?.text ?? '';
     const normalizedReferenceText = sectionItemText.toLowerCase();
     const trimmedAutocompleteQueryValue = autocompleteQueryValue.trim();
-    const isLoading = !isRecentSearchesDataLoaded || !areOptionsInitialized;
+    const isLoading = !isRecentSearchesDataLoaded;
     const suggestionsAnnouncement = suggestionsCount > 0 ? translate('search.suggestionsAvailable', {count: suggestionsCount}, trimmedAutocompleteQueryValue) : '';
     useDebouncedAccessibilityAnnouncement(suggestionsAnnouncement, !!suggestionsAnnouncement, autocompleteQueryValue);
 
@@ -472,12 +538,6 @@ function SearchAutocompleteList({
             onHighlightFirstItem?.();
         }
     }, [autocompleteQueryValue, onHighlightFirstItem, normalizedReferenceText]);
-
-    const reasonAttributes: SkeletonSpanReasonAttributes = {
-        context: 'SearchAutocompleteList',
-        isRecentSearchesDataLoaded,
-        areOptionsInitialized,
-    };
 
     if (isLoading) {
         return (

@@ -1758,7 +1758,7 @@ function getTransactionsSections({
             const to = getToFieldValueForTransaction(transactionItem, report, data.personalDetailsList, reportAction);
             const isIOUReport = report?.type === CONST.REPORT.TYPE.IOU;
             // Check if the card feed has been deleted. If cardFeeds is still loading (undefined), return undefined to avoid showing incorrect state.
-            const isCardFeedDeleted = cardFeeds === undefined ? undefined : !doesCardFeedExist(transactionItem.bank as OnyxTypes.CompanyCardFeed, cardFeeds);
+            const isCardFeedDeleted = cardFeeds === undefined ? undefined : !!transactionItem.bank && !doesCardFeedExist(transactionItem.bank as OnyxTypes.CompanyCardFeed, cardFeeds);
 
             const {formattedFrom, formattedTo, formattedTotal, formattedMerchant, date, submitted, approved, posted} = getTransactionItemCommonFormattedProperties(
                 transactionItem,
@@ -3389,8 +3389,10 @@ function getSortedReportData(
         // When sorting by total, apply the backend logic:
         // IOU reports have positive amounts, expense reports have negative amounts
         if (sortingProperty === 'total' && typeof aValue === 'number' && typeof bValue === 'number') {
-            aValue = a.type === CONST.REPORT.TYPE.IOU ? aValue : -aValue;
-            bValue = b.type === CONST.REPORT.TYPE.IOU ? bValue : -bValue;
+            const aNum: number = aValue;
+            const bNum: number = bValue;
+            aValue = a.type === CONST.REPORT.TYPE.IOU ? aNum : -aNum;
+            bValue = b.type === CONST.REPORT.TYPE.IOU ? bNum : -bNum;
         }
 
         return compareValues(aValue, bValue, sortOrder, sortingProperty, localeCompare);
@@ -4435,18 +4437,31 @@ function getActionOptions(translate: LocaleContextProps['translate']) {
  * @param isExpenseReportView: true when we are inside an expense report view, false if we're in the Reports page.
  * @returns An ordered array of visible column IDs
  */
-function getColumnsToShow(
-    currentAccountID: number | undefined,
-    data: OnyxTypes.SearchResults['data'] | OnyxTypes.Transaction[],
-    visibleColumns: SearchCustomColumnIds[] = [],
+function getColumnsToShow({
+    currentAccountID,
+    data,
+    visibleColumns = [],
     isExpenseReportView = false,
-    type?: SearchDataTypes,
-    groupBy?: SearchGroupBy,
+    type,
+    groupBy,
     isExpenseReportViewFromIOUReport = false,
     shouldShowBillableColumn = false,
     shouldShowReimbursableColumn = false,
+    reportCurrency,
     shouldUseStrictDefaultExpenseColumns = false,
-): SearchColumnType[] {
+}: {
+    currentAccountID: number | undefined;
+    data: OnyxTypes.SearchResults['data'] | OnyxTypes.Transaction[];
+    visibleColumns?: SearchCustomColumnIds[];
+    isExpenseReportView?: boolean;
+    type?: SearchDataTypes;
+    groupBy?: SearchGroupBy;
+    isExpenseReportViewFromIOUReport?: boolean;
+    shouldShowBillableColumn?: boolean;
+    shouldShowReimbursableColumn?: boolean;
+    reportCurrency?: string;
+    shouldUseStrictDefaultExpenseColumns?: boolean;
+}): SearchColumnType[] {
     if (type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT) {
         const defaultReportColumns: SearchColumnType[] = [
             CONST.SEARCH.TABLE_COLUMNS.AVATAR,
@@ -4555,12 +4570,18 @@ function getColumnsToShow(
               [CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION]: false,
               [CONST.SEARCH.TABLE_COLUMNS.CATEGORY]: false,
               [CONST.SEARCH.TABLE_COLUMNS.TAG]: false,
+              [CONST.SEARCH.TABLE_COLUMNS.CARD]: false,
+              [CONST.SEARCH.TABLE_COLUMNS.TAX_RATE]: false,
+              [CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT]: false,
+              [CONST.SEARCH.TABLE_COLUMNS.EXCHANGE_RATE]: false,
+              [CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT]: false,
               [CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE]: shouldShowReimbursableColumn,
               [CONST.SEARCH.TABLE_COLUMNS.BILLABLE]: shouldShowBillableColumn,
               [CONST.SEARCH.TABLE_COLUMNS.COMMENTS]: true,
               [CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT]: true,
           }
         : {
+              [CONST.SEARCH.TABLE_COLUMNS.AVATAR]: true,
               [CONST.SEARCH.TABLE_COLUMNS.RECEIPT]: true,
               [CONST.SEARCH.TABLE_COLUMNS.TYPE]: true,
               [CONST.SEARCH.TABLE_COLUMNS.DATE]: true,
@@ -4589,11 +4610,14 @@ function getColumnsToShow(
               [CONST.SEARCH.TABLE_COLUMNS.EXPORTED_TO]: false,
               [CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT]: true,
               [CONST.SEARCH.TABLE_COLUMNS.ACTION]: false,
+              [CONST.SEARCH.TABLE_COLUMNS.COMMENTS]: false,
           };
 
     // If the user has set custom columns for the search, we need to respect their preference and order
     const allowedColumns: string[] = isExpenseReportView ? Object.values(CONST.SEARCH.REPORT_DETAILS_CUSTOM_COLUMNS) : Object.values(CONST.SEARCH.TYPE_CUSTOM_COLUMNS.EXPENSE);
     const filteredVisibleColumns = visibleColumns.filter((column) => allowedColumns.includes(column));
+
+    let customResult: SearchColumnType[] | undefined;
 
     if (!arraysEqual(Object.values(CONST.SEARCH.TYPE_DEFAULT_COLUMNS.EXPENSE), filteredVisibleColumns) && filteredVisibleColumns.length > 0) {
         const result: SearchColumnType[] = [];
@@ -4614,6 +4638,13 @@ function getColumnsToShow(
                     result.unshift(CONST.SEARCH.TABLE_COLUMNS.TYPE);
                 }
             }
+
+            if (!addedColumns.has(CONST.SEARCH.TABLE_COLUMNS.COMMENTS)) {
+                result.push(CONST.SEARCH.TABLE_COLUMNS.COMMENTS);
+            }
+
+            // Don't return early — fall through to updateColumns to detect empty columns
+            customResult = result;
         } else {
             // Search page: prepend AVATAR, TYPE
             result.push(CONST.SEARCH.TABLE_COLUMNS.AVATAR);
@@ -4627,9 +4658,10 @@ function getColumnsToShow(
                     result.push(col);
                 }
             }
-        }
 
-        return result;
+            // Don't return early — fall through to updateColumns to detect empty columns
+            customResult = result;
+        }
     }
 
     const {moneyRequestReportActionsByTransactionID} = Array.isArray(data) ? {} : createReportActionsLookupMaps(data);
@@ -4643,23 +4675,79 @@ function getColumnsToShow(
             columns[CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION] = true;
         }
 
-        const category = getCategory(transaction);
-        if (category !== '' && category !== CONST.SEARCH.CATEGORY_EMPTY_VALUE) {
+        const hasCategory = (() => {
+            const category = getCategory(transaction);
+            return category !== '' && category !== CONST.SEARCH.CATEGORY_EMPTY_VALUE;
+        })();
+
+        const hasTag = (() => {
+            const tag = getTag(transaction);
+            return tag !== '' && tag !== CONST.SEARCH.TAG_EMPTY_VALUE;
+        })();
+
+        // Category/tag: set for all paths (default search, custom search, report view).
+        // Will be refined later for search page non-IOU check.
+        if (hasCategory) {
             columns[CONST.SEARCH.TABLE_COLUMNS.CATEGORY] = !isExpenseReportViewFromIOUReport;
         }
-
-        const tag = getTag(transaction);
-        if (tag !== '' && tag !== CONST.SEARCH.TAG_EMPTY_VALUE) {
+        if (hasTag) {
             columns[CONST.SEARCH.TABLE_COLUMNS.TAG] = !isExpenseReportViewFromIOUReport;
         }
 
+        // Data-presence checks for columns that are hidden when empty.
+        // Only update when we have custom columns to filter (customResult) or in expense report view,
+        // so that the default search page path doesn't show extra columns.
+        if (customResult || isExpenseReportView) {
+            if (transaction.cardName && transaction.cardName !== CONST.EXPENSE.TYPE.CASH_CARD_NAME) {
+                columns[CONST.SEARCH.TABLE_COLUMNS.CARD] = true;
+            }
+
+            if (transaction.taxCode) {
+                columns[CONST.SEARCH.TABLE_COLUMNS.TAX_RATE] = true;
+            }
+
+            if (transaction.taxAmount) {
+                columns[CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT] = true;
+            }
+
+            const hasExchangeRate = getExchangeRate(transaction, reportCurrency) !== '';
+            if (hasExchangeRate || transaction.originalAmount) {
+                columns[CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT] = true;
+                columns[CONST.SEARCH.TABLE_COLUMNS.EXCHANGE_RATE] = true;
+            }
+
+            if (!Array.isArray(data)) {
+                const report = data[`${ONYXKEYS.COLLECTION.REPORT}${transaction.reportID}`];
+
+                if (report?.submitted) {
+                    columns[CONST.SEARCH.TABLE_COLUMNS.SUBMITTED] = true;
+                }
+
+                if (report?.policyID) {
+                    columns[CONST.SEARCH.TABLE_COLUMNS.POLICY_NAME] = true;
+                }
+
+                const reportAction = moneyRequestReportActionsByTransactionID?.get(transaction.transactionID);
+                const toFieldValue = getToFieldValueForTransaction(transaction, report, data.personalDetailsList, reportAction);
+                if (toFieldValue.accountID) {
+                    columns[CONST.SEARCH.TABLE_COLUMNS.TO] = true;
+                }
+            }
+        }
+
         if (isExpenseReportView) {
+            if (hasCategory) {
+                columns[CONST.SEARCH.TABLE_COLUMNS.CATEGORY] = !isExpenseReportViewFromIOUReport;
+            }
+            if (hasTag) {
+                columns[CONST.SEARCH.TABLE_COLUMNS.TAG] = !isExpenseReportViewFromIOUReport;
+            }
             return;
         }
 
         // The From/To columns display logic depends on the passed report/reportAction i.e. if data is SearchResults and not an array (Transaction[])
         if (!Array.isArray(data)) {
-            const report = data[`${ONYXKEYS.COLLECTION.REPORT}${transaction.reportID}`] as OnyxTypes.Report | undefined;
+            const report = data[`${ONYXKEYS.COLLECTION.REPORT}${transaction.reportID}`];
             const reportAction = moneyRequestReportActionsByTransactionID?.get(transaction.transactionID);
 
             // Handle From&To columns that are only shown in the Reports page
@@ -4669,8 +4757,14 @@ function getColumnsToShow(
                 columns[CONST.SEARCH.TABLE_COLUMNS.FROM] = true;
             }
 
-            columns[CONST.SEARCH.TABLE_COLUMNS.CATEGORY] = columns[CONST.SEARCH.TABLE_COLUMNS.CATEGORY] && !isIOUReportReportUtil(report);
-            columns[CONST.SEARCH.TABLE_COLUMNS.TAG] = columns[CONST.SEARCH.TABLE_COLUMNS.TAG] && !isIOUReportReportUtil(report);
+            // Show category/tag if any non-IOU transaction has them.
+            // Only set to true, never reset — so a previous non-IOU match is preserved.
+            if (hasCategory && !isIOUReportReportUtil(report)) {
+                columns[CONST.SEARCH.TABLE_COLUMNS.CATEGORY] = true;
+            }
+            if (hasTag && !isIOUReportReportUtil(report)) {
+                columns[CONST.SEARCH.TABLE_COLUMNS.TAG] = true;
+            }
 
             // eslint-disable-next-line @typescript-eslint/no-deprecated
             const toFieldValue = getToFieldValueForTransaction(transaction, report, data.personalDetailsList, reportAction);
@@ -4691,6 +4785,29 @@ function getColumnsToShow(
             }
             updateColumns(data[key]);
         }
+    }
+
+    if (customResult) {
+        // Columns that always have content and don't need data-presence checks.
+        // These are false in the default columns map (so they don't appear by default)
+        // but should be kept when explicitly selected by the user in custom columns.
+        const nonDataColumns = new Set<SearchColumnType>([
+            CONST.SEARCH.TABLE_COLUMNS.AVATAR,
+            CONST.SEARCH.TABLE_COLUMNS.RECEIPT,
+            CONST.SEARCH.TABLE_COLUMNS.TYPE,
+            CONST.SEARCH.TABLE_COLUMNS.DATE,
+            CONST.SEARCH.TABLE_COLUMNS.STATUS,
+            CONST.SEARCH.TABLE_COLUMNS.COMMENTS,
+            CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT,
+            CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE,
+            CONST.SEARCH.TABLE_COLUMNS.BILLABLE,
+            CONST.SEARCH.TABLE_COLUMNS.BASE_62_REPORT_ID,
+            CONST.SEARCH.TABLE_COLUMNS.REPORT_ID,
+            CONST.SEARCH.TABLE_COLUMNS.TITLE,
+            CONST.SEARCH.TABLE_COLUMNS.ACTION,
+        ]);
+
+        return customResult.filter((col) => nonDataColumns.has(col) || columns[col]);
     }
 
     return (Object.keys(columns) as SearchColumnType[]).filter((col) => columns[col]);
