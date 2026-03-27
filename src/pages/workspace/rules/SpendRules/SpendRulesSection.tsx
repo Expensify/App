@@ -33,7 +33,7 @@ function SpendRulesSection() {
             titleStyles: [styles.textHeadlineH1],
             titleContainerStyles: [styles.mb3],
             prompt: translate('workspace.rules.spendRules.builtInProtectionModal.description'),
-            promptStyles: [styles.preWrap, styles.mb1],
+            promptStyles: [styles.mb1],
             shouldShowCancelButton: false,
             success: false,
             confirmText: translate('common.buttonConfirm'),
@@ -79,7 +79,13 @@ function SpendRulesSection() {
                     error
                     isCondensed
                 />
-                <Text style={[styles.flex1, styles.textStrong, styles.themeTextColor, styles.preWrap]}>{defaultRuleTitle}</Text>
+                <Text
+                    style={[styles.flex1, styles.flexShrink1, styles.textStrong, styles.themeTextColor]}
+                    numberOfLines={1}
+                    ellipsizeMode="tail"
+                >
+                    {defaultRuleTitle}
+                </Text>
             </View>
         </View>
     );
