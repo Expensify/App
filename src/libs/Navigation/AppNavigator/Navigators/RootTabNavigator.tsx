@@ -127,10 +127,12 @@ const DomainSplitNavigatorScreen = withSuspense(LazyDomainSplitNavigator);
 
 const Tab = createBottomTabNavigator<RootTabNavigatorParamList>();
 
-// Compile-time check: ROOT_TAB_SCREENS must cover every key in RootTabNavigatorParamList.
-// If this line errors, a screen was added to RootTabNavigatorParamList but not to ROOT_TAB_SCREENS.
+// Compile-time checks: ROOT_TAB_SCREENS and RootTabNavigatorParamList must stay in sync.
+// If a screen is added to one but not the other, one of these assignments will error.
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-const _assertAllTabsCovered: Record<(typeof ROOT_TAB_SCREENS)[number], true> = {} as Record<keyof RootTabNavigatorParamList, true>;
+const _a: Record<(typeof ROOT_TAB_SCREENS)[number], true> = {} as Record<keyof RootTabNavigatorParamList, true>;
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const _b: Record<keyof RootTabNavigatorParamList, true> = {} as Record<(typeof ROOT_TAB_SCREENS)[number], true>;
 
 /**
  * Root-level tab screens where the swipe-back gesture should be disabled.

@@ -30,7 +30,6 @@ function SettingsSplitNavigator() {
     const route = useRoute();
     const splitNavigatorScreenOptions = useSplitNavigatorScreenOptions();
 
-
     return (
         <FocusTrapForScreens>
             <View style={{flex: 1}}>

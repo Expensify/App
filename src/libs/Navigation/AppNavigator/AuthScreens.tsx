@@ -38,7 +38,7 @@ import type ReactComponentModule from '@src/types/utils/ReactComponentModule';
 import attachmentModalScreenOptions from './attachmentModalScreenOptions';
 import AuthScreensInitHandler from './AuthScreensInitHandler';
 import createRootStackNavigator from './createRootStackNavigator';
-import {screensWithEnteringAnimation, workspaceOrDomainSplitsWithoutEnteringAnimation} from './createRootStackNavigator/GetStateForActionHandlers';
+import {screensWithEnteringAnimation} from './createRootStackNavigator/GetStateForActionHandlers';
 import defaultScreenOptions from './defaultScreenOptions';
 import DelegatorConnectGuard from './DelegatorConnectGate';
 import KeyboardShortcutsHandler from './KeyboardShortcutsHandler';
@@ -64,9 +64,6 @@ const loadConciergePage = () => require<ReactComponentModule>('../../../pages/Co
 const loadTrackExpensePage = () => require<ReactComponentModule>('../../../pages/TrackExpensePage').default;
 const loadSubmitExpensePage = () => require<ReactComponentModule>('../../../pages/SubmitExpensePage').default;
 const loadWorkspaceJoinUser = () => require<ReactComponentModule>('@pages/workspace/WorkspaceJoinUserPage').default;
-
-const loadDomainSplitNavigator = () => require<ReactComponentModule>('./Navigators/DomainSplitNavigator').default;
-const loadWorkspaceSplitNavigator = () => require<ReactComponentModule>('./Navigators/WorkspaceSplitNavigator').default;
 
 const RootStack = createRootStackNavigator<AuthScreensParamList>();
 
@@ -120,30 +117,6 @@ function AuthScreens() {
             NavBarManager.setButtonStyle(CONST.NAVIGATION_BAR_BUTTONS_STYLE.LIGHT);
         };
     }, [theme]);
-
-    // Animation is disabled when navigating to the sidebar screen
-    const getWorkspaceOrDomainSplitNavigatorOptions = ({route}: {route: RouteProp<AuthScreensParamList>}) => {
-        // We don't need to do anything special for the wide screen.
-        if (!shouldUseNarrowLayout) {
-            return rootNavigatorScreenOptions.splitNavigator;
-        }
-
-        // On the narrow screen, we want to animate this navigator if it is opened from the settings split.
-        // If it is opened from other tab, we don't want to animate it on the entry.
-        // There is a hook inside the workspace navigator that changes animation to SLIDE_FROM_RIGHT after entering.
-        // This way it can be animated properly when going back to the settings split.
-        const animationEnabled = !workspaceOrDomainSplitsWithoutEnteringAnimation.has(route.key);
-
-        return {
-            ...rootNavigatorScreenOptions.splitNavigator,
-            animation: animationEnabled ? Animations.SLIDE_FROM_RIGHT : Animations.NONE,
-            gestureEnabled: true,
-            web: {
-                ...rootNavigatorScreenOptions.splitNavigator.web,
-                cardStyleInterpolator: (props: StackCardInterpolationProps) => modalCardStyleInterpolator({props, isFullScreenModal: true, animationEnabled}),
-            },
-        };
-    };
 
     // Dynamic options for ROOT_TAB_NAVIGATOR: supports entering animation for pushed instances
     const getRootTabNavigatorOptions = ({route}: {route: RouteProp<AuthScreensParamList>}) => {
