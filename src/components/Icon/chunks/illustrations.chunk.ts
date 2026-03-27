@@ -147,6 +147,7 @@ import LockClosedOrange from '@assets/images/simple-illustrations/simple-illustr
 import LockOpen from '@assets/images/simple-illustrations/simple-illustration__lockopen.svg';
 import Luggage from '@assets/images/simple-illustrations/simple-illustration__luggage.svg';
 import MagnifyingGlassMoney from '@assets/images/simple-illustrations/simple-illustration__magnifyingglass-money.svg';
+import MagnifyingGlassReceipt from '@assets/images/simple-illustrations/simple-illustration__magnifyingglass-receipt.svg';
 import Mailbox from '@assets/images/simple-illustrations/simple-illustration__mailbox.svg';
 import ExpensifyMobileApp from '@assets/images/simple-illustrations/simple-illustration__mobileapp.svg';
 import MoneyReceipts from '@assets/images/simple-illustrations/simple-illustration__money-receipts.svg';
@@ -194,7 +195,6 @@ import VerticalCreditCards from '@assets/images/simple-illustrations/simple-illu
 import VirtualCard from '@assets/images/simple-illustrations/simple-illustration__virtualcard.svg';
 import WalletAlt2 from '@assets/images/simple-illustrations/simple-illustration__wallet-alt2.svg';
 import Workflows from '@assets/images/simple-illustrations/simple-illustration__workflows.svg';
-import ExpensifyApprovedLogo from '@assets/images/subscription-details__approvedlogo.svg';
 import TravelCVV from '@assets/images/travel-cvv.svg';
 import TurtleInShell from '@assets/images/turtle-in-shell.svg';
 
@@ -292,7 +292,6 @@ const Illustrations = {
     ReceiptStack,
     RunningTurtle,
     Shutter,
-    ExpensifyApprovedLogo,
     TravelCVV,
     TurtleInShell,
 
@@ -306,6 +305,7 @@ const Illustrations = {
     HandCard,
     InvoiceBlue,
     MagnifyingGlassMoney,
+    MagnifyingGlassReceipt,
     MoneyReceipts,
     MoneyWings,
     MoneyIntoWallet,
