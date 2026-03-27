@@ -36,6 +36,7 @@ const MODAL_ROUTES_TO_DISMISS = new Set<string>([
     SCREENS.WORKSPACE_AVATAR,
     SCREENS.REPORT_AVATAR,
     SCREENS.CONCIERGE,
+    SCREENS.SEARCH_ROUTER.ROOT,
 ]);
 
 const workspaceOrDomainSplitsWithoutEnteringAnimation = new Set<string>();

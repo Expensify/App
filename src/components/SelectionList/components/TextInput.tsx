@@ -10,6 +10,7 @@ import useDebouncedAccessibilityAnnouncement from '@hooks/useDebouncedAccessibil
 import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import Accessibility from '@libs/Accessibility';
 import mergeRefs from '@libs/mergeRefs';
 import CONST from '@src/CONST';
 
@@ -88,6 +89,7 @@ function TextInput({
 
     const noResultsFoundText = translate('common.noResultsFound');
     const isNoResultsFoundMessage = headerMessage === noResultsFoundText;
+    const isScreenReaderEnabled = Accessibility.useScreenReaderStatus();
     const noData = dataLength === 0 && !shouldShowLoadingPlaceholder;
     const shouldShowHeaderMessage = !!shouldShowTextInput && !!headerMessage && (!isLoadingNewOptions || !isNoResultsFoundMessage || noData);
     const trimmedSearchValue = value?.trim() ?? '';
@@ -112,7 +114,7 @@ function TextInput({
 
     useFocusEffect(
         useCallback(() => {
-            if (!shouldShowTextInput || disableAutoFocus || isInLandscapeMode) {
+            if (!shouldShowTextInput || disableAutoFocus || isScreenReaderEnabled || isInLandscapeMode) {
                 return;
             }
 
@@ -125,7 +127,7 @@ function TextInput({
                 clearTimeout(focusTimeoutRef.current);
                 focusTimeoutRef.current = null;
             };
-        }, [shouldShowTextInput, disableAutoFocus, focusTextInput, isInLandscapeMode]),
+        }, [shouldShowTextInput, disableAutoFocus, focusTextInput, isInLandscapeMode, isScreenReaderEnabled]),
     );
 
     const handleFocus = useCallback(() => {
