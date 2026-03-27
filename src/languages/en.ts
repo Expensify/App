@@ -6628,7 +6628,7 @@ const translations = {
             },
             spendRules: {
                 title: 'Spend',
-                subtitle: 'Set the spend rules so expenses arrive correctly coded and require less cleanup.',
+                subtitle: 'Approve or decline Expensify Card transactions in real time.',
             },
         },
         planTypePage: {

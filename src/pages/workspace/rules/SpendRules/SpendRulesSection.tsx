@@ -59,7 +59,7 @@ function SpendRulesSection({policyID}: SpendRulesSectionProps) {
 
     const renderTitle = () => (
         <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap1]}>
-            <Text style={[styles.textHeadline, styles.cardSectionTitle, styles.accountSettingsSectionTitle, {color: theme.text}]}>{translate('workspace.rules.merchantRules.title')}</Text>
+            <Text style={[styles.textHeadline, styles.cardSectionTitle, styles.accountSettingsSectionTitle, {color: theme.text}]}>{translate('workspace.rules.spendRules.title')}</Text>
             <Badge
                 text={translate('common.newFeature')}
                 isCondensed
@@ -72,50 +72,10 @@ function SpendRulesSection({policyID}: SpendRulesSectionProps) {
         <Section
             isCentralPane
             renderTitle={renderTitle}
-            subtitle={translate('workspace.rules.merchantRules.subtitle')}
+            subtitle={translate('workspace.rules.spendRules.subtitle')}
             subtitleMuted
         >
-    //         {hasRules && (
-    //             <View style={[styles.mt3]}>
-    //                 {sortedRules.map((rule) => {
-    //                     const merchantName = rule.filters?.right ?? '';
-    //                     const isExactMatch = rule.filters?.operator === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO;
-    //                     const matchDescription = translate('workspace.rules.merchantRules.ruleSummaryTitle', merchantName, isExactMatch);
-    //                     // const ruleDescription = getRuleDescription(rule, translate, fieldLabels);
 
-    //                     return (
-    //                         <View key={rule.ruleID}>
-    //                             <OfflineWithFeedback
-    //                                 pendingAction={rule.pendingAction}
-    //                                 errors={rule.errors}
-    //                             >
-    //                                 <MenuItemWithTopDescription
-    //                                     description={matchDescription}
-    //                                     title={'Test Rule'}
-    //                                     wrapperStyle={[styles.sectionMenuItemTopDescription]}
-    //                                     descriptionTextStyle={[styles.textSupportingNormal, styles.textStrong, styles.themeTextColor]}
-    //                                     titleStyle={[styles.textLabelSupporting, styles.fontSizeLabel]}
-    //                                     shouldShowRightIcon
-    //                                     onPress={() => Navigation.navigate(ROUTES.RULES_MERCHANT_EDIT.getRoute(policyID, rule.ruleID))}
-    //                                     sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_ITEM}
-    //                                     disabled={rule.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}
-    //                                 />
-    //                             </OfflineWithFeedback>
-    //                         </View>
-    //                     );
-    //                 })}
-    //             </View>
-    //         )}
-    //         <MenuItem
-    //             title={translate('workspace.rules.merchantRules.addRule')}
-    //             titleStyle={styles.textStrong}
-    //             icon={expensifyIcons.Plus}
-    //             iconHeight={20}
-    //             iconWidth={20}
-    //             style={[styles.sectionMenuItemTopDescription, !hasRules && styles.mt6, styles.mbn3]}
-    //             onPress={() => Navigation.navigate(ROUTES.RULES_MERCHANT_NEW.getRoute(policyID))}
-    //             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.ADD_MERCHANT_RULE}
-    //         />
         </Section>
     );
 }
