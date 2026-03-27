@@ -24,11 +24,15 @@ jest.mock('@hooks/useHasEmptyReportsForPolicy', () => jest.fn(() => false));
 const mockUseHasEmptyReportsForPolicy = require('@hooks/useHasEmptyReportsForPolicy') as jest.Mock;
 
 const mockOpenCreateReportConfirmation = jest.fn();
-const mockUseCreateEmptyReportConfirmation = jest.fn(() => ({
-    openCreateReportConfirmation: mockOpenCreateReportConfirmation,
-    CreateReportConfirmationModal: null,
-}));
-jest.mock('@hooks/useCreateEmptyReportConfirmation', () => mockUseCreateEmptyReportConfirmation);
+jest.mock('@hooks/useCreateEmptyReportConfirmation', () => {
+    const fn = jest.fn(() => ({
+        openCreateReportConfirmation: mockOpenCreateReportConfirmation,
+        CreateReportConfirmationModal: null,
+    }));
+    return fn;
+});
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const mockUseCreateEmptyReportConfirmation = require('@hooks/useCreateEmptyReportConfirmation') as jest.Mock;
 
 const mockAreAllGroupPoliciesExpenseChatDisabled = jest.fn(() => false);
 jest.mock('@libs/PolicyUtils', () => ({
