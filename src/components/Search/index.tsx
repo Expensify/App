@@ -1569,6 +1569,7 @@ function Search({
                                     isTaxAmountColumnWide={shouldShowTaxAmountInWideColumn}
                                     shouldShowSorting
                                     groupBy={validGroupBy}
+                                    isExpenseReportView={isExpenseReportType}
                                 />
                             </View>
                         )
