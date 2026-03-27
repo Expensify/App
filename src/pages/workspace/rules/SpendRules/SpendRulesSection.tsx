@@ -33,11 +33,11 @@ function SpendRulesSection() {
             titleStyles: [styles.textHeadlineH1],
             titleContainerStyles: [styles.mb3],
             prompt: translate('workspace.rules.spendRules.builtInProtectionModal.description'),
-            promptStyles: [styles.preWrap],
+            promptStyles: [styles.preWrap, styles.mb1],
             shouldShowCancelButton: false,
             success: false,
             confirmText: translate('common.buttonConfirm'),
-            ...(shouldUseNarrowLayout ? {} : {innerContainerStyle: StyleUtils.getWidthStyle(variables.builtInProtectionModalWidth)}),
+            innerContainerStyle: shouldUseNarrowLayout ? undefined : StyleUtils.getWidthStyle(variables.builtInProtectionModalWidth),
         });
     };
 
