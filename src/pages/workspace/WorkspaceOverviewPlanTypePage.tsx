@@ -8,7 +8,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
-import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
+import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -137,7 +137,7 @@ function WorkspaceOverviewPlanTypePage({policy}: WithPolicyProps) {
                         <SelectionList
                             data={workspacePlanTypes}
                             isDisabled={isPlanTypeLocked}
-                            ListItem={RadioListItem}
+                            ListItem={SingleSelectListItem}
                             onSelectRow={(option) => {
                                 setCurrentPlan(option.value);
                             }}
