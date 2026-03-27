@@ -19,7 +19,7 @@ function WorkspaceConfirmationSuccessPage() {
             testID={WorkspaceConfirmationSuccessPage.displayName}
         >
             <HeaderWithBackButton
-                title={translate('workspace.common.workspace')}
+                title={translate('workspace.new.confirmWorkspace')}
                 onBackButtonPress={closePage}
             />
             <ConfirmationPage
