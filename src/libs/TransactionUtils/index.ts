@@ -8,7 +8,7 @@ import type {ValueOf} from 'type-fest';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import type {Coordinate} from '@components/MapView/MapViewTypes';
 import utils from '@components/MapView/utils';
-import type {UnreportedExpenseListItemType} from '@components/SelectionListWithSections/types';
+import type {UnreportedExpenseListItemType} from '@components/Search/SearchList/ListItem/types';
 import type {TransactionWithOptionalSearchFields} from '@components/TransactionItemRow';
 import type {MergeDuplicatesParams} from '@libs/API/parameters';
 import {getCategoryDefaultTaxRate, isCategoryMissing} from '@libs/CategoryUtils';
@@ -68,7 +68,7 @@ import type {
     TransactionViolations,
     ViolationName,
 } from '@src/types/onyx';
-import type {Attendee, Participant, SplitExpense} from '@src/types/onyx/IOU';
+import type {Attendee, DistanceExpenseType, Participant, SplitExpense} from '@src/types/onyx/IOU';
 import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 import type {OnyxData} from '@src/types/onyx/Request';
@@ -273,6 +273,15 @@ function isTimeRequest(transaction: OnyxEntry<Transaction>): boolean {
     return transaction?.comment?.type === CONST.TRANSACTION.TYPE.TIME;
 }
 
+function isDistanceExpenseType(requestType: IOURequestType | undefined): requestType is DistanceExpenseType {
+    return (
+        requestType === CONST.IOU.REQUEST_TYPE.DISTANCE_MAP ||
+        requestType === CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL ||
+        requestType === CONST.IOU.REQUEST_TYPE.DISTANCE_GPS ||
+        requestType === CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER
+    );
+}
+
 function isCorporateCardTransaction(transaction: OnyxEntry<Transaction>): boolean {
     return isManagedCardTransaction(transaction) && transaction?.comment?.liabilityType === CONST.TRANSACTION.LIABILITY_TYPE.RESTRICT;
 }
@@ -304,26 +313,6 @@ function getRequestType(transaction: OnyxEntry<Transaction>): IOURequestType {
     }
 
     return CONST.IOU.REQUEST_TYPE.MANUAL;
-}
-
-/**
- * Determines the expense type of a given transaction.
- */
-function getExpenseType(transaction: OnyxEntry<Transaction>): ValueOf<typeof CONST.IOU.EXPENSE_TYPE> | undefined {
-    if (!transaction) {
-        return undefined;
-    }
-
-    if (isExpensifyCardTransaction(transaction)) {
-        if (isPending(transaction)) {
-            return CONST.IOU.EXPENSE_TYPE.PENDING_EXPENSIFY_CARD;
-        }
-
-        return CONST.IOU.EXPENSE_TYPE.EXPENSIFY_CARD;
-    }
-
-    const requestType = getRequestType(transaction);
-    return requestType as ValueOf<typeof CONST.IOU.EXPENSE_TYPE>;
 }
 
 /**
@@ -1560,6 +1549,23 @@ function hasPendingRTERViolation(transactionViolations?: TransactionViolations |
 }
 
 /**
+ * Check if any of the given transactions have a pending RTER violation that has not been dismissed (e.g. via mark-as-cash).
+ */
+function hasAnyPendingRTERViolation(
+    transactions: Array<OnyxEntry<Transaction>>,
+    allTransactionViolations: OnyxCollection<TransactionViolations>,
+    currentUserEmail: string,
+    currentUserAccountID: number,
+    report: OnyxEntry<Report>,
+    policy: OnyxEntry<Policy>,
+): boolean {
+    return transactions.some((t) => {
+        const filteredViolations = getTransactionViolations(t, allTransactionViolations, currentUserEmail, currentUserAccountID, report, policy);
+        return hasPendingRTERViolation(filteredViolations);
+    });
+}
+
+/**
  * Check if there is a custom unit out of policy violation in transactionViolations.
  */
 function hasCustomUnitOutOfPolicyViolation(transactionViolations?: TransactionViolations | null): boolean {
@@ -2728,7 +2734,7 @@ function shouldShowExpenseBreakdown(transactions?: Transaction[]): boolean {
 /**
  * Creates sections data for unreported expenses, marking transactions with DELETE pending action as disabled
  */
-function createUnreportedExpenses(transactions: Array<Transaction | undefined>): UnreportedExpenseListItemType[] {
+function createUnreportedExpenses(transactions: Array<OnyxEntry<Transaction> | undefined>): UnreportedExpenseListItemType[] {
     return transactions
         .filter((t): t is Transaction => t !== undefined)
         .map(
@@ -2874,7 +2880,6 @@ export {
     getClearedPendingFields,
     getDescription,
     getRequestType,
-    getExpenseType,
     getTransactionType,
     isManualRequest,
     isScanRequest,
@@ -2913,6 +2918,7 @@ export {
     isGPSDistanceRequest,
     isManualDistanceRequest,
     isOdometerDistanceRequest,
+    isDistanceExpenseType,
     isFetchingWaypointsFromServer,
     isExpensifyCardTransaction,
     isManagedCardTransaction,
@@ -2928,6 +2934,7 @@ export {
     areRequiredFieldsEmpty,
     hasMissingSmartscanFields,
     hasPendingRTERViolation,
+    hasAnyPendingRTERViolation,
     hasValidModifiedAmount,
     allHavePendingRTERViolation,
     hasPendingUI,

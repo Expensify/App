@@ -2136,6 +2136,7 @@ type PolicyConnectionSyncProgress = {
 export default Policy;
 
 export type {
+    AutoReportingOffset,
     PolicyReportField,
     PolicyReportFieldType,
     Unit,

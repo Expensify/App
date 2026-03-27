@@ -86,6 +86,7 @@ import type {
     UpdateRoleParams,
     UpgradeSuccessMessageParams,
     UserIsAlreadyMemberParams,
+    ViolationsIncreasedDistanceParams,
     ViolationsMissingTagParams,
     ViolationsModifiedAmountParams,
     ViolationsProhibitedExpenseParams,
@@ -250,6 +251,7 @@ const translations: TranslationDeepObject<typeof en> = {
         na: 'n.v.t.',
         noResultsFound: 'Geen resultaten gevonden',
         noResultsFoundMatching: (searchString: string) => `Geen resultaten gevonden voor "${searchString}"`,
+        suggestionsAvailableFor: (searchString: string) => (searchString ? `Suggesties beschikbaar voor "${searchString}".` : 'Suggesties beschikbaar.'),
         recentDestinations: 'Recente bestemmingen',
         timePrefix: 'Het is',
         conjunctionFor: 'voor',
@@ -526,6 +528,8 @@ const translations: TranslationDeepObject<typeof en> = {
         concierge: {sidePanelGreeting: 'Hoi, waarmee kan ik je helpen?', showHistory: 'Geschiedenis weergeven'},
         duplicateReport: 'Dubbel rapport',
         approver: 'Fiatteur',
+        enterDigitLabel: ({digitIndex, totalDigits}: {digitIndex: number; totalDigits: number}) => `voer cijfer ${digitIndex} van ${totalDigits} in`,
+        copyOfReportName: (reportName: string) => `Kopie van ${reportName}`,
     },
     socials: {
         podcast: 'Volg ons op Podcast',
@@ -672,6 +676,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 faceId: 'Face ID',
                 touchId: 'Touch ID',
                 opticId: 'Optic ID',
+                passkey: 'Passkey',
             },
             statusNeverRegistered: 'Nooit geregistreerd',
             statusNotRegistered: 'Niet geregistreerd',
@@ -689,11 +694,10 @@ const translations: TranslationDeepObject<typeof en> = {
         letsVerifyItsYou: 'Laten we controleren of jij het bent',
         nowLetsAuthenticateYou: 'Laten we je nu verifiëren...',
         letsAuthenticateYou: 'We gaan je authenticeren...',
-        verifyYourself: {
-            biometrics: 'Verifieer jezelf met je gezicht of vingerafdruk',
-        },
+        verifyYourself: {biometrics: 'Verifieer jezelf met je gezicht of vingerafdruk', passkeys: 'Verifieer jezelf met een toegangssleutel'},
         enableQuickVerification: {
             biometrics: 'Schakel snelle, veilige verificatie in met je gezicht of vingerafdruk. Geen wachtwoorden of codes nodig.',
+            passkeys: 'Schakel snelle, veilige verificatie in met een passkey. Geen wachtwoorden of codes nodig.',
         },
         revoke: {
             title: 'Gezicht/vingerafdruk & passkeys',
@@ -719,6 +723,7 @@ const translations: TranslationDeepObject<typeof en> = {
         unsupportedDevice: {
             unsupportedDevice: 'Niet-ondersteund apparaat',
             pleaseDownloadMobileApp: `Deze actie wordt niet ondersteund op jouw apparaat. Download de Expensify-app uit de <a href="${CONST.APP_DOWNLOAD_LINKS.IOS}">App Store</a> of de <a href="${CONST.APP_DOWNLOAD_LINKS.ANDROID}">Google Play Store</a> en probeer het opnieuw.`,
+            pleaseUseWebApp: `Deze actie wordt niet ondersteund op jouw apparaat. Gebruik de <a href="${CONST.NEW_EXPENSIFY_URL}">Expensify-webapp</a> en probeer het opnieuw.`,
         },
         verificationFailed: 'Verificatie mislukt',
         setPin: {didNotShipCard: 'We hebben je kaart niet verzonden. Probeer het opnieuw.'},
@@ -763,11 +768,6 @@ const translations: TranslationDeepObject<typeof en> = {
         findMember: 'Lid zoeken',
         searchForSomeone: 'Iemand zoeken',
         userSelected: (username: string) => `${username} geselecteerd`,
-    },
-    customApprovalWorkflow: {
-        title: 'Aangepaste goedkeuringsworkflow',
-        description: 'Je bedrijf heeft een aangepast goedkeuringsproces in deze workspace. Voer deze actie uit in Expensify Classic',
-        goToExpensifyClassic: 'Overschakelen naar Expensify Classic',
     },
     emptyList: {
         [CONST.IOU.TYPE.CREATE]: {
@@ -993,6 +993,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 subtitle: 'Portemonnee',
             },
             validateAccount: {title: 'Valideer je account om Expensify te blijven gebruiken', subtitle: 'Account', cta: 'Valideren'},
+            fixFailedBilling: {title: 'We konden je kaart in ons bestand niet belasten', subtitle: 'Abonnement'},
         },
         assignedCards: 'Je Expensify Kaarten',
         assignedCardsRemaining: ({amount}: {amount: string}) => `${amount} resterend`,
@@ -1243,6 +1244,8 @@ const translations: TranslationDeepObject<typeof en> = {
         pendingMatch: 'Overeenkomst in behandeling',
         pendingMatchWithCreditCardDescription: 'Bon wordt nog gekoppeld aan kaarttransactie. Markeer als contant om te annuleren.',
         markAsCash: 'Markeren als contant',
+        pendingMatchSubmitTitle: 'Rapport indienen',
+        pendingMatchSubmitDescription: 'Sommige uitgaven wachten op koppeling met een creditcardtransactie. Wilt u ze als contant markeren?',
         routePending: 'Routeren in behandeling...',
         automaticallyEnterExpenseDetails: 'Concierge zal automatisch de uitgavendetails voor je invoeren, of je kunt ze handmatig toevoegen.',
         receiptScanning: () => ({
@@ -2359,11 +2362,16 @@ ${amount} voor ${merchant} - ${date}`,
         freezeCard: 'Kaart blokkeren',
         unfreeze: 'Deblokkeren',
         unfreezeCard: 'Kaart deblokkeren',
+        askToUnfreeze: 'Vraag om deblokkering',
         freezeDescription: 'Een geblokkeerde kaart kan niet worden gebruikt voor aankopen en transacties. Je kunt deze op elk moment deblokkeren.',
         unfreezeDescription: 'Door deze kaart te deblokkeren worden aankopen en transacties weer toegestaan. Ga alleen verder als je zeker weet dat de kaart veilig is om te gebruiken.',
         frozen: 'Geblokkeerd',
         youFroze: ({date}: {date: string}) => `Je hebt deze kaart op ${date} geblokkeerd.`,
         frozenBy: ({person, date}: {person: string; date: string}) => `${person} heeft deze kaart op ${date} geblokkeerd.`,
+        frozenByAdminPrefix: ({date}: {date: string}) => `Deze kaart is op ${date} bevroren door `,
+        frozenByAdminNeedsUnfreezePrefix: 'Deze kaart is bevroren door ',
+        frozenByAdminNeedsUnfreezeSuffix: '. Neem contact op met een beheerder om deze te deblokkeren.',
+        frozenByAdminNeedsUnfreeze: ({person}: {person: string}) => `Deze kaart is bevroren door ${person}. Neem contact op met een beheerder om deze te deblokkeren.`,
     },
     workflowsPage: {
         workflowTitle: 'Uitgaven',
@@ -2663,6 +2671,7 @@ ${amount} voor ${merchant} - ${date}`,
                 label: 'Apparaatinstellingen gebruiken',
             },
         },
+        highContrastMode: 'Hoog contrast',
         chooseThemeBelowOrSync: 'Kies hieronder een thema, of synchroniseer met de instellingen van je apparaat.',
     },
     termsOfUse: {
@@ -2676,6 +2685,8 @@ ${amount} voor ${merchant} - ${date}`,
         requiredWhen2FAEnabled: 'Vereist wanneer 2FA is ingeschakeld',
         requestNewCode: ({timeRemaining}: {timeRemaining: string}) => `Vraag een nieuwe code aan over <a>${timeRemaining}</a>`,
         requestNewCodeAfterErrorOccurred: 'Een nieuwe code aanvragen',
+        timeRemainingAnnouncement: ({timeRemaining}) => `Resterende tijd: ${timeRemaining} ${timeRemaining === 1 ? 'seconde' : 'seconden'}`,
+        timeExpiredAnnouncement: 'De tijd is verstreken',
         error: {
             pleaseFillMagicCode: 'Voer je magische code in',
             incorrectMagicCode: 'Onjuiste of ongeldige magische code. Probeer het opnieuw of vraag een nieuwe code aan.',
@@ -3262,6 +3273,13 @@ ${
             `Oeps! Het lijkt erop dat de valuta van je workspace is ingesteld op een andere valuta dan USD. Ga naar <a href="${workspaceRoute}">de instellingen van je workspace</a>, stel deze in op USD en probeer het opnieuw.`,
         bbaAdded: 'Zakelijke bankrekening toegevoegd!',
         bbaAddedDescription: 'Het is klaar om voor betalingen te worden gebruikt.',
+        lockedBankAccount: 'Geblokkeerde bankrekening',
+        unlockBankAccount: 'Deblokkeer bankrekening',
+        youCantPayThis: `Je kunt dit rapport niet betalen omdat je een <a href="${CONST.UNLOCK_BANK_ACCOUNT_HELP_URL}">geblokkeerde bankrekening</a> hebt. Tik hieronder en de Concierge helpt je met de volgende stappen om deze te deblokkeren.`,
+        htmlUnlockMessage: (maskedAccountNumber: string) =>
+            `<h1>Expensify Business Bank Account ${maskedAccountNumber}</h1><p>Bedankt voor het indienen van een verzoek om je bankrekening te deblokkeren. Opnameverzoeken kunnen worden afgewezen vanwege onvoldoende saldo of als de bankrekening niet is geactiveerd voor automatische incasso. We zullen je zaak bekijken en contact met je opnemen als we aanvullende informatie nodig hebben om dit probleem op te lossen.</p>`,
+        textUnlockMessage: (maskedAccountNumber: string) =>
+            `Expensify Business Bank Account ${maskedAccountNumber}\nBedankt voor het indienen van een verzoek om je bankrekening te deblokkeren. Opnameverzoeken kunnen worden afgewezen vanwege onvoldoende saldo of als de bankrekening niet is geactiveerd voor automatische incasso. We zullen je zaak bekijken en contact met je opnemen als we aanvullende informatie nodig hebben om dit probleem op te lossen.`,
         error: {
             youNeedToSelectAnOption: 'Selecteer een optie om door te gaan',
             noBankAccountAvailable: 'Sorry, er is geen bankrekening beschikbaar',
@@ -5094,6 +5112,7 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
                 flipAmountSign: 'Teken van bedrag omdraaien',
                 importButton: 'Transacties importeren',
             },
+            assignNewCards: {title: 'Nieuwe kaarten toewijzen', description: 'Haal de nieuwste kaarten op om toe te wijzen vanuit je bank'},
         },
         expensifyCard: {
             issueAndManageCards: 'Geef Expensify Kaarten uit en beheer ze',
@@ -6395,21 +6414,24 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
         },
         downgrade: {
             commonFeatures: {
-                title: 'Downgraden naar het Collect-abonnement',
-                note: 'Als je een downgrade uitvoert, verlies je de toegang tot deze functies en meer:',
+                title: 'Downgraden naar Collect',
+                note: 'Je verliest toegang tot de volgende functies',
                 benefits: {
-                    note: 'Voor een volledig overzicht van onze abonnementen, bekijk onze',
-                    pricingPage: 'prijspagina',
-                    confirm: 'Weet je zeker dat je wilt downgraden en je configuraties wilt verwijderen?',
-                    warning: 'Dit kan niet ongedaan worden gemaakt.',
-                    benefit1: 'Boekhoudkoppelingen (behalve QuickBooks Online en Xero)',
-                    benefit2: 'Slimme uitgaveregels',
-                    benefit3: 'Meerlagige goedkeuringsworkflows',
-                    benefit4: 'Verbeterde beveiligingsinstellingen',
+                    confirm: 'Je moet het “Plan type” van elke workspace wijzigen naar “Collect” om het Collect-tarief veilig te stellen.',
+                    benefit1: 'NetSuite, Sage Intacct, QuickBooks Desktop, Oracle, Microsoft Dynamics',
+                    benefit2: 'Workday, Certinia',
+                    benefit3: 'SSO/SAML',
+                    benefit4: 'Slimme onkostregels, dagvergoedingen, goedkeuring op meerdere niveaus, aangepaste rapportage en budgettering',
                     headsUp: 'Let op!',
                     multiWorkspaceNote: 'Je moet al je werkruimtes downgraden vóór je eerste maandelijkse betaling om een abonnement tegen het Collect-tarief te starten. Klik',
                     selectStep: '> selecteer elke werkruimte > wijzig het abonnementstype naar',
+                    benefit1Label: 'ERP-integraties',
+                    benefit2Label: 'HR-integraties',
+                    benefit3Label: 'Beveiliging',
+                    benefit4Label: 'Geavanceerd',
+                    important: 'BELANGRIJK:',
                 },
+                noteAndMore: 'en meer:',
             },
             completed: {
                 headline: 'Je werkruimte is gedowngraded',
@@ -6483,8 +6505,7 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
                 eReceiptsHint: `eReceipts worden automatisch aangemaakt [voor de meeste USD-credittransacties](${CONST.DEEP_DIVE_ERECEIPTS}).`,
                 attendeeTracking: 'Deelnemersregistratie',
                 attendeeTrackingHint: 'Houd de kosten per persoon bij voor elke uitgave.',
-                prohibitedDefaultDescription:
-                    'Markeer alle bonnen waarop alcohol, gokken of andere verboden artikelen voorkomen. Declaraties met bonnen waarop deze posten voorkomen, moeten handmatig worden gecontroleerd.',
+                prohibitedDefaultDescription: 'Markeer bonnen met deze regels voor handmatige controle.',
                 prohibitedExpenses: 'Verboden uitgaven',
                 alcohol: 'Alcohol',
                 hotelIncidentals: 'Hotelnevenkosten',
@@ -6799,7 +6820,6 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
             return `${newValue ? 'ingeschakeld' : 'uitgeschakeld'} het ${customUnitName}-tarief "${customUnitRateName}"`;
         },
         deleteCustomUnitRate: ({customUnitName, rateName}: AddOrDeletePolicyCustomUnitRateParams) => `heeft het tarief „${rateName}” van de eenheid „${customUnitName}” verwijderd`,
-        addedReportField: ({fieldType, fieldName}: AddedOrDeletedPolicyReportFieldParams) => `${fieldType} rapportveld "${fieldName}" toegevoegd`,
         updateReportFieldDefaultValue: ({defaultValue, fieldName}: UpdatedPolicyReportFieldDefaultValueParams) =>
             `stel de standaardwaarde van rapportveld "${fieldName}" in op "${defaultValue}"`,
         addedReportFieldOption: (fieldName: string, optionName: string) => `heeft de optie ‘${optionName}’ toegevoegd aan het rapportveld ‘${fieldName}’`,
@@ -7121,6 +7141,8 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
             approvedReimbursedClosedSpend,
         }: UpdatedPolicyBudgetNotificationParams) =>
             `Let op! Deze workspace heeft een ${budgetFrequency}-budget van ‘${budgetAmount}’ voor de ${budgetTypeForNotificationMessage} ‘${budgetName}’. Je zit nu op ${approvedReimbursedClosedSpend}, wat meer is dan ${thresholdPercentage}% van het budget. Er staat ook nog ${awaitingApprovalSpend} in afwachting van goedkeuring en ${unsubmittedSpend} is nog niet ingediend, voor een totaal van ${totalSpend}. ${summaryLink ? `<a href="${summaryLink}">Hier is een rapport</a> met al die onkosten voor je administratie!` : ''}`,
+        addedReportField: ({fieldType, fieldName, defaultValue}: AddedOrDeletedPolicyReportFieldParams) =>
+            `heeft ${fieldType}-rapportveld "${fieldName}" toegevoegd${defaultValue ? ` met standaardwaarde "${defaultValue}"` : ''}`,
     },
     roomMembersPage: {
         memberNotFound: 'Lid niet gevonden.',
@@ -7188,6 +7210,7 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
     search: {
         resultsAreLimited: 'Zoekresultaten zijn beperkt.',
         viewResults: 'Resultaten bekijken',
+        appliedFilters: 'Toegepaste filters',
         resetFilters: 'Filters resetten',
         searchResults: {
             emptyResults: {
@@ -7243,6 +7266,7 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
             },
         },
         columns: 'Kolommen',
+        editColumns: 'Kolommen bewerken',
         resetColumns: 'Kolommen opnieuw instellen',
         groupColumns: 'Kolommen groeperen',
         expenseColumns: 'Onkostencolommen',
@@ -7281,6 +7305,7 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
                     [CONST.SEARCH.DATE_PRESETS.LAST_MONTH]: 'Vorige maand',
                     [CONST.SEARCH.DATE_PRESETS.THIS_MONTH]: 'Deze maand',
                     [CONST.SEARCH.DATE_PRESETS.YEAR_TO_DATE]: 'Jaar tot nu toe',
+                    [CONST.SEARCH.DATE_PRESETS.LAST_12_MONTHS]: 'Laatste 12 maanden',
                     [CONST.SEARCH.DATE_PRESETS.LAST_STATEMENT]: 'Laatste afschrift',
                 },
             },
@@ -7343,8 +7368,13 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
                 [CONST.SEARCH.ACTION_FILTERS.EXPORT]: 'Exporteren',
             },
         },
+        display: {
+            label: 'Weergave',
+            sortBy: 'Sorteren op',
+            groupBy: 'Groeperen op',
+            limitResults: 'Resultaten beperken',
+        },
         has: 'Heeft',
-        groupBy: 'Groeperen op',
         view: {
             label: 'Bekijken',
             table: 'Tabel',
@@ -7366,6 +7396,10 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
         searchIn: 'Zoeken in',
         searchPlaceholder: 'Zoek iets',
         suggestions: 'Suggesties',
+        suggestionsAvailable: ({count}: {count: number}, query = '') => ({
+            one: `Suggesties beschikbaar${query ? ` voor ${query}` : ''}. ${count} resultaat.`,
+            other: (resultCount: number) => `Suggesties beschikbaar${query ? ` voor ${query}` : ''}. ${resultCount} resultaten.`,
+        }),
         exportSearchResults: {
             title: 'Export maken',
             description: 'Wow, dat zijn veel items! We bundelen ze, en Concierge stuurt je binnenkort een bestand.',
@@ -7590,6 +7624,9 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
         scrollToNewestMessages: 'Scroll naar nieuwste berichten',
         preStyledText: 'Vooraf opgemaakte tekst',
         viewAttachment: 'Bijlage bekijken',
+        contextMenuAvailable: 'Contextmenu beschikbaar. Druk op Shift+F10 om het te openen.',
+        contextMenuAvailableMacOS: 'Contextmenu beschikbaar. Druk op VO-Shift-M om het te openen.',
+        contextMenuAvailableNative: 'Contextmenu beschikbaar. Dubbeltik en houd vast om het te openen.',
         selectAllFeatures: 'Selecteer alle functies',
         selectAllTransactions: 'Selecteer alle transacties',
         selectAllItems: 'Alle items selecteren',
@@ -7780,12 +7817,17 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
             prompt: 'Weet je zeker dat je het volgen via gps wilt stoppen en wilt overschakelen naar Expensify Classic?',
             confirm: 'Stoppen en overschakelen',
         },
+        switchAccountWarningTripInProgress: {
+            title: 'GPS-tracking bezig',
+            prompt: 'Weet je zeker dat je GPS-tracking wilt stoppen en van account wilt wisselen?',
+            confirm: 'Stoppen en overschakelen',
+        },
         locationServicesRequiredModal: {
             title: 'Locatietoegang vereist',
             confirm: 'Instellingen openen',
             prompt: 'Sta locatiestoegang toe in de instellingen van je apparaat om GPS-afstandsregistratie te starten.',
         },
-        fabGpsTripExplained: 'Ga naar GPS-scherm (zwevende actie)',
+        gpsFloatingPillText: 'GPS-tracking bezig...',
         liveActivity: {subtitle: 'Afstand bijhouden', button: 'Voortgang bekijken'},
     },
     reportCardLostOrDamaged: {
@@ -7869,6 +7911,8 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
             }
         },
         modifiedDate: 'Datum wijkt af van gescande bon',
+        increasedDistance: ({formattedRouteDistance}: ViolationsIncreasedDistanceParams) =>
+            formattedRouteDistance ? `Afstand overschrijdt de berekende route van ${formattedRouteDistance}` : 'Afstand overschrijdt de berekende route',
         nonExpensiworksExpense: 'Niet-Expensiworks-uitgave',
         overAutoApprovalLimit: (formattedLimit: string) => `Kosten overschrijden de automatische goedkeuringslimiet van ${formattedLimit}`,
         overCategoryLimit: (formattedLimit: string) => `Bedrag boven de categorielimiet van ${formattedLimit} per persoon`,
@@ -8415,6 +8459,7 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
             theresWasAProblemDuringAWorkspaceConnectionSync: 'Er is een probleem opgetreden tijdens een synchronisatie van de werkruimtekoppeling',
             theresAProblemWithYourWallet: 'Er is een probleem met je wallet',
             theresAProblemWithYourWalletTerms: 'Er is een probleem met de voorwaarden van je wallet',
+            aBankAccountIsLocked: 'Een bankrekening is geblokkeerd',
         },
     },
     emptySearchView: {
