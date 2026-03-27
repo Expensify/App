@@ -1,5 +1,5 @@
 import {useIsFocused, useRoute} from '@react-navigation/native';
-import {useCallback, useEffect, useRef} from 'react';
+import {useEffect, useEffectEvent, useRef} from 'react';
 import {InteractionManager} from 'react-native';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useIsAnonymousUser from '@hooks/useIsAnonymousUser';
@@ -106,8 +106,8 @@ function ReportFetchController() {
     const isInviteOnboardingComplete = introSelected?.isInviteOnboardingComplete ?? false;
     const isOnboardingCompleted = onboarding?.hasCompletedGuidedSetupFlow ?? false;
 
-    // #1 — fetchReport
-    const fetchReport = useCallback(() => {
+    // #1 — Fetch report
+    const fetchReport = useEffectEvent(() => {
         if (reportMetadata.isOptimisticReport && report?.type === CONST.REPORT.TYPE.CHAT && !isPolicyExpenseChat(report)) {
             return;
         }
@@ -131,26 +131,7 @@ function ReportFetchController() {
         }
 
         openReport({reportID: reportIDFromRoute, introSelected, reportActionID: reportActionIDFromRoute, betas});
-    }, [
-        reportMetadata.isOptimisticReport,
-        report,
-        isOffline,
-        isLoadingApp,
-        introSelected,
-        isOnboardingCompleted,
-        isInviteOnboardingComplete,
-        reportIDFromRoute,
-        reportActionIDFromRoute,
-        betas,
-    ]);
-
-    // #3 — createOneTransactionThreadReport
-    const createOneTransactionThreadReport = () => {
-        const currentReportTransaction = getReportTransactions(reportID).filter((transaction) => transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
-        const oneTransactionID = currentReportTransaction.at(0)?.transactionID;
-        const iouAction = getIOUActionForReportID(reportID, oneTransactionID);
-        createTransactionThreadReport(introSelected, currentUserEmail ?? '', currentUserAccountID, betas, report, iouAction, currentReportTransaction.at(0));
-    };
+    });
 
     // #2 — isAnonymousUser tracking
     useEffect(() => {
@@ -160,14 +141,20 @@ function ReportFetchController() {
         prevIsAnonymousUser.current = true;
     }, [isAnonymousUser]);
 
-    // #3 — create transaction thread when transactionThreadReportID === CONST.FAKE_REPORT_ID
+    // #3 — create transaction thread (useEffectEvent reads latest values without triggering the effect)
+    const createOneTransactionThread = useEffectEvent(() => {
+        const currentReportTransaction = getReportTransactions(reportID).filter((transaction) => transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+        const oneTransactionID = currentReportTransaction.at(0)?.transactionID;
+        const iouAction = getIOUActionForReportID(reportID, oneTransactionID);
+        createTransactionThreadReport(introSelected, currentUserEmail ?? '', currentUserAccountID, betas, report, iouAction, currentReportTransaction.at(0));
+    });
+
     useEffect(() => {
         if (transactionThreadReportID !== CONST.FAKE_REPORT_ID || transactionThreadReport?.reportID || (!reportMetadata.hasOnceLoadedReportActions && !reportMetadata?.isOptimisticReport)) {
             return;
         }
 
-        createOneTransactionThreadReport();
-        // eslint-disable-next-line react-hooks/exhaustive-deps -- we don't want to run this useEffect when createOneTransactionThreadReport changes
+        createOneTransactionThread();
     }, [reportMetadata.hasOnceLoadedReportActions, reportMetadata?.isOptimisticReport, transactionThreadReport?.reportID, transactionThreadReportID]);
 
     // #4 — Re-fetch after anonymous-to-signed-in
@@ -178,7 +165,7 @@ function ReportFetchController() {
         // Re-fetch public report data after user signs in and OpenApp API is called to
         // avoid reportActions data being empty for public rooms.
         fetchReport();
-    }, [isLoadingReportData, prevIsLoadingReportData, prevIsAnonymousUser, isAnonymousUser, fetchReport]);
+    }, [isLoadingReportData, prevIsLoadingReportData, prevIsAnonymousUser, isAnonymousUser]);
 
     // #5 — Re-fetch after transaction thread created
     useEffect(() => {
@@ -195,7 +182,7 @@ function ReportFetchController() {
         }
 
         fetchReport();
-    }, [fetchReport, prevTransactionThreadReportID, transactionThreadReportID]);
+    }, [prevTransactionThreadReportID, transactionThreadReportID]);
 
     // #6 — updateLastVisitTime
     useEffect(() => {
@@ -206,6 +193,13 @@ function ReportFetchController() {
     }, [reportID, isFocused, isInSidePanel]);
 
     // #7 — Compose input init + leaving events cleanup
+    const onUnmount = useEffectEvent(() => {
+        if (!didSubscribeToReportLeavingEvents.current) {
+            return;
+        }
+        unsubscribeFromLeavingRoomReportChannel(reportID);
+    });
+
     useEffect(() => {
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         const interactionTask = InteractionManager.runAfterInteractions(() => {
@@ -213,15 +207,8 @@ function ReportFetchController() {
         });
         return () => {
             interactionTask.cancel();
-            if (!didSubscribeToReportLeavingEvents.current) {
-                return;
-            }
-
-            unsubscribeFromLeavingRoomReportChannel(reportID);
+            onUnmount();
         };
-
-        // I'm disabling the warning, as it expects to use exhaustive deps, even though we want this useEffect to run only on the first render.
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     // #8 — fetchReport on navigation/linking
@@ -230,7 +217,6 @@ function ReportFetchController() {
         // For each link click, we retrieve the report data again, even though it may already be cached.
         // There should be only one openReport execution per page start or navigating
         fetchReport();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [route, isLinkedMessagePageReady, reportActionIDFromRoute]);
 
     // #9 — Re-fetch when invited to room
@@ -242,20 +228,23 @@ function ReportFetchController() {
             return;
         }
         fetchReport();
-    }, [prevReportActions.length, reportActions, fetchReport]);
+    }, [prevReportActions.length, reportActions]);
 
     // #10 — Thread rejoin on re-focus
     // If a user has chosen to leave a thread, and then returns to it (e.g. with the back button), we need to call `openReport` again in order to allow the user to rejoin and to receive real-time updates
-    useEffect(() => {
-        if (!shouldUseNarrowLayout || !isFocused || prevIsFocused || !isChatThread(report) || !isHiddenForCurrentUser(report) || isTransactionThreadView) {
+    const rejoinThread = useEffectEvent(() => {
+        if (!shouldUseNarrowLayout || !isChatThread(report) || !isHiddenForCurrentUser(report) || isTransactionThreadView) {
             return;
         }
         openReport({reportID, introSelected, betas});
+    });
 
-        // We don't want to run this useEffect every time `report` is changed
-        // Excluding shouldUseNarrowLayout from the dependency list to prevent re-triggering on screen resize events.
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [prevIsFocused, report?.participants, isFocused, isTransactionThreadView, reportID, introSelected, betas]);
+    useEffect(() => {
+        if (!isFocused || prevIsFocused) {
+            return;
+        }
+        rejoinThread();
+    }, [isFocused, prevIsFocused]);
 
     // #11 — Subscribe to leaving events
     useEffect(() => {
@@ -333,6 +322,7 @@ function ReportFetchController() {
         introSelected,
         currentUserEmail,
         currentUserAccountID,
+        betas,
         report,
         visibleTransactions,
         transactionThreadReport,

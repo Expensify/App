@@ -1,5 +1,5 @@
 import {useIsFocused, useRoute} from '@react-navigation/native';
-import {useEffect, useRef} from 'react';
+import {useEffect, useEffectEvent, useRef} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useCurrentReportIDState} from '@hooks/useCurrentReportID';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -85,6 +85,46 @@ function ReportNavigateAwayHandler() {
 
     const firstRender = useRef(true);
 
+    // Navigation action that reads non-reactive context (concierge params, modal state, etc.)
+    const navigateAwayFromReport = useEffectEvent((prevOnyxReportID: string | undefined, prevParentReportID: string | undefined) => {
+        const currentRoute = navigationRef.getCurrentRoute();
+        const topmostReportIDInSearchRHP = Navigation.getTopmostSearchReportID();
+        const isTopmostSearchReportID = reportIDFromRoute === topmostReportIDInSearchRHP;
+        const isHoldScreenOpenInRHP = currentRoute?.name === SCREENS.MONEY_REQUEST.HOLD && (route.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT ? isTopmostSearchReportID : isTopMostReportId);
+        const isReportDetailOpenInRHP =
+            isTopMostReportId &&
+            reportDetailScreens.find((r) => r === currentRoute?.name) &&
+            !!currentRoute?.params &&
+            typeof currentRoute.params === 'object' &&
+            'reportID' in currentRoute.params &&
+            reportIDFromRoute === currentRoute.params.reportID;
+        // Early return if the report we're passing isn't in a focused state. We only want to navigate to Concierge if the user leaves the room from another device or gets removed from the room while the report is in a focused state.
+        // Prevent auto navigation for report in RHP
+        if ((!isFocused && !isHoldScreenOpenInRHP && !isReportDetailOpenInRHP) || (!isHoldScreenOpenInRHP && isInNarrowPaneModal)) {
+            return;
+        }
+        Navigation.dismissModal();
+        if (Navigation.getTopmostReportId() === prevOnyxReportID) {
+            Navigation.isNavigationReady().then(() => {
+                Navigation.popToSidebar();
+            });
+        }
+        if (prevParentReportID) {
+            // Prevent navigation to the IOU/Expense Report if it is pending deletion.
+            if (isMoneyRequestReportPendingDeletion(prevParentReportID)) {
+                return;
+            }
+            Navigation.isNavigationReady().then(() => {
+                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(prevParentReportID));
+            });
+            return;
+        }
+
+        Navigation.isNavigationReady().then(() => {
+            navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas, false);
+        });
+    });
+
     // Navigate on removal
     useEffect(() => {
         // We don't want this effect to run on the first render.
@@ -116,43 +156,7 @@ function ReportNavigateAwayHandler() {
             isClosedTopLevelPolicyRoom ||
             (prevDeletedParentAction && !deletedParentAction)
         ) {
-            const currentRoute = navigationRef.getCurrentRoute();
-            const topmostReportIDInSearchRHP = Navigation.getTopmostSearchReportID();
-            const isTopmostSearchReportID = reportIDFromRoute === topmostReportIDInSearchRHP;
-            const isHoldScreenOpenInRHP =
-                currentRoute?.name === SCREENS.MONEY_REQUEST.HOLD && (route.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT ? isTopmostSearchReportID : isTopMostReportId);
-            const isReportDetailOpenInRHP =
-                isTopMostReportId &&
-                reportDetailScreens.find((r) => r === currentRoute?.name) &&
-                !!currentRoute?.params &&
-                typeof currentRoute.params === 'object' &&
-                'reportID' in currentRoute.params &&
-                reportIDFromRoute === currentRoute.params.reportID;
-            // Early return if the report we're passing isn't in a focused state. We only want to navigate to Concierge if the user leaves the room from another device or gets removed from the room while the report is in a focused state.
-            // Prevent auto navigation for report in RHP
-            if ((!isFocused && !isHoldScreenOpenInRHP && !isReportDetailOpenInRHP) || (!isHoldScreenOpenInRHP && isInNarrowPaneModal)) {
-                return;
-            }
-            Navigation.dismissModal();
-            if (Navigation.getTopmostReportId() === prevOnyxReportID) {
-                Navigation.isNavigationReady().then(() => {
-                    Navigation.popToSidebar();
-                });
-            }
-            if (prevReport?.parentReportID) {
-                // Prevent navigation to the IOU/Expense Report if it is pending deletion.
-                if (isMoneyRequestReportPendingDeletion(prevReport.parentReportID)) {
-                    return;
-                }
-                Navigation.isNavigationReady().then(() => {
-                    Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(prevReport.parentReportID));
-                });
-                return;
-            }
-
-            Navigation.isNavigationReady().then(() => {
-                navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas, false);
-            });
+            navigateAwayFromReport(prevOnyxReportID, prevReport?.parentReportID);
             return;
         }
 
@@ -165,9 +169,7 @@ function ReportNavigateAwayHandler() {
         }
 
         setShouldShowComposeInput(true);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [
-        route.name,
         report,
         prevReport?.reportID,
         prevUserLeavingStatus,
