@@ -360,9 +360,13 @@ describe('PaymentUtils', () => {
             );
         });
 
-        it('drops non-OPEN state', () => {
-            const methods: PaymentMethod[] = [createMockPaymentMethod({accountData: {type: CONST.BANK_ACCOUNT.TYPE.BUSINESS, state: CONST.BANK_ACCOUNT.STATE.LOCKED}})];
-            expect(getBusinessBankAccountOptions(methods)).toHaveLength(0);
+        it('drops non-OPEN and non-LOCKED state', () => {
+            const methods: PaymentMethod[] = [
+                createMockPaymentMethod({accountData: {type: CONST.BANK_ACCOUNT.TYPE.BUSINESS, state: CONST.BANK_ACCOUNT.STATE.VERIFYING}}),
+                createMockPaymentMethod({accountData: {type: CONST.BANK_ACCOUNT.TYPE.BUSINESS, state: CONST.BANK_ACCOUNT.STATE.OPEN}}),
+                createMockPaymentMethod({accountData: {type: CONST.BANK_ACCOUNT.TYPE.BUSINESS, state: CONST.BANK_ACCOUNT.STATE.LOCKED}}),
+            ];
+            expect(getBusinessBankAccountOptions(methods)).toHaveLength(2);
         });
 
         it('drops methods with null or undefined methodID', () => {
@@ -396,15 +400,16 @@ describe('PaymentUtils', () => {
             expect(result.at(1)?.methodID).toBe(2);
         });
 
-        it('filters to only valid BUSINESS OPEN with methodID and maps rest correctly', () => {
+        it('filters to only valid BUSINESS OPEN or LOCKED with methodID and maps rest correctly', () => {
             const methods: PaymentMethod[] = [
                 createMockPaymentMethod({accountData: {type: CONST.BANK_ACCOUNT.TYPE.PERSONAL, state: CONST.BANK_ACCOUNT.STATE.OPEN}, title: 'Personal'}),
                 createMockPaymentMethod({title: 'Valid Business'}),
                 createMockPaymentMethod({accountData: {type: CONST.BANK_ACCOUNT.TYPE.BUSINESS, state: CONST.BANK_ACCOUNT.STATE.SETUP}, title: 'Setup'}),
+                createMockPaymentMethod({accountData: {type: CONST.BANK_ACCOUNT.TYPE.BUSINESS, state: CONST.BANK_ACCOUNT.STATE.LOCKED}, title: 'Locked'}),
             ];
             const result = getBusinessBankAccountOptions(methods);
 
-            expect(result).toHaveLength(1);
+            expect(result).toHaveLength(2);
             expect(result.at(0)?.text).toBe('Valid Business');
         });
     });
