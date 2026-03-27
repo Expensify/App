@@ -231,7 +231,7 @@ function TransactionListItem<TItem extends ListItem>({
                             checkboxSentryLabel={CONST.SENTRY_LABEL.SEARCH.TRANSACTION_LIST_ITEM_CHECKBOX}
                             style={[styles.p3, styles.pv2, shouldUseNarrowLayout ? styles.pt2 : {}]}
                             violations={transactionViolations}
-                            onArrowRightPress={() => onSelectRow(item, transactionPreviewData)}
+                            onArrowRightPress={isDeletedTransaction ? undefined : () => onSelectRow(item, transactionPreviewData)}
                             isHover={hovered}
                             customCardNames={customCardNames}
                             reportActions={exportedReportActions}

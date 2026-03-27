@@ -800,33 +800,23 @@ function TransactionItemRow({
                             />
                         </View>
                     )}
-                    {!!isLargeScreenWidth &&
-                        !!onArrowRightPress &&
-                        (isDeletedTransaction ? (
-                            <View style={[styles.p3Half, styles.pl0half, styles.pr0half, styles.justifyContentCenter, styles.alignItemsEnd, styles.opacity0]}>
-                                <Icon
-                                    src={expensicons.ArrowRight}
-                                    fill={theme.icon}
-                                    small
-                                />
-                            </View>
-                        ) : (
-                            <PressableWithFeedback
-                                disabled={!!isDisabled}
-                                onPress={() => onArrowRightPress?.()}
-                                style={[styles.p3Half, styles.pl0half, styles.pr0half, styles.justifyContentCenter, styles.alignItemsEnd]}
-                                accessibilityRole={CONST.ROLE.BUTTON}
-                                accessibilityLabel={CONST.ROLE.BUTTON}
-                                sentryLabel={CONST.SENTRY_LABEL.TRANSACTION_ITEM_ROW.ARROW_RIGHT}
-                            >
-                                <Icon
-                                    src={expensicons.ArrowRight}
-                                    fill={theme.icon}
-                                    additionalStyles={!isHover && styles.opacitySemiTransparent}
-                                    small
-                                />
-                            </PressableWithFeedback>
-                        ))}
+                    {!!isLargeScreenWidth && !!onArrowRightPress && (
+                        <PressableWithFeedback
+                            disabled={!!isDisabled}
+                            onPress={() => onArrowRightPress?.()}
+                            style={[styles.p3Half, styles.pl0half, styles.pr0half, styles.justifyContentCenter, styles.alignItemsEnd]}
+                            accessibilityRole={CONST.ROLE.BUTTON}
+                            accessibilityLabel={CONST.ROLE.BUTTON}
+                            sentryLabel={CONST.SENTRY_LABEL.TRANSACTION_ITEM_ROW.ARROW_RIGHT}
+                        >
+                            <Icon
+                                src={expensicons.ArrowRight}
+                                fill={theme.icon}
+                                additionalStyles={!isHover && styles.opacitySemiTransparent}
+                                small
+                            />
+                        </PressableWithFeedback>
+                    )}
                 </View>
                 {shouldShowErrors && (
                     <TransactionItemRowRBR
