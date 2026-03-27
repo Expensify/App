@@ -86,6 +86,7 @@ import type {
     UpdateRoleParams,
     UpgradeSuccessMessageParams,
     UserIsAlreadyMemberParams,
+    ViolationsIncreasedDistanceParams,
     ViolationsMissingTagParams,
     ViolationsModifiedAmountParams,
     ViolationsProhibitedExpenseParams,
@@ -523,6 +524,7 @@ const translations: TranslationDeepObject<typeof en> = {
         concierge: {sidePanelGreeting: '你好，我能帮你做什么？', showHistory: '显示历史'},
         duplicateReport: '重复报销单',
         approver: '审批人',
+        enterDigitLabel: ({digitIndex, totalDigits}: {digitIndex: number; totalDigits: number}) => `输入第 ${digitIndex} 位数字，共 ${totalDigits} 位`,
         copyOfReportName: (reportName: string) => `${reportName} 的副本`,
     },
     socials: {
@@ -701,6 +703,7 @@ const translations: TranslationDeepObject<typeof en> = {
         unsupportedDevice: {
             unsupportedDevice: '不支持的设备',
             pleaseDownloadMobileApp: `您的设备不支持此操作。请从<a href="${CONST.APP_DOWNLOAD_LINKS.IOS}">App Store</a>或<a href="${CONST.APP_DOWNLOAD_LINKS.ANDROID}">Google Play 商店</a>下载 Expensify 应用，然后重试。`,
+            pleaseUseWebApp: `您的设备不支持此操作。请使用<a href="${CONST.NEW_EXPENSIFY_URL}">Expensify 网页应用</a>重试。`,
         },
         verificationFailed: '验证失败',
         setPin: {didNotShipCard: '我们未能寄出您的卡。请重试。'},
@@ -743,11 +746,6 @@ const translations: TranslationDeepObject<typeof en> = {
         findMember: '查找成员',
         searchForSomeone: '搜索联系人',
         userSelected: (username: string) => `已选择 ${username}`,
-    },
-    customApprovalWorkflow: {
-        title: '自定义审批流程',
-        description: '您的公司在此工作区使用自定义审批流程。请在 Expensify Classic 中执行此操作',
-        goToExpensifyClassic: '切换到 Expensify 经典版',
     },
     emptyList: {
         [CONST.IOU.TYPE.CREATE]: {
@@ -1210,6 +1208,8 @@ const translations: TranslationDeepObject<typeof en> = {
         pendingMatch: '待匹配',
         pendingMatchWithCreditCardDescription: '收据正在等待与卡片交易匹配。将其标记为现金以取消。',
         markAsCash: '标记为现金',
+        pendingMatchSubmitTitle: '提交报告',
+        pendingMatchSubmitDescription: '部分费用正在等待与信用卡交易匹配。您要将它们标记为现金吗？',
         routePending: '路由处理中…',
         automaticallyEnterExpenseDetails: 'Concierge 将自动为您输入费用详情，或者您可以手动添加。',
         receiptScanning: () => ({
@@ -2299,11 +2299,16 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         freezeCard: '冻结卡片',
         unfreeze: '解冻',
         unfreezeCard: '解冻卡片',
+        askToUnfreeze: '申请解冻',
         freezeDescription: '冻结的卡片无法用于购买和交易。你可以随时解冻。',
         unfreezeDescription: '解冻此卡后，将重新允许购买和交易。仅当你确定该卡可以安全使用时再继续。',
         frozen: '已冻结',
         youFroze: ({date}: {date: string}) => `你于${date}冻结了此卡。`,
         frozenBy: ({person, date}: {person: string; date: string}) => `${person}于${date}冻结了此卡。`,
+        frozenByAdminPrefix: ({date}: {date: string}) => `此卡于${date}被冻结，操作人是`,
+        frozenByAdminNeedsUnfreezePrefix: '此卡已被',
+        frozenByAdminNeedsUnfreezeSuffix: '冻结。请联系管理员解冻。',
+        frozenByAdminNeedsUnfreeze: ({person}: {person: string}) => `此卡已被${person}冻结。请联系管理员解冻。`,
     },
     workflowsPage: {
         workflowTitle: '支出',
@@ -2596,6 +2601,7 @@ ${amount}，商户：${merchant} - 日期：${date}`,
                 label: '使用设备设置',
             },
         },
+        highContrastMode: '高对比度模式',
         chooseThemeBelowOrSync: '请选择下方的主题，或与您的设备设置同步。',
     },
     termsOfUse: {
@@ -3192,6 +3198,13 @@ ${
         hasCurrencyError: (workspaceRoute: string) => `哎呀！看起来您的工作区货币不是 USD。要继续操作，请前往<a href="${workspaceRoute}">工作区设置</a>将其设置为 USD，然后再试一次。`,
         bbaAdded: '已添加企业银行账户！',
         bbaAddedDescription: '它已准备好用于付款。',
+        lockedBankAccount: '已锁定的银行账户',
+        unlockBankAccount: '解锁银行账户',
+        youCantPayThis: `您无法支付此报告，因为您有一个<a href="${CONST.UNLOCK_BANK_ACCOUNT_HELP_URL}">已锁定的银行账户</a>。请点击下方，礼宾服务将协助您完成解锁步骤。`,
+        htmlUnlockMessage: (maskedAccountNumber: string) =>
+            `<h1>Expensify Business Bank Account ${maskedAccountNumber}</h1><p>感谢您提交解锁银行账户的请求。提款请求可能因余额不足或银行账户未启用直接借记而被拒绝。我们将审核您的情况，如需更多信息来解决此问题，我们会与您联系。</p>`,
+        textUnlockMessage: (maskedAccountNumber: string) =>
+            `Expensify Business Bank Account ${maskedAccountNumber}\n感谢您提交解锁银行账户的请求。提款请求可能因余额不足或银行账户未启用直接借记而被拒绝。我们将审核您的情况，如需更多信息来解决此问题，我们会与您联系。`,
         error: {
             youNeedToSelectAnOption: '请选择一个选项以继续',
             noBankAccountAvailable: '抱歉，没有可用的银行账户',
@@ -4980,6 +4993,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                 flipAmountSign: '翻转金额符号',
                 importButton: '导入交易',
             },
+            assignNewCards: {title: '分配新卡', description: '从您的银行获取可分配的最新银行卡'},
         },
         expensifyCard: {
             issueAndManageCards: '发放并管理您的 Expensify 卡',
@@ -6242,21 +6256,24 @@ ${reportName}
         },
         downgrade: {
             commonFeatures: {
-                title: '降级到 Collect 方案',
-                note: '如果您降级，您将失去对以下这些功能及更多功能的访问权限：',
+                title: '降级为 Collect',
+                note: '您将无法再使用以下功能',
                 benefits: {
-                    note: '如需完整比较我们的套餐，请查看我们的',
-                    pricingPage: '定价页面',
-                    confirm: '确定要降级并删除您的配置吗？',
-                    warning: '此操作无法撤销。',
-                    benefit1: '会计连接（QuickBooks Online 和 Xero 除外）',
-                    benefit2: '智能报销规则',
-                    benefit3: '多级审批工作流程',
-                    benefit4: '增强的安全控制',
+                    confirm: '你需要将每个工作区的“套餐类型”更改为“Collect”，才能锁定 Collect 费率。',
+                    benefit1: 'NetSuite、Sage Intacct、QuickBooks Desktop、Oracle、Microsoft Dynamics',
+                    benefit2: 'Workday、Certinia',
+                    benefit3: 'SSO/SAML',
+                    benefit4: '智能报销规则、日津贴、多级审批、自定义报表和预算管理',
                     headsUp: '注意！',
                     multiWorkspaceNote: '在首次月度付款前，您需要将所有工作区降级，才能以 Collect 费率开始订阅。点击',
                     selectStep: '> 选择每个工作区 > 将套餐类型更改为',
+                    benefit1Label: 'ERP 集成',
+                    benefit2Label: '人力资源集成',
+                    benefit3Label: '安全',
+                    benefit4Label: '高级',
+                    important: '重要：',
                 },
+                noteAndMore: '以及更多：',
             },
             completed: {
                 headline: '您的工作区已被降级',
@@ -6326,7 +6343,7 @@ ${reportName}
                 eReceiptsHint: `电子收据会自动为[大多数美元信用卡交易](${CONST.DEEP_DIVE_ERECEIPTS})创建。`,
                 attendeeTracking: '参会者跟踪',
                 attendeeTrackingHint: '跟踪每笔报销的单人费用。',
-                prohibitedDefaultDescription: '标记所有包含酒精、赌博或其他受限项目的收据。含有这些项目的收据报销将需要人工审核。',
+                prohibitedDefaultDescription: '将包含这些明细项目的收据标记为人工审核。',
                 prohibitedExpenses: '禁止报销的费用',
                 alcohol: '酒精',
                 hotelIncidentals: '酒店杂费',
@@ -6633,7 +6650,6 @@ ${reportName}
             return `${newValue ? '已启用' : '已禁用'}${customUnitName}费率“${customUnitRateName}”`;
         },
         deleteCustomUnitRate: ({customUnitName, rateName}: AddOrDeletePolicyCustomUnitRateParams) => `已删除“${customUnitName}”费率“${rateName}”`,
-        addedReportField: ({fieldType, fieldName}: AddedOrDeletedPolicyReportFieldParams) => `已添加${fieldType}报表字段“${fieldName}”`,
         updateReportFieldDefaultValue: ({defaultValue, fieldName}: UpdatedPolicyReportFieldDefaultValueParams) => `将报表字段“${fieldName}”的默认值设置为“${defaultValue}”`,
         addedReportFieldOption: (fieldName: string, optionName: string) => `已将选项“${optionName}”添加到报表字段“${fieldName}”`,
         removedReportFieldOption: (fieldName: string, optionName: string) => `已从报表字段“${fieldName}”中移除选项“${optionName}”`,
@@ -6937,6 +6953,8 @@ ${reportName}
             approvedReimbursedClosedSpend,
         }: UpdatedPolicyBudgetNotificationParams) =>
             `提醒！此工作区的${budgetTypeForNotificationMessage}“${budgetName}”设有${budgetFrequency}预算“${budgetAmount}”。你当前已花费${approvedReimbursedClosedSpend}，已超过预算的${thresholdPercentage}%。另外还有${awaitingApprovalSpend}在等待审批，以及${unsubmittedSpend}尚未提交，总计${totalSpend}。${summaryLink ? `<a href="${summaryLink}">这里有一份报表</a>，包含了所有相关报销记录，供你留档保存！` : ''}`,
+        addedReportField: ({fieldType, fieldName, defaultValue}: AddedOrDeletedPolicyReportFieldParams) =>
+            `已添加 ${fieldType} 报告字段“${fieldName}”${defaultValue ? ` 默认值为“${defaultValue}”` : ''}`,
     },
     roomMembersPage: {
         memberNotFound: '未找到成员。',
@@ -7004,6 +7022,7 @@ ${reportName}
     search: {
         resultsAreLimited: '搜索结果已受限制。',
         viewResults: '查看结果',
+        appliedFilters: '已应用的筛选条件',
         resetFilters: '重置筛选条件',
         searchResults: {
             emptyResults: {
@@ -7059,6 +7078,7 @@ ${reportName}
             },
         },
         columns: '列',
+        editColumns: '编辑列',
         resetColumns: '重置列',
         groupColumns: '分组列',
         expenseColumns: '报销列',
@@ -7097,6 +7117,7 @@ ${reportName}
                     [CONST.SEARCH.DATE_PRESETS.LAST_MONTH]: '上个月',
                     [CONST.SEARCH.DATE_PRESETS.THIS_MONTH]: '本月',
                     [CONST.SEARCH.DATE_PRESETS.YEAR_TO_DATE]: '本年度至今',
+                    [CONST.SEARCH.DATE_PRESETS.LAST_12_MONTHS]: '过去 12 个月',
                     [CONST.SEARCH.DATE_PRESETS.LAST_STATEMENT]: '上一期对账单',
                 },
             },
@@ -7159,8 +7180,13 @@ ${reportName}
                 [CONST.SEARCH.ACTION_FILTERS.EXPORT]: '导出',
             },
         },
+        display: {
+            label: '显示',
+            sortBy: '按排序',
+            groupBy: '分组依据',
+            limitResults: '限制结果',
+        },
         has: '有',
-        groupBy: '分组依据',
         view: {label: '查看', table: '表格', bar: '栏', line: '折线', pie: '饼图'},
         chartTitles: {
             [CONST.SEARCH.GROUP_BY.FROM]: '来自',
@@ -7188,6 +7214,10 @@ ${reportName}
         searchIn: '搜索范围',
         searchPlaceholder: '搜索内容',
         suggestions: '建议',
+        suggestionsAvailable: ({count}: {count: number}, query = '') => ({
+            one: `有可用建议${query ? `：${query}` : ''}。共${count}条结果。`,
+            other: (resultCount: number) => `有可用建议${query ? `：${query}` : ''}。共${resultCount}条结果。`,
+        }),
         exportSearchResults: {
             title: '创建导出',
             description: '哇，项目真不少！我们会把它们打包好，Concierge 很快就会给你发送一个文件。',
@@ -7394,6 +7424,9 @@ ${reportName}
         scrollToNewestMessages: '滚动到最新消息',
         preStyledText: '预设样式文本',
         viewAttachment: '查看附件',
+        contextMenuAvailable: '上下文菜单可用。按 Shift+F10 打开。',
+        contextMenuAvailableMacOS: '上下文菜单可用。按 VO-Shift-M 打开。',
+        contextMenuAvailableNative: '上下文菜单可用。双击并按住即可打开。',
         selectAllFeatures: '选择所有功能',
         selectAllTransactions: '选择所有交易',
         selectAllItems: '全选所有项目',
@@ -7660,6 +7693,8 @@ ${reportName}
             }
         },
         modifiedDate: '日期与已扫描收据不符',
+        increasedDistance: ({formattedRouteDistance}: ViolationsIncreasedDistanceParams) =>
+            formattedRouteDistance ? `距离超过计算出的路线 ${formattedRouteDistance}` : '距离超过计算的路线',
         nonExpensiworksExpense: '非 Expensiworks 报销',
         overAutoApprovalLimit: (formattedLimit: string) => `报销金额超出自动审批上限 ${formattedLimit}`,
         overCategoryLimit: (formattedLimit: string) => `金额超出每人 ${formattedLimit} 的类别限额`,
@@ -8191,6 +8226,7 @@ ${reportName}
             theresWasAProblemDuringAWorkspaceConnectionSync: '在工作区连接同步过程中出现问题',
             theresAProblemWithYourWallet: '您的钱包出现问题',
             theresAProblemWithYourWalletTerms: '您的钱包条款存在问题',
+            aBankAccountIsLocked: '银行账户已锁定',
         },
     },
     emptySearchView: {
