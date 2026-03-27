@@ -528,8 +528,7 @@ function SearchTableHeader({
             shouldShowSorting={shouldShowSorting}
             sortBy={sortBy}
             sortOrder={sortOrder}
-            // In GroupBy views, disable flex expansion for Total columns so Expenses column gets more space
-            shouldRemoveTotalColumnFlex={!!groupBy && !isExpenseReportView}
+            shouldRemoveTotalColumnFlex={!!groupBy || isExpenseReportView}
             // Don't butt up against the 'select all' checkbox if present
             containerStyles={canSelectMultiple && [styles.pl3]}
             onSortPress={(columnName, order) => {
