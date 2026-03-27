@@ -5,10 +5,10 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import TaxPicker from '@components/TaxPicker';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useSearchBulkEditPolicyID from '@hooks/useSearchBulkEditPolicyID';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {updateBulkEditDraftTransaction} from '@libs/actions/IOU';
 import Navigation from '@libs/Navigation/Navigation';
-import {getSearchBulkEditPolicyID} from '@libs/SearchUIUtils';
 import type {TaxRatesOption} from '@libs/TaxOptionsListUtils';
 import {transformedTaxRates} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
@@ -17,14 +17,9 @@ import ONYXKEYS from '@src/ONYXKEYS';
 function SearchEditMultipleTaxPage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [draftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_BULK_EDIT_TRANSACTION_ID}`);
-    const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
-    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
 
-    const selectedTransactionIDs = draftTransaction?.selectedTransactionIDs ?? [];
-
-    const policyID = getSearchBulkEditPolicyID(selectedTransactionIDs, activePolicyID, allTransactions, allReports);
+    const policyID = useSearchBulkEditPolicyID();
 
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
 
