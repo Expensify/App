@@ -33,18 +33,7 @@ jest.mock('@src/hooks/useRootNavigationState', () => {
     }));
 });
 
-// Mock the specific function that's causing the navigation error
-jest.mock('@libs/Navigation/helpers/navigateToWorkspacesPage', () => ({
-    default: jest.fn(),
-    getWorkspaceNavigationRouteState: jest.fn(() => ({
-        lastWorkspacesTabNavigatorRoute: null,
-        workspacesTabState: null,
-        topmostFullScreenRoute: {
-            name: 'Main',
-            params: {},
-        },
-    })),
-}));
+jest.mock('@hooks/useRestoreWorkspacesTabOnNavigate', () => jest.fn(() => jest.fn()));
 
 // Helper function to render with proper navigation setup
 const renderWithNavigation = (component: React.ReactElement) => {

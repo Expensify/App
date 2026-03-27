@@ -311,26 +311,6 @@ function getRequestType(transaction: OnyxEntry<Transaction>): IOURequestType {
 }
 
 /**
- * Determines the expense type of a given transaction.
- */
-function getExpenseType(transaction: OnyxEntry<Transaction>): ValueOf<typeof CONST.IOU.EXPENSE_TYPE> | undefined {
-    if (!transaction) {
-        return undefined;
-    }
-
-    if (isExpensifyCardTransaction(transaction)) {
-        if (isPending(transaction)) {
-            return CONST.IOU.EXPENSE_TYPE.PENDING_EXPENSIFY_CARD;
-        }
-
-        return CONST.IOU.EXPENSE_TYPE.EXPENSIFY_CARD;
-    }
-
-    const requestType = getRequestType(transaction);
-    return requestType as ValueOf<typeof CONST.IOU.EXPENSE_TYPE>;
-}
-
-/**
  * Determines the transaction type based on custom unit name, comment type or card name.
  * Returns 'distance' for Distance transactions, 'perDiem' for Per Diem International transactions,
  * 'time' for time transactions,
@@ -2895,7 +2875,6 @@ export {
     getClearedPendingFields,
     getDescription,
     getRequestType,
-    getExpenseType,
     getTransactionType,
     isManualRequest,
     isScanRequest,
