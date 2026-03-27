@@ -17,18 +17,21 @@ type AgentZeroStatusState = {
 };
 
 /**
- * Safety timeout for the processing indicator (lease pattern).
- * If the client misses the server CLEAR update (e.g., Onyx batching coalesced SET+CLEAR,
- * Pusher reconnect delivered stale state, or the CLEAR was dropped), the indicator
- * auto-expires after this duration. This follows the "lease pattern" from distributed
- * systems: every state assertion must be time-bounded.
+ * Progressive retry intervals for the processing indicator (lease pattern).
  *
- * 60s is appropriate because:
- * - AI processing can take 30-45s on dev environments
- * - XMPP uses 30s for composing to paused transitions
- * - This gives a comfortable margin above normal processing time
+ * Instead of hard-clearing the indicator after a single timeout, we progressively
+ * retry fetching newer actions. Long Concierge responses can take up to 2 minutes,
+ * so a hard 60s TTL would incorrectly clear a legitimate in-progress response.
+ *
+ * Schedule:
+ * - 60s: First retry — call getNewerActions, keep indicator showing
+ * - 90s: Second retry — call getNewerActions again, keep indicator showing
+ * - 120s: Final retry — if still no new actions AND online (Pusher connected), clear the indicator
+ *
+ * If a Concierge reply arrives at any point (via Pusher or getNewerActions response),
+ * the normal Onyx update clears the indicator automatically.
  */
-const SAFETY_TIMEOUT_MS = 60000;
+const PROGRESSIVE_RETRY_INTERVALS_MS = [60000, 90000, 120000];
 
 /**
  * Hook to manage AgentZero status indicator for chats where AgentZero responds.
@@ -67,7 +70,8 @@ function useAgentZeroStatusIndicator(reportID: string, isAgentZeroChat: boolean)
     const prevServerLabelRef = useRef<string>(serverLabel);
     const updateTimerRef = useRef<NodeJS.Timeout | null>(null);
     const lastUpdateTimeRef = useRef<number>(0);
-    const safetyTimerRef = useRef<NodeJS.Timeout | null>(null);
+    const retryTimersRef = useRef<NodeJS.Timeout[]>([]);
+    const isOfflineRef = useRef<boolean>(false);
 
     // Minimum time to display a label before allowing change (prevents rapid flicker)
     const MIN_DISPLAY_TIME = 300; // ms
@@ -75,46 +79,57 @@ function useAgentZeroStatusIndicator(reportID: string, isAgentZeroChat: boolean)
     const DEBOUNCE_DELAY = 150; // ms
 
     /**
-     * Clear the safety timeout. Called when the indicator clears normally
-     * or when the component unmounts.
+     * Clear all progressive retry timers. Called when the indicator clears normally,
+     * when a new processing cycle starts, or when the component unmounts.
      */
-    const clearSafetyTimer = useCallback(() => {
-        if (!safetyTimerRef.current) {
-            return;
+    const clearRetryTimers = useCallback(() => {
+        for (const timer of retryTimersRef.current) {
+            clearTimeout(timer);
         }
-        clearTimeout(safetyTimerRef.current);
-        safetyTimerRef.current = null;
+        retryTimersRef.current = [];
     }, []);
 
     /**
-     * Auto-clear the indicator by resetting local state and clearing the Onyx NVP.
-     * This is the "lease expiry" — if no renewal (new server label) or explicit clear
-     * arrived within the timeout window, assume the indicator is stale.
-     *
-     * Also fetches newer report actions via HTTP, because the most likely reason
-     * the timer fired is that the Pusher CLEAR event (and possibly the Concierge
-     * response itself) was dropped. getNewerActions pulls any missed actions from
-     * the server so the user sees the response without a manual refresh.
+     * Hard-clear the indicator by resetting local state and clearing the Onyx NVP.
+     * This is the final "lease expiry" — called only after all progressive retries
+     * are exhausted and the network is connected (Pusher should have delivered the response).
      */
-    const autoClearIndicator = useCallback(() => {
+    const hardClearIndicator = useCallback(() => {
+        // If offline, don't clear — the response may arrive when reconnected
+        if (isOfflineRef.current) {
+            return;
+        }
         setOptimisticStartTime(null);
         setDisplayedLabel('');
         clearAgentZeroProcessingIndicator(reportID);
-        safetyTimerRef.current = null;
-
-        // Fetch any report actions the client may have missed (e.g., the Concierge
-        // response that should have arrived alongside the indicator CLEAR).
         getNewerActions(reportID, newestReportActionIDRef.current);
     }, [reportID]);
 
     /**
-     * Start or reset the safety timeout. Every time processing becomes active
-     * or the server label changes (renewal), the timer resets to the full duration.
+     * Start the progressive retry schedule. Every time processing becomes active
+     * or the server label changes (renewal), all existing timers are cleared and
+     * the full retry schedule restarts.
+     *
+     * - Intermediate retries call getNewerActions (the response, if it arrives,
+     *   will clear the indicator via normal Onyx updates).
+     * - The final retry hard-clears the indicator if still showing.
      */
-    const startSafetyTimer = useCallback(() => {
-        clearSafetyTimer();
-        safetyTimerRef.current = setTimeout(autoClearIndicator, SAFETY_TIMEOUT_MS);
-    }, [clearSafetyTimer, autoClearIndicator]);
+    const startRetryTimers = useCallback(() => {
+        clearRetryTimers();
+        const lastIndex = PROGRESSIVE_RETRY_INTERVALS_MS.length - 1;
+        for (const [index, delay] of PROGRESSIVE_RETRY_INTERVALS_MS.entries()) {
+            const timer = setTimeout(() => {
+                if (index < lastIndex) {
+                    // Intermediate retry: poll for missed actions but keep indicator showing
+                    getNewerActions(reportID, newestReportActionIDRef.current);
+                } else {
+                    // Final retry: clear if still stuck and online
+                    hardClearIndicator();
+                }
+            }, delay);
+            retryTimersRef.current.push(timer);
+        }
+    }, [clearRetryTimers, hardClearIndicator, reportID]);
 
     // Clear indicator on network reconnect. When Pusher reconnects, stale NVP state
     // may be re-delivered. Like typing indicators (Report/index.ts:486), we reset
@@ -122,7 +137,7 @@ function useAgentZeroStatusIndicator(reportID: string, isAgentZeroChat: boolean)
     // We also call getNewerActions to pull any responses missed during the outage.
     const {isOffline} = useNetwork({
         onReconnect: () => {
-            clearSafetyTimer();
+            clearRetryTimers();
             setOptimisticStartTime(null);
             setDisplayedLabel('');
             clearAgentZeroProcessingIndicator(reportID);
@@ -198,7 +213,7 @@ function useAgentZeroStatusIndicator(reportID: string, isAgentZeroChat: boolean)
         // Start/reset the safety timer — the label acts as a lease renewal.
         if (hasServerLabel) {
             updateLabel(serverLabel);
-            startSafetyTimer();
+            startRetryTimers();
             if (optimisticStartTime) {
                 setOptimisticStartTime(null);
             }
@@ -207,12 +222,12 @@ function useAgentZeroStatusIndicator(reportID: string, isAgentZeroChat: boolean)
         else if (optimisticStartTime) {
             const thinkingLabel = translate('common.thinking');
             updateLabel(thinkingLabel);
-            // Safety timer was already started in kickoffWaitingIndicator
+            // Retry timers were already started in kickoffWaitingIndicator
         }
         // Clear everything when processing ends — either via the normal transition
         // (server label went from non-empty to empty), or when the indicator is idle.
         else {
-            clearSafetyTimer();
+            clearRetryTimers();
             if (displayedLabel !== '') {
                 updateLabel('');
             }
@@ -230,7 +245,11 @@ function useAgentZeroStatusIndicator(reportID: string, isAgentZeroChat: boolean)
             }
             clearTimeout(updateTimerRef.current);
         };
-    }, [serverLabel, reasoningHistory.length, reportID, optimisticStartTime, translate, displayedLabel, startSafetyTimer, clearSafetyTimer]);
+    }, [serverLabel, reasoningHistory.length, reportID, optimisticStartTime, translate, displayedLabel, startRetryTimers, clearRetryTimers]);
+
+    useEffect(() => {
+        isOfflineRef.current = isOffline;
+    }, [isOffline]);
 
     useEffect(() => {
         if (isOffline) {
@@ -239,12 +258,12 @@ function useAgentZeroStatusIndicator(reportID: string, isAgentZeroChat: boolean)
         setOptimisticStartTime(null);
     }, [isOffline]);
 
-    // Clean up safety timer on unmount
+    // Clean up retry timers on unmount
     useEffect(
         () => () => {
-            clearSafetyTimer();
+            clearRetryTimers();
         },
-        [clearSafetyTimer],
+        [clearRetryTimers],
     );
 
     const kickoffWaitingIndicator = useCallback(() => {
@@ -252,8 +271,8 @@ function useAgentZeroStatusIndicator(reportID: string, isAgentZeroChat: boolean)
             return;
         }
         setOptimisticStartTime(Date.now());
-        startSafetyTimer();
-    }, [isAgentZeroChat, startSafetyTimer]);
+        startRetryTimers();
+    }, [isAgentZeroChat, startRetryTimers]);
 
     const isProcessing = isAgentZeroChat && !isOffline && (!!serverLabel || !!optimisticStartTime);
 
