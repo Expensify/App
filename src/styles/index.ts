@@ -4319,6 +4319,7 @@ const staticStyles = (theme: ThemeColors) =>
 
         tabSelectorContentContainer: {
             flexGrow: 1,
+            paddingBottom: 12,
             paddingHorizontal: 20,
         },
 
@@ -4868,7 +4869,6 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         searchActionsBarContainer: {
-            marginTop: 12,
             marginBottom: 16,
             paddingHorizontal: 20,
             flexDirection: 'row',
