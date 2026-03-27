@@ -10,12 +10,13 @@ import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import {isAuthenticationError} from '@libs/actions/connections';
 import getPlatform from '@libs/getPlatform';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import {canUseTaxNetSuite} from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
 import type {ThemeStyles} from '@styles/index';
 import {getTrackingCategories} from '@userActions/connections/Xero';
 import CONST from '@src/CONST';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {Policy} from '@src/types/onyx';
 import type {Account, ConnectionName, Connections, PolicyConnectionName, QBDNonReimbursableExportAccountType, QBDReimbursableExportAccountType} from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -286,7 +287,7 @@ function getAccountingIntegrationData(
                 onImportPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_IMPORT.getRoute(policyID)),
                 onExportPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_EXPORT.getRoute(policyID)),
                 onCardReconciliationPagePress: () => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_CARD_RECONCILIATION.getRoute(policyID, CONST.POLICY.CONNECTIONS.ROUTE.QBD)),
-                onAdvancedPagePress: () => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_DESKTOP_ADVANCED.getRoute(policyID)),
+                onAdvancedPagePress: () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_DESKTOP_ADVANCED.path)),
                 subscribedImportSettings: [
                     CONST.QUICKBOOKS_DESKTOP_CONFIG.ENABLE_NEW_CATEGORIES,
                     CONST.QUICKBOOKS_DESKTOP_CONFIG.MAPPINGS.CLASSES,

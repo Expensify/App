@@ -124,6 +124,10 @@ const DYNAMIC_ROUTES = {
         path: 'card-select',
         entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_DESKTOP_COMPANY_CARD_EXPENSE_ACCOUNT],
     },
+    WORKSPACE_ACCOUNTING_QUICKBOOKS_DESKTOP_ADVANCED: {
+        path: 'advanced',
+        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.ROOT],
+    },
 } as const satisfies DynamicRoutes;
 
 const ROUTES = {
@@ -1780,17 +1784,6 @@ const ROUTES = {
 
             // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
             return getUrlWithBackToParam(`workspaces/${policyID}/accounting/quickbooks-desktop/export/company-card-expense-account` as const, backTo);
-        },
-    },
-    WORKSPACE_ACCOUNTING_QUICKBOOKS_DESKTOP_ADVANCED: {
-        route: 'workspaces/:policyID/accounting/quickbooks-desktop/advanced',
-        getRoute: (policyID?: string, backTo?: string) => {
-            if (!policyID) {
-                Log.warn('Invalid policyID is used to build the WORKSPACE_ACCOUNTING_QUICKBOOKS_DESKTOP_ADVANCED route');
-            }
-
-            // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-            return getUrlWithBackToParam(`workspaces/${policyID}/accounting/quickbooks-desktop/advanced` as const, backTo);
         },
     },
     POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_AUTO_SYNC: {
