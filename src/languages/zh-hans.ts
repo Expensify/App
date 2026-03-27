@@ -86,6 +86,7 @@ import type {
     UpdateRoleParams,
     UpgradeSuccessMessageParams,
     UserIsAlreadyMemberParams,
+    ViolationsIncreasedDistanceParams,
     ViolationsMissingTagParams,
     ViolationsModifiedAmountParams,
     ViolationsProhibitedExpenseParams,
@@ -702,6 +703,7 @@ const translations: TranslationDeepObject<typeof en> = {
         unsupportedDevice: {
             unsupportedDevice: '不支持的设备',
             pleaseDownloadMobileApp: `您的设备不支持此操作。请从<a href="${CONST.APP_DOWNLOAD_LINKS.IOS}">App Store</a>或<a href="${CONST.APP_DOWNLOAD_LINKS.ANDROID}">Google Play 商店</a>下载 Expensify 应用，然后重试。`,
+            pleaseUseWebApp: `您的设备不支持此操作。请使用<a href="${CONST.NEW_EXPENSIFY_URL}">Expensify 网页应用</a>重试。`,
         },
         verificationFailed: '验证失败',
         setPin: {didNotShipCard: '我们未能寄出您的卡。请重试。'},
@@ -3196,6 +3198,13 @@ ${
         hasCurrencyError: (workspaceRoute: string) => `哎呀！看起来您的工作区货币不是 USD。要继续操作，请前往<a href="${workspaceRoute}">工作区设置</a>将其设置为 USD，然后再试一次。`,
         bbaAdded: '已添加企业银行账户！',
         bbaAddedDescription: '它已准备好用于付款。',
+        lockedBankAccount: '已锁定的银行账户',
+        unlockBankAccount: '解锁银行账户',
+        youCantPayThis: `您无法支付此报告，因为您有一个<a href="${CONST.UNLOCK_BANK_ACCOUNT_HELP_URL}">已锁定的银行账户</a>。请点击下方，礼宾服务将协助您完成解锁步骤。`,
+        htmlUnlockMessage: (maskedAccountNumber: string) =>
+            `<h1>Expensify Business Bank Account ${maskedAccountNumber}</h1><p>感谢您提交解锁银行账户的请求。提款请求可能因余额不足或银行账户未启用直接借记而被拒绝。我们将审核您的情况，如需更多信息来解决此问题，我们会与您联系。</p>`,
+        textUnlockMessage: (maskedAccountNumber: string) =>
+            `Expensify Business Bank Account ${maskedAccountNumber}\n感谢您提交解锁银行账户的请求。提款请求可能因余额不足或银行账户未启用直接借记而被拒绝。我们将审核您的情况，如需更多信息来解决此问题，我们会与您联系。`,
         error: {
             youNeedToSelectAnOption: '请选择一个选项以继续',
             noBankAccountAvailable: '抱歉，没有可用的银行账户',
@@ -4984,6 +4993,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                 flipAmountSign: '翻转金额符号',
                 importButton: '导入交易',
             },
+            assignNewCards: {title: '分配新卡', description: '从您的银行获取可分配的最新银行卡'},
         },
         expensifyCard: {
             issueAndManageCards: '发放并管理您的 Expensify 卡',
@@ -6246,21 +6256,24 @@ ${reportName}
         },
         downgrade: {
             commonFeatures: {
-                title: '降级到 Collect 方案',
-                note: '如果您降级，您将失去对以下这些功能及更多功能的访问权限：',
+                title: '降级为 Collect',
+                note: '您将无法再使用以下功能',
                 benefits: {
-                    note: '如需完整比较我们的套餐，请查看我们的',
-                    pricingPage: '定价页面',
-                    confirm: '确定要降级并删除您的配置吗？',
-                    warning: '此操作无法撤销。',
-                    benefit1: '会计连接（QuickBooks Online 和 Xero 除外）',
-                    benefit2: '智能报销规则',
-                    benefit3: '多级审批工作流程',
-                    benefit4: '增强的安全控制',
+                    confirm: '你需要将每个工作区的“套餐类型”更改为“Collect”，才能锁定 Collect 费率。',
+                    benefit1: 'NetSuite、Sage Intacct、QuickBooks Desktop、Oracle、Microsoft Dynamics',
+                    benefit2: 'Workday、Certinia',
+                    benefit3: 'SSO/SAML',
+                    benefit4: '智能报销规则、日津贴、多级审批、自定义报表和预算管理',
                     headsUp: '注意！',
                     multiWorkspaceNote: '在首次月度付款前，您需要将所有工作区降级，才能以 Collect 费率开始订阅。点击',
                     selectStep: '> 选择每个工作区 > 将套餐类型更改为',
+                    benefit1Label: 'ERP 集成',
+                    benefit2Label: '人力资源集成',
+                    benefit3Label: '安全',
+                    benefit4Label: '高级',
+                    important: '重要：',
                 },
+                noteAndMore: '以及更多：',
             },
             completed: {
                 headline: '您的工作区已被降级',
@@ -6330,7 +6343,7 @@ ${reportName}
                 eReceiptsHint: `电子收据会自动为[大多数美元信用卡交易](${CONST.DEEP_DIVE_ERECEIPTS})创建。`,
                 attendeeTracking: '参会者跟踪',
                 attendeeTrackingHint: '跟踪每笔报销的单人费用。',
-                prohibitedDefaultDescription: '标记所有包含酒精、赌博或其他受限项目的收据。含有这些项目的收据报销将需要人工审核。',
+                prohibitedDefaultDescription: '将包含这些明细项目的收据标记为人工审核。',
                 prohibitedExpenses: '禁止报销的费用',
                 alcohol: '酒精',
                 hotelIncidentals: '酒店杂费',
@@ -6637,7 +6650,6 @@ ${reportName}
             return `${newValue ? '已启用' : '已禁用'}${customUnitName}费率“${customUnitRateName}”`;
         },
         deleteCustomUnitRate: ({customUnitName, rateName}: AddOrDeletePolicyCustomUnitRateParams) => `已删除“${customUnitName}”费率“${rateName}”`,
-        addedReportField: ({fieldType, fieldName}: AddedOrDeletedPolicyReportFieldParams) => `已添加${fieldType}报表字段“${fieldName}”`,
         updateReportFieldDefaultValue: ({defaultValue, fieldName}: UpdatedPolicyReportFieldDefaultValueParams) => `将报表字段“${fieldName}”的默认值设置为“${defaultValue}”`,
         addedReportFieldOption: (fieldName: string, optionName: string) => `已将选项“${optionName}”添加到报表字段“${fieldName}”`,
         removedReportFieldOption: (fieldName: string, optionName: string) => `已从报表字段“${fieldName}”中移除选项“${optionName}”`,
@@ -6941,6 +6953,8 @@ ${reportName}
             approvedReimbursedClosedSpend,
         }: UpdatedPolicyBudgetNotificationParams) =>
             `提醒！此工作区的${budgetTypeForNotificationMessage}“${budgetName}”设有${budgetFrequency}预算“${budgetAmount}”。你当前已花费${approvedReimbursedClosedSpend}，已超过预算的${thresholdPercentage}%。另外还有${awaitingApprovalSpend}在等待审批，以及${unsubmittedSpend}尚未提交，总计${totalSpend}。${summaryLink ? `<a href="${summaryLink}">这里有一份报表</a>，包含了所有相关报销记录，供你留档保存！` : ''}`,
+        addedReportField: ({fieldType, fieldName, defaultValue}: AddedOrDeletedPolicyReportFieldParams) =>
+            `已添加 ${fieldType} 报告字段“${fieldName}”${defaultValue ? ` 默认值为“${defaultValue}”` : ''}`,
     },
     roomMembersPage: {
         memberNotFound: '未找到成员。',
@@ -7415,6 +7429,9 @@ ${reportName}
         scrollToNewestMessages: '滚动到最新消息',
         preStyledText: '预设样式文本',
         viewAttachment: '查看附件',
+        contextMenuAvailable: '上下文菜单可用。按 Shift+F10 打开。',
+        contextMenuAvailableMacOS: '上下文菜单可用。按 VO-Shift-M 打开。',
+        contextMenuAvailableNative: '上下文菜单可用。双击并按住即可打开。',
         selectAllFeatures: '选择所有功能',
         selectAllTransactions: '选择所有交易',
         selectAllItems: '全选所有项目',
@@ -7681,6 +7698,8 @@ ${reportName}
             }
         },
         modifiedDate: '日期与已扫描收据不符',
+        increasedDistance: ({formattedRouteDistance}: ViolationsIncreasedDistanceParams) =>
+            formattedRouteDistance ? `距离超过计算出的路线 ${formattedRouteDistance}` : '距离超过计算的路线',
         nonExpensiworksExpense: '非 Expensiworks 报销',
         overAutoApprovalLimit: (formattedLimit: string) => `报销金额超出自动审批上限 ${formattedLimit}`,
         overCategoryLimit: (formattedLimit: string) => `金额超出每人 ${formattedLimit} 的类别限额`,
@@ -8212,6 +8231,7 @@ ${reportName}
             theresWasAProblemDuringAWorkspaceConnectionSync: '在工作区连接同步过程中出现问题',
             theresAProblemWithYourWallet: '您的钱包出现问题',
             theresAProblemWithYourWalletTerms: '您的钱包条款存在问题',
+            aBankAccountIsLocked: '银行账户已锁定',
         },
     },
     emptySearchView: {
