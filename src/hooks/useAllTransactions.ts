@@ -31,15 +31,10 @@ function useAllTransactions() {
                 {} as Record<string, OnyxEntry<Transaction>>,
             );
 
-        const merged: Record<string, OnyxEntry<Transaction>> = {...filteredSearchTransactions};
-        if (allTransactionsCollection) {
-            for (const [key, value] of Object.entries(allTransactionsCollection)) {
-                if (value) {
-                    merged[key] = merged[key] ? {...merged[key], ...value} : value;
-                }
-            }
-        }
-        return merged;
+        return {
+            ...filteredSearchTransactions,
+            ...allTransactionsCollection,
+        };
     }, [currentSearchResults?.data, allTransactionsCollection]);
 
     return allTransactions;
