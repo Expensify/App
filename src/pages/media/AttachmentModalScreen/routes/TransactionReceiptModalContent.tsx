@@ -25,6 +25,7 @@ import cropOrRotateImage from '@libs/cropOrRotateImage';
 import fetchImage from '@libs/fetchImage';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import getPlatform from '@libs/getPlatform';
+import moveReceiptToDurableStorage from '@libs/moveReceiptToDurableStorage';
 import Navigation from '@libs/Navigation/Navigation';
 import {getThumbnailAndImageURIs} from '@libs/ReceiptUtils';
 import {getReportAction, isTrackExpenseAction} from '@libs/ReportActionsUtils';
@@ -296,34 +297,38 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
             .then((rotatedImage) => {
                 if (!rotatedImage) {
                     setIsRotating(false);
-                    return;
+                    return Promise.resolve();
                 }
 
                 const imageUriResult = 'uri' in rotatedImage && rotatedImage.uri ? rotatedImage.uri : undefined;
                 if (!imageUriResult) {
                     setIsRotating(false);
-                    return;
+                    return Promise.resolve();
                 }
 
                 const file = rotatedImage as File;
                 const rotatedFilename = file.name ?? receiptFilename;
 
-                if (isOdometerImage) {
-                    setMoneyRequestOdometerImage(transaction.transactionID, imageType, file, isDraftTransaction);
-                } else if (isDraftTransaction) {
-                    setMoneyRequestReceipt(transaction.transactionID, imageUriResult, rotatedFilename, isDraftTransaction, fileType);
-                } else {
-                    replaceReceipt({
-                        transactionID: transaction.transactionID,
-                        file,
-                        source: imageUriResult,
-                        state: transaction.receipt?.state,
-                        transactionPolicyCategories: policyCategories,
-                        transactionPolicy: policy,
-                        isSameReceipt: true,
-                    });
-                }
-                setIsRotating(false);
+                return moveReceiptToDurableStorage(imageUriResult, rotatedFilename).then((durableUri) => {
+                    const durableFile = {...file, uri: durableUri, source: durableUri};
+
+                    if (isOdometerImage) {
+                        setMoneyRequestOdometerImage(transaction.transactionID, imageType, durableFile, isDraftTransaction);
+                    } else if (isDraftTransaction) {
+                        setMoneyRequestReceipt(transaction.transactionID, durableUri, rotatedFilename, isDraftTransaction, fileType);
+                    } else {
+                        replaceReceipt({
+                            transactionID: transaction.transactionID,
+                            file: durableFile,
+                            source: durableUri,
+                            state: transaction.receipt?.state,
+                            transactionPolicyCategories: policyCategories,
+                            transactionPolicy: policy,
+                            isSameReceipt: true,
+                        });
+                    }
+                    setIsRotating(false);
+                });
             })
             .catch(() => {
                 setIsRotating(false);
@@ -383,33 +388,37 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
             .then((croppedImage) => {
                 if (!croppedImage) {
                     setIsCropSaving(false);
-                    return;
+                    return Promise.resolve();
                 }
 
                 const imageUriResult = 'uri' in croppedImage && croppedImage.uri ? croppedImage.uri : undefined;
                 if (!imageUriResult) {
                     setIsCropSaving(false);
-                    return;
+                    return Promise.resolve();
                 }
 
                 const file = croppedImage as File;
                 const croppedFilename = file.name ?? receiptFilename;
 
-                if (isOdometerImage) {
-                    setMoneyRequestOdometerImage(transaction.transactionID, imageType, file, isDraftTransaction);
-                } else if (isDraftTransaction) {
-                    setMoneyRequestReceipt(transaction.transactionID, imageUriResult, croppedFilename, isDraftTransaction, fileType);
-                } else {
-                    replaceReceipt({
-                        transactionID: transaction.transactionID,
-                        file,
-                        source: imageUriResult,
-                        transactionPolicyCategories: policyCategories,
-                        transactionPolicy: policy,
-                    });
-                }
-                setIsCropSaving(false);
-                exitCropMode();
+                return moveReceiptToDurableStorage(imageUriResult, croppedFilename).then((durableUri) => {
+                    const durableFile = {...file, uri: durableUri, source: durableUri};
+
+                    if (isOdometerImage) {
+                        setMoneyRequestOdometerImage(transaction.transactionID, imageType, durableFile, isDraftTransaction);
+                    } else if (isDraftTransaction) {
+                        setMoneyRequestReceipt(transaction.transactionID, durableUri, croppedFilename, isDraftTransaction, fileType);
+                    } else {
+                        replaceReceipt({
+                            transactionID: transaction.transactionID,
+                            file: durableFile,
+                            source: durableUri,
+                            transactionPolicyCategories: policyCategories,
+                            transactionPolicy: policy,
+                        });
+                    }
+                    setIsCropSaving(false);
+                    exitCropMode();
+                });
             })
             .catch(() => {
                 setIsCropSaving(false);

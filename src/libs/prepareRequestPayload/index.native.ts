@@ -24,7 +24,7 @@ const prepareRequestPayload: PrepareRequestPayload = (command, data, initiatedOf
                 if (source) {
                     return checkFileExists(source).then((exists) => {
                         if (!exists) {
-                            return;
+                            throw new Error(`Receipt file not found at path: ${source}. The file may have been deleted from a temporary cache before upload.`);
                         }
                         const receiptFormData = {
                             uri,
