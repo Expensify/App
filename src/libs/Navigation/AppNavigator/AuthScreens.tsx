@@ -189,16 +189,6 @@ function AuthScreens() {
                             component={RootTabNavigator}
                         />
                         <RootStack.Screen
-                            name={NAVIGATORS.DOMAIN_SPLIT_NAVIGATOR}
-                            options={getWorkspaceOrDomainSplitNavigatorOptions}
-                            getComponent={loadDomainSplitNavigator}
-                        />
-                        <RootStack.Screen
-                            name={NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR}
-                            options={getWorkspaceOrDomainSplitNavigatorOptions}
-                            getComponent={loadWorkspaceSplitNavigator}
-                        />
-                        <RootStack.Screen
                             name={SCREENS.VALIDATE_LOGIN}
                             options={{
                                 ...rootNavigatorScreenOptions.fullScreen,

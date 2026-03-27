@@ -16,7 +16,6 @@ import useReceiptScanDrop from '@hooks/useReceiptScanDrop';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import usePreloadFullScreenNavigators from '@libs/Navigation/AppNavigator/usePreloadFullScreenNavigators';
 import variables from '@styles/variables';
 import ONYXKEYS from '@src/ONYXKEYS';
 import AnnouncementSection from './AnnouncementSection';
@@ -39,9 +38,6 @@ function HomePage() {
     // This hook signals that the app is ready to be opened after HomePage mounts
     // to make sure everything loads properly
     useConfirmReadyToOpenApp();
-
-    // This hook preloads the screens of adjacent tabs to make changing tabs faster.
-    usePreloadFullScreenNavigators();
 
     return (
         <DragAndDropProvider isDisabled={isDragDisabled}>
