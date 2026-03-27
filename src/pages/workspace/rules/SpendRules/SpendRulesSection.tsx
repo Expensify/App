@@ -5,18 +5,35 @@ import Icon from '@components/Icon';
 import MenuItem from '@components/MenuItem';
 import Section from '@components/Section';
 import Text from '@components/Text';
-import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
+import useConfirmModal from '@hooks/useConfirmModal';
 
 function SpendRulesSection() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Lock']);
+    const {showConfirmModal} = useConfirmModal();
+    const illustrations = useMemoizedLazyIllustrations(['ExpensifyCardIllustration']);
+
+    const showBuiltInProtectionModal = () => {
+        showConfirmModal({
+            image: illustrations.ExpensifyCardIllustration,
+            imageStyles: [styles.ph5, styles.pv5],
+            title: translate('workspace.rules.spendRules.builtInProtectionModal.title'),
+            titleStyles: [styles.textHeadlineH1],
+            titleContainerStyles: styles.mb2,
+            prompt: translate('workspace.rules.spendRules.builtInProtectionModal.description'),
+            shouldShowCancelButton: false,
+            success: false,
+            confirmText: translate('common.buttonConfirm'),
+        });
+    };
 
     const defaultRuleTitle = translate('workspace.rules.spendRules.defaultRuleTitle');
     const descriptionLabel = translate('workspace.rules.spendRules.defaultRuleDescription');
@@ -63,9 +80,9 @@ function SpendRulesSection() {
 
     return (
         <Section
-            isCentralPane
             renderTitle={renderSectionTitle}
             subtitle={translate('workspace.rules.spendRules.subtitle')}
+            isCentralPane
             subtitleMuted
         >
             <MenuItem
@@ -73,6 +90,7 @@ function SpendRulesSection() {
                 titleComponent={menuItemBody}
                 accessibilityLabel={`${descriptionLabel}. ${blockLabel} ${defaultRuleTitle}`}
                 sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.SPEND_RULE_ITEM}
+                onPress={showBuiltInProtectionModal}
                 shouldShowRightIcon
             />
         </Section>
