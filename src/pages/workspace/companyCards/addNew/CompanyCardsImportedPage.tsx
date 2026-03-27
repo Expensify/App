@@ -4,6 +4,7 @@ import type {ColumnRole} from '@components/ImportColumn';
 import ImportSpreadsheetColumns from '@components/ImportSpreadsheetColumns';
 import ImportSpreadsheetConfirmModal from '@components/ImportSpreadsheetConfirmModal';
 import ScreenWrapper from '@components/ScreenWrapper';
+import useCloseImportPage from '@hooks/useCloseImportPage';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
@@ -36,6 +37,7 @@ function CompanyCardsImportedPage({route}: CompanyCardsImportedPageProps) {
     const [lastSelectedFeed] = useOnyx(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${policyID}`);
     const [workspaceCardFeeds] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`);
     const [isImportingTransactions, setIsImportingTransactions] = useState(false);
+    const {setIsClosing} = useCloseImportPage();
     const shouldUseAdvancedFields = addNewCard?.data?.useAdvancedFields ?? false;
     const layoutName = addNewCard?.data?.companyCardLayoutName ?? '';
     const prefilledLayoutType = addNewCard?.data?.layoutType;
@@ -146,6 +148,7 @@ function CompanyCardsImportedPage({route}: CompanyCardsImportedPageProps) {
     }
 
     const closeImportPageAndModal = () => {
+        setIsClosing(true);
         setIsImportingTransactions(false);
         Navigation.goBack(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID));
     };

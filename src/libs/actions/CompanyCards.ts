@@ -1178,16 +1178,7 @@ function importCSVCompanyCards({
     const shouldCreateFeed = !existingCompanyCards?.[feedName];
     const shouldSetNickname = !existingNicknames?.[feedName] && !!layoutName;
 
-    const cardNumberColumnIndex = normalizedColumnMappings.indexOf(CONST.CSV_IMPORT_COLUMNS.CARD_NUMBER);
-    const cardNumbersFromCSV = new Set<string>();
-    if (cardNumberColumnIndex !== -1 && optimisticTransactions.length > 0) {
-        for (const row of csvDataWithGeneratedIDs) {
-            const cardNumber = row?.at(cardNumberColumnIndex)?.trim();
-            if (cardNumber) {
-                cardNumbersFromCSV.add(cardNumber);
-            }
-        }
-    }
+    const cardNumbersFromCSV = new Set<string>(optimisticTransactions.map((t) => t.cardName).filter((cardName): cardName is string => !!cardName));
 
     const existingCardNames = new Set<string>();
     const existingCardList = existingCardsList?.cardList ?? {};
