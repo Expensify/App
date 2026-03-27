@@ -2,6 +2,7 @@ import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import Button from '@components/Button';
+import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MagicCodeInput from '@components/MagicCodeInput';
 import type {MagicCodeInputHandle} from '@components/MagicCodeInput';
@@ -10,7 +11,6 @@ import {useMultifactorAuthentication, useMultifactorAuthenticationActions, useMu
 import addMFABreadcrumb from '@components/MultifactorAuthentication/observability/breadcrumbs';
 import MultifactorAuthenticationValidateCodeResendButton from '@components/MultifactorAuthentication/ValidateCodeResendButton';
 import type {MultifactorAuthenticationValidateCodeResendButtonHandle} from '@components/MultifactorAuthentication/ValidateCodeResendButton';
-import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
@@ -268,12 +268,13 @@ function MultifactorAuthenticationValidateCodePage() {
                         onResendValidationCode={resendValidationCode}
                     />
                 </View>
-                <OfflineWithFeedback
-                    shouldDisplayErrorAbove
-                    errors={errorMessage ? {error: errorMessage} : undefined}
-                    errorRowStyles={[styles.mh5]}
-                    style={[styles.w100, styles.mtAuto]}
-                >
+                <View style={[styles.w100, styles.mtAuto]}>
+                    {!!errorMessage && (
+                        <FormHelpMessage
+                            style={[styles.mh5]}
+                            message={errorMessage}
+                        />
+                    )}
                     <Button
                         success
                         large
@@ -283,7 +284,7 @@ function MultifactorAuthenticationValidateCodePage() {
                         isLoading={isValidateCodeFormSubmitting}
                         isDisabled={isOffline}
                     />
-                </OfflineWithFeedback>
+                </View>
                 <CancelConfirmModal
                     isVisible={isCancelModalVisible}
                     onConfirm={cancelFlow}
