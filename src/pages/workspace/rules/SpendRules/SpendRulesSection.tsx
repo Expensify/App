@@ -1,6 +1,7 @@
 import React from 'react';
 import {View} from 'react-native';
 import Badge from '@components/Badge';
+import Icon from '@components/Icon';
 import MenuItem from '@components/MenuItem';
 import Section from '@components/Section';
 import Text from '@components/Text';
@@ -32,19 +33,31 @@ function SpendRulesSection() {
         </View>
     );
 
-    const menuItemTitle = () => (
-        <View style={[styles.flexRow, styles.gap2]}>
-            <Badge
-                text={blockLabel}
-                badgeStyles={[styles.ml0]}
-                error
-                isCondensed
-            />
-            <Text
-                style={[styles.flex1, styles.textStrong, styles.themeTextColor, styles.preWrap]}
-            >
-                {defaultRuleTitle}
-            </Text>
+    const menuItemBody = (
+        <View>
+            <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap1, styles.mb2]}>
+                <Icon
+                    src={expensifyIcons.Lock}
+                    width={variables.iconSizeSmall}
+                    height={variables.iconSizeSmall}
+                    fill={theme.icon}
+                />
+                <Text
+                    style={[styles.flex1, styles.textLabelSupporting, styles.fontSizeLabel]}
+                    numberOfLines={2}
+                >
+                    {descriptionLabel}
+                </Text>
+            </View>
+            <View style={[styles.flexRow, styles.gap2, styles.alignItemsStart]}>
+                <Badge
+                    text={blockLabel}
+                    badgeStyles={[styles.ml0, styles.mt0Half]}
+                    error
+                    isCondensed
+                />
+                <Text style={[styles.flex1, styles.textStrong, styles.themeTextColor, styles.preWrap]}>{defaultRuleTitle}</Text>
+            </View>
         </View>
     );
 
@@ -56,17 +69,11 @@ function SpendRulesSection() {
             subtitleMuted
         >
             <MenuItem
-                wrapperStyle={[styles.sectionMenuItemTopDescription, styles.borderedContentCardLarge, styles.mt3, styles.mh0, styles.ph4, styles.pv3]}
-                description={descriptionLabel}
-                descriptionTextStyle={[styles.textLabelSupporting, styles.fontSizeLabel, styles.mb2]}
-                titleComponent={menuItemTitle()}
-                // icon={expensifyIcons.Lock}
-                // iconWidth={variables.iconSizeSmall}
-                // iconHeight={variables.iconSizeSmall}
-                // iconFill={theme.textSupporting}
-                shouldShowRightIcon
+                wrapperStyle={[styles.borderedContentCard, styles.mt6, styles.ph4, styles.pv4]}
+                titleComponent={menuItemBody}
                 accessibilityLabel={`${descriptionLabel}. ${blockLabel} ${defaultRuleTitle}`}
                 sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.SPEND_RULE_ITEM}
+                shouldShowRightIcon
             />
         </Section>
     );
