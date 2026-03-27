@@ -7399,7 +7399,7 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
         recentSearches: 'Recente zoekopdrachten',
         recentChats: 'Recente chats',
         searchIn: 'Zoeken in',
-        searchPlaceholder: 'Zoek iets',
+        searchPlaceholder: 'Zoek iets...',
         suggestions: 'Suggesties',
         suggestionsAvailable: ({count}: {count: number}, query = '') => ({
             one: `Suggesties beschikbaar${query ? ` voor ${query}` : ''}. ${count} resultaat.`,

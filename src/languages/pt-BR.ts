@@ -7387,7 +7387,7 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
         recentSearches: 'Pesquisas recentes',
         recentChats: 'Chats recentes',
         searchIn: 'Pesquisar em',
-        searchPlaceholder: 'Pesquisar algo',
+        searchPlaceholder: 'Pesquisar algo...',
         suggestions: 'Sugestões',
         suggestionsAvailable: ({count}: {count: number}, query = '') => ({
             one: `Sugestões disponíveis${query ? ` para ${query}` : ''}. ${count} resultado.`,

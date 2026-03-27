@@ -7469,7 +7469,7 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
         recentSearches: 'Recherches récentes',
         recentChats: 'Discussions récentes',
         searchIn: 'Rechercher dans',
-        searchPlaceholder: 'Rechercher quelque chose',
+        searchPlaceholder: 'Rechercher quelque chose...',
         suggestions: 'Suggestions',
         suggestionsAvailable: ({count}: {count: number}, query = '') => ({
             one: `Suggestions disponibles${query ? ` pour ${query}` : ''}. ${count} résultat.`,

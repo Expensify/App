@@ -7400,7 +7400,7 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
         recentSearches: 'Ostatnie wyszukiwania',
         recentChats: 'Ostatnie czaty',
         searchIn: 'Szukaj w',
-        searchPlaceholder: 'Wyszukaj coś',
+        searchPlaceholder: 'Wyszukaj coś...',
         suggestions: 'Sugestie',
         suggestionsAvailable: ({count}: {count: number}, query = '') => ({
             one: `Dostępne sugestie${query ? ` dla ${query}` : ''}. ${count} wynik.`,

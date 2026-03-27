@@ -7322,7 +7322,7 @@ ${amount} para ${merchant} - ${date}`,
         recentSearches: 'Búsquedas recientes',
         recentChats: 'Chats recientes',
         searchIn: 'Buscar en',
-        searchPlaceholder: 'Busca algo',
+        searchPlaceholder: 'Busca algo...',
         suggestions: 'Sugerencias',
         suggestionsAvailable: ({count}: {count: number}, query = '') => ({
             one: `Sugerencias disponibles${query ? ` para ${query}` : ''}. ${count} resultado.`,

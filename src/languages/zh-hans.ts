@@ -7217,7 +7217,7 @@ ${reportName}
         recentSearches: '最近搜索',
         recentChats: '最近聊天',
         searchIn: '搜索范围',
-        searchPlaceholder: '搜索内容',
+        searchPlaceholder: '搜索内容...',
         suggestions: '建议',
         suggestionsAvailable: ({count}: {count: number}, query = '') => ({
             one: `有可用建议${query ? `：${query}` : ''}。共${count}条结果。`,

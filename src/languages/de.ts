@@ -7445,7 +7445,7 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
         recentSearches: 'Letzte Suchen',
         recentChats: 'Neueste Chats',
         searchIn: 'Suchen in',
-        searchPlaceholder: 'Nach etwas suchen',
+        searchPlaceholder: 'Nach etwas suchen...',
         suggestions: 'Vorschläge',
         suggestionsAvailable: ({count}: {count: number}, query = '') => ({
             one: `Vorschläge verfügbar${query ? ` für ${query}` : ''}. ${count} Ergebnis.`,

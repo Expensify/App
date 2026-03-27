@@ -7433,7 +7433,7 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
         recentSearches: 'Ricerche recenti',
         recentChats: 'Chat recenti',
         searchIn: 'Cerca in',
-        searchPlaceholder: 'Cerca qualcosa',
+        searchPlaceholder: 'Cerca qualcosa...',
         suggestions: 'Suggerimenti',
         suggestionsAvailable: ({count}: {count: number}, query = '') => ({
             one: `Suggerimenti disponibili${query ? ` per ${query}` : ''}. ${count} risultato.`,

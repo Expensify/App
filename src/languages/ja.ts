@@ -7341,7 +7341,7 @@ ${reportName}
         recentSearches: '最近の検索',
         recentChats: '最近のチャット',
         searchIn: '検索対象',
-        searchPlaceholder: '何かを検索',
+        searchPlaceholder: '何かを検索...',
         suggestions: '提案',
         suggestionsAvailable: ({count}: {count: number}, query = '') => ({
             one: `候補があります${query ? `: ${query}` : ''}。${count}件の結果。`,
