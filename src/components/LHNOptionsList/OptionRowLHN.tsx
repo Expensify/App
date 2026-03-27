@@ -165,7 +165,10 @@ function OptionRowLHN({
     const brickRoadIndicator = optionItem.brickRoadIndicator;
     const isTrackIntentUser = onboardingPurpose === CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE || onboardingPurpose === CONST.ONBOARDING_CHOICES.PERSONAL_SPEND;
     const shouldUseMarkAsDone = isTrackIntentUser && (optionItem.actionBadge === CONST.REPORT.ACTION_BADGE.SUBMIT || optionItem.actionBadge === CONST.REPORT.ACTION_BADGE.APPROVE);
-    const actionBadgeText = !isProduction && optionItem.actionBadge ? (shouldUseMarkAsDone ? translate('common.markAsDone') : translate(`common.actionBadge.${optionItem.actionBadge}`)) : '';
+    let actionBadgeText = '';
+    if (!isProduction && optionItem.actionBadge) {
+        actionBadgeText = shouldUseMarkAsDone ? translate('common.markAsDone') : translate(`common.actionBadge.${optionItem.actionBadge}`);
+    }
     let accessibilityLabelForBadge = '';
     if (brickRoadIndicator) {
         accessibilityLabelForBadge = [translate('common.yourReviewIsRequired'), actionBadgeText].filter(Boolean).join(', ');

@@ -1660,6 +1660,8 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
         expensifyIcons.Send,
         expensifyIcons.ThumbsUp,
         kycWallRef,
+        approveButtonText,
+        submitButtonText,
     ]);
 
     const connectedIntegrationName = connectedIntegration

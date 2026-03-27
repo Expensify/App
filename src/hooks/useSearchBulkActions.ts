@@ -1193,6 +1193,8 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         styles.textWrap,
         userBillingGraceEndPeriods,
         currentSearchKey,
+        isTrackIntentUser,
+        shouldShowBusinessBankAccountOptions,
     ]);
 
     const handleOfflineModalClose = useCallback(() => {
