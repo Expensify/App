@@ -4872,6 +4872,7 @@ const staticStyles = (theme: ThemeColors) =>
             marginBottom: 16,
             paddingHorizontal: 20,
             flexDirection: 'row',
+            alignItems: 'flex-start',
             justifyContent: 'space-between',
             zIndex: 10,
         },
