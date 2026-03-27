@@ -62,7 +62,6 @@ export default function () {
         snapshotMergeKeys: ['pendingAction', 'pendingFields'],
         ramOnlyKeys: [
             ONYXKEYS.DERIVED.SORTED_REPORT_ACTIONS,
-            ONYXKEYS.RAM_ONLY_IS_CHECKING_PUBLIC_ROOM,
             ONYXKEYS.RAM_ONLY_UPDATE_AVAILABLE,
             ONYXKEYS.RAM_ONLY_UPDATE_REQUIRED,
             ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS,
