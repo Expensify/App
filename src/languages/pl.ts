@@ -86,6 +86,7 @@ import type {
     UpdateRoleParams,
     UpgradeSuccessMessageParams,
     UserIsAlreadyMemberParams,
+    ViolationsIncreasedDistanceParams,
     ViolationsMissingTagParams,
     ViolationsModifiedAmountParams,
     ViolationsProhibitedExpenseParams,
@@ -723,6 +724,7 @@ const translations: TranslationDeepObject<typeof en> = {
         unsupportedDevice: {
             unsupportedDevice: 'Nieobsługiwane urządzenie',
             pleaseDownloadMobileApp: `Ta akcja nie jest obsługiwana na Twoim urządzeniu. Pobierz aplikację Expensify z <a href="${CONST.APP_DOWNLOAD_LINKS.IOS}">App Store</a> lub <a href="${CONST.APP_DOWNLOAD_LINKS.ANDROID}">Sklepu Google Play</a> i spróbuj ponownie.`,
+            pleaseUseWebApp: `Ta akcja nie jest obsługiwana na Twoim urządzeniu. Użyj <a href="${CONST.NEW_EXPENSIFY_URL}">aplikacji webowej Expensify</a> i spróbuj ponownie.`,
         },
         verificationFailed: 'Weryfikacja nie powiodła się',
         setPin: {didNotShipCard: 'Nie wysłaliśmy twojej karty. Spróbuj ponownie.'},
@@ -3264,6 +3266,13 @@ ${
             `Ups! Wygląda na to, że waluta Twojego przestrzeni roboczej jest inna niż USD. Aby kontynuować, przejdź do <a href="${workspaceRoute}">ustawień swojej przestrzeni roboczej</a>, ustaw ją na USD i spróbuj ponownie.`,
         bbaAdded: 'Dodano firmowe konto bankowe!',
         bbaAddedDescription: 'Jest gotowe do używania do płatności.',
+        lockedBankAccount: 'Zablokowane konto bankowe',
+        unlockBankAccount: 'Odblokuj konto bankowe',
+        youCantPayThis: `Nie możesz zapłacić za ten raport, ponieważ masz <a href="${CONST.UNLOCK_BANK_ACCOUNT_HELP_URL}">zablokowane konto bankowe</a>. Stuknij poniżej, a Concierge pomoże Ci w kolejnych krokach odblokowania.`,
+        htmlUnlockMessage: (maskedAccountNumber: string) =>
+            `<h1>Expensify Business Bank Account ${maskedAccountNumber}</h1><p>Dziękujemy za przesłanie prośby o odblokowanie konta bankowego. Wnioski o wypłatę mogą zostać odrzucone z powodu niewystarczających środków lub jeśli konto bankowe nie zostało aktywowane do polecenia zapłaty. Przeanalizujemy Twoją sprawę i skontaktujemy się z Tobą, jeśli będziemy potrzebować dodatkowych informacji w celu rozwiązania tego problemu.</p>`,
+        textUnlockMessage: (maskedAccountNumber: string) =>
+            `Expensify Business Bank Account ${maskedAccountNumber}\nDziękujemy za przesłanie prośby o odblokowanie konta bankowego. Wnioski o wypłatę mogą zostać odrzucone z powodu niewystarczających środków lub jeśli konto bankowe nie zostało aktywowane do polecenia zapłaty. Przeanalizujemy Twoją sprawę i skontaktujemy się z Tobą, jeśli będziemy potrzebować dodatkowych informacji w celu rozwiązania tego problemu.`,
         error: {
             youNeedToSelectAnOption: 'Wybierz opcję, aby kontynuować',
             noBankAccountAvailable: 'Przepraszamy, brak dostępnego konta bankowego',
@@ -6401,21 +6410,24 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
         downgrade: {
             commonFeatures: {
                 title: 'Zmień plan na Collect',
-                note: 'Jeśli przejdziesz na niższy plan, utracisz dostęp do tych funkcji i wielu innych:',
+                note: 'Stracisz dostęp do następujących funkcji',
                 benefits: {
-                    note: 'Aby zobaczyć pełne porównanie naszych planów, sprawdź nasz',
-                    pricingPage: 'strona cenowa',
-                    confirm: 'Czy na pewno chcesz obniżyć plan i usunąć swoje konfiguracje?',
-                    warning: 'Tej operacji nie można cofnąć.',
-                    benefit1: 'Połączenia księgowe (z wyjątkiem QuickBooks Online i Xero)',
-                    benefit2: 'Inteligentne reguły wydatków',
-                    benefit3: 'Wielopoziomowe przepływy zatwierdzania',
-                    benefit4: 'Zaawansowane mechanizmy zabezpieczeń',
+                    confirm: 'Musisz zmienić „Typ planu” każdego obszaru roboczego na „Collect”, aby uzyskać stawkę Collect.',
+                    benefit1: 'NetSuite, Sage Intacct, QuickBooks Desktop, Oracle, Microsoft Dynamics',
+                    benefit2: 'Workday, Certinia',
+                    benefit3: 'SSO/SAML',
+                    benefit4: 'Inteligentne reguły wydatków, diety, wielopoziomowe zatwierdzanie, raportowanie niestandardowe i budżetowanie',
                     headsUp: 'Uwaga!',
                     multiWorkspaceNote:
                         'Przed pierwszą miesięczną płatnością musisz obniżyć pakiet wszystkich swoich przestrzeni roboczych, aby rozpocząć subskrypcję w taryfie Collect. Kliknij',
                     selectStep: '> wybierz każdą przestrzeń roboczą > zmień typ planu na',
+                    benefit1Label: 'Integracje ERP',
+                    benefit2Label: 'Integracje HR',
+                    benefit3Label: 'Bezpieczeństwo',
+                    benefit4Label: 'Zaawansowane',
+                    important: 'WAŻNE:',
                 },
+                noteAndMore: 'i więcej:',
             },
             completed: {
                 headline: 'Twoje środowisko pracy zostało zdegradowane',
@@ -6488,8 +6500,7 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
                 eReceiptsHint: `eParagony są automatycznie tworzone [dla większości transakcji kartą kredytową w USD](${CONST.DEEP_DIVE_ERECEIPTS}).`,
                 attendeeTracking: 'Śledzenie uczestników',
                 attendeeTrackingHint: 'Śledź koszt na osobę dla każdego wydatku.',
-                prohibitedDefaultDescription:
-                    'Oznacz paragony, na których występują alkohol, hazard lub inne zabronione pozycje. Wydatki z paragonami zawierającymi takie pozycje będą wymagały ręcznego sprawdzenia.',
+                prohibitedDefaultDescription: 'Oznacz paragony z tymi pozycjami do ręcznej weryfikacji.',
                 prohibitedExpenses: 'Wydatki niedozwolone',
                 alcohol: 'Alkohol',
                 hotelIncidentals: 'Dodatkowe opłaty hotelowe',
@@ -6803,7 +6814,6 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
             return `${newValue ? 'włączone' : 'wyłączone'} stawkę jednostki niestandardowej ${customUnitName} „${customUnitRateName}”`;
         },
         deleteCustomUnitRate: ({customUnitName, rateName}: AddOrDeletePolicyCustomUnitRateParams) => `usunięto stawkę „${rateName}” jednostki „${customUnitName}”`,
-        addedReportField: ({fieldType, fieldName}: AddedOrDeletedPolicyReportFieldParams) => `dodano pole raportu ${fieldType} „${fieldName}”`,
         updateReportFieldDefaultValue: ({defaultValue, fieldName}: UpdatedPolicyReportFieldDefaultValueParams) => `ustaw domyślną wartość pola raportu „${fieldName}” na „${defaultValue}”`,
         addedReportFieldOption: (fieldName: string, optionName: string) => `dodano opcję „${optionName}” do pola raportu „${fieldName}”`,
         removedReportFieldOption: (fieldName: string, optionName: string) => `usunął opcję „${optionName}” z pola raportu „${fieldName}”`,
@@ -7120,6 +7130,8 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
             approvedReimbursedClosedSpend,
         }: UpdatedPolicyBudgetNotificationParams) =>
             `Uwaga! Ta przestrzeń robocza ma ${budgetFrequency} budżet w wysokości „${budgetAmount}” dla ${budgetTypeForNotificationMessage} „${budgetName}”. Obecnie wykorzystano ${approvedReimbursedClosedSpend}, co przekracza ${thresholdPercentage}% budżetu. Dodatkowo ${awaitingApprovalSpend} czeka na zatwierdzenie, a ${unsubmittedSpend} nie zostało jeszcze przesłane, co daje łącznie ${totalSpend}. ${summaryLink ? `<a href="${summaryLink}">Oto raport</a> ze wszystkimi tymi wydatkami do Twoich dokumentów!` : ''}`,
+        addedReportField: ({fieldType, fieldName, defaultValue}: AddedOrDeletedPolicyReportFieldParams) =>
+            `dodano pole raportu typu ${fieldType} „${fieldName}”${defaultValue ? ` z domyślną wartością „${defaultValue}”` : ''}`,
     },
     roomMembersPage: {
         memberNotFound: 'Nie znaleziono członka.',
@@ -7883,6 +7895,8 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
             }
         },
         modifiedDate: 'Data różni się od zeskanowanego paragonu',
+        increasedDistance: ({formattedRouteDistance}: ViolationsIncreasedDistanceParams) =>
+            formattedRouteDistance ? `Dystans przekracza obliczoną trasę ${formattedRouteDistance}` : 'Dystans przekracza obliczoną trasę',
         nonExpensiworksExpense: 'Wydatek spoza Expensiworks',
         overAutoApprovalLimit: (formattedLimit: string) => `Wydatek przekracza automatyczny limit zatwierdzania w wysokości ${formattedLimit}`,
         overCategoryLimit: (formattedLimit: string) => `Kwota przekracza limit kategorii w wysokości ${formattedLimit}/osobę`,
@@ -8427,6 +8441,7 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
             theresWasAProblemDuringAWorkspaceConnectionSync: 'Wystąpił problem podczas synchronizacji połączenia przestrzeni roboczej',
             theresAProblemWithYourWallet: 'Wystąpił problem z Twoim portfelem',
             theresAProblemWithYourWalletTerms: 'Wystąpił problem z warunkami Twojego portfela',
+            aBankAccountIsLocked: 'Konto bankowe jest zablokowane',
         },
     },
     emptySearchView: {

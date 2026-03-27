@@ -1186,6 +1186,7 @@ const CONST = {
     DOMAIN_VERIFICATION_HELP_URL: 'https://help.expensify.com/articles/new-expensify/workspaces/Claim-and-Verify-a-Domain',
     SAML_HELP_URL: 'https://help.expensify.com/articles/expensify-classic/domains/Set-Up-SAML-SSO',
     REGISTER_FOR_WEBINAR_URL: 'https://events.zoom.us/eo/Aif1I8qCi1GZ7KnLnd1vwGPmeukSRoPjFpyFAZ2udQWn0-B86e1Z~AggLXsr32QYFjq8BlYLZ5I06Dg',
+    UNLOCK_BANK_ACCOUNT_HELP_URL: 'https://help.expensify.com/articles/new-expensify/wallet-and-payments/Unlock-a-Business-Bank-Account',
     TEST_RECEIPT_URL: `${CLOUDFRONT_URL}/images/fake-receipt__tacotodds.png`,
     // Use Environment.getEnvironmentURL to get the complete URL with port number
     DEV_NEW_EXPENSIFY_URL: 'https://dev.new.expensify.com:',
@@ -1614,16 +1615,6 @@ const CONST = {
             BILL: 'bill',
         },
         CHAT_TYPE: chatTypes,
-        HELP_TYPE: {
-            ...chatTypes,
-            CHAT_CONCIERGE: 'concierge',
-            EXPENSE_REPORT: 'expenseReport',
-            EXPENSE: 'expense',
-            CHAT: 'chat',
-            IOU: 'iou',
-            TASK: 'task',
-            INVOICE: 'invoice',
-        },
         WORKSPACE_CHAT_ROOMS: {
             ANNOUNCE: '#announce',
             ADMINS: '#admins',
@@ -1853,6 +1844,7 @@ const CONST = {
         BREADCRUMB_CATEGORY_MFA: 'mfa',
         BREADCRUMB_CATEGORY_3DS_NAVIGATION: '3ds.navigation',
         BREADCRUMB_CATEGORY_3DS_AUTHORIZE: '3ds.authorize',
+        BREADCRUMB_CATEGORY_BOOTSPLASH_FLOW: 'bootsplash.flow',
         BREADCRUMB_CATEGORY_MODULE_INIT: 'module.init',
         BREADCRUMB_CATEGORY_SCRIPT_LOAD: 'script.load',
         BREADCRUMB_MEMORY_PERIODIC: 'Periodic memory check',
@@ -1934,7 +1926,9 @@ const CONST = {
             ROOT: 'BootsplashVisibleLocale',
             TRANSLATIONS_LOAD: 'LocaleTranslationsLoad',
             EMOJI_IMPORT: 'LocaleEmojiImport',
+            EMOJI_TRIE_BUILD: 'LocaleEmojiTrieBuild',
         },
+        SPAN_ONYX_DERIVED_COMPUTE: 'OnyxDerivedCompute',
         SPAN_NAVIGATION: {
             ROOT: 'BootsplashVisibleNavigation',
             PUSHER_INIT: 'NavigationPusherInit',
@@ -3300,19 +3294,6 @@ const CONST = {
             START: 'start',
             END: 'end',
         },
-        EXPENSE_TYPE: {
-            DISTANCE: 'distance',
-            MANUAL: 'manual',
-            SCAN: 'scan',
-            PER_DIEM: 'per-diem',
-            EXPENSIFY_CARD: 'expensifyCard',
-            PENDING_EXPENSIFY_CARD: 'pendingExpensifyCard',
-            DISTANCE_MAP: 'distance-map',
-            DISTANCE_MANUAL: 'distance-manual',
-            DISTANCE_GPS: 'distance-gps',
-            DISTANCE_ODOMETER: 'distance-odometer',
-            TIME: 'time',
-        },
 
         REPORT_ACTION_TYPE: {
             PAY: 'pay',
@@ -3996,6 +3977,7 @@ const CONST = {
             WELLS_FARGO: 'oauth.wellsfargo.com',
             AMEX_DIRECT: 'oauth.americanexpressfdx.com',
             AMEX_FILE_DOWNLOAD: 'americanexpressfd.us',
+            MOCK_BANK: 'oauth.mockbank.com',
             CSV: 'upload',
         },
     },
@@ -6400,6 +6382,7 @@ const CONST = {
         MISSING_TAG: 'missingTag',
         MODIFIED_AMOUNT: 'modifiedAmount',
         MODIFIED_DATE: 'modifiedDate',
+        INCREASED_DISTANCE: 'increasedDistance',
         PROHIBITED_EXPENSE: 'prohibitedExpense',
         NON_EXPENSIWORKS_EXPENSE: 'nonExpensiworksExpense',
         OVER_AUTO_APPROVAL_LIMIT: 'overAutoApprovalLimit',
@@ -8322,6 +8305,7 @@ const CONST = {
         HAS_EMPLOYEE_CARD_FEED_ERRORS: 'hasEmployeeCardFeedErrors',
         HAS_POLICY_ADMIN_CARD_FEED_ERRORS: 'hasPolicyAdminCardFeedErrors',
         HAS_DOMAIN_ERRORS: 'hasDomainErrors',
+        HAS_LOCKED_BANK_ACCOUNT: 'hasLockedBankAccount',
     },
 
     DEBUG: {
@@ -8939,6 +8923,10 @@ const CONST = {
             PREV_MONTH: 'CalendarPicker-PrevMonth',
             NEXT_MONTH: 'CalendarPicker-NextMonth',
             DAY: 'CalendarPicker-Day',
+        },
+        PREV_NEXT_BUTTONS: {
+            PREV_BUTTON: 'PrevNextButtons-PrevButton',
+            NEXT_BUTTON: 'PrevNextButtons-NextButton',
         },
         REPORT_DETAILS: {
             WORKSPACE_LINK: 'ReportDetails-WorkspaceLink',
