@@ -15,7 +15,7 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
-import {doesContainReservedWord, isValidLegalName, isValidDisplayName} from '@libs/ValidationUtils';
+import {doesContainReservedWord, isValidDisplayName} from '@libs/ValidationUtils';
 import CONST from '@src/CONST';
 import type {OnyxFormKey} from '@src/ONYXKEYS';
 import ONYXKEYS from '@src/ONYXKEYS';
