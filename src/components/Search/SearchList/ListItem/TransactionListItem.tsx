@@ -211,6 +211,7 @@ function TransactionListItem<TItem extends ListItem>({
                         <TransactionItemRow
                             transactionItem={transactionItem}
                             report={transactionItem.report}
+                            policy={transactionItem.policy}
                             shouldShowTooltip={showTooltip}
                             onButtonPress={handleActionButtonPress}
                             onCheckboxPress={() => onCheckboxPress?.(item)}
