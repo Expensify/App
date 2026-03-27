@@ -7,11 +7,11 @@ import Navigation from '@libs/Navigation/Navigation';
 import {rand64} from '@libs/NumberUtils';
 import {getTransactionDetails, isOpenReport} from '@libs/ReportUtils';
 import {buildOptimisticTransaction, getChildTransactions, getOriginalTransactionWithSplitInfo, isDistanceRequest} from '@libs/TransactionUtils';
-import {getStoredDefaultP2PMileageRate} from '@userActions/Transaction';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Policy, Report, Transaction} from '@src/types/onyx';
+import type DefaultP2PMileageRate from '@src/types/onyx/DefaultP2PMileageRate';
 import type {Attendee} from '@src/types/onyx/IOU';
 import type {TransactionCustomUnit} from '@src/types/onyx/Transaction';
 import {initSplitExpenseItemData, updateSplitExpenseDistanceFromAmount} from './IOU/Split';
@@ -39,7 +39,7 @@ Onyx.connectWithoutView({
 /**
  * Create a draft transaction to set up split expense details for the split expense flow
  */
-function initSplitExpense(transaction: OnyxEntry<Transaction>, policy?: OnyxEntry<Policy>): void {
+function initSplitExpense(transaction: OnyxEntry<Transaction>, policy?: OnyxEntry<Policy>, defaultP2PMileageRate?: DefaultP2PMileageRate): void {
     if (!transaction) {
         return;
     }
@@ -95,7 +95,7 @@ function initSplitExpense(transaction: OnyxEntry<Transaction>, policy?: OnyxEntr
     const splitMerchants: Array<string | undefined> = [undefined, undefined];
 
     if (isDistanceRequest(transaction)) {
-        const mileageRate = DistanceRequestUtils.getRate({transaction, policy: policy ?? undefined, defaultP2PMileageRate: getStoredDefaultP2PMileageRate()});
+        const mileageRate = DistanceRequestUtils.getRate({transaction, policy: policy ?? undefined, defaultP2PMileageRate});
         const {unit, rate} = mileageRate;
 
         if (rate && rate > 0 && transaction?.comment?.customUnit) {

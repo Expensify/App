@@ -165,7 +165,6 @@ import addTrailingForwardSlash from '@libs/UrlUtils';
 import Visibility from '@libs/Visibility';
 import {cacheAttachment, removeCachedAttachment} from '@userActions/Attachment';
 import {clearByKey} from '@userActions/CachedPDFPaths';
-import getStoredDefaultP2PMileageRate from '@userActions/DefaultP2PMileageRateStore';
 import {setDownload} from '@userActions/Download';
 import {close} from '@userActions/Modal';
 import navigateFromNotification from '@userActions/navigateFromNotification';
@@ -215,6 +214,7 @@ import type {
     TransactionViolations,
     VisibleReportActionsDerivedValue,
 } from '@src/types/onyx';
+import type DefaultP2PMileageRate from '@src/types/onyx/DefaultP2PMileageRate';
 import type {Decision} from '@src/types/onyx/OriginalMessage';
 import type {CurrentUserPersonalDetails, Timezone} from '@src/types/onyx/PersonalDetails';
 import type {ConnectionName} from '@src/types/onyx/Policy';
@@ -5617,6 +5617,7 @@ type DeleteAppReportProps = {
     translate: LocaleContextProps['translate'];
     toLocaleDigit: LocaleContextProps['toLocaleDigit'];
     hash?: number;
+    defaultP2PMileageRate?: DefaultP2PMileageRate;
 };
 
 /** Deletes a report and un-reports all transactions on the report along with its reportActions, any linked reports and any linked IOU report actions. */
@@ -5632,6 +5633,7 @@ function deleteAppReport({
     translate,
     toLocaleDigit,
     hash,
+    defaultP2PMileageRate,
 }: DeleteAppReportProps) {
     if (!report?.reportID) {
         Log.warn('[Report] deleteAppReport called with no reportID');
@@ -5767,7 +5769,7 @@ function deleteAppReport({
                 personalPolicy?.outputCurrency,
                 translate,
                 toLocaleDigit,
-                getStoredDefaultP2PMileageRate(),
+                defaultP2PMileageRate,
             );
 
             optimisticData.push(

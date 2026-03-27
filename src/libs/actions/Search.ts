@@ -68,6 +68,7 @@ import type {
     Transaction,
     TransactionViolations,
 } from '@src/types/onyx';
+import type DefaultP2PMileageRate from '@src/types/onyx/DefaultP2PMileageRate';
 import type {PaymentInformation} from '@src/types/onyx/LastPaymentMethod';
 import type {ConnectionName} from '@src/types/onyx/Policy';
 import type {OnyxData} from '@src/types/onyx/Request';
@@ -125,6 +126,7 @@ type BulkDeleteReportsParams = {
     toLocaleDigit: LocaleContextProps['toLocaleDigit'];
     transactions?: OnyxCollection<Transaction>;
     allReportNameValuePairs: OnyxCollection<ReportNameValuePairs>;
+    defaultP2PMileageRate?: DefaultP2PMileageRate;
 };
 
 function handleActionButtonPress({
@@ -877,6 +879,7 @@ function bulkDeleteReports({
     toLocaleDigit,
     transactions,
     allReportNameValuePairs,
+    defaultP2PMileageRate,
 }: BulkDeleteReportsParams) {
     const transactionIDList: string[] = [];
     const reportIDList: string[] = [];
@@ -952,6 +955,7 @@ function bulkDeleteReports({
                 personalPolicy,
                 translate,
                 toLocaleDigit,
+                defaultP2PMileageRate,
             });
         }
     }

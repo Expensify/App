@@ -882,7 +882,7 @@ function MoneyRequestView({
                             }
 
                             if (shouldShowSplitIndicator && isSplitAvailable) {
-                                initSplitExpense(transaction, policy);
+                                initSplitExpense(transaction, policy, defaultP2PMileageRate);
                                 return;
                             }
 

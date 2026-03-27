@@ -15,6 +15,7 @@ function useUndeleteTransactions() {
     const {translate, toLocaleDigit} = useLocalize();
     const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${personalPolicyID}`);
+    const [defaultP2PMileageRate] = useOnyx(ONYXKEYS.DEFAULT_P2P_MILEAGE_RATE);
 
     return (transactionIDs: string[]) => {
         changeTransactionsReport({
@@ -26,6 +27,7 @@ function useUndeleteTransactions() {
             allTransactions,
             translate,
             toLocaleDigit,
+            defaultP2PMileageRate,
         });
     };
 }

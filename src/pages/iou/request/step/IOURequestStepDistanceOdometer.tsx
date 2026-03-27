@@ -398,6 +398,7 @@ function IOURequestStepDistanceOdometer({
                         odometerEnd: end,
                     },
                     policy,
+                    defaultP2PMileageRate,
                 );
                 Navigation.goBack();
                 return;
@@ -482,6 +483,7 @@ function IOURequestStepDistanceOdometer({
             isSelfTourViewed: !!isSelfTourViewed,
             amountOwed,
             ownerBillingGraceEndPeriod,
+            defaultP2PMileageRate,
         });
     };
 

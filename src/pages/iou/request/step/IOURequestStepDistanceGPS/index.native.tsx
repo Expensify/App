@@ -134,6 +134,7 @@ function IOURequestStepDistanceGPS({
             isSelfTourViewed: !!isSelfTourViewed,
             amountOwed,
             ownerBillingGraceEndPeriod,
+            defaultP2PMileageRate,
         });
     };
 

@@ -180,7 +180,7 @@ function IOURequestStepDistanceManual({
             if (action === CONST.IOU.ACTION.EDIT) {
                 // In the split flow, when editing we use SPLIT_TRANSACTION_DRAFT to save draft value
                 if (isEditingSplit && transaction) {
-                    setDraftSplitTransaction(transaction.transactionID, splitDraftTransaction, {distance: distanceAsFloat}, policy);
+                    setDraftSplitTransaction(transaction.transactionID, splitDraftTransaction, {distance: distanceAsFloat}, policy, defaultP2PMileageRate);
                     Navigation.goBack(backTo);
                     return;
                 }
@@ -252,6 +252,7 @@ function IOURequestStepDistanceManual({
                 isSelfTourViewed: !!isSelfTourViewed,
                 amountOwed,
                 ownerBillingGraceEndPeriod,
+                defaultP2PMileageRate,
             });
         },
         [
@@ -300,6 +301,7 @@ function IOURequestStepDistanceManual({
             isSelfTourViewed,
             amountOwed,
             ownerBillingGraceEndPeriod,
+            defaultP2PMileageRate,
         ],
     );
 

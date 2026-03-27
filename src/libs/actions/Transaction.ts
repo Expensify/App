@@ -67,12 +67,12 @@ import type {
     TransactionViolation,
     TransactionViolations,
 } from '@src/types/onyx';
+import type DefaultP2PMileageRate from '@src/types/onyx/DefaultP2PMileageRate';
 import type {OriginalMessageIOU, OriginalMessageModifiedExpense} from '@src/types/onyx/OriginalMessage';
 import type {OnyxData} from '@src/types/onyx/Request';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 import type {Waypoint, WaypointCollection} from '@src/types/onyx/Transaction';
 import type TransactionState from '@src/types/utils/TransactionStateType';
-import getStoredDefaultP2PMileageRate from './DefaultP2PMileageRateStore';
 import {getPolicyTags} from './IOU/index';
 
 let allReports: OnyxCollection<Report> = {};
@@ -861,6 +861,7 @@ type ChangeTransactionsReportProps = {
     allTransactions: OnyxCollection<Transaction>;
     translate: LocaleContextProps['translate'];
     toLocaleDigit: LocaleContextProps['toLocaleDigit'];
+    defaultP2PMileageRate?: DefaultP2PMileageRate;
 };
 
 function changeTransactionsReport({
@@ -875,6 +876,7 @@ function changeTransactionsReport({
     allTransactions,
     translate,
     toLocaleDigit,
+    defaultP2PMileageRate,
 }: ChangeTransactionsReportProps) {
     const reportID = newReport?.reportID ?? CONST.REPORT.UNREPORTED_REPORT_ID;
 
@@ -1061,7 +1063,7 @@ function changeTransactionsReport({
         };
 
         const {comment, modifiedAmount, modifiedCurrency, modifiedMerchant} = isUnreported
-            ? recalculateUnreportedTransactionDetails(transaction, destinationCurrency, translate, toLocaleDigit, getStoredDefaultP2PMileageRate())
+            ? recalculateUnreportedTransactionDetails(transaction, destinationCurrency, translate, toLocaleDigit, defaultP2PMileageRate)
             : {};
 
         // 1. Optimistically update the transaction with full data and changed fields.
@@ -1700,5 +1702,4 @@ export {
     setTransactionReport,
     mergeTransactionIdsHighlightOnSearchRoute,
     getDuplicateTransactionDetails,
-    getStoredDefaultP2PMileageRate,
 };

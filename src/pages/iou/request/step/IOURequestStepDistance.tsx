@@ -351,6 +351,7 @@ function IOURequestStepDistance({
             isSelfTourViewed: !!isSelfTourViewed,
             amountOwed,
             ownerBillingGraceEndPeriod,
+            defaultP2PMileageRate,
         });
     }, [
         iouType,
@@ -389,6 +390,7 @@ function IOURequestStepDistance({
         isSelfTourViewed,
         amountOwed,
         ownerBillingGraceEndPeriod,
+        defaultP2PMileageRate,
     ]);
 
     const getError = () => {
@@ -460,6 +462,7 @@ function IOURequestStepDistance({
                     originalSplitTransactionDraft,
                     {waypoints: currentTransaction?.comment?.waypoints, routes: currentTransaction?.routes},
                     policy,
+                    defaultP2PMileageRate,
                 );
                 navigateBack();
                 return;
@@ -527,6 +530,7 @@ function IOURequestStepDistance({
         currentUserEmailParam,
         isASAPSubmitBetaEnabled,
         parentReportNextStep,
+        defaultP2PMileageRate,
     ]);
 
     const renderItem = useCallback(

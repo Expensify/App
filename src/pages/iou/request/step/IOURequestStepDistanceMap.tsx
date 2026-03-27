@@ -344,6 +344,7 @@ function IOURequestStepDistanceMap({
             isSelfTourViewed: !!isSelfTourViewed,
             amountOwed,
             ownerBillingGraceEndPeriod,
+            defaultP2PMileageRate,
         });
     }, [
         iouType,
@@ -382,6 +383,7 @@ function IOURequestStepDistanceMap({
         isSelfTourViewed,
         amountOwed,
         ownerBillingGraceEndPeriod,
+        defaultP2PMileageRate,
     ]);
 
     const getError = () => {
@@ -448,7 +450,7 @@ function IOURequestStepDistanceMap({
         if (isEditing) {
             // In the split flow, when editing we use SPLIT_TRANSACTION_DRAFT to save draft value
             if (isEditingSplit && transaction) {
-                setDraftSplitTransaction(transaction.transactionID, splitDraftTransaction, {waypoints}, policy);
+                setDraftSplitTransaction(transaction.transactionID, splitDraftTransaction, {waypoints}, policy, defaultP2PMileageRate);
                 navigateBack();
                 return;
             }
@@ -512,6 +514,7 @@ function IOURequestStepDistanceMap({
         isASAPSubmitBetaEnabled,
         parentReportNextStep,
         recentWaypoints,
+        defaultP2PMileageRate,
     ]);
 
     const renderItem = useCallback(

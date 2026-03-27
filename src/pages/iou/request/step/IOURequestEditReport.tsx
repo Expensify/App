@@ -64,6 +64,7 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
     const policyForMovingExpenses = policyForMovingExpensesID ? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyForMovingExpensesID}`] : undefined;
     const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [defaultP2PMileageRate] = useOnyx(ONYXKEYS.DEFAULT_P2P_MILEAGE_RATE);
     const selectReport = (item: TransactionGroupListItem, report?: OnyxEntry<Report>) => {
         if (transactionIDs.length === 0 || item.value === reportID) {
             Navigation.dismissToSuperWideRHP();
@@ -85,6 +86,7 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
                 allTransactions,
                 translate,
                 toLocaleDigit,
+                defaultP2PMileageRate,
             });
             turnOffMobileSelectionMode();
             clearSelectedTransactions(true);
@@ -106,6 +108,7 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
             allTransactions,
             translate,
             toLocaleDigit,
+            defaultP2PMileageRate,
         });
         if (shouldTurnOffSelectionMode) {
             turnOffMobileSelectionMode();
