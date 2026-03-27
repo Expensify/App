@@ -1,8 +1,10 @@
 import {ImageManipulator, SaveFormat} from 'expo-image-manipulator';
 import ImageSize from 'react-native-image-size';
 import type {Orientation} from 'react-native-vision-camera';
+import Log from '@libs/__mocks__/Log';
 import cropOrRotateImage from '@libs/cropOrRotateImage';
 import getDeviceOrientationAwareImageSize from '@libs/cropOrRotateImage/getDeviceOrientationAwareImageSize';
+import {JPEG_QUALITY} from '@libs/fileDownload/FileUtils';
 import type {FileObject} from '@src/types/utils/Attachment';
 
 type ImageObject = {
@@ -79,17 +81,21 @@ function cropImageToAspectRatio(
         .catch(() => image);
 }
 
+const THUMBNAIL_MAX_WIDTH = 512;
 /**
  * Generate a low-resolution thumbnail from an image URI.
  * Used on native to avoid decoding the full 12MP camera photo on the confirmation page.
  */
-function generateThumbnail(sourceUri: string, maxWidth = 512): Promise<string | undefined> {
+function generateThumbnail(sourceUri: string, maxWidth = THUMBNAIL_MAX_WIDTH): Promise<string | undefined> {
     return ImageManipulator.manipulate(sourceUri)
         .resize({width: maxWidth})
         .renderAsync()
-        .then((image) => image.saveAsync({compress: 0.8, format: SaveFormat.JPEG}))
+        .then((image) => image.saveAsync({compress: JPEG_QUALITY, format: SaveFormat.JPEG}))
         .then((result) => result.uri)
-        .catch(() => undefined);
+        .catch((error) => {
+            Log.warn(`Failed to generate thumbnail: ${error}`);
+            return undefined;
+        });
 }
 
 export type {ImageObject};

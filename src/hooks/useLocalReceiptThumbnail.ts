@@ -44,6 +44,7 @@ function useLocalReceiptThumbnail(sourceUri: string | undefined, isLocalFile: bo
 
         return () => {
             cancelled = true;
+            thumbnailCache.delete(sourceUri);
         };
     }, [sourceUri, isLocalFile, startTransition, enabled]);
 
