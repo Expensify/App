@@ -322,28 +322,12 @@ function buildOptimisticNextStepForPreventSelfApprovalsEnabled() {
     return optimisticNextStep;
 }
 
-function buildOptimisticFixIssueNextStep() {
-    const optimisticNextStep: ReportNextStepDeprecated = {
-        type: 'neutral',
+function buildOptimisticFixIssueNextStep(ownerAccountID: number): ReportNextStep {
+    return {
+        messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_FIX_ISSUES,
         icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
-        message: [
-            {
-                text: 'Waiting for ',
-            },
-            {
-                text: `you`,
-                type: 'strong',
-            },
-            {
-                text: ' to ',
-            },
-            {
-                text: 'fix the issue(s)',
-            },
-        ],
+        actorAccountID: ownerAccountID,
     };
-
-    return optimisticNextStep;
 }
 
 function buildOptimisticNextStepForStrictPolicyRuleViolations() {
@@ -378,7 +362,7 @@ function getReportNextStep(
             (transaction) => !!transaction && hasSubmissionBlockingViolations(transaction, transactionViolations, currentUserEmail, currentUserAccountID, moneyRequestReport, policy),
         )
     ) {
-        return buildOptimisticFixIssueNextStep();
+        return buildOptimisticFixIssueNextStep(moneyRequestReport?.ownerAccountID ?? -1);
     }
 
     const isSubmitterSameAsNextApprover =
