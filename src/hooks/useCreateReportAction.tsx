@@ -75,6 +75,7 @@ export default function useCreateReportAction({onCreateReport, groupPoliciesWith
         policyID: defaultChatEnabledPolicyID,
         policyName: defaultChatEnabledPolicy?.name ?? '',
         onConfirm: onCreateReport,
+        shouldHandleNavigationBack,
     });
 
     const showRedirectToExpensifyClassicModal = useCallback(async () => {

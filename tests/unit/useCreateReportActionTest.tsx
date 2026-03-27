@@ -24,12 +24,11 @@ jest.mock('@hooks/useHasEmptyReportsForPolicy', () => jest.fn(() => false));
 const mockUseHasEmptyReportsForPolicy = require('@hooks/useHasEmptyReportsForPolicy') as jest.Mock;
 
 const mockOpenCreateReportConfirmation = jest.fn();
-jest.mock('@hooks/useCreateEmptyReportConfirmation', () =>
-    jest.fn(() => ({
-        openCreateReportConfirmation: mockOpenCreateReportConfirmation,
-        CreateReportConfirmationModal: null,
-    })),
-);
+const mockUseCreateEmptyReportConfirmation = jest.fn(() => ({
+    openCreateReportConfirmation: mockOpenCreateReportConfirmation,
+    CreateReportConfirmationModal: null,
+}));
+jest.mock('@hooks/useCreateEmptyReportConfirmation', () => mockUseCreateEmptyReportConfirmation);
 
 const mockAreAllGroupPoliciesExpenseChatDisabled = jest.fn(() => false);
 jest.mock('@libs/PolicyUtils', () => ({
@@ -389,6 +388,37 @@ describe('useCreateReportAction', () => {
 
             expect(onCreateReport).toHaveBeenCalledWith(false);
             expect(mockOpenCreateReportConfirmation).not.toHaveBeenCalled();
+        });
+    });
+
+    describe('shouldHandleNavigationBack forwarding', () => {
+        it('forwards shouldHandleNavigationBack: false to useCreateEmptyReportConfirmation', () => {
+            const onCreateReport = jest.fn();
+            const policies = [makePaidPolicy()];
+
+            renderHook(() =>
+                useCreateReportAction({
+                    onCreateReport,
+                    groupPoliciesWithChatEnabled: policies,
+                    shouldHandleNavigationBack: false,
+                }),
+            );
+
+            expect(mockUseCreateEmptyReportConfirmation).toHaveBeenCalledWith(expect.objectContaining({shouldHandleNavigationBack: false}));
+        });
+
+        it('forwards shouldHandleNavigationBack: true (default) to useCreateEmptyReportConfirmation', () => {
+            const onCreateReport = jest.fn();
+            const policies = [makePaidPolicy()];
+
+            renderHook(() =>
+                useCreateReportAction({
+                    onCreateReport,
+                    groupPoliciesWithChatEnabled: policies,
+                }),
+            );
+
+            expect(mockUseCreateEmptyReportConfirmation).toHaveBeenCalledWith(expect.objectContaining({shouldHandleNavigationBack: true}));
         });
     });
 
