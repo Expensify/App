@@ -1,15 +1,19 @@
 import React, {useCallback, useMemo} from 'react';
+import type {OnyxCollection} from 'react-native-onyx';
 import useReportPreviewSenderID from '@components/ReportActionAvatars/useReportPreviewSenderID';
 import {useCurrentReportIDState} from '@hooks/useCurrentReportID';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useGetExpensifyCardFromReportAction from '@hooks/useGetExpensifyCardFromReportAction';
 import useOnyx from '@hooks/useOnyx';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import {getIOUReportIDFromReportActionPreview} from '@libs/ReportActionsUtils';
+import {getIOUReportIDOfLastAction} from '@libs/OptionsListUtils';
+import {getLastVisibleActionIncludingTransactionThread, getOriginalMessage, isActionableTrackExpense, isInviteOrRemovedAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
+import {canUserPerformWriteAction as canUserPerformWriteActionUtil} from '@libs/ReportUtils';
 import SidebarUtils from '@libs/SidebarUtils';
 import CONST from '@src/CONST';
 import {getMovedReportID} from '@src/libs/ModifiedExpenseMessage';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {ReportActions as ReportActionsType, VisibleReportActionsDerivedValue} from '@src/types/onyx';
 import type {ReportAttributesDerivedValue} from '@src/types/onyx/DerivedValues';
 import type {Icon} from '@src/types/onyx/OnyxCommon';
 import OptionRowLHN from './OptionRowLHN';
@@ -28,39 +32,122 @@ function OptionRowLHNData({
     personalDetails = {},
     policy,
     invoiceReceiverPolicy,
-    parentReportAction,
-    lastMessageTextFromReport,
     localeCompare,
     translate,
-    isReportArchived = false,
-    lastAction,
-    lastActionReport,
     currentUserAccountID,
     ...propsToForward
 }: OptionRowLHNDataProps) {
     const reportID = propsToForward.reportID;
     const {currentReportID: currentReportIDValue} = useCurrentReportIDState();
     const isReportFocused = isOptionFocused && currentReportIDValue === reportID;
+    // Per-item scoped subscriptions
+    const reportAttributesSelector = useCallback((data: ReportAttributesDerivedValue | undefined) => data?.reports?.[reportID], [reportID]);
+    const [reportAttributes] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {selector: reportAttributesSelector});
+
+    const [draftComment] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`);
+    const hasDraftComment = !!draftComment && !draftComment.match(CONST.REGEX.EMPTY_COMMENT);
+
+    // Use the derived thread ID directly — available even when the child report object isn't hydrated yet
+    const oneTransactionThreadReportID = reportAttributes?.oneTransactionThreadReportID;
+
+    // Full report object needed only for SidebarUtils.getOptionData
+    const [oneTransactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(oneTransactionThreadReportID)}`);
+
+    // Per-item report actions subscriptions (scoped by specific report ID)
+    const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`);
+    const [parentReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(fullReport?.parentReportID)}`);
+    const [transactionThreadReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(oneTransactionThreadReportID)}`);
+
+    // Scoped VISIBLE_REPORT_ACTIONS selector — only picks entries for this report and its transaction thread.
+    // Onyx uses deepEqual internally for selector output comparison, so creating a new object is fine.
+    const visibleActionsSelector = useCallback(
+        (data: VisibleReportActionsDerivedValue | undefined) => {
+            if (!data) {
+                return undefined;
+            }
+            const result: VisibleReportActionsDerivedValue = {};
+            const reportEntry = data[reportID];
+            if (reportEntry) {
+                result[reportID] = reportEntry;
+            }
+            if (oneTransactionThreadReportID) {
+                const txThreadEntry = data[oneTransactionThreadReportID];
+                if (txThreadEntry) {
+                    result[oneTransactionThreadReportID] = txThreadEntry;
+                }
+            }
+            return result;
+        },
+        [reportID, oneTransactionThreadReportID],
+    );
+    const [visibleReportActionsData] = useOnyx(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS, {selector: visibleActionsSelector});
+
+    const [reportNameValuePairsEntry] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`);
+
+    const parentReportAction = fullReport?.parentReportActionID ? parentReportActions?.[fullReport.parentReportActionID] : undefined;
+
+    const transactionID = isMoneyRequestAction(parentReportAction) ? (getOriginalMessage(parentReportAction)?.IOUTransactionID ?? CONST.DEFAULT_NUMBER_ID) : CONST.DEFAULT_NUMBER_ID;
+    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID !== CONST.DEFAULT_NUMBER_ID ? String(transactionID) : undefined)}`);
+
+    const isReportArchived = !!(reportNameValuePairsEntry ?? reportNameValuePairs)?.private_isArchived;
+    const canUserPerformWrite = canUserPerformWriteActionUtil(fullReport, isReportArchived);
+
+    const lastAction = useMemo(() => {
+        const actionsCollection: OnyxCollection<ReportActionsType> = {
+            [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`]: reportActions ?? undefined,
+        };
+        if (oneTransactionThreadReportID) {
+            actionsCollection[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${oneTransactionThreadReportID}`] = transactionThreadReportActions ?? undefined;
+        }
+        return getLastVisibleActionIncludingTransactionThread(reportID, canUserPerformWrite, actionsCollection, visibleReportActionsData, oneTransactionThreadReportID);
+    }, [reportID, canUserPerformWrite, reportActions, transactionThreadReportActions, visibleReportActionsData, oneTransactionThreadReportID]);
+
+    // When lastAction is already a REPORT_PREVIEW, getIOUReportIDOfLastAction extracts the IOU report ID directly.
+    // When lastAction is an IOU CREATE from a one-transaction thread, getLastMessageTextForReport internally
+    // swaps it to the parent's REPORT_PREVIEW, so we fall back to fullReport.iouReportID which points to the
+    // same expense report.
+    const iouReportIDOfLastAction = useMemo(
+        () =>
+            getIOUReportIDOfLastAction(fullReport, (reportNameValuePairsEntry ?? reportNameValuePairs)?.private_isArchived, visibleReportActionsData, lastAction) ?? fullReport?.iouReportID,
+        [fullReport, reportNameValuePairsEntry, reportNameValuePairs, visibleReportActionsData, lastAction],
+    );
+    const [iouReportReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(iouReportIDOfLastAction)}`);
+
+    const iouReportAttributesSelector = useCallback(
+        (data: ReportAttributesDerivedValue | undefined) => (iouReportIDOfLastAction ? data?.reports?.[iouReportIDOfLastAction] : undefined),
+        [iouReportIDOfLastAction],
+    );
+    const [iouReportAttributes] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {selector: iouReportAttributesSelector});
+
+    const lastReportActionTransactionID = isMoneyRequestAction(lastAction) ? (getOriginalMessage(lastAction)?.IOUTransactionID ?? CONST.DEFAULT_NUMBER_ID) : CONST.DEFAULT_NUMBER_ID;
+    const [lastReportActionTransaction] = useOnyx(
+        `${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(lastReportActionTransactionID !== CONST.DEFAULT_NUMBER_ID ? String(lastReportActionTransactionID) : undefined)}`,
+    );
+
+    const whisperTransactionID = isActionableTrackExpense(lastAction) ? getOriginalMessage(lastAction)?.transactionID : undefined;
+    const [whisperTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(whisperTransactionID)}`);
+
+    const lastMessageTextFromReport = useMemo(() => {
+        if (whisperTransactionID && !whisperTransaction) {
+            return '';
+        }
+        return undefined;
+    }, [whisperTransactionID, whisperTransaction]);
+
+    const lastActionReportID = useMemo(() => {
+        if (isInviteOrRemovedAction(lastAction)) {
+            const lastActionOriginalMessage = lastAction?.actionName ? getOriginalMessage(lastAction) : null;
+            return lastActionOriginalMessage?.reportID;
+        }
+        return undefined;
+    }, [lastAction]);
+    const [lastActionReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(lastActionReportID ? String(lastActionReportID) : undefined)}`);
 
     const [movedFromReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getMovedReportID(lastAction, CONST.REPORT.MOVE_TYPE.FROM)}`);
     const [movedToReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getMovedReportID(lastAction, CONST.REPORT.MOVE_TYPE.TO)}`);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const {login} = useCurrentUserPersonalDetails();
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fullReport?.policyID}`);
-
-    const reportAttributesSelector = useCallback((data: ReportAttributesDerivedValue | undefined) => data?.reports?.[reportID], [reportID]);
-    const [reportAttributes] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {selector: reportAttributesSelector});
-
-    // When lastAction is a REPORT_PREVIEW we can extract the IOU report ID directly.
-    // When it's an IOU CREATE from a one-transaction thread, getLastMessageTextForReport
-    // internally swaps lastReportAction to the parent's REPORT_PREVIEW, so we fall back
-    // to fullReport.iouReportID which points to the same expense report.
-    const iouReportID = getIOUReportIDFromReportActionPreview(lastAction) ?? fullReport?.iouReportID;
-    const iouReportAttributesSelector = useCallback((data: ReportAttributesDerivedValue | undefined) => (iouReportID ? data?.reports?.[iouReportID] : undefined), [iouReportID]);
-    const [iouReportAttributes] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {selector: iouReportAttributesSelector});
-
-    // Look up the one-transaction thread report using the ID from our own attributes.
-    const [oneTransactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportAttributes?.oneTransactionThreadReportID)}`);
 
     const card = useGetExpensifyCardFromReportAction({reportAction: lastAction, policyID: fullReport?.policyID});
 
@@ -80,40 +167,70 @@ function OptionRowLHNData({
         if (reportAttributes) {
             result[reportID] = reportAttributes;
         }
-        if (iouReportID && iouReportAttributes) {
-            result[iouReportID] = iouReportAttributes;
+        if (iouReportIDOfLastAction && iouReportAttributes) {
+            result[iouReportIDOfLastAction] = iouReportAttributes;
         }
         return result;
-    }, [reportID, reportAttributes, iouReportID, iouReportAttributes]);
+    }, [reportID, reportAttributes, iouReportIDOfLastAction, iouReportAttributes]);
 
-    // React Compiler auto-memoizes each expression in OptionRowLHN independently,
-    // so there is no need to stabilize the optionItem reference with deepEqual.
-    // When getOptionData returns a fresh object with the same content, the Compiler
-    // ensures that only expressions whose inputs actually changed recompute.
-    const optionItem = SidebarUtils.getOptionData({
-        report: fullReport,
-        reportAttributes,
-        oneTransactionThreadReport,
-        reportNameValuePairs,
-        personalDetails,
-        policy,
-        parentReportAction,
-        conciergeReportID,
-        lastMessageTextFromReport,
-        invoiceReceiverPolicy,
-        card,
-        lastAction,
-        translate,
-        localeCompare,
-        isReportArchived,
-        lastActionReport,
-        movedFromReport,
-        movedToReport,
-        currentUserAccountID,
-        reportAttributesDerived,
-        policyTags,
-        currentUserLogin: login ?? '',
-    });
+    const optionItem = useMemo(
+        () =>
+            SidebarUtils.getOptionData({
+                report: fullReport,
+                reportAttributes,
+                oneTransactionThreadReport,
+                reportNameValuePairs,
+                personalDetails,
+                policy,
+                parentReportAction,
+                conciergeReportID,
+                lastMessageTextFromReport,
+                invoiceReceiverPolicy,
+                card,
+                lastAction,
+                translate,
+                localeCompare,
+                isReportArchived,
+                lastActionReport,
+                movedFromReport,
+                movedToReport,
+                currentUserAccountID,
+                reportAttributesDerived,
+                policyTags,
+                currentUserLogin: login ?? '',
+            }),
+        // These subscriptions don't appear in getOptionData params but trigger recomputation
+        // when the underlying data changes (e.g. transaction amount update, IOU report actions change).
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        [
+            fullReport,
+            reportAttributes,
+            oneTransactionThreadReport,
+            reportNameValuePairs,
+            personalDetails,
+            policy,
+            parentReportAction,
+            conciergeReportID,
+            lastMessageTextFromReport,
+            invoiceReceiverPolicy,
+            card,
+            lastAction,
+            translate,
+            localeCompare,
+            isReportArchived,
+            lastActionReport,
+            movedFromReport,
+            movedToReport,
+            currentUserAccountID,
+            reportAttributesDerived,
+            policyTags,
+            login,
+            transaction,
+            iouReportReportActions,
+            lastReportActionTransaction,
+            reportActions,
+        ],
+    );
 
     // For single-sender IOUs, trim to the sender's avatar to match the header.
     // The header uses reportPreviewSenderID as accountID for its primary avatar,
@@ -134,6 +251,7 @@ function OptionRowLHNData({
             isOptionFocused={isReportFocused}
             optionItem={finalOptionItem}
             report={fullReport}
+            hasDraftComment={hasDraftComment}
             conciergeReportID={conciergeReportID}
         />
     );

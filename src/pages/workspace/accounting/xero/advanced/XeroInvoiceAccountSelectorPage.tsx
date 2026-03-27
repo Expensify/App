@@ -1,7 +1,6 @@
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import BlockingView from '@components/BlockingViews/BlockingView';
-import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import type {SelectorType} from '@components/SelectionScreen';
 import SelectionScreen from '@components/SelectionScreen';
 import Text from '@components/Text';
@@ -69,7 +68,6 @@ function XeroInvoiceAccountSelectorPage({policy}: WithPolicyConnectionsProps) {
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             displayName="XeroInvoiceAccountSelectorPage"
             data={xeroSelectorOptions}
-            listItem={RadioListItem}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.XERO}
             shouldBeBlocked={!syncReimbursedReports}
             onSelectRow={updateAccount}
