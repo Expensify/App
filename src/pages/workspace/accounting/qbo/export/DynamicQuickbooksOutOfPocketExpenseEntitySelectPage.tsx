@@ -86,8 +86,8 @@ function DynamicQuickbooksOutOfPocketExpenseEntitySelectPage({policy}: WithPolic
     const filteredData = useMemo(() => data.filter((item) => item.isShown), [data]);
 
     const goBack = useCallback(() => {
-        Navigation.goBack(backPath || (policyID && ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT_OUT_OF_POCKET_EXPENSES.getRoute(policyID)));
-    }, [policyID, backPath]);
+        Navigation.goBack(backPath);
+    }, [backPath]);
 
     const selectExportEntity = useCallback(
         (row: MenuItem) => {
