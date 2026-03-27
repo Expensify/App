@@ -44,6 +44,7 @@ import {
     isTimeRequest,
     isUnreportedAndHasInvalidDistanceRateTransaction,
 } from '@libs/TransactionUtils';
+import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type {PersonalDetails, Policy, Report, ReportAction, TransactionViolation} from '@src/types/onyx';
@@ -705,7 +706,8 @@ function TransactionItemRow({
                                     src={expensicons.ArrowRight}
                                     fill={theme.icon}
                                     additionalStyles={styles.opacitySemiTransparent}
-                                    small
+                                    width={variables.iconSizeNormal}
+                                    height={variables.iconSizeNormal}
                                 />
                             </View>
                         )}
@@ -810,7 +812,8 @@ function TransactionItemRow({
                                 src={expensicons.ArrowRight}
                                 fill={theme.icon}
                                 additionalStyles={!isHover && styles.opacitySemiTransparent}
-                                small
+                                width={variables.iconSizeNormal}
+                                height={variables.iconSizeNormal}
                             />
                         </PressableWithFeedback>
                     )}
