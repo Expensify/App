@@ -3,6 +3,7 @@ import {renderHook} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
 import useHasTeam2025Pricing from '@hooks/useHasTeam2025Pricing';
 import useSubscriptionPlan from '@hooks/useSubscriptionPlan';
+import {getOwnedPaidPolicies} from '@libs/PolicyUtils';
 import {calculateRemainingFreeTrialDays, doesUserHavePaymentCardAdded, getEarlyDiscountInfo, isUserOnFreeTrial, shouldShowDiscountBanner} from '@libs/SubscriptionUtils';
 import useFreeTrial from '@pages/home/FreeTrialSection/useFreeTrial';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -18,6 +19,10 @@ jest.mock('@hooks/useSubscriptionPlan', () => ({
     default: jest.fn(() => 'corporate'),
 }));
 
+jest.mock('@libs/PolicyUtils', () => ({
+    getOwnedPaidPolicies: jest.fn(() => [{id: 'policyID'}]),
+}));
+
 jest.mock('@libs/SubscriptionUtils', () => ({
     shouldShowDiscountBanner: jest.fn(() => false),
     getEarlyDiscountInfo: jest.fn(() => null),
@@ -28,6 +33,7 @@ jest.mock('@libs/SubscriptionUtils', () => ({
 
 const mockedUseHasTeam2025Pricing = useHasTeam2025Pricing as jest.Mock;
 const mockedUseSubscriptionPlan = useSubscriptionPlan as jest.Mock;
+const mockedGetOwnedPaidPolicies = getOwnedPaidPolicies as jest.Mock;
 const mockedShouldShowDiscountBanner = shouldShowDiscountBanner as jest.Mock;
 const mockedGetEarlyDiscountInfo = getEarlyDiscountInfo as jest.Mock;
 const mockedIsUserOnFreeTrial = isUserOnFreeTrial as jest.Mock;
@@ -43,6 +49,7 @@ describe('useFreeTrial', () => {
         await Onyx.clear();
         await waitForBatchedUpdates();
         jest.clearAllMocks();
+        mockedGetOwnedPaidPolicies.mockReturnValue([{id: 'policyID'}]);
     });
 
     afterEach(async () => {
@@ -76,6 +83,16 @@ describe('useFreeTrial', () => {
             const {result} = renderHook(() => useFreeTrial());
 
             expect(result.current.shouldShowFreeTrialSection).toBe(true);
+        });
+
+        it("should not show section when user doesn't own any paid workspaces", () => {
+            mockedIsUserOnFreeTrial.mockReturnValue(true);
+            mockedDoesUserHavePaymentCardAdded.mockReturnValue(false);
+            mockedGetOwnedPaidPolicies.mockReturnValue([]);
+
+            const {result} = renderHook(() => useFreeTrial());
+
+            expect(result.current.shouldShowFreeTrialSection).toBe(false);
         });
     });
 
