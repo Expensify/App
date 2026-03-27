@@ -58,6 +58,9 @@ type ProcessMoneyReportHoldMenuProps = {
 
     /** Callback when user attempts to pay via ACH but report has only non-reimbursable expenses */
     onNonReimbursablePaymentError?: () => void;
+
+    /** Transactions associated with report */
+    transactions?: OnyxTypes.Transaction[];
 };
 
 function ProcessMoneyReportHoldMenu({
@@ -74,6 +77,7 @@ function ProcessMoneyReportHoldMenu({
     startAnimation,
     hasNonHeldExpenses,
     onNonReimbursablePaymentError,
+    transactions,
 }: ProcessMoneyReportHoldMenuProps) {
     const {translate} = useLocalize();
     const isApprove = requestType === CONST.IOU.REPORT_ACTION_TYPE.APPROVE;
@@ -104,7 +108,7 @@ function ProcessMoneyReportHoldMenu({
             return;
         }
 
-        if (!isApprove && chatReport && hasOnlyNonReimbursableTransactions(moneyRequestReport?.reportID) && paymentType && paymentType !== CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {
+        if (!isApprove && chatReport && hasOnlyNonReimbursableTransactions(moneyRequestReport?.reportID, transactions) && paymentType && paymentType !== CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {
             onClose();
             onNonReimbursablePaymentError?.();
             return;

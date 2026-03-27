@@ -2589,6 +2589,7 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
                         }
                     }}
                     transactionCount={transactionIDs?.length ?? 0}
+                    transactions={transactions}
                     onNonReimbursablePaymentError={showNonReimbursablePaymentErrorModal}
                 />
             )}

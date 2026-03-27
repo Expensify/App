@@ -563,7 +563,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 if (
                     isExpenseReport &&
                     !isInvoiceReport(itemReportID) &&
-                    hasOnlyNonReimbursableTransactions(itemReportID, reportTransactions) &&
+                    hasOnlyNonReimbursableTransactions(itemReportID, reportTransactions.length > 0 ? reportTransactions : undefined) &&
                     lastPolicyPaymentMethod !== CONST.IOU.PAYMENT_TYPE.ELSEWHERE
                 ) {
                     setIsNonReimbursablePaymentErrorModalVisible(true);
