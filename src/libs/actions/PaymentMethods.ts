@@ -8,6 +8,7 @@ import type {
     AddPaymentCardParams,
     DeletePaymentCardParams,
     MakeDefaultPaymentMethodParams,
+    OpenPaymentsPageParams,
     PaymentCardParams,
     SetInvoicingTransferBankAccountParams,
     TransferWalletBalanceParams,
@@ -45,7 +46,7 @@ function continueSetup(kycWallRef: RefObject<KYCWallRef | null>, fallbackRoute?:
     kycWallRef.current.continueAction({goBackRoute: fallbackRoute});
 }
 
-function getPaymentMethods(includePartiallySetupBankAccounts?: boolean) {
+function getPaymentMethods(params?: OpenPaymentsPageParams) {
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.IS_LOADING_PAYMENT_METHODS>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -70,7 +71,10 @@ function getPaymentMethods(includePartiallySetupBankAccounts?: boolean) {
 
     return API.read(
         READ_COMMANDS.OPEN_PAYMENTS_PAGE,
-        {includePartiallySetupBankAccounts},
+        {
+            includePartiallySetupBankAccounts: params?.includePartiallySetupBankAccounts ?? true,
+            includeLockedBankAccounts: params?.includeLockedBankAccounts ?? true,
+        },
         {
             optimisticData,
             successData,

@@ -67,6 +67,7 @@ function ListItemRenderer<TItem extends ListItem>({
         <>
             <ListItem
                 item={item}
+                index={index}
                 isFocused={isFocused}
                 isDisabled={isDisabled}
                 showTooltip={showTooltip}
