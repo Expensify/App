@@ -24,6 +24,7 @@ import {getLatestError} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ScheduleCallParamList} from '@libs/Navigation/types';
+import {isAdminRoom, isTaskReport} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -55,17 +56,24 @@ function ScheduleCallPage() {
     const [scheduleCallDraft] = useOnyx(`${ONYXKEYS.SCHEDULE_CALL_DRAFT}`);
     const reportID = route.params?.reportID;
 
-    const [adminReportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`, {
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`);
+
+    // Task reports in #admins room have chatType as policyAdmins,
+    // So for a task report, we need to send the real #admins room i.e., the parent report.
+    const adminsRoomReportID = isTaskReport(report) && parentReport?.reportID && isAdminRoom(parentReport) ? parentReport.reportID : reportID;
+
+    const [adminReportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${adminsRoomReportID}`, {
         selector: adminReportNameValuePairsSelector,
     });
     const calendlySchedule = adminReportNameValuePairs?.calendlySchedule;
 
     useEffect(() => {
-        if (!reportID) {
+        if (!adminsRoomReportID) {
             return;
         }
-        getGuideCallAvailabilitySchedule(reportID);
-    }, [reportID]);
+        getGuideCallAvailabilitySchedule(adminsRoomReportID);
+    }, [adminsRoomReportID]);
 
     // Clear selected time when user comes back to the selection screen
     useFocusEffect(
@@ -76,7 +84,7 @@ function ScheduleCallPage() {
 
     useEffect(() => {
         return () => {
-            sendScheduleCallNudge(session?.accountID ?? CONST.DEFAULT_NUMBER_ID, reportID);
+            sendScheduleCallNudge(session?.accountID ?? CONST.DEFAULT_NUMBER_ID, adminsRoomReportID);
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
@@ -224,7 +232,7 @@ function ScheduleCallPage() {
                                                         accountID: timeSlot.guideAccountID,
                                                         email: timeSlot.guideEmail,
                                                     },
-                                                    reportID,
+                                                    reportID: adminsRoomReportID,
                                                 });
                                                 Navigation.navigate(ROUTES.SCHEDULE_CALL_CONFIRMATION.getRoute(reportID));
                                             }}
