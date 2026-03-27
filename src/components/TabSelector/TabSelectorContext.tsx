@@ -1,41 +1,34 @@
-import React, {createContext, useRef} from 'react';
+import React, {createContext, useContext, useEffect, useRef} from 'react';
 // eslint-disable-next-line no-restricted-imports
-import type {LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent, ScrollView as RNScrollView, View} from 'react-native';
+import type {LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent, ScrollView as RNScrollView} from 'react-native';
+import {defaultTabSelectorActionsContextValue, defaultTabSelectorStateContextValue} from './default';
 import scrollToTabUtil from './scrollToTab';
+import type {TabSelectorActionsContextType, TabSelectorContextProviderProps, TabSelectorStateContextType} from './types.context';
 
-type TabSelectorContextValue = {
-    containerRef: React.RefObject<RNScrollView | null>;
-    onContainerLayout: (event: LayoutChangeEvent) => void;
-    onContainerScroll: (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
-    scrollToTab: (tabKey: string) => void;
-    registerTab: (tabKey: string, ref: HTMLDivElement | View | null) => void;
-    onTabLayout: (tabKey: string, event: LayoutChangeEvent) => void;
-};
-
-type TabSelectorContextProviderProps = {
-    activeTabKey: string;
-    children: React.ReactNode;
-};
-
-const defaultValue: TabSelectorContextValue = {
-    containerRef: {current: null},
-    onContainerLayout: () => {},
-    onContainerScroll: () => {},
-    scrollToTab: () => {},
-    registerTab: () => {},
-    onTabLayout: () => {},
-};
-
-const TabSelectorContext = createContext<TabSelectorContextValue>(defaultValue);
+const TabSelectorStateContext = createContext<TabSelectorStateContextType>(defaultTabSelectorStateContextValue);
+const TabSelectorActionsContext = createContext<TabSelectorActionsContextType>(defaultTabSelectorActionsContextValue);
 
 function TabSelectorContextProvider({children, activeTabKey}: TabSelectorContextProviderProps) {
     const containerRef = useRef<RNScrollView>(null);
     const containerLayoutRef = useRef<{x: number; width: number}>({x: 0, width: 0});
-    const tabsRef = useRef<Record<string, {ref: HTMLDivElement | View | null; width: number; x: number}>>({});
+    const tabsRef = useRef<Record<string, {width: number; x: number}>>({});
+    const lastScrolledToTab = useRef('');
 
     const onContainerLayout = (event: LayoutChangeEvent) => {
         const width = event.nativeEvent.layout.width;
         containerLayoutRef.current.width = width;
+
+        const tabData = tabsRef.current[activeTabKey];
+
+        if (!tabData) {
+            return;
+        }
+
+        const {x: tabX, width: tabWidth} = tabData;
+
+        if (tabWidth) {
+            scrollToTabUtil({tabX, tabWidth, containerRef, containerWidth: containerLayoutRef.current.width, containerX: containerLayoutRef.current.x, animated: false});
+        }
     };
 
     const onContainerScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
@@ -43,21 +36,12 @@ function TabSelectorContextProvider({children, activeTabKey}: TabSelectorContext
         containerLayoutRef.current.x = x;
     };
 
-    const registerTab = (tabKey: string, ref: HTMLDivElement | View | null) => {
-        if (ref === null) {
-            return;
-        }
-
-        tabsRef.current[tabKey] = {...tabsRef.current[tabKey], ref};
-    };
-
     const onTabLayout = (tabKey: string, event: LayoutChangeEvent) => {
         const {x, width} = event.nativeEvent.layout;
         tabsRef.current[tabKey] = {...tabsRef.current[tabKey], x, width};
 
-        if (tabKey === activeTabKey) {
-            const {ref: tabRef} = tabsRef.current[tabKey];
-            scrollToTabUtil({tabX: x, tabWidth: width, tabRef, containerRef, containerWidth: containerLayoutRef.current.width, containerX: containerLayoutRef.current.x, animated: false});
+        if (tabKey === activeTabKey && containerLayoutRef.current.width !== 0) {
+            scrollToTabUtil({tabX: x, tabWidth: width, containerRef, containerWidth: containerLayoutRef.current.width, containerX: containerLayoutRef.current.x, animated: false});
         }
     };
 
@@ -68,25 +52,54 @@ function TabSelectorContextProvider({children, activeTabKey}: TabSelectorContext
             return;
         }
 
-        const {x: tabX, width: tabWidth, ref: tabRef} = tabData;
+        lastScrolledToTab.current = tabKey;
 
-        scrollToTabUtil({tabX, tabWidth, tabRef, containerRef, containerWidth: containerLayoutRef.current.width, containerX: containerLayoutRef.current.x});
+        const {x: tabX, width: tabWidth} = tabData;
+
+        scrollToTabUtil({tabX, tabWidth, containerRef, containerWidth: containerLayoutRef.current.width, containerX: containerLayoutRef.current.x});
     };
 
-    // React Compiler auto-memoization
+    // Sync scroll position when the active tab changes externally (e.g. back/forward browser history buttons, not user tap)
+    useEffect(() => {
+        if (!lastScrolledToTab.current || activeTabKey === lastScrolledToTab.current) {
+            return;
+        }
+
+        lastScrolledToTab.current = activeTabKey;
+
+        const tabData = tabsRef.current[activeTabKey];
+
+        if (!tabData) {
+            return;
+        }
+
+        const {x: tabX, width: tabWidth} = tabData;
+
+        scrollToTabUtil({tabX, tabWidth, containerRef, containerWidth: containerLayoutRef.current.width, containerX: containerLayoutRef.current.x});
+    }, [activeTabKey]);
+
+    // Because of the React Compiler we don't need to memoize it manually
     // eslint-disable-next-line react/jsx-no-constructed-context-values
-    const contextValue = {
-        containerRef,
-        registerTab,
-        onTabLayout,
-        onContainerLayout,
-        onContainerScroll,
-        scrollToTab,
-    };
+    const stateValue: TabSelectorStateContextType = {containerRef};
 
-    return <TabSelectorContext.Provider value={contextValue}>{children}</TabSelectorContext.Provider>;
+    // Because of the React Compiler we don't need to memoize it manually
+    // eslint-disable-next-line react/jsx-no-constructed-context-values
+    const actionsValue: TabSelectorActionsContextType = {onContainerLayout, onContainerScroll, scrollToTab, onTabLayout};
+
+    return (
+        <TabSelectorStateContext.Provider value={stateValue}>
+            <TabSelectorActionsContext.Provider value={actionsValue}>{children}</TabSelectorActionsContext.Provider>
+        </TabSelectorStateContext.Provider>
+    );
 }
 
-export default TabSelectorContextProvider;
+function useTabSelectorState(): TabSelectorStateContextType {
+    return useContext(TabSelectorStateContext);
+}
 
-export {TabSelectorContext};
+function useTabSelectorActions(): TabSelectorActionsContextType {
+    return useContext(TabSelectorActionsContext);
+}
+
+export {useTabSelectorState, useTabSelectorActions};
+export default TabSelectorContextProvider;

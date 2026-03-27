@@ -10,6 +10,7 @@ import useFeedKeysWithAssignedCards from '@hooks/useFeedKeysWithAssignedCards';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useReportAttributes from '@hooks/useReportAttributes';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setSearchContext} from '@libs/actions/Search';
@@ -45,6 +46,7 @@ function SavedSearchList({hash}: SavedSearchListProps) {
     const [allFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER);
     const feedKeysWithCards = useFeedKeysWithAssignedCards();
     const [currentUserAccountID = -1] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
+    const reportAttributes = useReportAttributes();
 
     const {showDeleteModal} = useDeleteSavedSearch();
     const {
@@ -53,7 +55,7 @@ function SavedSearchList({hash}: SavedSearchListProps) {
         hideProductTrainingTooltip: hideSavedSearchTooltip,
     } = useProductTrainingContext(CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.RENAME_SAVED_SEARCH, isFocused);
 
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Bookmark', 'Pencil'] as const);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Bookmark', 'Pencil', 'Trashcan'] as const);
 
     const taxRates = getAllTaxRates(allPolicies);
     const cardsForSavedSearchDisplay = mergeCardListWithWorkspaceFeeds(workspaceCardList ?? CONST.EMPTY_OBJECT, cardList);
@@ -76,6 +78,7 @@ function SavedSearchList({hash}: SavedSearchListProps) {
                 autoCompleteWithSpace: false,
                 translate,
                 feedKeysWithCards,
+                reportAttributes,
             });
         }
 
@@ -84,6 +87,7 @@ function SavedSearchList({hash}: SavedSearchListProps) {
 
         return {
             ...baseMenuItem,
+            role: CONST.ROLE.TAB,
             sentryLabel: CONST.SENTRY_LABEL.SEARCH.SAVED_SEARCH_MENU_ITEM,
             onPress: () => {
                 setSearchContext(false);

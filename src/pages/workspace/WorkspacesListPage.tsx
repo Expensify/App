@@ -4,15 +4,15 @@ import React, {useEffect, useRef, useState} from 'react';
 import {FlatList, InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
+import ActivityIndicator from '@components/ActivityIndicator';
 import ConfirmModal from '@components/ConfirmModal';
 import type {DomainItem} from '@components/Domain/DomainMenuItem';
 import DomainMenuItem from '@components/Domain/DomainMenuItem';
 import DomainsEmptyStateComponent from '@components/DomainsEmptyStateComponent';
-import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import type {MenuItemProps} from '@components/MenuItem';
 import NavigationTabBar from '@components/Navigation/NavigationTabBar';
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
-import TopBar from '@components/Navigation/TopBar';
+import TopBarWithLoadingBar from '@components/Navigation/TopBarWithLoadingBar';
 import type {OfflineWithFeedbackProps} from '@components/OfflineWithFeedback';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
@@ -20,11 +20,12 @@ import type {PopoverMenuItem} from '@components/PopoverMenu';
 import {PressableWithoutFeedback} from '@components/Pressable';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SearchBar from '@components/SearchBar';
-import type {ListItem} from '@components/SelectionListWithSections/types';
+import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
 import useAndroidBackButtonHandler from '@hooks/useAndroidBackButtonHandler';
 import useCardFeeds from '@hooks/useCardFeeds';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDocumentTitle from '@hooks/useDocumentTitle';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -41,7 +42,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionViolationOfWorkspace from '@hooks/useTransactionViolationOfWorkspace';
 import {isConnectionInProgress} from '@libs/actions/connections';
 import {close} from '@libs/actions/Modal';
-import {clearWorkspaceOwnerChangeFlow, isApprover as isApproverUserAction, requestWorkspaceOwnerChange} from '@libs/actions/Policy/Member';
+import {clearWorkspaceOwnerChangeFlow, requestWorkspaceOwnerChange} from '@libs/actions/Policy/Member';
 import {calculateBillNewDot, clearDeleteWorkspaceError, clearDuplicateWorkspace, clearErrors, deleteWorkspace, leaveWorkspace, removeWorkspace} from '@libs/actions/Policy/Policy';
 import {callFunctionIfActionIsAllowed} from '@libs/actions/Session';
 import {filterInactiveCards} from '@libs/CardUtils';
@@ -57,6 +58,7 @@ import {
     getUberConnectionErrorDirectlyFromPolicy,
     isPendingDeletePolicy,
     isPolicyAdmin,
+    isPolicyApprover,
     isPolicyAuditor,
     shouldBlockWorkspaceDeletionForInvoicifyUser,
     shouldShowEmployeeListError,
@@ -65,6 +67,7 @@ import {
 import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
 import shouldRenderTransferOwnerButton from '@libs/shouldRenderTransferOwnerButton';
 import {isSubscriptionTypeOfInvoicing, shouldCalculateBillNewDot as shouldCalculateBillNewDotFn} from '@libs/SubscriptionUtils';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import type {AvatarSource} from '@libs/UserAvatarUtils';
 import {setNameValuePair} from '@userActions/User';
 import CONST from '@src/CONST';
@@ -132,6 +135,7 @@ function WorkspacesListPage() {
     const styles = useThemeStyles();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Building', 'Exit', 'Copy', 'Star', 'Trashcan', 'Transfer', 'Plus', 'FallbackWorkspaceAvatar']);
     const {translate, localeCompare} = useLocalize();
+    useDocumentTitle(translate('common.workspaces'));
     const {isOffline} = useNetwork();
     const isFocused = useIsFocused();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
@@ -271,28 +275,22 @@ function WorkspacesListPage() {
         const technicalContact = policyToLeave?.technicalContact;
         const isCurrentUserReimburser = isUserReimburserForPolicy(policies, policyIDToLeave, session?.email);
         const userEmail = session?.email ?? '';
-        const isApprover = isApproverUserAction(policyToLeave, userEmail);
+        const isApprover = isPolicyApprover(policyToLeave, userEmail);
 
         if (isCurrentUserReimburser) {
             return translate('common.leaveWorkspaceReimburser');
         }
 
         if (technicalContact === userEmail) {
-            return translate('common.leaveWorkspaceConfirmationTechContact', {
-                workspaceOwner: policyOwnerDisplayName,
-            });
+            return translate('common.leaveWorkspaceConfirmationTechContact', policyOwnerDisplayName);
         }
 
         if (exporters.some((exporter) => exporter === userEmail)) {
-            return translate('common.leaveWorkspaceConfirmationExporter', {
-                workspaceOwner: policyOwnerDisplayName,
-            });
+            return translate('common.leaveWorkspaceConfirmationExporter', policyOwnerDisplayName);
         }
 
         if (isApprover) {
-            return translate('common.leaveWorkspaceConfirmationApprover', {
-                workspaceOwner: policyOwnerDisplayName,
-            });
+            return translate('common.leaveWorkspaceConfirmationApprover', policyOwnerDisplayName);
         }
 
         if (isPolicyAdmin(policyToLeave)) {
@@ -552,6 +550,7 @@ function WorkspacesListPage() {
                     action: () => null,
                     dismissError: () => null,
                     isJoinRequestPending: true,
+                    keyForList: policyInfo.name,
                 });
             } else {
                 workspaces.push({
@@ -572,6 +571,7 @@ function WorkspacesListPage() {
                     role: policy.role,
                     type: policy.type,
                     employeeList: policy.employeeList,
+                    keyForList: policy.name,
                 });
             }
         }
@@ -733,16 +733,24 @@ function WorkspacesListPage() {
             }
         >
             <View style={styles.flex1}>
-                <TopBar
+                <TopBarWithLoadingBar
                     breadcrumbLabel={translate('common.workspaces')}
                     shouldDisplayHelpButton
                 >
                     {!shouldUseNarrowLayout && <View style={styles.pr2}>{headerButton}</View>}
-                </TopBar>
+                </TopBarWithLoadingBar>
                 {shouldUseNarrowLayout && <View style={[styles.ph5, styles.pt2]}>{headerButton}</View>}
                 {shouldShowLoadingIndicator ? (
-                    <View style={[styles.flex1]}>
-                        <FullScreenLoadingIndicator style={[styles.flex1, styles.pRelative]} />
+                    <View style={[styles.flex1, styles.fullScreenLoading]}>
+                        <ActivityIndicator
+                            size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
+                            reasonAttributes={
+                                {
+                                    context: 'WorkspacesListPage',
+                                    isOffline,
+                                } satisfies SkeletonSpanReasonAttributes
+                            }
+                        />
                     </View>
                 ) : (
                     <FlatList

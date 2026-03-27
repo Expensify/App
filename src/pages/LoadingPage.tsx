@@ -4,6 +4,7 @@ import ActivityIndicator from '@components/ActivityIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useThemeStyles from '@hooks/useThemeStyles';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import CONST from '@src/CONST';
 
 type LoadingPageProps = {
@@ -15,6 +16,9 @@ type LoadingPageProps = {
 
 function LoadingPage({onBackButtonPress, title}: LoadingPageProps) {
     const styles = useThemeStyles();
+
+    const reasonAttributes: SkeletonSpanReasonAttributes = {context: 'LoadingPage'};
+
     return (
         <ScreenWrapper testID="LoadingPage">
             <HeaderWithBackButton
@@ -23,7 +27,10 @@ function LoadingPage({onBackButtonPress, title}: LoadingPageProps) {
                 title={title}
             />
             <View style={[styles.flex1, styles.fullScreenLoading]}>
-                <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />
+                <ActivityIndicator
+                    size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
+                    reasonAttributes={reasonAttributes}
+                />
             </View>
         </ScreenWrapper>
     );

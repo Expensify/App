@@ -32,6 +32,7 @@ import {
     isExpensifyCardPendingAction,
     isExpiredCard,
     isPersonalCard,
+    isTravelCard,
     lastFourNumbersFromCardName,
     maskCardNumber,
 } from '@libs/CardUtils';
@@ -115,6 +116,9 @@ type PaymentMethodListProps = {
     /* Currency of payment method to filter by */
     filterCurrency?: string;
 
+    /** Account states to exclude from the list */
+    excludeStates?: Array<ValueOf<typeof CONST.BANK_ACCOUNT.STATE>>;
+
     /** Whether to show the default badge for the payment method */
     shouldHideDefaultBadge?: boolean;
 
@@ -165,6 +169,7 @@ function PaymentMethodList({
     itemIconRight,
     filterType,
     filterCurrency,
+    excludeStates,
     shouldHideDefaultBadge = false,
     threeDotsMenuItems,
     onThreeDotsMenuPress,
@@ -175,11 +180,10 @@ function PaymentMethodList({
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Plus', 'ThreeDots', 'LuggageWithLines'] as const);
     const illustrations = useThemeIllustrations();
     const companyCardFeedIcons = useCompanyCardFeedIcons();
-    const [workspaceCardList] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST);
-
     const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {
         selector: isUserValidatedSelector,
     });
+    const [customCardNames] = useOnyx(ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES);
     const {isBetaEnabled} = usePermissions();
     const [bankAccountList = getEmptyObject<BankAccountList>(), bankAccountListResult] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET);
@@ -263,10 +267,11 @@ function PaymentMethodList({
                     const lastFourPAN = lastFourNumbersFromCardName(card.cardName);
                     const plaidUrl = getPlaidInstitutionIconUrl(card.bank);
                     const isCSVImportCard = card.bank === CONST.COMPANY_CARD.FEED_BANK_NAME.UPLOAD;
-                    const cardTitle = isCSVImportCard ? (card.nameValuePairs?.cardTitle ?? card.cardName) : maskCardNumber(card.cardName, card.bank);
+                    let cardTitle = isCSVImportCard ? (card.nameValuePairs?.cardTitle ?? card.cardName) : maskCardNumber(card.cardName, card.bank);
                     const pressHandler = onPress as CardPressHandler;
                     let cardDescription;
                     if (isUserPersonalCard) {
+                        cardTitle = customCardNames?.[card.cardID] ?? cardTitle;
                         cardDescription = lastFourPAN;
                     } else if (lastFourPAN) {
                         cardDescription = `${lastFourPAN} ${CONST.DOT_SEPARATOR} ${getDescriptionForPolicyDomainCard(card.domainName, policiesForAssignedCards)}`;
@@ -293,7 +298,7 @@ function PaymentMethodList({
 
                     assignedCardsGrouped.push({
                         key: card.cardID.toString(),
-                        plaidUrl: isUserPersonalCard ? undefined : plaidUrl,
+                        plaidUrl,
                         title: cardTitle,
                         description: isCSVImportCard ? translate('cardPage.csvCardDescription') : cardDescription,
                         interactive: !isDisabled,
@@ -315,10 +320,14 @@ function PaymentMethodList({
                 }
 
                 const isAdminIssuedVirtualCard = !!card?.nameValuePairs?.issuedBy && !!card?.nameValuePairs?.isVirtual;
-                const isTravelCard = !!card?.nameValuePairs?.isVirtual && !!card?.nameValuePairs?.isTravelCard;
+
+                // Travel cards are handled by the dedicated travelCardGrouped section below
+                if (isTravelCard(card)) {
+                    continue;
+                }
 
                 // The card should be grouped to a specific domain and such domain already exists in a assignedCardsGrouped
-                if (assignedCardsGrouped.some((item) => item.isGroupedCardDomain && item.description === card.domainName) && !isAdminIssuedVirtualCard && !isTravelCard) {
+                if (assignedCardsGrouped.some((item) => item.isGroupedCardDomain && item.description === card.domainName) && !isAdminIssuedVirtualCard) {
                     const domainGroupIndex = assignedCardsGrouped.findIndex((item) => item.isGroupedCardDomain && item.description === card.domainName);
                     const assignedCardsGroupedItem = assignedCardsGrouped.at(domainGroupIndex);
                     if (domainGroupIndex >= 0 && assignedCardsGroupedItem) {
@@ -344,8 +353,8 @@ function PaymentMethodList({
                 assignedCardsGrouped.push({
                     key: card.cardID.toString(),
                     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                    title: isTravelCard ? translate('cardPage.expensifyTravelCard') : card?.nameValuePairs?.cardTitle || card.bank,
-                    description: isTravelCard ? translate('cardPage.expensifyTravelCard') : cardDescription,
+                    title: card?.nameValuePairs?.cardTitle || card.bank,
+                    description: cardDescription,
                     onPress: () => Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAIN_CARD.getRoute(String(card.cardID))),
                     onThreeDotsMenuPress: (e: GestureResponderEvent | KeyboardEvent | undefined) =>
                         pressHandler({
@@ -360,7 +369,7 @@ function PaymentMethodList({
                             cardID: card.cardID,
                         }),
                     cardID: card.cardID,
-                    isGroupedCardDomain: !isAdminIssuedVirtualCard && !isTravelCard,
+                    isGroupedCardDomain: !isAdminIssuedVirtualCard,
                     shouldShowRightIcon: true,
                     interactive: !isDisabled,
                     disabled: isDisabled,
@@ -377,8 +386,8 @@ function PaymentMethodList({
             }
 
             const travelCardGrouped: PaymentMethodItem[] = [];
-            const travelCard = getTravelInvoicingCard(workspaceCardList);
-            if (isTravelCVVEligible(isBetaEnabled(CONST.BETAS.TRAVEL_INVOICING), workspaceCardList) && travelCard) {
+            const travelCard = getTravelInvoicingCard(cardList);
+            if (isTravelCVVEligible(isBetaEnabled(CONST.BETAS.TRAVEL_INVOICING), cardList) && travelCard) {
                 travelCardGrouped.push({
                     title: translate('walletPage.travelCVV.title'),
                     description: translate('walletPage.travelCVV.subtitle'),
@@ -396,7 +405,7 @@ function PaymentMethodList({
             if (companyCardsGrouped.length > 0 && personalCardsGrouped.length > 0) {
                 return [...companyCards, ...personalCards];
             }
-            return [...companyCardsGrouped, ...personalCardsGrouped];
+            return [...companyCardsGrouped, ...travelCardGrouped, ...personalCardsGrouped];
         }
 
         // Hide any billing cards that are not P2P debit cards for now because you cannot make them your default method, or delete them
@@ -419,6 +428,13 @@ function PaymentMethodList({
                 const currencyMatches = !filterCurrency || account.bankCurrency === filterCurrency;
 
                 return typeMatches && currencyMatches;
+            });
+        }
+
+        if (excludeStates?.length) {
+            combinedPaymentMethods = combinedPaymentMethods.filter((paymentMethod) => {
+                const account = paymentMethod as BankAccount;
+                return !excludeStates.includes(account.accountData?.state as ValueOf<typeof CONST.BANK_ACCOUNT.STATE>);
             });
         }
 
@@ -466,14 +482,15 @@ function PaymentMethodList({
         shouldShowAssignedCards,
         isLoadingBankAccountList,
         bankAccountList,
+        customCardNames,
         styles,
         translate,
         isOffline,
         filterType,
         filterCurrency,
+        excludeStates,
         isLoadingCardList,
         cardList,
-        workspaceCardList,
         isBetaEnabled,
         onPress,
         policiesForAssignedCards,
