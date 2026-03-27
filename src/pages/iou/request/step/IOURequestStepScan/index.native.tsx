@@ -1,5 +1,5 @@
 import {useFocusEffect} from '@react-navigation/core';
-import React, {useCallback, useEffect, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {Alert, AppState, StyleSheet, View} from 'react-native';
 import ReactNativeBlobUtil from 'react-native-blob-util';
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
@@ -26,6 +26,7 @@ import usePolicy from '@hooks/usePolicy';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 import {showCameraPermissionsAlert} from '@libs/fileDownload/FileUtils';
 import getPhotoSource from '@libs/fileDownload/getPhotoSource';
 import getPlatform from '@libs/getPlatform';
@@ -73,15 +74,18 @@ function IOURequestStepScan({
     const {translate} = useLocalize();
     const {isLoaderVisible} = useFullScreenLoaderState();
     const {setIsLoaderVisible} = useFullScreenLoaderActions();
+    const {windowWidth, windowHeight} = useWindowDimensions();
     const device = useCameraDevice('back', {
         physicalDevices: ['wide-angle-camera', 'ultra-wide-angle-camera'],
     });
     // Prioritize photoResolution over videoResolution so the format selector picks a 4032x3024
     // format instead of the 5712x4284 (24.5MP) format that videoResolution:'max' would select.
     // This cuts capture time roughly in half while maintaining the same output photo resolution.
-    const format = useCameraFormat(device, [{photoAspectRatio: 4 / 3}, {photoResolution: {width: 4032, height: 3024}}, {videoResolution: 'max'}]);
+    // Use screen dimensions for video resolution since we only need enough for the preview.
+    const format = useCameraFormat(device, [{photoAspectRatio: 4 / 3}, {photoResolution: {width: 4032, height: 3024}}, {videoResolution: {width: windowHeight, height: windowWidth}}]);
     // Format dimensions are in landscape orientation, so height/width gives portrait aspect ratio
     const cameraAspectRatio = format ? format.photoHeight / format.photoWidth : undefined;
+    const fps = useMemo(() => (format ? Math.min(Math.max(30, format.minFps), format.maxFps) : 30), [format]);
 
     const navigateBack = useCallback(() => {
         Navigation.goBack(backTo);
@@ -513,9 +517,7 @@ function IOURequestStepScan({
                                         ref={camera}
                                         device={device}
                                         format={format}
-                                        // Cap at 30fps to prevent the "soap opera effect" that occurs
-                                        // when lower-resolution formats run at their higher native frame rates.
-                                        fps={30}
+                                        fps={fps}
                                         style={styles.flex1}
                                         zoom={device.neutralZoom}
                                         photo
