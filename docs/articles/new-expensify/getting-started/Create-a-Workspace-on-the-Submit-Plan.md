@@ -22,6 +22,19 @@ It’s a free and simple way to replace manual expense tracking (like spreadshee
 
 ---
 
+## Who can use the Submit plan in Expensify
+
+The Submit plan is designed for individual employees who need a simple way to submit expenses and get reimbursed by a manager.
+
+You can use the Submit plan if you:
+- Need to send expense reports to a manager or approver
+- Are not part of a company-managed workspace in Expensify
+- Want to get reimbursed without waiting for your company to set up Expensify
+
+The Submit plan is ideal for employees whose company is not yet using Expensify but still need a structured way to request reimbursement.
+
+---
+
 ## How to create a Submit workspace during onboarding
 
 If you’re new to Expensify, you can create a Submit workspace during setup.
@@ -130,7 +143,7 @@ You’ll be prompted to upgrade if you try to:
 To upgrade:
 
 1. Click **Upgrade** when prompted
-2. Confirm the upgrade
+2. Click **Confirm** to upgrade
 
 Upgrading:
 - Enables approvals and payments automatically
