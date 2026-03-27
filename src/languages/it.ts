@@ -6634,6 +6634,24 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
                 title: 'Politica di spesa',
                 cardSubtitle: 'Qui trovi il regolamento spese del tuo team, così tutti sono allineati su cosa è coperto.',
             },
+            spendRules: {
+                title: 'Spesa',
+                subtitle: 'Approva o rifiuta le transazioni della Carta Expensify in tempo reale.',
+                defaultRuleDescription: 'Tutte le carte',
+                block: 'Blocca',
+                defaultRuleTitle: 'Categorie: Servizi per adulti, Bancomat, gioco d’azzardo, trasferimenti di denaro',
+                builtInProtectionModal: {
+                    title: 'Le Carte Expensify offrono una protezione integrata, sempre',
+                    description: `Expensify rifiuta sempre queste spese:
+
+  • Servizi per adulti
+  • Bancomat
+  • Gioco d’azzardo
+  • Trasferimenti di denaro
+
+Aggiungi altre regole di spesa per proteggere il flusso di cassa dell’azienda.`,
+                },
+            },
         },
         planTypePage: {
             planTypes: {
@@ -7433,7 +7451,14 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
         searchIn: 'Cerca in',
         searchPlaceholder: 'Cerca qualcosa',
         suggestions: 'Suggerimenti',
-        suggestionsAvailable: ({count}: {count: number}, query = '') => ({
+        suggestionsAvailable: (
+            {
+                count,
+            }: {
+                count: number;
+            },
+            query = '',
+        ) => ({
             one: `Suggerimenti disponibili${query ? ` per ${query}` : ''}. ${count} risultato.`,
             other: (resultCount: number) => `Suggerimenti disponibili${query ? ` per ${query}` : ''}. ${resultCount} risultati.`,
         }),

@@ -6448,6 +6448,24 @@ ${reportName}
                 title: '报销政策',
                 cardSubtitle: '这是你们团队的报销政策所在之处，让所有人都清楚哪些内容在报销范围之内。',
             },
+            spendRules: {
+                title: '支出',
+                subtitle: '实时批准或拒绝 Expensify 卡交易。',
+                defaultRuleDescription: '所有卡片',
+                block: '屏蔽',
+                defaultRuleTitle: '类别：成人服务、自动取款机、赌博、转账',
+                builtInProtectionModal: {
+                    title: 'Expensify 卡提供始终内置的保护',
+                    description: `Expensify 始终会拒绝以下消费：
+
+  • 成人服务
+  • 自动取款机（ATM）
+  • 赌博
+  • 转账汇款
+
+添加更多消费规则，保护公司的现金流。`,
+                },
+            },
         },
         planTypePage: {
             planTypes: {
@@ -7217,7 +7235,14 @@ ${reportName}
         searchIn: '搜索范围',
         searchPlaceholder: '搜索内容',
         suggestions: '建议',
-        suggestionsAvailable: ({count}: {count: number}, query = '') => ({
+        suggestionsAvailable: (
+            {
+                count,
+            }: {
+                count: number;
+            },
+            query = '',
+        ) => ({
             one: `有可用建议${query ? `：${query}` : ''}。共${count}条结果。`,
             other: (resultCount: number) => `有可用建议${query ? `：${query}` : ''}。共${resultCount}条结果。`,
         }),

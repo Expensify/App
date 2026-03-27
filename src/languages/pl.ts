@@ -6608,6 +6608,24 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
                 title: 'Polityka wydatków',
                 cardSubtitle: 'To tutaj znajduje się polityka wydatków Twojego zespołu, aby wszyscy mieli jasność co do tego, co jest objęte.',
             },
+            spendRules: {
+                title: 'Wydatki',
+                subtitle: 'Zatwierdzaj lub odrzucaj transakcje Kartą Expensify w czasie rzeczywistym.',
+                defaultRuleDescription: 'Wszystkie karty',
+                block: 'Zablokuj',
+                defaultRuleTitle: 'Kategorie: usługi dla dorosłych, bankomaty, hazard, przelewy pieniężne',
+                builtInProtectionModal: {
+                    title: 'Karty Expensify zapewniają wbudowaną ochronę – zawsze',
+                    description: `Expensify zawsze odrzuca te obciążenia:
+
+  • Usługi dla dorosłych
+  • Bankomaty
+  • Hazard
+  • Przelewy pieniężne
+
+Dodaj więcej zasad wydatków, żeby chronić przepływy pieniężne firmy.`,
+                },
+            },
         },
         planTypePage: {
             planTypes: {
@@ -7400,7 +7418,14 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
         searchIn: 'Szukaj w',
         searchPlaceholder: 'Wyszukaj coś',
         suggestions: 'Sugestie',
-        suggestionsAvailable: ({count}: {count: number}, query = '') => ({
+        suggestionsAvailable: (
+            {
+                count,
+            }: {
+                count: number;
+            },
+            query = '',
+        ) => ({
             one: `Dostępne sugestie${query ? ` dla ${query}` : ''}. ${count} wynik.`,
             other: (resultCount: number) => `Dostępne sugestie${query ? ` dla ${query}` : ''}. ${resultCount} wyniki.`,
         }),

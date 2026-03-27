@@ -6671,6 +6671,24 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
                 title: 'Politique de dépenses',
                 cardSubtitle: 'C’est ici que se trouve la politique de dépenses de votre équipe, pour que tout le monde soit d’accord sur ce qui est couvert.',
             },
+            spendRules: {
+                title: 'Dépenser',
+                subtitle: 'Approuvez ou refusez les transactions Carte Expensify en temps réel.',
+                defaultRuleDescription: 'Toutes les cartes',
+                block: 'Bloquer',
+                defaultRuleTitle: 'Catégories : services pour adultes, DAB, jeux d’argent, transferts d’argent',
+                builtInProtectionModal: {
+                    title: 'Les Cartes Expensify offrent une protection intégrée – en permanence',
+                    description: `Expensify refuse toujours ces types de dépenses :
+
+  • Services pour adultes
+  • DAB
+  • Jeux d’argent
+  • Transferts d’argent
+
+Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’entreprise.`,
+                },
+            },
         },
         planTypePage: {
             planTypes: {
@@ -7469,7 +7487,14 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
         searchIn: 'Rechercher dans',
         searchPlaceholder: 'Rechercher quelque chose',
         suggestions: 'Suggestions',
-        suggestionsAvailable: ({count}: {count: number}, query = '') => ({
+        suggestionsAvailable: (
+            {
+                count,
+            }: {
+                count: number;
+            },
+            query = '',
+        ) => ({
             one: `Suggestions disponibles${query ? ` pour ${query}` : ''}. ${count} résultat.`,
             other: (resultCount: number) => `Suggestions disponibles${query ? ` pour ${query}` : ''}. ${resultCount} résultats.`,
         }),

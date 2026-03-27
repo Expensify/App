@@ -6647,6 +6647,24 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
                 title: 'Spesenrichtlinie',
                 cardSubtitle: 'Hier ist die Spesenrichtlinie deines Teams hinterlegt, damit alle denselben Stand haben, was abgedeckt ist.',
             },
+            spendRules: {
+                title: 'Ausgaben',
+                subtitle: 'Genehmigen oder lehnen Sie Expensify Karten-Transaktionen in Echtzeit ab.',
+                defaultRuleDescription: 'Alle Karten',
+                block: 'Block',
+                defaultRuleTitle: 'Kategorien: Dienste für Erwachsene, Geldautomaten, Glücksspiel, Geldüberweisungen',
+                builtInProtectionModal: {
+                    title: 'Expensify Karten bieten integrierten Schutz – jederzeit',
+                    description: `Expensify lehnt diese Belastungen immer ab:
+
+  • Dienstleistungen für Erwachsene
+  • Geldautomaten (ATMs)
+  • Glücksspiel
+  • Geldüberweisungen
+
+Fügen Sie weitere Ausgabenregeln hinzu, um den Cashflow des Unternehmens zu schützen.`,
+                },
+            },
         },
         planTypePage: {
             planTypes: {
@@ -7445,7 +7463,14 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
         searchIn: 'Suchen in',
         searchPlaceholder: 'Nach etwas suchen',
         suggestions: 'Vorschläge',
-        suggestionsAvailable: ({count}: {count: number}, query = '') => ({
+        suggestionsAvailable: (
+            {
+                count,
+            }: {
+                count: number;
+            },
+            query = '',
+        ) => ({
             one: `Vorschläge verfügbar${query ? ` für ${query}` : ''}. ${count} Ergebnis.`,
             other: (resultCount: number) => `Vorschläge verfügbar${query ? ` für ${query}` : ''}. ${resultCount} Ergebnisse.`,
         }),

@@ -6612,6 +6612,24 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
                 title: 'Política de despesas',
                 cardSubtitle: 'Aqui é onde fica a política de despesas da sua equipe, para que todo mundo esteja alinhado sobre o que é coberto.',
             },
+            spendRules: {
+                title: 'Gasto',
+                subtitle: 'Aprove ou recuse transações do Cartão Expensify em tempo real.',
+                defaultRuleDescription: 'Todos os cartões',
+                block: 'Bloquear',
+                defaultRuleTitle: 'Categorias: Serviços adultos, caixas eletrônicos, jogos de azar, transferências de dinheiro',
+                builtInProtectionModal: {
+                    title: 'Os Cartões Expensify oferecem proteção integrada — sempre',
+                    description: `A Expensify sempre recusa estas cobranças:
+
+  • Serviços adultos
+  • Caixas eletrônicos (ATMs)
+  • Jogos de azar
+  • Transferências de dinheiro
+
+Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
+                },
+            },
         },
         planTypePage: {
             planTypes: {
@@ -7387,7 +7405,14 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
         searchIn: 'Pesquisar em',
         searchPlaceholder: 'Pesquisar algo',
         suggestions: 'Sugestões',
-        suggestionsAvailable: ({count}: {count: number}, query = '') => ({
+        suggestionsAvailable: (
+            {
+                count,
+            }: {
+                count: number;
+            },
+            query = '',
+        ) => ({
             one: `Sugestões disponíveis${query ? ` para ${query}` : ''}. ${count} resultado.`,
             other: (resultCount: number) => `Sugestões disponíveis${query ? ` para ${query}` : ''}. ${resultCount} resultados.`,
         }),

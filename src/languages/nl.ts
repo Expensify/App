@@ -6613,6 +6613,24 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
                 title: 'Declaratiebeleid',
                 cardSubtitle: 'Hier staat het declaratiebeleid van je team, zodat iedereen hetzelfde beeld heeft van wat er wordt vergoed.',
             },
+            spendRules: {
+                title: 'Uitgaven',
+                subtitle: 'Keur transacties met de Expensify Kaart in realtime goed of wijs ze af.',
+                defaultRuleDescription: 'Alle kaarten',
+                block: 'Blokkeren',
+                defaultRuleTitle: 'Categorieën: Diensten voor volwassenen, geldautomaten, gokken, geldoverdrachten',
+                builtInProtectionModal: {
+                    title: 'Expensify Kaarten bieden altijd ingebouwde bescherming',
+                    description: `Expensify wijst deze transacties altijd af:
+
+  • Seksdiensten
+  • Geldautomaten (ATM's)
+  • Gokken
+  • Geldoverschrijvingen
+
+Voeg meer bestedingsregels toe om de cashflow van je bedrijf te beschermen.`,
+                },
+            },
         },
         planTypePage: {
             planTypes: {
@@ -7399,7 +7417,14 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
         searchIn: 'Zoeken in',
         searchPlaceholder: 'Zoek iets',
         suggestions: 'Suggesties',
-        suggestionsAvailable: ({count}: {count: number}, query = '') => ({
+        suggestionsAvailable: (
+            {
+                count,
+            }: {
+                count: number;
+            },
+            query = '',
+        ) => ({
             one: `Suggesties beschikbaar${query ? ` voor ${query}` : ''}. ${count} resultaat.`,
             other: (resultCount: number) => `Suggesties beschikbaar${query ? ` voor ${query}` : ''}. ${resultCount} resultaten.`,
         }),
