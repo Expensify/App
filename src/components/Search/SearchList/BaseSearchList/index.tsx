@@ -5,7 +5,7 @@ import type {GestureResponderEvent, NativeSyntheticEvent} from 'react-native';
 import Animated from 'react-native-reanimated';
 import type {SearchListItem} from '@components/Search/SearchList/ListItem/types';
 import type {ExtendedTargetedEvent} from '@components/SelectionList/ListItem/types';
-import {getFocusedCellId, getIsEditingCell} from '@components/Table/EditableCell';
+import {useEditingCellState} from '@components/Table/EditableCell';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import {isMobileChrome} from '@libs/Browser';
@@ -37,6 +37,7 @@ function BaseSearchList({
 }: BaseSearchListProps) {
     const hasKeyBeenPressed = useRef(false);
     const isFocused = useIsFocused();
+    const {focusedCellId, isEditingCell} = useEditingCellState();
 
     const setHasKeyBeenPressed = useCallback(() => {
         if (hasKeyBeenPressed.current) {
@@ -86,12 +87,11 @@ function BaseSearchList({
         (event?: GestureResponderEvent | KeyboardEvent) => {
             // Allow event propagation during cell editing so Enter can trigger TextInput.onSubmitEditing.
             // When not editing, stop propagation to prevent unintended button activation and handle row selection.
-            if (getIsEditingCell()) {
+            if (isEditingCell) {
                 return;
             }
 
             // If a cell has keyboard focus (via Tab), let the Enter event propagate to trigger the cell's onPress
-            const focusedCellId = getFocusedCellId();
             if (focusedCellId) {
                 return;
             }
@@ -106,7 +106,7 @@ function BaseSearchList({
 
             onSelectRow(focusedItem);
         },
-        [data, focusedIndex, onSelectRow],
+        [data, focusedCellId, focusedIndex, isEditingCell, onSelectRow],
     );
 
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ENTER, selectFocusedOption, {

@@ -5,7 +5,7 @@ import {getButtonRole} from '@components/Button/utils';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {PressableWithFeedback} from '@components/Pressable';
 import type {SearchColumnType, TableColumnSize} from '@components/Search/types';
-import {getIsEditingCell} from '@components/Table/EditableCell';
+import {useEditingCellState} from '@components/Table/EditableCell';
 import TransactionItemRow from '@components/TransactionItemRow';
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useLocalize from '@hooks/useLocalize';
@@ -93,6 +93,7 @@ function MoneyRequestReportTransactionItem({
 }: MoneyRequestReportTransactionItemProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const {isEditingCell} = useEditingCellState();
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth, isMediumScreenWidth} = useResponsiveLayout();
     const {shouldUseNarrowLayout} = useResponsiveLayoutOnWideRHP();
@@ -159,7 +160,7 @@ function MoneyRequestReportTransactionItem({
                 hoverStyle={[!isPendingDelete && styles.hoveredComponentBG, isSelected && styles.activeComponentBG]}
                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
                 onPressIn={() => {
-                    wasEditingOnMouseDownRef.current = getIsEditingCell();
+                    wasEditingOnMouseDownRef.current = isEditingCell;
                     if (canUseTouchScreen()) {
                         ControlSelection.block();
                     }
