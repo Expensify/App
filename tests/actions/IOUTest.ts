@@ -12526,6 +12526,8 @@ describe('actions/IOU', () => {
                 expect(result.current.report).toBeDefined();
             });
 
+            const policyTagList = await getPolicyTags(mockPolicy.id);
+
             changeTransactionsReport({
                 transactionIDs: [transaction?.transactionID],
                 isASAPSubmitBetaEnabled: false,
@@ -12536,6 +12538,7 @@ describe('actions/IOU', () => {
                 allTransactions,
                 translate: translateLocal,
                 toLocaleDigit,
+                policyTagList,
             });
 
             let updatedTransaction: OnyxEntry<Transaction>;
