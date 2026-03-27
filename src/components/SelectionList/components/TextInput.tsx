@@ -9,6 +9,7 @@ import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import useDebouncedAccessibilityAnnouncement from '@hooks/useDebouncedAccessibilityAnnouncement';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import Accessibility from '@libs/Accessibility';
 import mergeRefs from '@libs/mergeRefs';
 import CONST from '@src/CONST';
 
@@ -84,6 +85,7 @@ function TextInput({
     } = options ?? {};
     const noResultsFoundText = translate('common.noResultsFound');
     const isNoResultsFoundMessage = headerMessage === noResultsFoundText;
+    const isScreenReaderEnabled = Accessibility.useScreenReaderStatus();
     const noData = dataLength === 0 && !shouldShowLoadingPlaceholder;
     const shouldShowHeaderMessage = !!shouldShowTextInput && !!headerMessage && (!isLoadingNewOptions || !isNoResultsFoundMessage || noData);
     const trimmedSearchValue = value?.trim() ?? '';
@@ -108,7 +110,7 @@ function TextInput({
 
     useFocusEffect(
         useCallback(() => {
-            if (!shouldShowTextInput || disableAutoFocus) {
+            if (!shouldShowTextInput || disableAutoFocus || isScreenReaderEnabled) {
                 return;
             }
 
@@ -121,7 +123,7 @@ function TextInput({
                 clearTimeout(focusTimeoutRef.current);
                 focusTimeoutRef.current = null;
             };
-        }, [shouldShowTextInput, disableAutoFocus, focusTextInput]),
+        }, [shouldShowTextInput, disableAutoFocus, focusTextInput, isScreenReaderEnabled]),
     );
 
     const handleFocus = useCallback(() => {
