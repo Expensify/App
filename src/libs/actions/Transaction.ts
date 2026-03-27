@@ -832,7 +832,7 @@ function openDraftDistanceExpense() {
     API.read(READ_COMMANDS.OPEN_DRAFT_DISTANCE_EXPENSE, null, onyxData);
 }
 
-function fetchDefaultP2PMileageRate() {
+function getDefaultP2PMileageRate() {
     API.read(READ_COMMANDS.GET_DEFAULT_P2P_MILEAGE_RATE, {}, {});
 }
 
@@ -1681,7 +1681,7 @@ export {
     setReviewDuplicatesKey,
     abandonReviewDuplicateTransactions,
     openDraftDistanceExpense,
-    fetchDefaultP2PMileageRate,
+    getDefaultP2PMileageRate,
     sanitizeWaypointsForAPI,
     stringifyWaypointsForAPI,
     getLastModifiedExpense,

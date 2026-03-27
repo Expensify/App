@@ -237,7 +237,7 @@ import {buildOptimisticPolicyRecentlyUsedTags} from '@userActions/Policy/Tag';
 import type {GuidedSetupData} from '@userActions/Report';
 import {buildInviteToRoomOnyxData, completeOnboarding, notifyNewAction, optimisticReportLastData} from '@userActions/Report';
 import {
-    fetchDefaultP2PMileageRate,
+    getDefaultP2PMileageRate,
     getStoredDefaultP2PMileageRate,
     mergeTransactionIdsHighlightOnSearchRoute,
     sanitizeWaypointsForAPI,
@@ -1351,7 +1351,7 @@ function initMoneyRequest({
             comment.odometerEndImage = undefined;
         }
 
-        fetchDefaultP2PMileageRate();
+        getDefaultP2PMileageRate();
     }
 
     if (newIouRequestType === CONST.IOU.REQUEST_TYPE.PER_DIEM) {
