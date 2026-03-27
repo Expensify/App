@@ -69,7 +69,7 @@ const loadWorkspaceJoinUser = () => require<ReactComponentModule>('@pages/worksp
 const loadSearchRouterPage = () => require<ReactComponentModule>('../../../components/Search/SearchRouter/SearchRouterPage').default;
 const loadReportSplitNavigator = () => require<ReactComponentModule>('./Navigators/ReportsSplitNavigator').default;
 const loadSettingsSplitNavigator = () => require<ReactComponentModule>('./Navigators/SettingsSplitNavigator').default;
-const loadWorkspacesNavigator = () => require<ReactComponentModule>('./Navigators/WorkspacesNavigator').default;
+const loadWorkspaceNavigator = () => require<ReactComponentModule>('./Navigators/WorkspaceNavigator').default;
 const loadSearchNavigator = () => require<ReactComponentModule>('./Navigators/SearchFullscreenNavigator').default;
 
 const RootStack = createRootStackNavigator<AuthScreensParamList>();
@@ -197,7 +197,7 @@ function AuthScreens() {
                         <RootStack.Screen
                             name={NAVIGATORS.WORKSPACE_NAVIGATOR}
                             options={getFullscreenNavigatorOptions}
-                            getComponent={loadWorkspacesNavigator}
+                            getComponent={loadWorkspaceNavigator}
                         />
                         <RootStack.Screen
                             name={SCREENS.VALIDATE_LOGIN}

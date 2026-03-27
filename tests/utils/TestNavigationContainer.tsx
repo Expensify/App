@@ -23,7 +23,7 @@ const ReportsSplit = createSplitNavigator<ReportsSplitNavigatorParamList>();
 const SettingsSplit = createSplitNavigator<SettingsSplitNavigatorParamList>();
 const SearchStack = createPlatformStackNavigator<SearchFullscreenNavigatorParamList>();
 const WorkspaceSplit = createSplitNavigator<WorkspaceSplitNavigatorParamList>();
-const WorkspacesStack = createPlatformStackNavigator<WorkspaceNavigatorParamList>();
+const WorkspaceStack = createPlatformStackNavigator<WorkspaceNavigatorParamList>();
 const RightModalNavigatorStack = createSplitNavigator<RightModalNavigatorParamList>();
 
 const getEmptyComponent = () => jest.fn();
@@ -65,18 +65,18 @@ function TestWorkspaceSplitNavigator() {
     );
 }
 
-function TestWorkspacesNavigator() {
+function TestWorkspaceNavigator() {
     return (
-        <WorkspacesStack.Navigator>
-            <WorkspacesStack.Screen
+        <WorkspaceStack.Navigator>
+            <WorkspaceStack.Screen
                 name={SCREENS.WORKSPACES_LIST}
                 component={getEmptyComponent()}
             />
-            <WorkspacesStack.Screen
+            <WorkspaceStack.Screen
                 name={NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR}
                 component={TestWorkspaceSplitNavigator}
             />
-        </WorkspacesStack.Navigator>
+        </WorkspaceStack.Navigator>
     );
 }
 
@@ -172,7 +172,7 @@ function TestNavigationContainer({initialState}: TestNavigationContainerProps) {
                 />
                 <RootStack.Screen
                     name={NAVIGATORS.WORKSPACE_NAVIGATOR}
-                    component={TestWorkspacesNavigator}
+                    component={TestWorkspaceNavigator}
                 />
                 <RootStack.Screen
                     name={NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR}

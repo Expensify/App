@@ -7,7 +7,7 @@ import usePreloadFullScreenNavigators from '@libs/Navigation/AppNavigator/usePre
 import Animations from '@libs/Navigation/PlatformStackNavigation/navigationOptions/animation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {AuthScreensParamList, WorkspaceNavigatorParamList} from '@libs/Navigation/types';
-import createWorkspacesNavigator from '@navigation/AppNavigator/createWorkspacesNavigator';
+import createWorkspaceNavigator from '@navigation/AppNavigator/createWorkspaceNavigator';
 import WorkspacesListPage from '@pages/workspace/WorkspacesListPage';
 import variables from '@styles/variables';
 import NAVIGATORS from '@src/NAVIGATORS';
@@ -15,9 +15,9 @@ import SCREENS from '@src/SCREENS';
 import DomainSplitNavigator from './DomainSplitNavigator';
 import WorkspaceSplitNavigator from './WorkspaceSplitNavigator';
 
-const Stack = createWorkspacesNavigator<WorkspaceNavigatorParamList>();
+const Stack = createWorkspaceNavigator<WorkspaceNavigatorParamList>();
 
-function WorkspacesNavigator({route}: PlatformStackScreenProps<AuthScreensParamList, typeof NAVIGATORS.WORKSPACE_NAVIGATOR>) {
+function WorkspaceNavigator({route}: PlatformStackScreenProps<AuthScreensParamList, typeof NAVIGATORS.WORKSPACE_NAVIGATOR>) {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const splitNavigatorAnimation = shouldUseNarrowLayout ? Animations.SLIDE_FROM_RIGHT : Animations.NONE;
 
@@ -51,4 +51,4 @@ function WorkspacesNavigator({route}: PlatformStackScreenProps<AuthScreensParamL
     );
 }
 
-export default WorkspacesNavigator;
+export default WorkspaceNavigator;

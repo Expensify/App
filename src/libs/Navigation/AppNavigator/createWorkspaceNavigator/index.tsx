@@ -6,20 +6,20 @@ import createPlatformStackNavigatorComponent from '@libs/Navigation/PlatformStac
 import defaultPlatformStackScreenOptions from '@libs/Navigation/PlatformStackNavigation/defaultPlatformStackScreenOptions';
 import type {CustomEffectsHookProps, PlatformStackNavigationEventMap, PlatformStackNavigationOptions, PlatformStackNavigationState} from '@libs/Navigation/PlatformStackNavigation/types';
 import NAVIGATORS from '@src/NAVIGATORS';
-import WorkspacesRouter from './WorkspacesRouter';
+import WorkspaceRouter from './WorkspaceRouter';
 
 function useCustomEffects(props: CustomEffectsHookProps) {
     useNavigationResetOnLayoutChange(props);
     usePreserveNavigatorState(props.state, props.parentRoute);
 }
 
-const WorkspacesNavigatorComponent = createPlatformStackNavigatorComponent(NAVIGATORS.WORKSPACE_NAVIGATOR, {
-    createRouter: WorkspacesRouter,
+const WorkspaceNavigatorComponent = createPlatformStackNavigatorComponent(NAVIGATORS.WORKSPACE_NAVIGATOR, {
+    createRouter: WorkspaceRouter,
     defaultScreenOptions: defaultPlatformStackScreenOptions,
     useCustomEffects,
 });
 
-function createWorkspacesNavigator<
+function createWorkspaceNavigator<
     const ParamList extends ParamListBase,
     const NavigatorID extends string | undefined = undefined,
     const TypeBag extends NavigatorTypeBagBase = {
@@ -31,13 +31,13 @@ function createWorkspacesNavigator<
         NavigationList: {
             [RouteName in keyof ParamList]: NavigationProp<ParamList, RouteName, NavigatorID>;
         };
-        Navigator: typeof WorkspacesNavigatorComponent;
+        Navigator: typeof WorkspaceNavigatorComponent;
     },
     const Config extends StaticConfig<TypeBag> = StaticConfig<TypeBag>,
 >(config?: Config): TypedNavigator<TypeBag, Config> {
     // In React Navigation 7 createNavigatorFactory returns any
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-    return createNavigatorFactory(WorkspacesNavigatorComponent)(config);
+    return createNavigatorFactory(WorkspaceNavigatorComponent)(config);
 }
 
-export default createWorkspacesNavigator;
+export default createWorkspaceNavigator;

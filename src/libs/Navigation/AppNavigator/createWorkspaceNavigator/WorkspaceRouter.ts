@@ -1,9 +1,9 @@
 import type {RouterConfigOptions} from '@react-navigation/native';
 import {StackRouter} from '@react-navigation/native';
 import {getPreservedNavigatorState} from '@navigation/AppNavigator/createSplitNavigator/usePreserveNavigatorState';
-import type WorkspacesNavigatorRouterOptions from './types';
+import type WorkspaceNavigatorRouterOptions from './types';
 
-function WorkspacesRouter(options: WorkspacesNavigatorRouterOptions) {
+function WorkspaceRouter(options: WorkspaceNavigatorRouterOptions) {
     const stackRouter = StackRouter(options);
 
     return {
@@ -15,4 +15,4 @@ function WorkspacesRouter(options: WorkspacesNavigatorRouterOptions) {
     };
 }
 
-export default WorkspacesRouter;
+export default WorkspaceRouter;

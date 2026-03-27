@@ -78,7 +78,7 @@ function prepareStateUnderWorkspaceOrDomainNavigator(
     }
 
     // Directly set the nested state so WorkspacesList is always present underneath the split navigator.
-    // React Navigation will rehydrate this partial state (generating route keys) when WorkspacesNavigator mounts.
+    // React Navigation will rehydrate this partial state (generating route keys) when WorkspaceNavigator mounts.
     const nestedWorkspacesState = {
         routes: [{name: SCREENS.WORKSPACES_LIST}, {name: splitNavigatorName, params: splitNavigatorParams}],
         index: 1,

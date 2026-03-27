@@ -1,5 +1,5 @@
 import {SIDEBAR_TO_SPLIT, SPLIT_TO_SIDEBAR} from '@libs/Navigation/linkingConfig/RELATIONS';
-import type {FullScreenName, OnboardingFlowName, PublicScreenName, SplitNavigatorName, SplitNavigatorSidebarScreen, WorkspacesNavigatorRouteName} from '@libs/Navigation/types';
+import type {FullScreenName, OnboardingFlowName, PublicScreenName, SplitNavigatorName, SplitNavigatorSidebarScreen, WorkspaceNavigatorRouteName} from '@libs/Navigation/types';
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
 
@@ -45,12 +45,12 @@ function isSidebarScreenName(screen: string | undefined) {
     return checkIfScreenHasMatchingNameToSetValues<SplitNavigatorSidebarScreen>(screen, SIDEBARS_SET);
 }
 
-function isWorkspacesNavigatorRouteName(screen: string | undefined) {
-    return checkIfScreenHasMatchingNameToSetValues<WorkspacesNavigatorRouteName>(screen, WORKSPACES_TAB_SET);
+function isWorkspaceNavigatorRouteName(screen: string | undefined) {
+    return checkIfScreenHasMatchingNameToSetValues<WorkspaceNavigatorRouteName>(screen, WORKSPACES_TAB_SET);
 }
 
 function isPublicScreenName(screen: string | undefined) {
     return checkIfScreenHasMatchingNameToSetValues<PublicScreenName>(screen, PUBLIC_SCREENS_SET);
 }
 
-export {isFullScreenName, isOnboardingFlowName, isPublicScreenName, isSidebarScreenName, isSplitNavigatorName, isWorkspacesNavigatorRouteName};
+export {isFullScreenName, isOnboardingFlowName, isPublicScreenName, isSidebarScreenName, isSplitNavigatorName, isWorkspaceNavigatorRouteName};
