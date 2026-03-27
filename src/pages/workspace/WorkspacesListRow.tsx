@@ -358,7 +358,8 @@ function WorkspacesListRow({
                                 fill={theme.icon}
                                 additionalStyles={[styles.alignSelfCenter, !isHovered && styles.opacitySemiTransparent]}
                                 isButtonIcon
-                                medium
+                                width={variables.iconSizeNormal}
+                                height={variables.iconSizeNormal}
                             />
                         </PressableWithoutFeedback>
                     )}
