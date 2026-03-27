@@ -53,14 +53,14 @@ function useSearchPageSetup(queryJSON: SearchQueryJSON | undefined) {
     }, [hash, isOffline, shouldUseLiveData, queryJSON]);
 
     useEffect(() => {
-        openSearch({includePartiallySetupBankAccounts: true});
+        openSearch();
     }, []);
 
     useEffect(() => {
         if (!prevIsOffline || isOffline) {
             return;
         }
-        openSearch({includePartiallySetupBankAccounts: true});
+        openSearch();
     }, [isOffline, prevIsOffline]);
 }
 
