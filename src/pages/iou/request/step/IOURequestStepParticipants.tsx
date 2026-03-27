@@ -198,7 +198,7 @@ function IOURequestStepParticipants({
                 policy: policyForMovingExpenses,
                 isPolicyExpenseChat: false,
             });
-            setCustomUnitRateID(transaction.transactionID, rateID, transaction, activePolicy);
+            setCustomUnitRateID(transaction.transactionID, rateID, transaction, policyForMovingExpenses);
             const shouldSetParticipantAutoAssignment = iouType === CONST.IOU.TYPE.CREATE;
             setMoneyRequestParticipantsFromReport(
                 transaction.transactionID,
