@@ -26,7 +26,6 @@ function RadioListItem<TItem extends ListItem>({
     wrapperStyle,
     titleStyles,
     shouldHighlightSelectedItem = true,
-    shouldDisableHoverStyle,
     accessibilityRole,
     shouldUseDefaultRightHandSideComponent,
 }: RadioListItemProps<TItem>) {
@@ -48,7 +47,7 @@ function RadioListItem<TItem extends ListItem>({
                 containerBorderRadius={CIRCULAR_BORDER_RADIUS}
                 accessibilityLabel={item.text ?? ''}
                 isChecked={!!item.isSelected}
-                disabled={!!isDisabled}
+                disabled={!!isDisabled && !item.isSelected}
                 onPress={handleCheckboxPress}
             />
         ),
@@ -71,7 +70,6 @@ function RadioListItem<TItem extends ListItem>({
             shouldSyncFocus={shouldSyncFocus}
             pendingAction={item.pendingAction}
             shouldHighlightSelectedItem={shouldHighlightSelectedItem}
-            shouldDisableHoverStyle={shouldDisableHoverStyle}
             accessibilityRole={accessibilityRole}
         >
             <>
