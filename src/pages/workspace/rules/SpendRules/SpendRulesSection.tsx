@@ -29,7 +29,6 @@ function SpendRulesSection() {
             titleStyles: [styles.textHeadlineH1],
             titleContainerStyles: [styles.mb3],
             prompt: translate('workspace.rules.spendRules.builtInProtectionModal.description'),
-            promptStyles: [styles.preWrap],
             shouldShowCancelButton: false,
             success: false,
             confirmText: translate('common.buttonConfirm'),
