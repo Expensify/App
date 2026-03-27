@@ -184,6 +184,9 @@ function IOURequestStepOdometerImage({
         }
 
         const file = files.at(0);
+        if (!file) {
+            return;
+        }
         setMoneyRequestOdometerImage(transactionID, imageType, getOdometerImageUri(file), isTransactionDraft, isEditingConfirmation !== 'true');
         navigateBack();
     };
