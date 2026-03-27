@@ -1,6 +1,6 @@
 import {Paragraph} from '@shopify/react-native-skia';
 import type {SkTypefaceFontProvider} from '@shopify/react-native-skia';
-import React, {useMemo} from 'react';
+import React from 'react';
 import type {ChartBounds, Scale} from 'victory-native';
 import {AXIS_LABEL_GAP, GLYPH_PADDING, MAX_Y_AXIS_LABEL_WIDTH} from '@components/Charts/constants';
 import type {ParagraphWithWidth} from '@components/Charts/types';
@@ -33,30 +33,27 @@ type ChartYAxisLabelsProps = {
 };
 
 function ChartYAxisLabels({yTicks, yScale, chartBounds, fontSize, fontMgr, labelColor, formatValue, leftAlign = false}: ChartYAxisLabelsProps) {
-    const formattedLabels = useMemo(() => yTicks.map((tick) => formatValue(tick)), [yTicks, formatValue]);
+    const formattedLabels = yTicks.map((tick) => formatValue(tick));
 
-    const paragraphs = useMemo((): {items: ParagraphWithWidth[]; maxWidth: number} => {
-        const items = formattedLabels.map((label) => {
-            const para = buildChartParagraph(label, fontMgr, fontSize, labelColor);
-            para.layout(MAX_Y_AXIS_LABEL_WIDTH);
-            const width = para.getLongestLine();
-            return {para, width};
-        });
-        const maxWidth = Math.max(0, ...items.map((item) => item.width));
-        return {items, maxWidth};
-    }, [fontMgr, formattedLabels, labelColor, fontSize]);
+    const paragraphs: ParagraphWithWidth[] = formattedLabels.map((label) => {
+        const para = buildChartParagraph(label, fontMgr, fontSize, labelColor);
+        para.layout(MAX_Y_AXIS_LABEL_WIDTH);
+        const width = para.getLongestLine();
+        return {para, width};
+    });
+    const maxWidth = Math.max(0, ...paragraphs.map((item) => item.width));
 
     // Derive line height from the first available paragraph's line metrics.
     const {ascent, descent} = getFontLineMetrics(fontMgr, fontSize);
     const lineHeight = ascent + descent;
 
     return yTicks.map((tick, i) => {
-        const paraData = paragraphs.items.at(i);
+        const paraData = paragraphs.at(i);
         if (!paraData) {
             return null;
         }
 
-        const x = chartBounds.left - AXIS_LABEL_GAP + GLYPH_PADDING / 2 - (leftAlign ? (paragraphs?.maxWidth ?? 0) : paraData.width);
+        const x = chartBounds.left - AXIS_LABEL_GAP + GLYPH_PADDING / 2 - (leftAlign ? maxWidth : paraData.width);
         const tickY = yScale(tick);
 
         return (

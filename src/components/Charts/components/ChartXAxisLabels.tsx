@@ -1,6 +1,6 @@
 import {Group, Paragraph, vec} from '@shopify/react-native-skia';
 import type {SkTypefaceFontProvider} from '@shopify/react-native-skia';
-import React, {useMemo} from 'react';
+import React from 'react';
 import {AXIS_LABEL_GAP, GLYPH_PADDING, MAX_X_AXIS_LABEL_WIDTH} from '@components/Charts/constants';
 import type {LabelRotation, ParagraphWithWidth} from '@components/Charts/types';
 import {buildChartParagraph, getFontLineMetrics, rotatedLabelCenterCorrection, rotatedLabelYOffset} from '@components/Charts/utils';
@@ -38,20 +38,16 @@ type ChartXAxisLabelsProps = {
 function ChartXAxisLabels({labels, labelRotation, labelSkipInterval, fontSize, fontMgr, labelColor, xScale, chartBoundsBottom, centerRotatedLabels = false}: ChartXAxisLabelsProps) {
     const angleRad = (Math.abs(labelRotation) * Math.PI) / 180;
 
-    const paragraphs = useMemo((): ParagraphWithWidth[] => {
-        return labels.map((label) => {
-            if (label.length === 0) {
-                return {para: null, width: 0};
-            }
-            const para = buildChartParagraph(label, fontMgr, fontSize, labelColor);
-            para.layout(MAX_X_AXIS_LABEL_WIDTH);
-            return {para, width: para.getLongestLine()};
-        });
-    }, [fontMgr, labels, labelColor, fontSize]);
+    const paragraphs: ParagraphWithWidth[] = labels.map((label) => {
+        if (label.length === 0) {
+            return {para: null, width: 0};
+        }
+        const para = buildChartParagraph(label, fontMgr, fontSize, labelColor);
+        para.layout(MAX_X_AXIS_LABEL_WIDTH);
+        return {para, width: para.getLongestLine()};
+    });
 
-    const labelWidths = useMemo(() => {
-        return labels.map((_, i) => paragraphs?.at(i)?.width ?? 0);
-    }, [labels, paragraphs]);
+    const labelWidths = labels.map((_, i) => paragraphs?.at(i)?.width ?? 0);
 
     // Derive ascent/descent from the first available paragraph's line metrics.
     const {ascent, descent} = getFontLineMetrics(fontMgr, fontSize);
