@@ -116,9 +116,19 @@ function shouldPopEntireNavigator(state: StackState, action: CommonActions.Actio
 
 function SplitRouter(options: SplitNavigatorRouterOptions) {
     const stackRouter = StackRouter(options);
+
+    const getRehydratedState = (partialState: StackState, configOptions: RouterConfigOptions): StackNavigationState<ParamListBase> => {
+        const adaptedState = adaptStateIfNecessary({state: partialState, options});
+        return stackRouter.getRehydratedState(adaptedState, configOptions);
+    };
+
     return {
         ...stackRouter,
         getStateForAction(state: StackNavigationState<ParamListBase>, action: CommonActions.Action | StackActionType, configOptions: RouterConfigOptions) {
+            if (action.type === CONST.NAVIGATION.ACTION_TYPE.RESET) {
+                const result = stackRouter.getStateForAction(state, action, configOptions);
+                return result ? getRehydratedState(result, configOptions) : result;
+            }
             if (isPushingSidebarOnCentralPane(state, action, options)) {
                 if (getIsNarrowLayout()) {
                     const newAction = StackActions.popToTop();
@@ -147,10 +157,7 @@ function SplitRouter(options: SplitNavigatorRouterOptions) {
             return maybeAdaptedState as StackNavigationState<ParamListBase>;
         },
 
-        getRehydratedState(partialState: StackState, {routeNames, routeParamList, routeGetIdList}: RouterConfigOptions): StackNavigationState<ParamListBase> {
-            const adaptedState = adaptStateIfNecessary({state: partialState, options});
-            return stackRouter.getRehydratedState(adaptedState, {routeNames, routeParamList, routeGetIdList});
-        },
+        getRehydratedState,
     };
 }
 
