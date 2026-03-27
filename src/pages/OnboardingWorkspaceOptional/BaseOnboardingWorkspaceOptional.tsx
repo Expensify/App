@@ -165,7 +165,7 @@ function BaseOnboardingWorkspaceOptional({shouldUseNativeStyles}: BaseOnboarding
             ? createWorkspace({
                   policyOwnerEmail: undefined,
                   makeMeAdmin: true,
-                  policyName: newGenerateDefaultWorkspaceName(email, lastWorkspaceNumber),
+                  policyName: newGenerateDefaultWorkspaceName(email, lastWorkspaceNumber, translate),
                   policyID: generatePolicyID(),
                   engagementChoice: CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE,
                   currency: currentUserPersonalDetails.localCurrencyCode ?? CONST.CURRENCY.USD,
@@ -203,6 +203,7 @@ function BaseOnboardingWorkspaceOptional({shouldUseNativeStyles}: BaseOnboarding
         isSelfTourViewed,
         hasActiveAdminPolicies,
         completeOnboarding,
+        translate,
     ]);
 
     return (

@@ -117,7 +117,7 @@ function WorkspaceConfirmationForm({onSubmit, policyOwnerEmail = '', onBackButto
 
     const email = policyOwnerEmail || (session?.email ?? '');
     const lastWorkspaceNumber = lastWorkspaceNumberSelector(policies, email);
-    const defaultWorkspaceName = newGenerateDefaultWorkspaceName(email, lastWorkspaceNumber);
+    const defaultWorkspaceName = newGenerateDefaultWorkspaceName(email, lastWorkspaceNumber, translate);
     const [workspaceNameFirstCharacter, setWorkspaceNameFirstCharacter] = useState(defaultWorkspaceName ?? '');
 
     const userCurrency = draftValues?.currency ?? currentUserPersonalDetails?.localCurrencyCode ?? CONST.CURRENCY.USD;

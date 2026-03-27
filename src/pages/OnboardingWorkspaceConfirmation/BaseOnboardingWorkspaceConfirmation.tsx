@@ -60,7 +60,7 @@ function BaseOnboardingWorkspaceConfirmation({shouldUseNativeStyles}: BaseOnboar
 
     const email = session?.email ?? '';
     const lastWorkspaceNumber = lastWorkspaceNumberSelector(allPolicies, email);
-    const defaultWorkspaceName = draftValues?.name ?? newGenerateDefaultWorkspaceName(email, lastWorkspaceNumber);
+    const defaultWorkspaceName = draftValues?.name ?? newGenerateDefaultWorkspaceName(email, lastWorkspaceNumber, translate);
     const defaultCurrency = draftValues?.currency ?? currentUserPersonalDetails?.localCurrencyCode ?? CONST.CURRENCY.USD;
 
     useEffect(() => {

@@ -5,7 +5,7 @@ import type {OnyxCollection, OnyxCollectionInputValue, OnyxEntry, OnyxUpdate} fr
 import Onyx from 'react-native-onyx';
 import type {TupleToUnion, ValueOf} from 'type-fest';
 import type {ReportExportType} from '@components/ButtonWithDropdownMenu/types';
-import type {LocaleContextProps} from '@components/LocaleContextProvider';
+import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 import type PolicyData from '@hooks/usePolicyData/types';
 import * as API from '@libs/API';
 import type {
@@ -2178,7 +2178,7 @@ function getDisplayNameForWorkspace(email: string) {
  * @param [email] the email to base the workspace name on. If not passed, will use the logged-in user's email instead
  * @param [lastWorkspaceNumber] the last workspace number
  */
-function newGenerateDefaultWorkspaceName(email: string, lastWorkspaceNumber: number | undefined): string {
+function newGenerateDefaultWorkspaceName(email: string, lastWorkspaceNumber: number | undefined, translate: LocalizedTranslate): string {
     const emailParts = email ? email.split('@') : deprecatedSessionEmail.split('@');
     if (!emailParts || emailParts.length !== 2) {
         return '';
@@ -2187,14 +2187,12 @@ function newGenerateDefaultWorkspaceName(email: string, lastWorkspaceNumber: num
     const isSMSDomain = `@${domain}` === CONST.SMS.DOMAIN;
 
     if (isSMSDomain) {
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        return translateLocal('workspace.new.myGroupWorkspace', {workspaceNumber: lastWorkspaceNumber !== undefined ? lastWorkspaceNumber + 1 : undefined});
+        return translate('workspace.new.myGroupWorkspace', {workspaceNumber: lastWorkspaceNumber !== undefined ? lastWorkspaceNumber + 1 : undefined});
     }
 
     const displayNameForWorkspace = getDisplayNameForWorkspace(email || deprecatedSessionEmail);
 
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    return translateLocal('workspace.new.workspaceName', displayNameForWorkspace, lastWorkspaceNumber !== undefined ? lastWorkspaceNumber + 1 : undefined);
+    return translate('workspace.new.workspaceName', displayNameForWorkspace, lastWorkspaceNumber !== undefined ? lastWorkspaceNumber + 1 : undefined);
 }
 
 /**
