@@ -271,13 +271,13 @@ function MultifactorAuthenticationValidateCodePage() {
                 <OfflineWithFeedback
                     shouldDisplayErrorAbove
                     errors={errorMessage ? {error: errorMessage} : undefined}
-                    errorRowStyles={[styles.mh5, styles.mb2]}
+                    errorRowStyles={[styles.mh5]}
                     style={[styles.w100, styles.mtAuto]}
                 >
                     <Button
                         success
                         large
-                        style={[styles.w100, styles.p5]}
+                        style={[styles.w100, styles.ph5, styles.pb5, styles.mt4]}
                         onPress={validateAndSubmitForm}
                         text={translate('common.verify')}
                         isLoading={isValidateCodeFormSubmitting}
