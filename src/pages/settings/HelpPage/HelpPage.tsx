@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import {View} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemList from '@components/MenuItemList';
@@ -13,6 +13,10 @@ import {openExternalLink} from '@libs/actions/Link';
 import Navigation from '@libs/Navigation/Navigation';
 import colors from '@styles/theme/colors';
 import CONST from '@src/CONST';
+import { openHelpPage } from '@libs/actions/Help';
+import useOnyx from '@hooks/useOnyx';
+import ONYXKEYS from '@src/ONYXKEYS';
+import useIsPaidPolicyAdmin from '@hooks/useIsPaidPolicyAdmin';
 
 function HelpPage() {
     const icons = useMemoizedLazyExpensifyIcons(['NewWindow', 'Monitor']);
@@ -20,6 +24,10 @@ function HelpPage() {
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const styles = useThemeStyles();
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const isPaidPolicyAdmin = useIsPaidPolicyAdmin();
+    const accountManagerDetails = account?.accountManagerAccountID ? personalDetails?.[account.accountManagerAccountID] : null;
 
     const menuItems = [
         {
@@ -32,7 +40,23 @@ function HelpPage() {
             wrapperStyle: [styles.sectionMenuItemTopDescription],
             sentryLabel: CONST.SENTRY_LABEL.SETTINGS_HELP.HELP_DOCS,
         },
+        ...(accountManagerDetails && isPaidPolicyAdmin ? [
+            {
+                key: accountManagerDetails?.login,
+                title: accountManagerDetails?.displayName,
+                icon: accountManagerDetails?.avatar,
+                iconType: CONST.ICON_TYPE_AVATAR,
+                // onPress: () => openExternalLink(CONST.NEWHELP_URL),
+                shouldShowRightIcon: true,
+                wrapperStyle: [styles.sectionMenuItemTopDescription],
+                sentryLabel: CONST.SENTRY_LABEL.SETTINGS_HELP.HELP_DOCS,
+            }
+        ] : []),
     ];
+
+    useEffect(() => {
+        openHelpPage();
+    }, []);
 
     return (
         <ScreenWrapper

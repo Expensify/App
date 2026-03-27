@@ -1241,6 +1241,7 @@ const READ_COMMANDS = {
     GET_SAML_SETTINGS: 'GetSAMLSettings',
     GET_DUPLICATE_TRANSACTION_DETAILS: 'GetDuplicateTransactionDetails',
     GET_TRANSACTIONS_MATCHING_CODING_RULE: 'GetTransactionsMatchingCodingRule',
+    GET_ASSIGNED_SUPPORT_DATA: 'GetAssignedSupportData',
 } as const;
 
 type ReadCommand = ValueOf<typeof READ_COMMANDS>;
