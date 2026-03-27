@@ -1,6 +1,6 @@
 import {useFocusEffect} from '@react-navigation/native';
 import {hasSeenTourSelector} from '@selectors/Onboarding';
-import {policyTagListSelector} from '@selectors/PolicyTagList';
+import passthroughPolicyTagListSelector from '@selectors/PolicyTagList';
 import reject from 'lodash/reject';
 import type {Ref} from 'react';
 import React, {useEffect, useImperativeHandle, useRef, useState} from 'react';
@@ -77,7 +77,7 @@ function useOptions(reportAttributesDerived: ReportAttributesDerivedValue['repor
     const allPersonalDetails = usePersonalDetails();
     const isScreenFocusedRef = useIsFocusedRef();
     const [sortedActions] = useOnyx(ONYXKEYS.DERIVED.SORTED_REPORT_ACTIONS, {selector: sortedActionsSelector});
-    const [allPolicyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS, {selector: policyTagListSelector});
+    const [allPolicyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS, {selector: passthroughPolicyTagListSelector});
 
     const {
         options: listOptions,

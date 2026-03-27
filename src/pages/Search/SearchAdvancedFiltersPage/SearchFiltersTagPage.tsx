@@ -1,4 +1,4 @@
-import {policyTagListSelector} from '@selectors/PolicyTagList';
+import passthroughPolicyTagListSelector from '@selectors/PolicyTagList';
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import type {OnyxCollection} from 'react-native-onyx';
@@ -30,7 +30,7 @@ function SearchFiltersTagPage() {
         return {name: getCleanedTagName(tag), value: tag};
     });
     const policyIDs = searchAdvancedFiltersForm?.policyID ?? [];
-    const [allPolicyTagLists = getEmptyObject<NonNullable<OnyxCollection<PolicyTagLists>>>()] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS, {selector: policyTagListSelector});
+    const [allPolicyTagLists = getEmptyObject<NonNullable<OnyxCollection<PolicyTagLists>>>()] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS, {selector: passthroughPolicyTagListSelector});
     const selectedPoliciesTagLists = Object.keys(allPolicyTagLists ?? {})
         .filter((key) => policyIDs?.map((policyID) => `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`)?.includes(key))
         ?.map((key) => getTagNamesFromTagsLists(allPolicyTagLists?.[key] ?? {}))

@@ -1,5 +1,5 @@
 /* eslint-disable rulesdir/no-acc-spread-in-reduce */
-import {policyTagListSelector} from '@selectors/PolicyTagList';
+import passthroughPolicyTagListSelector from '@selectors/PolicyTagList';
 import type {ForwardedRef} from 'react';
 import React, {useEffect, useRef} from 'react';
 import type {StyleProp, TextInputProps, ViewStyle} from 'react-native';
@@ -109,7 +109,7 @@ function SearchAutocompleteInput({
     const categoryAutocompleteList = getAutocompleteCategories(allPolicyCategories);
     const categorySharedValue = useSharedValue(categoryAutocompleteList);
 
-    const [allPoliciesTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS, {selector: policyTagListSelector});
+    const [allPoliciesTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS, {selector: passthroughPolicyTagListSelector});
     const tagAutocompleteList = getAutocompleteTags(allPoliciesTags);
     const tagSharedValue = useSharedValue(tagAutocompleteList);
 
