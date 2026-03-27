@@ -404,6 +404,8 @@ type TransactionListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
     lastPaymentMethod?: OnyxEntry<LastPaymentMethod>;
     /** The user's personal policy ID */
     personalPolicyID?: string;
+    /** Callback to undelete a transaction by its ID */
+    onUndelete?: (transactionID: string) => void;
 };
 
 type TransactionGroupListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {

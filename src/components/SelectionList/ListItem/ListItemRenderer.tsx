@@ -16,9 +16,8 @@ type ListItemRendererProps<TItem extends ListItem> = Omit<BaseListItemProps<TIte
         singleExecution: ReturnType<typeof useSingleExecution>['singleExecution'];
         titleStyles?: StyleProp<TextStyle>;
         titleContainerStyles?: StyleProp<ViewStyle>;
-        shouldHighlightSelectedItem?: boolean;
         isLastItem?: boolean;
-        shouldShowRadioButton?: boolean;
+        shouldHighlightSelectedItem: boolean;
     };
 
 function ListItemRenderer<TItem extends ListItem>({
@@ -54,7 +53,6 @@ function ListItemRenderer<TItem extends ListItem>({
     shouldHighlightSelectedItem,
     shouldDisableHoverStyle,
     shouldShowRightCaret,
-    shouldShowRadioButton,
     errorRowStyles,
     isLastItem,
 }: ListItemRendererProps<TItem>) {
@@ -116,7 +114,6 @@ function ListItemRenderer<TItem extends ListItem>({
                 shouldDisableHoverStyle={shouldDisableHoverStyle}
                 shouldShowRightCaret={shouldShowRightCaret}
                 isLastItem={isLastItem}
-                shouldShowRadioButton={shouldShowRadioButton}
             />
             {item.footerContent && item.footerContent}
         </>

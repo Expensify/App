@@ -1,7 +1,7 @@
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import Avatar from '@components/Avatar';
-import SelectionCheckbox from '@components/SelectionList/components/SelectionCheckbox';
+import Checkbox from '@components/Checkbox';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import RadioListItem from './RadioListItem';
@@ -26,17 +26,17 @@ function MultiSelectListItem<TItem extends ListItem>({
     shouldSyncFocus,
     wrapperStyle,
     titleStyles,
-    accessibilityState,
-    shouldHighlightSelectedItem = false,
 }: MultiSelectListItemProps<TItem>) {
     const styles = useThemeStyles();
     const icon = item.icons?.at(0);
 
     const checkboxComponent = useCallback(() => {
         return (
-            <SelectionCheckbox
-                item={item}
-                onSelectRow={onSelectRow}
+            <Checkbox
+                shouldSelectOnPressEnter
+                isChecked={item.isSelected}
+                accessibilityLabel={item.text ?? ''}
+                onPress={() => onSelectRow(item)}
             />
         );
     }, [item, onSelectRow]);
@@ -87,8 +87,6 @@ function MultiSelectListItem<TItem extends ListItem>({
             shouldSyncFocus={shouldSyncFocus}
             wrapperStyle={computedWrapperStyle}
             titleStyles={titleStyles}
-            accessibilityState={accessibilityState}
-            shouldHighlightSelectedItem={shouldHighlightSelectedItem}
         />
     );
 }

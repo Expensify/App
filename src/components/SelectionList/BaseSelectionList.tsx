@@ -17,7 +17,6 @@ import useScrollEnabled from '@hooks/useScrollEnabled';
 import useSingleExecution from '@hooks/useSingleExecution';
 import {focusedItemRef} from '@hooks/useSyncFocus/useSyncFocusImplementation';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {addKeyDownPressListener, removeKeyDownPressListener} from '@libs/KeyboardShortcut/KeyDownPressListener';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import CONST from '@src/CONST';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
@@ -90,10 +89,9 @@ function BaseSelectionList<TItem extends ListItem>({
     shouldPreventDefaultFocusOnSelectRow = false,
     shouldShowTextInput = !!textInputOptions?.label,
     shouldClearInputOnSelect = false,
-    shouldHighlightSelectedItem,
+    shouldHighlightSelectedItem = true,
     shouldUseDefaultRightHandSideCheckmark,
     shouldDisableHoverStyle = false,
-    shouldShowRadioButton,
     setShouldDisableHoverStyle = () => {},
 }: SelectionListProps<TItem>) {
     const styles = useThemeStyles();
@@ -158,12 +156,6 @@ function BaseSelectionList<TItem extends ListItem>({
         }
         hasKeyBeenPressed.current = true;
     }, []);
-
-    useEffect(() => {
-        addKeyDownPressListener(setHasKeyBeenPressed);
-
-        return () => removeKeyDownPressListener(setHasKeyBeenPressed);
-    }, [setHasKeyBeenPressed]);
 
     const scrollToIndex = useCallback(
         (index: number) => {
@@ -372,7 +364,6 @@ function BaseSelectionList<TItem extends ListItem>({
                 shouldDisableHoverStyle={shouldDisableHoverStyle}
                 shouldShowRightCaret={shouldShowRightCaret}
                 isLastItem={index === data.length - 1}
-                shouldShowRadioButton={shouldShowRadioButton}
             />
         );
     };
