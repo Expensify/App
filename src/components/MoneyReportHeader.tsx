@@ -2450,10 +2450,7 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
         );
     }
 
-    const showNextStepBar =
-        shouldShowNextStep &&
-        !!optimisticNextStep &&
-        (('message' in optimisticNextStep && !!optimisticNextStep.message?.length) || 'messageKey' in optimisticNextStep);
+    const showNextStepBar = shouldShowNextStep && !!optimisticNextStep && (('message' in optimisticNextStep && !!optimisticNextStep.message?.length) || 'messageKey' in optimisticNextStep);
     const showNextStepSkeleton = shouldShowNextStep && !optimisticNextStep && !!isLoadingInitialReportActions && !isOffline;
     const shouldShowMoreContent = showNextStepBar || showNextStepSkeleton || !!statusBarProps || isReportInSearch;
 

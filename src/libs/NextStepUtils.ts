@@ -362,7 +362,7 @@ function getReportNextStep(
             (transaction) => !!transaction && hasSubmissionBlockingViolations(transaction, transactionViolations, currentUserEmail, currentUserAccountID, moneyRequestReport, policy),
         )
     ) {
-        return buildOptimisticFixIssueNextStep(moneyRequestReport?.ownerAccountID ?? -1);
+        return buildOptimisticFixIssueNextStep(moneyRequestReport?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID);
     }
 
     const isSubmitterSameAsNextApprover =
