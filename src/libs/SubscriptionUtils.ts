@@ -628,6 +628,7 @@ export {
     getFreeTrialText,
     getSubscriptionStatus,
     hasCardAuthenticatedError,
+    hasCardExpiredError,
     hasGracePeriodOverdue,
     hasRetryBillingError,
     hasSubscriptionGreenDotInfo,
@@ -644,6 +645,7 @@ export {
     getSubscriptionPrice,
     shouldShowTrialEndedUI,
     isSubscriptionTypeOfInvoicing,
+    hasInsufficientFundsError,
 };
 
 export type {SubscriptionPlanIllustrations};

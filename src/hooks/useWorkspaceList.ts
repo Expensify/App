@@ -2,7 +2,7 @@ import {useMemo} from 'react';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import type {WorkspaceListItemType as WorkspaceListItem} from '@components/SelectionList/ListItem/types';
-import type {SectionListDataType} from '@components/SelectionListWithSections/types';
+import type {Section} from '@components/SelectionList/SelectionListWithSections/types';
 import {isPolicyAdmin, shouldShowPolicy, sortWorkspacesBySelected} from '@libs/PolicyUtils';
 import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
@@ -63,11 +63,10 @@ function useWorkspaceList({policies, currentUserLogin, selectedPolicyIDs, search
     );
 
     const sections = useMemo(() => {
-        const options: Array<SectionListDataType<WorkspaceListItem>> = [
+        const options: Array<Section<WorkspaceListItem>> = [
             {
                 data: filteredAndSortedUserWorkspaces,
-                shouldShow: true,
-                indexOffset: 1,
+                sectionIndex: 0,
             },
         ];
         return options;

@@ -352,8 +352,12 @@ async function fireAndForgetDenyTransaction({transactionID}: DenyTransactionPara
     );
 }
 
-function markHasAcceptedSoftPrompt() {
-    Onyx.merge(ONYXKEYS.DEVICE_BIOMETRICS, {
+function getDeviceBiometricsOnyxKey(accountID: number): `${typeof ONYXKEYS.COLLECTION.DEVICE_BIOMETRICS}${string}` {
+    return `${ONYXKEYS.COLLECTION.DEVICE_BIOMETRICS}${accountID}`;
+}
+
+function markHasAcceptedSoftPrompt(accountID: number) {
+    Onyx.merge(getDeviceBiometricsOnyxKey(accountID), {
         hasAcceptedSoftPrompt: true,
     });
 }
@@ -370,6 +374,7 @@ export {
     requestAuthorizationChallenge,
     troubleshootMultifactorAuthentication,
     revokeMultifactorAuthenticationCredentials,
+    getDeviceBiometricsOnyxKey,
     markHasAcceptedSoftPrompt,
     clearLocalMFAPublicKeyList,
     setPersonalDetailsAndShipExpensifyCardsWithPIN,
