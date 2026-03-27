@@ -14,6 +14,7 @@ let isInitialized = false;
 // Used to distinguish stale own-write callbacks (ignore) from new requests enqueued
 // by other browser tabs (merge into memory).
 const knownRequestIDs = new Set<number>();
+let crossTabRequestsCallback: (() => void) | undefined;
 let initializationCallback: () => void;
 function triggerInitializationCallback() {
     if (typeof initializationCallback !== 'function') {
@@ -24,6 +25,10 @@ function triggerInitializationCallback() {
 
 function onInitialization(callbackFunction: () => void) {
     initializationCallback = callbackFunction;
+}
+
+function onCrossTabRequestsMerged(callbackFunction: () => void) {
+    crossTabRequestsCallback = callbackFunction;
 }
 
 // We have opted for connectWithoutView here as this module is strictly non-UI
@@ -52,6 +57,7 @@ Onyx.connectWithoutView({
                 }
                 persistedRequests = [...persistedRequests, ...newFromOtherTabs];
                 Onyx.set(ONYXKEYS.PERSISTED_REQUESTS, persistedRequests);
+                crossTabRequestsCallback?.();
             }
             return;
         }
@@ -404,4 +410,5 @@ export {
     rollbackOngoingRequest,
     deleteRequestsByIndices,
     onInitialization,
+    onCrossTabRequestsMerged,
 };

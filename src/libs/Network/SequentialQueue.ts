@@ -6,6 +6,7 @@ import {
     endRequestAndRemoveFromQueue as endPersistedRequestAndRemoveFromQueue,
     getAll as getAllPersistedRequests,
     getCommands,
+    onCrossTabRequestsMerged as onPersistedRequestsCrossTabMerge,
     onInitialization as onPersistedRequestsInitialization,
     processNextRequest as processNextPersistedRequest,
     rollbackOngoingRequest as rollbackOngoingPersistedRequest,
@@ -435,6 +436,9 @@ onReconnection(flush);
 
 // Flush the queue when the persisted requests are initialized
 onPersistedRequestsInitialization(flush);
+
+// Flush the queue when another tab enqueues new requests
+onPersistedRequestsCrossTabMerge(flush);
 
 async function handleConflictActions<TKey extends OnyxKey>(conflictAction: ConflictData, newRequest: OnyxRequest<TKey>): Promise<void> {
     Log.info('[SequentialQueue] handleConflictActions', false, {
