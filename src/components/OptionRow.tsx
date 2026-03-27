@@ -177,6 +177,7 @@ function OptionRow({
                     <PressableWithFeedback
                         id={keyForList}
                         ref={pressableRef}
+                        sentryLabel={CONST.SENTRY_LABEL.OPTION_ROW.BASE_LIST_ITEM}
                         onPress={(e) => {
                             if (!onSelectRow) {
                                 return;
@@ -312,6 +313,7 @@ function OptionRow({
                                             disabled={isDisabled}
                                             role={CONST.ROLE.BUTTON}
                                             accessibilityLabel={CONST.ROLE.BUTTON}
+                                            sentryLabel={CONST.SENTRY_LABEL.OPTION_ROW.USER_SELECTION_CHECKBOX}
                                             style={[styles.ml2, styles.optionSelectCircle]}
                                         >
                                             <SelectCircle
