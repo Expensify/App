@@ -111,6 +111,10 @@ const DYNAMIC_ROUTES = {
         path: 'bank-account-select',
         entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.XERO_EXPORT],
     },
+    POLICY_ACCOUNTING_XERO_BILL_STATUS_SELECTOR: {
+        path: 'purchase-bill-status-selector',
+        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.XERO_EXPORT],
+    },
     ADDRESS_COUNTRY: {
         path: 'country',
         entryScreens: [
@@ -3373,12 +3377,6 @@ const ROUTES = {
             // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
             return getUrlWithBackToParam(`workspaces/${policyID}/accounting/xero/advanced/autosync/accounting-method` as const, backTo);
         },
-    },
-    POLICY_ACCOUNTING_XERO_BILL_STATUS_SELECTOR: {
-        route: 'workspaces/:policyID/accounting/xero/export/purchase-bill-status-selector',
-
-        // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-        getRoute: (policyID: string, backTo?: string) => getUrlWithBackToParam(`workspaces/${policyID}/accounting/xero/export/purchase-bill-status-selector` as const, backTo),
     },
     POLICY_ACCOUNTING_XERO_INVOICE_SELECTOR: {
         route: 'workspaces/:policyID/accounting/xero/advanced/invoice-account-selector',

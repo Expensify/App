@@ -1,4 +1,3 @@
-import {useRoute} from '@react-navigation/native';
 import isEmpty from 'lodash/isEmpty';
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
@@ -8,37 +7,34 @@ import type {ListItem} from '@components/SelectionList/types';
 import SelectionScreen from '@components/SelectionScreen';
 import type {SelectorType} from '@components/SelectionScreen';
 import Text from '@components/Text';
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {clearXeroErrorField} from '@libs/actions/Policy/Policy';
 import {getLatestErrorField} from '@libs/ErrorUtils';
-import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
-import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {settingsPendingAction} from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import {updateXeroExportBillStatus} from '@userActions/connections/Xero';
 import CONST from '@src/CONST';
-import ROUTES from '@src/ROUTES';
-import type SCREENS from '@src/SCREENS';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 
 type MenuListItem = ListItem & {
     value: ValueOf<typeof CONST.XERO_CONFIG.INVOICE_STATUS>;
 };
 
-function XeroPurchaseBillStatusSelectorPage({policy}: WithPolicyConnectionsProps) {
+function DynamicXeroPurchaseBillStatusSelectorPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
     const policyID = policy?.id;
     const styles = useThemeStyles();
     const {config} = policy?.connections?.xero ?? {};
     const invoiceStatus = config?.export?.billStatus?.purchase;
-    const route = useRoute<PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ACCOUNTING.XERO_BILL_STATUS_SELECTOR>>();
-    const backTo = route.params?.backTo;
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.POLICY_ACCOUNTING_XERO_BILL_STATUS_SELECTOR.path);
 
     const goBack = useCallback(() => {
-        Navigation.goBack(backTo ?? (policyID && ROUTES.POLICY_ACCOUNTING_XERO_EXPORT.getRoute(policyID)));
-    }, [policyID, backTo]);
+        Navigation.goBack(backPath);
+    }, [backPath]);
 
     const data: MenuListItem[] = Object.values(CONST.XERO_CONFIG.INVOICE_STATUS).map((status) => ({
         value: status,
@@ -98,4 +94,4 @@ function XeroPurchaseBillStatusSelectorPage({policy}: WithPolicyConnectionsProps
     );
 }
 
-export default withPolicyConnections(XeroPurchaseBillStatusSelectorPage);
+export default withPolicyConnections(DynamicXeroPurchaseBillStatusSelectorPage);

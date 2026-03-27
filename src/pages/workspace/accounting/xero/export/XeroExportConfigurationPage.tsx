@@ -66,7 +66,7 @@ function XeroExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
         },
         {
             description: translate('workspace.xero.advancedConfig.purchaseBillStatusTitle'),
-            onPress: !policyID ? undefined : () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_BILL_STATUS_SELECTOR.getRoute(policyID, Navigation.getActiveRoute())),
+            onPress: !policyID ? undefined : () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_XERO_BILL_STATUS_SELECTOR.path)),
             title: exportConfiguration?.billStatus?.purchase ? translate(`workspace.xero.invoiceStatus.values.${exportConfiguration.billStatus.purchase}`) : undefined,
             subscribedSettings: [CONST.XERO_CONFIG.BILL_STATUS],
         },
