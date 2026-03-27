@@ -1959,6 +1959,7 @@ const translations: TranslationDeepObject<typeof en> = {
         accountSettings: 'Ustawienia konta',
         account: 'Konto',
         general: 'Ogólne',
+        helpPage: {title: 'Pomoc i wsparcie', description: 'Jesteśmy tu, żeby pomagać ci 24/7', helpSite: 'Centrum pomocy'},
     },
     closeAccountPage: {
         closeAccount: 'Zamknij konto',
@@ -7396,7 +7397,14 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
         searchIn: 'Szukaj w',
         searchPlaceholder: 'Wyszukaj coś',
         suggestions: 'Sugestie',
-        suggestionsAvailable: ({count}: {count: number}, query = '') => ({
+        suggestionsAvailable: (
+            {
+                count,
+            }: {
+                count: number;
+            },
+            query = '',
+        ) => ({
             one: `Dostępne sugestie${query ? ` dla ${query}` : ''}. ${count} wynik.`,
             other: (resultCount: number) => `Dostępne sugestie${query ? ` dla ${query}` : ''}. ${resultCount} wyniki.`,
         }),

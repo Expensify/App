@@ -1955,6 +1955,7 @@ const translations: TranslationDeepObject<typeof en> = {
         accountSettings: 'Configurações da conta',
         account: 'Conta',
         general: 'Geral',
+        helpPage: {title: 'Ajuda e suporte', description: 'Estamos aqui para ajudar você 24 horas por dia, 7 dias por semana', helpSite: 'Site de ajuda'},
     },
     closeAccountPage: {
         closeAccount: 'Encerrar conta',
@@ -7383,7 +7384,14 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
         searchIn: 'Pesquisar em',
         searchPlaceholder: 'Pesquisar algo',
         suggestions: 'Sugestões',
-        suggestionsAvailable: ({count}: {count: number}, query = '') => ({
+        suggestionsAvailable: (
+            {
+                count,
+            }: {
+                count: number;
+            },
+            query = '',
+        ) => ({
             one: `Sugestões disponíveis${query ? ` para ${query}` : ''}. ${count} resultado.`,
             other: (resultCount: number) => `Sugestões disponíveis${query ? ` para ${query}` : ''}. ${resultCount} resultados.`,
         }),
