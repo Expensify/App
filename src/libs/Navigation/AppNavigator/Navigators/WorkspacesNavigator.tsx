@@ -3,6 +3,7 @@
  */
 import React from 'react';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import usePreloadFullScreenNavigators from '@libs/Navigation/AppNavigator/usePreloadFullScreenNavigators';
 import Animations from '@libs/Navigation/PlatformStackNavigation/navigationOptions/animation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {AuthScreensParamList, WorkspaceNavigatorParamList} from '@libs/Navigation/types';
@@ -19,6 +20,9 @@ const Stack = createWorkspacesNavigator<WorkspaceNavigatorParamList>();
 function WorkspacesNavigator({route}: PlatformStackScreenProps<AuthScreensParamList, typeof NAVIGATORS.WORKSPACE_NAVIGATOR>) {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const splitNavigatorAnimation = shouldUseNarrowLayout ? Animations.SLIDE_FROM_RIGHT : Animations.NONE;
+
+    // This hook preloads the screens of adjacent tabs to make changing tabs faster.
+    usePreloadFullScreenNavigators();
 
     return (
         <Stack.Navigator

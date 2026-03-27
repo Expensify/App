@@ -41,8 +41,6 @@ const MODAL_ROUTES_TO_DISMISS = new Set<string>([
     SCREENS.SEARCH_ROUTER.ROOT,
 ]);
 
-const workspaceOrDomainSplitsWithoutEnteringAnimation = new Set<string>();
-
 const screensWithEnteringAnimation = new Set<string>();
 
 /**
@@ -333,6 +331,5 @@ export {
     handleReplaceFullscreenUnderRHP,
     handleReplaceReportsSplitNavigatorAction,
     screensWithEnteringAnimation,
-    workspaceOrDomainSplitsWithoutEnteringAnimation,
     handleToggleSidePanelWithHistoryAction,
 };
