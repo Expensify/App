@@ -98,6 +98,9 @@ type ConfirmModalProps = {
     /** Styles for the image */
     imageStyles?: StyleProp<ViewStyle>;
 
+    /** Whether to fit the image to the container */
+    shouldFitImageToContainer?: boolean;
+
     /**
      * Whether the modal should enable the new focus manager.
      * We are attempting to migrate to a new refocus manager, adding this property for gradual migration.
@@ -143,6 +146,7 @@ function ConfirmModal({
     onConfirm,
     image,
     imageStyles,
+    shouldFitImageToContainer = false,
     iconWidth,
     iconHeight,
     iconFill,
@@ -214,6 +218,7 @@ function ConfirmModal({
                 shouldReverseStackedButtons={shouldReverseStackedButtons}
                 image={image}
                 imageStyles={imageStyles}
+                shouldFitImageToContainer={shouldFitImageToContainer}
                 isConfirmLoading={isConfirmLoading}
             />
         </Modal>

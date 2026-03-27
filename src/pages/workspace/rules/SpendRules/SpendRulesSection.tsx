@@ -29,6 +29,7 @@ function SpendRulesSection() {
         showConfirmModal({
             image: illustrations.ExpensifyCardProtectionIllustration,
             imageStyles: [styles.w100],
+            shouldFitImageToContainer: true,
             title: translate('workspace.rules.spendRules.builtInProtectionModal.title'),
             titleStyles: [styles.textHeadlineH1],
             titleContainerStyles: [styles.mb3],
