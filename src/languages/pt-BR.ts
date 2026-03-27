@@ -1942,6 +1942,7 @@ const translations: TranslationDeepObject<typeof en> = {
             softKillTheApp: 'Encerrar o app suavemente',
             kill: 'Matar',
             sentryDebug: 'Depuração do Sentry',
+            sentrySendDescription: 'Enviar dados ao Sentry',
             sentryDebugDescription: 'Registrar solicitações do Sentry no console',
             sentryHighlightedSpanOps: 'Nomes de trechos destacados',
             sentryHighlightedSpanOpsPlaceholder: 'ui.interaction.click, navegação, ui.carregar',

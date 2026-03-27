@@ -13,10 +13,9 @@ function setupSentry(): void {
     Sentry.init({
         dsn: CONFIG.SENTRY_DSN,
         // In development, debugTransport replaces the default Sentry transport.
-        // When ENABLE_SENTRY_ON_DEV=true, it forwards envelopes to Sentry via fetch.
-        // When ENABLE_SENTRY_ON_DEV=false, it silently discards envelopes (returns 200 noop),
-        // so Sentry is initialized and collects data locally but nothing is sent to the server.
-        // In both modes, when Sentry debug is enabled in the Troubleshoot panel, it logs envelope contents to the console.
+        // When "Send data to Sentry" toggle is ON, it forwards envelopes to Sentry via fetch.
+        // When the toggle is OFF, it silently discards envelopes (returns 200 noop).
+        // When "Log Sentry to console" toggle is ON, it logs envelope contents to the console.
         transport: isDevelopment() ? makeDebugTransport : undefined,
         tracesSampleRate: 1.0,
         // 1. Profiling for Android is currently disabled because it causes crashes sometimes.

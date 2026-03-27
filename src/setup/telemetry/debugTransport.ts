@@ -2,7 +2,6 @@ import type {BaseTransportOptions, Envelope, Transport} from '@sentry/core';
 import {makeFetchTransport} from '@sentry/react';
 import {makeNativeTransportFactory} from '@sentry/react-native/dist/js/transports/native';
 import Onyx from 'react-native-onyx';
-import CONFIG from '@src/CONFIG';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 /**
@@ -14,6 +13,14 @@ Onyx.connectWithoutView({
     key: ONYXKEYS.IS_SENTRY_DEBUG_ENABLED,
     callback: (value) => {
         isSentryDebugEnabled = value ?? false;
+    },
+});
+
+let isSentrySendEnabled = false;
+Onyx.connectWithoutView({
+    key: ONYXKEYS.IS_SENTRY_SEND_ENABLED,
+    callback: (value) => {
+        isSentrySendEnabled = value ?? false;
     },
 });
 
@@ -170,7 +177,7 @@ function makeDebugTransport(options: BaseTransportOptions): Transport {
                 processEnvelopeItems(items);
             }
 
-            if (!CONFIG.ENABLE_SENTRY_ON_DEV) {
+            if (!isSentrySendEnabled) {
                 return Promise.resolve({});
             }
 
