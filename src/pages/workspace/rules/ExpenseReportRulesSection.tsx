@@ -55,7 +55,7 @@ function ExpenseReportRulesSection({policyID}: ExpenseReportRulesSectionProps) {
                     return;
                 }
 
-                setPolicyPreventSelfApproval(policyID, isEnabled);
+                setPolicyPreventSelfApproval(policyID, isEnabled, policy?.preventSelfApproval);
             },
         },
         {
@@ -77,7 +77,7 @@ function ExpenseReportRulesSection({policyID}: ExpenseReportRulesSectionProps) {
                     return;
                 }
 
-                enableAutoApprovalOptions(policyID, isEnabled);
+                enableAutoApprovalOptions(policyID, isEnabled, policy?.shouldShowAutoApprovalOptions, policy?.autoApproval?.limit, policy?.autoApproval?.auditRate);
             },
             subMenuItems: [
                 <OfflineWithFeedback
@@ -123,7 +123,7 @@ function ExpenseReportRulesSection({policyID}: ExpenseReportRulesSectionProps) {
                     return;
                 }
 
-                enablePolicyAutoReimbursementLimit(policyID, isEnabled);
+                enablePolicyAutoReimbursementLimit(policyID, isEnabled, policy?.shouldShowAutoReimbursementLimitOption, policy?.autoReimbursement?.limit);
             },
             disabled: autoPayApprovedReportsUnavailable,
             showLockIcon: autoPayApprovedReportsUnavailable,

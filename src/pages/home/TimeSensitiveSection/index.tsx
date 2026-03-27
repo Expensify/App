@@ -17,6 +17,7 @@ import {isCurrentUserValidated} from '@libs/UserUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy} from '@src/types/onyx';
 import type {ConnectionName, PolicyConnectionName} from '@src/types/onyx/Policy';
+import useTimeSensitiveBilling from './hooks/useTimeSensitiveBilling';
 import useTimeSensitiveCards from './hooks/useTimeSensitiveCards';
 import useTimeSensitiveOffers from './hooks/useTimeSensitiveOffers';
 import ActivateCard from './items/ActivateCard';
@@ -24,6 +25,7 @@ import AddPaymentCard from './items/AddPaymentCard';
 import AddShippingAddress from './items/AddShippingAddress';
 import FixAccountingConnection from './items/FixAccountingConnection';
 import FixCompanyCardConnection from './items/FixCompanyCardConnection';
+import FixFailedBilling from './items/FixFailedBilling';
 import FixPersonalCardConnection from './items/FixPersonalCardConnection';
 import Offer25off from './items/Offer25off';
 import Offer50off from './items/Offer50off';
@@ -67,6 +69,7 @@ function TimeSensitiveSection() {
     // Use custom hooks for offers and cards (Release 3)
     const {shouldShow50off, shouldShow25off, shouldShowAddPaymentCard, firstDayFreeTrial, discountInfo} = useTimeSensitiveOffers();
     const {shouldShowAddShippingAddress, shouldShowActivateCard, shouldShowReviewCardFraud, cardsNeedingShippingAddress, cardsNeedingActivation, cardsWithFraud} = useTimeSensitiveCards();
+    const {shouldShowFixFailedBilling} = useTimeSensitiveBilling();
 
     // Selector for filtering admin policies (Release 4)
     const adminPoliciesSelectorWrapper = useCallback((policies: OnyxCollection<Policy>) => activeAdminPoliciesSelector(policies, login ?? ''), [login]);
@@ -152,6 +155,7 @@ function TimeSensitiveSection() {
     // must be reflected here to avoid showing an empty "Time sensitive" section.
     const hasAnyTimeSensitiveContent =
         shouldShowValidateAccount ||
+        shouldShowFixFailedBilling ||
         shouldShowReviewCardFraud ||
         shouldShowAddPaymentCard ||
         shouldShow50off ||
@@ -168,21 +172,24 @@ function TimeSensitiveSection() {
 
     // Priority order:
     // 1. Validate account
-    // 2. Potential card fraud
-    // 3. Add payment card (trial ended, no payment card)
-    // 4. Broken bank connections (company cards)
-    // 5. Broken bank connections (personal cards)
-    // 6. Broken accounting connections
-    // 7. Early adoption discount (50% or 25%)
-    // 8. Expensify card shipping
-    // 9. Expensify card activation
+    // 2. Fix failed billing (existing customers with declined cards)
+    // 3. Potential card fraud
+    // 4. Add payment card (trial ended, no payment card)
+    // 5. Broken bank connections (company cards)
+    // 6. Broken bank connections (personal cards)
+    // 7. Broken accounting connections
+    // 8. Early adoption discount (50% or 25%)
+    // 9. Expensify card shipping
+    // 10. Expensify card activation
     return (
         <WidgetContainer title={translate('homePage.timeSensitiveSection.title')}>
             <View style={styles.getForYouSectionContainerStyle(shouldUseNarrowLayout)}>
                 {/* Priority 1: Validate account */}
                 {shouldShowValidateAccount && <ValidateAccount />}
+                {/* Priority 2: Failed billing for existing customers */}
+                {!!shouldShowFixFailedBilling && <FixFailedBilling />}
 
-                {/* Priority 2: Card fraud alerts */}
+                {/* Priority 3: Card fraud alerts */}
                 {shouldShowReviewCardFraud &&
                     cardsWithFraud.map((card) => {
                         if (!card.nameValuePairs?.possibleFraud) {
@@ -196,9 +203,9 @@ function TimeSensitiveSection() {
                         );
                     })}
 
-                {/* Priority 3: Add payment card (trial ended, no payment card) */}
+                {/* Priority 4: Add payment card (trial ended, no payment card) */}
                 {shouldShowAddPaymentCard && <AddPaymentCard />}
-                {/* Priority 4: Broken company card connections */}
+                {/* Priority 5: Broken company card connections */}
                 {brokenCompanyCardConnections.map((connection) => {
                     const card = cardFeedErrors.cardsWithBrokenFeedConnection[connection.cardID];
                     if (!card) {
@@ -214,7 +221,7 @@ function TimeSensitiveSection() {
                     );
                 })}
 
-                {/* Priority 5: Broken personal card connections */}
+                {/* Priority 6: Broken personal card connections */}
                 {brokenPersonalCardConnections.map((connection) => {
                     const card = cardFeedErrors.personalCardsWithBrokenConnection[connection.cardID];
                     if (!card) {
@@ -228,7 +235,7 @@ function TimeSensitiveSection() {
                     );
                 })}
 
-                {/* Priority 6: Broken accounting connections */}
+                {/* Priority 7: Broken accounting connections */}
                 {brokenAccountingConnections.map((connection) => (
                     <FixAccountingConnection
                         key={`accounting-${connection.policyID}-${connection.connectionName}`}
@@ -238,11 +245,11 @@ function TimeSensitiveSection() {
                     />
                 ))}
 
-                {/* Priority 7: Early adoption discount offers */}
+                {/* Priority 8: Early adoption discount offers */}
                 {shouldShow50off && <Offer50off firstDayFreeTrial={firstDayFreeTrial} />}
                 {shouldShow25off && !!discountInfo && <Offer25off days={discountInfo.days} />}
 
-                {/* Priority 8: Expensify card shipping */}
+                {/* Priority 9: Expensify card shipping */}
                 {shouldShowAddShippingAddress &&
                     cardsNeedingShippingAddress.map((card) => (
                         <AddShippingAddress
@@ -251,7 +258,7 @@ function TimeSensitiveSection() {
                         />
                     ))}
 
-                {/* Priority 9: Expensify card activation */}
+                {/* Priority 10: Expensify card activation */}
                 {shouldShowActivateCard &&
                     cardsNeedingActivation.map((card) => (
                         <ActivateCard
