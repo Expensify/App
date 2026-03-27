@@ -549,7 +549,19 @@ function IOURequestStepConfirmation({
         return () => {
             ignore = true;
         };
-    }, [isOdometerDistanceRequest, isFocused, currentTransactionID, transaction?.comment?.odometerStartImage, transaction?.comment?.odometerEndImage, action, translate, iouType, draftTransactionIDs, requestType, reportID]);
+    }, [
+        isOdometerDistanceRequest,
+        isFocused,
+        currentTransactionID,
+        transaction?.comment?.odometerStartImage,
+        transaction?.comment?.odometerEndImage,
+        action,
+        translate,
+        iouType,
+        draftTransactionIDs,
+        requestType,
+        reportID,
+    ]);
 
     const defaultBillable = !!policy?.defaultBillable;
     useEffect(() => {
