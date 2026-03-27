@@ -730,6 +730,12 @@ const translations: TranslationDeepObject<typeof en> = {
         setPin: {didNotShipCard: 'Nie wysłaliśmy twojej karty. Spróbuj ponownie.'},
         revealPin: {couldNotReveal: 'Nie udało się wyświetlić twojego PIN-u. Spróbuj ponownie.'},
         changePin: {didNotChange: 'Nie zmieniliśmy twojego PIN-u. Spróbuj ponownie.'},
+        unblockCardPIN: {
+            cardUnlockedTitle: 'Karta odblokowana!',
+            cardUnlockedHeader: 'Karta odblokowana',
+            cardUnlockedSubtitle: 'Możesz znowu korzystać z Karty Expensify.',
+            didNotUnlockCard: 'Nie odblokowaliśmy twojej karty. Spróbuj ponownie.',
+        },
     },
     validateCodeModal: {
         successfulSignInTitle: dedent(`
@@ -2364,6 +2370,16 @@ ${amount} dla ${merchant} - ${date}`,
         frozen: 'Zamrożona',
         youFroze: ({date}: {date: string}) => `Zamroziłeś tę kartę ${date}.`,
         frozenBy: ({person, date}: {person: string; date: string}) => `${person} zamroził(a) tę kartę ${date}.`,
+        pinBlocked: {
+            suspendedError: 'Twoja karta została zablokowana z powodu błędnego wprowadzenia PIN-u. Odblokuj ją, żeby móc z niej znowu korzystać.',
+            openError: 'Zmień swój PIN w dowolnym bankomacie, żeby dokończyć odblokowywanie karty. To jest wymagane w twoim regionie.',
+            unlockCard: 'Odblokuj kartę',
+        },
+        changePINATMRequirement: {
+            title: 'Odblokuj kartę',
+            heading: 'Zmień swój PIN w dowolnym bankomacie',
+            description: 'To jest wymagane w twoim regionie, żeby dokończyć odblokowywanie twojej karty. W razie pytań <concierge-link>skontaktuj się z Concierge</concierge-link>.',
+        },
         frozenByAdminPrefix: ({date}: {date: string}) => `Ta karta została zamrożona ${date} przez `,
         frozenByAdminNeedsUnfreezePrefix: 'Ta karta została zamrożona przez ',
         frozenByAdminNeedsUnfreezeSuffix: '. Skontaktuj się z administratorem, aby ją odmrozić.',

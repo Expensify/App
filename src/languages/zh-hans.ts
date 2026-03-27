@@ -709,6 +709,12 @@ const translations: TranslationDeepObject<typeof en> = {
         setPin: {didNotShipCard: '我们未能寄出您的卡。请重试。'},
         revealPin: {couldNotReveal: '我们无法显示您的 PIN。请重试。'},
         changePin: {didNotChange: '我们未更改您的 PIN。请重试。'},
+        unblockCardPIN: {
+            cardUnlockedTitle: '卡片已解锁！',
+            cardUnlockedHeader: '卡片已解锁',
+            cardUnlockedSubtitle: '您已经可以再次使用 Expensify 卡了。',
+            didNotUnlockCard: '我们未能解锁您的卡片。请重试。',
+        },
     },
     validateCodeModal: {
         successfulSignInTitle: dedent(`
@@ -2305,6 +2311,16 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         frozen: '已冻结',
         youFroze: ({date}: {date: string}) => `你于${date}冻结了此卡。`,
         frozenBy: ({person, date}: {person: string; date: string}) => `${person}于${date}冻结了此卡。`,
+        pinBlocked: {
+            suspendedError: '由于多次输入错误 PIN，您的银行卡已被锁定。请解锁您的银行卡以重新使用。',
+            openError: '请在任意 ATM 更改您的 PIN 以完成解锁银行卡。这是您所在地区的必需步骤。',
+            unlockCard: '解锁卡片',
+        },
+        changePINATMRequirement: {
+            title: '解锁卡片',
+            heading: '在任意 ATM 更改您的 PIN',
+            description: '在你所在的地区，这是完成解锁银行卡所必需的步骤。如有疑问，请<concierge-link>联系 Concierge</concierge-link>。',
+        },
         frozenByAdminPrefix: ({date}: {date: string}) => `此卡于${date}被冻结，操作人是`,
         frozenByAdminNeedsUnfreezePrefix: '此卡已被',
         frozenByAdminNeedsUnfreezeSuffix: '冻结。请联系管理员解冻。',

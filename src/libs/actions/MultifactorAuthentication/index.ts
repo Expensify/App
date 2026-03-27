@@ -273,6 +273,26 @@ async function changePINForCard({cardID, pin, signedChallenge, authenticationMet
     }
 }
 
+async function unblockCardPIN(params: MultifactorAuthenticationScenarioParameters['UNBLOCK-CARD-PIN']) {
+    try {
+        const response = await makeRequestWithSideEffects(
+            SIDE_EFFECT_REQUEST_COMMANDS.UNBLOCK_CARD_PIN,
+            {
+                cardID: params.cardID,
+                signedChallenge: JSON.stringify(params.signedChallenge),
+                authenticationMethod: params.authenticationMethod,
+            },
+            {},
+        );
+
+        const {jsonCode, message} = response ?? {};
+        return parseHttpRequest(jsonCode, CONST.MULTIFACTOR_AUTHENTICATION.API_RESPONSE_MAP.UNBLOCK_CARD_PIN, message);
+    } catch (error) {
+        Log.hmmm('[MultifactorAuthentication] Failed to unblock card PIN', {error});
+        return parseHttpRequest(undefined, CONST.MULTIFACTOR_AUTHENTICATION.API_RESPONSE_MAP.UNBLOCK_CARD_PIN, undefined);
+    }
+}
+
 /** Check whether a given transaction is still pending review and update the transactionsPending3DSReview key in Onyx */
 async function isTransactionStillPending3DSReview(transactionID: string) {
     const response = await makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.GET_TRANSACTIONS_PENDING_3DS_REVIEW, null, {});
@@ -384,4 +404,5 @@ export {
     denyTransaction,
     authorizeTransaction,
     fireAndForgetDenyTransaction,
+    unblockCardPIN,
 };

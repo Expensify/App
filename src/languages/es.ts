@@ -637,6 +637,12 @@ const translations: TranslationDeepObject<typeof en> = {
         setPin: {
             didNotShipCard: 'No enviamos tu tarjeta. Por favor, inténtalo de nuevo.',
         },
+        unblockCardPIN: {
+            cardUnlockedTitle: '¡Tarjeta desbloqueada!',
+            cardUnlockedHeader: 'Tarjeta desbloqueada',
+            cardUnlockedSubtitle: 'Ya puedes volver a usar tu Tarjeta Expensify.',
+            didNotUnlockCard: 'No pudimos desbloquear tu tarjeta. Por favor, inténtalo de nuevo.',
+        },
         revealPin: {
             couldNotReveal: 'No pudimos revelar tu PIN. Por favor, inténtalo de nuevo.',
         },
@@ -2279,6 +2285,16 @@ ${amount} para ${merchant} - ${date}`,
         askToUnfreeze: 'Solicitar descongelación',
         freezeDescription: 'Una tarjeta congelada no se puede usar para compras ni transacciones. Puedes descongelarla en cualquier momento.',
         unfreezeDescription: 'Al descongelar esta tarjeta se volverán a permitir compras y transacciones. Continúa solo si estás seguro de que la tarjeta es segura para usar.',
+        pinBlocked: {
+            suspendedError: 'Tu tarjeta fue bloqueada debido a demasiados intentos incorrectos de PIN. Desbloquea tu tarjeta para volver a usarla.',
+            openError: 'Cambia tu PIN en cualquier cajero automático para terminar de desbloquear tu tarjeta. Esto es obligatorio en tu región.',
+            unlockCard: 'Desbloquear tarjeta',
+        },
+        changePINATMRequirement: {
+            title: 'Desbloquear tarjeta',
+            heading: 'Cambia tu PIN en cualquier cajero automático',
+            description: 'Esto es necesario en tu región para terminar de desbloquear tu tarjeta. Si tienes preguntas, <concierge-link>contacta a Concierge</concierge-link>.',
+        },
         frozen: 'Congelada',
         youFroze: ({date}: {date: string}) => `Congelaste esta tarjeta el ${date}.`,
         frozenBy: ({person, date}: {person: string; date: string}) => `${person} congeló esta tarjeta el ${date}.`,

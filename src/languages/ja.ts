@@ -719,6 +719,12 @@ const translations: TranslationDeepObject<typeof en> = {
         setPin: {didNotShipCard: 'カードを発送できませんでした。もう一度お試しください。'},
         revealPin: {couldNotReveal: 'PIN を表示できませんでした。もう一度お試しください。'},
         changePin: {didNotChange: 'お客様の暗証番号は変更されていません。もう一度お試しください。'},
+        unblockCardPIN: {
+            cardUnlockedTitle: 'カードのロックを解除しました！',
+            cardUnlockedHeader: 'カードのロックを解除しました',
+            cardUnlockedSubtitle: 'Expensify カードを再びご利用いただく準備が整いました。',
+            didNotUnlockCard: 'カードのロック解除はできませんでした。もう一度お試しください。',
+        },
     },
     validateCodeModal: {
         successfulSignInTitle: dedent(`
@@ -2345,6 +2351,16 @@ ${date} の ${merchant} への ${amount}`,
         frozen: '凍結中',
         youFroze: ({date}: {date: string}) => `${date}にこのカードを一時停止しました。`,
         frozenBy: ({person, date}: {person: string; date: string}) => `${person}が${date}にこのカードを一時停止しました。`,
+        pinBlocked: {
+            suspendedError: 'PIN の誤入力が続いたため、カードがロックされました。再度ご利用いただくには、カードのロックを解除してください。',
+            openError: 'カードのロック解除を完了するには、近くのATMで暗証番号（PIN）を変更してください。お住まいの地域では、この手続きが必要です。',
+            unlockCard: 'カードのロック解除',
+        },
+        changePINATMRequirement: {
+            title: 'カードのブロック解除',
+            heading: 'PIN はどの ATM でも変更できます',
+            description: 'この地域でカードのロック解除を完了するには、これが必要です。ご不明な点がある場合は、<concierge-link>Concierge にお問い合わせください</concierge-link>。',
+        },
         frozenByAdminPrefix: ({date}: {date: string}) => `${date}にこのカードを一時停止したのは`,
         frozenByAdminNeedsUnfreezePrefix: 'このカードは',
         frozenByAdminNeedsUnfreezeSuffix: 'によって一時停止されました。解除するには管理者に連絡してください。',
