@@ -33,13 +33,13 @@ You'll receive the exported CSV file in a message from **Concierge**.
 
 ## What export templates can I choose from? 
 
-Expensify offers pre-built export templates, or you can build your own custom export template. All availavle templates will appear in the menu when you export an expense. 
+Expensify offers pre-built export templates, or you can build your own custom export template. All available templates will appear in the menu when you export an expense. 
 
    - **Basic Export** - Essential fields including date, amount, merchant, category, and receipt URL.
    - **All Data - Expense Level Export** - One row per expense with all available data fields.
    - **Custom Templates** - Any custom template created by you or your Workspace Admin, if available.
 
-**Note** Currently, it's not possible to build a custom export templates on New Expensify, they can only be created on Expensift Classic. However, once built they will be available on New Expensify. [Learn how to build a custom export template in Expensify Classic]([url](https://help.expensify.com/articles/expensify-classic/spending-insights/Export-Expenses-And-Reports#create-a-custom-export-template)).  
+**Note** Currently, it's not possible to build a custom export templates on New Expensify, they can only be created on Expensify Classic. However, once built they will be available on New Expensify. [Learn how to build a custom export template in Expensify Classic]([url](https://help.expensify.com/articles/expensify-classic/spending-insights/Export-Expenses-And-Reports#create-a-custom-export-template)).  
 
 # FAQ
 
