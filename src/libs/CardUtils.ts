@@ -176,6 +176,23 @@ function getCardDescription(card: Card | undefined, translate: LocalizedTranslat
 }
 
 /**
+ * @param card
+ * @param displayName
+ * @returns string in format %<defaultOrCustomCardName> • <lastFourPAN>%.
+ */
+function getCardDescriptionForSearchTable(card?: Card, displayName?: string) {
+    if (!card) {
+        return '';
+    }
+    const isCSVCard = card.bank === CONST.COMPANY_CARD.FEED_BANK_NAME.UPLOAD || card.bank?.includes(CONST.COMPANY_CARD.FEED_BANK_NAME.CSV);
+    if (isCSVCard) {
+        return card.nameValuePairs?.cardTitle ?? card.cardName ?? '';
+    }
+    const finalName = getDefaultCardName(displayName ?? '') ?? card.cardName;
+    return card.lastFourPAN ? `${finalName} ${CONST.DOT_SEPARATOR} ${card.lastFourPAN}` : `${finalName}`;
+}
+
+/**
  * @param transactionCardName
  * @param cardID
  * @param cards
@@ -1343,6 +1360,20 @@ function isCardAlreadyAssigned(cardNumberToCheck: string, workspaceCardFeeds: On
     });
 }
 
+const getPersonalBankCardDetailsImage = (bank: ValueOf<typeof CONST.PERSONAL_CARDS.BANKS>, illustrations: IllustrationsType, companyCardIllustrations: CompanyCardBankIcons): IconAsset => {
+    const iconMap: Record<ValueOf<typeof CONST.PERSONAL_CARDS.BANKS>, IconAsset> = {
+        [CONST.PERSONAL_CARDS.BANKS.AMEX]: companyCardIllustrations.AmexCardCompanyCardDetail,
+        [CONST.PERSONAL_CARDS.BANKS.BANK_OF_AMERICA]: companyCardIllustrations.BankOfAmericaCompanyCardDetail,
+        [CONST.PERSONAL_CARDS.BANKS.CAPITAL_ONE]: companyCardIllustrations.CapitalOneCompanyCardDetail,
+        [CONST.PERSONAL_CARDS.BANKS.CHASE]: companyCardIllustrations.ChaseCompanyCardDetail,
+        [CONST.PERSONAL_CARDS.BANKS.CITI_BANK]: companyCardIllustrations.CitibankCompanyCardDetail,
+        [CONST.PERSONAL_CARDS.BANKS.WELLS_FARGO]: companyCardIllustrations.WellsFargoCompanyCardDetail,
+        [CONST.PERSONAL_CARDS.BANKS.OTHER]: illustrations.GenericCompanyCard,
+        [CONST.PERSONAL_CARDS.BANKS.MOCK_BANK]: illustrations.GenericCompanyCard,
+    };
+    return iconMap[bank];
+};
+
 /**
  * Generate a random cardID up to 53 bits aka 9,007,199,254,740,991 (Number.MAX_SAFE_INTEGER).
  * There were approximately 24,000,000 reports with sequential IDs generated before we started using this approach, those make up roughly 0.25 billionth of the space for these numbers,
@@ -1497,6 +1528,43 @@ function getCardHintText(validFrom: string | undefined, validThru: string | unde
     return translate('workspace.card.issueNewCard.validFromTo', {startDate, endDate});
 }
 
+/**
+ * Resolves card-related fields on transactions for report layout display.
+ * The search API pre-resolves cardName and isCardFeedDeleted, but local Onyx transactions have raw values.
+ * This ensures the report layout matches the search page.
+ */
+function resolveTransactionCardFields<T extends {cardID?: number; cardName?: string; bank?: string}>(
+    transactions: T[],
+    cardList: CardList | undefined,
+    cardFeeds: OnyxCollection<CardFeeds> | undefined,
+    translate: LocalizedTranslate,
+): Array<T & {isCardFeedDeleted?: boolean}> {
+    return transactions.map((transaction) => {
+        let updates: Partial<T & {isCardFeedDeleted?: boolean}> = {};
+
+        // Resolve card name from cardList
+        if (cardList) {
+            const card = transaction.cardID ? cardList[transaction.cardID] : undefined;
+            if (card) {
+                const resolvedCardName = getCardDescription(card, translate);
+                if (resolvedCardName && resolvedCardName !== transaction.cardName) {
+                    updates = {...updates, cardName: resolvedCardName};
+                }
+            }
+        }
+
+        // Resolve isCardFeedDeleted
+        if (cardFeeds !== undefined) {
+            updates = {...updates, isCardFeedDeleted: !!transaction.bank && !doesCardFeedExist(transaction.bank as CompanyCardFeed, cardFeeds)};
+        }
+
+        if (Object.keys(updates).length === 0) {
+            return transaction;
+        }
+        return {...transaction, ...updates};
+    });
+}
+
 export {
     getAssignedCardSortKey,
     getDefaultExpensifyCardLimitType,
@@ -1559,6 +1627,7 @@ export {
     getCardProgramKey,
     filterAllInactiveCards,
     filterInactiveCards,
+    getPersonalBankCardDetailsImage,
     isCardPendingIssue,
     isCardPendingActivate,
     hasPendingExpensifyCardAction,
@@ -1585,6 +1654,7 @@ export {
     formatMaskedCardName,
     splitMaskedCardNumber,
     isCardAlreadyAssigned,
+    getCardDescriptionForSearchTable,
     generateCardID,
     hasDisplayableAssignedCards,
     isCardFrozen,
@@ -1593,6 +1663,7 @@ export {
     isExpiredCard,
     getCardCurrency,
     getCardHintText,
+    resolveTransactionCardFields,
 };
 
 export type {CompanyCardFeedIcons, CompanyCardBankIcons, CardProgramKey};

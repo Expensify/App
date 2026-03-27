@@ -5,7 +5,7 @@ import type {ValueOf} from 'type-fest';
 import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 import type CONST from '@src/CONST';
 import type {OptionData} from '@src/libs/ReportUtils';
-import type {Locale, Onboarding, OnboardingPurpose, PersonalDetailsList, Policy, Report, ReportAction, ReportActions, ReportNameValuePairs, Transaction} from '@src/types/onyx';
+import type {Onboarding, OnboardingPurpose, PersonalDetailsList, Policy, Report, ReportNameValuePairs} from '@src/types/onyx';
 
 type OptionMode = ValueOf<typeof CONST.OPTION_MODE>;
 
@@ -41,12 +41,6 @@ type OptionRowLHNDataProps = {
     /** List of users' personal details */
     personalDetails?: PersonalDetailsList;
 
-    /** The preferred language for the app */
-    preferredLocale?: OnyxEntry<Locale>;
-
-    /** The active policy ID */
-    activePolicyID?: string;
-
     /** The onboarding purpose */
     onboardingPurpose?: OnboardingPurpose;
 
@@ -71,34 +65,11 @@ type OptionRowLHNDataProps = {
     /** Invoice receiver policy */
     invoiceReceiverPolicy?: OnyxEntry<Policy>;
 
-    /** The action from the parent report */
-    parentReportAction?: OnyxEntry<ReportAction>;
-
-    /** The transaction from the parent report action */
-    transaction: OnyxEntry<Transaction>;
-
-    /** The transaction linked to the report's last action */
-    lastReportActionTransaction?: OnyxEntry<Transaction>;
-
     /** The reportID of the report */
     reportID: string;
 
-    /** Array of report actions for this report */
-    reportActions: OnyxEntry<ReportActions>;
-
-    /**
-     * Array of report actions for the IOU report related to the last action of this report.
-     * If the last action is a report action preview, the last message of the report depends on
-     * the report actions of the IOU report linked to the report action preview.
-     * Changes in the IOU report report actions will affect the last message of this report.
-     */
-    iouReportReportActions: OnyxEntry<ReportActions>;
-
     /** Toggle between compact and default view */
     viewMode?: OptionMode;
-
-    /** The last message text from the report */
-    lastMessageTextFromReport?: string;
 
     /** A function that is called when an option is selected. Selected option is passed as a param */
     onSelectRow?: (optionItem: OptionData, popoverAnchor: RefObject<View | null>) => void;
@@ -120,14 +91,6 @@ type OptionRowLHNDataProps = {
 
     /** TestID of the row, indicating order */
     testID: number;
-
-    /** Whether the report is archived */
-    isReportArchived: boolean;
-
-    /** The last action should be displayed */
-    lastAction: ReportAction | undefined;
-
-    lastActionReport: OnyxEntry<Report> | undefined;
 
     /** The current user's account ID */
     currentUserAccountID: number;
