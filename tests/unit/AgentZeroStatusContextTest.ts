@@ -353,7 +353,7 @@ describe('AgentZeroStatusContext', () => {
     });
 
     describe('batched Onyx updates (stuck indicator fix)', () => {
-        const PROGRESSIVE_RETRY_INTERVALS_MS = [60000, 90000, 120000];
+        const PROGRESSIVE_RETRY_INTERVALS_MS = new Set([60000, 90000, 120000]);
         let retryTimerIds: Set<ReturnType<typeof setTimeout>>;
         let originalSetTimeout: typeof setTimeout;
         let originalClearTimeout: typeof clearTimeout;
@@ -364,7 +364,7 @@ describe('AgentZeroStatusContext', () => {
             originalClearTimeout = global.clearTimeout;
 
             jest.spyOn(global, 'setTimeout').mockImplementation(((callback: () => void, ms?: number) => {
-                if (ms !== undefined && PROGRESSIVE_RETRY_INTERVALS_MS.includes(ms)) {
+                if (ms !== undefined && PROGRESSIVE_RETRY_INTERVALS_MS.has(ms)) {
                     const id = originalSetTimeout(() => {}, 0);
                     retryTimerIds.add(id);
                     return id;
@@ -538,7 +538,7 @@ describe('AgentZeroStatusContext', () => {
         // when fake timers are detected).
         //
         // Progressive retry schedule: 60s → getNewerActions, 90s → getNewerActions, 120s → hard clear
-        const PROGRESSIVE_RETRY_INTERVALS_MS = [60000, 90000, 120000];
+        const PROGRESSIVE_RETRY_INTERVALS_MS = new Set([60000, 90000, 120000]);
         let retryTimerCallbacks: Map<number, () => void>;
         let retryTimerIds: Set<ReturnType<typeof setTimeout>>;
         let originalSetTimeout: typeof setTimeout;
@@ -553,7 +553,7 @@ describe('AgentZeroStatusContext', () => {
             // Intercept setTimeout to capture progressive retry timer callbacks
             // while letting shorter timeouts (debounce, display timing) pass through normally
             jest.spyOn(global, 'setTimeout').mockImplementation(((callback: () => void, ms?: number) => {
-                if (ms !== undefined && PROGRESSIVE_RETRY_INTERVALS_MS.includes(ms)) {
+                if (ms !== undefined && PROGRESSIVE_RETRY_INTERVALS_MS.has(ms)) {
                     const id = originalSetTimeout(() => {}, 0);
                     retryTimerCallbacks.set(ms, callback);
                     retryTimerIds.add(id);
