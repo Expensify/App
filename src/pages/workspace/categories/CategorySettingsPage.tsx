@@ -55,7 +55,7 @@ function CategorySettingsPage({
     navigation,
 }: CategorySettingsPageProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Trashcan']);
     const [deleteCategoryConfirmModalVisible, setDeleteCategoryConfirmModalVisible] = useState(false);
     const policyData = usePolicyData(policyID);
@@ -117,8 +117,8 @@ function CategorySettingsPage({
     const approverText = useMemo(() => {
         const categoryApprover = getCategoryApproverRule(policy?.rules?.approvalRules ?? [], categoryName)?.approver ?? '';
         const approver = getPersonalDetailByEmail(categoryApprover);
-        return approver?.displayName ?? categoryApprover;
-    }, [categoryName, policy?.rules?.approvalRules]);
+        return formatPhoneNumber(approver?.displayName ?? categoryApprover);
+    }, [categoryName, policy?.rules?.approvalRules, formatPhoneNumber]);
 
     const defaultTaxRateText = useMemo(() => {
         const taxID = getCategoryDefaultTaxRate(policy?.rules?.expenseRules ?? [], categoryName, policy?.taxRates?.defaultExternalID);

@@ -58,6 +58,7 @@ function ReportActionItemThread({
     const {translate, datetimeToCalendarTime} = useLocalize();
     const [childReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportAction.childReportID}`);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const [betas] = useOnyx(ONYXKEYS.BETAS);
 
     const numberOfRepliesText = numberOfReplies > CONST.MAX_THREAD_REPLIES_PREVIEW ? `${CONST.MAX_THREAD_REPLIES_PREVIEW}+` : `${numberOfReplies}`;
     const replyText = numberOfReplies === 1 ? translate('threads.reply') : translate('threads.replies');
@@ -69,7 +70,7 @@ function ReportActionItemThread({
             {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
             <PressableWithSecondaryInteraction
                 onPress={() => {
-                    navigateToAndOpenChildReport(childReport, reportAction, report, currentUserAccountID, introSelected);
+                    navigateToAndOpenChildReport(childReport, reportAction, report, currentUserAccountID, introSelected, betas);
                 }}
                 role={CONST.ROLE.BUTTON}
                 accessibilityLabel={`${numberOfReplies} ${replyText}`}

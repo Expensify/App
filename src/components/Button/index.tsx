@@ -361,7 +361,7 @@ function Button({
             primaryText
         );
 
-        const defaultFill = success || danger ? theme.textLight : theme.icon;
+        const defaultFill = success || danger ? theme.textLight : theme.buttonIcon;
 
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         if (icon || shouldShowRightIcon) {
@@ -369,7 +369,7 @@ function Button({
                 <View style={[isContentCentered ? styles.justifyContentCenter : styles.justifyContentBetween, styles.flexRow, iconWrapperStyles, styles.mw100]}>
                     <View style={[styles.alignItemsCenter, styles.flexRow, styles.flexShrink1]}>
                         {!!icon && (
-                            <View style={[extraSmall ? styles.mr1 : styles.mr2, !text && styles.mr0, iconStyles, isLoading && styles.opacity0]}>
+                            <View style={[extraSmall || small ? styles.mr1 : styles.mr2, !text && styles.mr0, iconStyles, isLoading && styles.opacity0]}>
                                 <Icon
                                     src={icon}
                                     fill={isHovered ? (iconHoverFill ?? defaultFill) : (iconFill ?? defaultFill)}

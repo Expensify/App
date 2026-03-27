@@ -81,6 +81,7 @@ function BaseTextInput({
     shouldUseDefaultLineHeightForPrefix = true,
     ref,
     sentryLabel,
+    rightHandSideComponent,
     ...props
 }: BaseTextInputProps) {
     const InputComponent = InputComponentMap.get(type) ?? RNTextInput;
@@ -453,6 +454,11 @@ function BaseTextInput({
                                     style={[StyleUtils.getTextInputIconContainerStyles(hasLabel, false, verticalPaddingDiff), styles.ml1, loadingSpinnerStyle]}
                                     reasonAttributes={loadingSpinnerReasonAttributes}
                                 />
+                            )}
+                            {/* Render rightHandSideComponent only when clear button is not shown 
+                                This prevents UI conflicts between clear button and custom components like flip/currency buttons */}
+                            {!shouldShowClearButton && shouldHideClearButton && !inputProps.isLoading && !!rightHandSideComponent && (
+                                <View style={[StyleUtils.getTextInputIconContainerStyles(hasLabel, false, verticalPaddingDiff)]}>{rightHandSideComponent}</View>
                             )}
                             {!!inputProps.secureTextEntry && (
                                 /* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */

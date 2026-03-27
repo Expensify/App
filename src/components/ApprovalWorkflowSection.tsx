@@ -72,8 +72,6 @@ function ApprovalWorkflowSection({approvalWorkflow, onPress, currency = CONST.CU
                         </Text>
                     </View>
                 )}
-                {/* MenuItems are display-only (interactive={false}) because the outer
-                    PressableWithoutFeedback handles all click interactions. */}
                 <MenuItem
                     title={translate('workflowsExpensesFromPage.title')}
                     style={styles.p0}
@@ -87,7 +85,7 @@ function ApprovalWorkflowSection({approvalWorkflow, onPress, currency = CONST.CU
                     iconHeight={20}
                     iconWidth={20}
                     iconFill={theme.icon}
-                    interactive={false}
+                    onPress={onPress}
                     shouldRemoveBackground
                     sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.APPROVAL_SECTION_EXPENSES_FROM}
                 />
@@ -109,7 +107,7 @@ function ApprovalWorkflowSection({approvalWorkflow, onPress, currency = CONST.CU
                             iconWidth={20}
                             numberOfLinesDescription={1}
                             iconFill={theme.icon}
-                            interactive={false}
+                            onPress={onPress}
                             shouldRemoveBackground
                             helperText={getApprovalLimitDescription({approver, currency, translate, personalDetailsByEmail})}
                             helperTextStyle={styles.workflowApprovalLimitText}

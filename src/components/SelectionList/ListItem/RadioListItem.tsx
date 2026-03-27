@@ -49,10 +49,11 @@ function RadioListItem<TItem extends ListItem>({
                 containerBorderRadius={CIRCULAR_BORDER_RADIUS}
                 accessibilityLabel={item.text ?? ''}
                 isChecked={!!item.isSelected}
+                disabled={!!isDisabled && !item.isSelected}
                 onPress={handleCheckboxPress}
             />
         ),
-        [item.text, item.isSelected, handleCheckboxPress],
+        [item.text, item.isSelected, isDisabled, handleCheckboxPress],
     );
 
     return (
