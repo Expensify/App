@@ -167,6 +167,12 @@ type TransactionCustomUnit = {
     /** The unit for the distance/quantity */
     distanceUnit?: Unit;
 
+    /**
+     * The distance in meters from the route Mapbox or Google Maps chose through the user supplied waypoints.
+     * It is used to track when the user has manually increased the distance above the system-calculated route distance.
+     */
+    routeDistanceMeters?: number;
+
     /** Sub Rates for the custom unit */
     subRates?: Array<{
         /** Key of the sub rate */
@@ -446,6 +452,9 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** The transaction converted amount in report's currency */
         convertedAmount?: number;
+
+        /** The currency conversion rate from the transaction currency to the report currency */
+        currencyConversionRate?: string;
 
         /** The transaction tax amount */
         taxAmount?: number;

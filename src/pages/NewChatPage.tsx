@@ -1,16 +1,16 @@
 import {useFocusEffect} from '@react-navigation/native';
 import {hasSeenTourSelector} from '@selectors/Onboarding';
+import {sortedActionsSelector} from '@selectors/SortedReportActions';
 import reject from 'lodash/reject';
 import type {Ref} from 'react';
 import React, {useEffect, useImperativeHandle, useRef, useState} from 'react';
 import {Keyboard} from 'react-native';
 import Button from '@components/Button';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
-import {PressableWithFeedback} from '@components/Pressable';
 import ReferralProgramCTA from '@components/ReferralProgramCTA';
 import ScreenWrapper from '@components/ScreenWrapper';
-import SelectCircle from '@components/SelectCircle';
-import UserListItem from '@components/SelectionList/ListItem/UserListItem';
+import NewChatListItem from '@components/Search/NewChatListItem';
+import SelectionCheckbox from '@components/SelectionList/components/SelectionCheckbox';
 import SelectionListWithSections from '@components/SelectionList/SelectionListWithSections';
 import type {Section} from '@components/SelectionList/SelectionListWithSections/types';
 import type {ListItem, SelectionListWithSectionsHandle} from '@components/SelectionList/types';
@@ -75,6 +75,7 @@ function useOptions(reportAttributesDerived: ReportAttributesDerivedValue['repor
     const allPersonalDetails = usePersonalDetails();
     const isScreenFocusedRef = useIsFocusedRef();
     const [allPolicyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
+    const [sortedActions] = useOnyx(ONYXKEYS.DERIVED.SORTED_REPORT_ACTIONS, {selector: sortedActionsSelector});
 
     const {
         options: listOptions,
@@ -116,6 +117,7 @@ function useOptions(reportAttributesDerived: ReportAttributesDerivedValue['repor
             allPolicyTags,
             countryCode,
             reportAttributesDerived,
+            sortedActions,
         },
     );
 
@@ -404,19 +406,13 @@ function NewChatPage({ref}: NewChatPageProps) {
 
         if (item.isSelected) {
             return (
-                <PressableWithFeedback
-                    sentryLabel={CONST.SENTRY_LABEL.NEW_CHAT.SELECT_PARTICIPANT}
-                    onPress={() => toggleOption(item)}
-                    disabled={item.isDisabled}
-                    role={CONST.ROLE.CHECKBOX}
+                <SelectionCheckbox
+                    item={item}
+                    onSelectRow={toggleOption}
+                    disabled={!!item.isDisabled}
                     accessibilityLabel={item.text ? translate('selectionList.userSelected', item.text) : ''}
-                    style={[styles.flexRow, styles.alignItemsCenter, styles.ml5, styles.optionSelectCircle]}
-                >
-                    <SelectCircle
-                        isChecked={item.isSelected}
-                        selectCircleStyles={styles.ml0}
-                    />
-                </PressableWithFeedback>
+                    containerStyle={[styles.ml5]}
+                />
             );
         }
         const buttonInnerStyles = isFocused ? styles.buttonDefaultHovered : {};
@@ -490,7 +486,7 @@ function NewChatPage({ref}: NewChatPageProps) {
         >
             <SelectionListWithSections<OptionWithKey>
                 ref={selectionListRef}
-                ListItem={UserListItem}
+                ListItem={NewChatListItem}
                 sections={areOptionsInitialized ? sections : getEmptyArray<Section<OptionWithKey>>()}
                 onSelectRow={selectOption}
                 shouldShowTextInput

@@ -8,7 +8,7 @@ import Icon from './Icon';
 import getBankIcon from './Icon/BankIcons';
 import MenuItem from './MenuItem';
 import SelectionList from './SelectionList';
-import RadioListItem from './SelectionList/ListItem/RadioListItem';
+import SingleSelectListItem from './SelectionList/ListItem/SingleSelectListItem';
 import type {ListItem} from './SelectionList/types';
 
 type BankAccountListItem = ListItem & {value: number | undefined};
@@ -99,7 +99,7 @@ function SettlementAccountSelector({
         <SelectionList
             addBottomSafeAreaPadding
             data={listOptions}
-            ListItem={RadioListItem}
+            ListItem={SingleSelectListItem}
             onSelectRow={handleSelectRow}
             shouldSingleExecuteRowSelect
             initiallyFocusedItemKey={initiallyFocusedItemKey}
