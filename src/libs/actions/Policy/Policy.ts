@@ -5144,7 +5144,7 @@ function openPolicyMoreFeaturesPage(policyID: string) {
 }
 
 function openPolicyProfilePage(policyID: string) {
-    const params: OpenPolicyProfilePageParams = {policyID};
+    const params: OpenPolicyProfilePageParams = {policyID, includeAllBankAccounts: true};
 
     API.read(READ_COMMANDS.OPEN_POLICY_PROFILE_PAGE, params);
 }
