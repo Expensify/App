@@ -184,6 +184,18 @@ describe('ValidationUtils', () => {
             expect(meetsRequirement).toBe(true);
         });
 
+        test('Should return true for a date that is exactly on the 18 year boundary', () => {
+            const validDate = '2006-01-15';
+            const meetsRequirement = meetsMinimumAgeRequirement(validDate);
+            expect(meetsRequirement).toBe(true);
+        });
+
+        test('Should return false for a date that is one day younger than 18 years old', () => {
+            const invalidDate = '2006-01-16';
+            const meetsRequirement = meetsMinimumAgeRequirement(invalidDate);
+            expect(meetsRequirement).toBe(false);
+        });
+
         test('Should return false for a date that does not meet the minimum age requirement', () => {
             const invalidDate = format(subYears(new Date(), 17), CONST.DATE.FNS_FORMAT_STRING); // Date of birth 17 years ago
             const meetsRequirement = meetsMinimumAgeRequirement(invalidDate);
@@ -222,6 +234,18 @@ describe('ValidationUtils', () => {
             const validDate: string = format(subYears(new Date(), 30), CONST.DATE.FNS_FORMAT_STRING); // Date of birth 30 years ago
             const error = getAgeRequirementError(translateLocal, validDate, 18, 150);
             expect(error).toBe('');
+        });
+
+        test('Should return an empty string for a date exactly on the 18 year boundary', () => {
+            const validDate = '2006-01-15';
+            const error = getAgeRequirementError(translateLocal, validDate, 18, 150);
+            expect(error).toBe('');
+        });
+
+        test('Should return an error message for a date that is one day younger than 18 years old', () => {
+            const invalidDate = '2006-01-16';
+            const error = getAgeRequirementError(translateLocal, invalidDate, 18, 150);
+            expect(error).toEqual(translateLocal('privatePersonalDetails.error.dateShouldBeBefore', '2006-01-15'));
         });
 
         test('Should return an error message for a date before the minimum age requirement', () => {
