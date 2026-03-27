@@ -39,7 +39,6 @@ import WorkspacesTabButton from './WorkspacesTabButton';
 
 type NavigationTabBarProps = {
     selectedTab: ValueOf<typeof NAVIGATION_TABS>;
-    isTopLevelBar?: boolean;
     shouldShowFloatingButtons?: boolean;
 };
 
@@ -47,7 +46,7 @@ function doesLastReportExistSelector(report: OnyxEntry<Report>) {
     return !!report?.reportID;
 }
 
-function NavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFloatingButtons = true}: NavigationTabBarProps) {
+function NavigationTabBar({selectedTab, shouldShowFloatingButtons = true}: NavigationTabBarProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -70,7 +69,7 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFloatin
 
     const StyleUtils = useStyleUtils();
 
-    const shouldRenderDebugTabViewOnWideLayout = !!isDebugModeEnabled && !isTopLevelBar;
+    const shouldRenderDebugTabViewOnWideLayout = !!isDebugModeEnabled;
 
     let inboxStatusIndicatorColor: string | undefined;
     if (chatTabBrickRoad === CONST.BRICK_ROAD_INDICATOR_STATUS.INFO) {

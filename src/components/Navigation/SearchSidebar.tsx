@@ -10,8 +10,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import type {PlatformStackNavigationState} from '@libs/Navigation/PlatformStackNavigation/types';
 import SearchTypeMenu from '@pages/Search/SearchTypeMenu';
 import SCREENS from '@src/SCREENS';
-import NavigationTabBar from './NavigationTabBar';
-import NAVIGATION_TABS from './NavigationTabBar/NAVIGATION_TABS';
 import TopBar from './TopBar';
 
 type SearchSidebarProps = {
