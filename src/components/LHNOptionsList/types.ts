@@ -1,11 +1,11 @@
 import type {RefObject} from 'react';
 import type {LayoutChangeEvent, StyleProp, TextStyle, View, ViewStyle} from 'react-native';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 import type CONST from '@src/CONST';
 import type {OptionData} from '@src/libs/ReportUtils';
-import type {Locale, Onboarding, OnboardingPurpose, PersonalDetailsList, Policy, Report, ReportNameValuePairs, TransactionViolation} from '@src/types/onyx';
+import type {Onboarding, OnboardingPurpose, PersonalDetailsList, Policy, Report, ReportNameValuePairs} from '@src/types/onyx';
 
 type OptionMode = ValueOf<typeof CONST.OPTION_MODE>;
 
@@ -41,12 +41,6 @@ type OptionRowLHNDataProps = {
     /** List of users' personal details */
     personalDetails?: PersonalDetailsList;
 
-    /** The preferred language for the app */
-    preferredLocale?: OnyxEntry<Locale>;
-
-    /** The active policy ID */
-    activePolicyID?: string;
-
     /** The onboarding purpose */
     onboardingPurpose?: OnboardingPurpose;
 
@@ -73,9 +67,6 @@ type OptionRowLHNDataProps = {
 
     /** The reportID of the report */
     reportID: string;
-
-    /** List of transaction violation */
-    transactionViolations: OnyxCollection<TransactionViolation[]>;
 
     /** Toggle between compact and default view */
     viewMode?: OptionMode;

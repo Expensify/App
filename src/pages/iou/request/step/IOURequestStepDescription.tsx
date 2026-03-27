@@ -23,6 +23,7 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {shouldUseTransactionDraft} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import Parser from '@libs/Parser';
+import {hasReceipt} from '@libs/TransactionUtils';
 import variables from '@styles/variables';
 import {setMoneyRequestDescription, updateMoneyRequestDescription} from '@userActions/IOU';
 import {setDraftSplitTransaction} from '@userActions/IOU/Split';
@@ -155,7 +156,7 @@ function IOURequestStepDescription({
             return;
         }
 
-        setMoneyRequestDescription(transaction?.transactionID, newComment, isTransactionDraft);
+        setMoneyRequestDescription(transaction?.transactionID, newComment, isTransactionDraft, hasReceipt(transaction));
 
         if (action === CONST.IOU.ACTION.EDIT) {
             updateMoneyRequestDescription({

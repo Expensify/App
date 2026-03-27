@@ -49,8 +49,6 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
     const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
     const [policy] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
-    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
-    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [onboarding] = useOnyx(ONYXKEYS.NVP_ONBOARDING);
     const [isFullscreenVisible] = useOnyx(ONYXKEYS.FULLSCREEN_VISIBILITY);
@@ -58,7 +56,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
 
     const theme = useTheme();
     const styles = useThemeStyles();
-    const {translate, preferredLocale, localeCompare} = useLocalize();
+    const {translate, localeCompare} = useLocalize();
     const isReportsSplitNavigatorLast = useRootNavigationState((state) => state?.routes?.at(-1)?.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR);
     const shouldShowEmptyLHN = data.length === 0;
     const estimatedItemSize = optionMode === CONST.OPTION_MODE.COMPACT ? variables.optionRowHeightCompact : variables.optionRowHeight;
@@ -181,11 +179,8 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
                     viewMode={optionMode}
                     isOptionFocused={!shouldDisableFocusOptions}
                     onSelectRow={onSelectRow}
-                    preferredLocale={preferredLocale}
-                    transactionViolations={transactionViolations}
                     onLayout={onLayoutItem}
                     shouldShowRBRorGBRTooltip={shouldShowRBRorGBRTooltip}
-                    activePolicyID={activePolicyID}
                     onboardingPurpose={introSelected?.choice}
                     onboarding={onboarding}
                     isFullscreenVisible={isFullscreenVisible}
@@ -208,10 +203,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
             optionMode,
             shouldDisableFocusOptions,
             onSelectRow,
-            preferredLocale,
-            transactionViolations,
             onLayoutItem,
-            activePolicyID,
             introSelected?.choice,
             onboarding,
             isReportsSplitNavigatorLast,
@@ -223,20 +215,8 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
     );
 
     const extraData = useMemo(
-        () => [
-            reports,
-            reportNameValuePairs,
-            transactionViolations,
-            policy,
-            personalDetails,
-            data.length,
-            optionMode,
-            preferredLocale,
-            isOffline,
-            isScreenFocused,
-            isReportsSplitNavigatorLast,
-        ],
-        [reports, reportNameValuePairs, transactionViolations, policy, personalDetails, data.length, optionMode, preferredLocale, isOffline, isScreenFocused, isReportsSplitNavigatorLast],
+        () => [reports, reportNameValuePairs, policy, personalDetails, data.length, optionMode, isOffline, isScreenFocused, isReportsSplitNavigatorLast],
+        [reports, reportNameValuePairs, policy, personalDetails, data.length, optionMode, isOffline, isScreenFocused, isReportsSplitNavigatorLast],
     );
 
     const previousOptionMode = usePrevious(optionMode);
