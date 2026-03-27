@@ -1,4 +1,4 @@
-import React, {useMemo} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 import StatusBadge from '@components/StatusBadge';
 import useLocalize from '@hooks/useLocalize';
