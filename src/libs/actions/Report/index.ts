@@ -165,6 +165,7 @@ import addTrailingForwardSlash from '@libs/UrlUtils';
 import Visibility from '@libs/Visibility';
 import {cacheAttachment, removeCachedAttachment} from '@userActions/Attachment';
 import {clearByKey} from '@userActions/CachedPDFPaths';
+import {getStoredDefaultP2PMileageRate} from '@userActions/DefaultP2PMileageRateStore';
 import {setDownload} from '@userActions/Download';
 import {close} from '@userActions/Modal';
 import navigateFromNotification from '@userActions/navigateFromNotification';
@@ -179,7 +180,6 @@ import {
     resolveOpenReportDuplicationConflictAction,
 } from '@userActions/RequestConflictUtils';
 import {isAnonymousUser} from '@userActions/Session';
-import {getStoredDefaultP2PMileageRate} from '@userActions/DefaultP2PMileageRateStore';
 import {onServerDataReady} from '@userActions/Welcome';
 import {getOnboardingMessages} from '@userActions/Welcome/OnboardingFlow';
 import type {OnboardingCompanySize, OnboardingMessage} from '@userActions/Welcome/OnboardingFlow';
