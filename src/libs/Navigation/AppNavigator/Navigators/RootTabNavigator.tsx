@@ -20,6 +20,7 @@ import HomePage from '@pages/home/HomePage';
 import WorkspacesListPage from '@pages/workspace/WorkspacesListPage';
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
+import ROOT_TAB_SCREENS from './ROOT_TAB_SCREENS';
 
 const ROUTE_TO_NAVIGATION_TAB: Record<string, ValueOf<typeof NAVIGATION_TABS>> = {
     [SCREENS.HOME]: NAVIGATION_TABS.HOME,
@@ -125,6 +126,11 @@ const WorkspaceSplitNavigatorScreen = withSuspense(LazyWorkspaceSplitNavigator);
 const DomainSplitNavigatorScreen = withSuspense(LazyDomainSplitNavigator);
 
 const Tab = createBottomTabNavigator<RootTabNavigatorParamList>();
+
+// Compile-time check: ROOT_TAB_SCREENS must cover every key in RootTabNavigatorParamList.
+// If this line errors, a screen was added to RootTabNavigatorParamList but not to ROOT_TAB_SCREENS.
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const _assertAllTabsCovered: Record<(typeof ROOT_TAB_SCREENS)[number], true> = {} as Record<keyof RootTabNavigatorParamList, true>;
 
 /**
  * Root-level tab screens where the swipe-back gesture should be disabled.

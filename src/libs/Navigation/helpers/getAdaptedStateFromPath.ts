@@ -2,6 +2,7 @@ import type {NavigationState, PartialState, getStateFromPath as RNGetStateFromPa
 import {findFocusedRoute} from '@react-navigation/native';
 import pick from 'lodash/pick';
 import getInitialSplitNavigatorState from '@libs/Navigation/AppNavigator/createSplitNavigator/getInitialSplitNavigatorState';
+import ROOT_TAB_SCREENS from '@libs/Navigation/AppNavigator/Navigators/ROOT_TAB_SCREENS';
 import {RHP_TO_DOMAIN, RHP_TO_HOME, RHP_TO_SEARCH, RHP_TO_SETTINGS, RHP_TO_SIDEBAR, RHP_TO_WORKSPACE, RHP_TO_WORKSPACES_LIST} from '@libs/Navigation/linkingConfig/RELATIONS';
 import type {NavigationPartialRoute, RootNavigatorParamList} from '@libs/Navigation/types';
 import {getReportOrDraftReport} from '@libs/ReportUtils';
@@ -28,15 +29,8 @@ type GetAdaptedStateFromPath = (...args: [...Parameters<typeof RNGetStateFromPat
 // The function getPathFromState that we are using in some places isn't working correctly without defined index.
 const getRoutesWithIndex = (routes: NavigationPartialRoute[]): PartialState<NavigationState> => ({routes, index: routes.length - 1});
 
-/** Tab order in RootTabNavigator - must match the screen order in RootTabNavigator.tsx */
-const ROOT_TAB_NAVIGATOR_ROUTES: NavigationPartialRoute[] = [
-    {name: SCREENS.HOME},
-    {name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR},
-    {name: NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR},
-    {name: NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR},
-    {name: SCREENS.WORKSPACES_LIST},
-    {name: NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR},
-];
+/** All tab routes derived from the shared ROOT_TAB_SCREENS constant. */
+const ROOT_TAB_NAVIGATOR_ROUTES: NavigationPartialRoute[] = ROOT_TAB_SCREENS.map((name) => ({name}));
 
 /**
  * Builds RootTabNavigator state with all tabs and the correct selected tab.
