@@ -87,7 +87,7 @@ function SearchPageInputWide({queryJSON, handleSearch}: SearchPageInputWideProps
                     autoFocus={false}
                     onFocus={showAutocompleteList}
                     onBlur={hideAutocompleteList}
-                    wrapperStyle={{...styles.newSearchAutocompleteInputResults, ...styles.br2}}
+                    wrapperStyle={{...styles.searchAutocompleteInputResults, ...styles.br2}}
                     wrapperFocusedStyle={styles.searchAutocompleteInputResultsFocused}
                     outerWrapperStyle={[inputWrapperActiveStyle, styles.flex1]}
                     ref={textInputRef}

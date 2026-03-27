@@ -3464,11 +3464,6 @@ const staticStyles = (theme: ThemeColors) =>
             borderColor: theme.bordersBold,
         },
 
-        newSearchAutocompleteInputResults: {
-            borderWidth: 1,
-            borderColor: theme.border,
-        },
-
         searchAutocompleteInputResultsFocused: {
             borderWidth: 1,
             borderColor: theme.success,

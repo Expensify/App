@@ -67,7 +67,7 @@ function SearchPageInputNarrow({queryJSON, searchRouterListVisible, hideSearchRo
                         }}
                         autoFocus={false}
                         onFocus={onSearchRouterFocus}
-                        wrapperStyle={{...styles.newSearchAutocompleteInputResults, ...styles.br2}}
+                        wrapperStyle={{...styles.searchAutocompleteInputResults, ...styles.br2}}
                         wrapperFocusedStyle={styles.searchAutocompleteInputResultsFocused}
                         ref={textInputRef}
                         onKeyPress={handleKeyPress}
