@@ -2019,6 +2019,7 @@ const translations = {
             softKillTheApp: 'Soft kill the app',
             kill: 'Kill',
             sentryDebug: 'Sentry debug',
+            sentrySendDescription: 'Send data to Sentry',
             sentryDebugDescription: 'Log Sentry requests to console',
             sentryHighlightedSpanOps: 'Highlighted span names',
             sentryHighlightedSpanOpsPlaceholder: 'ui.interaction.click, navigation, ui.load',

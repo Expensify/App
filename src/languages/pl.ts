@@ -1946,6 +1946,7 @@ const translations: TranslationDeepObject<typeof en> = {
             softKillTheApp: 'Miękko zamknij aplikację',
             kill: 'Zabij',
             sentryDebug: 'Debugowanie Sentry',
+            sentrySendDescription: 'Wysyłaj dane do Sentry',
             sentryDebugDescription: 'Rejestruj żądania Sentry w konsoli',
             sentryHighlightedSpanOps: 'Wyróżnione nazwy zakresów',
             sentryHighlightedSpanOpsPlaceholder: 'kliknięcie interfejsu, nawigacja, ładowanie interfejsu',

@@ -1899,6 +1899,7 @@ const translations: TranslationDeepObject<typeof en> = {
             softKillTheApp: '软关闭应用程序',
             kill: '终止',
             sentryDebug: 'Sentry 调试',
+            sentrySendDescription: '向 Sentry 发送数据',
             sentryDebugDescription: '将 Sentry 请求记录到控制台',
             sentryHighlightedSpanOps: '高亮的跨度名称',
             sentryHighlightedSpanOpsPlaceholder: 'ui.interaction.click，navigation，ui.load',
