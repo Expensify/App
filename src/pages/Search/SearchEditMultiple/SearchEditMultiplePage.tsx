@@ -25,7 +25,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import type {TransactionChanges} from '@src/types/onyx/Transaction';
-import {getTransactionEditContext, withSnapshotReportActions, withSnapshotTransactions} from './SearchEditMultipleUtils';
+import {getTransactionEditContext, withSnapshotReportActions, withSnapshotReports, withSnapshotTransactions} from './SearchEditMultipleUtils';
 
 function SearchEditMultiplePage() {
     const {translate} = useLocalize();
@@ -44,11 +44,12 @@ function SearchEditMultiplePage() {
     const snapshotData = currentSearchResults?.data;
     const mergedTransactions = withSnapshotTransactions(allTransactions, snapshotData);
     const mergedReportActions = withSnapshotReportActions(allReportActions, snapshotData);
+    const mergedReports = withSnapshotReports(allReports, snapshotData);
 
     const selectedTransactionIDs = draftTransaction?.selectedTransactionIDs ?? [];
 
     const selectedTransactionContexts = selectedTransactionIDs.flatMap((transactionID) => {
-        const context = getTransactionEditContext(transactionID, mergedTransactions, allReports, mergedReportActions, policies);
+        const context = getTransactionEditContext(transactionID, mergedTransactions, mergedReports, mergedReportActions, policies);
         return context ? [context] : [];
     });
 
@@ -91,7 +92,7 @@ function SearchEditMultiplePage() {
         return !isIOUReport(report) && !isInvoiceReport(report) && transactionPolicy?.disabledFields?.reimbursable === false && !isManagedCardTransaction(transaction);
     });
 
-    const policyID = getSearchBulkEditPolicyID(selectedTransactionIDs, activePolicyID, mergedTransactions, allReports);
+    const policyID = getSearchBulkEditPolicyID(selectedTransactionIDs, activePolicyID, mergedTransactions, mergedReports);
 
     const policy = policyID ? policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`] : undefined;
     const policyCategories = allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`];
@@ -157,7 +158,7 @@ function SearchEditMultiplePage() {
             transactionIDs: selectedTransactionIDs,
             changes,
             policy,
-            reports: allReports,
+            reports: mergedReports,
             transactions: mergedTransactions,
             reportActions: mergedReportActions,
             policyCategories: allPolicyCategories,
