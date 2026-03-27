@@ -4,6 +4,7 @@ import {findFocusedRoute, StackActions} from '@react-navigation/native';
 import {getMatchingFullScreenRoute, isFullScreenName} from '@libs/Navigation/helpers/getAdaptedStateFromPath';
 import getStateFromPath from '@libs/Navigation/helpers/getStateFromPath';
 import normalizePath from '@libs/Navigation/helpers/normalizePath';
+import {getRootTabState} from '@libs/Navigation/helpers/rootTabNavigatorUtils';
 import {linkingConfig} from '@libs/Navigation/linkingConfig';
 import type {PlatformStackNavigationState} from '@libs/Navigation/PlatformStackNavigation/types';
 import {shallowCompare} from '@libs/ObjectUtils';
@@ -100,8 +101,8 @@ function isRoutePreloaded(currentState: PlatformStackNavigationState<RootNavigat
  * For other routes, returns the last nested route name (original behavior).
  */
 function getActiveScreenInRoute(route: NavigationPartialRoute): string | undefined {
-    if (route.name === NAVIGATORS.ROOT_TAB_NAVIGATOR && route.state) {
-        const tabState = route.state as {routes: Array<{name: string}>; index?: number};
+    const tabState = getRootTabState(route);
+    if (tabState) {
         const index = tabState.index ?? 0;
         return tabState.routes?.at(index)?.name;
     }

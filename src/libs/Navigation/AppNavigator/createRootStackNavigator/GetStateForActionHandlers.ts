@@ -4,6 +4,7 @@ import type {ParamListBase, Router} from '@react-navigation/routers';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import Log from '@libs/Log';
 import {isSplitNavigatorName} from '@libs/Navigation/helpers/isNavigatorName';
+import {getRootTabScreenParam} from '@libs/Navigation/helpers/rootTabNavigatorUtils';
 import {SIDEBAR_TO_SPLIT, SPLIT_TO_SIDEBAR} from '@libs/Navigation/linkingConfig/RELATIONS';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
@@ -134,25 +135,12 @@ function handlePushFullscreenAction(
         innerSplitName &&
         isSplitNavigatorName(innerSplitName) &&
         targetScreen !== SPLIT_TO_SIDEBAR[innerSplitName] &&
-        state.preloadedRoutes?.some(
-            (preloadedRoute) =>
-                preloadedRoute.name === innerSplitName ||
-                (preloadedRoute.name === NAVIGATORS.ROOT_TAB_NAVIGATOR && preloadedRoute.params && 'screen' in preloadedRoute.params && preloadedRoute.params.screen === innerSplitName),
-        );
+        state.preloadedRoutes?.some((preloadedRoute) => preloadedRoute.name === innerSplitName || getRootTabScreenParam(preloadedRoute) === innerSplitName);
 
     const adjustedState = shouldFilterPreloadedRoutes
         ? {
               ...state,
-              preloadedRoutes: state.preloadedRoutes.filter(
-                  (preloadedRoute) =>
-                      preloadedRoute.name !== innerSplitName &&
-                      !(
-                          preloadedRoute.name === NAVIGATORS.ROOT_TAB_NAVIGATOR &&
-                          preloadedRoute.params &&
-                          'screen' in preloadedRoute.params &&
-                          preloadedRoute.params.screen === innerSplitName
-                      ),
-              ),
+              preloadedRoutes: state.preloadedRoutes.filter((preloadedRoute) => preloadedRoute.name !== innerSplitName && getRootTabScreenParam(preloadedRoute) !== innerSplitName),
           }
         : state;
     const stateWithNavigator = stackRouter.getStateForAction(adjustedState, action, configOptions);

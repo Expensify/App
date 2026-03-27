@@ -1,6 +1,7 @@
 import type {NavigationState} from '@react-navigation/native';
 import type {ValueOf} from 'type-fest';
 import {getPreservedNavigatorState} from '@libs/Navigation/AppNavigator/createSplitNavigator/usePreserveNavigatorState';
+import {getRootTabState} from '@libs/Navigation/helpers/rootTabNavigatorUtils';
 import NAVIGATORS from '@src/NAVIGATORS';
 import type {Screen} from '@src/SCREENS';
 
@@ -10,7 +11,7 @@ function getLastRoute(rootState: NavigationState, navigator: ValueOf<typeof NAVI
 
     if (!lastNavigator) {
         const rootTabRoute = rootState.routes.findLast((route) => route.name === NAVIGATORS.ROOT_TAB_NAVIGATOR);
-        const tabState = rootTabRoute?.state as {routes: {name: string; key?: string}[]} | undefined;
+        const tabState = getRootTabState(rootTabRoute);
         lastNavigator = tabState?.routes?.findLast((route) => route.name === navigator);
     }
 

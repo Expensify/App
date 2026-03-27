@@ -5,6 +5,7 @@ import {createGuardContext, evaluateGuards} from '@libs/Navigation/guards';
 import getAdaptedStateFromPath from '@libs/Navigation/helpers/getAdaptedStateFromPath';
 import {isFullScreenName} from '@libs/Navigation/helpers/isNavigatorName';
 import isSideModalNavigator from '@libs/Navigation/helpers/isSideModalNavigator';
+import {getRootTabScreenParam} from '@libs/Navigation/helpers/rootTabNavigatorUtils';
 import {linkingConfig} from '@libs/Navigation/linkingConfig';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
@@ -145,11 +146,7 @@ function RootStackRouter(options: RootStackNavigatorRouterOptions) {
                 return handleDismissModalAction(state, configOptions, stackRouter);
             }
 
-            if (
-                isReplaceAction(action) &&
-                (action.payload.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR ||
-                    (action.payload.name === NAVIGATORS.ROOT_TAB_NAVIGATOR && (action.payload.params as {screen?: string} | undefined)?.screen === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR))
-            ) {
+            if (isReplaceAction(action) && (action.payload.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR || getRootTabScreenParam(action.payload) === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR)) {
                 return handleReplaceReportsSplitNavigatorAction(state, action, configOptions, stackRouter);
             }
 
