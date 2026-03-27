@@ -120,6 +120,10 @@ const DYNAMIC_ROUTES = {
         getRoute: (country = '') => `country?country=${country}`,
         queryParams: ['country'],
     },
+    POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_COMPANY_CARD_EXPENSE_SELECT: {
+        path: 'card-select',
+        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_DESKTOP_COMPANY_CARD_EXPENSE_ACCOUNT],
+    },
 } as const satisfies DynamicRoutes;
 
 const ROUTES = {
@@ -1756,17 +1760,6 @@ const ROUTES = {
 
             // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
             return getUrlWithBackToParam(`workspaces/${policyID}/accounting/quickbooks-desktop/export/company-card-expense-account/account-select` as const, backTo);
-        },
-    },
-    POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_COMPANY_CARD_EXPENSE_SELECT: {
-        route: 'workspaces/:policyID/accounting/quickbooks-desktop/export/company-card-expense-account/card-select',
-        getRoute: (policyID?: string, backTo?: string) => {
-            if (!policyID) {
-                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_COMPANY_CARD_EXPENSE_SELECT route');
-            }
-
-            // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-            return getUrlWithBackToParam(`workspaces/${policyID}/accounting/quickbooks-desktop/export/company-card-expense-account/card-select` as const, backTo);
         },
     },
     POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_DEFAULT_VENDOR_SELECT: {

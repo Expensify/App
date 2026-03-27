@@ -532,7 +532,7 @@ const SCREENS = {
             QUICKBOOKS_ONLINE_AUTO_SYNC: 'Policy_Accounting_Quickbooks_Online_Auto_Sync',
             QUICKBOOKS_ONLINE_ACCOUNTING_METHOD: 'Policy_Accounting_Quickbooks_Online_Accounting_Method',
             QUICKBOOKS_DESKTOP_COMPANY_CARD_EXPENSE_ACCOUNT_SELECT: 'Workspace_Accounting_Quickbooks_Desktop_Export_Company_Card_Expense_Account_Select',
-            QUICKBOOKS_DESKTOP_COMPANY_CARD_EXPENSE_ACCOUNT_COMPANY_CARD_SELECT: 'Workspace_Accounting_Quickbooks_Desktop_Export_Company_Card_Expense_Select',
+            DYNAMIC_QUICKBOOKS_DESKTOP_COMPANY_CARD_EXPENSE_ACCOUNT_COMPANY_CARD_SELECT: 'Dynamic_Workspace_Accounting_Quickbooks_Desktop_Export_Company_Card_Expense_Select',
             QUICKBOOKS_DESKTOP_COMPANY_CARD_EXPENSE_ACCOUNT: 'Workspace_Accounting_Quickbooks_Desktop_Export_Company_Card_Expense',
             QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_DEFAULT_VENDOR_SELECT: 'Workspace_Accounting_Quickbooks_Desktop_Export_Non_Reimbursable_Default_Vendor_Select',
             QUICKBOOKS_DESKTOP_ADVANCED: 'Policy_Accounting_Quickbooks_Desktop_Advanced',
