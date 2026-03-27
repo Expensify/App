@@ -1,6 +1,7 @@
 import {useRoute} from '@react-navigation/native';
 import React, {useCallback} from 'react';
 import ScreenWrapper from '@components/ScreenWrapper';
+import type {SearchDateValues} from '@components/Search/FilterComponents/DatePresetFilterBase';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -102,6 +103,17 @@ function SearchDatePresetFilterBasePage({dateKey, titleKey}: SearchDatePresetFil
     const defaultDateValues = getDefaultDateValues();
     const presets = getPresets();
 
+    const updateDraftDateValues = useCallback(
+        (values: SearchDateValues) => {
+            updateAdvancedFilters({
+                [dateOnKey]: values[CONST.SEARCH.DATE_MODIFIERS.ON] ?? null,
+                [dateBeforeKey]: values[CONST.SEARCH.DATE_MODIFIERS.BEFORE] ?? null,
+                [dateAfterKey]: values[CONST.SEARCH.DATE_MODIFIERS.AFTER] ?? null,
+            });
+        },
+        [dateAfterKey, dateBeforeKey, dateOnKey],
+    );
+
     return (
         <ScreenWrapper
             testID="SearchDatePresetFilterBasePage"
@@ -116,14 +128,11 @@ function SearchDatePresetFilterBasePage({dateKey, titleKey}: SearchDatePresetFil
                 presets={presets}
                 isSearchAdvancedFiltersFormLoading={isSearchAdvancedFiltersFormLoading}
                 onBackButtonPress={goBack}
+                onDateValuesChange={updateDraftDateValues}
                 selectedDateModifier={selectedDateModifier}
                 onSelectDateModifier={selectDateModifier}
                 onSubmit={(values) => {
-                    updateAdvancedFilters({
-                        [dateOnKey]: values[CONST.SEARCH.DATE_MODIFIERS.ON] ?? null,
-                        [dateBeforeKey]: values[CONST.SEARCH.DATE_MODIFIERS.BEFORE] ?? null,
-                        [dateAfterKey]: values[CONST.SEARCH.DATE_MODIFIERS.AFTER] ?? null,
-                    });
+                    updateDraftDateValues(values);
                     Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS.getRoute());
                 }}
             />
