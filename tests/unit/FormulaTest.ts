@@ -697,6 +697,41 @@ describe('CustomFormula', () => {
             expect(compute('{report:autoreporting:end}', context)).toBe('2025-01-14');
         });
 
+        test('should use allTransactions for trip dates when Onyx is empty (new report optimistic flow)', () => {
+            mockReportUtils.getReportTransactions.mockReturnValue([]);
+
+            const policy = {autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.TRIP} as Policy;
+            const context: FormulaContext = {
+                report: mockReport,
+                policy,
+                allTransactions: {
+                    trans1: {transactionID: 'trans1', reportID: '123', created: '2025-01-08T12:00:00Z', merchant: 'Hotel', amount: 5000} as Transaction,
+                },
+            };
+
+            expect(compute('{report:autoreporting:start}', context)).toBe('2025-01-08');
+            expect(compute('{report:autoreporting:end}', context)).toBe('2025-01-08');
+        });
+
+        test('should use allTransactions to merge Onyx + optimistic transaction for trip date range', () => {
+            mockReportUtils.getReportTransactions.mockReturnValue([
+                {transactionID: 'existing1', reportID: '123', created: '2025-01-08T12:00:00Z', merchant: 'Hotel', amount: 5000} as Transaction,
+            ]);
+
+            const policy = {autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.TRIP} as Policy;
+            const context: FormulaContext = {
+                report: mockReport,
+                policy,
+                allTransactions: {
+                    existing1: {transactionID: 'existing1', reportID: '123', created: '2025-01-08T12:00:00Z', merchant: 'Hotel', amount: 5000} as Transaction,
+                    optimistic1: {transactionID: 'optimistic1', reportID: '123', created: '2025-01-14T16:00:00Z', merchant: 'Restaurant', amount: 3000} as Transaction,
+                },
+            };
+
+            expect(compute('{report:autoreporting:start}', context)).toBe('2025-01-08');
+            expect(compute('{report:autoreporting:end}', context)).toBe('2025-01-14');
+        });
+
         test('should fallback to current date for trip frequency when no transactions', () => {
             mockReportUtils.getReportTransactions.mockReturnValue([]);
 
