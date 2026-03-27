@@ -1,18 +1,11 @@
 import type {PropsWithChildren} from 'react';
 import React, {createContext, useContext, useState} from 'react';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
-import type TravelCVVContextType from './types';
+import {defaultTravelCVVActionsContextValue, defaultTravelCVVStateContextValue} from './default';
+import type {TravelCVVActionsContextType, TravelCVVStateContextType} from './types';
 
-const defaultContext: TravelCVVContextType = {
-    cvv: null,
-    isLoading: false,
-    validateError: {},
-    setCvv: () => {},
-    setIsLoading: () => {},
-    setValidateError: () => {},
-};
-
-const TravelCVVContext = createContext<TravelCVVContextType>(defaultContext);
+const TravelCVVStateContext = createContext<TravelCVVStateContextType>(defaultTravelCVVStateContextValue);
+const TravelCVVActionsContext = createContext<TravelCVVActionsContextType>(defaultTravelCVVActionsContextValue);
 
 /**
  * Context to display revealed travel card CVV data and pass it between screens.
@@ -23,23 +16,32 @@ function TravelCVVContextProvider({children}: PropsWithChildren) {
     const [isLoading, setIsLoading] = useState(false);
     const [validateError, setValidateError] = useState<Errors>({});
 
-    // Because of the React Compiler we don't need to memoize it manually
-    // eslint-disable-next-line react/jsx-no-constructed-context-values
-    const contextValue: TravelCVVContextType = {
+    const stateValue: TravelCVVStateContextType = {
         cvv,
         isLoading,
         validateError,
+    };
+
+    const actionsValue: TravelCVVActionsContextType = {
         setCvv,
         setIsLoading,
         setValidateError,
     };
 
-    return <TravelCVVContext.Provider value={contextValue}>{children}</TravelCVVContext.Provider>;
+    return (
+        <TravelCVVStateContext.Provider value={stateValue}>
+            <TravelCVVActionsContext.Provider value={actionsValue}>{children}</TravelCVVActionsContext.Provider>
+        </TravelCVVStateContext.Provider>
+    );
 }
 
-function useTravelCVV(): TravelCVVContextType {
-    return useContext(TravelCVVContext);
+function useTravelCVVState(): TravelCVVStateContextType {
+    return useContext(TravelCVVStateContext);
 }
 
-export {useTravelCVV};
+function useTravelCVVActions(): TravelCVVActionsContextType {
+    return useContext(TravelCVVActionsContext);
+}
+
+export {useTravelCVVState, useTravelCVVActions};
 export default TravelCVVContextProvider;

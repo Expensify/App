@@ -104,8 +104,6 @@ Only the **billing owner** can delete a workspace.
 
 **Note:** This action is permanent and cannot be undone.
 
-**ADD A SCREENSHOT HERE.** Suggestion: Deleting a workspace via the three-dot menu in the Workspaces tab.
-
 ---
 
 ## How to transfer billing ownership in Expensify
