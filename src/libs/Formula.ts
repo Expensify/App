@@ -330,7 +330,7 @@ function computeAutoReportingInfo(part: FormulaPart, context: FormulaContext, su
         return part.definition;
     }
 
-    const {startDate, endDate} = getAutoReportingDates(policy, report);
+    const {startDate, endDate} = getAutoReportingDates(policy, report, new Date(), context);
 
     switch (subField.toLowerCase()) {
         case 'start':
@@ -769,7 +769,7 @@ function getMonthlyLastBusinessDayPeriod(currentDate: Date): {startDate: Date; e
 /**
  * Calculate the start and end dates for auto-reporting based on the frequency and current date
  */
-function getAutoReportingDates(policy: OnyxEntry<Policy>, report: Report, currentDate = new Date()): {startDate: Date | undefined; endDate: Date | undefined} {
+function getAutoReportingDates(policy: OnyxEntry<Policy>, report: Report, currentDate = new Date(), context?: FormulaContext): {startDate: Date | undefined; endDate: Date | undefined} {
     const frequency = policy?.autoReportingFrequency;
     const offset = policy?.autoReportingOffset;
 
@@ -823,8 +823,8 @@ function getAutoReportingDates(policy: OnyxEntry<Policy>, report: Report, curren
 
         case CONST.POLICY.AUTO_REPORTING_FREQUENCIES.TRIP: {
             // For trip-based, use oldest transaction as start and newest transaction as end
-            const oldestTransactionDateString = getOldestTransactionDate(report.reportID);
-            const newestTransactionDateString = getNewestTransactionDate(report.reportID);
+            const oldestTransactionDateString = getOldestTransactionDate(report.reportID, context);
+            const newestTransactionDateString = getNewestTransactionDate(report.reportID, context);
             startDate = oldestTransactionDateString ? new Date(oldestTransactionDateString) : currentDate;
             endDate = newestTransactionDateString ? new Date(newestTransactionDateString) : currentDate;
             break;
