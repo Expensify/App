@@ -64,6 +64,11 @@ export default function useSearchTypeMenu(queryJSON: SearchQueryJSON) {
         'Bank',
         'User',
         'Folder',
+        'Trashcan',
+        'Document',
+        'Send',
+        'ThumbsUp',
+        'CheckCircle',
     ]);
 
     const [isPopoverVisible, setIsPopoverVisible] = useState(false);
@@ -208,14 +213,13 @@ export default function useSearchTypeMenu(queryJSON: SearchQueryJSON) {
                         const previousItemCount = typeMenuSections.slice(0, sectionIndex).reduce((acc, sec) => acc + sec.menuItems.length, 0);
                         const flattenedIndex = previousItemCount + itemIndex;
                         const isSelected = flattenedIndex === activeItemIndex;
-                        const icon = typeof item.icon === 'string' ? expensifyIcons[item.icon] : item.icon;
 
                         sectionItems.push({
                             badgeText: getItemBadgeText(item.key, reportCounts),
                             isBadgeSuccess: true,
                             text: translate(item.translationPath),
                             isSelected,
-                            icon,
+                            icon: expensifyIcons[item.icon],
                             success: isSelected,
                             containerStyle: isSelected ? [{backgroundColor: theme.border}] : undefined,
                             shouldCallAfterModalHide: true,
