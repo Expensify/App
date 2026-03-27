@@ -13132,6 +13132,94 @@ describe('actions/IOU', () => {
             writeSpy.mockRestore();
             canEditFieldSpy.mockRestore();
         });
+
+        it('passes per-transaction policy to buildOptimisticModifiedExpenseReportAction in cross-policy bulk edit', () => {
+            // Given: two different policies — the transaction belongs to transactionPolicy,
+            // but the shared bulk-edit policy is a different workspace.
+            const transactionID = 'transaction-report-action-policy-1';
+            const transactionThreadReportID = 'thread-report-action-policy-1';
+            const iouReportID = 'iou-report-action-policy-1';
+
+            const transactionPolicy: Policy = {
+                ...createRandomPolicy(10, CONST.POLICY.TYPE.TEAM),
+            };
+
+            const sharedBulkEditPolicy: Policy = {
+                ...createRandomPolicy(20, CONST.POLICY.TYPE.TEAM),
+            };
+
+            const transactionThread: Report = {
+                ...createRandomReport(1, undefined),
+                reportID: transactionThreadReportID,
+                parentReportID: iouReportID,
+                policyID: transactionPolicy.id,
+            };
+            const iouReport: Report = {
+                ...createRandomReport(2, undefined),
+                reportID: iouReportID,
+                policyID: transactionPolicy.id,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                total: 1000,
+            };
+
+            const reports = {
+                [`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`]: transactionThread,
+                [`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`]: iouReport,
+            };
+
+            const transaction: Transaction = {
+                ...createRandomTransaction(1),
+                transactionID,
+                reportID: iouReportID,
+                transactionThreadReportID,
+                amount: -1000,
+                currency: CONST.CURRENCY.USD,
+                reimbursable: true,
+            };
+            const transactions = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: transaction,
+            };
+
+            const allPolicies = {
+                [`${ONYXKEYS.COLLECTION.POLICY}${transactionPolicy.id}`]: transactionPolicy,
+                [`${ONYXKEYS.COLLECTION.POLICY}${sharedBulkEditPolicy.id}`]: sharedBulkEditPolicy,
+            };
+
+            const canEditFieldSpy = jest.spyOn(require('@libs/ReportUtils'), 'canEditFieldOfMoneyRequest').mockReturnValue(true);
+            const buildOptimisticSpy = jest.spyOn(require('@libs/ReportUtils'), 'buildOptimisticModifiedExpenseReportAction');
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls
+            const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
+
+            // When: bulk-editing reimbursable with the shared policy (different from transaction's policy)
+            updateMultipleMoneyRequests({
+                transactionIDs: [transactionID],
+                changes: {reimbursable: false},
+                policy: sharedBulkEditPolicy,
+                reports,
+                transactions,
+                reportActions: {},
+                policyCategories: undefined,
+                policyTags: {},
+                hash: undefined,
+                allPolicies,
+            });
+
+            // Then: buildOptimisticModifiedExpenseReportAction should receive the transaction's own policy,
+            // not the shared bulk-edit policy. This matters because getUpdatedMoneyRequestReportData
+            // (called after) uses the same policy for maybeUpdateReportNameForFormulaTitle.
+            expect(buildOptimisticSpy).toHaveBeenCalledWith(
+                expect.anything(),
+                expect.anything(),
+                expect.anything(),
+                expect.anything(),
+                expect.objectContaining({id: transactionPolicy.id}),
+                expect.anything(),
+            );
+
+            writeSpy.mockRestore();
+            buildOptimisticSpy.mockRestore();
+            canEditFieldSpy.mockRestore();
+        });
     });
 
     describe('bulk edit draft transaction', () => {

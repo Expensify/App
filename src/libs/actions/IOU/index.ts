@@ -13532,7 +13532,7 @@ function updateMultipleMoneyRequests({
             transaction,
             optimisticTransactionChanges,
             isFromExpenseReport,
-            policy,
+            transactionPolicy,
             updatedTransaction,
         );
 
@@ -13541,7 +13541,7 @@ function updateMultipleMoneyRequests({
             updatedTransaction,
             transaction,
             isTransactionOnHold,
-            policy,
+            transactionPolicy,
             optimisticReportAction?.actorAccountID,
             transactionChanges,
         );
