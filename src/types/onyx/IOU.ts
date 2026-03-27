@@ -267,7 +267,11 @@ type Accountant = {
 };
 
 /** Type of distance expense */
-type DistanceExpenseType = typeof CONST.IOU.EXPENSE_TYPE.DISTANCE_MAP | typeof CONST.IOU.EXPENSE_TYPE.DISTANCE_MANUAL;
+type DistanceExpenseType =
+    | typeof CONST.IOU.EXPENSE_TYPE.DISTANCE_MAP
+    | typeof CONST.IOU.EXPENSE_TYPE.DISTANCE_MANUAL
+    | typeof CONST.IOU.EXPENSE_TYPE.DISTANCE_GPS
+    | typeof CONST.IOU.EXPENSE_TYPE.DISTANCE_ODOMETER;
 
 export default IOU;
 export type {Participant, Split, Attendee, Accountant, SplitExpense, DistanceExpenseType};
