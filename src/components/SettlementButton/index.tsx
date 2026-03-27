@@ -217,7 +217,7 @@ function SettlementButton({
                     return;
                 }
                 pressLockedBankAccount(policy?.achAccount?.bankAccountID, translate, conciergeReportID);
-                navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed);
+                navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas);
             });
             return true;
         }
@@ -248,6 +248,7 @@ function SettlementButton({
         introSelected,
         currentUserAccountID,
         isSelfTourViewed,
+        betas,
     ]);
 
     const shortFormPayElsewhereButton = {
