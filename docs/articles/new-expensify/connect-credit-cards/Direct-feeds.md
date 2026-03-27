@@ -101,6 +101,17 @@ Plaid feeds are available in many countries outside the U.S. If your country isn
 - Spain
 - Sweden
 
+## Why don't newly issued cards appear in the assignment list?
+
+Direct feeds cache the card list when first connected. If your bank issues new cards after the initial setup, they won't appear automatically. To refresh the card list:
+
+1. Go to **Workspaces > [Workspace Name] > Company cards**.
+2. Click **Settings** in the top-right corner.
+3. Click **Assign new cards**.
+4. Complete the bank re-authentication to pull the latest cards from your bank.
+
+New cards will then be available for assignment.
+
 ## How do I reconnect a broken feed?
 
 1. Go to **Workspaces > [Workspace Name] > Company cards**  
