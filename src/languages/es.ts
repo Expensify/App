@@ -1888,6 +1888,11 @@ const translations: TranslationDeepObject<typeof en> = {
         versionLetter: 'v',
         readTheTermsAndPrivacy: `Leer los <a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}">Términos de Servicio</a> y <a href="${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}">Privacidad</a>.`,
         help: 'Ayuda',
+        helpPage: {
+            title: 'Ayuda y soporte',
+            description: 'Estamos aquí para ayudarte las 24 horas, los 7 días de la semana',
+            helpSite: 'Sitio de ayuda',
+        },
         whatIsNew: 'Qué hay de nuevo',
         accountSettings: 'Configuración de la cuenta',
         account: 'Cuenta',

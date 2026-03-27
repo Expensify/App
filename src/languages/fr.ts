@@ -1972,6 +1972,7 @@ const translations: TranslationDeepObject<typeof en> = {
         accountSettings: 'Paramètres du compte',
         account: 'Compte',
         general: 'Général',
+        helpPage: {title: 'Aide et assistance', description: 'Nous sommes là pour vous aider 24 h/24, 7 j/7', helpSite: 'Site d’aide'},
     },
     closeAccountPage: {
         closeAccount: 'Fermer le compte',
@@ -7469,7 +7470,14 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
         searchIn: 'Rechercher dans',
         searchPlaceholder: 'Rechercher quelque chose',
         suggestions: 'Suggestions',
-        suggestionsAvailable: ({count}: {count: number}, query = '') => ({
+        suggestionsAvailable: (
+            {
+                count,
+            }: {
+                count: number;
+            },
+            query = '',
+        ) => ({
             one: `Suggestions disponibles${query ? ` pour ${query}` : ''}. ${count} résultat.`,
             other: (resultCount: number) => `Suggestions disponibles${query ? ` pour ${query}` : ''}. ${resultCount} résultats.`,
         }),

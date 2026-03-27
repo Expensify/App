@@ -1944,6 +1944,7 @@ const translations: TranslationDeepObject<typeof en> = {
         accountSettings: 'アカウント設定',
         account: 'アカウント',
         general: '一般',
+        helpPage: {title: 'ヘルプとサポート', description: '24時間365日いつでもサポートいたします', helpSite: 'ヘルプサイト'},
     },
     closeAccountPage: {
         closeAccount: 'アカウントを閉じる',
@@ -7341,7 +7342,14 @@ ${reportName}
         searchIn: '検索対象',
         searchPlaceholder: '何かを検索',
         suggestions: '提案',
-        suggestionsAvailable: ({count}: {count: number}, query = '') => ({
+        suggestionsAvailable: (
+            {
+                count,
+            }: {
+                count: number;
+            },
+            query = '',
+        ) => ({
             one: `候補があります${query ? `: ${query}` : ''}。${count}件の結果。`,
             other: (resultCount: number) => `候補があります${query ? `: ${query}` : ''}。${resultCount}件の結果。`,
         }),

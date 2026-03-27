@@ -87,6 +87,7 @@ import TiltedCoinExpensify from '@assets/images/product-illustrations/tilted-coi
 import ToddBehindCloud from '@assets/images/product-illustrations/todd-behind-cloud.svg';
 import ToddInCar from '@assets/images/product-illustrations/todd-in-car.svg';
 import ToddWithPhones from '@assets/images/product-illustrations/todd-with-phones.svg';
+import TopiaryDollarSign from '@assets/images/product-illustrations/topiary-dollar-sign.svg';
 import UpgradeRocket from '@assets/images/product-illustrations/upgrade-rocket.svg';
 import WorkspaceScene from '@assets/images/product-illustrations/workspace-scene.svg';
 import ReceiptStack from '@assets/images/receipt-upload.svg';
@@ -139,6 +140,7 @@ import HeadSet from '@assets/images/simple-illustrations/simple-illustration__he
 import Hourglass from '@assets/images/simple-illustrations/simple-illustration__hourglass.svg';
 import House from '@assets/images/simple-illustrations/simple-illustration__house.svg';
 import InvoiceBlue from '@assets/images/simple-illustrations/simple-illustration__invoice.svg';
+import LifeRing from '@assets/images/simple-illustrations/simple-illustration__lifering.svg';
 import Lightbulb from '@assets/images/simple-illustrations/simple-illustration__lightbulb.svg';
 import LockClosed from '@assets/images/simple-illustrations/simple-illustration__lockclosed.svg';
 import LockClosedOrange from '@assets/images/simple-illustrations/simple-illustration__lockclosed_orange.svg';
@@ -277,6 +279,7 @@ const Illustrations = {
     ToddBehindCloud,
     ToddInCar,
     ToddWithPhones,
+    TopiaryDollarSign,
     WorkspaceScene,
     UpgradeRocket,
 
@@ -368,6 +371,7 @@ const Illustrations = {
     HeadSet,
     Hourglass,
     House,
+    LifeRing,
     Lightbulb,
     LockClosed,
     LockClosedOrange,
