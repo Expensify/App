@@ -60,15 +60,10 @@ function LinkedActionNotFoundGate({reportActionIDFromRoute, children}: LinkedAct
 
     // --- Linked action status ---
     const actionReportID = linkedAction?.reportID ?? reportID;
-    const isLinkedActionDeleted = (() => {
-        if (!linkedAction) {
-            return false;
-        }
-        if (!actionReportID) {
-            return true;
-        }
-        return !isReportActionVisible(linkedAction, actionReportID, canUserPerformWriteAction(report, isReportArchived), visibleReportActionsData);
-    })();
+    const hasNoActionReportID = !!linkedAction && !actionReportID;
+    const isActionHidden =
+        !!linkedAction && !!actionReportID && !isReportActionVisible(linkedAction, actionReportID, canUserPerformWriteAction(report, isReportArchived), visibleReportActionsData);
+    const isLinkedActionDeleted = hasNoActionReportID || isActionHidden;
 
     const prevIsLinkedActionDeleted = usePrevious(linkedAction ? isLinkedActionDeleted : undefined);
     const lastReportActionIDFromRoute = usePrevious(!firstRender ? reportActionIDFromRoute : undefined);
