@@ -42,7 +42,7 @@ import DateUtils from '@libs/DateUtils';
 import {registerDeferredWrite} from '@libs/deferredLayoutWrite';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {getMicroSecondOnyxErrorObject, getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
-import {readFileAsync} from '@libs/fileDownload/FileUtils';
+import {isLocalFile, readFileAsync} from '@libs/fileDownload/FileUtils';
 import type {MinimalTransaction} from '@libs/Formula';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import GoogleTagManager from '@libs/GoogleTagManager';
@@ -1930,6 +1930,7 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
     const outstandingChildRequest = getOutstandingChildRequest(iou.report);
     const clearedPendingFields = Object.fromEntries(Object.keys(transaction.pendingFields ?? {}).map((key) => [key, null]));
     const isMoneyRequestToManagerMcTest = isTestTransactionReport(iou.report);
+    const shouldPreserveLocalReceiptSource = isScanRequest && isLocalFile(transaction.receipt?.source);
 
     const onyxData: OnyxData<BuildOnyxDataForMoneyRequestKeys> = {
         optimisticData: [],
@@ -1985,7 +1986,7 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
         {
             onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
-            value: transaction,
+            value: shouldPreserveLocalReceiptSource ? {...transaction, receipt: {...transaction.receipt, localSource: String(transaction.receipt?.source)}} : transaction,
         },
         isNewChatReport
             ? {
@@ -2620,6 +2621,7 @@ function buildOnyxDataForTrackExpense({
     const isScanRequest = isScanRequestTransactionUtils(transaction);
     const isDistanceRequest = isDistanceRequestTransactionUtils(transaction);
     const clearedPendingFields = Object.fromEntries(Object.keys(transaction.pendingFields ?? {}).map((key) => [key, null]));
+    const shouldPreserveLocalReceiptSource = isScanRequest && isLocalFile(transaction.receipt?.source);
 
     const onyxData: OnyxData<BuildOnyxDataForTrackExpenseKeys> = {
         optimisticData: [],
@@ -2755,7 +2757,7 @@ function buildOnyxDataForTrackExpense({
         {
             onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
-            value: transaction,
+            value: shouldPreserveLocalReceiptSource ? {...transaction, receipt: {...transaction.receipt, localSource: String(transaction.receipt?.source)}} : transaction,
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
