@@ -93,7 +93,7 @@ import type {TransactionPreviewData} from './actions/Search';
 import {setOptimisticDataForTransactionThreadPreview} from './actions/Search';
 import type {CardFeedForDisplay} from './CardFeedUtils';
 import {getCardFeedsForDisplay} from './CardFeedUtils';
-import {doesCardFeedExist, getCardDescription, getFeedNameForDisplay} from './CardUtils';
+import {doesCardFeedExist, getCardDescriptionForSearchTable, getFeedNameForDisplay} from './CardUtils';
 import {getDecodedCategoryName} from './CategoryUtils';
 import {convertToDisplayString} from './CurrencyUtils';
 import DateUtils from './DateUtils';
@@ -509,7 +509,6 @@ type GetSectionsParams = {
     isActionLoadingSet?: ReadonlySet<string>;
     isOffline?: boolean;
     cardFeeds?: OnyxCollection<OnyxTypes.CardFeeds>;
-    cardList?: OnyxTypes.CardList;
     customCardNames?: Record<number, string>;
     allTransactionViolations?: OnyxCollection<OnyxTypes.TransactionViolation[]>;
     visibleReportActionsData?: OnyxTypes.VisibleReportActionsDerivedValue;
@@ -2545,6 +2544,10 @@ function getMemberSections(
     return [memberSectionsValues, memberSectionsValues.length];
 }
 
+function formattedCardNameWithDotAndLastFour(formattedCardName: string, lastFour: string): string {
+    return `${formattedCardName} ${CONST.DOT_SEPARATOR} ${lastFour}`;
+}
+
 /**
  * @private
  * Organizes data into List Sections grouped by card for display, for the TransactionGroupListItemType of Search Results.
@@ -2557,7 +2560,6 @@ function getCardSections(
     translate: LocalizedTranslate,
     cardFeeds?: OnyxCollection<OnyxTypes.CardFeeds>,
     customCardNames?: Record<number, string>,
-    cardList?: OnyxTypes.CardList,
 ): [TransactionCardGroupListItemType[], number] {
     const cardSections: Record<string, TransactionCardGroupListItemType> = {};
     const cardDescriptionByCardID = new Map<number, string>();
@@ -2572,25 +2574,25 @@ function getCardSections(
                 continue;
             }
 
-            const card = cardList?.[cardGroup.cardID];
             let formattedCardName = customCardNames?.[cardGroup.cardID];
             if (formattedCardName === undefined) {
                 const cached = cardDescriptionByCardID.get(cardGroup.cardID);
                 if (cached !== undefined) {
                     formattedCardName = cached;
                 } else {
-                    formattedCardName = getCardDescription(
+                    formattedCardName = getCardDescriptionForSearchTable(
                         {
                             cardID: cardGroup.cardID,
                             bank: cardGroup.bank,
                             cardName: cardGroup.cardName,
-                            fundID: card?.fundID,
                             lastFourPAN: cardGroup.lastFourPAN,
                         } as OnyxTypes.Card,
-                        translate,
+                        personalDetails?.displayName,
                     );
                     cardDescriptionByCardID.set(cardGroup.cardID, formattedCardName);
                 }
+            } else if (cardGroup.lastFourPAN) {
+                formattedCardName = formattedCardNameWithDotAndLastFour(formattedCardName, cardGroup.lastFourPAN);
             }
 
             cardSections[key] = {
@@ -2942,7 +2944,6 @@ function getSections({
     allTransactionViolations,
     visibleReportActionsData,
     allReportMetadata,
-    cardList,
     conciergeReportID,
     onyxPersonalDetailsList,
 }: GetSectionsParams) {
@@ -2980,7 +2981,7 @@ function getSections({
             case CONST.SEARCH.GROUP_BY.FROM:
                 return getMemberSections(data, queryJSON, formatPhoneNumber);
             case CONST.SEARCH.GROUP_BY.CARD:
-                return getCardSections(data, queryJSON, translate, cardFeeds, customCardNames, cardList);
+                return getCardSections(data, queryJSON, translate, cardFeeds, customCardNames);
             case CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID:
                 return getWithdrawalIDSections(data, queryJSON);
             case CONST.SEARCH.GROUP_BY.CATEGORY:
@@ -3711,6 +3712,7 @@ type TypeMenuSectionsParams = {
     defaultExpensifyCard: CardFeedForDisplay | undefined;
     shouldRedirectToExpensifyClassic: boolean;
     draftTransactionIDs: string[] | undefined;
+    isTrackIntentUser: boolean;
 };
 
 function createTypeMenuSections(params: TypeMenuSectionsParams): SearchTypeMenuSection[] {
@@ -3726,6 +3728,7 @@ function createTypeMenuSections(params: TypeMenuSectionsParams): SearchTypeMenuS
         defaultExpensifyCard,
         shouldRedirectToExpensifyClassic,
         draftTransactionIDs,
+        isTrackIntentUser,
     } = params;
     const typeMenuSections: SearchTypeMenuSection[] = [];
 
@@ -3754,8 +3757,8 @@ function createTypeMenuSections(params: TypeMenuSectionsParams): SearchTypeMenuS
         }
     }
 
-    // Todo section
-    {
+    // Todo section (hidden for track-intent users)
+    if (!isTrackIntentUser) {
         const todoSection: SearchTypeMenuSection = {
             translationPath: 'common.todo',
             menuItems: [],
@@ -3915,7 +3918,7 @@ function createTypeMenuSections(params: TypeMenuSectionsParams): SearchTypeMenuS
 
         const insightsSearchKeys = [
             CONST.SEARCH.SEARCH_KEYS.SPEND_OVER_TIME,
-            CONST.SEARCH.SEARCH_KEYS.TOP_SPENDERS,
+            ...(!isTrackIntentUser ? [CONST.SEARCH.SEARCH_KEYS.TOP_SPENDERS] : []),
             CONST.SEARCH.SEARCH_KEYS.TOP_CATEGORIES,
             CONST.SEARCH.SEARCH_KEYS.TOP_MERCHANTS,
         ];

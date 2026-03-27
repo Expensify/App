@@ -36,6 +36,7 @@ import {setOptimisticDataForTransactionThreadPreview} from '@userActions/Search'
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import type {CardFeedForDisplay} from '@src/libs/CardFeedUtils';
+import {getCardDescriptionForSearchTable} from '@src/libs/CardUtils';
 import DateUtils from '@src/libs/DateUtils';
 import {getUserFriendlyValue} from '@src/libs/SearchQueryUtils';
 import * as SearchUIUtils from '@src/libs/SearchUIUtils';
@@ -1620,7 +1621,7 @@ const transactionCardGroupListItems: TransactionCardGroupListItemType[] = [
         count: 4,
         currency: 'USD',
         displayName: 'Zara',
-        formattedCardName: ' • 1234',
+        formattedCardName: "Zara's card • 1234",
         formattedFeedName: 'chase',
         groupedBy: 'card',
         lastFourPAN: '1234',
@@ -1639,7 +1640,7 @@ const transactionCardGroupListItems: TransactionCardGroupListItemType[] = [
         count: 6,
         currency: 'USD',
         displayName: 'Andrew',
-        formattedCardName: ' • 1234',
+        formattedCardName: "Andrew's card • 1234",
         formattedFeedName: 'americanexpress',
         groupedBy: 'card',
         lastFourPAN: '1234',
@@ -1661,7 +1662,7 @@ const transactionCardGroupListItemsSorted: TransactionCardGroupListItemType[] = 
         count: 4,
         currency: 'USD',
         displayName: 'Zara',
-        formattedCardName: ' • 1234',
+        formattedCardName: "Zara's card • 1234",
         formattedFeedName: 'chase',
         groupedBy: 'card',
         lastFourPAN: '1234',
@@ -1680,7 +1681,7 @@ const transactionCardGroupListItemsSorted: TransactionCardGroupListItemType[] = 
         count: 6,
         currency: 'USD',
         displayName: 'Andrew',
-        formattedCardName: ' • 1234',
+        formattedCardName: "Andrew's card • 1234",
         formattedFeedName: 'americanexpress',
         groupedBy: 'card',
         lastFourPAN: '1234',
@@ -1924,21 +1925,6 @@ const transactionTagGroupListItems: TransactionTagGroupListItemType[] = [
         keyForList: 'group_Project B',
     },
 ];
-
-const cardListMock = {
-    [cardID]: {
-        state: 1,
-        bank: 'vcf',
-        fundID: '5555',
-        lastFourPAN: '1234',
-    },
-    [cardID2]: {
-        state: 1,
-        bank: CONST.EXPENSIFY_CARD.BANK,
-        fundID: '5555',
-        lastFourPAN: '1234',
-    },
-} as unknown as OnyxTypes.CardList;
 
 const transactionMerchantGroupListItemsSorted: TransactionMerchantGroupListItemType[] = [
     {
@@ -2947,7 +2933,6 @@ describe('SearchUIUtils', () => {
                     bankAccountList: {},
                     groupBy: CONST.SEARCH.GROUP_BY.CARD,
                     cardFeeds: mockCardFeeds,
-                    cardList: cardListMock,
                     allReportMetadata: {},
                     conciergeReportID: undefined,
                 })[0],
@@ -5685,6 +5670,7 @@ describe('SearchUIUtils', () => {
                 defaultExpensifyCard: undefined,
                 shouldRedirectToExpensifyClassic: false,
                 draftTransactionIDs: [],
+                isTrackIntentUser: false,
             })
                 .map((section) => section.menuItems)
                 .flat();
@@ -5776,6 +5762,7 @@ describe('SearchUIUtils', () => {
                 defaultExpensifyCard: undefined,
                 shouldRedirectToExpensifyClassic: false,
                 draftTransactionIDs: [],
+                isTrackIntentUser: false,
             });
 
             const todoSection = sections.find((section) => section.translationPath === 'common.todo');
@@ -5839,6 +5826,7 @@ describe('SearchUIUtils', () => {
                 defaultExpensifyCard: undefined,
                 shouldRedirectToExpensifyClassic: false,
                 draftTransactionIDs: [],
+                isTrackIntentUser: false,
             });
 
             const monthlyAccrualSection = sections.find((section) => section.translationPath === 'search.monthlyAccrual');
@@ -5888,6 +5876,7 @@ describe('SearchUIUtils', () => {
                 defaultExpensifyCard: undefined,
                 shouldRedirectToExpensifyClassic: false,
                 draftTransactionIDs: [],
+                isTrackIntentUser: false,
             });
 
             const savedSection = sections.find((section) => section.translationPath === 'search.savedSearchesMenuItemTitle');
@@ -5910,6 +5899,7 @@ describe('SearchUIUtils', () => {
                 defaultExpensifyCard: undefined,
                 shouldRedirectToExpensifyClassic: false,
                 draftTransactionIDs: [],
+                isTrackIntentUser: false,
             });
 
             const savedSection = sections.find((section) => section.translationPath === 'search.savedSearchesMenuItemTitle');
@@ -5939,6 +5929,7 @@ describe('SearchUIUtils', () => {
                 defaultExpensifyCard: undefined,
                 shouldRedirectToExpensifyClassic: false,
                 draftTransactionIDs: [],
+                isTrackIntentUser: false,
             });
 
             const savedSection = sections.find((section) => section.translationPath === 'search.savedSearchesMenuItemTitle');
@@ -5968,6 +5959,7 @@ describe('SearchUIUtils', () => {
                 defaultExpensifyCard: undefined,
                 shouldRedirectToExpensifyClassic: false,
                 draftTransactionIDs: [],
+                isTrackIntentUser: false,
             });
 
             const savedSection = sections.find((section) => section.translationPath === 'search.savedSearchesMenuItemTitle');
@@ -6001,6 +5993,7 @@ describe('SearchUIUtils', () => {
                 defaultExpensifyCard: undefined,
                 shouldRedirectToExpensifyClassic: false,
                 draftTransactionIDs: [],
+                isTrackIntentUser: false,
             });
 
             const todoSection = sections.find((section) => section.translationPath === 'common.todo');
@@ -6034,6 +6027,7 @@ describe('SearchUIUtils', () => {
                 defaultExpensifyCard: undefined,
                 shouldRedirectToExpensifyClassic: false,
                 draftTransactionIDs: [],
+                isTrackIntentUser: false,
             });
 
             const monthlyAccrualSection = sections.find((section) => section.translationPath === 'search.monthlyAccrual');
@@ -6079,6 +6073,7 @@ describe('SearchUIUtils', () => {
                 defaultExpensifyCard: undefined,
                 shouldRedirectToExpensifyClassic: false,
                 draftTransactionIDs: [],
+                isTrackIntentUser: false,
             });
 
             const reconciliationSection = sections.find((section) => section.translationPath === 'search.reconciliation');
@@ -6118,6 +6113,7 @@ describe('SearchUIUtils', () => {
                 defaultExpensifyCard: undefined,
                 shouldRedirectToExpensifyClassic: false,
                 draftTransactionIDs: [],
+                isTrackIntentUser: false,
             });
             const reconciliationSection = sections.find((section) => section.translationPath === 'search.reconciliation');
             expect(reconciliationSection).toBeDefined();
@@ -6142,6 +6138,7 @@ describe('SearchUIUtils', () => {
                 defaultExpensifyCard: undefined,
                 shouldRedirectToExpensifyClassic: false,
                 draftTransactionIDs: [],
+                isTrackIntentUser: false,
             })
                 .map((section) => section.menuItems)
                 .flat();
@@ -6217,6 +6214,7 @@ describe('SearchUIUtils', () => {
                 defaultExpensifyCard: undefined,
                 shouldRedirectToExpensifyClassic: false,
                 draftTransactionIDs: [],
+                isTrackIntentUser: false,
             });
             const todoSection = sections.find((section) => section.translationPath === 'common.todo');
             expect(todoSection).toBeDefined();
@@ -8436,5 +8434,74 @@ describe('SearchUIUtils', () => {
             });
             expect(SearchUIUtils.isPolicyEligibleForSpendOverTime(regularPolicy, userEmail)).toBe(false);
         });
+    });
+});
+
+describe('getCardDescriptionForSearchTable', () => {
+    const baseCompanyCard: OnyxTypes.Card = {
+        accountID: 18439984,
+        bank: CONST.COMPANY_CARD.FEED_BANK_NAME.VISA,
+        cardID: 21310091,
+        cardName: '480801XXXXXX2554',
+        domainName: 'expensify-policy41314f4dc5ce25af.exfy',
+        fraud: 'none',
+        fundID: '1',
+        lastFourPAN: '2554',
+        lastUpdated: '',
+        lastScrape: '2024-11-27 11:00:53',
+        scrapeMinDate: '2024-10-17',
+        state: 3,
+    };
+
+    it('returns an empty string when card is undefined', () => {
+        expect(getCardDescriptionForSearchTable(undefined)).toBe('');
+    });
+
+    it('returns CSV/upload card title from nameValuePairs for UPLOAD bank', () => {
+        const card: OnyxTypes.Card = {
+            ...baseCompanyCard,
+            bank: CONST.COMPANY_CARD.FEED_BANK_NAME.UPLOAD,
+            nameValuePairs: {
+                cardTitle: 'Uploaded spend card',
+            } as OnyxTypes.Card['nameValuePairs'],
+        };
+        expect(getCardDescriptionForSearchTable(card)).toBe('Uploaded spend card');
+    });
+
+    it('returns CSV card title when bank is CSV feed', () => {
+        const card: OnyxTypes.Card = {
+            ...baseCompanyCard,
+            bank: CONST.COMPANY_CARD.FEED_BANK_NAME.CSV,
+            cardName: 'CSV_CARD_ID_123',
+            nameValuePairs: {
+                cardTitle: 'Marketing Team Card',
+            } as OnyxTypes.Card['nameValuePairs'],
+        };
+        expect(getCardDescriptionForSearchTable(card)).toBe('Marketing Team Card');
+    });
+
+    it('falls back to cardName for CSV/upload when cardTitle is missing', () => {
+        const card: OnyxTypes.Card = {
+            ...baseCompanyCard,
+            bank: CONST.COMPANY_CARD.FEED_BANK_NAME.CSV,
+            cardName: 'Fallback CSV label',
+        };
+        expect(getCardDescriptionForSearchTable(card)).toBe('Fallback CSV label');
+    });
+
+    it('returns default cardholder label and last four for non-CSV cards when displayName is provided', () => {
+        expect(getCardDescriptionForSearchTable(baseCompanyCard, 'Jane')).toBe(`Jane's card ${CONST.DOT_SEPARATOR} 2554`);
+    });
+
+    it('omits the dot separator when lastFourPAN is empty', () => {
+        const card: OnyxTypes.Card = {
+            ...baseCompanyCard,
+            lastFourPAN: '',
+        };
+        expect(getCardDescriptionForSearchTable(card, 'Jane')).toBe(`Jane's card`);
+    });
+
+    it('uses only last four with leading separator when displayName is missing (search table card group shape)', () => {
+        expect(getCardDescriptionForSearchTable(baseCompanyCard)).toBe(` ${CONST.DOT_SEPARATOR} 2554`);
     });
 });
