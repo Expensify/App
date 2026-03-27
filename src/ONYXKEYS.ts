@@ -30,14 +30,6 @@ const ONYXKEYS = {
     /** A unique ID for the device */
     DEVICE_ID: 'deviceID',
 
-    /** Holds information about device-specific biometrics which:
-     * - does need to be persisted
-     * - does not need to be kept in secure storage
-     * - does not persist across uninstallations
-     * (secure storage persists across uninstallation)
-     */
-    DEVICE_BIOMETRICS: 'deviceBiometrics',
-
     /** Boolean flag set whenever the sidebar has loaded */
     IS_SIDEBAR_LOADED: 'isSidebarLoaded',
 
@@ -395,6 +387,9 @@ const ONYXKEYS = {
     /** Set when we are loading fresh subscription/billing data from the server */
     IS_LOADING_SUBSCRIPTION_DATA: 'isLoadingSubscriptionData',
 
+    /** Set whether we are loading the search filters card data */
+    IS_SEARCH_FILTERS_CARD_DATA_LOADED: 'isSearchFiltersCardDataLoaded',
+
     /** Set when OpenSearchPage has been fetched for the first time */
     IS_SEARCH_PAGE_DATA_LOADED: 'isSearchPageDataLoaded',
 
@@ -649,6 +644,9 @@ const ONYXKEYS = {
     /** Is unreported transactions loading */
     IS_LOADING_UNREPORTED_TRANSACTIONS: 'isLoadingUnreportedTransactions',
 
+    /** Stores information for InitiateBankAccountUnlock API call */
+    INITIATING_BANK_ACCOUNT_UNLOCK: 'initiatingBankAccountUnlock',
+
     /** List of transaction IDs used when navigating to prev/next transaction when viewing it in RHP */
     TRANSACTION_THREAD_NAVIGATION_TRANSACTION_IDS: 'transactionThreadNavigationTransactionIDs',
 
@@ -811,6 +809,13 @@ const ONYXKEYS = {
          * Key format: passkey_${userId}
          */
         PASSKEY_CREDENTIALS: 'passkeyCredentials_',
+
+        /** Holds information about device-specific biometrics which:
+         * - does need to be persisted across logout (but not uninstallation)
+         * - does not need to be kept in secure storage
+         * Key format: deviceBiometrics_${accountID}
+         */
+        DEVICE_BIOMETRICS: 'deviceBiometrics_',
     },
 
     /** List of Form ids */
@@ -1053,6 +1058,7 @@ const ONYXKEYS = {
         PERSONAL_AND_WORKSPACE_CARD_LIST: 'personalAndWorkspaceCardList',
         CARD_FEED_ERRORS: 'cardFeedErrors',
         TODOS: 'todos',
+        SORTED_REPORT_ACTIONS: 'sortedReportActions',
     },
 
     /** Stores HybridApp specific state required to interoperate with OldDot */
@@ -1247,6 +1253,7 @@ type OnyxCollectionValuesMapping = {
     [ONYXKEYS.COLLECTION.DOMAIN_ERRORS]: OnyxTypes.DomainErrors;
     [ONYXKEYS.COLLECTION.CODING_RULE_MATCHING_TRANSACTION]: OnyxTypes.CodingRuleMatchingTransaction;
     [ONYXKEYS.COLLECTION.PASSKEY_CREDENTIALS]: OnyxTypes.LocalPasskeyCredentialsEntry;
+    [ONYXKEYS.COLLECTION.DEVICE_BIOMETRICS]: OnyxTypes.DeviceBiometrics;
 };
 
 type OnyxValuesMapping = {
@@ -1362,6 +1369,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.IS_LOADING_PAYMENT_METHODS]: boolean;
     [ONYXKEYS.IS_LOADING_SHARE_BANK_ACCOUNTS]: boolean;
     [ONYXKEYS.IS_LOADING_POLICY_CODING_RULES_PREVIEW]: boolean;
+    [ONYXKEYS.IS_SEARCH_FILTERS_CARD_DATA_LOADED]: boolean;
     [ONYXKEYS.IS_LOADING_SUBSCRIPTION_DATA]: boolean;
     [ONYXKEYS.IS_SEARCH_PAGE_DATA_LOADED]: boolean;
     [ONYXKEYS.IS_LOADING_REPORT_DATA]: boolean;
@@ -1457,6 +1465,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.IS_COMING_FROM_GLOBAL_REIMBURSEMENTS_FLOW]: boolean | undefined;
     [ONYXKEYS.HAS_MORE_UNREPORTED_TRANSACTIONS_RESULTS]: boolean | undefined;
     [ONYXKEYS.IS_LOADING_UNREPORTED_TRANSACTIONS]: boolean | undefined;
+    [ONYXKEYS.INITIATING_BANK_ACCOUNT_UNLOCK]: OnyxTypes.InitiatingBankAccountUnlock;
     [ONYXKEYS.NVP_LAST_ECASH_IOS_LOGIN]: string;
     [ONYXKEYS.NVP_LAST_ECASH_ANDROID_LOGIN]: string;
     [ONYXKEYS.NVP_LAST_IPHONE_LOGIN]: string;
@@ -1475,7 +1484,6 @@ type OnyxValuesMapping = {
     [ONYXKEYS.IS_OPEN_CONFIRM_NAVIGATE_EXPENSIFY_CLASSIC_MODAL_OPEN]: boolean;
     [ONYXKEYS.PERSONAL_POLICY_ID]: string;
     [ONYXKEYS.TRANSACTION_IDS_HIGHLIGHT_ON_SEARCH_ROUTE]: Record<string, Record<string, boolean>>;
-    [ONYXKEYS.DEVICE_BIOMETRICS]: OnyxTypes.DeviceBiometrics;
 };
 
 type OnyxDerivedValuesMapping = {
@@ -1487,6 +1495,7 @@ type OnyxDerivedValuesMapping = {
     [ONYXKEYS.DERIVED.PERSONAL_AND_WORKSPACE_CARD_LIST]: OnyxTypes.PersonalAndWorkspaceCardListDerivedValue;
     [ONYXKEYS.DERIVED.CARD_FEED_ERRORS]: OnyxTypes.CardFeedErrorsDerivedValue;
     [ONYXKEYS.DERIVED.TODOS]: OnyxTypes.TodosDerivedValue;
+    [ONYXKEYS.DERIVED.SORTED_REPORT_ACTIONS]: OnyxTypes.SortedReportActionsDerivedValue;
 };
 
 type OnyxValues = OnyxValuesMapping & OnyxCollectionValuesMapping & OnyxFormValuesMapping & OnyxFormDraftValuesMapping & OnyxDerivedValuesMapping;

@@ -86,6 +86,7 @@ import type {
     UpdateRoleParams,
     UpgradeSuccessMessageParams,
     UserIsAlreadyMemberParams,
+    ViolationsIncreasedDistanceParams,
     ViolationsMissingTagParams,
     ViolationsModifiedAmountParams,
     ViolationsProhibitedExpenseParams,
@@ -1964,6 +1965,7 @@ const translations: TranslationDeepObject<typeof en> = {
         accountSettings: 'Kontoeinstellungen',
         account: 'Konto',
         general: 'Allgemein',
+        helpPage: {title: 'Hilfe und Support', description: 'Wir sind rund um die Uhr für Sie da', helpSite: 'Hilfeseite'},
     },
     closeAccountPage: {
         closeAccount: 'Konto schließen',
@@ -3283,6 +3285,13 @@ ${
             `Ups! Es scheint, dass die Währung deines Arbeitsbereichs auf eine andere Währung als USD eingestellt ist. Um fortzufahren, gehe bitte zu <a href="${workspaceRoute}">deinen Arbeitsbereichseinstellungen</a>, stelle sie auf USD ein und versuche es erneut.`,
         bbaAdded: 'Geschäftsbankkonto hinzugefügt!',
         bbaAddedDescription: 'Es ist bereit, für Zahlungen verwendet zu werden.',
+        lockedBankAccount: 'Gesperrtes Bankkonto',
+        unlockBankAccount: 'Bankkonto entsperren',
+        youCantPayThis: `Du kannst diesen Bericht nicht bezahlen, weil du ein <a href="${CONST.UNLOCK_BANK_ACCOUNT_HELP_URL}">gesperrtes Bankkonto</a> hast. Tippe unten und der Concierge hilft dir bei den nächsten Schritten zur Entsperrung.`,
+        htmlUnlockMessage: (maskedAccountNumber: string) =>
+            `<h1>Expensify Business Bank Account ${maskedAccountNumber}</h1><p>Vielen Dank für Ihre Anfrage zur Entsperrung Ihres Bankkontos. Auszahlungsanfragen können aufgrund unzureichender Deckung oder weil das Bankkonto nicht für Lastschriften aktiviert wurde, abgelehnt werden. Wir werden Ihren Fall prüfen und uns bei Ihnen melden, falls wir weitere Informationen zur Lösung dieses Problems benötigen.</p>`,
+        textUnlockMessage: (maskedAccountNumber: string) =>
+            `Expensify Business Bank Account ${maskedAccountNumber}\nVielen Dank für Ihre Anfrage zur Entsperrung Ihres Bankkontos. Auszahlungsanfragen können aufgrund unzureichender Deckung oder weil das Bankkonto nicht für Lastschriften aktiviert wurde, abgelehnt werden. Wir werden Ihren Fall prüfen und uns bei Ihnen melden, falls wir weitere Informationen zur Lösung dieses Problems benötigen.`,
         error: {
             youNeedToSelectAnOption: 'Bitte wählen Sie eine Option, um fortzufahren',
             noBankAccountAvailable: 'Leider ist kein Bankkonto verfügbar',
@@ -5130,6 +5139,7 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                 flipAmountSign: 'Betragsvorzeichen umkehren',
                 importButton: 'Transaktionen importieren',
             },
+            assignNewCards: {title: 'Neue Karten zuweisen', description: 'Holen Sie die neuesten Karten zum Zuweisen von Ihrer Bank'},
         },
         expensifyCard: {
             issueAndManageCards: 'Geben Sie Expensify Karten aus und verwalten Sie sie',
@@ -6438,22 +6448,25 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
         },
         downgrade: {
             commonFeatures: {
-                title: 'Zum Collect-Tarif wechseln',
-                note: 'Wenn du herabstufst, verlierst du den Zugriff auf diese und weitere Funktionen:',
+                title: 'Herabstufen auf Collect',
+                note: 'Sie verlieren den Zugriff auf die folgenden Funktionen',
                 benefits: {
-                    note: 'Für einen vollständigen Vergleich unserer Tarife sehen Sie sich unsere',
-                    pricingPage: 'Preisseite',
-                    confirm: 'Bist du sicher, dass du ein Downgrade durchführen und deine Konfigurationen entfernen möchtest?',
-                    warning: 'Dies kann nicht rückgängig gemacht werden.',
-                    benefit1: 'Buchhaltungsverbindungen (außer QuickBooks Online und Xero)',
-                    benefit2: 'Intelligente Ausgabenregeln',
-                    benefit3: 'Genehmigungs-Workflows mit mehreren Ebenen',
-                    benefit4: 'Erweiterte Sicherheitskontrollen',
+                    confirm: 'Sie müssen den „Plantyp“ jedes Arbeitsbereichs auf „Collect“ ändern, um den Collect-Tarif zu sichern.',
+                    benefit1: 'NetSuite, Sage Intacct, QuickBooks Desktop, Oracle, Microsoft Dynamics',
+                    benefit2: 'Workday, Certinia',
+                    benefit3: 'SSO/SAML',
+                    benefit4: 'Intelligente Spesenregeln, Tagegelder, Genehmigungen mit mehreren Ebenen, benutzerdefinierte Berichte und Budgetierung',
                     headsUp: 'Achtung!',
                     multiWorkspaceNote:
                         'Sie müssen alle Ihre Workspaces herabstufen, bevor Ihre erste monatliche Zahlung fällig ist, um ein Abonnement zum Collect-Tarif zu beginnen. Klicken Sie',
                     selectStep: '> Wähle jeden Workspace aus > ändere den Plantyp in',
+                    benefit1Label: 'ERP-Integrationen',
+                    benefit2Label: 'HR-Integrationen',
+                    benefit3Label: 'Sicherheit',
+                    benefit4Label: 'Erweitert',
+                    important: 'WICHTIG:',
                 },
+                noteAndMore: 'und mehr:',
             },
             completed: {
                 headline: 'Dein Workspace wurde herabgestuft',
@@ -7326,6 +7339,7 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
                     [CONST.SEARCH.DATE_PRESETS.LAST_MONTH]: 'Letzter Monat',
                     [CONST.SEARCH.DATE_PRESETS.THIS_MONTH]: 'Diesen Monat',
                     [CONST.SEARCH.DATE_PRESETS.YEAR_TO_DATE]: 'Laufendes Jahr',
+                    [CONST.SEARCH.DATE_PRESETS.LAST_12_MONTHS]: 'Letzte 12 Monate',
                     [CONST.SEARCH.DATE_PRESETS.LAST_STATEMENT]: 'Letzter Auszug',
                 },
             },
@@ -7428,6 +7442,17 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
         searchIn: 'Suchen in',
         searchPlaceholder: 'Nach etwas suchen',
         suggestions: 'Vorschläge',
+        suggestionsAvailable: (
+            {
+                count,
+            }: {
+                count: number;
+            },
+            query = '',
+        ) => ({
+            one: `Vorschläge verfügbar${query ? ` für ${query}` : ''}. ${count} Ergebnis.`,
+            other: (resultCount: number) => `Vorschläge verfügbar${query ? ` für ${query}` : ''}. ${resultCount} Ergebnisse.`,
+        }),
         exportSearchResults: {
             title: 'Export erstellen',
             description: 'Wow, das sind aber viele Elemente! Wir bündeln sie, und Concierge schickt dir in Kürze eine Datei.',
@@ -7640,6 +7665,9 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
         scrollToNewestMessages: 'Zu neuesten Nachrichten scrollen',
         preStyledText: 'Vorgestylter Text',
         viewAttachment: 'Anhang anzeigen',
+        contextMenuAvailable: 'Kontextmenü verfügbar. Drücken Sie Shift+F10, um es zu öffnen.',
+        contextMenuAvailableMacOS: 'Kontextmenü verfügbar. Drücken Sie VO-Shift-M, um es zu öffnen.',
+        contextMenuAvailableNative: 'Kontextmenü verfügbar. Doppeltippen und halten, um es zu öffnen.',
         selectAllFeatures: 'Alle Funktionen auswählen',
         selectAllTransactions: 'Alle Transaktionen auswählen',
         selectAllItems: 'Alle Einträge auswählen',
@@ -7924,6 +7952,8 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
             }
         },
         modifiedDate: 'Datum weicht vom gescannten Beleg ab',
+        increasedDistance: ({formattedRouteDistance}: ViolationsIncreasedDistanceParams) =>
+            formattedRouteDistance ? `Die Entfernung übersteigt die berechnete Route von ${formattedRouteDistance}` : 'Entfernung übersteigt die berechnete Route',
         nonExpensiworksExpense: 'Nicht-Expensiworks-Ausgabe',
         overAutoApprovalLimit: (formattedLimit: string) => `Ausgabe überschreitet das Auto-Genehmigungslimit von ${formattedLimit}`,
         overCategoryLimit: (formattedLimit: string) => `Betrag über dem Kategorie-Limit von ${formattedLimit}/Person`,
@@ -8472,6 +8502,7 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
             theresWasAProblemDuringAWorkspaceConnectionSync: 'Während der Synchronisierung der Workspace-Verbindung ist ein Problem aufgetreten',
             theresAProblemWithYourWallet: 'Es gibt ein Problem mit deinem Wallet',
             theresAProblemWithYourWalletTerms: 'Es gibt ein Problem mit deinen Wallet-Bedingungen',
+            aBankAccountIsLocked: 'Ein Bankkonto ist gesperrt',
         },
     },
     emptySearchView: {

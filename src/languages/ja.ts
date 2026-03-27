@@ -86,6 +86,7 @@ import type {
     UpdateRoleParams,
     UpgradeSuccessMessageParams,
     UserIsAlreadyMemberParams,
+    ViolationsIncreasedDistanceParams,
     ViolationsMissingTagParams,
     ViolationsModifiedAmountParams,
     ViolationsProhibitedExpenseParams,
@@ -1941,6 +1942,7 @@ const translations: TranslationDeepObject<typeof en> = {
         accountSettings: 'アカウント設定',
         account: 'アカウント',
         general: '一般',
+        helpPage: {title: 'ヘルプとサポート', description: '24時間365日いつでもサポートいたします', helpSite: 'ヘルプサイト'},
     },
     closeAccountPage: {
         closeAccount: 'アカウントを閉じる',
@@ -3247,6 +3249,13 @@ ${
             `おっと！ワークスペースの通貨がUSD以外に設定されているようです。続行するには、<a href="${workspaceRoute}">ワークスペース設定</a>で通貨をUSDに変更してから、もう一度お試しください。`,
         bbaAdded: 'ビジネス用銀行口座を追加しました！',
         bbaAddedDescription: '支払いに利用できる状態です。',
+        lockedBankAccount: 'ロックされた銀行口座',
+        unlockBankAccount: '銀行口座を解除する',
+        youCantPayThis: `このレポートは支払えません。<a href="${CONST.UNLOCK_BANK_ACCOUNT_HELP_URL}">ロックされた銀行口座</a>があるためです。下をタップすると、コンシェルジュが解除の手続きを案内します。`,
+        htmlUnlockMessage: (maskedAccountNumber: string) =>
+            `<h1>Expensify Business Bank Account ${maskedAccountNumber}</h1><p>銀行口座のロック解除リクエストを送信いただきありがとうございます。出金リクエストは、残高不足や銀行口座が口座振替に対応していない場合に拒否されることがあります。お客様のケースを確認し、問題解決のために追加情報が必要な場合はご連絡いたします。</p>`,
+        textUnlockMessage: (maskedAccountNumber: string) =>
+            `Expensify Business Bank Account ${maskedAccountNumber}\n銀行口座のロック解除リクエストを送信いただきありがとうございます。出金リクエストは、残高不足や銀行口座が口座振替に対応していない場合に拒否されることがあります。お客様のケースを確認し、問題解決のために追加情報が必要な場合はご連絡いたします。`,
         error: {
             youNeedToSelectAnOption: '続行するオプションを選択してください',
             noBankAccountAvailable: '申し訳ありませんが、利用可能な銀行口座がありません',
@@ -5064,6 +5073,7 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                 flipAmountSign: '金額の符号を反転',
                 importButton: '取引をインポート',
             },
+            assignNewCards: {title: '新しいカードを割り当てる', description: '銀行から割り当て可能な最新のカードを取得します'},
         },
         expensifyCard: {
             issueAndManageCards: 'Expensify カードを発行して管理する',
@@ -6354,21 +6364,24 @@ ${reportName}
         },
         downgrade: {
             commonFeatures: {
-                title: 'Collectプランにダウングレードする',
-                note: 'ダウングレードすると、これらの機能などへのアクセスができなくなります。',
+                title: 'Collect にダウングレード',
+                note: '次の機能へのアクセス権がなくなります',
                 benefits: {
-                    note: '各プランを完全に比較するには、こちらのページをご確認ください',
-                    pricingPage: '料金ページ',
-                    confirm: 'ダウングレードして、設定を削除してもよろしいですか？',
-                    warning: 'この操作は元に戻せません。',
-                    benefit1: '会計連携（QuickBooks Online と Xero を除く）',
-                    benefit2: 'スマート経費ルール',
-                    benefit3: '多段階承認ワークフロー',
-                    benefit4: '強化されたセキュリティ管理',
+                    confirm: 'Collect レートを適用するには、すべてのワークスペースの「プランタイプ」を「Collect」に変更する必要があります。',
+                    benefit1: 'NetSuite、Sage Intacct、QuickBooks Desktop、Oracle、Microsoft Dynamics',
+                    benefit2: 'Workday、Certinia',
+                    benefit3: 'SSO/SAML',
+                    benefit4: 'スマート経費ルール、日当、マルチレベル承認、カスタムレポート、予算管理',
                     headsUp: 'ご注意ください！',
                     multiWorkspaceNote: 'Collect料金でのサブスクリプションを開始するには、初回の月額支払いの前に、すべてのワークスペースをダウングレードする必要があります。クリック',
                     selectStep: '> 各ワークスペースを選択 > プランタイプを変更',
+                    benefit1Label: 'ERP 連携',
+                    benefit2Label: '人事連携',
+                    benefit3Label: 'セキュリティ',
+                    benefit4Label: '詳細設定',
+                    important: '重要:',
                 },
+                noteAndMore: 'など：',
             },
             completed: {
                 headline: 'ワークスペースがダウングレードされました',
@@ -7228,6 +7241,7 @@ ${reportName}
                     [CONST.SEARCH.DATE_PRESETS.LAST_MONTH]: '先月',
                     [CONST.SEARCH.DATE_PRESETS.THIS_MONTH]: '今月',
                     [CONST.SEARCH.DATE_PRESETS.YEAR_TO_DATE]: '年初来（累計）',
+                    [CONST.SEARCH.DATE_PRESETS.LAST_12_MONTHS]: '過去12か月',
                     [CONST.SEARCH.DATE_PRESETS.LAST_STATEMENT]: '最新明細書',
                 },
             },
@@ -7324,6 +7338,17 @@ ${reportName}
         searchIn: '検索対象',
         searchPlaceholder: '何かを検索',
         suggestions: '提案',
+        suggestionsAvailable: (
+            {
+                count,
+            }: {
+                count: number;
+            },
+            query = '',
+        ) => ({
+            one: `候補があります${query ? `: ${query}` : ''}。${count}件の結果。`,
+            other: (resultCount: number) => `候補があります${query ? `: ${query}` : ''}。${resultCount}件の結果。`,
+        }),
         exportSearchResults: {
             title: 'エクスポートを作成',
             description: 'おっと、アイテムがたくさんありますね！まとめて整理して、間もなくConciergeからファイルをお送りします。',
@@ -7535,6 +7560,9 @@ ${reportName}
         scrollToNewestMessages: '最新のメッセージまでスクロール',
         preStyledText: '事前にスタイル設定されたテキスト',
         viewAttachment: '添付ファイルを表示',
+        contextMenuAvailable: 'コンテキストメニューが利用可能です。Shift+F10 を押して開きます。',
+        contextMenuAvailableMacOS: 'コンテキストメニューが利用可能です。VO-Shift-M を押して開きます。',
+        contextMenuAvailableNative: 'コンテキストメニューが利用可能です。ダブルタップして長押しで開きます。',
         selectAllFeatures: 'すべての機能を選択',
         selectAllTransactions: 'すべての取引を選択',
         selectAllItems: 'すべての項目を選択',
@@ -7814,6 +7842,8 @@ ${reportName}
             }
         },
         modifiedDate: '日付がスキャンしたレシートと異なります',
+        increasedDistance: ({formattedRouteDistance}: ViolationsIncreasedDistanceParams) =>
+            formattedRouteDistance ? `距離が計算されたルート距離（${formattedRouteDistance}）を超えています` : '距離が計算されたルートを超えています',
         nonExpensiworksExpense: 'Expensiworks 以外の経費',
         overAutoApprovalLimit: (formattedLimit: string) => `経費が自動承認限度額 ${formattedLimit} を超えています`,
         overCategoryLimit: (formattedLimit: string) => `1人あたりのカテゴリ上限 ${formattedLimit} を超えた金額`,
@@ -8354,6 +8384,7 @@ ${reportName}
             theresWasAProblemDuringAWorkspaceConnectionSync: 'ワークスペース接続の同期中に問題が発生しました',
             theresAProblemWithYourWallet: 'ウォレットに問題があります',
             theresAProblemWithYourWalletTerms: 'ウォレットの利用規約に問題があります',
+            aBankAccountIsLocked: '銀行口座がロックされています',
         },
     },
     emptySearchView: {

@@ -49,6 +49,7 @@ import type {
     PersonalAndWorkspaceCardListDerivedValue,
     ReportAttributesDerivedValue,
     ReportTransactionsAndViolationsDerivedValue,
+    SortedReportActionsDerivedValue,
     TodoMetadata,
     TodosDerivedValue,
     VisibleReportActionsDerivedValue,
@@ -74,6 +75,7 @@ import type GpsDraftDetails from './GpsDraftDetails';
 import type HybridApp from './HybridApp';
 import type ImportedSpreadsheet from './ImportedSpreadsheet';
 import type ImportedSpreadsheetMemberData from './ImportedSpreadsheetMemberData';
+import type InitiatingBankAccountUnlock from './InitiatingBankAccountUnlock';
 import type IntroSelected from './IntroSelected';
 import type InvitedEmailsToAccountIDs from './InvitedEmailsToAccountIDs';
 import type JoinablePolicies from './JoinablePolicies';
@@ -105,7 +107,7 @@ import type {PersonalDetailsList, PersonalDetailsMetadata} from './PersonalDetai
 import type PersonalDetails from './PersonalDetails';
 import type PlaidData from './PlaidData';
 import type Policy from './Policy';
-import type {PolicyConnectionName, PolicyConnectionSyncProgress, PolicyReportField, TaxRate, TaxRates, TaxRatesWithDefault} from './Policy';
+import type {AutoReportingOffset, PolicyConnectionName, PolicyConnectionSyncProgress, PolicyReportField, TaxRate, TaxRates, TaxRatesWithDefault} from './Policy';
 import type {PolicyCategories, PolicyCategory} from './PolicyCategory';
 import type {PolicyEmployeeList} from './PolicyEmployee';
 import type PolicyEmployee from './PolicyEmployee';
@@ -259,6 +261,7 @@ export type {
     PolicyConnectionName,
     PolicyConnectionSyncProgress,
     PolicyOwnershipChangeChecks,
+    AutoReportingOffset,
     PolicyTag,
     PolicyTags,
     PolicyTagLists,
@@ -361,6 +364,7 @@ export type {
     ReportTransactionsAndViolationsDerivedValue,
     OutstandingReportsByPolicyIDDerivedValue,
     VisibleReportActionsDerivedValue,
+    SortedReportActionsDerivedValue,
     NonPersonalAndWorkspaceCardListDerivedValue,
     PersonalAndWorkspaceCardListDerivedValue,
     CardFeedErrorsDerivedValue,
@@ -381,4 +385,5 @@ export type {
     UserSecurityGroupData,
     DeviceBiometrics,
     LocallyProcessed3DSChallengeReviews,
+    InitiatingBankAccountUnlock,
 };

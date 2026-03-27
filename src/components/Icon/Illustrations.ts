@@ -38,7 +38,6 @@ import Gears from '@assets/images/simple-illustrations/simple-illustration__gear
 import HeadSet from '@assets/images/simple-illustrations/simple-illustration__headset.svg';
 import Hourglass from '@assets/images/simple-illustrations/simple-illustration__hourglass.svg';
 import House from '@assets/images/simple-illustrations/simple-illustration__house.svg';
-import LifeRing from '@assets/images/simple-illustrations/simple-illustration__lifering.svg';
 import Lightbulb from '@assets/images/simple-illustrations/simple-illustration__lightbulb.svg';
 import LockClosed from '@assets/images/simple-illustrations/simple-illustration__lockclosed.svg';
 import LockClosedOrange from '@assets/images/simple-illustrations/simple-illustration__lockclosed_orange.svg';
@@ -91,7 +90,6 @@ export {
     LaptopWithSecondScreenAndHourglass,
     LaptopWithSecondScreenSync,
     LaptopWithSecondScreenX,
-    LifeRing,
     Lightbulb,
     LockClosed,
     LockClosedOrange,
