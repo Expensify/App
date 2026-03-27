@@ -283,6 +283,7 @@ function NewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelectionPag
                                 onSelectRow={selectPolicy}
                                 textInputOptions={textInputOptions}
                                 shouldShowLoadingPlaceholder={fetchStatus.status === 'loading' || !didScreenTransitionEnd}
+                                shouldShowRadioButton
                             />
                         </>
                     )}

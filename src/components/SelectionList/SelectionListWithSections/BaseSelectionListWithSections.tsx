@@ -76,7 +76,8 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
     isRowMultilineSupported = false,
     titleNumberOfLines,
     shouldUseDefaultRightHandSideComponent,
-    shouldDisableHoverStyle = false,
+    shouldDisableHoverStyle,
+    shouldShowRadioButton,
     setShouldDisableHoverStyle = () => {},
     canShowProductTrainingTooltip,
 }: SelectionListWithSectionsProps<TItem>) {
@@ -355,7 +356,6 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
                         singleExecution={singleExecution}
                         canShowProductTrainingTooltip={canShowProductTrainingTooltip}
                         shouldSyncFocus={!isTextInputFocusedRef.current && hasKeyBeenPressed.current}
-                        shouldHighlightSelectedItem
                         shouldIgnoreFocus={shouldIgnoreFocus}
                         wrapperStyle={style?.listItemWrapperStyle}
                         titleStyles={style?.listItemTitleStyles}
@@ -363,6 +363,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
                         titleNumberOfLines={titleNumberOfLines}
                         shouldUseDefaultRightHandSideComponent={shouldUseDefaultRightHandSideComponent}
                         shouldDisableHoverStyle={shouldDisableHoverStyle}
+                        shouldShowRadioButton={shouldShowRadioButton}
                     />
                 );
             }
