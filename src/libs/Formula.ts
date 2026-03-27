@@ -658,6 +658,21 @@ function getAllReportTransactionsWithContext(reportID: string, context?: Formula
     const transactions = [...getReportTransactions(reportID)];
     const contextTransaction = context?.transaction;
 
+    // Merge optimistic transactions not yet in Onyx, passed via FormulaContext.allTransactions.
+    if (context?.allTransactions) {
+        for (const ctxTransaction of Object.values(context.allTransactions)) {
+            if (!ctxTransaction?.transactionID || ctxTransaction.reportID !== reportID) {
+                continue;
+            }
+            const existingIndex = transactions.findIndex((t) => t?.transactionID === ctxTransaction.transactionID);
+            if (existingIndex >= 0) {
+                transactions[existingIndex] = ctxTransaction;
+            } else {
+                transactions.push(ctxTransaction);
+            }
+        }
+    }
+
     if (contextTransaction?.transactionID && contextTransaction.reportID === reportID) {
         const transactionIndex = transactions.findIndex((transaction) => transaction?.transactionID === contextTransaction.transactionID);
         if (transactionIndex >= 0) {
