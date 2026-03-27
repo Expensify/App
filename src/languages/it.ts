@@ -6642,14 +6642,7 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
                 defaultRuleTitle: 'Categorie: Servizi per adulti, Bancomat, gioco d’azzardo, trasferimenti di denaro',
                 builtInProtectionModal: {
                     title: 'Le Carte Expensify offrono una protezione integrata, sempre',
-                    description: `Expensify rifiuta sempre queste spese:
-
-  • Servizi per adulti
-  • Bancomat
-  • Gioco d’azzardo
-  • Trasferimenti di denaro
-
-Aggiungi altre regole di spesa per proteggere il flusso di cassa dell’azienda.`,
+                    description: `Expensify rifiuta sempre queste spese:\n\n  • Servizi per adulti\n  • Bancomat\n  • Gioco d’azzardo\n  • Trasferimenti di denaro\n\nAggiungi altre regole di spesa per proteggere il flusso di cassa dell’azienda.`,
                 },
             },
         },

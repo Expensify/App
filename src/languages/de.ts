@@ -6655,14 +6655,7 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
                 defaultRuleTitle: 'Kategorien: Dienste für Erwachsene, Geldautomaten, Glücksspiel, Geldüberweisungen',
                 builtInProtectionModal: {
                     title: 'Expensify Karten bieten integrierten Schutz – jederzeit',
-                    description: `Expensify lehnt diese Belastungen immer ab:
-
-  • Dienstleistungen für Erwachsene
-  • Geldautomaten (ATMs)
-  • Glücksspiel
-  • Geldüberweisungen
-
-Fügen Sie weitere Ausgabenregeln hinzu, um den Cashflow des Unternehmens zu schützen.`,
+                    description: `Expensify lehnt diese Belastungen immer ab:\n\n  • Dienstleistungen für Erwachsene\n  • Geldautomaten (ATMs)\n  • Glücksspiel\n  • Geldüberweisungen\n\nFügen Sie weitere Ausgabenregeln hinzu, um den Cashflow des Unternehmens zu schützen.`,
                 },
             },
         },

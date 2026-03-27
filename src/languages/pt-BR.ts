@@ -6620,14 +6620,7 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
                 defaultRuleTitle: 'Categorias: Serviços adultos, caixas eletrônicos, jogos de azar, transferências de dinheiro',
                 builtInProtectionModal: {
                     title: 'Os Cartões Expensify oferecem proteção integrada — sempre',
-                    description: `A Expensify sempre recusa estas cobranças:
-
-  • Serviços adultos
-  • Caixas eletrônicos (ATMs)
-  • Jogos de azar
-  • Transferências de dinheiro
-
-Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
+                    description: `A Expensify sempre recusa estas cobranças:\n\n  • Serviços adultos\n  • Caixas eletrônicos (ATMs)\n  • Jogos de azar\n  • Transferências de dinheiro\n\nAdicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
                 },
             },
         },

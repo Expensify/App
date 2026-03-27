@@ -6616,14 +6616,7 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
                 defaultRuleTitle: 'Kategorie: usługi dla dorosłych, bankomaty, hazard, przelewy pieniężne',
                 builtInProtectionModal: {
                     title: 'Karty Expensify zapewniają wbudowaną ochronę – zawsze',
-                    description: `Expensify zawsze odrzuca te obciążenia:
-
-  • Usługi dla dorosłych
-  • Bankomaty
-  • Hazard
-  • Przelewy pieniężne
-
-Dodaj więcej zasad wydatków, żeby chronić przepływy pieniężne firmy.`,
+                    description: `Expensify zawsze odrzuca te obciążenia:\n\n  • Usługi dla dorosłych\n  • Bankomaty\n  • Hazard\n  • Przelewy pieniężne\n\nDodaj więcej zasad wydatków, żeby chronić przepływy pieniężne firmy.`,
                 },
             },
         },

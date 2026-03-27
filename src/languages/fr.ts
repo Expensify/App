@@ -6679,14 +6679,7 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
                 defaultRuleTitle: 'Catégories : services pour adultes, DAB, jeux d’argent, transferts d’argent',
                 builtInProtectionModal: {
                     title: 'Les Cartes Expensify offrent une protection intégrée – en permanence',
-                    description: `Expensify refuse toujours ces types de dépenses :
-
-  • Services pour adultes
-  • DAB
-  • Jeux d’argent
-  • Transferts d’argent
-
-Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’entreprise.`,
+                    description: `Expensify refuse toujours ces types de dépenses:\n\n  • Services pour adultes\n  • DAB\n  • Jeux d’argent\n  • Transferts d’argent\n\nAjoutez davantage de règles de dépenses pour protéger la trésorerie de l’entreprise.`,
                 },
             },
         },

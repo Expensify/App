@@ -6621,14 +6621,7 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
                 defaultRuleTitle: 'Categorieën: Diensten voor volwassenen, geldautomaten, gokken, geldoverdrachten',
                 builtInProtectionModal: {
                     title: 'Expensify Kaarten bieden altijd ingebouwde bescherming',
-                    description: `Expensify wijst deze transacties altijd af:
-
-  • Seksdiensten
-  • Geldautomaten (ATM's)
-  • Gokken
-  • Geldoverschrijvingen
-
-Voeg meer bestedingsregels toe om de cashflow van je bedrijf te beschermen.`,
+                    description: `Expensify wijst deze transacties altijd af:\n\n  • Seksdiensten\n  • Geldautomaten (ATM's)\n  • Gokken\n  • Geldoverschrijvingen\n\nVoeg meer bestedingsregels toe om de cashflow van je bedrijf te beschermen.`,
                 },
             },
         },
