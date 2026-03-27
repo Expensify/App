@@ -3222,7 +3222,7 @@ type PublicScreenName =
     | typeof SCREENS.UNLINK_LOGIN
     | typeof SCREENS.SAML_SIGN_IN;
 
-type WorkspacesTabNavigatorName = typeof NAVIGATORS.WORKSPACE_NAVIGATOR;
+type WorkspacesNavigatorRouteName = keyof WorkspaceNavigatorParamList;
 
 type WorkspaceScreenName = keyof WorkspaceSplitNavigatorParamList;
 
@@ -3315,7 +3315,7 @@ export type {
     TestDriveDemoNavigatorParamList,
     SplitExpenseParamList,
     SetParamsAction,
-    WorkspacesTabNavigatorName,
+    WorkspacesNavigatorRouteName,
     ReportChangeApproverParamList,
     TestToolsModalModalNavigatorParamList,
     MergeTransactionNavigatorParamList,

@@ -1,7 +1,7 @@
 import {useCallback} from 'react';
 import type {OnyxCollection} from 'react-native-onyx';
 import {getPreservedNavigatorState} from '@libs/Navigation/AppNavigator/createSplitNavigator/usePreserveNavigatorState';
-import {isFullScreenName, isWorkspacesTabScreenName} from '@libs/Navigation/helpers/isNavigatorName';
+import {isFullScreenName, isWorkspacesNavigatorRouteName} from '@libs/Navigation/helpers/isNavigatorName';
 import {getWorkspacesTabStateFromSessionStorage} from '@libs/Navigation/helpers/lastVisitedTabPathUtils';
 import navigateToWorkspacesPage from '@libs/Navigation/helpers/navigateToWorkspacesPage';
 import type {DomainSplitNavigatorParamList, WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
@@ -42,7 +42,7 @@ function useRestoreWorkspacesTabOnNavigate() {
         if (!topmostWorkspaceNavigatorRoute) {
             const sessionRoute = getWorkspacesTabStateFromSessionStorage()
                 ?.routes?.findLast((route) => route.name === NAVIGATORS.WORKSPACE_NAVIGATOR)
-                ?.state?.routes?.findLast((route) => isWorkspacesTabScreenName(route.name));
+                ?.state?.routes?.findLast((route) => isWorkspacesNavigatorRouteName(route.name));
             if (sessionRoute) {
                 return {lastWorkspacesTabNavigatorRoute: sessionRoute, workspacesTabState: sessionRoute.state};
             }
@@ -50,7 +50,7 @@ function useRestoreWorkspacesTabOnNavigate() {
         }
         const workspacesNavigatorState =
             topmostWorkspaceNavigatorRoute.state ?? (topmostWorkspaceNavigatorRoute.key ? getPreservedNavigatorState(topmostWorkspaceNavigatorRoute.key) : undefined);
-        const lastWorkspacesTabNavigatorRoute = workspacesNavigatorState?.routes.findLast((route) => isWorkspacesTabScreenName(route.name));
+        const lastWorkspacesTabNavigatorRoute = workspacesNavigatorState?.routes.findLast((route) => isWorkspacesNavigatorRouteName(route.name));
         if (lastWorkspacesTabNavigatorRoute) {
             // Use route's own state, or fall back to preserved state for unmounted navigators
             const tabState = lastWorkspacesTabNavigatorRoute.state ?? (lastWorkspacesTabNavigatorRoute.key ? getPreservedNavigatorState(lastWorkspacesTabNavigatorRoute.key) : undefined);

@@ -2,7 +2,7 @@ import {useEffect} from 'react';
 import {workspaceOrDomainSplitsWithoutEnteringAnimation} from '@libs/Navigation/AppNavigator/createRootStackNavigator/GetStateForActionHandlers';
 import Animations from '@libs/Navigation/PlatformStackNavigation/navigationOptions/animation';
 import type {PlatformStackNavigationProp} from '@libs/Navigation/PlatformStackNavigation/types';
-import type {AuthScreensParamList} from '@libs/Navigation/types';
+import type {WorkspaceNavigatorParamList} from '@libs/Navigation/types';
 import type NAVIGATORS from '@src/NAVIGATORS';
 
 /**
@@ -11,7 +11,7 @@ import type NAVIGATORS from '@src/NAVIGATORS';
  * and then enabled here after navigation completes to animate going back to the workspaces page.
  */
 function useEnableBackAnimationWhenOpenedFromTabBar(
-    navigation: PlatformStackNavigationProp<AuthScreensParamList, typeof NAVIGATORS.DOMAIN_SPLIT_NAVIGATOR | typeof NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR, undefined>,
+    navigation: PlatformStackNavigationProp<WorkspaceNavigatorParamList, typeof NAVIGATORS.DOMAIN_SPLIT_NAVIGATOR | typeof NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR, undefined>,
     routeKey: string,
 ) {
     useEffect(() => {
