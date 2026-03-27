@@ -1,9 +1,12 @@
+import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import React from 'react';
 import Button from '@components/Button';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {SearchTransactionAction} from '@src/types/onyx/SearchResults';
 import actionTranslationsMap from './actionTranslationsMap';
 import PayActionCell from './PayActionCell';
@@ -38,6 +41,7 @@ function ActionCell({
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
+    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
 
     const shouldUseViewAction = action === CONST.SEARCH.ACTION_TYPES.VIEW || action === CONST.SEARCH.ACTION_TYPES.PAID || action === CONST.SEARCH.ACTION_TYPES.DONE;
 
@@ -78,7 +82,8 @@ function ActionCell({
         );
     }
 
-    const text = translate(actionTranslationsMap[action]);
+    const shouldUseMarkAsDone = isTrackIntentUser && (action === CONST.SEARCH.ACTION_TYPES.SUBMIT || action === CONST.SEARCH.ACTION_TYPES.APPROVE);
+    const text = shouldUseMarkAsDone ? translate('common.markAsDone') : translate(actionTranslationsMap[action]);
 
     return (
         <Button
