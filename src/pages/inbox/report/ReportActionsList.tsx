@@ -8,7 +8,7 @@ import {DeviceEventEmitter, InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {renderScrollComponent as renderActionSheetAwareScrollView} from '@components/ActionSheetAwareScrollView';
 import Button from '@components/Button';
-import FlatList from '@components/FlatList/FlatList';
+import FlatListWithScrollKey from '@components/FlatList/FlatListWithScrollKey';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -242,6 +242,8 @@ function ReportActionsList({
     }, []);
 
     const scrollingVerticalOffset = useRef(0);
+    const hasTriggeredTopPagination = useRef(false);
+    const hasTriggeredBottomPagination = useRef(false);
     const readActionSkipped = useRef(false);
     const hasHeaderRendered = useRef(false);
     const linkedReportActionID = route?.params?.reportActionID;
@@ -382,6 +384,44 @@ function ReportActionsList({
     hasNewestReportActionRef.current = hasNewestReportAction;
     const sortedVisibleReportActionsRef = useRef(sortedVisibleReportActions);
 
+    const maybeLoadChatsOnScroll = useCallback(
+        (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+            const {
+                contentOffset: {y},
+                contentSize: {height: contentHeight},
+                layoutMeasurement: {height: layoutHeight},
+            } = event.nativeEvent;
+
+            const distanceFromTop = y;
+            const distanceFromBottom = contentHeight - layoutHeight - y;
+
+            if (distanceFromTop <= 0) {
+                if (!hasTriggeredTopPagination.current) {
+                    hasTriggeredTopPagination.current = true;
+                    loadNewerChats(false);
+                }
+            } else {
+                hasTriggeredTopPagination.current = false;
+            }
+
+            if (distanceFromBottom <= 0) {
+                if (!hasTriggeredBottomPagination.current) {
+                    hasTriggeredBottomPagination.current = true;
+                    if (!isSearchTopmostFullScreenRoute()) {
+                        loadOlderChats(false);
+                        return;
+                    }
+
+                    // eslint-disable-next-line @typescript-eslint/no-deprecated
+                    InteractionManager.runAfterInteractions(() => requestAnimationFrame(() => loadOlderChats(false)));
+                }
+            } else {
+                hasTriggeredBottomPagination.current = false;
+            }
+        },
+        [loadNewerChats, loadOlderChats],
+    );
+
     const {isFloatingMessageCounterVisible, setIsFloatingMessageCounterVisible, trackVerticalScrolling, onViewableItemsChanged} = useReportUnreadMessageScrollTracking({
         reportID: report.reportID,
         currentVerticalScrollingOffsetRef: scrollingVerticalOffset,
@@ -390,6 +430,7 @@ function ReportActionsList({
         isInverted: false,
         onTrackScrolling: (event: NativeSyntheticEvent<NativeScrollEvent>) => {
             scrollingVerticalOffset.current = event.nativeEvent.contentOffset.y;
+            maybeLoadChatsOnScroll(event);
             onScroll?.(event);
             if (shouldScrollToEndAfterLayout && (!hasCreatedActionAdded || isOffline)) {
                 setShouldScrollToEndAfterLayout(false);
@@ -874,20 +915,6 @@ function ReportActionsList({
         );
     }, [hideComposer, initialNumToRender, renderItem, shouldShowReportRecipientLocalTime, sortedVisibleReportActions, styles]);
 
-    const onStartReached = useCallback(() => {
-        if (!isSearchTopmostFullScreenRoute()) {
-            loadOlderChats(false);
-            return;
-        }
-
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        InteractionManager.runAfterInteractions(() => requestAnimationFrame(() => loadOlderChats(false)));
-    }, [loadOlderChats]);
-
-    const onEndReached = useCallback(() => {
-        loadNewerChats(false);
-    }, [loadNewerChats]);
-
     const renderFlatListItem = useCallback(
         ({item}: ListRenderItemInfo<OnyxTypes.ReportAction>) => {
             const originalIndex = sortedVisibleReportActions.findIndex((action) => action.reportActionID === item.reportActionID);
@@ -908,7 +935,7 @@ function ReportActionsList({
                 fsClass={reportActionsListFSClass}
             >
                 {shouldScrollToEndAfterLayout && topReportAction ? renderTopReportActions() : undefined}
-                <FlatList
+                <FlatListWithScrollKey
                     accessibilityLabel={translate('sidebarScreen.listOfChatMessages')}
                     ref={reportScrollManager.ref}
                     testID="report-actions-list"
@@ -922,9 +949,7 @@ function ReportActionsList({
                     showsVerticalScrollIndicator={!shouldScrollToEndAfterLayout}
                     keyExtractor={keyExtractor}
                     initialNumToRender={initialNumToRender}
-                    onEndReached={onEndReached}
                     onEndReachedThreshold={0.75}
-                    onStartReached={onStartReached}
                     onStartReachedThreshold={0.75}
                     ListHeaderComponent={listHeaderComponent}
                     ListFooterComponent={listFooterComponent}
@@ -935,6 +960,7 @@ function ReportActionsList({
                     onScrollToIndexFailed={onScrollToIndexFailed}
                     extraData={extraData}
                     key={listID}
+                    initialScrollKey={linkedReportActionID}
                     onContentSizeChange={() => {
                         trackVerticalScrolling(undefined);
                     }}
