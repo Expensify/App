@@ -50,6 +50,8 @@ const MAX_Y_AXIS_LABEL_WIDTH = 200;
 // Maximum width for X-axis labels in pixels
 const MAX_X_AXIS_LABEL_WIDTH = 500;
 
+// Small extra padding so complex glyphs (e.g. Arabic) are not clipped.
+// getLongestLine() can slightly under-report the visual extent of the last glyph.
 const GLYPH_PADDING = 4;
 
 export {

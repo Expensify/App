@@ -1,12 +1,10 @@
 import {Group, Paragraph, vec} from '@shopify/react-native-skia';
-import type {SkParagraph, SkTypefaceFontProvider} from '@shopify/react-native-skia';
+import type {SkTypefaceFontProvider} from '@shopify/react-native-skia';
 import React, {useMemo} from 'react';
 import {AXIS_LABEL_GAP, GLYPH_PADDING, MAX_X_AXIS_LABEL_WIDTH} from '@components/Charts/constants';
-import type {LabelRotation} from '@components/Charts/types';
+import type {LabelRotation, ParagraphWithWidth} from '@components/Charts/types';
 import {buildChartParagraph, getFontLineMetrics, rotatedLabelCenterCorrection, rotatedLabelYOffset} from '@components/Charts/utils';
 import variables from '@styles/variables';
-
-type ParagraphWithWidth = {para: SkParagraph | null; width: number};
 
 type ChartXAxisLabelsProps = {
     /** Processed label strings (already truncated by the layout hook). */

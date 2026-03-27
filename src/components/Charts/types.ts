@@ -69,6 +69,6 @@ type PieSlice = {
 
 type LabelRotation = ValueOf<typeof LABEL_ROTATIONS>;
 
-type ParagraphWithWidth = {para: SkParagraph; width: number};
+type ParagraphWithWidth = {para: SkParagraph | null; width: number};
 
 export type {ChartDataPoint, ChartProps, CartesianChartProps, LabelRotation, ParagraphWithWidth, PieSlice, UnitPosition, UnitWithFallback};

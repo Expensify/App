@@ -2,13 +2,9 @@ import {Paragraph} from '@shopify/react-native-skia';
 import type {SkTypefaceFontProvider} from '@shopify/react-native-skia';
 import React, {useMemo} from 'react';
 import type {ChartBounds, Scale} from 'victory-native';
-import {AXIS_LABEL_GAP, MAX_Y_AXIS_LABEL_WIDTH} from '@components/Charts/constants';
+import {AXIS_LABEL_GAP, GLYPH_PADDING, MAX_Y_AXIS_LABEL_WIDTH} from '@components/Charts/constants';
 import type {ParagraphWithWidth} from '@components/Charts/types';
 import {buildChartParagraph, getFontLineMetrics} from '@components/Charts/utils';
-
-// Small extra padding so complex glyphs (e.g. Arabic) are not clipped.
-// getLongestLine() can slightly under-report the visual extent of the last glyph.
-const GLYPH_PADDING = 4;
 
 type ChartYAxisLabelsProps = {
     /** Tick values on the Y axis. */
