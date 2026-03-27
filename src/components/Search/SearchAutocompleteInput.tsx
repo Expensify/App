@@ -1,7 +1,7 @@
 /* eslint-disable rulesdir/no-acc-spread-in-reduce */
 import type {ForwardedRef} from 'react';
 import React, {useEffect, useRef} from 'react';
-import type {StyleProp, TextInputProps, ViewStyle} from 'react-native';
+import type {StyleProp, TextInputProps, TextStyle, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import Animated, {interpolateColor, useAnimatedStyle, useSharedValue} from 'react-native-reanimated';
 import FormHelpMessage from '@components/FormHelpMessage';
@@ -59,6 +59,8 @@ type SearchAutocompleteInputProps = {
     /** Any additional styles to apply to text input along with FormHelperMessage */
     outerWrapperStyle?: StyleProp<ViewStyle>;
 
+    inputStyle?: StyleProp<TextStyle>;
+
     inputContainerStyle?: StyleProp<ViewStyle>;
 
     touchableInputWrapperStyle?: StyleProp<ViewStyle>;
@@ -91,6 +93,7 @@ function SearchAutocompleteInput({
     wrapperStyle,
     wrapperFocusedStyle = {},
     outerWrapperStyle,
+    inputStyle,
     inputContainerStyle,
     touchableInputWrapperStyle,
     isSearchingForReports,
@@ -217,7 +220,7 @@ function SearchAutocompleteInput({
                     onSubmitEditing={onSubmit}
                     shouldUseDisabledStyles={false}
                     textInputContainerStyles={[styles.borderNone, styles.pb0, inputContainerStyle]}
-                    inputStyle={[inputWidth, styles.lineHeightUndefined]}
+                    inputStyle={[inputWidth, styles.lineHeightUndefined, inputStyle]}
                     touchableInputWrapperStyle={touchableInputWrapperStyle}
                     placeholderTextColor={theme.textSupporting}
                     loadingSpinnerStyle={[styles.mt0, styles.mr1, styles.justifyContentCenter]}

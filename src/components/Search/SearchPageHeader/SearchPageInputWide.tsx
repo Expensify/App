@@ -75,6 +75,7 @@ function SearchPageInputWide({queryJSON, handleSearch}: SearchPageInputWideProps
                     value={textInputValue}
                     onSearchQueryChange={onSearchQueryChange}
                     isFullWidth
+                    inputStyle={isAutocompleteListVisible ? undefined : styles.fontSizeLabel}
                     inputContainerStyle={isAutocompleteListVisible ? styles.ph3 : styles.ph2}
                     touchableInputWrapperStyle={isAutocompleteListVisible ? undefined : styles.searchPageInputTouchableWrapper}
                     onSubmit={() => {
