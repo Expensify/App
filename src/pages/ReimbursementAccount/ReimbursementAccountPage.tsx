@@ -150,7 +150,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
         return () => {
             clearReimbursementAccountDraft();
             clearReimbursementAccount();
-            getPaymentMethods(true);
+            getPaymentMethods();
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
