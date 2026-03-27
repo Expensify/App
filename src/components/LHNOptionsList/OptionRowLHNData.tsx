@@ -1,18 +1,14 @@
-import {deepEqual} from 'fast-equals';
-import React, {useCallback, useMemo, useRef} from 'react';
+import React, {useMemo} from 'react';
 import useReportPreviewSenderID from '@components/ReportActionAvatars/useReportPreviewSenderID';
 import {useCurrentReportIDState} from '@hooks/useCurrentReportID';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useGetExpensifyCardFromReportAction from '@hooks/useGetExpensifyCardFromReportAction';
 import useOnyx from '@hooks/useOnyx';
-import usePrevious from '@hooks/usePrevious';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import SidebarUtils from '@libs/SidebarUtils';
 import CONST from '@src/CONST';
 import {getMovedReportID} from '@src/libs/ModifiedExpenseMessage';
-import type {OptionData} from '@src/libs/ReportUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ReportAttributesDerivedValue} from '@src/types/onyx/DerivedValues';
 import type {Icon} from '@src/types/onyx/OnyxCommon';
 import OptionRowLHN from './OptionRowLHN';
 import type {OptionRowLHNDataProps} from './types';
@@ -26,17 +22,14 @@ import type {OptionRowLHNDataProps} from './types';
 function OptionRowLHNData({
     isOptionFocused = false,
     fullReport,
+    reportAttributes,
+    reportAttributesDerived,
+    oneTransactionThreadReport,
     reportNameValuePairs,
-    reportActions,
     personalDetails = {},
-    preferredLocale = CONST.LOCALES.DEFAULT,
     policy,
     invoiceReceiverPolicy,
     parentReportAction,
-    iouReportReportActions,
-    transaction,
-    lastReportActionTransaction,
-    transactionViolations,
     lastMessageTextFromReport,
     localeCompare,
     translate,
@@ -49,22 +42,12 @@ function OptionRowLHNData({
     const reportID = propsToForward.reportID;
     const {currentReportID: currentReportIDValue} = useCurrentReportIDState();
     const isReportFocused = isOptionFocused && currentReportIDValue === reportID;
-    const optionItemRef = useRef<OptionData | undefined>(undefined);
-
-    const reportAttributesSelector = useCallback((data: ReportAttributesDerivedValue | undefined) => data?.reports?.[reportID], [reportID]);
-    const [reportAttributes] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {selector: reportAttributesSelector});
-
-    // Look up the one-transaction thread report using the ID from our own attributes.
-    const [oneTransactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportAttributes?.oneTransactionThreadReportID)}`);
 
     const [movedFromReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getMovedReportID(lastAction, CONST.REPORT.MOVE_TYPE.FROM)}`);
     const [movedToReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getMovedReportID(lastAction, CONST.REPORT.MOVE_TYPE.TO)}`);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const {login} = useCurrentUserPersonalDetails();
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fullReport?.policyID}`);
-    // Check the report errors equality to avoid re-rendering when there are no changes
-    const prevReportErrors = usePrevious(reportAttributes?.reportErrors);
-    const areReportErrorsEqual = useMemo(() => deepEqual(prevReportErrors, reportAttributes?.reportErrors), [prevReportErrors, reportAttributes?.reportErrors]);
 
     const card = useGetExpensifyCardFromReportAction({reportAction: lastAction, policyID: fullReport?.policyID});
 
@@ -76,83 +59,34 @@ function OptionRowLHNData({
         chatReport: chatReportForIOU,
     });
 
-    const reportAttributesDerived = useMemo(() => {
-        if (!reportAttributes) {
-            return undefined;
-        }
-        return {[reportID]: reportAttributes} as ReportAttributesDerivedValue['reports'];
-    }, [reportID, reportAttributes]);
-
-    const optionItem = useMemo(() => {
-        // Note: ideally we'd have this as a dependent selector in onyx!
-        const item = SidebarUtils.getOptionData({
-            report: fullReport,
-            reportAttributes,
-            oneTransactionThreadReport,
-            reportNameValuePairs,
-            personalDetails,
-            policy,
-            parentReportAction,
-            conciergeReportID,
-            lastMessageTextFromReport,
-            invoiceReceiverPolicy,
-            card,
-            lastAction,
-            translate,
-            localeCompare,
-            isReportArchived,
-            lastActionReport,
-            movedFromReport,
-            movedToReport,
-            currentUserAccountID,
-            reportAttributesDerived,
-            policyTags,
-            currentUserLogin: login ?? '',
-        });
-        if (deepEqual(item, optionItemRef.current)) {
-            return optionItemRef.current;
-        }
-
-        optionItemRef.current = item;
-
-        return item;
-        // Listen parentReportAction to update title of thread report when parentReportAction changed
-        // Listen to transaction to update title of transaction report when transaction changed
-        // Listen to lastAction to update when action is deleted or gets pendingAction
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [
-        fullReport,
-        reportAttributes?.brickRoadStatus,
-        reportAttributes?.actionBadge,
-        reportAttributes?.actionTargetReportActionID,
-        reportAttributes?.reportName,
-        areReportErrorsEqual,
+    // React Compiler auto-memoizes each expression in OptionRowLHN independently,
+    // so there is no need to stabilize the optionItem reference with deepEqual.
+    // When getOptionData returns a fresh object with the same content, the Compiler
+    // ensures that only expressions whose inputs actually changed recompute.
+    const optionItem = SidebarUtils.getOptionData({
+        report: fullReport,
+        reportAttributes,
         oneTransactionThreadReport,
         reportNameValuePairs,
-        lastReportActionTransaction,
-        reportActions,
         personalDetails,
-        preferredLocale,
         policy,
         parentReportAction,
         conciergeReportID,
-        iouReportReportActions,
-        transaction,
-        invoiceReceiverPolicy,
         lastMessageTextFromReport,
+        invoiceReceiverPolicy,
         card,
         lastAction,
-        lastActionReport,
         translate,
         localeCompare,
         isReportArchived,
+        lastActionReport,
         movedFromReport,
         movedToReport,
         currentUserAccountID,
         reportAttributesDerived,
         policyTags,
-        login,
-    ]);
+        currentUserLogin: login ?? '',
+    });
 
     // For single-sender IOUs, trim to the sender's avatar to match the header.
     // The header uses reportPreviewSenderID as accountID for its primary avatar,
