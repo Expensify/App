@@ -5,6 +5,7 @@ import Icon from '@components/Icon';
 import MenuItem from '@components/MenuItem';
 import Section from '@components/Section';
 import Text from '@components/Text';
+import useConfirmModal from '@hooks/useConfirmModal';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -13,7 +14,6 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
-import useConfirmModal from '@hooks/useConfirmModal';
 
 function SpendRulesSection() {
     const {translate} = useLocalize();

@@ -6635,7 +6635,7 @@ const translations = {
                 builtInProtectionModal: {
                     title: 'Expensify Cards offer built-in protection - always',
                     description: `Expensify always declines these charges:\n\n  • Adult services\n  • ATMs\n  • Gambling\n  • Money transfers\n\nAdd more spend rules to protect company cash flow.`,
-                }
+                },
             },
         },
         planTypePage: {
