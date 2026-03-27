@@ -1,5 +1,5 @@
 import React, {useMemo, useState} from 'react';
-import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
+import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import SelectionListWithSections from '@components/SelectionList/SelectionListWithSections';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -137,7 +137,7 @@ function TagPicker({
     return (
         <SelectionListWithSections
             sections={sections}
-            ListItem={SingleSelectListItem}
+            ListItem={RadioListItem}
             style={{
                 sectionTitleStyles: styles.mt5,
                 listItemTitleStyles,

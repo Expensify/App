@@ -1,5 +1,5 @@
 import React from 'react';
-import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
+import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import SelectionListWithSections from '@components/SelectionList/SelectionListWithSections';
 import type {ListItem} from '@components/SelectionList/types';
 import useDebouncedState from '@hooks/useDebouncedState';
@@ -80,7 +80,7 @@ function CategoryPicker({selectedCategory, policyID, onSubmit, addBottomSafeArea
         <SelectionListWithSections
             sections={sections}
             onSelectRow={onSubmit}
-            ListItem={SingleSelectListItem}
+            ListItem={RadioListItem}
             shouldShowTextInput={categoriesCount >= CONST.STANDARD_LIST_ITEM_LIMIT}
             textInputOptions={textInputOptions}
             initiallyFocusedItemKey={selectedOptionKey}
