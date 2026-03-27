@@ -1176,26 +1176,25 @@ function updateSplitTransactions({
     const isArchivedExpenseReport = isArchivedReport(expenseReportNameValuePairs);
     const canUserPerformWriteAction = chatReport ? !!canUserPerformWriteActionReportUtils(chatReport, isArchivedExpenseReport) : true;
     const lastVisibleAction = getLastVisibleAction(expenseReport?.reportID, canUserPerformWriteAction);
-    const updateParentActions = (iouAction: OnyxTypes.ReportAction, updatedIOUAction?: Partial<OnyxTypes.ReportAction>) => {
-        const nextUpdatedIOUAction = updateOptimisticParentReportAction(
-            (updatedIOUAction ?? iouAction) as OnyxTypes.ReportAction,
-            iouAction.created,
-            CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-        );
-
-        if (!originalReportPreviewAction) {
-            return {nextUpdatedIOUAction};
+    const updateParentActions = (iouAction: OnyxTypes.ReportAction, childVisibleActionCountToAdd: number) => {
+        if (childVisibleActionCountToAdd <= 0) {
+            return undefined;
         }
 
-        const nextUpdatedReportPreviewAction = updateOptimisticParentReportAction(
-            (updatedReportPreviewAction ?? originalReportPreviewAction) as OnyxTypes.ReportAction,
-            lastVisibleAction?.childLastVisibleActionCreated ?? lastVisibleAction?.created ?? '',
-            CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-        ) as Partial<OnyxTypes.ReportAction>;
-        nextUpdatedReportPreviewAction.reportActionID = originalReportPreviewAction.reportActionID;
-        updatedReportPreviewAction = nextUpdatedReportPreviewAction;
+        const updatedIOUAction = updateOptimisticParentReportAction(iouAction, iouAction.created, CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD, childVisibleActionCountToAdd);
 
-        return {nextUpdatedIOUAction};
+        if (originalReportPreviewAction) {
+            const nextUpdatedReportPreviewAction = updateOptimisticParentReportAction(
+                (updatedReportPreviewAction ?? originalReportPreviewAction) as OnyxTypes.ReportAction,
+                lastVisibleAction?.childLastVisibleActionCreated ?? lastVisibleAction?.created ?? '',
+                CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                childVisibleActionCountToAdd,
+            ) as Partial<OnyxTypes.ReportAction>;
+            nextUpdatedReportPreviewAction.reportActionID = originalReportPreviewAction.reportActionID;
+            updatedReportPreviewAction = nextUpdatedReportPreviewAction;
+        }
+
+        return updatedIOUAction;
     };
     const pushUpdatedReportPreviewActionToOnyxData = () => {
         if (!updatedReportPreviewAction) {
@@ -1598,7 +1597,6 @@ function updateSplitTransactions({
                 }
 
                 addHoldToTransactionThread(holdReportAction, holdCommentAction);
-                updatedIOUAction = updateParentActions(iouAction, updatedIOUAction).nextUpdatedIOUAction;
                 hasInsertedHoldState = true;
             };
             // Since timestamp is only returned from the backend, we will fallback to comparing the created field of both actions if it doesn't exist
@@ -1616,7 +1614,6 @@ function updateSplitTransactions({
                 }
 
                 addCommentToSplitTransactionThread(commentAction);
-                updatedIOUAction = updateParentActions(iouAction, updatedIOUAction).nextUpdatedIOUAction;
             }
 
             // If the commentAction is not found, it means the action has been deleted.
@@ -1634,6 +1631,7 @@ function updateSplitTransactions({
                 isSourceTransactionOnHold: isTransactionOnHold,
                 holdReportAction,
             });
+            updatedIOUAction = updateParentActions(iouAction, firstIOU.childVisibleActionCount ?? 0);
         }
 
         // When isReverseSplitOperation is true, we move all comments from the remaining transaction to the original transaction
@@ -1655,8 +1653,6 @@ function updateSplitTransactions({
                 optimisticActionsData[action.reportActionID] = {...action, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD};
                 successActionsData[action.reportActionID] = {pendingAction: null};
                 failureActionsData[action.reportActionID] = null;
-
-                updatedIOUAction = updateParentActions(iouAction, updatedIOUAction).nextUpdatedIOUAction;
             }
             if (isRemainingTransactionOnHold && remainingHoldReportAction) {
                 optimisticActionsData[remainingHoldReportAction.reportActionID] = {...remainingHoldReportAction, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD};
@@ -1707,6 +1703,8 @@ function updateSplitTransactions({
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`,
                 value: failureActionsData,
             });
+
+            updatedIOUAction = updateParentActions(iouAction, remainTransactionThreadReportAction?.childVisibleActionCount ?? 0);
         }
 
         if (updatedIOUAction) {

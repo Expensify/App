@@ -3870,6 +3870,47 @@ describe('updateSplitTransactions', () => {
         expect(updatedReportPreviewAction?.childVisibleActionCount).toEqual(2);
     });
 
+    it('should preserve childVisibleActionCount when source thread actions are unavailable during split', async () => {
+        const {expenseReport, transactionThreadReportID, originalTransactionID} = await createBaseExpense();
+
+        if (!originalTransactionID || !transactionThreadReportID) {
+            throw new Error('Missing original transaction data');
+        }
+
+        const {allReports, allReportActions} = await getCollections();
+        const transactionThreadReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`];
+        const ancestors = getAncestors(transactionThreadReport, allReports, {}, allReportActions);
+
+        addComment({
+            report: transactionThreadReport,
+            notifyReportID: transactionThreadReportID,
+            ancestors,
+            text: 'Testing a comment',
+            timezoneParam: CONST.DEFAULT_TIME_ZONE,
+            currentUserAccountID: CARLOS_ACCOUNT_ID,
+        });
+        await waitForBatchedUpdates();
+
+        const originalIOUAction = getIOUActionForReportID(expenseReport?.reportID, originalTransactionID);
+        const originalReportPreviewAction = getReportPreviewAction(expenseReport?.chatReportID, expenseReport?.reportID);
+        expect(originalIOUAction?.childVisibleActionCount).toEqual(1);
+        expect(originalReportPreviewAction?.childVisibleActionCount).toEqual(1);
+
+        // Remove report actions from the transaction thread
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`, null);
+        await waitForBatchedUpdates();
+
+        const {splitTransactionID1, splitTransactionID2} = await splitToTwo(expenseReport, originalTransactionID, originalIOUAction);
+        const splitIOUAction1 = getIOUActionForReportID(expenseReport?.reportID, splitTransactionID1);
+        const splitIOUAction2 = getIOUActionForReportID(expenseReport?.reportID, splitTransactionID2);
+        const updatedReportPreviewAction = getReportPreviewAction(expenseReport?.chatReportID, expenseReport?.reportID);
+
+        // Ensure childVisibleActionCount updates correctly
+        expect(splitIOUAction1?.childVisibleActionCount).toEqual(1);
+        expect(splitIOUAction2?.childVisibleActionCount).toEqual(1);
+        expect(updatedReportPreviewAction?.childVisibleActionCount).toEqual(2);
+    });
+
     it('should move remaining split comments and hold state back to the reverted transaction thread and update the preview action in a reverse split', async () => {
         const {expenseReport, chatReport, transactionThreadReportID, originalTransactionID} = await createBaseExpense();
 
