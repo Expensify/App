@@ -47,7 +47,7 @@ const defaultReportMetadata = {
 };
 
 /**
- * Renderless component. Owns all fetch/open-report logic, transaction thread creation,
+ * Component that does not render anything. Owns all fetch/open-report logic, transaction thread creation,
  * leaving events subscriptions, and related effects that were previously in ReportScreen.
  *
  * Self-subscribes to route params via useRoute().

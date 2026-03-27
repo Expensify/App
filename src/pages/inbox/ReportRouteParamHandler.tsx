@@ -20,7 +20,7 @@ type ReportRouteParamHandlerProps = {
 };
 
 /**
- * Renderless component. Resolves the reportID route param when missing,
+ * Component that does not render anything. Resolves the reportID route param when missing,
  * and validates the reportActionID param.
  */
 function ReportRouteParamHandler({route, navigation}: ReportRouteParamHandlerProps) {

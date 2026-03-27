@@ -47,7 +47,7 @@ function isEmpty(report: OnyxEntry<OnyxTypes.Report>): boolean {
 }
 
 /**
- * Renderless component. Owns navigate-on-removal and navigate-on-deletion logic
+ * Component that does not render anything. Owns navigate-on-removal and navigate-on-deletion logic
  * that was previously in ReportScreen.
  *
  * Self-subscribes to route params via useRoute().
