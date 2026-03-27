@@ -78,7 +78,7 @@ import MoneyRequestAmountInput from './MoneyRequestAmountInput';
 import MoneyRequestConfirmationListFooter from './MoneyRequestConfirmationListFooter';
 import {PressableWithFeedback} from './Pressable';
 import {useProductTrainingContext} from './ProductTrainingContext';
-import UserListItem from './SelectionList/ListItem/UserListItem';
+import NewChatListItem from './Search/NewChatListItem';
 import SelectionListWithSections from './SelectionList/SelectionListWithSections';
 import type {Section} from './SelectionList/SelectionListWithSections/types';
 import SettlementButton from './SettlementButton';
@@ -1398,7 +1398,7 @@ function MoneyRequestConfirmationList({
         <MouseProvider>
             <SelectionListWithSections<MoneyRequestConfirmationListItem>
                 sections={sections}
-                ListItem={UserListItem}
+                ListItem={NewChatListItem}
                 onSelectRow={navigateToParticipantPage}
                 shouldSingleExecuteRowSelect
                 shouldPreventDefaultFocusOnSelectRow

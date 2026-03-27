@@ -168,6 +168,7 @@ function ApproverSelectionList({
                     shouldUpdateFocusedIndex={shouldUpdateFocusedIndex}
                     showScrollIndicator
                     isRowMultilineSupported
+                    shouldShowRadioButton
                 />
             </FullPageNotFoundView>
         </ScreenWrapper>
