@@ -103,7 +103,6 @@ Onyx.connect({
     callback: (val) => (allTransactionViolations = val ?? []),
 });
 
-
 /**
  * @deprecated This function uses Onyx.connect and should be replaced with useOnyx for reactive data access.
  * TODO: remove `getPolicyTagsData` from this file (https://github.com/Expensify/App/issues/72720)
