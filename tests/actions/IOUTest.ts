@@ -152,6 +152,16 @@ jest.mock('@src/libs/actions/Report', () => {
 });
 jest.mock('@libs/Navigation/helpers/isSearchTopmostFullScreenRoute', () => jest.fn());
 jest.mock('@libs/Navigation/helpers/isReportTopmostSplitNavigator', () => jest.fn());
+// In production, requestMoney defers its API.write() call until the target screen's
+// content lays out (or a safety timeout fires). In tests there is no target component
+// to flush the deferred write, so we bypass the deferral by executing the callback immediately.
+jest.mock('@libs/deferredLayoutWrite', () => ({
+    registerDeferredWrite: (_key: string, callback: () => void) => callback(),
+    flushDeferredWrite: jest.fn(),
+    cancelDeferredWrite: jest.fn(),
+    hasDeferredWrite: () => false,
+    getOptimisticWatchKey: () => undefined,
+}));
 jest.mock('@hooks/useCardFeedsForDisplay', () => jest.fn(() => ({defaultCardFeed: null, cardFeedsByPolicy: {}})));
 
 const unapprovedCashHash = 71801560;
@@ -628,7 +638,6 @@ describe('actions/IOU', () => {
             // When the transaction is saved to draft by selecting a category in the selfDM report
             const reportActionableTrackExpense = Object.values(selfDMReportActions ?? {}).find((reportAction) => isActionableTrackExpense(reportAction));
             createDraftTransactionAndNavigateToParticipantSelector({
-                transactionID: transaction?.transactionID,
                 reportID: selfDMReport.reportID,
                 actionName: CONST.IOU.ACTION.CATEGORIZE,
                 reportActionID: reportActionableTrackExpense?.reportActionID,
@@ -637,6 +646,7 @@ describe('actions/IOU', () => {
                 activePolicy: undefined,
                 userBillingGraceEndPeriods: undefined,
                 amountOwed: 0,
+                transaction,
             });
             await waitForBatchedUpdates();
 
@@ -1201,7 +1211,6 @@ describe('actions/IOU', () => {
 
             // When a draft is created for categorization
             createDraftTransactionAndNavigateToParticipantSelector({
-                transactionID: createdTransaction?.transactionID,
                 reportID: selfDMReport.reportID,
                 actionName: CONST.IOU.ACTION.CATEGORIZE,
                 reportActionID: actionableWhisper?.reportActionID,
@@ -1210,6 +1219,7 @@ describe('actions/IOU', () => {
                 activePolicy: undefined,
                 userBillingGraceEndPeriods: undefined,
                 amountOwed: 0,
+                transaction: createdTransaction,
             });
             await waitForBatchedUpdates();
 
@@ -1843,7 +1853,6 @@ describe('actions/IOU', () => {
 
             // When createDraftTransactionAndNavigateToParticipantSelector is called with draftTransactionIDs
             createDraftTransactionAndNavigateToParticipantSelector({
-                transactionID: transactionToCategorize.transactionID,
                 reportID: selfDMReport.reportID,
                 actionName: CONST.IOU.ACTION.CATEGORIZE,
                 reportActionID,
@@ -1852,6 +1861,7 @@ describe('actions/IOU', () => {
                 activePolicy: undefined,
                 userBillingGraceEndPeriods: undefined,
                 amountOwed: 0,
+                transaction: transactionToCategorize,
             });
             await waitForBatchedUpdates();
 
@@ -1891,7 +1901,6 @@ describe('actions/IOU', () => {
 
             // When createDraftTransactionAndNavigateToParticipantSelector is called with empty allTransactionDrafts
             createDraftTransactionAndNavigateToParticipantSelector({
-                transactionID: originalTransaction.transactionID,
                 reportID: selfDMReport.reportID,
                 actionName: CONST.IOU.ACTION.CATEGORIZE,
                 reportActionID,
@@ -1900,6 +1909,7 @@ describe('actions/IOU', () => {
                 activePolicy: undefined,
                 userBillingGraceEndPeriods: undefined,
                 amountOwed: 0,
+                transaction: originalTransaction,
             });
             await waitForBatchedUpdates();
 
@@ -1921,14 +1931,13 @@ describe('actions/IOU', () => {
             expect(draftTransaction?.linkedTrackedExpenseReportID).toBe(selfDMReport.reportID);
         });
 
-        it('should not create draft transaction when transactionID is undefined', async () => {
+        it('should not create draft transaction when transaction is undefined', async () => {
             // Given a selfDM report
             const selfDMReport = createRandomReport(1, CONST.REPORT.CHAT_TYPE.SELF_DM);
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReport.reportID}`, selfDMReport);
 
-            // When createDraftTransactionAndNavigateToParticipantSelector is called with undefined transactionID
+            // When createDraftTransactionAndNavigateToParticipantSelector is called with undefined transaction
             createDraftTransactionAndNavigateToParticipantSelector({
-                transactionID: undefined,
                 reportID: selfDMReport.reportID,
                 actionName: CONST.IOU.ACTION.CATEGORIZE,
                 reportActionID: 'some-report-action-id',
@@ -1937,6 +1946,7 @@ describe('actions/IOU', () => {
                 activePolicy: undefined,
                 userBillingGraceEndPeriods: undefined,
                 amountOwed: 0,
+                transaction: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -1960,13 +1970,13 @@ describe('actions/IOU', () => {
 
             // When createDraftTransactionAndNavigateToParticipantSelector is called with undefined reportID
             createDraftTransactionAndNavigateToParticipantSelector({
-                transactionID: transaction.transactionID,
                 reportID: undefined,
                 actionName: CONST.IOU.ACTION.CATEGORIZE,
                 reportActionID: 'some-report-action-id',
                 introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
                 draftTransactionIDs: [],
                 activePolicy: undefined,
+                transaction,
                 userBillingGraceEndPeriods: undefined,
                 amountOwed: 0,
             });
@@ -7104,7 +7114,7 @@ describe('actions/IOU', () => {
             return waitForBatchedUpdates()
                 .then(() => Onyx.multiSet({...transactionCollectionDataSet, ...actionCollectionDataSet}))
                 .then(() => {
-                    putOnHold(transaction1.transactionID, 'comment', iouReport.reportID);
+                    putOnHold(transaction1.transactionID, 'comment', iouReport.reportID, false);
                     return waitForBatchedUpdates();
                 })
                 .then(() => {
@@ -7364,6 +7374,7 @@ describe('actions/IOU', () => {
                 isSelfTourViewed: false,
                 userBillingGraceEndPeriods: undefined,
                 amountOwed: 100,
+                ownerBillingGraceEndPeriod: pastDate,
             });
 
             await waitForBatchedUpdates();
@@ -9436,7 +9447,7 @@ describe('actions/IOU', () => {
             let expenseReport: OnyxEntry<Report>;
             let chatReport: OnyxEntry<Report>;
             return waitForBatchedUpdates()
-                .then(() => {
+                .then(async () => {
                     const policyID = generatePolicyID();
                     createWorkspace({
                         policyOwnerEmail: CARLOS_EMAIL,
@@ -9450,8 +9461,9 @@ describe('actions/IOU', () => {
                         hasActiveAdminPolicies: false,
                     });
 
+                    const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
                     // Change the approval mode for the policy since default is Submit and Close
-                    setWorkspaceApprovalMode(policyID, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC);
+                    setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC);
                     return waitForBatchedUpdates();
                 })
                 .then(
@@ -9551,6 +9563,7 @@ describe('actions/IOU', () => {
                             expenseReportCurrentNextStepDeprecated: nextStep,
                             userBillingGraceEndPeriods: undefined,
                             amountOwed: 0,
+                            ownerBillingGraceEndPeriod: undefined,
                         });
                     }
                     return waitForBatchedUpdates();
@@ -9581,7 +9594,7 @@ describe('actions/IOU', () => {
             let chatReport: OnyxEntry<Report>;
 
             return waitForBatchedUpdates()
-                .then(() => {
+                .then(async () => {
                     const policyID = generatePolicyID();
                     createWorkspace({
                         policyOwnerEmail: CARLOS_EMAIL,
@@ -9595,7 +9608,8 @@ describe('actions/IOU', () => {
                         hasActiveAdminPolicies: false,
                     });
 
-                    setWorkspaceApprovalMode(policyID, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC);
+                    const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+                    setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, {});
                     return waitForBatchedUpdates();
                 })
                 .then(
@@ -9847,6 +9861,7 @@ describe('actions/IOU', () => {
                                 expenseReportCurrentNextStepDeprecated: nextStep,
                                 userBillingGraceEndPeriods: undefined,
                                 amountOwed: 0,
+                                ownerBillingGraceEndPeriod: undefined,
                             });
                         }
                         return waitForBatchedUpdates();
@@ -10112,6 +10127,7 @@ describe('actions/IOU', () => {
                                 expenseReportCurrentNextStepDeprecated: nextStep,
                                 userBillingGraceEndPeriods: undefined,
                                 amountOwed: 0,
+                                ownerBillingGraceEndPeriod: undefined,
                             });
                         }
                         return waitForBatchedUpdates();
@@ -10160,8 +10176,9 @@ describe('actions/IOU', () => {
                 hasActiveAdminPolicies: false,
             });
             return waitForBatchedUpdates()
-                .then(() => {
-                    setWorkspaceApprovalMode(policyID, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL);
+                .then(async () => {
+                    policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+                    setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL, {});
                     return waitForBatchedUpdates();
                 })
                 .then(
@@ -10278,6 +10295,7 @@ describe('actions/IOU', () => {
                             expenseReportCurrentNextStepDeprecated: undefined,
                             userBillingGraceEndPeriods: undefined,
                             amountOwed: 0,
+                            ownerBillingGraceEndPeriod: undefined,
                         });
                     }
                     return waitForBatchedUpdates();
@@ -10348,6 +10366,7 @@ describe('actions/IOU', () => {
                 expenseReportCurrentNextStepDeprecated: undefined,
                 userBillingGraceEndPeriods: undefined,
                 amountOwed: 100,
+                ownerBillingGraceEndPeriod: pastDate,
             });
 
             await waitForBatchedUpdates();
@@ -10385,7 +10404,7 @@ describe('actions/IOU', () => {
                 hasActiveAdminPolicies: false,
             });
 
-            setWorkspaceApprovalMode(policyID, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC);
+            setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, {});
             await waitForBatchedUpdates();
 
             let chatReport: OnyxEntry<Report>;
@@ -10445,6 +10464,7 @@ describe('actions/IOU', () => {
                 (Navigation.navigate as jest.Mock).mockClear();
 
                 const nextStep = await getOnyxValue(`${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport.reportID}`);
+                const ownerBillingGraceEndPeriod = Math.floor(Date.now() / 1000) - 86400 * 30;
                 submitReport({
                     expenseReport,
                     policy,
@@ -10455,6 +10475,7 @@ describe('actions/IOU', () => {
                     expenseReportCurrentNextStepDeprecated: nextStep,
                     userBillingGraceEndPeriods: undefined,
                     amountOwed: 0,
+                    ownerBillingGraceEndPeriod,
                 });
 
                 await waitForBatchedUpdates();
@@ -12575,8 +12596,9 @@ describe('actions/IOU', () => {
                     hasActiveAdminPolicies: false,
                 });
 
+                const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
                 // Change the approval mode for the policy since default is Submit and Close
-                setWorkspaceApprovalMode(policyID, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC);
+                setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, {});
                 await waitForBatchedUpdates();
                 await getOnyxData({
                     key: ONYXKEYS.COLLECTION.REPORT,
@@ -12749,8 +12771,9 @@ describe('actions/IOU', () => {
                     hasActiveAdminPolicies: false,
                 });
 
+                const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
                 // Change the approval mode for the policy since default is Submit and Close
-                setWorkspaceApprovalMode(policyID, RORY_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC);
+                setWorkspaceApprovalMode(policy, RORY_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, {});
                 await waitForBatchedUpdates();
                 await getOnyxData({
                     key: ONYXKEYS.COLLECTION.REPORT,
@@ -12927,7 +12950,8 @@ describe('actions/IOU', () => {
                     hasActiveAdminPolicies: false,
                 });
 
-                setWorkspaceApprovalMode(policyID, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC);
+                const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+                setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, {});
                 await waitForBatchedUpdates();
 
                 await getOnyxData({
@@ -13114,8 +13138,9 @@ describe('actions/IOU', () => {
                     hasActiveAdminPolicies: false,
                 });
 
+                const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
                 // Change the approval mode for the policy since default is Submit and Close
-                setWorkspaceApprovalMode(policyID, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC);
+                setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, {});
                 await waitForBatchedUpdates();
 
                 await getOnyxData({
@@ -13182,7 +13207,7 @@ describe('actions/IOU', () => {
 
                 // Put the expense on hold
                 if (originalTransactionID && transactionThreadReportID) {
-                    putOnHold(originalTransactionID, 'Test hold reason', transactionThreadReportID);
+                    putOnHold(originalTransactionID, 'Test hold reason', transactionThreadReportID, false);
                 }
                 await waitForBatchedUpdates();
 
@@ -14188,6 +14213,7 @@ describe('actions/IOU', () => {
                 betas: [CONST.BETAS.ALL],
                 userBillingGraceEndPeriods: undefined,
                 amountOwed: 0,
+                ownerBillingGraceEndPeriod: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -14237,6 +14263,7 @@ describe('actions/IOU', () => {
                 betas: [CONST.BETAS.ALL],
                 userBillingGraceEndPeriods: undefined,
                 amountOwed: 0,
+                ownerBillingGraceEndPeriod: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -14282,6 +14309,7 @@ describe('actions/IOU', () => {
                 betas: [CONST.BETAS.ALL],
                 userBillingGraceEndPeriods: undefined,
                 amountOwed: 0,
+                ownerBillingGraceEndPeriod: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -14403,6 +14431,7 @@ describe('actions/IOU', () => {
                 betas: [CONST.BETAS.ALL],
                 userBillingGraceEndPeriods: undefined,
                 amountOwed: 0,
+                ownerBillingGraceEndPeriod: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -14431,6 +14460,7 @@ describe('actions/IOU', () => {
                 betas: [CONST.BETAS.ALL],
                 userBillingGraceEndPeriods: undefined,
                 amountOwed: 0,
+                ownerBillingGraceEndPeriod: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -14457,6 +14487,7 @@ describe('actions/IOU', () => {
                 betas: [CONST.BETAS.ALL],
                 userBillingGraceEndPeriods: undefined,
                 amountOwed: 0,
+                ownerBillingGraceEndPeriod: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -14513,6 +14544,7 @@ describe('actions/IOU', () => {
                 betas: [CONST.BETAS.ALL],
                 userBillingGraceEndPeriods: undefined,
                 amountOwed: 0,
+                ownerBillingGraceEndPeriod: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -14626,6 +14658,7 @@ describe('actions/IOU', () => {
                 userBillingGraceEndPeriods: undefined,
                 amountOwed: 0,
                 full: false,
+                ownerBillingGraceEndPeriod: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -14985,9 +15018,6 @@ describe('actions/IOU', () => {
         const transactionID = '1';
         mockedIsReportTopmostSplitNavigator.mockReturnValue(false);
 
-        // When on the Inbox tab, or NOT from the "global create" button, or without a transactionID,
-        // the function dismissModalAndOpenReportInInboxTab will always be called to handle it,
-        // so mergeTransactionIdsHighlightOnSearchRoute will never be invoked.
         handleNavigateAfterExpenseCreate({activeReportID, isFromGlobalCreate: false});
         expect(spyOnMergeTransactionIdsHighlightOnSearchRoute).toHaveBeenCalledTimes(0);
 
@@ -14998,20 +15028,13 @@ describe('actions/IOU', () => {
         handleNavigateAfterExpenseCreate({activeReportID, isFromGlobalCreate: true, transactionID});
         expect(spyOnMergeTransactionIdsHighlightOnSearchRoute).toHaveBeenCalledTimes(0);
 
-        // When NOT on the Inbox tab
         mockedIsReportTopmostSplitNavigator.mockReturnValue(false);
         handleNavigateAfterExpenseCreate({activeReportID, isFromGlobalCreate: true, transactionID});
+        expect(spyOnMergeTransactionIdsHighlightOnSearchRoute).toHaveBeenCalledTimes(0);
 
-        // then mergeTransactionIdsHighlightOnSearchRoute will be called
-        expect(spyOnMergeTransactionIdsHighlightOnSearchRoute).toHaveBeenCalledTimes(1);
-        expect(spyOnMergeTransactionIdsHighlightOnSearchRoute).toHaveBeenCalledWith(CONST.SEARCH.DATA_TYPES.EXPENSE, {[transactionID]: true});
-        spyOnMergeTransactionIdsHighlightOnSearchRoute.mockClear();
-
-        // If expense is an invoice
         handleNavigateAfterExpenseCreate({activeReportID, isFromGlobalCreate: true, transactionID, isInvoice: true});
+        expect(spyOnMergeTransactionIdsHighlightOnSearchRoute).toHaveBeenCalledTimes(0);
 
-        expect(spyOnMergeTransactionIdsHighlightOnSearchRoute).toHaveBeenCalledTimes(1);
-        expect(spyOnMergeTransactionIdsHighlightOnSearchRoute).toHaveBeenCalledWith(CONST.SEARCH.DATA_TYPES.INVOICE, {[transactionID]: true});
         spyOnMergeTransactionIdsHighlightOnSearchRoute.mockReset();
     });
 

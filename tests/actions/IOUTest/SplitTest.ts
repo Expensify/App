@@ -2063,7 +2063,8 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             isSelfTourViewed: false,
             hasActiveAdminPolicies: false,
         });
-        setWorkspaceApprovalMode(policyID, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC);
+        const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+        setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC);
         await waitForBatchedUpdates();
 
         await getOnyxData({
@@ -2264,7 +2265,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
         expect(isDeleted).toBe(true);
     });
 
-    it('should set navigate-back URL and navigate to parent chat when reverse-split deletes the last transaction in expense report', async () => {
+    it('should set navigate-back URL and use backward navigation pattern when reverse-split deletes the last transaction in expense report', async () => {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         const Navigation = jest.requireMock('@src/libs/Navigation/Navigation');
         // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
@@ -2282,6 +2283,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             chatReportID: chatReport.reportID,
             parentReportID: chatReport.reportID,
         };
+
         const originalTransaction: Transaction = {
             amount: 10000,
             currency: 'USD',
@@ -2380,9 +2382,14 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
         expect(Report.setDeleteTransactionNavigateBackUrl).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(chatReport.reportID));
 
-        // Then navigation should go to the parent chat report instead of the deleted expense report
+        // Then navigateBackOnDeleteTransaction should be used (which calls dismissToSuperWideRHP + goBack)
+        // instead of dismissModalWithReport
         // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-        expect(Navigation.dismissModalWithReport).toHaveBeenCalledWith({reportID: chatReport.reportID});
+        expect(Navigation.dismissToSuperWideRHP).toHaveBeenCalled();
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+        expect(Navigation.goBack).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(chatReport.reportID));
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+        expect(Navigation.dismissModalWithReport).not.toHaveBeenCalled();
     });
 
     it('should navigate to expense report normally when reverse-split is not the last transaction', async () => {
@@ -2535,8 +2542,9 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             hasActiveAdminPolicies: false,
         });
 
+        const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
         // Change the approval mode for the policy since default is Submit and Close
-        setWorkspaceApprovalMode(policyID, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC);
+        setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC);
         await waitForBatchedUpdates();
         await getOnyxData({
             key: ONYXKEYS.COLLECTION.REPORT,
@@ -2709,8 +2717,9 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             hasActiveAdminPolicies: false,
         });
 
+        const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
         // Change the approval mode for the policy since default is Submit and Close
-        setWorkspaceApprovalMode(policyID, RORY_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC);
+        setWorkspaceApprovalMode(policy, RORY_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC);
         await waitForBatchedUpdates();
         await getOnyxData({
             key: ONYXKEYS.COLLECTION.REPORT,
@@ -2887,7 +2896,8 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             hasActiveAdminPolicies: false,
         });
 
-        setWorkspaceApprovalMode(policyID, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC);
+        const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+        setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC);
         await waitForBatchedUpdates();
 
         await getOnyxData({
@@ -3074,8 +3084,9 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             hasActiveAdminPolicies: false,
         });
 
+        const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
         // Change the approval mode for the policy since default is Submit and Close
-        setWorkspaceApprovalMode(policyID, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC);
+        setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC);
         await waitForBatchedUpdates();
 
         await getOnyxData({
@@ -3142,7 +3153,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
 
         // Put the expense on hold
         if (originalTransactionID && transactionThreadReportID) {
-            putOnHold(originalTransactionID, 'Test hold reason', transactionThreadReportID);
+            putOnHold(originalTransactionID, 'Test hold reason', transactionThreadReportID, false);
         }
         await waitForBatchedUpdates();
 
@@ -3337,7 +3348,8 @@ describe('updateSplitTransactions', () => {
             isSelfTourViewed: false,
             hasActiveAdminPolicies: false,
         });
-        setWorkspaceApprovalMode(policyID, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC);
+        const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+        setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC);
         await waitForBatchedUpdates();
 
         await getOnyxData({
@@ -3465,7 +3477,8 @@ describe('updateSplitTransactions', () => {
             isSelfTourViewed: false,
             hasActiveAdminPolicies: false,
         });
-        setWorkspaceApprovalMode(policyID, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC);
+        const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+        setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC);
         await waitForBatchedUpdates();
 
         await getOnyxData({
