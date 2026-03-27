@@ -23,8 +23,9 @@ export default function getBankIcon({styles, bankName, isCard = false, maxIconSi
 
     // For default Credit Card icon the icon size should not be set.
     if (!isCard) {
-        bankIcon.iconSize = maxIconSize ? Math.min(variables.iconSizeExtraLarge, maxIconSize) : variables.iconSizeExtraLarge;
-        bankIcon.iconStyles = [styles.bankIconContainer];
+        const defaultSize = variables.iconSizeExtraLarge;
+        bankIcon.iconSize = maxIconSize ? Math.min(defaultSize, maxIconSize) : defaultSize;
+        bankIcon.iconStyles = maxIconSize && maxIconSize < defaultSize ? [{...styles.bankIconContainer, width: bankIcon.iconSize, height: bankIcon.iconSize}] : [styles.bankIconContainer];
     } else {
         const scale = maxIconSize ? Math.min(1, maxIconSize / variables.cardIconWidth) : 1;
         bankIcon.iconHeight = Math.round(variables.cardIconHeight * scale);

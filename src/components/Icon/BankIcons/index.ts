@@ -33,7 +33,7 @@ export default function getBankIcon({styles, bankName, isCard = false, maxIconSi
     if (!isCard) {
         const defaultSize: number = variables.iconSizeExtraLarge;
         bankIcon.iconSize = maxIconSize ? Math.min(defaultSize, maxIconSize) : defaultSize;
-        bankIcon.iconStyles = [styles.bankIconContainer];
+        bankIcon.iconStyles = maxIconSize && maxIconSize < defaultSize ? [{...styles.bankIconContainer, width: bankIcon.iconSize, height: bankIcon.iconSize}] : [styles.bankIconContainer];
     } else {
         const cardWidth: number = variables.cardIconWidth;
         const cardHeight: number = variables.cardIconHeight;
