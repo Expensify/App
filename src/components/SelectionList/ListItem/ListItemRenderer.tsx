@@ -16,7 +16,8 @@ type ListItemRendererProps<TItem extends ListItem> = Omit<BaseListItemProps<TIte
         singleExecution: ReturnType<typeof useSingleExecution>['singleExecution'];
         titleStyles?: StyleProp<TextStyle>;
         titleContainerStyles?: StyleProp<ViewStyle>;
-        shouldHighlightSelectedItem: boolean;
+        shouldHighlightSelectedItem?: boolean;
+        shouldShowRadioButton?: boolean;
     };
 
 function ListItemRenderer<TItem extends ListItem>({
@@ -52,6 +53,7 @@ function ListItemRenderer<TItem extends ListItem>({
     shouldHighlightSelectedItem,
     shouldDisableHoverStyle,
     shouldShowRightCaret,
+    shouldShowRadioButton,
     errorRowStyles,
 }: ListItemRendererProps<TItem>) {
     const handleOnCheckboxPress = () => {
@@ -111,6 +113,7 @@ function ListItemRenderer<TItem extends ListItem>({
                 shouldHighlightSelectedItem={shouldHighlightSelectedItem}
                 shouldDisableHoverStyle={shouldDisableHoverStyle}
                 shouldShowRightCaret={shouldShowRightCaret}
+                shouldShowRadioButton={shouldShowRadioButton}
             />
             {item.footerContent && item.footerContent}
         </>
