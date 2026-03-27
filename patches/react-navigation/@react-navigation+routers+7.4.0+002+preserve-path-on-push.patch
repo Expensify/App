@@ -1,0 +1,27 @@
+diff --git a/node_modules/@react-navigation/routers/lib/module/StackRouter.js b/node_modules/@react-navigation/routers/lib/module/StackRouter.js
+index be80231..bfdb0ae 100644
+--- a/node_modules/@react-navigation/routers/lib/module/StackRouter.js
++++ b/node_modules/@react-navigation/routers/lib/module/StackRouter.js
+@@ -247,7 +247,7 @@ export function StackRouter(options) {
+               routes = [...state.routes, {
+                 key: `${action.payload.name}-${nanoid()}`,
+                 name: action.payload.name,
+-                path: action.type === 'NAVIGATE' ? action.payload.path : undefined,
++                path: action.payload.path,
+                 params
+               }];
+             }
+diff --git a/node_modules/@react-navigation/routers/src/StackRouter.tsx b/node_modules/@react-navigation/routers/src/StackRouter.tsx
+index 1234567..abcdefg 100644
+--- a/node_modules/@react-navigation/routers/src/StackRouter.tsx
++++ b/node_modules/@react-navigation/routers/src/StackRouter.tsx
+@@ -441,8 +441,7 @@ export function StackRouter(options: StackRouterOptions): Router<
+               {
+                 key: `${action.payload.name}-${nanoid()}`,
+                 name: action.payload.name,
+-                path:
+-                  action.type === 'NAVIGATE' ? action.payload.path : undefined,
++                path: action.payload.path,
+                 params,
+               },
+             ];

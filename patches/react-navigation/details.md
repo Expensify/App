@@ -76,3 +76,10 @@
 - E/App issue: [#65709](https://github.com/Expensify/App/issues/65211)
 - PR Introducing Patch: [#65836](https://github.com/Expensify/App/pull/66890)
 - PR Updating Patch: N/A
+
+### [@react-navigation+routers+7.4.0+002+preserve-path-on-push.patch](@react-navigation+routers+7.4.0+002+preserve-path-on-push.patch)
+- Reason: By default, React Navigation only preserves `path` on routes created by `NAVIGATE` actions, setting it to `undefined` for `PUSH`. This prevents dynamic routes from storing their URL path when pushed programmatically. This patch allows `path` to be preserved for all action types, which is needed for dynamic route URL resolution via `getPathFromState`.
+- Upstream PR/issue: N/A
+- E/App issue: N/A
+- PR Introducing Patch: N/A
+- PR Updating Patch: N/A
