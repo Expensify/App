@@ -2,7 +2,7 @@ import React, {useCallback, useMemo} from 'react';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
-import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
+import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
@@ -83,12 +83,13 @@ function CategoryDefaultTaxRatePage({
                 />
                 <SelectionList
                     data={taxesList}
-                    ListItem={RadioListItem}
+                    ListItem={SingleSelectListItem}
                     onSelectRow={handleSelectRow}
                     shouldSingleExecuteRowSelect
                     addBottomSafeAreaPadding
                     initiallyFocusedItemKey={selectedTaxRate}
                     style={{containerStyle: styles.pt3}}
+                    shouldShowRadioButton
                 />
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
