@@ -68,6 +68,9 @@ type MoneyRequestReportTransactionItemProps = {
 
     /** Whether this transaction should be highlighted as newly added */
     shouldBeHighlighted: boolean;
+
+    /** Custom card names mapping cardID to display name */
+    customCardNames?: Record<number, string>;
 };
 
 function MoneyRequestReportTransactionItem({
@@ -86,6 +89,7 @@ function MoneyRequestReportTransactionItem({
     scrollToNewTransaction,
     onArrowRightPress,
     shouldBeHighlighted,
+    customCardNames,
 }: MoneyRequestReportTransactionItemProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -190,6 +194,7 @@ function MoneyRequestReportTransactionItem({
                         }}
                         onArrowRightPress={() => onArrowRightPress?.(transaction.transactionID)}
                         isHover={hovered}
+                        customCardNames={customCardNames}
                         canEditDate={canEditDate}
                         canEditMerchant={canEditMerchant}
                         canEditDescription={canEditDescription}
