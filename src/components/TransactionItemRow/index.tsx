@@ -6,15 +6,15 @@ import Icon from '@components/Icon';
 import type {TransactionWithOptionalHighlight} from '@components/MoneyRequestReportView/MoneyRequestReportTransactionList';
 import {PressableWithFeedback} from '@components/Pressable';
 import RadioButton from '@components/RadioButton';
+import ActionCell from '@components/Search/SearchList/ListItem/ActionCell';
+import DateCell from '@components/Search/SearchList/ListItem/DateCell';
+import ExportedIconCell from '@components/Search/SearchList/ListItem/ExportedIconCell';
+import StatusCell from '@components/Search/SearchList/ListItem/StatusCell';
+import TextCell from '@components/Search/SearchList/ListItem/TextCell';
+import AmountCell from '@components/Search/SearchList/ListItem/TotalCell';
+import UserInfoCell from '@components/Search/SearchList/ListItem/UserInfoCell';
+import WorkspaceCell from '@components/Search/SearchList/ListItem/WorkspaceCell';
 import type {SearchColumnType, TableColumnSize} from '@components/Search/types';
-import ActionCell from '@components/SelectionListWithSections/Search/ActionCell';
-import DateCell from '@components/SelectionListWithSections/Search/DateCell';
-import ExportedIconCell from '@components/SelectionListWithSections/Search/ExportedIconCell';
-import StatusCell from '@components/SelectionListWithSections/Search/StatusCell';
-import TextCell from '@components/SelectionListWithSections/Search/TextCell';
-import AmountCell from '@components/SelectionListWithSections/Search/TotalCell';
-import UserInfoCell from '@components/SelectionListWithSections/Search/UserInfoCell';
-import WorkspaceCell from '@components/SelectionListWithSections/Search/WorkspaceCell';
 import Text from '@components/Text';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -44,6 +44,7 @@ import {
     isTimeRequest,
     isUnreportedAndHasInvalidDistanceRateTransaction,
 } from '@libs/TransactionUtils';
+import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type {PersonalDetails, Policy, Report, ReportAction, TransactionViolation} from '@src/types/onyx';
@@ -250,14 +251,14 @@ function TransactionItemRow({
         }
     }, [transactionItem, translate, report, policy]);
 
-    const exchangeRateMessage = getExchangeRate(transactionItem);
+    const exchangeRateMessage = getExchangeRate(transactionItem, report?.currency);
 
     const cardName = useMemo(() => {
-        if (transactionItem.isCardFeedDeleted) {
-            return translate('workspace.companyCards.deletedFeed');
-        }
         if (transactionItem.cardName === CONST.EXPENSE.TYPE.CASH_CARD_NAME) {
             return '';
+        }
+        if (transactionItem.isCardFeedDeleted && transactionItem.cardID) {
+            return translate('workspace.companyCards.deletedCard');
         }
         const cardID = transactionItem.cardID;
         if (cardID && customCardNames?.[cardID]) {
@@ -564,7 +565,7 @@ function TransactionItemRow({
                         key={column}
                         style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TAX_RATE)]}
                     >
-                        <TextCell text={isTimeRequest(transactionItem) ? '' : (getTaxName(transactionItem.policy, transactionItem) ?? transactionItem.taxValue ?? '')} />
+                        <TextCell text={isTimeRequest(transactionItem) ? '' : (getTaxName(policy, transactionItem) ?? transactionItem.taxValue ?? '')} />
                     </View>
                 );
             case CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT:
@@ -705,7 +706,8 @@ function TransactionItemRow({
                                     src={expensicons.ArrowRight}
                                     fill={theme.icon}
                                     additionalStyles={styles.opacitySemiTransparent}
-                                    small
+                                    width={variables.iconSizeNormal}
+                                    height={variables.iconSizeNormal}
                                 />
                             </View>
                         )}
@@ -810,7 +812,8 @@ function TransactionItemRow({
                                 src={expensicons.ArrowRight}
                                 fill={theme.icon}
                                 additionalStyles={!isHover && styles.opacitySemiTransparent}
-                                small
+                                width={variables.iconSizeNormal}
+                                height={variables.iconSizeNormal}
                             />
                         </PressableWithFeedback>
                     )}

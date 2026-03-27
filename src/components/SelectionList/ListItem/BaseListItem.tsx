@@ -5,6 +5,7 @@ import Icon from '@components/Icon';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import type {PressableWithFeedbackProps} from '@components/Pressable/PressableWithFeedback';
+import SelectionCheckbox from '@components/SelectionList/components/SelectionCheckbox';
 import getAccessibilityLabel from '@components/SelectionList/utils/getAccessibilityLabel';
 import useHover from '@hooks/useHover';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -82,13 +83,13 @@ function BaseListItem<TItem extends ListItem>({
     onFocus = () => {},
     hoverStyle,
     onLongPressRow,
-    testID,
-    shouldUseDefaultRightHandSideCheckmark = true,
-    shouldHighlightSelectedItem = true,
+    shouldUseDefaultRightHandSideCheckmark = false,
+    shouldHighlightSelectedItem = false,
     shouldDisableHoverStyle,
     shouldShowRightCaret = false,
     accessible,
     accessibilityRole = getButtonRole(true),
+    forwardedFSClass,
 }: BaseListItemProps<TItem>) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -120,11 +121,9 @@ function BaseListItem<TItem extends ListItem>({
         return rightHandSideComponent;
     };
 
-    const shouldShowCheckmark = !canSelectMultiple && !!item.isSelected && !rightHandSideComponent && shouldUseDefaultRightHandSideCheckmark;
+    const shouldShowCheckbox = !canSelectMultiple && !rightHandSideComponent && shouldUseDefaultRightHandSideCheckmark;
 
     const shouldShowRBRIndicator = (!item.isSelected || !!item.canShowSeveralIndicators) && !!item.brickRoadIndicator && shouldDisplayRBR;
-
-    const shouldShowHiddenCheckmark = shouldShowRBRIndicator && !shouldShowCheckmark && !!item.canShowSeveralIndicators;
 
     const {role, tabIndex, accessibilityState, accessibleAndAccessibilityLabel} = getAccessibilityProps({
         role: accessibilityRole,
@@ -191,16 +190,22 @@ function BaseListItem<TItem extends ListItem>({
                 accessibilityState={accessibilityState}
                 onMouseLeave={handleMouseLeave}
                 wrapperStyle={pressableWrapperStyle}
-                testID={`${CONST.BASE_LIST_ITEM_TEST_ID}${item.keyForList}`}
             >
                 <View
-                    testID={testID}
+                    testID={`${CONST.BASE_LIST_ITEM_TEST_ID}${item.keyForList}`}
+                    accessibilityState={accessibilityState ?? {selected: !!isFocused}}
                     style={[
                         wrapperStyle,
                         isFocused &&
-                            shouldHighlightSelectedItem &&
-                            StyleUtils.getItemBackgroundColorStyle(!!item.isSelected, !!isFocused, !!item.isDisabled, theme.activeComponentBG, theme.hoverComponentBG),
+                            StyleUtils.getItemBackgroundColorStyle(
+                                shouldHighlightSelectedItem && !!item.isSelected,
+                                !!isFocused,
+                                !!item.isDisabled,
+                                theme.activeComponentBG,
+                                theme.hoverComponentBG,
+                            ),
                     ]}
+                    fsClass={forwardedFSClass}
                 >
                     {typeof children === 'function' ? children(hovered) : children}
 
@@ -214,17 +219,16 @@ function BaseListItem<TItem extends ListItem>({
                         </View>
                     )}
 
-                    {(shouldShowCheckmark || shouldShowHiddenCheckmark) && (
+                    {shouldShowCheckbox && (
                         <View
-                            style={[styles.flexRow, styles.alignItemsCenter, styles.ml3, shouldShowHiddenCheckmark ? styles.opacity0 : undefined]}
+                            style={[styles.flexRow, styles.alignItemsCenter, styles.ml3]}
                             accessible={false}
                         >
-                            <View>
-                                <Icon
-                                    src={icons.Checkmark}
-                                    fill={theme.success}
-                                />
-                            </View>
+                            <SelectionCheckbox
+                                item={item}
+                                onSelectRow={onSelectRow}
+                                isCircular
+                            />
                         </View>
                     )}
 
@@ -235,8 +239,8 @@ function BaseListItem<TItem extends ListItem>({
                                 src={icons.ArrowRight}
                                 fill={theme.icon}
                                 additionalStyles={[styles.alignSelfCenter, !hovered && styles.opacitySemiTransparent]}
-                                isButtonIcon
-                                medium
+                                width={variables.iconSizeNormal}
+                                height={variables.iconSizeNormal}
                             />
                         </View>
                     )}
