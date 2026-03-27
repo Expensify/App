@@ -1,8 +1,10 @@
 import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {clearAgentZeroProcessingIndicator, subscribeToReportReasoningEvents, unsubscribeFromReportReasoningChannel} from '@libs/actions/Report';
+import type {OnyxEntry} from 'react-native-onyx';
+import {clearAgentZeroProcessingIndicator, getNewerActions, subscribeToReportReasoningEvents, unsubscribeFromReportReasoningChannel} from '@libs/actions/Report';
 import ConciergeReasoningStore from '@libs/ConciergeReasoningStore';
 import type {ReasoningEntry} from '@libs/ConciergeReasoningStore';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {ReportActions} from '@src/types/onyx/ReportAction';
 import useLocalize from './useLocalize';
 import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
@@ -34,9 +36,29 @@ const SAFETY_TIMEOUT_MS = 60000;
  * @param reportID - The report ID to monitor
  * @param isAgentZeroChat - Whether the chat is an AgentZero-enabled chat (Concierge DM or #admins room)
  */
+/** Selector that extracts only the newest reportActionID from the report actions collection. */
+function selectNewestReportActionID(reportActions: OnyxEntry<ReportActions>): string | undefined {
+    if (!reportActions) {
+        return undefined;
+    }
+    const actionIDs = Object.keys(reportActions);
+    if (actionIDs.length === 0) {
+        return undefined;
+    }
+    // reportActionIDs are numeric strings; the highest value is the newest
+    return actionIDs.reduce((a, b) => (Number(a) > Number(b) ? a : b));
+}
+
 function useAgentZeroStatusIndicator(reportID: string, isAgentZeroChat: boolean): AgentZeroStatusState {
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`);
     const serverLabel = reportNameValuePairs?.agentZeroProcessingRequestIndicator?.trim() ?? '';
+
+    // Track the newest reportActionID so we can fetch missed actions when the safety timer fires
+    const [newestReportActionID] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {selector: selectNewestReportActionID});
+    const newestReportActionIDRef = useRef<string | undefined>(newestReportActionID);
+    useEffect(() => {
+        newestReportActionIDRef.current = newestReportActionID;
+    }, [newestReportActionID]);
 
     const [optimisticStartTime, setOptimisticStartTime] = useState<number | null>(null);
     const [displayedLabel, setDisplayedLabel] = useState<string>('');
@@ -68,12 +90,21 @@ function useAgentZeroStatusIndicator(reportID: string, isAgentZeroChat: boolean)
      * Auto-clear the indicator by resetting local state and clearing the Onyx NVP.
      * This is the "lease expiry" — if no renewal (new server label) or explicit clear
      * arrived within the timeout window, assume the indicator is stale.
+     *
+     * Also fetches newer report actions via HTTP, because the most likely reason
+     * the timer fired is that the Pusher CLEAR event (and possibly the Concierge
+     * response itself) was dropped. getNewerActions pulls any missed actions from
+     * the server so the user sees the response without a manual refresh.
      */
     const autoClearIndicator = useCallback(() => {
         setOptimisticStartTime(null);
         setDisplayedLabel('');
         clearAgentZeroProcessingIndicator(reportID);
         safetyTimerRef.current = null;
+
+        // Fetch any report actions the client may have missed (e.g., the Concierge
+        // response that should have arrived alongside the indicator CLEAR).
+        getNewerActions(reportID, newestReportActionIDRef.current);
     }, [reportID]);
 
     /**
@@ -88,12 +119,14 @@ function useAgentZeroStatusIndicator(reportID: string, isAgentZeroChat: boolean)
     // Clear indicator on network reconnect. When Pusher reconnects, stale NVP state
     // may be re-delivered. Like typing indicators (Report/index.ts:486), we reset
     // the indicator and let fresh data arrive via GetMissingOnyxMessages.
+    // We also call getNewerActions to pull any responses missed during the outage.
     const {isOffline} = useNetwork({
         onReconnect: () => {
             clearSafetyTimer();
             setOptimisticStartTime(null);
             setDisplayedLabel('');
             clearAgentZeroProcessingIndicator(reportID);
+            getNewerActions(reportID, newestReportActionIDRef.current);
         },
     });
 
