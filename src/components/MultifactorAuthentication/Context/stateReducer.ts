@@ -10,6 +10,7 @@ const DEFAULT_STATE: MultifactorAuthenticationState = {
     registrationChallenge: undefined,
     authorizationChallenge: undefined,
     softPromptApproved: false,
+    scenarioName: undefined,
     scenario: undefined,
     payload: undefined,
     isRegistrationComplete: false,
@@ -73,6 +74,7 @@ function stateReducer(state: MultifactorAuthenticationState, action: Action): Mu
             const scenario = MULTIFACTOR_AUTHENTICATION_SCENARIO_CONFIG[action.payload.scenario] as MultifactorAuthenticationScenarioConfig;
             return {
                 ...DEFAULT_STATE,
+                scenarioName: action.payload.scenario,
                 scenario,
                 payload: action.payload.payload,
             };
@@ -82,6 +84,7 @@ function stateReducer(state: MultifactorAuthenticationState, action: Action): Mu
         case 'REREGISTER':
             return {
                 ...DEFAULT_STATE,
+                scenarioName: state.scenarioName,
                 scenario: state.scenario,
                 payload: state.payload,
             };

@@ -9,6 +9,7 @@ import {isPersonalCard} from '@libs/CardUtils';
 import {getDecodedCategoryName, isCategoryMissing} from '@libs/CategoryUtils';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
+import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {isReceiptError} from '@libs/ErrorUtils';
 import {getCurrentUserEmail} from '@libs/Network/NetworkStore';
 import Parser from '@libs/Parser';
@@ -20,6 +21,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Card, CardList, Policy, PolicyCategories, PolicyTagLists, PolicyTags, Report, ReportAction, Transaction, TransactionViolation, ViolationName} from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
+import type {Unit} from '@src/types/onyx/Policy';
 import type {ReceiptError, ReceiptErrors} from '@src/types/onyx/Transaction';
 import type ViolationFixParams from './types';
 
@@ -670,6 +672,8 @@ const ViolationsUtils = {
         connectionLink?: string,
         card?: Card,
         isMarkAsCash?: boolean,
+        routeDistanceMeters?: number,
+        distanceUnit?: Unit,
     ): string {
         const {
             brokenBankConnection = false,
@@ -698,11 +702,11 @@ const ViolationsUtils = {
             case 'billableExpense':
                 return translate('violations.billableExpense');
             case 'cashExpenseWithNoReceipt':
-                return translate('violations.cashExpenseWithNoReceipt', {formattedLimit});
+                return translate('violations.cashExpenseWithNoReceipt', formattedLimit);
             case 'categoryOutOfPolicy':
                 return translate('violations.categoryOutOfPolicy');
             case 'conversionSurcharge':
-                return translate('violations.conversionSurcharge', {surcharge});
+                return translate('violations.conversionSurcharge', surcharge);
             case 'customUnitOutOfPolicy':
                 return translate('violations.customUnitOutOfPolicy');
             case 'duplicatedTransaction':
@@ -712,9 +716,9 @@ const ViolationsUtils = {
             case 'futureDate':
                 return translate('violations.futureDate');
             case 'invoiceMarkup':
-                return translate('violations.invoiceMarkup', {invoiceMarkup});
+                return translate('violations.invoiceMarkup', invoiceMarkup);
             case 'maxAge':
-                return translate('violations.maxAge', {maxAge});
+                return translate('violations.maxAge', maxAge);
             case 'missingCategory':
                 return translate('violations.missingCategory');
             case 'missingComment':
@@ -727,28 +731,33 @@ const ViolationsUtils = {
                 return translate('violations.modifiedAmount', {type, displayPercentVariance: violation.data?.displayPercentVariance});
             case 'modifiedDate':
                 return translate('violations.modifiedDate');
+            case 'increasedDistance': {
+                const distance = routeDistanceMeters ?? 0;
+                const formattedRouteDistance = distance > 0 && distanceUnit ? DistanceRequestUtils.getDistanceForDisplayLabel(distance, distanceUnit) : undefined;
+                return translate('violations.increasedDistance', {formattedRouteDistance});
+            }
             case 'nonExpensiworksExpense':
                 return translate('violations.nonExpensiworksExpense');
             case 'overAutoApprovalLimit':
-                return translate('violations.overAutoApprovalLimit', {formattedLimit});
+                return translate('violations.overAutoApprovalLimit', formattedLimit);
             case 'overCategoryLimit':
-                return translate('violations.overCategoryLimit', {formattedLimit});
+                return translate('violations.overCategoryLimit', formattedLimit);
             case 'overLimit':
-                return translate('violations.overLimit', {formattedLimit});
+                return translate('violations.overLimit', formattedLimit);
             case 'overTripLimit':
-                return translate('violations.overTripLimit', {formattedLimit});
+                return translate('violations.overTripLimit', formattedLimit);
             case 'overLimitAttendee':
-                return translate('violations.overLimitAttendee', {formattedLimit});
+                return translate('violations.overLimitAttendee', formattedLimit);
             case 'perDayLimit':
-                return translate('violations.perDayLimit', {formattedLimit});
+                return translate('violations.perDayLimit', formattedLimit);
             case 'receiptNotSmartScanned':
                 return translate('violations.receiptNotSmartScanned');
             case 'receiptRequired':
                 return translate('violations.receiptRequired', {formattedLimit, category: getDecodedCategoryName(category ?? '')});
             case 'itemizedReceiptRequired':
-                return translate('violations.itemizedReceiptRequired', {formattedLimit});
+                return translate('violations.itemizedReceiptRequired', formattedLimit);
             case 'customRules':
-                return translate('violations.customRules', {message});
+                return translate('violations.customRules', message);
             case 'rter': {
                 let isPersonalCardViolation = false;
                 if (cardID !== undefined && cardID !== null && card) {
@@ -829,7 +838,18 @@ const ViolationsUtils = {
             ...filteredViolations.map((violation) => {
                 const cardID = violation?.data?.cardID;
                 const card = cardID ? cardList?.[cardID] : undefined;
-                const message = ViolationsUtils.getViolationTranslation(violation, translate, true, tags, companyCardPageURL, connectionLink, card, isMarkAsCash);
+                const message = ViolationsUtils.getViolationTranslation(
+                    violation,
+                    translate,
+                    true,
+                    tags,
+                    companyCardPageURL,
+                    connectionLink,
+                    card,
+                    isMarkAsCash,
+                    transaction?.comment?.customUnit?.routeDistanceMeters,
+                    transaction?.comment?.customUnit?.distanceUnit,
+                );
                 if (!message) {
                     return;
                 }
