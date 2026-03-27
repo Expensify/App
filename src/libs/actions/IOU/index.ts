@@ -39,6 +39,7 @@ import type {
 import {WRITE_COMMANDS} from '@libs/API/types';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
+import {registerDeferredWrite} from '@libs/deferredLayoutWrite';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {getMicroSecondOnyxErrorObject, getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import {readFileAsync} from '@libs/fileDownload/FileUtils';
@@ -1207,11 +1208,6 @@ function handleNavigateAfterExpenseCreate({
     setPendingSubmitFollowUpAction(
         alreadyOnSearchRoot && isSameSearchType ? CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_ONLY : CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.NAVIGATE_TO_SEARCH,
     );
-    startSpan(CONST.TELEMETRY.SPAN_NAVIGATE_AFTER_EXPENSE_CREATE, {
-        name: 'navigate-after-expense-create',
-        op: CONST.TELEMETRY.SPAN_NAVIGATE_AFTER_EXPENSE_CREATE,
-    });
-
     const queryString = buildCannedSearchQuery({type});
     Navigation.isNavigationReady().then(() => {
         if (getIsNarrowLayout()) {
@@ -1479,12 +1475,21 @@ function startDistanceRequest(
     }
 }
 
-function setMoneyRequestAmount(transactionID: string, amount: number, currency: string, shouldShowOriginalAmount = false) {
-    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {amount, currency, shouldShowOriginalAmount});
+function setMoneyRequestReceiptState(transactionID: string, isDraft: boolean, shouldStopSmartscan = false) {
+    if (!isDraft || !shouldStopSmartscan) {
+        return;
+    }
+    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {receipt: {state: CONST.IOU.RECEIPT_STATE.OPEN}});
 }
 
-function setMoneyRequestCreated(transactionID: string, created: string, isDraft: boolean) {
+function setMoneyRequestAmount(transactionID: string, amount: number, currency: string, shouldShowOriginalAmount = false, shouldStopSmartscan = false) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {amount, currency, shouldShowOriginalAmount});
+    setMoneyRequestReceiptState(transactionID, true, shouldStopSmartscan);
+}
+
+function setMoneyRequestCreated(transactionID: string, created: string, isDraft: boolean, shouldStopSmartscan = false) {
     Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {created});
+    setMoneyRequestReceiptState(transactionID, isDraft, shouldStopSmartscan);
 }
 
 function setMoneyRequestDateAttribute(transactionID: string, start: string, end: string) {
@@ -1496,12 +1501,14 @@ function setMoneyRequestCurrency(transactionID: string, currency: string, isEdit
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {[fieldToUpdate]: currency});
 }
 
-function setMoneyRequestDescription(transactionID: string, comment: string, isDraft: boolean) {
+function setMoneyRequestDescription(transactionID: string, comment: string, isDraft: boolean, shouldStopSmartscan = false) {
     Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {comment: {comment: comment.trim()}});
+    setMoneyRequestReceiptState(transactionID, isDraft, shouldStopSmartscan);
 }
 
-function setMoneyRequestMerchant(transactionID: string, merchant: string, isDraft: boolean) {
+function setMoneyRequestMerchant(transactionID: string, merchant: string, isDraft: boolean, shouldStopSmartscan = false) {
     Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {merchant});
+    setMoneyRequestReceiptState(transactionID, isDraft, shouldStopSmartscan);
 }
 
 function setMoneyRequestAttendees(transactionID: string, attendees: Attendee[], isDraft: boolean) {
@@ -1751,18 +1758,13 @@ function removeMoneyRequestOdometerImage(transactionID: string, imageType: Odome
  * Set the distance rate of a transaction.
  * Used when creating a new transaction or moving an existing one from Self DM
  */
-function setMoneyRequestDistanceRate(currentTransaction: OnyxEntry<OnyxTypes.Transaction>, customUnitRateID: string, policy: OnyxEntry<OnyxTypes.Policy>, isDraft: boolean) {
-    if (!currentTransaction) {
-        Log.warn('setMoneyRequestDistanceRate is called without a valid transaction, skipping setting distance rate.');
-        return;
-    }
+function setMoneyRequestDistanceRate(transactionID: string, customUnitRateID: string, policy: OnyxEntry<OnyxTypes.Policy>, isDraft: boolean) {
     if (policy) {
         Onyx.merge(ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES, {[policy.id]: customUnitRateID});
     }
 
     const newDistanceUnit = getDistanceRateCustomUnit(policy)?.attributes?.unit;
-    const transactionID = currentTransaction?.transactionID;
-    const transaction = isDraft ? allTransactionDrafts[`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`] : currentTransaction;
+    const transaction = isDraft ? allTransactionDrafts[`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`] : allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
 
     let newDistance;
     if (newDistanceUnit && newDistanceUnit !== transaction?.comment?.customUnit?.distanceUnit && !isOdometerDistanceRequestTransactionUtils(transaction)) {
@@ -4330,6 +4332,7 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
         key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
         value: {
             ...updatedTransaction,
+            pendingFields,
             errorFields: null,
             reportID: newTransactionReportID ?? updatedTransaction?.reportID,
         },
@@ -4486,6 +4489,7 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
     const hasModifiedReimbursable = 'reimbursable' in transactionChanges;
     const hasModifiedTaxCode = 'taxCode' in transactionChanges;
     const hasModifiedDate = 'date' in transactionChanges;
+    const hasModifiedDistance = 'distance' in transactionChanges;
     const hasModifiedAttendees = 'attendees' in transactionChanges;
 
     const isInvoice = isInvoiceReportReportUtils(iouReport);
@@ -4501,6 +4505,7 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
             hasModifiedComment ||
             hasModifiedMerchant ||
             hasModifiedDistanceRate ||
+            hasModifiedDistance ||
             hasModifiedDate ||
             hasModifiedCurrency ||
             hasModifiedAmount ||
@@ -4521,6 +4526,11 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
                 : optimisticViolations;
         if (hasPendingWaypoints) {
             optimisticViolations = optimisticViolations.filter((violation) => violation.name !== CONST.VIOLATIONS.NO_ROUTE);
+        }
+        if (hasModifiedDistanceRate || hasModifiedDistance) {
+            optimisticViolations = optimisticViolations.filter(
+                (violation) => !(violation.name === CONST.VIOLATIONS.MODIFIED_AMOUNT && violation.data?.type === CONST.MODIFIED_AMOUNT_VIOLATION_DATA.DISTANCE),
+            );
         }
 
         const violationsOnyxData = ViolationsUtils.getViolationsOnyxData(
@@ -5469,7 +5479,7 @@ function updateMoneyRequestDescription({
 
 /** Updates the distance rate of an expense */
 function updateMoneyRequestDistanceRate({
-    transaction,
+    transactionID,
     transactionThreadReport,
     parentReport,
     rateID,
@@ -5483,7 +5493,7 @@ function updateMoneyRequestDistanceRate({
     updatedTaxCode,
     parentReportNextStep,
 }: {
-    transaction: OnyxEntry<OnyxTypes.Transaction>;
+    transactionID: string;
     transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
     parentReport: OnyxEntry<OnyxTypes.Report>;
     rateID: string;
@@ -5503,7 +5513,8 @@ function updateMoneyRequestDistanceRate({
         ...(updatedTaxCode ? {taxCode: updatedTaxCode} : {}),
     };
 
-    if (transaction?.transactionID) {
+    const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
+    if (transaction) {
         const existingDistanceUnit = transaction?.comment?.customUnit?.distanceUnit;
         const newDistanceUnit = DistanceRequestUtils.getRateByCustomUnitRateID({customUnitRateID: rateID, policy})?.unit;
 
@@ -5516,10 +5527,10 @@ function updateMoneyRequestDistanceRate({
     let data: UpdateMoneyRequestData<UpdateMoneyRequestDataKeys>;
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     if (isTrackExpenseReport(transactionThreadReport) && isSelfDM(parentReport)) {
-        data = getUpdateTrackExpenseParams(transaction?.transactionID, transactionThreadReport?.reportID, transactionChanges, policy);
+        data = getUpdateTrackExpenseParams(transactionID, transactionThreadReport?.reportID, transactionChanges, policy);
     } else {
         data = getUpdateMoneyRequestParams({
-            transactionID: transaction?.transactionID,
+            transactionID,
             transactionThreadReport,
             iouReport: parentReport,
             transactionChanges,
@@ -6422,6 +6433,15 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
         playSound(SOUNDS.DONE);
     }
 
+    // API.write is deferred until the Search screen's actual content (not skeleton)
+    // lays out, so that Onyx optimistic updates don't block the JS thread while
+    // the skeleton→content transition is in progress. The Search component flushes
+    // the registered write from its content onLayout callback.
+    // Only the SUBMIT and default (REQUEST_MONEY) branches wrap the write; the actual
+    // deferral only activates when we navigate to Search (shouldHandleNavigation && !isRetry).
+    // CATEGORIZE and SHARE navigate elsewhere and don't benefit from this deferral.
+    let deferredAPIWrite: (() => void) | undefined;
+
     switch (action) {
         case CONST.IOU.ACTION.SUBMIT: {
             if (!linkedTrackedExpenseReportAction || !linkedTrackedExpenseReportID) {
@@ -6449,42 +6469,44 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
                       }
                     : undefined;
             const isDistanceRequest = isDistanceRequestTransactionUtils(transaction);
-            convertTrackedExpenseToRequest({
-                payerParams: {
-                    accountID: payerAccountID,
-                    email: payerEmail,
-                },
-                transactionParams: {
-                    amount,
-                    distance,
-                    currency,
-                    comment,
-                    merchant,
-                    created,
-                    attendees,
-                    transactionID: transaction.transactionID,
-                    actionableWhisperReportActionID,
-                    linkedTrackedExpenseReportAction,
-                    linkedTrackedExpenseReportID,
-                    transactionThreadReportID: transactionThreadReportID ?? iouAction?.childReportID,
-                    isLinkedTrackedExpenseReportArchived,
-                    isDistance: isDistanceRequest,
-                    customUnitRateID: isDistanceRequest ? customUnitRateID : undefined,
-                    waypoints: isDistanceRequest ? sanitizedWaypoints : undefined,
-                },
-                chatParams: {
-                    reportID: chatReport.reportID,
-                    createdReportActionID: createdChatReportActionID,
-                    reportPreviewReportActionID: reportPreviewAction.reportActionID,
-                },
-                iouParams: {
-                    reportID: iouReport.reportID,
-                    createdReportActionID: createdIOUReportActionID,
-                    reportActionID: iouAction.reportActionID,
-                },
-                onyxData,
-                workspaceParams,
-            });
+            deferredAPIWrite = () => {
+                convertTrackedExpenseToRequest({
+                    payerParams: {
+                        accountID: payerAccountID,
+                        email: payerEmail,
+                    },
+                    transactionParams: {
+                        amount,
+                        distance,
+                        currency,
+                        comment,
+                        merchant,
+                        created,
+                        attendees,
+                        transactionID: transaction.transactionID,
+                        actionableWhisperReportActionID,
+                        linkedTrackedExpenseReportAction,
+                        linkedTrackedExpenseReportID,
+                        transactionThreadReportID: transactionThreadReportID ?? iouAction?.childReportID,
+                        isLinkedTrackedExpenseReportArchived,
+                        isDistance: isDistanceRequest,
+                        customUnitRateID: isDistanceRequest ? customUnitRateID : undefined,
+                        waypoints: isDistanceRequest ? sanitizedWaypoints : undefined,
+                    },
+                    chatParams: {
+                        reportID: chatReport.reportID,
+                        createdReportActionID: createdChatReportActionID,
+                        reportPreviewReportActionID: reportPreviewAction.reportActionID,
+                    },
+                    iouParams: {
+                        reportID: iouReport.reportID,
+                        createdReportActionID: createdIOUReportActionID,
+                        reportActionID: iouAction.reportActionID,
+                    },
+                    onyxData,
+                    workspaceParams,
+                });
+            };
             break;
         }
         default: {
@@ -6543,7 +6565,9 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
                 shouldDeferAutoSubmit,
             };
             // eslint-disable-next-line rulesdir/no-multiple-api-calls
-            API.write(WRITE_COMMANDS.REQUEST_MONEY, parameters, onyxData);
+            deferredAPIWrite = () => {
+                API.write(WRITE_COMMANDS.REQUEST_MONEY, parameters, onyxData);
+            };
         }
     }
 
@@ -6554,6 +6578,18 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
         const trackReport = Navigation.getReportRouteByID(linkedTrackedExpenseReportAction?.childReportID);
         if (trackReport?.key) {
             Navigation.removeScreenByKey(trackReport.key);
+        }
+    }
+
+    // Register the deferred write BEFORE navigation so the Search component's
+    // hasDeferredWrite() check on mount always sees the pending channel.
+    if (deferredAPIWrite) {
+        if (shouldHandleNavigation && !requestMoneyInformation.isRetry && isFromGlobalCreate && !isReportTopmostSplitNavigator()) {
+            registerDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH, deferredAPIWrite, {
+                optimisticWatchKey: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
+            });
+        } else {
+            deferredAPIWrite();
         }
     }
 
@@ -6934,7 +6970,18 @@ function trackExpense(params: CreateTrackExpenseParams) {
                 parameters.actionableWhisperReportActionID = actionableWhisperReportActionIDParam;
             }
 
-            API.write(WRITE_COMMANDS.TRACK_EXPENSE, parameters, onyxData);
+            const shouldDeferWrite = shouldHandleNavigation && !params.isRetry && isFromGlobalCreate && !isReportTopmostSplitNavigator();
+            const apiWrite = () => {
+                API.write(WRITE_COMMANDS.TRACK_EXPENSE, parameters, onyxData);
+            };
+
+            if (shouldDeferWrite) {
+                registerDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH, apiWrite, {
+                    optimisticWatchKey: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction?.transactionID}`,
+                });
+            } else {
+                apiWrite();
+            }
         }
     }
 
@@ -7802,7 +7849,19 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
         playSound(SOUNDS.DONE);
     }
 
-    API.write(WRITE_COMMANDS.CREATE_DISTANCE_REQUEST, parameters, onyxData);
+    const shouldDeferWrite = shouldHandleNavigation && isFromGlobalCreate && !isReportTopmostSplitNavigator();
+    const apiWrite = () => {
+        API.write(WRITE_COMMANDS.CREATE_DISTANCE_REQUEST, parameters, onyxData);
+    };
+
+    if (shouldDeferWrite) {
+        registerDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH, apiWrite, {
+            optimisticWatchKey: `${ONYXKEYS.COLLECTION.TRANSACTION}${parameters.transactionID}`,
+        });
+    } else {
+        apiWrite();
+    }
+
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     InteractionManager.runAfterInteractions(() => removeDraftTransaction(CONST.IOU.OPTIMISTIC_TRANSACTION_ID));
     const activeReportID = isMoneyRequestReport && report?.reportID ? report.reportID : parameters.chatReportID;

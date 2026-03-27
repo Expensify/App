@@ -1,3 +1,4 @@
+import {isUserValidatedSelector} from '@selectors/Account';
 import {Str} from 'expensify-common';
 import React from 'react';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -49,6 +50,7 @@ function WorkspaceCompanyCardFeedSelectorPage({route}: WorkspaceCompanyCardFeedS
 
     const {translate} = useLocalize();
     const [allDomains] = useOnyx(ONYXKEYS.COLLECTION.DOMAIN);
+    const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isUserValidatedSelector});
     const styles = useThemeStyles();
     const illustrations = useThemeIllustrations();
     const companyCardFeedIcons = useCompanyCardFeedIcons();
@@ -93,6 +95,10 @@ function WorkspaceCompanyCardFeedSelectorPage({route}: WorkspaceCompanyCardFeedS
     });
 
     const onAddCardsPress = () => {
+        if (!isUserValidated) {
+            Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_VERIFY_ACCOUNT.getRoute(policyID));
+            return;
+        }
         clearAddNewCardFlow();
         if (isBlockedToAddNewFeeds) {
             Navigation.navigate(
