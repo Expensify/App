@@ -1,6 +1,6 @@
 import {useFocusEffect} from '@react-navigation/native';
 import {hasSeenTourSelector} from '@selectors/Onboarding';
-import React, {useCallback, useRef} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -172,7 +172,7 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
                 onSelectRow={() => {}}
                 ListItem={UserListItem}
                 style={{listItemWrapperStyle: onboardingIsMediumOrLargerScreenWidth ? [styles.pl8, styles.pr8, styles.cursorDefault] : []}}
-                shouldShowLoadingPlaceholder={joinablePoliciesLoading || isLoadingJoinablePolicies}
+                shouldShowLoadingPlaceholder={isLoadingJoinablePolicies || joinablePoliciesLoading}
                 shouldStopPropagation
                 showScrollIndicator
                 customListHeader={
