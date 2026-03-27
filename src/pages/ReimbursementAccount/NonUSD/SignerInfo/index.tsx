@@ -1,6 +1,5 @@
 import {Str} from 'expensify-common';
-import type {ComponentType} from 'react';
-import React, {useCallback, useEffect, useMemo, useRef} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
@@ -9,11 +8,11 @@ import TextLink from '@components/TextLink';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import type NonUSDPageProps from '@pages/ReimbursementAccount/NonUSD/types';
-import getDraftValuesForSignerInfo from '@pages/ReimbursementAccount/NonUSD/utils/getDraftValuesForSignerInfo';
-import useThemeStyles from '@hooks/useThemeStyles';
 import getCurrencyForNonUSDBankAccount from '@pages/ReimbursementAccount/NonUSD/utils/getCurrencyForNonUSDBankAccount';
+import getDraftValuesForSignerInfo from '@pages/ReimbursementAccount/NonUSD/utils/getDraftValuesForSignerInfo';
 import getSignerDetailsAndSignerFilesForSignerInfo from '@pages/ReimbursementAccount/NonUSD/utils/getSignerDetailsAndSignerFilesForSignerInfo';
 import {askForCorpaySignerInformation, clearReimbursementAccountSaveCorpayOnboardingDirectorInformation, saveCorpayOnboardingDirectorInformation} from '@userActions/BankAccounts';
 import {clearErrors, setDraftValues} from '@userActions/FormActions';
@@ -108,30 +107,20 @@ function SignerInfo({onBackButtonPress, onSubmit, stepNames, currentSubPage, bac
         }
     }, [reimbursementAccount?.errors, reimbursementAccount?.isAskingForCorpaySignerInformation, reimbursementAccount?.isAskingForCorpaySignerInformationSuccess, policyID, backTo]);
 
-        const handleNextSubStep = useCallback(
-        (value: boolean) => {
-            if (!policyID && (!value || currency === CONST.CURRENCY.AUD)) {
-                setShowNoPolicyError(true);
-                return;
-            }
-        },
-        [currency, policyID],
-    );
-
     const handleEmailSubmit = useCallback(
         (values: EmailSubmitParams) => {
             const params = shouldSendOnlySecondSignerEmail
                 ? {
-                    secondSignerEmail: values.secondSignerEmail,
-                    policyID: String(policyID),
-                    bankAccountID,
-                }
+                      secondSignerEmail: values.secondSignerEmail,
+                      policyID: String(policyID),
+                      bankAccountID,
+                  }
                 : {
-                    signerEmail: values.signerEmail,
-                    secondSignerEmail: values.secondSignerEmail,
-                    policyID: String(policyID),
-                    bankAccountID,
-                };
+                      signerEmail: values.signerEmail,
+                      secondSignerEmail: values.secondSignerEmail,
+                      policyID: String(policyID),
+                      bankAccountID,
+                  };
 
             askForCorpaySignerInformation(params);
         },
@@ -140,6 +129,10 @@ function SignerInfo({onBackButtonPress, onSubmit, stepNames, currentSubPage, bac
 
     const handleIsDirectorSelected = useCallback(
         (value: boolean) => {
+            if (!policyID && (!value || currency === CONST.CURRENCY.AUD)) {
+                setShowNoPolicyError(true);
+                return;
+            }
             setDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, {isUserDirector: value});
             if (value) {
                 const firstFormPage = isUserOwner ? SUB_PAGE_NAMES.JOB_TITLE : SUB_PAGE_NAMES.NAME;
@@ -148,7 +141,7 @@ function SignerInfo({onBackButtonPress, onSubmit, stepNames, currentSubPage, bac
                 Navigation.navigate(ROUTES.BANK_ACCOUNT_NON_USD_SETUP.getRoute({policyID, page: PAGE_NAME.SIGNER_INFO, subPage: SUB_PAGE_NAMES.ENTER_EMAIL, backTo}));
             }
         },
-        [isUserOwner, policyID, backTo],
+        [policyID, currency, isUserOwner, backTo],
     );
 
     const handleBackButtonPress = useCallback(() => {
@@ -193,8 +186,7 @@ function SignerInfo({onBackButtonPress, onSubmit, stepNames, currentSubPage, bac
                     title={translate('signerInfoStep.areYouDirector', companyName)}
                     description={translate('signerInfoStep.regulationRequiresUs')}
                     defaultValue={isUserDirector}
-                    onSelectedValue={handleNextSubStep}
-                    // onSelectedValue={handleIsDirectorSelected}
+                    onSelectedValue={handleIsDirectorSelected}
                     onValueChange={() => setShowNoPolicyError(false)}
                     submitFlexEnabled={!showNoPolicyError}
                 >
