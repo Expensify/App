@@ -7,6 +7,7 @@ import type {ListItem} from '@components/SelectionList/types';
 import SelectionScreen from '@components/SelectionScreen';
 import type {SelectorType} from '@components/SelectionScreen';
 import Text from '@components/Text';
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {updateXeroAccountingMethod} from '@libs/actions/connections/Xero';
@@ -16,21 +17,16 @@ import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnec
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
-import type {Route} from '@src/ROUTES';
-import ROUTES from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 
 type MenuListItem = ListItem & {
     value: ValueOf<typeof COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD>;
 };
 
-type XeroAccountingMethodPageRouteParams = {
-    backTo?: Route;
-};
-
-function XeroAccountingMethodPage({policy, route}: WithPolicyConnectionsProps) {
+function DynamicXeroAccountingMethodPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
     const policyID = policy?.id;
-    const {backTo} = route.params as XeroAccountingMethodPageRouteParams;
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.POLICY_ACCOUNTING_XERO_ACCOUNTING_METHOD.path);
     const styles = useThemeStyles();
     const config = policy?.connections?.xero?.config;
     const accountingMethod = config?.export?.accountingMethod ?? COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH;
@@ -59,9 +55,9 @@ function XeroAccountingMethodPage({policy, route}: WithPolicyConnectionsProps) {
             if (row.value !== accountingMethod) {
                 updateXeroAccountingMethod(policyID, row.value, accountingMethod);
             }
-            Navigation.goBack(ROUTES.POLICY_ACCOUNTING_XERO_AUTO_SYNC.getRoute(policyID, backTo));
+            Navigation.goBack(backPath);
         },
-        [accountingMethod, policyID, backTo],
+        [accountingMethod, policyID, backPath],
     );
 
     return (
@@ -76,7 +72,7 @@ function XeroAccountingMethodPage({policy, route}: WithPolicyConnectionsProps) {
             policyID={policyID}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
-            onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_XERO_AUTO_SYNC.getRoute(policyID, backTo))}
+            onBackButtonPress={() => Navigation.goBack(backPath)}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.XERO}
             pendingAction={pendingAction}
             shouldBeBlocked={!config?.autoSync?.enabled}
@@ -84,4 +80,4 @@ function XeroAccountingMethodPage({policy, route}: WithPolicyConnectionsProps) {
     );
 }
 
-export default withPolicyConnections(XeroAccountingMethodPage);
+export default withPolicyConnections(DynamicXeroAccountingMethodPage);
