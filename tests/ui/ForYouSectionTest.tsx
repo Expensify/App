@@ -99,6 +99,7 @@ describe('ForYouSection', () => {
             isExtraSmallScreenWidth: false,
             isSmallScreen: false,
             onboardingIsMediumOrLargerScreenWidth: true,
+            isInLandscapeMode: false,
         });
 
         await act(async () => {
@@ -186,6 +187,7 @@ describe('ForYouSection', () => {
                     isExtraSmallScreenWidth: false,
                     isSmallScreen: false,
                     onboardingIsMediumOrLargerScreenWidth: true,
+                    isInLandscapeMode: false,
                 });
             });
 
@@ -279,6 +281,7 @@ describe('ForYouSection', () => {
                     isExtraSmallScreenWidth: false,
                     isSmallScreen: true,
                     onboardingIsMediumOrLargerScreenWidth: false,
+                    isInLandscapeMode: false,
                 });
             });
 
