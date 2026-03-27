@@ -97,11 +97,11 @@ function ShareCodePage({report, policy, backTo}: ShareCodePageProps) {
                     .join(' & ');
             }
 
-            return getParentNavigationSubtitle(report, conciergeReportID, isParentReportArchived).workspaceName ?? getChatRoomSubtitle(report, false, isReportArchived);
+            return getParentNavigationSubtitle(report, policy, conciergeReportID, isParentReportArchived).workspaceName ?? getChatRoomSubtitle(report, false, isReportArchived);
         }
 
         return currentUserPersonalDetails.login;
-    }, [report, currentUserPersonalDetails.login, isReport, isReportArchived, isParentReportArchived, formatPhoneNumber, conciergeReportID]);
+    }, [report, policy, currentUserPersonalDetails.login, isReport, isReportArchived, isParentReportArchived, formatPhoneNumber, conciergeReportID]);
 
     const reportForTitle = useMemo(() => getReportForHeader(report), [report]);
 
