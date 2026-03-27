@@ -13575,6 +13575,7 @@ function updateMultipleMoneyRequests({
         }
 
         // Optimistic report action
+        let backfilledCreatedActionID: string | undefined;
         if (transactionThreadReportID) {
             // Backfill a CREATED action for threads never opened locally so
             // MoneyRequestView renders and the skeleton doesn't loop offline.
@@ -13585,6 +13586,7 @@ function updateMultipleMoneyRequests({
             if (!hasCreatedAction) {
                 const optimisticCreatedAction = buildOptimisticCreatedReportAction(CONST.REPORT.OWNER_EMAIL_FAKE);
                 optimisticCreatedAction.pendingAction = null;
+                backfilledCreatedActionID = optimisticCreatedAction.reportActionID;
                 optimisticCreatedValue[optimisticCreatedAction.reportActionID] = optimisticCreatedAction;
             }
 
@@ -13631,6 +13633,8 @@ function updateMultipleMoneyRequests({
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`,
                 value: {
                     [modifiedExpenseReportActionID]: {pendingAction: null},
+                    // Remove the backfilled CREATED action so it doesn't duplicate one from OpenReport
+                    ...(backfilledCreatedActionID ? {[backfilledCreatedActionID]: null} : {}),
                 },
             });
         }
@@ -13656,6 +13660,7 @@ function updateMultipleMoneyRequests({
                         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                         errors: getMicroSecondOnyxErrorWithTranslationKey('iou.error.genericEditFailureMessage'),
                     },
+                    ...(backfilledCreatedActionID ? {[backfilledCreatedActionID]: null} : {}),
                 },
             });
         }
