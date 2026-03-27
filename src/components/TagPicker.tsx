@@ -11,7 +11,7 @@ import {getTagArrayFromName} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PolicyTag, PolicyTags} from '@src/types/onyx';
-import RadioListItem from './SelectionList/ListItem/RadioListItem';
+import SingleSelectListItem from './SelectionList/ListItem/SingleSelectListItem';
 import SelectionListWithSections from './SelectionList/SelectionListWithSections';
 
 type TagPickerProps = {
@@ -137,7 +137,7 @@ function TagPicker({
     return (
         <SelectionListWithSections
             sections={sections}
-            ListItem={RadioListItem}
+            ListItem={SingleSelectListItem}
             style={{
                 sectionTitleStyles: styles.mt5,
                 listItemTitleStyles,
