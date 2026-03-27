@@ -1,7 +1,7 @@
 import React, {useEffect} from 'react';
-import {useOnyx} from 'react-native-onyx';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useSubPage from '@hooks/useSubPage';
 import {getCorpayOnboardingFields} from '@libs/actions/BankAccounts';
 import Navigation from '@libs/Navigation/Navigation';
