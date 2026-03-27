@@ -1485,6 +1485,8 @@ function Search({
     const {shouldShowYearCreated, shouldShowYearSubmitted, shouldShowYearApproved, shouldShowYearPosted, shouldShowYearExported} = shouldShowYearUtil(
         searchResults?.data,
         isExpenseReportType ?? false,
+        undefined,
+        !isExpenseReportType,
     );
     const {shouldShowAmountInWideColumn, shouldShowTaxAmountInWideColumn} = getWideAmountIndicators(searchResults?.data);
     const shouldShowTableHeader = isLargeScreenWidth && !isChat;
