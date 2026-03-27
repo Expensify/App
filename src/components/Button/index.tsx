@@ -21,7 +21,6 @@ import CONST from '@src/CONST';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import type IconAsset from '@src/types/utils/IconAsset';
 import type WithSentryLabel from '@src/types/utils/SentryLabel';
-import enableNativeDisabledDefault from './enableNativeDisabled';
 import getNativeHiddenAccessibilityProps from './getNativeHiddenAccessibilityProps';
 import {getButtonRole} from './utils';
 import validateSubmitShortcut from './validateSubmitShortcut';
@@ -299,7 +298,7 @@ function Button({
     secondLineText = '',
     shouldBlendOpacity = false,
     shouldStayNormalOnDisable = false,
-    enableNativeDisabled = enableNativeDisabledDefault,
+    enableNativeDisabled = true,
     sentryLabel,
     ref,
     ...rest
