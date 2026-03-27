@@ -52,7 +52,7 @@ function SearchPageInputNarrow({queryJSON, searchRouterListVisible, hideSearchRo
     return (
         <View
             dataSet={{dragArea: false}}
-            style={[styles.flex1, styles.appBG, searchRouterListVisible && styles.pt5]}
+            style={[styles.flex1, styles.appBG, searchRouterListVisible && styles.pt2]}
         >
             <View style={[styles.flexRow, styles.mh5, searchRouterListVisible ? styles.mb3 : styles.mb4, styles.alignItemsCenter, styles.justifyContentCenter]}>
                 <Animated.View style={[styles.flex1, styles.zIndex10]}>
