@@ -4,6 +4,7 @@ import BlockingView from '@components/BlockingViews/BlockingView';
 import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import type {SelectorType} from '@components/SelectionScreen';
 import SelectionScreen from '@components/SelectionScreen';
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -18,20 +19,20 @@ import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import variables from '@styles/variables';
 import {clearNetSuiteErrorField} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
-import ROUTES from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
-function NetSuiteExportExpensesVendorSelectPage({policy}: WithPolicyConnectionsProps) {
+function DynamicNetSuiteExportExpensesVendorSelectPage({policy}: WithPolicyConnectionsProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
     const policyID = policy?.id;
     const illustrations = useMemoizedLazyIllustrations(['Telescope']);
 
-    const route = useRoute<PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_EXPORT_EXPENSES_VENDOR_SELECT>>();
+    const route = useRoute<PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_NETSUITE_EXPORT_EXPENSES_VENDOR_SELECT>>();
     const params = route.params;
-    const backTo = params.backTo;
     const isReimbursable = params.expenseType === CONST.NETSUITE_EXPENSE_TYPE.REIMBURSABLE;
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT_EXPENSES_VENDOR_SELECT.path);
 
     const config = policy?.connections?.netsuite?.options.config;
     const netsuiteVendorOptions = useMemo<SelectorType[]>(() => getNetSuiteVendorOptions(policy ?? undefined, config?.defaultVendor), [config?.defaultVendor, policy]);
@@ -39,8 +40,8 @@ function NetSuiteExportExpensesVendorSelectPage({policy}: WithPolicyConnectionsP
     const initiallyFocusedOptionKey = useMemo(() => netsuiteVendorOptions?.find((mode) => mode.isSelected)?.keyForList, [netsuiteVendorOptions]);
 
     const goBack = useCallback(() => {
-        Navigation.goBack(backTo ?? ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT_EXPENSES.getRoute(policyID, params.expenseType));
-    }, [backTo, policyID, params.expenseType]);
+        Navigation.goBack(backPath);
+    }, [backPath]);
 
     const updateDefaultVendor = useCallback(
         ({value}: SelectorType) => {
@@ -89,4 +90,4 @@ function NetSuiteExportExpensesVendorSelectPage({policy}: WithPolicyConnectionsP
     );
 }
 
-export default withPolicyConnections(NetSuiteExportExpensesVendorSelectPage);
+export default withPolicyConnections(DynamicNetSuiteExportExpensesVendorSelectPage);

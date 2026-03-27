@@ -6,6 +6,7 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {clearNetSuiteErrorField} from '@libs/actions/Policy/Policy';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
@@ -21,7 +22,7 @@ import {
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import CONST from '@src/CONST';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
 type MenuItemWithSubscribedSettings = Pick<MenuItem, 'description' | 'title' | 'onPress' | 'shouldHide' | 'onCloseError' | 'helperText' | 'shouldParseHelperText'> & {
@@ -74,7 +75,7 @@ function NetSuiteExportExpensesPage({policy}: WithPolicyConnectionsProps) {
                 if (!policyID) {
                     return;
                 }
-                Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT_EXPENSES_VENDOR_SELECT.getRoute(policyID, params.expenseType, Navigation.getActiveRoute()));
+                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT_EXPENSES_VENDOR_SELECT.path));
             },
             title: defaultVendor ? defaultVendor.name : undefined,
             subscribedSettings: [CONST.NETSUITE_CONFIG.DEFAULT_VENDOR],
@@ -87,7 +88,7 @@ function NetSuiteExportExpensesPage({policy}: WithPolicyConnectionsProps) {
                 if (!policyID) {
                     return;
                 }
-                Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT_EXPENSES_PAYABLE_ACCOUNT_SELECT.getRoute(policyID, params.expenseType, Navigation.getActiveRoute()));
+                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT_EXPENSES_PAYABLE_ACCOUNT_SELECT.path));
             },
             title: selectedPayableAccount ? selectedPayableAccount.name : undefined,
             subscribedSettings: [CONST.NETSUITE_CONFIG.PAYABLE_ACCT],
@@ -100,7 +101,7 @@ function NetSuiteExportExpensesPage({policy}: WithPolicyConnectionsProps) {
                 if (!policyID) {
                     return;
                 }
-                Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT_EXPENSES_PAYABLE_ACCOUNT_SELECT.getRoute(policyID, params.expenseType, Navigation.getActiveRoute()));
+                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT_EXPENSES_PAYABLE_ACCOUNT_SELECT.path));
             },
             title: selectedReimbursablePayableAccount ? selectedReimbursablePayableAccount.name : undefined,
             subscribedSettings: [CONST.NETSUITE_CONFIG.REIMBURSABLE_PAYABLE_ACCOUNT],
@@ -113,7 +114,7 @@ function NetSuiteExportExpensesPage({policy}: WithPolicyConnectionsProps) {
                 if (!policyID) {
                     return;
                 }
-                Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT_EXPENSES_JOURNAL_POSTING_PREFERENCE_SELECT.getRoute(policyID, params.expenseType, Navigation.getActiveRoute()));
+                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT_EXPENSES_JOURNAL_POSTING_PREFERENCE_SELECT.path));
             },
             title: config?.journalPostingPreference
                 ? translate(`workspace.netsuite.journalPostingPreference.values.${config.journalPostingPreference}`)
