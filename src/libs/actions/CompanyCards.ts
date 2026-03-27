@@ -19,12 +19,14 @@ import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as CardUtils from '@libs/CardUtils';
 import {getCardFeedWithDomainID} from '@libs/CardUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
+import Navigation from '@libs/Navigation/Navigation';
 import {rand64} from '@libs/NumberUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Card, CardFeeds, Policy, WorkspaceCardsList} from '@src/types/onyx';
+import ROUTES from '@src/ROUTES';
+import type {Card, CurrencyList, CardFeeds, Policy, WorkspaceCardsList} from '@src/types/onyx';
 import type {AssignCard, AssignCardData} from '@src/types/onyx/AssignCard';
 import type {
     AddNewCardFeedData,
@@ -147,8 +149,8 @@ function buildOptimisticCompanyCardCSVTransactions(
     return {csvDataWithGeneratedIDs, normalizedColumnMappings, transactions};
 }
 
-function setAssignCardStepAndData({cardToAssign, isEditing, currentStep}: Partial<AssignCard>) {
-    Onyx.merge(ONYXKEYS.ASSIGN_CARD, {cardToAssign, isEditing, currentStep});
+function setAssignCardStepAndData({cardToAssign, isEditing, currentStep, isRefreshing}: Partial<AssignCard>) {
+    Onyx.merge(ONYXKEYS.ASSIGN_CARD, {cardToAssign, isEditing, currentStep, isRefreshing});
 }
 
 function setTransactionStartDate(startDate: string) {
@@ -1178,7 +1180,16 @@ function importCSVCompanyCards({
     const shouldCreateFeed = !existingCompanyCards?.[feedName];
     const shouldSetNickname = !existingNicknames?.[feedName] && !!layoutName;
 
-    const cardNumbersFromCSV = new Set<string>(optimisticTransactions.map((t) => t.cardName).filter((cardName): cardName is string => !!cardName));
+    const cardNumberColumnIndex = normalizedColumnMappings.indexOf(CONST.CSV_IMPORT_COLUMNS.CARD_NUMBER);
+    const cardNumbersFromCSV = new Set<string>();
+    if (cardNumberColumnIndex !== -1 && optimisticTransactions.length > 0) {
+        for (const row of csvDataWithGeneratedIDs) {
+            const cardNumber = row?.at(cardNumberColumnIndex)?.trim();
+            if (cardNumber) {
+                cardNumbersFromCSV.add(cardNumber);
+            }
+        }
+    }
 
     const existingCardNames = new Set<string>();
     const existingCardList = existingCardsList?.cardList ?? {};
@@ -1260,7 +1271,7 @@ function importCSVCompanyCards({
         optimisticData.push({
             onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
-            value: transaction,
+            value: transaction as Transaction,
         });
         failureData.push({
             onyxMethod: Onyx.METHOD.SET,
