@@ -107,6 +107,10 @@ const DYNAMIC_ROUTES = {
         path: 'visibility',
         entryScreens: [SCREENS.REPORT_SETTINGS.ROOT],
     },
+    POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_PREFERRED_EXPORTER: {
+        path: 'preferred-exporter',
+        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_EXPORT],
+    },
     ADDRESS_COUNTRY: {
         path: 'country',
         entryScreens: [
@@ -1716,12 +1720,6 @@ const ROUTES = {
     POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_TRAVEL_INVOICING_PAYABLE_ACCOUNT_SELECT: {
         route: 'workspaces/:policyID/accounting/quickbooks-online/export/travel-invoicing/payable-account',
         getRoute: (policyID: string) => `workspaces/${policyID}/accounting/quickbooks-online/export/travel-invoicing/payable-account` as const,
-    },
-    POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_PREFERRED_EXPORTER: {
-        route: 'workspaces/:policyID/accounting/quickbooks-online/export/preferred-exporter',
-
-        // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-        getRoute: (policyID: string, backTo?: string) => getUrlWithBackToParam(`workspaces/${policyID}/accounting/quickbooks-online/export/preferred-exporter` as const, backTo),
     },
     POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT_OUT_OF_POCKET_EXPENSES: {
         route: 'workspaces/:policyID/accounting/quickbooks-online/export/out-of-pocket-expense',
