@@ -117,7 +117,7 @@ function AuthScreens() {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const rootNavigatorScreenOptions = useRootNavigatorScreenOptions();
     const modalCardStyleInterpolator = useModalCardStyleInterpolator();
-    const {isOnboardingCompleted, isLoadingApp} = useOnboardingFlowRouter();
+    const {isOnboardingCompleted} = useOnboardingFlowRouter();
 
     useEffect(() => {
         NavBarManager.setButtonStyle(theme.navigationBarButtonsStyle);
@@ -368,7 +368,7 @@ function AuthScreens() {
                             component={FeatureTrainingModalNavigator}
                             listeners={modalScreenListeners}
                         />
-                        {isOnboardingCompleted === false && !isLoadingApp && !Navigation.isValidateLoginFlow() && (
+                        {isOnboardingCompleted === false && !Navigation.isValidateLoginFlow() && (
                             <RootStack.Screen
                                 name={NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR}
                                 options={{...rootNavigatorScreenOptions.basicModalNavigator, gestureEnabled: false}}

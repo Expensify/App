@@ -260,7 +260,6 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
                         shouldSaveDraft
                         spellCheck={false}
                         autoComplete="given-name"
-                        autoFocus
                     />
                 </View>
                 <View>
