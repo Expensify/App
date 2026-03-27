@@ -32,6 +32,7 @@ jest.mock('@libs/actions/Report', () => {
     return {
         ...actual,
         clearAgentZeroProcessingIndicator: jest.fn(),
+        getNewerActions: jest.fn(),
         subscribeToReportReasoningEvents: jest.fn(),
         unsubscribeFromReportReasoningChannel: jest.fn(),
     };
@@ -352,32 +353,28 @@ describe('AgentZeroStatusContext', () => {
     });
 
     describe('batched Onyx updates (stuck indicator fix)', () => {
-        const SAFETY_TIMEOUT_MS = 60000;
-        let safetyTimerCallback: (() => void) | null = null;
-        let safetyTimerIds: Set<ReturnType<typeof setTimeout>>;
+        const PROGRESSIVE_RETRY_INTERVALS_MS = [60000, 90000, 120000];
+        let retryTimerIds: Set<ReturnType<typeof setTimeout>>;
         let originalSetTimeout: typeof setTimeout;
         let originalClearTimeout: typeof clearTimeout;
 
         beforeEach(() => {
-            safetyTimerCallback = null;
-            safetyTimerIds = new Set();
+            retryTimerIds = new Set();
             originalSetTimeout = global.setTimeout;
             originalClearTimeout = global.clearTimeout;
 
             jest.spyOn(global, 'setTimeout').mockImplementation(((callback: () => void, ms?: number) => {
-                if (ms === SAFETY_TIMEOUT_MS) {
-                    safetyTimerCallback = callback;
+                if (ms !== undefined && PROGRESSIVE_RETRY_INTERVALS_MS.includes(ms)) {
                     const id = originalSetTimeout(() => {}, 0);
-                    safetyTimerIds.add(id);
+                    retryTimerIds.add(id);
                     return id;
                 }
                 return originalSetTimeout(callback, ms);
             }) as typeof setTimeout);
 
             jest.spyOn(global, 'clearTimeout').mockImplementation((id) => {
-                if (id !== undefined && id !== null && safetyTimerIds.has(id as ReturnType<typeof setTimeout>)) {
-                    safetyTimerIds.delete(id as ReturnType<typeof setTimeout>);
-                    safetyTimerCallback = null;
+                if (id !== undefined && id !== null && retryTimerIds.has(id as ReturnType<typeof setTimeout>)) {
+                    retryTimerIds.delete(id as ReturnType<typeof setTimeout>);
                     return;
                 }
                 originalClearTimeout(id);
@@ -415,13 +412,13 @@ describe('AgentZeroStatusContext', () => {
             });
             await waitForBatchedUpdates();
 
-            // The indicator should be fully cleared (normal path, no TTL needed)
-            // The safety timer should also have been cancelled
+            // The indicator should be fully cleared (normal path, no retries needed)
+            // The retry timers should also have been cancelled
             await waitFor(() => {
                 expect(result.current.isProcessing).toBe(false);
             });
             expect(result.current.statusLabel).toBe('');
-            expect(safetyTimerCallback).toBeNull();
+            expect(retryTimerIds.size).toBe(0);
         });
     });
 
@@ -535,38 +532,39 @@ describe('AgentZeroStatusContext', () => {
     });
 
     describe('safety timeout (TTL lease pattern)', () => {
-        // We spy on setTimeout/clearTimeout to capture the safety timer callback
+        // We spy on setTimeout/clearTimeout to capture the progressive retry timer callbacks
         // rather than using jest.useFakeTimers(), which interferes with Onyx's
         // async batching (waitForBatchedUpdates calls jest.runOnlyPendingTimers
         // when fake timers are detected).
-        const SAFETY_TIMEOUT_MS = 60000;
-        let safetyTimerCallback: (() => void) | null = null;
-        let safetyTimerIds: Set<ReturnType<typeof setTimeout>>;
+        //
+        // Progressive retry schedule: 60s → getNewerActions, 90s → getNewerActions, 120s → hard clear
+        const PROGRESSIVE_RETRY_INTERVALS_MS = [60000, 90000, 120000];
+        let retryTimerCallbacks: Map<number, () => void>;
+        let retryTimerIds: Set<ReturnType<typeof setTimeout>>;
         let originalSetTimeout: typeof setTimeout;
         let originalClearTimeout: typeof clearTimeout;
 
         beforeEach(() => {
-            safetyTimerCallback = null;
-            safetyTimerIds = new Set();
+            retryTimerCallbacks = new Map();
+            retryTimerIds = new Set();
             originalSetTimeout = global.setTimeout;
             originalClearTimeout = global.clearTimeout;
 
-            // Intercept setTimeout to capture safety timer callbacks (60s timeout)
+            // Intercept setTimeout to capture progressive retry timer callbacks
             // while letting shorter timeouts (debounce, display timing) pass through normally
             jest.spyOn(global, 'setTimeout').mockImplementation(((callback: () => void, ms?: number) => {
-                if (ms === SAFETY_TIMEOUT_MS) {
-                    safetyTimerCallback = callback;
+                if (ms !== undefined && PROGRESSIVE_RETRY_INTERVALS_MS.includes(ms)) {
                     const id = originalSetTimeout(() => {}, 0);
-                    safetyTimerIds.add(id);
+                    retryTimerCallbacks.set(ms, callback);
+                    retryTimerIds.add(id);
                     return id;
                 }
                 return originalSetTimeout(callback, ms);
             }) as typeof setTimeout);
 
             jest.spyOn(global, 'clearTimeout').mockImplementation((id) => {
-                if (id !== undefined && id !== null && safetyTimerIds.has(id as ReturnType<typeof setTimeout>)) {
-                    safetyTimerIds.delete(id as ReturnType<typeof setTimeout>);
-                    safetyTimerCallback = null;
+                if (id !== undefined && id !== null && retryTimerIds.has(id as ReturnType<typeof setTimeout>)) {
+                    retryTimerIds.delete(id as ReturnType<typeof setTimeout>);
                     return;
                 }
                 originalClearTimeout(id);
@@ -577,7 +575,7 @@ describe('AgentZeroStatusContext', () => {
             jest.restoreAllMocks();
         });
 
-        it('should auto-clear indicator after safety timeout expires', async () => {
+        it('should auto-clear indicator after progressive retry exhausts all retries', async () => {
             // Given a Concierge chat where the server sets a processing indicator
             const isConciergeChat = true;
             const serverLabel = 'Concierge is looking up categories...';
@@ -589,25 +587,39 @@ describe('AgentZeroStatusContext', () => {
             const {result} = renderHook(() => useAgentZeroStatusIndicator(reportID, isConciergeChat));
             await waitForBatchedUpdates();
 
-            // Verify processing is active and safety timer was registered
+            // Verify processing is active and retry timers were registered
             expect(result.current.isProcessing).toBe(true);
             expect(result.current.statusLabel).toBe(serverLabel);
-            expect(safetyTimerCallback).not.toBeNull();
+            expect(retryTimerCallbacks.size).toBeGreaterThanOrEqual(1);
 
-            // When the safety timer fires (simulating 60s passing without a CLEAR arriving)
+            // When the first retry fires at 60s — only polls, indicator should stay
             act(() => {
-                safetyTimerCallback?.();
+                retryTimerCallbacks.get(60000)?.();
+            });
+            await waitForBatchedUpdates();
+            expect(result.current.isProcessing).toBe(true);
+
+            // When the second retry fires at 90s — only polls, indicator should stay
+            act(() => {
+                retryTimerCallbacks.get(90000)?.();
+            });
+            await waitForBatchedUpdates();
+            expect(result.current.isProcessing).toBe(true);
+
+            // When the final retry fires at 120s — should hard-clear the indicator
+            act(() => {
+                retryTimerCallbacks.get(120000)?.();
             });
             await waitForBatchedUpdates();
 
-            // Then the indicator should auto-clear via the safety timeout
+            // Then the indicator should auto-clear via the final progressive retry
             await waitFor(() => {
                 expect(result.current.isProcessing).toBe(false);
             });
             expect(result.current.statusLabel).toBe('');
         });
 
-        it('should auto-clear optimistic indicator after safety timeout expires', async () => {
+        it('should auto-clear optimistic indicator after progressive retry exhausts all retries', async () => {
             // Given a Concierge chat where the user triggered optimistic waiting
             const isConciergeChat = true;
 
@@ -621,11 +633,24 @@ describe('AgentZeroStatusContext', () => {
             await waitForBatchedUpdates();
             expect(result.current.isProcessing).toBe(true);
             expect(result.current.statusLabel).toBe('Thinking...');
-            expect(safetyTimerCallback).not.toBeNull();
+            expect(retryTimerCallbacks.size).toBeGreaterThanOrEqual(1);
 
-            // When the safety timer fires (60s passed without any server response)
+            // When intermediate retries fire at 60s and 90s — only poll, indicator stays
             act(() => {
-                safetyTimerCallback?.();
+                retryTimerCallbacks.get(60000)?.();
+            });
+            await waitForBatchedUpdates();
+            expect(result.current.isProcessing).toBe(true);
+
+            act(() => {
+                retryTimerCallbacks.get(90000)?.();
+            });
+            await waitForBatchedUpdates();
+            expect(result.current.isProcessing).toBe(true);
+
+            // When the final retry fires at 120s — should hard-clear
+            act(() => {
+                retryTimerCallbacks.get(120000)?.();
             });
             await waitForBatchedUpdates();
 
@@ -636,7 +661,7 @@ describe('AgentZeroStatusContext', () => {
             expect(result.current.statusLabel).toBe('');
         });
 
-        it('should cancel safety timer when indicator clears normally', async () => {
+        it('should cancel retry timers when indicator clears normally', async () => {
             // Given a Concierge chat with an active processing indicator
             const isConciergeChat = true;
             const serverLabel = 'Concierge is looking up categories...';
@@ -648,20 +673,20 @@ describe('AgentZeroStatusContext', () => {
             const {result} = renderHook(() => useAgentZeroStatusIndicator(reportID, isConciergeChat));
             await waitForBatchedUpdates();
             expect(result.current.isProcessing).toBe(true);
-            expect(safetyTimerCallback).not.toBeNull();
+            expect(retryTimerCallbacks.size).toBeGreaterThanOrEqual(1);
 
-            // When the server clears the indicator normally (before 60s timeout)
+            // When the server clears the indicator normally (before retries fire)
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`, {
                 agentZeroProcessingRequestIndicator: '',
             });
             await waitForBatchedUpdates();
             expect(result.current.isProcessing).toBe(false);
 
-            // Then the safety timer should have been cancelled
-            expect(safetyTimerCallback).toBeNull();
+            // Then the retry timers should have been cancelled (clearTimeout was called for all retry IDs)
+            expect(retryTimerIds.size).toBe(0);
         });
 
-        it('should reset safety timer when a new server label arrives', async () => {
+        it('should reset retry timers when a new server label arrives', async () => {
             // Given a Concierge chat with an active processing indicator
             const isConciergeChat = true;
             const serverLabel1 = 'Concierge is looking up categories...';
@@ -673,21 +698,18 @@ describe('AgentZeroStatusContext', () => {
             const {result} = renderHook(() => useAgentZeroStatusIndicator(reportID, isConciergeChat));
             await waitForBatchedUpdates();
             expect(result.current.isProcessing).toBe(true);
-            const firstCallback = safetyTimerCallback;
-            expect(firstCallback).not.toBeNull();
+            const firstCallbackCount = retryTimerCallbacks.size;
+            expect(firstCallbackCount).toBeGreaterThanOrEqual(1);
 
-            // When a new label arrives (still processing), the safety timer should reset
+            // When a new label arrives (still processing), the retry timers should reset
             const serverLabel2 = 'Concierge is preparing your response...';
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`, {
                 agentZeroProcessingRequestIndicator: serverLabel2,
             });
             await waitForBatchedUpdates();
 
-            // Then a new safety timer should have been registered (old one cancelled and new one set)
-            expect(safetyTimerCallback).not.toBeNull();
-            // The callback should be a fresh one (timer was reset)
-            // We verify the timer reset by checking that the old callback was cancelled
-            // and a new callback was registered
+            // Then new retry timers should have been registered (old ones cancelled and new ones set)
+            expect(retryTimerCallbacks.size).toBeGreaterThanOrEqual(1);
             expect(result.current.isProcessing).toBe(true);
         });
     });
