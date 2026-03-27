@@ -79,7 +79,7 @@ function ReportFooter({lastReportAction, report = {reportID: '-1'}, onComposerBl
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Lightbulb']);
 
     const isConciergeSidePanel = isInSidePanel && conciergeReportID === report.reportID;
-    const [activeReportID] = useOnyx(ONYXKEYS.ACTIVE_REPORT_ID);
+    const [activeReportID] = useOnyx(ONYXKEYS.MAIN_PANE_REPORT_ID);
     const [shouldShowComposeInput = false] = useOnyx(ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT);
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
     const isAnonymousUser = useIsAnonymousUser();
@@ -183,7 +183,7 @@ function ReportFooter({lastReportAction, report = {reportID: '-1'}, onComposerBl
             currentUserAccountID: personalDetail.accountID,
             shouldPlaySound: true,
             isInSidePanel,
-            activeReportID: isConciergeSidePanel ? (activeReportID ?? undefined) : undefined,
+            mainPaneReportID: isConciergeSidePanel ? (activeReportID ?? undefined) : undefined,
             reportActionID,
         });
     };

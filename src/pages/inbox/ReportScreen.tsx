@@ -97,7 +97,7 @@ import {
     navigateToConciergeChat,
     openReport,
     readNewestAction,
-    setActiveReportID,
+    setMainPaneReportID,
     subscribeToReportLeavingEvents,
     unsubscribeFromLeavingRoomReportChannel,
     updateLastVisitTime,
@@ -373,7 +373,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
         hideEmojiPicker(true);
     }, [prevIsFocused, isFocused]);
 
-    // Set activeReportID so that Concierge AI side panel can access it and load it into the context
+    // Set mainPaneReportID so that Concierge AI side panel can access it and load it into the context
     useEffect(() => {
         if (!reportID) {
             return;
@@ -383,13 +383,13 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
         if (reportID === conciergeReportID) {
             // Don't overwrite activeReportID when opening Concierge side panel
             if (!isInSidePanel) {
-                setActiveReportID(null);
+                setMainPaneReportID(null);
             }
             return;
         }
 
-        setActiveReportID(reportID);
-        return () => setActiveReportID(null);
+        setMainPaneReportID(reportID);
+        return () => setMainPaneReportID(null);
     }, [reportID, conciergeReportID, isInSidePanel]);
 
     const backTo = route?.params?.backTo as string;
