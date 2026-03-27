@@ -3,7 +3,7 @@ import type {ValueOf} from 'type-fest';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
-import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
+import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import useLocalize from '@hooks/useLocalize';
 import usePolicyData from '@hooks/usePolicyData';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -12,7 +12,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
-import {removePolicyCategoryItemizedReceiptsRequired, setPolicyCategoryItemizedReceiptsRequired} from '@userActions/Policy/Category';
+import {removePolicyCategoryItemizedReceiptsRequired, setPolicyCategoryItemizedReceiptsRequired, setPolicyCategoryReceiptsAndItemizedReceiptRequired} from '@userActions/Policy/Category';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
@@ -92,10 +92,14 @@ function CategoryRequireItemizedReceiptsOverPage({
                 />
                 <SelectionList
                     data={requireItemizedReceiptsOverListData}
-                    ListItem={RadioListItem}
+                    ListItem={SingleSelectListItem}
                     onSelectRow={(item) => {
                         if (typeof item.value === 'number') {
-                            setPolicyCategoryItemizedReceiptsRequired(policyData, categoryName, item.value);
+                            if (item.value === 0 && policyCategories?.[categoryName]?.maxAmountNoReceipt !== 0) {
+                                setPolicyCategoryReceiptsAndItemizedReceiptRequired(policyData, categoryName, 0, 0);
+                            } else {
+                                setPolicyCategoryItemizedReceiptsRequired(policyData, categoryName, item.value);
+                            }
                         } else {
                             removePolicyCategoryItemizedReceiptsRequired(policyData, categoryName);
                         }

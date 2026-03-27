@@ -3,7 +3,7 @@ import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import Icon from '@components/Icon';
 import {PressableWithFeedback} from '@components/Pressable';
-import SelectCircle from '@components/SelectCircle';
+import SelectionCheckbox from '@components/SelectionList/components/SelectionCheckbox';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -43,6 +43,7 @@ function OptionItem({title, icon, onPress, isSelected = false, isDisabled, style
             accessibilityLabel={translate(title)}
             disabled={isDisabled}
             wrapperStyle={[styles.flex1, style]}
+            sentryLabel={CONST.SENTRY_LABEL.OPTION_CARD_PICKER.OPTION_ITEM}
         >
             <View style={[styles.borderedContentCard, isSelected && styles.borderColorFocus, styles.p5]}>
                 <View>
@@ -52,11 +53,17 @@ function OptionItem({title, icon, onPress, isSelected = false, isDisabled, style
                             width={variables.iconHeader}
                             height={variables.iconHeader}
                         />
-                        {!isDisabled && (
+                        {(isSelected || !isDisabled) && (
                             <View>
-                                <SelectCircle
-                                    isChecked={isSelected}
-                                    selectCircleStyles={styles.sectionSelectCircle}
+                                <SelectionCheckbox
+                                    item={{
+                                        isSelected,
+                                        text: translate(title),
+                                        keyForList: title,
+                                    }}
+                                    isCircular
+                                    onSelectRow={() => onPress?.()}
+                                    accessibilityLabel={translate(title)}
                                 />
                             </View>
                         )}

@@ -4,6 +4,9 @@ import {getButtonRole} from '@components/Button/utils';
 import Icon from '@components/Icon';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
+import type {PressableWithFeedbackProps} from '@components/Pressable/PressableWithFeedback';
+import SelectionCheckbox from '@components/SelectionList/components/SelectionCheckbox';
+import getAccessibilityLabel from '@components/SelectionList/utils/getAccessibilityLabel';
 import useHover from '@hooks/useHover';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import {useMouseActions, useMouseState} from '@hooks/useMouseContext';
@@ -14,6 +17,46 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {BaseListItemProps, ListItem} from './types';
+
+type AccessibilityProps = Pick<PressableWithFeedbackProps, 'accessible' | 'role' | 'tabIndex'>;
+
+type CalculatedAccessibilityProps = Pick<PressableWithFeedbackProps, 'role' | 'tabIndex' | 'accessibilityState'> & {
+    accessibleAndAccessibilityLabel: Pick<PressableWithFeedbackProps, 'accessible' | 'accessibilityLabel'>;
+};
+
+function getAccessibilityProps<TItem extends ListItem>({
+    role,
+    tabIndex,
+    accessible,
+    item,
+    isFocused,
+    canSelectMultiple,
+}: AccessibilityProps & Pick<BaseListItemProps<TItem>, 'item' | 'isFocused' | 'canSelectMultiple'>) {
+    const accessibilityState = role === CONST.ROLE.CHECKBOX || role === CONST.ROLE.RADIO ? {checked: !!item.isSelected, selected: !!isFocused} : {selected: !!item.isSelected};
+
+    if (accessible === false) {
+        return {
+            role: CONST.ROLE.PRESENTATION,
+            tabIndex: -1,
+            accessibilityState,
+            accessibleAndAccessibilityLabel: {accessible: false},
+        } satisfies CalculatedAccessibilityProps;
+    }
+
+    const accessibilityLabel = getAccessibilityLabel(item);
+
+    // For single-select lists, use role="option" with aria-selected so screen readers announce "selected"/"not selected".
+    // For multi-select (checkbox/radio), keep existing role and state.
+    const isSelectableOption = !canSelectMultiple && role !== CONST.ROLE.CHECKBOX && role !== CONST.ROLE.RADIO;
+    const effectiveRole = isSelectableOption ? CONST.ROLE.OPTION : role;
+
+    return {
+        role: effectiveRole,
+        tabIndex,
+        accessibilityState,
+        accessibleAndAccessibilityLabel: {accessible: undefined, accessibilityLabel},
+    } satisfies CalculatedAccessibilityProps;
+}
 
 function BaseListItem<TItem extends ListItem>({
     item,
@@ -40,13 +83,13 @@ function BaseListItem<TItem extends ListItem>({
     onFocus = () => {},
     hoverStyle,
     onLongPressRow,
-    testID,
-    shouldUseDefaultRightHandSideCheckmark = true,
-    shouldHighlightSelectedItem = true,
+    shouldUseDefaultRightHandSideCheckmark = false,
+    shouldHighlightSelectedItem = false,
     shouldDisableHoverStyle,
     shouldShowRightCaret = false,
     accessible,
     accessibilityRole = getButtonRole(true),
+    forwardedFSClass,
 }: BaseListItemProps<TItem>) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -78,14 +121,18 @@ function BaseListItem<TItem extends ListItem>({
         return rightHandSideComponent;
     };
 
-    const shouldShowCheckmark = !canSelectMultiple && !!item.isSelected && !rightHandSideComponent && shouldUseDefaultRightHandSideCheckmark;
+    const shouldShowCheckbox = !canSelectMultiple && !rightHandSideComponent && shouldUseDefaultRightHandSideCheckmark;
 
     const shouldShowRBRIndicator = (!item.isSelected || !!item.canShowSeveralIndicators) && !!item.brickRoadIndicator && shouldDisplayRBR;
 
-    const shouldShowHiddenCheckmark = shouldShowRBRIndicator && !shouldShowCheckmark && !!item.canShowSeveralIndicators;
-
-    const accessibilityState =
-        accessibilityRole === CONST.ROLE.CHECKBOX || accessibilityRole === CONST.ROLE.RADIO ? {checked: !!item.isSelected, selected: !!isFocused} : {selected: !!isFocused};
+    const {role, tabIndex, accessibilityState, accessibleAndAccessibilityLabel} = getAccessibilityProps({
+        role: accessibilityRole,
+        accessible,
+        tabIndex: item.tabIndex,
+        item,
+        isFocused,
+        canSelectMultiple,
+    });
 
     return (
         <OfflineWithFeedback
@@ -100,6 +147,8 @@ function BaseListItem<TItem extends ListItem>({
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...bind}
                 ref={pressableRef}
+                lang={item.lang}
+                accessibilityLanguage={item.lang}
                 onLongPress={() => {
                     onLongPressRow?.(item);
                 }}
@@ -115,8 +164,6 @@ function BaseListItem<TItem extends ListItem>({
                 }}
                 disabled={isDisabled && !item.isSelected}
                 interactive={item.isInteractive}
-                accessibilityLabel={item.accessibilityLabel ?? [item.text, item.text !== item.alternateText ? item.alternateText : undefined].filter(Boolean).join(', ')}
-                accessibilityState={accessibilityState}
                 isNested
                 hoverDimmingValue={1}
                 pressDimmingValue={item.isInteractive === false ? 1 : variables.pressDimValue}
@@ -136,22 +183,29 @@ function BaseListItem<TItem extends ListItem>({
                         StyleUtils.getItemBackgroundColorStyle(!!item.isSelected, !!isFocused, !!item.isDisabled, theme.activeComponentBG, theme.hoverComponentBG),
                 ]}
                 onFocus={onFocus}
+                role={role}
+                tabIndex={tabIndex}
+                // eslint-disable-next-line react/jsx-props-no-spreading -- we can't pass those props here on their own because this Component expects a discriminated Union
+                {...accessibleAndAccessibilityLabel}
+                accessibilityState={accessibilityState}
                 onMouseLeave={handleMouseLeave}
-                tabIndex={accessible === false ? -1 : item.tabIndex}
                 wrapperStyle={pressableWrapperStyle}
-                testID={testID}
-                accessible={accessible}
-                role={accessible === false ? CONST.ROLE.PRESENTATION : accessibilityRole}
             >
                 <View
                     testID={`${CONST.BASE_LIST_ITEM_TEST_ID}${item.keyForList}`}
-                    accessibilityState={{selected: !!isFocused}}
+                    accessibilityState={accessibilityState ?? {selected: !!isFocused}}
                     style={[
                         wrapperStyle,
                         isFocused &&
-                            shouldHighlightSelectedItem &&
-                            StyleUtils.getItemBackgroundColorStyle(!!item.isSelected, !!isFocused, !!item.isDisabled, theme.activeComponentBG, theme.hoverComponentBG),
+                            StyleUtils.getItemBackgroundColorStyle(
+                                shouldHighlightSelectedItem && !!item.isSelected,
+                                !!isFocused,
+                                !!item.isDisabled,
+                                theme.activeComponentBG,
+                                theme.hoverComponentBG,
+                            ),
                     ]}
+                    fsClass={forwardedFSClass}
                 >
                     {typeof children === 'function' ? children(hovered) : children}
 
@@ -165,17 +219,16 @@ function BaseListItem<TItem extends ListItem>({
                         </View>
                     )}
 
-                    {(shouldShowCheckmark || shouldShowHiddenCheckmark) && (
+                    {shouldShowCheckbox && (
                         <View
-                            style={[styles.flexRow, styles.alignItemsCenter, styles.ml3, shouldShowHiddenCheckmark ? styles.opacity0 : undefined]}
+                            style={[styles.flexRow, styles.alignItemsCenter, styles.ml3]}
                             accessible={false}
                         >
-                            <View>
-                                <Icon
-                                    src={icons.Checkmark}
-                                    fill={theme.success}
-                                />
-                            </View>
+                            <SelectionCheckbox
+                                item={item}
+                                onSelectRow={onSelectRow}
+                                isCircular
+                            />
                         </View>
                     )}
 
@@ -186,8 +239,8 @@ function BaseListItem<TItem extends ListItem>({
                                 src={icons.ArrowRight}
                                 fill={theme.icon}
                                 additionalStyles={[styles.alignSelfCenter, !hovered && styles.opacitySemiTransparent]}
-                                isButtonIcon
-                                medium
+                                width={variables.iconSizeNormal}
+                                height={variables.iconSizeNormal}
                             />
                         </View>
                     )}

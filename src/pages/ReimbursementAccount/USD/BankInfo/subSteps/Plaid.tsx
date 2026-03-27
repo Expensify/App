@@ -8,9 +8,9 @@ import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {getBankAccountIDAsNumber} from '@libs/ReimbursementAccountUtils';
 import {setBankAccountSubStep, validatePlaidSelection} from '@userActions/BankAccounts';
 import {updateReimbursementAccountDraft} from '@userActions/ReimbursementAccount';
-import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 
@@ -48,7 +48,7 @@ function Plaid({onNext, setUSDBankAccountStep}: PlaidProps) {
         onNext(bankAccountData);
     }, [plaidData, reimbursementAccountDraft, onNext]);
 
-    const bankAccountID = reimbursementAccount?.achData?.bankAccountID ?? CONST.DEFAULT_NUMBER_ID;
+    const bankAccountID = getBankAccountIDAsNumber(reimbursementAccount?.achData);
 
     useEffect(() => {
         const plaidBankAccounts = plaidData?.bankAccounts ?? [];
@@ -76,7 +76,8 @@ function Plaid({onNext, setUSDBankAccountStep}: PlaidProps) {
             onSubmit={handleNextPress}
             scrollContextEnabled
             submitButtonText={translate('common.next')}
-            style={[styles.mh5, styles.flexGrow1]}
+            style={[styles.flexGrow1]}
+            submitButtonStyles={[styles.mh5]}
             isSubmitButtonVisible={(plaidData?.bankAccounts ?? []).length > 0}
             shouldHideFixErrorsAlert
         >

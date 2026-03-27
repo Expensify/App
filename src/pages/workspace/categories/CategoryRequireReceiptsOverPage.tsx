@@ -3,7 +3,7 @@ import type {ValueOf} from 'type-fest';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
-import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
+import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import useLocalize from '@hooks/useLocalize';
 import usePolicyData from '@hooks/usePolicyData';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -12,7 +12,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
-import {removePolicyCategoryReceiptsRequired, setPolicyCategoryReceiptsRequired} from '@userActions/Policy/Category';
+import {removePolicyCategoryReceiptsRequired, setPolicyCategoryReceiptsAndItemizedReceiptRequired, setPolicyCategoryReceiptsRequired} from '@userActions/Policy/Category';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
@@ -92,10 +92,14 @@ function CategoryRequireReceiptsOverPage({
                 />
                 <SelectionList
                     data={requireReceiptsOverListData}
-                    ListItem={RadioListItem}
+                    ListItem={SingleSelectListItem}
                     onSelectRow={(item) => {
                         if (typeof item.value === 'number') {
-                            setPolicyCategoryReceiptsRequired(policyData, categoryName, item.value);
+                            if (item.value === CONST.DISABLED_MAX_EXPENSE_VALUE && policyCategories?.[categoryName]?.maxAmountNoItemizedReceipt !== CONST.DISABLED_MAX_EXPENSE_VALUE) {
+                                setPolicyCategoryReceiptsAndItemizedReceiptRequired(policyData, categoryName, CONST.DISABLED_MAX_EXPENSE_VALUE, CONST.DISABLED_MAX_EXPENSE_VALUE);
+                            } else {
+                                setPolicyCategoryReceiptsRequired(policyData, categoryName, item.value);
+                            }
                         } else {
                             removePolicyCategoryReceiptsRequired(policyData, categoryName);
                         }

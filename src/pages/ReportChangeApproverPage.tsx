@@ -6,7 +6,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
-import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
+import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useEnvironment from '@hooks/useEnvironment';
@@ -128,11 +128,7 @@ function ReportChangeApproverPage({report, policy, isLoadingReportData}: ReportC
     const listHeader = useMemo(
         () => (
             <View style={[styles.ph5, styles.mb5, styles.renderHTML, styles.flexRow]}>
-                <RenderHTML
-                    html={translate('iou.changeApprover.header', {
-                        workflowSettingLink: `${environmentURL}/${ROUTES.WORKSPACE_WORKFLOWS.getRoute(policy?.id)}`,
-                    })}
-                />
+                <RenderHTML html={translate('iou.changeApprover.header', `${environmentURL}/${ROUTES.WORKSPACE_WORKFLOWS.getRoute(policy?.id)}`)} />
             </View>
         ),
         [environmentURL, policy?.id, styles.flexRow, styles.mb5, styles.ph5, styles.renderHTML, translate],
@@ -154,7 +150,7 @@ function ReportChangeApproverPage({report, policy, isLoadingReportData}: ReportC
             />
             <SelectionList
                 data={approverTypes}
-                ListItem={RadioListItem}
+                ListItem={SingleSelectListItem}
                 alternateNumberOfSupportedLines={2}
                 onSelectRow={(option) => {
                     if (!option.keyForList) {

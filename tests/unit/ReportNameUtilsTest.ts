@@ -22,6 +22,7 @@ import {fakePersonalDetails} from '../utils/LHNTestUtils';
 import {formatPhoneNumber} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
+const currentUserLogin = 'lagertha2@vikings.net';
 describe('ReportNameUtils', () => {
     const currentUserAccountID = 5;
     const computeReportName = (
@@ -33,7 +34,18 @@ describe('ReportNameUtils', () => {
         personalDetailsList?: PersonalDetailsList,
         reportActions?: OnyxCollection<ReportActions>,
         currentUserID = currentUserAccountID,
-    ) => computeReportNameOriginal(report, reports, policies, transactions, allReportNameValuePairs, personalDetailsList, reportActions, currentUserID);
+    ) =>
+        computeReportNameOriginal({
+            report,
+            reports,
+            policies,
+            transactions,
+            allReportNameValuePairs,
+            personalDetailsList,
+            reportActions,
+            currentUserAccountID: currentUserID,
+            currentUserLogin,
+        });
     const participantsPersonalDetails: PersonalDetailsList = [
         {
             accountID: 1,
@@ -534,18 +546,16 @@ describe('ReportNameUtils', () => {
                 },
             } as OnyxCollection<PolicyTagLists>;
 
-            const name = computeReportNameOriginal(
-                thread,
-                emptyCollections.reports,
-                emptyCollections.policies,
-                undefined,
-                undefined,
-                participantsPersonalDetails,
-                reportActionsCollection,
+            const name = computeReportNameOriginal({
+                report: thread,
+                reports: emptyCollections.reports,
+                policies: emptyCollections.policies,
+                personalDetailsList: participantsPersonalDetails,
+                reportActions: reportActionsCollection,
                 currentUserAccountID,
-                undefined,
-                policyTagsCollection,
-            );
+                currentUserLogin: '',
+                allPolicyTags: policyTagsCollection,
+            });
 
             expect(name).toContain('Cost Center');
         });

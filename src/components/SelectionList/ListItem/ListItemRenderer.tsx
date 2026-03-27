@@ -16,7 +16,8 @@ type ListItemRendererProps<TItem extends ListItem> = Omit<BaseListItemProps<TIte
         singleExecution: ReturnType<typeof useSingleExecution>['singleExecution'];
         titleStyles?: StyleProp<TextStyle>;
         titleContainerStyles?: StyleProp<ViewStyle>;
-        shouldHighlightSelectedItem: boolean;
+        shouldHighlightSelectedItem?: boolean;
+        shouldShowRadioButton?: boolean;
     };
 
 function ListItemRenderer<TItem extends ListItem>({
@@ -38,10 +39,12 @@ function ListItemRenderer<TItem extends ListItem>({
     rightHandSideComponent,
     isMultilineSupported,
     isAlternateTextMultilineSupported,
+    shouldUseDefaultRightHandSideComponent,
     alternateTextNumberOfLines,
     shouldIgnoreFocus,
     setFocusedIndex,
     shouldSyncFocus,
+    titleNumberOfLines,
     wrapperStyle,
     titleStyles,
     singleExecution,
@@ -50,6 +53,7 @@ function ListItemRenderer<TItem extends ListItem>({
     shouldHighlightSelectedItem,
     shouldDisableHoverStyle,
     shouldShowRightCaret,
+    shouldShowRadioButton,
     errorRowStyles,
 }: ListItemRendererProps<TItem>) {
     const handleOnCheckboxPress = () => {
@@ -63,6 +67,7 @@ function ListItemRenderer<TItem extends ListItem>({
         <>
             <ListItem
                 item={item}
+                index={index}
                 isFocused={isFocused}
                 isDisabled={isDisabled}
                 showTooltip={showTooltip}
@@ -82,9 +87,11 @@ function ListItemRenderer<TItem extends ListItem>({
                 shouldPreventEnterKeySubmit
                 rightHandSideComponent={rightHandSideComponent}
                 keyForList={item.keyForList}
+                shouldUseDefaultRightHandSideComponent={shouldUseDefaultRightHandSideComponent}
                 isMultilineSupported={isMultilineSupported}
                 isAlternateTextMultilineSupported={isAlternateTextMultilineSupported}
                 alternateTextNumberOfLines={alternateTextNumberOfLines}
+                titleNumberOfLines={titleNumberOfLines}
                 onFocus={(event: NativeSyntheticEvent<ExtendedTargetedEvent>) => {
                     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                     if (shouldIgnoreFocus || isDisabled) {
@@ -106,6 +113,7 @@ function ListItemRenderer<TItem extends ListItem>({
                 shouldHighlightSelectedItem={shouldHighlightSelectedItem}
                 shouldDisableHoverStyle={shouldDisableHoverStyle}
                 shouldShowRightCaret={shouldShowRightCaret}
+                shouldShowRadioButton={shouldShowRadioButton}
             />
             {item.footerContent && item.footerContent}
         </>

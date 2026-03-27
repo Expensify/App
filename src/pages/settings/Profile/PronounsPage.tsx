@@ -3,7 +3,7 @@ import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
-import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
+import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
@@ -12,6 +12,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {updatePronouns as updatePronounsPersonalDetails} from '@userActions/PersonalDetails';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -91,7 +92,7 @@ function PronounsPage({currentUserPersonalDetails}: PronounsPageProps) {
             testID="PronounsPage"
         >
             {isLoadingApp && !currentUserPersonalDetails.pronouns ? (
-                <FullScreenLoadingIndicator />
+                <FullScreenLoadingIndicator reasonAttributes={{context: 'PronounsPage', isLoadingApp} satisfies SkeletonSpanReasonAttributes} />
             ) : (
                 <>
                     <HeaderWithBackButton
@@ -101,7 +102,7 @@ function PronounsPage({currentUserPersonalDetails}: PronounsPageProps) {
                     <Text style={[styles.ph5, styles.mb3]}>{translate('pronounsPage.isShownOnProfile')}</Text>
                     <SelectionList
                         data={filteredPronounsList}
-                        ListItem={RadioListItem}
+                        ListItem={SingleSelectListItem}
                         onSelectRow={updatePronouns}
                         textInputOptions={textInputOptions}
                         initiallyFocusedItemKey={currentPronounsKey}
