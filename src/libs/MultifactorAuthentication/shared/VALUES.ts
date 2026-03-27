@@ -73,10 +73,10 @@ const REASON = {
     },
     GENERIC: {
         SIGNATURE_MISSING: 'Signature is missing',
-        /** The device supports biometrics but the user has none enrolled (e.g. no fingerprint/face set up in device settings). */
-        NO_ELIGIBLE_METHODS: 'No eligible methods available',
-        /** The device hardware does not support biometrics at all (e.g. web/mWeb). */
-        UNSUPPORTED_DEVICE: 'Unsupported device',
+        /** The device type is correct for this scenario but no authentication methods are enrolled (e.g. no fingerprint/face/passcode set up in device settings). */
+        NO_AUTHENTICATION_METHODS_ENROLLED: 'No authentication methods enrolled',
+        /** The scenario does not allow this device's authentication type (e.g. biometrics-only scenario on web, or passkeys-only scenario on mobile). */
+        AUTHENTICATION_TYPE_NOT_SUPPORTED: 'Authentication type not supported',
         BAD_REQUEST: 'Bad request',
         LOCAL_REGISTRATION_COMPLETE: 'Local registration complete',
         UNHANDLED_ERROR: 'An unhandled error occurred',
@@ -210,8 +210,8 @@ const ROUTINE_FAILURES = new Set<ReasonValue>([
     REASON.EXPO.NO_METHOD_AVAILABLE,
     REASON.EXPO.NOT_SUPPORTED,
     REASON.GENERIC.CANCELED,
-    REASON.GENERIC.NO_ELIGIBLE_METHODS,
-    REASON.GENERIC.UNSUPPORTED_DEVICE,
+    REASON.GENERIC.NO_AUTHENTICATION_METHODS_ENROLLED,
+    REASON.GENERIC.AUTHENTICATION_TYPE_NOT_SUPPORTED,
     REASON.BACKEND.TRANSACTION_EXPIRED,
     REASON.BACKEND.TRANSACTION_DENIED,
     REASON.BACKEND.TOO_MANY_ATTEMPTS,
