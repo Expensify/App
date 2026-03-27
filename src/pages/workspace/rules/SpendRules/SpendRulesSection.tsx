@@ -23,12 +23,12 @@ function SpendRulesSection() {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Lock']);
     const {showConfirmModal} = useConfirmModal();
-    const illustrations = useMemoizedLazyIllustrations(['ExpensifyCardIllustration']);
+    const illustrations = useMemoizedLazyIllustrations(['ExpensifyCardProtectionIllustration']);
 
     const showBuiltInProtectionModal = () => {
         showConfirmModal({
-            image: illustrations.ExpensifyCardIllustration,
-            imageStyles: [styles.ph5, styles.pv5],
+            image: illustrations.ExpensifyCardProtectionIllustration,
+            imageStyles: [styles.w100],
             title: translate('workspace.rules.spendRules.builtInProtectionModal.title'),
             titleStyles: [styles.textHeadlineH1],
             titleContainerStyles: [styles.mb3],
