@@ -3621,7 +3621,8 @@ describe('updateSplitTransactions', () => {
             isSelfTourViewed: false,
             hasActiveAdminPolicies: false,
         });
-        setWorkspaceApprovalMode(policyID, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC);
+        const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+        setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC);
         await waitForBatchedUpdates();
 
         await getOnyxData({
@@ -3776,7 +3777,7 @@ describe('updateSplitTransactions', () => {
         // Put the original transaction on hold before splitting it.
         const transactionThreadReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`];
         const ancestors = getAncestors(transactionThreadReport, allReports, {}, allReportActions);
-        putOnHold(originalTransactionID, 'Test hold reason', transactionThreadReportID, ancestors);
+        putOnHold(originalTransactionID, 'Test hold reason', transactionThreadReportID, false, ancestors);
         await waitForBatchedUpdates();
 
         const iouAction = getIOUActionForReportID(expenseReport?.reportID, originalTransactionID);
@@ -3896,7 +3897,7 @@ describe('updateSplitTransactions', () => {
         // Put the split transaction 1 on hold before reverting it
         const {allReports: allReports2, allReportActions: allReportActions2} = await getCollections();
         const ancestors2 = getAncestors(split1ThreadReport, allReports2, {}, allReportActions2);
-        putOnHold(splitTransactionID1, 'Test hold reason', split1ThreadReportID, ancestors2);
+        putOnHold(splitTransactionID1, 'Test hold reason', split1ThreadReportID, false, ancestors2);
         await waitForBatchedUpdates();
 
         const iouAction = getIOUActionForReportID(expenseReport?.reportID, splitTransactionID1);
