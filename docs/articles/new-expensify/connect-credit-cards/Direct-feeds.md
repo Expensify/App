@@ -137,5 +137,5 @@ Below are examples of banks that support direct feeds. This is not a complete li
 - Citibank  
 - Stripe  
 - Wells Fargo  
-- Plaid enables connections with hundreds of additional banks across the U.S., Canada, and Europe ([Plaid - European Bank Coverage](https://plaid.com/docs/resources/#european-bank-coverage))
+- Plaid enables connections with hundreds of additional banks across the U.S., Canada, and Europe. Check the [Plaid coverage page for US/Canada](https://plaid.com/docs/institutions/) or [Plaid coverage page for UK/Europe](https://plaid.com/docs/institutions/europe/) to see if your bank is supported.
 

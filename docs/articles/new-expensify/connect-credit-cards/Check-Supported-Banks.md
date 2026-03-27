@@ -5,7 +5,7 @@ keywords: [check supported banks, supported card issuers, Plaid, connect credit 
 internalScope: Audience is any Expensify user checking bank compatibility. Covers checking whether a bank or card issuer is supported, does not cover how to connect a card feed or troubleshoot connection errors.
 ---
 
-# Check supported banks and card issuers in Expensify
+# Check which banks and card issuers are supported in Expensify
 
 Expensify supports most major banks and card issuers worldwide through direct and commercial feeds. New banks are added regularly, so even if your bank isn't listed below, it may still be supported.
 
@@ -146,11 +146,11 @@ The following banks and card issuers are most commonly connected to Expensify. T
 
 # FAQ
 
-## Why isn't my bank listed here?
+## If my bank isn’t listed, is it still supported in Expensify?
 
-This page shows only the most commonly connected banks. Expensify supports hundreds of additional banks through Plaid. Check the Plaid coverage pages (US/Canada: https://plaid.com/docs/institutions/, UK/Europe: https://plaid.com/docs/institutions/europe/) to see if your bank is supported.
+This page shows only the most commonly connected banks. Expensify supports hundreds of additional banks through Plaid. Check the [Plaid coverage page for US/Canada](https://plaid.com/docs/institutions/) or [Plaid coverage page for UK/Europe](https://plaid.com/docs/institutions/europe/) to see if your bank is supported.
 
-## How often is the supported bank list updated?
+## How often are supported banks added to Expensify?
 
 New banks are added regularly through Plaid's network. Even if your bank isn't supported today, it may be added in the future. Check back periodically or contact Concierge for the latest information.
 
