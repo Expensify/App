@@ -25,7 +25,7 @@ import type {Country, IOUAction, IOUType, OdometerImageType} from '@src/CONST';
 import type NAVIGATORS from '@src/NAVIGATORS';
 import type {Route as ExpensifyRoute, Route as Routes} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {CompanyCardFeedWithDomainID} from '@src/types/onyx';
+import type {CompanyCardFeedWithDomainID, PersonalCardFeed} from '@src/types/onyx';
 import type {ConnectionName, SageIntacctMappingName} from '@src/types/onyx/Policy';
 import type {CustomFieldType} from '@src/types/onyx/PolicyEmployee';
 import type {FileObject} from '@src/types/utils/Attachment';
@@ -215,6 +215,10 @@ type SettingsNavigatorParamList = {
     };
     [SCREENS.SETTINGS.WALLET.TRAVEL_CVV]: undefined;
     [SCREENS.SETTINGS.WALLET.TRAVEL_CVV_VERIFY_ACCOUNT]: undefined;
+    [SCREENS.SETTINGS.WALLET.PERSONAL_CARD_ADD_NEW]: undefined;
+    [SCREENS.SETTINGS.WALLET.PERSONAL_CARD_BANK_CONNECTION]: {
+        feed: PersonalCardFeed;
+    };
     [SCREENS.SETTINGS.WALLET.PERSONAL_CARD_WARNING]: undefined;
     [SCREENS.SETTINGS.WALLET.PERSONAL_CARD_UPGRADE]: undefined;
     [SCREENS.SETTINGS.ADD_DEBIT_CARD]: undefined;
@@ -310,6 +314,11 @@ type SettingsNavigatorParamList = {
         backTo?: Routes;
     };
     [SCREENS.WORKSPACE.INVITE_MESSAGE_ROLE]: {
+        policyID: string;
+        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
+        backTo?: Routes;
+    };
+    [SCREENS.WORKSPACE.INVITE_MESSAGE_APPROVER]: {
         policyID: string;
         // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
         backTo?: Routes;
@@ -971,6 +980,8 @@ type SettingsNavigatorParamList = {
     };
     [SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_IMPORT_CUSTOM_SEGMENT_ADD]: {
         policyID: string;
+        subPage?: string;
+        action?: 'edit';
     };
     [SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_EXPORT]: {
         policyID: string;
@@ -1302,6 +1313,16 @@ type SettingsNavigatorParamList = {
         // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
         backTo?: Routes;
     };
+    [SCREENS.WORKSPACE.COMPANY_CARDS_REFRESH_CARD_FEED_CONNECTION]: {
+        policyID: string;
+        feed: CompanyCardFeedWithDomainID;
+    };
+    [SCREENS.WORKSPACE.COMPANY_CARDS_VERIFY_ACCOUNT]: {
+        policyID: string;
+
+        /** Present when verifying before a feed refresh; absent when verifying before adding a new feed */
+        feed?: CompanyCardFeedWithDomainID;
+    };
     [SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD_ASSIGNEE]: {
         policyID: string;
         feed: CompanyCardFeedWithDomainID;
@@ -1579,10 +1600,6 @@ type DomainCardNavigatorParamList = {
     [SCREENS.DOMAIN_CARD.DOMAIN_CARD_CONFIRM_MAGIC_CODE]: {
         cardID: string;
     };
-};
-
-type SearchRouterParamsList = {
-    [SCREENS.SEARCH_ROUTER.ROOT]: undefined;
 };
 
 type TwoFactorAuthNavigatorParamList = {
@@ -2424,7 +2441,6 @@ type RightModalNavigatorParamList = {
     [SCREENS.RIGHT_MODAL.SETTINGS]: NavigatorScreenParams<SettingsNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.WORKSPACE]: NavigatorScreenParams<SettingsNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.TWO_FACTOR_AUTH]: NavigatorScreenParams<TwoFactorAuthNavigatorParamList>;
-    [SCREENS.RIGHT_MODAL.SEARCH_ROUTER]: NavigatorScreenParams<SearchRouterParamsList>;
     [SCREENS.RIGHT_MODAL.NEW_CHAT]: NavigatorScreenParams<NewChatNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.DETAILS]: NavigatorScreenParams<DetailsNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.PROFILE]: NavigatorScreenParams<ProfileNavigatorParamList>;
@@ -2981,6 +2997,7 @@ type AuthScreensParamList = SharedScreensParamList &
             email: string;
         };
         [SCREENS.NOT_FOUND]: undefined;
+        [SCREENS.SEARCH_ROUTER.ROOT]: undefined;
         [NAVIGATORS.REPORTS_SPLIT_NAVIGATOR]: NavigatorScreenParams<ReportsSplitNavigatorParamList>;
         [NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR]: NavigatorScreenParams<SettingsSplitNavigatorParamList>;
         [NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR]: NavigatorScreenParams<WorkspaceSplitNavigatorParamList>;
@@ -3224,6 +3241,7 @@ export type {
     FeatureTrainingNavigatorParamList,
     FlagCommentNavigatorParamList,
     FullScreenName,
+    GoBackAction,
     MissingPersonalDetailsParamList,
     MoneyRequestNavigatorParamList,
     NavigationPartialRoute,
