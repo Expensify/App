@@ -1,9 +1,9 @@
 import {useSearchStateContext} from '@components/Search/SearchContext';
-import useOnyx from '@hooks/useOnyx';
 import {getSearchBulkEditPolicyID} from '@libs/SearchUIUtils';
 import {withSnapshotReports, withSnapshotTransactions} from '@pages/Search/SearchEditMultiple/SearchEditMultipleUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import useOnyx from './useOnyx';
 
 /**
  * Resolves the bulk-edit policyID from the selected transactions, using
