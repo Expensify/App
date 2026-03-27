@@ -12,10 +12,6 @@ function Camera({cameraTabIndex, ref, forceInactive = false, ...props}: Navigati
         <VisionCamera
             ref={ref}
             photoQualityBalance="quality"
-            // Disable features that slow down photo capture per VisionCamera perf tips:
-            // https://react-native-vision-camera.com/docs/guides/performance
-            photoHdr={false}
-            videoStabilizationMode="off"
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
             isActive={isCameraActive}
