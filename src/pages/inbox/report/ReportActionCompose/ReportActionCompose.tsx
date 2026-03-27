@@ -169,7 +169,6 @@ function ReportActionCompose({reportID}: ReportActionComposeProps) {
     const parentReportAction = useParentReportAction(report);
     const [transactionThreadReportActions = {} as OnyxTypes.ReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${effectiveTransactionThreadReportID}`);
     const combinedReportActions = getCombinedReportActions(filteredReportActions, effectiveTransactionThreadReportID ?? null, Object.values(transactionThreadReportActions));
-    const lastReportAction = [...combinedReportActions, parentReportAction].find((action) => canEditReportAction(action) && !isMoneyRequestAction(action));
 
     const {reportPendingAction: pendingAction} = getReportOfflinePendingActionAndErrors(report);
 
@@ -237,6 +236,8 @@ function ReportActionCompose({reportID}: ReportActionComposeProps) {
     const isBlockedFromConcierge = useMemo(() => includesConcierge && userBlockedFromConcierge, [includesConcierge, userBlockedFromConcierge]);
     const isReportArchived = useReportIsArchived(report?.reportID);
     const isTransactionThreadView = useMemo(() => isReportTransactionThread(report), [report]);
+    const actionsForLastEditable = isTransactionThreadView ? combinedReportActions : filteredReportActions;
+    const lastReportAction = [...actionsForLastEditable, parentReportAction].find((action) => canEditReportAction(action) && !isMoneyRequestAction(action));
     const isExpensesReport = useMemo(() => reportTransactions && reportTransactions.length > 1, [reportTransactions]);
 
     const [rawReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.reportID}`, {
