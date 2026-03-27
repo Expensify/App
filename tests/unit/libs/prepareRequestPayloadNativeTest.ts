@@ -17,6 +17,13 @@ jest.mock('@libs/validateFormDataParameter', () => ({
     default: jest.fn(),
 }));
 
+const mockLogAlert = jest.fn();
+jest.mock('@libs/Log', () => ({
+    // eslint-disable-next-line @typescript-eslint/naming-convention
+    __esModule: true,
+    default: {alert: mockLogAlert},
+}));
+
 // Bypass the global jest/setup.ts mock to test the real native implementation.
 // Dependencies above are still resolved through their respective mocks.
 // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
@@ -43,7 +50,7 @@ describe('prepareRequestPayload (native)', () => {
         expect(formData.get('amount')).toBe('100');
     });
 
-    it('should reject when receipt file does not exist instead of silently dropping it', async () => {
+    it('should log an alert and omit receipt from FormData when file does not exist', async () => {
         mockCheckFileExists.mockResolvedValue(false);
 
         const receipt = {
@@ -53,7 +60,15 @@ describe('prepareRequestPayload (native)', () => {
             uri: 'file:///var/mobile/Library/Caches/ImageManipulator/receipt.jpg',
         };
 
-        await expect(prepareRequestPayload('RequestMoney', {receipt, amount: '100'}, false)).rejects.toThrow('Receipt file not found');
+        const formData = await prepareRequestPayload('RequestMoney', {receipt, amount: '100'}, false);
+
+        expect(formData.has('receipt')).toBe(false);
+        expect(formData.get('amount')).toBe('100');
+        expect(mockLogAlert).toHaveBeenCalledWith('[prepareRequestPayload] Receipt file missing at upload time', {
+            command: 'RequestMoney',
+            source: 'file:///var/mobile/Library/Caches/ImageManipulator/receipt.jpg',
+            fileName: 'receipt.jpg',
+        });
     });
 
     it('should handle non-receipt data normally', async () => {

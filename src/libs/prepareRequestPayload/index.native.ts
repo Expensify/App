@@ -1,5 +1,6 @@
 import checkFileExists from '@libs/fileDownload/checkFileExists';
 import {readFileAsync} from '@libs/fileDownload/FileUtils';
+import Log from '@libs/Log';
 import validateFormDataParameter from '@libs/validateFormDataParameter';
 import type PrepareRequestPayload from './types';
 
@@ -24,7 +25,8 @@ const prepareRequestPayload: PrepareRequestPayload = (command, data, initiatedOf
                 if (source) {
                     return checkFileExists(source).then((exists) => {
                         if (!exists) {
-                            throw new Error(`Receipt file not found at path: ${source}. The file may have been deleted from a temporary cache before upload.`);
+                            Log.alert('[prepareRequestPayload] Receipt file missing at upload time', {command, source, fileName: name});
+                            return;
                         }
                         const receiptFormData = {
                             uri,
