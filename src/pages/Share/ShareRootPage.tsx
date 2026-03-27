@@ -199,6 +199,7 @@ function ShareRootPage() {
                     <OnyxTabNavigator
                         id={CONST.TAB.SHARE.NAVIGATOR_ID}
                         tabBar={TabSelector}
+                        defaultSelectedTab={CONST.TAB.SHARE.SUBMIT}
                         lazyLoadEnabled
                         onTabSelect={onTabSelectFocusHandler}
                     >
