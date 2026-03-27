@@ -1,4 +1,4 @@
-import React, {useRef} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import type {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 // Use the original useOnyx hook to get the real-time data from Onyx and not from the snapshot
@@ -10,7 +10,7 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import {useSearchStateContext} from '@components/Search/SearchContext';
 import type {ListItem} from '@components/SelectionList/types';
-import {getIsEditingCell} from '@components/Table/EditableCell';
+import {useEditingCellState} from '@components/Table/EditableCell';
 import TransactionItemRow from '@components/TransactionItemRow';
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -151,6 +151,19 @@ function TransactionListItem<TItem extends ListItem>({
 
     const transactionID = transactionItem.transactionID;
 
+    const {isEditingCell, wasRecentlyEditingCell} = useEditingCellState();
+    const [shouldDisableHoverStyle, setShouldDisableHoverStyle] = useState(false);
+
+    // When a popover is opened during inline editing, onHoverOut never fires after editing ends, leaving the hover style stuck.
+    // Disable it until the next intentional hover (onHoverIn).
+    // See: https://github.com/Expensify/App/pull/83127#issuecomment-4114490080
+    useEffect(() => {
+        if (!wasRecentlyEditingCell) {
+            return;
+        }
+        queueMicrotask(() => setShouldDisableHoverStyle(true));
+    }, [wasRecentlyEditingCell]);
+
     const {
         canEditDate,
         canEditMerchant,
@@ -177,16 +190,25 @@ function TransactionListItem<TItem extends ListItem>({
 
     const handleOnPress = () => {
         // Consume the tap that dismissed an editing cell — a second tap will open the row.
-        // We check the ref rather than getIsEditingCell() because blur fires before onPress and resets the state.
+        // We check the ref rather than isEditingCell because blur fires before onPress and resets the state.
         if (wasEditingOnMouseDownRef.current) {
             wasEditingOnMouseDownRef.current = false;
             return;
         }
         // react-native-web fires onPress on Space for role="button" elements; suppress it while a cell is being edited.
-        if (getIsEditingCell()) {
+        if (isEditingCell) {
             return;
         }
         onSelectRow(item, transactionPreviewData);
+    };
+
+    const handleOnMouseDown = (e?: React.MouseEvent) => {
+        wasEditingOnMouseDownRef.current = isEditingCell;
+
+        // Skip preventDefault when editing so the browser naturally blurs the input (triggering save/cancel).
+        if (!isEditingCell) {
+            e?.preventDefault();
+        }
     };
 
     const handleActionButtonPress = () => {
@@ -220,14 +242,9 @@ function TransactionListItem<TItem extends ListItem>({
                 accessibilityLabel={item.text ?? ''}
                 role={getButtonRole(true)}
                 isNested
-                onMouseDown={(e) => {
-                    wasEditingOnMouseDownRef.current = getIsEditingCell();
-                    // Skip preventDefault when editing so the browser naturally blurs the input (triggering save/cancel).
-                    if (!getIsEditingCell()) {
-                        e.preventDefault();
-                    }
-                }}
-                hoverStyle={[!item.isDisabled && styles.hoveredComponentBG, item.isSelected && styles.activeComponentBG]}
+                onMouseDown={handleOnMouseDown}
+                onHoverIn={() => setShouldDisableHoverStyle(false)}
+                hoverStyle={[!item.isDisabled && !shouldDisableHoverStyle && styles.hoveredComponentBG, item.isSelected && styles.activeComponentBG]}
                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true, [CONST.INNER_BOX_SHADOW_ELEMENT]: false}}
                 id={item.keyForList ?? ''}
                 sentryLabel={CONST.SENTRY_LABEL.SEARCH.TRANSACTION_LIST_ITEM}

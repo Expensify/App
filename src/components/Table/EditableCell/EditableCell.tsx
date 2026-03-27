@@ -5,7 +5,7 @@ import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
-import {setFocusedCellId, setIsEditingCell} from './editingCellState';
+import {useEditingCellActions} from './EditingCellContext';
 
 type EditableCellProps = {
     /** Content to display when not editing */
@@ -50,6 +50,7 @@ function EditableCell({children, editContent, popoverContent, isEditing, canEdit
     const {isLargeScreenWidth} = useResponsiveLayout();
     const isEditable = isLargeScreenWidth;
     const cellId = useId();
+    const {setIsEditingCell, setFocusedCellId} = useEditingCellActions();
 
     useEffect(() => {
         if (!isEditable || !isEditing) {
@@ -57,7 +58,7 @@ function EditableCell({children, editContent, popoverContent, isEditing, canEdit
         }
         setIsEditingCell(true);
         return () => setIsEditingCell(false);
-    }, [isEditing, isEditable]);
+    }, [isEditing, isEditable, setIsEditingCell]);
 
     // Architectural exclusion (e.g. narrow layout) — no container, no padding.
     if (!isEditable) {
