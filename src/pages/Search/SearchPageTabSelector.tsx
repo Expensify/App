@@ -35,10 +35,41 @@ type SearchPageTabSelectorProps = {
     onTabPress?: () => void;
 };
 
+type SearchPageTabSelectorContentProps = {
+    tabs: TabSelectorBaseItem[];
+    activeTabKey: string;
+    onActiveTabPress?: (key: string) => void;
+    onTabPress?: (key: string) => void;
+    onLongTabPress?: (key: string) => void;
+    containerRef?: React.RefObject<View | null>;
+    children?: React.ReactNode;
+};
+
+function SearchPageTabSelectorContent({tabs, activeTabKey, onActiveTabPress, onTabPress: onTabPressContent, onLongTabPress, containerRef, children}: SearchPageTabSelectorContentProps) {
+    const styles = useThemeStyles();
+
+    return (
+        <View
+            ref={containerRef}
+            style={[styles.appBG]}
+        >
+            <TabSelectorContextProvider activeTabKey={activeTabKey}>
+                <TabSelectorBase
+                    tabs={tabs}
+                    activeTabKey={activeTabKey}
+                    onActiveTabPress={onActiveTabPress}
+                    onTabPress={onTabPressContent}
+                    onLongTabPress={onLongTabPress}
+                />
+            </TabSelectorContextProvider>
+            {children}
+        </View>
+    );
+}
+
 function SearchPageTabSelector({queryJSON, onTabPress}: SearchPageTabSelectorProps) {
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
-    const styles = useThemeStyles();
     const navigation = useNavigation();
     const {typeMenuSections} = useSearchTypeMenuSections();
     const personalDetails = usePersonalDetails();
@@ -193,19 +224,14 @@ function SearchPageTabSelector({queryJSON, onTabPress}: SearchPageTabSelectorPro
     };
 
     return (
-        <View
-            ref={menuAnchorRef}
-            style={[styles.appBG]}
+        <SearchPageTabSelectorContent
+            tabs={tabItems}
+            activeTabKey={activeKey}
+            onActiveTabPress={handleActiveTabPress}
+            onTabPress={handleTabPress}
+            onLongTabPress={handleLongTabPress}
+            containerRef={menuAnchorRef}
         >
-            <TabSelectorContextProvider activeTabKey={activeKey}>
-                <TabSelectorBase
-                    tabs={tabItems}
-                    activeTabKey={activeKey}
-                    onActiveTabPress={handleActiveTabPress}
-                    onTabPress={handleTabPress}
-                    onLongTabPress={handleLongTabPress}
-                />
-            </TabSelectorContextProvider>
             <PopoverMenu
                 onClose={() => setSavedSearchToModifyKey(null)}
                 onModalHide={() => setRestoreFocusType(undefined)}
@@ -226,8 +252,9 @@ function SearchPageTabSelector({queryJSON, onTabPress}: SearchPageTabSelectorPro
                 shouldEnableNewFocusManagement
                 restoreFocusType={restoreFocusType}
             />
-        </View>
+        </SearchPageTabSelectorContent>
     );
 }
 
+export {SearchPageTabSelectorContent};
 export default SearchPageTabSelector;
