@@ -5,7 +5,7 @@ import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
-import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
+import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import Text from '@components/Text';
 import {useCurrencyListState} from '@hooks/useCurrencyList';
 import useDebouncedState from '@hooks/useDebouncedState';
@@ -116,7 +116,7 @@ function SelectCountryStep({policyID}: CountryStepProps) {
             <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mv3]}>{translate('workspace.companyCards.addNewCard.whereIsYourBankLocated')}</Text>
             <SelectionList
                 data={searchResults}
-                ListItem={SingleSelectListItem}
+                ListItem={RadioListItem}
                 onSelectRow={(countryOption) => {
                     setSelectedCountry(countryOption.value ?? null);
                 }}

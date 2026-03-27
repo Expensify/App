@@ -3,7 +3,7 @@ import {View} from 'react-native';
 import ConnectionLayout from '@components/ConnectionLayout';
 import RenderHTML from '@components/RenderHTML';
 import SelectionList from '@components/SelectionList';
-import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
+import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import Text from '@components/Text';
 import useDefaultFundID from '@hooks/useDefaultFundID';
 import useEnvironment from '@hooks/useEnvironment';
@@ -110,7 +110,7 @@ function ReconciliationAccountSettingsPage({route}: ReconciliationAccountSetting
             <SelectionList
                 data={options}
                 onSelectRow={({value}) => selectBankAccount(value)}
-                ListItem={SingleSelectListItem}
+                ListItem={RadioListItem}
                 initiallyFocusedItemKey={paymentBankAccountID?.toString()}
             />
         </ConnectionLayout>

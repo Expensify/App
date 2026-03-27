@@ -211,7 +211,6 @@ function AssigneeStep({policy, stepNames, startStepIndex, route}: AssigneeStepPr
                 disableMaintainingScrollPosition
                 shouldUpdateFocusedIndex
                 addBottomSafeAreaPadding
-                shouldShowRadioButton
             />
         </InteractiveStepWrapper>
     );

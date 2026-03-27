@@ -4,7 +4,7 @@ import type {ValueOf} from 'type-fest';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
-import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
+import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import type {ListItem} from '@components/SelectionList/ListItem/types';
 import Switch from '@components/Switch';
 import Text from '@components/Text';
@@ -67,7 +67,7 @@ function ThemePage() {
             <View style={styles.flex1}>
                 <SelectionList
                     data={localesToThemes}
-                    ListItem={SingleSelectListItem}
+                    ListItem={RadioListItem}
                     onSelectRow={updateTheme}
                     shouldSingleExecuteRowSelect
                     initiallyFocusedItemKey={localesToThemes.find((theme) => theme.isSelected)?.keyForList}
