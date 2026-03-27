@@ -3469,6 +3469,12 @@ const staticStyles = (theme: ThemeColors) =>
             borderColor: theme.success,
         },
 
+        searchInputSkeleton: {
+            height: 54,
+            borderRadius: variables.componentBorderRadiusNormal,
+            justifyContent: 'center',
+        },
+
         searchTableHeaderActive: {
             fontWeight: FontUtils.fontWeight.bold,
         },
