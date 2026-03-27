@@ -24,6 +24,7 @@ import {isPolicyExpenseChat} from '@libs/ReportUtils';
 import {cancelSpan, endSpan} from '@libs/telemetry/activeSpans';
 import {getDefaultTaxCode, getTaxValue} from '@libs/TransactionUtils';
 import useScanCapture from '@pages/iou/request/step/IOURequestStepScan/hooks/useScanCapture';
+import useScanRouteParams from '@pages/iou/request/step/IOURequestStepScan/hooks/useScanRouteParams';
 import {getLocationPermission} from '@pages/iou/request/step/IOURequestStepScan/LocationPermission';
 import type {ReceiptFile} from '@pages/iou/request/step/IOURequestStepScan/types';
 import buildReceiptFiles from '@pages/iou/request/step/IOURequestStepScan/utils/buildReceiptFiles';
@@ -45,7 +46,6 @@ import GpsPermissionGate from './GpsPermissionGate';
 import {useMultiScanState} from './MultiScanContext';
 import MultiScanEducationalModal from './MultiScanEducationalModal';
 import ReceiptPreviews from './ReceiptPreviews';
-import {useScanRouteParams} from './ScanRouteContext';
 
 /**
  * ScanSkipConfirmation — skip-confirmation variant.

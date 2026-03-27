@@ -9,6 +9,7 @@ import {navigateToConfirmationPage} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {endSpan} from '@libs/telemetry/activeSpans';
 import useScanCapture from '@pages/iou/request/step/IOURequestStepScan/hooks/useScanCapture';
+import useScanRouteParams from '@pages/iou/request/step/IOURequestStepScan/hooks/useScanRouteParams';
 import type {ReceiptFile} from '@pages/iou/request/step/IOURequestStepScan/types';
 import buildReceiptFiles from '@pages/iou/request/step/IOURequestStepScan/utils/buildReceiptFiles';
 import getFileSource from '@pages/iou/request/step/IOURequestStepScan/utils/getFileSource';
@@ -24,7 +25,6 @@ import Camera from './Camera';
 import {useMultiScanState} from './MultiScanContext';
 import MultiScanEducationalModal from './MultiScanEducationalModal';
 import ReceiptPreviews from './ReceiptPreviews';
-import {useScanRouteParams} from './ScanRouteContext';
 
 /**
  * ScanFromReport — the most common scan flow.

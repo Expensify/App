@@ -3,11 +3,11 @@ import {InteractionManager} from 'react-native';
 import useOnyx from '@hooks/useOnyx';
 import {dismissProductTraining} from '@libs/actions/Welcome';
 import {isMobile} from '@libs/Browser';
+import useScanRouteParams from '@pages/iou/request/step/IOURequestStepScan/hooks/useScanRouteParams';
 import {removeDraftTransactionsByIDs, removeTransactionReceipt} from '@userActions/TransactionEdit';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {validTransactionDraftIDsSelector} from '@src/selectors/TransactionDraft';
-import {useScanRouteParams} from './ScanRouteContext';
 
 type MultiScanState = {
     isMultiScanEnabled: boolean;

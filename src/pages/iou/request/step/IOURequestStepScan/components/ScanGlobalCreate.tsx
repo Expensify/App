@@ -14,6 +14,7 @@ import {getPolicyExpenseChat, isSelfDM} from '@libs/ReportUtils';
 import shouldUseDefaultExpensePolicy from '@libs/shouldUseDefaultExpensePolicy';
 import {endSpan} from '@libs/telemetry/activeSpans';
 import useScanCapture from '@pages/iou/request/step/IOURequestStepScan/hooks/useScanCapture';
+import useScanRouteParams from '@pages/iou/request/step/IOURequestStepScan/hooks/useScanRouteParams';
 import buildReceiptFiles from '@pages/iou/request/step/IOURequestStepScan/utils/buildReceiptFiles';
 import getFileSource from '@pages/iou/request/step/IOURequestStepScan/utils/getFileSource';
 import startScanProcessSpan from '@pages/iou/request/step/IOURequestStepScan/utils/startScanProcessSpan';
@@ -30,7 +31,6 @@ import Camera from './Camera';
 import {useMultiScanState} from './MultiScanContext';
 import MultiScanEducationalModal from './MultiScanEducationalModal';
 import ReceiptPreviews from './ReceiptPreviews';
-import {useScanRouteParams} from './ScanRouteContext';
 
 /**
  * ScanGlobalCreate — global create flow.
