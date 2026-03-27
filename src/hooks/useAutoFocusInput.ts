@@ -44,7 +44,15 @@ export default function useAutoFocusInput(isMultiline = false): UseAutoFocusInpu
     }, []);
 
     useEffect(() => {
-        if (isScreenReaderEnabled || !isScreenTransitionEnded || !isInputInitialized || !inputRef.current || splashScreenState !== CONST.BOOT_SPLASH_STATE.HIDDEN || isPopoverVisible || isInLandscapeMode) {
+        if (
+            isScreenReaderEnabled ||
+            !isScreenTransitionEnded ||
+            !isInputInitialized ||
+            !inputRef.current ||
+            splashScreenState !== CONST.BOOT_SPLASH_STATE.HIDDEN ||
+            isPopoverVisible ||
+            isInLandscapeMode
+        ) {
             return;
         }
         // eslint-disable-next-line @typescript-eslint/no-deprecated
@@ -59,11 +67,7 @@ export default function useAutoFocusInput(isMultiline = false): UseAutoFocusInpu
         return () => {
             focusTaskHandle.cancel();
         };
-<<<<<<< HEAD
-    }, [isMultiline, isScreenTransitionEnded, isInputInitialized, splashScreenState, isPopoverVisible, isInLandscapeMode]);
-=======
-    }, [isScreenReaderEnabled, isMultiline, isScreenTransitionEnded, isInputInitialized, splashScreenState, isPopoverVisible]);
->>>>>>> main
+    }, [isScreenReaderEnabled, isMultiline, isScreenTransitionEnded, isInputInitialized, splashScreenState, isPopoverVisible, isInLandscapeMode]);
 
     useFocusEffect(
         useCallback(() => {
