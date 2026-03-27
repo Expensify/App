@@ -27,7 +27,6 @@ function WorkspaceVerifyWorkAccountPage({route}: WorkspaceVerifyWorkAccountPageP
     const {policyID, feed} = route.params;
     const {translate} = useLocalize();
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
-    const [onboardingValues] = useOnyx(ONYXKEYS.NVP_ONBOARDING);
     const workEmail = usePrimaryContactMethod();
 
     const [getAccessiblePoliciesAction] = useOnyx(ONYXKEYS.VALIDATE_USER_AND_GET_ACCESSIBLE_POLICIES);
@@ -56,11 +55,6 @@ function WorkspaceVerifyWorkAccountPage({route}: WorkspaceVerifyWorkAccountPageP
         if (!feedInfo) {
             return;
         }
-        // Primary (e.g. public signup email) can already be validated while AddWorkEmail merge still requires
-        // magic-code validation (`shouldValidate`). Do not auto-link until that flow completes.
-        if (onboardingValues?.shouldValidate) {
-            return;
-        }
         if (isWorkEmailValidated) {
             setLoading(true);
             const feedValue = getCardFeedWithDomainID(feedInfo.feed, feedInfo.fundID) as CompanyCardFeedWithDomainID;
@@ -78,7 +72,7 @@ function WorkspaceVerifyWorkAccountPage({route}: WorkspaceVerifyWorkAccountPageP
                     setLoading(false);
                 });
         }
-    }, [feed, feedInfo, isWorkEmailValidated, onboardingValues?.shouldValidate, policyID]);
+    }, [feed, feedInfo, isWorkEmailValidated, policyID]);
 
     return (
         <ValidateCodeActionContent
