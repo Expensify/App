@@ -1,0 +1,374 @@
+import {useIsFocused, useRoute} from '@react-navigation/native';
+import {useCallback, useEffect, useMemo, useRef} from 'react';
+import {InteractionManager} from 'react-native';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useIsAnonymousUser from '@hooks/useIsAnonymousUser';
+import useIsInSidePanel from '@hooks/useIsInSidePanel';
+import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
+import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
+import usePrevious from '@hooks/usePrevious';
+import useReportTransactionsCollection from '@hooks/useReportTransactionsCollection';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+import {getAllNonDeletedTransactions} from '@libs/MoneyRequestReportUtils';
+import Navigation from '@libs/Navigation/Navigation';
+import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
+import {getFilteredReportActionsForReportView, getIOUActionForReportID, getOneTransactionThreadReportID, isCreatedAction} from '@libs/ReportActionsUtils';
+import {
+    getReportTransactions,
+    isChatThread,
+    isHiddenForCurrentUser,
+    isOneTransactionThread,
+    isPolicyExpenseChat,
+    isReportTransactionThread,
+    isTaskReport,
+    isValidReportIDFromPath,
+} from '@libs/ReportUtils';
+import type {ReportsSplitNavigatorParamList, RightModalNavigatorParamList} from '@navigation/types';
+import {setShouldShowComposeInput} from '@userActions/Composer';
+import {createTransactionThreadReport, openReport, readNewestAction, subscribeToReportLeavingEvents, unsubscribeFromLeavingRoomReportChannel, updateLastVisitTime} from '@userActions/Report';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import SCREENS from '@src/SCREENS';
+
+type ReportScreenRoute =
+    | PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>
+    | PlatformStackRouteProp<RightModalNavigatorParamList, typeof SCREENS.RIGHT_MODAL.SEARCH_REPORT>;
+
+const defaultReportMetadata = {
+    hasOnceLoadedReportActions: false,
+    isLoadingInitialReportActions: true,
+    isLoadingOlderReportActions: false,
+    hasLoadingOlderReportActionsError: false,
+    isLoadingNewerReportActions: false,
+    hasLoadingNewerReportActionsError: false,
+    isOptimisticReport: false,
+};
+
+/**
+ * Renderless component. Owns all fetch/open-report logic, transaction thread creation,
+ * leaving events subscriptions, and related effects that were previously in ReportScreen.
+ *
+ * Self-subscribes to route params via useRoute().
+ */
+function ReportFetchController() {
+    const route = useRoute<ReportScreenRoute>();
+    const reportIDFromRoute = getNonEmptyStringOnyxID(route.params?.reportID);
+    const reportActionIDFromRoute = route?.params?.reportActionID;
+
+    const isFocused = useIsFocused();
+    const prevIsFocused = usePrevious(isFocused);
+    const {isOffline} = useNetwork();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const isInSidePanel = useIsInSidePanel();
+    const {accountID: currentUserAccountID, email: currentUserEmail} = useCurrentUserPersonalDetails();
+    const isAnonymousUser = useIsAnonymousUser();
+    const prevIsAnonymousUser = useRef(false);
+    const hasCreatedLegacyThreadRef = useRef(false);
+    const didSubscribeToReportLeavingEvents = useRef(false);
+
+    const [reportOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportIDFromRoute}`);
+    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportOnyx?.chatReportID}`);
+    const [reportMetadata = defaultReportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportIDFromRoute}`);
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [onboarding] = useOnyx(ONYXKEYS.NVP_ONBOARDING);
+    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
+    const [isLoadingReportData = true] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA);
+    const prevIsLoadingReportData = usePrevious(isLoadingReportData);
+
+    const reportID = reportOnyx?.reportID;
+    const report = reportOnyx;
+
+    const {reportActions: unfilteredReportActions, linkedAction} = usePaginatedReportActions(reportID, reportActionIDFromRoute);
+    const reportActions = useMemo(() => getFilteredReportActionsForReportView(unfilteredReportActions), [unfilteredReportActions]);
+    const prevReportActions = usePrevious(reportActions);
+
+    const [childReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${linkedAction?.childReportID}`);
+
+    const allReportTransactions = useReportTransactionsCollection(reportIDFromRoute);
+    const reportTransactions = useMemo(() => getAllNonDeletedTransactions(allReportTransactions, reportActions, isOffline, true), [allReportTransactions, reportActions, isOffline]);
+    const visibleTransactions = useMemo(
+        () => reportTransactions?.filter((transaction) => isOffline || transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE),
+        [reportTransactions, isOffline],
+    );
+    const reportTransactionIDs = useMemo(() => visibleTransactions?.map((transaction) => transaction.transactionID), [visibleTransactions]);
+
+    const transactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, reportActions ?? [], isOffline, reportTransactionIDs);
+    const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`);
+    const prevTransactionThreadReportID = usePrevious(transactionThreadReportID);
+
+    const isTransactionThreadView = isReportTransactionThread(report);
+
+    const indexOfLinkedMessage = useMemo(
+        (): number => reportActions.findIndex((obj) => reportActionIDFromRoute && String(obj.reportActionID) === String(reportActionIDFromRoute)),
+        [reportActions, reportActionIDFromRoute],
+    );
+    const doesCreatedActionExists = useCallback(() => !!reportActions?.findLast((action) => isCreatedAction(action)), [reportActions]);
+    const isLinkedMessageAvailable = indexOfLinkedMessage > -1;
+    const isLinkedMessagePageReady = isLinkedMessageAvailable && (reportActions.length - indexOfLinkedMessage >= CONST.REPORT.MIN_INITIAL_REPORT_ACTION_COUNT || doesCreatedActionExists());
+
+    const isInviteOnboardingComplete = introSelected?.isInviteOnboardingComplete ?? false;
+    const isOnboardingCompleted = onboarding?.hasCompletedGuidedSetupFlow ?? false;
+
+    // #1 — fetchReport callback
+    const fetchReport = useCallback(() => {
+        if (reportMetadata.isOptimisticReport && report?.type === CONST.REPORT.TYPE.CHAT && !isPolicyExpenseChat(report)) {
+            return;
+        }
+
+        if (report?.errorFields?.notFound && isOffline) {
+            return;
+        }
+
+        // When a user goes through onboarding for the first time, various tasks are created for chatting with Concierge.
+        // If this function is called too early (while the application is still loading), we will not have information about policies,
+        // which means we will not be able to obtain the correct link for one of the tasks.
+        // More information here: https://github.com/Expensify/App/issues/71742
+        if (isLoadingApp && introSelected && !isOnboardingCompleted && !isInviteOnboardingComplete) {
+            const {choice, inviteType} = introSelected;
+            const isInviteIOUorInvoice = inviteType === CONST.ONBOARDING_INVITE_TYPES.IOU || inviteType === CONST.ONBOARDING_INVITE_TYPES.INVOICE;
+            const isInviteChoiceCorrect = choice === CONST.ONBOARDING_CHOICES.ADMIN || choice === CONST.ONBOARDING_CHOICES.SUBMIT || choice === CONST.ONBOARDING_CHOICES.CHAT_SPLIT;
+
+            if (isInviteChoiceCorrect && !isInviteIOUorInvoice) {
+                return;
+            }
+        }
+
+        openReport({reportID: reportIDFromRoute, introSelected, reportActionID: reportActionIDFromRoute, betas});
+    }, [
+        reportMetadata.isOptimisticReport,
+        report,
+        isOffline,
+        isLoadingApp,
+        introSelected,
+        isOnboardingCompleted,
+        isInviteOnboardingComplete,
+        reportIDFromRoute,
+        reportActionIDFromRoute,
+        betas,
+    ]);
+
+    // #3 — createOneTransactionThreadReport callback
+    const createOneTransactionThreadReport = useCallback(() => {
+        const currentReportTransaction = getReportTransactions(reportID).filter((transaction) => transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+        const oneTransactionID = currentReportTransaction.at(0)?.transactionID;
+        const iouAction = getIOUActionForReportID(reportID, oneTransactionID);
+        createTransactionThreadReport(introSelected, currentUserEmail ?? '', currentUserAccountID, betas, report, iouAction, currentReportTransaction.at(0));
+    }, [introSelected, currentUserEmail, currentUserAccountID, betas, report, reportID]);
+
+    // #2 — isAnonymousUser tracking
+    useEffect(() => {
+        if (!isAnonymousUser) {
+            return;
+        }
+        prevIsAnonymousUser.current = true;
+    }, [isAnonymousUser]);
+
+    // #3 — create transaction thread when transactionThreadReportID === CONST.FAKE_REPORT_ID
+    useEffect(() => {
+        if (transactionThreadReportID !== CONST.FAKE_REPORT_ID || transactionThreadReport?.reportID || (!reportMetadata.hasOnceLoadedReportActions && !reportMetadata?.isOptimisticReport)) {
+            return;
+        }
+
+        createOneTransactionThreadReport();
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- we don't want to run this useEffect when createOneTransactionThreadReport changes
+    }, [reportMetadata.hasOnceLoadedReportActions, reportMetadata?.isOptimisticReport, transactionThreadReport?.reportID, transactionThreadReportID]);
+
+    // #4 — Re-fetch after anonymous-to-signed-in
+    useEffect(() => {
+        if (isLoadingReportData || !prevIsLoadingReportData || !prevIsAnonymousUser.current || isAnonymousUser) {
+            return;
+        }
+        // Re-fetch public report data after user signs in and OpenApp API is called to
+        // avoid reportActions data being empty for public rooms.
+        fetchReport();
+    }, [isLoadingReportData, prevIsLoadingReportData, prevIsAnonymousUser, isAnonymousUser, fetchReport]);
+
+    // #5 — Re-fetch after transaction thread created
+    useEffect(() => {
+        // If transactionThreadReportID is undefined or CONST.FAKE_REPORT_ID, we do not call fetchReport.
+        // Only when transactionThreadReportID changes to a valid value, the fetchReport will be called to fetch the data again for the current report.
+        // Since fetchReport is always called once when opening a report,
+        // if that initial call is used to create a transactionThreadReport,
+        // then fetchReport needs to be called again after the transactionThreadReport has been fully created.
+        const prevTransactionThreadReportIDWasValid = !!prevTransactionThreadReportID && prevTransactionThreadReportID !== CONST.FAKE_REPORT_ID;
+        const transactionThreadReportIDUpdatedFromValidToFake = transactionThreadReportID === CONST.FAKE_REPORT_ID && !!prevTransactionThreadReportID;
+
+        if (prevTransactionThreadReportIDWasValid || !transactionThreadReportID || transactionThreadReportIDUpdatedFromValidToFake) {
+            return;
+        }
+
+        fetchReport();
+    }, [fetchReport, prevTransactionThreadReportID, transactionThreadReportID]);
+
+    // #6 — updateLastVisitTime
+    useEffect(() => {
+        if (!reportID || !isFocused || isInSidePanel) {
+            return;
+        }
+        updateLastVisitTime(reportID);
+    }, [reportID, isFocused, isInSidePanel]);
+
+    // #7 — Compose input init + leaving events cleanup
+    useEffect(() => {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        const interactionTask = InteractionManager.runAfterInteractions(() => {
+            setShouldShowComposeInput(true);
+        });
+        return () => {
+            interactionTask.cancel();
+            if (!didSubscribeToReportLeavingEvents.current) {
+                return;
+            }
+
+            unsubscribeFromLeavingRoomReportChannel(reportID);
+        };
+
+        // I'm disabling the warning, as it expects to use exhaustive deps, even though we want this useEffect to run only on the first render.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
+    // #8 — fetchReport on navigation/linking
+    useEffect(() => {
+        // This function is triggered when a user clicks on a link to navigate to a report.
+        // For each link click, we retrieve the report data again, even though it may already be cached.
+        // There should be only one openReport execution per page start or navigating
+        fetchReport();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [route, isLinkedMessagePageReady, reportActionIDFromRoute]);
+
+    // #9 — Re-fetch when invited to room
+    useEffect(() => {
+        // This function is only triggered when a user is invited to a room after opening the link.
+        // When a user opens a room they are not a member of, and the admin then invites them, only the INVITE_TO_ROOM action is available, so the background will be empty and room description is not available.
+        // See https://github.com/Expensify/App/issues/57769 for more details
+        if (prevReportActions.length !== 0 || reportActions.length !== 1 || reportActions.at(0)?.actionName !== CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.INVITE_TO_ROOM) {
+            return;
+        }
+        fetchReport();
+    }, [prevReportActions.length, reportActions, fetchReport]);
+
+    // #10 — Thread rejoin on re-focus
+    // If a user has chosen to leave a thread, and then returns to it (e.g. with the back button), we need to call `openReport` again in order to allow the user to rejoin and to receive real-time updates
+    useEffect(() => {
+        if (!shouldUseNarrowLayout || !isFocused || prevIsFocused || !isChatThread(report) || !isHiddenForCurrentUser(report) || isTransactionThreadView) {
+            return;
+        }
+        openReport({reportID, introSelected, betas});
+
+        // We don't want to run this useEffect every time `report` is changed
+        // Excluding shouldUseNarrowLayout from the dependency list to prevent re-triggering on screen resize events.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [prevIsFocused, report?.participants, isFocused, isTransactionThreadView, reportID, introSelected, betas]);
+
+    // #11 — Subscribe to leaving events
+    useEffect(() => {
+        if (!isValidReportIDFromPath(reportIDFromRoute)) {
+            return;
+        }
+        // Ensures the optimistic report is created successfully
+        if (reportIDFromRoute !== report?.reportID || report?.pendingFields?.createChat) {
+            return;
+        }
+        // Ensures subscription event succeeds when the report/workspace room is created optimistically.
+        // Check if the optimistic `OpenReport` or `AddWorkspaceRoom` has succeeded by confirming
+        // any `pendingFields.createChat` or `pendingFields.addWorkspaceRoom` fields are set to null.
+        // Existing reports created will have empty fields for `pendingFields`.
+        const didCreateReportSuccessfully = !report?.pendingFields || (!report?.pendingFields.addWorkspaceRoom && !report?.pendingFields.createChat);
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        let interactionTask: ReturnType<typeof InteractionManager.runAfterInteractions> | null = null;
+        if (!didSubscribeToReportLeavingEvents.current && didCreateReportSuccessfully) {
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
+            interactionTask = InteractionManager.runAfterInteractions(() => {
+                subscribeToReportLeavingEvents(reportIDFromRoute, currentUserAccountID);
+                didSubscribeToReportLeavingEvents.current = true;
+            });
+        }
+        return () => {
+            if (!interactionTask) {
+                return;
+            }
+            interactionTask.cancel();
+        };
+    }, [report?.reportID, didSubscribeToReportLeavingEvents, reportIDFromRoute, report?.pendingFields, currentUserAccountID]);
+
+    // #12 — Reset hasCreatedLegacyThreadRef
+    useEffect(() => {
+        hasCreatedLegacyThreadRef.current = false;
+    }, [reportID]);
+
+    // #13 — Legacy transaction thread creation
+    // When opening IOU report for single transaction, we will create IOU action and transaction thread
+    // for legacy transaction that doesn't have IOU action
+    useEffect(() => {
+        // Skip if already created, coming from Search page, or thread already exists
+        if (
+            hasCreatedLegacyThreadRef.current ||
+            route.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT ||
+            transactionThreadReport ||
+            (transactionThreadReportID && transactionThreadReportID !== '0') ||
+            !reportMetadata?.hasOnceLoadedReportActions ||
+            reportActions.length === 0
+        ) {
+            return;
+        }
+
+        // Only handle single transaction expense reports that are fully loaded
+        const transaction = visibleTransactions?.at(0);
+        if (!reportID || visibleTransactions?.length !== 1 || report?.type !== CONST.REPORT.TYPE.EXPENSE || !transaction?.transactionID) {
+            return;
+        }
+
+        // Skip legacy transaction handling if:
+        // - IOU action already exists (not a legacy transaction)
+        // - Transaction is pending addition (new transaction, not legacy)
+        const iouAction = getIOUActionForReportID(reportID, transaction.transactionID);
+        if (iouAction || transaction?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD || !!transaction.linkedTrackedExpenseReportAction?.childReportID) {
+            return;
+        }
+
+        // Mark as created BEFORE calling to prevent race conditions
+        hasCreatedLegacyThreadRef.current = true;
+
+        // For legacy transactions, pass undefined as IOU action and the transaction object
+        // It will be created optimistically and in the backend when call openReport
+        createTransactionThreadReport(introSelected, currentUserEmail ?? '', currentUserAccountID, betas, report, undefined, transaction);
+    }, [
+        introSelected,
+        currentUserEmail,
+        currentUserAccountID,
+        report,
+        visibleTransactions,
+        transactionThreadReport,
+        transactionThreadReportID,
+        reportID,
+        route.name,
+        reportMetadata?.hasOnceLoadedReportActions,
+        reportActions.length,
+    ]);
+
+    // #14 — Task report init
+    useEffect(() => {
+        if (!!report?.lastReadTime || !isTaskReport(report)) {
+            return;
+        }
+        // After creating the task report then navigating to task detail we don't have any report actions and the last read time is empty so We need to update the initial last read time when opening the task report detail.
+        readNewestAction(report?.reportID, !!reportMetadata?.hasOnceLoadedReportActions);
+    }, [report, reportMetadata?.hasOnceLoadedReportActions]);
+
+    // #15 — One-transaction-thread redirect
+    useEffect(() => {
+        if (!transactionThreadReportID || !route?.params?.reportActionID || !isOneTransactionThread(childReport, report, linkedAction)) {
+            return;
+        }
+        Navigation.setParams({reportActionID: ''});
+    }, [transactionThreadReportID, route?.params?.reportActionID, linkedAction, reportID, report, childReport]);
+
+    return null;
+}
+
+ReportFetchController.displayName = 'ReportFetchController';
+
+export default ReportFetchController;
