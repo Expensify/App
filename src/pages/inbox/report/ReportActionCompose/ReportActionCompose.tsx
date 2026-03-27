@@ -1,3 +1,4 @@
+import {useRoute} from '@react-navigation/native';
 import {Str} from 'expensify-common';
 import lodashDebounce from 'lodash/debounce';
 import noop from 'lodash/noop';
@@ -90,6 +91,7 @@ import {addAttachmentWithComment, setIsComposerFullSize} from '@userActions/Repo
 import {isBlockedFromConcierge as isBlockedFromConciergeUserAction} from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {FileObject} from '@src/types/utils/Attachment';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -169,7 +171,18 @@ function ReportActionCompose({reportID}: ReportActionComposeProps) {
     const parentReportAction = useParentReportAction(report);
     const [transactionThreadReportActions = {} as OnyxTypes.ReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${effectiveTransactionThreadReportID}`);
     const combinedReportActions = getCombinedReportActions(filteredReportActions, effectiveTransactionThreadReportID ?? null, Object.values(transactionThreadReportActions));
-    const lastReportAction = [...combinedReportActions, parentReportAction].find((action) => canEditReportAction(action) && !isMoneyRequestAction(action));
+
+    const route = useRoute();
+    const isOnSearchMoneyRequestReport = route.name === SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT || route.name === SCREENS.RIGHT_MODAL.EXPENSE_REPORT;
+
+    // On the search money request report page (MoneyRequestReportView), lastReportAction uses only
+    // the parent report's actions — not combined with transaction thread actions. The table view
+    // doesn't display transaction thread comments inline, so the last editable action should only
+    // come from what's visible in the parent report. ReportScreen (inbox) uses combinedReportActions
+    // because ReportActionsView merges thread comments into the visible list, and up-arrow-to-edit
+    // should be able to reach those comments.
+    const actionsForLastEditable = isOnSearchMoneyRequestReport ? filteredReportActions : combinedReportActions;
+    const lastReportAction = [...actionsForLastEditable, parentReportAction].find((action) => canEditReportAction(action) && !isMoneyRequestAction(action));
 
     const {reportPendingAction: pendingAction} = getReportOfflinePendingActionAndErrors(report);
 
