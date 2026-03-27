@@ -7,6 +7,8 @@ import Section from '@components/Section';
 import Text from '@components/Text';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
@@ -16,7 +18,9 @@ import useConfirmModal from '@hooks/useConfirmModal';
 function SpendRulesSection() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const theme = useTheme();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Lock']);
     const {showConfirmModal} = useConfirmModal();
     const illustrations = useMemoizedLazyIllustrations(['ExpensifyCardIllustration']);
@@ -29,9 +33,11 @@ function SpendRulesSection() {
             titleStyles: [styles.textHeadlineH1],
             titleContainerStyles: [styles.mb3],
             prompt: translate('workspace.rules.spendRules.builtInProtectionModal.description'),
+            promptStyles: [styles.preWrap],
             shouldShowCancelButton: false,
             success: false,
             confirmText: translate('common.buttonConfirm'),
+            ...(shouldUseNarrowLayout ? {} : {innerContainerStyle: StyleUtils.getWidthStyle(variables.builtInProtectionModalWidth)}),
         });
     };
 

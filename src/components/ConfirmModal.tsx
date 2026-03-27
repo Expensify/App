@@ -115,6 +115,9 @@ type ConfirmModalProps = {
 
     /** Whether to ignore the back handler during transition */
     shouldIgnoreBackHandlerDuringTransition?: boolean;
+
+    /** Merged into the modal container after default confirm styles (e.g. `width` overrides `variables.sideBarWidth` on wide screens). */
+    innerContainerStyle?: ViewStyle;
 };
 
 function ConfirmModal({
@@ -152,6 +155,7 @@ function ConfirmModal({
     isConfirmLoading,
     shouldHandleNavigationBack,
     shouldIgnoreBackHandlerDuringTransition,
+    innerContainerStyle,
 }: ConfirmModalProps) {
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to use the correct modal type
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
@@ -174,7 +178,7 @@ function ConfirmModal({
             shouldSetModalVisibility={shouldSetModalVisibility}
             onModalHide={onModalHide}
             type={isSmallScreenWidth ? CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED : CONST.MODAL.MODAL_TYPE.CONFIRM}
-            innerContainerStyle={styles.pv0}
+            innerContainerStyle={innerContainerStyle ? {...styles.pv0, ...innerContainerStyle} : styles.pv0}
             shouldEnableNewFocusManagement={shouldEnableNewFocusManagement}
             restoreFocusType={restoreFocusType}
             shouldHandleNavigationBack={shouldHandleNavigationBack}
