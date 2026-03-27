@@ -4,6 +4,9 @@ import {View} from 'react-native';
 import Avatar from '@components/Avatar';
 import Icon from '@components/Icon';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
+import BaseListItem from '@components/SelectionList/ListItem/BaseListItem';
+import type {UserSelectionListItemProps} from '@components/SelectionList/ListItem/types';
+import type {ListItem} from '@components/SelectionList/types';
 import TextWithTooltip from '@components/TextWithTooltip';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -14,8 +17,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {areEmailsFromSamePrivateDomain} from '@libs/LoginUtils';
 import {getDisplayNameForParticipant} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
-import BaseListItem from './BaseListItem';
-import type {ListItem, UserSelectionListItemProps} from './types';
 
 function UserSelectionListItem<TItem extends ListItem>({
     item,
@@ -61,11 +62,17 @@ function UserSelectionListItem<TItem extends ListItem>({
     }, [currentUserPersonalDetails.login, item.login]);
 
     const userDisplayName = useMemo(() => {
-        return getDisplayNameForParticipant({
-            accountID: item.accountID ?? CONST.DEFAULT_NUMBER_ID,
-            formatPhoneNumber,
-        });
-    }, [formatPhoneNumber, item.accountID]);
+        /* eslint-disable @typescript-eslint/prefer-nullish-coalescing -- need || to handle empty string from getDisplayNameForParticipant */
+        return (
+            getDisplayNameForParticipant({
+                accountID: item.accountID ?? CONST.DEFAULT_NUMBER_ID,
+                formatPhoneNumber,
+            }) ||
+            item.text ||
+            ''
+        );
+        /* eslint-enable @typescript-eslint/prefer-nullish-coalescing */
+    }, [formatPhoneNumber, item.accountID, item.text]);
 
     return (
         <BaseListItem
@@ -118,6 +125,7 @@ function UserSelectionListItem<TItem extends ListItem>({
                 <PressableWithFeedback
                     accessibilityLabel={item.text ?? ''}
                     role={CONST.ROLE.BUTTON}
+                    sentryLabel={CONST.SENTRY_LABEL.SEARCH.USER_SELECTION_CHECKBOX}
                     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                     disabled={isDisabled || item.isDisabledCheckbox}
                     onPress={handleCheckboxPress}

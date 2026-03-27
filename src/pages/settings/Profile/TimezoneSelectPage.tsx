@@ -3,7 +3,7 @@ import type {ValueOf} from 'type-fest';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
-import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
+import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import useInitialValue from '@hooks/useInitialValue';
@@ -81,7 +81,7 @@ function TimezoneSelectPage({currentUserPersonalDetails}: TimezoneSelectPageProp
             />
             <SelectionList
                 data={timezoneOptions}
-                ListItem={SingleSelectListItem}
+                ListItem={RadioListItem}
                 onSelectRow={saveSelectedTimezone}
                 textInputOptions={textInputOptions}
                 initiallyFocusedItemKey={timezoneOptions.find((tz) => tz.text === timezone.selected)?.keyForList}
