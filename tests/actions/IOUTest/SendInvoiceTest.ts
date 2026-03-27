@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import type {OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
+import {getPolicyTags} from '@libs/actions/IOU';
 import {getReceiverType, getSendInvoiceInformation, sendInvoice} from '@libs/actions/IOU/SendInvoice';
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
 import {WRITE_COMMANDS} from '@libs/API/types';
@@ -22,7 +23,6 @@ import getOnyxValue from '../../utils/getOnyxValue';
 import type {MockFetch} from '../../utils/TestHelper';
 import {getGlobalFetchMock} from '../../utils/TestHelper';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
-import {getPolicyTags} from '@libs/actions/IOU';
 
 const topMostReportID = '23423423';
 jest.mock('@src/libs/Navigation/Navigation', () => ({
@@ -611,6 +611,7 @@ describe('actions/SendInvoice', () => {
                 policy,
                 companyName,
                 companyWebsite,
+                participantsPolicyTags: baseParticipantsPolicyTags,
             });
 
             // Then a new invoice chat is created instead of incorrectly using the invoice chat which has been converted from individual to business
@@ -704,32 +705,27 @@ describe('actions/SendInvoice', () => {
             const policyRecentlyUsedTags: OnyxEntry<RecentlyUsedTags> = {
                 [tagName]: ['old tag'],
             };
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {
-                [tagName]: {name: tagName},
-            });
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${policyID}`, policyRecentlyUsedTags);
-
             // When sending an invoice
             sendInvoice({
                 currentUserAccountID: 1,
                 transaction,
                 policyRecentlyUsedCurrencies: [],
                 policyRecentlyUsedTags,
+                participantsPolicyTags: {
+                    [tagName]: {
+                        name: tagName,
+                        required: false,
+                        tags: {},
+                        orderWeight: 0,
+                    },
+                },
             });
-            waitForBatchedUpdates();
+            await waitForBatchedUpdates();
 
             // Then the transaction tag should be added to the recently used tags collection
-            const newPolicyRecentlyUsedTags: RecentlyUsedTags = await new Promise((resolve) => {
-                const connection = Onyx.connectWithoutView({
-                    key: `${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${policyID}`,
-                    callback: (recentlyUsedTags) => {
-                        resolve(recentlyUsedTags ?? {});
-                        Onyx.disconnect(connection);
-                    },
-                });
-            });
-            expect(newPolicyRecentlyUsedTags[tagName].length).toBe(2);
-            expect(newPolicyRecentlyUsedTags[tagName].at(0)).toBe(transactionTag);
+            const newPolicyRecentlyUsedTags = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${policyID}`);
+            expect(newPolicyRecentlyUsedTags?.[tagName]?.length).toBe(2);
+            expect(newPolicyRecentlyUsedTags?.[tagName]?.at(0)).toBe(transactionTag);
         });
 
         it('should use invoiceChatReportID when creating new invoice chat via sendInvoice', () => {
