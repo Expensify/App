@@ -75,7 +75,7 @@ function QuickbooksOutOfPocketExpenseConfigurationPage({policy}: WithPolicyConne
                 if (!policyID) {
                     return;
                 }
-                Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT_OUT_OF_POCKET_EXPENSES_SELECT.getRoute(policyID, Navigation.getActiveRoute()));
+                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT_OUT_OF_POCKET_EXPENSES_SELECT.path));
             },
             hintText: exportHintText,
             subscribedSettings: accountOrExportDestination,
