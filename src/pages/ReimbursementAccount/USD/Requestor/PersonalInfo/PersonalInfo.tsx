@@ -31,6 +31,9 @@ type PersonalInfoProps = {
 
     /** Reference to the outer element */
     ref?: ForwardedRef<View>;
+
+    /** Back to URL for preserving navigation context */
+    backTo?: string;
 };
 
 const PERSONAL_INFO_STEP_KEYS = INPUT_IDS.PERSONAL_INFO_STEP;
@@ -45,7 +48,7 @@ const pages = [
     {pageName: SUB_PAGE_NAMES.CONFIRMATION, component: Confirmation},
 ];
 
-function PersonalInfo({onBackButtonPress, onSubmit, ref}: PersonalInfoProps) {
+function PersonalInfo({onBackButtonPress, onSubmit, ref, backTo}: PersonalInfoProps) {
     const {translate} = useLocalize();
 
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
@@ -64,8 +67,8 @@ function PersonalInfo({onBackButtonPress, onSubmit, ref}: PersonalInfoProps) {
     const startFrom = useMemo(() => (isBankAccountVerifying ? 0 : getInitialSubStepForPersonalInfo(values)), [values, isBankAccountVerifying]);
 
     const buildRoute = useCallback(
-        (pageName: string, action?: 'edit') => ROUTES.BANK_ACCOUNT_USD_SETUP.getRoute({policyID, page: PAGE_NAMES.REQUESTOR, subPage: pageName, action}),
-        [policyID],
+        (pageName: string, action?: 'edit') => ROUTES.BANK_ACCOUNT_USD_SETUP.getRoute({policyID, page: PAGE_NAMES.REQUESTOR, subPage: pageName, action, backTo}),
+        [policyID, backTo],
     );
 
     const {CurrentPage, isEditing, currentPageName, pageIndex, nextPage, prevPage, moveTo, isRedirecting} = useSubPage<SubPageProps>({

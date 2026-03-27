@@ -67,8 +67,9 @@ type USDVerifiedBankAccountFlowPageProps = PlatformStackScreenProps<Reimbursemen
 function USDVerifiedBankAccountFlowPage({route}: USDVerifiedBankAccountFlowPageProps) {
     const styles = useThemeStyles();
     const policyID = route.params?.policyID;
-    const currentStep = route.params?.step;
+    const currentPage = route.params?.page;
     const currentSubPage = route.params?.subPage;
+    const backTo = route.params?.backTo;
 
     const [onfidoToken = ''] = useOnyx(ONYXKEYS.ONFIDO_TOKEN);
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
@@ -76,9 +77,9 @@ function USDVerifiedBankAccountFlowPage({route}: USDVerifiedBankAccountFlowPageP
     const requestorStepRef = useRef<View>(null);
 
     const currentPageIndex = useMemo(() => {
-        const index = pages.findIndex((p) => p.pageName === currentStep);
+        const index = pages.findIndex((p) => p.pageName === currentPage);
         return index >= 0 ? index : 0;
-    }, [currentStep]);
+    }, [currentPage]);
 
     const currentEntry = pages.at(currentPageIndex);
     const CurrentPage = currentEntry?.component ?? (Country as React.ComponentType<USDPageProps>);
@@ -90,8 +91,8 @@ function USDVerifiedBankAccountFlowPage({route}: USDVerifiedBankAccountFlowPageP
             return;
         }
         const nextPage = pages.at(nextIndex);
-        Navigation.navigate(ROUTES.BANK_ACCOUNT_USD_SETUP.getRoute({policyID, step: nextPage?.pageName, subPage: nextPage?.firstSubPage}));
-    }, [currentPageIndex, policyID]);
+        Navigation.navigate(ROUTES.BANK_ACCOUNT_USD_SETUP.getRoute({policyID, page: nextPage?.pageName, subPage: nextPage?.firstSubPage, backTo}));
+    }, [backTo, currentPageIndex, policyID]);
 
     const onBackButtonPress = useCallback(() => {
         const prevIndex = currentPageIndex - 1;
@@ -100,8 +101,8 @@ function USDVerifiedBankAccountFlowPage({route}: USDVerifiedBankAccountFlowPageP
             return;
         }
         const prevPage = pages.at(prevIndex);
-        Navigation.navigate(ROUTES.BANK_ACCOUNT_USD_SETUP.getRoute({policyID, step: prevPage?.pageName, subPage: prevPage?.lastSubPage}));
-    }, [currentPageIndex, policyID]);
+        Navigation.navigate(ROUTES.BANK_ACCOUNT_USD_SETUP.getRoute({policyID, page: prevPage?.pageName, subPage: prevPage?.lastSubPage, backTo}));
+    }, [backTo, currentPageIndex, policyID]);
 
     const shouldShowOnfido = !!(onfidoToken && !reimbursementAccount?.achData?.isOnfidoSetupComplete);
     const isRequestorStep = currentEntry?.pageName === PAGE_NAMES.REQUESTOR;
@@ -116,6 +117,7 @@ function USDVerifiedBankAccountFlowPage({route}: USDVerifiedBankAccountFlowPageP
                 stepNames={CONST.BANK_ACCOUNT.STEP_NAMES}
                 shouldShowOnfido={isRequestorStep ? shouldShowOnfido : undefined}
                 ref={isRequestorStep ? requestorStepRef : undefined}
+                backTo={backTo}
             />
         </View>
     );

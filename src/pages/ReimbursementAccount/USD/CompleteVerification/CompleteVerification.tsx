@@ -20,6 +20,9 @@ type CompleteVerificationProps = {
 
     /** Handles submit button press (URL-based navigation) */
     onSubmit?: () => void;
+
+    /** Back to URL for preserving navigation context */
+    backTo?: string;
 };
 
 const COMPLETE_VERIFICATION_KEYS = INPUT_IDS.COMPLETE_VERIFICATION;
@@ -28,7 +31,7 @@ const SUB_PAGE_NAMES = CONST.BANK_ACCOUNT.COMPLETE_VERIFICATION_STEP.SUB_PAGE_NA
 
 const pages = [{pageName: SUB_PAGE_NAMES.CONFIRM_AGREEMENTS, component: ConfirmAgreements}];
 
-function CompleteVerification({onBackButtonPress, onSubmit}: CompleteVerificationProps) {
+function CompleteVerification({onBackButtonPress, onSubmit, backTo}: CompleteVerificationProps) {
     const {translate} = useLocalize();
 
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
@@ -54,8 +57,8 @@ function CompleteVerification({onBackButtonPress, onSubmit}: CompleteVerificatio
     }, [bankAccountID, values.isAuthorizedToUseBankAccount, values.certifyTrueInformation, values.acceptTermsAndConditions, policyID, lastPaymentMethod, onSubmit]);
 
     const buildRoute = useCallback(
-        (pageName: string, action?: 'edit') => ROUTES.BANK_ACCOUNT_USD_SETUP.getRoute({policyID, page: PAGE_NAMES.ACH_CONTRACT, subPage: pageName, action}),
-        [policyID],
+        (pageName: string, action?: 'edit') => ROUTES.BANK_ACCOUNT_USD_SETUP.getRoute({policyID, page: PAGE_NAMES.ACH_CONTRACT, subPage: pageName, action, backTo}),
+        [policyID, backTo],
     );
 
     const {CurrentPage, isEditing, pageIndex, nextPage, prevPage, moveTo} = useSubPage<SubPageProps>({pages, startFrom: 0, onFinished: submit, buildRoute});

@@ -26,6 +26,9 @@ type BankInfoProps = {
 
     /** Current Policy ID */
     policyID: string;
+
+    /** Back to URL for preserving navigation context */
+    backTo?: string;
 };
 
 const BANK_INFO_STEP_KEYS = INPUT_IDS.BANK_INFO_STEP;
@@ -36,7 +39,7 @@ const receivedRedirectURI = getPlaidOAuthReceivedRedirectURI();
 const manualPages = [{pageName: SUB_PAGE_NAMES.MANUAL, component: Manual}];
 const plaidPages = [{pageName: SUB_PAGE_NAMES.PLAID, component: Plaid}];
 
-function BankInfo({onBackButtonPress, onSubmit, policyID}: BankInfoProps) {
+function BankInfo({onBackButtonPress, onSubmit, policyID, backTo}: BankInfoProps) {
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
     const [plaidLinkToken] = useOnyx(ONYXKEYS.PLAID_LINK_TOKEN);
@@ -90,8 +93,8 @@ function BankInfo({onBackButtonPress, onSubmit, policyID}: BankInfoProps) {
     const pages = setupType === CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID ? plaidPages : manualPages;
 
     const buildRoute = useCallback(
-        (pageName: string, action?: 'edit') => ROUTES.BANK_ACCOUNT_USD_SETUP.getRoute({policyID, page: PAGE_NAMES.BANK_ACCOUNT, subPage: pageName, action}),
-        [policyID],
+        (pageName: string, action?: 'edit') => ROUTES.BANK_ACCOUNT_USD_SETUP.getRoute({policyID, page: PAGE_NAMES.BANK_ACCOUNT, subPage: pageName, action, backTo}),
+        [policyID, backTo],
     );
 
     const {CurrentPage, isEditing, pageIndex, nextPage, prevPage, moveTo} = useSubPage<SubPageProps>({pages, startFrom: 0, onFinished: submit, buildRoute});

@@ -28,7 +28,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReimbursementAccountNavigatorParamList} from '@libs/Navigation/types';
 import {goBackFromInvalidPolicy, isPendingDeletePolicy, isPolicyAdmin} from '@libs/PolicyUtils';
-import {getRouteForCurrentStep, hasInProgressUSDVBBA, hasInProgressVBBA} from '@libs/ReimbursementAccountUtils';
+import {hasInProgressUSDVBBA, hasInProgressVBBA} from '@libs/ReimbursementAccountUtils';
 import shouldReopenOnfido from '@libs/shouldReopenOnfido';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {isFullScreenName} from '@navigation/helpers/isNavigatorName';
@@ -352,9 +352,9 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
                 [CONST.BANK_ACCOUNT.STEP.VALIDATION]: CONST.BANK_ACCOUNT.PAGE_NAMES.VALIDATION,
             };
             const page = stepToPageName[currentStep] ?? CONST.BANK_ACCOUNT.PAGE_NAMES.COUNTRY;
-            Navigation.navigate(ROUTES.BANK_ACCOUNT_USD_SETUP.getRoute({policyID: policyIDParam, page}));
+            Navigation.navigate(ROUTES.BANK_ACCOUNT_USD_SETUP.getRoute({policyID: policyIDParam, page, backTo}));
         });
-    }, [currentStep, policyIDParam]);
+    }, [currentStep, policyIDParam, backTo]);
 
     const continueNonUSDVBBASetup = () => {
         const {page: startPage, subPage: startSubPage} = getStartPageForContinueSetup(achData, nonUSDCountryDraftValue, policyCurrency, reimbursementAccountDraft);

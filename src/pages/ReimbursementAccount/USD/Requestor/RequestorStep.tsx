@@ -16,9 +16,12 @@ type RequestorStepProps = {
 
     /** Reference to the outer element */
     ref?: ForwardedRef<View>;
+
+    /** Back to URL for preserving navigation context */
+    backTo?: string;
 };
 
-function RequestorStep({shouldShowOnfido, onBackButtonPress, onSubmit, ref}: RequestorStepProps) {
+function RequestorStep({shouldShowOnfido, onBackButtonPress, onSubmit, ref, backTo}: RequestorStepProps) {
     if (shouldShowOnfido) {
         return <VerifyIdentity onBackButtonPress={onBackButtonPress} />;
     }
@@ -28,6 +31,7 @@ function RequestorStep({shouldShowOnfido, onBackButtonPress, onSubmit, ref}: Req
             ref={ref}
             onBackButtonPress={onBackButtonPress}
             onSubmit={onSubmit}
+            backTo={backTo}
         />
     );
 }

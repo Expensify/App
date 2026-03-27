@@ -44,6 +44,9 @@ type BeneficialOwnerDetailsFormPagesProps = {
 
     /** Callback triggered after the last form page is completed */
     onFinished: () => void;
+
+    /** Back to URL for preserving navigation context */
+    backTo?: string;
 };
 
 function BeneficialOwnerDetailsFormPages({
@@ -52,12 +55,13 @@ function BeneficialOwnerDetailsFormPages({
     setBeneficialOwnerBeingModifiedID,
     isEditingCreatedBeneficialOwner,
     onFinished,
+    backTo,
 }: BeneficialOwnerDetailsFormPagesProps) {
     const {translate} = useLocalize();
 
     const buildRoute = useCallback(
-        (pageName: string, action?: 'edit') => ROUTES.BANK_ACCOUNT_USD_SETUP.getRoute({policyID, page: PAGE_NAMES.BENEFICIAL_OWNERS, subPage: pageName, action}),
-        [policyID],
+        (pageName: string, action?: 'edit') => ROUTES.BANK_ACCOUNT_USD_SETUP.getRoute({policyID, page: PAGE_NAMES.BENEFICIAL_OWNERS, subPage: pageName, action, backTo}),
+        [policyID, backTo],
     );
 
     const {CurrentPage, isEditing, currentPageName, pageIndex, prevPage, nextPage, moveTo, isRedirecting} = useSubPage<BeneficialOwnerSubPageProps>({

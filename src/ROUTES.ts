@@ -326,16 +326,16 @@ const ROUTES = {
         },
     },
     BANK_ACCOUNT_USD_SETUP: {
-        route: 'bank-account/new/us/:step?/:subPage?/:action?',
+        route: 'bank-account/new/us/:page?/:subPage?/:action?',
         // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
         getRoute: ({policyID, page, subPage, action, backTo}: {policyID?: string; page?: string; subPage?: string; action?: 'edit'; backTo?: string}) => {
             const base = 'bank-account/new/us';
             const pagePart = page ? `/${page}` : '';
-            const subStepPart = subPage ? `/${subPage}` : '';
+            const subPagePart = subPage ? `/${subPage}` : '';
             const actionPart = action ? `/${action}` : '';
             const queryString = policyID ? `?policyID=${policyID}` : '';
             // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-            return getUrlWithBackToParam(`${base}${pagePart}${subStepPart}${actionPart}${queryString}`, backTo);
+            return getUrlWithBackToParam(`${base}${pagePart}${subPagePart}${actionPart}${queryString}`, backTo);
         },
     },
     SETTINGS: 'settings',

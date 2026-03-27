@@ -35,6 +35,9 @@ type BusinessInfoProps = {
 
     /** Handles submit button press (URL-based navigation) */
     onSubmit?: () => void;
+
+    /** Back to URL for preserving navigation context */
+    backTo?: string;
 };
 
 const BUSINESS_INFO_STEP_KEYS = INPUT_IDS.BUSINESS_INFO_STEP;
@@ -54,7 +57,7 @@ const pages = [
     {pageName: SUB_PAGE_NAMES.CONFIRMATION, component: ConfirmationBusiness},
 ];
 
-function BusinessInfo({onBackButtonPress, onSubmit}: BusinessInfoProps) {
+function BusinessInfo({onBackButtonPress, onSubmit, backTo}: BusinessInfoProps) {
     const {translate} = useLocalize();
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
@@ -94,8 +97,8 @@ function BusinessInfo({onBackButtonPress, onSubmit}: BusinessInfoProps) {
     const startFrom = useMemo(() => (isBankAccountVerifying ? 0 : getInitialSubStepForBusinessInfo(values)), [values, isBankAccountVerifying]);
 
     const buildRoute = useCallback(
-        (pageName: string, action?: 'edit') => ROUTES.BANK_ACCOUNT_USD_SETUP.getRoute({policyID, page: PAGE_NAMES.COMPANY, subPage: pageName, action}),
-        [policyID],
+        (pageName: string, action?: 'edit') => ROUTES.BANK_ACCOUNT_USD_SETUP.getRoute({policyID, page: PAGE_NAMES.COMPANY, subPage: pageName, action, backTo}),
+        [policyID, backTo],
     );
 
     const {CurrentPage, isEditing, currentPageName, pageIndex, nextPage, prevPage, moveTo, isRedirecting} = useSubPage<SubPageProps>({

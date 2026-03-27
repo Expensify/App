@@ -28,6 +28,9 @@ type BeneficialOwnersStepProps = {
 
     /** ID of current policy */
     policyID?: string;
+
+    /** Back to URL for preserving navigation context */
+    backTo?: string;
 };
 
 const PAGE_NAMES = CONST.BANK_ACCOUNT.PAGE_NAMES;
@@ -36,7 +39,7 @@ const MAX_NUMBER_OF_UBOS = 4;
 
 const OUTER_SUB_PAGES = new Set<string>([SUB_PAGE_NAMES.IS_USER_UBO, SUB_PAGE_NAMES.IS_ANYONE_ELSE_UBO, SUB_PAGE_NAMES.ARE_THERE_MORE_UBOS, SUB_PAGE_NAMES.UBOS_LIST]);
 
-function BeneficialOwnersStep({onBackButtonPress, onSubmit, currentSubPage, policyID}: BeneficialOwnersStepProps) {
+function BeneficialOwnersStep({onBackButtonPress, onSubmit, currentSubPage, policyID, backTo}: BeneficialOwnersStepProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
@@ -62,16 +65,16 @@ function BeneficialOwnersStep({onBackButtonPress, onSubmit, currentSubPage, poli
 
     const navigateToSubPage = useCallback(
         (subPage: string) => {
-            Navigation.navigate(ROUTES.BANK_ACCOUNT_USD_SETUP.getRoute({policyID, page: PAGE_NAMES.BENEFICIAL_OWNERS, subPage}));
+            Navigation.navigate(ROUTES.BANK_ACCOUNT_USD_SETUP.getRoute({policyID, page: PAGE_NAMES.BENEFICIAL_OWNERS, subPage, backTo}));
         },
-        [policyID],
+        [policyID, backTo],
     );
 
     const navigateBackToSubPage = useCallback(
         (subPage: string) => {
-            Navigation.goBack(ROUTES.BANK_ACCOUNT_USD_SETUP.getRoute({policyID, page: PAGE_NAMES.BENEFICIAL_OWNERS, subPage}));
+            Navigation.goBack(ROUTES.BANK_ACCOUNT_USD_SETUP.getRoute({policyID, page: PAGE_NAMES.BENEFICIAL_OWNERS, subPage, backTo}));
         },
-        [policyID],
+        [policyID, backTo],
     );
 
     const submit = () => {
@@ -199,6 +202,7 @@ function BeneficialOwnersStep({onBackButtonPress, onSubmit, currentSubPage, poli
                 setBeneficialOwnerBeingModifiedID={setBeneficialOwnerBeingModifiedID}
                 isEditingCreatedBeneficialOwner={isEditingCreatedBeneficialOwner}
                 onFinished={handleBeneficialOwnerDetailsFormSubmit}
+                backTo={backTo}
             />
         );
     }

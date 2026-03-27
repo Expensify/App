@@ -1,5 +1,6 @@
 import type {ForwardedRef} from 'react';
 import type {View} from 'react-native';
+import type {Route} from '@src/ROUTES';
 
 type USDPageProps = {
     /** Handles submit button press */
@@ -22,6 +23,9 @@ type USDPageProps = {
 
     /** Reference to the outer element (used by RequestorStep) */
     ref?: ForwardedRef<View>;
+
+    /** Back to URL for preserving navigation context */
+    backTo?: Route;
 };
 
 export default USDPageProps;
