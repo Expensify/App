@@ -192,8 +192,8 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
                         icon={hasError ? icons.DotIndicator : icon}
                         iconFill={hasError ? theme.danger : undefined}
                         iconHoverFill={hasError ? theme.danger : undefined}
-                        iconRightFill={hasError ? theme.icon : undefined}
-                        iconRightHoverFill={hasError ? theme.icon : undefined}
+                        iconRightFill={hasError ? theme.buttonIcon : undefined}
+                        iconRightHoverFill={hasError ? theme.buttonIcon : undefined}
                         sentryLabel={sentryLabel}
                     />
 
@@ -231,7 +231,7 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
                                         height={shouldUseShortForm ? variables.iconSizeExtraSmall : undefined}
                                         src={icons.DownArrow}
                                         additionalStyles={[...(shouldUseShortForm ? [styles.pRelative, styles.t0] : []), isMenuVisible ? styles.flipUpsideDown : undefined]}
-                                        fill={success ? theme.buttonSuccessText : theme.icon}
+                                        fill={success ? theme.buttonSuccessText : theme.buttonIcon}
                                         testID="dropdown-arrow-icon"
                                     />
                                 </View>

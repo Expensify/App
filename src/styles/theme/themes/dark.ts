@@ -91,6 +91,8 @@ const darkTheme = {
     badgeDangerText: colors.tangerine200,
     badgeAdHoc: colors.pink600,
     badgeAdHocHover: colors.pink700,
+    bordersBold: colors.productDark400,
+    buttonIcon: colors.productDark700,
     mentionText: colors.blue100,
     mentionBG: colors.blue600,
     ourMentionText: colors.green100,
@@ -191,6 +193,10 @@ const darkTheme = {
         closed: {
             backgroundColor: colors.pink700,
             textColor: colors.pink200,
+        },
+        deleted: {
+            backgroundColor: colors.tangerine700,
+            textColor: colors.productDark900,
         },
     },
 
