@@ -4,12 +4,12 @@ import SingleFieldStep from '@components/SubStepForms/SingleFieldStep';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useReimbursementAccountStepFormSubmit from '@hooks/useReimbursementAccountStepFormSubmit';
-import type {SubStepProps} from '@hooks/useSubStep/types';
+import type {SubPageProps} from '@hooks/useSubPage/types';
 import {getFieldRequiredErrors, isValidTaxIDEINNumber} from '@libs/ValidationUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 
-type TaxIDEINNumberProps = SubStepProps;
+type TaxIDEINNumberProps = SubPageProps;
 
 const {TAX_ID_EIN_NUMBER, COMPANY_COUNTRY_CODE} = INPUT_IDS.ADDITIONAL_DATA.CORPAY;
 const STEP_FIELDS = [TAX_ID_EIN_NUMBER];
@@ -17,15 +17,15 @@ const STEP_FIELDS = [TAX_ID_EIN_NUMBER];
 function TaxIDEINNumber({onNext, onMove, isEditing}: TaxIDEINNumberProps) {
     const {translate} = useLocalize();
 
-    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: false});
-    const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT, {canBeMissing: false});
+    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
+    const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
 
     const defaultValue = reimbursementAccount?.achData?.corpay?.[TAX_ID_EIN_NUMBER] ?? '';
     const businessStepCountryValue = reimbursementAccount?.achData?.corpay?.[COMPANY_COUNTRY_CODE] ?? reimbursementAccountDraft?.[COMPANY_COUNTRY_CODE] ?? '';
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
-            const errors = getFieldRequiredErrors(values, STEP_FIELDS);
+            const errors = getFieldRequiredErrors(values, STEP_FIELDS, translate);
 
             if (values[TAX_ID_EIN_NUMBER] && !isValidTaxIDEINNumber(values[TAX_ID_EIN_NUMBER], businessStepCountryValue)) {
                 errors[TAX_ID_EIN_NUMBER] = translate('businessInfoStep.error.taxIDEIN', businessStepCountryValue);
@@ -55,6 +55,7 @@ function TaxIDEINNumber({onNext, onMove, isEditing}: TaxIDEINNumberProps) {
             inputLabel={translate('businessInfoStep.taxIDEIN', businessStepCountryValue)}
             defaultValue={defaultValue}
             shouldShowHelpLinks={false}
+            shouldDelayAutoFocus
         />
     );
 }

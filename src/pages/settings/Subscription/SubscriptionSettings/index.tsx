@@ -1,7 +1,8 @@
-import React, {useContext} from 'react';
+import {hasSeenTourSelector} from '@selectors/Onboarding';
+import React from 'react';
 import type {StyleProp, TextStyle} from 'react-native';
 import {View} from 'react-native';
-import {DelegateNoAccessContext} from '@components/DelegateNoAccessModalProvider';
+import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
@@ -9,10 +10,12 @@ import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import OptionsPicker from '@components/OptionsPicker';
 import type {OptionsPickerItem} from '@components/OptionsPicker';
+import OptionItem from '@components/OptionsPicker/OptionItem';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useEnvironment from '@hooks/useEnvironment';
 import useHasTeam2025Pricing from '@hooks/useHasTeam2025Pricing';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
@@ -30,9 +33,10 @@ import {openLink} from '@libs/actions/Link';
 import {convertToShortDisplayString} from '@libs/CurrencyUtils';
 import {isPolicyAdmin} from '@libs/PolicyUtils';
 import {getSubscriptionPrice, isSubscriptionTypeOfInvoicing} from '@libs/SubscriptionUtils';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import Navigation from '@navigation/Navigation';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
-import {formatSubscriptionEndDate} from '@pages/settings/Subscription/utils';
+import {formatSubscriptionEndDate, getPrivatePromoDiscountInfo} from '@pages/settings/Subscription/utils';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 import variables from '@styles/variables';
 import {navigateToConciergeChat} from '@userActions/Report';
@@ -48,9 +52,12 @@ function SubscriptionSettings() {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {environmentURL} = useEnvironment();
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: false});
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const privateSubscription = usePrivateSubscription();
-    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
+    const [privatePromoCode] = useOnyx(ONYXKEYS.NVP_PRIVATE_PROMO_CODE);
+    const [privatePromoDiscount] = useOnyx(ONYXKEYS.NVP_PRIVATE_PROMO_DISCOUNT);
+    const [privatePromoCodeValidBillingCycles] = useOnyx(ONYXKEYS.NVP_PRIVATE_PROMO_CODE_VALID_BILLING_CYCLES);
+    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const activePolicy = usePolicy(activePolicyID);
     const isActivePolicyAdmin = isPolicyAdmin(activePolicy);
     const subscriptionPlan = useSubscriptionPlan();
@@ -58,15 +65,29 @@ function SubscriptionSettings() {
     const preferredCurrency = usePreferredCurrency();
     const themeIllustrations = useThemeIllustrations();
     const possibleCostSavings = useSubscriptionPossibleCostSavings();
-    const {isActingAsDelegate, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
+    const {isActingAsDelegate} = useDelegateNoAccessState();
+    const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
+    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const isAnnual = privateSubscription?.type === CONST.SUBSCRIPTION.TYPE.ANNUAL;
-    const [privateTaxExempt] = useOnyx(ONYXKEYS.NVP_PRIVATE_TAX_EXEMPT, {canBeMissing: true});
+    const [privateTaxExempt] = useOnyx(ONYXKEYS.NVP_PRIVATE_TAX_EXEMPT);
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
+
+    const {isSecretPromoCode, promoDiscountValue} = getPrivatePromoDiscountInfo(privatePromoDiscount, isAnnual);
+
+    const isExpensifyCodeApplied = !!privatePromoCode;
+    const shouldShowExpensifyCodeSection = !isSecretPromoCode;
+    const shouldShowExpensifyCodeHintText = isExpensifyCodeApplied && promoDiscountValue !== undefined;
     const subscriptionPrice = getSubscriptionPrice(subscriptionPlan, preferredCurrency, privateSubscription?.type, hasTeam2025Pricing);
     const priceDetails = translate(`subscription.yourPlan.${subscriptionPlan === CONST.POLICY.TYPE.CORPORATE ? 'control' : 'collect'}.${isAnnual ? 'priceAnnual' : 'pricePayPerUse'}`, {
         lower: convertToShortDisplayString(subscriptionPrice, preferredCurrency),
         upper: convertToShortDisplayString(subscriptionPrice * CONST.SUBSCRIPTION_PRICE_FACTOR, preferredCurrency),
     });
     const adminsChatReportID = isActivePolicyAdmin && activePolicy?.chatReportIDAdmins ? activePolicy.chatReportIDAdmins?.toString() : undefined;
+    const isCollect = subscriptionPlan === CONST.POLICY.TYPE.TEAM;
+    const collectPriceDisplay = convertToShortDisplayString(subscriptionPrice, preferredCurrency);
 
     const onOptionSelected = (option: SubscriptionType) => {
         if (privateSubscription?.type !== option && isActingAsDelegate) {
@@ -74,7 +95,7 @@ function SubscriptionSettings() {
             return;
         }
         if (privateSubscription?.type === CONST.SUBSCRIPTION.TYPE.ANNUAL && option === CONST.SUBSCRIPTION.TYPE.PAY_PER_USE && !account?.canDowngrade) {
-            Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION_SIZE.getRoute(0));
+            Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION_DOWNGRADE_BLOCKED.route);
             return;
         }
 
@@ -86,7 +107,19 @@ function SubscriptionSettings() {
             showDelegateNoAccessModal();
             return;
         }
-        Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION_SIZE.getRoute(1));
+        Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION_SIZE.getRoute(CONST.SUBSCRIPTION_SIZE.PAGE_NAME.SIZE));
+    };
+
+    const onExpensifyCodePress = () => {
+        if (isExpensifyCodeApplied) {
+            return;
+        }
+        if (isActingAsDelegate) {
+            showDelegateNoAccessModal();
+            return;
+        }
+
+        Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION_EXPENSIFY_CODE);
     };
     const illustrations = useMemoizedLazyIllustrations(['SubscriptionAnnual', 'SubscriptionPPU']);
 
@@ -158,9 +191,7 @@ function SubscriptionSettings() {
         <Text>
             <Text style={[styles.mr1, styles.textNormalThemeText]}>{translate('subscription.subscriptionSettings.autoIncrease')}</Text>
             <Text style={customTitleSecondSentenceStyles}>
-                {translate('subscription.subscriptionSettings.saveUpTo', {
-                    amountWithCurrency: convertToShortDisplayString(possibleCostSavings, preferredCurrency),
-                })}
+                {translate('subscription.subscriptionSettings.saveUpTo', convertToShortDisplayString(possibleCostSavings, preferredCurrency))}
             </Text>
         </Text>
     );
@@ -179,12 +210,13 @@ function SubscriptionSettings() {
         }
     };
 
-    if (!subscriptionPlan || (hasTeam2025Pricing && subscriptionPlan === CONST.POLICY.TYPE.TEAM) || isSubscriptionTypeOfInvoicing(privateSubscription?.type)) {
+    if (!subscriptionPlan || isSubscriptionTypeOfInvoicing(privateSubscription?.type)) {
         return <NotFoundPage />;
     }
 
     if (!privateSubscription) {
-        return <FullScreenLoadingIndicator />;
+        const reasonAttributes: SkeletonSpanReasonAttributes = {context: 'SubscriptionSettings', privateSubscriptionLoaded: false};
+        return <FullScreenLoadingIndicator reasonAttributes={reasonAttributes} />;
     }
 
     return (
@@ -197,74 +229,115 @@ function SubscriptionSettings() {
                 onBackButtonPress={() => Navigation.goBack()}
             />
             <ScrollView contentContainerStyle={[styles.flexGrow1, styles.ph5]}>
-                <Text style={[styles.textSupporting, styles.mb5]}>{translate('subscription.subscriptionSettings.pricingConfiguration')}</Text>
-                <View style={[styles.renderHTML, styles.mb5]}>
-                    <RenderHTML
-                        html={translate('subscription.subscriptionSettings.learnMore', {hasAdminsRoom: !!adminsChatReportID})}
-                        onLinkPress={(_evt, href) => handleLinkPress(href)}
-                    />
-                </View>
-                <Text style={styles.mutedNormalTextLabel}>{translate('subscription.subscriptionSettings.estimatedPrice')}</Text>
-                <Text style={styles.mv1}>{priceDetails}</Text>
-                <Text style={styles.mutedNormalTextLabel}>{translate('subscription.subscriptionSettings.changesBasedOn')}</Text>
-                {!!account?.isApprovedAccountant || !!account?.isApprovedAccountantClient ? (
-                    <View style={[styles.borderedContentCard, styles.p5, styles.mt5]}>
-                        <Icon
-                            src={themeIllustrations.ExpensifyApprovedLogo}
-                            width={variables.modalTopIconWidth}
-                            height={variables.menuIconSize}
-                        />
-                        <Text style={[styles.textLabelSupporting, styles.mt2]}>{translate('subscription.details.zeroCommitment')}</Text>
-                    </View>
-                ) : (
-                    <OfflineWithFeedback pendingAction={privateSubscription?.pendingFields?.type}>
-                        <OptionsPicker
-                            options={options}
-                            selectedOption={privateSubscription?.type ?? CONST.SUBSCRIPTION.TYPE.ANNUAL}
-                            onOptionSelected={onOptionSelected}
-                            style={styles.mt5}
-                        />
-                        {subscriptionSizeSection}
-                    </OfflineWithFeedback>
-                )}
-                {isAnnual ? (
+                {isCollect ? (
                     <>
-                        <OfflineWithFeedback pendingAction={privateSubscription?.pendingFields?.autoRenew}>
-                            <View style={styles.mt5}>
-                                <ToggleSettingOptionRow
-                                    title={translate('subscription.subscriptionSettings.autoRenew')}
-                                    switchAccessibilityLabel={translate('subscription.subscriptionSettings.autoRenew')}
-                                    onToggle={handleAutoRenewToggle}
-                                    isActive={privateSubscription?.autoRenew}
-                                />
-                                {!!autoRenewalDate && (
-                                    <Text style={[styles.mutedTextLabel, styles.mt2]}>{translate('subscription.subscriptionSettings.renewsOn', {date: autoRenewalDate})}</Text>
-                                )}
-                            </View>
-                        </OfflineWithFeedback>
-                        <OfflineWithFeedback pendingAction={privateSubscription?.pendingFields?.addNewUsersAutomatically}>
-                            <View style={styles.mt3}>
-                                <ToggleSettingOptionRow
-                                    customTitle={customTitle}
-                                    switchAccessibilityLabel={translate('subscription.subscriptionSettings.autoRenew')}
-                                    onToggle={handleAutoIncreaseToggle}
-                                    isActive={privateSubscription?.addNewUsersAutomatically ?? false}
-                                />
-                                <Text style={[styles.mutedTextLabel, styles.mt2]}>{translate('subscription.subscriptionSettings.automaticallyIncrease')}</Text>
-                            </View>
-                        </OfflineWithFeedback>
+                        <Text style={[styles.textSupporting, styles.mb5]}>{translate('subscription.subscriptionSettings.collectBillingDescription')}</Text>
+                        <View style={[styles.renderHTML, styles.mb5]}>
+                            <RenderHTML
+                                html={translate('subscription.subscriptionSettings.learnMore', !!adminsChatReportID)}
+                                onLinkPress={(_evt, href) => handleLinkPress(href)}
+                            />
+                        </View>
+                        <Text style={styles.mutedNormalTextLabel}>{translate('subscription.subscriptionSettings.pricing')}</Text>
+                        <Text style={styles.mv1}>{translate('subscription.yourPlan.pricePerMemberPerMonth', collectPriceDisplay)}</Text>
+                        <View style={[styles.mt5, styles.mb5]}>
+                            <OptionItem
+                                title="subscription.details.payPerUse"
+                                icon={illustrations.SubscriptionPPU}
+                                style={styles.flex0}
+                                isSelected
+                                isDisabled
+                            />
+                        </View>
                     </>
-                ) : null}
+                ) : (
+                    <>
+                        <Text style={[styles.textSupporting, styles.mb5]}>{translate('subscription.subscriptionSettings.pricingConfiguration')}</Text>
+                        <View style={[styles.renderHTML, styles.mb5]}>
+                            <RenderHTML
+                                html={translate('subscription.subscriptionSettings.learnMore', !!adminsChatReportID)}
+                                onLinkPress={(_evt, href) => handleLinkPress(href)}
+                            />
+                        </View>
+                        <Text style={styles.mutedNormalTextLabel}>{translate('subscription.subscriptionSettings.estimatedPrice')}</Text>
+                        <Text style={styles.mv1}>{priceDetails}</Text>
+                        <Text style={styles.mutedNormalTextLabel}>{translate('subscription.subscriptionSettings.changesBasedOn')}</Text>
+                        {!!account?.isApprovedAccountant || !!account?.isApprovedAccountantClient ? (
+                            <View style={[styles.borderedContentCard, styles.p5, styles.mt5]}>
+                                <Icon
+                                    src={themeIllustrations.ExpensifyApprovedLogo}
+                                    width={variables.modalTopIconWidth}
+                                    height={variables.menuIconSize}
+                                />
+                                <Text style={[styles.textLabelSupporting, styles.mt2]}>{translate('subscription.details.zeroCommitment')}</Text>
+                            </View>
+                        ) : (
+                            <OfflineWithFeedback pendingAction={privateSubscription?.pendingFields?.type}>
+                                <OptionsPicker
+                                    options={options}
+                                    selectedOption={privateSubscription?.type ?? CONST.SUBSCRIPTION.TYPE.ANNUAL}
+                                    onOptionSelected={onOptionSelected}
+                                    style={styles.mt5}
+                                />
+                                {subscriptionSizeSection}
+                            </OfflineWithFeedback>
+                        )}
+                        {isAnnual ? (
+                            <>
+                                <OfflineWithFeedback pendingAction={privateSubscription?.pendingFields?.autoRenew}>
+                                    <View style={styles.mt5}>
+                                        <ToggleSettingOptionRow
+                                            title={translate('subscription.subscriptionSettings.autoRenew')}
+                                            switchAccessibilityLabel={translate('subscription.subscriptionSettings.autoRenew')}
+                                            onToggle={handleAutoRenewToggle}
+                                            isActive={privateSubscription?.autoRenew}
+                                        />
+                                        {!!autoRenewalDate && (
+                                            <Text style={[styles.mutedTextLabel, styles.mt2]}>{translate('subscription.subscriptionSettings.renewsOn', autoRenewalDate)}</Text>
+                                        )}
+                                    </View>
+                                </OfflineWithFeedback>
+                                <OfflineWithFeedback pendingAction={privateSubscription?.pendingFields?.addNewUsersAutomatically}>
+                                    <View style={styles.mt3}>
+                                        <ToggleSettingOptionRow
+                                            customTitle={customTitle}
+                                            switchAccessibilityLabel={translate('subscription.subscriptionSettings.autoRenew')}
+                                            onToggle={handleAutoIncreaseToggle}
+                                            isActive={privateSubscription?.addNewUsersAutomatically ?? false}
+                                        />
+                                        <Text style={[styles.mutedTextLabel, styles.mt2]}>{translate('subscription.subscriptionSettings.automaticallyIncrease')}</Text>
+                                    </View>
+                                </OfflineWithFeedback>
+                            </>
+                        ) : null}
+                    </>
+                )}
+                {shouldShowExpensifyCodeSection && (
+                    <MenuItemWithTopDescription
+                        description={translate('subscription.expensifyCode.title')}
+                        shouldShowRightIcon={!isExpensifyCodeApplied}
+                        onPress={onExpensifyCodePress}
+                        interactive={!isExpensifyCodeApplied}
+                        wrapperStyle={styles.sectionMenuItemTopDescription}
+                        style={styles.mt5}
+                        title={privatePromoCode}
+                        hintText={
+                            shouldShowExpensifyCodeHintText
+                                ? translate('subscription.expensifyCode.discountMessage', `${promoDiscountValue ?? ''}`, `${privatePromoCodeValidBillingCycles ?? ''}`)
+                                : undefined
+                        }
+                    />
+                )}
                 <MenuItemWithTopDescription
                     description={privateTaxExempt ? translate('subscription.details.taxExemptStatus') : undefined}
                     shouldShowRightIcon
                     onPress={() => {
                         requestTaxExempt();
-                        navigateToConciergeChat();
+                        navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas, false);
                     }}
                     icon={icons.Coins}
                     wrapperStyle={styles.sectionMenuItemTopDescription}
-                    style={styles.mv5}
+                    style={styles.mb5}
                     titleStyle={privateTaxExempt ? undefined : styles.textBold}
                     title={privateTaxExempt ? translate('subscription.details.taxExemptEnabled') : translate('subscription.details.taxExempt')}
                 />

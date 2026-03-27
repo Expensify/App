@@ -10,6 +10,7 @@ import type {BaseListItemProps, ExtendedTargetedEvent, ListItem} from './types';
 type ListItemRendererProps<TItem extends ListItem> = Omit<BaseListItemProps<TItem>, 'onSelectRow' | 'keyForList'> &
     Pick<SelectionListProps<TItem>, 'ListItem' | 'shouldIgnoreFocus' | 'shouldSingleExecuteRowSelect'> & {
         index: number;
+        normalizedIndex?: number;
         selectRow: (item: TItem, indexToFocus?: number) => void;
         setFocusedIndex: ReturnType<typeof useArrowKeyFocusManager>[1];
         singleExecution: ReturnType<typeof useSingleExecution>['singleExecution'];
@@ -22,10 +23,12 @@ function ListItemRenderer<TItem extends ListItem>({
     ListItem,
     item,
     index,
+    normalizedIndex,
     isFocused,
     isDisabled,
     showTooltip,
     canSelectMultiple,
+    canShowProductTrainingTooltip,
     onLongPressRow,
     shouldSingleExecuteRowSelect,
     selectRow,
@@ -35,10 +38,12 @@ function ListItemRenderer<TItem extends ListItem>({
     rightHandSideComponent,
     isMultilineSupported,
     isAlternateTextMultilineSupported,
+    shouldUseDefaultRightHandSideComponent,
     alternateTextNumberOfLines,
     shouldIgnoreFocus,
     setFocusedIndex,
     shouldSyncFocus,
+    titleNumberOfLines,
     wrapperStyle,
     titleStyles,
     singleExecution,
@@ -46,8 +51,8 @@ function ListItemRenderer<TItem extends ListItem>({
     shouldUseDefaultRightHandSideCheckmark,
     shouldHighlightSelectedItem,
     shouldDisableHoverStyle,
-    shouldStopMouseLeavePropagation,
     shouldShowRightCaret,
+    errorRowStyles,
 }: ListItemRendererProps<TItem>) {
     const handleOnCheckboxPress = () => {
         if (isTransactionGroupListItemType(item)) {
@@ -60,6 +65,7 @@ function ListItemRenderer<TItem extends ListItem>({
         <>
             <ListItem
                 item={item}
+                index={index}
                 isFocused={isFocused}
                 isDisabled={isDisabled}
                 showTooltip={showTooltip}
@@ -79,9 +85,11 @@ function ListItemRenderer<TItem extends ListItem>({
                 shouldPreventEnterKeySubmit
                 rightHandSideComponent={rightHandSideComponent}
                 keyForList={item.keyForList}
+                shouldUseDefaultRightHandSideComponent={shouldUseDefaultRightHandSideComponent}
                 isMultilineSupported={isMultilineSupported}
                 isAlternateTextMultilineSupported={isAlternateTextMultilineSupported}
                 alternateTextNumberOfLines={alternateTextNumberOfLines}
+                titleNumberOfLines={titleNumberOfLines}
                 onFocus={(event: NativeSyntheticEvent<ExtendedTargetedEvent>) => {
                     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                     if (shouldIgnoreFocus || isDisabled) {
@@ -91,16 +99,17 @@ function ListItemRenderer<TItem extends ListItem>({
                     if (isMobileChrome() && event.nativeEvent && !event.nativeEvent.sourceCapabilities) {
                         return;
                     }
-                    setFocusedIndex(index);
+                    setFocusedIndex(normalizedIndex ?? index);
                 }}
                 shouldSyncFocus={shouldSyncFocus}
                 wrapperStyle={wrapperStyle}
                 titleStyles={titleStyles}
+                canShowProductTrainingTooltip={canShowProductTrainingTooltip}
                 titleContainerStyles={titleContainerStyles}
+                errorRowStyles={errorRowStyles}
                 shouldUseDefaultRightHandSideCheckmark={shouldUseDefaultRightHandSideCheckmark}
                 shouldHighlightSelectedItem={shouldHighlightSelectedItem}
                 shouldDisableHoverStyle={shouldDisableHoverStyle}
-                shouldStopMouseLeavePropagation={shouldStopMouseLeavePropagation}
                 shouldShowRightCaret={shouldShowRightCaret}
             />
             {item.footerContent && item.footerContent}

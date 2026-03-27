@@ -15,7 +15,7 @@ type VerifyAccountPageProps = StackScreenProps<TravelNavigatorParamList, typeof 
 
 function VerifyAccountPage({route}: VerifyAccountPageProps) {
     const {domain, backTo, policyID} = route.params;
-    const [travelProvisioning] = useOnyx(ONYXKEYS.TRAVEL_PROVISIONING, {canBeMissing: true});
+    const [travelProvisioning] = useOnyx(ONYXKEYS.TRAVEL_PROVISIONING);
     const {isBetaEnabled} = usePermissions();
 
     useEffect(() => {
@@ -29,8 +29,11 @@ function VerifyAccountPage({route}: VerifyAccountPageProps) {
     // Determine where to navigate after successful OTP validation
     const navigateForwardTo = isTravelVerifiedBetaEnabled ? (travelProvisioning?.nextStepRoute ?? ROUTES.TRAVEL_TCS.getRoute(domain ?? '', policyID)) : undefined;
 
-    const handleClose = useCallback(() => {
+    const handleValidationSuccess = useCallback(() => {
         requestTravelAccess();
+    }, []);
+
+    const handleClose = useCallback(() => {
         Navigation.goBack(backTo);
     }, [backTo]);
 
@@ -39,6 +42,7 @@ function VerifyAccountPage({route}: VerifyAccountPageProps) {
             navigateBackTo={backTo}
             navigateForwardTo={navigateForwardTo}
             handleClose={!isTravelVerifiedBetaEnabled ? handleClose : undefined}
+            onValidationSuccess={!isTravelVerifiedBetaEnabled ? handleValidationSuccess : undefined}
         />
     );
 }

@@ -1,5 +1,5 @@
-import React, {useCallback, useEffect, useState} from 'react';
-import type {ImageSourcePropType, StyleProp, ViewStyle} from 'react-native';
+import React, {useState} from 'react';
+import type {ImageResizeMode, ImageSourcePropType, StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useNetwork from '@hooks/useNetwork';
@@ -7,6 +7,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useThumbnailDimensions from '@hooks/useThumbnailDimensions';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
@@ -76,6 +77,12 @@ type ThumbnailImageProps = {
 
     /** Callback to be called when the image loads */
     onLoad?: (event: {nativeEvent: {width: number; height: number}}) => void;
+
+    /** The resize mode of the image */
+    resizeMode?: ImageResizeMode;
+
+    /** Reason attributes for skeleton span telemetry */
+    reasonAttributes?: SkeletonSpanReasonAttributes;
 };
 
 function ThumbnailImage({
@@ -97,43 +104,32 @@ function ThumbnailImage({
     onMeasure,
     loadingIndicatorStyles,
     onLoad,
+    resizeMode,
+    reasonAttributes,
 }: ThumbnailImageProps) {
     const icons = useMemoizedLazyExpensifyIcons(['Gallery', 'OfflineCloud']);
     const styles = useThemeStyles();
     const theme = useTheme();
     const {isOffline} = useNetwork();
-    const [failedToLoad, setFailedToLoad] = useState(false);
+    const [failedLoadKey, setFailedLoadKey] = useState<{url: string | ImageSourcePropType; isOffline: boolean} | null>(null);
+    const failedToLoad = failedLoadKey !== null && failedLoadKey.url === previewSourceURL && failedLoadKey.isOffline === isOffline;
+
     const cachedDimensions = shouldDynamicallyResize && typeof previewSourceURL === 'string' ? thumbnailDimensionsCache.get(previewSourceURL) : null;
     const [imageDimensions, setImageDimensions] = useState({width: cachedDimensions?.width ?? imageWidth, height: cachedDimensions?.height ?? imageHeight});
     const {thumbnailDimensionsStyles} = useThumbnailDimensions(imageDimensions.width, imageDimensions.height);
     const StyleUtils = useStyleUtils();
 
-    useEffect(() => {
-        setFailedToLoad(false);
-    }, [isOffline, previewSourceURL]);
+    const updateImageSize = ({width, height}: Dimensions) => {
+        if (!shouldDynamicallyResize || (imageDimensions.width === width && imageDimensions.height === height)) {
+            return;
+        }
 
-    /**
-     * Update the state with the computed thumbnail sizes.
-     * @param Params - width and height of the original image.
-     */
-    const updateImageSize = useCallback(
-        ({width, height}: Dimensions) => {
-            if (
-                !shouldDynamicallyResize ||
-                // If the provided dimensions are good avoid caching them and updating state.
-                (imageDimensions.width === width && imageDimensions.height === height)
-            ) {
-                return;
-            }
+        if (typeof previewSourceURL === 'string') {
+            thumbnailDimensionsCache.set(previewSourceURL, {width, height});
+        }
 
-            if (typeof previewSourceURL === 'string') {
-                thumbnailDimensionsCache.set(previewSourceURL, {width, height});
-            }
-
-            setImageDimensions({width, height});
-        },
-        [previewSourceURL, imageDimensions.width, imageDimensions.height, shouldDynamicallyResize],
-    );
+        setImageDimensions({width, height});
+    };
 
     const sizeStyles = shouldDynamicallyResize ? [thumbnailDimensionsStyles] : [styles.w100, styles.h100];
 
@@ -166,7 +162,7 @@ function ThumbnailImage({
                         onMeasure?.();
                     }}
                     onLoadFailure={() => {
-                        setFailedToLoad(true);
+                        setFailedLoadKey({url: previewSourceURL, isOffline});
                         onLoadFailure?.();
                     }}
                     isAuthTokenRequired={isAuthTokenRequired}
@@ -174,6 +170,8 @@ function ThumbnailImage({
                     loadingIconSize={loadingIconSize}
                     loadingIndicatorStyles={loadingIndicatorStyles}
                     onLoad={onLoad}
+                    resizeMode={resizeMode}
+                    reasonAttributes={reasonAttributes}
                 />
             </View>
         </View>
@@ -182,4 +180,4 @@ function ThumbnailImage({
 
 ThumbnailImage.displayName = 'ThumbnailImage';
 
-export default React.memo(ThumbnailImage);
+export default ThumbnailImage;

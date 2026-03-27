@@ -33,7 +33,7 @@ function TagGLCodePage({route}: EditTagGLCodePageProps) {
     const policyID = route.params.policyID;
     const policy = usePolicy(policyID);
     const backTo = route.params.backTo;
-    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {canBeMissing: true});
+    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
 
     const tagName = route.params.tagName;
     const orderWeight = route.params.orderWeight;
@@ -76,7 +76,7 @@ function TagGLCodePage({route}: EditTagGLCodePageProps) {
         <AccessOrNotFoundWrapper
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
             policyID={policyID}
-            featureName={CONST.POLICY.MORE_FEATURES.ARE_CATEGORIES_ENABLED}
+            featureName={CONST.POLICY.MORE_FEATURES.ARE_TAGS_ENABLED}
             shouldBeBlocked={hasAccountingConnections(policy)}
         >
             <ScreenWrapper

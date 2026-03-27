@@ -4,13 +4,13 @@ import SingleFieldStep from '@components/SubStepForms/SingleFieldStep';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useReimbursementAccountStepFormSubmit from '@hooks/useReimbursementAccountStepFormSubmit';
-import type {SubStepProps} from '@hooks/useSubStep/types';
+import type {SubPageProps} from '@hooks/useSubPage/types';
 import {getFieldRequiredErrors} from '@libs/ValidationUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 
-type JobTitleProps = SubStepProps;
+type JobTitleProps = SubPageProps;
 
 const {SIGNER_JOB_TITLE} = INPUT_IDS.ADDITIONAL_DATA.CORPAY;
 
@@ -23,9 +23,9 @@ function JobTitle({onNext, onMove, isEditing}: JobTitleProps) {
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
-            return getFieldRequiredErrors(values, [inputID]);
+            return getFieldRequiredErrors(values, [inputID], translate);
         },
-        [inputID],
+        [inputID, translate],
     );
 
     const handleSubmit = useReimbursementAccountStepFormSubmit({
@@ -48,6 +48,7 @@ function JobTitle({onNext, onMove, isEditing}: JobTitleProps) {
             inputMode={CONST.INPUT_MODE.TEXT}
             defaultValue={defaultValue}
             shouldShowHelpLinks={false}
+            shouldDelayAutoFocus
         />
     );
 }

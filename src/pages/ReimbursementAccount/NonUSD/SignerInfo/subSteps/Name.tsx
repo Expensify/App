@@ -4,13 +4,13 @@ import SingleFieldStep from '@components/SubStepForms/SingleFieldStep';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useReimbursementAccountStepFormSubmit from '@hooks/useReimbursementAccountStepFormSubmit';
-import type {SubStepProps} from '@hooks/useSubStep/types';
+import type {SubPageProps} from '@hooks/useSubPage/types';
 import {getFieldRequiredErrors, isValidLegalName} from '@libs/ValidationUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 
-type NameProps = SubStepProps;
+type NameProps = SubPageProps;
 
 const {SIGNER_FULL_NAME} = INPUT_IDS.ADDITIONAL_DATA.CORPAY;
 
@@ -23,7 +23,7 @@ function Name({onNext, onMove, isEditing}: NameProps) {
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
-            const errors = getFieldRequiredErrors(values, [inputID]);
+            const errors = getFieldRequiredErrors(values, [inputID], translate);
 
             if (values[inputID] && !isValidLegalName(String(values[inputID]))) {
                 errors[inputID] = translate('bankAccount.error.fullName');
@@ -54,6 +54,7 @@ function Name({onNext, onMove, isEditing}: NameProps) {
             inputMode={CONST.INPUT_MODE.TEXT}
             defaultValue={defaultValue}
             shouldShowHelpLinks={false}
+            shouldDelayAutoFocus
         />
     );
 }

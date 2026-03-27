@@ -1,40 +1,43 @@
-import type {OnyxUpdate} from 'react-native-onyx';
+import type {OnyxKey} from 'react-native-onyx';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
-import type {OnyxUpdatesFromServer} from '@src/types/onyx';
+import type {AnyOnyxUpdatesFromServer, OnyxServerUpdate} from '@src/types/onyx/OnyxUpdatesFromServer';
 import Log from './Log';
 import NetworkConnection from './NetworkConnection';
 import Pusher from './Pusher';
 import type {PingPongEvent} from './Pusher/types';
 
-type Callback = (data: OnyxUpdate[]) => Promise<void>;
+type Callback<TKey extends OnyxKey> = (data: Array<OnyxServerUpdate<TKey>>) => Promise<void>;
 
 // Keeps track of all the callbacks that need triggered for each event type
-const multiEventCallbackMapping: Record<string, Callback> = {};
+// Using `any` because callbacks can be registered with different key types dynamically.
+// 'any' was introduced during migration away from OnyxKey union for TypeScript performance improvement
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const multiEventCallbackMapping: Record<string, Callback<any>> = {};
 
 function getUserChannelName(accountID: string) {
     return `${CONST.PUSHER.PRIVATE_USER_CHANNEL_PREFIX}${accountID}${CONFIG.PUSHER.SUFFIX}` as const;
 }
 
-function subscribeToMultiEvent(eventType: string, callback: Callback) {
+function subscribeToMultiEvent<TKey extends OnyxKey>(eventType: string, callback: Callback<TKey>) {
     multiEventCallbackMapping[eventType] = callback;
 }
 
-function triggerMultiEventHandler(eventType: string, data: OnyxUpdate[]): Promise<void> {
+function triggerMultiEventHandler<TKey extends OnyxKey>(eventType: string, data: Array<OnyxServerUpdate<TKey>>): Promise<void> {
     if (!multiEventCallbackMapping[eventType]) {
         Log.warn('[PusherUtils] Received unexpected multi-event', {eventType});
         return Promise.resolve();
     }
-    return multiEventCallbackMapping[eventType](data);
+    return (multiEventCallbackMapping[eventType] as Callback<TKey>)(data);
 }
 
 /**
  * Abstraction around subscribing to private user channel events. Handles all logs and errors automatically.
  */
-function subscribeToPrivateUserChannelEvent(eventName: string, accountID: string, onEvent: (pushJSON: OnyxUpdatesFromServer | PingPongEvent) => void) {
+function subscribeToPrivateUserChannelEvent(eventName: string, accountID: string, onEvent: (pushJSON: AnyOnyxUpdatesFromServer | PingPongEvent) => void) {
     const pusherChannelName = getUserChannelName(accountID);
 
-    function logPusherEvent(pushJSON: OnyxUpdatesFromServer | PingPongEvent) {
+    function logPusherEvent(pushJSON: AnyOnyxUpdatesFromServer | PingPongEvent) {
         Log.info(`[Report] Handled ${eventName} event sent by Pusher`, false, pushJSON);
     }
 
@@ -42,7 +45,7 @@ function subscribeToPrivateUserChannelEvent(eventName: string, accountID: string
         NetworkConnection.triggerReconnectionCallbacks('Pusher re-subscribed to private user channel');
     }
 
-    function onEventPush(pushJSON: OnyxUpdatesFromServer | PingPongEvent) {
+    function onEventPush(pushJSON: AnyOnyxUpdatesFromServer | PingPongEvent) {
         logPusherEvent(pushJSON);
         onEvent(pushJSON);
     }

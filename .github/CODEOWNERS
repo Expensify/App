@@ -10,3 +10,6 @@ assets/ @Expensify/design @Expensify/product-pr @Expensify/pullerbear
 
 # Philosophy docs are in their early stages and need to be reviewed by Tim to ensure they have consistent formatting and organization
 contributingGuides/philosophies/ @tgolen
+
+# Help docs get a review from Steph Elliott 
+docs/articles/ @stephanieelliott

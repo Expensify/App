@@ -1,4 +1,5 @@
-import React, {useCallback, useMemo, useRef, useState} from 'react';
+import {hasSeenTourSelector} from '@selectors/Onboarding';
+import React, {useRef, useState} from 'react';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
@@ -7,18 +8,23 @@ import ScrollView from '@components/ScrollView';
 import WorkspaceConfirmationForm from '@components/WorkspaceConfirmationForm';
 import type {WorkspaceConfirmationSubmitFunctionParams} from '@components/WorkspaceConfirmationForm';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useHasActiveAdminPolicies from '@hooks/useHasActiveAdminPolicies';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import usePreferredPolicy from '@hooks/usePreferredPolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {createNewReport} from '@libs/actions/Report';
 import {setTransactionReport} from '@libs/actions/Transaction';
 import type CreateWorkspaceParams from '@libs/API/parameters/CreateWorkspaceParams';
 import getPlatform from '@libs/getPlatform';
+import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {MoneyRequestNavigatorParamList} from '@libs/Navigation/types';
 import {getParticipantsOption} from '@libs/OptionsListUtils';
+import {hasViolations as hasViolationsReportUtils} from '@libs/ReportUtils';
 import UpgradeConfirmation from '@pages/workspace/upgrade/UpgradeConfirmation';
 import UpgradeIntro from '@pages/workspace/upgrade/UpgradeIntro';
 import {setCustomUnitRateID, setMoneyRequestParticipants} from '@userActions/IOU';
@@ -42,9 +48,10 @@ function IOURequestStepUpgrade({
     const {isOffline} = useNetwork();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const personalDetails = usePersonalDetails();
+    const hasActiveAdminPolicies = useHasActiveAdminPolicies();
 
-    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {canBeMissing: true});
-    const [onboardingPurposeSelected] = useOnyx(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED, {canBeMissing: true});
+    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`);
+    const [onboardingPurposeSelected] = useOnyx(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED);
 
     const [isUpgraded, setIsUpgraded] = useState(false);
     const [showConfirmationForm, setShowConfirmationForm] = useState(false);
@@ -57,29 +64,31 @@ function IOURequestStepUpgrade({
     const platform = getPlatform();
     const isWeb = platform === CONST.PLATFORM.WEB;
     const {isRestrictedPolicyCreation} = usePreferredPolicy();
-    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
-    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
+    const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
+    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
+    const [createdPolicyID, setCreatedPolicyID] = useState<string | undefined>();
+    const [createdPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${createdPolicyID}`);
+    const {isBetaEnabled} = usePermissions();
+    const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
+    const hasViolations = hasViolationsReportUtils(undefined, transactionViolations, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, session?.email ?? '');
 
-    const feature = useMemo(
-        () =>
-            Object.values(CONST.UPGRADE_FEATURE_INTRO_MAPPING)
-                .filter((value) => value.id !== CONST.UPGRADE_FEATURE_INTRO_MAPPING.policyPreventMemberChangingTitle.id)
-                .find((f) => f.alias === upgradePath),
-        [upgradePath],
-    );
+    const feature = Object.values(CONST.UPGRADE_FEATURE_INTRO_MAPPING)
+        .filter((value) => value.id !== CONST.UPGRADE_FEATURE_INTRO_MAPPING.policyPreventMemberChangingTitle.id)
+        .find((f) => f.alias === upgradePath);
 
-    const navigateWithMicrotask = useCallback(
-        (route: Route) => {
-            if (isWeb) {
-                Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.navigate(route));
-            } else {
-                Navigation.navigate(route);
-            }
-        },
-        [isWeb],
-    );
+    const navigateWithMicrotask = (route: Route) => {
+        if (isWeb) {
+            Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.navigate(route));
+        } else {
+            Navigation.navigate(route);
+        }
+    };
 
-    const afterUpgradeAcknowledged = useCallback(() => {
+    const afterUpgradeAcknowledged = () => {
         const expenseReportID = policyDataRef.current?.expenseChatReportID ?? reportID;
         const policyID = policyDataRef.current?.policyID;
         if (shouldSubmitExpense) {
@@ -94,43 +103,61 @@ function IOURequestStepUpgrade({
                 },
             ]);
         }
-        Navigation.goBack();
 
         switch (upgradePath) {
             case CONST.UPGRADE_PATHS.DISTANCE_RATES: {
                 if (!policyID || !reportID) {
+                    Navigation.goBack();
                     return;
                 }
+
+                // In case we get here from /:action/track/... route we need to navigate to
+                // /:action/submit/... when shouldSubmitExpense === true as transaction is not selfDM anymore
+                const backToRoute = shouldSubmitExpense ? ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(action, CONST.IOU.TYPE.SUBMIT, transactionID, reportID) : undefined;
+
+                Navigation.goBack(backToRoute, {compareParams: false});
+
                 setTransactionReport(transactionID, {reportID: expenseReportID}, true);
                 // Let the confirmation step decide the distance rate because policy data is not fully available at this step
-                setCustomUnitRateID(transactionID, '-1');
+                setCustomUnitRateID(transactionID, '-1', undefined, undefined);
                 Navigation.setParams({reportID: expenseReportID});
 
                 navigateWithMicrotask(ROUTES.WORKSPACE_CREATE_DISTANCE_RATE_UPGRADE.getRoute(policyID, transactionID, expenseReportID));
                 break;
             }
-            case CONST.UPGRADE_PATHS.REPORTS:
-                navigateWithMicrotask(ROUTES.MONEY_REQUEST_STEP_REPORT.getRoute(action, CONST.IOU.TYPE.SUBMIT, transactionID, reportID));
-
+            case CONST.UPGRADE_PATHS.REPORTS: {
+                Navigation.goBack();
+                if (action === CONST.IOU.ACTION.CREATE && policyID) {
+                    // Create the report directly using the just-created workspace instead of
+                    // navigating to workspace selection (which would redundantly ask the user
+                    // to pick the single workspace they just created).
+                    const {reportID: createdReportID} = createNewReport(currentUserPersonalDetails, hasViolations, isASAPSubmitBetaEnabled, createdPolicy, betas);
+                    navigateWithMicrotask(
+                        isSearchTopmostFullScreenRoute()
+                            ? ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: createdReportID, backTo: Navigation.getActiveRoute()})
+                            : ROUTES.REPORT_WITH_ID.getRoute(createdReportID, undefined, undefined, Navigation.getActiveRoute()),
+                    );
+                } else if (action === CONST.IOU.ACTION.CREATE) {
+                    navigateWithMicrotask(ROUTES.NEW_REPORT_WORKSPACE_SELECTION.getRoute());
+                } else {
+                    navigateWithMicrotask(ROUTES.MONEY_REQUEST_STEP_REPORT.getRoute(action, CONST.IOU.TYPE.SUBMIT, transactionID, reportID));
+                }
                 break;
+            }
             case CONST.UPGRADE_PATHS.CATEGORIES:
+                Navigation.goBack();
                 navigateWithMicrotask(backTo ?? ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(action, CONST.IOU.TYPE.SUBMIT, transactionID, reportID));
 
                 break;
             default:
+                Navigation.goBack();
         }
-    }, [action, backTo, navigateWithMicrotask, reportID, shouldSubmitExpense, transactionID, upgradePath]);
+    };
 
-    const adminParticipant = useMemo(() => {
-        const participant = transaction?.participants?.[0];
-        if (!isDistanceRateUpgrade || !participant?.accountID) {
-            return;
-        }
+    const participant = transaction?.participants?.[0];
+    const adminParticipant = isDistanceRateUpgrade && participant?.accountID ? getParticipantsOption(participant, personalDetails) : undefined;
 
-        return getParticipantsOption(participant, personalDetails);
-    }, [isDistanceRateUpgrade, transaction?.participants, personalDetails]);
-
-    const onUpgrade = useCallback(() => {
+    const onUpgrade = () => {
         if (isRestrictedPolicyCreation) {
             setIsUpgradeWarningModalOpen(true);
             return;
@@ -160,33 +187,23 @@ function IOURequestStepUpgrade({
             currentUserAccountIDParam: currentUserPersonalDetails.accountID,
             currentUserEmailParam: currentUserPersonalDetails.email ?? '',
             onboardingPurposeSelected,
+            betas,
+            isSelfTourViewed,
+            hasActiveAdminPolicies,
         });
         setIsUpgraded(true);
+        setCreatedPolicyID(policyData.policyID);
         policyDataRef.current = policyData;
-    }, [
-        isCategorizing,
-        isReporting,
-        currentUserPersonalDetails?.localCurrencyCode,
-        isDistanceRateUpgrade,
-        adminParticipant,
-        activePolicyID,
-        currentUserPersonalDetails.accountID,
-        currentUserPersonalDetails.email,
-        introSelected,
-        onboardingPurposeSelected,
-        isRestrictedPolicyCreation,
-    ]);
+    };
 
-    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
-
-    const handleConfirmUpgradeWarning = useCallback(() => {
+    const handleConfirmUpgradeWarning = () => {
         setIsUpgradeWarningModalOpen(false);
-    }, []);
+    };
 
     const onWorkspaceConfirmationSubmit = (params: WorkspaceConfirmationSubmitFunctionParams) => {
         const policyData = Policy.createWorkspace({
-            policyOwnerEmail: undefined,
-            makeMeAdmin: false,
+            policyOwnerEmail: params.owner,
+            makeMeAdmin: params.makeMeAdmin,
             policyName: params.name,
             policyID: params.policyID,
             currency: params.currency,
@@ -197,8 +214,12 @@ function IOURequestStepUpgrade({
             currentUserAccountIDParam: currentUserPersonalDetails.accountID,
             currentUserEmailParam: currentUserPersonalDetails.email ?? '',
             onboardingPurposeSelected,
+            betas,
+            isSelfTourViewed,
+            hasActiveAdminPolicies,
         });
         policyDataRef.current = policyData;
+        setCreatedPolicyID(policyData.policyID);
         setCreatedPolicyName(params.name);
         setShowConfirmationForm(false);
         setIsUpgraded(true);

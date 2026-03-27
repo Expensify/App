@@ -1,6 +1,4 @@
-import type {ForwardedRef} from 'react';
 import React from 'react';
-import type {View} from 'react-native';
 import {StyleSheet} from 'react-native';
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useTheme from '@hooks/useTheme';
@@ -12,20 +10,17 @@ import type {MenuItemProps} from './MenuItem';
 type Props = MenuItemProps & {
     /** Should the menu item be highlighted? */
     highlighted?: boolean;
-
-    /** Reference to the outer element */
-    ref?: ForwardedRef<View>;
 };
 
-function HighlightableMenuItem({wrapperStyle, highlighted, ref, ...restOfProps}: Props) {
+function HighlightableMenuItem({wrapperStyle, highlighted, ...restOfProps}: Props) {
     const styles = useThemeStyles();
     const theme = useTheme();
 
     const flattenedWrapperStyles = StyleSheet.flatten(wrapperStyle);
     const animatedHighlightStyle = useAnimatedHighlightStyle({
         shouldHighlight: highlighted ?? false,
-        height: flattenedWrapperStyles?.height ? Number(flattenedWrapperStyles.height) : styles.sectionMenuItem.height,
-        borderRadius: flattenedWrapperStyles?.borderRadius ? Number(flattenedWrapperStyles.borderRadius) : styles.sectionMenuItem.borderRadius,
+        height: flattenedWrapperStyles?.height ? Number(flattenedWrapperStyles.height) : styles.sectionMenuItem(true).height,
+        borderRadius: flattenedWrapperStyles?.borderRadius ? Number(flattenedWrapperStyles.borderRadius) : styles.sectionMenuItem(true).borderRadius,
         highlightColor: theme.messageHighlightBG,
         highlightEndDelay: CONST.ANIMATED_HIGHLIGHT_WORKSPACE_FEATURE_ITEM_END_DELAY,
         highlightEndDuration: CONST.ANIMATED_HIGHLIGHT_WORKSPACE_FEATURE_ITEM_END_DURATION,
@@ -37,7 +32,6 @@ function HighlightableMenuItem({wrapperStyle, highlighted, ref, ...restOfProps}:
             {...restOfProps}
             outerWrapperStyle={animatedHighlightStyle}
             wrapperStyle={wrapperStyle}
-            ref={ref}
         />
     );
 }

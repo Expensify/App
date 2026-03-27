@@ -4,10 +4,10 @@ import Onyx from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {SelectedTransactions} from '@components/Search/types';
 import useSelectedTransactionsActions from '@hooks/useSelectedTransactionsActions';
-import {initSplitExpense} from '@libs/actions/IOU';
 import {unholdRequest} from '@libs/actions/IOU/Hold';
 import {setupMergeTransactionDataAndNavigate} from '@libs/actions/MergeTransaction';
 import {exportReportToCSV} from '@libs/actions/Report';
+import initSplitExpense from '@libs/actions/SplitExpenses';
 import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -29,8 +29,9 @@ jest.mock('@libs/actions/Search', () => ({
     getExportTemplates: jest.fn(() => []),
 }));
 
-jest.mock('@libs/actions/IOU', () => ({
-    initSplitExpense: jest.fn(),
+jest.mock('@libs/actions/SplitExpenses.ts', () => ({
+    __esModule: true,
+    default: jest.fn(),
 }));
 
 jest.mock('@libs/actions/IOU/Hold', () => ({
@@ -43,7 +44,6 @@ jest.mock('@libs/actions/MergeTransaction', () => ({
 
 jest.mock('@libs/actions/Report', () => ({
     exportReportToCSV: jest.fn(),
-    getCurrentUserAccountID: jest.fn(() => 1),
     getCurrentUserEmail: jest.fn(() => 'test@example.com'),
 }));
 
@@ -64,11 +64,13 @@ const mockSelectedTransactions: SelectedTransactions = {};
 const mockCurrentSearchHash = 12345;
 
 jest.mock('@components/Search/SearchContext', () => ({
-    useSearchContext: () => ({
+    useSearchStateContext: () => ({
         selectedTransactionIDs: mockSelectedTransactionIDs,
-        clearSelectedTransactions: mockClearSelectedTransactions,
         currentSearchHash: mockCurrentSearchHash,
         selectedTransactions: mockSelectedTransactions,
+    }),
+    useSearchActionsContext: () => ({
+        clearSelectedTransactions: mockClearSelectedTransactions,
     }),
 }));
 
@@ -105,6 +107,16 @@ jest.mock('@hooks/useNetworkWithOfflineStatus', () => ({
     __esModule: true,
     default: jest.fn(() => ({
         isOffline: mockIsOffline,
+    })),
+}));
+const CURRENT_USER_ACCOUNT_ID = 1;
+const CURRENT_USER_LOGIN = 'test@example.com';
+jest.mock('@hooks/useCurrentUserPersonalDetails', () => ({
+    // eslint-disable-next-line @typescript-eslint/naming-convention
+    __esModule: true,
+    default: jest.fn(() => ({
+        login: CURRENT_USER_LOGIN,
+        accountID: CURRENT_USER_ACCOUNT_ID,
     })),
 }));
 
@@ -562,34 +574,102 @@ describe('useSelectedTransactionsActions', () => {
             }),
         );
 
+        // Wait specifically for the MOVE option to appear, not just any options.
+        // The EXPORT option appears immediately, but MOVE depends on selectedTransactionsList
+        // which requires the Onyx transaction data to be fully loaded.
         await waitFor(() => {
-            expect(result.current.options.length).toBeGreaterThan(0);
+            const moveOption = result.current.options.find((option) => option.value === 'MOVE');
+            expect(moveOption).toBeDefined();
         });
 
         const moveOption = result.current.options.find((option) => option.value === 'MOVE');
-        expect(moveOption).toBeDefined();
         expect(moveOption?.text).toBe('iou.moveExpenses');
     });
 
-    it('should show split option when transaction can be split', async () => {
+    it('should forward transaction when calling canEditFieldOfMoneyRequest for move eligibility', async () => {
         const transactionID = '123';
         const report = createRandomReport(1, undefined);
         report.type = CONST.REPORT.TYPE.EXPENSE;
-        const policy = createRandomPolicy(1);
-        const reportActions: ReportAction[] = [];
+        const reportActions: ReportAction[] = [
+            {
+                ...createRandomReportAction(1),
+                reportActionID: 'action1',
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                originalMessage: {
+                    IOUReportID: 'iou123',
+                    type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                    transactionID,
+                },
+            },
+        ];
         const transaction = createRandomTransaction(1);
         transaction.transactionID = transactionID;
+        transaction.reportID = report.reportID;
 
         mockSelectedTransactionIDs.push(transactionID);
 
         await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction);
 
-        jest.spyOn(require('@libs/ReportSecondaryActionUtils'), 'isSplitAction').mockReturnValue(true);
+        const canEditFieldSpy = jest.spyOn(require('@libs/ReportUtils'), 'canEditFieldOfMoneyRequest').mockReturnValue(true);
+        jest.spyOn(require('@libs/ReportUtils'), 'canUserPerformWriteAction').mockReturnValue(true);
+
+        const {result} = renderHook(() =>
+            useSelectedTransactionsActions({
+                report,
+                reportActions,
+                allTransactionsLength: 1,
+                beginExportWithTemplate: mockBeginExportWithTemplate,
+            }),
+        );
+
+        await waitFor(() => {
+            const moveOption = result.current.options.find((option) => option.value === 'MOVE');
+            expect(moveOption).toBeDefined();
+        });
+
+        // Verify canEditFieldOfMoneyRequest was called with the transaction in the object argument
+        const lastCall = canEditFieldSpy.mock.calls.at(canEditFieldSpy.mock.calls.length - 1)?.at(0) as Record<string, unknown>;
+        expect(lastCall.fieldToEdit).toBe(CONST.EDIT_REQUEST_FIELD.REPORT);
+        expect(lastCall.transaction).toEqual(expect.objectContaining({transactionID}));
+    });
+
+    it('should show split option when transaction can be split', async () => {
+        const transactionID = '123';
+        const report = {
+            ...createRandomReport(1, undefined),
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+            stateNum: CONST.REPORT.STATE_NUM.OPEN,
+            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+        };
+        const policy = {
+            ...createRandomPolicy(1),
+            isPolicyExpenseChatEnabled: true,
+            role: CONST.POLICY.ROLE.ADMIN,
+            employeeList: {
+                [CURRENT_USER_LOGIN]: {role: CONST.POLICY.ROLE.ADMIN},
+            },
+        };
+        const reportActions: ReportAction[] = [];
+        const transaction = {
+            ...createRandomTransaction(1),
+            transactionID,
+            amount: 1000,
+            status: CONST.TRANSACTION.STATUS.POSTED,
+        };
+
+        mockSelectedTransactionIDs.push(transactionID);
+
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction);
+        await Onyx.merge(ONYXKEYS.SESSION, {accountID: CURRENT_USER_ACCOUNT_ID});
+
         jest.spyOn(require('@libs/TransactionUtils'), 'getOriginalTransactionWithSplitInfo').mockReturnValue({
             isBillSplit: false,
             isExpenseSplit: false,
             originalTransaction: transaction,
         });
+
+        jest.spyOn(require('@libs/ReportSecondaryActionUtils'), 'isSplitAction').mockReturnValue(true);
 
         const {result} = renderHook(() =>
             useSelectedTransactionsActions({
@@ -601,12 +681,15 @@ describe('useSelectedTransactionsActions', () => {
             }),
         );
 
+        // Wait specifically for the SPLIT option to appear, not just any options.
+        // The EXPORT option appears immediately, but SPLIT depends on selectedTransactionsList
+        // which requires the Onyx transaction data to be fully loaded.
         await waitFor(() => {
-            expect(result.current.options.length).toBeGreaterThan(0);
+            const splitOption = result.current.options.find((option) => option.value === 'SPLIT');
+            expect(splitOption).toBeDefined();
         });
 
         const splitOption = result.current.options.find((option) => option.value === 'SPLIT');
-        expect(splitOption).toBeDefined();
         expect(splitOption?.text).toBe('iou.split');
 
         splitOption?.onSelected?.();
@@ -645,16 +728,19 @@ describe('useSelectedTransactionsActions', () => {
             }),
         );
 
+        // Wait specifically for the MERGE option to appear, not just any options.
+        // The EXPORT option appears immediately, but MERGE depends on selectedTransactionsList
+        // which requires the Onyx transaction data to be fully loaded.
         await waitFor(() => {
-            expect(result.current.options.length).toBeGreaterThan(0);
+            const mergeOption = result.current.options.find((option) => option.value === 'MERGE');
+            expect(mergeOption).toBeDefined();
         });
 
         const mergeOption = result.current.options.find((option) => option.value === 'MERGE');
-        expect(mergeOption).toBeDefined();
         expect(mergeOption?.text).toBe('common.merge');
 
         mergeOption?.onSelected?.();
 
-        expect(setupMergeTransactionDataAndNavigate).toHaveBeenCalledWith(transaction.transactionID, [transaction], mockLocalCompare, [], false, false);
+        expect(setupMergeTransactionDataAndNavigate).toHaveBeenCalledWith(transaction.transactionID, [transaction], mockLocalCompare, [], false, false, undefined);
     });
 });

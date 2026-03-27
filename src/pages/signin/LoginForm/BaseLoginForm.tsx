@@ -1,5 +1,4 @@
 import {useIsFocused} from '@react-navigation/native';
-import {Str} from 'expensify-common';
 import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
@@ -25,9 +24,9 @@ import isInputAutoFilled from '@libs/isInputAutoFilled';
 import {appendCountryCode, getPhoneNumberWithoutSpecialChars} from '@libs/LoginUtils';
 import {parsePhoneNumber} from '@libs/PhoneNumber';
 import StringUtils from '@libs/StringUtils';
-import {isNumericWithSpecialChars} from '@libs/ValidationUtils';
+import {isNumericWithSpecialChars, isValidEmailWithTLD} from '@libs/ValidationUtils';
 import Visibility from '@libs/Visibility';
-import {useLogin} from '@pages/signin/SignInLoginContext';
+import {useLoginActions, useLoginState} from '@pages/signin/SignInLoginContext';
 import {setDefaultData} from '@userActions/CloseAccount';
 import {beginSignIn, clearAccountMessages, clearSignInData} from '@userActions/Session';
 import CONFIG from '@src/CONFIG';
@@ -41,10 +40,11 @@ import type LoginFormProps from './types';
 type BaseLoginFormProps = WithToggleVisibilityViewProps & LoginFormProps;
 
 function BaseLoginForm({submitBehavior = 'submit', isVisible, ref}: BaseLoginFormProps) {
-    const {login, setLogin} = useLogin();
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
-    const [closeAccount] = useOnyx(ONYXKEYS.FORMS.CLOSE_ACCOUNT_FORM, {canBeMissing: true});
-    const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
+    const {login} = useLoginState();
+    const {setLogin} = useLoginActions();
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+    const [closeAccount] = useOnyx(ONYXKEYS.FORMS.CLOSE_ACCOUNT_FORM);
+    const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
@@ -71,7 +71,7 @@ function BaseLoginForm({submitBehavior = 'submit', isVisible, ref}: BaseLoginFor
             const phoneLogin = appendCountryCode(getPhoneNumberWithoutSpecialChars(loginTrim), countryCode);
             const parsedPhoneNumber = parsePhoneNumber(phoneLogin);
 
-            if (!Str.isValidEmail(loginTrim) && !parsedPhoneNumber.possible) {
+            if (!isValidEmailWithTLD(loginTrim) && !parsedPhoneNumber.possible) {
                 if (isNumericWithSpecialChars(loginTrim)) {
                     setFormError('common.error.phoneNumber');
                 } else {
@@ -292,6 +292,7 @@ function BaseLoginForm({submitBehavior = 'submit', isVisible, ref}: BaseLoginFor
                             isAlertVisible={shouldShowServerError}
                             buttonStyles={[shouldShowServerError ? styles.mt3 : {}]}
                             containerStyles={[styles.mh0]}
+                            sentryLabel={CONST.SENTRY_LABEL.SIGN_IN.CONTINUE}
                         />
                         {
                             // This feature has a few behavioral differences in development mode. To prevent confusion

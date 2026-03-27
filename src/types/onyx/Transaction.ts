@@ -2,6 +2,7 @@ import type {KeysOfUnion, ValueOf} from 'type-fest';
 import type {CreateTrackExpenseParams, IOURequestType, ReplaceReceipt, RequestMoneyInformation, StartSplitBilActionParams} from '@libs/actions/IOU';
 import type CONST from '@src/CONST';
 import type ONYXKEYS from '@src/ONYXKEYS';
+import type {FileObject} from '@src/types/utils/Attachment';
 import type CollectionDataSet from '@src/types/utils/CollectionDataSet';
 import type {Accountant, Attendee, Participant, Split, SplitExpense} from './IOU';
 import type * as OnyxCommon from './OnyxCommon';
@@ -125,6 +126,13 @@ type Comment = {
 
     /** Odometer end reading for distance expenses */
     odometerEnd?: number;
+
+    /** Both image fields are needed only locally because server receives only one merged image as receipt */
+    /** Odometer start image (File object with uri on web, URI string on native) */
+    odometerStartImage?: FileObject | string;
+
+    /** Odometer end image (File object with uri on web, URI string on native) */
+    odometerEndImage?: FileObject | string;
 };
 
 /** Model of transaction custom unit */
@@ -158,6 +166,12 @@ type TransactionCustomUnit = {
 
     /** The unit for the distance/quantity */
     distanceUnit?: Unit;
+
+    /**
+     * The distance in meters from the route Mapbox or Google Maps chose through the user supplied waypoints.
+     * It is used to track when the user has manually increased the distance above the system-calculated route distance.
+     */
+    routeDistanceMeters?: number;
 
     /** Sub Rates for the custom unit */
     subRates?: Array<{
@@ -248,6 +262,9 @@ type ReceiptError = {
 
     /** Parameters required to retry the failed action */
     retryParams: StartSplitBilActionParams | CreateTrackExpenseParams | RequestMoneyInformation | ReplaceReceipt;
+
+    /** The type of receipt error */
+    error: typeof CONST.IOU.RECEIPT_ERROR;
 };
 
 /** Collection of receipt errors, indexed by a UNIX timestamp of when the error occurred */
@@ -439,11 +456,17 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** The transaction tax amount */
         taxAmount?: number;
 
+        /** The transaction converted tax amount in report's currency */
+        convertedTaxAmount?: number;
+
         /** The transaction tax code */
         taxCode?: string;
 
         /** The transaction tax value */
         taxValue?: string | undefined;
+
+        /** The transaction tax name */
+        taxName?: string;
 
         /** Whether the expense is billable */
         billable?: boolean;
@@ -482,7 +505,7 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
         merchant: string;
 
         /** The edited transaction amount */
-        modifiedAmount?: number;
+        modifiedAmount?: number | string;
 
         /** The edited attendees list */
         modifiedAttendees?: Attendee[];
@@ -531,6 +554,9 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** Whether the transaction was created globally */
         isFromGlobalCreate?: boolean;
+
+        /** Whether the transaction was created from the FAB, including Global create button, FloatingCameraButton, QuickAction,... */
+        isFromFloatingActionButton?: boolean;
 
         /** The transaction tax rate */
         taxRate?: string | undefined;
@@ -631,6 +657,15 @@ type AdditionalTransactionChanges = {
 
     /** Previous distance before changes */
     distance?: number;
+
+    /** Odometer start reading for distance expenses */
+    odometerStart?: number;
+
+    /** Odometer end reading for distance expenses */
+    odometerEnd?: number;
+
+    /** The unit for the distance/quantity */
+    quantity?: number;
 };
 
 /** Model of transaction changes  */

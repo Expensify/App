@@ -1,12 +1,12 @@
 import type {RefObject} from 'react';
 import type {LayoutChangeEvent, StyleProp, TextStyle, View, ViewStyle} from 'react-native';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 import type CONST from '@src/CONST';
 import type {OptionData} from '@src/libs/ReportUtils';
-import type {Locale, OnboardingPurpose, PersonalDetailsList, Policy, Report, ReportAction, ReportActions, ReportNameValuePairs, Transaction, TransactionViolation} from '@src/types/onyx';
-import type {ReportAttributes} from '@src/types/onyx/DerivedValues';
+import type {Onboarding, OnboardingPurpose, PersonalDetailsList, Policy, Report, ReportAction, ReportNameValuePairs} from '@src/types/onyx';
+import type {ReportAttributes, ReportAttributesDerivedValue} from '@src/types/onyx/DerivedValues';
 
 type OptionMode = ValueOf<typeof CONST.OPTION_MODE>;
 
@@ -42,14 +42,11 @@ type OptionRowLHNDataProps = {
     /** List of users' personal details */
     personalDetails?: PersonalDetailsList;
 
-    /** The preferred language for the app */
-    preferredLocale?: OnyxEntry<Locale>;
-
-    /** The active policy ID */
-    activePolicyID?: string;
-
     /** The onboarding purpose */
     onboardingPurpose?: OnboardingPurpose;
+
+    /** The onboarding NVP value */
+    onboarding?: OnyxEntry<Onboarding>;
 
     /** Whether the fullscreen is visible */
     isFullscreenVisible?: boolean;
@@ -75,40 +72,17 @@ type OptionRowLHNDataProps = {
     /** The action from the parent report */
     parentReportAction?: OnyxEntry<ReportAction>;
 
-    /** The transaction from the parent report action */
-    transaction: OnyxEntry<Transaction>;
-
-    /** The transaction linked to the report's last action */
-    lastReportActionTransaction?: OnyxEntry<Transaction>;
-
     /** Whether a report contains a draft */
     hasDraftComment: boolean;
 
-    /** The receipt transaction from the parent report action */
-    receiptTransactions: OnyxCollection<Transaction>;
-
     /** The reportID of the report */
     reportID: string;
-
-    /** Array of report actions for this report */
-    reportActions: OnyxEntry<ReportActions>;
-
-    /**
-     * Array of report actions for the IOU report related to the last action of this report.
-     * If the last action is a report action preview, the last message of the report depends on
-     * the report actions of the IOU report linked to the report action preview.
-     * Changes in the IOU report report actions will affect the last message of this report.
-     */
-    iouReportReportActions: OnyxEntry<ReportActions>;
-
-    /** List of transaction violation */
-    transactionViolations: OnyxCollection<TransactionViolation[]>;
 
     /** Toggle between compact and default view */
     viewMode?: OptionMode;
 
     /** The last message text from the report */
-    lastMessageTextFromReport: string;
+    lastMessageTextFromReport?: string;
 
     /** A function that is called when an option is selected. Selected option is passed as a param */
     onSelectRow?: (optionItem: OptionData, popoverAnchor: RefObject<View | null>) => void;
@@ -118,6 +92,9 @@ type OptionRowLHNDataProps = {
 
     /** The report attributes for the report */
     reportAttributes: OnyxEntry<ReportAttributes>;
+
+    /** The derived report attributes for all reports */
+    reportAttributesDerived?: ReportAttributesDerivedValue['reports'];
 
     /** Whether to show the educational tooltip for the GBR or RBR */
     shouldShowRBRorGBRTooltip: boolean;
@@ -141,6 +118,9 @@ type OptionRowLHNDataProps = {
     lastAction: ReportAction | undefined;
 
     lastActionReport: OnyxEntry<Report> | undefined;
+
+    /** The current user's account ID */
+    currentUserAccountID: number;
 };
 
 type OptionRowLHNProps = {
@@ -168,6 +148,9 @@ type OptionRowLHNProps = {
     /** The onboarding purpose */
     onboardingPurpose?: OnboardingPurpose;
 
+    /** The onboarding NVP value */
+    onboarding?: OnyxEntry<Onboarding>;
+
     /** Whether the fullscreen is visible */
     isFullscreenVisible?: boolean;
 
@@ -187,6 +170,9 @@ type OptionRowLHNProps = {
 
     /** The testID of the row */
     testID: number;
+
+    /** The concierge report ID from Onyx */
+    conciergeReportID: OnyxEntry<string>;
 };
 
 type RenderItemProps = {item: Report; index: number};

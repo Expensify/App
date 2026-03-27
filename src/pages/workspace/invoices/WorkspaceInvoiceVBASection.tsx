@@ -1,11 +1,9 @@
-import type {RefObject} from 'react';
-import React, {useCallback, useMemo, useRef, useState} from 'react';
-import {View} from 'react-native';
+import React, {useCallback, useMemo, useRef} from 'react';
 import type {TupleToUnion} from 'type-fest';
-import ConfirmModal from '@components/ConfirmModal';
-import MenuItem from '@components/MenuItem';
-import Popover from '@components/Popover';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
+import type {PopoverMenuItem} from '@components/PopoverMenu';
 import Section from '@components/Section';
+import useConfirmModal from '@hooks/useConfirmModal';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -13,24 +11,20 @@ import usePaymentMethodState from '@hooks/usePaymentMethodState';
 import type {FormattedSelectedPaymentMethod} from '@hooks/usePaymentMethodState/types';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import {isCurrencySupportedForGlobalReimbursement} from '@libs/actions/Policy/Policy';
 import {navigateToBankAccountRoute} from '@libs/actions/ReimbursementAccount';
-import getClickedTargetLocation from '@libs/getClickedTargetLocation';
 import Navigation from '@libs/Navigation/Navigation';
 import {formatPaymentMethods, getPaymentMethodDescription} from '@libs/PaymentUtils';
 import {hasInProgressVBBA} from '@libs/ReimbursementAccountUtils';
 import {getEligibleExistingBusinessBankAccounts} from '@libs/WorkflowUtils';
 import PaymentMethodList from '@pages/settings/Wallet/PaymentMethodList';
 import type {PaymentMethodPressHandlerParams} from '@pages/settings/Wallet/WalletPage/types';
-import variables from '@styles/variables';
 import {deletePaymentBankAccount} from '@userActions/BankAccounts';
 import {close as closeModal} from '@userActions/Modal';
 import {setInvoicingTransferBankAccount} from '@userActions/PaymentMethods';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type WorkspaceInvoiceVBASectionProps = {
     /** The policy ID currently being configured */
@@ -44,79 +38,41 @@ function WorkspaceInvoiceVBASection({policyID}: WorkspaceInvoiceVBASectionProps)
     const icons = useMemoizedLazyExpensifyIcons(['Star', 'Trashcan']);
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const {windowWidth} = useWindowDimensions();
     const {translate} = useLocalize();
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: true});
-    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
-    const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID, {canBeMissing: true});
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
+    const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID);
     const {paymentMethod, setPaymentMethod, resetSelectedPaymentMethodData} = usePaymentMethodState();
     const paymentMethodButtonRef = useRef<HTMLDivElement | null>(null);
-    const [showConfirmDeleteModal, setShowConfirmDeleteModal] = useState(false);
-    const [shouldShowDefaultDeleteMenu, setShouldShowDefaultDeleteMenu] = useState(false);
-    const [anchorPosition, setAnchorPosition] = useState({
-        anchorPositionHorizontal: 0,
-        anchorPositionVertical: 0,
-        anchorPositionTop: 0,
-        anchorPositionRight: 0,
-    });
-    const hasBankAccount = !isEmptyObject(bankAccountList);
-    const shouldShowEmptyState = !hasBankAccount;
+    const {showConfirmModal} = useConfirmModal();
     // Determines whether or not the modal popup is mounted from the bottom of the screen instead of the side mount on Web screen
-    const isPopoverBottomMount = anchorPosition.anchorPositionTop === 0 || shouldUseNarrowLayout;
+    const isPopoverBottomMount = shouldUseNarrowLayout;
     const shouldShowMakeDefaultButton = !paymentMethod.isSelectedPaymentMethodDefault;
     const transferBankAccountID = policy?.invoice?.bankAccount?.transferBankAccountID ?? CONST.DEFAULT_NUMBER_ID;
-    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: true});
-    const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT, {canBeMissing: true});
-    const [isUpdateWorkspaceCurrencyModalOpen, setIsUpdateWorkspaceCurrencyModalOpen] = useState(false);
+    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
 
     const hasValidExistingAccounts = getEligibleExistingBusinessBankAccounts(bankAccountList, policy?.outputCurrency).length > 0;
     const isSupportedGlobalReimbursement = isCurrencySupportedForGlobalReimbursement((policy?.outputCurrency ?? '') as CurrencyType);
 
     const isNonUSDWorkspace = policy?.outputCurrency !== CONST.CURRENCY.USD;
     const achData = reimbursementAccount?.achData;
-    const nonUSDCountryDraftValue = reimbursementAccountDraft?.country ?? '';
 
     const shouldShowContinueModal = useMemo(() => {
-        return hasInProgressVBBA(achData, isNonUSDWorkspace, nonUSDCountryDraftValue);
-    }, [achData, isNonUSDWorkspace, nonUSDCountryDraftValue]);
+        return hasInProgressVBBA(achData, isNonUSDWorkspace, policyID);
+    }, [achData, isNonUSDWorkspace, policyID]);
 
     const confirmCurrencyChangeAndHideModal = useCallback(() => {
         if (!policy) {
             return;
         }
 
-        setIsUpdateWorkspaceCurrencyModalOpen(false);
-
         Navigation.navigate(ROUTES.WORKSPACE_OVERVIEW_CURRENCY.getRoute(policy.id, true));
     }, [policy]);
-
-    /**
-     * Set position of the payment menu
-     */
-    const setMenuPosition = useCallback(() => {
-        if (!paymentMethodButtonRef.current) {
-            return;
-        }
-
-        const position = getClickedTargetLocation(paymentMethodButtonRef.current);
-
-        setAnchorPosition({
-            anchorPositionTop: position.top + position.height - variables.bankAccountActionPopoverTopSpacing,
-            // We want the position to be 23px to the right of the left border
-            anchorPositionRight: windowWidth - position.right + variables.bankAccountActionPopoverRightSpacing,
-            anchorPositionHorizontal: position.x + (shouldShowEmptyState ? -variables.addPaymentMethodLeftSpacing : variables.addBankAccountLeftSpacing),
-            anchorPositionVertical: position.y,
-        });
-    }, [shouldShowEmptyState, windowWidth]);
 
     /**
      * Display the delete/default menu, or the add payment method menu
      */
     const paymentMethodPressed = ({event, accountData, accountType, methodID, icon, description}: PaymentMethodPressHandlerParams) => {
-        if (shouldShowDefaultDeleteMenu) {
-            setShouldShowDefaultDeleteMenu(false);
-            return;
-        }
         paymentMethodButtonRef.current = event?.currentTarget as HTMLDivElement;
 
         // The delete/default menu
@@ -139,18 +95,8 @@ function WorkspaceInvoiceVBASection({policyID}: WorkspaceInvoiceVBASectionProps)
                 formattedSelectedPaymentMethod,
                 methodID: methodID ?? CONST.DEFAULT_NUMBER_ID,
             });
-            setShouldShowDefaultDeleteMenu(true);
-            setMenuPosition();
         }
     };
-
-    /**
-     * Hide the default / delete modal
-     */
-    const hideDefaultDeleteMenu = useCallback(() => {
-        setShouldShowDefaultDeleteMenu(false);
-        setShowConfirmDeleteModal(false);
-    }, [setShouldShowDefaultDeleteMenu, setShowConfirmDeleteModal]);
 
     const deletePaymentMethod = useCallback(() => {
         const bankAccountID = paymentMethod.selectedPaymentMethod.bankAccountID;
@@ -167,24 +113,119 @@ function WorkspaceInvoiceVBASection({policyID}: WorkspaceInvoiceVBASectionProps)
         if (paymentMethod.selectedPaymentMethodType === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT) {
             setInvoicingTransferBankAccount(currentPaymentMethod?.methodID ?? CONST.DEFAULT_NUMBER_ID, policyID, previousPaymentMethod?.methodID ?? CONST.DEFAULT_NUMBER_ID);
         }
-    }, [bankAccountList, styles, translate, paymentMethod.selectedPaymentMethodType, paymentMethod.methodID, policyID]);
+        resetSelectedPaymentMethodData();
+    }, [bankAccountList, styles, translate, paymentMethod.selectedPaymentMethodType, paymentMethod.methodID, policyID, resetSelectedPaymentMethodData]);
+
+    const onBankAccountRowPressed = ({accountData}: PaymentMethodPressHandlerParams) => {
+        const accountPolicyID = accountData?.additionalData?.policyID;
+
+        if (accountPolicyID) {
+            navigateToBankAccountRoute({policyID: accountPolicyID, backTo: ROUTES.WORKSPACE_INVOICES.getRoute(policyID)});
+        }
+    };
 
     const onAddBankAccountPress = () => {
-        if (shouldShowDefaultDeleteMenu) {
-            setShouldShowDefaultDeleteMenu(false);
-            return;
-        }
         if (!isSupportedGlobalReimbursement) {
-            setIsUpdateWorkspaceCurrencyModalOpen(true);
+            showConfirmModal({
+                danger: true,
+                title: translate('workspace.bankAccount.workspaceCurrency'),
+                prompt: translate('workspace.bankAccount.updateCurrencyPrompt'),
+                confirmText: translate('workspace.bankAccount.updateToUSD'),
+                cancelText: translate('common.cancel'),
+                shouldShowCancelButton: true,
+            }).then((result) => {
+                if (result.action !== ModalActions.CONFIRM) {
+                    resetSelectedPaymentMethodData();
+                    return;
+                }
+
+                confirmCurrencyChangeAndHideModal();
+            });
             return;
         }
 
         if (hasValidExistingAccounts && !shouldShowContinueModal) {
-            Navigation.navigate(ROUTES.BANK_ACCOUNT_CONNECT_EXISTING_BUSINESS_BANK_ACCOUNT.getRoute(policyID));
+            Navigation.navigate(ROUTES.BANK_ACCOUNT_CONNECT_EXISTING_BUSINESS_BANK_ACCOUNT.getRoute(policyID, ROUTES.WORKSPACE_INVOICES.getRoute(policyID)));
             return;
         }
-        navigateToBankAccountRoute(policyID, ROUTES.WORKSPACE_INVOICES.getRoute(policyID));
+        navigateToBankAccountRoute({policyID, backTo: ROUTES.WORKSPACE_INVOICES.getRoute(policyID)});
     };
+
+    const threeDotsMenuItems = useMemo(() => {
+        const items: PopoverMenuItem[] = [];
+
+        if (isPopoverBottomMount) {
+            items.push({
+                text: paymentMethod.formattedSelectedPaymentMethod.title,
+                icon: paymentMethod.formattedSelectedPaymentMethod.icon?.icon,
+                numberOfLinesTitle: 0,
+                iconHeight: paymentMethod.formattedSelectedPaymentMethod.icon?.iconHeight ?? paymentMethod.formattedSelectedPaymentMethod.icon?.iconSize,
+                iconWidth: paymentMethod.formattedSelectedPaymentMethod.icon?.iconWidth ?? paymentMethod.formattedSelectedPaymentMethod.icon?.iconSize,
+                iconStyles: paymentMethod.formattedSelectedPaymentMethod.icon?.iconStyles,
+                description: paymentMethod.formattedSelectedPaymentMethod.description,
+                wrapperStyle: [styles.mb1, styles.ph5, styles.pt5],
+                interactive: false,
+                displayInDefaultIconColor: true,
+            });
+        }
+
+        if (shouldShowMakeDefaultButton) {
+            items.push({
+                text: translate('walletPage.setDefaultConfirmation'),
+                icon: icons.Star,
+                onSelected: () => {
+                    makeDefaultPaymentMethod();
+                },
+                numberOfLinesTitle: 0,
+            });
+        }
+
+        items.push({
+            text: translate('common.delete'),
+            icon: icons.Trashcan,
+            onSelected: () => {
+                closeModal(() => {
+                    showConfirmModal({
+                        danger: true,
+                        title: translate('walletPage.deleteAccount'),
+                        prompt: translate('walletPage.deleteConfirmation'),
+                        confirmText: translate('common.delete'),
+                        cancelText: translate('common.cancel'),
+                        shouldShowCancelButton: true,
+                        onModalHide: resetSelectedPaymentMethodData,
+                    }).then((result) => {
+                        if (result.action !== ModalActions.CONFIRM) {
+                            return;
+                        }
+
+                        deletePaymentMethod();
+                    });
+                });
+            },
+        });
+
+        return items;
+    }, [
+        isPopoverBottomMount,
+        shouldShowMakeDefaultButton,
+        translate,
+        icons.Trashcan,
+        icons.Star,
+        paymentMethod.formattedSelectedPaymentMethod.title,
+        paymentMethod.formattedSelectedPaymentMethod.icon?.icon,
+        paymentMethod.formattedSelectedPaymentMethod.icon?.iconHeight,
+        paymentMethod.formattedSelectedPaymentMethod.icon?.iconSize,
+        paymentMethod.formattedSelectedPaymentMethod.icon?.iconWidth,
+        paymentMethod.formattedSelectedPaymentMethod.icon?.iconStyles,
+        paymentMethod.formattedSelectedPaymentMethod.description,
+        styles.mb1,
+        styles.ph5,
+        styles.pt5,
+        makeDefaultPaymentMethod,
+        showConfirmModal,
+        deletePaymentMethod,
+        resetSelectedPaymentMethodData,
+    ]);
 
     return (
         <Section
@@ -195,94 +236,17 @@ function WorkspaceInvoiceVBASection({policyID}: WorkspaceInvoiceVBASectionProps)
             subtitleMuted
         >
             <PaymentMethodList
-                onPress={paymentMethodPressed}
+                onPress={onBankAccountRowPressed}
                 onAddBankAccountPress={onAddBankAccountPress}
+                onThreeDotsMenuPress={paymentMethodPressed}
                 shouldSkipDefaultAccountValidation={!isSupportedGlobalReimbursement}
                 invoiceTransferBankAccountID={transferBankAccountID}
                 activePaymentMethodID={transferBankAccountID}
-                actionPaymentMethodType={shouldShowDefaultDeleteMenu ? paymentMethod.selectedPaymentMethodType : ''}
+                threeDotsMenuItems={threeDotsMenuItems}
                 style={[styles.mt5, shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8]}
                 listItemStyle={shouldUseNarrowLayout ? styles.ph5 : styles.ph8}
                 policyID={policyID}
                 filterType={CONST.BANK_ACCOUNT.TYPE.BUSINESS}
-            />
-            <Popover
-                isVisible={shouldShowDefaultDeleteMenu}
-                onClose={hideDefaultDeleteMenu}
-                anchorPosition={{
-                    top: anchorPosition.anchorPositionTop,
-                    right: anchorPosition.anchorPositionRight,
-                }}
-                anchorRef={paymentMethodButtonRef as RefObject<View | null>}
-            >
-                {!showConfirmDeleteModal && (
-                    <View
-                        style={[
-                            !shouldUseNarrowLayout
-                                ? {
-                                      ...styles.sidebarPopover,
-                                      ...styles.pv4,
-                                  }
-                                : styles.pt5,
-                        ]}
-                    >
-                        {isPopoverBottomMount && (
-                            <MenuItem
-                                title={paymentMethod.formattedSelectedPaymentMethod.title}
-                                icon={paymentMethod.formattedSelectedPaymentMethod.icon?.icon}
-                                iconHeight={paymentMethod.formattedSelectedPaymentMethod.icon?.iconHeight ?? paymentMethod.formattedSelectedPaymentMethod.icon?.iconSize}
-                                iconWidth={paymentMethod.formattedSelectedPaymentMethod.icon?.iconWidth ?? paymentMethod.formattedSelectedPaymentMethod.icon?.iconSize}
-                                iconStyles={paymentMethod.formattedSelectedPaymentMethod.icon?.iconStyles}
-                                description={paymentMethod.formattedSelectedPaymentMethod.description}
-                                wrapperStyle={[styles.mb4, styles.ph5, styles.pv0]}
-                                interactive={false}
-                                displayInDefaultIconColor
-                            />
-                        )}
-                        {shouldShowMakeDefaultButton && (
-                            <MenuItem
-                                title={translate('walletPage.setDefaultConfirmation')}
-                                icon={icons.Star}
-                                onPress={() => {
-                                    makeDefaultPaymentMethod();
-                                    setShouldShowDefaultDeleteMenu(false);
-                                }}
-                                wrapperStyle={[styles.pv3, styles.ph5, !shouldUseNarrowLayout ? styles.sidebarPopover : {}]}
-                            />
-                        )}
-                        <MenuItem
-                            title={translate('common.delete')}
-                            icon={icons.Trashcan}
-                            onPress={() => closeModal(() => setShowConfirmDeleteModal(true))}
-                            wrapperStyle={[styles.pv3, styles.ph5, !shouldUseNarrowLayout ? styles.sidebarPopover : {}]}
-                        />
-                    </View>
-                )}
-            </Popover>
-            <ConfirmModal
-                isVisible={showConfirmDeleteModal}
-                onConfirm={() => {
-                    deletePaymentMethod();
-                    hideDefaultDeleteMenu();
-                }}
-                onCancel={hideDefaultDeleteMenu}
-                title={translate('walletPage.deleteAccount')}
-                prompt={translate('walletPage.deleteConfirmation')}
-                confirmText={translate('common.delete')}
-                cancelText={translate('common.cancel')}
-                shouldShowCancelButton
-                danger
-                onModalHide={resetSelectedPaymentMethodData}
-            />
-            <ConfirmModal
-                title={translate('workspace.bankAccount.workspaceCurrency')}
-                isVisible={isUpdateWorkspaceCurrencyModalOpen}
-                onConfirm={confirmCurrencyChangeAndHideModal}
-                onCancel={() => setIsUpdateWorkspaceCurrencyModalOpen(false)}
-                prompt={translate('workspace.bankAccount.updateCurrencyPrompt')}
-                confirmText={translate('workspace.bankAccount.updateToUSD')}
-                cancelText={translate('common.cancel')}
-                danger
             />
         </Section>
     );

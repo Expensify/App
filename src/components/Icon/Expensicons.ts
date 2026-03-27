@@ -3,6 +3,7 @@ import Apple from '@assets/images/apple.svg';
 import AttachmentNotFound from '@assets/images/attachment-not-found.svg';
 import FallbackAvatar from '@assets/images/avatars/fallback-avatar.svg';
 import Bank from '@assets/images/bank.svg';
+import Basket from '@assets/images/basket.svg';
 import Bell from '@assets/images/bell.svg';
 import Bill from '@assets/images/bill.svg';
 import boltSlash from '@assets/images/bolt-slash.svg';
@@ -36,8 +37,11 @@ import ConnectionComplete from '@assets/images/connection-complete.svg';
 import Copy from '@assets/images/copy.svg';
 import CreditCardExclamation from '@assets/images/credit-card-exclamation.svg';
 import CreditCardHourglass from '@assets/images/credit-card-hourglass.svg';
+import CreditCardLock from '@assets/images/credit-card-lock.svg';
 import CreditCard from '@assets/images/creditcard.svg';
+import Crop from '@assets/images/crop.svg';
 import DocumentMerge from '@assets/images/document-merge.svg';
+import DocumentPlus from '@assets/images/document-plus.svg';
 import Document from '@assets/images/document.svg';
 import DotIndicatorUnfilled from '@assets/images/dot-indicator-unfilled.svg';
 import DotIndicator from '@assets/images/dot-indicator.svg';
@@ -45,9 +49,12 @@ import Download from '@assets/images/download.svg';
 import DragAndDrop from '@assets/images/drag-and-drop.svg';
 import DragHandles from '@assets/images/drag-handles.svg';
 import Emoji from '@assets/images/emoji.svg';
+import EnvelopeOpenStar from '@assets/images/envelope-open-star.svg';
 import EReceiptIcon from '@assets/images/eReceiptIcon.svg';
 import Exclamation from '@assets/images/exclamation.svg';
 import Exit from '@assets/images/exit.svg';
+import ExpenseCopy from '@assets/images/expense-copy.svg';
+import ExpensifyCardHourglass from '@assets/images/expensify-card-hourglass.svg';
 import Export from '@assets/images/export.svg';
 import EyeDisabled from '@assets/images/eye-disabled.svg';
 import Eye from '@assets/images/eye.svg';
@@ -58,8 +65,10 @@ import FlagLevelOne from '@assets/images/flag_level_01.svg';
 import FlagLevelTwo from '@assets/images/flag_level_02.svg';
 import FlagLevelThree from '@assets/images/flag_level_03.svg';
 import Folder from '@assets/images/folder.svg';
+import FreezeCard from '@assets/images/freeze-card.svg';
 import Fullscreen from '@assets/images/fullscreen.svg';
 import GalleryNotFound from '@assets/images/gallery-not-found.svg';
+import GalleryPlus from '@assets/images/gallery-plus.svg';
 import Gallery from '@assets/images/gallery.svg';
 import Gear from '@assets/images/gear.svg';
 import Heart from '@assets/images/heart.svg';
@@ -90,8 +99,10 @@ import XeroSquare from '@assets/images/integrationicons/xero-icon-square.svg';
 import ZenefitsSquare from '@assets/images/integrationicons/zenefits-icon-square.svg';
 import InvoiceGeneric from '@assets/images/invoice-generic.svg';
 import Invoice from '@assets/images/invoice.svg';
+import Key from '@assets/images/key.svg';
 import LinkCopy from '@assets/images/link-copy.svg';
 import Link from '@assets/images/link.svg';
+import LuggageWithLinesPlus from '@assets/images/luggage-with-lines-plus.svg';
 import LuggageWithLines from '@assets/images/luggage-with-lines.svg';
 import Mail from '@assets/images/mail.svg';
 import MakeAdmin from '@assets/images/make-admin.svg';
@@ -124,6 +135,7 @@ import ReceiptScan from '@assets/images/receipt-scan.svg';
 import ReceiptSlash from '@assets/images/receipt-slash.svg';
 import Receipt from '@assets/images/receipt.svg';
 import RemoveMembers from '@assets/images/remove-members.svg';
+import ReportCopy from '@assets/images/report-copy.svg';
 import Rotate from '@assets/images/rotate-image.svg';
 import RotateLeft from '@assets/images/rotate-left.svg';
 import Scan from '@assets/images/scan.svg';
@@ -136,6 +148,7 @@ import Instagram from '@assets/images/social-instagram.svg';
 import Linkedin from '@assets/images/social-linkedin.svg';
 import Podcast from '@assets/images/social-podcast.svg';
 import Twitter from '@assets/images/social-twitter.svg';
+import Sparkles from '@assets/images/sparkles.svg';
 import SpreadsheetComputer from '@assets/images/spreadsheet-computer.svg';
 import Star from '@assets/images/Star.svg';
 import Stopwatch from '@assets/images/stopwatch.svg';
@@ -166,8 +179,9 @@ export {
     Apple,
     AttachmentNotFound,
     Bank,
-    Bill,
+    Basket,
     Bell,
+    Bill,
     Bolt,
     Bug,
     Building,
@@ -190,9 +204,13 @@ export {
     CreditCard,
     CreditCardHourglass,
     CreditCardExclamation,
+    CreditCardLock,
+    ExpensifyCardHourglass,
+    Crop,
     CircleSlash,
     Document,
     DocumentMerge,
+    DocumentPlus,
     DotIndicator,
     DotIndicatorUnfilled,
     Download,
@@ -200,6 +218,8 @@ export {
     DragHandles,
     EReceiptIcon,
     Emoji,
+    EnvelopeOpenStar,
+    ExpenseCopy,
     Exclamation,
     Exit,
     Export,
@@ -207,6 +227,7 @@ export {
     EyeDisabled,
     FallbackAvatar,
     Flag,
+    Key,
     FlagLevelOne,
     FlagLevelTwo,
     FlagLevelThree,
@@ -256,6 +277,7 @@ export {
     ReceiptScan,
     ReceiptSlash,
     RemoveMembers,
+    ReportCopy,
     ReplaceReceipt,
     ReceiptMultiple,
     Rotate,
@@ -263,6 +285,7 @@ export {
     Scan,
     Send,
     Shield,
+    Sparkles,
     Stopwatch,
     Sync,
     Task,
@@ -320,8 +343,11 @@ export {
     SageIntacctExport,
     XeroExport,
     LuggageWithLines,
+    LuggageWithLinesPlus,
     PlusCircle,
     BillComSquare,
     CertiniaSquare,
     ZenefitsSquare,
+    GalleryPlus,
+    FreezeCard,
 };

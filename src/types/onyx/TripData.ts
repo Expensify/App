@@ -231,6 +231,9 @@ type PnrData = {
     /** Reason for suspending the booking. */
     suspendReason: string;
 
+    /** Overall booking status of the PNR. */
+    bookingStatus?: string;
+
     /**
      * Fare Amount details for the PNR.
      */
@@ -584,8 +587,8 @@ type AirPnr = {
                 flightIdx: number;
                 /** Amount for the seat. */
                 amount: number;
-                /** Number of the seat. */
-                number: number;
+                /** Number of the seat (e.g., "12A", "7F"). */
+                number: string;
             }>;
         };
         /** Passenger type for the traveler. */
@@ -1709,8 +1712,8 @@ type CarPnr = {
 
 /** Represents the structure of RailPnr. */
 type RailPnr = {
-    /** Details of the inward journey. */
-    inwardJourney: {
+    /** Details of the inward journey (undefined for one-way trips). */
+    inwardJourney?: {
         /** Status of the inward journey. */
         journeyStatus: string;
 

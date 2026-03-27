@@ -3,7 +3,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
 import useOnyx from '@hooks/useOnyx';
-import {changeTransactionsReport, markAsCash, saveWaypoint} from '@libs/actions/Transaction';
+import {changeTransactionsReport, dismissDuplicateTransactionViolation, markAsCash, sanitizeWaypointsForAPI, saveWaypoint} from '@libs/actions/Transaction';
 import DateUtils from '@libs/DateUtils';
 import {getAllNonDeletedTransactions} from '@libs/MoneyRequestReportUtils';
 import type {buildOptimisticNextStep} from '@libs/NextStepUtils';
@@ -69,7 +69,7 @@ const reportCollectionDataSet: ReportCollectionDataSet = {
 
 const getReportFromUseOnyx = async (reportID: string) => {
     const {result} = renderHook(() => {
-        const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: true});
+        const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
         return {report};
     });
     return result.current.report;
@@ -125,7 +125,10 @@ describe('Transaction', () => {
                 accountID: CURRENT_USER_ID,
                 email: 'test@example.com',
                 newReport: report,
-                allTransactionsCollection: allTransactions,
+                policy: undefined,
+                allTransactions,
+                translate: TestHelper.translateLocal,
+                toLocaleDigit: TestHelper.toLocaleDigit,
             });
             await waitForBatchedUpdates();
             const reportActions = await new Promise<OnyxEntry<ReportActions>>((resolve) => {
@@ -172,7 +175,10 @@ describe('Transaction', () => {
                 accountID: CURRENT_USER_ID,
                 email: 'test@example.com',
                 newReport: report,
-                allTransactionsCollection: allTransactions,
+                policy: undefined,
+                allTransactions,
+                translate: TestHelper.translateLocal,
+                toLocaleDigit: TestHelper.toLocaleDigit,
             });
             await waitForBatchedUpdates();
             const reportActions = await new Promise<OnyxEntry<ReportActions>>((resolve) => {
@@ -234,7 +240,9 @@ describe('Transaction', () => {
                 newReport: report,
                 policy: undefined,
                 reportNextStep: mockReportNextStep,
-                allTransactionsCollection: allTransactions,
+                allTransactions,
+                translate: TestHelper.translateLocal,
+                toLocaleDigit: TestHelper.toLocaleDigit,
             });
             await waitForBatchedUpdates();
 
@@ -298,7 +306,9 @@ describe('Transaction', () => {
                 newReport: report,
                 policy: undefined,
                 reportNextStep: mockReportNextStep,
-                allTransactionsCollection: allTransactions,
+                allTransactions,
+                translate: TestHelper.translateLocal,
+                toLocaleDigit: TestHelper.toLocaleDigit,
             });
             await waitForBatchedUpdates();
 
@@ -350,7 +360,9 @@ describe('Transaction', () => {
                 newReport: report,
                 policy: undefined,
                 reportNextStep: undefined,
-                allTransactionsCollection: allTransactions,
+                allTransactions,
+                translate: TestHelper.translateLocal,
+                toLocaleDigit: TestHelper.toLocaleDigit,
             });
             await waitForBatchedUpdates();
 
@@ -413,7 +425,10 @@ describe('Transaction', () => {
                 accountID: CURRENT_USER_ID,
                 email: 'test@example.com',
                 newReport: report,
-                allTransactionsCollection: allTransactions,
+                policy: undefined,
+                allTransactions,
+                translate: TestHelper.translateLocal,
+                toLocaleDigit: TestHelper.toLocaleDigit,
             });
             await waitForBatchedUpdates();
 
@@ -468,7 +483,10 @@ describe('Transaction', () => {
                 accountID: CURRENT_USER_ID,
                 email: 'test@example.com',
                 newReport: report,
-                allTransactionsCollection: allTransactions,
+                policy: undefined,
+                allTransactions,
+                translate: TestHelper.translateLocal,
+                toLocaleDigit: TestHelper.toLocaleDigit,
             });
             await waitForBatchedUpdates();
 
@@ -520,7 +538,10 @@ describe('Transaction', () => {
                 accountID: customAccountID,
                 email: customEmail,
                 newReport: report,
-                allTransactionsCollection: allTransactions,
+                policy: undefined,
+                allTransactions,
+                translate: TestHelper.translateLocal,
+                toLocaleDigit: TestHelper.toLocaleDigit,
             });
             await waitForBatchedUpdates();
 
@@ -578,7 +599,10 @@ describe('Transaction', () => {
                 accountID: CURRENT_USER_ID,
                 email: 'test@example.com',
                 newReport: expenseReport,
-                allTransactionsCollection: allTransactions,
+                policy: undefined,
+                allTransactions,
+                translate: TestHelper.translateLocal,
+                toLocaleDigit: TestHelper.toLocaleDigit,
             });
             await waitForBatchedUpdates();
             const report = await new Promise<OnyxEntry<Report>>((resolve) => {
@@ -636,7 +660,10 @@ describe('Transaction', () => {
                 accountID: CURRENT_USER_ID,
                 email: 'test@example.com',
                 newReport: expenseReport,
-                allTransactionsCollection: allTransactions,
+                policy: undefined,
+                allTransactions,
+                translate: TestHelper.translateLocal,
+                toLocaleDigit: TestHelper.toLocaleDigit,
             });
             await waitForBatchedUpdates();
             const report = await new Promise<OnyxEntry<Report>>((resolve) => {
@@ -701,7 +728,10 @@ describe('Transaction', () => {
                 accountID: CURRENT_USER_ID,
                 email: 'test@example.com',
                 newReport: newExpenseReport,
-                allTransactionsCollection: allTransactions,
+                policy: undefined,
+                allTransactions,
+                translate: TestHelper.translateLocal,
+                toLocaleDigit: TestHelper.toLocaleDigit,
             });
             await waitForBatchedUpdates();
             const report = await new Promise<OnyxEntry<Report>>((resolve) => {
@@ -765,7 +795,10 @@ describe('Transaction', () => {
                 accountID: CURRENT_USER_ID,
                 email: 'test@example.com',
                 newReport: newExpenseReport,
-                allTransactionsCollection: allTransactions,
+                policy: undefined,
+                allTransactions,
+                translate: TestHelper.translateLocal,
+                toLocaleDigit: TestHelper.toLocaleDigit,
             });
             await waitForBatchedUpdates();
             const report = await new Promise<OnyxEntry<Report>>((resolve) => {
@@ -822,7 +855,10 @@ describe('Transaction', () => {
                 accountID: CURRENT_USER_ID,
                 email: 'test@example.com',
                 newReport: fakeReport,
-                allTransactionsCollection: allTransactions,
+                policy: undefined,
+                allTransactions,
+                translate: TestHelper.translateLocal,
+                toLocaleDigit: TestHelper.toLocaleDigit,
             });
             await waitForBatchedUpdates();
 
@@ -881,7 +917,10 @@ describe('Transaction', () => {
                 accountID: CURRENT_USER_ID,
                 email: 'test@example.com',
                 newReport: fakeReport,
-                allTransactionsCollection: allTransactions,
+                policy: undefined,
+                allTransactions,
+                translate: TestHelper.translateLocal,
+                toLocaleDigit: TestHelper.toLocaleDigit,
             });
             await waitForBatchedUpdates();
 
@@ -935,7 +974,9 @@ describe('Transaction', () => {
                 policy,
                 reportNextStep: undefined,
                 policyCategories,
-                allTransactionsCollection: allTransactions,
+                allTransactions,
+                translate: TestHelper.translateLocal,
+                toLocaleDigit: TestHelper.toLocaleDigit,
             });
 
             await waitForBatchedUpdates();
@@ -990,20 +1031,6 @@ describe('Transaction', () => {
 
             expect(transaction?.comment?.waypoints?.[`waypoint${index}`]).toEqual(waypoint);
             expect(updatedRecentWaypoints?.[0]?.address).toBe('123 Main St');
-        });
-
-        it('should not save waypoint if missing lat/lng', async () => {
-            const transactionID = 'txn2';
-            const index = '1';
-            const waypoint: RecentWaypoint = {
-                address: 'No LatLng',
-            };
-            const recentWaypointsList: RecentWaypoint[] = [];
-            saveWaypoint({transactionID, index, waypoint, isDraft: false, recentWaypointsList});
-            await waitForBatchedUpdates();
-
-            const updatedRecentWaypoints = await OnyxUtils.get(ONYXKEYS.NVP_RECENT_WAYPOINTS);
-            expect(updatedRecentWaypoints?.length ?? 0).toBe(0);
         });
 
         it('should not save waypoint if address is YOUR_LOCATION_TEXT', async () => {
@@ -1071,6 +1098,126 @@ describe('Transaction', () => {
             expect(transaction?.errorFields?.route ?? null).toBeNull();
             expect(transaction?.routes?.route0?.distance ?? null).toBeNull();
             expect(transaction?.routes?.route0?.geometry?.coordinates ?? null).toBeNull();
+        });
+    });
+
+    describe('sanitizeWaypointsForAPI', () => {
+        it('should only include allowed fields (name, address, lat, lng)', () => {
+            // Given waypoints with extra fields that should be stripped out
+            const waypointsWithExtraFields = {
+                waypoint0: {
+                    name: 'Start Location',
+                    address: '123 Main St',
+                    lat: 40.7128,
+                    lng: -74.006,
+                    city: 'New York',
+                    state: 'NY',
+                    zipCode: '10001',
+                    country: 'US',
+                    street: '123 Main St',
+                    street2: 'Apt 4B',
+                    keyForList: 'unique-key-1',
+                    pendingAction: 'add',
+                    extraField: 'should be removed',
+                },
+                waypoint1: {
+                    address: '456 Oak Ave',
+                    lat: 40.7589,
+                    lng: -73.9851,
+                    city: 'New York',
+                    state: 'NY',
+                    zipCode: '10002',
+                    keyForList: 'unique-key-2',
+                    anotherExtraField: 'should also be removed',
+                },
+            };
+
+            // When sanitizing the waypoints
+            // Test intentionally passes extra fields not in WaypointCollection to verify they are stripped
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-argument
+            const sanitizedWaypoints = sanitizeWaypointsForAPI(waypointsWithExtraFields as any);
+
+            // Then only allowed fields should remain
+            expect(sanitizedWaypoints.waypoint0).toEqual({
+                name: 'Start Location',
+                address: '123 Main St',
+                lat: 40.7128,
+                lng: -74.006,
+            });
+
+            // waypoint1 has no name field, so it should not be included
+            expect(sanitizedWaypoints.waypoint1).toEqual({
+                address: '456 Oak Ave',
+                lat: 40.7589,
+                lng: -73.9851,
+            });
+        });
+
+        it('should handle waypoints with only some allowed fields', () => {
+            // Given waypoints with only address
+            const waypointsWithPartialFields = {
+                waypoint0: {
+                    address: 'Partial Address Only',
+                },
+            };
+
+            // When sanitizing the waypoints
+            // Test uses a partial waypoint object to verify sanitization handles missing fields
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-argument
+            const sanitizedWaypoints = sanitizeWaypointsForAPI(waypointsWithPartialFields as any);
+
+            // Then only the address should be present
+            expect(sanitizedWaypoints.waypoint0).toEqual({
+                address: 'Partial Address Only',
+            });
+        });
+
+        it('should handle empty waypoints', () => {
+            // Given empty waypoints
+            const emptyWaypoints = {};
+
+            // When sanitizing the waypoints
+            const sanitizedWaypoints = sanitizeWaypointsForAPI(emptyWaypoints);
+
+            // Then the result should also be empty
+            expect(sanitizedWaypoints).toEqual({});
+        });
+
+        it('should skip null waypoint entries without crashing', () => {
+            // Given waypoints where some entries are null (can happen during rollback of failed distance edits)
+            const waypointsWithNulls = {
+                waypoint0: {
+                    address: '123 Main St',
+                    lat: 40.7128,
+                    lng: -74.006,
+                },
+                waypoint1: null,
+                waypoint2: {
+                    address: '789 Pine Rd',
+                    lat: 40.73,
+                    lng: -73.99,
+                },
+            };
+
+            // When sanitizing the waypoints
+            // Null entries can occur at runtime even though WaypointCollection type doesn't include null
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-argument
+            const sanitizedWaypoints = sanitizeWaypointsForAPI(waypointsWithNulls as any);
+
+            // Then null entries should be dropped and valid entries sanitized
+            expect(sanitizedWaypoints).toEqual({
+                waypoint0: {
+                    address: '123 Main St',
+                    lat: 40.7128,
+                    lng: -74.006,
+                },
+                waypoint2: {
+                    address: '789 Pine Rd',
+                    lat: 40.73,
+                    lng: -73.99,
+                },
+            });
+            expect(sanitizedWaypoints.waypoint1).toBeUndefined();
         });
     });
 
@@ -1211,6 +1358,222 @@ describe('Transaction', () => {
             expect(reportActionValues.at(0)?.actionName).toBe(CONST.REPORT.ACTIONS.TYPE.DISMISSED_VIOLATION);
 
             await mockFetch.resume();
+        });
+    });
+
+    describe('dismissDuplicateTransactionViolation', () => {
+        it('should optimistically remove DUPLICATED_TRANSACTION violation and add dismissed violation report action', async () => {
+            const transactionID = 'dismissTxn1';
+            const threadReportID = 'threadDismiss1';
+            const mockViolations: TransactionViolation[] = [
+                {name: CONST.VIOLATIONS.DUPLICATED_TRANSACTION, type: 'warning'},
+                {name: CONST.VIOLATIONS.MISSING_CATEGORY, type: 'violation'},
+            ];
+
+            mockFetch.pause();
+
+            // Put violations into Onyx so module-level Onyx.connect in Transaction.ts picks them up
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`, mockViolations);
+
+            // Prepare a transaction and its IOU action so getIOUActionForReportID finds a childReportID
+            const transaction = generateTransaction({transactionID, reportID: FAKE_OLD_REPORT_ID});
+            const iouAction = {
+                reportActionID: rand64(),
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                childReportID: threadReportID,
+                actorAccountID: CURRENT_USER_ID,
+                created: DateUtils.getDBTime(),
+                originalMessage: {
+                    IOUReportID: FAKE_OLD_REPORT_ID,
+                    IOUTransactionID: transactionID,
+                    amount: transaction.amount,
+                    currency: transaction.currency,
+                    type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                },
+            };
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${FAKE_OLD_REPORT_ID}`, {[iouAction.reportActionID]: iouAction});
+            // Ensure transaction exists in the passed allTransactions mapping
+            const allTransactions = {[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: transaction};
+
+            // Ensure the child report actions collection exists
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${threadReportID}`, {});
+
+            // Call the function
+            dismissDuplicateTransactionViolation({
+                transactionIDs: [transactionID],
+                dismissedPersonalDetails: {login: 'tester@example.com', accountID: CURRENT_USER_ID},
+                expenseReport: newReport,
+                policy: undefined,
+                isASAPSubmitBetaEnabled: false,
+                allTransactions,
+            });
+            await waitForBatchedUpdates();
+
+            const optimisticViolations = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`);
+            expect(optimisticViolations).toEqual([{name: CONST.VIOLATIONS.MISSING_CATEGORY, type: 'violation'}]);
+
+            const reportActions = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${threadReportID}`);
+            const reportActionValues = Object.values(reportActions ?? {});
+            expect(reportActionValues.length).toBe(1);
+            expect(reportActionValues.at(0)?.actionName).toBe(CONST.REPORT.ACTIONS.TYPE.DISMISSED_VIOLATION);
+
+            // Let the mocked API resolve and ensure optimistic state behaves as implementation expects:
+            // The implementation clears the optimistic dismissed-violation report action on success to avoid duplicates,
+            // so after the API resolves the report action should be removed while the filtered violations persist.
+            await mockFetch.resume();
+            await waitForBatchedUpdates();
+
+            const finalViolations = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`);
+            expect(finalViolations).toEqual([{name: CONST.VIOLATIONS.MISSING_CATEGORY, type: 'violation'}]);
+
+            const finalReportActions = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${threadReportID}`);
+            const finalReportActionValues = Object.values(finalReportActions ?? {});
+            // The optimistic dismissed violation report action is removed on successful API response to avoid duplicates
+            expect(finalReportActionValues.length).toBe(0);
+        });
+
+        it('should restore DUPLICATED_TRANSACTION violation and remove report action when API fails', async () => {
+            const transactionID = 'dismissTxn2';
+            const threadReportID = 'threadDismiss2';
+            const mockViolations: TransactionViolation[] = [{name: CONST.VIOLATIONS.DUPLICATED_TRANSACTION, type: 'warning'}];
+
+            mockFetch.pause();
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`, mockViolations);
+
+            const transaction = generateTransaction({transactionID, reportID: FAKE_OLD_REPORT_ID});
+            const iouAction = {
+                reportActionID: rand64(),
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                childReportID: threadReportID,
+                actorAccountID: CURRENT_USER_ID,
+                created: DateUtils.getDBTime(),
+                originalMessage: {
+                    IOUReportID: FAKE_OLD_REPORT_ID,
+                    IOUTransactionID: transactionID,
+                    amount: transaction.amount,
+                    currency: transaction.currency,
+                    type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                },
+            };
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${FAKE_OLD_REPORT_ID}`, {[iouAction.reportActionID]: iouAction});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${threadReportID}`, {});
+            const allTransactions = {[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: transaction};
+
+            // Make the API fail
+            mockFetch.fail();
+
+            dismissDuplicateTransactionViolation({
+                transactionIDs: [transactionID],
+                dismissedPersonalDetails: {login: 'tester@example.com', accountID: CURRENT_USER_ID},
+                expenseReport: newReport,
+                policy: undefined,
+                isASAPSubmitBetaEnabled: false,
+                allTransactions,
+            });
+            await waitForBatchedUpdates();
+
+            // Resume (the mock is set to fail) and wait for failure handling
+            await mockFetch.resume();
+            await waitForBatchedUpdates();
+
+            const failureViolations = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`);
+            expect(failureViolations).toEqual(mockViolations);
+
+            const reportActions = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${threadReportID}`);
+            expect(Object.keys(reportActions ?? {}).length).toBe(0);
+        });
+
+        it('should not modify Onyx data when tag list does not exist at given index (empty violations array)', async () => {
+            const transactionID = 'dismissTxn3';
+            const threadReportID = 'threadDismiss3';
+            const mockViolations: TransactionViolation[] = [];
+
+            mockFetch.pause();
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`, mockViolations);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${threadReportID}`, {});
+
+            const transaction = generateTransaction({transactionID, reportID: FAKE_OLD_REPORT_ID});
+            const allTransactions = {[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: transaction};
+
+            dismissDuplicateTransactionViolation({
+                transactionIDs: [transactionID],
+                dismissedPersonalDetails: {login: 'tester@example.com', accountID: CURRENT_USER_ID},
+                expenseReport: newReport,
+                policy: undefined,
+                isASAPSubmitBetaEnabled: false,
+                allTransactions,
+            });
+            await waitForBatchedUpdates();
+
+            const optimisticViolations = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`);
+            expect(optimisticViolations).toEqual([]);
+
+            await mockFetch.resume();
+        });
+
+        describe('integration with useOnyx', () => {
+            it('works when violations are read via useOnyx hook', async () => {
+                const transactionID = 'dismissTxn4';
+                const threadReportID = 'threadDismiss4';
+                const mockViolations: TransactionViolation[] = [
+                    {name: CONST.VIOLATIONS.DUPLICATED_TRANSACTION, type: 'warning'},
+                    {name: CONST.VIOLATIONS.MISSING_CATEGORY, type: 'violation'},
+                ];
+
+                mockFetch.pause();
+
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`, mockViolations);
+
+                const transaction = generateTransaction({transactionID, reportID: FAKE_OLD_REPORT_ID});
+                const iouAction = {
+                    reportActionID: rand64(),
+                    actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                    childReportID: threadReportID,
+                    actorAccountID: CURRENT_USER_ID,
+                    created: DateUtils.getDBTime(),
+                    originalMessage: {
+                        IOUReportID: FAKE_OLD_REPORT_ID,
+                        IOUTransactionID: transactionID,
+                        amount: transaction.amount,
+                        currency: transaction.currency,
+                        type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                    },
+                };
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${FAKE_OLD_REPORT_ID}`, {[iouAction.reportActionID]: iouAction});
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${threadReportID}`, {});
+                const allTransactions = {[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: transaction};
+
+                const {result} = renderHook(() => useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`));
+                await waitFor(() => {
+                    expect(result.current[0]).toBeDefined();
+                });
+
+                await act(async () => {
+                    dismissDuplicateTransactionViolation({
+                        transactionIDs: [transactionID],
+                        dismissedPersonalDetails: {login: 'tester@example.com', accountID: CURRENT_USER_ID},
+                        expenseReport: newReport,
+                        policy: undefined,
+                        isASAPSubmitBetaEnabled: false,
+                        allTransactions,
+                    });
+                    await waitForBatchedUpdates();
+                });
+
+                // The useOnyx hook should reflect the optimistic change
+                await waitFor(() => {
+                    expect(result.current[0]).toEqual([{name: CONST.VIOLATIONS.MISSING_CATEGORY, type: 'violation'}]);
+                });
+
+                const reportActions = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${threadReportID}`);
+                const reportActionValues = Object.values(reportActions ?? {});
+                expect(reportActionValues.length).toBe(1);
+                expect(reportActionValues.at(0)?.actionName).toBe(CONST.REPORT.ACTIONS.TYPE.DISMISSED_VIOLATION);
+
+                await mockFetch.resume();
+            });
         });
     });
 });

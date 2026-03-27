@@ -17,7 +17,7 @@ import fileDownload from '@libs/fileDownload';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import {showContextMenu} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
+import {showContextMenu} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
@@ -51,6 +51,7 @@ function SageIntacctPrerequisitesPage({route}: SageIntacctPrerequisitesPageProps
                         selection: CONST.EXPENSIFY_PACKAGE_FOR_SAGE_INTACCT,
                         contextMenuAnchor: popoverAnchor.current,
                     }),
+                shouldShowContextMenuHint: true,
                 numberOfLinesTitle: 2,
             },
             {
@@ -69,6 +70,7 @@ function SageIntacctPrerequisitesPage({route}: SageIntacctPrerequisitesPageProps
                         selection: CONST.HOW_TO_CONNECT_TO_SAGE_INTACCT,
                         contextMenuAnchor: popoverAnchor.current,
                     }),
+                shouldShowContextMenuHint: true,
                 numberOfLinesTitle: 3,
             },
         ],

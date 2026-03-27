@@ -6,6 +6,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useSubStep from '@hooks/useSubStep';
 import type {SubStepProps} from '@hooks/useSubStep/types';
+import {getBankAccountIDAsNumber} from '@libs/ReimbursementAccountUtils';
 import getInitialSubStepForPersonalInfo from '@pages/ReimbursementAccount/USD/utils/getInitialSubStepForPersonalInfo';
 import getSubStepValues from '@pages/ReimbursementAccount/utils/getSubStepValues';
 import {updatePersonalInformationForBankAccount} from '@userActions/BankAccounts';
@@ -32,12 +33,12 @@ const bodyContent: Array<React.ComponentType<SubStepProps>> = [FullName, DateOfB
 function PersonalInfo({onBackButtonPress, ref}: PersonalInfoProps) {
     const {translate} = useLocalize();
 
-    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: false});
-    const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT, {canBeMissing: true});
+    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
+    const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
 
     const policyID = reimbursementAccount?.achData?.policyID;
     const values = useMemo(() => getSubStepValues(PERSONAL_INFO_STEP_KEYS, reimbursementAccountDraft, reimbursementAccount), [reimbursementAccount, reimbursementAccountDraft]);
-    const bankAccountID = Number(reimbursementAccount?.achData?.bankAccountID);
+    const bankAccountID = getBankAccountIDAsNumber(reimbursementAccount?.achData);
     const submit = useCallback(
         (isConfirmPage: boolean) => {
             updatePersonalInformationForBankAccount(bankAccountID, {...values}, policyID, isConfirmPage);
@@ -55,6 +56,7 @@ function PersonalInfo({onBackButtonPress, ref}: PersonalInfoProps) {
         prevScreen,
         moveTo,
         goToTheLastStep,
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
     } = useSubStep({bodyContent, startFrom, onFinished: () => submit(true), onNextSubStep: () => submit(false)});
 
     const handleBackButtonPress = () => {

@@ -7,7 +7,6 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import mergeRefs from '@libs/mergeRefs';
 import {setDraftValues} from '@userActions/FormActions';
 import CONST from '@src/CONST';
 import DatePickerModal from './DatePickerModal';
@@ -31,13 +30,14 @@ function DatePicker({
     formID,
     autoFocus = false,
     shouldHideClearButton = false,
+    autoComplete = 'off',
     forwardedFSClass,
-    ref,
 }: DateInputWithPickerProps) {
     const icons = useMemoizedLazyExpensifyIcons(['Calendar']);
     const styles = useThemeStyles();
     const {windowHeight, windowWidth} = useWindowDimensions();
     const {translate} = useLocalize();
+
     const [isModalVisible, setIsModalVisible] = useState(false);
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const [selectedDate, setSelectedDate] = useState(value || defaultValue || undefined);
@@ -70,13 +70,14 @@ function DatePicker({
         });
     }, [windowHeight]);
 
-    const handlePress = useCallback(() => {
+    const showDatePickerModal = useCallback(() => {
+        // Blur the input before showing the modal, so the focus won't be returned after the modal is closed
+        textInputRef.current?.blur();
         calculatePopoverPosition();
         setIsModalVisible(true);
     }, [calculatePopoverPosition]);
 
     const closeDatePicker = useCallback(() => {
-        textInputRef.current?.blur();
         setIsModalVisible(false);
     }, []);
 
@@ -107,9 +108,9 @@ function DatePicker({
         isAutoFocused.current = true;
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
-            handlePress();
+            textInputRef.current?.focus();
         });
-    }, [handlePress, autoFocus]);
+    }, [autoFocus]);
 
     const getValidDateForCalendar = useMemo(() => {
         if (!selectedDate) {
@@ -126,7 +127,7 @@ function DatePicker({
                 style={styles.mv2}
             >
                 <TextInput
-                    ref={mergeRefs(ref, textInputRef)}
+                    ref={textInputRef}
                     inputID={inputID}
                     forceActiveLabel
                     icon={selectedDate ? null : icons.Calendar}
@@ -139,12 +140,13 @@ function DatePicker({
                     errorText={errorText}
                     inputStyle={styles.pointerEventsNone}
                     disabled={disabled}
-                    readOnly
-                    onPress={handlePress}
+                    onFocus={showDatePickerModal}
                     textInputContainerStyles={isModalVisible ? styles.borderColorFocus : {}}
                     shouldHideClearButton={shouldHideClearButton}
                     onClearInput={handleClear}
                     forwardedFSClass={forwardedFSClass}
+                    autoComplete={autoComplete}
+                    disableKeyboard
                 />
             </View>
 
