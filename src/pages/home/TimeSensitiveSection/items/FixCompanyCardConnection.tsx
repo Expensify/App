@@ -9,6 +9,7 @@ import {openPolicyCompanyCardsPage} from '@libs/actions/CompanyCards';
 import {getCustomOrFormattedFeedName} from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getMemberAccountIDsForWorkspace} from '@libs/PolicyUtils';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import colors from '@styles/theme/colors';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -80,7 +81,12 @@ function FixCompanyCardConnection({card, policyID, policyName}: FixCompanyCardCo
     }, [cardFeeds, card.fundID]);
 
     if (!cardFeeds || cardFeeds.isLoading) {
-        return <FixCompanyCardConnectionSkeleton />;
+        const reasonAttributes: SkeletonSpanReasonAttributes = {
+            context: 'TimeSensitiveSection.FixCompanyCardConnectionSkeleton',
+            isCardFeedsUndefined: !cardFeeds,
+            isCardFeedsLoading: !!cardFeeds?.isLoading,
+        };
+        return <FixCompanyCardConnectionSkeleton reasonAttributes={reasonAttributes} />;
     }
 
     const customFeedName = cardFeeds?.settings?.companyCardNicknames?.[card.bank as CompanyCardFeed];

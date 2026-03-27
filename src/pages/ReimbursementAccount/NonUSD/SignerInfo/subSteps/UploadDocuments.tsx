@@ -10,7 +10,7 @@ import UploadFile from '@components/UploadFile';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useReimbursementAccountStepFormSubmit from '@hooks/useReimbursementAccountStepFormSubmit';
-import type {SubStepProps} from '@hooks/useSubStep/types';
+import type {SubPageProps} from '@hooks/useSubPage/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getEnvironmentURL} from '@libs/Environment/Environment';
 import {getFieldRequiredErrors} from '@libs/ValidationUtils';
@@ -23,7 +23,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {FileObject} from '@src/types/utils/Attachment';
 
-type UploadDocumentsProps = SubStepProps;
+type UploadDocumentsProps = SubPageProps;
 
 const {ADDRESS_PROOF, PROOF_OF_DIRECTORS, COPY_OF_ID, CODICE_FISCALE} = CONST.NON_USD_BANK_ACCOUNT.SIGNER_INFO_STEP.SIGNER_INFO_DATA;
 const signerInfoKeys = CONST.NON_USD_BANK_ACCOUNT.SIGNER_INFO_STEP.SIGNER_INFO_DATA;
@@ -148,7 +148,7 @@ function UploadDocuments({onNext, isEditing}: UploadDocumentsProps) {
                         setError={(error) => {
                             setUploadError(error, copyOfIDInputID);
                         }}
-                        fileLimit={1}
+                        fileLimit={CONST.NON_USD_BANK_ACCOUNT.FILE_LIMIT}
                     />
                     <Text style={[styles.mutedTextLabel, styles.mt6]}>{translate('ownershipInfoStep.copyOfIDDescription')}</Text>
                     {(isDocumentNeededStatus.isAddressProofNeeded ||
@@ -176,7 +176,7 @@ function UploadDocuments({onNext, isEditing}: UploadDocumentsProps) {
                         setError={(error) => {
                             setUploadError(error, addressProofInputID);
                         }}
-                        fileLimit={1}
+                        fileLimit={CONST.NON_USD_BANK_ACCOUNT.FILE_LIMIT}
                     />
                     <Text style={[styles.mutedTextLabel, styles.mt6]}>{translate('ownershipInfoStep.proofOfAddressDescription')}</Text>
                     {(isDocumentNeededStatus.isProofOfDirectorsNeeded || isDocumentNeededStatus.isCodiceFiscaleNeeded || isDocumentNeededStatus.isPRDAndFSGNeeded) && (
@@ -203,7 +203,7 @@ function UploadDocuments({onNext, isEditing}: UploadDocumentsProps) {
                         setError={(error) => {
                             setUploadError(error, directorsProofInputID);
                         }}
-                        fileLimit={1}
+                        fileLimit={CONST.NON_USD_BANK_ACCOUNT.FILE_LIMIT}
                     />
                     <Text style={[styles.mutedTextLabel, styles.mt6]}>{translate('signerInfoStep.proofOfDirectorsDescription')}</Text>
                     {(isDocumentNeededStatus.isCodiceFiscaleNeeded || isDocumentNeededStatus.isPRDAndFSGNeeded) && <View style={[styles.sectionDividerLine, styles.mt6, styles.mb6]} />}
@@ -228,7 +228,7 @@ function UploadDocuments({onNext, isEditing}: UploadDocumentsProps) {
                         setError={(error) => {
                             setUploadError(error, codiceFiscaleInputID);
                         }}
-                        fileLimit={1}
+                        fileLimit={CONST.NON_USD_BANK_ACCOUNT.FILE_LIMIT}
                     />
                     <Text style={[styles.mutedTextLabel, styles.mt6]}>{translate('signerInfoStep.codiceFiscaleDescription')}</Text>
                     {isDocumentNeededStatus.isPRDAndFSGNeeded && <View style={[styles.sectionDividerLine, styles.mt6, styles.mb6]} />}

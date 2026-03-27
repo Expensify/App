@@ -3,6 +3,7 @@
  * (e.g. dismiss modal and open report, dismiss modal only, navigate to search) is complete and the target screen is visible.
  * Uses submit_follow_up_action attribute to record which action was taken.
  */
+import type {SpanAttributeValue} from '@sentry/core';
 import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import {cancelSpan, endSpanWithAttributes, getSpan} from './activeSpans';
@@ -86,7 +87,7 @@ function getPendingSubmitFollowUpAction(): PendingSubmitFollowUpAction {
  * End the submit-to-visible span and clear the pending action. Call from each screen when its main content is visible (e.g. onLayout).
  * Only ends the span if the passed followUpAction matches the current pending action (avoids races and wrong attribution).
  */
-function endSubmitFollowUpActionSpan(followUpAction: SubmitFollowUpAction, reportID?: string) {
+function endSubmitFollowUpActionSpan(followUpAction: SubmitFollowUpAction, reportID?: string, extraAttributes?: Record<string, SpanAttributeValue>) {
     if (!getSpan(CONST.TELEMETRY.SPAN_SUBMIT_TO_DESTINATION_VISIBLE)) {
         return;
     }
@@ -97,8 +98,9 @@ function endSubmitFollowUpActionSpan(followUpAction: SubmitFollowUpAction, repor
     if (pending.reportID !== undefined && pending.reportID !== reportID) {
         return;
     }
-    const attributes: Record<string, string> = {
+    const attributes: Record<string, SpanAttributeValue> = {
         [CONST.TELEMETRY.ATTRIBUTE_SUBMIT_FOLLOW_UP_ACTION]: followUpAction,
+        ...extraAttributes,
     };
     if (reportID !== undefined) {
         attributes[CONST.TELEMETRY.ATTRIBUTE_REPORT_ID] = reportID;
