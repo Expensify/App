@@ -187,7 +187,7 @@ function IOURequestStepOdometerImage({
         if (!file) {
             return;
         }
-        setMoneyRequestOdometerImage(transactionID, imageType, getOdometerImageUri(file), isTransactionDraft, isEditingConfirmation !== 'true');
+        setMoneyRequestOdometerImage(transactionID, imageType, getOdometerImageUri(file), isTransactionDraft, false);
         navigateBack();
     };
 
@@ -251,7 +251,7 @@ function IOURequestStepOdometerImage({
                                         size: (file as FileObject | undefined)?.size,
                                     },
                                     isTransactionDraft,
-                                    isEditingConfirmation !== 'true',
+                                    false,
                                 );
                                 navigateBack();
                             })

@@ -1699,9 +1699,9 @@ function setMoneyRequestOdometerReading(transactionID: string, startReading: num
  * @param imageType - 'start' or 'end'
  * @param file - The image file (File object on web, URI string on native)
  * @param isDraft - Whether this is a draft transaction
- * @param shouldRevokeOldImage - Whether to revoke the previous blob URL immediately (false when a backup transaction exists making the caller responsible for revoking)
+ * @param shouldRevokeOldImage - Whether to revoke the previous blob URL immediately (always false on native where blob URLs don't exist; false on web when a backup transaction exists making the caller responsible for revoking)
  */
-function setMoneyRequestOdometerImage(transactionID: string, imageType: OdometerImageType, file: FileObject | string, isDraft: boolean, shouldRevokeOldImage = true) {
+function setMoneyRequestOdometerImage(transactionID: string, imageType: OdometerImageType, file: FileObject | string, isDraft: boolean, shouldRevokeOldImage: boolean) {
     const imageKey = imageType === CONST.IOU.ODOMETER_IMAGE_TYPE.START ? 'odometerStartImage' : 'odometerEndImage';
     const normalizedFile: FileObject | string =
         typeof file === 'string'
@@ -1729,9 +1729,9 @@ function setMoneyRequestOdometerImage(transactionID: string, imageType: Odometer
  * @param transactionID - The transaction ID
  * @param imageType - 'start' or 'end'
  * @param isDraft - Whether this is a draft transaction
- * @param shouldRevokeOldImage - Whether to revoke the previous blob URL immediately (false when a backup transaction exists making the caller responsible for revoking)
+ * @param shouldRevokeOldImage - Whether to revoke the previous blob URL immediately (always false on native where blob URLs don't exist; false on web when a backup transaction exists making the caller responsible for revoking)
  */
-function removeMoneyRequestOdometerImage(transactionID: string, imageType: OdometerImageType, isDraft: boolean, shouldRevokeOldImage = true) {
+function removeMoneyRequestOdometerImage(transactionID: string, imageType: OdometerImageType, isDraft: boolean, shouldRevokeOldImage: boolean) {
     const imageKey = imageType === CONST.IOU.ODOMETER_IMAGE_TYPE.START ? 'odometerStartImage' : 'odometerEndImage';
     const transaction = isDraft ? allTransactionDrafts[`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`] : allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
     const existingImage = transaction?.comment?.[imageKey];
