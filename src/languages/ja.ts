@@ -149,6 +149,7 @@ const translations: TranslationDeepObject<typeof en> = {
         submit: '送信',
         markAsDone: 'Mark as done',
         submitted: '送信済み',
+        markedAsDoneStatus: 'Marked as done',
         rotate: '回転',
         zoom: 'ズーム',
         password: 'パスワード',
