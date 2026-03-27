@@ -1,7 +1,7 @@
 import isObject from 'lodash/isObject';
 import React, {useMemo, useState} from 'react';
 import SelectionList from '@components/SelectionList';
-import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
+import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import useLocalize from '@hooks/useLocalize';
 import tokenizedSearch from '@libs/tokenizedSearch';
@@ -67,7 +67,7 @@ function ConstantPicker({formType, fieldName, fieldValue, onSubmit}: ConstantPic
             data={sections}
             textInputOptions={textInputOptions}
             onSelectRow={onSubmit}
-            ListItem={SingleSelectListItem}
+            ListItem={RadioListItem}
             initiallyFocusedItemKey={selectedOptionKey}
         />
     );
