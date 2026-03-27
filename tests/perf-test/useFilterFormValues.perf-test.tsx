@@ -234,7 +234,7 @@ describe('useFilterFormValues', () => {
             function TestComponent() {
                 const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: policiesSelector});
                 const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: reportsSelector});
-                const [policyTagsLists] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS, {selector: policyTagsSelector});
+                const [policyTagsLists] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
                 const [policyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES, {selector: policyCategoriesSelector});
                 const taxRates = useMemo(() => getAllTaxRates(policies), [policies]);
                 const formValues = buildFilterFormValuesFromQuery(queryJSON, policyCategories, policyTagsLists, {}, {}, {}, allReports, taxRates);
