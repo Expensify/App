@@ -28,13 +28,10 @@ function DynamicDebugDetailsConstantPickerPage({
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.DETAILS_CONSTANT_PICKER.path);
-    const onSubmit = useCallback(
-        (item: {text?: string; keyForList?: string}) => {
-            const value = item.text === fieldValue ? '' : (item.text ?? '');
-            Navigation.goBack(appendParam(backPath, fieldName, value), {compareParams: false});
-        },
-        [backPath, fieldName, fieldValue],
-    );
+    const onSubmit = (item: {text?: string; keyForList?: string}) => {
+        const value = item.text === fieldValue ? '' : (item.text ?? '');
+        Navigation.goBack(appendParam(backPath, fieldName ?? '', value), {compareParams: false});
+    };
 
     const renderPicker = useCallback(() => {
         if (([TRANSACTION_FORM_INPUT_IDS.CURRENCY, TRANSACTION_FORM_INPUT_IDS.MODIFIED_CURRENCY, TRANSACTION_FORM_INPUT_IDS.ORIGINAL_CURRENCY] as string[]).includes(fieldName)) {

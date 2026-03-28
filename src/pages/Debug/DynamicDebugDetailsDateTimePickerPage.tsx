@@ -1,5 +1,5 @@
 import {format} from 'date-fns';
-import React, {useCallback, useState} from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
 import DatePicker from '@components/DatePicker';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -30,13 +30,10 @@ function DynamicDebugDetailsDateTimePickerPage({
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.DETAILS_DATE_TIME_PICKER.path);
     const [date, setDate] = useState(() => DateUtils.extractDate(fieldValue));
 
-    const handleSubmit = useCallback(
-        (time: string) => {
-            const formattedDateTime = format(new Date(`${date} ${time}`), 'yyyy-MM-dd HH:mm:ss.SSS');
-            Navigation.goBack(appendParam(backPath, fieldName, formattedDateTime), {compareParams: false});
-        },
-        [date, fieldName, backPath],
-    );
+    const handleSubmit = (time: string) => {
+        const formattedDateTime = format(new Date(`${date} ${time}`), 'yyyy-MM-dd HH:mm:ss.SSS');
+        Navigation.goBack(appendParam(backPath, fieldName ?? '', formattedDateTime), {compareParams: false});
+    };
 
     return (
         <ScreenWrapper testID="DynamicDebugDetailsDateTimePickerPage">
