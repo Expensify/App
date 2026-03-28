@@ -797,7 +797,7 @@ function addActions({
     }
 
     if (isInSidePanel && isConciergeChat && sidePanelContext) {
-        parameters.sidePanelContext = sidePanelContext;
+        parameters.sidePanelContext = JSON.stringify(sidePanelContext);
     }
 
     // Add pregenerated params
