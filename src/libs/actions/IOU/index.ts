@@ -8654,14 +8654,7 @@ function deleteMoneyRequest({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport?.reportID}`,
             value: {
-                hasOutstandingChildRequest: hasOutstandingChildRequest(
-                    chatReport,
-                    updatedIOUReport,
-                    currentUserEmail,
-                    currentUserAccountID,
-                    allTransactionViolationsParam,
-                    undefined,
-                ),
+                hasOutstandingChildRequest: hasOutstandingChildRequest(chatReport, updatedIOUReport, currentUserEmail, currentUserAccountID, allTransactionViolationsParam, undefined),
             },
         });
     }
@@ -8680,14 +8673,7 @@ function deleteMoneyRequest({
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport?.reportID}`,
                 value: {
-                    hasOutstandingChildRequest: hasOutstandingChildRequest(
-                        chatReport,
-                        iouReport?.reportID,
-                        currentUserEmail,
-                        currentUserAccountID,
-                        allTransactionViolationsParam,
-                        undefined,
-                    ),
+                    hasOutstandingChildRequest: hasOutstandingChildRequest(chatReport, iouReport?.reportID, currentUserEmail, currentUserAccountID, allTransactionViolationsParam, undefined),
                     iouReportID: null,
                     ...optimisticLastReportData,
                 },
