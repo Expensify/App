@@ -112,9 +112,6 @@ function MerchantOrDescriptionCell({merchantOrDescription, shouldShowTooltip, sh
                     onSubmitEditing={handleSubmitEditing}
                     onFocus={handleFocus}
                     autoFocus
-                    // We use a multiline TextInput for both merchant and description to keep editing behavior consistent.
-                    // Since merchants are single-line, we sanitize line breaks before storing.
-                    multiline
                     submitBehavior="blurAndSubmit"
                     // EditableCell is responsible for the cell's hover and focus styles (border, background).
                     // Suppress TextInput's own border and background to avoid visual conflicts.

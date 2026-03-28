@@ -140,7 +140,6 @@ export default {
     inputPaddingBottom: getValueUsingPixelRatio(8, 11),
     inputHeightSmall: 28,
     editableCellHeight: 32,
-    editableCellMaxHeight: 44,
     inputIconMarginTopSmall: getValueUsingPixelRatio(8, 11),
     inputIconMarginTopLarge: getValueUsingPixelRatio(16, 21),
     formErrorLineHeight: getValueUsingPixelRatio(18, 23),

@@ -1122,7 +1122,6 @@ const staticStyles = (theme: ThemeColors) =>
             padding: 4,
             height: 'auto',
             minHeight: variables.editableCellHeight,
-            maxHeight: variables.editableCellMaxHeight,
             overflow: 'hidden',
             justifyContent: 'center',
         },
