@@ -34,6 +34,7 @@ import {
     rejectMoneyRequest,
     replaceReceipt,
     requestMoney,
+    resetDraftTransactionsCustomUnit,
     retractReport,
     setMoneyRequestCategory,
     shouldOptimisticallyUpdateSearch,
@@ -15818,4 +15819,47 @@ describe('actions/IOU', () => {
             );
         });
     });
+
+    describe('resetDraftTransactionsCustomUnit', () => {
+        it('should do nothing if transaction is not passed', async () => {
+            // Call the reset function without a transaction
+            resetDraftTransactionsCustomUnit(undefined);
+            await waitForBatchedUpdates();
+            const allDraftTransactions = await getOnyxValue(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT);
+            // Assuming there are no draft transactions, this should be undefined or an empty object
+            expect(allDraftTransactions).toBeUndefined();
+        });
+        it('should reset custom unit for a transaction', async () => {
+            const transactionID = 'transaction_reset_001';
+            const fakeTransaction: Transaction = {
+                transactionID,
+                amount: 1500,
+                currency: CONST.CURRENCY.USD,
+                created: format(new Date(), CONST.DATE.FNS_FORMAT_STRING),
+                merchant: 'Test Reset',
+                reportID: 'report_reset_001',
+                comment: {
+                    type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
+                    customUnit: {
+                        name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                        quantity: 100,
+                    },
+                    waypoints: {
+                        waypoint0: {lat: 40.7128, lng: -74.006, address: 'NYC', name: 'NYC', keyForList: 'nyc_key'},
+                    },
+                },
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, fakeTransaction);
+            await waitForBatchedUpdates();
+            // Call the reset function
+            resetDraftTransactionsCustomUnit(fakeTransaction);
+            await waitForBatchedUpdates();
+            // Verify the transaction's custom unit and waypoints have been reset
+            const updatedTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`);
+            expect(updatedTransaction?.comment?.customUnit?.name).toBe(CONST.CUSTOM_UNITS.NAME_DISTANCE);
+            expect(updatedTransaction?.comment?.customUnit?.quantity).toBe(100);
+        });
+    });
+
 });
