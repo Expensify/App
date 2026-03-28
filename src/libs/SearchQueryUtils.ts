@@ -547,7 +547,7 @@ function buildSearchQueryString(queryJSON?: SearchQueryJSON) {
     const isViewExplicitlySet = wasViewExplicitlySet(queryJSON);
 
     for (const [, key] of Object.entries(CONST.SEARCH.SYNTAX_ROOT_KEYS)) {
-        if (key === CONST.SEARCH.SYNTAX_ROOT_KEYS.VIEW && !isViewExplicitlySet) {
+        if (key === CONST.SEARCH.SYNTAX_ROOT_KEYS.VIEW && (!isViewExplicitlySet || !queryJSON?.groupBy)) {
             continue;
         }
 

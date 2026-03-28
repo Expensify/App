@@ -1086,6 +1086,21 @@ describe('SearchQueryUtils', () => {
             expect(queryJSONa?.hash).not.toEqual(queryJSONb?.hash);
         });
 
+        it('should not include view in query string when groupBy is removed after chart drill-down', () => {
+            const queryJSON = buildSearchQueryJSON('type:expense date:this-month groupBy:category view:bar');
+
+            if (!queryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            queryJSON.groupBy = undefined;
+            queryJSON.view = CONST.SEARCH.VIEW.TABLE;
+
+            const result = buildSearchQueryString(queryJSON);
+
+            expect(result).not.toContain('view:');
+        });
+
         describe('limit filter hashing', () => {
             it('should return same similarSearchHash for queries with different limit values', () => {
                 const queryJSONa = buildSearchQueryJSON('type:expense limit:10');
