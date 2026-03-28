@@ -26,7 +26,7 @@ function WorkspaceConfirmationForTravelPage({route}: WorkspaceConfirmationForTra
     const hasActiveAdminPolicies = useHasActiveAdminPolicies();
 
     const goBack = () => {
-        Navigation.goBack(route.params?.backTo ?? ROUTES.TRAVEL_UPGRADE.route);
+        Navigation.goBack(route.params?.backTo ?? ROUTES.TRAVEL_UPGRADE);
     };
 
     const onSubmit = (params: WorkspaceConfirmationSubmitFunctionParams) => {

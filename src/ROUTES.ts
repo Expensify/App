@@ -120,6 +120,22 @@ const DYNAMIC_ROUTES = {
         getRoute: (country = '') => `country?country=${country}`,
         queryParams: ['country'],
     },
+    TRAVEL_UPGRADE: {
+        path: 'travel/upgrade',
+        entryScreens: [SCREENS.TRAVEL.MY_TRIPS, SCREENS.SEARCH.ROOT, SCREENS.WORKSPACE.TRAVEL],
+    },
+    TRAVEL_DOMAIN_SELECTOR: {
+        path: 'travel/domain-selector',
+        entryScreens: [SCREENS.TRAVEL.MY_TRIPS, SCREENS.SEARCH.ROOT, SCREENS.WORKSPACE.TRAVEL],
+        getRoute: (policyID?: string) => (policyID ? `travel/domain-selector?policyID=${policyID}` : 'travel/domain-selector'),
+        queryParams: ['policyID'],
+    },
+    TRAVEL_PUBLIC_DOMAIN_ERROR: {
+        path: 'travel/public-domain-error',
+        entryScreens: [SCREENS.TRAVEL.MY_TRIPS, SCREENS.SEARCH.ROOT, SCREENS.WORKSPACE.TRAVEL],
+        getRoute: (policyID?: string) => (policyID ? `travel/public-domain-error?policyID=${policyID}` : 'travel/public-domain-error'),
+        queryParams: ['policyID'],
+    },
 } as const satisfies DynamicRoutes;
 
 const ROUTES = {
@@ -3000,12 +3016,7 @@ const ROUTES = {
         // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
         getRoute: (domain: string, policyID?: string, backTo?: string) => getUrlWithBackToParam(`travel/terms/${domain}/accept?${policyID ? `policyID=${policyID}` : ''}`, backTo),
     },
-    TRAVEL_UPGRADE: {
-        route: 'travel/upgrade',
-
-        // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-        getRoute: (backTo?: string) => getUrlWithBackToParam('travel/upgrade', backTo),
-    },
+    TRAVEL_UPGRADE: 'travel/upgrade',
     TRACK_TRAINING_MODAL: 'track-training',
     TRAVEL_TRIP_SUMMARY: {
         route: 'r/:reportID/trip/:transactionID',
@@ -3029,24 +3040,14 @@ const ROUTES = {
             return getUrlWithBackToParam(`r/${reportID}/trip/${transactionID}/${pnr}/${sequenceIndex}`, backTo);
         },
     },
-    TRAVEL_DOMAIN_SELECTOR: {
-        route: 'travel/domain-selector',
-
-        // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-        getRoute: (policyID?: string, backTo?: string) => getUrlWithBackToParam(`travel/domain-selector?${policyID ? `policyID=${policyID}` : ''}`, backTo),
-    },
+    TRAVEL_DOMAIN_SELECTOR: 'travel/domain-selector',
     TRAVEL_DOMAIN_PERMISSION_INFO: {
         route: 'travel/domain-permission/:domain/info',
 
         // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
         getRoute: (domain?: string, backTo?: string) => getUrlWithBackToParam(`travel/domain-permission/${domain}/info`, backTo),
     },
-    TRAVEL_PUBLIC_DOMAIN_ERROR: {
-        route: 'travel/public-domain-error',
-
-        // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-        getRoute: (policyID?: string, backTo?: string) => getUrlWithBackToParam(`travel/public-domain-error?${policyID ? `policyID=${policyID}` : ''}`, backTo),
-    },
+    TRAVEL_PUBLIC_DOMAIN_ERROR: 'travel/public-domain-error',
     TRAVEL_WORKSPACE_CONFIRMATION: {
         route: 'travel/upgrade/workspace/confirmation',
 
