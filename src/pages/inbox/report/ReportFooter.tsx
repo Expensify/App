@@ -175,10 +175,6 @@ function ReportFooter({lastReportAction, report = {reportID: '-1'}, onComposerBl
         }
 
         const contextReportID = isConciergeSidePanel ? (currentRHPReportID ?? currentReportID ?? undefined) : undefined;
-        if (isConciergeSidePanel) {
-            console.log('contextReportID', contextReportID);
-            return;
-        }
 
         // If we are adding an action on an expense report that only has a single transaction thread child report, we need to add the action to the transaction thread instead.
         // This is because we need it to be associated with the transaction thread and not the expense report in order for conversational corrections to work as expected.
