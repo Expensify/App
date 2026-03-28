@@ -1,7 +1,7 @@
 import {Str} from 'expensify-common';
 import deburr from 'lodash/deburr';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import {FallbackAvatar} from '@components/Icon/Expensicons';
+import FallbackAvatar from '@assets/images/avatars/fallback-avatar.svg';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import {appendCountryCode, getPhoneNumberWithoutSpecialChars} from '@libs/LoginUtils';
 import {optionsOrderBy, personalDetailsComparator, processSearchString} from '@libs/OptionsListUtils';
