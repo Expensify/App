@@ -1,11 +1,13 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 // we need "dirty" object key names in these tests
+import type {ASTNode} from '@components/Search/types';
 import type {OnyxCollection} from 'react-native-onyx';
 import {generatePolicyID} from '@libs/actions/Policy/Policy';
 // eslint-disable-next-line no-restricted-syntax
 import type * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import CONST from '@src/CONST';
 import {
+    applyContainsOperatorToTextFields,
     buildFilterFormValuesFromQuery,
     buildFilterQueryWithSortDefaults,
     buildQueryStringFromFilterFormValues,
@@ -2143,6 +2145,100 @@ describe('SearchQueryUtils', () => {
             });
 
             expect(result.endsWith(' ')).toBe(true);
+        });
+    });
+
+    describe('applyContainsOperatorToTextFields', () => {
+        function findNode(node: ASTNode, field: string): ASTNode | null {
+            if (typeof node.left === 'string' && node.left === field) {
+                return node;
+            }
+            if (typeof node.left === 'object' && node.left) {
+                const found = findNode(node.left, field);
+                if (found) {
+                    return found;
+                }
+            }
+            if (typeof node.right === 'object' && !Array.isArray(node.right) && node.right) {
+                const found = findNode(node.right, field);
+                if (found) {
+                    return found;
+                }
+            }
+            return null;
+        }
+
+        it('should transform merchant eq to contains', () => {
+            const queryJSON = buildSearchQueryJSON('type:expense merchant:coffee');
+            if (!queryJSON?.filters) {
+                throw new Error('Expected filters to be defined');
+            }
+            const transformed = applyContainsOperatorToTextFields(queryJSON.filters);
+            const merchantNode = findNode(transformed, 'merchant');
+            if (!merchantNode) {
+                throw new Error('Expected merchant node to be found in AST');
+            }
+            expect(merchantNode.operator).toBe(CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS);
+            expect(merchantNode.right).toBe('coffee');
+        });
+
+        it('should transform description eq to contains', () => {
+            const queryJSON = buildSearchQueryJSON('type:expense description:lunch');
+            if (!queryJSON?.filters) {
+                throw new Error('Expected filters to be defined');
+            }
+            const transformed = applyContainsOperatorToTextFields(queryJSON.filters);
+            const descriptionNode = findNode(transformed, 'description');
+            if (!descriptionNode) {
+                throw new Error('Expected description node to be found in AST');
+            }
+            expect(descriptionNode.operator).toBe(CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS);
+        });
+
+        it('should not transform non-text fields like category', () => {
+            const queryJSON = buildSearchQueryJSON('type:expense category:food');
+            if (!queryJSON?.filters) {
+                throw new Error('Expected filters to be defined');
+            }
+            const transformed = applyContainsOperatorToTextFields(queryJSON.filters);
+            const categoryNode = findNode(transformed, 'category');
+            if (!categoryNode) {
+                throw new Error('Expected category node to be found in AST');
+            }
+            expect(categoryNode.operator).toBe(CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO);
+        });
+
+        it('should not transform negated merchant operator', () => {
+            const queryJSON = buildSearchQueryJSON('type:expense -merchant:coffee');
+            if (!queryJSON?.filters) {
+                throw new Error('Expected filters to be defined');
+            }
+            const transformed = applyContainsOperatorToTextFields(queryJSON.filters);
+            const merchantNode = findNode(transformed, 'merchant');
+            if (!merchantNode) {
+                throw new Error('Expected merchant node to be found in AST');
+            }
+            expect(merchantNode.operator).toBe(CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO);
+        });
+
+        it('should transform merchant but not category in a compound query', () => {
+            const queryJSON = buildSearchQueryJSON('type:expense merchant:coffee category:travel');
+            if (!queryJSON?.filters) {
+                throw new Error('Expected filters to be defined');
+            }
+            const transformed = applyContainsOperatorToTextFields(queryJSON.filters);
+
+            const merchantNode = findNode(transformed, 'merchant');
+            if (!merchantNode) {
+                throw new Error('Expected merchant node to be found in AST');
+            }
+            expect(merchantNode.operator).toBe(CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS);
+
+            const categoryNode = findNode(transformed, 'category');
+            if (!categoryNode) {
+                throw new Error('Expected category node to be found in AST');
+            }
+            expect(categoryNode.operator).toBe(CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO);
         });
     });
 });
