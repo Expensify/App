@@ -7721,6 +7721,7 @@ describe('actions/IOU', () => {
                     isChatIOUReportArchived: true,
                     allTransactionViolationsParam: {},
                     currentUserAccountID: TEST_USER_ACCOUNT_ID,
+                    currentUserEmail: TEST_USER_LOGIN,
                 });
             }
             await waitForBatchedUpdates();
@@ -7810,6 +7811,7 @@ describe('actions/IOU', () => {
                     isChatIOUReportArchived: true,
                     allTransactionViolationsParam: {},
                     currentUserAccountID: TEST_USER_ACCOUNT_ID,
+                    currentUserEmail: TEST_USER_LOGIN,
                 });
             }
             await waitForBatchedUpdates();
@@ -7892,6 +7894,7 @@ describe('actions/IOU', () => {
                     chatReport,
                     allTransactionViolationsParam: {},
                     currentUserAccountID: TEST_USER_ACCOUNT_ID,
+                    currentUserEmail: TEST_USER_LOGIN,
                 });
             }
             await waitForBatchedUpdates();
@@ -8002,6 +8005,7 @@ describe('actions/IOU', () => {
                     chatReport,
                     allTransactionViolationsParam: {},
                     currentUserAccountID: TEST_USER_ACCOUNT_ID,
+                    currentUserEmail: TEST_USER_LOGIN,
                 });
             }
             await waitForBatchedUpdates();
@@ -8149,6 +8153,7 @@ describe('actions/IOU', () => {
                     chatReport,
                     allTransactionViolationsParam: {},
                     currentUserAccountID: TEST_USER_ACCOUNT_ID,
+                    currentUserEmail: TEST_USER_LOGIN,
                 });
             }
             await waitForBatchedUpdates();
@@ -8261,6 +8266,7 @@ describe('actions/IOU', () => {
                     chatReport,
                     allTransactionViolationsParam: {},
                     currentUserAccountID: TEST_USER_ACCOUNT_ID,
+                    currentUserEmail: TEST_USER_LOGIN,
                 });
             }
             await waitForBatchedUpdates();
@@ -8446,6 +8452,7 @@ describe('actions/IOU', () => {
                     isChatIOUReportArchived: undefined,
                     allTransactionViolationsParam: {},
                     currentUserAccountID: TEST_USER_ACCOUNT_ID,
+                    currentUserEmail: TEST_USER_LOGIN,
                 });
             }
             await waitForBatchedUpdates();
@@ -8559,6 +8566,7 @@ describe('actions/IOU', () => {
                     isChatIOUReportArchived: undefined,
                     allTransactionViolationsParam: {},
                     currentUserAccountID: TEST_USER_ACCOUNT_ID,
+                    currentUserEmail: TEST_USER_LOGIN,
                 });
             }
             await waitForBatchedUpdates();
@@ -8662,6 +8670,7 @@ describe('actions/IOU', () => {
                     isSingleTransactionView: true,
                     allTransactionViolationsParam: {},
                     currentUserAccountID: TEST_USER_ACCOUNT_ID,
+                    currentUserEmail: TEST_USER_LOGIN,
                 });
             }
 
@@ -8719,6 +8728,7 @@ describe('actions/IOU', () => {
                     chatReport,
                     allTransactionViolationsParam: {},
                     currentUserAccountID: TEST_USER_ACCOUNT_ID,
+                    currentUserEmail: TEST_USER_LOGIN,
                 });
             }
             // Then we expect to navigate to the chat report
@@ -8882,6 +8892,7 @@ describe('actions/IOU', () => {
                     chatReport,
                     allTransactionViolationsParam: {},
                     currentUserAccountID: TEST_USER_ACCOUNT_ID,
+                    currentUserEmail: TEST_USER_LOGIN,
                 });
             }
 
@@ -9210,6 +9221,7 @@ describe('actions/IOU', () => {
 
     describe('bulk deleteMoneyRequest', () => {
         const TEST_USER_ACCOUNT_ID = 1;
+        const TEST_USER_LOGIN = 'test@email.com';
 
         it('update IOU report total properly for bulk deletion of expenses', async () => {
             const expenseReport: Report = {
@@ -9274,6 +9286,7 @@ describe('actions/IOU', () => {
                 selectedTransactionIDs,
                 allTransactionViolationsParam: {},
                 currentUserAccountID: TEST_USER_ACCOUNT_ID,
+                currentUserEmail: TEST_USER_LOGIN,
             });
             deleteMoneyRequest({
                 transactionID: transaction2.transactionID,
@@ -9286,6 +9299,7 @@ describe('actions/IOU', () => {
                 selectedTransactionIDs,
                 allTransactionViolationsParam: {},
                 currentUserAccountID: TEST_USER_ACCOUNT_ID,
+                currentUserEmail: TEST_USER_LOGIN,
             });
             await waitForBatchedUpdates();
 
@@ -9307,6 +9321,7 @@ describe('actions/IOU', () => {
 
     describe('deleteMoneyRequest with allTransactionViolationsParam', () => {
         const TEST_USER_ACCOUNT_ID = 1;
+        const TEST_USER_LOGIN = 'test@email.com';
         it('should pass transaction violations to hasOutstandingChildRequest correctly', async () => {
             // Given an expense report with a transaction
             const expenseReport: Report = {
@@ -9361,6 +9376,7 @@ describe('actions/IOU', () => {
                 chatReport: expenseReport,
                 allTransactionViolationsParam: transactionViolations,
                 currentUserAccountID: TEST_USER_ACCOUNT_ID,
+                currentUserEmail: TEST_USER_LOGIN,
             });
 
             await waitForBatchedUpdates();
@@ -9424,6 +9440,7 @@ describe('actions/IOU', () => {
                 chatReport: expenseReport,
                 allTransactionViolationsParam: {},
                 currentUserAccountID: TEST_USER_ACCOUNT_ID,
+                currentUserEmail: TEST_USER_LOGIN,
             });
 
             await waitForBatchedUpdates();

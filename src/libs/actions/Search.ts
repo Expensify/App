@@ -937,6 +937,7 @@ function bulkDeleteReports({
             selectedTransactionIDs: batchTransactionIDsForReport.length > 0 ? batchTransactionIDsForReport : undefined,
             allTransactionViolationsParam: transactionsViolations,
             currentUserAccountID: currentUserAccountIDParam,
+            currentUserEmail: currentUserEmailParam,
         });
     }
 

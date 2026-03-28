@@ -862,6 +862,7 @@ type DeleteMoneyRequestFunctionParams = {
     selectedTransactionIDs?: string[];
     allTransactionViolationsParam: OnyxCollection<OnyxTypes.TransactionViolations>;
     currentUserAccountID: number;
+    currentUserEmail: string;
 };
 
 type PayMoneyRequestFunctionParams = {
@@ -8569,6 +8570,7 @@ function deleteMoneyRequest({
     selectedTransactionIDs,
     allTransactionViolationsParam,
     currentUserAccountID,
+    currentUserEmail,
 }: DeleteMoneyRequestFunctionParams) {
     if (!transactionID) {
         return;
@@ -8655,7 +8657,7 @@ function deleteMoneyRequest({
                 hasOutstandingChildRequest: hasOutstandingChildRequest(
                     chatReport,
                     updatedIOUReport,
-                    deprecatedCurrentUserEmail,
+                    currentUserEmail,
                     currentUserAccountID,
                     allTransactionViolationsParam,
                     undefined,
@@ -8681,7 +8683,7 @@ function deleteMoneyRequest({
                     hasOutstandingChildRequest: hasOutstandingChildRequest(
                         chatReport,
                         iouReport?.reportID,
-                        deprecatedCurrentUserEmail,
+                        currentUserEmail,
                         currentUserAccountID,
                         allTransactionViolationsParam,
                         undefined,
@@ -8897,6 +8899,7 @@ function deleteTrackExpense({
             isSingleTransactionView,
             allTransactionViolationsParam,
             currentUserAccountID,
+            currentUserEmail: deprecatedCurrentUserEmail,
         });
         return urlToNavigateBack;
     }
