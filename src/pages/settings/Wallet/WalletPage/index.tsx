@@ -48,7 +48,13 @@ import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import PaymentMethodList from '@pages/settings/Wallet/PaymentMethodList';
 import {getFirstPageName} from '@pages/settings/Wallet/UpdatePersonalBankAccountPage';
-import {deletePaymentBankAccount, openPersonalBankAccountSetupView, pressLockedBankAccount, resetPersonalBankAccountForUpdate, setPersonalBankAccountContinueKYCOnSuccess} from '@userActions/BankAccounts';
+import {
+    deletePaymentBankAccount,
+    openPersonalBankAccountSetupView,
+    pressLockedBankAccount,
+    resetPersonalBankAccountForUpdate,
+    setPersonalBankAccountContinueKYCOnSuccess,
+} from '@userActions/BankAccounts';
 import {deletePersonalCard} from '@userActions/Card';
 import {close as closeModal} from '@userActions/Modal';
 import {clearWalletError, clearWalletTermsError, deletePaymentCard, getPaymentMethods, makeDefaultPaymentMethod as makeDefaultPaymentMethodPaymentMethods} from '@userActions/PaymentMethods';
