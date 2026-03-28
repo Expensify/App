@@ -17,21 +17,22 @@ type AgentZeroStatusState = {
 };
 
 /**
- * Progressive retry intervals for the processing indicator (lease pattern).
+ * Polling interval for fetching missed Concierge responses while the thinking indicator is visible.
  *
- * Instead of hard-clearing the indicator after a single timeout, we progressively
- * retry fetching newer actions. Long Concierge responses can take up to 2 minutes,
- * so a hard 60s TTL would incorrectly clear a legitimate in-progress response.
+ * While the indicator is active, we poll getNewerActions every 30s to recover from
+ * WebSocket drops or missed Pusher events. If a Concierge reply arrives (via Pusher
+ * or the poll response), the normal Onyx update clears the indicator automatically.
  *
- * Schedule:
- * - 60s: First retry — call getNewerActions, keep indicator showing
- * - 90s: Second retry — call getNewerActions again, keep indicator showing
- * - 120s: Final retry — if still no new actions AND online (Pusher connected), clear the indicator
- *
- * If a Concierge reply arrives at any point (via Pusher or getNewerActions response),
- * the normal Onyx update clears the indicator automatically.
+ * A hard safety clear at MAX_POLL_DURATION_MS ensures the indicator doesn't stay
+ * forever if something goes wrong.
  */
-const PROGRESSIVE_RETRY_INTERVALS_MS = [60000, 90000, 120000];
+const POLL_INTERVAL_MS = 30000;
+
+/**
+ * Maximum duration to poll before hard-clearing the indicator (safety net).
+ * After this time, if we're online and no response has arrived, we clear the indicator.
+ */
+const MAX_POLL_DURATION_MS = 120000;
 
 /**
  * Hook to manage AgentZero status indicator for chats where AgentZero responds.
@@ -70,7 +71,8 @@ function useAgentZeroStatusIndicator(reportID: string, isAgentZeroChat: boolean)
     const prevServerLabelRef = useRef<string>(serverLabel);
     const updateTimerRef = useRef<NodeJS.Timeout | null>(null);
     const lastUpdateTimeRef = useRef<number>(0);
-    const retryTimersRef = useRef<NodeJS.Timeout[]>([]);
+    const pollIntervalRef = useRef<NodeJS.Timeout | null>(null);
+    const pollSafetyTimerRef = useRef<NodeJS.Timeout | null>(null);
     const isOfflineRef = useRef<boolean>(false);
 
     // Minimum time to display a label before allowing change (prevents rapid flicker)
@@ -79,57 +81,62 @@ function useAgentZeroStatusIndicator(reportID: string, isAgentZeroChat: boolean)
     const DEBOUNCE_DELAY = 150; // ms
 
     /**
-     * Clear all progressive retry timers. Called when the indicator clears normally,
+     * Clear the polling interval and safety timer. Called when the indicator clears normally,
      * when a new processing cycle starts, or when the component unmounts.
      */
-    const clearRetryTimers = useCallback(() => {
-        for (const timer of retryTimersRef.current) {
-            clearTimeout(timer);
+    const clearPolling = useCallback(() => {
+        if (pollIntervalRef.current) {
+            clearInterval(pollIntervalRef.current);
+            pollIntervalRef.current = null;
         }
-        retryTimersRef.current = [];
+        if (pollSafetyTimerRef.current) {
+            clearTimeout(pollSafetyTimerRef.current);
+            pollSafetyTimerRef.current = null;
+        }
     }, []);
 
     /**
      * Hard-clear the indicator by resetting local state and clearing the Onyx NVP.
-     * This is the final "lease expiry" — called only after all progressive retries
-     * are exhausted and the network is connected (Pusher should have delivered the response).
+     * Called as a safety net after MAX_POLL_DURATION_MS if no response has arrived.
      */
     const hardClearIndicator = useCallback(() => {
         // If offline, don't clear — the response may arrive when reconnected
         if (isOfflineRef.current) {
             return;
         }
+        clearPolling();
         setOptimisticStartTime(null);
         setDisplayedLabel('');
         clearAgentZeroProcessingIndicator(reportID);
         getNewerActions(reportID, newestReportActionIDRef.current);
-    }, [reportID]);
+    }, [reportID, clearPolling]);
 
     /**
-     * Start the progressive retry schedule. Every time processing becomes active
-     * or the server label changes (renewal), all existing timers are cleared and
-     * the full retry schedule restarts.
+     * Start polling for missed actions every POLL_INTERVAL_MS. Every time processing
+     * becomes active or the server label changes (renewal), the existing polling is
+     * cleared and restarted.
      *
-     * - Intermediate retries call getNewerActions (the response, if it arrives,
-     *   will clear the indicator via normal Onyx updates).
-     * - The final retry hard-clears the indicator if still showing.
+     * - Every 30s: call getNewerActions to fetch any missed Concierge responses
+     * - After MAX_POLL_DURATION_MS: hard-clear the indicator if still showing (safety net)
+     *
+     * Polling stops when: indicator clears, component unmounts, or user goes offline.
      */
-    const startRetryTimers = useCallback(() => {
-        clearRetryTimers();
-        const lastIndex = PROGRESSIVE_RETRY_INTERVALS_MS.length - 1;
-        for (const [index, delay] of PROGRESSIVE_RETRY_INTERVALS_MS.entries()) {
-            const timer = setTimeout(() => {
-                if (index < lastIndex) {
-                    // Intermediate retry: poll for missed actions but keep indicator showing
-                    getNewerActions(reportID, newestReportActionIDRef.current);
-                } else {
-                    // Final retry: clear if still stuck and online
-                    hardClearIndicator();
-                }
-            }, delay);
-            retryTimersRef.current.push(timer);
-        }
-    }, [clearRetryTimers, hardClearIndicator, reportID]);
+    const startPolling = useCallback(() => {
+        clearPolling();
+
+        // Poll every 30s for missed actions
+        pollIntervalRef.current = setInterval(() => {
+            if (isOfflineRef.current) {
+                return;
+            }
+            getNewerActions(reportID, newestReportActionIDRef.current);
+        }, POLL_INTERVAL_MS);
+
+        // Safety net: hard-clear after MAX_POLL_DURATION_MS
+        pollSafetyTimerRef.current = setTimeout(() => {
+            hardClearIndicator();
+        }, MAX_POLL_DURATION_MS);
+    }, [clearPolling, hardClearIndicator, reportID]);
 
     // Clear indicator on network reconnect. When Pusher reconnects, stale NVP state
     // may be re-delivered. Like typing indicators (Report/index.ts:486), we reset
@@ -137,7 +144,7 @@ function useAgentZeroStatusIndicator(reportID: string, isAgentZeroChat: boolean)
     // We also call getNewerActions to pull any responses missed during the outage.
     const {isOffline} = useNetwork({
         onReconnect: () => {
-            clearRetryTimers();
+            clearPolling();
             setOptimisticStartTime(null);
             setDisplayedLabel('');
             clearAgentZeroProcessingIndicator(reportID);
@@ -210,10 +217,10 @@ function useAgentZeroStatusIndicator(reportID: string, isAgentZeroChat: boolean)
         };
 
         // When server label arrives, transition smoothly without flicker.
-        // Start/reset the safety timer — the label acts as a lease renewal.
+        // Start/reset polling — the label acts as a lease renewal.
         if (hasServerLabel) {
             updateLabel(serverLabel);
-            startRetryTimers();
+            startPolling();
             if (optimisticStartTime) {
                 setOptimisticStartTime(null);
             }
@@ -222,12 +229,12 @@ function useAgentZeroStatusIndicator(reportID: string, isAgentZeroChat: boolean)
         else if (optimisticStartTime) {
             const thinkingLabel = translate('common.thinking');
             updateLabel(thinkingLabel);
-            // Retry timers were already started in kickoffWaitingIndicator
+            // Polling was already started in kickoffWaitingIndicator
         }
         // Clear everything when processing ends — either via the normal transition
         // (server label went from non-empty to empty), or when the indicator is idle.
         else {
-            clearRetryTimers();
+            clearPolling();
             if (displayedLabel !== '') {
                 updateLabel('');
             }
@@ -245,7 +252,7 @@ function useAgentZeroStatusIndicator(reportID: string, isAgentZeroChat: boolean)
             }
             clearTimeout(updateTimerRef.current);
         };
-    }, [serverLabel, reasoningHistory.length, reportID, optimisticStartTime, translate, displayedLabel, startRetryTimers, clearRetryTimers]);
+    }, [serverLabel, reasoningHistory.length, reportID, optimisticStartTime, translate, displayedLabel, startPolling, clearPolling]);
 
     useEffect(() => {
         isOfflineRef.current = isOffline;
@@ -258,12 +265,12 @@ function useAgentZeroStatusIndicator(reportID: string, isAgentZeroChat: boolean)
         setOptimisticStartTime(null);
     }, [isOffline]);
 
-    // Clean up retry timers on unmount
+    // Clean up polling on unmount
     useEffect(
         () => () => {
-            clearRetryTimers();
+            clearPolling();
         },
-        [clearRetryTimers],
+        [clearPolling],
     );
 
     const kickoffWaitingIndicator = useCallback(() => {
@@ -271,8 +278,8 @@ function useAgentZeroStatusIndicator(reportID: string, isAgentZeroChat: boolean)
             return;
         }
         setOptimisticStartTime(Date.now());
-        startRetryTimers();
-    }, [isAgentZeroChat, startRetryTimers]);
+        startPolling();
+    }, [isAgentZeroChat, startPolling]);
 
     const isProcessing = isAgentZeroChat && !isOffline && (!!serverLabel || !!optimisticStartTime);
 
