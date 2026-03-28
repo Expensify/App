@@ -1,4 +1,3 @@
-import {useRoute} from '@react-navigation/native';
 import React, {useCallback} from 'react';
 import type {ValueOf} from 'type-fest';
 import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
@@ -10,16 +9,13 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {clearSageIntacctErrorField} from '@libs/actions/Policy/Policy';
 import {getLatestErrorField} from '@libs/ErrorUtils';
-import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
-import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {settingsPendingAction} from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import {updateSageIntacctNonreimbursableExpensesExportDestination} from '@userActions/connections/SageIntacct';
 import CONST from '@src/CONST';
-import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
-import type SCREENS from '@src/SCREENS';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 
 type MenuListItem = ListItem & {
     value: ValueOf<typeof CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE>;
@@ -30,7 +26,6 @@ function SageIntacctNonReimbursableExpensesDestinationPage({policy}: WithPolicyC
     const styles = useThemeStyles();
     const policyID = policy?.id;
     const {config} = policy?.connections?.intacct ?? {};
-    const route = useRoute<PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_SAGE_INTACCT_NON_REIMBURSABLE_DESTINATION>>();
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_NON_REIMBURSABLE_DESTINATION.path);
 
     const data: MenuListItem[] = Object.values(CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE).map((expenseType) => ({
