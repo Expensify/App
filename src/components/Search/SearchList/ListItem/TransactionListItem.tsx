@@ -67,12 +67,15 @@ function TransactionListItem<TItem extends ListItem>({
     const [userBillingGraceEndPeriods] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [isActionLoading] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${transactionItem.reportID}`, {selector: isActionLoadingSelector});
 
+    // Use active policy (user's current workspace) as fallback for self DM tracking expenses
+    // This matches MoneyRequestView's approach via usePolicyForMovingExpenses()
+    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
+    const [ownerBillingGraceEndPeriod] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
+
     const [parentReport] = originalUseOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(transactionItem.reportID)}`);
     const [transactionThreadReport] = originalUseOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionItem?.reportAction?.childReportID}`);
     const [transaction] = originalUseOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionItem.transactionID)}`);
 
-    // For unreported expenses (SelfDM), use active policy to show policy-specific fields like categories and tags
-    const [activePolicyID] = originalUseOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const transactionPolicyID = transactionItem.policyID || snapshotReport?.policyID;
     const policyID = isExpenseUnreported(transaction) ? activePolicyID : transactionPolicyID;
@@ -226,6 +229,7 @@ function TransactionListItem<TItem extends ListItem>({
             isDelegateAccessRestricted,
             onDelegateAccessRestricted: showDelegateNoAccessModal,
             personalPolicyID,
+            ownerBillingGraceEndPeriod,
             onUndelete: () => onUndelete?.(transactionItem.transactionID),
         });
     };
