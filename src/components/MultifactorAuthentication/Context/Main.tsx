@@ -1,4 +1,4 @@
-import React, {createContext, useCallback, useContext, useEffect, useMemo} from 'react';
+import React, {createContext, useCallback, useContext, useEffect, useMemo, useRef} from 'react';
 import type {ReactNode} from 'react';
 import Onyx from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -7,6 +7,8 @@ import useBiometrics from '@components/MultifactorAuthentication/biometrics/useB
 import type {MultifactorAuthenticationScenario, MultifactorAuthenticationScenarioParams} from '@components/MultifactorAuthentication/config/types';
 import addMFABreadcrumb from '@components/MultifactorAuthentication/observability/breadcrumbs';
 import trackMFAFlowOutcome from '@components/MultifactorAuthentication/observability/trackMFAFlowOutcome';
+import type {CredentialsState} from '@components/MultifactorAuthentication/observability/trackMFAFlowOutcome';
+import trackMFAFlowStart from '@components/MultifactorAuthentication/observability/trackMFAFlowStart';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useNetwork from '@hooks/useNetwork';
 import {requestValidateCodeAction} from '@libs/actions/User';
@@ -78,6 +80,17 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
         return () => Onyx.disconnect(connection);
     }, [accountID]);
 
+    const startStateRef = useRef<CredentialsState | undefined>(undefined);
+
+    const captureCredentialsState = useCallback(async (): Promise<CredentialsState> => {
+        const hasLocalCredentials = await biometrics.areLocalCredentialsKnownToServer();
+        return {
+            hasServerCredentials: biometrics.serverKnownCredentialIDs.length > 0,
+            hasLocalCredentials,
+            hasEverAcceptedSoftPrompt: !!deviceBiometricsState?.hasAcceptedSoftPrompt,
+        };
+    }, [biometrics]);
+
     /**
      * Handles the completion of a multifactor authentication scenario.
      * Invokes the scenario's callback function and navigates to the appropriate outcome screen.
@@ -114,6 +127,8 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
                 message: scenarioResponse?.message ?? error?.message,
             });
 
+            const endState = await captureCredentialsState();
+
             trackMFAFlowOutcome({
                 isSuccessful,
                 scenario: state.scenarioName,
@@ -123,6 +138,8 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
                 isRegistrationComplete: state.isRegistrationComplete,
                 isAuthorizationComplete: state.isAuthorizationComplete,
                 softPromptApproved: state.softPromptApproved,
+                startState: startStateRef.current ?? endState,
+                endState,
             });
 
             // If the callback returns SKIP_OUTCOME_SCREEN, the callback handles navigation itself
@@ -139,7 +156,7 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
 
             dispatch({type: 'SET_FLOW_COMPLETE', payload: true});
         },
-        [dispatch, state],
+        [captureCredentialsState, dispatch, state],
     );
 
     /**
@@ -187,25 +204,25 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
             return;
         }
 
-        // 2a. Check if device supports the authentication method
-        if (!biometrics.doesDeviceSupportAuthenticationMethod()) {
-            const reason = CONST.MULTIFACTOR_AUTHENTICATION.REASON.GENERIC.UNSUPPORTED_DEVICE;
-            const message = `Device does not support biometric authentication (deviceVerificationType: ${biometrics.deviceVerificationType})`;
-            addMFABreadcrumb('Device check failed', {reason, deviceVerificationType: biometrics.deviceVerificationType, message}, 'warning');
-            dispatch({type: 'SET_ERROR', payload: {reason, message}});
-            return;
-        }
-
-        // 2b. Check if the scenario allows the current authentication method
+        // 2a. Check if the scenario allows the current authentication method type
         const {allowedAuthenticationMethods = [] as string[]} = scenario;
         if (!allowedAuthenticationMethods.includes(biometrics.deviceVerificationType)) {
-            const reason = CONST.MULTIFACTOR_AUTHENTICATION.REASON.GENERIC.UNSUPPORTED_DEVICE;
+            const reason = CONST.MULTIFACTOR_AUTHENTICATION.REASON.GENERIC.AUTHENTICATION_TYPE_NOT_SUPPORTED;
             const message = `Authentication method not allowed (deviceVerificationType: ${biometrics.deviceVerificationType}, allowedMethods: ${allowedAuthenticationMethods.join(', ')})`;
             addMFABreadcrumb(
                 'Authentication method not allowed',
                 {reason, deviceVerificationType: biometrics.deviceVerificationType, allowedAuthenticationMethods: allowedAuthenticationMethods.join(', '), message},
                 'warning',
             );
+            dispatch({type: 'SET_ERROR', payload: {reason, message}});
+            return;
+        }
+
+        // 2b. Check if the device can actually perform the allowed authentication method
+        if (!biometrics.doesDeviceSupportAuthenticationMethod()) {
+            const reason = biometrics.deviceCheckFailureReason;
+            const message = `Device check failed (deviceVerificationType: ${biometrics.deviceVerificationType})`;
+            addMFABreadcrumb('Device check failed', {reason, deviceVerificationType: biometrics.deviceVerificationType, message}, 'warning');
             dispatch({type: 'SET_ERROR', payload: {reason, message}});
             return;
         }
@@ -508,13 +525,22 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
      */
     const executeScenario = useCallback(
         async <T extends MultifactorAuthenticationScenario>(scenario: T, params?: ExecuteScenarioParams<T>): Promise<void> => {
-            addMFABreadcrumb('Flow started', {
+            startStateRef.current = await captureCredentialsState();
+
+            const breadcrumbData = {
                 scenario,
                 hasPayload: params !== undefined && Object.keys(params).length > 0,
                 platform,
                 isOffline,
-                hasAcceptedSoftPrompt: !!deviceBiometricsState?.hasAcceptedSoftPrompt,
-                serverHasAnyCredentials: biometrics.serverKnownCredentialIDs.length > 0,
+                hasAcceptedSoftPrompt: startStateRef.current.hasEverAcceptedSoftPrompt,
+                serverHasAnyCredentials: startStateRef.current.hasServerCredentials,
+            };
+
+            addMFABreadcrumb('Flow started', breadcrumbData);
+            trackMFAFlowStart({
+                scenario,
+                isOffline,
+                credentialsState: startStateRef.current,
             });
             dispatch({
                 type: 'INIT',
@@ -524,7 +550,7 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
                 },
             });
         },
-        [biometrics.serverKnownCredentialIDs, dispatch, isOffline, platform],
+        [captureCredentialsState, dispatch, isOffline, platform],
     );
 
     /**

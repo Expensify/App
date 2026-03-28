@@ -54,6 +54,7 @@ import createRootStackNavigator from './createRootStackNavigator';
 import {screensWithEnteringAnimation, workspaceOrDomainSplitsWithoutEnteringAnimation} from './createRootStackNavigator/GetStateForActionHandlers';
 import defaultScreenOptions from './defaultScreenOptions';
 import DelegatorConnectGuard from './DelegatorConnectGate';
+import hideKeyboardOnSwipe from './hideKeyboardOnSwipe';
 import KeyboardShortcutsHandler from './KeyboardShortcutsHandler';
 import {ShareModalStackNavigator} from './ModalStackNavigators';
 import ExplanationModalNavigator from './Navigators/ExplanationModalNavigator';
@@ -78,6 +79,7 @@ const loadSubmitExpensePage = () => require<ReactComponentModule>('../../../page
 const loadHomePage = () => require<ReactComponentModule>('../../../pages/home/HomePage').default;
 const loadWorkspaceJoinUser = () => require<ReactComponentModule>('@pages/workspace/WorkspaceJoinUserPage').default;
 
+const loadSearchRouterPage = () => require<ReactComponentModule>('../../../components/Search/SearchRouter/SearchRouterPage').default;
 const loadReportSplitNavigator = () => require<ReactComponentModule>('./Navigators/ReportsSplitNavigator').default;
 const loadSettingsSplitNavigator = () => require<ReactComponentModule>('./Navigators/SettingsSplitNavigator').default;
 const loadWorkspaceSplitNavigator = () => require<ReactComponentModule>('./Navigators/WorkspaceSplitNavigator').default;
@@ -336,6 +338,16 @@ function AuthScreens() {
                             options={attachmentModalScreenOptions}
                             getComponent={loadAttachmentModalScreen}
                             listeners={modalScreenListeners}
+                        />
+                        <RootStack.Screen
+                            name={SCREENS.SEARCH_ROUTER.ROOT}
+                            options={{
+                                ...hideKeyboardOnSwipe,
+                                animation: Animations.SLIDE_FROM_RIGHT,
+                                headerShown: false,
+                            }}
+                            getComponent={loadSearchRouterPage}
+                            listeners={modalScreenListenersWithCancelSearch}
                         />
                         <RootStack.Screen
                             name={SCREENS.NOT_FOUND}
