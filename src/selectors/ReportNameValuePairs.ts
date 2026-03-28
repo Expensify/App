@@ -6,4 +6,4 @@ import type {ReportNameValuePairs} from '@src/types/onyx';
  */
 const agentZeroProcessingIndicatorSelector = (reportNameValuePairs: OnyxEntry<ReportNameValuePairs>): string => reportNameValuePairs?.agentZeroProcessingRequestIndicator?.trim() ?? '';
 
-export {agentZeroProcessingIndicatorSelector};
+export default agentZeroProcessingIndicatorSelector;
