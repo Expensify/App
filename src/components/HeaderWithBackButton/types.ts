@@ -14,7 +14,7 @@ import type IconAsset from '@src/types/utils/IconAsset';
 
 type ThreeDotsMenuItem = {
     /** An icon element displayed on the left side */
-    icon: IconAsset | Extract<ExpensifyIconName, 'ChatBubbles' | 'CommentBubbles'>;
+    icon: Extract<ExpensifyIconName, 'ChatBubbles' | 'CommentBubbles' | 'Pin' | 'QrCode'>;
 
     /** Translation key for the label */
     translationKey: TranslationPaths;

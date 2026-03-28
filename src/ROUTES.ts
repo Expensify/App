@@ -669,7 +669,7 @@ const ROUTES = {
     SETTINGS_STATUS_CLEAR_AFTER_TIME: 'settings/profile/status/clear-after/time',
     SETTINGS_VACATION_DELEGATE: 'settings/profile/status/vacation-delegate',
     SETTINGS_TROUBLESHOOT: 'settings/troubleshoot',
-
+    SETTINGS_HELP: 'settings/help',
     SETTINGS_EXIT_SURVEY_REASON: 'settings/exit-survey/reason',
 
     SETTINGS_EXIT_SURVEY_CONFIRM: {
