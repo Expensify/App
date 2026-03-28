@@ -1,4 +1,3 @@
-import type {SidePanelContext} from '@src/types/onyx';
 import type {FileObject} from '@src/types/utils/Attachment';
 
 type AddCommentOrAttachmentParams = {
