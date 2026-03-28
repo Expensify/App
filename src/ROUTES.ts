@@ -120,6 +120,10 @@ const DYNAMIC_ROUTES = {
         getRoute: (country = '') => `country?country=${country}`,
         queryParams: ['country'],
     },
+    WORKSPACE_CATEGORY_EDIT: {
+        path: 'edit',
+        entryScreens: [SCREENS.WORKSPACE.CATEGORY_SETTINGS],
+    },
 } as const satisfies DynamicRoutes;
 
 const ROUTES = {
