@@ -32,6 +32,12 @@ type TagPickerModalProps = {
     /** Currently selected tag */
     selectedTag?: string;
 
+    /** The current transaction tag of the expense */
+    transactionTag?: string;
+
+    /** Whether the policy has dependent tags */
+    hasDependentTags?: boolean;
+
     /** Called when the user confirms a tag selection */
     onSelected?: (tag: string) => void;
 } & Omit<PopoverWithMeasuredContentProps, 'anchorRef' | 'children' | 'onClose'>;
@@ -42,6 +48,8 @@ function TagPickerModal({
     anchorPosition,
     policyID,
     selectedTag = '',
+    transactionTag,
+    hasDependentTags,
     onSelected,
     anchorAlignment = DEFAULT_ANCHOR_ALIGNMENT,
     shouldMeasureAnchorPositionFromTop = false,
@@ -96,6 +104,8 @@ function TagPickerModal({
                         tagListName={tagListName}
                         tagListIndex={0}
                         selectedTag={pendingItem?.searchText ?? pendingItem?.text ?? selectedTag}
+                        transactionTag={transactionTag}
+                        hasDependentTags={hasDependentTags}
                         onSubmit={handleTagSelected}
                     />
                 </View>
