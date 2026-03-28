@@ -144,10 +144,12 @@ function useAgentZeroStatusIndicator(reportID: string, isAgentZeroChat: boolean)
     // We also call getNewerActions to pull any responses missed during the outage.
     const {isOffline} = useNetwork({
         onReconnect: () => {
-            // On reconnect, fetch missed actions but DON'T clear the indicator yet.
-            // The response may arrive via getNewerActions or Pusher — the normal
-            // Onyx update will clear the indicator when the server sends CLEAR.
-            // Only restart polling so we actively check for the missed response.
+            // On reconnect, fetch any missed actions and restart polling.
+            // The indicator is hidden while offline (original design: !isOffline in isProcessing).
+            // When we reconnect, if the server NVP still has processing state,
+            // the indicator reappears automatically. If the response arrived while
+            // offline, getNewerActions will fetch it and the server CLEAR will
+            // update the NVP, keeping the indicator hidden.
             getNewerActions(reportID, newestReportActionIDRef.current);
             startPolling();
         },
