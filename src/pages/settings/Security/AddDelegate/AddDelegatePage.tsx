@@ -112,9 +112,8 @@ function AddDelegatePage() {
                         }}
                         shouldShowLoadingPlaceholder={!areOptionsInitialized}
                         isLoadingNewOptions={!!isSearchingForReports}
-                        onEndReached={onListEndReached}
                         shouldShowTextInput
-                        shouldShowRadioButton
+                        onEndReached={onListEndReached}
                     />
                 </View>
             </DelegateNoAccessWrapper>
