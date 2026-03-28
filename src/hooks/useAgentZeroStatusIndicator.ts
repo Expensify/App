@@ -155,13 +155,13 @@ function useAgentZeroStatusIndicator(reportID: string, isAgentZeroChat: boolean)
     // We also call getNewerActions to pull any responses missed during the outage.
     const {isOffline} = useNetwork({
         onReconnect: () => {
-            // On reconnect, fetch any missed actions and restart polling.
-            // The indicator is hidden while offline (original design: !isOffline in isProcessing).
-            // When we reconnect, if the server NVP still has processing state,
-            // the indicator reappears automatically. If the response arrived while
-            // offline, getNewerActions will fetch it and the server CLEAR will
-            // update the NVP, keeping the indicator hidden.
+            // On reconnect, fetch any missed actions and clear the indicator.
+            // The getNewerActions call fetches the Concierge response that was
+            // sent while the WebSocket was down. We also clear the indicator NVP
+            // directly because the NVP CLEAR event was likely lost with the
+            // WebSocket drop — getNewerActions only fetches report actions, not NVPs.
             getNewerActions(reportID, newestReportActionIDRef.current);
+            clearAgentZeroProcessingIndicator(reportID);
             startPolling();
         },
     });
