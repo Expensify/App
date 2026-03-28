@@ -11,7 +11,8 @@ import type * as RNKeyboardController from 'react-native-keyboard-controller';
 import mockStorage from 'react-native-onyx/dist/storage/__mocks__';
 import type Animated from 'react-native-reanimated';
 import 'setimmediate';
-import * as MockedSecureStore from '@src/libs/MultifactorAuthentication/Biometrics/SecureStore/index.web';
+import {TextDecoder, TextEncoder} from 'util';
+import * as MockedSecureStore from '@src/libs/MultifactorAuthentication/NativeBiometrics/SecureStore/index.web';
 import '@src/polyfills/PromiseWithResolvers';
 import mockFSLibrary from './setupMockFullstoryLib';
 import setupMockImages from './setupMockImages';
@@ -24,6 +25,8 @@ if (!('GITHUB_REPOSITORY' in process.env)) {
 
 setupMockImages();
 mockFSLibrary();
+
+Object.assign(global, {TextDecoder, TextEncoder});
 
 // This mock is required as per setup instructions for react-navigation testing
 // https://reactnavigation.org/docs/testing/#mocking-native-modules
@@ -123,7 +126,7 @@ jest.mock('react-native-share', () => ({
 }));
 
 // Jest has no access to the native secure store module, so we mock it with the web implementation.
-jest.mock('@src/libs/MultifactorAuthentication/Biometrics/SecureStore', () => MockedSecureStore);
+jest.mock('@src/libs/MultifactorAuthentication/NativeBiometrics/SecureStore', () => MockedSecureStore);
 
 jest.mock('react-native-reanimated', () => ({
     ...jest.requireActual<typeof Animated>('react-native-reanimated/mock'),
@@ -252,6 +255,14 @@ jest.mock('../src/components/Icon/ExpensifyIconLoader.ts', () => ({
         };
         return Promise.resolve({default: mockIcon});
     }),
+    loadExpensifyIconsChunk: jest.fn(() => Promise.resolve({})),
+    getExpensifyIconsChunk: jest.fn(() => ({})),
+}));
+
+jest.mock('../src/components/Icon/IllustrationLoader.ts', () => ({
+    loadIllustration: jest.fn(() => Promise.resolve({default: {src: 'mock-illustration', height: 20, width: 20}})),
+    loadIllustrationsChunk: jest.fn(() => Promise.resolve({})),
+    getIllustrationsChunk: jest.fn(() => ({})),
 }));
 
 jest.mock(

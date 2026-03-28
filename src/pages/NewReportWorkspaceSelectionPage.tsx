@@ -1,7 +1,8 @@
 import {accountIDSelector, emailSelector} from '@selectors/Session';
 import React, {useEffect, useState} from 'react';
+import {View} from 'react-native';
 import type {OnyxCollection} from 'react-native-onyx';
-import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
+import ActivityIndicator from '@components/ActivityIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import {useSearchActionsContext, useSearchStateContext} from '@components/Search/SearchContext';
@@ -182,7 +183,7 @@ function NewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelectionPag
             return;
         }
 
-        if (shouldRestrictUserBillableActions(policy.policyID, userBillingGracePeriods, undefined, ownerBillingGraceEndPeriod)) {
+        if (shouldRestrictUserBillableActions(policy.policyID, ownerBillingGraceEndPeriod, userBillingGracePeriods)) {
             Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.policyID));
             return;
         }
@@ -267,10 +268,12 @@ function NewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelectionPag
                         onBackButtonPress={Navigation.goBack}
                     />
                     {shouldShowLoadingIndicator ? (
-                        <FullScreenLoadingIndicator
-                            style={[styles.flex1, styles.pRelative]}
-                            reasonAttributes={{context: 'NewReportWorkspaceSelectionPage', isLoadingApp: !!isLoadingApp}}
-                        />
+                        <View style={[styles.flex1, styles.fullScreenLoading]}>
+                            <ActivityIndicator
+                                size="large"
+                                reasonAttributes={{context: 'NewReportWorkspaceSelectionPage', isLoadingApp: !!isLoadingApp}}
+                            />
+                        </View>
                     ) : (
                         <>
                             <Text style={[styles.ph5, styles.mb3]}>{translate('report.newReport.chooseWorkspace')}</Text>

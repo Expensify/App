@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import type {OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
-import type {TransactionReportGroupListItemType} from '@components/SelectionListWithSections/types';
+import type {TransactionReportGroupListItemType} from '@components/Search/SearchList/ListItem/types';
 import {handleActionButtonPress, handleBulkPayItemSelected} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
@@ -325,6 +325,7 @@ describe('handleActionButtonPress', () => {
             snapshotPolicy: snapshotPolicy as Policy,
             lastPaymentMethod: mockLastPaymentMethod,
             personalPolicyID: undefined,
+            ownerBillingGraceEndPeriod: undefined,
             userBillingGraceEndPeriods: undefined,
         });
         expect(goToItem).toHaveBeenCalledTimes(1);
@@ -340,6 +341,7 @@ describe('handleActionButtonPress', () => {
             snapshotPolicy: snapshotPolicy as Policy,
             lastPaymentMethod: mockLastPaymentMethod,
             personalPolicyID: undefined,
+            ownerBillingGraceEndPeriod: undefined,
             userBillingGraceEndPeriods: undefined,
         });
         expect(goToItem).toHaveBeenCalledTimes(0);
@@ -363,6 +365,7 @@ describe('handleBulkPayItemSelected', () => {
         confirmPayment: jest.fn(),
         userBillingGraceEndPeriods: undefined,
         businessBankAccountOptions: undefined,
+        ownerBillingGraceEndPeriod: undefined,
     };
 
     beforeEach(async () => {
@@ -392,6 +395,7 @@ describe('handleBulkPayItemSelected', () => {
             ...baseParams,
             policy,
             amountOwed: 100,
+            ownerBillingGraceEndPeriod: pastDate,
         });
 
         expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.RESTRICTED_ACTION.getRoute(policyID));

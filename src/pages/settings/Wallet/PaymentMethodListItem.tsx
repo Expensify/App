@@ -100,6 +100,10 @@ function isAccountInSetupState(account: PaymentMethodItem) {
     return !!(account.accountData && 'state' in account.accountData && isBankAccountPartiallySetup(account.accountData.state));
 }
 
+function isBusinessBankAccountLocked(account: PaymentMethodItem) {
+    return account.accountData && 'state' in account.accountData && account.accountData.state === CONST.BANK_ACCOUNT.STATE.LOCKED && account.accountData.allowDebit;
+}
+
 function isAccountNeedingAction(account: PaymentMethodItem) {
     return isAccountInSetupState(account) || !!account.isMissingPersonalInfo;
 }
@@ -112,6 +116,7 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     const threeDotsMenuRef = useRef<{hidePopoverMenu: () => void; isPopupMenuVisible: boolean; onThreeDotsPress: () => void}>(null);
+    const isInLockedState = isBusinessBankAccountLocked(item);
     const showThreeDotsMenu = item.shouldShowThreeDotsMenu !== false && !!threeDotsMenuItems;
     const isNeedingAction = isAccountNeedingAction(item);
 
@@ -122,6 +127,15 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
         !!(item.accountData?.additionalData?.plaidAccountID ?? item.accountData?.plaidAccountID);
 
     const handleRowPress = (e: GestureResponderEvent | KeyboardEvent | undefined) => {
+        if (isInLockedState) {
+            if (item.onThreeDotsMenuPress) {
+                item.onThreeDotsMenuPress(e);
+            } else {
+                item.onPress?.(e);
+            }
+            return;
+        }
+
         if (isNeedingAction || !showThreeDotsMenu || (item.cardID && item.onThreeDotsMenuPress)) {
             item.onPress?.(e);
         } else if (threeDotsMenuRef.current) {
@@ -130,7 +144,9 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
     };
 
     let badgeText;
-    if (isNeedingAction) {
+    if (isInLockedState) {
+        badgeText = translate('common.locked');
+    } else if (isNeedingAction) {
         badgeText = translate('common.actionRequired');
     } else if (item.isCardFrozen) {
         badgeText = translate('cardPage.frozen');
@@ -139,7 +155,7 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
     }
 
     let badgeIcon;
-    if (isNeedingAction) {
+    if (isNeedingAction || isInLockedState) {
         badgeIcon = icons.DotIndicator;
     } else if (item.isCardFrozen) {
         badgeIcon = icons.FreezeCard;
@@ -169,6 +185,7 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
                 badgeText={badgeText}
                 badgeIcon={badgeIcon}
                 isBadgeSuccess={isNeedingAction ? true : undefined}
+                isBadgeError={isInLockedState}
                 wrapperStyle={[styles.paymentMethod, listItemStyle]}
                 iconRight={isNeedingAction ? undefined : item.iconRight}
                 shouldShowRightIcon={!showThreeDotsMenu && item.shouldShowRightIcon}

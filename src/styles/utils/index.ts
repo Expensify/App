@@ -1582,7 +1582,7 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
         backgroundColor: theme.componentBG,
         height: size,
         width: size,
-        borderColor: theme.borderLighter,
+        borderColor: theme.bordersBold,
         borderWidth: 2,
         justifyContent: 'center',
         alignItems: 'center',
@@ -1629,7 +1629,7 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
     getDotIndicatorTextStyles: (isErrorText = true): TextStyle => (isErrorText ? {...styles.offlineFeedbackText, color: styles.formError.color} : {...styles.offlineFeedbackText}),
 
     getEmojiReactionBubbleStyle: (isHovered: boolean, hasUserReacted: boolean, isContextMenu = false): ViewStyle => {
-        let backgroundColor = theme.border;
+        let backgroundColor = theme.buttonDefaultBG;
 
         if (isHovered) {
             backgroundColor = theme.buttonHoveredBG;
@@ -1861,7 +1861,7 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
                 break;
             case CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE:
             case CONST.SEARCH.TABLE_COLUMNS.BILLABLE:
-                columnWidth = {...getWidthStyle(variables.w80)};
+                columnWidth = {...getWidthStyle(variables.w92)};
                 break;
             case CONST.SEARCH.TABLE_COLUMNS.TAX_RATE:
                 columnWidth = {...getWidthStyle(variables.w92), ...styles.flex1};
