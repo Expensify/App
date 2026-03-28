@@ -13,6 +13,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {cleanupTravelProvisioningSession, requestTravelAccess, setTravelProvisioningNextStep} from '@libs/actions/Travel';
 import {isEmailPublicDomain} from '@libs/LoginUtils';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {openTravelDotLink} from '@libs/openTravelDotLink';
 import {areTravelPersonalDetailsMissing} from '@libs/PersonalDetailsUtils';
@@ -20,7 +21,7 @@ import {getActivePolicies, getAdminsPrivateEmailDomains, isPaidGroupPolicy} from
 import colors from '@styles/theme/colors';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type WithSentryLabel from '@src/types/utils/SentryLabel';
 import Button from './Button';
@@ -133,7 +134,7 @@ function BookTravelButton({
         }
 
         if (groupPaidPolicies.length < 1) {
-            Navigation.navigate(ROUTES.TRAVEL_UPGRADE.getRoute(Navigation.getActiveRoute()));
+            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.TRAVEL_UPGRADE.path));
             return;
         }
 
