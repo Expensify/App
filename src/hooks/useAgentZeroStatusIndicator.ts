@@ -124,12 +124,16 @@ function useAgentZeroStatusIndicator(reportID: string, isAgentZeroChat: boolean)
     const startPolling = useCallback(() => {
         clearPolling();
 
-        // Poll every 30s for missed actions
+        // Poll every 30s for missed actions. Also clear the processing indicator
+        // because getNewerActions only fetches report actions, not NVP updates.
+        // If the Concierge response arrived (as a report action) but the NVP CLEAR
+        // was missed via Pusher, we need to explicitly clear the indicator client-side.
         pollIntervalRef.current = setInterval(() => {
             if (isOfflineRef.current) {
                 return;
             }
             getNewerActions(reportID, newestReportActionIDRef.current);
+            clearAgentZeroProcessingIndicator(reportID);
         }, POLL_INTERVAL_MS);
 
         // Safety net: hard-clear after MAX_POLL_DURATION_MS
