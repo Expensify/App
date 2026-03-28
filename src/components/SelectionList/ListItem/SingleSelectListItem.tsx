@@ -1,5 +1,5 @@
 import React, {useCallback} from 'react';
-import SelectionCheckbox from '@components/SelectionList/components/SelectionCheckbox';
+import Checkbox from '@components/Checkbox';
 import useThemeStyles from '@hooks/useThemeStyles';
 import RadioListItem from './RadioListItem';
 import type {ListItem, SingleSelectListItemProps} from './types';
@@ -23,21 +23,19 @@ function SingleSelectListItem<TItem extends ListItem>({
     shouldSyncFocus,
     wrapperStyle,
     titleStyles,
-    shouldHighlightSelectedItem = false,
-    rightHandSideComponent = undefined,
-    shouldShowRadioButton = true,
-    accessibilityState,
+    shouldHighlightSelectedItem = true,
 }: SingleSelectListItemProps<TItem>) {
     const styles = useThemeStyles();
 
     const radioCheckboxComponent = useCallback(() => {
         return (
-            <SelectionCheckbox
-                item={item}
-                onSelectRow={onSelectRow}
+            <Checkbox
+                shouldSelectOnPressEnter
+                containerBorderRadius={999}
                 accessibilityLabel="SingleSelectListItem"
-                isCircular
                 tabIndex={-1}
+                isChecked={item.isSelected}
+                onPress={() => onSelectRow(item)}
             />
         );
     }, [item, onSelectRow]);
@@ -49,7 +47,7 @@ function SingleSelectListItem<TItem extends ListItem>({
             isFocused={isFocused}
             showTooltip={showTooltip}
             isDisabled={isDisabled}
-            rightHandSideComponent={rightHandSideComponent ?? radioCheckboxComponent}
+            rightHandSideComponent={radioCheckboxComponent}
             onSelectRow={onSelectRow}
             onDismissError={onDismissError}
             shouldPreventEnterKeySubmit={shouldPreventEnterKeySubmit}
@@ -58,11 +56,9 @@ function SingleSelectListItem<TItem extends ListItem>({
             alternateTextNumberOfLines={alternateTextNumberOfLines}
             onFocus={onFocus}
             shouldSyncFocus={shouldSyncFocus}
-            wrapperStyle={[styles.optionRow, wrapperStyle]}
+            wrapperStyle={[styles.optionRowCompact, wrapperStyle]}
             titleStyles={titleStyles}
             shouldHighlightSelectedItem={shouldHighlightSelectedItem}
-            shouldShowRadioButton={shouldShowRadioButton}
-            accessibilityState={accessibilityState}
         />
     );
 }

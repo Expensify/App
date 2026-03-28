@@ -1,26 +1,26 @@
-import React from 'react';
+import React, {useCallback} from 'react';
 import {View} from 'react-native';
 import Badge from '@components/Badge';
-import SelectionCheckbox from '@components/SelectionList/components/SelectionCheckbox';
+import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
+import SelectCircle from '@components/SelectCircle';
 import TextWithTooltip from '@components/TextWithTooltip';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import CONST from '@src/CONST';
 import BaseListItem from './BaseListItem';
 import type {ListItem, TravelDomainListItemProps} from './types';
 
-function TravelDomainListItem<TItem extends ListItem>({
-    item,
-    isFocused,
-    showTooltip,
-    isDisabled,
-    onSelectRow,
-    onCheckboxPress,
-    onFocus,
-    shouldSyncFocus,
-    accessibilityState,
-}: TravelDomainListItemProps<TItem>) {
+function TravelDomainListItem<TItem extends ListItem>({item, isFocused, showTooltip, isDisabled, onSelectRow, onCheckboxPress, onFocus, shouldSyncFocus}: TravelDomainListItemProps<TItem>) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+
+    const handleCheckboxPress = useCallback(() => {
+        if (onCheckboxPress) {
+            onCheckboxPress(item);
+        } else {
+            onSelectRow(item);
+        }
+    }, [item, onCheckboxPress, onSelectRow]);
     const showRecommendedTag = item.isRecommended ?? false;
 
     return (
@@ -35,17 +35,21 @@ function TravelDomainListItem<TItem extends ListItem>({
             keyForList={item.keyForList}
             onFocus={onFocus}
             shouldSyncFocus={shouldSyncFocus}
-            accessibilityState={accessibilityState}
         >
             <>
                 <View style={[styles.flexRow, styles.alignItemsCenter]}>
-                    <SelectionCheckbox
-                        item={item}
-                        onSelectRow={onCheckboxPress ?? onSelectRow}
-                        disabled={isDisabled ?? undefined}
-                        isCircular
-                        style={styles.mr2}
-                    />
+                    <PressableWithFeedback
+                        onPress={handleCheckboxPress}
+                        disabled={isDisabled}
+                        role={CONST.ROLE.BUTTON}
+                        accessibilityLabel={item.text ?? ''}
+                        style={[styles.mr2, styles.optionSelectCircle]}
+                    >
+                        <SelectCircle
+                            isChecked={item.isSelected ?? false}
+                            selectCircleStyles={styles.ml0}
+                        />
+                    </PressableWithFeedback>
                     <View style={[styles.flexRow, styles.alignItemsCenter]}>
                         <TextWithTooltip
                             shouldShowTooltip={showTooltip}
