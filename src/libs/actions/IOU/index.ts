@@ -8652,7 +8652,14 @@ function deleteMoneyRequest({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport?.reportID}`,
             value: {
-                hasOutstandingChildRequest: hasOutstandingChildRequest(chatReport, updatedIOUReport, deprecatedCurrentUserEmail, currentUserAccountID, allTransactionViolationsParam, undefined),
+                hasOutstandingChildRequest: hasOutstandingChildRequest(
+                    chatReport,
+                    updatedIOUReport,
+                    deprecatedCurrentUserEmail,
+                    currentUserAccountID,
+                    allTransactionViolationsParam,
+                    undefined,
+                ),
             },
         });
     }
@@ -8671,7 +8678,14 @@ function deleteMoneyRequest({
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport?.reportID}`,
                 value: {
-                    hasOutstandingChildRequest: hasOutstandingChildRequest(chatReport, iouReport?.reportID, deprecatedCurrentUserEmail, currentUserAccountID, allTransactionViolationsParam, undefined),
+                    hasOutstandingChildRequest: hasOutstandingChildRequest(
+                        chatReport,
+                        iouReport?.reportID,
+                        deprecatedCurrentUserEmail,
+                        currentUserAccountID,
+                        allTransactionViolationsParam,
+                        undefined,
+                    ),
                     iouReportID: null,
                     ...optimisticLastReportData,
                 },
@@ -8689,7 +8703,13 @@ function deleteMoneyRequest({
         });
     }
 
-    const cleanUpTransactionThreadReportOnyxData = getCleanUpTransactionThreadReportOnyxData({shouldDeleteTransactionThread, transactionThreadID, reportAction, isChatIOUReportArchived, currentUserAccountID});
+    const cleanUpTransactionThreadReportOnyxData = getCleanUpTransactionThreadReportOnyxData({
+        shouldDeleteTransactionThread,
+        transactionThreadID,
+        reportAction,
+        isChatIOUReportArchived,
+        currentUserAccountID,
+    });
     optimisticData.push(...cleanUpTransactionThreadReportOnyxData.optimisticData);
 
     const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.TRANSACTION>> = [
