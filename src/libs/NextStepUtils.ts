@@ -362,7 +362,8 @@ function getReportNextStep(
             (transaction) => !!transaction && hasSubmissionBlockingViolations(transaction, transactionViolations, currentUserEmail, currentUserAccountID, moneyRequestReport, policy),
         )
     ) {
-        return buildOptimisticFixIssueNextStep(moneyRequestReport?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID);
+        // eslint-disable-next-line rulesdir/no-default-id-values -- actorAccountID can be -1 for unspecified owner
+        return buildOptimisticFixIssueNextStep(moneyRequestReport?.ownerAccountID ?? -1);
     }
 
     const isSubmitterSameAsNextApprover =
