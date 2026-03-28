@@ -51,7 +51,7 @@ const pages: PageEntry[] = [
         pageName: PAGE_NAMES.BENEFICIAL_OWNERS,
         component: BeneficialOwnersStep as React.ComponentType<USDPageProps>,
         firstSubPage: BENEFICIAL_OWNERS_SUB_PAGES.IS_USER_UBO,
-        lastSubPage: BENEFICIAL_OWNERS_SUB_PAGES.UBOS_LIST,
+        lastSubPage: undefined,
     },
     {
         pageName: PAGE_NAMES.ACH_CONTRACT,
@@ -101,7 +101,7 @@ function USDVerifiedBankAccountFlowPage({route}: USDVerifiedBankAccountFlowPageP
             return;
         }
         const prevPage = pages.at(prevIndex);
-        Navigation.navigate(ROUTES.BANK_ACCOUNT_USD_SETUP.getRoute({policyID, page: prevPage?.pageName, subPage: prevPage?.lastSubPage, backTo}));
+        Navigation.goBack(ROUTES.BANK_ACCOUNT_USD_SETUP.getRoute({policyID, page: prevPage?.pageName, subPage: prevPage?.lastSubPage, backTo}));
     }, [backTo, currentPageIndex, policyID]);
 
     const shouldShowOnfido = !!(onfidoToken && !reimbursementAccount?.achData?.isOnfidoSetupComplete);

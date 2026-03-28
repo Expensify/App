@@ -1,5 +1,5 @@
 import {Str} from 'expensify-common';
-import React, {useCallback, useState} from 'react';
+import React, {useCallback, useEffect} from 'react';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import YesNoStep from '@components/SubStepForms/YesNoStep';
 import useLocalize from '@hooks/useLocalize';
@@ -47,21 +47,24 @@ function BeneficialOwnersStep({onBackButtonPress, onSubmit, currentSubPage, poli
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
 
     const companyName = reimbursementAccount?.achData?.companyName ?? '';
-    const defaultValues = {
-        ownsMoreThan25Percent: reimbursementAccount?.achData?.ownsMoreThan25Percent ?? reimbursementAccountDraft?.ownsMoreThan25Percent ?? false,
-        hasOtherBeneficialOwners: reimbursementAccount?.achData?.hasOtherBeneficialOwners ?? reimbursementAccountDraft?.hasOtherBeneficialOwners ?? false,
-        beneficialOwnerKeys: reimbursementAccount?.achData?.beneficialOwnerKeys ?? reimbursementAccountDraft?.beneficialOwnerKeys ?? [],
-    };
 
-    // We're only reading beneficialOwnerKeys from draft values because there is not option to remove UBO
-    // if we were to set them based on values saved in BE then there would be no option to enter different UBOs
-    // user would always see the same UBOs that was saved in BE when returning to this step and trying to change something
-    const [beneficialOwnerKeys, setBeneficialOwnerKeys] = useState<string[]>(defaultValues.beneficialOwnerKeys);
-    const [beneficialOwnerBeingModifiedID, setBeneficialOwnerBeingModifiedID] = useState('');
-    const [isEditingCreatedBeneficialOwner, setIsEditingCreatedBeneficialOwner] = useState(false);
-    const [isUserUBO, setIsUserUBO] = useState(defaultValues.ownsMoreThan25Percent);
-    const [isAnyoneElseUBO, setIsAnyoneElseUBO] = useState(defaultValues.hasOtherBeneficialOwners);
+    // Read state from Onyx draft so it survives URL-based navigation (component remounts)
+    const isUserUBO = reimbursementAccount?.achData?.ownsMoreThan25Percent ?? reimbursementAccountDraft?.ownsMoreThan25Percent ?? false;
+    const beneficialOwners = reimbursementAccount?.achData?.beneficialOwners;
+    const isAnyoneElseUBO = beneficialOwners?.length ? true : reimbursementAccountDraft?.hasOtherBeneficialOwners ?? false;
+    const beneficialOwnerKeys: string[] = reimbursementAccountDraft?.beneficialOwnerKeys ?? reimbursementAccount?.achData?.beneficialOwnerKeys ?? [];
+    const beneficialOwnerBeingModifiedID = reimbursementAccountDraft?.ownerBeingModifiedID ?? '';
+    const isEditingCreatedBeneficialOwner = reimbursementAccountDraft?.isEditingCreatedOwner ?? false;
     const canAddMoreUBOS = beneficialOwnerKeys.length < (isUserUBO ? MAX_NUMBER_OF_UBOS - 1 : MAX_NUMBER_OF_UBOS);
+
+    // Redirect to the correct sub-page if no subPage is in the URL
+    useEffect(() => {
+        if (currentSubPage) {
+            return;
+        }
+        const subPage = isUserUBO || (isAnyoneElseUBO && beneficialOwnerKeys.length > 0) ? SUB_PAGE_NAMES.UBOS_LIST : SUB_PAGE_NAMES.IS_USER_UBO;
+        Navigation.setParams({subPage} as Record<string, unknown>);
+    }, [currentSubPage, policyID, backTo, isAnyoneElseUBO, beneficialOwnerKeys.length]);
 
     const navigateToSubPage = useCallback(
         (subPage: string) => {
@@ -79,7 +82,7 @@ function BeneficialOwnersStep({onBackButtonPress, onSubmit, currentSubPage, poli
 
     const submit = () => {
         const beneficialOwnerFields = ['firstName', 'lastName', 'dob', 'ssnLast4', 'street', 'city', 'state', 'zipCode'];
-        const beneficialOwners = beneficialOwnerKeys.map((ownerKey) =>
+        const beneficialOwnersData = beneficialOwnerKeys.map((ownerKey) =>
             beneficialOwnerFields.reduce(
                 (acc, fieldName) => {
                     acc[fieldName] = reimbursementAccountDraft ? SafeString(reimbursementAccountDraft[`beneficialOwner_${ownerKey}_${fieldName}`]) : undefined;
@@ -93,7 +96,7 @@ function BeneficialOwnersStep({onBackButtonPress, onSubmit, currentSubPage, poli
             getBankAccountIDAsNumber(reimbursementAccount?.achData),
             {
                 ownsMoreThan25Percent: isUserUBO,
-                beneficialOwners: JSON.stringify(beneficialOwners),
+                beneficialOwners: JSON.stringify(beneficialOwnersData),
                 beneficialOwnerKeys,
             },
             policyID,
@@ -103,8 +106,7 @@ function BeneficialOwnersStep({onBackButtonPress, onSubmit, currentSubPage, poli
 
     const addBeneficialOwner = (beneficialOwnerID: string) => {
         const newBeneficialOwners = [...beneficialOwnerKeys, beneficialOwnerID];
-        setBeneficialOwnerKeys(newBeneficialOwners);
-        setDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, {beneficialOwners: JSON.stringify(newBeneficialOwners)});
+        setDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, {beneficialOwnerKeys: newBeneficialOwners, beneficialOwners: JSON.stringify(newBeneficialOwners)});
     };
 
     const handleBeneficialOwnerDetailsFormSubmit = () => {
@@ -116,22 +118,22 @@ function BeneficialOwnersStep({onBackButtonPress, onSubmit, currentSubPage, poli
 
         const isLastUBOThatCanBeAdded = beneficialOwnerKeys.length === (isUserUBO ? MAX_NUMBER_OF_UBOS - 2 : MAX_NUMBER_OF_UBOS - 1);
         const nextSubPage = isEditingCreatedBeneficialOwner || isLastUBOThatCanBeAdded ? SUB_PAGE_NAMES.UBOS_LIST : SUB_PAGE_NAMES.ARE_THERE_MORE_UBOS;
-        setIsEditingCreatedBeneficialOwner(false);
+        setDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, {isEditingCreatedOwner: false});
         navigateToSubPage(nextSubPage);
     };
 
     const prepareBeneficialOwnerDetailsForm = () => {
         const beneficialOwnerID = Str.guid();
-        setBeneficialOwnerBeingModifiedID(beneficialOwnerID);
+        setDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, {ownerBeingModifiedID: beneficialOwnerID});
         navigateToSubPage(SUB_PAGE_NAMES.LEGAL_NAME);
     };
 
     const handleNextUBOSubstep = (value: boolean) => {
         if (currentSubPage === SUB_PAGE_NAMES.IS_USER_UBO) {
-            setIsUserUBO(value);
+            setDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, {ownsMoreThan25Percent: value});
 
             if (value && beneficialOwnerKeys.length === 4) {
-                setBeneficialOwnerKeys((previousBeneficialOwners) => previousBeneficialOwners.slice(0, 3));
+                setDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, {beneficialOwnerKeys: beneficialOwnerKeys.slice(0, 3)});
             }
 
             navigateToSubPage(SUB_PAGE_NAMES.IS_ANYONE_ELSE_UBO);
@@ -139,7 +141,7 @@ function BeneficialOwnersStep({onBackButtonPress, onSubmit, currentSubPage, poli
         }
 
         if (currentSubPage === SUB_PAGE_NAMES.IS_ANYONE_ELSE_UBO) {
-            setIsAnyoneElseUBO(value);
+            setDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, {hasOtherBeneficialOwners: value});
 
             if (!canAddMoreUBOS && value) {
                 navigateToSubPage(SUB_PAGE_NAMES.UBOS_LIST);
@@ -188,8 +190,7 @@ function BeneficialOwnersStep({onBackButtonPress, onSubmit, currentSubPage, poli
     };
 
     const handleUBOEdit = (beneficialOwnerID: string) => {
-        setBeneficialOwnerBeingModifiedID(beneficialOwnerID);
-        setIsEditingCreatedBeneficialOwner(true);
+        setDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, {ownerBeingModifiedID: beneficialOwnerID, isEditingCreatedOwner: true});
         navigateToSubPage(SUB_PAGE_NAMES.LEGAL_NAME);
     };
 
@@ -199,7 +200,8 @@ function BeneficialOwnersStep({onBackButtonPress, onSubmit, currentSubPage, poli
             <BeneficialOwnerDetailsFormPages
                 policyID={policyID}
                 beneficialOwnerBeingModifiedID={beneficialOwnerBeingModifiedID}
-                setBeneficialOwnerBeingModifiedID={setBeneficialOwnerBeingModifiedID}
+                // eslint-disable-next-line @typescript-eslint/no-misused-promises
+                setBeneficialOwnerBeingModifiedID={(id: string) => setDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, {ownerBeingModifiedID: id})}
                 isEditingCreatedBeneficialOwner={isEditingCreatedBeneficialOwner}
                 onFinished={handleBeneficialOwnerDetailsFormSubmit}
                 backTo={backTo}

@@ -125,6 +125,10 @@ function BusinessInfo({onBackButtonPress, onSubmit, backTo}: BusinessInfoProps) 
         }
     };
 
+    if (isRedirecting) {
+        return <FullScreenLoadingIndicator reasonAttributes={{context: 'BusinessInfo', isRedirecting}} />;
+    }
+
     return (
         <InteractiveStepWrapper
             wrapperID="BusinessInfo"
@@ -135,16 +139,12 @@ function BusinessInfo({onBackButtonPress, onSubmit, backTo}: BusinessInfoProps) 
             startStepIndex={4}
             stepNames={CONST.BANK_ACCOUNT.STEP_NAMES}
         >
-            {isRedirecting ? (
-                <FullScreenLoadingIndicator reasonAttributes={{context: 'BusinessInfo', isRedirecting}} />
-            ) : (
-                <CurrentPage
-                    isEditing={isEditing}
-                    onNext={nextPage}
-                    onMove={moveTo}
-                    currentPageName={currentPageName}
-                />
-            )}
+            <CurrentPage
+                isEditing={isEditing}
+                onNext={nextPage}
+                onMove={moveTo}
+                currentPageName={currentPageName}
+            />
         </InteractiveStepWrapper>
     );
 }
