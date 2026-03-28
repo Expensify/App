@@ -22,7 +22,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {handleActionButtonPress} from '@libs/actions/Search';
 import {syncMissingAttendeesViolation} from '@libs/AttendeeUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import {isInvoiceReport, isOpenExpenseReport, isProcessingReport} from '@libs/ReportUtils';
+import {isInvoiceReport, isOpenExpenseReport, isProcessingReport, isReportPendingDelete} from '@libs/ReportUtils';
 import {isViolationDismissed, shouldShowViolation} from '@libs/TransactionUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -82,6 +82,10 @@ function ExpenseReportListItem<TItem extends ListItem>({
         return reportItem.isDisabled ?? reportItem.isDisabledCheckbox;
     }, [reportItem.isDisabled, reportItem.isDisabledCheckbox]);
 
+    // Prefer live Onyx data over stale search snapshot for pending delete check.
+    const reportForPendingDeleteCheck = parentReport ?? reportItem;
+    const isPendingDelete = isReportPendingDelete(reportForPendingDeleteCheck);
+
     // Prefer live Onyx policy data over snapshot to ensure fresh policy settings
     // like isAttendeeTrackingEnabled is not missing
     // Use snapshotReport/snapshotPolicy as fallbacks to fix offline issues where
@@ -120,6 +124,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
 
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
+    const [ownerBillingGraceEndPeriod] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
 
     const handleOnButtonPress = useCallback(() => {
         handleActionButtonPress({
@@ -134,6 +139,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
             isDelegateAccessRestricted,
             onDelegateAccessRestricted: showDelegateNoAccessModal,
             personalPolicyID,
+            ownerBillingGraceEndPeriod,
         });
     }, [
         currentSearchHash,
@@ -147,6 +153,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
         currentSearchKey,
         isDelegateAccessRestricted,
         showDelegateNoAccessModal,
+        ownerBillingGraceEndPeriod,
     ]);
 
     const handleCheckboxPress = useCallback(() => {
@@ -162,8 +169,9 @@ function ExpenseReportListItem<TItem extends ListItem>({
             styles.bgTransparent,
             item.isSelected && styles.activeComponentBG,
             styles.mh0,
+            isPendingDelete && styles.cursorDisabled,
         ],
-        [styles, item.isSelected],
+        [styles, item.isSelected, isPendingDelete],
     );
 
     const listItemWrapperStyle = useMemo(
@@ -237,10 +245,12 @@ function ExpenseReportListItem<TItem extends ListItem>({
             onLongPressRow={onLongPressRow}
             shouldSyncFocus={shouldSyncFocus}
             hoverStyle={item.isSelected && styles.activeComponentBG}
-            pressableWrapperStyle={[styles.mh5, animatedHighlightStyle]}
+            pressableWrapperStyle={[styles.mh5, animatedHighlightStyle, isPendingDelete && styles.cursorDisabled]}
             accessible={false}
             shouldShowRightCaret={false}
             shouldUseDefaultRightHandSideCheckmark={false}
+            isDisabled={isPendingDelete}
+            shouldDisableHoverStyle={isPendingDelete}
         >
             {(hovered) => (
                 <View style={[styles.flex1]}>
@@ -258,6 +268,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
                         isDisabledCheckbox={isDisabledCheckbox}
                         isHovered={hovered}
                         isFocused={isFocused}
+                        isPendingDelete={isPendingDelete}
                     />
                     {getDescription}
                 </View>
