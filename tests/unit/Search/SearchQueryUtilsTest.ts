@@ -7,7 +7,6 @@ import {generatePolicyID} from '@libs/actions/Policy/Policy';
 import type * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import CONST from '@src/CONST';
 import {
-    applyContainsOperatorToRawFilters,
     applyContainsOperatorToTextFields,
     buildFilterFormValuesFromQuery,
     buildFilterQueryWithSortDefaults,
@@ -2240,43 +2239,6 @@ describe('SearchQueryUtils', () => {
                 throw new Error('Expected category node to be found in AST');
             }
             expect(categoryNode.operator).toBe(CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO);
-        });
-    });
-
-    describe('applyContainsOperatorToRawFilters', () => {
-        it('should transform merchant eq to contains', () => {
-            const rawFilters = [{key: CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT, operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: 'coffee'}];
-            const transformed = applyContainsOperatorToRawFilters(rawFilters);
-            expect(transformed.at(0).operator).toBe(CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS);
-            expect(transformed.at(0).value).toBe('coffee');
-        });
-
-        it('should transform description eq to contains', () => {
-            const rawFilters = [{key: CONST.SEARCH.SYNTAX_FILTER_KEYS.DESCRIPTION, operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: 'lunch'}];
-            const transformed = applyContainsOperatorToRawFilters(rawFilters);
-            expect(transformed.at(0).operator).toBe(CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS);
-        });
-
-        it('should not transform non-text fields like category', () => {
-            const rawFilters = [{key: CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY, operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: 'food'}];
-            const transformed = applyContainsOperatorToRawFilters(rawFilters);
-            expect(transformed.at(0).operator).toBe(CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO);
-        });
-
-        it('should not transform negated merchant operator', () => {
-            const rawFilters = [{key: CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT, operator: CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO, value: 'coffee'}];
-            const transformed = applyContainsOperatorToRawFilters(rawFilters);
-            expect(transformed.at(0).operator).toBe(CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO);
-        });
-
-        it('should transform merchant but not category in a mixed list', () => {
-            const rawFilters = [
-                {key: CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT, operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: 'coffee'},
-                {key: CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY, operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: 'travel'},
-            ];
-            const transformed = applyContainsOperatorToRawFilters(rawFilters);
-            expect(transformed.at(0).operator).toBe(CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS);
-            expect(transformed.at(1).operator).toBe(CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO);
         });
     });
 });

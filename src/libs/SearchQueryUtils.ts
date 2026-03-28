@@ -1761,20 +1761,6 @@ function applyContainsOperatorToTextFields(node: ASTNode): ASTNode {
     };
 }
 
-/**
- * Maps over a rawFilterList and replaces the `eq` operator with `contains` for free-text
- * filter fields (merchant, description). This mirrors `applyContainsOperatorToTextFields`
- * for the flat filter representation sent alongside the AST to the backend.
- */
-function applyContainsOperatorToRawFilters(rawFilterList: RawQueryFilter[]): RawQueryFilter[] {
-    return rawFilterList.map((filter) => {
-        if (TEXT_SEARCH_FIELDS.has(filter.key) && filter.operator === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO) {
-            return {...filter, operator: CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS};
-        }
-        return filter;
-    });
-}
-
 export {
     isSearchDatePreset,
     isFilterSupported,
@@ -1804,5 +1790,4 @@ export {
     buildFilterQueryWithSortDefaults,
     buildOptimisticSnapshotData,
     applyContainsOperatorToTextFields,
-    applyContainsOperatorToRawFilters,
 };
