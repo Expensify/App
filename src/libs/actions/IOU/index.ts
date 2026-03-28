@@ -3072,6 +3072,7 @@ function getDeleteTrackExpenseInformation(
     const cleanUpTransactionThreadReportOnyxData = getCleanUpTransactionThreadReportOnyxData({
         transactionThreadID,
         shouldDeleteTransactionThread,
+        currentUserAccountID: deprecatedUserAccountID,
     });
     optimisticData.push(...cleanUpTransactionThreadReportOnyxData.optimisticData);
 
@@ -8413,6 +8414,7 @@ function getCleanUpTransactionThreadReportOnyxData({
     isChatIOUReportArchived,
     updatedReportPreviewAction,
     shouldAddUpdatedReportPreviewActionToOnyxData = true,
+    currentUserAccountID,
 }: {
     transactionThreadID?: string;
     shouldDeleteTransactionThread: boolean;
@@ -8420,6 +8422,7 @@ function getCleanUpTransactionThreadReportOnyxData({
     isChatIOUReportArchived?: boolean;
     updatedReportPreviewAction?: ReportAction;
     shouldAddUpdatedReportPreviewActionToOnyxData?: boolean;
+    currentUserAccountID: number;
 }) {
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [];
     const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [];
@@ -8444,7 +8447,7 @@ function getCleanUpTransactionThreadReportOnyxData({
                     stateNum: CONST.REPORT.STATE_NUM.APPROVED,
                     statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
                     participants: {
-                        [deprecatedUserAccountID]: {
+                        [currentUserAccountID]: {
                             notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
                         },
                     },
@@ -8686,7 +8689,7 @@ function deleteMoneyRequest({
         });
     }
 
-    const cleanUpTransactionThreadReportOnyxData = getCleanUpTransactionThreadReportOnyxData({shouldDeleteTransactionThread, transactionThreadID, reportAction, isChatIOUReportArchived});
+    const cleanUpTransactionThreadReportOnyxData = getCleanUpTransactionThreadReportOnyxData({shouldDeleteTransactionThread, transactionThreadID, reportAction, isChatIOUReportArchived, currentUserAccountID});
     optimisticData.push(...cleanUpTransactionThreadReportOnyxData.optimisticData);
 
     const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.TRANSACTION>> = [
