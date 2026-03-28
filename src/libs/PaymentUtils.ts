@@ -162,7 +162,12 @@ function getBusinessBankAccountOptions(formattedPaymentMethods: PaymentMethod[])
             }
             const accountData = method.accountData;
             const isPartiallySetup = isBankAccountPartiallySetup(accountData.state);
-            return accountData.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS && accountData.state === CONST.BANK_ACCOUNT.STATE.OPEN && method?.methodID != null && !isPartiallySetup;
+            return (
+                accountData.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS &&
+                (accountData.state === CONST.BANK_ACCOUNT.STATE.OPEN || accountData.state === CONST.BANK_ACCOUNT.STATE.LOCKED) &&
+                method?.methodID != null &&
+                !isPartiallySetup
+            );
         })
         .map((formattedPaymentMethod) => ({
             text: formattedPaymentMethod?.title ?? '',
@@ -229,7 +234,7 @@ const selectPaymentType = (params: SelectPaymentTypeParams) => {
         amountOwed,
         ownerBillingGraceEndPeriod,
     } = params;
-    if (policy && shouldRestrictUserBillableActions(policy.id, userBillingGraceEndPeriods, amountOwed, ownerBillingGraceEndPeriod)) {
+    if (policy && shouldRestrictUserBillableActions(policy.id, ownerBillingGraceEndPeriod, userBillingGraceEndPeriods, amountOwed)) {
         Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
         return;
     }
