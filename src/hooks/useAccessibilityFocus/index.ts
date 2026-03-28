@@ -1,12 +1,8 @@
 import {useEffect} from 'react';
+import focusElementProgrammatically, {isHTMLElement} from '@libs/focusUtils/focusElementProgrammatically';
 import type UseAccessibilityFocus from './type';
 
 const FOCUSABLE_ELEMENTS_SELECTOR = 'button, [href], [role="button"], [role="link"], [tabindex]:not([tabindex="-1"])';
-const PROGRAMMATIC_FOCUS_DATA_ATTRIBUTE = 'data-programmatic-focus';
-
-function isHTMLElement(value: unknown): value is HTMLElement {
-    return typeof HTMLElement !== 'undefined' && value instanceof HTMLElement;
-}
 
 const useAccessibilityFocus: UseAccessibilityFocus = ({didScreenTransitionEnd, isFocused, ref, shouldMoveAccessibilityFocus}) => {
     useEffect(() => {
@@ -39,21 +35,9 @@ const useAccessibilityFocus: UseAccessibilityFocus = ({didScreenTransitionEnd, i
                 return;
             }
 
-            const removeProgrammaticFocusAttr = () => {
-                focusTarget.removeAttribute(PROGRAMMATIC_FOCUS_DATA_ATTRIBUTE);
-            };
-
-            focusTarget.setAttribute(PROGRAMMATIC_FOCUS_DATA_ATTRIBUTE, 'true');
-            focusTarget.addEventListener('blur', removeProgrammaticFocusAttr, {once: true});
-            focusTarget.focus();
-
-            const focusedElement = document.activeElement;
-            if (focusedElement === focusTarget || (focusedElement && focusTarget.contains(focusedElement))) {
+            if (focusElementProgrammatically(focusTarget)) {
                 return;
             }
-
-            focusTarget.removeEventListener('blur', removeProgrammaticFocusAttr);
-            removeProgrammaticFocusAttr();
         }
     }, [didScreenTransitionEnd, isFocused, ref, shouldMoveAccessibilityFocus]);
 };

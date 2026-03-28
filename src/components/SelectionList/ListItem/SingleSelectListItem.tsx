@@ -37,6 +37,7 @@ function SingleSelectListItem<TItem extends ListItem>({
                 onSelectRow={onSelectRow}
                 accessibilityLabel="SingleSelectListItem"
                 isCircular
+                tabIndex={-1}
             />
         );
     }, [item, onSelectRow]);

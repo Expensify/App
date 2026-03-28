@@ -31,6 +31,9 @@ type SelectionCheckboxProps<TItem extends ListItem> = {
 
     /** Test ID for the checkbox */
     testID?: string;
+
+    /** Optional tab index override for web focus management */
+    tabIndex?: 0 | -1;
 };
 
 function SelectionCheckbox<TItem extends ListItem>({
@@ -43,6 +46,7 @@ function SelectionCheckbox<TItem extends ListItem>({
     containerStyle,
     shouldStopMouseDownPropagation,
     testID,
+    tabIndex,
 }: SelectionCheckboxProps<TItem>) {
     return (
         <Checkbox
@@ -57,6 +61,7 @@ function SelectionCheckbox<TItem extends ListItem>({
             shouldStopMouseDownPropagation={shouldStopMouseDownPropagation}
             sentryLabel={CONST.SENTRY_LABEL.USER_LIST_ITEM.CHECKBOX}
             testID={testID}
+            tabIndex={tabIndex}
         />
     );
 }
