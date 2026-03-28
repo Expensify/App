@@ -625,7 +625,7 @@ const SCREENS = {
             SAGE_INTACCT_EXPORT_DATE: 'Policy_Accounting_Sage_Intacct_Export_Date',
             SAGE_INTACCT_REIMBURSABLE_EXPENSES: 'Policy_Accounting_Sage_Intacct_Reimbursable_Expenses',
             SAGE_INTACCT_NON_REIMBURSABLE_EXPENSES: 'Policy_Accounting_Sage_Intacct_Non_Reimbursable_Expenses',
-            SAGE_INTACCT_REIMBURSABLE_DESTINATION: 'Policy_Accounting_Sage_Intacct_Reimbursable_Destination',
+            DYNAMIC_SAGE_INTACCT_REIMBURSABLE_DESTINATION: 'Policy_Accounting_Sage_Intacct_Reimbursable_Destination_Dynamic',
             DYNAMIC_SAGE_INTACCT_NON_REIMBURSABLE_DESTINATION: 'Policy_Accounting_Sage_Intacct_Non_Reimbursable_Destination_Dynamic',
             SAGE_INTACCT_DEFAULT_VENDOR: 'Policy_Accounting_Sage_Intacct_Default_Vendor',
             DYNAMIC_SAGE_INTACCT_NON_REIMBURSABLE_CREDIT_CARD_ACCOUNT: 'Policy_Accounting_Sage_Intacct_Non_Reimbursable_Credit_Card_Account_Dynamic',

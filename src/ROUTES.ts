@@ -120,6 +120,10 @@ const DYNAMIC_ROUTES = {
         getRoute: (country = '') => `country?country=${country}`,
         queryParams: ['country'],
     },
+    POLICY_ACCOUNTING_SAGE_INTACCT_REIMBURSABLE_DESTINATION: {
+        path: 'destination',
+        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_REIMBURSABLE_EXPENSES],
+    },
     POLICY_ACCOUNTING_SAGE_INTACCT_NON_REIMBURSABLE_DESTINATION: {
         path: 'destination',
         entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSES],

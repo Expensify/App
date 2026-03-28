@@ -21,7 +21,7 @@ type MenuListItem = ListItem & {
     value: ValueOf<typeof CONST.SAGE_INTACCT_REIMBURSABLE_EXPENSE_TYPE>;
 };
 
-function SageIntacctReimbursableExpensesDestinationPage({policy}: WithPolicyConnectionsProps) {
+function DynamicSageIntacctReimbursableExpensesDestinationPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const policyID = policy?.id;
@@ -74,4 +74,4 @@ function SageIntacctReimbursableExpensesDestinationPage({policy}: WithPolicyConn
     );
 }
 
-export default withPolicyConnections(SageIntacctReimbursableExpensesDestinationPage);
+export default withPolicyConnections(DynamicSageIntacctReimbursableExpensesDestinationPage);

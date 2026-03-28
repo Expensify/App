@@ -9,6 +9,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import {createDynamicRoute} from '@libs/Navigation/NavigationUtils';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {areSettingsInErrorFields, settingsPendingAction} from '@libs/PolicyUtils';
@@ -19,7 +20,7 @@ import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOpt
 import {updateSageIntacctDefaultVendor} from '@userActions/connections/SageIntacct';
 import {clearSageIntacctErrorField} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
-import ROUTES from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import {getDefaultVendorName} from './utils';
 
@@ -60,10 +61,7 @@ function SageIntacctReimbursableExpensesPage({policy}: WithPolicyConnectionsProp
             title: reimbursable ? translate(`workspace.sageIntacct.reimbursableExpenses.values.${reimbursable}`) : undefined,
             description: translate('workspace.accounting.exportAs'),
             onPress: () => {
-                if (!policyID) {
-                    return;
-                }
-                Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_REIMBURSABLE_DESTINATION.getRoute(policyID, Navigation.getActiveRoute()));
+                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_REIMBURSABLE_DESTINATION.path));
             },
             subscribedSettings: [CONST.SAGE_INTACCT_CONFIG.REIMBURSABLE],
         },
