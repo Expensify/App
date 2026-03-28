@@ -222,7 +222,7 @@ function mergeDuplicates({transactionThreadReportID: optimisticTransactionThread
             reportAction: iouAction,
             updatedReportPreviewAction,
             shouldAddUpdatedReportPreviewActionToOnyxData: Number(index) === iouActionsToDelete.length - 1,
-            currentUserAccountID: currentUserAccountID,
+            currentUserAccountID,
         });
         cleanUpTransactionThreadReportsOptimisticData.push(...cleanUpTransactionThreadReportOnyxDataForIouAction.optimisticData);
         cleanUpTransactionThreadReportsSuccessData.push(...cleanUpTransactionThreadReportOnyxDataForIouAction.successData);
