@@ -188,7 +188,7 @@ function updatePersonalBankAccountInfo(bankAccountID: number, accountData: Perso
         addressZip: accountData.addressZipCode,
     };
 
-    const onyxData: OnyxData<typeof ONYXKEYS.PERSONAL_BANK_ACCOUNT | typeof ONYXKEYS.BANK_ACCOUNT_LIST> = {
+    const onyxData: OnyxData<typeof ONYXKEYS.PERSONAL_BANK_ACCOUNT | typeof ONYXKEYS.BANK_ACCOUNT_LIST | typeof ONYXKEYS.FORMS.HOME_ADDRESS_FORM> = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -196,6 +196,13 @@ function updatePersonalBankAccountInfo(bankAccountID: number, accountData: Perso
                 value: {
                     isLoading: true,
                     errors: null,
+                },
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.FORMS.HOME_ADDRESS_FORM,
+                value: {
+                    isLoading: true,
                 },
             },
             {
@@ -220,6 +227,13 @@ function updatePersonalBankAccountInfo(bankAccountID: number, accountData: Perso
                     shouldShowSuccess: true,
                 },
             },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.FORMS.HOME_ADDRESS_FORM,
+                value: {
+                    isLoading: false,
+                },
+            },
         ],
         failureData: [
             {
@@ -228,6 +242,13 @@ function updatePersonalBankAccountInfo(bankAccountID: number, accountData: Perso
                 value: {
                     isLoading: false,
                     errors: getMicroSecondOnyxErrorWithTranslationKey('addPersonalBankAccount.updatePersonalInfoFailure'),
+                },
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.FORMS.HOME_ADDRESS_FORM,
+                value: {
+                    isLoading: false,
                 },
             },
             {
