@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 // we need "dirty" object key names in these tests
-import type {ASTNode} from '@components/Search/types';
 import type {OnyxCollection} from 'react-native-onyx';
+import type {ASTNode} from '@components/Search/types';
 import {generatePolicyID} from '@libs/actions/Policy/Policy';
 // eslint-disable-next-line no-restricted-syntax
 import type * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
