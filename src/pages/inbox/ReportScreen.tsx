@@ -97,7 +97,6 @@ import {
     navigateToConciergeChat,
     openReport,
     readNewestAction,
-    setMainPaneReportID,
     subscribeToReportLeavingEvents,
     unsubscribeFromLeavingRoomReportChannel,
     updateLastVisitTime,
@@ -372,25 +371,6 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
         }
         hideEmojiPicker(true);
     }, [prevIsFocused, isFocused]);
-
-    // Set mainPaneReportID so that Concierge AI side panel can access it and load it into the context
-    useEffect(() => {
-        if (!reportID) {
-            return;
-        }
-
-        // Never set activeReportID as Concierge as we will always have context of Concierge chat loaded.
-        if (reportID === conciergeReportID) {
-            // Don't overwrite activeReportID when opening Concierge side panel
-            if (!isInSidePanel) {
-                setMainPaneReportID(null);
-            }
-            return;
-        }
-
-        setMainPaneReportID(reportID);
-        return () => setMainPaneReportID(null);
-    }, [reportID, conciergeReportID, isInSidePanel]);
 
     const backTo = route?.params?.backTo as string;
     const onBackButtonPress = useCallback(

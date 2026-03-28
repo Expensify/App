@@ -575,9 +575,6 @@ const ONYXKEYS = {
     /** Company cards custom names */
     NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES: 'nvp_expensify_ccCustomNames',
 
-    /** The currently opened report ID */
-    MAIN_PANE_REPORT_ID: 'mainPaneReportID',
-
     /** The user's Concierge reportID */
     CONCIERGE_REPORT_ID: 'conciergeReportID',
 

@@ -1,3 +1,5 @@
+import type CONST from '@src/CONST';
+
 type SidePanel = {
     /** Whether the Side Panel is open on large screens */
     open: boolean;
@@ -6,4 +8,11 @@ type SidePanel = {
     openNarrowScreen: boolean;
 };
 
+/**
+ * Describes the context of what the user was viewing when they sent a message from the Side Panel.
+ * Sent to the backend so Concierge can tailor its response to the user's current context.
+ */
+type SidePanelContext = {type: typeof CONST.SIDE_PANEL_CONTEXT_TYPE.REPORT; reportID: string};
+
 export default SidePanel;
+export type {SidePanelContext};

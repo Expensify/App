@@ -155,6 +155,7 @@ import type Session from './Session';
 import type ShareBankAccount from './ShareBankAccount';
 import type ShareTempFile from './ShareTempFile';
 import type SidePanel from './SidePanel';
+import type {SidePanelContext} from './SidePanel';
 import type StripeCustomerID from './StripeCustomerID';
 import type SupportalPermissionDenied from './SupportalPermissionDenied';
 import type Task from './Task';
@@ -361,6 +362,7 @@ export type {
     DismissedProductTraining,
     TravelProvisioning,
     SidePanel,
+    SidePanelContext,
     LastPaymentMethodType,
     ReportAttributesDerivedValue,
     LastSearchParams,

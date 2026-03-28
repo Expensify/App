@@ -210,6 +210,7 @@ import type {
     ReportAttributesDerivedValue,
     ReportNextStepDeprecated,
     ReportUserIsTyping,
+    SidePanelContext,
     Transaction,
     TransactionViolations,
     VisibleReportActionsDerivedValue,
@@ -339,7 +340,7 @@ type AddCommentParams = {
     currentUserAccountID: number;
     shouldPlaySound?: boolean;
     isInSidePanel?: boolean;
-    mainPaneReportID?: string;
+    sidePanelContext?: SidePanelContext;
     pregeneratedResponseParams?: PregeneratedResponseParams;
     reportActionID?: string;
 };
@@ -353,7 +354,7 @@ type AddActionsParams = {
     text?: string;
     file?: FileObject;
     isInSidePanel?: boolean;
-    mainPaneReportID?: string;
+    sidePanelContext?: SidePanelContext;
     pregeneratedResponseParams?: PregeneratedResponseParams;
     reportActionID?: string;
 };
@@ -665,7 +666,7 @@ function addActions({
     text = '',
     file,
     isInSidePanel = false,
-    mainPaneReportID,
+    sidePanelContext,
     pregeneratedResponseParams,
     reportActionID,
 }: AddActionsParams) {
@@ -795,8 +796,8 @@ function addActions({
         }
     }
 
-    if (isInSidePanel && isConciergeChat && mainPaneReportID) {
-        parameters.mainPaneReportID = mainPaneReportID;
+    if (isInSidePanel && isConciergeChat && sidePanelContext) {
+        parameters.sidePanelContext = sidePanelContext;
     }
 
     // Add pregenerated params
@@ -965,14 +966,14 @@ function addComment({
     currentUserAccountID,
     shouldPlaySound,
     isInSidePanel,
-    mainPaneReportID,
+    sidePanelContext,
     pregeneratedResponseParams,
     reportActionID,
 }: AddCommentParams) {
     if (shouldPlaySound) {
         playSound(SOUNDS.DONE);
     }
-    addActions({report, notifyReportID, ancestors, timezoneParam, currentUserAccountID, text, isInSidePanel, mainPaneReportID, pregeneratedResponseParams, reportActionID});
+    addActions({report, notifyReportID, ancestors, timezoneParam, currentUserAccountID, text, isInSidePanel, sidePanelContext, pregeneratedResponseParams, reportActionID});
 }
 
 function reportActionsExist(reportID: string): boolean {
@@ -5165,10 +5166,6 @@ function searchUserInServer(searchInput: string) {
     performServerSearch(searchInput, undefined, true);
 }
 
-function setMainPaneReportID(reportID: string | null) {
-    Onyx.set(ONYXKEYS.MAIN_PANE_REPORT_ID, reportID);
-}
-
 function updateLastVisitTime(reportID: string) {
     if (!isValidReportIDFromPath(reportID)) {
         return;
@@ -7324,7 +7321,6 @@ export {
     updatePolicyRoomAvatar,
     updateGroupChatMemberRoles,
     updateChatName,
-    setMainPaneReportID,
     updateLastVisitTime,
     updateLoadingInitialReportAction,
     updateNotificationPreference,

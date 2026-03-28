@@ -11,6 +11,7 @@ import OfflineIndicator from '@components/OfflineIndicator';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import SwipeableView from '@components/SwipeableView';
 import useAncestors from '@hooks/useAncestors';
+import {useCurrentReportIDState} from '@hooks/useCurrentReportID';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useIsAnonymousUser from '@hooks/useIsAnonymousUser';
 import useIsInSidePanel from '@hooks/useIsInSidePanel';
@@ -79,7 +80,6 @@ function ReportFooter({lastReportAction, report = {reportID: '-1'}, onComposerBl
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Lightbulb']);
 
     const isConciergeSidePanel = isInSidePanel && conciergeReportID === report.reportID;
-    const [activeReportID] = useOnyx(ONYXKEYS.MAIN_PANE_REPORT_ID);
     const [shouldShowComposeInput = false] = useOnyx(ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT);
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
     const isAnonymousUser = useIsAnonymousUser();
@@ -167,11 +167,19 @@ function ReportFooter({lastReportAction, report = {reportID: '-1'}, onComposerBl
     const [targetReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID ?? report.reportID}`);
     const targetReportAncestors = useAncestors(targetReport);
 
+    const {currentReportID, currentRHPReportID} = useCurrentReportIDState();
     const onSubmitComment = (text: string, reportActionID?: string) => {
         const isTaskCreated = handleCreateTask(text);
         if (isTaskCreated) {
             return;
         }
+
+        const contextReportID = isConciergeSidePanel ? (currentRHPReportID ?? currentReportID ?? undefined) : undefined;
+        if (isConciergeSidePanel) {
+            console.log('contextReportID', contextReportID);
+            return;
+        }
+
         // If we are adding an action on an expense report that only has a single transaction thread child report, we need to add the action to the transaction thread instead.
         // This is because we need it to be associated with the transaction thread and not the expense report in order for conversational corrections to work as expected.
         addComment({
@@ -183,7 +191,7 @@ function ReportFooter({lastReportAction, report = {reportID: '-1'}, onComposerBl
             currentUserAccountID: personalDetail.accountID,
             shouldPlaySound: true,
             isInSidePanel,
-            mainPaneReportID: isConciergeSidePanel ? (activeReportID ?? undefined) : undefined,
+            sidePanelContext: contextReportID ? {type: CONST.SIDE_PANEL_CONTEXT_TYPE.REPORT, reportID: contextReportID} : undefined,
             reportActionID,
         });
     };

@@ -1,3 +1,4 @@
+import type {SidePanelContext} from '@src/types/onyx';
 import type {FileObject} from '@src/types/utils/Attachment';
 
 type AddCommentOrAttachmentParams = {
@@ -14,7 +15,7 @@ type AddCommentOrAttachmentParams = {
     pageHTML?: string;
     optimisticConciergeReportActionID?: string;
     pregeneratedResponse?: string;
-    mainPaneReportID?: string;
+    sidePanelContext?: SidePanelContext;
 };
 
 export default AddCommentOrAttachmentParams;
