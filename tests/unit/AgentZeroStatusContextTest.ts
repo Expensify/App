@@ -765,7 +765,7 @@ describe('AgentZeroStatusContext', () => {
     });
 
     describe('reconnect reset', () => {
-        it('should reset indicator on network reconnect', async () => {
+        it('should keep indicator on network reconnect and restart polling', async () => {
             // Given a Concierge chat with an active processing indicator
             const isConciergeChat = true;
             const serverLabel = 'Concierge is looking up categories...';
@@ -778,20 +778,23 @@ describe('AgentZeroStatusContext', () => {
             await waitForBatchedUpdates();
             expect(result.current.isProcessing).toBe(true);
 
-            // When the network goes offline and then reconnects
-            // (simulating Pusher reconnect which could re-deliver stale NVP state)
+            // When the network goes offline
             await Onyx.set(ONYXKEYS.NETWORK, {isOffline: true, networkStatus: 'offline'});
             await waitForBatchedUpdates();
 
+            // The indicator is hidden while offline (original design: !isOffline in isProcessing)
+            expect(result.current.isProcessing).toBe(false);
+
+            // When the network reconnects
             await Onyx.set(ONYXKEYS.NETWORK, {isOffline: false, networkStatus: 'online'});
             await waitForBatchedUpdates();
 
-            // Then the indicator should be cleared
-            // (reconnect clears stale state, fresh data will come from GetMissingOnyxMessages)
+            // The indicator reappears (server NVP still has processing state)
+            // onReconnect fetches newer actions and restarts polling, but does NOT clear the indicator
             await waitFor(() => {
-                expect(result.current.isProcessing).toBe(false);
+                expect(result.current.isProcessing).toBe(true);
             });
-            expect(result.current.statusLabel).toBe('');
+            expect(result.current.statusLabel).toBe(serverLabel);
         });
     });
 
