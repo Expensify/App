@@ -43,7 +43,7 @@ import {
     isInvoiceReport,
     isIOUReport as isIOUReportUtil,
 } from '@libs/ReportUtils';
-import {applyContainsOperatorToTextFields} from '@libs/SearchQueryUtils';
+import {serializeQueryJSONForBackend} from '@libs/SearchQueryUtils';
 import type {SearchKey} from '@libs/SearchUIUtils';
 import {isTransactionGroupListItemType} from '@libs/SearchUIUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
@@ -523,17 +523,16 @@ function search({
 
     const {optimisticData, finallyData, failureData} = getOnyxLoadingData(queryJSON.hash, queryJSON, offset, isOffline, true, shouldCalculateTotals);
     const {flatFilters, limit, ...queryJSONWithoutFlatFilters} = queryJSON;
-    const transformedFilters = queryJSONWithoutFlatFilters.filters ? applyContainsOperatorToTextFields(queryJSONWithoutFlatFilters.filters) : null;
     const query = {
         ...queryJSONWithoutFlatFilters,
         searchKey,
         offset,
-        filters: transformedFilters,
+        filters: queryJSONWithoutFlatFilters.filters ?? null,
         shouldCalculateTotals,
         // Backend expects 'maximumResults' instead of 'limit'
         ...(limit !== undefined && {maximumResults: limit}),
     };
-    const jsonQuery = JSON.stringify(query);
+    const jsonQuery = serializeQueryJSONForBackend(query);
 
     if (shouldUpdateLastSearchParams) {
         saveLastSearchParams({

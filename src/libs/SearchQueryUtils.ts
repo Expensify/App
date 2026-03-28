@@ -1761,6 +1761,25 @@ function applyContainsOperatorToTextFields(node: ASTNode): ASTNode {
     };
 }
 
+/**
+ * Serializes a query object to a JSON string for backend commands (Search, export, CSV).
+ * Applies text-field operator normalization (`eq` → `contains`) for `merchant` and `description`
+ * so all backend commands use consistent partial-match semantics — matching what the search view shows.
+ * Do NOT use for saving/persisting query definitions (e.g. saveSearch), where the original operators must be preserved.
+ */
+function serializeQueryJSONForBackend<T extends {filters?: ASTNode | null; rawFilterList?: RawQueryFilter[]}>(queryData: T): string {
+    const normalizedFilters = queryData.filters ? applyContainsOperatorToTextFields(queryData.filters) : queryData.filters;
+    const normalizedRawFilterList = queryData.rawFilterList
+        ? queryData.rawFilterList.map((filter) => {
+              if (TEXT_SEARCH_FIELDS.has(filter.key) && filter.operator === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO) {
+                  return {...filter, operator: CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS};
+              }
+              return filter;
+          })
+        : queryData.rawFilterList;
+    return JSON.stringify({...queryData, filters: normalizedFilters, rawFilterList: normalizedRawFilterList});
+}
+
 export {
     isSearchDatePreset,
     isFilterSupported,
@@ -1790,4 +1809,5 @@ export {
     buildFilterQueryWithSortDefaults,
     buildOptimisticSnapshotData,
     applyContainsOperatorToTextFields,
+    serializeQueryJSONForBackend,
 };

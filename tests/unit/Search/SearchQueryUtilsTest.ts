@@ -17,6 +17,7 @@ import {
     getDisplayQueryFiltersForKey,
     getFilterDisplayValue,
     getQueryWithUpdatedValues,
+    serializeQueryJSONForBackend,
     shouldHighlight,
     shouldResetSort,
     shouldResetSortForViewChange,
@@ -2148,26 +2149,26 @@ describe('SearchQueryUtils', () => {
         });
     });
 
-    describe('applyContainsOperatorToTextFields', () => {
-        function findNode(node: ASTNode, field: string): ASTNode | null {
-            if (typeof node.left === 'string' && node.left === field) {
-                return node;
-            }
-            if (typeof node.left === 'object' && node.left) {
-                const found = findNode(node.left, field);
-                if (found) {
-                    return found;
-                }
-            }
-            if (typeof node.right === 'object' && !Array.isArray(node.right) && node.right) {
-                const found = findNode(node.right, field);
-                if (found) {
-                    return found;
-                }
-            }
-            return null;
+    function findNode(node: ASTNode, field: string): ASTNode | null {
+        if (typeof node.left === 'string' && node.left === field) {
+            return node;
         }
+        if (typeof node.left === 'object' && node.left) {
+            const found = findNode(node.left, field);
+            if (found) {
+                return found;
+            }
+        }
+        if (typeof node.right === 'object' && !Array.isArray(node.right) && node.right) {
+            const found = findNode(node.right, field);
+            if (found) {
+                return found;
+            }
+        }
+        return null;
+    }
 
+    describe('applyContainsOperatorToTextFields', () => {
         it('should transform merchant eq to contains', () => {
             const queryJSON = buildSearchQueryJSON('type:expense merchant:coffee');
             if (!queryJSON?.filters) {
@@ -2239,6 +2240,33 @@ describe('SearchQueryUtils', () => {
                 throw new Error('Expected category node to be found in AST');
             }
             expect(categoryNode.operator).toBe(CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO);
+        });
+    });
+
+    describe('serializeQueryJSONForBackend', () => {
+        it('should apply contains to merchant in AST filters', () => {
+            const queryJSON = buildSearchQueryJSON('type:expense merchant:coffee');
+            if (!queryJSON) {
+                throw new Error('Expected queryJSON to be defined');
+            }
+            const serialized = JSON.parse(serializeQueryJSONForBackend(queryJSON)) as {filters: ASTNode};
+            const merchantNode = findNode(serialized.filters, 'merchant');
+            if (!merchantNode) {
+                throw new Error('Expected merchant node to be found in AST');
+            }
+            expect(merchantNode.operator).toBe(CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS);
+        });
+
+        it('should apply contains to merchant in rawFilterList', () => {
+            const rawFilterList = [{key: CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT, operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: 'coffee'}];
+            const serialized = JSON.parse(serializeQueryJSONForBackend({filters: undefined, rawFilterList})) as {rawFilterList: typeof rawFilterList};
+            expect(serialized.rawFilterList.at(0)?.operator).toBe(CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS);
+        });
+
+        it('should not affect non-text fields in rawFilterList', () => {
+            const rawFilterList = [{key: CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY, operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: 'food'}];
+            const serialized = JSON.parse(serializeQueryJSONForBackend({filters: undefined, rawFilterList})) as {rawFilterList: typeof rawFilterList};
+            expect(serialized.rawFilterList.at(0)?.operator).toBe(CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO);
         });
     });
 });
