@@ -1742,7 +1742,7 @@ function buildOptimisticSnapshotData(type: SearchDataTypes, data: Record<string,
  * should be treated as a substring/partial match (`contains`) when querying the backend.
  * This allows searches like `merchant:coffee` to match "Coffee shop".
  */
-const TEXT_SEARCH_FIELDS: Set<string> = new Set([CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT, CONST.SEARCH.SYNTAX_FILTER_KEYS.DESCRIPTION]);
+const TEXT_SEARCH_FIELDS = new Set<string>([CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT, CONST.SEARCH.SYNTAX_FILTER_KEYS.DESCRIPTION]);
 
 /**
  * Recursively traverses a search AST and replaces the `eq` operator with `contains`
