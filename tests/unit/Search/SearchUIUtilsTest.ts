@@ -2476,7 +2476,7 @@ describe('SearchUIUtils', () => {
                 formatPhoneNumber,
                 bankAccountList: {},
                 allReportMetadata: {},
-                conciergeReportID: undefined,
+                reportAttributes: undefined,
             });
             expect(filteredReportActions).toStrictEqual(reportActionListItems);
             expect(allReportActionsLength).toBe(6);
@@ -2493,7 +2493,7 @@ describe('SearchUIUtils', () => {
                     formatPhoneNumber,
                     bankAccountList: {},
                     allReportMetadata: {},
-                    conciergeReportID: undefined,
+                    reportAttributes: undefined,
                 })[0],
             ).toEqual(transactionsListItems);
         });
@@ -2521,7 +2521,7 @@ describe('SearchUIUtils', () => {
                 formatPhoneNumber,
                 bankAccountList: {},
                 allReportMetadata: {},
-                conciergeReportID: undefined,
+                reportAttributes: undefined,
             })[0] as TransactionListItemType[];
 
             const distanceTransaction = result.find((item) => item.transactionID === distanceTransactionID);
@@ -2556,7 +2556,7 @@ describe('SearchUIUtils', () => {
                 formatPhoneNumber,
                 bankAccountList: {},
                 allReportMetadata: {},
-                conciergeReportID: undefined,
+                reportAttributes: undefined,
             })[0] as TransactionGroupListItemType[];
 
             const reportGroup = result.find((group) => group.transactions?.some((transaction) => transaction.transactionID === distanceTransactionID));
@@ -2581,7 +2581,7 @@ describe('SearchUIUtils', () => {
                     formatPhoneNumber,
                     bankAccountList: {},
                     allReportMetadata: {},
-                    conciergeReportID: undefined,
+                    reportAttributes: undefined,
                 })[0],
             ).toStrictEqual(transactionReportGroupListItems);
         });
@@ -2617,7 +2617,7 @@ describe('SearchUIUtils', () => {
                 formatPhoneNumber,
                 bankAccountList: {},
                 allReportMetadata: {},
-                conciergeReportID: undefined,
+                reportAttributes: undefined,
             }) as [TransactionReportGroupListItemType[], number];
 
             expect(resultWithoutOnyx.at(0)?.primaryAvatar?.source).not.toBe(customAvatarUrl);
@@ -2632,7 +2632,7 @@ describe('SearchUIUtils', () => {
                 formatPhoneNumber,
                 bankAccountList: {},
                 allReportMetadata: {},
-                conciergeReportID: undefined,
+                reportAttributes: undefined,
                 onyxPersonalDetailsList,
             }) as [TransactionReportGroupListItemType[], number];
 
@@ -2672,7 +2672,7 @@ describe('SearchUIUtils', () => {
                 formatPhoneNumber,
                 bankAccountList: {},
                 allReportMetadata: {},
-                conciergeReportID: undefined,
+                reportAttributes: undefined,
                 onyxPersonalDetailsList,
             }) as [TransactionReportGroupListItemType[], number];
 
@@ -2715,7 +2715,7 @@ describe('SearchUIUtils', () => {
                 formatPhoneNumber,
                 bankAccountList: {},
                 allReportMetadata: {},
-                conciergeReportID: undefined,
+                reportAttributes: undefined,
             }) as [TransactionReportGroupListItemType[], number];
 
             const reportWithoutOnyx = resultWithoutOnyx.find((item) => item.reportID === reportID2);
@@ -2730,7 +2730,7 @@ describe('SearchUIUtils', () => {
                 formatPhoneNumber,
                 bankAccountList: {},
                 allReportMetadata: {},
-                conciergeReportID: undefined,
+                reportAttributes: undefined,
                 onyxPersonalDetailsList,
             }) as [TransactionReportGroupListItemType[], number];
 
@@ -2764,7 +2764,7 @@ describe('SearchUIUtils', () => {
                 formatPhoneNumber,
                 bankAccountList: {},
                 allReportMetadata: {},
-                conciergeReportID: undefined,
+                reportAttributes: undefined,
             }) as [TransactionReportGroupListItemType[], number];
 
             const reportGroupWithoutOnyx = resultWithoutOnyx.find((item) => item.reportID === reportID);
@@ -2780,7 +2780,7 @@ describe('SearchUIUtils', () => {
                 formatPhoneNumber,
                 bankAccountList: {},
                 allReportMetadata: {},
-                conciergeReportID: undefined,
+                reportAttributes: undefined,
                 onyxPersonalDetailsList,
             }) as [TransactionReportGroupListItemType[], number];
 
@@ -2820,8 +2820,8 @@ describe('SearchUIUtils', () => {
                 translate: translateLocal,
                 formatPhoneNumber,
                 bankAccountList: {},
-                conciergeReportID: undefined,
                 allReportMetadata: {},
+                reportAttributes: undefined,
                 onyxPersonalDetailsList,
             }) as [TransactionReportGroupListItemType[], number];
 
@@ -2868,7 +2868,7 @@ describe('SearchUIUtils', () => {
                 formatPhoneNumber,
                 bankAccountList: {},
                 allReportMetadata: {},
-                conciergeReportID: undefined,
+                reportAttributes: undefined,
             })[0];
             const resultReportFirst = SearchUIUtils.getSections({
                 type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
@@ -2879,7 +2879,7 @@ describe('SearchUIUtils', () => {
                 formatPhoneNumber,
                 bankAccountList: {},
                 allReportMetadata: {},
-                conciergeReportID: undefined,
+                reportAttributes: undefined,
             })[0];
 
             expect(resultTransactionFirst).toBeDefined();
@@ -2904,7 +2904,7 @@ describe('SearchUIUtils', () => {
                     bankAccountList: {},
                     groupBy: CONST.SEARCH.GROUP_BY.FROM,
                     allReportMetadata: {},
-                    conciergeReportID: undefined,
+                    reportAttributes: undefined,
                 })[0],
             ).toStrictEqual(transactionMemberGroupListItems);
         });
@@ -2932,7 +2932,7 @@ describe('SearchUIUtils', () => {
                     groupBy: CONST.SEARCH.GROUP_BY.CARD,
                     cardFeeds: mockCardFeeds,
                     allReportMetadata: {},
-                    conciergeReportID: undefined,
+                    reportAttributes: undefined,
                 })[0],
             ).toStrictEqual(transactionCardGroupListItems);
         });
@@ -2949,7 +2949,7 @@ describe('SearchUIUtils', () => {
                     bankAccountList: {},
                     groupBy: CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID,
                     allReportMetadata: {},
-                    conciergeReportID: undefined,
+                    reportAttributes: undefined,
                 })[0],
             ).toStrictEqual(transactionWithdrawalIDGroupListItems);
         });
@@ -2975,7 +2975,7 @@ describe('SearchUIUtils', () => {
                 bankAccountList: {},
                 groupBy: CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID,
                 allReportMetadata: {},
-                conciergeReportID: undefined,
+                reportAttributes: undefined,
             }) as [TransactionWithdrawalIDGroupListItemType[], number];
 
             expect(result).toHaveLength(0);
@@ -2993,7 +2993,7 @@ describe('SearchUIUtils', () => {
                     bankAccountList: {},
                     groupBy: CONST.SEARCH.GROUP_BY.CATEGORY,
                     allReportMetadata: {},
-                    conciergeReportID: undefined,
+                    reportAttributes: undefined,
                 })[0],
             ).toStrictEqual(transactionCategoryGroupListItems);
         });
@@ -3025,7 +3025,7 @@ describe('SearchUIUtils', () => {
                 bankAccountList: {},
                 groupBy: CONST.SEARCH.GROUP_BY.CATEGORY,
                 allReportMetadata: {},
-                conciergeReportID: undefined,
+                reportAttributes: undefined,
             }) as [TransactionCategoryGroupListItemType[], number];
 
             expect(result).toHaveLength(2);
@@ -3090,7 +3090,7 @@ describe('SearchUIUtils', () => {
                     bankAccountList: {},
                     groupBy: CONST.SEARCH.GROUP_BY.MONTH,
                     allReportMetadata: {},
-                    conciergeReportID: undefined,
+                    reportAttributes: undefined,
                 })[0],
             ).toStrictEqual(transactionMonthGroupListItems);
         });
@@ -3124,7 +3124,7 @@ describe('SearchUIUtils', () => {
                 bankAccountList: {},
                 groupBy: CONST.SEARCH.GROUP_BY.MONTH,
                 allReportMetadata: {},
-                conciergeReportID: undefined,
+                reportAttributes: undefined,
             }) as [TransactionMonthGroupListItemType[], number];
 
             expect(result).toHaveLength(2);
@@ -3143,7 +3143,7 @@ describe('SearchUIUtils', () => {
                 bankAccountList: {},
                 groupBy: CONST.SEARCH.GROUP_BY.MONTH,
                 allReportMetadata: {},
-                conciergeReportID: undefined,
+                reportAttributes: undefined,
             }) as [TransactionMonthGroupListItemType[], number];
 
             expect(result).toHaveLength(2);
@@ -3224,7 +3224,7 @@ describe('SearchUIUtils', () => {
                     bankAccountList: {},
                     groupBy: CONST.SEARCH.GROUP_BY.YEAR,
                     allReportMetadata: {},
-                    conciergeReportID: undefined,
+                    reportAttributes: undefined,
                 })[0],
             ).toStrictEqual(transactionYearGroupListItems);
         });
@@ -3256,7 +3256,7 @@ describe('SearchUIUtils', () => {
                 bankAccountList: {},
                 groupBy: CONST.SEARCH.GROUP_BY.YEAR,
                 allReportMetadata: {},
-                conciergeReportID: undefined,
+                reportAttributes: undefined,
             }) as [TransactionYearGroupListItemType[], number];
 
             expect(result).toHaveLength(2);
@@ -3275,7 +3275,7 @@ describe('SearchUIUtils', () => {
                 bankAccountList: {},
                 groupBy: CONST.SEARCH.GROUP_BY.YEAR,
                 allReportMetadata: {},
-                conciergeReportID: undefined,
+                reportAttributes: undefined,
             }) as [TransactionYearGroupListItemType[], number];
 
             expect(result).toHaveLength(2);
@@ -3656,7 +3656,7 @@ describe('SearchUIUtils', () => {
                     bankAccountList: {},
                     groupBy: CONST.SEARCH.GROUP_BY.QUARTER,
                     allReportMetadata: {},
-                    conciergeReportID: undefined,
+                    reportAttributes: undefined,
                 })[0],
             ).toStrictEqual(transactionQuarterGroupListItems);
         });
@@ -3690,7 +3690,7 @@ describe('SearchUIUtils', () => {
                 bankAccountList: {},
                 groupBy: CONST.SEARCH.GROUP_BY.QUARTER,
                 allReportMetadata: {},
-                conciergeReportID: undefined,
+                reportAttributes: undefined,
             }) as [TransactionQuarterGroupListItemType[], number];
 
             expect(result).toHaveLength(2);
@@ -3709,7 +3709,7 @@ describe('SearchUIUtils', () => {
                 bankAccountList: {},
                 groupBy: CONST.SEARCH.GROUP_BY.QUARTER,
                 allReportMetadata: {},
-                conciergeReportID: undefined,
+                reportAttributes: undefined,
             }) as [TransactionQuarterGroupListItemType[], number];
 
             expect(result).toHaveLength(2);
@@ -3771,7 +3771,7 @@ describe('SearchUIUtils', () => {
                     bankAccountList: {},
                     groupBy: CONST.SEARCH.GROUP_BY.WEEK,
                     allReportMetadata: {},
-                    conciergeReportID: undefined,
+                    reportAttributes: undefined,
                 })[0],
             ).toStrictEqual(transactionWeekGroupListItems);
         });
@@ -3803,7 +3803,7 @@ describe('SearchUIUtils', () => {
                 bankAccountList: {},
                 groupBy: CONST.SEARCH.GROUP_BY.WEEK,
                 allReportMetadata: {},
-                conciergeReportID: undefined,
+                reportAttributes: undefined,
             }) as [TransactionWeekGroupListItemType[], number];
 
             expect(result).toHaveLength(2);
@@ -3842,6 +3842,7 @@ describe('SearchUIUtils', () => {
                 bankAccountList: {},
                 groupBy: CONST.SEARCH.GROUP_BY.CATEGORY,
                 allReportMetadata: {},
+                reportAttributes: undefined,
                 queryJSON: {
                     type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                     status: '',
@@ -3859,7 +3860,6 @@ describe('SearchUIUtils', () => {
                         right: CONST.SEARCH.DATA_TYPES.EXPENSE,
                     },
                 },
-                conciergeReportID: undefined,
             }) as [TransactionCategoryGroupListItemType[], number];
 
             // Each category section should have a transactionsQueryJSON with a hash
@@ -3903,7 +3903,7 @@ describe('SearchUIUtils', () => {
                 bankAccountList: {},
                 groupBy: CONST.SEARCH.GROUP_BY.CATEGORY,
                 allReportMetadata: {},
-                conciergeReportID: undefined,
+                reportAttributes: undefined,
             }) as [TransactionCategoryGroupListItemType[], number];
 
             expect(result).toHaveLength(3);
@@ -3945,7 +3945,7 @@ describe('SearchUIUtils', () => {
                 bankAccountList: {},
                 groupBy: CONST.SEARCH.GROUP_BY.CATEGORY,
                 allReportMetadata: {},
-                conciergeReportID: undefined,
+                reportAttributes: undefined,
             }) as [TransactionCategoryGroupListItemType[], number];
 
             expect(result).toHaveLength(3);
@@ -3976,7 +3976,7 @@ describe('SearchUIUtils', () => {
                 bankAccountList: {},
                 groupBy: CONST.SEARCH.GROUP_BY.CATEGORY,
                 allReportMetadata: {},
-                conciergeReportID: undefined,
+                reportAttributes: undefined,
             }) as [TransactionCategoryGroupListItemType[], number];
 
             expect(result).toHaveLength(1);
@@ -4012,7 +4012,7 @@ describe('SearchUIUtils', () => {
                 bankAccountList: {},
                 groupBy: CONST.SEARCH.GROUP_BY.CATEGORY,
                 allReportMetadata: {},
-                conciergeReportID: undefined,
+                reportAttributes: undefined,
             }) as [TransactionCategoryGroupListItemType[], number];
 
             expect(result).toHaveLength(2);
@@ -4037,7 +4037,7 @@ describe('SearchUIUtils', () => {
                     bankAccountList: {},
                     groupBy: CONST.SEARCH.GROUP_BY.MERCHANT,
                     allReportMetadata: {},
-                    conciergeReportID: undefined,
+                    reportAttributes: undefined,
                 })[0],
             ).toStrictEqual(transactionMerchantGroupListItems);
         });
@@ -4070,7 +4070,7 @@ describe('SearchUIUtils', () => {
                 bankAccountList: {},
                 groupBy: CONST.SEARCH.GROUP_BY.MERCHANT,
                 allReportMetadata: {},
-                conciergeReportID: undefined,
+                reportAttributes: undefined,
             }) as [TransactionMerchantGroupListItemType[], number];
 
             expect(result).toHaveLength(2);
@@ -4100,6 +4100,7 @@ describe('SearchUIUtils', () => {
                 bankAccountList: {},
                 groupBy: CONST.SEARCH.GROUP_BY.MERCHANT,
                 allReportMetadata: {},
+                reportAttributes: undefined,
                 queryJSON: {
                     type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                     status: '',
@@ -4117,7 +4118,6 @@ describe('SearchUIUtils', () => {
                         right: CONST.SEARCH.DATA_TYPES.EXPENSE,
                     },
                 },
-                conciergeReportID: undefined,
             }) as [TransactionMerchantGroupListItemType[], number];
 
             expect(result).toHaveLength(1);
@@ -4149,6 +4149,7 @@ describe('SearchUIUtils', () => {
                 bankAccountList: {},
                 groupBy: CONST.SEARCH.GROUP_BY.MERCHANT,
                 allReportMetadata: {},
+                reportAttributes: undefined,
                 queryJSON: {
                     type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                     status: '',
@@ -4166,7 +4167,6 @@ describe('SearchUIUtils', () => {
                         right: CONST.SEARCH.DATA_TYPES.EXPENSE,
                     },
                 },
-                conciergeReportID: undefined,
             }) as [TransactionMerchantGroupListItemType[], number];
 
             expect(result).toHaveLength(1);
@@ -4198,6 +4198,7 @@ describe('SearchUIUtils', () => {
                 bankAccountList: {},
                 groupBy: CONST.SEARCH.GROUP_BY.MERCHANT,
                 allReportMetadata: {},
+                reportAttributes: undefined,
                 queryJSON: {
                     type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                     status: '',
@@ -4215,7 +4216,6 @@ describe('SearchUIUtils', () => {
                         right: CONST.SEARCH.DATA_TYPES.EXPENSE,
                     },
                 },
-                conciergeReportID: undefined,
             }) as [TransactionMerchantGroupListItemType[], number];
 
             expect(result).toHaveLength(1);
@@ -4247,6 +4247,7 @@ describe('SearchUIUtils', () => {
                 bankAccountList: {},
                 groupBy: CONST.SEARCH.GROUP_BY.MERCHANT,
                 allReportMetadata: {},
+                reportAttributes: undefined,
                 queryJSON: {
                     type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                     status: '',
@@ -4264,7 +4265,6 @@ describe('SearchUIUtils', () => {
                         right: CONST.SEARCH.DATA_TYPES.EXPENSE,
                     },
                 },
-                conciergeReportID: undefined,
             }) as [TransactionMerchantGroupListItemType[], number];
 
             expect(result).toHaveLength(1);
@@ -4317,6 +4317,7 @@ describe('SearchUIUtils', () => {
                 bankAccountList: {},
                 groupBy: CONST.SEARCH.GROUP_BY.MERCHANT,
                 allReportMetadata: {},
+                reportAttributes: undefined,
                 queryJSON: {
                     type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                     status: '',
@@ -4334,7 +4335,6 @@ describe('SearchUIUtils', () => {
                         right: CONST.SEARCH.DATA_TYPES.EXPENSE,
                     },
                 },
-                conciergeReportID: undefined,
             }) as [TransactionMerchantGroupListItemType[], number];
 
             // Each merchant section should have a transactionsQueryJSON with a hash
@@ -4379,7 +4379,7 @@ describe('SearchUIUtils', () => {
                 bankAccountList: {},
                 groupBy: CONST.SEARCH.GROUP_BY.MERCHANT,
                 allReportMetadata: {},
-                conciergeReportID: undefined,
+                reportAttributes: undefined,
             }) as [TransactionMerchantGroupListItemType[], number];
 
             expect(result).toHaveLength(3);
@@ -4422,7 +4422,7 @@ describe('SearchUIUtils', () => {
                 bankAccountList: {},
                 groupBy: CONST.SEARCH.GROUP_BY.MERCHANT,
                 allReportMetadata: {},
-                conciergeReportID: undefined,
+                reportAttributes: undefined,
             }) as [TransactionMerchantGroupListItemType[], number];
 
             expect(result).toHaveLength(3);
@@ -4444,7 +4444,7 @@ describe('SearchUIUtils', () => {
                     bankAccountList: {},
                     groupBy: CONST.SEARCH.GROUP_BY.TAG,
                     allReportMetadata: {},
-                    conciergeReportID: undefined,
+                    reportAttributes: undefined,
                 })[0],
             ).toStrictEqual(transactionTagGroupListItems);
         });
@@ -4472,7 +4472,7 @@ describe('SearchUIUtils', () => {
                 bankAccountList: {},
                 groupBy: CONST.SEARCH.GROUP_BY.TAG,
                 allReportMetadata: {},
-                conciergeReportID: undefined,
+                reportAttributes: undefined,
             }) as [TransactionTagGroupListItemType[], number];
 
             // formattedTag should have unescaped colons for display
@@ -4508,7 +4508,7 @@ describe('SearchUIUtils', () => {
                 bankAccountList: {},
                 groupBy: CONST.SEARCH.GROUP_BY.TAG,
                 allReportMetadata: {},
-                conciergeReportID: undefined,
+                reportAttributes: undefined,
             }) as [TransactionTagGroupListItemType[], number];
 
             expect(result).toHaveLength(2);
@@ -4537,7 +4537,7 @@ describe('SearchUIUtils', () => {
                 bankAccountList: {},
                 groupBy: CONST.SEARCH.GROUP_BY.TAG,
                 allReportMetadata: {},
-                conciergeReportID: undefined,
+                reportAttributes: undefined,
             }) as [TransactionTagGroupListItemType[], number];
 
             expect(result).toHaveLength(1);
@@ -4587,6 +4587,7 @@ describe('SearchUIUtils', () => {
                 bankAccountList: {},
                 groupBy: CONST.SEARCH.GROUP_BY.TAG,
                 allReportMetadata: {},
+                reportAttributes: undefined,
                 queryJSON: {
                     type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                     status: '',
@@ -4604,7 +4605,6 @@ describe('SearchUIUtils', () => {
                         right: CONST.SEARCH.DATA_TYPES.EXPENSE,
                     },
                 },
-                conciergeReportID: undefined,
             }) as [TransactionTagGroupListItemType[], number];
 
             // Each tag section should have a transactionsQueryJSON with a hash
@@ -4661,7 +4661,7 @@ describe('SearchUIUtils', () => {
                 formatPhoneNumber,
                 bankAccountList: {},
                 allReportMetadata: {},
-                conciergeReportID: '999',
+                reportAttributes: undefined,
             }) as [TaskListItemType[], number];
 
             expect(result).toHaveLength(1);
@@ -4687,7 +4687,7 @@ describe('SearchUIUtils', () => {
                 formatPhoneNumber,
                 bankAccountList: {},
                 allReportMetadata: {},
-                conciergeReportID: '999',
+                reportAttributes: undefined,
             }) as [TaskListItemType[], number];
 
             expect(result).toHaveLength(0);
@@ -4754,7 +4754,7 @@ describe('SearchUIUtils', () => {
                 formatPhoneNumber,
                 bankAccountList: {},
                 allReportMetadata: {},
-                conciergeReportID: '999',
+                reportAttributes: undefined,
             }) as [TaskListItemType[], number];
 
             expect(result).toHaveLength(2);
@@ -4808,7 +4808,7 @@ describe('SearchUIUtils', () => {
                 formatPhoneNumber,
                 bankAccountList: {},
                 allReportMetadata: {},
-                conciergeReportID: '999',
+                reportAttributes: undefined,
             }) as [TaskListItemType[], number];
 
             expect(result).toHaveLength(1);
@@ -4861,7 +4861,7 @@ describe('SearchUIUtils', () => {
                 formatPhoneNumber,
                 bankAccountList: {},
                 allReportMetadata: {},
-                conciergeReportID: '999',
+                reportAttributes: undefined,
             }) as [TaskListItemType[], number];
 
             // Only the task report should be included
@@ -4916,7 +4916,7 @@ describe('SearchUIUtils', () => {
                 formatPhoneNumber,
                 bankAccountList: {},
                 allReportMetadata: {},
-                conciergeReportID: undefined,
+                reportAttributes: undefined,
             }) as [TaskListItemType[], number];
 
             expect(result).toHaveLength(1);
@@ -4965,7 +4965,7 @@ describe('SearchUIUtils', () => {
                     formatPhoneNumber,
                     bankAccountList: {},
                     allReportMetadata: {},
-                    conciergeReportID: undefined,
+                    reportAttributes: undefined,
                 })[0] as TransactionReportGroupListItemType[];
 
                 const item = sections.find((s) => s.keyForList === testReportID);
@@ -5079,7 +5079,7 @@ describe('SearchUIUtils', () => {
                     formatPhoneNumber,
                     bankAccountList: {},
                     allReportMetadata: {},
-                    conciergeReportID: undefined,
+                    reportAttributes: undefined,
                 })[0] as TransactionReportGroupListItemType[];
 
                 const item = sections.find((s) => s.keyForList === avatarTestReportID);
@@ -5590,7 +5590,7 @@ describe('SearchUIUtils', () => {
                 bankAccountList: {},
                 groupBy: CONST.SEARCH.GROUP_BY.TAG,
                 allReportMetadata: {},
-                conciergeReportID: undefined,
+                reportAttributes: undefined,
             }) as [TransactionTagGroupListItemType[], number];
 
             // Then sort the sections
