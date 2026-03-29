@@ -40,6 +40,7 @@ import type {
 import {WRITE_COMMANDS} from '@libs/API/types';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
+import {registerDeferredWrite} from '@libs/deferredLayoutWrite';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {getMicroSecondOnyxErrorObject, getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import {readFileAsync} from '@libs/fileDownload/FileUtils';
@@ -257,6 +258,7 @@ import type RecentlyUsedTags from '@src/types/onyx/RecentlyUsedTags';
 import type {ReportNextStep} from '@src/types/onyx/Report';
 import type ReportAction from '@src/types/onyx/ReportAction';
 import type {OnyxData} from '@src/types/onyx/Request';
+import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 import type {Comment, Receipt, ReceiptSource, Routes, SplitShares, TransactionChanges, TransactionCustomUnit, WaypointCollection} from '@src/types/onyx/Transaction';
 import type {FileObject} from '@src/types/utils/Attachment';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -1152,6 +1154,17 @@ function dismissModalAndOpenReportInInboxTab(reportID?: string, isInvoice?: bool
 }
 
 /**
+ * Marks a transaction for highlight on the Search page when the expense was created
+ * from the global create button and the user is not on the Inbox tab.
+ */
+function highlightTransactionOnSearchRouteIfNeeded(isFromGlobalCreate: boolean | undefined, transactionID: string | undefined, dataType: SearchDataTypes) {
+    if (!isFromGlobalCreate || isReportTopmostSplitNavigator() || !transactionID) {
+        return;
+    }
+    mergeTransactionIdsHighlightOnSearchRoute(dataType, {[transactionID]: true});
+}
+
+/**
  * Helper to navigate after an expense is created in order to standardize the post‑creation experience
  * when creating an expense from the global create button.
  * If the expense is created from the global create button then:
@@ -1183,14 +1196,11 @@ function handleNavigateAfterExpenseCreate({
         return;
     }
 
-    const type = isInvoice ? CONST.SEARCH.DATA_TYPES.INVOICE : CONST.SEARCH.DATA_TYPES.EXPENSE;
-
-    // We mark this transaction to be highlighted when opening the expense search route page
-    mergeTransactionIdsHighlightOnSearchRoute(type, {[transactionID]: true});
-
     if (!shouldHandleNavigation) {
         return;
     }
+
+    const type = isInvoice ? CONST.SEARCH.DATA_TYPES.INVOICE : CONST.SEARCH.DATA_TYPES.EXPENSE;
 
     // When already on Search ROOT with the same type (expense vs invoice), we navigate to the same screen (no-op or refresh); record as dismiss_modal_only.
     // When on another Search sub-tab (e.g. Chats), or on Search with a different type (e.g. on Invoice, submitting expense), record as navigate_to_search.
@@ -1203,11 +1213,6 @@ function handleNavigateAfterExpenseCreate({
     setPendingSubmitFollowUpAction(
         alreadyOnSearchRoot && isSameSearchType ? CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_ONLY : CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.NAVIGATE_TO_SEARCH,
     );
-    startSpan(CONST.TELEMETRY.SPAN_NAVIGATE_AFTER_EXPENSE_CREATE, {
-        name: 'navigate-after-expense-create',
-        op: CONST.TELEMETRY.SPAN_NAVIGATE_AFTER_EXPENSE_CREATE,
-    });
-
     const queryString = buildCannedSearchQuery({type});
     Navigation.isNavigationReady().then(() => {
         if (getIsNarrowLayout()) {
@@ -1475,12 +1480,21 @@ function startDistanceRequest(
     }
 }
 
-function setMoneyRequestAmount(transactionID: string, amount: number, currency: string, shouldShowOriginalAmount = false) {
-    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {amount, currency, shouldShowOriginalAmount});
+function setMoneyRequestReceiptState(transactionID: string, isDraft: boolean, shouldStopSmartscan = false) {
+    if (!isDraft || !shouldStopSmartscan) {
+        return;
+    }
+    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {receipt: {state: CONST.IOU.RECEIPT_STATE.OPEN}});
 }
 
-function setMoneyRequestCreated(transactionID: string, created: string, isDraft: boolean) {
+function setMoneyRequestAmount(transactionID: string, amount: number, currency: string, shouldShowOriginalAmount = false, shouldStopSmartscan = false) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {amount, currency, shouldShowOriginalAmount});
+    setMoneyRequestReceiptState(transactionID, true, shouldStopSmartscan);
+}
+
+function setMoneyRequestCreated(transactionID: string, created: string, isDraft: boolean, shouldStopSmartscan = false) {
     Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {created});
+    setMoneyRequestReceiptState(transactionID, isDraft, shouldStopSmartscan);
 }
 
 function setMoneyRequestDateAttribute(transactionID: string, start: string, end: string) {
@@ -1492,12 +1506,14 @@ function setMoneyRequestCurrency(transactionID: string, currency: string, isEdit
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {[fieldToUpdate]: currency});
 }
 
-function setMoneyRequestDescription(transactionID: string, comment: string, isDraft: boolean) {
+function setMoneyRequestDescription(transactionID: string, comment: string, isDraft: boolean, shouldStopSmartscan = false) {
     Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {comment: {comment: comment.trim()}});
+    setMoneyRequestReceiptState(transactionID, isDraft, shouldStopSmartscan);
 }
 
-function setMoneyRequestMerchant(transactionID: string, merchant: string, isDraft: boolean) {
+function setMoneyRequestMerchant(transactionID: string, merchant: string, isDraft: boolean, shouldStopSmartscan = false) {
     Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {merchant});
+    setMoneyRequestReceiptState(transactionID, isDraft, shouldStopSmartscan);
 }
 
 function setMoneyRequestAttendees(transactionID: string, attendees: Attendee[], isDraft: boolean) {
@@ -1747,18 +1763,13 @@ function removeMoneyRequestOdometerImage(transactionID: string, imageType: Odome
  * Set the distance rate of a transaction.
  * Used when creating a new transaction or moving an existing one from Self DM
  */
-function setMoneyRequestDistanceRate(currentTransaction: OnyxEntry<OnyxTypes.Transaction>, customUnitRateID: string, policy: OnyxEntry<OnyxTypes.Policy>, isDraft: boolean) {
-    if (!currentTransaction) {
-        Log.warn('setMoneyRequestDistanceRate is called without a valid transaction, skipping setting distance rate.');
-        return;
-    }
+function setMoneyRequestDistanceRate(transactionID: string, customUnitRateID: string, policy: OnyxEntry<OnyxTypes.Policy>, isDraft: boolean) {
     if (policy) {
         Onyx.merge(ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES, {[policy.id]: customUnitRateID});
     }
 
     const newDistanceUnit = getDistanceRateCustomUnit(policy)?.attributes?.unit;
-    const transactionID = currentTransaction?.transactionID;
-    const transaction = isDraft ? allTransactionDrafts[`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`] : currentTransaction;
+    const transaction = isDraft ? allTransactionDrafts[`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`] : allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
 
     let newDistance;
     if (newDistanceUnit && newDistanceUnit !== transaction?.comment?.customUnit?.distanceUnit && !isOdometerDistanceRequestTransactionUtils(transaction)) {
@@ -4329,6 +4340,7 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
         key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
         value: {
             ...updatedTransaction,
+            pendingFields,
             errorFields: null,
             reportID: newTransactionReportID ?? updatedTransaction?.reportID,
         },
@@ -4485,6 +4497,7 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
     const hasModifiedReimbursable = 'reimbursable' in transactionChanges;
     const hasModifiedTaxCode = 'taxCode' in transactionChanges;
     const hasModifiedDate = 'date' in transactionChanges;
+    const hasModifiedDistance = 'distance' in transactionChanges;
     const hasModifiedAttendees = 'attendees' in transactionChanges;
 
     const isInvoice = isInvoiceReportReportUtils(iouReport);
@@ -4500,6 +4513,7 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
             hasModifiedComment ||
             hasModifiedMerchant ||
             hasModifiedDistanceRate ||
+            hasModifiedDistance ||
             hasModifiedDate ||
             hasModifiedCurrency ||
             hasModifiedAmount ||
@@ -4520,6 +4534,11 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
                 : optimisticViolations;
         if (hasPendingWaypoints) {
             optimisticViolations = optimisticViolations.filter((violation) => violation.name !== CONST.VIOLATIONS.NO_ROUTE);
+        }
+        if (hasModifiedDistanceRate || hasModifiedDistance) {
+            optimisticViolations = optimisticViolations.filter(
+                (violation) => !(violation.name === CONST.VIOLATIONS.MODIFIED_AMOUNT && violation.data?.type === CONST.MODIFIED_AMOUNT_VIOLATION_DATA.DISTANCE),
+            );
         }
 
         const violationsOnyxData = ViolationsUtils.getViolationsOnyxData(
@@ -5468,7 +5487,7 @@ function updateMoneyRequestDescription({
 
 /** Updates the distance rate of an expense */
 function updateMoneyRequestDistanceRate({
-    transaction,
+    transactionID,
     transactionThreadReport,
     parentReport,
     rateID,
@@ -5482,7 +5501,7 @@ function updateMoneyRequestDistanceRate({
     updatedTaxCode,
     parentReportNextStep,
 }: {
-    transaction: OnyxEntry<OnyxTypes.Transaction>;
+    transactionID: string;
     transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
     parentReport: OnyxEntry<OnyxTypes.Report>;
     rateID: string;
@@ -5502,7 +5521,8 @@ function updateMoneyRequestDistanceRate({
         ...(updatedTaxCode ? {taxCode: updatedTaxCode} : {}),
     };
 
-    if (transaction?.transactionID) {
+    const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
+    if (transaction) {
         const existingDistanceUnit = transaction?.comment?.customUnit?.distanceUnit;
         const newDistanceUnit = DistanceRequestUtils.getRateByCustomUnitRateID({customUnitRateID: rateID, policy})?.unit;
 
@@ -5515,10 +5535,10 @@ function updateMoneyRequestDistanceRate({
     let data: UpdateMoneyRequestData<UpdateMoneyRequestDataKeys>;
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     if (isTrackExpenseReport(transactionThreadReport) && isSelfDM(parentReport)) {
-        data = getUpdateTrackExpenseParams(transaction?.transactionID, transactionThreadReport?.reportID, transactionChanges, policy);
+        data = getUpdateTrackExpenseParams(transactionID, transactionThreadReport?.reportID, transactionChanges, policy);
     } else {
         data = getUpdateMoneyRequestParams({
-            transactionID: transaction?.transactionID,
+            transactionID,
             transactionThreadReport,
             iouReport: parentReport,
             transactionChanges,
@@ -6421,6 +6441,15 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
         playSound(SOUNDS.DONE);
     }
 
+    // API.write is deferred until the Search screen's actual content (not skeleton)
+    // lays out, so that Onyx optimistic updates don't block the JS thread while
+    // the skeleton→content transition is in progress. The Search component flushes
+    // the registered write from its content onLayout callback.
+    // Only the SUBMIT and default (REQUEST_MONEY) branches wrap the write; the actual
+    // deferral only activates when we navigate to Search (shouldHandleNavigation && !isRetry).
+    // CATEGORIZE and SHARE navigate elsewhere and don't benefit from this deferral.
+    let deferredAPIWrite: (() => void) | undefined;
+
     switch (action) {
         case CONST.IOU.ACTION.SUBMIT: {
             if (!linkedTrackedExpenseReportAction || !linkedTrackedExpenseReportID) {
@@ -6448,42 +6477,44 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
                       }
                     : undefined;
             const isDistanceRequest = isDistanceRequestTransactionUtils(transaction);
-            convertTrackedExpenseToRequest({
-                payerParams: {
-                    accountID: payerAccountID,
-                    email: payerEmail,
-                },
-                transactionParams: {
-                    amount,
-                    distance,
-                    currency,
-                    comment,
-                    merchant,
-                    created,
-                    attendees,
-                    transactionID: transaction.transactionID,
-                    actionableWhisperReportActionID,
-                    linkedTrackedExpenseReportAction,
-                    linkedTrackedExpenseReportID,
-                    transactionThreadReportID: transactionThreadReportID ?? iouAction?.childReportID,
-                    isLinkedTrackedExpenseReportArchived,
-                    isDistance: isDistanceRequest,
-                    customUnitRateID: isDistanceRequest ? customUnitRateID : undefined,
-                    waypoints: isDistanceRequest ? sanitizedWaypoints : undefined,
-                },
-                chatParams: {
-                    reportID: chatReport.reportID,
-                    createdReportActionID: createdChatReportActionID,
-                    reportPreviewReportActionID: reportPreviewAction.reportActionID,
-                },
-                iouParams: {
-                    reportID: iouReport.reportID,
-                    createdReportActionID: createdIOUReportActionID,
-                    reportActionID: iouAction.reportActionID,
-                },
-                onyxData,
-                workspaceParams,
-            });
+            deferredAPIWrite = () => {
+                convertTrackedExpenseToRequest({
+                    payerParams: {
+                        accountID: payerAccountID,
+                        email: payerEmail,
+                    },
+                    transactionParams: {
+                        amount,
+                        distance,
+                        currency,
+                        comment,
+                        merchant,
+                        created,
+                        attendees,
+                        transactionID: transaction.transactionID,
+                        actionableWhisperReportActionID,
+                        linkedTrackedExpenseReportAction,
+                        linkedTrackedExpenseReportID,
+                        transactionThreadReportID: transactionThreadReportID ?? iouAction?.childReportID,
+                        isLinkedTrackedExpenseReportArchived,
+                        isDistance: isDistanceRequest,
+                        customUnitRateID: isDistanceRequest ? customUnitRateID : undefined,
+                        waypoints: isDistanceRequest ? sanitizedWaypoints : undefined,
+                    },
+                    chatParams: {
+                        reportID: chatReport.reportID,
+                        createdReportActionID: createdChatReportActionID,
+                        reportPreviewReportActionID: reportPreviewAction.reportActionID,
+                    },
+                    iouParams: {
+                        reportID: iouReport.reportID,
+                        createdReportActionID: createdIOUReportActionID,
+                        reportActionID: iouAction.reportActionID,
+                    },
+                    onyxData,
+                    workspaceParams,
+                });
+            };
             break;
         }
         default: {
@@ -6542,7 +6573,9 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
                 shouldDeferAutoSubmit,
             };
             // eslint-disable-next-line rulesdir/no-multiple-api-calls
-            API.write(WRITE_COMMANDS.REQUEST_MONEY, parameters, onyxData);
+            deferredAPIWrite = () => {
+                API.write(WRITE_COMMANDS.REQUEST_MONEY, parameters, onyxData);
+            };
         }
     }
 
@@ -6556,7 +6589,21 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
         }
     }
 
+    // Register the deferred write BEFORE navigation so the Search component's
+    // hasDeferredWrite() check on mount always sees the pending channel.
+    if (deferredAPIWrite) {
+        if (shouldHandleNavigation && !requestMoneyInformation.isRetry && isFromGlobalCreate && !isReportTopmostSplitNavigator()) {
+            registerDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH, deferredAPIWrite, {
+                optimisticWatchKey: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
+            });
+        } else {
+            deferredAPIWrite();
+        }
+    }
+
     if (!requestMoneyInformation.isRetry) {
+        highlightTransactionOnSearchRouteIfNeeded(isFromGlobalCreate, transaction.transactionID, CONST.SEARCH.DATA_TYPES.EXPENSE);
+
         handleNavigateAfterExpenseCreate({
             activeReportID: backToReport ?? activeReportID,
             transactionID: transaction.transactionID,
@@ -6931,7 +6978,18 @@ function trackExpense(params: CreateTrackExpenseParams) {
                 parameters.actionableWhisperReportActionID = actionableWhisperReportActionIDParam;
             }
 
-            API.write(WRITE_COMMANDS.TRACK_EXPENSE, parameters, onyxData);
+            const shouldDeferWrite = shouldHandleNavigation && !params.isRetry && isFromGlobalCreate && !isReportTopmostSplitNavigator();
+            const apiWrite = () => {
+                API.write(WRITE_COMMANDS.TRACK_EXPENSE, parameters, onyxData);
+            };
+
+            if (shouldDeferWrite) {
+                registerDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH, apiWrite, {
+                    optimisticWatchKey: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction?.transactionID}`,
+                });
+            } else {
+                apiWrite();
+            }
         }
     }
 
@@ -6941,6 +6999,8 @@ function trackExpense(params: CreateTrackExpenseParams) {
     }
 
     if (!params.isRetry) {
+        highlightTransactionOnSearchRouteIfNeeded(isFromGlobalCreate, transaction?.transactionID, CONST.SEARCH.DATA_TYPES.EXPENSE);
+
         handleNavigateAfterExpenseCreate({
             activeReportID,
             transactionID: transaction?.transactionID,
@@ -7798,12 +7858,25 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
         playSound(SOUNDS.DONE);
     }
 
-    API.write(WRITE_COMMANDS.CREATE_DISTANCE_REQUEST, parameters, onyxData);
+    const shouldDeferWrite = shouldHandleNavigation && isFromGlobalCreate && !isReportTopmostSplitNavigator();
+    const apiWrite = () => {
+        API.write(WRITE_COMMANDS.CREATE_DISTANCE_REQUEST, parameters, onyxData);
+    };
+
+    if (shouldDeferWrite) {
+        registerDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH, apiWrite, {
+            optimisticWatchKey: `${ONYXKEYS.COLLECTION.TRANSACTION}${parameters.transactionID}`,
+        });
+    } else {
+        apiWrite();
+    }
+
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     InteractionManager.runAfterInteractions(() => removeDraftTransaction(CONST.IOU.OPTIMISTIC_TRANSACTION_ID));
     const activeReportID = isMoneyRequestReport && report?.reportID ? report.reportID : parameters.chatReportID;
 
     if (shouldHandleNavigation) {
+        highlightTransactionOnSearchRouteIfNeeded(isFromGlobalCreate, parameters.transactionID, CONST.SEARCH.DATA_TYPES.EXPENSE);
         handleNavigateAfterExpenseCreate({activeReportID: backToReport ?? activeReportID, isFromGlobalCreate, transactionID: parameters.transactionID});
     }
 
@@ -9864,7 +9937,7 @@ function approveMoneyRequest(params: ApproveMoneyRequestFunctionParams) {
         return;
     }
 
-    if (expenseReport.policyID && shouldRestrictUserBillableActions(expenseReport.policyID, userBillingGraceEndPeriods, amountOwed, ownerBillingGraceEndPeriod)) {
+    if (expenseReport.policyID && shouldRestrictUserBillableActions(expenseReport.policyID, ownerBillingGraceEndPeriod, userBillingGraceEndPeriods, amountOwed)) {
         Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(expenseReport.policyID));
         return;
     }
@@ -9875,7 +9948,7 @@ function approveMoneyRequest(params: ApproveMoneyRequestFunctionParams) {
     if (hasHeldExpenses && !full && !!expenseReport.unheldTotal) {
         total = expenseReport.unheldTotal;
     }
-    const optimisticApprovedReportAction = buildOptimisticApprovedReportAction(total, expenseReport.currency ?? '', expenseReport.reportID);
+    const optimisticApprovedReportAction = buildOptimisticApprovedReportAction(total, expenseReport.currency ?? '', expenseReport.reportID, currentUserAccountIDParam);
 
     const isDEWPolicy = hasDynamicExternalWorkflow(policy);
     const shouldAddOptimisticApproveAction = !isDEWPolicy || isOffline();
@@ -10756,7 +10829,7 @@ function submitReport({
     if (!expenseReport) {
         return;
     }
-    if (expenseReport.policyID && shouldRestrictUserBillableActions(expenseReport.policyID, userBillingGraceEndPeriods, amountOwed, ownerBillingGraceEndPeriod)) {
+    if (expenseReport.policyID && shouldRestrictUserBillableActions(expenseReport.policyID, ownerBillingGraceEndPeriod, userBillingGraceEndPeriods, amountOwed)) {
         Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(expenseReport.policyID));
         return;
     }
@@ -11034,6 +11107,7 @@ function cancelPayment(
         expenseReport.reportID,
         -((expenseReport.total ?? 0) - (expenseReport?.nonReimbursableTotal ?? 0)),
         expenseReport.currency ?? '',
+        currentUserAccountIDParam,
     );
     const approvalMode = policy?.approvalMode ?? CONST.POLICY.APPROVAL_MODE.BASIC;
 
@@ -11293,7 +11367,7 @@ function payMoneyRequest(params: PayMoneyRequestFunctionParams) {
         methodID,
         onPaid,
     } = params;
-    if (chatReport.policyID && shouldRestrictUserBillableActions(chatReport.policyID, userBillingGraceEndPeriods, amountOwed, ownerBillingGraceEndPeriod)) {
+    if (chatReport.policyID && shouldRestrictUserBillableActions(chatReport.policyID, ownerBillingGraceEndPeriod, userBillingGraceEndPeriods, amountOwed)) {
         Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(chatReport.policyID));
         return;
     }
@@ -11819,18 +11893,18 @@ function setMultipleMoneyRequestParticipantsFromReport(transactionIDs: string[],
     return Onyx.mergeCollection(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, updatedTransactions);
 }
 
-const expenseReportStatusFilterMapping = {
-    [CONST.SEARCH.STATUS.EXPENSE.DRAFTS]: (expenseReport: OnyxEntry<OnyxTypes.Report>) =>
-        expenseReport?.stateNum === CONST.REPORT.STATE_NUM.OPEN && expenseReport?.statusNum === CONST.REPORT.STATUS_NUM.OPEN,
-    [CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING]: (expenseReport: OnyxEntry<OnyxTypes.Report>) =>
+type ExpenseReportStatusPredicate = (expenseReport: OnyxEntry<OnyxTypes.Report>, transactionReportID?: string) => boolean;
+
+const expenseReportStatusFilterMapping: Record<string, ExpenseReportStatusPredicate> = {
+    [CONST.SEARCH.STATUS.EXPENSE.DRAFTS]: (expenseReport) => expenseReport?.stateNum === CONST.REPORT.STATE_NUM.OPEN && expenseReport?.statusNum === CONST.REPORT.STATUS_NUM.OPEN,
+    [CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING]: (expenseReport) =>
         expenseReport?.stateNum === CONST.REPORT.STATE_NUM.SUBMITTED && expenseReport?.statusNum === CONST.REPORT.STATUS_NUM.SUBMITTED,
-    [CONST.SEARCH.STATUS.EXPENSE.APPROVED]: (expenseReport: OnyxEntry<OnyxTypes.Report>) =>
-        expenseReport?.stateNum === CONST.REPORT.STATE_NUM.APPROVED && expenseReport?.statusNum === CONST.REPORT.STATUS_NUM.APPROVED,
-    [CONST.SEARCH.STATUS.EXPENSE.PAID]: (expenseReport: OnyxEntry<OnyxTypes.Report>) =>
+    [CONST.SEARCH.STATUS.EXPENSE.APPROVED]: (expenseReport) => expenseReport?.stateNum === CONST.REPORT.STATE_NUM.APPROVED && expenseReport?.statusNum === CONST.REPORT.STATUS_NUM.APPROVED,
+    [CONST.SEARCH.STATUS.EXPENSE.PAID]: (expenseReport) =>
         (expenseReport?.stateNum ?? 0) >= CONST.REPORT.STATE_NUM.APPROVED && expenseReport?.statusNum === CONST.REPORT.STATUS_NUM.REIMBURSED,
-    [CONST.SEARCH.STATUS.EXPENSE.DONE]: (expenseReport: OnyxEntry<OnyxTypes.Report>) =>
-        expenseReport?.stateNum === CONST.REPORT.STATE_NUM.APPROVED && expenseReport?.statusNum === CONST.REPORT.STATUS_NUM.CLOSED,
-    [CONST.SEARCH.STATUS.EXPENSE.UNREPORTED]: (expenseReport: OnyxEntry<OnyxTypes.Report>) => !expenseReport,
+    [CONST.SEARCH.STATUS.EXPENSE.DONE]: (expenseReport) => expenseReport?.stateNum === CONST.REPORT.STATE_NUM.APPROVED && expenseReport?.statusNum === CONST.REPORT.STATUS_NUM.CLOSED,
+    [CONST.SEARCH.STATUS.EXPENSE.UNREPORTED]: (expenseReport, transactionReportID) => !expenseReport && transactionReportID !== CONST.REPORT.TRASH_REPORT_ID,
+    [CONST.SEARCH.STATUS.EXPENSE.DELETED]: (_expenseReport, transactionReportID) => transactionReportID === CONST.REPORT.TRASH_REPORT_ID,
     [CONST.SEARCH.STATUS.EXPENSE.ALL]: () => true,
 };
 
@@ -11850,14 +11924,15 @@ function shouldOptimisticallyUpdateSearch(
     }
     let shouldOptimisticallyUpdateByStatus;
     const status = currentSearchQueryJSON.status;
+    const transactionReportID = transaction?.reportID;
     if (Array.isArray(status)) {
         shouldOptimisticallyUpdateByStatus = status.some((val) => {
             const expenseStatus = val as ValueOf<typeof CONST.SEARCH.STATUS.EXPENSE>;
-            return expenseReportStatusFilterMapping[expenseStatus](iouReport);
+            return expenseReportStatusFilterMapping[expenseStatus](iouReport, transactionReportID);
         });
     } else {
         const expenseStatus = status as ValueOf<typeof CONST.SEARCH.STATUS.EXPENSE>;
-        shouldOptimisticallyUpdateByStatus = expenseReportStatusFilterMapping[expenseStatus](iouReport);
+        shouldOptimisticallyUpdateByStatus = expenseReportStatusFilterMapping[expenseStatus](iouReport, transactionReportID);
     }
 
     if (currentSearchQueryJSON.policyID?.length && iouReport?.policyID) {
@@ -13235,6 +13310,7 @@ export {
     setMoneyRequestTimeCount,
     getCleanUpTransactionThreadReportOnyxData,
     handleNavigateAfterExpenseCreate,
+    highlightTransactionOnSearchRouteIfNeeded,
     buildMinimalTransactionForFormula,
     buildOnyxDataForMoneyRequest,
     createSplitsAndOnyxData,

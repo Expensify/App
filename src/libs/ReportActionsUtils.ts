@@ -2284,6 +2284,28 @@ function getTravelUpdateMessage(
     }
 }
 
+function getDynamicExternalWorkflowSubmitFailedActionMessage(translate: LocalizedTranslate, action: ReportAction): string {
+    if (!isDynamicExternalWorkflowSubmitFailedAction(action)) {
+        return '';
+    }
+    const originalMessage = getOriginalMessage(action);
+    const wasSubmittedViaHarvesting = originalMessage?.harvesting ?? false;
+    const message = originalMessage?.message ?? translate('iou.error.genericCreateFailureMessage');
+    const failedSubmitReason = wasSubmittedViaHarvesting ? translate('iou.failedToAutoSubmitViaDEW', message) : translate('iou.failedToSubmitViaDEW', message);
+    return failedSubmitReason;
+}
+
+function getDynamicExternalWorkflowApproveFailedActionMessage(translate: LocalizedTranslate, action: ReportAction): string {
+    if (!isDynamicExternalWorkflowApproveFailedAction(action)) {
+        return '';
+    }
+    const originalMessage = getOriginalMessage(action);
+    const wasAutoApproveAction = originalMessage?.automaticAction ?? false;
+    const message = originalMessage?.message ?? translate('iou.error.genericCreateFailureMessage');
+    const failedApproveReason = wasAutoApproveAction ? translate('iou.failedToAutoApproveViaDEW', message) : translate('iou.failedToApproveViaDEW', message);
+    return failedApproveReason;
+}
+
 // eslint-disable-next-line @typescript-eslint/no-deprecated
 function getMemberChangeMessageFragment(
     translate: LocalizedTranslate,
@@ -2374,18 +2396,12 @@ function getReportActionMessageFragments(translate: LocalizedTranslate, action: 
     }
 
     if (isDynamicExternalWorkflowSubmitFailedAction(action)) {
-        const originalMessage = getOriginalMessage(action);
-        const wasSubmittedViaHarvesting = originalMessage?.harvesting ?? false;
-        const message = originalMessage?.message ?? translate('iou.error.genericCreateFailureMessage');
-        const failedSubmitReason = wasSubmittedViaHarvesting ? translate('iou.failedToAutoSubmitViaDEW', message) : translate('iou.failedToSubmitViaDEW', message);
+        const failedSubmitReason = getDynamicExternalWorkflowSubmitFailedActionMessage(translate, action);
         return [{text: failedSubmitReason, html: `<muted-text>${failedSubmitReason}</muted-text>`, type: 'COMMENT'}];
     }
 
     if (isDynamicExternalWorkflowApproveFailedAction(action)) {
-        const originalMessage = getOriginalMessage(action);
-        const wasAutoApproveAction = originalMessage?.automaticAction ?? false;
-        const message = originalMessage?.message ?? translate('iou.error.genericCreateFailureMessage');
-        const failedApproveReason = wasAutoApproveAction ? translate('iou.failedToAutoApproveViaDEW', message) : translate('iou.failedToApproveViaDEW', message);
+        const failedApproveReason = getDynamicExternalWorkflowApproveFailedActionMessage(translate, action);
         return [{text: failedApproveReason, html: `<muted-text>${failedApproveReason}</muted-text>`, type: 'COMMENT'}];
     }
 
@@ -3249,10 +3265,14 @@ function getWorkspaceCustomUnitSubRateDeletedMessage(translate: LocalizedTransla
 }
 
 function getWorkspaceReportFieldAddMessage(translate: LocalizedTranslate, action: ReportAction): string {
-    const {fieldName, fieldType} = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_CATEGORY>) ?? {};
+    const {fieldName, fieldType, defaultValue} = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_CATEGORY>) ?? {};
 
     if (fieldName && fieldType) {
-        return translate('workspaceActions.addedReportField', {fieldType: translate(getReportFieldTypeTranslationKey(fieldType as PolicyReportFieldType)).toLowerCase(), fieldName});
+        return translate('workspaceActions.addedReportField', {
+            fieldType: translate(getReportFieldTypeTranslationKey(fieldType as PolicyReportFieldType)).toLowerCase(),
+            fieldName,
+            defaultValue,
+        });
     }
 
     return getReportActionText(action);
@@ -4244,9 +4264,9 @@ function isCardIssuedAction(
     );
 }
 
-function shouldShowAddMissingDetails(actionName?: ReportActionName, privatePersonalDetail?: PrivatePersonalDetails) {
+function shouldShowAddMissingDetails(actionName?: ReportActionName, privatePersonalDetail?: PrivatePersonalDetails, cardState?: ValueOf<typeof CONST.EXPENSIFY_CARD.STATE>) {
     const missingDetails = arePersonalDetailsMissing(privatePersonalDetail);
-    return actionName === CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS && missingDetails;
+    return actionName === CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS && (missingDetails || cardState === CONST.EXPENSIFY_CARD.STATE.STATE_NOT_ISSUED);
 }
 
 function shouldShowActivateCard(actionName?: ReportActionName, card?: Card, privatePersonalDetail?: PrivatePersonalDetails) {
@@ -4711,6 +4731,8 @@ export {
     getReportActionActorAccountID,
     getSettlementAccountLockedMessage,
     stripFollowupListFromHtml,
+    getDynamicExternalWorkflowSubmitFailedActionMessage,
+    getDynamicExternalWorkflowApproveFailedActionMessage,
 };
 
 export type {LastVisibleMessage};

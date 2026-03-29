@@ -425,13 +425,12 @@ function BaseReportActionContextMenu({
                         const text = textTranslateKey && (isKeyInActionUpdateKeys ? translate(textTranslateKey, {action: moneyRequestAction ?? reportAction}) : translate(textTranslateKey));
                         const transactionPayload = textTranslateKey === 'reportActionContextMenu.copyMessage' && transaction && {transaction};
                         const isMenuAction = textTranslateKey === 'reportActionContextMenu.menu';
-                        const icon = typeof contextAction.icon === 'string' ? icons[contextAction.icon] : contextAction.icon;
-                        const successIcon = typeof contextAction.successIcon === 'string' ? icons[contextAction.successIcon] : contextAction.successIcon;
+                        const successIcon = contextAction.successIcon ? icons[contextAction.successIcon] : undefined;
 
                         return (
                             <ContextMenuItem
                                 buttonRef={isMenuAction ? threeDotRef : {current: null}}
-                                icon={icon}
+                                icon={icons[contextAction.icon]}
                                 text={text ?? ''}
                                 successIcon={successIcon}
                                 successText={contextAction.successTextTranslateKey ? translate(contextAction.successTextTranslateKey) : undefined}

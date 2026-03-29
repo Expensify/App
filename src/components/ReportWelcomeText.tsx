@@ -120,6 +120,7 @@ function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
         localeCompare,
         formatPhoneNumber,
         conciergeReportID,
+        reportAttributes,
         isReportArchived,
         reportDetailsLink,
         shouldShowUsePlusButtonText,
