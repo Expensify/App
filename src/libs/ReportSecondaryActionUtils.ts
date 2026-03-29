@@ -14,7 +14,6 @@ import type {
     Transaction,
     TransactionViolation,
 } from '@src/types/onyx';
-import {isApprover as isApproverUtils} from './actions/Policy/Member';
 import {areTransactionsEligibleForMerge} from './MergeTransactionUtils';
 import {getLoginByAccountID} from './PersonalDetailsUtils';
 import {
@@ -28,6 +27,7 @@ import {
     isInstantSubmitEnabled,
     isPaidGroupPolicy,
     isPolicyAdmin,
+    isPolicyApprover,
     isPolicyMember,
     isPreferredExporter,
     isSubmitAndClose,
@@ -347,14 +347,14 @@ function isApproveAction(
         currentUserLogin,
         currentUserAccountID,
     );
-    const isReportApprover = isApproverUtils(policy, currentUserLogin);
+    const isReportApprover = isPolicyApprover(policy, currentUserLogin);
     const userControlsReport = isReportApprover || isAdmin;
     return userControlsReport && shouldShowBrokenConnectionViolation;
 }
 
 function isUnapproveAction(currentUserLogin: string, currentUserAccountID: number, report: Report, policy?: Policy): boolean {
     const isExpenseReport = isExpenseReportUtils(report);
-    const isReportApprover = isApproverUtils(policy, currentUserLogin);
+    const isReportApprover = isPolicyApprover(policy, currentUserLogin);
     const isReportApproved = isReportApprovedUtils({report});
     const isReportSettled = isSettled(report);
     const isPaymentProcessing = report.isWaitingOnBankAccount && report.statusNum === CONST.REPORT.STATUS_NUM.APPROVED;
@@ -580,7 +580,7 @@ function isHoldActionForTransaction(report: Report, reportTransaction: Transacti
     return isProcessingReport;
 }
 
-function isChangeWorkspaceAction(report: Report, policies: OnyxCollection<Policy>, reportActions?: ReportAction[]): boolean {
+function isChangeWorkspaceAction(report: Report, policies: OnyxCollection<Policy>, currentUserLogin: string, reportActions?: ReportAction[]): boolean {
     // We can't move the iou report to the workspace if both users from the iou report create the expense
     if (isIOUReportUtils(report) && doesReportContainRequestsFromMultipleUsers(report)) {
         return false;
@@ -594,12 +594,17 @@ function isChangeWorkspaceAction(report: Report, policies: OnyxCollection<Policy
     }
 
     const submitterEmail = getLoginByAccountID(report?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID);
+    const isReportSettled = isSettled(report);
 
     // Find available policies - stop early once we find 2 or after checking all
     let firstAvailablePolicy: Policy | undefined;
     let availablePoliciesCount = 0;
     for (const policy of Object.values(policies ?? {})) {
         if (!policy || !isWorkspaceEligibleForReportChange(submitterEmail, policy, report)) {
+            continue;
+        }
+
+        if (isReportSettled && !isPolicyAdmin(policy, currentUserLogin)) {
             continue;
         }
 
@@ -959,7 +964,7 @@ function getSecondaryReportActions({
     }
 
     if (isDuplicateAction(report, reportTransactions)) {
-        options.push(CONST.REPORT.SECONDARY_ACTIONS.DUPLICATE);
+        options.push(CONST.REPORT.SECONDARY_ACTIONS.DUPLICATE_EXPENSE);
     }
 
     if (isDuplicateReportAction(report)) {
@@ -972,7 +977,7 @@ function getSecondaryReportActions({
 
     options.push(CONST.REPORT.SECONDARY_ACTIONS.PRINT);
 
-    if (isChangeWorkspaceAction(report, policies, reportActions)) {
+    if (isChangeWorkspaceAction(report, policies, currentUserLogin, reportActions)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.CHANGE_WORKSPACE);
     }
 
@@ -980,7 +985,13 @@ function getSecondaryReportActions({
         const transaction = reportTransactions.at(0);
         if (transaction?.transactionID) {
             const iouReportAction = getIOUActionForTransactionID(reportActions, transaction.transactionID);
-            const canMoveExpense = canEditFieldOfMoneyRequest(iouReportAction, CONST.EDIT_REQUEST_FIELD.REPORT, undefined, isChatReportArchived, outstandingReportsByPolicyID);
+            const canMoveExpense = canEditFieldOfMoneyRequest({
+                reportAction: iouReportAction,
+                fieldToEdit: CONST.EDIT_REQUEST_FIELD.REPORT,
+                isChatReportArchived,
+                outstandingReportsByPolicyID,
+                transaction,
+            });
             const canUserPerformWriteAction = canUserPerformWriteActionReportUtils(report, isChatReportArchived);
 
             if (canMoveExpense && canUserPerformWriteAction) {
@@ -1071,7 +1082,7 @@ function getSecondaryTransactionThreadActions(
     if (
         reportTransaction?.transactionID &&
         reportAction &&
-        canEditFieldOfMoneyRequest(reportAction, CONST.EDIT_REQUEST_FIELD.REPORT, undefined, isChatReportArchived, outstandingReportsByPolicyID) &&
+        canEditFieldOfMoneyRequest({reportAction, fieldToEdit: CONST.EDIT_REQUEST_FIELD.REPORT, isChatReportArchived, outstandingReportsByPolicyID, transaction: reportTransaction}) &&
         canUserPerformWriteActionReportUtils(parentReport, isChatReportArchived)
     ) {
         options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.MOVE_EXPENSE);

@@ -1,5 +1,6 @@
 import React, {useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
+import type {StyleProp, ViewStyle} from 'react-native';
 import Button from '@components/Button';
 import type {SearchGroupBy} from '@components/Search/types';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
@@ -28,6 +29,8 @@ type GroupByPopupProps = {
     /** The currently selected item */
     value: GroupByPopupItem | null;
 
+    style?: StyleProp<ViewStyle>;
+
     /** Function to call to close the overlay when changes are applied */
     closeOverlay: () => void;
 
@@ -35,7 +38,7 @@ type GroupByPopupProps = {
     onChange: (item: GroupByPopupItem | null) => void;
 };
 
-function GroupByPopup({label, value, sections, closeOverlay, onChange}: GroupByPopupProps) {
+function GroupByPopup({label, value, sections, style, closeOverlay, onChange}: GroupByPopupProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
@@ -83,7 +86,7 @@ function GroupByPopup({label, value, sections, closeOverlay, onChange}: GroupByP
     }, [closeOverlay, onChange]);
 
     return (
-        <View style={[!isSmallScreenWidth && styles.pv4, styles.gap2]}>
+        <View style={[!isSmallScreenWidth && styles.pv4, styles.gap2, style]}>
             {isSmallScreenWidth && !!label && <Text style={[styles.textLabel, styles.textSupporting, styles.ph5, styles.pv1]}>{label}</Text>}
 
             <View style={[styles.getSelectionListPopoverHeight(optionsCount, windowHeight, false)]}>
