@@ -36,7 +36,6 @@ import {
     requestMoney,
     retractReport,
     setMoneyRequestCategory,
-    setMoneyRequestDistanceRate,
     shouldOptimisticallyUpdateSearch,
     submitReport,
     trackExpense,
@@ -54,7 +53,6 @@ import {addComment, createNewReport, deleteReport, notifyNewAction, openReport} 
 import {subscribeToUserEvents} from '@libs/actions/User';
 import type {ApiCommand} from '@libs/API/types';
 import {WRITE_COMMANDS} from '@libs/API/types';
-import Log from '@libs/Log';
 import isReportTopmostSplitNavigator from '@libs/Navigation/helpers/isReportTopmostSplitNavigator';
 import Navigation from '@libs/Navigation/Navigation';
 import {rand64} from '@libs/NumberUtils';
@@ -92,18 +90,7 @@ import DateUtils from '@src/libs/DateUtils';
 import * as SearchQueryUtils from '@src/libs/SearchQueryUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {
-    IntroSelected,
-    LastSelectedDistanceRates,
-    PersonalDetailsList,
-    Policy,
-    PolicyTagLists,
-    RecentlyUsedTags,
-    RecentWaypoint,
-    Report,
-    ReportNameValuePairs,
-    SearchResults,
-} from '@src/types/onyx';
+import type {IntroSelected, PersonalDetailsList, Policy, PolicyTagLists, RecentlyUsedTags, RecentWaypoint, Report, ReportNameValuePairs, SearchResults} from '@src/types/onyx';
 import type {Accountant, Attendee, Participant as IOUParticipant, SplitExpense} from '@src/types/onyx/IOU';
 import type {OriginalMessageMovedTransaction} from '@src/types/onyx/OriginalMessage';
 import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
@@ -167,6 +154,16 @@ jest.mock('@src/libs/actions/Report', () => {
 });
 jest.mock('@libs/Navigation/helpers/isSearchTopmostFullScreenRoute', () => jest.fn());
 jest.mock('@libs/Navigation/helpers/isReportTopmostSplitNavigator', () => jest.fn());
+// In production, requestMoney defers its API.write() call until the target screen's
+// content lays out (or a safety timeout fires). In tests there is no target component
+// to flush the deferred write, so we bypass the deferral by executing the callback immediately.
+jest.mock('@libs/deferredLayoutWrite', () => ({
+    registerDeferredWrite: (_key: string, callback: () => void) => callback(),
+    flushDeferredWrite: jest.fn(),
+    cancelDeferredWrite: jest.fn(),
+    hasDeferredWrite: () => false,
+    getOptimisticWatchKey: () => undefined,
+}));
 jest.mock('@hooks/useCardFeedsForDisplay', () => jest.fn(() => ({defaultCardFeed: null, cardFeedsByPolicy: {}})));
 
 const unapprovedCashHash = 71801560;
@@ -4974,193 +4971,6 @@ describe('actions/IOU', () => {
         });
     });
 
-    describe('setMoneyRequestDistanceRate', () => {
-        it('does not set distance rate if transaction is invalid', async () => {
-            // Given an invalid transaction
-            const consoleWarnSpy = jest.spyOn(Log, 'warn').mockImplementation(() => {});
-
-            // When calling setMoneyRequestDistanceRate with invalid transaction
-            setMoneyRequestDistanceRate(undefined, 'customUnitRateID123', createRandomPolicy(1), false);
-            // Then a warning should be logged and distance rate should not be set
-            expect(consoleWarnSpy).toHaveBeenCalledWith('setMoneyRequestDistanceRate is called without a valid transaction, skipping setting distance rate.');
-            const distanceRates = await getOnyxValue(ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES);
-            expect(distanceRates).toBeUndefined();
-            consoleWarnSpy.mockRestore();
-        });
-
-        it('sets the last selected distance rate for valid transaction', async () => {
-            const policy = createRandomPolicy(1);
-            // Given a valid transaction
-            const testTransaction: Transaction = {
-                transactionID: 'testTransaction123',
-                amount: 1000,
-                currency: CONST.CURRENCY.USD,
-                comment: {
-                    comment: 'Test transaction',
-                    attendees: [],
-                },
-                created: DateUtils.getDBTime(),
-                merchant: 'Test Merchant',
-                reportID: 'testReport123',
-            };
-            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${testTransaction.transactionID}`, testTransaction);
-
-            // When calling setMoneyRequestDistanceRate with valid transaction
-            const customUnitRateID = 'customUnitRateID123';
-            setMoneyRequestDistanceRate(testTransaction, customUnitRateID, policy, false);
-            await waitForBatchedUpdates();
-            // Then the distance rate should be set in Onyx
-            const lastDistanceRates = (await getOnyxValue(ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES)) as LastSelectedDistanceRates | undefined;
-            expect(lastDistanceRates?.[policy.id]).toBeDefined();
-            expect(lastDistanceRates?.[policy.id]).toBe(customUnitRateID);
-        });
-
-        it('sets distance rate and distance unit for draft transaction', async () => {
-            const policy = createRandomPolicy(1);
-            policy.customUnits = {
-                distanceUnitID: {
-                    customUnitID: 'distanceUnitID',
-                    name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
-                    attributes: {
-                        unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS,
-                    },
-                    rates: {},
-                },
-            };
-
-            const testTransaction: Transaction = {
-                transactionID: 'testTransaction123',
-                amount: 1000,
-                currency: CONST.CURRENCY.USD,
-                comment: {
-                    comment: 'Test transaction',
-                },
-                created: DateUtils.getDBTime(),
-                merchant: 'Test Merchant',
-                reportID: 'testReport123',
-            };
-            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${testTransaction.transactionID}`, testTransaction);
-
-            const customUnitRateID = 'customUnitRateID123';
-            setMoneyRequestDistanceRate(testTransaction, customUnitRateID, policy, true);
-            await waitForBatchedUpdates();
-
-            const transactionDraft = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${testTransaction.transactionID}`);
-            expect(transactionDraft?.comment?.customUnit?.customUnitRateID).toBe(customUnitRateID);
-            expect(transactionDraft?.comment?.customUnit?.distanceUnit).toBe(CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS);
-            expect(transactionDraft?.comment?.customUnit?.defaultP2PRate).toBeUndefined();
-        });
-
-        it('converts distance quantity if distance unit changes', async () => {
-            const policy = createRandomPolicy(1);
-            policy.customUnits = {
-                distanceUnitID: {
-                    customUnitID: 'distanceUnitID',
-                    name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
-                    attributes: {
-                        unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS,
-                    },
-                    rates: {},
-                },
-            };
-
-            const testTransaction: Transaction = {
-                transactionID: 'testTransaction123',
-                amount: 1000,
-                currency: CONST.CURRENCY.USD,
-                comment: {
-                    comment: 'Test transaction',
-                    customUnit: {
-                        distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
-                        quantity: 10,
-                    },
-                },
-                created: DateUtils.getDBTime(),
-                merchant: 'Test Merchant',
-                reportID: 'testReport123',
-            };
-            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${testTransaction.transactionID}`, testTransaction);
-
-            const customUnitRateID = 'customUnitRateID123';
-            setMoneyRequestDistanceRate(testTransaction, customUnitRateID, policy, false);
-            await waitForBatchedUpdates();
-
-            const transaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${testTransaction.transactionID}`);
-            expect(transaction?.comment?.customUnit?.customUnitRateID).toBe(customUnitRateID);
-            expect(transaction?.comment?.customUnit?.distanceUnit).toBe(CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS);
-            // 10 miles to kilometers = 10 / 0.000621371 * 0.001 = 16.093444978925636
-            expect(transaction?.comment?.customUnit?.quantity).toBe(16.093444978925636);
-        });
-
-        it('does not convert distance quantity if distance unit changes but it is an odometer request', async () => {
-            const policy = createRandomPolicy(1);
-            policy.customUnits = {
-                distanceUnitID: {
-                    customUnitID: 'distanceUnitID',
-                    name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
-                    attributes: {
-                        unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS,
-                    },
-                    rates: {},
-                },
-            };
-
-            const testTransaction: Transaction = {
-                transactionID: 'testTransaction123',
-                amount: 1000,
-                currency: CONST.CURRENCY.USD,
-                iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER,
-                comment: {
-                    comment: 'Test transaction',
-                    customUnit: {
-                        distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
-                        quantity: 10,
-                    },
-                },
-                created: DateUtils.getDBTime(),
-                merchant: 'Test Merchant',
-                reportID: 'testReport123',
-            };
-            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${testTransaction.transactionID}`, testTransaction);
-
-            const customUnitRateID = 'customUnitRateID123';
-            setMoneyRequestDistanceRate(testTransaction, customUnitRateID, policy, false);
-            await waitForBatchedUpdates();
-
-            const transaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${testTransaction.transactionID}`);
-            expect(transaction?.comment?.customUnit?.customUnitRateID).toBe(customUnitRateID);
-            expect(transaction?.comment?.customUnit?.distanceUnit).toBe(CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS);
-            // Quantity should remain 10 for odometer requests
-            expect(transaction?.comment?.customUnit?.quantity).toBe(10);
-        });
-
-        it('does not set defaultP2PRate to null when policy is undefined', async () => {
-            const testTransaction: Transaction = {
-                transactionID: 'testTransaction123',
-                amount: 1000,
-                currency: CONST.CURRENCY.USD,
-                comment: {
-                    comment: 'Test transaction',
-                    customUnit: {
-                        defaultP2PRate: CONST.CUSTOM_UNITS.MILES_TO_KILOMETERS,
-                    },
-                },
-                created: DateUtils.getDBTime(),
-                merchant: 'Test Merchant',
-                reportID: 'testReport123',
-            };
-            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${testTransaction.transactionID}`, testTransaction);
-
-            const customUnitRateID = 'customUnitRateID123';
-            setMoneyRequestDistanceRate(testTransaction, customUnitRateID, undefined, false);
-            await waitForBatchedUpdates();
-
-            const transaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${testTransaction.transactionID}`);
-            expect(transaction?.comment?.customUnit?.customUnitRateID).toBe(customUnitRateID);
-            expect(transaction?.comment?.customUnit?.defaultP2PRate).toBe(CONST.CUSTOM_UNITS.MILES_TO_KILOMETERS);
-        });
-    });
-
     describe('split expense', () => {
         const splitMockPersonalDetails: PersonalDetailsList = {
             [RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL, displayName: 'Rory'},
@@ -7319,7 +7129,7 @@ describe('actions/IOU', () => {
             return waitForBatchedUpdates()
                 .then(() => Onyx.multiSet({...transactionCollectionDataSet, ...actionCollectionDataSet}))
                 .then(() => {
-                    putOnHold(transaction1.transactionID, 'comment', iouReport.reportID);
+                    putOnHold(transaction1.transactionID, 'comment', iouReport.reportID, false);
                     return waitForBatchedUpdates();
                 })
                 .then(() => {
@@ -9652,7 +9462,7 @@ describe('actions/IOU', () => {
             let expenseReport: OnyxEntry<Report>;
             let chatReport: OnyxEntry<Report>;
             return waitForBatchedUpdates()
-                .then(() => {
+                .then(async () => {
                     const policyID = generatePolicyID();
                     createWorkspace({
                         policyOwnerEmail: CARLOS_EMAIL,
@@ -9666,8 +9476,9 @@ describe('actions/IOU', () => {
                         hasActiveAdminPolicies: false,
                     });
 
+                    const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
                     // Change the approval mode for the policy since default is Submit and Close
-                    setWorkspaceApprovalMode(policyID, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC);
+                    setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC);
                     return waitForBatchedUpdates();
                 })
                 .then(
@@ -9798,7 +9609,7 @@ describe('actions/IOU', () => {
             let chatReport: OnyxEntry<Report>;
 
             return waitForBatchedUpdates()
-                .then(() => {
+                .then(async () => {
                     const policyID = generatePolicyID();
                     createWorkspace({
                         policyOwnerEmail: CARLOS_EMAIL,
@@ -9812,7 +9623,8 @@ describe('actions/IOU', () => {
                         hasActiveAdminPolicies: false,
                     });
 
-                    setWorkspaceApprovalMode(policyID, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC);
+                    const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+                    setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, {});
                     return waitForBatchedUpdates();
                 })
                 .then(
@@ -10379,8 +10191,9 @@ describe('actions/IOU', () => {
                 hasActiveAdminPolicies: false,
             });
             return waitForBatchedUpdates()
-                .then(() => {
-                    setWorkspaceApprovalMode(policyID, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL);
+                .then(async () => {
+                    policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+                    setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL, {});
                     return waitForBatchedUpdates();
                 })
                 .then(
@@ -10606,7 +10419,7 @@ describe('actions/IOU', () => {
                 hasActiveAdminPolicies: false,
             });
 
-            setWorkspaceApprovalMode(policyID, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC);
+            setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, {});
             await waitForBatchedUpdates();
 
             let chatReport: OnyxEntry<Report>;
@@ -12798,8 +12611,9 @@ describe('actions/IOU', () => {
                     hasActiveAdminPolicies: false,
                 });
 
+                const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
                 // Change the approval mode for the policy since default is Submit and Close
-                setWorkspaceApprovalMode(policyID, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC);
+                setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, {});
                 await waitForBatchedUpdates();
                 await getOnyxData({
                     key: ONYXKEYS.COLLECTION.REPORT,
@@ -12972,8 +12786,9 @@ describe('actions/IOU', () => {
                     hasActiveAdminPolicies: false,
                 });
 
+                const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
                 // Change the approval mode for the policy since default is Submit and Close
-                setWorkspaceApprovalMode(policyID, RORY_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC);
+                setWorkspaceApprovalMode(policy, RORY_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, {});
                 await waitForBatchedUpdates();
                 await getOnyxData({
                     key: ONYXKEYS.COLLECTION.REPORT,
@@ -13150,7 +12965,8 @@ describe('actions/IOU', () => {
                     hasActiveAdminPolicies: false,
                 });
 
-                setWorkspaceApprovalMode(policyID, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC);
+                const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+                setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, {});
                 await waitForBatchedUpdates();
 
                 await getOnyxData({
@@ -13337,8 +13153,9 @@ describe('actions/IOU', () => {
                     hasActiveAdminPolicies: false,
                 });
 
+                const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
                 // Change the approval mode for the policy since default is Submit and Close
-                setWorkspaceApprovalMode(policyID, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC);
+                setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, {});
                 await waitForBatchedUpdates();
 
                 await getOnyxData({
@@ -13405,7 +13222,7 @@ describe('actions/IOU', () => {
 
                 // Put the expense on hold
                 if (originalTransactionID && transactionThreadReportID) {
-                    putOnHold(originalTransactionID, 'Test hold reason', transactionThreadReportID);
+                    putOnHold(originalTransactionID, 'Test hold reason', transactionThreadReportID, false);
                 }
                 await waitForBatchedUpdates();
 

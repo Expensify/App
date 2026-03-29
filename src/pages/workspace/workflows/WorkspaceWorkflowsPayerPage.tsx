@@ -187,7 +187,7 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
             Navigation.closeRHPFlow();
             return;
         }
-        setWorkspacePayer(policy?.id, authorizedPayerEmail);
+        setWorkspacePayer(policy.id, authorizedPayerEmail, policy.achAccount?.reimburser);
         Navigation.closeRHPFlow();
     };
 

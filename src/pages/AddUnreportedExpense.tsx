@@ -296,7 +296,7 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
                         {
                             buttonText: translate('iou.createExpense'),
                             buttonAction: () => {
-                                if (report && report.policyID && shouldRestrictUserBillableActions(report.policyID, userBillingGraceEndPeriods, undefined, ownerBillingGraceEndPeriod)) {
+                                if (report && report.policyID && shouldRestrictUserBillableActions(report.policyID, ownerBillingGraceEndPeriod, userBillingGraceEndPeriods)) {
                                     Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(report.policyID));
                                     return;
                                 }
