@@ -17,7 +17,7 @@ import {
 } from '@libs/actions/TransactionInlineEdit';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
-import {isPerDiemRequest} from '@libs/TransactionUtils';
+import {isExpenseUnreported, isPerDiemRequest} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, ReportAction, ReportActions} from '@src/types/onyx';
@@ -114,12 +114,16 @@ function useTransactionInlineEdit({
     const parentReportAction = externalParentReportAction !== undefined ? externalParentReportAction : internalParentReportAction;
 
     const transactionThreadReportID = parentReportAction?.childReportID;
-    const policyID = parentReport?.policyID;
     const chatReportID = parentReport?.chatReportID;
+
+    // For unreported expenses (SelfDM), use active policy to show policy-specific fields like categories and tags.
+    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
+    const reportPolicyID = parentReport?.policyID;
+    const policyID = isExpenseUnreported(transaction) ? activePolicyID : reportPolicyID;
 
     const {policy} = usePolicyForTransaction({
         transaction,
-        reportPolicyID: policyID,
+        reportPolicyID,
         action: CONST.IOU.ACTION.EDIT,
         iouType: CONST.IOU.TYPE.SUBMIT,
         isPerDiemRequest: isPerDiemRequest(transaction),
