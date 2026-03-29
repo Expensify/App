@@ -124,6 +124,7 @@ describe('getDeviceOrientationAwareImageSize', () => {
                     imageHeight: 1080,
                     aspectRatioWidth: 9,
                     aspectRatioHeight: 16,
+                    rotation: 0,
                 });
             });
 
@@ -139,6 +140,7 @@ describe('getDeviceOrientationAwareImageSize', () => {
                     imageHeight: 1080,
                     aspectRatioWidth: 3,
                     aspectRatioHeight: 4,
+                    rotation: 180,
                 });
             });
         });
@@ -156,6 +158,7 @@ describe('getDeviceOrientationAwareImageSize', () => {
                     imageHeight: 1920,
                     aspectRatioWidth: 16,
                     aspectRatioHeight: 9,
+                    rotation: 90,
                 });
             });
 
@@ -171,6 +174,7 @@ describe('getDeviceOrientationAwareImageSize', () => {
                     imageHeight: 1920,
                     aspectRatioWidth: 21,
                     aspectRatioHeight: 9,
+                    rotation: 270,
                 });
             });
         });

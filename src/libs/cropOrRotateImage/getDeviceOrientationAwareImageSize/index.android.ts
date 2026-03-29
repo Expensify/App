@@ -12,6 +12,7 @@ const getDeviceOrientationAwareImageSize: GetDeviceOrientationAwareImageSize = (
         imageHeight: isRotated ? width : height,
         aspectRatioWidth: isRotated ? aspectRatioWidth : aspectRatioHeight,
         aspectRatioHeight: isRotated ? aspectRatioHeight : aspectRatioWidth,
+        rotation,
     };
 };
 
