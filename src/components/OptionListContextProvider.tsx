@@ -160,7 +160,7 @@ function OptionsListContextProvider({children}: OptionsListProviderProps) {
                 reports: Array.from(updatedReportsMap.values()),
             };
         });
-    }, [changedReportsEntries, personalDetails, currentUserAccountID, reports, allPolicies, reportAttributes?.reports, privateIsArchivedMap]);
+    }, [changedReportsEntries, getReprocessedReportOption, personalDetails, currentUserAccountID, reports, allPolicies, reportAttributes?.reports, privateIsArchivedMap]);
 
     useEffect(() => {
         if (!changedReportActions || !areOptionsInitialized.current) {
@@ -193,7 +193,7 @@ function OptionsListContextProvider({children}: OptionsListProviderProps) {
                 reports: Array.from(updatedReportsMap.values()),
             };
         });
-    }, [changedReportActions, personalDetails, currentUserAccountID, reports, allPolicies, reportAttributes?.reports, privateIsArchivedMap]);
+    }, [changedReportActions, getReprocessedReportOption, personalDetails, currentUserAccountID, reports, allPolicies, reportAttributes?.reports, privateIsArchivedMap]);
 
     useEffect(() => {
         if (!changedPolicies || !areOptionsInitialized.current || !reports || !prevPolicies) {
@@ -384,11 +384,19 @@ const useOptionsList = (options?: {shouldInitialize: boolean}) => {
     const {options: optionsList, areOptionsInitialized} = useOptionsListState();
     const {initializeOptions, resetOptions} = useOptionsListActions();
     const [internalOptions, setInternalOptions] = useState<OptionList>(optionsList);
-    const prevOptions = useRef<OptionList>(optionsList);
-    const [areInternalOptionsInitialized, setAreInternalOptionsInitialized] = useState(areOptionsInitialized);
+    const prevOptions = useRef<OptionList>(null);
+    const [areInternalOptionsInitialized, setAreInternalOptionsInitialized] = useState(false);
 
     const prevIsInitialized = usePrevious(areOptionsInitialized);
     useEffect(() => {
+        if (!prevOptions.current) {
+            prevOptions.current = optionsList;
+            // eslint-disable-next-line react-hooks/set-state-in-effect -- This hook initializes its mirrored local state from context on first mount before applying shallow equality optimizations.
+            setInternalOptions(optionsList);
+            // eslint-disable-next-line react-hooks/set-state-in-effect -- This hook initializes its mirrored initialization flag from context on first mount before applying shallow equality optimizations.
+            setAreInternalOptionsInitialized(areOptionsInitialized);
+            return;
+        }
         /**
          * optionsList reference can change multiple times even the value of its arrays is the same. We perform shallow comparison to check if the options have truly changed.
          * This is necessary to avoid unnecessary re-renders in components that use this context.
