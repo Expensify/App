@@ -138,11 +138,12 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
     });
 
     const createReport = () => {
+        const restrictionPolicyID = hasPerDiemTransactions ? selectedReport?.policyID : policyForMovingExpensesID;
+        if (restrictionPolicyID && shouldRestrictUserBillableActions(restrictionPolicyID, ownerBillingGraceEndPeriod, userBillingGraceEndPeriods)) {
+            Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(restrictionPolicyID));
+            return;
+        }
         if (hasPerDiemTransactions) {
-            if (selectedReport?.policyID && shouldRestrictUserBillableActions(selectedReport.policyID, ownerBillingGraceEndPeriod, userBillingGraceEndPeriods)) {
-                Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(selectedReport.policyID));
-                return;
-            }
             handleCreateReport();
             return;
         }
@@ -151,10 +152,6 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
         }
         if (shouldSelectPolicy) {
             Navigation.navigate(ROUTES.NEW_REPORT_WORKSPACE_SELECTION.getRoute(true, backTo));
-            return;
-        }
-        if (policyForMovingExpensesID && shouldRestrictUserBillableActions(policyForMovingExpensesID, ownerBillingGraceEndPeriod, userBillingGraceEndPeriods)) {
-            Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policyForMovingExpensesID));
             return;
         }
         handleCreateReport();
