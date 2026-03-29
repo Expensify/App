@@ -158,6 +158,7 @@ jest.mock('@components/FocusableMenuItem', () => {
                 testID={props.pressableTestID}
                 onPress={props.onPress}
                 accessibilityLabel="Pressable"
+                accessibilityHint="Activates the menu item"
             >
                 <Text>{props.title}</Text>
             </Pressable>

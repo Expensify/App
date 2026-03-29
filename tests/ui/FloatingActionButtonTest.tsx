@@ -59,6 +59,7 @@ describe('FloatingActionButton hover', () => {
                     onPress={onPress}
                     isActive={false}
                     accessibilityLabel="fab"
+                    accessibilityHint="Activates the floating action button"
                     role={CONST.ROLE.BUTTON}
                 />
             </NavigationContainer>,

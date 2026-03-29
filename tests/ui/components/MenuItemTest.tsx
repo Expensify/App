@@ -48,6 +48,7 @@ describe('MenuItem', () => {
                         icon={Expensicons.Link}
                         iconRight={Expensicons.NewWindow}
                         accessibilityLabel={customLabel}
+                        accessibilityHint="Activates this menu item"
                         onPress={() => {}}
                     />
                 </Wrapper>,
@@ -87,6 +88,7 @@ describe('MenuItem', () => {
                         icon={Expensicons.Checkmark}
                         iconRight={Expensicons.Checkmark}
                         accessibilityLabel={customLabel}
+                        accessibilityHint="Activates this menu item"
                         onPress={() => {}}
                     />
                 </Wrapper>,

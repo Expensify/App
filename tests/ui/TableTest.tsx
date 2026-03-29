@@ -83,12 +83,13 @@ jest.mock('@components/Icon', () => {
 jest.mock('@components/TextInput', () => {
     // eslint-disable-next-line @typescript-eslint/consistent-type-imports
     const {TextInput: RNTextInput, View: RNView} = jest.requireActual<typeof import('react-native')>('react-native');
-    function MockTextInput(props: {accessibilityLabel: string; value: string; onChangeText: (text: string) => void; onClearInput?: () => void}) {
+    function MockTextInput(props: {accessibilityLabel: string; accessibilityHint?: string; value: string; onChangeText: (text: string) => void; onClearInput?: () => void}) {
         return (
             <RNView>
                 <RNTextInput
                     testID="search-input"
                     accessibilityLabel={props.accessibilityLabel}
+                    accessibilityHint={props.accessibilityHint ?? 'Enter text to filter the table'}
                     value={props.value}
                     onChangeText={props.onChangeText}
                 />
@@ -106,13 +107,20 @@ jest.mock('@components/TextInput', () => {
 
 // Mock PressableWithFeedback
 jest.mock('@components/Pressable', () => ({
-    PressableWithFeedback: (props: {children: React.ReactNode; onPress: () => void; accessibilityLabel: string; accessibilityRole: 'button' | 'link' | 'none' | undefined}) => {
+    PressableWithFeedback: (props: {
+        children: React.ReactNode;
+        onPress: () => void;
+        accessibilityLabel: string;
+        accessibilityHint?: string;
+        accessibilityRole: 'button' | 'link' | 'none' | undefined;
+    }) => {
         // eslint-disable-next-line @typescript-eslint/consistent-type-imports
         const {Pressable} = jest.requireActual<typeof import('react-native')>('react-native');
         return (
             <Pressable
                 onPress={props.onPress}
                 accessibilityLabel={props.accessibilityLabel}
+                accessibilityHint={props.accessibilityHint ?? 'Activates the table action'}
                 accessibilityRole={props.accessibilityRole}
             >
                 {props.children}
