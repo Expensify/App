@@ -38,7 +38,8 @@ function EditPerDiemAmountPage({route}: EditPerDiemAmountPageProps) {
     const selectedRate = customUnit?.rates?.[rateID];
     const selectedSubrate = selectedRate?.subRates?.find((subRate) => subRate.id === subRateID);
 
-    const defaultAmount = selectedSubrate?.rate ? convertToFrontendAmountAsString(Number(selectedSubrate.rate), CONST.POLICY.CUSTOM_UNIT_RATE_BASE_OFFSET) : undefined;
+    // We default to 2 decimals for per diem rates since we always store amounts to include 2 decimal places.
+    const defaultAmount = selectedSubrate?.rate ? convertToFrontendAmountAsString(Number(selectedSubrate.rate), 2) : undefined;
 
     const {inputCallbackRef} = useAutoFocusInput();
 
