@@ -4,8 +4,8 @@ import path from 'path';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 import useAgentZeroStatusIndicator from '@hooks/useAgentZeroStatusIndicator';
-import {clearAgentZeroProcessingIndicator} from '@libs/actions/Report';
-import Pusher from '@libs/Pusher';
+import {clearAgentZeroProcessingIndicator, subscribeToReportReasoningEvents, unsubscribeFromReportReasoningChannel} from '@libs/actions/Report';
+import ConciergeReasoningStore from '@libs/ConciergeReasoningStore';
 import {AgentZeroStatusProvider, useAgentZeroStatus, useAgentZeroStatusActions} from '@pages/inbox/AgentZeroStatusContext';
 import ONYXKEYS from '@src/ONYXKEYS';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
@@ -25,7 +25,6 @@ jest.mock('@hooks/useLocalize', () => ({
     }),
 }));
 
-jest.mock('@libs/Pusher');
 jest.mock('@libs/actions/Report', () => {
     // eslint-disable-next-line @typescript-eslint/consistent-type-imports
     const actual = jest.requireActual<typeof import('@libs/actions/Report')>('@libs/actions/Report');
@@ -37,40 +36,17 @@ jest.mock('@libs/actions/Report', () => {
         unsubscribeFromReportReasoningChannel: jest.fn(),
     };
 });
-jest.mock('@libs/ConciergeReasoningStore', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
-    __esModule: true,
-    default: {
-        subscribe: jest.fn().mockReturnValue(() => {}),
-        getReasoningHistory: jest.fn().mockReturnValue([]),
-        addReasoning: jest.fn(),
-        clearReasoning: jest.fn(),
-    },
-}));
 
 const mockClearAgentZeroProcessingIndicator = clearAgentZeroProcessingIndicator as jest.MockedFunction<typeof clearAgentZeroProcessingIndicator>;
-
-const mockPusher = Pusher as jest.Mocked<typeof Pusher>;
-
-type PusherCallback = (data: Record<string, unknown>) => void;
-
-/** Captures the reasoning callback passed to Pusher.subscribe for CONCIERGE_REASONING */
-function capturePusherCallback(): PusherCallback {
-    const call = mockPusher.subscribe.mock.calls.find((c) => c.at(1) === Pusher.TYPE.CONCIERGE_REASONING);
-    const callback = call?.at(2) as PusherCallback | undefined;
-    if (!callback) {
-        throw new Error('Pusher.subscribe was not called for CONCIERGE_REASONING');
-    }
-    return callback;
-}
-
-/** Simulates a Pusher reasoning event */
-function simulateReasoning(data: {reasoning: string; agentZeroRequestID: string; loopCount: number}) {
-    const callback = capturePusherCallback();
-    callback(data as unknown as Record<string, unknown>);
-}
+const mockSubscribeToReportReasoningEvents = subscribeToReportReasoningEvents as jest.MockedFunction<typeof subscribeToReportReasoningEvents>;
+const mockUnsubscribeFromReportReasoningChannel = unsubscribeFromReportReasoningChannel as jest.MockedFunction<typeof unsubscribeFromReportReasoningChannel>;
 
 const reportID = '123';
+
+/** Simulates a reasoning event via ConciergeReasoningStore (the real store, since it's not mocked) */
+function simulateReasoning(data: {reasoning: string; agentZeroRequestID: string; loopCount: number}) {
+    ConciergeReasoningStore.addReasoning(reportID, data);
+}
 
 function wrapper({children}: {children: React.ReactNode}) {
     return React.createElement(AgentZeroStatusProvider, {reportID, chatType: undefined}, children);
@@ -83,13 +59,14 @@ describe('AgentZeroStatusContext', () => {
         jest.clearAllMocks();
         await Onyx.clear();
 
-        mockPusher.subscribe = jest.fn().mockImplementation(() => Object.assign(Promise.resolve(), {unsubscribe: jest.fn()}));
-        mockPusher.unsubscribe = jest.fn();
+        // Clear ConciergeReasoningStore between tests
+        ConciergeReasoningStore.clearReasoning(reportID);
 
         // Make clearAgentZeroProcessingIndicator actually clear the Onyx NVP
         // so safety timeout and reconnect tests can verify the full clearing flow
         mockClearAgentZeroProcessingIndicator.mockImplementation((rID: string) => {
             Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${rID}`, {agentZeroProcessingRequestIndicator: null});
+            ConciergeReasoningStore.clearReasoning(rID);
         });
 
         // Mark this report as Concierge by default
@@ -115,8 +92,8 @@ describe('AgentZeroStatusContext', () => {
             expect(result.current.reasoningHistory).toEqual([]);
             expect(result.current.kickoffWaitingIndicator).toBeInstanceOf(Function);
 
-            // And no Pusher subscription should have been created
-            expect(mockPusher.subscribe).not.toHaveBeenCalled();
+            // And no reasoning subscription should have been created
+            expect(mockSubscribeToReportReasoningEvents).not.toHaveBeenCalled();
         });
 
         it('should return processing state when server label is present in Concierge chat', async () => {
@@ -321,34 +298,30 @@ describe('AgentZeroStatusContext', () => {
     });
 
     describe('Pusher lifecycle', () => {
-        it('should subscribe to Pusher for Concierge chat on mount', async () => {
+        it('should subscribe to reasoning events for Concierge chat on mount', async () => {
             renderHook(() => useAgentZeroStatus(), {wrapper});
             await waitForBatchedUpdates();
 
-            expect(mockPusher.subscribe).toHaveBeenCalledWith(expect.stringContaining(reportID), Pusher.TYPE.CONCIERGE_REASONING, expect.any(Function));
+            expect(mockSubscribeToReportReasoningEvents).toHaveBeenCalledWith(reportID);
         });
 
-        it('should not subscribe to Pusher for non-Concierge chat', async () => {
+        it('should not subscribe to reasoning events for non-Concierge chat', async () => {
             await Onyx.merge(ONYXKEYS.CONCIERGE_REPORT_ID, '999');
 
             renderHook(() => useAgentZeroStatus(), {wrapper});
             await waitForBatchedUpdates();
 
-            expect(mockPusher.subscribe).not.toHaveBeenCalledWith(expect.anything(), Pusher.TYPE.CONCIERGE_REASONING, expect.anything());
+            expect(mockSubscribeToReportReasoningEvents).not.toHaveBeenCalled();
         });
 
-        it('should unsubscribe from Pusher on unmount', async () => {
-            // Track the per-callback unsubscribe handle
-            const handleUnsubscribe = jest.fn();
-            mockPusher.subscribe = jest.fn().mockImplementation(() => Object.assign(Promise.resolve(), {unsubscribe: handleUnsubscribe}));
-
+        it('should unsubscribe from reasoning events on unmount', async () => {
             const {unmount} = renderHook(() => useAgentZeroStatus(), {wrapper});
             await waitForBatchedUpdates();
 
             unmount();
 
             await waitForBatchedUpdates();
-            expect(handleUnsubscribe).toHaveBeenCalled();
+            expect(mockUnsubscribeFromReportReasoningChannel).toHaveBeenCalledWith(reportID);
         });
     });
 

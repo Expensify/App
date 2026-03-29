@@ -3,6 +3,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import {clearAgentZeroProcessingIndicator, getNewerActions, subscribeToReportReasoningEvents, unsubscribeFromReportReasoningChannel} from '@libs/actions/Report';
 import ConciergeReasoningStore from '@libs/ConciergeReasoningStore';
 import type {ReasoningEntry} from '@libs/ConciergeReasoningStore';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportActions} from '@src/types/onyx/ReportAction';
 import useLocalize from './useLocalize';
@@ -14,6 +15,11 @@ type AgentZeroStatusState = {
     reasoningHistory: ReasoningEntry[];
     statusLabel: string;
     kickoffWaitingIndicator: () => void;
+};
+
+type NewestReportAction = {
+    reportActionID: string;
+    actorAccountID?: number;
 };
 
 /**
@@ -40,8 +46,8 @@ const MAX_POLL_DURATION_MS = 120000;
  * @param reportID - The report ID to monitor
  * @param isAgentZeroChat - Whether the chat is an AgentZero-enabled chat (Concierge DM or #admins room)
  */
-/** Selector that extracts only the newest reportActionID from the report actions collection. */
-function selectNewestReportActionID(reportActions: OnyxEntry<ReportActions>): string | undefined {
+/** Selector that extracts the newest report action ID and actor from the report actions collection. */
+function selectNewestReportAction(reportActions: OnyxEntry<ReportActions>): NewestReportAction | undefined {
     if (!reportActions) {
         return undefined;
     }
@@ -49,20 +55,23 @@ function selectNewestReportActionID(reportActions: OnyxEntry<ReportActions>): st
     if (actionIDs.length === 0) {
         return undefined;
     }
-    // reportActionIDs are numeric strings; the highest value is the newest
-    return actionIDs.reduce((a, b) => (Number(a) > Number(b) ? a : b));
+    const newestReportActionID = actionIDs.reduce((a, b) => (Number(a) > Number(b) ? a : b));
+    return {
+        reportActionID: newestReportActionID,
+        actorAccountID: reportActions[newestReportActionID]?.actorAccountID,
+    };
 }
 
 function useAgentZeroStatusIndicator(reportID: string, isAgentZeroChat: boolean): AgentZeroStatusState {
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`);
     const serverLabel = reportNameValuePairs?.agentZeroProcessingRequestIndicator?.trim() ?? '';
 
-    // Track the newest reportActionID so we can fetch missed actions when the safety timer fires
-    const [newestReportActionID] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {selector: selectNewestReportActionID});
-    const newestReportActionIDRef = useRef<string | undefined>(newestReportActionID);
+    // Track the newest report action so we can fetch missed actions and detect actual Concierge replies.
+    const [newestReportAction] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {selector: selectNewestReportAction});
+    const newestReportActionRef = useRef<NewestReportAction | undefined>(newestReportAction);
     useEffect(() => {
-        newestReportActionIDRef.current = newestReportActionID;
-    }, [newestReportActionID]);
+        newestReportActionRef.current = newestReportAction;
+    }, [newestReportAction]);
 
     const [optimisticStartTime, setOptimisticStartTime] = useState<number | null>(null);
     const [displayedLabel, setDisplayedLabel] = useState<string>('');
@@ -108,7 +117,7 @@ function useAgentZeroStatusIndicator(reportID: string, isAgentZeroChat: boolean)
         setOptimisticStartTime(null);
         setDisplayedLabel('');
         clearAgentZeroProcessingIndicator(reportID);
-        getNewerActions(reportID, newestReportActionIDRef.current);
+        getNewerActions(reportID, newestReportActionRef.current?.reportActionID);
     }, [reportID, clearPolling]);
 
     /**
@@ -128,19 +137,21 @@ function useAgentZeroStatusIndicator(reportID: string, isAgentZeroChat: boolean)
         // so we can detect if new actions arrived (meaning Concierge responded).
         // If new actions arrive but the NVP CLEAR was missed via Pusher, we clear
         // the indicator client-side.
-        const prePollingActionID = newestReportActionIDRef.current;
+        const prePollingActionID = newestReportActionRef.current?.reportActionID;
         pollIntervalRef.current = setInterval(() => {
             if (isOfflineRef.current) {
                 return;
             }
-            // If the newest action ID changed since polling started, a new action arrived
-            // (likely the Concierge response). Clear the stuck indicator.
-            if (newestReportActionIDRef.current !== prePollingActionID) {
+            const currentNewestReportAction = newestReportActionRef.current;
+            const didConciergeReplyAfterPollingStarted =
+                currentNewestReportAction?.actorAccountID === CONST.ACCOUNT_ID.CONCIERGE && currentNewestReportAction.reportActionID !== prePollingActionID;
+
+            if (didConciergeReplyAfterPollingStarted) {
                 clearAgentZeroProcessingIndicator(reportID);
                 clearPolling();
                 return;
             }
-            getNewerActions(reportID, newestReportActionIDRef.current);
+            getNewerActions(reportID, currentNewestReportAction?.reportActionID);
         }, POLL_INTERVAL_MS);
 
         // Safety net: hard-clear after MAX_POLL_DURATION_MS
@@ -149,20 +160,15 @@ function useAgentZeroStatusIndicator(reportID: string, isAgentZeroChat: boolean)
         }, MAX_POLL_DURATION_MS);
     }, [clearPolling, hardClearIndicator, reportID]);
 
-    // Clear indicator on network reconnect. When Pusher reconnects, stale NVP state
-    // may be re-delivered. Like typing indicators (Report/index.ts:486), we reset
-    // the indicator and let fresh data arrive via GetMissingOnyxMessages.
-    // We also call getNewerActions to pull any responses missed during the outage.
+    // On reconnect, fetch missed actions if the indicator is still active.
+    // Do not clear locally just because the socket recovered, and do not restart polling here:
+    // the existing poll cycle keeps the original action baseline needed to detect a missed Concierge reply.
     const {isOffline} = useNetwork({
         onReconnect: () => {
-            // On reconnect, fetch any missed actions and clear the indicator.
-            // The getNewerActions call fetches the Concierge response that was
-            // sent while the WebSocket was down. We also clear the indicator NVP
-            // directly because the NVP CLEAR event was likely lost with the
-            // WebSocket drop — getNewerActions only fetches report actions, not NVPs.
-            getNewerActions(reportID, newestReportActionIDRef.current);
-            clearAgentZeroProcessingIndicator(reportID);
-            startPolling();
+            if (!serverLabel && !optimisticStartTime) {
+                return;
+            }
+            getNewerActions(reportID, newestReportActionRef.current?.reportActionID);
         },
     });
 
@@ -270,13 +276,6 @@ function useAgentZeroStatusIndicator(reportID: string, isAgentZeroChat: boolean)
 
     useEffect(() => {
         isOfflineRef.current = isOffline;
-    }, [isOffline]);
-
-    useEffect(() => {
-        if (isOffline) {
-            return;
-        }
-        setOptimisticStartTime(null);
     }, [isOffline]);
 
     // Clean up polling on unmount
