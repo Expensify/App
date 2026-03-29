@@ -233,6 +233,9 @@ type MenuItemBaseProps = ForwardedFSClassProps &
         /** Accessibility label for the menu item */
         accessibilityLabel?: string;
 
+        /** Accessibility hint for the menu item */
+        accessibilityHint?: string;
+
         /** Optional accessibility role for the title. Only set when the title is a section heading (e.g. CONST.ROLE.HEADER); omit for regular menu items. */
         titleAccessibilityRole?: typeof CONST.ROLE.HEADER;
 
@@ -519,6 +522,7 @@ function MenuItem({
     disabled = false,
     title,
     accessibilityLabel,
+    accessibilityHint: nativeAccessibilityHint,
     titleComponent,
     titleContainerStyle,
     subtitle,
@@ -622,6 +626,7 @@ function MenuItem({
     const contextMenuHint = shouldShowContextMenuHint ? getContextMenuAccessibilityHint({translate}) : undefined;
     const {accessibilityLabel: accessibilityLabelWithContextMenuHint, accessibilityHint} = getContextMenuAccessibilityProps({
         accessibilityLabel: combinedAccessibilityLabel,
+        nativeAccessibilityHint,
         contextMenuHint,
     });
     const shouldDimIconRight = iconRight === icons.ArrowRight || !iconRight;

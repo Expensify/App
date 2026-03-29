@@ -96,8 +96,8 @@ function ReceiptPreviews({submit, isMultiScanEnabled, isCapturingPhoto = false}:
                 onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_RECEIPT_VIEW.getRoute(item.transactionID, Navigation.getActiveRoute()))}
                 sentryLabel={CONST.SENTRY_LABEL.IOU_REQUEST_STEP.RECEIPT_PREVIEW_ITEM}
             >
+                {/* eslint-disable-next-line react-native-a11y/has-valid-accessibility-ignores-invert-colors -- Custom Image wrapper does not support this prop. */}
                 <Image
-                    accessibilityIgnoresInvertColors
                     source={typeof item.source === 'string' ? {uri: item.source} : item.source}
                     style={[styles.receiptPlaceholder, styles.overflowHidden]}
                     loadingIconSize="small"

@@ -128,8 +128,8 @@ function ReceiptPreview({source, hovered, isEReceipt = false, transactionItem}: 
                     )}
 
                     <View style={[styles.w100, {aspectRatio: imageAspectRatio ?? 1}]}>
+                        {/* eslint-disable-next-line react-native-a11y/has-valid-accessibility-ignores-invert-colors -- Custom Image wrapper does not support this prop. */}
                         <Image
-                            accessibilityIgnoresInvertColors
                             source={sourceObject}
                             style={[styles.w100, styles.h100]}
                             onLoadStart={() => {

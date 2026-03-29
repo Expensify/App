@@ -232,6 +232,7 @@ function Lightbox({attachmentID, isAuthTokenRequired = false, uri, onScaleChange
                                 onSwipeDown={onSwipeDown}
                                 externalGestureHandler={externalGestureHandler}
                             >
+                                {/* eslint-disable-next-line react-native-a11y/has-valid-accessibility-ignores-invert-colors -- Custom Image wrapper does not support this prop. */}
                                 <Image
                                     source={{uri}}
                                     style={[contentSize ?? styles.invisibleImage]}
@@ -261,6 +262,7 @@ function Lightbox({attachmentID, isAuthTokenRequired = false, uri, onScaleChange
                     {/* Keep rendering the image without gestures as fallback if the carousel item is not active and while the lightbox is loading the image */}
                     {isFallbackVisible && isFallbackInRange && (
                         <View style={StyleUtils.getFullscreenCenteredContentStyles()}>
+                            {/* eslint-disable-next-line react-native-a11y/has-valid-accessibility-ignores-invert-colors -- Custom Image wrapper does not support this prop. */}
                             <Image
                                 source={{uri}}
                                 resizeMode="contain"
