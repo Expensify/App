@@ -9341,8 +9341,8 @@ const CONST = {
             AVATAR: 'ProfilePage-Avatar',
         },
         BASE_AUTO_COMPLETE_SUGGESTIONS: {
-            MENU_ITEM: 'BaseAutoCompleteSuggestions-MenuItem'
-        }
+            MENU_ITEM: 'BaseAutoCompleteSuggestions-MenuItem',
+        },
     },
 
     DOMAIN: {
