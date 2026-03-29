@@ -115,12 +115,12 @@ function RoomDescriptionPage({report, policy}: RoomDescriptionPageProps) {
                 >
                     <Text style={[styles.mb5]}>{translate('reportDescriptionPage.explainerText')}</Text>
                     <View style={[styles.mb6]}>
-                        {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                         <InputWrapper
                             InputComponent={TextInput}
                             inputID={INPUT_IDS.REPORT_DESCRIPTION}
                             label={translate('reportDescriptionPage.roomDescription')}
                             accessibilityLabel={translate('reportDescriptionPage.roomDescription')}
+                            accessibilityHint={translate('reportDescriptionPage.roomDescription')}
                             role={CONST.ROLE.PRESENTATION}
                             autoGrowHeight
                             maxAutoGrowHeight={variables.textInputAutoGrowMaxHeight}

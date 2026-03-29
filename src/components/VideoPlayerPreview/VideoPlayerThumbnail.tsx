@@ -38,8 +38,8 @@ function VideoPlayerThumbnail({thumbnailUrl, onPress, accessibilityLabel, isDele
         <View style={styles.flex1}>
             {!!thumbnailUrl && (
                 <View style={[styles.flex1, {borderRadius: variables.componentBorderRadiusNormal}, styles.overflowHidden]}>
-                    {/* eslint-disable-next-line react-native-a11y/has-valid-accessibility-ignores-invert-colors -- Already present before the lint rule was enabled, needs to be fixed. */}
                     <Image
+                        accessibilityIgnoresInvertColors
                         source={{uri: thumbnailUrl}}
                         style={styles.flex1}
                         // The auth header is required except for static images on Cloudfront, which makes them fail to load
@@ -48,10 +48,10 @@ function VideoPlayerThumbnail({thumbnailUrl, onPress, accessibilityLabel, isDele
                 </View>
             )}
             {!isDeleted ? (
-                /* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */
                 <PressableWithoutFeedback
                     style={[styles.videoThumbnailContainer]}
                     accessibilityLabel={accessibilityLabel}
+                    accessibilityHint={accessibilityLabel}
                     accessibilityRole={CONST.ROLE.BUTTON}
                     onPress={onPress}
                     onPressIn={() => canUseTouchScreen() && ControlSelection.block()}

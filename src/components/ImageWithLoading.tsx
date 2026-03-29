@@ -83,8 +83,8 @@ function ImageWithLoading({
             style={[styles.w100, styles.h100, containerStyles]}
             onLayout={onLayout}
         >
-            {/* eslint-disable-next-line react-native-a11y/has-valid-accessibility-ignores-invert-colors -- Already present before the lint rule was enabled, needs to be fixed. */}
             <Image
+                accessibilityIgnoresInvertColors
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...rest}
                 style={[styles.w100, styles.h100, style]}

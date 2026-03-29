@@ -39,13 +39,13 @@ function TextLinkBlock({text, style, prefixIcon, ...rest}: TextLinkBlockProps) {
     };
 
     return (
-        /* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */
         <PressableWithoutFeedback
             role={CONST.ROLE.BUTTON}
             style={styles.dContents}
             onPress={openLink}
             accessible
             accessibilityLabel={rest.href ?? CONST.ROLE.BUTTON}
+            accessibilityHint={rest.href ?? CONST.ROLE.BUTTON}
         >
             {words.map((word, index) => (
                 <View

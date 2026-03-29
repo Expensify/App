@@ -45,12 +45,12 @@ function CollapsibleSection({title, children, titleStyle, textStyle, wrapperStyl
 
     return (
         <View style={[styles.mt4, wrapperStyle]}>
-            {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
             <PressableWithFeedback
                 onPress={toggleSection}
                 style={[styles.pb4, styles.flexRow]}
                 role={CONST.ROLE.BUTTON}
                 accessibilityLabel={title}
+                accessibilityHint={title}
                 sentryLabel={CONST.SENTRY_LABEL.COLLAPSIBLE_SECTION.TOGGLE}
                 hoverDimmingValue={1}
                 pressDimmingValue={0.2}

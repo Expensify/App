@@ -83,30 +83,30 @@ function ConfirmAgreements({onNext}: ConfirmAgreementsProps) {
             enabledWhenOffline={false}
         >
             <Text style={[styles.textHeadlineLineHeightXXL]}>{translate('completeVerificationStep.confirmAgreements')}</Text>
-            {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
             <InputWrapper
                 InputComponent={CheckboxWithLabel}
                 accessibilityLabel={translate('completeVerificationStep.isAuthorizedToUseBankAccount')}
+                accessibilityHint={translate('completeVerificationStep.isAuthorizedToUseBankAccount')}
                 inputID={COMPLETE_VERIFICATION_KEYS.IS_AUTHORIZED_TO_USE_BANK_ACCOUNT}
                 style={styles.mt6}
                 LabelComponent={IsAuthorizedToUseBankAccountLabel}
                 defaultValue={defaultValues.isAuthorizedToUseBankAccount}
                 shouldSaveDraft
             />
-            {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
             <InputWrapper
                 InputComponent={CheckboxWithLabel}
                 accessibilityLabel={translate('completeVerificationStep.certifyTrueAndAccurate')}
+                accessibilityHint={translate('completeVerificationStep.certifyTrueAndAccurate')}
                 inputID={COMPLETE_VERIFICATION_KEYS.CERTIFY_TRUE_INFORMATION}
                 style={styles.mt6}
                 LabelComponent={CertifyTrueAndAccurateLabel}
                 defaultValue={defaultValues.certifyTrueInformation}
                 shouldSaveDraft
             />
-            {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
             <InputWrapper
                 InputComponent={CheckboxWithLabel}
                 accessibilityLabel={`${translate('common.iAcceptThe')} ${translate('completeVerificationStep.termsAndConditions')}`}
+                accessibilityHint={`${translate('common.iAcceptThe')} ${translate('completeVerificationStep.termsAndConditions')}`}
                 inputID={COMPLETE_VERIFICATION_KEYS.ACCEPT_TERMS_AND_CONDITIONS}
                 style={styles.mt6}
                 LabelComponent={TermsAndConditionsLabel}

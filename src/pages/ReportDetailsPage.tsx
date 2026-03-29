@@ -765,12 +765,12 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                         />
                     </View>
                     {isPolicyAdmin ? (
-                        /* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */
                         <PressableWithoutFeedback
                             style={[styles.w100]}
                             disabled={policy?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}
                             role={CONST.ROLE.BUTTON}
                             accessibilityLabel={chatRoomSubtitle}
+                            accessibilityHint={chatRoomSubtitle}
                             accessible
                             sentryLabel={CONST.SENTRY_LABEL.REPORT_DETAILS.WORKSPACE_LINK}
                             onPress={() => {

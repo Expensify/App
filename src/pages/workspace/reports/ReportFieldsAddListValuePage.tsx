@@ -99,11 +99,11 @@ function ReportFieldsAddListValuePage({
                     shouldHideFixErrorsAlert
                     addBottomSafeAreaPadding
                 >
-                    {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                     <InputWrapper
                         InputComponent={TextInput}
                         label={translate('common.value')}
                         accessibilityLabel={translate('common.value')}
+                        accessibilityHint={translate('common.value')}
                         inputID={INPUT_IDS.VALUE_NAME}
                         role={CONST.ROLE.PRESENTATION}
                         ref={inputCallbackRef}

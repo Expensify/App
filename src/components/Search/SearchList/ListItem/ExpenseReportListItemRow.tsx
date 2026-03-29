@@ -248,10 +248,10 @@ function ExpenseReportListItemRow({
 
         return (
             <View style={styles.pRelative}>
-                {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                 <View
                     accessible
                     accessibilityLabel={groupAccessibilityLabel}
+                    accessibilityHint={groupAccessibilityLabel}
                     role={CONST.ROLE.BUTTON}
                     style={{marginRight: variables.w72}}
                 >
@@ -275,7 +275,6 @@ function ExpenseReportListItemRow({
                     <View style={[styles.pt0, styles.flexRow, styles.alignItemsCenter, styles.justifyContentStart, {marginRight: -variables.w72}]}>
                         <View style={[styles.flexRow, styles.alignItemsCenter, styles.mnh40, styles.flex1, styles.gap3]}>
                             {!!canSelectMultiple && (
-                                /* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */
                                 <Checkbox
                                     onPress={onCheckboxPress}
                                     isChecked={isSelectAllChecked}
@@ -283,6 +282,7 @@ function ExpenseReportListItemRow({
                                     containerStyle={[StyleUtils.getCheckboxContainerStyle(20), StyleUtils.getMultiselectListStyles(!!item.isSelected, !!item.isDisabled)]}
                                     disabled={isDisabledCheckbox}
                                     accessibilityLabel={item.text ?? ''}
+                                    accessibilityHint={item.text ?? ''}
                                     shouldStopMouseDownPropagation
                                     style={[styles.cursorUnset, StyleUtils.getCheckboxPressableStyle(), isDisabledCheckbox && styles.cursorDisabled]}
                                     sentryLabel={CONST.SENTRY_LABEL.SEARCH.EXPENSE_REPORT_CHECKBOX}
@@ -328,7 +328,6 @@ function ExpenseReportListItemRow({
         <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, containerStyle]}>
             <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap3, styles.pr2]}>
                 {!!canSelectMultiple && (
-                    /* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */
                     <Checkbox
                         onPress={onCheckboxPress}
                         isChecked={isSelectAllChecked}
@@ -336,6 +335,7 @@ function ExpenseReportListItemRow({
                         containerStyle={[StyleUtils.getCheckboxContainerStyle(20), StyleUtils.getMultiselectListStyles(!!item.isSelected, !!item.isDisabled)]}
                         disabled={isDisabledCheckbox}
                         accessibilityLabel={item.text ?? ''}
+                        accessibilityHint={item.text ?? ''}
                         shouldStopMouseDownPropagation
                         style={[styles.cursorUnset, StyleUtils.getCheckboxPressableStyle(), isDisabledCheckbox && styles.cursorDisabled, styles.mr1]}
                         sentryLabel={CONST.SENTRY_LABEL.SEARCH.EXPENSE_REPORT_CHECKBOX}

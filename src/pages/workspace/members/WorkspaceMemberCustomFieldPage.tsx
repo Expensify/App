@@ -74,12 +74,12 @@ function WorkspaceMemberCustomFieldPage({policy, route, personalDetails}: Worksp
                         goBack();
                     }}
                 >
-                    {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                     <InputWrapper
                         ref={inputCallbackRef}
                         InputComponent={TextInput}
                         label={customFieldText}
                         accessibilityLabel={customFieldText}
+                        accessibilityHint={customFieldText}
                         role={CONST.ROLE.PRESENTATION}
                         inputID="customField"
                         value={customField}

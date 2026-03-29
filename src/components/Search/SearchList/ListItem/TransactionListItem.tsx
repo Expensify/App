@@ -178,13 +178,13 @@ function TransactionListItem<TItem extends ListItem>({
 
     return (
         <OfflineWithFeedback pendingAction={item.pendingAction}>
-            {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
             <PressableWithFeedback
                 ref={pressableRef}
                 onLongPress={() => onLongPressRow?.(item)}
                 onPress={isDeletedTransaction ? undefined : () => onSelectRow(item, transactionPreviewData)}
                 disabled={isDisabled && !item.isSelected}
                 accessibilityLabel={item.text ?? ''}
+                accessibilityHint={item.text ?? ''}
                 role={isDeletedTransaction ? getButtonRole(true) : 'none'}
                 isNested
                 onMouseDown={(e) => e.preventDefault()}

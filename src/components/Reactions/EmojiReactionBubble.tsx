@@ -60,7 +60,6 @@ function EmojiReactionBubble({
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     return (
-        /* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */
         <PressableWithSecondaryInteraction
             style={({hovered, pressed}) => [
                 styles.emojiReactionBubble,
@@ -89,6 +88,7 @@ function EmojiReactionBubble({
             }}
             role={CONST.ROLE.BUTTON}
             accessibilityLabel={emojiCodes.join('')}
+            accessibilityHint={emojiCodes.join('')}
             accessible
             dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
             sentryLabel={CONST.SENTRY_LABEL.EMOJI_REACTIONS.REACTION_BUBBLE}

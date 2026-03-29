@@ -282,13 +282,13 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
     return (
         <View style={[style ?? styles.flex1, shouldShowEmptyLHN ? styles.emptyLHNWrapper : undefined]}>
             {shouldShowEmptyLHN ? (
-                /* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */
                 <BlockingView
                     // eslint-disable-next-line react/jsx-props-no-spreading
                     {...(emptyLHNIllustration as BlockingViewProps)}
                     title={translate('common.emptyLHN.title')}
                     CustomSubtitle={emptyLHNSubtitle}
                     accessibilityLabel={translate('common.emptyLHN.title')}
+                    accessibilityHint={translate('common.emptyLHN.title')}
                 />
             ) : (
                 <FlashList

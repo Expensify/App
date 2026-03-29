@@ -92,12 +92,12 @@ function GroupChatNameEditPage({report}: GroupChatNameEditPageProps) {
                 enabledWhenOffline
                 shouldHideFixErrorsAlert
             >
-                {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                 <InputWrapper
                     InputComponent={TextInput}
                     defaultValue={currentChatName}
                     label={translate('common.name')}
                     accessibilityLabel={translate('common.name')}
+                    accessibilityHint={translate('common.name')}
                     inputID={INPUT_IDS.NEW_CHAT_NAME}
                     role={CONST.ROLE.PRESENTATION}
                     ref={inputCallbackRef}

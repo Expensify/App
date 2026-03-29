@@ -53,7 +53,6 @@ function PreRenderer({TDefaultRenderer, onPressIn, onPressOut, onLongPress, ...d
 
     return (
         <View style={isLast ? styles.mt2 : styles.mv2}>
-            {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
             <PressableWithoutFeedback
                 sentryLabel={CONST.SENTRY_LABEL.HTML_RENDERER.PRE}
                 onPress={onPressIn ?? (() => {})}
@@ -78,6 +77,7 @@ function PreRenderer({TDefaultRenderer, onPressIn, onPressOut, onLongPress, ...d
                 shouldUseHapticsOnLongPress
                 role={CONST.ROLE.PRESENTATION}
                 accessibilityLabel={translate('accessibilityHints.preStyledText')}
+                accessibilityHint={translate('accessibilityHints.preStyledText')}
             >
                 <View>
                     <Text style={{fontSize}}>

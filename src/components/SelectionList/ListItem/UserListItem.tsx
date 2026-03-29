@@ -187,9 +187,9 @@ function UserListItem<TItem extends ListItem>({
                             </View>
                         )}
                         {!!shouldUseDefaultRightHandSideCheckmark && !!canSelectMultiple && (
-                            /* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */
                             <PressableWithFeedback
                                 accessibilityLabel={item.text ?? ''}
+                                accessibilityHint={item.text ?? ''}
                                 role={CONST.ROLE.BUTTON}
                                 sentryLabel={CONST.SENTRY_LABEL.USER_LIST_ITEM.CHECKBOX_RIGHT}
                                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing

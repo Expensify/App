@@ -442,11 +442,11 @@ function SecuritySettingsPage() {
                                     renderSubtitle={() => (
                                         <Text style={[styles.flexRow, styles.alignItemsCenter, styles.w100, styles.mt2]}>
                                             <Text style={[styles.textNormal, styles.colorMuted]}>{translate('delegate.copilotDelegatedAccessDescription')} </Text>
-                                            {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                                             <TextLink
                                                 style={[styles.link]}
                                                 href={CONST.COPILOT_HELP_URL}
                                                 accessibilityLabel={translate('delegate.learnMoreAboutDelegatedAccess')}
+                                                accessibilityHint={translate('delegate.learnMoreAboutDelegatedAccess')}
                                             >
                                                 {translate('common.learnMore')}
                                             </TextLink>

@@ -37,7 +37,6 @@ function MergeTransactionItem<TItem extends ListItem>({item, isFocused, showTool
 
     return (
         <OfflineWithFeedback pendingAction={item.pendingAction}>
-            {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
             <PressableWithFeedback
                 ref={pressableRef}
                 sentryLabel={CONST.SENTRY_LABEL.MERGE_EXPENSE.MERGE_TRANSACTION_ITEM}
@@ -46,6 +45,7 @@ function MergeTransactionItem<TItem extends ListItem>({item, isFocused, showTool
                 }}
                 disabled={isDisabled && !item.isSelected}
                 accessibilityLabel={item.text ?? ''}
+                accessibilityHint={item.text ?? ''}
                 role={getButtonRole(true)}
                 isNested
                 onMouseDown={(e) => e.preventDefault()}

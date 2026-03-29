@@ -52,7 +52,6 @@ function ReferralProgramCTA({referralContentType, style, onDismiss}: ReferralPro
     return (
         <View style={[styles.br2, styles.highlightBG, styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, {gap: 10, padding: 10}, styles.pl5, style]}>
             {/* CTA pressable covers the text area only (stops before the close button) so it does not intercept close-button taps. */}
-            {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
             <PressableWithoutFeedback
                 sentryLabel={CONST.SENTRY_LABEL.REFERRAL_PROGRAM.CTA}
                 onPress={() => {
@@ -60,6 +59,7 @@ function ReferralProgramCTA({referralContentType, style, onDismiss}: ReferralPro
                 }}
                 style={[styles.pAbsolute, styles.t0, styles.b0, styles.l0, {right: CLOSE_BUTTON_OFFSET}]}
                 accessibilityLabel={translate(`referralProgram.${referralContentType}.header`)}
+                accessibilityHint={translate(`referralProgram.${referralContentType}.header`)}
                 role={CONST.ROLE.BUTTON}
             />
             {/* Hidden from accessibility — the CTA pressable above already announces this content. */}
@@ -70,7 +70,6 @@ function ReferralProgramCTA({referralContentType, style, onDismiss}: ReferralPro
                 <RenderHTML html={translate(`referralProgram.${referralContentType}.buttonText`)} />
             </View>
             <Tooltip text={translate('common.close')}>
-                {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                 <PressableWithoutFeedback
                     onPress={handleDismissCallToAction}
                     onMouseDown={(e) => {
@@ -79,6 +78,7 @@ function ReferralProgramCTA({referralContentType, style, onDismiss}: ReferralPro
                     style={[styles.touchableButtonImage]}
                     role={CONST.ROLE.BUTTON}
                     accessibilityLabel={translate(`referralProgram.${referralContentType}.closeAccessibilityLabel`)}
+                    accessibilityHint={translate(`referralProgram.${referralContentType}.closeAccessibilityLabel`)}
                     sentryLabel={CONST.SENTRY_LABEL.REFERRAL_PROGRAM.DISMISS_BUTTON}
                 >
                     <Icon

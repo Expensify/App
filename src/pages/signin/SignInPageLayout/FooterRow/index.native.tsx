@@ -18,11 +18,11 @@ function FooterRow({href, onPress, translationPath, text, style}: FooterRowProps
     const {environmentURL} = useEnvironment();
 
     return (
-        /* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */
         <PressableWithoutFeedback
             accessible
             accessibilityRole={CONST.ROLE.LINK}
             accessibilityLabel={text}
+            accessibilityHint={text}
             sentryLabel={translationPath}
             onPress={() => {
                 if (onPress) {

@@ -118,8 +118,8 @@ function Avatar({
         >
             {typeof avatarSource === 'string' ? (
                 <View style={[iconStyle, StyleUtils.getAvatarBorderStyle(size, type), iconAdditionalStyles]}>
-                    {/* eslint-disable-next-line react-native-a11y/has-valid-accessibility-ignores-invert-colors -- Already present before the lint rule was enabled, needs to be fixed. */}
                     <Image
+                        accessibilityIgnoresInvertColors
                         source={{uri: avatarSource}}
                         style={imageStyle}
                         onError={() => setErrorSource(typeof originalSource === 'string' ? originalSource : undefined)}

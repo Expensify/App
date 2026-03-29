@@ -484,11 +484,11 @@ function IOURequestStepScan({
 
                             <Text style={[styles.textFileUpload]}>{translate('receipt.takePhoto')}</Text>
                             <Text style={[styles.subTextFileUpload]}>{translate('receipt.cameraAccess')}</Text>
-                            {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                             <Button
                                 success
                                 text={translate('common.continue')}
                                 accessibilityLabel={translate('common.continue')}
+                                accessibilityHint={translate('common.continue')}
                                 style={[styles.p9, styles.pt5]}
                                 onPress={capturePhoto}
                                 sentryLabel={CONST.SENTRY_LABEL.IOU_REQUEST_STEP.SCAN_SUBMIT_BUTTON}
@@ -529,10 +529,10 @@ function IOURequestStepScan({
                             </GestureDetector>
                             {canUseMultiScan ? (
                                 <View style={[styles.flashButtonContainer, styles.primaryMediumIcon, flash && styles.bgGreenSuccess, !hasFlash && styles.opacity0]}>
-                                    {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                                     <PressableWithFeedback
                                         role={CONST.ROLE.BUTTON}
                                         accessibilityLabel={translate('receipt.flash')}
+                                        accessibilityHint={translate('receipt.flash')}
                                         sentryLabel={CONST.SENTRY_LABEL.REQUEST_STEP.SCAN.FLASH}
                                         disabled={cameraPermissionStatus !== RESULTS.GRANTED || !hasFlash}
                                         onPress={() => setFlash((prevFlash) => !prevFlash)}
@@ -575,10 +575,10 @@ function IOURequestStepScan({
                         shouldValidateImage={false}
                     >
                         {({openPicker}) => (
-                            /* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */
                             <PressableWithFeedback
                                 role={CONST.ROLE.BUTTON}
                                 accessibilityLabel={translate('receipt.gallery')}
+                                accessibilityHint={translate('receipt.gallery')}
                                 sentryLabel={shouldAcceptMultipleFiles ? CONST.SENTRY_LABEL.REQUEST_STEP.SCAN.CHOOSE_FILES : CONST.SENTRY_LABEL.REQUEST_STEP.SCAN.CHOOSE_FILE}
                                 style={[styles.alignItemsStart, isMultiScanEnabled && styles.opacity0]}
                                 onPress={() => {
@@ -602,10 +602,10 @@ function IOURequestStepScan({
                             </PressableWithFeedback>
                         )}
                     </AttachmentPicker>
-                    {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                     <PressableWithFeedback
                         role={CONST.ROLE.BUTTON}
                         accessibilityLabel={translate('receipt.shutter')}
+                        accessibilityHint={translate('receipt.shutter')}
                         sentryLabel={CONST.SENTRY_LABEL.REQUEST_STEP.SCAN.SHUTTER}
                         style={[styles.alignItemsCenter]}
                         onPress={capturePhoto}
@@ -618,11 +618,11 @@ function IOURequestStepScan({
                         />
                     </PressableWithFeedback>
                     {canUseMultiScan ? (
-                        /* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */
                         <PressableWithFeedback
                             accessibilityRole="button"
                             role={CONST.ROLE.BUTTON}
                             accessibilityLabel={translate('receipt.multiScan')}
+                            accessibilityHint={translate('receipt.multiScan')}
                             sentryLabel={CONST.SENTRY_LABEL.REQUEST_STEP.SCAN.MULTI_SCAN}
                             style={styles.alignItemsEnd}
                             onPress={toggleMultiScan}
@@ -635,10 +635,10 @@ function IOURequestStepScan({
                             />
                         </PressableWithFeedback>
                     ) : (
-                        /* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */
                         <PressableWithFeedback
                             role={CONST.ROLE.BUTTON}
                             accessibilityLabel={translate('receipt.flash')}
+                            accessibilityHint={translate('receipt.flash')}
                             sentryLabel={CONST.SENTRY_LABEL.REQUEST_STEP.SCAN.FLASH}
                             style={[styles.alignItemsEnd, !hasFlash && styles.opacity0]}
                             disabled={cameraPermissionStatus !== RESULTS.GRANTED || !hasFlash}

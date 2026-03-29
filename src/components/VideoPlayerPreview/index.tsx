@@ -126,11 +126,11 @@ function VideoPlayerPreview({videoUrl, thumbnailUrl, reportID, fileName, videoDi
     return (
         <View style={[styles.webViewStyles.tagStyles.video, thumbnailDimensionsStyles]}>
             {isSmallScreenWidth || isThumbnail || isDeleted ? (
-                /* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */
                 <VideoPlayerThumbnail
                     thumbnailUrl={thumbnailUrl}
                     onPress={handleOnPress}
                     accessibilityLabel={fileName}
+                    accessibilityHint={fileName}
                     isDeleted={isDeleted}
                 />
             ) : (

@@ -88,13 +88,13 @@ function EditPerDiemSubratePage({route}: EditPerDiemSubratePageProps) {
                     shouldHideFixErrorsAlert
                     addBottomSafeAreaPadding
                 >
-                    {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                     <InputWrapper
                         ref={inputCallbackRef}
                         InputComponent={TextInput}
                         defaultValue={selectedSubrate?.name}
                         label={translate('common.subrate')}
                         accessibilityLabel={translate('common.subrate')}
+                        accessibilityHint={translate('common.subrate')}
                         inputID={INPUT_IDS.SUBRATE}
                         role={CONST.ROLE.PRESENTATION}
                     />

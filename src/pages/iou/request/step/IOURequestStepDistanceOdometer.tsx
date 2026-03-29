@@ -540,12 +540,12 @@ function IOURequestStepDistanceOdometer({
                     {/* Start Reading */}
                     <View style={[styles.mb6, styles.flexRow, !isEditing && [styles.alignItemsCenter, styles.gap3]]}>
                         <View style={[styles.flex1]}>
-                            {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                             <TextInput
                                 key={`start-${inputKey}`}
                                 ref={startReadingInputRef}
                                 label={translate('distance.odometer.startReading')}
                                 accessibilityLabel={translate('distance.odometer.startReading')}
+                                accessibilityHint={translate('distance.odometer.startReading')}
                                 value={startReading}
                                 onChangeText={handleStartReadingChange}
                                 keyboardType={CONST.KEYBOARD_TYPE.DECIMAL_PAD}
@@ -553,10 +553,10 @@ function IOURequestStepDistanceOdometer({
                             />
                         </View>
                         {!isEditing && (
-                            /* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */
                             <PressableWithFeedback
                                 accessibilityRole="button"
                                 accessibilityLabel={translate('distance.odometer.startTitle')}
+                                accessibilityHint={translate('distance.odometer.startTitle')}
                                 sentryLabel={CONST.SENTRY_LABEL.ODOMETER_EXPENSE.CAPTURE_IMAGE_START}
                                 onPress={handlePressStartImage}
                                 style={[
@@ -584,12 +584,12 @@ function IOURequestStepDistanceOdometer({
                     {/* End Reading */}
                     <View style={[styles.mb6, styles.flexRow, !isEditing && [styles.alignItemsCenter, styles.gap3]]}>
                         <View style={[styles.flex1]}>
-                            {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                             <TextInput
                                 key={`end-${inputKey}`}
                                 ref={endReadingInputRef}
                                 label={translate('distance.odometer.endReading')}
                                 accessibilityLabel={translate('distance.odometer.endReading')}
+                                accessibilityHint={translate('distance.odometer.endReading')}
                                 value={endReading}
                                 onChangeText={handleEndReadingChange}
                                 keyboardType={CONST.KEYBOARD_TYPE.DECIMAL_PAD}
@@ -597,10 +597,10 @@ function IOURequestStepDistanceOdometer({
                             />
                         </View>
                         {!isEditing && (
-                            /* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */
                             <PressableWithFeedback
                                 accessibilityRole="button"
                                 accessibilityLabel={translate('distance.odometer.endTitle')}
+                                accessibilityHint={translate('distance.odometer.endTitle')}
                                 sentryLabel={CONST.SENTRY_LABEL.ODOMETER_EXPENSE.CAPTURE_IMAGE_END}
                                 onPress={handlePressEndImage}
                                 style={[

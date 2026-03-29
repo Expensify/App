@@ -330,13 +330,13 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
         (item: Feature) => {
             const isSelected = selectedFeatures.includes(item.id);
             return (
-                /* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */
                 <PressableWithoutFeedback
                     key={item.id}
                     onPress={() => {
                         handleFeatureSelect(item.id);
                     }}
                     accessibilityLabel={item.title}
+                    accessibilityHint={item.title}
                     accessible={false}
                     hoverStyle={!isSelected ? styles.hoveredComponentBG : undefined}
                     style={[styles.onboardingInterestedFeaturesItem, isSmallScreenWidth ? styles.flexBasis100 : {maxWidth: (width - gap) / 2}, isSelected && styles.activeComponentBG]}
@@ -350,9 +350,9 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
                         />
                         <Text style={[styles.textStrong]}>{item.title}</Text>
                     </View>
-                    {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                     <Checkbox
                         accessibilityLabel={item.title}
+                        accessibilityHint={item.title}
                         isChecked={isSelected}
                         onPress={() => {
                             handleFeatureSelect(item.id);

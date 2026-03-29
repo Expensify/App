@@ -61,12 +61,12 @@ function WorkspaceInvoicingDetailsName({route}: WorkspaceInvoicingDetailsNamePro
                     shouldHideFixErrorsAlert
                     addBottomSafeAreaPadding
                 >
-                    {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                     <InputWrapper
                         InputComponent={TextInput}
                         inputID={INPUT_IDS.COMPANY_NAME}
                         label={translate('workspace.invoices.companyName')}
                         accessibilityLabel={translate('workspace.invoices.companyName')}
+                        accessibilityHint={translate('workspace.invoices.companyName')}
                         role={CONST.ROLE.PRESENTATION}
                         defaultValue={policy?.invoice?.companyName}
                         ref={inputCallbackRef}

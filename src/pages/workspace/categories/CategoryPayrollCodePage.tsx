@@ -95,13 +95,13 @@ function CategoryPayrollCodePage({route}: EditCategoryPageProps) {
                     shouldHideFixErrorsAlert
                     addBottomSafeAreaPadding
                 >
-                    {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                     <InputWrapper
                         ref={inputCallbackRef}
                         InputComponent={TextInput}
                         defaultValue={payrollCode}
                         label={translate('workspace.categories.payrollCode')}
                         accessibilityLabel={translate('workspace.categories.payrollCode')}
+                        accessibilityHint={translate('workspace.categories.payrollCode')}
                         inputID={INPUT_IDS.PAYROLL_CODE}
                         role={CONST.ROLE.PRESENTATION}
                     />

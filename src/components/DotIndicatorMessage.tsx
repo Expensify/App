@@ -113,12 +113,12 @@ function DotIndicatorMessage({messages = {}, style, type, textStyles, dismissErr
 
     return (
         <View style={[styles.dotIndicatorMessage, style]}>
-            {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
             <View
                 style={styles.offlineFeedbackErrorDot}
                 accessible={isErrorMessage}
                 role={isErrorMessage ? CONST.ROLE.IMG : undefined}
                 accessibilityLabel={isErrorMessage ? (CONST.ACCESSIBILITY_LABELS.ERROR as string) : undefined}
+                accessibilityHint={isErrorMessage ? (CONST.ACCESSIBILITY_LABELS.ERROR as string) : undefined}
             >
                 <Icon
                     src={expensifyIcons.DotIndicator}

@@ -102,10 +102,10 @@ function ImportMultiLevelTagsSettingsPage({route}: ImportMultiLevelTagsSettingsP
                         >
                             {translate('workspace.tags.importMultiLevelTags.firstRowTitle')}
                         </Text>
-                        {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                         <Switch
                             isOn={spreadsheet?.containsHeader ?? true}
                             accessibilityLabel={translate('workspace.tags.importMultiLevelTags.firstRowTitle')}
+                            accessibilityHint={translate('workspace.tags.importMultiLevelTags.firstRowTitle')}
                             onToggle={(value) => {
                                 setImportedSpreadsheetIsFirstLineHeader(value);
                             }}
@@ -120,10 +120,10 @@ function ImportMultiLevelTagsSettingsPage({route}: ImportMultiLevelTagsSettingsP
                         >
                             {translate('workspace.tags.importMultiLevelTags.independentTags')}
                         </Text>
-                        {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                         <Switch
                             isOn={spreadsheet?.isImportingIndependentMultiLevelTags ?? true}
                             accessibilityLabel={translate('workspace.tags.importMultiLevelTags.independentTags')}
+                            accessibilityHint={translate('workspace.tags.importMultiLevelTags.independentTags')}
                             onToggle={(value) => {
                                 setImportedSpreadsheetIsImportingIndependentMultiLevelTags(value);
                             }}
@@ -138,10 +138,10 @@ function ImportMultiLevelTagsSettingsPage({route}: ImportMultiLevelTagsSettingsP
                         >
                             {translate('workspace.tags.importMultiLevelTags.glAdjacentColumn')}
                         </Text>
-                        {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                         <Switch
                             isOn={spreadsheet?.isGLAdjacent ?? false}
                             accessibilityLabel={translate('workspace.tags.importMultiLevelTags.glAdjacentColumn')}
+                            accessibilityHint={translate('workspace.tags.importMultiLevelTags.glAdjacentColumn')}
                             onToggle={(value) => {
                                 setImportedSpreadsheetIsGLAdjacent(value);
                             }}

@@ -245,12 +245,12 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
                         key={transaction.transactionID}
                     >
                         {!isLargeScreenWidth ? (
-                            /* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */
                             <PressableWithFeedback
                                 onPress={() => handleOnPress(transaction)}
                                 onLongPress={() => onLongPress?.(transaction)}
                                 accessibilityRole={CONST.ROLE.BUTTON}
                                 accessibilityLabel={transaction.text ?? ''}
+                                accessibilityHint={transaction.text ?? ''}
                                 isNested
                                 onMouseDown={(e) => e.preventDefault()}
                                 hoverStyle={[!transaction.isDisabled && styles.hoveredComponentBG]}

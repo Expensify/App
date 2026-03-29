@@ -128,13 +128,13 @@ function ReportFieldsInitialValuePage({
                         submitButtonStyles={styles.mh5}
                         shouldHideFixErrorsAlert
                     >
-                        {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                         <InputWrapper
                             containerStyles={styles.mh5}
                             InputComponent={TextInput}
                             inputID={INPUT_IDS.INITIAL_VALUE}
                             label={translate('common.initialValue')}
                             accessibilityLabel={translate('workspace.editor.initialValueInputLabel')}
+                            accessibilityHint={translate('workspace.editor.initialValueInputLabel')}
                             multiline={false}
                             value={initialValue}
                             role={CONST.ROLE.PRESENTATION}

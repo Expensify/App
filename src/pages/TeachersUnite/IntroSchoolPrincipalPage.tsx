@@ -113,39 +113,39 @@ function IntroSchoolPrincipalPage() {
             >
                 <Text style={[styles.mb6]}>{translate('teachersUnitePage.schoolPrincipalVerifyExpense')}</Text>
                 <View>
-                    {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                     <InputWrapper
                         InputComponent={TextInput}
                         inputID={INPUT_IDS.FIRST_NAME}
                         name={INPUT_IDS.FIRST_NAME}
                         label={translate('teachersUnitePage.principalFirstName')}
                         accessibilityLabel={translate('teachersUnitePage.principalFirstName')}
+                        accessibilityHint={translate('teachersUnitePage.principalFirstName')}
                         role={CONST.ROLE.PRESENTATION}
                         autoCapitalize="words"
                         autoComplete="given-name"
                     />
                 </View>
                 <View style={styles.mv4}>
-                    {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                     <InputWrapper
                         InputComponent={TextInput}
                         inputID={INPUT_IDS.LAST_NAME}
                         name={INPUT_IDS.LAST_NAME}
                         label={translate('teachersUnitePage.principalLastName')}
                         accessibilityLabel={translate('teachersUnitePage.principalLastName')}
+                        accessibilityHint={translate('teachersUnitePage.principalLastName')}
                         role={CONST.ROLE.PRESENTATION}
                         autoCapitalize="words"
                         autoComplete="family-name"
                     />
                 </View>
                 <View>
-                    {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                     <InputWrapper
                         InputComponent={TextInput}
                         inputID={INPUT_IDS.PARTNER_USER_ID}
                         name={INPUT_IDS.PARTNER_USER_ID}
                         label={translate('teachersUnitePage.principalWorkEmail')}
                         accessibilityLabel={translate('teachersUnitePage.principalWorkEmail')}
+                        accessibilityHint={translate('teachersUnitePage.principalWorkEmail')}
                         role={CONST.ROLE.PRESENTATION}
                         inputMode={CONST.INPUT_MODE.EMAIL}
                         autoCapitalize="none"

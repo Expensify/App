@@ -71,11 +71,11 @@ function SearchTabButton({selectedTab, isWideLayout}: SearchTabButtonProps) {
 
     if (isWideLayout) {
         return (
-            /* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */
             <PressableWithFeedback
                 onPress={navigateToSearch}
                 role={CONST.ROLE.TAB}
                 accessibilityLabel={translate('common.reports')}
+                accessibilityHint={translate('common.reports')}
                 accessibilityState={searchAccessibilityState}
                 style={({hovered}) => [styles.leftNavigationTabBarItem, hovered && styles.navigationTabBarItemHovered]}
                 sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.REPORTS}
@@ -93,11 +93,11 @@ function SearchTabButton({selectedTab, isWideLayout}: SearchTabButtonProps) {
     }
 
     return (
-        /* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */
         <PressableWithFeedback
             onPress={navigateToSearch}
             role={CONST.ROLE.TAB}
             accessibilityLabel={translate('common.reports')}
+            accessibilityHint={translate('common.reports')}
             accessibilityState={searchAccessibilityState}
             wrapperStyle={styles.flex1}
             style={styles.navigationTabBarItem}

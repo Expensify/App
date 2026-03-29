@@ -109,7 +109,6 @@ function TaskTitlePage({report, currentUserPersonalDetails}: TaskTitlePageProps)
                         shouldHideFixErrorsAlert
                     >
                         <View style={[styles.mb4]}>
-                            {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                             <InputWrapper
                                 InputComponent={TextInput}
                                 role={CONST.ROLE.PRESENTATION}
@@ -117,6 +116,7 @@ function TaskTitlePage({report, currentUserPersonalDetails}: TaskTitlePageProps)
                                 name={INPUT_IDS.TITLE}
                                 label={translate('task.title')}
                                 accessibilityLabel={translate('task.title')}
+                                accessibilityHint={translate('task.title')}
                                 defaultValue={Parser.htmlToMarkdown(report?.reportName ?? '', {})}
                                 ref={(element: AnimatedTextInputRef | null) => {
                                     if (!element) {

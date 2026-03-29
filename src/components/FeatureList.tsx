@@ -121,11 +121,11 @@ function FeatureList({
                     ))}
                 </View>
                 {!!ctaText && (
-                    /* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */
                     <Button
                         text={ctaText}
                         onPress={onCtaPress}
                         accessibilityLabel={ctaAccessibilityLabel}
+                        accessibilityHint={ctaAccessibilityLabel}
                         style={styles.w100}
                         success
                         isDisabled={isButtonDisabled}

@@ -75,7 +75,6 @@ function EmojiPickerButton({isDisabled = false, emojiPickerID = '', shiftVertica
 
     return (
         <Tooltip text={translate('reportActionCompose.emoji')}>
-            {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
             <PressableWithoutFeedback
                 ref={emojiPopoverAnchor}
                 style={({hovered, pressed}) => [styles.chatItemEmojiButton, StyleUtils.getButtonBackgroundColorStyle(getButtonState(hovered, pressed))]}
@@ -83,6 +82,7 @@ function EmojiPickerButton({isDisabled = false, emojiPickerID = '', shiftVertica
                 onPress={openEmojiPicker}
                 id={CONST.EMOJI_PICKER_BUTTON_NATIVE_ID}
                 accessibilityLabel={translate('reportActionCompose.emoji')}
+                accessibilityHint={translate('reportActionCompose.emoji')}
                 role={CONST.ROLE.BUTTON}
                 sentryLabel={CONST.SENTRY_LABEL.EMOJI_PICKER.BUTTON}
             >

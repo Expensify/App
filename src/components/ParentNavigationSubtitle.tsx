@@ -205,13 +205,13 @@ function ParentNavigationSubtitle({
                     <>
                         <Text style={[styles.optionAlternateText, styles.textLabelSupporting, textStyles]}>{`${translate('threads.from')} `}</Text>
                         {hasAccessToParentReport ? (
-                            /* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */
                             <TextLink
                                 testID="parent-navigation-subtitle-link"
                                 onMouseEnter={onMouseEnter}
                                 onMouseLeave={onMouseLeave}
                                 onPress={onPress}
                                 accessibilityLabel={translate('threads.parentNavigationSummary', {reportName, workspaceName})}
+                                accessibilityHint={translate('threads.parentNavigationSummary', {reportName, workspaceName})}
                                 style={[
                                     pressableStyles,
                                     styles.optionAlternateText,

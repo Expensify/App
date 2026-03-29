@@ -143,10 +143,10 @@ function EmployeeTestDriveModal() {
             canConfirmWhileOffline={false}
             shouldCallOnHelpWhenModalHidden
         >
-            {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
             <TextInput
                 placeholder={translate('testDrive.modal.employee.email')}
                 accessibilityLabel={translate('testDrive.modal.employee.email')}
+                accessibilityHint={translate('testDrive.modal.employee.email')}
                 value={bossEmail}
                 onChangeText={onBossEmailChange}
                 autoCapitalize="none"

@@ -32,7 +32,6 @@ function EmojiPickerMenuItem({
     }, [isFocused]);
 
     return (
-        /* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */
         <PressableWithoutFeedback
             shouldUseAutoHitSlop={false}
             onPress={() => onPress(emoji)}
@@ -48,6 +47,7 @@ function EmojiPickerMenuItem({
                 themeStyles.emojiItem,
             ]}
             accessibilityLabel={emoji}
+            accessibilityHint={emoji}
             role={CONST.ROLE.BUTTON}
             sentryLabel={CONST.SENTRY_LABEL.EMOJI_PICKER.MENU_ITEM}
         >

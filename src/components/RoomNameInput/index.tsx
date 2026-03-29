@@ -39,7 +39,6 @@ function RoomNameInput({disabled = false, autoFocus = false, isFocused, value = 
     };
 
     return (
-        /* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */
         <TextInput
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
@@ -47,6 +46,7 @@ function RoomNameInput({disabled = false, autoFocus = false, isFocused, value = 
             disabled={disabled}
             label={translate('newRoomPage.roomName')}
             accessibilityLabel={translate('newRoomPage.roomName')}
+            accessibilityHint={translate('newRoomPage.roomName')}
             role={CONST.ROLE.PRESENTATION}
             prefixCharacter={CONST.POLICY.ROOM_PREFIX}
             placeholder={translate('newRoomPage.social')}

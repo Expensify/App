@@ -40,8 +40,8 @@ function ImageSVG({src, width = '100%', height = '100%', fill, contentFit = 'cov
 
     // Handle static image sources (traditional approach)
     return (
-        /* eslint-disable-next-line react-native-a11y/has-valid-accessibility-ignores-invert-colors -- Already present before the lint rule was enabled, needs to be fixed. */
         <Image
+            accessibilityIgnoresInvertColors
             onLoadEnd={onLoadEnd}
             cachePolicy="memory-disk"
             contentFit={contentFit}

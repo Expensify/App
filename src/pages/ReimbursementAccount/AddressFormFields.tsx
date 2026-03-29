@@ -147,13 +147,13 @@ function AddressFormFields({
                     autoComplete="address-line1"
                 />
             </View>
-            {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
             <InputWrapper
                 InputComponent={TextInput}
                 inputID={inputKeys.city ?? 'cityInput'}
                 shouldSaveDraft={shouldSaveDraft}
                 label={translate('common.city')}
                 accessibilityLabel={translate('common.city')}
+                accessibilityHint={translate('common.city')}
                 role={CONST.ROLE.PRESENTATION}
                 value={values?.city}
                 defaultValue={defaultValues?.city}
@@ -180,13 +180,13 @@ function AddressFormFields({
                     />
                 </View>
             )}
-            {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
             <InputWrapper
                 InputComponent={TextInput}
                 inputID={inputKeys.zipCode ?? 'zipCodeInput'}
                 shouldSaveDraft={shouldSaveDraft}
                 label={translate('common.zip')}
                 accessibilityLabel={translate('common.zip')}
+                accessibilityHint={translate('common.zip')}
                 role={CONST.ROLE.PRESENTATION}
                 inputMode={shouldValidateZipCodeFormat ? CONST.INPUT_MODE.NUMERIC : undefined}
                 value={values?.zipCode}

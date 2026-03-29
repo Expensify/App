@@ -132,10 +132,10 @@ function ReportFieldsValueSettingsPage({
                             >
                                 {translate('workspace.reportFields.enableValue')}
                             </Text>
-                            {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                             <Switch
                                 isOn={!currentValueDisabled}
                                 accessibilityLabel={translate('workspace.reportFields.enableValue')}
+                                accessibilityHint={translate('workspace.reportFields.enableValue')}
                                 onToggle={updateListValueEnabled}
                             />
                         </View>

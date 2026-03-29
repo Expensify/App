@@ -50,11 +50,11 @@ function EmojiSkinToneList() {
     return (
         <View style={[styles.flexRow, styles.p3, styles.ph4, styles.emojiPickerContainer]}>
             {!isSkinToneListVisible && (
-                /* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */
                 <PressableWithoutFeedback
                     onPress={toggleIsSkinToneListVisible}
                     style={[styles.flexRow, styles.alignSelfCenter, styles.justifyContentStart, styles.alignItemsCenter]}
                     accessibilityLabel={translate('emojiPicker.skinTonePickerLabel')}
+                    accessibilityHint={translate('emojiPicker.skinTonePickerLabel')}
                     role={CONST.ROLE.BUTTON}
                     sentryLabel={CONST.SENTRY_LABEL.EMOJI_PICKER.SKIN_TONE_TOGGLE}
                 >

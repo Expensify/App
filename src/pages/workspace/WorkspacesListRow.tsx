@@ -263,10 +263,10 @@ function WorkspacesListRow({
     return (
         <View style={[styles.flexRow, styles.highlightBG, rowStyles, style, styles.br3]}>
             <Animated.View style={[styles.flex1, styles.flexRow, styles.bgTransparent, isWide ? styles.gap5 : styles.gap2, styles.p5, styles.pr3, animatedHighlightStyle]}>
-                {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                 <PressableWithoutFeedback
                     accessible
                     accessibilityLabel={accessibilityLabel}
+                    accessibilityHint={accessibilityLabel}
                     role={CONST.ROLE.LINK}
                     onPress={onPress}
                     disabled={disabled}

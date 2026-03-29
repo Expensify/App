@@ -31,14 +31,13 @@ function AttachmentViewImage({attachmentID, url, file, isAuthTokenRequired, load
     );
 
     return onPress ? (
-        /* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */
         <PressableWithoutFeedback
             onPress={onPress}
             disabled={loadComplete}
             style={[styles.flex1, styles.flexRow, styles.alignSelfStretch]}
             accessibilityRole={CONST.ROLE.BUTTON}
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             accessibilityLabel={file?.name || translate('attachmentView.unknownFilename')}
+            accessibilityHint={file?.name || translate('attachmentView.unknownFilename')}
             sentryLabel={CONST.SENTRY_LABEL.ATTACHMENT_CAROUSEL.ITEM}
         >
             {children}

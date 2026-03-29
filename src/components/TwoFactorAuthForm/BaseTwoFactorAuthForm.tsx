@@ -192,7 +192,6 @@ function BaseTwoFactorAuthForm({
                 <Text style={[styles.mb3]}>{translate(isUsingRecoveryCode ? 'twoFactorAuth.explainProcessToRemoveWithRecovery' : 'twoFactorAuth.explainProcessToRemove')}</Text>
             )}
             {shouldAllowRecoveryCode && isUsingRecoveryCode ? (
-                /* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */
                 <TextInput
                     ref={(input) => {
                         recoveryInputRef.current = input;
@@ -207,11 +206,11 @@ function BaseTwoFactorAuthForm({
                     errorText={formError.recoveryCode ?? errorMessage}
                     onSubmitEditing={validateAndSubmitForm}
                     accessibilityLabel={translate('recoveryCodeForm.recoveryCode')}
+                    accessibilityHint={translate('recoveryCodeForm.recoveryCode')}
                     role={CONST.ROLE.PRESENTATION}
                     testID="recoveryCodeInput"
                 />
             ) : (
-                /* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */
                 <MagicCodeInput
                     autoComplete={autoComplete}
                     name="twoFactorAuthCode"
@@ -223,16 +222,17 @@ function BaseTwoFactorAuthForm({
                     ref={inputRef}
                     autoFocus={false}
                     accessibilityLabel={translate('common.twoFactorCode')}
+                    accessibilityHint={translate('common.twoFactorCode')}
                     testID="twoFactorAuthCodeInput"
                 />
             )}
             {shouldAllowRecoveryCode && (
-                /* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */
                 <PressableWithFeedback
                     style={[styles.mt2]}
                     onPress={handleToggleInputType}
                     hoverDimmingValue={1}
                     accessibilityLabel={translate(toggleLabelKey)}
+                    accessibilityHint={translate(toggleLabelKey)}
                     sentryLabel={CONST.SENTRY_LABEL.VALIDATE_CODE.RESEND_CODE}
                 >
                     <Text style={[styles.link]}>{translate(toggleLabelKey)}</Text>

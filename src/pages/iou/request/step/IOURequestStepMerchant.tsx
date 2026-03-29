@@ -178,7 +178,6 @@ function IOURequestStepMerchant({
                 shouldUseStrictHtmlTagValidation
             >
                 <View style={styles.mb4}>
-                    {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                     <InputWrapper
                         valueType="string"
                         InputComponent={TextInput}
@@ -188,6 +187,7 @@ function IOURequestStepMerchant({
                         onValueChange={updateMerchantRef}
                         label={translate('common.merchant')}
                         accessibilityLabel={translate('common.merchant')}
+                        accessibilityHint={translate('common.merchant')}
                         role={CONST.ROLE.PRESENTATION}
                         editable={!isDiscardModalVisible}
                         ref={inputCallbackRef}

@@ -124,7 +124,6 @@ function CopyCodesPage({route}: TwoFactorAuthPageProps) {
                                             ))}
                                     </View>
                                     <View style={styles.twoFactorAuthCodesButtonsContainer}>
-                                        {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                                         <PressableWithDelayToggle
                                             text={translate('twoFactorAuth.copy')}
                                             textChecked={translate('common.copied')}
@@ -141,10 +140,10 @@ function CopyCodesPage({route}: TwoFactorAuthPageProps) {
                                             tooltipText=""
                                             tooltipTextChecked=""
                                             accessibilityLabel={`${translate('twoFactorAuth.copy')}, ${translate('twoFactorAuth.stepCodes')}`}
+                                            accessibilityHint={`${translate('twoFactorAuth.copy')}, ${translate('twoFactorAuth.stepCodes')}`}
                                             accessibilityLabelChecked={translate('common.copied')}
                                             sentryLabel={CONST.SENTRY_LABEL.TWO_FACTOR_AUTH.COPY_CODES}
                                         />
-                                        {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                                         <PressableWithDelayToggle
                                             text={translate('common.download')}
                                             icon={icons.Download}
@@ -160,6 +159,7 @@ function CopyCodesPage({route}: TwoFactorAuthPageProps) {
                                             tooltipText=""
                                             tooltipTextChecked=""
                                             accessibilityLabel={`${translate('common.download')}, ${translate('twoFactorAuth.stepCodes')}`}
+                                            accessibilityHint={`${translate('common.download')}, ${translate('twoFactorAuth.stepCodes')}`}
                                             sentryLabel={CONST.SENTRY_LABEL.TWO_FACTOR_AUTH.DOWNLOAD_CODES}
                                         />
                                     </View>

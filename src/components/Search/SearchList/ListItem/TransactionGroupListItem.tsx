@@ -446,7 +446,6 @@ function TransactionGroupListItem<TItem extends ListItem>({
 
     return (
         <OfflineWithFeedback pendingAction={pendingAction}>
-            {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
             <PressableWithFeedback
                 ref={pressableRef}
                 onLongPress={onLongPress}
@@ -454,6 +453,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
                 disabled={isDisabled && !isItemSelected}
                 sentryLabel={CONST.SENTRY_LABEL.SEARCH.TRANSACTION_GROUP_LIST_ITEM}
                 accessibilityLabel={item.text ?? ''}
+                accessibilityHint={item.text ?? ''}
                 role={getButtonRole(true)}
                 isNested
                 hoverStyle={[!item.isDisabled && styles.hoveredComponentBG, isItemSelected && styles.activeComponentBG]}

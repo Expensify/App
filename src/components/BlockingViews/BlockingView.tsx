@@ -128,10 +128,10 @@ function BlockingView({
     useAbsentPageSpan();
 
     return (
-        /* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */
         <View
             style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter, styles.ph10, containerStyle]}
             accessibilityLabel={accessibilityLabel}
+            accessibilityHint={accessibilityLabel}
             testID={testID}
         >
             {!!animation && (

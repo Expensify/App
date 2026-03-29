@@ -27,7 +27,6 @@ function FloatingGpsButton() {
     };
 
     return (
-        /* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */
         <Button
             text={translate('gps.gpsFloatingPillText')}
             icon={icons.Crosshair}
@@ -37,6 +36,7 @@ function FloatingGpsButton() {
             style={[styles.floatingGpsButton]}
             testID="floating-gps-button"
             accessibilityLabel={translate('gps.gpsFloatingPillText')}
+            accessibilityHint={translate('gps.gpsFloatingPillText')}
             sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.FLOATING_GPS_BUTTON}
         />
     );

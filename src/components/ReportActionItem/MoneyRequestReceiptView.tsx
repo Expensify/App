@@ -537,7 +537,6 @@ function MoneyRequestReceiptView({
                                     <AttachmentPicker acceptedFileTypes={[...CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_RECEIPT_EXTENSIONS]}>
                                         {({openPicker}) => (
                                             <Tooltip text={translate('receipt.addAdditionalReceipt')}>
-                                                {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                                                 <PressableWithoutFeedback
                                                     ref={addButtonRef}
                                                     onPress={() => {
@@ -560,6 +559,7 @@ function MoneyRequestReceiptView({
                                                     style={styles.receiptActionButton}
                                                     hoverStyle={styles.buttonDefaultHovered}
                                                     accessibilityLabel={translate('receipt.addAdditionalReceipt')}
+                                                    accessibilityHint={translate('receipt.addAdditionalReceipt')}
                                                     role={CONST.ROLE.BUTTON}
                                                     sentryLabel={CONST.SENTRY_LABEL.RECEIPT.ADD_ATTACHMENT_BUTTON}
                                                 >
@@ -574,7 +574,6 @@ function MoneyRequestReceiptView({
                                         )}
                                     </AttachmentPicker>
                                     <Tooltip text={translate('reportActionCompose.expand')}>
-                                        {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                                         <PressableWithoutFocus
                                             onPress={() =>
                                                 Navigation.navigate(
@@ -584,6 +583,7 @@ function MoneyRequestReceiptView({
                                             style={styles.receiptActionButton}
                                             hoverStyle={styles.buttonDefaultHovered}
                                             accessibilityLabel={translate('accessibilityHints.viewAttachment')}
+                                            accessibilityHint={translate('accessibilityHints.viewAttachment')}
                                             role={CONST.ROLE.BUTTON}
                                             sentryLabel={CONST.SENTRY_LABEL.RECEIPT.ENLARGE_BUTTON}
                                         >

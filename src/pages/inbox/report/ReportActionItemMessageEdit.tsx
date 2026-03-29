@@ -501,12 +501,12 @@ function ReportActionItemMessageEdit({
                 >
                     <View style={[styles.justifyContentEnd, styles.mb1]}>
                         <Tooltip text={translate('common.cancel')}>
-                            {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                             <PressableWithFeedback
                                 onPress={deleteDraft}
                                 style={closeButtonStyles}
                                 role={CONST.ROLE.BUTTON}
                                 accessibilityLabel={translate('common.close')}
+                                accessibilityHint={translate('common.close')}
                                 // disable dimming
                                 hoverDimmingValue={1}
                                 pressDimmingValue={1}
@@ -620,13 +620,13 @@ function ReportActionItemMessageEdit({
 
                     <View style={styles.alignSelfEnd}>
                         <Tooltip text={translate('common.saveChanges')}>
-                            {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                             <PressableWithFeedback
                                 style={[styles.chatItemSubmitButton, hasExceededMaxCommentLength ? {} : styles.buttonSuccess]}
                                 onPress={publishDraft}
                                 disabled={hasExceededMaxCommentLength}
                                 role={CONST.ROLE.BUTTON}
                                 accessibilityLabel={translate('common.saveChanges')}
+                                accessibilityHint={translate('common.saveChanges')}
                                 hoverDimmingValue={1}
                                 pressDimmingValue={0.2}
                                 // Keep focus on the composer when send button is clicked.

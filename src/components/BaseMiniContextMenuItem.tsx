@@ -64,7 +64,6 @@ function BaseMiniContextMenuItem({
             text={tooltipText}
             shouldRender
         >
-            {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
             <PressableWithoutFeedback
                 ref={ref}
                 onPress={onPress}
@@ -88,6 +87,7 @@ function BaseMiniContextMenuItem({
                     }
                 }}
                 accessibilityLabel={tooltipText}
+                accessibilityHint={tooltipText}
                 role={CONST.ROLE.BUTTON}
                 sentryLabel={sentryLabel}
                 style={({hovered, pressed}) => [

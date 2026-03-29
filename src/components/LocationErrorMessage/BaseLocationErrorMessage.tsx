@@ -58,13 +58,13 @@ function BaseLocationErrorMessage({onClose, onAllowLocationLinkPress, locationEr
             </View>
             <View>
                 <Tooltip text={translate('common.close')}>
-                    {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                     <PressableWithoutFeedback
                         onPress={onClose}
                         onMouseDown={(e) => e.preventDefault()}
                         style={[styles.touchableButtonImage]}
                         role={CONST.ROLE.BUTTON}
                         accessibilityLabel={translate('common.close')}
+                        accessibilityHint={translate('common.close')}
                         sentryLabel={CONST.SENTRY_LABEL.LOCATION_ERROR.CLOSE_BUTTON}
                     >
                         <Icon

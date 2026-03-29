@@ -20,12 +20,12 @@ function ChangeExpensifyLoginLink({onPress}: ChangeExpensifyLoginLinkProps) {
     return (
         <View style={[styles.changeExpensifyLoginLinkContainer, styles.mt3]}>
             {!!credentials?.login && <Text style={styles.mr1}>{translate('loginForm.notYou', formatPhoneNumber(credentials.login))}</Text>}
-            {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
             <PressableWithFeedback
                 style={[styles.link]}
                 onPress={onPress}
                 role={CONST.ROLE.LINK}
                 accessibilityLabel={translate('common.goBack')}
+                accessibilityHint={translate('common.goBack')}
                 sentryLabel={CONST.SENTRY_LABEL.SIGN_IN.GO_BACK}
             >
                 <Text style={[styles.link]}>{translate('common.goBack')}.</Text>

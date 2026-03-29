@@ -38,7 +38,6 @@ function CategoryShortcutButton({code, icon, onPress, isSelected = false}: Categ
             text={translate(`emojiPicker.headers.${code}` as TranslationPaths)}
             shiftVertical={-4}
         >
-            {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
             <PressableWithoutFeedback
                 shouldUseAutoHitSlop={false}
                 onPress={onPress}
@@ -46,6 +45,7 @@ function CategoryShortcutButton({code, icon, onPress, isSelected = false}: Categ
                 onHoverOut={() => setIsHighlighted(false)}
                 style={({pressed}) => [StyleUtils.getButtonBackgroundColorStyle(getButtonState(false, pressed)), styles.categoryShortcutButton, isHighlighted && styles.emojiItemHighlighted]}
                 accessibilityLabel={translate(`emojiPicker.headers.${code}` as TranslationPaths)}
+                accessibilityHint={translate(`emojiPicker.headers.${code}` as TranslationPaths)}
                 accessibilityState={isSelected ? {selected: true} : undefined}
                 role={CONST.ROLE.BUTTON}
                 sentryLabel={CONST.SENTRY_LABEL.EMOJI_PICKER.CATEGORY_SHORTCUT}

@@ -184,7 +184,6 @@ function CalendarPicker({
                 style={[themeStyles.calendarHeader, themeStyles.flexRow, themeStyles.justifyContentBetween, themeStyles.alignItemsCenter, themeStyles.ph5]}
                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
             >
-                {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                 <PressableWithFeedback
                     onPress={() => {
                         pressableRef?.current?.blur();
@@ -197,6 +196,7 @@ function CalendarPicker({
                     disabled={years.length <= 1}
                     testID="currentYearButton"
                     accessibilityLabel={`${currentYearView}, ${translate('common.currentYear')}`}
+                    accessibilityHint={`${currentYearView}, ${translate('common.currentYear')}`}
                     role={CONST.ROLE.BUTTON}
                     sentryLabel={CONST.SENTRY_LABEL.CALENDAR_PICKER.YEAR_PICKER}
                 >
@@ -209,15 +209,14 @@ function CalendarPicker({
                     <ArrowIcon disabled={years.length <= 1} />
                 </PressableWithFeedback>
                 <View style={[themeStyles.alignItemsCenter, themeStyles.flexRow, themeStyles.flex1, themeStyles.justifyContentEnd, themeStyles.mrn2]}>
-                    {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                     <Text
                         style={themeStyles.sidebarLinkTextBold}
                         testID="currentMonthText"
                         accessibilityLabel={`${monthNames.at(currentMonthView)}, ${translate('common.currentMonth')}`}
+                        accessibilityHint={`${monthNames.at(currentMonthView)}, ${translate('common.currentMonth')}`}
                     >
                         {monthNames.at(currentMonthView)}
                     </Text>
-                    {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                     <PressableWithFeedback
                         shouldUseAutoHitSlop={false}
                         testID="prev-month-arrow"
@@ -225,6 +224,7 @@ function CalendarPicker({
                         onPress={moveToPrevMonth}
                         hoverDimmingValue={1}
                         accessibilityLabel={translate('common.previous')}
+                        accessibilityHint={translate('common.previous')}
                         role={CONST.ROLE.BUTTON}
                         sentryLabel={CONST.SENTRY_LABEL.CALENDAR_PICKER.PREV_MONTH}
                     >
@@ -233,7 +233,6 @@ function CalendarPicker({
                             direction={CONST.DIRECTION.LEFT}
                         />
                     </PressableWithFeedback>
-                    {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                     <PressableWithFeedback
                         shouldUseAutoHitSlop={false}
                         testID="next-month-arrow"
@@ -241,6 +240,7 @@ function CalendarPicker({
                         onPress={moveToNextMonth}
                         hoverDimmingValue={1}
                         accessibilityLabel={translate('common.next')}
+                        accessibilityHint={translate('common.next')}
                         role={CONST.ROLE.BUTTON}
                         sentryLabel={CONST.SENTRY_LABEL.CALENDAR_PICKER.NEXT_MONTH}
                     >

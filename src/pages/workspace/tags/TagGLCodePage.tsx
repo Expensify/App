@@ -99,13 +99,13 @@ function TagGLCodePage({route}: EditTagGLCodePageProps) {
                     shouldHideFixErrorsAlert
                     addBottomSafeAreaPadding
                 >
-                    {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                     <InputWrapper
                         ref={inputCallbackRef}
                         InputComponent={TextInput}
                         defaultValue={glCode}
                         label={translate('workspace.tags.glCode')}
                         accessibilityLabel={translate('workspace.tags.glCode')}
+                        accessibilityHint={translate('workspace.tags.glCode')}
                         inputID={INPUT_IDS.TAG_GL_CODE}
                         role={CONST.ROLE.PRESENTATION}
                     />

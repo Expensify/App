@@ -84,10 +84,10 @@ function DomainMenuItem({item, index}: DomainMenuItemProps) {
             errors={item?.errors}
             onClose={() => clearDomainErrors(item.accountID)}
         >
-            {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
             <PressableWithoutFeedback
                 role={CONST.ROLE.BUTTON}
                 accessibilityLabel="row"
+                accessibilityHint="row"
                 onPress={action}
                 sentryLabel={item.sentryLabel}
             >

@@ -59,7 +59,6 @@ function MultifactorAuthenticationValidateCodeResendButton({
                     />
                 </View>
             ) : (
-                /* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */
                 <PressableWithFeedback
                     style={styles.mt5}
                     onPress={onResendValidationCode}
@@ -68,6 +67,7 @@ function MultifactorAuthenticationValidateCodeResendButton({
                     pressDimmingValue={0.2}
                     role={CONST.ROLE.BUTTON}
                     accessibilityLabel={translate(resendButtonText)}
+                    accessibilityHint={translate(resendButtonText)}
                 >
                     <Text style={[StyleUtils.getDisabledLinkStyles(shouldDisableResendCode)]}>
                         {hasError ? translate('validateCodeForm.requestNewCodeAfterErrorOccurred') : translate(resendButtonText)}

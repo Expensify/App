@@ -195,7 +195,6 @@ function SearchAutocompleteInput({
         <View style={[outerWrapperStyle]}>
             <Animated.View style={[styles.flexRow, styles.alignItemsCenter, wrapperStyle ?? styles.searchRouterTextInputContainer, wrapperAnimatedStyle, wrapperBorderColorAnimatedStyle]}>
                 <View style={styles.flex1}>
-                    {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                     <TextInput
                         testID="search-autocomplete-text-input"
                         value={value}
@@ -209,6 +208,7 @@ function SearchAutocompleteInput({
                         spellCheck={false}
                         enterKeyHint="search"
                         accessibilityLabel={translate('search.searchPlaceholder')}
+                        accessibilityHint={translate('search.searchPlaceholder')}
                         disabled={disabled}
                         maxLength={CONST.SEARCH_QUERY_LIMIT}
                         onSubmitEditing={onSubmit}

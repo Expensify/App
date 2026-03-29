@@ -84,12 +84,12 @@ function WorkspaceInvoicingDetailsWebsite({route}: WorkspaceInvoicingDetailsWebs
                     shouldHideFixErrorsAlert
                     addBottomSafeAreaPadding
                 >
-                    {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                     <InputWrapper
                         InputComponent={TextInput}
                         inputID={INPUT_IDS.COMPANY_WEBSITE}
                         label={translate('workspace.invoices.companyWebsite')}
                         accessibilityLabel={translate('workspace.invoices.companyWebsite')}
+                        accessibilityHint={translate('workspace.invoices.companyWebsite')}
                         role={CONST.ROLE.PRESENTATION}
                         defaultValue={policy?.invoice?.companyWebsite}
                         ref={inputCallbackRef}

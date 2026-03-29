@@ -174,7 +174,6 @@ function OptionRow({
                     shouldShowErrorMessages={false}
                     needsOffscreenAlphaCompositing
                 >
-                    {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                     <PressableWithFeedback
                         id={keyForList}
                         ref={pressableRef}
@@ -210,6 +209,7 @@ function OptionRow({
                             !onSelectRow && !isOptionDisabled ? styles.cursorDefault : null,
                         ]}
                         accessibilityLabel={option.text ?? ''}
+                        accessibilityHint={option.text ?? ''}
                         role={CONST.ROLE.BUTTON}
                         hoverDimmingValue={1}
                         hoverStyle={!optionIsFocused ? (hoverStyle ?? styles.sidebarLinkHover) : undefined}
@@ -230,9 +230,9 @@ function OptionRow({
                                     />
                                 )}
                                 <View style={contentContainerStyles}>
-                                    {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                                     <DisplayNames
                                         accessibilityLabel={translate('accessibilityHints.chatUserDisplayNames')}
+                                        accessibilityHint={translate('accessibilityHints.chatUserDisplayNames')}
                                         fullTitle={fullTitle}
                                         displayNamesWithTooltips={displayNamesWithTooltips}
                                         tooltipEnabled={showTitleTooltip}
@@ -309,12 +309,12 @@ function OptionRow({
                                             shouldUseDefaultHover={false}
                                         />
                                     ) : (
-                                        /* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */
                                         <PressableWithFeedback
                                             onPress={() => onSelectedStatePressed(option)}
                                             disabled={isDisabled}
                                             role={CONST.ROLE.BUTTON}
                                             accessibilityLabel={CONST.ROLE.BUTTON}
+                                            accessibilityHint={CONST.ROLE.BUTTON}
                                             style={[styles.ml2, styles.optionSelectCircle]}
                                         >
                                             <SelectCircle

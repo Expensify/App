@@ -2684,13 +2684,13 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
                             text={hasFinishedPDFDownload ? translate('common.download') : translate('common.cancel')}
                         />
                     </View>
-                    {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                     <PressableWithFeedback
                         onPress={() => {
                             setIsPDFModalVisible(false);
                         }}
                         role={CONST.ROLE.BUTTON}
                         accessibilityLabel={translate('common.close')}
+                        accessibilityHint={translate('common.close')}
                         wrapperStyle={[styles.pAbsolute, styles.r0]}
                         sentryLabel={CONST.SENTRY_LABEL.MORE_MENU.CLOSE_PDF_MODAL}
                     >

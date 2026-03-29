@@ -130,9 +130,9 @@ function GrowlNotification({ref}: GrowlNotificationProps) {
     return (
         <View style={[styles.growlNotificationWrapper]}>
             <GrowlNotificationContainer translateY={translateY}>
-                {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                 <PressableWithoutFeedback
                     accessibilityLabel={bodyText}
+                    accessibilityHint={bodyText}
                     onPress={() => fling()}
                 >
                     <GestureDetector gesture={flingGesture}>

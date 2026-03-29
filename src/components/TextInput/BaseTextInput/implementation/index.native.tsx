@@ -461,7 +461,6 @@ function BaseTextInput({
                                 <View style={[StyleUtils.getTextInputIconContainerStyles(hasLabel, false, verticalPaddingDiff)]}>{rightHandSideComponent}</View>
                             )}
                             {!!inputProps.secureTextEntry && (
-                                /* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */
                                 <Checkbox
                                     style={StyleUtils.getTextInputIconContainerStyles(hasLabel, true, verticalPaddingDiff)}
                                     onPress={togglePasswordVisibility}
@@ -469,6 +468,7 @@ function BaseTextInput({
                                         event.preventDefault();
                                     }}
                                     accessibilityLabel={translate('common.visible')}
+                                    accessibilityHint={translate('common.visible')}
                                 >
                                     <Icon
                                         src={passwordHidden ? icons.Eye : icons.EyeDisabled}

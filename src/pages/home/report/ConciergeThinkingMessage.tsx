@@ -177,12 +177,12 @@ function ConciergeThinkingMessageContent({
                 </View>
 
                 {/* Status Text with Optional Toggle */}
-                {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                 <PressableWithoutFeedback
                     onPress={handleToggle}
                     disabled={!hasReasoningHistory}
                     accessibilityRole={hasReasoningHistory ? CONST.ROLE.BUTTON : undefined}
                     accessibilityLabel={getAccessibilityLabel()}
+                    accessibilityHint={getAccessibilityLabel()}
                     sentryLabel="ConciergeThinkingMessage-ToggleReasoning"
                     accessible
                 >

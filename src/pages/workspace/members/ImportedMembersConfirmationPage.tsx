@@ -202,11 +202,11 @@ function ImportedMembersConfirmationPage({route}: ImportedMembersConfirmationPag
                     large
                     style={styles.mb3}
                 />
-                {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                 <PressableWithoutFeedback
                     onPress={openPrivacyURL}
                     role={CONST.ROLE.LINK}
                     accessibilityLabel={translate('common.privacy')}
+                    accessibilityHint={translate('common.privacy')}
                     href={CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}
                     style={[styles.mv2, styles.alignSelfStart]}
                     sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.IMPORTED_MEMBERS_CONFIRMATION_PRIVACY_LINK}

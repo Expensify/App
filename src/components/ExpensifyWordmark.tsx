@@ -37,11 +37,11 @@ function ExpensifyWordmark({style}: ExpensifyWordmarkProps) {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     return (
-        /* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */
         <View
             accessible
             role={CONST.ROLE.IMG}
             accessibilityLabel={translate('common.expensifyLogo')}
+            accessibilityHint={translate('common.expensifyLogo')}
             style={[
                 StyleUtils.getSignInWordmarkWidthStyle(shouldUseNarrowLayout, environment),
                 StyleUtils.getHeight(shouldUseNarrowLayout ? variables.signInLogoHeightSmallScreen : variables.signInLogoHeight),

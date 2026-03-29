@@ -34,13 +34,13 @@ function RadioButton({isChecked, onPress, accessibilityLabel, hasError = false, 
 
     if (shouldUseNewStyle) {
         return (
-            /* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */
             <PressableWithFeedback
                 disabled={disabled}
                 onPress={onPress}
                 hoverDimmingValue={1}
                 pressDimmingValue={1}
                 accessibilityLabel={accessibilityLabel}
+                accessibilityHint={accessibilityLabel}
                 role={CONST.ROLE.RADIO}
                 sentryLabel={CONST.SENTRY_LABEL.RADIO_BUTTON.BUTTON}
                 style={[
@@ -64,13 +64,13 @@ function RadioButton({isChecked, onPress, accessibilityLabel, hasError = false, 
     }
 
     return (
-        /* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */
         <PressableWithFeedback
             disabled={disabled}
             onPress={onPress}
             hoverDimmingValue={1}
             pressDimmingValue={1}
             accessibilityLabel={accessibilityLabel}
+            accessibilityHint={accessibilityLabel}
             role={CONST.ROLE.RADIO}
             sentryLabel={CONST.SENTRY_LABEL.RADIO_BUTTON.BUTTON}
             style={[styles.radioButtonContainer, hasError && styles.borderColorDanger, disabled && styles.cursorDisabled]}

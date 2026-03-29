@@ -148,10 +148,10 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFloatin
                     testID="NavigationTabBar"
                 >
                     <View style={styles.flex1}>
-                        {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                         <PressableWithFeedback
                             role={CONST.ROLE.LINK}
                             accessibilityLabel={translate('common.home')}
+                            accessibilityHint={translate('common.home')}
                             accessible
                             testID="ExpensifyLogoButton"
                             onPress={navigateToNewDotHome}
@@ -164,11 +164,11 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFloatin
                                 aria-hidden
                             />
                         </PressableWithFeedback>
-                        {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                         <PressableWithFeedback
                             onPress={navigateToNewDotHome}
                             role={CONST.ROLE.TAB}
                             accessibilityLabel={translate('common.home')}
+                            accessibilityHint={translate('common.home')}
                             style={({hovered}) => [styles.leftNavigationTabBarItem, hovered && styles.navigationTabBarItemHovered]}
                             sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.HOME}
                         >
@@ -181,11 +181,11 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFloatin
                                 />
                             )}
                         </PressableWithFeedback>
-                        {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                         <PressableWithFeedback
                             onPress={navigateToChats}
                             role={CONST.ROLE.TAB}
                             accessibilityLabel={chatTabBrickRoad ? `${translate('common.inbox')}. ${translate('common.yourReviewIsRequired')}` : translate('common.inbox')}
+                            accessibilityHint={chatTabBrickRoad ? `${translate('common.inbox')}. ${translate('common.yourReviewIsRequired')}` : translate('common.inbox')}
                             accessibilityState={inboxAccessibilityState}
                             style={({hovered}) => [styles.leftNavigationTabBarItem, hovered && styles.navigationTabBarItemHovered]}
                             sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.INBOX}
@@ -234,11 +234,11 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFloatin
                 style={styles.navigationTabBarContainer}
                 testID="NavigationTabBar"
             >
-                {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                 <PressableWithFeedback
                     onPress={navigateToNewDotHome}
                     role={CONST.ROLE.TAB}
                     accessibilityLabel={translate('common.home')}
+                    accessibilityHint={translate('common.home')}
                     wrapperStyle={styles.flex1}
                     style={styles.navigationTabBarItem}
                     sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.HOME}
@@ -249,11 +249,11 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFloatin
                         isSelected={selectedTab === NAVIGATION_TABS.HOME}
                     />
                 </PressableWithFeedback>
-                {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                 <PressableWithFeedback
                     onPress={navigateToChats}
                     role={CONST.ROLE.TAB}
                     accessibilityLabel={chatTabBrickRoad ? `${translate('common.inbox')}. ${translate('common.yourReviewIsRequired')}` : translate('common.inbox')}
+                    accessibilityHint={chatTabBrickRoad ? `${translate('common.inbox')}. ${translate('common.yourReviewIsRequired')}` : translate('common.inbox')}
                     accessibilityState={inboxAccessibilityState}
                     wrapperStyle={styles.flex1}
                     style={styles.navigationTabBarItem}

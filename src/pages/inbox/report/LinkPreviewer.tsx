@@ -55,8 +55,8 @@ function LinkPreviewer({linkMetadata = [], maxAmountOfPreviews = -1}: LinkPrevie
             >
                 <View style={styles.flexRow}>
                     {!!logo && (
-                        /* eslint-disable-next-line react-native-a11y/has-valid-accessibility-ignores-invert-colors -- Already present before the lint rule was enabled, needs to be fixed. */
                         <Image
+                            accessibilityIgnoresInvertColors
                             style={styles.linkPreviewLogoImage}
                             source={{uri: logo.url}}
                         />
@@ -81,8 +81,8 @@ function LinkPreviewer({linkMetadata = [], maxAmountOfPreviews = -1}: LinkPrevie
                 )}
                 {!!description && <Text fontSize={variables.fontSizeNormal}>{description}</Text>}
                 {!!image?.type && IMAGE_TYPES.has(image.type) && !!image.width && !!image.height && (
-                    /* eslint-disable-next-line react-native-a11y/has-valid-accessibility-ignores-invert-colors -- Already present before the lint rule was enabled, needs to be fixed. */
                     <Image
+                        accessibilityIgnoresInvertColors
                         style={[
                             styles.linkPreviewImage,
                             {

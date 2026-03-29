@@ -35,10 +35,10 @@ function LocalePicker({size = 'normal'}: LocalePickerProps) {
     const shouldDisablePicker = AccountUtils.isValidateCodeFormSubmitting(account);
 
     return (
-        /* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */
         <Picker
             label={size === 'normal' ? translate('languagePage.language') : null}
             accessibilityLabel={`${translate('common.select')} ${translate('languagePage.language')}`}
+            accessibilityHint={`${translate('common.select')} ${translate('languagePage.language')}`}
             onInputChange={(locale) => setLocale(locale, preferredLocale)}
             isDisabled={shouldDisablePicker}
             items={locales}

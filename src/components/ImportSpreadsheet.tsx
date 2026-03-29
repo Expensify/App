@@ -198,11 +198,11 @@ function ImportSpreadsheet({backTo, goTo, isImportingMultiLevelTags}: ImportSpre
             </View>
             <FilePicker acceptableFileTypes={acceptableFileTypes}>
                 {({openPicker}) => (
-                    /* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */
                     <Button
                         success
                         text={translate('common.chooseFile')}
                         accessibilityLabel={translate('common.chooseFile')}
+                        accessibilityHint={translate('common.chooseFile')}
                         style={[styles.pt9]}
                         isLoading={isReadingFile}
                         onPress={() => {

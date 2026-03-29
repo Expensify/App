@@ -285,13 +285,13 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
             return null;
         }
         return (
-            /* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */
             <TextInput
                 ref={innerTextInputRef}
                 focusTextInput={focusTextInput}
                 shouldShowTextInput={shouldShowTextInput}
                 onKeyPress={textInputKeyPress}
                 accessibilityLabel={textInputOptions?.label}
+                accessibilityHint={textInputOptions?.label}
                 options={textInputOptions}
                 onSubmit={selectFocusedItem}
                 dataLength={itemsCount}

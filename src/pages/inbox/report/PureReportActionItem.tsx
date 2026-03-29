@@ -1625,11 +1625,11 @@ function PureReportActionItem({
             const message = getActionableCardFraudAlertMessage(translate, action, getLocalDateFromDatetime);
 
             children = (
-                /* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */
                 <View
                     accessibilityRole={CONST.ROLE.ALERT}
                     accessibilityLiveRegion="assertive"
                     accessibilityLabel={translate('reportFraudConfirmationPage.title')}
+                    accessibilityHint={translate('reportFraudConfirmationPage.title')}
                 >
                     <ReportActionItemBasicMessage message={message} />
                     {actionableItemButtons.length > 0 && (

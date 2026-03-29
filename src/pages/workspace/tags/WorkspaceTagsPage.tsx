@@ -252,10 +252,10 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                     rightElement: hasDependentTags ? (
                         <ListItemRightCaretWithLabel labelText={translate('workspace.tags.tagCount', {count: Object.keys(policyTagList?.tags ?? {}).length})} />
                     ) : (
-                        /* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */
                         <Switch
                             isOn={isSwitchEnabled}
                             accessibilityLabel={translate('workspace.tags.requiresTag')}
+                            accessibilityHint={translate('workspace.tags.requiresTag')}
                             onToggle={(newValue: boolean) => {
                                 if (isMakingLastRequiredTagListOptional(policy, policyTags, [policyTagList])) {
                                     showConfirmModal({
@@ -324,11 +324,11 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                             </View>
                         )}
                         <View style={switchContainerStyle}>
-                            {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                             <Switch
                                 isOn={tag.enabled}
                                 disabled={tag.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}
                                 accessibilityLabel={translate('workspace.tags.enableTag')}
+                                accessibilityHint={translate('workspace.tags.enableTag')}
                                 onToggle={(newValue: boolean) => {
                                     if (isDisablingOrDeletingLastEnabledTag(policyTagLists.at(0), [tag])) {
                                         showConfirmModal({
@@ -346,11 +346,11 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                         </View>
                     </>
                 ) : (
-                    /* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */
                     <Switch
                         isOn={tag.enabled}
                         disabled={tag.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}
                         accessibilityLabel={translate('workspace.tags.enableTag')}
+                        accessibilityHint={translate('workspace.tags.enableTag')}
                         onToggle={(newValue: boolean) => {
                             if (isDisablingOrDeletingLastEnabledTag(policyTagLists.at(0), [tag])) {
                                 showConfirmModal({

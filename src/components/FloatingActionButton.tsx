@@ -91,7 +91,6 @@ function FloatingActionButton({onPress, onLongPress, isActive, accessibilityLabe
 
     return (
         <Tooltip text={translate('common.create')}>
-            {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
             <PressableWithoutFeedback
                 ref={(el) => {
                     fabPressable.current = el ?? null;
@@ -107,6 +106,7 @@ function FloatingActionButton({onPress, onLongPress, isActive, accessibilityLabe
                     styles.flex1,
                 ]}
                 accessibilityLabel={accessibilityLabel}
+                accessibilityHint={accessibilityLabel}
                 onPress={toggleFabAction}
                 onLongPress={longPressFabAction}
                 role={role}

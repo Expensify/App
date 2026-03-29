@@ -24,11 +24,11 @@ function PinButton({report}: PinButtonProps) {
 
     return (
         <Tooltip text={report.isPinned ? translate('common.unPin') : translate('common.pin')}>
-            {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
             <PressableWithFeedback
                 onPress={callFunctionIfActionIsAllowed(() => togglePinnedState(report.reportID, report.isPinned ?? false))}
                 style={styles.touchableButtonImage}
                 accessibilityLabel={report.isPinned ? translate('common.unPin') : translate('common.pin')}
+                accessibilityHint={report.isPinned ? translate('common.unPin') : translate('common.pin')}
                 role={CONST.ROLE.BUTTON}
                 sentryLabel={CONST.SENTRY_LABEL.PIN_BUTTON.TOGGLE}
             >

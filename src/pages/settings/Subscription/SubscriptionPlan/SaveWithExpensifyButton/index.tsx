@@ -12,11 +12,11 @@ function SaveWithExpensifyButton() {
     };
 
     return (
-        /* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */
         <Button
             small
             text={translate('subscription.yourPlan.saveWithExpensifyButton')}
             accessibilityLabel={`${translate('subscription.yourPlan.saveWithExpensifyButton')}, ${translate('subscription.yourPlan.saveWithExpensifyTitle')}`}
+            accessibilityHint={`${translate('subscription.yourPlan.saveWithExpensifyButton')}, ${translate('subscription.yourPlan.saveWithExpensifyTitle')}`}
             onPress={onLinkPress}
             sentryLabel={CONST.SENTRY_LABEL.SETTINGS_SUBSCRIPTION.SAVE_WITH_EXPENSIFY}
         />

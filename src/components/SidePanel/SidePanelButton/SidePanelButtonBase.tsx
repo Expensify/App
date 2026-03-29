@@ -25,10 +25,10 @@ function SidePanelButtonBase({style}: SidePanelButtonProps) {
 
     return (
         <Tooltip text={translate('common.help')}>
-            {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
             <PressableWithoutFeedback
                 sentryLabel={CONST.SENTRY_LABEL.SIDE_PANEL.HELP}
                 accessibilityLabel={translate('common.help')}
+                accessibilityHint={translate('common.help')}
                 style={[styles.flexRow, styles.touchableButtonImage, style]}
                 onPress={openSidePanel}
             >

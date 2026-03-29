@@ -118,12 +118,12 @@ function WorkspaceCompanyCardTableItem({
                     />
                 </View>
             ) : (
-                /* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */
                 <PressableWithFeedback
                     role={isAssigned ? CONST.ROLE.BUTTON : CONST.ROLE.PRESENTATION}
                     style={[styles.mh5, styles.flexRow, styles.br3, styles.mb2, styles.highlightBG, styles.overflowHidden]}
                     sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.COMPANY_CARDS.TABLE_ITEM}
                     accessibilityLabel="row"
+                    accessibilityHint="row"
                     hoverStyle={isAssigned && styles.hoveredComponentBG}
                     disabled={isCardDeleted}
                     interactive={isAssigned}

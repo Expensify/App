@@ -522,7 +522,6 @@ function MoneyRequestReportPreviewContent({
                     onLayout={onCarouselLayout}
                     testID="carouselWidthSetter"
                 >
-                    {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                     <PressableWithoutFeedback
                         onPress={onPress}
                         onPressIn={() => canUseTouchScreen() && ControlSelection.block()}
@@ -544,6 +543,7 @@ function MoneyRequestReportPreviewContent({
                         role={getButtonRole(true)}
                         isNested
                         accessibilityLabel={translate('iou.viewDetails')}
+                        accessibilityHint={translate('iou.viewDetails')}
                         sentryLabel={CONST.SENTRY_LABEL.REPORT_PREVIEW.CARD}
                     >
                         <View
@@ -590,11 +590,11 @@ function MoneyRequestReportPreviewContent({
                                             </View>
                                             {!shouldUseNarrowLayout && !shouldShowAccessPlaceHolder && transactions.length > 2 && reportPreviewStyles.expenseCountVisible && (
                                                 <View style={[styles.flexRow, styles.alignItemsCenter]}>
-                                                    {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                                                     <PressableWithFeedback
                                                         accessibilityRole="button"
                                                         accessible
                                                         accessibilityLabel={translate('common.previous')}
+                                                        accessibilityHint={translate('common.previous')}
                                                         style={[styles.reportPreviewArrowButton, {backgroundColor: theme.buttonDefaultBG}]}
                                                         onPress={() => handleChange(currentIndex - 1)}
                                                         disabled={optimisticIndex !== undefined ? optimisticIndex === 0 : currentIndex === 0 && currentVisibleItems.at(0) === 0}
@@ -608,11 +608,11 @@ function MoneyRequestReportPreviewContent({
                                                             isButtonIcon
                                                         />
                                                     </PressableWithFeedback>
-                                                    {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                                                     <PressableWithFeedback
                                                         accessibilityRole="button"
                                                         accessible
                                                         accessibilityLabel={translate('common.next')}
+                                                        accessibilityHint={translate('common.next')}
                                                         style={[styles.reportPreviewArrowButton, {backgroundColor: theme.buttonDefaultBG}]}
                                                         onPress={() => handleChange(currentIndex + 1)}
                                                         disabled={

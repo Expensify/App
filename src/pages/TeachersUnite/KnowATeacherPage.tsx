@@ -95,39 +95,39 @@ function KnowATeacherPage() {
             >
                 <Text style={[styles.mb6]}>{translate('teachersUnitePage.getInTouch')}</Text>
                 <View>
-                    {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                     <InputWrapper
                         InputComponent={TextInput}
                         inputID={INPUT_IDS.FIRST_NAME}
                         name="fname"
                         label={translate('common.firstName')}
                         accessibilityLabel={translate('common.firstName')}
+                        accessibilityHint={translate('common.firstName')}
                         role={CONST.ROLE.PRESENTATION}
                         autoCapitalize="words"
                         autoComplete="given-name"
                     />
                 </View>
                 <View style={styles.mv4}>
-                    {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                     <InputWrapper
                         InputComponent={TextInput}
                         inputID={INPUT_IDS.LAST_NAME}
                         name="lname"
                         label={translate('common.lastName')}
                         accessibilityLabel={translate('common.lastName')}
+                        accessibilityHint={translate('common.lastName')}
                         role={CONST.ROLE.PRESENTATION}
                         autoCapitalize="words"
                         autoComplete="family-name"
                     />
                 </View>
                 <View>
-                    {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                     <InputWrapper
                         InputComponent={TextInput}
                         inputID={INPUT_IDS.PARTNER_USER_ID}
                         name="partnerUserID"
                         label={`${translate('common.email')}/${translate('common.phoneNumber')}`}
                         accessibilityLabel={`${translate('common.email')}/${translate('common.phoneNumber')}`}
+                        accessibilityHint={`${translate('common.email')}/${translate('common.phoneNumber')}`}
                         role={CONST.ROLE.PRESENTATION}
                         inputMode={CONST.INPUT_MODE.EMAIL}
                         autoCapitalize="none"

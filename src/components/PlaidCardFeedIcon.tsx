@@ -52,8 +52,8 @@ function PlaidCardFeedIcon({plaidUrl, style, isLarge, isSmall, useSkeletonLoader
                 />
             ) : (
                 <>
-                    {/* eslint-disable-next-line react-native-a11y/has-valid-accessibility-ignores-invert-colors -- Already present before the lint rule was enabled, needs to be fixed. */}
                     <Image
+                        accessibilityIgnoresInvertColors
                         source={{uri: plaidUrl}}
                         style={plaidLoadedStyle}
                         cachePolicy="memory-disk"

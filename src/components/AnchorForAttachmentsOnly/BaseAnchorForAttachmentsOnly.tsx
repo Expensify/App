@@ -43,7 +43,6 @@ function BaseAnchorForAttachmentsOnly({style, source = '', displayName = '', onP
     const {checkIfContextMenuActive} = useShowContextMenuActions();
 
     return (
-        /* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */
         <PressableWithoutFeedback
             style={[style, (isOffline || !sourceID) && styles.cursorDefault]}
             onPress={() => {
@@ -63,6 +62,7 @@ function BaseAnchorForAttachmentsOnly({style, source = '', displayName = '', onP
             }}
             shouldUseHapticsOnLongPress
             accessibilityLabel={displayName}
+            accessibilityHint={displayName}
             role={CONST.ROLE.BUTTON}
             sentryLabel={CONST.SENTRY_LABEL.BASE_ANCHOR_FOR_ATTACHMENTS_ONLY.DOWNLOAD_BUTTON}
         >

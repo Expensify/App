@@ -55,7 +55,6 @@ function RejectReasonFormView({backTo, validate, onSubmit}: RejectReasonFormView
                     <Text>{translate('iou.reject.reasonPageDescription')}</Text>
                 </View>
                 <View>
-                    {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                     <InputWrapper
                         InputComponent={TextInput}
                         inputID={INPUT_IDS.COMMENT}
@@ -64,6 +63,7 @@ function RejectReasonFormView({backTo, validate, onSubmit}: RejectReasonFormView
                         defaultValue={undefined}
                         label={translate('iou.reject.rejectReason')}
                         accessibilityLabel={translate('iou.reject.rejectReason')}
+                        accessibilityHint={translate('iou.reject.rejectReason')}
                         ref={inputCallbackRef}
                     />
                 </View>

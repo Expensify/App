@@ -290,13 +290,13 @@ function WorkspaceInviteMessageComponent({
                         <View style={[styles.mb3]}>
                             <Text style={[styles.textSupportingNormal]}>{translate('workspace.inviteMessage.inviteMessagePrompt')}</Text>
                         </View>
-                        {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                         <InputWrapper
                             InputComponent={TextInput}
                             role={CONST.ROLE.PRESENTATION}
                             inputID={INPUT_IDS.WELCOME_MESSAGE}
                             label={translate('workspace.inviteMessage.personalMessagePrompt')}
                             accessibilityLabel={translate('workspace.inviteMessage.personalMessagePrompt')}
+                            accessibilityHint={translate('workspace.inviteMessage.personalMessagePrompt')}
                             autoCompleteType="off"
                             type="markdown"
                             autoCorrect={false}
@@ -317,12 +317,12 @@ function WorkspaceInviteMessageComponent({
                             }}
                             shouldSaveDraft
                         />
-                        {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                         <PressableWithoutFeedback
                             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.INVITE_MESSAGE_PRIVACY_LINK}
                             onPress={openPrivacyURL}
                             role={CONST.ROLE.LINK}
                             accessibilityLabel={translate('common.privacy')}
+                            accessibilityHint={translate('common.privacy')}
                             href={CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}
                             style={[styles.mt6, styles.alignSelfStart]}
                         >

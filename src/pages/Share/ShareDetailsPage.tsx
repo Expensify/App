@@ -224,7 +224,6 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
                 <View style={[styles.ph5, styles.flex1, styles.flexColumn, styles.overflowHidden]}>
                     <View style={styles.pv3}>
                         <ScrollView scrollEnabled={false}>
-                            {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                             <TextInput
                                 autoFocus={false}
                                 value={message}
@@ -234,6 +233,7 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
                                 maxAutoGrowHeight={variables.textInputAutoGrowMaxHeight}
                                 onChangeText={setMessage}
                                 accessibilityLabel={translate('share.messageInputLabel')}
+                                accessibilityHint={translate('share.messageInputLabel')}
                                 label={translate('share.messageInputLabel')}
                             />
                         </ScrollView>

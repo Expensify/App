@@ -67,13 +67,13 @@ function ReportActionItemThread({
 
     return (
         <View style={[styles.chatItemMessage]}>
-            {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
             <PressableWithSecondaryInteraction
                 onPress={() => {
                     navigateToAndOpenChildReport(childReport, reportAction, report, currentUserAccountID, introSelected, betas);
                 }}
                 role={CONST.ROLE.BUTTON}
                 accessibilityLabel={`${numberOfReplies} ${replyText}`}
+                accessibilityHint={`${numberOfReplies} ${replyText}`}
                 onSecondaryInteraction={onSecondaryInteraction}
                 sentryLabel={CONST.SENTRY_LABEL.REPORT.REPORT_ACTION_ITEM_THREAD}
             >

@@ -176,12 +176,12 @@ function HeaderWithBackButton({
         if (shouldShowThreeDotsButton) {
             return threeDotsMenuItems.length === 1 && shouldMinimizeMenuButton ? (
                 <Tooltip text={threeDotsMenuItems.at(0)?.text}>
-                    {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                     <PressableWithoutFeedback
                         onPress={threeDotsMenuItems.at(0)?.onSelected}
                         style={[styles.touchableButtonImage]}
                         role={CONST.ROLE.BUTTON}
                         accessibilityLabel={threeDotsMenuItems.at(0)?.text ?? ''}
+                        accessibilityHint={threeDotsMenuItems.at(0)?.text ?? ''}
                         sentryLabel={threeDotsMenuItems.at(0)?.sentryLabel}
                     >
                         <Icon
@@ -238,7 +238,6 @@ function HeaderWithBackButton({
             <View style={[styles.dFlex, styles.flexRow, styles.alignItemsCenter, styles.flexGrow1, styles.justifyContentBetween, styles.overflowHidden, styles.mr3]}>
                 {shouldShowBackButton && (
                     <Tooltip text={translate('common.back')}>
-                        {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                         <PressableWithoutFeedback
                             onPress={() => {
                                 if (Keyboard.isVisible()) {
@@ -254,6 +253,7 @@ function HeaderWithBackButton({
                             style={[styles.touchableButtonImage]}
                             role={CONST.ROLE.BUTTON}
                             accessibilityLabel={translate('common.back')}
+                            accessibilityHint={translate('common.back')}
                             id={CONST.BACK_BUTTON_NATIVE_ID}
                             sentryLabel={CONST.SENTRY_LABEL.HEADER.BACK_BUTTON}
                         >
@@ -289,7 +289,6 @@ function HeaderWithBackButton({
                         {shouldShowDownloadButton &&
                             (!isDownloading ? (
                                 <Tooltip text={translate('common.download')}>
-                                    {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                                     <PressableWithoutFeedback
                                         onPress={(event) => {
                                             // Blur the pressable in case this button triggers a Growl notification
@@ -306,6 +305,7 @@ function HeaderWithBackButton({
                                         style={[styles.touchableButtonImage]}
                                         role="button"
                                         accessibilityLabel={translate('common.download')}
+                                        accessibilityHint={translate('common.download')}
                                         sentryLabel={CONST.SENTRY_LABEL.HEADER.DOWNLOAD_BUTTON}
                                     >
                                         <Icon
@@ -323,12 +323,12 @@ function HeaderWithBackButton({
                         {shouldShowRotateButton &&
                             (!isRotating ? (
                                 <Tooltip text={translate('common.rotate')}>
-                                    {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                                     <PressableWithoutFeedback
                                         onPress={onRotateButtonPress}
                                         style={[styles.touchableButtonImage]}
                                         role="button"
                                         accessibilityLabel={translate('common.rotate')}
+                                        accessibilityHint={translate('common.rotate')}
                                         sentryLabel={CONST.SENTRY_LABEL.HEADER.ROTATE_BUTTON}
                                     >
                                         <Icon
@@ -348,12 +348,12 @@ function HeaderWithBackButton({
                     {ThreeDotMenuButton}
                     {shouldShowCloseButton && (
                         <Tooltip text={translate('common.close')}>
-                            {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                             <PressableWithoutFeedback
                                 onPress={onCloseButtonPress}
                                 style={[styles.touchableButtonImage]}
                                 role={CONST.ROLE.BUTTON}
                                 accessibilityLabel={translate('common.close')}
+                                accessibilityHint={translate('common.close')}
                                 sentryLabel={CONST.SENTRY_LABEL.HEADER.CLOSE_BUTTON}
                             >
                                 <Icon

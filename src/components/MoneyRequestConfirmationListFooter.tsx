@@ -1219,7 +1219,6 @@ function MoneyRequestConfirmationListFooter({
                 {isLoadingReceipt && <ActivityIndicator reasonAttributes={{context: 'MoneyRequestConfirmationListFooter.receiptThumbnail'}} />}
                 {!isLoadingReceipt &&
                     (isLocalFile && Str.isPDF(receiptFilename) ? (
-                        /* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */
                         <PressableWithoutFocus
                             onPress={() => {
                                 if (!transactionID) {
@@ -1234,6 +1233,7 @@ function MoneyRequestConfirmationListFooter({
                             }}
                             accessibilityRole={CONST.ROLE.BUTTON}
                             accessibilityLabel={translate('accessibilityHints.viewAttachment')}
+                            accessibilityHint={translate('accessibilityHints.viewAttachment')}
                             sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.PDF_RECEIPT_THUMBNAIL}
                             disabled={!shouldDisplayReceipt}
                             disabledStyle={styles.cursorDefault}
@@ -1248,7 +1248,6 @@ function MoneyRequestConfirmationListFooter({
                             />
                         </PressableWithoutFocus>
                     ) : (
-                        /* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */
                         <PressableWithoutFocus
                             onPress={() => {
                                 if (!transactionID) {
@@ -1264,6 +1263,7 @@ function MoneyRequestConfirmationListFooter({
                             disabled={!shouldDisplayReceipt || isThumbnail}
                             accessibilityRole={CONST.ROLE.BUTTON}
                             accessibilityLabel={translate('accessibilityHints.viewAttachment')}
+                            accessibilityHint={translate('accessibilityHints.viewAttachment')}
                             sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.RECEIPT_THUMBNAIL}
                             disabledStyle={styles.cursorDefault}
                             style={receiptThumbnailStyle}

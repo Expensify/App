@@ -108,13 +108,13 @@ function MemberListItemHeader<TItem extends ListItem>({
             <View style={[styles.pv1Half, styles.pl3, styles.flexRow, styles.alignItemsCenter, isLargeScreenWidth ? styles.gap3 : styles.justifyContentStart]}>
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.mnh40, styles.flex1, styles.gap3]}>
                     {!!canSelectMultiple && (
-                        /* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */
                         <Checkbox
                             onPress={() => onCheckboxPress?.(memberItem as unknown as TItem)}
                             isChecked={isSelectAllChecked}
                             isIndeterminate={isIndeterminate}
                             disabled={!!isDisabled || memberItem.isDisabledCheckbox}
                             accessibilityLabel={translate('common.select')}
+                            accessibilityHint={translate('common.select')}
                             style={isLargeScreenWidth && styles.mr1}
                         />
                     )}

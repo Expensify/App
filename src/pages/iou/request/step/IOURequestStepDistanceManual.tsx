@@ -335,7 +335,6 @@ function IOURequestStepDistanceManual({
             shouldShowWrapper={!isCreatingNewRequest}
             includeSafeAreaPaddingBottom
         >
-            {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
             <NumberWithSymbolForm
                 ref={textInput}
                 numberFormRef={numberFormRef}
@@ -358,6 +357,7 @@ function IOURequestStepDistanceManual({
                 touchableInputWrapperStyle={styles.heightUndefined}
                 errorText={formError}
                 accessibilityLabel={`${translate('common.distance')} (${translate(`common.${unit}`)})`}
+                accessibilityHint={`${translate('common.distance')} (${translate(`common.${unit}`)})`}
                 footer={
                     <Button
                         success

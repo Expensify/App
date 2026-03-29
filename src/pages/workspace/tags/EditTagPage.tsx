@@ -109,12 +109,12 @@ function EditTagPage({route}: EditTagPageProps) {
                     addBottomSafeAreaPadding
                     shouldUseStrictHtmlTagValidation
                 >
-                    {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                     <InputWrapper
                         InputComponent={TextInput}
                         defaultValue={currentTagName}
                         label={translate('common.name')}
                         accessibilityLabel={translate('common.name')}
+                        accessibilityHint={translate('common.name')}
                         inputID={INPUT_IDS.TAG_NAME}
                         role={CONST.ROLE.PRESENTATION}
                         ref={inputCallbackRef}

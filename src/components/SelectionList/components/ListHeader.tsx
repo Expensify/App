@@ -63,10 +63,10 @@ function ListHeader<TItem extends ListItem>({
             accessibilityRole={CONST.ROLE.HEADER}
         >
             <View style={[styles.flexRow, styles.alignItemsCenter]}>
-                {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                 <Checkbox
                     testID="selection-list-select-all-checkbox"
                     accessibilityLabel={translate('accessibilityHints.selectAllItems')}
+                    accessibilityHint={translate('accessibilityHints.selectAllItems')}
                     isChecked={dataDetails.allSelected}
                     isIndeterminate={dataDetails.someSelected}
                     onPress={onSelectAll}
@@ -74,11 +74,11 @@ function ListHeader<TItem extends ListItem>({
                 />
 
                 {!customListHeader && (
-                    /* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */
                     <PressableWithFeedback
                         style={[styles.userSelectNone, styles.flexRow, styles.alignItemsCenter]}
                         onPress={onSelectAll}
                         accessibilityLabel={translate('accessibilityHints.selectAllItems')}
+                        accessibilityHint={translate('accessibilityHints.selectAllItems')}
                         sentryLabel={CONST.SENTRY_LABEL.SELECTION_LIST.LIST_HEADER_SELECT_ALL}
                         accessibilityRole="button"
                         accessibilityState={{checked: dataDetails.allSelected, disabled: allDisabled}}

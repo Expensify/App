@@ -53,11 +53,11 @@ function TransparentOverlay({onPress: onPressProp}: TransparentOverlayProps) {
             style={[styles.fullScreen, isDraggingOver && styles.dNone]}
             ref={viewRef(dropZone)}
         >
-            {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
             <PressableWithoutFeedback
                 onPress={onPress}
                 style={[styles.flex1, styles.cursorDefault, overlay]}
                 accessibilityLabel={translate('common.close')}
+                accessibilityHint={translate('common.close')}
                 role={CONST.ROLE.BUTTON}
             />
         </View>

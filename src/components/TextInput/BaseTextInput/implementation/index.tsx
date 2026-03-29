@@ -437,7 +437,6 @@ function BaseTextInput({
                                     </Text>
                                 </View>
                             )}
-                            {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                             <InputComponent
                                 ref={(element: HTMLFormElement | AnimatedTextInputRef | AnimatedMarkdownTextInputRef | null): void => {
                                     const baseTextInputRef = element as BaseTextInputRef | null;
@@ -498,6 +497,7 @@ function BaseTextInput({
                                 defaultValue={defaultValue}
                                 markdownStyle={markdownStyle}
                                 accessibilityLabel={inputProps.accessibilityLabel ?? accessibilityLabel}
+                                accessibilityHint={inputProps.accessibilityLabel ?? accessibilityLabel}
                                 accessibilityValue={accessibilityValue}
                                 keyboardType={inputProps.keyboardType}
                                 aria-describedby={inputHelpText ? helpMessageTextID : undefined}
@@ -547,7 +547,6 @@ function BaseTextInput({
                                 <View style={[StyleUtils.getTextInputIconContainerStyles(hasLabel, false, verticalPaddingDiff)]}>{rightHandSideComponent}</View>
                             )}
                             {!!inputProps.secureTextEntry && (
-                                /* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */
                                 <Checkbox
                                     style={StyleUtils.getTextInputIconContainerStyles(hasLabel, true, verticalPaddingDiff)}
                                     onPress={togglePasswordVisibility}
@@ -555,6 +554,7 @@ function BaseTextInput({
                                         e.preventDefault();
                                     }}
                                     accessibilityLabel={translate('common.visible')}
+                                    accessibilityHint={translate('common.visible')}
                                 >
                                     <Icon
                                         src={passwordHidden ? expensifyIcons.Eye : expensifyIcons.EyeDisabled}

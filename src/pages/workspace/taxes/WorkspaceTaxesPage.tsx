@@ -171,11 +171,11 @@ function WorkspaceTaxesPage({
                 pendingAction: value.pendingAction ?? (Object.keys(value.pendingFields ?? {}).length > 0 ? CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE : null),
                 errors: value.errors ?? getLatestErrorFieldForAnyField(value),
                 rightElement: (
-                    /* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */
                     <Switch
                         isOn={!value.isDisabled}
                         disabled={!canEditTaxRate || value.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}
                         accessibilityLabel={translate('workspace.taxes.actions.enable')}
+                        accessibilityHint={translate('workspace.taxes.actions.enable')}
                         onToggle={(newValue: boolean) => updateWorkspaceTaxEnabled(newValue, key)}
                     />
                 ),

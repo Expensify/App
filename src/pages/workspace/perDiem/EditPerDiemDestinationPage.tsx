@@ -98,13 +98,13 @@ function EditPerDiemDestinationPage({route}: EditPerDiemDestinationPageProps) {
                     <View style={styles.pb4}>
                         <Text style={[styles.sidebarLinkText, styles.optionAlternateText]}>{translate('workspace.perDiem.editDestinationSubtitle', selectedRate?.name ?? '')}</Text>
                     </View>
-                    {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                     <InputWrapper
                         ref={inputCallbackRef}
                         InputComponent={TextInput}
                         defaultValue={selectedRate?.name}
                         label={translate('common.destination')}
                         accessibilityLabel={translate('common.destination')}
+                        accessibilityHint={translate('common.destination')}
                         inputID={INPUT_IDS.DESTINATION}
                         role={CONST.ROLE.PRESENTATION}
                     />

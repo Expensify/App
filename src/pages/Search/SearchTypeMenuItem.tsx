@@ -38,10 +38,10 @@ function SearchTypeMenuItem({title, icon, badgeText, focused = false, onPress}: 
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     return (
-        /* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */
         <PressableWithoutFeedback
             onPress={onPress}
             accessibilityLabel={title}
+            accessibilityHint={title}
             accessibilityState={{selected: focused}}
             role={CONST.ROLE.TAB}
             sentryLabel={CONST.SENTRY_LABEL.SEARCH.TYPE_MENU_ITEM}

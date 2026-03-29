@@ -123,10 +123,10 @@ function TableHeaderColumn<T, ColumnKey extends string = string>({column}: {colu
     };
 
     return (
-        /* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */
         <PressableWithFeedback
             accessible
             accessibilityLabel={column.label}
+            accessibilityHint={column.label}
             accessibilityRole="button"
             style={[styles.flexRow, styles.alignItemsCenter, column.styling?.flex ? {flex: column.styling.flex} : styles.flex1, column.styling?.containerStyles]}
             onPress={() => toggleSorting(column.key)}

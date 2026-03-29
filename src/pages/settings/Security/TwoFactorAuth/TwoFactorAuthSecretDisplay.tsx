@@ -51,13 +51,13 @@ function TwoFactorAuthSecretDisplay({contactMethod, secretKey, description}: Two
                         {splitSecretInChunks(secretKey)}
                     </Text>
                 )}
-                {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                 <PressableWithDelayToggle
                     text={translate('twoFactorAuth.copy')}
                     textChecked={translate('common.copied')}
                     tooltipText=""
                     tooltipTextChecked=""
                     accessibilityLabel={translate('twoFactorAuth.copy')}
+                    accessibilityHint={translate('twoFactorAuth.copy')}
                     icon={icons.Copy}
                     inline={false}
                     onPress={() => Clipboard.setString(secretKey)}

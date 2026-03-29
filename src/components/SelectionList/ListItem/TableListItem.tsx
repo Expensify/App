@@ -85,9 +85,9 @@ function TableListItem<TItem extends ListItem>({
             {(hovered) => (
                 <>
                     {!!canSelectMultiple && (
-                        /* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */
                         <Checkbox
                             accessibilityLabel={item.text ?? ''}
+                            accessibilityHint={item.text ?? ''}
                             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                             disabled={isDisabled || item.isDisabledCheckbox}
                             isChecked={!!item.isSelected}

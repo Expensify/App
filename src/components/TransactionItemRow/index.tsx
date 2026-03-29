@@ -647,13 +647,13 @@ function TransactionItemRow({
                 >
                     <View style={[styles.flexRow]}>
                         {shouldShowCheckbox && (
-                            /* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */
                             <Checkbox
                                 disabled={isDisabled}
                                 onPress={() => {
                                     onCheckboxPress(transactionItem.transactionID);
                                 }}
                                 accessibilityLabel={CONST.ROLE.CHECKBOX}
+                                accessibilityHint={CONST.ROLE.CHECKBOX}
                                 isChecked={isSelected}
                                 style={styles.mr3}
                                 wrapperStyle={styles.justifyContentCenter}
@@ -717,12 +717,12 @@ function TransactionItemRow({
                         )}
                         {shouldShowRadioButton && (
                             <View style={[styles.ml3, styles.justifyContentCenter]}>
-                                {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                                 <RadioButton
                                     isChecked={isSelected}
                                     disabled={isDisabled}
                                     onPress={() => onRadioButtonPress?.(transactionItem.transactionID)}
                                     accessibilityLabel={CONST.ROLE.RADIO}
+                                    accessibilityHint={CONST.ROLE.RADIO}
                                     shouldUseNewStyle
                                 />
                             </View>
@@ -780,13 +780,13 @@ function TransactionItemRow({
             <View style={[styles.expenseWidgetRadius, styles.flex1, styles.gap2, bgActiveStyles, styles.mw100, style]}>
                 <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap3]}>
                     {!shouldShowRadioButton && (
-                        /* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */
                         <Checkbox
                             disabled={isDisabled}
                             onPress={() => {
                                 onCheckboxPress(transactionItem.transactionID);
                             }}
                             accessibilityLabel={CONST.ROLE.CHECKBOX}
+                            accessibilityHint={CONST.ROLE.CHECKBOX}
                             isChecked={isSelected}
                             style={styles.mr1}
                             wrapperStyle={styles.justifyContentCenter}
@@ -796,24 +796,24 @@ function TransactionItemRow({
                     {columns?.map(renderColumn)}
                     {shouldShowRadioButton && (
                         <View style={[styles.ml1, styles.justifyContentCenter]}>
-                            {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                             <RadioButton
                                 isChecked={isSelected}
                                 disabled={isDisabled}
                                 onPress={() => onRadioButtonPress?.(transactionItem.transactionID)}
                                 accessibilityLabel={CONST.ROLE.RADIO}
+                                accessibilityHint={CONST.ROLE.RADIO}
                                 shouldUseNewStyle
                             />
                         </View>
                     )}
                     {!!isLargeScreenWidth && !!onArrowRightPress && (
-                        /* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */
                         <PressableWithFeedback
                             disabled={!!isDisabled}
                             onPress={() => onArrowRightPress?.()}
                             style={[styles.p3Half, styles.pl0half, styles.pr0half, styles.justifyContentCenter, styles.alignItemsEnd]}
                             accessibilityRole={CONST.ROLE.BUTTON}
                             accessibilityLabel={CONST.ROLE.BUTTON}
+                            accessibilityHint={CONST.ROLE.BUTTON}
                             sentryLabel={CONST.SENTRY_LABEL.TRANSACTION_ITEM_ROW.ARROW_RIGHT}
                         >
                             <Icon

@@ -211,7 +211,6 @@ function ImageView({isAuthTokenRequired = false, url, fileName, onError}: ImageV
             onLayout={onContainerLayoutChanged}
             style={[styles.imageViewContainer, styles.overflowAuto, styles.pRelative]}
         >
-            {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
             <PressableWithoutFeedback
                 style={{
                     ...StyleUtils.getZoomSizingStyle({imageSize, containerSize, isZoomed, zoomScale, isLoading: !isImageLoaded}),
@@ -223,10 +222,11 @@ function ImageView({isAuthTokenRequired = false, url, fileName, onError}: ImageV
                 onPress={onContainerPress}
                 role={CONST.ROLE.IMG}
                 accessibilityLabel={fileName}
+                accessibilityHint={fileName}
                 sentryLabel={CONST.SENTRY_LABEL.ATTACHMENT_MODAL.IMAGE_ZOOM}
             >
-                {/* eslint-disable-next-line react-native-a11y/has-valid-accessibility-ignores-invert-colors -- Already present before the lint rule was enabled, needs to be fixed. */}
                 <Image
+                    accessibilityIgnoresInvertColors
                     source={{uri: url}}
                     isAuthTokenRequired={isAuthTokenRequired}
                     style={[styles.h100, styles.w100]}

@@ -239,11 +239,11 @@ function ProfileAvatar() {
                         const menuItems = createMenuItems(openPicker);
                         if (menuItems?.length <= 1) {
                             return (
-                                /* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */
                                 <Button
                                     icon={icons.Upload}
                                     text={translate('avatarPage.uploadPhoto')}
                                     accessibilityLabel={translate('avatarPage.uploadPhoto')}
+                                    accessibilityHint={translate('avatarPage.uploadPhoto')}
                                     isDisabled={isAvatarCropModalOpen}
                                     onPress={() => {
                                         openPicker({

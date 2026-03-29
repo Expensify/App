@@ -90,13 +90,13 @@ function EditPerDiemAmountPage({route}: EditPerDiemAmountPageProps) {
                     shouldHideFixErrorsAlert
                     addBottomSafeAreaPadding
                 >
-                    {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                     <InputWrapper
                         ref={inputCallbackRef}
                         InputComponent={AmountWithoutCurrencyInput}
                         defaultValue={defaultAmount}
                         label={translate('workspace.perDiem.amount')}
                         accessibilityLabel={translate('workspace.perDiem.amount')}
+                        accessibilityHint={translate('workspace.perDiem.amount')}
                         inputID={INPUT_IDS.AMOUNT}
                         role={CONST.ROLE.PRESENTATION}
                         shouldAllowNegative

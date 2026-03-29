@@ -52,9 +52,9 @@ function TabSelectorItem({
     const shouldTextHaveStrikeThrough = isOffline && pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 
     const children = (
-        /* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */
         <AnimatedPressableWithFeedback
             accessibilityLabel={title}
+            accessibilityHint={title}
             accessibilityState={accessibilityState}
             accessibilityRole={CONST.ROLE.TAB}
             style={[

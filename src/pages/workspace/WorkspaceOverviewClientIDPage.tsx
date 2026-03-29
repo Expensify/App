@@ -64,13 +64,13 @@ function WorkspaceOverviewClientIDPage({policy}: Props) {
                     shouldHideFixErrorsAlert
                     addBottomSafeAreaPadding
                 >
-                    {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                     <InputWrapper
                         InputComponent={TextInput}
                         role={CONST.ROLE.PRESENTATION}
                         inputID={INPUT_IDS.CLIENT_ID}
                         label={translate('workspace.common.clientID')}
                         accessibilityLabel={translate('workspace.common.clientID')}
+                        accessibilityHint={translate('workspace.common.clientID')}
                         defaultValue={policy?.clientID}
                         spellCheck={false}
                         containerStyles={styles.mb4}

@@ -259,11 +259,11 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                             </View>
                         )}
                         <View style={switchContainerStyle}>
-                            {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                             <Switch
                                 isOn={value.enabled}
                                 disabled={isDisabled}
                                 accessibilityLabel={`${translate('workspace.categories.enableCategory')}: ${getDecodedCategoryName(value.name)}`}
+                                accessibilityHint={`${translate('workspace.categories.enableCategory')}: ${getDecodedCategoryName(value.name)}`}
                                 onToggle={(newValue: boolean) => {
                                     if (isDisablingOrDeletingLastEnabledCategory(policy, policyCategories, [value])) {
                                         setIsCannotDeleteOrDisableLastCategoryModalVisible(true);
@@ -276,11 +276,11 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                         </View>
                     </>
                 ) : (
-                    /* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */
                     <Switch
                         isOn={value.enabled}
                         disabled={isDisabled}
                         accessibilityLabel={`${translate('workspace.categories.enableCategory')}: ${getDecodedCategoryName(value.name)}`}
+                        accessibilityHint={`${translate('workspace.categories.enableCategory')}: ${getDecodedCategoryName(value.name)}`}
                         onToggle={(newValue: boolean) => {
                             if (isDisablingOrDeletingLastEnabledCategory(policy, policyCategories, [value])) {
                                 setIsCannotDeleteOrDisableLastCategoryModalVisible(true);

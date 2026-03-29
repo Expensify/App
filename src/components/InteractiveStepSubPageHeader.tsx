@@ -55,7 +55,6 @@ function InteractiveStepSubPageHeader({stepNames, currentStepIndex, onStepSelect
                         style={[styles.interactiveStepHeaderStepContainer, hasConnectingLine && styles.flex1]}
                         key={stepName}
                     >
-                        {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                         <PressableWithFeedback
                             style={[
                                 styles.interactiveStepHeaderStepButton,
@@ -67,6 +66,7 @@ function InteractiveStepSubPageHeader({stepNames, currentStepIndex, onStepSelect
                             onPress={() => handleStepPress(isLockedStep, index)}
                             accessible
                             accessibilityLabel={stepName}
+                            accessibilityHint={stepName}
                             role={CONST.ROLE.BUTTON}
                         >
                             {isCompletedStep ? (

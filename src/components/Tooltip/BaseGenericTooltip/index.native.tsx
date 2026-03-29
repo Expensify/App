@@ -123,13 +123,13 @@ function BaseGenericTooltip({
     return (
         <Portal hostName={shouldTeleportPortalToModalLayer ? 'modal' : undefined}>
             {shouldUseOverlay && <TransparentOverlay onPress={onHideTooltip} />}
-            {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
             <AnimatedWrapper
                 style={[rootWrapperStyle, animationStyle]}
                 ref={rootWrapper}
                 onPress={isEducationTooltip ? onTooltipPress : undefined}
                 role={isEducationTooltip ? CONST.ROLE.TOOLTIP : undefined}
                 accessibilityLabel={isEducationTooltip ? CONST.ROLE.TOOLTIP : undefined}
+                accessibilityHint={isEducationTooltip ? CONST.ROLE.TOOLTIP : undefined}
                 onLayout={(e) => {
                     const {height, width} = e.nativeEvent.layout;
                     if (height === wrapperMeasuredHeightAnimated.get()) {

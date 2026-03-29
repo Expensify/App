@@ -40,7 +40,6 @@ function FloatingReceiptButton({onPress, accessibilityLabel, role, sentryLabel}:
 
     return (
         <Tooltip text={translate('tabSelector.scan')}>
-            {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
             <PressableWithoutFeedback
                 ref={(el) => {
                     fabPressable.current = el ?? null;
@@ -52,6 +51,7 @@ function FloatingReceiptButton({onPress, accessibilityLabel, role, sentryLabel}:
                     canUseTouchScreen() && styles.userSelectNone,
                 ]}
                 accessibilityLabel={accessibilityLabel}
+                accessibilityHint={accessibilityLabel}
                 onPress={toggleFabAction}
                 role={role}
                 shouldUseHapticsOnLongPress

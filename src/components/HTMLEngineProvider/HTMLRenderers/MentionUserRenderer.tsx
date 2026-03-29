@@ -76,7 +76,6 @@ function MentionUserRenderer({style, tnode, TDefaultRenderer, currentUserPersona
     const {color, ...styleWithoutColor} = flattenStyle;
 
     return (
-        /* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */
         <Text
             suppressHighlighting
             onLongPress={(event) => {
@@ -97,6 +96,7 @@ function MentionUserRenderer({style, tnode, TDefaultRenderer, currentUserPersona
             }}
             role={CONST.ROLE.LINK}
             accessibilityLabel={`/${navigationRoute}`}
+            accessibilityHint={`/${navigationRoute}`}
         >
             <UserDetailsTooltip
                 accountID={accountID}

@@ -287,14 +287,13 @@ function AvatarWithDisplayName({
         <View style={[styles.appContentHeaderTitle, styles.flex1]}>
             {!!report && !!title && (
                 <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween]}>
-                    {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
-                    <View accessibilityLabel={title}>
+                    <View accessibilityHint={title}>
                         {shouldEnableAvatarNavigation ? (
-                            /* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */
                             <PressableWithoutFeedback
                                 sentryLabel={CONST.SENTRY_LABEL.AVATAR_WITH_DISPLAY_NAME.SHOW_ACTOR_DETAILS}
                                 onPress={showActorDetails}
                                 accessibilityLabel={title}
+                                accessibilityHint={title}
                                 role={getButtonRole(true)}
                             >
                                 {multipleAvatars}
@@ -306,12 +305,12 @@ function AvatarWithDisplayName({
 
                     <View style={[styles.flex1, styles.flexColumn]}>
                         {shouldShowReportTitleEditButton ? (
-                            /* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */
                             <PressableWithoutFeedback
                                 sentryLabel={CONST.SENTRY_LABEL.HEADER_VIEW.DETAILS_BUTTON}
                                 onPress={navigateToEditReportTitle}
                                 style={[styles.flexRow, styles.alignItemsCenter, styles.alignSelfStart, styles.mw100]}
                                 accessibilityLabel={title}
+                                accessibilityHint={title}
                                 role={CONST.ROLE.BUTTON}
                             >
                                 <View style={[styles.flexShrink1]}>{displayNameContent}</View>
@@ -360,12 +359,12 @@ function AvatarWithDisplayName({
     }
 
     return (
-        /* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */
         <PressableWithoutFeedback
             sentryLabel={CONST.SENTRY_LABEL.AVATAR_WITH_DISPLAY_NAME.GO_TO_DETAILS_PAGE}
             onPress={goToDetailsPage}
             style={[styles.flexRow, styles.alignItemsCenter, styles.flex1]}
             accessibilityLabel={title}
+            accessibilityHint={title}
             role={CONST.ROLE.BUTTON}
         >
             {headerView}

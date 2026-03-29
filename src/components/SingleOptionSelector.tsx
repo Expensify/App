@@ -41,7 +41,6 @@ function SingleOptionSelector<TKey extends string>({options = [], selectedOption
                     style={styles.flexRow}
                     key={option.key}
                 >
-                    {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                     <PressableWithoutFeedback
                         style={[styles.singleOptionSelectorRow, optionRowStyles]}
                         onPress={() => onSelectOption(option)}
@@ -49,6 +48,7 @@ function SingleOptionSelector<TKey extends string>({options = [], selectedOption
                         accessibilityState={{checked: selectedOptionKey === option.key}}
                         aria-checked={selectedOptionKey === option.key}
                         accessibilityLabel={option.label}
+                        accessibilityHint={option.label}
                     >
                         <SelectCircle
                             isChecked={selectedOptionKey ? selectedOptionKey === option.key : false}

@@ -283,8 +283,8 @@ function FeatureTrainingModal({
                             testID={CONST.IMAGE_SVG_TEST_ID}
                         />
                     ) : (
-                        /* eslint-disable-next-line react-native-a11y/has-valid-accessibility-ignores-invert-colors -- Already present before the lint rule was enabled, needs to be fixed. */
                         <Image
+                            accessibilityIgnoresInvertColors
                             source={image as ImageSourcePropType}
                             resizeMode={contentFitImage as ImageResizeMode}
                             style={styles.featureTrainingModalImage}
@@ -474,10 +474,10 @@ function FeatureTrainingModal({
                         </View>
                     )}
                     {shouldShowDismissModalOption && (
-                        /* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */
                         <CheckboxWithLabel
                             label={translate('featureTraining.doNotShowAgain')}
                             accessibilityLabel={translate('featureTraining.doNotShowAgain')}
+                            accessibilityHint={translate('featureTraining.doNotShowAgain')}
                             style={[styles.mb5]}
                             isChecked={!willShowAgain}
                             onInputChange={toggleWillShowAgain}

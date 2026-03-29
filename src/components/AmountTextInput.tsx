@@ -77,7 +77,6 @@ function AmountTextInput({
     const {translate} = useLocalize();
 
     return (
-        /* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */
         <TextInput
             autoGrow
             hideFocusedState={hideFocusedState}
@@ -98,6 +97,7 @@ function AmountTextInput({
             selection={selection}
             onSelectionChange={onSelectionChange}
             accessibilityLabel={accessibilityLabel ?? translate('iou.amount')}
+            accessibilityHint={accessibilityLabel ?? translate('iou.amount')}
             onKeyPress={onKeyPress as (event: TextInputKeyPressEvent) => void}
             touchableInputWrapperStyle={touchableInputWrapperStyle}
             // On iPad, even if the soft keyboard is hidden, the keyboard suggestion is still shown.

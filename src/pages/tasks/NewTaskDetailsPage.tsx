@@ -112,7 +112,6 @@ function NewTaskDetailsPage({route}: NewTaskDetailsPageProps) {
                 enabledWhenOffline
             >
                 <View style={styles.mb5}>
-                    {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                     <InputWrapper
                         InputComponent={TextInput}
                         ref={inputCallbackRef}
@@ -121,6 +120,7 @@ function NewTaskDetailsPage({route}: NewTaskDetailsPageProps) {
                         inputID={INPUT_IDS.TASK_TITLE}
                         label={translate('task.title')}
                         accessibilityLabel={translate('task.title')}
+                        accessibilityHint={translate('task.title')}
                         defaultValue={titleDefaultValue}
                         value={taskTitle}
                         onValueChange={setLocalTitle}
@@ -131,7 +131,6 @@ function NewTaskDetailsPage({route}: NewTaskDetailsPageProps) {
                     />
                 </View>
                 <View style={styles.mb5}>
-                    {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                     <InputWrapper
                         valueType="string"
                         InputComponent={TextInput}
@@ -139,6 +138,7 @@ function NewTaskDetailsPage({route}: NewTaskDetailsPageProps) {
                         inputID={INPUT_IDS.TASK_DESCRIPTION}
                         label={translate('newTaskPage.descriptionOptional')}
                         accessibilityLabel={translate('newTaskPage.descriptionOptional')}
+                        accessibilityHint={translate('newTaskPage.descriptionOptional')}
                         autoGrowHeight
                         maxAutoGrowHeight={variables.textInputAutoGrowMaxHeight}
                         shouldSubmitForm

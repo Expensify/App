@@ -46,11 +46,11 @@ function SearchButton({style, shouldUseAutoHitSlop = false}: SearchButtonProps) 
 
     return (
         <Tooltip text={translate('common.search')}>
-            {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
             <PressableWithoutFeedback
                 ref={pressableRef}
                 testID="searchButton"
                 accessibilityLabel={translate('common.search')}
+                accessibilityHint={translate('common.search')}
                 role={CONST.ROLE.BUTTON}
                 style={[styles.flexRow, styles.touchableButtonImage, style]}
                 shouldUseAutoHitSlop={shouldUseAutoHitSlop}

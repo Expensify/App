@@ -122,18 +122,17 @@ function IOURequestStepCompanyInfo({route, report, transaction}: IOURequestStepC
                 submitButtonText={translate('iou.sendInvoice', formattedAmount)}
                 enabledWhenOffline
             >
-                {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                 <InputWrapper
                     InputComponent={TextInput}
                     inputID={INPUT_IDS.COMPANY_NAME}
                     name={INPUT_IDS.COMPANY_NAME}
                     label={translate('iou.yourCompanyName')}
                     accessibilityLabel={translate('iou.yourCompanyName')}
+                    accessibilityHint={translate('iou.yourCompanyName')}
                     role={CONST.ROLE.PRESENTATION}
                     ref={inputCallbackRef}
                     containerStyles={styles.mv4}
                 />
-                {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                 <InputWrapper
                     InputComponent={TextInput}
                     inputID={INPUT_IDS.COMPANY_WEBSITE}
@@ -141,6 +140,7 @@ function IOURequestStepCompanyInfo({route, report, transaction}: IOURequestStepC
                     inputMode={CONST.INPUT_MODE.URL}
                     label={translate('iou.yourCompanyWebsite')}
                     accessibilityLabel={translate('iou.yourCompanyWebsite')}
+                    accessibilityHint={translate('iou.yourCompanyWebsite')}
                     role={CONST.ROLE.PRESENTATION}
                     hint={translate('iou.yourCompanyWebsiteNote')}
                     defaultValue={defaultWebsiteExample}

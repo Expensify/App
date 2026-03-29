@@ -164,7 +164,6 @@ function BaseValidateCodeForm({autoComplete = CONST.AUTO_COMPLETE_VARIANTS.ONE_T
                 />
                 <OfflineWithFeedback errorRowStyles={[styles.mt2]}>
                     <View style={[styles.mt2, styles.dFlex, styles.flexColumn, styles.alignItemsStart]}>
-                        {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                         <PressableWithFeedback
                             disabled={shouldDisableResendValidateCode}
                             style={[styles.mr1]}
@@ -174,6 +173,7 @@ function BaseValidateCodeForm({autoComplete = CONST.AUTO_COMPLETE_VARIANTS.ONE_T
                             pressDimmingValue={0.2}
                             role={CONST.ROLE.BUTTON}
                             accessibilityLabel={translate('validateCodeForm.magicCodeNotReceived')}
+                            accessibilityHint={translate('validateCodeForm.magicCodeNotReceived')}
                             sentryLabel={CONST.SENTRY_LABEL.VALIDATE_CODE.RESEND_CODE}
                         >
                             <Text style={[StyleUtils.getDisabledLinkStyles(shouldDisableResendValidateCode)]}>{translate('validateCodeForm.magicCodeNotReceived')}</Text>

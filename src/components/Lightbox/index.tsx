@@ -232,8 +232,8 @@ function Lightbox({attachmentID, isAuthTokenRequired = false, uri, onScaleChange
                                 onSwipeDown={onSwipeDown}
                                 externalGestureHandler={externalGestureHandler}
                             >
-                                {/* eslint-disable-next-line react-native-a11y/has-valid-accessibility-ignores-invert-colors -- Already present before the lint rule was enabled, needs to be fixed. */}
                                 <Image
+                                    accessibilityIgnoresInvertColors
                                     source={{uri}}
                                     style={[contentSize ?? styles.invisibleImage]}
                                     isAuthTokenRequired={isAuthTokenRequired}
@@ -262,8 +262,8 @@ function Lightbox({attachmentID, isAuthTokenRequired = false, uri, onScaleChange
                     {/* Keep rendering the image without gestures as fallback if the carousel item is not active and while the lightbox is loading the image */}
                     {isFallbackVisible && isFallbackInRange && (
                         <View style={StyleUtils.getFullscreenCenteredContentStyles()}>
-                            {/* eslint-disable-next-line react-native-a11y/has-valid-accessibility-ignores-invert-colors -- Already present before the lint rule was enabled, needs to be fixed. */}
                             <Image
+                                accessibilityIgnoresInvertColors
                                 source={{uri}}
                                 resizeMode="contain"
                                 style={[fallbackSize ?? styles.invisibleImage]}

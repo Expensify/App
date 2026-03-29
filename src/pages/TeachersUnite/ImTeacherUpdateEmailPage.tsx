@@ -41,11 +41,11 @@ function ImTeacherUpdateEmailPage() {
                 iconHeight={variables.signInLogoHeightLargeScreen}
             />
             <FixedFooter style={[styles.flexGrow0]}>
-                {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                 <Button
                     success
                     large
                     accessibilityLabel={translate('teachersUnitePage.updateEmail')}
+                    accessibilityHint={translate('teachersUnitePage.updateEmail')}
                     text={translate('teachersUnitePage.updateEmail')}
                     onPress={() => Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHODS.getRoute(Navigation.getActiveRouteWithoutParams()))}
                 />

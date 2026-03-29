@@ -66,7 +66,6 @@ function EmojiPickerButtonDropdown(
 
     return (
         <Tooltip text={translate('reportActionCompose.emoji')}>
-            {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
             <PressableWithoutFeedback
                 ref={emojiPopoverAnchor}
                 style={[styles.emojiPickerButtonDropdown, style]}
@@ -74,6 +73,7 @@ function EmojiPickerButtonDropdown(
                 onPress={onPress}
                 id="emojiDropdownButton"
                 accessibilityLabel={value ? `${value}, ${translate('statusPage.status')}` : translate('statusPage.status')}
+                accessibilityHint={value ? `${value}, ${translate('statusPage.status')}` : translate('statusPage.status')}
                 role={CONST.ROLE.BUTTON}
                 sentryLabel={CONST.SENTRY_LABEL.EMOJI_PICKER.BUTTON_DROPDOWN}
             >

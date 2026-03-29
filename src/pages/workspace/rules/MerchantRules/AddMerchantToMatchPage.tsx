@@ -98,7 +98,6 @@ function AddMerchantToMatchPage({route}: AddMerchantToMatchPageProps) {
                 shouldUseStrictHtmlTagValidation
             >
                 <View style={styles.mb5}>
-                    {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                     <InputWrapper
                         InputComponent={TextInput}
                         inputID={CONST.MERCHANT_RULES.FIELDS.MERCHANT_TO_MATCH}
@@ -106,6 +105,7 @@ function AddMerchantToMatchPage({route}: AddMerchantToMatchPageProps) {
                         defaultValue={currentValue}
                         label={translate('common.merchant')}
                         accessibilityLabel={translate('common.merchant')}
+                        accessibilityHint={translate('common.merchant')}
                         role={CONST.ROLE.PRESENTATION}
                         ref={inputCallbackRef}
                         containerStyles={[styles.ph5]}

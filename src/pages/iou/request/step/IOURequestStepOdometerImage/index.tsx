@@ -309,11 +309,11 @@ function IOURequestStepOdometerImage({
                         ) : (
                             <Text style={[styles.subTextFileUpload]}>{translate('distance.odometer.cameraAccessRequired')}</Text>
                         )}
-                        {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                         <Button
                             success
                             text={translate('common.continue')}
                             accessibilityLabel={translate('common.continue')}
+                            accessibilityHint={translate('common.continue')}
                             style={[styles.p9, styles.pt5]}
                             onPress={capturePhoto}
                             sentryLabel={CONST.SENTRY_LABEL.REQUEST_STEP.ODOMETER_IMAGE.CONTINUE_BUTTON}
@@ -343,10 +343,10 @@ function IOURequestStepOdometerImage({
                             screenshotQuality={0}
                         />
                         <View style={[styles.flashButtonContainer, styles.primaryMediumIcon, isFlashLightOn && styles.bgGreenSuccess, !isTorchAvailable && styles.opacity0]}>
-                            {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                             <PressableWithFeedback
                                 role={CONST.ROLE.BUTTON}
                                 accessibilityLabel={translate('receipt.flash')}
+                                accessibilityHint={translate('receipt.flash')}
                                 disabled={!isTorchAvailable}
                                 onPress={toggleFlashlight}
                                 sentryLabel={CONST.SENTRY_LABEL.REQUEST_STEP.ODOMETER_IMAGE.FLASH}
@@ -377,10 +377,10 @@ function IOURequestStepOdometerImage({
             <View style={[styles.flexRow, styles.justifyContentAround, styles.alignItemsCenter, styles.pv3]}>
                 <AttachmentPicker type={CONST.ATTACHMENT_PICKER_TYPE.IMAGE}>
                     {({openPicker}) => (
-                        /* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */
                         <PressableWithFeedback
                             role={CONST.ROLE.BUTTON}
                             accessibilityLabel={translate('common.chooseFile')}
+                            accessibilityHint={translate('common.chooseFile')}
                             sentryLabel={CONST.SENTRY_LABEL.REQUEST_STEP.ODOMETER_IMAGE.CHOOSE_FILE}
                             onPress={() => {
                                 openPicker({
@@ -397,10 +397,10 @@ function IOURequestStepOdometerImage({
                         </PressableWithFeedback>
                     )}
                 </AttachmentPicker>
-                {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                 <PressableWithFeedback
                     role={CONST.ROLE.BUTTON}
                     accessibilityLabel={translate('receipt.shutter')}
+                    accessibilityHint={translate('receipt.shutter')}
                     sentryLabel={CONST.SENTRY_LABEL.REQUEST_STEP.ODOMETER_IMAGE.SHUTTER}
                     style={[styles.alignItemsCenter]}
                     onPress={capturePhoto}
@@ -478,11 +478,11 @@ function IOURequestStepOdometerImage({
             </View>
             <AttachmentPicker type={CONST.ATTACHMENT_PICKER_TYPE.IMAGE}>
                 {({openPicker}) => (
-                    /* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */
                     <Button
                         success
                         text={translate('common.chooseFile')}
                         accessibilityLabel={translate('common.chooseFile')}
+                        accessibilityHint={translate('common.chooseFile')}
                         style={[styles.p5, styles.mt4]}
                         onPress={() => {
                             openPicker({

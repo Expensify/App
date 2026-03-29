@@ -221,9 +221,9 @@ function TroubleshootPage() {
                         <View style={[styles.flex1, styles.mt5]}>
                             <View>
                                 <TestToolRow title={translate('initialSettingsPage.troubleshoot.maskExportOnyxStateData')}>
-                                    {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                                     <Switch
                                         accessibilityLabel={translate('initialSettingsPage.troubleshoot.maskExportOnyxStateData')}
+                                        accessibilityHint={translate('initialSettingsPage.troubleshoot.maskExportOnyxStateData')}
                                         isOn={shouldMaskOnyxState}
                                         onToggle={setShouldMaskOnyxState}
                                     />

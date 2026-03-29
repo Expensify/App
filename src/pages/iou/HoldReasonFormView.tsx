@@ -58,7 +58,6 @@ function HoldReasonFormView({backTo, validate, onSubmit, expenseCount = 1, isSub
             >
                 <Text style={styles.mb6}>{translate(isSubmitter ? 'iou.explainHold' : 'iou.explainHoldApprover', {count: expenseCount})}</Text>
                 <View>
-                    {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                     <InputWrapper
                         InputComponent={TextInput}
                         inputID={INPUT_IDS.COMMENT}
@@ -67,6 +66,7 @@ function HoldReasonFormView({backTo, validate, onSubmit, expenseCount = 1, isSub
                         defaultValue={undefined}
                         label={translate('iou.reason')}
                         accessibilityLabel={translate('iou.reason')}
+                        accessibilityHint={translate('iou.reason')}
                         ref={inputCallbackRef}
                     />
                 </View>

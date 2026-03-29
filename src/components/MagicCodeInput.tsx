@@ -474,7 +474,6 @@ function MagicCodeInput({
                         style={[StyleSheet.absoluteFill, styles.w100, styles.h100, styles.invisibleOverlay]}
                         collapsable={false}
                     >
-                        {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                         <TextInput
                             disableKeyboard={isDisableKeyboard}
                             onLayout={(e) => {
@@ -503,6 +502,7 @@ function MagicCodeInput({
                             selectionColor="transparent"
                             inputStyle={[styles.inputTransparent]}
                             accessibilityLabel={`${accessibilityLabel ?? translate('common.magicCode')}, ${maxLength} ${translate('common.digits')}`}
+                            accessibilityHint={`${accessibilityLabel ?? translate('common.magicCode')}, ${maxLength} ${translate('common.digits')}`}
                             style={[styles.inputTransparent]}
                             textInputContainerStyles={[styles.borderTransparent, styles.bgTransparent]}
                             testID={testID}

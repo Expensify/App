@@ -45,12 +45,12 @@ function SendButton({isDisabled: isDisabledProp, handleSendMessage}: SendButtonP
                 key={`send-button-${isSmallScreenWidth ? 'small-screen' : 'normal-screen'}`}
                 gesture={Tap}
             >
-                {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                 <View
                     // In order to make buttons accessible, we have to wrap children in a View with accessible and accessibilityRole="button" props based on the docs: https://docs.swmansion.com/react-native-gesture-handler/docs/components/buttons/
                     accessible
                     role={CONST.ROLE.BUTTON}
                     accessibilityLabel={translate('common.send')}
+                    accessibilityHint={translate('common.send')}
                     collapsable={false}
                 >
                     <Tooltip text={translate('common.send')}>

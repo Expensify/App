@@ -30,11 +30,11 @@ function PrevNextButtons({isPrevButtonDisabled, isNextButtonDisabled, onNext, on
 
     return (
         <View style={styles.flexRow}>
-            {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
             <PressableWithFeedback
                 accessible
                 accessibilityRole={CONST.ROLE.BUTTON}
                 accessibilityLabel={CONST.ROLE.BUTTON}
+                accessibilityHint={CONST.ROLE.BUTTON}
                 disabled={isPrevButtonDisabled}
                 style={[styles.h7, styles.mr1, styles.alignItemsCenter, styles.justifyContentCenter]}
                 onPress={onPrevious}
@@ -49,11 +49,11 @@ function PrevNextButtons({isPrevButtonDisabled, isNextButtonDisabled, onNext, on
                     />
                 </View>
             </PressableWithFeedback>
-            {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
             <PressableWithFeedback
                 accessible
                 accessibilityRole={CONST.ROLE.BUTTON}
                 accessibilityLabel={CONST.ROLE.BUTTON}
+                accessibilityHint={CONST.ROLE.BUTTON}
                 disabled={isNextButtonDisabled}
                 style={[styles.h7, styles.alignItemsCenter, styles.justifyContentCenter]}
                 onPress={onNext}

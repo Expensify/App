@@ -101,7 +101,6 @@ function WorkspaceCreateTaxPage({
                             shouldUseStrictHtmlTagValidation
                         >
                             <View style={styles.mhn5}>
-                                {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                                 <InputWrapper
                                     InputComponent={TextPicker}
                                     inputID={INPUT_IDS.NAME}
@@ -109,6 +108,7 @@ function WorkspaceCreateTaxPage({
                                     description={translate('common.name')}
                                     rightLabel={translate('common.required')}
                                     accessibilityLabel={translate('workspace.editor.nameInputLabel')}
+                                    accessibilityHint={translate('workspace.editor.nameInputLabel')}
                                     maxLength={CONST.TAX_RATES.NAME_MAX_LENGTH}
                                     multiline={false}
                                     role={CONST.ROLE.PRESENTATION}

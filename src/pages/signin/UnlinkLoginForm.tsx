@@ -53,9 +53,9 @@ function UnlinkLoginForm() {
                 />
             )}
             <View style={[styles.mb4, styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter]}>
-                {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                 <PressableWithFeedback
                     accessibilityLabel={translate('common.back')}
+                    accessibilityHint={translate('common.back')}
                     onPress={() => redirectToSignIn()}
                     sentryLabel={CONST.SENTRY_LABEL.SIGN_IN.GO_BACK}
                 >

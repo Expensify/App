@@ -69,7 +69,6 @@ function QRShare({
                 </View>
             )}
 
-            {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
             <QRCode
                 getRef={(svg) => (svgRef.current = svg)}
                 url={url}
@@ -81,6 +80,7 @@ function QRShare({
                 logoRatio={logoRatio}
                 logoMarginRatio={logoMarginRatio}
                 accessibilityLabel={translate('qrCodes.qrCode')}
+                accessibilityHint={translate('qrCodes.qrCode')}
             />
 
             {!!title && (

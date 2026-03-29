@@ -160,11 +160,11 @@ function ConfirmContent({
                 {shouldShowDismissIcon && (
                     <View style={styles.alignItemsEnd}>
                         <Tooltip text={translate('common.close')}>
-                            {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                             <PressableWithoutFeedback
                                 onPress={onCancel}
                                 role={CONST.ROLE.BUTTON}
                                 accessibilityLabel={translate('common.close')}
+                                accessibilityHint={translate('common.close')}
                                 sentryLabel={CONST.SENTRY_LABEL.CONFIRM_CONTENT.DISMISS_BUTTON}
                             >
                                 <Icon
@@ -206,7 +206,6 @@ function ConfirmContent({
                                 text={cancelText || translate('common.no')}
                             />
                         )}
-                        {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                         <Button
                             success={shouldShowCancelButton && !danger ? success : false}
                             danger={danger}
@@ -217,6 +216,7 @@ function ConfirmContent({
                             large
                             text={confirmText || translate('common.yes')}
                             accessibilityLabel={confirmText || translate('common.yes')}
+                            accessibilityHint={confirmText || translate('common.yes')}
                             isDisabled={isOffline && shouldDisableConfirmButtonWhenOffline}
                             isLoading={isConfirmLoading}
                         />

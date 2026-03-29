@@ -98,7 +98,6 @@ function ImageRenderer({tnode}: CustomRendererProps<TBlock>) {
     ) : (
         <AttachmentContext.Consumer>
             {({reportID, accountID, type}) => (
-                /* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */
                 <PressableWithoutFocus
                     style={[styles.noOutline]}
                     onPress={() => {
@@ -140,6 +139,7 @@ function ImageRenderer({tnode}: CustomRendererProps<TBlock>) {
                     shouldUseHapticsOnLongPress
                     role={getButtonRole(true)}
                     accessibilityLabel={translate('accessibilityHints.viewAttachment')}
+                    accessibilityHint={translate('accessibilityHints.viewAttachment')}
                     sentryLabel={CONST.SENTRY_LABEL.HTML_RENDERER.IMAGE}
                 >
                     {thumbnailImageComponent}

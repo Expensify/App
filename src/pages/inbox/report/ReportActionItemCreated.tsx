@@ -51,17 +51,17 @@ function ReportActionItemCreated({reportID, policyID}: ReportActionItemCreatedPr
         >
             <View style={[styles.pRelative]}>
                 <AnimatedEmptyStateBackground />
-                {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                 <View
                     accessibilityLabel={translate('accessibilityHints.chatWelcomeMessage')}
+                    accessibilityHint={translate('accessibilityHints.chatWelcomeMessage')}
                     style={[styles.p5]}
                 >
                     <OfflineWithFeedback pendingAction={report?.pendingFields?.avatar}>
-                        {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                         <PressableWithoutFeedback
                             onPress={() => navigateToDetailsPage(report, Navigation.getReportRHPActiveRoute(), true)}
                             style={[styles.mh5, styles.mb3, styles.alignSelfStart, shouldDisableDetailPage && styles.cursorDefault]}
                             accessibilityLabel={translate('common.details')}
+                            accessibilityHint={translate('common.details')}
                             role={CONST.ROLE.BUTTON}
                             disabled={shouldDisableDetailPage}
                             sentryLabel={CONST.SENTRY_LABEL.REPORT.REPORT_ACTION_ITEM_CREATED}

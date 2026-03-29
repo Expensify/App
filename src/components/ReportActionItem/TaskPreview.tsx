@@ -137,7 +137,6 @@ function TaskPreview({
 
     return (
         <View style={[styles.chatItemMessage, !hasAssignee && styles.mv1]}>
-            {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
             <PressableWithoutFeedback
                 onPress={() => Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(taskReportID, undefined, undefined, Navigation.getActiveRoute()))}
                 onPressIn={() => canUseTouchScreen() && ControlSelection.block()}
@@ -154,11 +153,11 @@ function TaskPreview({
                 style={[styles.flexRow, styles.justifyContentBetween, style]}
                 role={CONST.ROLE.BUTTON}
                 accessibilityLabel={translate('task.task')}
+                accessibilityHint={translate('task.task')}
                 sentryLabel={CONST.SENTRY_LABEL.TASK.PREVIEW_CARD}
             >
                 <View style={[styles.flex1, styles.flexRow, styles.alignItemsStart, styles.mr2]}>
                     <View style={iconWrapperStyle}>
-                        {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                         <Checkbox
                             style={[styles.mr2]}
                             isChecked={isTaskCompleted}
@@ -171,6 +170,7 @@ function TaskPreview({
                                 }
                             })}
                             accessibilityLabel={translate('task.task')}
+                            accessibilityHint={translate('task.task')}
                             sentryLabel={CONST.SENTRY_LABEL.TASK.PREVIEW_CHECKBOX}
                         />
                     </View>

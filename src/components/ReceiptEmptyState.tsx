@@ -84,10 +84,10 @@ function ReceiptEmptyState({
     return (
         <AttachmentPicker acceptedFileTypes={[...CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_RECEIPT_EXTENSIONS]}>
             {({openPicker}) => (
-                /* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */
                 <Wrapper
                     accessibilityRole="imagebutton"
                     accessibilityLabel={translate('receipt.upload')}
+                    accessibilityHint={translate('receipt.upload')}
                     onPress={() => {
                         if (isDisplayedInWideRHP) {
                             openPicker({

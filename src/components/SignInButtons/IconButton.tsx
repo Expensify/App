@@ -41,12 +41,12 @@ function IconButton({onPress = () => {}, provider}: IconButtonProps) {
     );
 
     return (
-        /* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */
         <PressableWithoutFeedback
             onPress={onPress}
             style={styles.signInIconButton}
             role={CONST.ROLE.BUTTON}
             accessibilityLabel={translate(providerData[provider].accessibilityLabel)}
+            accessibilityHint={translate(providerData[provider].accessibilityLabel)}
         >
             <Icon
                 src={providerData[provider].icon}

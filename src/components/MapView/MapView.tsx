@@ -327,10 +327,10 @@ function MapView({
                         key="distance-label"
                     >
                         <View style={{zIndex: 1}}>
-                            {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                             <ToggleDistanceUnitButton
                                 accessibilityRole={CONST.ROLE.BUTTON}
                                 accessibilityLabel="distance-label"
+                                accessibilityHint="distance-label"
                                 onPress={toggleDistanceUnit}
                             >
                                 <View style={[styles.distanceLabelWrapper]}>
@@ -343,12 +343,12 @@ function MapView({
             </Mapbox.MapView>
             {interactive && (
                 <View style={[styles.pAbsolute, styles.p5, styles.t0, styles.r0, {zIndex: 1}]}>
-                    {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                     <Button
                         onPress={centerMap}
                         iconFill={theme.icon}
                         icon={expensifyIcons.Crosshair}
                         accessibilityLabel={translate('common.center')}
+                        accessibilityHint={translate('common.center')}
                     />
                 </View>
             )}

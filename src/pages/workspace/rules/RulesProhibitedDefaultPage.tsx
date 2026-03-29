@@ -62,10 +62,10 @@ function RulesProhibitedDefaultPage({
                                 >
                                     {translate(`workspace.rules.individualExpenseRules.${prohibitedExpense}`)}
                                 </Text>
-                                {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                                 <Switch
                                     isOn={policy?.prohibitedExpenses?.[prohibitedExpense] ?? false}
                                     accessibilityLabel={translate(`workspace.rules.individualExpenseRules.${prohibitedExpense}`)}
+                                    accessibilityHint={translate(`workspace.rules.individualExpenseRules.${prohibitedExpense}`)}
                                     onToggle={() => {
                                         setPolicyProhibitedExpense(policyID, prohibitedExpense);
                                     }}

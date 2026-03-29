@@ -96,12 +96,12 @@ function WorkspaceEditTagsPage({route}: WorkspaceEditTagsPageProps) {
                     shouldUseStrictHtmlTagValidation
                 >
                     <View style={styles.mb4}>
-                        {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                         <InputWrapper
                             InputComponent={TextInput}
                             inputID={INPUT_IDS.POLICY_TAGS_NAME}
                             label={translate(`workspace.tags.customTagName`)}
                             accessibilityLabel={translate(`workspace.tags.customTagName`)}
+                            accessibilityHint={translate(`workspace.tags.customTagName`)}
                             defaultValue={getCleanedTagName(tagListName)}
                             role={CONST.ROLE.PRESENTATION}
                             ref={inputCallbackRef}

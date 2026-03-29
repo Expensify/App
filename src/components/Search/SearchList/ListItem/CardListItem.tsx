@@ -167,11 +167,11 @@ function CardListItem<TItem extends ListItem>({
                     </View>
                 </View>
                 {!!canSelectMultiple && !item.isDisabled && (
-                    /* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */
                     <Checkbox
                         shouldSelectOnPressEnter
                         isChecked={item.isSelected ?? false}
                         accessibilityLabel={item.text ?? ''}
+                        accessibilityHint={item.text ?? ''}
                         onPress={handleCheckboxPress}
                         disabled={!!isDisabled}
                         style={styles.ml3}

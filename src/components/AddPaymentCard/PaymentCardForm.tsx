@@ -367,10 +367,12 @@ function PaymentCardForm({
                 )}
                 {!!showAcceptTerms && (
                     <View style={[styles.mt4, styles.ml1]}>
-                        {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                         <InputWrapper
                             InputComponent={CheckboxWithLabel}
                             accessibilityLabel={`${translate('common.iAcceptThe')} ${translate('common.addCardTermsOfService')} ${translate('common.and')} ${translate(
+                                'common.privacyPolicy',
+                            )}`}
+                            accessibilityHint={`${translate('common.iAcceptThe')} ${translate('common.addCardTermsOfService')} ${translate('common.and')} ${translate(
                                 'common.privacyPolicy',
                             )}`}
                             inputID={INPUT_IDS.ACCEPT_TERMS}

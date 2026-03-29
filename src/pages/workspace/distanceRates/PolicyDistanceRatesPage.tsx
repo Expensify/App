@@ -242,10 +242,10 @@ function PolicyDistanceRatesPage({
                         (policy?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD ? policy?.pendingAction : undefined),
                     errors: value.errors ?? undefined,
                     rightElement: (
-                        /* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */
                         <Switch
                             isOn={!!value?.enabled}
                             accessibilityLabel={value?.name ?? ''}
+                            accessibilityHint={value?.name ?? ''}
                             onToggle={(newValue: boolean) => updateDistanceRateEnabled(newValue, value.customUnitRateID)}
                             showLockIcon={!canDisableOrDeleteRate(value.customUnitRateID)}
                             disabled={value.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}

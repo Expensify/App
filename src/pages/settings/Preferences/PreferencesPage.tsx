@@ -89,9 +89,9 @@ function PreferencesPage() {
                                     </Text>
                                 </View>
                                 <View style={[styles.flex1, styles.alignItemsEnd]}>
-                                    {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                                     <Switch
                                         accessibilityLabel={translate('preferencesPage.receiveRelevantFeatureUpdatesAndExpensifyNews')}
+                                        accessibilityHint={translate('preferencesPage.receiveRelevantFeatureUpdatesAndExpensifyNews')}
                                         isOn={account?.isSubscribedToNewsletter ?? true}
                                         onToggle={updateNewsletterSubscription}
                                     />
@@ -107,9 +107,9 @@ function PreferencesPage() {
                                     </Text>
                                 </View>
                                 <View style={[styles.flex1, styles.alignItemsEnd]}>
-                                    {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                                     <Switch
                                         accessibilityLabel={translate('preferencesPage.muteAllSounds')}
+                                        accessibilityHint={translate('preferencesPage.muteAllSounds')}
                                         isOn={isPlatformMuted ?? false}
                                         onToggle={() => togglePlatformMute(platform, mutedPlatforms)}
                                     />

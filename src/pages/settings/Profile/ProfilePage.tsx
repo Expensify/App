@@ -247,9 +247,9 @@ function ProfilePage() {
                                     sentryLabel={detail.sentryLabel}
                                 />
                             ))}
-                            {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                             <Button
                                 accessibilityLabel={translate('common.shareCode')}
+                                accessibilityHint={translate('common.shareCode')}
                                 text={translate('common.share')}
                                 onPress={() => Navigation.navigate(ROUTES.SETTINGS_SHARE_CODE)}
                                 icon={icons.QrCode}

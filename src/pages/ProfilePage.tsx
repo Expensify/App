@@ -179,11 +179,11 @@ function ProfilePage({route}: ProfilePageProps) {
                 <View style={[styles.containerWithSpaceBetween, styles.pointerEventsBoxNone]}>
                     <ScrollView>
                         <View style={[styles.avatarSectionWrapper, styles.pb0]}>
-                            {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                             <PressableWithoutFocus
                                 style={[styles.noOutline, styles.mb4]}
                                 onPress={() => Navigation.navigate(ROUTES.PROFILE_AVATAR.getRoute(accountID, Navigation.getActiveRoute()))}
                                 accessibilityLabel={translate('common.profile')}
+                                accessibilityHint={translate('common.profile')}
                                 accessibilityRole={CONST.ROLE.BUTTON}
                                 disabled={!hasAvatar}
                                 sentryLabel={CONST.SENTRY_LABEL.PROFILE_PAGE.AVATAR}

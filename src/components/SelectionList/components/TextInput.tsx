@@ -141,7 +141,6 @@ function TextInput({
     return (
         <>
             <View style={[styles.ph5, styles.pb3, style?.containerStyle]}>
-                {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                 <BaseTextInput
                     ref={mergedRef}
                     onKeyPress={onKeyPress}
@@ -149,6 +148,7 @@ function TextInput({
                     onBlur={handleBlur}
                     label={label}
                     accessibilityLabel={accessibilityLabel}
+                    accessibilityHint={accessibilityLabel}
                     hint={hint}
                     role={CONST.ROLE.PRESENTATION}
                     value={value}

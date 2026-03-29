@@ -40,7 +40,6 @@ function CopyTextToClipboard({
     }, [text, urlToCopy]);
 
     return (
-        /* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */
         <PressableWithDelayToggle
             text={text}
             tooltipText={translate('common.copyToClipboard')}
@@ -50,6 +49,7 @@ function CopyTextToClipboard({
             onPress={copyToClipboard}
             accessible
             accessibilityLabel={translate('common.copyToClipboard')}
+            accessibilityHint={translate('common.copyToClipboard')}
             accessibilityRole={accessibilityRole}
             sentryLabel={CONST.SENTRY_LABEL.COPY_TEXT_TO_CLIPBOARD.COPY_BUTTON}
             shouldHaveActiveBackground={shouldHaveActiveBackground}

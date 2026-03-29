@@ -163,10 +163,10 @@ function TagSettingsPage({route, navigation}: TagSettingsPageProps) {
                                     >
                                         {translate('workspace.tags.enableTag')}
                                     </Text>
-                                    {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                                     <Switch
                                         isOn={currentPolicyTag.enabled}
                                         accessibilityLabel={translate('workspace.tags.enableTag')}
+                                        accessibilityHint={translate('workspace.tags.enableTag')}
                                         onToggle={updateWorkspaceTagEnabled}
                                         showLockIcon={shouldPreventDisableOrDelete}
                                     />

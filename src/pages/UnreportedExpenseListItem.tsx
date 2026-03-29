@@ -55,7 +55,6 @@ function UnreportedExpenseListItem<TItem extends ListItem>({
 
     return (
         <OfflineWithFeedback pendingAction={item.pendingAction}>
-            {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
             <PressableWithFeedback
                 ref={pressableRef}
                 onPress={() => {
@@ -63,6 +62,7 @@ function UnreportedExpenseListItem<TItem extends ListItem>({
                 }}
                 disabled={isItemDisabled}
                 accessibilityLabel={item.text ?? ''}
+                accessibilityHint={item.text ?? ''}
                 role={getButtonRole(true)}
                 isNested
                 onMouseDown={(e) => e.preventDefault()}

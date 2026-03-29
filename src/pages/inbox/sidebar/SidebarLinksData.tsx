@@ -67,11 +67,11 @@ function SidebarLinksData({insets}: SidebarLinksDataProps) {
     );
 
     return (
-        /* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */
         <View
             accessibilityElementsHidden={!isFocused}
             collapsable={false}
             accessibilityLabel={translate('sidebarScreen.listOfChats')}
+            accessibilityHint={translate('sidebarScreen.listOfChats')}
             style={[styles.flex1, styles.h100]}
             onLayout={onLayout}
         >

@@ -71,16 +71,16 @@ function TermsStep({onNext}: SubStepProps) {
             <Text style={[styles.textHeadlineLineHeightXXL]}>{translate('termsStep.checkTheBoxes')}</Text>
             <Text style={[styles.mt3, styles.mb3, styles.textSupporting]}>{translate('termsStep.agreeToTerms')}</Text>
             <View style={styles.flex1}>
-                {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                 <CheckboxWithLabel
                     accessibilityLabel={translate('termsStep.haveReadAndAgreePlain')}
+                    accessibilityHint={translate('termsStep.haveReadAndAgreePlain')}
                     style={[styles.mb4, styles.mt4]}
                     onInputChange={toggleDisclosure}
                     LabelComponent={HaveReadAndAgreeLabel}
                 />
-                {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                 <CheckboxWithLabel
                     accessibilityLabel={translate('termsStep.agreeToThePlain')}
+                    accessibilityHint={translate('termsStep.agreeToThePlain')}
                     onInputChange={togglePrivacyPolicy}
                     LabelComponent={AgreeToTheLabel}
                 />

@@ -39,12 +39,12 @@ function FeedSelector({onFeedSelect, CardFeedIcon, feedName, supportingText, sho
     }
 
     return (
-        /* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */
         <PressableWithFeedback
             onPress={onFeedSelect}
             wrapperStyle={styles.flexShrink1}
             style={[styles.flexRow, styles.alignItemsCenter, styles.gap3]}
             accessibilityLabel={feedName ?? ''}
+            accessibilityHint={feedName ?? ''}
             sentryLabel="FeedSelector"
         >
             {CardFeedIcon}

@@ -72,10 +72,10 @@ function CategoryRequiredFieldsPage({
                                 >
                                     {translate('workspace.rules.categoryRules.requireDescription')}
                                 </Text>
-                                {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                                 <Switch
                                     isOn={areCommentsRequired}
                                     accessibilityLabel={translate('workspace.rules.categoryRules.requireDescription')}
+                                    accessibilityHint={translate('workspace.rules.categoryRules.requireDescription')}
                                     onToggle={() => {
                                         setPolicyCategoryDescriptionRequired(policyID, categoryName, !areCommentsRequired, policyCategories);
                                     }}
@@ -94,10 +94,10 @@ function CategoryRequiredFieldsPage({
                                     >
                                         {translate('workspace.rules.categoryRules.requireAttendees')}
                                     </Text>
-                                    {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                                     <Switch
                                         isOn={areAttendeesRequired}
                                         accessibilityLabel={translate('workspace.rules.categoryRules.requireAttendees')}
+                                        accessibilityHint={translate('workspace.rules.categoryRules.requireAttendees')}
                                         onToggle={() => {
                                             setPolicyCategoryAttendeesRequired(policyID, categoryName, !areAttendeesRequired, policyCategories);
                                         }}

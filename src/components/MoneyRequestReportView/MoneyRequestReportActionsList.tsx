@@ -813,9 +813,9 @@ function MoneyRequestReportActionsList({
                         wrapperStyle={[styles.w100, styles.ph5]}
                     />
                     <View style={[styles.alignItemsCenter, styles.userSelectNone, styles.flexRow, styles.pt6, styles.ph8, styles.pb3]}>
-                        {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                         <Checkbox
                             accessibilityLabel={translate('accessibilityHints.selectAllItems')}
+                            accessibilityHint={translate('accessibilityHints.selectAllItems')}
                             isChecked={isSelectAllChecked}
                             isIndeterminate={selectedTransactionIDs.length > 0 && selectedTransactionIDs.length !== transactionsWithoutPendingDelete.length}
                             onPress={() => {
@@ -826,7 +826,6 @@ function MoneyRequestReportActionsList({
                                 }
                             }}
                         />
-                        {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                         <PressableWithFeedback
                             style={[styles.userSelectNone, styles.alignItemsCenter]}
                             onPress={() => {
@@ -837,6 +836,7 @@ function MoneyRequestReportActionsList({
                                 }
                             }}
                             accessibilityLabel={translate('accessibilityHints.selectAllItems')}
+                            accessibilityHint={translate('accessibilityHints.selectAllItems')}
                             role="button"
                             accessibilityState={{checked: isSelectAllChecked}}
                             dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
@@ -866,10 +866,10 @@ function MoneyRequestReportActionsList({
                         />
                     </ScrollView>
                 ) : (
-                    /* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */
                     <FlatListWithScrollKey
                         initialNumToRender={initialNumToRender}
                         accessibilityLabel={translate('sidebarScreen.listOfChatMessages')}
+                        accessibilityHint={translate('sidebarScreen.listOfChatMessages')}
                         testID="money-request-report-actions-list"
                         style={styles.overscrollBehaviorContain}
                         data={visibleReportActions}
