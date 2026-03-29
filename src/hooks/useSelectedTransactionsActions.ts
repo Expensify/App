@@ -1,13 +1,9 @@
-import {hasSeenTourSelector} from '@selectors/Onboarding';
-import {validTransactionDraftsSelector} from '@selectors/TransactionDraft';
-import {useState} from 'react';
+import {useCallback, useRef, useState} from 'react';
 import {DeviceEventEmitter} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import {useSearchActionsContext, useSearchStateContext} from '@components/Search/SearchContext';
-import {bulkDuplicateExpenses} from '@libs/actions/IOU/Duplicate';
 import {unholdRequest} from '@libs/actions/IOU/Hold';
 import {setupMergeTransactionDataAndNavigate} from '@libs/actions/MergeTransaction';
 import {exportReportToCSV} from '@libs/actions/Report';
@@ -47,7 +43,6 @@ import {useMemoizedLazyExpensifyIcons} from './useLazyAsset';
 import useLocalize from './useLocalize';
 import useNetworkWithOfflineStatus from './useNetworkWithOfflineStatus';
 import useOnyx from './useOnyx';
-import usePermissions from './usePermissions';
 import useReportIsArchived from './useReportIsArchived';
 import {shouldShowBulkDuplicateOption} from './useSearchBulkActions';
 
@@ -114,21 +109,7 @@ function useSelectedTransactionsActions({
     const {login, accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const defaultExpensePolicy = useDefaultExpensePolicy();
     const {isProduction} = useEnvironment();
-    const {isBetaEnabled} = usePermissions();
-    const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
 
-    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
-    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
-    const [policyRecentlyUsedCurrencies] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES);
-    const [isSelfTourViewed = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
-    const [transactionDrafts] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftsSelector});
-    const draftTransactionIDs = Object.keys(transactionDrafts ?? {});
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
-    const [recentWaypoints] = useOnyx(ONYXKEYS.NVP_RECENT_WAYPOINTS);
-    const [targetPolicyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${defaultExpensePolicy?.id}`);
-    const [targetPolicyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${defaultExpensePolicy?.id}`);
     const selectedTransactionsList = selectedTransactionIDs.reduce((acc, transactionID) => {
         const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
         if (transaction) {
@@ -193,41 +174,13 @@ function useSelectedTransactionsActions({
             searchData: undefined,
         });
 
-    const sourcePolicyIDMap: Record<string, string | undefined> = {};
-    for (const transactionID of selectedTransactionIDs) {
-        const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
-        const txReportID = transaction?.reportID;
-        if (!txReportID) {
-            continue;
-        }
-        const txReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${txReportID}`];
-        sourcePolicyIDMap[transactionID] = txReport?.policyID;
-    }
-
-    const handleDuplicate = () => {
-        bulkDuplicateExpenses({
-            transactionIDs: selectedTransactionIDs,
-            allTransactions: allTransactions ?? {},
-            sourcePolicyIDMap,
-            targetPolicy: (defaultExpensePolicy ?? undefined) as OnyxEntry<Policy>,
-            targetPolicyCategories: targetPolicyCategories ?? {},
-            targetPolicyTags: targetPolicyTags ?? {},
-            targetReport: activePolicyExpenseChat,
-            personalDetails,
-            isASAPSubmitBetaEnabled,
-            introSelected,
-            activePolicyID,
-            quickAction,
-            policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
-            isSelfTourViewed,
-            transactionDrafts,
-            draftTransactionIDs,
-            betas,
-            recentWaypoints,
-        });
-
-        clearSelectedTransactions(true);
-    };
+    const duplicateHandlerRef = useRef<() => void>(() => {});
+    const setDuplicateHandler = useCallback((handler: () => void) => {
+        duplicateHandlerRef.current = handler;
+    }, []);
+    const invokeDuplicateHandler = useCallback(() => {
+        duplicateHandlerRef.current();
+    }, []);
 
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     const isTrackExpenseThread = isTrackExpenseReport(report);
@@ -487,12 +440,13 @@ function useSelectedTransactionsActions({
         }
 
         if (isDuplicateOptionVisible) {
+            // eslint-disable-next-line react-hooks/refs
             options.push({
                 text: translate('search.bulkActions.duplicateExpense', {count: selectedTransactionIDs.length}),
                 icon: expensifyIcons.ExpenseCopy,
                 value: DUPLICATE,
                 shouldCloseModalOnSelect: true,
-                onSelected: handleDuplicate,
+                onSelected: invokeDuplicateHandler,
             });
         }
 
@@ -531,6 +485,10 @@ function useSelectedTransactionsActions({
         isDeleteModalVisible,
         showDeleteModal,
         hideDeleteModal,
+        isDuplicateOptionVisible,
+        setDuplicateHandler,
+        allTransactions,
+        allReports,
     };
 }
 

@@ -17,6 +17,7 @@ type UseBulkDuplicateActionParams = {
     allTransactions: OnyxCollection<Transaction>;
     allReports: OnyxCollection<Report> | undefined;
     searchData: Record<string, unknown> | undefined;
+    onAfterDuplicate?: () => void;
 };
 
 /**
@@ -24,7 +25,7 @@ type UseBulkDuplicateActionParams = {
  * Designed to be called inside a component that only mounts when the duplicate option is visible,
  * so these subscriptions don't exist for users who aren't actively duplicating.
  */
-function useBulkDuplicateAction({selectedTransactionsKeys, allTransactions, allReports, searchData}: UseBulkDuplicateActionParams) {
+function useBulkDuplicateAction({selectedTransactionsKeys, allTransactions, allReports, searchData, onAfterDuplicate}: UseBulkDuplicateActionParams) {
     const {accountID} = useCurrentUserPersonalDetails();
     const {clearSelectedTransactions} = useSearchActionsContext();
     const defaultExpensePolicy = useDefaultExpensePolicy();
@@ -79,7 +80,11 @@ function useBulkDuplicateAction({selectedTransactionsKeys, allTransactions, allR
             recentWaypoints,
         });
 
-        clearSelectedTransactions(undefined, true);
+        if (onAfterDuplicate) {
+            onAfterDuplicate();
+        } else {
+            clearSelectedTransactions(undefined, true);
+        }
     };
 
     return handleDuplicate;

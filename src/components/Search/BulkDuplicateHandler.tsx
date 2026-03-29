@@ -9,6 +9,7 @@ type BulkDuplicateHandlerProps = {
     allReports: OnyxCollection<Report> | undefined;
     searchData: Record<string, unknown> | undefined;
     onHandlerReady: (handler: () => void) => void;
+    onAfterDuplicate?: () => void;
 };
 
 /**
@@ -16,8 +17,8 @@ type BulkDuplicateHandlerProps = {
  * Only mounted when the duplicate option is visible, avoiding unnecessary global
  * subscriptions on the search page for users who aren't duplicating.
  */
-function BulkDuplicateHandler({selectedTransactionsKeys, allTransactions, allReports, searchData, onHandlerReady}: BulkDuplicateHandlerProps) {
-    const handleDuplicate = useBulkDuplicateAction({selectedTransactionsKeys, allTransactions, allReports, searchData});
+function BulkDuplicateHandler({selectedTransactionsKeys, allTransactions, allReports, searchData, onHandlerReady, onAfterDuplicate}: BulkDuplicateHandlerProps) {
+    const handleDuplicate = useBulkDuplicateAction({selectedTransactionsKeys, allTransactions, allReports, searchData, onAfterDuplicate});
 
     useEffect(() => {
         onHandlerReady(handleDuplicate);
