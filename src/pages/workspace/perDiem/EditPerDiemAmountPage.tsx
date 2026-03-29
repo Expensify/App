@@ -38,7 +38,7 @@ function EditPerDiemAmountPage({route}: EditPerDiemAmountPageProps) {
     const selectedRate = customUnit?.rates?.[rateID];
     const selectedSubrate = selectedRate?.subRates?.find((subRate) => subRate.id === subRateID);
 
-    const defaultAmount = selectedSubrate?.rate ? convertToFrontendAmountAsString(Number(selectedSubrate.rate)) : undefined;
+    const defaultAmount = selectedSubrate?.rate ? convertToFrontendAmountAsString(Number(selectedSubrate.rate), CONST.POLICY.CUSTOM_UNIT_RATE_BASE_OFFSET) : undefined;
 
     const {inputCallbackRef} = useAutoFocusInput();
 

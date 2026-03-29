@@ -116,23 +116,23 @@ describe('CurrencyUtils', () => {
 
     describe('convertToFrontendAmountAsString', () => {
         test.each([
-            [2500, '25.00', 'USD'],
-            [2550, '25.50', 'USD'],
-            [25, '0.25', 'USD'],
-            [2500.5, '25.00', 'USD'],
-            [null, '', 'USD'],
-            [undefined, '', 'USD'],
-            [0, '0.00', 'USD'],
-            [2500, '25', 'VND'],
-            [2550, '26', 'VND'],
-            [25, '0', 'VND'],
-            [2500.5, '25', 'VND'],
-            [null, '', 'VND'],
-            [undefined, '', 'VND'],
-            [0, '0', 'VND'],
-            [2586, '26', 'VND'],
-        ])('Correctly converts %s to amount in units handled in frontend as a string', (input, expectedResult, currency) => {
-            expect(CurrencyUtils.convertToFrontendAmountAsString(input, currency ?? CONST.CURRENCY.USD)).toBe(expectedResult);
+            [2500, '25.00', 2],
+            [2550, '25.50', 2],
+            [25, '0.25', 2],
+            [2500.5, '25.00', 2],
+            [null, '', 2],
+            [undefined, '', 2],
+            [0, '0.00', 2],
+            [2500, '25', 0],
+            [2550, '26', 0],
+            [25, '0', 0],
+            [2500.5, '25', 0],
+            [null, '', 0],
+            [undefined, '', 0],
+            [0, '0', 0],
+            [2586, '26', 0],
+        ])('Correctly converts %s to amount in units handled in frontend as a string', (input, expectedResult, decimals) => {
+            expect(CurrencyUtils.convertToFrontendAmountAsString(input, decimals)).toBe(expectedResult);
         });
     });
 
