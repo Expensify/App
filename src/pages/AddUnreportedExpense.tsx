@@ -60,7 +60,6 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const [ownerBillingGraceEndPeriod] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const [userBillingGraceEndPeriods] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
-    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const shouldShowUnreportedTransactionsSkeletons = isLoadingUnreportedTransactions && hasMoreUnreportedTransactionsResults && !isOffline;
     const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
 
@@ -300,7 +299,7 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
                                 if (
                                     report &&
                                     report.policyID &&
-                                    shouldRestrictUserBillableActions(report.policyID, ownerBillingGraceEndPeriod, userBillingGraceEndPeriods, undefined, allPolicies)
+                                    shouldRestrictUserBillableActions(report.policyID, ownerBillingGraceEndPeriod, userBillingGraceEndPeriods, undefined, policy)
                                 ) {
                                     Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(report.policyID));
                                     return;

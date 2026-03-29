@@ -126,8 +126,6 @@ function SettlementButton({
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [userBillingGraceEndPeriods] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [ownerBillingGraceEndPeriod] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
-    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
-
     const lastPaymentMethod = iouReport?.type
         ? getLastPolicyPaymentMethod(policyIDKey, personalPolicyID, lastPaymentMethods, iouReport?.type as keyof LastPaymentMethodType, isIOUReport(iouReport))
         : undefined;
@@ -223,7 +221,7 @@ function SettlementButton({
             return true;
         }
 
-        if (policy && shouldRestrictUserBillableActions(policy.id, ownerBillingGraceEndPeriod, userBillingGraceEndPeriods, undefined, allPolicies)) {
+        if (policy && shouldRestrictUserBillableActions(policy.id, ownerBillingGraceEndPeriod, userBillingGraceEndPeriods, undefined, policy)) {
             Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
             return true;
         }
@@ -237,7 +235,6 @@ function SettlementButton({
         policy,
         userBillingGraceEndPeriods,
         ownerBillingGraceEndPeriod,
-        allPolicies,
         showDelegateNoAccessModal,
         showLockedAccountModal,
         chatReportID,

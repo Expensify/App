@@ -83,7 +83,11 @@ function getRestrictedPolicyID(
 ): string | undefined {
     return items
         .map((item) => item.policyID)
-        .find((policyID): policyID is string => !!policyID && shouldRestrictUserBillableActions(policyID, ownerBillingGraceEndPeriod, billingGracePeriods, undefined, allPolicies));
+        .find(
+            (policyID): policyID is string =>
+                !!policyID &&
+                shouldRestrictUserBillableActions(policyID, ownerBillingGraceEndPeriod, billingGracePeriods, undefined, allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]),
+        );
 }
 
 function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {

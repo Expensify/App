@@ -467,11 +467,9 @@ function shouldRestrictUserBillableActions(
     ownerBillingGraceEndPeriod: OnyxEntry<number>,
     userBillingGraceEndPeriods: OnyxCollection<BillingGraceEndPeriod> = deprecatedUserBillingGraceEndPeriods,
     amountOwed: OnyxEntry<number> = privateAmountOwed,
-    allPolicies: OnyxCollection<Policy> = deprecatedAllPolicies,
+    policy: OnyxEntry<Policy> = deprecatedAllPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`],
 ): boolean {
     const currentDate = new Date();
-
-    const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
 
     // This logic will be executed if the user is a workspace's non-owner (normal user or admin).
     // We should restrict the workspace's non-owner actions if it's member of a workspace where the owner is
