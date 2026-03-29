@@ -19,8 +19,7 @@ const prepareReportKeys = (keys: string[]) => {
                 key
                     .replace(ONYXKEYS.COLLECTION.REPORT_METADATA, ONYXKEYS.COLLECTION.REPORT)
                     .replace(ONYXKEYS.COLLECTION.REPORT_ACTIONS, ONYXKEYS.COLLECTION.REPORT)
-                    .replace(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, ONYXKEYS.COLLECTION.REPORT)
-                    .replace(ONYXKEYS.COLLECTION.REPORT_VIOLATIONS, ONYXKEYS.COLLECTION.REPORT),
+                    .replace(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, ONYXKEYS.COLLECTION.REPORT),
             ),
         ),
     ];
@@ -88,12 +87,11 @@ export default createOnyxDerivedValueConfig({
         ONYXKEYS.SESSION,
         ONYXKEYS.COLLECTION.POLICY,
         ONYXKEYS.COLLECTION.POLICY_TAGS,
-        ONYXKEYS.COLLECTION.REPORT_VIOLATIONS,
         ONYXKEYS.COLLECTION.REPORT_METADATA,
         ONYXKEYS.CONCIERGE_REPORT_ID,
     ],
     compute: (
-        [reports, preferredLocale, transactionViolations, reportActions, reportNameValuePairs, transactions, personalDetails, session, policies, policyTags, reportViolations],
+        [reports, preferredLocale, transactionViolations, reportActions, reportNameValuePairs, transactions, personalDetails, session, policies, policyTags],
         {currentValue, sourceValues},
     ) => {
         // Check if display names changed when personal details are updated
@@ -154,7 +152,6 @@ export default createOnyxDerivedValueConfig({
         const reportMetadataUpdates = sourceValues?.[ONYXKEYS.COLLECTION.REPORT_METADATA] ?? {};
         const reportActionsUpdates = sourceValues?.[ONYXKEYS.COLLECTION.REPORT_ACTIONS] ?? {};
         const reportNameValuePairsUpdates = sourceValues?.[ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS] ?? {};
-        const reportViolationsUpdates = sourceValues?.[ONYXKEYS.COLLECTION.REPORT_VIOLATIONS] ?? {};
         const transactionsUpdates = sourceValues?.[ONYXKEYS.COLLECTION.TRANSACTION];
         const transactionViolationsUpdates = sourceValues?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS];
         const policyTagsUpdates = sourceValues?.[ONYXKEYS.COLLECTION.POLICY_TAGS];
@@ -181,7 +178,6 @@ export default createOnyxDerivedValueConfig({
             ...Object.keys(reportMetadataUpdates),
             ...Object.keys(reportActionsUpdates),
             ...Object.keys(reportNameValuePairsUpdates),
-            ...Object.keys(reportViolationsUpdates),
             ...Array.from(reportUpdatesRelatedToReportActions),
             ...policyChangedReportKeys,
         ];
@@ -272,7 +268,7 @@ export default createOnyxDerivedValueConfig({
             });
 
             const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
-            const hasFieldViolations = hasVisibleReportFieldViolations(report, policy, reportViolations?.[`${ONYXKEYS.COLLECTION.REPORT_VIOLATIONS}${report.reportID}`]);
+            const hasFieldViolations = hasVisibleReportFieldViolations(report, policy);
 
             let brickRoadStatus;
             let actionBadge;
