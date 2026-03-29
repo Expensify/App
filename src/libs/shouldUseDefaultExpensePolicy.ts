@@ -16,7 +16,7 @@ function shouldUseDefaultExpensePolicy(
         iouType === CONST.IOU.TYPE.CREATE &&
         isPaidGroupPolicy(defaultExpensePolicy) &&
         defaultExpensePolicy?.isPolicyExpenseChatEnabled &&
-        !shouldRestrictUserBillableActions(defaultExpensePolicy.id, userBillingGraceEndPeriods, amountOwed, ownerBillingGraceEndPeriod)
+        !shouldRestrictUserBillableActions(defaultExpensePolicy.id, ownerBillingGraceEndPeriod, userBillingGraceEndPeriods, amountOwed)
     );
 }
 
