@@ -52,6 +52,10 @@ function SearchTypeMenuWide({queryJSON}: SearchTypeMenuProps) {
         'Bank',
         'User',
         'Folder',
+        'Document',
+        'Send',
+        'ThumbsUp',
+        'CheckCircle',
     ] as const);
     const {clearSelectedTransactions} = useSearchActionsContext();
     const [isSearchDataLoaded, isSearchDataLoadedResult] = useOnyx(ONYXKEYS.IS_SEARCH_PAGE_DATA_LOADED);
@@ -120,13 +124,12 @@ function SearchTypeMenuWide({queryJSON}: SearchTypeMenuProps) {
                                 section.menuItems.map((item, itemIndex) => {
                                     const flattenedIndex = (sectionStartIndices?.at(sectionIndex) ?? 0) + itemIndex;
                                     const focused = activeItemIndex === flattenedIndex;
-                                    const icon = typeof item.icon === 'string' ? expensifyIcons[item.icon] : item.icon;
 
                                     return (
                                         <SearchTypeMenuItem
                                             key={item.key}
                                             title={translate(item.translationPath)}
-                                            icon={icon}
+                                            icon={expensifyIcons[item.icon]}
                                             badgeText={getItemBadgeText(item.key, reportCounts)}
                                             focused={focused}
                                             onPress={() => handleTypeMenuItemPress(item.searchQuery)}

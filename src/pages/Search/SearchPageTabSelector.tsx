@@ -77,6 +77,11 @@ function SearchPageTabSelector({queryJSON, onTabPress}: SearchPageTabSelectorPro
         'Bookmark',
         'ExpensifyCard',
         'Pencil',
+        'Trashcan',
+        'Document',
+        'Send',
+        'ThumbsUp',
+        'CheckCircle',
     ] as const);
 
     const queryMap = new Map<string, {query: string; name?: string}>();
@@ -135,13 +140,12 @@ function SearchPageTabSelector({queryJSON, onTabPress}: SearchPageTabSelectorPro
             tabItems.push(...savedSearchesTabItems);
         } else {
             for (const item of section.menuItems) {
-                const icon = typeof item.icon === 'string' ? expensifyIcons[item.icon] : item.icon;
                 const badgeText = getItemBadgeText(item.key, reportCounts);
                 const title = translate(item.translationPath);
 
                 tabItems.push({
                     key: item.key,
-                    icon,
+                    icon: expensifyIcons[item.icon],
                     title,
                     badgeText,
                 });

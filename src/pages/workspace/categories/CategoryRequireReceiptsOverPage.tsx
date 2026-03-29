@@ -3,7 +3,7 @@ import type {ValueOf} from 'type-fest';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
-import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
+import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import useLocalize from '@hooks/useLocalize';
 import usePolicyData from '@hooks/usePolicyData';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -92,7 +92,7 @@ function CategoryRequireReceiptsOverPage({
                 />
                 <SelectionList
                     data={requireReceiptsOverListData}
-                    ListItem={SingleSelectListItem}
+                    ListItem={RadioListItem}
                     onSelectRow={(item) => {
                         if (typeof item.value === 'number') {
                             if (item.value === CONST.DISABLED_MAX_EXPENSE_VALUE && policyCategories?.[categoryName]?.maxAmountNoItemizedReceipt !== CONST.DISABLED_MAX_EXPENSE_VALUE) {

@@ -6,7 +6,7 @@ import lodashOrderBy from 'lodash/orderBy';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {SetNonNullable} from 'type-fest';
-import {FallbackAvatar} from '@components/Icon/Expensicons';
+import FallbackAvatar from '@assets/images/avatars/fallback-avatar.svg';
 import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 import type {PrivateIsArchivedMap} from '@hooks/usePrivateIsArchivedMap';
 import {getEnabledCategoriesCount} from '@libs/CategoryUtils';
@@ -3494,7 +3494,6 @@ export type {
     Option,
     OptionList,
     OptionTree,
-    OptionWithKey,
     Options,
     OrderOptionsConfig,
     OrderReportOptionsConfig,
