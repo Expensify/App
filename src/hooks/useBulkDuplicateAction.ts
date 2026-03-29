@@ -1,6 +1,5 @@
 import {hasSeenTourSelector} from '@selectors/Onboarding';
 import {validTransactionDraftsSelector} from '@selectors/TransactionDraft';
-import {useCallback, useMemo} from 'react';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {useSearchActionsContext} from '@components/Search/SearchContext';
 import {bulkDuplicateExpenses} from '@libs/actions/IOU/Duplicate';
@@ -45,21 +44,18 @@ function useBulkDuplicateAction({selectedTransactionsKeys, allTransactions, allR
     const [targetPolicyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${defaultExpensePolicy?.id}`);
     const [targetPolicyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${defaultExpensePolicy?.id}`);
 
-    const sourcePolicyIDMap = useMemo(() => {
-        const map: Record<string, string | undefined> = {};
-        for (const transactionID of selectedTransactionsKeys) {
-            const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
-            const reportID = transaction?.reportID;
-            if (!reportID) {
-                continue;
-            }
-            const report = (searchData?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`] as Report | undefined) ?? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
-            map[transactionID] = report?.policyID;
+    const sourcePolicyIDMap: Record<string, string | undefined> = {};
+    for (const transactionID of selectedTransactionsKeys) {
+        const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
+        const reportID = transaction?.reportID;
+        if (!reportID) {
+            continue;
         }
-        return map;
-    }, [selectedTransactionsKeys, allTransactions, searchData, allReports]);
+        const report = (searchData?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`] as Report | undefined) ?? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+        sourcePolicyIDMap[transactionID] = report?.policyID;
+    }
 
-    const handleDuplicate = useCallback(() => {
+    const handleDuplicate = () => {
         const activePolicyExpenseChat = getPolicyExpenseChat(accountID, defaultExpensePolicy?.id);
 
         bulkDuplicateExpenses({
@@ -84,27 +80,7 @@ function useBulkDuplicateAction({selectedTransactionsKeys, allTransactions, allR
         });
 
         clearSelectedTransactions(undefined, true);
-    }, [
-        selectedTransactionsKeys,
-        accountID,
-        defaultExpensePolicy,
-        allTransactions,
-        sourcePolicyIDMap,
-        targetPolicyCategories,
-        targetPolicyTags,
-        personalDetails,
-        isASAPSubmitBetaEnabled,
-        introSelected,
-        activePolicyID,
-        quickAction,
-        policyRecentlyUsedCurrencies,
-        isSelfTourViewed,
-        transactionDrafts,
-        draftTransactionIDs,
-        betas,
-        recentWaypoints,
-        clearSelectedTransactions,
-    ]);
+    };
 
     return handleDuplicate;
 }
