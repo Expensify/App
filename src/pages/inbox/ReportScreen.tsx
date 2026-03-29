@@ -50,6 +50,7 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import getPlatform from '@libs/getPlatform';
 import Log from '@libs/Log';
 import {getAllNonDeletedTransactions, shouldDisplayReportTableView, shouldWaitForTransactions as shouldWaitForTransactionsUtil} from '@libs/MoneyRequestReportUtils';
+import normalizePath from '@libs/Navigation/helpers/normalizePath';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import clearReportNotifications from '@libs/Notification/clearReportNotifications';
@@ -168,6 +169,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     const [firstRender, setFirstRender] = useState(true);
     const isSkippingOpenReport = useRef(false);
     const hasCreatedLegacyThreadRef = useRef(false);
+    const repairedBrokenLinkedActionHistoryRef = useRef<string | null>(null);
     const {isBetaEnabled} = usePermissions();
     const {isOffline} = useNetwork();
     const {shouldUseNarrowLayout, isInNarrowPaneModal} = useResponsiveLayout();
@@ -924,6 +926,14 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
             underlyingSearchReportRoute?.params &&
             'reportID' in underlyingSearchReportRoute.params &&
             underlyingSearchReportRoute.params.reportID === reportIDFromRoute;
+        const brokenLinkedActionRoute =
+            reportIDFromRoute && reportActionIDFromRoute ? ROUTES.REPORT_WITH_ID.getRoute(reportIDFromRoute, reportActionIDFromRoute, undefined, backTo) : undefined;
+        const shouldConsumeRepairedBrokenLinkedActionHistory =
+            getPlatform() === CONST.PLATFORM.WEB &&
+            shouldUseNarrowLayout &&
+            route.name === SCREENS.REPORT &&
+            !!brokenLinkedActionRoute &&
+            repairedBrokenLinkedActionHistoryRef.current === brokenLinkedActionRoute;
 
         if (shouldReturnToUnderlyingSearchReport) {
             // When a broken /r/:reportID/:reportActionID route was opened from Search RHP on native,
@@ -932,12 +942,58 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
             return;
         }
 
+        if (shouldConsumeRepairedBrokenLinkedActionHistory) {
+            repairedBrokenLinkedActionHistoryRef.current = null;
+            window.history.back();
+            return;
+        }
+
         // Broken linked actions are an invalid substate of the current report.
         // Resolve back to the parent report root first and preserve `backTo`
         // so the next back action can leave the report correctly.
         Navigation.setParams({reportActionID: ''});
         fetchReport();
-    }, [fetchReport, reportIDFromRoute, route.name]);
+    }, [backTo, fetchReport, reportActionIDFromRoute, reportIDFromRoute, route.name, shouldUseNarrowLayout]);
+
+    useEffect(() => {
+        const rootState = navigationRef.getRootState();
+        const rightModalRoute = rootState?.routes.findLast((rootRoute) => rootRoute.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR);
+        const nestedRightModalRoutes = rightModalRoute?.state?.routes ?? [];
+        const underlyingSearchOriginRoute = [...nestedRightModalRoutes]
+            .reverse()
+            .find((nestedRoute) => nestedRoute.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT || nestedRoute.name === SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT);
+        const hasUnderlyingSearchOriginRouteForSameReport =
+            underlyingSearchOriginRoute?.params && 'reportID' in underlyingSearchOriginRoute.params && underlyingSearchOriginRoute.params.reportID === reportIDFromRoute;
+        const shouldRepairBrokenLinkedActionHistory =
+            getPlatform() === CONST.PLATFORM.WEB &&
+            shouldUseNarrowLayout &&
+            shouldShowNotFoundPage &&
+            shouldShowNotFoundLinkedAction &&
+            route.name === SCREENS.REPORT &&
+            !!reportIDFromRoute &&
+            !!reportActionIDFromRoute &&
+            !hasUnderlyingSearchOriginRouteForSameReport;
+
+        if (!shouldRepairBrokenLinkedActionHistory) {
+            repairedBrokenLinkedActionHistoryRef.current = null;
+            return;
+        }
+
+        const brokenLinkedActionRoute = ROUTES.REPORT_WITH_ID.getRoute(reportIDFromRoute, reportActionIDFromRoute, undefined, backTo);
+        if (repairedBrokenLinkedActionHistoryRef.current === brokenLinkedActionRoute) {
+            return;
+        }
+
+        const parentReportRootRoute = ROUTES.REPORT_WITH_ID.getRoute(reportIDFromRoute, undefined, undefined, backTo);
+        const currentHistoryState = (window.history.state ?? {}) as Record<string, unknown>;
+
+        // Create a parent-report browser history step without changing the visible screen.
+        // This lets browser/device back return to the report root first, while valid same-report links
+        // continue to avoid adding history until we know the target action is actually broken.
+        window.history.replaceState(currentHistoryState, '', normalizePath(parentReportRootRoute));
+        window.history.pushState(currentHistoryState, '', normalizePath(brokenLinkedActionRoute));
+        repairedBrokenLinkedActionHistoryRef.current = brokenLinkedActionRoute;
+    }, [backTo, reportActionIDFromRoute, reportIDFromRoute, route.name, shouldShowNotFoundLinkedAction, shouldShowNotFoundPage, shouldUseNarrowLayout]);
 
     const handleDeletedLinkedActionAndroidBackPress = useCallback(() => {
         if (!shouldShowNotFoundLinkedAction) {
