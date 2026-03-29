@@ -14,6 +14,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails, Report} from '@src/types/onyx';
 import createCollection from '../utils/collections/createCollection';
 import createPersonalDetails from '../utils/collections/personalDetails';
+import createRandomPolicy from '../utils/collections/policies';
 import {createAnnounceRoom, createRandomReport} from '../utils/collections/reports';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
@@ -202,24 +203,27 @@ describe('SearchAutocompleteList', () => {
 
     it('should render the latest workspace name in recent chat alternate text when the cached option subtitle is stale', async () => {
         const report = createAnnounceRoom(1);
-        const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`;
-        const policyKey = `${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`;
-        const staleOptions = createOptionList(
-            mockedPersonalDetails,
-            MOCK_CURRENT_USER_ACCOUNT_ID,
-            EMPTY_PRIVATE_IS_ARCHIVED_MAP,
-            {[reportKey]: report},
-            {[policyKey]: {id: report.policyID, name: 'Old Workspace'}},
-        );
+        const reportKey: `${typeof ONYXKEYS.COLLECTION.REPORT}${string}` = `${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`;
+        const policyKey: `${typeof ONYXKEYS.COLLECTION.POLICY}${string}` = `${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`;
+        const oldPolicy = {
+            ...createRandomPolicy(Number(report.policyID), CONST.POLICY.TYPE.TEAM, 'Old Workspace'),
+            pendingAction: undefined,
+            role: CONST.POLICY.ROLE.ADMIN,
+            outputCurrency: 'USD',
+            isPolicyExpenseChatEnabled: true,
+        };
+        const newPolicy = {
+            ...oldPolicy,
+            name: 'New Workspace',
+        };
+        const staleOptions = createOptionList(mockedPersonalDetails, MOCK_CURRENT_USER_ACCOUNT_ID, EMPTY_PRIVATE_IS_ARCHIVED_MAP, {[reportKey]: report}, {[policyKey]: oldPolicy});
 
         await waitForBatchedUpdates();
-        await Onyx.multiSet({
-            [reportKey]: report,
-            [policyKey]: {id: report.policyID, name: 'New Workspace'},
-            [ONYXKEYS.PERSONAL_DETAILS_LIST]: mockedPersonalDetails,
-            [ONYXKEYS.BETAS]: mockedBetas,
-            [ONYXKEYS.IS_SEARCHING_FOR_REPORTS]: true,
-        });
+        await Onyx.set(reportKey, report);
+        await Onyx.set(policyKey, newPolicy);
+        await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, mockedPersonalDetails);
+        await Onyx.set(ONYXKEYS.BETAS, mockedBetas);
+        await Onyx.set(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, true);
 
         render(<SearchRouterWrapper options={staleOptions} />);
 
