@@ -51,6 +51,7 @@ export default function useCreateReportAction({onCreateReport, groupPoliciesWith
     const {showConfirmModal} = useConfirmModal();
 
     const [shouldRedirectToExpensifyClassic, policiesMeta] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: shouldRedirectToExpensifyClassicSelector});
+    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const arePoliciesLoaded = policiesMeta.status === 'loaded';
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`);
@@ -127,13 +128,14 @@ export default function useCreateReportAction({onCreateReport, groupPoliciesWith
 
             if (
                 !workspaceIDForReportCreation ||
-                (shouldRestrictUserBillableActions(workspaceIDForReportCreation, ownerBillingGraceEndPeriod, userBillingGraceEndPeriods) && groupPoliciesWithChatEnabled.length > 1)
+                (shouldRestrictUserBillableActions(workspaceIDForReportCreation, ownerBillingGraceEndPeriod, userBillingGraceEndPeriods, undefined, allPolicies) &&
+                    groupPoliciesWithChatEnabled.length > 1)
             ) {
                 Navigation.navigate(ROUTES.NEW_REPORT_WORKSPACE_SELECTION.getRoute());
                 return;
             }
 
-            if (!shouldRestrictUserBillableActions(workspaceIDForReportCreation, ownerBillingGraceEndPeriod, userBillingGraceEndPeriods)) {
+            if (!shouldRestrictUserBillableActions(workspaceIDForReportCreation, ownerBillingGraceEndPeriod, userBillingGraceEndPeriods, undefined, allPolicies)) {
                 if (shouldShowEmptyReportConfirmation) {
                     openCreateReportConfirmation();
                 } else {
@@ -152,6 +154,7 @@ export default function useCreateReportAction({onCreateReport, groupPoliciesWith
         defaultChatEnabledPolicyID,
         userBillingGraceEndPeriods,
         ownerBillingGraceEndPeriod,
+        allPolicies,
         groupPoliciesWithChatEnabled.length,
         shouldShowEmptyReportConfirmation,
         openCreateReportConfirmation,

@@ -175,13 +175,14 @@ function QuickCreationActionsBar() {
 
                 if (
                     !workspaceIDForReportCreation ||
-                    (shouldRestrictUserBillableActions(workspaceIDForReportCreation, ownerBillingGraceEndPeriod, userBillingGraceEndPeriods) && groupPoliciesWithChatEnabled.length > 1)
+                    (shouldRestrictUserBillableActions(workspaceIDForReportCreation, ownerBillingGraceEndPeriod, userBillingGraceEndPeriods, undefined, allPolicies) &&
+                        groupPoliciesWithChatEnabled.length > 1)
                 ) {
                     Navigation.navigate(ROUTES.NEW_REPORT_WORKSPACE_SELECTION.getRoute());
                     return;
                 }
 
-                if (!shouldRestrictUserBillableActions(workspaceIDForReportCreation, ownerBillingGraceEndPeriod, userBillingGraceEndPeriods)) {
+                if (!shouldRestrictUserBillableActions(workspaceIDForReportCreation, ownerBillingGraceEndPeriod, userBillingGraceEndPeriods, undefined, allPolicies)) {
                     if (shouldShowEmptyReportConfirmationForDefaultChatEnabledPolicy) {
                         openCreateReportConfirmation();
                     } else {
@@ -199,6 +200,7 @@ function QuickCreationActionsBar() {
             defaultChatEnabledPolicyID,
             userBillingGraceEndPeriods,
             ownerBillingGraceEndPeriod,
+            allPolicies,
             groupPoliciesWithChatEnabled.length,
             shouldShowEmptyReportConfirmationForDefaultChatEnabledPolicy,
             openCreateReportConfirmation,
