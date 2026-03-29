@@ -139,6 +139,10 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
 
     const createReport = () => {
         if (hasPerDiemTransactions) {
+            if (selectedReport?.policyID && shouldRestrictUserBillableActions(selectedReport.policyID, ownerBillingGraceEndPeriod, userBillingGraceEndPeriods)) {
+                Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(selectedReport.policyID));
+                return;
+            }
             handleCreateReport();
             return;
         }

@@ -260,6 +260,11 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
 
     const createReport = () => {
         if (isPerDiemTransaction) {
+            const perDiemPolicyID = perDiemOriginalPolicy?.id;
+            if (perDiemPolicyID && shouldRestrictUserBillableActions(perDiemPolicyID, ownerBillingGraceEndPeriod, userBillingGraceEndPeriods)) {
+                Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(perDiemPolicyID));
+                return;
+            }
             handleCreateReport();
             return;
         }
