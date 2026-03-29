@@ -58,6 +58,7 @@ import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import useAllTransactions from './useAllTransactions';
 import useBulkPayOptions from './useBulkPayOptions';
 import useConfirmModal from './useConfirmModal';
+import {useCurrencyListActions} from './useCurrencyList';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons} from './useLazyAsset';
 import useLocalize from './useLocalize';
@@ -161,6 +162,8 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         'CertiniaSquare',
         'Pencil',
     ] as const);
+
+    const {getCurrencyDecimals} = useCurrencyListActions();
 
     const selectedTransactionReportIDs = useMemo(
         () => [
@@ -1085,7 +1088,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                         text: translate('common.merge'),
                         icon: expensifyIcons.ArrowCollapse,
                         value: CONST.SEARCH.BULK_ACTION_TYPES.MERGE,
-                        onSelected: () => setupMergeTransactionDataAndNavigate(transactionID, searchedTransactions, localeCompare, reports, false, true),
+                        onSelected: () => setupMergeTransactionDataAndNavigate(transactionID, searchedTransactions, localeCompare, getCurrencyDecimals, reports, false, true),
                     });
                 }
             }
@@ -1242,6 +1245,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         userBillingGraceEndPeriods,
         ownerBillingGraceEndPeriod,
         currentSearchKey,
+        getCurrencyDecimals,
     ]);
 
     const handleOfflineModalClose = useCallback(() => {
