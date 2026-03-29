@@ -148,6 +148,7 @@ import {
     canIOUBePaid as canIOUBePaidAction,
     dismissRejectUseExplanation,
     getNavigationUrlOnMoneyRequestDelete,
+    markReportPaymentReceived,
     markRejectViolationAsResolved,
     payInvoice,
     payMoneyRequest,
@@ -267,6 +268,7 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
         'Buildings',
         'Plus',
         'Hourglass',
+        'MoneyBag',
         'Cash',
         'Box',
         'Stopwatch',
@@ -1762,6 +1764,43 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
             value: CONST.REPORT.SECONDARY_ACTIONS.APPROVE,
             sentryLabel: CONST.SENTRY_LABEL.MORE_MENU.APPROVE,
             onSelected: confirmApproval,
+        },
+        [CONST.REPORT.SECONDARY_ACTIONS.RECEIVED_PAYMENT]: {
+            text: translate('iou.receivedPayment'),
+            icon: expensifyIcons.MoneyBag,
+            value: CONST.REPORT.SECONDARY_ACTIONS.RECEIVED_PAYMENT,
+            sentryLabel: CONST.SENTRY_LABEL.MORE_MENU.RECEIVED_PAYMENT,
+            onSelected: async () => {
+                const result = await showConfirmModal({
+                    title: translate('iou.confirmPaymentReceived'),
+                    prompt: translate('iou.receivedPaymentConfirmation'),
+                    confirmText: translate('iou.yesIHaveReceivedPayment'),
+                    cancelText: translate('common.cancel'),
+                });
+
+                if (result.action !== ModalActions.CONFIRM) {
+                    return;
+                }
+
+                if (isDelegateAccessRestricted) {
+                    showDelegateNoAccessModal();
+                    return;
+                }
+
+                if (isAnyTransactionOnHold) {
+                    setSelectedVBBAToPayFromHoldMenu(undefined);
+                    if (getPlatform() === CONST.PLATFORM.IOS) {
+                        // eslint-disable-next-line @typescript-eslint/no-deprecated
+                        InteractionManager.runAfterInteractions(() => setIsHoldMenuVisible(true));
+                    } else {
+                        setIsHoldMenuVisible(true);
+                    }
+                    return;
+                }
+
+                startAnimation();
+                markReportPaymentReceived(chatReport, moneyRequestReport, nextStep);
+            },
         },
         [CONST.REPORT.SECONDARY_ACTIONS.UNAPPROVE]: {
             text: translate('iou.unapprove'),
