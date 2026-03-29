@@ -7631,7 +7631,6 @@ const CONST = {
                 COMPLETED: 'completed',
             },
         },
-        INLINE_EDITABLE_EXPENSE_STATUSES: new Set<string>(['', 'unreported', 'drafts', 'outstanding']),
         GROUP_COLUMN_PREFIX: 'group',
         TABLE_COLUMNS: {
             RECEIPT: 'receipt',
