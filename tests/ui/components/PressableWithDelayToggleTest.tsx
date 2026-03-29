@@ -25,6 +25,7 @@ describe('PressableWithDelayToggle', () => {
                 inline={false}
                 onPress={onPress}
                 accessibilityLabel="Invite or resend"
+                sentryLabel="PressableWithDelayToggleTest-InviteOrResend"
             />,
         );
 
