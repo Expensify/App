@@ -46,6 +46,9 @@ type DisplayNamesProps = ForwardedFSClassProps & {
      */
     accessibilityLabel?: string;
 
+    /** Describes the result of interacting with the element for screen readers. */
+    accessibilityHint?: string;
+
     /** If the full title needs to be displayed */
     shouldUseFullTitle?: boolean;
 

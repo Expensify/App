@@ -233,7 +233,6 @@ function Lightbox({attachmentID, isAuthTokenRequired = false, uri, onScaleChange
                                 externalGestureHandler={externalGestureHandler}
                             >
                                 <Image
-                                    accessibilityIgnoresInvertColors
                                     source={{uri}}
                                     style={[contentSize ?? styles.invisibleImage]}
                                     isAuthTokenRequired={isAuthTokenRequired}
@@ -263,7 +262,6 @@ function Lightbox({attachmentID, isAuthTokenRequired = false, uri, onScaleChange
                     {isFallbackVisible && isFallbackInRange && (
                         <View style={StyleUtils.getFullscreenCenteredContentStyles()}>
                             <Image
-                                accessibilityIgnoresInvertColors
                                 source={{uri}}
                                 resizeMode="contain"
                                 style={[fallbackSize ?? styles.invisibleImage]}

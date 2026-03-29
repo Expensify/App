@@ -226,7 +226,6 @@ function ImageView({isAuthTokenRequired = false, url, fileName, onError}: ImageV
                 sentryLabel={CONST.SENTRY_LABEL.ATTACHMENT_MODAL.IMAGE_ZOOM}
             >
                 <Image
-                    accessibilityIgnoresInvertColors
                     source={{uri: url}}
                     isAuthTokenRequired={isAuthTokenRequired}
                     style={[styles.h100, styles.w100]}
