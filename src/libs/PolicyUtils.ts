@@ -459,6 +459,16 @@ function isPolicyPayer(policy: OnyxEntry<Policy>, currentUserLogin: string | und
     return false;
 }
 
+/** Check if the passed employee is an approver in the policy's employeeList */
+function isPolicyApprover(policy: OnyxEntry<Policy>, employeeLogin: string) {
+    if (policy?.approver === employeeLogin) {
+        return true;
+    }
+    return Object.values(policy?.employeeList ?? {}).some(
+        (employee) => employee?.submitsTo === employeeLogin || employee?.forwardsTo === employeeLogin || employee?.overLimitForwardsTo === employeeLogin,
+    );
+}
+
 function getUberConnectionErrorDirectlyFromPolicy(policy: OnyxEntry<Policy>) {
     const receiptUber = policy?.receiptPartners?.uber;
 
@@ -2229,6 +2239,7 @@ export {
     isPolicyTaxEnabled,
     sortPoliciesByName,
     resolveCurrentTaxCode,
+    isPolicyApprover,
 };
 
 export type {MemberEmailsToAccountIDs};

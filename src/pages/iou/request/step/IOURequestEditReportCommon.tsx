@@ -17,7 +17,7 @@ import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import useReportTransactions from '@hooks/useReportTransactions';
 import Navigation from '@libs/Navigation/Navigation';
 import {canSubmitPerDiemExpenseFromWorkspace, isPolicyAdmin, isTimeTrackingEnabled} from '@libs/PolicyUtils';
-import {canAddTransaction, getIconsForExpenseReport, isIOUReport, isOpenReport, isReportOwner, sortOutstandingReportsBySelected} from '@libs/ReportUtils';
+import {canAddTransaction, getIconsForExpenseReport, isIOUReport, isOpenReport, isReportOwner, isSelfDM, sortOutstandingReportsBySelected} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {isPerDiemRequest as isPerDiemRequestUtil} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
@@ -71,6 +71,7 @@ function IOURequestEditReportCommon({
     const personalDetails = usePersonalDetails();
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
+    const [userBillingGraceEndPeriods] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [ownerBillingGraceEndPeriod] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [selectedReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${selectedReportID}`);
@@ -115,7 +116,11 @@ function IOURequestEditReportCommon({
     }, [transactionIDs, selectedReport, reportTransactions]);
 
     const shouldShowRemoveFromReport =
-        !!(selectedReportID && selectedReportID !== CONST.REPORT.UNREPORTED_REPORT_ID && selectedReport) && isEditing && isOwner && !isReportIOU && !isCardTransaction;
+        !!(selectedReportID && selectedReportID !== CONST.REPORT.UNREPORTED_REPORT_ID && selectedReport && !isSelfDM(selectedReport)) &&
+        isEditing &&
+        isOwner &&
+        !isReportIOU &&
+        !isCardTransaction;
 
     const outstandingReports = useOutstandingReports(selectedReportID, selectedPolicyID, resolvedReportOwnerAccountID, isEditing);
 
@@ -220,7 +225,7 @@ function IOURequestEditReportCommon({
             return;
         }
 
-        if (item?.policyID && shouldRestrictUserBillableActions(item.policyID, undefined, undefined, ownerBillingGraceEndPeriod)) {
+        if (item?.policyID && shouldRestrictUserBillableActions(item.policyID, ownerBillingGraceEndPeriod, userBillingGraceEndPeriods, undefined)) {
             Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(item.policyID));
             return;
         }

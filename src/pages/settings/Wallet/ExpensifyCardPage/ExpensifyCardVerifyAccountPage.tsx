@@ -55,14 +55,6 @@ function ExpensifyCardVerifyAccountPage({route}: ExpensifyCardVerifyAccountPageP
                 navigateBack();
             })
             .catch((error: TranslationPaths) => {
-                if (error === 'cardPage.missingPrivateDetails') {
-                    setCardsDetailsErrors((prevState) => ({
-                        ...prevState,
-                        [cardID]: error,
-                    }));
-                    navigateBack();
-                    return;
-                }
                 setValidateError(getMicroSecondOnyxErrorWithTranslationKey(error));
             })
             .finally(() => {
