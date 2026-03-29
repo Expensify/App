@@ -10,7 +10,7 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/EnableGlobalReimbursementsForm';
 
-type EnableGlobalReimbursementsAgreementsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.WALLET.ENABLE_GLOBAL_REIMBURSEMENTS_BUSINESS>;
+type EnableGlobalReimbursementsAgreementsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.WALLET.ENABLE_GLOBAL_REIMBURSEMENTS_AGREEMENTS>;
 
 const inputIDs = {
     provideTruthfulInformation: INPUT_IDS.PROVIDE_TRUTHFUL_INFORMATION,

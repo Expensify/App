@@ -11,7 +11,7 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/EnableGlobalReimbursementsForm';
 
-type EnableGlobalReimbursementsSignPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.WALLET.ENABLE_GLOBAL_REIMBURSEMENTS_BUSINESS>;
+type EnableGlobalReimbursementsSignPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.WALLET.ENABLE_GLOBAL_REIMBURSEMENTS_SIGN>;
 
 function EnableGlobalReimbursementsSignPage({route}: EnableGlobalReimbursementsSignPageProps) {
     const bankAccountID = route.params?.bankAccountID;
