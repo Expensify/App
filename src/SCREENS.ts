@@ -118,6 +118,7 @@ const SCREENS = {
         REPORT_CARD_LOST_OR_DAMAGED: 'Settings_ReportCardLostOrDamaged',
         REPORT_CARD_LOST_OR_DAMAGED_CONFIRM_MAGIC_CODE: 'Settings_ReportCardLostOrDamaged_ConfirmMagicCode',
         TROUBLESHOOT: 'Settings_Troubleshoot',
+        HELP: 'Settings_Help',
         DYNAMIC_VERIFY_ACCOUNT: 'Dynamic_Verify_Account',
         DYNAMIC_ADD_BANK_ACCOUNT_VERIFY_ACCOUNT: 'Dynamic_Add_Bank_Account_Verify_Account',
 
@@ -928,8 +929,8 @@ const SCREENS = {
         REPORT: 'Debug_Report',
         REPORT_ACTION: 'Debug_Report_Action',
         REPORT_ACTION_CREATE: 'Debug_Report_Action_Create',
-        DETAILS_CONSTANT_PICKER_PAGE: 'Debug_Details_Constant_Picker_Page',
-        DETAILS_DATE_TIME_PICKER_PAGE: 'Debug_Details_Date_Time_Picker_Page',
+        DYNAMIC_DETAILS_CONSTANT_PICKER_PAGE: 'Dynamic_Debug_Details_Constant_Picker_Page',
+        DYNAMIC_DETAILS_DATE_TIME_PICKER_PAGE: 'Dynamic_Debug_Details_Date_Time_Picker_Page',
         TRANSACTION: 'Debug_Transaction',
         TRANSACTION_VIOLATION_CREATE: 'Debug_Transaction_Violation_Create',
         TRANSACTION_VIOLATION: 'Debug_Transaction_Violation',
