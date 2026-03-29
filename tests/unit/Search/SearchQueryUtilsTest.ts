@@ -1424,7 +1424,7 @@ describe('SearchQueryUtils', () => {
         });
 
         test('includes view when explicitly set to table in rawFilterList', () => {
-            const queryJSON = buildSearchQueryJSON('type:expense view:table', 'type:expense view:table');
+            const queryJSON = buildSearchQueryJSON('type:expense groupBy:category view:table', 'type:expense groupBy:category view:table');
 
             const result = buildSearchQueryString(queryJSON);
 
