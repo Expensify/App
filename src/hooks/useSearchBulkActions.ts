@@ -51,8 +51,15 @@ import {
 } from '@libs/ReportUtils';
 import {navigateToSearchRHP, shouldShowDeleteOption} from '@libs/SearchUIUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
-import {hasCustomUnitOutOfPolicyViolation, hasTransactionBeenRejected, isDistanceRequest, isManagedCardTransaction, isPerDiemRequest, isScanning} from '@libs/TransactionUtils';
-import {hasTransactionBeenRejected, isDeletedTransaction} from '@libs/TransactionUtils';
+import {
+    hasCustomUnitOutOfPolicyViolation,
+    hasTransactionBeenRejected,
+    isDeletedTransaction,
+    isDistanceRequest,
+    isManagedCardTransaction,
+    isPerDiemRequest,
+    isScanning,
+} from '@libs/TransactionUtils';
 import variables from '@styles/variables';
 import {canIOUBePaid, dismissRejectUseExplanation} from '@userActions/IOU';
 import CONST from '@src/CONST';
