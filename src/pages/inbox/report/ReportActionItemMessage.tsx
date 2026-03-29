@@ -54,12 +54,13 @@ function ReportActionItemMessage({action, displayAsGroup, reportID, style, isHid
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(getLinkedTransactionID(action))}`);
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
+    const [reportAttributes] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
 
     const fragments = getReportActionMessageFragments(translate, action);
     const isIOUReport = isMoneyRequestAction(action);
 
     if (isMemberChangeAction(action)) {
-        const fragment = getMemberChangeMessageFragment(translate, action);
+        const fragment = getMemberChangeMessageFragment(translate, action, reportAttributes?.reports);
 
         return (
             <View style={[styles.chatItemMessage, style]}>

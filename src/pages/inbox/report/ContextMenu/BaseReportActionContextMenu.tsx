@@ -243,6 +243,7 @@ function BaseReportActionContextMenu({
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
+    const [reportAttributes] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
 
     const isTryNewDotNVPDismissed = !!tryNewDot?.classicRedirect?.dismissed;
     const session = useSession();
@@ -413,6 +414,7 @@ function BaseReportActionContextMenu({
                             encryptedAuthToken,
                             iouTransaction,
                             bankAccountList,
+                            reportAttributes: reportAttributes?.reports,
                         };
 
                         if ('renderContent' in contextAction) {
