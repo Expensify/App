@@ -7,7 +7,6 @@ import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleCon
 import type {CombinedCardFeed, CombinedCardFeeds} from '@hooks/useCardFeeds';
 import type {FeedKeysWithAssignedCards} from '@hooks/useFeedKeysWithAssignedCards';
 import type IllustrationsType from '@styles/theme/illustrations/types';
-import * as Illustrations from '@src/components/Icon/Illustrations';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -60,6 +59,7 @@ const COMPANY_CARD_FEED_ICON_NAMES = [
     'BrexCompanyCardDetailLarge',
     'StripeCompanyCardDetailLarge',
     'PlaidCompanyCardDetailLarge',
+    'ExpensifyCardImage',
 ] as const;
 
 type CompanyCardFeedIconName = TupleToUnion<typeof COMPANY_CARD_FEED_ICON_NAMES>;
@@ -493,11 +493,11 @@ function getCardFeedIcon(cardFeed: CardFeedWithNumber | CardFeedWithDomainID | u
         [CONST.COMPANY_CARD.FEED_BANK_NAME.CSV]: illustrations.GenericCSVCompanyCardLarge,
         [CONST.COMPANY_CARD.FEED_BANK_NAME.PEX]: illustrations.GenericCompanyCardLarge,
         [CONST.COMPANY_CARD.FEED_BANK_NAME.MOCK_BANK]: illustrations.GenericCompanyCardLarge,
-        [CONST.EXPENSIFY_CARD.BANK]: Illustrations.ExpensifyCardImage,
+        [CONST.EXPENSIFY_CARD.BANK]: companyCardIllustrations.ExpensifyCardImage,
     };
 
     if (cardFeed.startsWith(CONST.EXPENSIFY_CARD.BANK)) {
-        return Illustrations.ExpensifyCardImage;
+        return companyCardIllustrations.ExpensifyCardImage;
     }
 
     const feedIcon = feedIcons[cardFeed as keyof typeof feedIcons];

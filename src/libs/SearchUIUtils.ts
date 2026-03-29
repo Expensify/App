@@ -57,7 +57,6 @@ import type {
 import type {ListItem} from '@components/SelectionList/types';
 import type {FeedKeysWithAssignedCards} from '@hooks/useFeedKeysWithAssignedCards';
 import type {ThemeColors} from '@styles/theme/types';
-import * as Expensicons from '@src/components/Icon/Expensicons';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -463,12 +462,25 @@ type SearchTypeMenuItem = {
     key: SearchKey;
     translationPath: TranslationPaths;
     type: SearchDataTypes;
-    icon?:
-        | IconAsset
-        | Extract<
-              ExpensifyIconName,
-              'Receipt' | 'ChatBubbles' | 'MoneyBag' | 'CreditCard' | 'MoneyHourglass' | 'CreditCardHourglass' | 'Bank' | 'User' | 'Folder' | 'Basket' | 'CalendarSolid' | 'ExpensifyCard'
-          >;
+    icon: Extract<
+        ExpensifyIconName,
+        | 'Receipt'
+        | 'ChatBubbles'
+        | 'MoneyBag'
+        | 'CreditCard'
+        | 'MoneyHourglass'
+        | 'CreditCardHourglass'
+        | 'Bank'
+        | 'User'
+        | 'Folder'
+        | 'Basket'
+        | 'CalendarSolid'
+        | 'ExpensifyCard'
+        | 'Document'
+        | 'Send'
+        | 'ThumbsUp'
+        | 'CheckCircle'
+    >;
     searchQuery: string;
     searchQueryJSON: SearchQueryJSON | undefined;
     hash: number;
@@ -536,12 +548,10 @@ function doesSearchItemMatchSort(key: SearchKey, itemSortBy: string | undefined,
 function createTopSearchMenuItem(
     key: SearchKey,
     translationPath: TranslationPaths,
-    icon:
-        | IconAsset
-        | Extract<
-              ExpensifyIconName,
-              'Receipt' | 'ChatBubbles' | 'MoneyBag' | 'CreditCard' | 'MoneyHourglass' | 'CreditCardHourglass' | 'Bank' | 'User' | 'Folder' | 'Basket' | 'ExpensifyCard'
-          >,
+    icon: Extract<
+        ExpensifyIconName,
+        'Receipt' | 'ChatBubbles' | 'MoneyBag' | 'CreditCard' | 'MoneyHourglass' | 'CreditCardHourglass' | 'Bank' | 'User' | 'Folder' | 'Basket' | 'ExpensifyCard'
+    >,
     groupBy: ValueOf<typeof CONST.SEARCH.GROUP_BY>,
     limit?: number,
     view?: ValueOf<typeof CONST.SEARCH.VIEW>,
@@ -598,11 +608,7 @@ function createTopSearchMenuItem(
  * If you are trying to access data about a specific search, you do NOT need to subscribe to the data (such as feeds) if it does not
  * affect the specific query you are looking for
  */
-function getSuggestedSearches(
-    accountID: number = CONST.DEFAULT_NUMBER_ID,
-    defaultFeedID?: string,
-    icons?: Record<'Document' | 'Send' | 'ThumbsUp', IconAsset>,
-): Record<ValueOf<typeof CONST.SEARCH.SEARCH_KEYS>, SearchTypeMenuItem> {
+function getSuggestedSearches(accountID: number = CONST.DEFAULT_NUMBER_ID, defaultFeedID?: string): Record<ValueOf<typeof CONST.SEARCH.SEARCH_KEYS>, SearchTypeMenuItem> {
     return {
         [CONST.SEARCH.SEARCH_KEYS.EXPENSES]: {
             key: CONST.SEARCH.SEARCH_KEYS.EXPENSES,
@@ -627,7 +633,7 @@ function getSuggestedSearches(
             key: CONST.SEARCH.SEARCH_KEYS.REPORTS,
             translationPath: 'common.reports',
             type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
-            icon: icons?.Document,
+            icon: 'Document',
             searchQuery: buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT}),
             get searchQueryJSON() {
                 return buildSearchQueryJSON(this.searchQuery);
@@ -665,7 +671,7 @@ function getSuggestedSearches(
             key: CONST.SEARCH.SEARCH_KEYS.SUBMIT,
             translationPath: 'common.submit',
             type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
-            icon: icons?.Send,
+            icon: 'Send',
             searchQuery: buildQueryStringFromFilterFormValues({
                 type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
                 action: CONST.SEARCH.ACTION_FILTERS.SUBMIT,
@@ -688,7 +694,7 @@ function getSuggestedSearches(
             key: CONST.SEARCH.SEARCH_KEYS.APPROVE,
             translationPath: 'search.bulkActions.approve',
             type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
-            icon: icons?.ThumbsUp,
+            icon: 'ThumbsUp',
             searchQuery: buildQueryStringFromFilterFormValues({
                 type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
                 action: CONST.SEARCH.ACTION_FILTERS.APPROVE,
@@ -735,7 +741,7 @@ function getSuggestedSearches(
             key: CONST.SEARCH.SEARCH_KEYS.EXPORT,
             translationPath: 'common.export',
             type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
-            icon: Expensicons.CheckCircle,
+            icon: 'CheckCircle',
             searchQuery: buildQueryStringFromFilterFormValues({
                 type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
                 action: CONST.SEARCH.ACTION_FILTERS.EXPORT,
@@ -893,7 +899,7 @@ function getSuggestedSearches(
             key: CONST.SEARCH.SEARCH_KEYS.TOP_SPENDERS,
             translationPath: 'search.topSpenders',
             type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-            icon: Expensicons.User,
+            icon: 'User',
             searchQuery: buildQueryStringFromFilterFormValues(
                 {
                     type: CONST.SEARCH.DATA_TYPES.EXPENSE,
@@ -3651,7 +3657,7 @@ function isColumnSortable(column: SearchColumnType) {
     return !nonSortableColumns.has(column);
 }
 
-type OverflowMenuIconsType = Record<'Pencil', IconAsset>;
+type OverflowMenuIconsType = Record<'Pencil' | 'Trashcan', IconAsset>;
 
 /**
  * Constructs and configures the overflow menu for search items, handling interactions such as renaming or deleting items.
@@ -3688,7 +3694,7 @@ function getOverflowMenu(
                 }
                 showDeleteModal(hash);
             },
-            icon: Expensicons.Trashcan,
+            icon: icons.Trashcan,
             shouldShowRightIcon: false,
             shouldShowRightComponent: false,
             shouldCallAfterModalHide: true,
@@ -3711,7 +3717,6 @@ function isTodoSearch(recentSearchHash: number, suggestedSearches: Record<string
 }
 
 type TypeMenuSectionsParams = {
-    icons: Record<'Document' | 'Send' | 'ThumbsUp', IconAsset>;
     currentUserEmail: string | undefined;
     currentUserAccountID: number | undefined;
     cardFeedsByPolicy: Record<string, CardFeedForDisplay[]>;
@@ -3727,7 +3732,6 @@ type TypeMenuSectionsParams = {
 
 function createTypeMenuSections(params: TypeMenuSectionsParams): SearchTypeMenuSection[] {
     const {
-        icons,
         currentUserEmail,
         currentUserAccountID,
         cardFeedsByPolicy,
@@ -3742,7 +3746,7 @@ function createTypeMenuSections(params: TypeMenuSectionsParams): SearchTypeMenuS
     } = params;
     const typeMenuSections: SearchTypeMenuSection[] = [];
 
-    const suggestedSearches = getSuggestedSearches(currentUserAccountID, defaultCardFeed?.id, icons);
+    const suggestedSearches = getSuggestedSearches(currentUserAccountID, defaultCardFeed?.id);
     const {visibility: suggestedSearchesVisibility, hasGroupPoliciesWithExpenseChat} = getSuggestedSearchesVisibility(currentUserEmail, cardFeedsByPolicy, policies, defaultExpensifyCard);
 
     // Explore section

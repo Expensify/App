@@ -1950,6 +1950,7 @@ const translations: TranslationDeepObject<typeof en> = {
             softKillTheApp: "Termina dolcemente l'app",
             kill: 'Termina',
             sentryDebug: 'Debug Sentry',
+            sentrySendDescription: 'Invia dati a Sentry',
             sentryDebugDescription: 'Registra le richieste Sentry nella console',
             sentryHighlightedSpanOps: 'Nomi degli intervalli evidenziati',
             sentryHighlightedSpanOpsPlaceholder: 'ui.interaction.click, navigazione, ui.load',
@@ -1965,6 +1966,7 @@ const translations: TranslationDeepObject<typeof en> = {
         accountSettings: 'Impostazioni account',
         account: 'Account',
         general: 'Generale',
+        helpPage: {title: 'Aiuto e supporto', description: 'Siamo qui per aiutarti 24 ore su 24, 7 giorni su 7', helpSite: 'Sito di assistenza'},
     },
     closeAccountPage: {
         closeAccount: 'Chiudi account',
@@ -7433,7 +7435,14 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
         searchIn: 'Cerca in',
         searchPlaceholder: 'Cerca qualcosa',
         suggestions: 'Suggerimenti',
-        suggestionsAvailable: ({count}: {count: number}, query = '') => ({
+        suggestionsAvailable: (
+            {
+                count,
+            }: {
+                count: number;
+            },
+            query = '',
+        ) => ({
             one: `Suggerimenti disponibili${query ? ` per ${query}` : ''}. ${count} risultato.`,
             other: (resultCount: number) => `Suggerimenti disponibili${query ? ` per ${query}` : ''}. ${resultCount} risultati.`,
         }),

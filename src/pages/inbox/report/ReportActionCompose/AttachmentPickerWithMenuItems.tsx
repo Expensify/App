@@ -184,7 +184,7 @@ function AttachmentPickerWithMenuItems({
                 shouldRestrictAction &&
                 policy &&
                 policy.type !== CONST.POLICY.TYPE.PERSONAL &&
-                shouldRestrictUserBillableActions(policy.id, userBillingGraceEndPeriods, undefined, ownerBillingGraceEndPeriod)
+                shouldRestrictUserBillableActions(policy.id, ownerBillingGraceEndPeriod, userBillingGraceEndPeriods)
             ) {
                 Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
                 return;

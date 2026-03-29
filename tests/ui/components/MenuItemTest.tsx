@@ -1,7 +1,6 @@
 import {render, screen} from '@testing-library/react-native';
 import React from 'react';
 import type {SvgProps} from 'react-native-svg';
-import * as Expensicons from '@components/Icon/Expensicons';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import MenuItem from '@components/MenuItem';
 import getOperatingSystem from '@libs/getOperatingSystem';
@@ -9,15 +8,16 @@ import getPlatform from '@libs/getPlatform';
 import CONST from '@src/CONST';
 import {translateLocal} from '../../utils/TestHelper';
 
-// Mock useLazyAsset hook
-jest.mock('@hooks/useLazyAsset', () => {
-    const ExpensiconsModule = jest.requireActual<Record<string, React.FC<SvgProps>>>('@components/Icon/Expensicons');
-    return {
-        useMemoizedLazyExpensifyIcons: jest.fn(() => ({
-            NewWindow: ExpensiconsModule.NewWindow,
-        })),
-    };
-});
+const mockNewWindowIcon: React.FC<SvgProps> = () => null;
+const mockLinkIcon: React.FC<SvgProps> = () => null;
+const mockDownloadIcon: React.FC<SvgProps> = () => null;
+const mockCheckmarkIcon: React.FC<SvgProps> = () => null;
+
+jest.mock('@hooks/useLazyAsset', () => ({
+    useMemoizedLazyExpensifyIcons: jest.fn(() => ({
+        NewWindow: mockNewWindowIcon,
+    })),
+}));
 
 jest.mock('@libs/getPlatform', () => jest.fn());
 jest.mock('@libs/getOperatingSystem', () => jest.fn());
@@ -45,8 +45,8 @@ describe('MenuItem', () => {
                 <Wrapper>
                     <MenuItem
                         title={customLabel}
-                        icon={Expensicons.Link}
-                        iconRight={Expensicons.NewWindow}
+                        icon={mockLinkIcon}
+                        iconRight={mockNewWindowIcon}
                         accessibilityLabel={customLabel}
                         accessibilityHint="Activates this menu item"
                         onPress={() => {}}
@@ -67,8 +67,8 @@ describe('MenuItem', () => {
                 <Wrapper>
                     <MenuItem
                         title={title}
-                        icon={Expensicons.Download}
-                        iconRight={Expensicons.NewWindow}
+                        icon={mockDownloadIcon}
+                        iconRight={mockNewWindowIcon}
                         onPress={() => {}}
                     />
                 </Wrapper>,
@@ -85,8 +85,8 @@ describe('MenuItem', () => {
                 <Wrapper>
                     <MenuItem
                         title={customLabel}
-                        icon={Expensicons.Checkmark}
-                        iconRight={Expensicons.Checkmark}
+                        icon={mockCheckmarkIcon}
+                        iconRight={mockCheckmarkIcon}
                         accessibilityLabel={customLabel}
                         accessibilityHint="Activates this menu item"
                         onPress={() => {}}
@@ -111,7 +111,7 @@ describe('MenuItem', () => {
                 <Wrapper>
                     <MenuItem
                         title={title}
-                        icon={Expensicons.Link}
+                        icon={mockLinkIcon}
                         shouldShowContextMenuHint
                         onPress={() => {}}
                     />
@@ -133,7 +133,7 @@ describe('MenuItem', () => {
                 <Wrapper>
                     <MenuItem
                         title={title}
-                        icon={Expensicons.Link}
+                        icon={mockLinkIcon}
                         shouldShowContextMenuHint
                         onPress={() => {}}
                     />
@@ -153,7 +153,7 @@ describe('MenuItem', () => {
                 <Wrapper>
                     <MenuItem
                         title={title}
-                        icon={Expensicons.Link}
+                        icon={mockLinkIcon}
                         shouldShowContextMenuHint
                         onPress={() => {}}
                     />
@@ -171,7 +171,7 @@ describe('MenuItem', () => {
                 <Wrapper>
                     <MenuItem
                         title={title}
-                        icon={Expensicons.Link}
+                        icon={mockLinkIcon}
                         onPress={() => {}}
                     />
                 </Wrapper>,
