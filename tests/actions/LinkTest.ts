@@ -1,13 +1,13 @@
 /* eslint-disable @typescript-eslint/naming-convention */
-import Navigation from '@libs/Navigation/Navigation';
-import navigationRef from '@libs/Navigation/navigationRef';
 import asyncOpenURL from '@libs/asyncOpenURL';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import shouldPreserveWideRHPReportOriginForInternalLink from '@libs/Navigation/helpers/shouldPreserveWideRHPReportOriginForInternalLink';
-import * as Url from '@libs/Url';
+import Navigation from '@libs/Navigation/Navigation';
+import navigationRef from '@libs/Navigation/navigationRef';
+import {getPathFromURL, hasSameExpensifyOrigin} from '@libs/Url';
+import {openLink} from '@userActions/Link';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
-import {openLink} from '@userActions/Link';
 
 jest.mock('react-native-onyx', () => {
     const onyx = {
@@ -75,7 +75,8 @@ const mockedGetIsNarrowLayout = getIsNarrowLayout as jest.MockedFunction<typeof 
 const mockedShouldPreserveWideRHPReportOriginForInternalLink = shouldPreserveWideRHPReportOriginForInternalLink as jest.MockedFunction<
     typeof shouldPreserveWideRHPReportOriginForInternalLink
 >;
-const mockedUrl = Url as jest.Mocked<typeof Url>;
+const mockedGetPathFromURL = getPathFromURL as jest.MockedFunction<typeof getPathFromURL>;
+const mockedHasSameExpensifyOrigin = hasSameExpensifyOrigin as jest.MockedFunction<typeof hasSameExpensifyOrigin>;
 
 describe('actions/Link.openLink', () => {
     beforeEach(() => {
@@ -84,8 +85,8 @@ describe('actions/Link.openLink', () => {
         mockedNavigationRef.getRootState.mockReturnValue({
             routes: [{name: NAVIGATORS.RIGHT_MODAL_NAVIGATOR}],
         } as never);
-        mockedUrl.getPathFromURL.mockImplementation((href) => new URL(href).pathname.slice(1));
-        mockedUrl.hasSameExpensifyOrigin.mockImplementation((href, origin) => href.startsWith(origin));
+        mockedGetPathFromURL.mockImplementation((href) => new URL(href).pathname.slice(1));
+        mockedHasSameExpensifyOrigin.mockImplementation((href, origin) => href.startsWith(origin));
     });
 
     it('preserves the visible wide RHP origin for internal non-RHP routes', () => {
@@ -138,7 +139,7 @@ describe('actions/Link.openLink', () => {
     });
 
     it('opens external links without touching navigation', () => {
-        mockedUrl.hasSameExpensifyOrigin.mockReturnValue(false);
+        mockedHasSameExpensifyOrigin.mockReturnValue(false);
 
         openLink('https://example.com/path', CONST.DEV_NEW_EXPENSIFY_URL);
 

@@ -948,7 +948,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
             return;
         }
 
-        // Broken linked actions are an invalid substate of the current report.
+        // Broken linked actions are an invalid nested state of the current report.
         // Resolve back to the parent report root first and preserve `backTo`
         // so the next back action can leave the report correctly.
         Navigation.setParams({reportActionID: ''});

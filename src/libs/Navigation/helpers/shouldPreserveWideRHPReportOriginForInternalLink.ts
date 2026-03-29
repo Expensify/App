@@ -7,11 +7,7 @@ import type {Route} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import willRouteNavigateToRHP from './willRouteNavigateToRHP';
 
-const RHP_REPORT_SCREENS_TO_PRESERVE = new Set<string>([
-    SCREENS.RIGHT_MODAL.EXPENSE_REPORT,
-    SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT,
-    SCREENS.RIGHT_MODAL.SEARCH_REPORT,
-]);
+const RHP_REPORT_SCREENS_TO_PRESERVE = new Set<string>([SCREENS.RIGHT_MODAL.EXPENSE_REPORT, SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT, SCREENS.RIGHT_MODAL.SEARCH_REPORT]);
 
 type ShouldPreserveWideRHPReportOriginForInternalLinkParams = {
     currentState: NavigationState | undefined;
@@ -19,11 +15,7 @@ type ShouldPreserveWideRHPReportOriginForInternalLinkParams = {
     isNarrowLayout: boolean;
 };
 
-export default function shouldPreserveWideRHPReportOriginForInternalLink({
-    currentState,
-    targetPath,
-    isNarrowLayout,
-}: ShouldPreserveWideRHPReportOriginForInternalLinkParams): boolean {
+export default function shouldPreserveWideRHPReportOriginForInternalLink({currentState, targetPath, isNarrowLayout}: ShouldPreserveWideRHPReportOriginForInternalLinkParams): boolean {
     if (getPlatform() !== CONST.PLATFORM.WEB || isNarrowLayout || !targetPath || willRouteNavigateToRHP(targetPath)) {
         return false;
     }
