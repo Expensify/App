@@ -59,6 +59,9 @@ type CheckboxWithLabelProps = RequiredLabelProps & {
     /** An accessibility label for the checkbox */
     accessibilityLabel?: string;
 
+    /** An accessibility hint for the checkbox */
+    accessibilityHint?: string;
+
     /** Reference to the outer element */
     ref?: ForwardedRef<View>;
 };
@@ -71,6 +74,7 @@ function CheckboxWithLabel({
     LabelComponent,
     label,
     accessibilityLabel,
+    accessibilityHint,
     style,
     value,
     ref,
@@ -94,7 +98,6 @@ function CheckboxWithLabel({
     return (
         <View style={style}>
             <View style={[styles.flexRow, styles.alignItemsCenter, styles.breakWord]}>
-                {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
                 <Checkbox
                     isChecked={isActuallyChecked}
                     onPress={toggleCheckbox}
@@ -102,6 +105,7 @@ function CheckboxWithLabel({
                     hasError={!!errorText}
                     ref={ref}
                     accessibilityLabel={accessibilityLabel ?? label ?? ''}
+                    accessibilityHint={accessibilityHint ?? accessibilityLabel ?? label ?? ''}
                 />
                 <PressableWithFeedback
                     tabIndex={-1}

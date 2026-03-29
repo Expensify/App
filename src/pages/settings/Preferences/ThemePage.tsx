@@ -81,6 +81,7 @@ function ThemePage() {
                                 <View style={[styles.flex1, styles.alignItemsEnd]}>
                                     <Switch
                                         accessibilityLabel={translate('themePage.highContrastMode')}
+                                        accessibilityHint={isHighContrast ? translate('common.deselect') : translate('common.select')}
                                         isOn={isHighContrast}
                                         onToggle={onToggleHighContrast}
                                     />

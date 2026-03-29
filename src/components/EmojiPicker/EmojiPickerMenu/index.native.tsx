@@ -148,6 +148,7 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji, ref}: EmojiPickerMenuPro
                         accessible
                         accessibilityRole="header"
                         accessibilityLabel={translate(`emojiPicker.headers.${code}` as TranslationPaths)}
+                        accessibilityHint={translate(`emojiPicker.headers.${code}` as TranslationPaths)}
                         style={[styles.emojiHeaderContainer, target === 'StickyHeader' ? styles.mh4 : {width: windowWidth}]}
                         onLayout={() => handleHeaderLayout(index)}
                     >

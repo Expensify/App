@@ -43,6 +43,7 @@ function ConfirmationPrompt({workspaceName, checkboxRef, onLinkPress}: {workspac
             </Text>
             <CheckboxWithLabel
                 accessibilityLabel={translate('report.newReport.emptyReportConfirmationDontShowAgain')}
+                accessibilityHint={isChecked ? translate('common.deselect') : translate('common.select')}
                 label={translate('report.newReport.emptyReportConfirmationDontShowAgain')}
                 isChecked={isChecked}
                 onInputChange={(value) => {

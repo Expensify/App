@@ -112,13 +112,14 @@ function UserListItem<TItem extends ListItem>({
                     <View
                         accessible={shouldDisableAccessibleGrouping || undefined}
                         accessibilityLabel={shouldDisableAccessibleGrouping ? contactAccessibilityLabel : undefined}
+                        accessibilityHint={shouldDisableAccessibleGrouping ? translate('common.select') : undefined}
                         role={shouldDisableAccessibleGrouping ? CONST.ROLE.BUTTON : undefined}
                         style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}
                     >
                         {!shouldUseDefaultRightHandSideCheckmark && !!canSelectMultiple && (
-                            /* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */
                             <PressableWithFeedback
                                 accessibilityLabel={item.text ?? ''}
+                                accessibilityHint={item.isSelected ? translate('common.deselect') : translate('common.select')}
                                 role={CONST.ROLE.BUTTON}
                                 sentryLabel={CONST.SENTRY_LABEL.USER_LIST_ITEM.CHECKBOX}
                                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing

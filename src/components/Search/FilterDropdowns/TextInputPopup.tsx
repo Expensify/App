@@ -40,6 +40,7 @@ function TextInputPopup({style, defaultValue, placeholder, closeOverlay, onChang
                 value={value}
                 onChangeText={setValue}
                 accessibilityLabel={placeholder}
+                accessibilityHint={placeholder}
                 role={CONST.ROLE.PRESENTATION}
                 containerStyles={[styles.mt2]}
             />

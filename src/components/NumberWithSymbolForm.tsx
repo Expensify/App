@@ -427,6 +427,7 @@ function NumberWithSymbolForm({
                         onMouseDown={(e) => e.preventDefault()}
                         isContentCentered
                         accessibilityLabel={translate('iou.flip')}
+                        accessibilityHint={translate('iou.flip')}
                         isDisabled={disabled}
                     />
                 )}
@@ -439,19 +440,20 @@ function NumberWithSymbolForm({
                         isContentCentered
                         text={currency}
                         accessibilityLabel={`${translate('common.selectCurrency')}, ${currency}`}
+                        accessibilityHint={`${translate('common.selectCurrency')}, ${currency}`}
                         isDisabled={disabled}
                     />
                 )}
             </View>
         );
-    }, [shouldShowFlipButton, shouldShowCurrencyButton, styles, icons, handleFlipPress, onCurrencyButtonPress, currency, translate]);
+    }, [shouldShowFlipButton, shouldShowCurrencyButton, styles, icons, handleFlipPress, onCurrencyButtonPress, currency, translate, disabled]);
 
     if (displayAsTextInput) {
         return (
-            /* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */
             <TextInput
                 label={label}
                 accessibilityLabel={label}
+                accessibilityHint={label}
                 value={formattedNumber}
                 onChangeText={setFormattedNumber}
                 ref={(newRef: BaseTextInputRef | null) => {
@@ -484,7 +486,6 @@ function NumberWithSymbolForm({
     }
 
     const textInputComponent = (
-        /* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */
         <TextInputWithCurrencySymbol
             formattedAmount={formattedNumber}
             onChangeAmount={setNewNumber}
@@ -547,6 +548,7 @@ function NumberWithSymbolForm({
             toggleNegative={toggleNegative}
             onFocus={props.onFocus}
             accessibilityLabel={props.accessibilityLabel}
+            accessibilityHint={props.accessibilityLabel}
             keyboardType={props.keyboardType}
         />
     );
@@ -565,7 +567,6 @@ function NumberWithSymbolForm({
                     >
                         <View style={[styles.flexRow, styles.moneyRequestAmountContainer, styles.alignItemsCenter, styles.justifyContentCenter]}>{textInputComponent}</View>
                         {isSymbolPressable && !!currency && !canUseTouchScreen && (
-                            /* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */
                             <Button
                                 shouldShowRightIcon
                                 small
@@ -575,6 +576,7 @@ function NumberWithSymbolForm({
                                 isContentCentered
                                 text={currency}
                                 accessibilityLabel={`${translate('common.selectCurrency')}, ${currency}`}
+                                accessibilityHint={`${translate('common.selectCurrency')}, ${currency}`}
                             />
                         )}
                         {!!errorText && (
@@ -592,7 +594,6 @@ function NumberWithSymbolForm({
 
             <View style={[styles.flexRow, styles.justifyContentCenter, shouldShowBigNumberPad ? styles.mb2 : styles.mb0, styles.gap2]}>
                 {isSymbolPressable && canUseTouchScreen && (
-                    /* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */
                     <Button
                         shouldShowRightIcon
                         small
@@ -602,10 +603,10 @@ function NumberWithSymbolForm({
                         isContentCentered
                         text={currency}
                         accessibilityLabel={`${translate('common.selectCurrency')}, ${currency}`}
+                        accessibilityHint={`${translate('common.selectCurrency')}, ${currency}`}
                     />
                 )}
                 {allowFlippingAmount && canUseTouchScreen && (
-                    /* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */
                     <Button
                         shouldShowRightIcon
                         small
@@ -615,6 +616,7 @@ function NumberWithSymbolForm({
                         isContentCentered
                         text={translate('iou.flip')}
                         accessibilityLabel={translate('iou.flip')}
+                        accessibilityHint={translate('iou.flip')}
                     />
                 )}
             </View>

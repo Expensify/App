@@ -149,6 +149,9 @@ type ButtonProps = Partial<ChildrenProps> &
         /** Accessibility label for the component */
         accessibilityLabel?: string;
 
+        /** Accessibility hint for the component */
+        accessibilityHint?: string;
+
         /** The text for the button label */
         text?: string;
 
@@ -284,6 +287,7 @@ function Button({
     id = '',
     testID = undefined,
     accessibilityLabel = '',
+    accessibilityHint = '',
     link = false,
     isContentCentered = false,
     isPressOnEnterActive,
@@ -469,7 +473,6 @@ function Button({
                     isPressOnEnterActive={isPressOnEnterActive}
                 />
             )}
-            {/* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */}
             <PressableWithFeedback
                 dataSet={{
                     listener: pressOnEnter ? CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey : undefined,
@@ -528,6 +531,7 @@ function Button({
                 id={id}
                 testID={testID}
                 accessibilityLabel={accessibilityLabel}
+                accessibilityHint={accessibilityHint || accessibilityLabel}
                 role={getButtonRole(isNested)}
                 hoverDimmingValue={1}
                 onHoverIn={!isDisabled || !shouldStayNormalOnDisable ? () => setIsHovered(true) : undefined}

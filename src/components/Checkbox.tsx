@@ -51,6 +51,9 @@ type CheckboxProps = Partial<ChildrenProps> &
         /** An accessibility label for the checkbox */
         accessibilityLabel: string;
 
+        /** An accessibility hint for the checkbox */
+        accessibilityHint?: string;
+
         /** stop propagation of the mouse down event */
         shouldStopMouseDownPropagation?: boolean;
 
@@ -84,6 +87,7 @@ function Checkbox({
     caretSize = 14,
     onPress,
     accessibilityLabel,
+    accessibilityHint,
     shouldStopMouseDownPropagation,
     shouldSelectOnPressEnter,
     wrapperStyle,
@@ -122,7 +126,6 @@ function Checkbox({
     };
 
     return (
-        /* eslint-disable-next-line react-native-a11y/has-accessibility-hint -- Already present before the lint rule was enabled, needs to be fixed. */
         <PressableWithFeedback
             testID={testID}
             disabled={disabled}
@@ -146,6 +149,7 @@ function Checkbox({
                 mixed → indeterminate  */
             aria-checked={isIndeterminate ? 'mixed' : isChecked}
             accessibilityLabel={accessibilityLabel}
+            accessibilityHint={accessibilityHint ?? accessibilityLabel}
             pressDimmingValue={1}
             wrapperStyle={wrapperStyle}
             sentryLabel={sentryLabel}
