@@ -104,6 +104,8 @@ function CloseAccountPage() {
                 submitButtonText={translate('closeAccountPage.closeAccount')}
                 style={[styles.flexGrow1, styles.mh5]}
                 isSubmitActionDangerous
+                shouldValidateOnChange
+                shouldValidateOnBlur
             >
                 <View
                     fsClass={CONST.FULLSTORY.CLASS.UNMASK}
