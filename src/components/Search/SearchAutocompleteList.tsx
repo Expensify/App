@@ -16,6 +16,7 @@ import useFeedKeysWithAssignedCards from '@hooks/useFeedKeysWithAssignedCards';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePrivateIsArchivedMap from '@hooks/usePrivateIsArchivedMap';
 import useReportAttributes from '@hooks/useReportAttributes';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -26,7 +27,7 @@ import Parser from '@libs/Parser';
 import {getAllTaxRates} from '@libs/PolicyUtils';
 import {getReportAction} from '@libs/ReportActionsUtils';
 import type {OptionData} from '@libs/ReportUtils';
-import {getReportOrDraftReport} from '@libs/ReportUtils';
+import {getChatRoomSubtitle, getReportOrDraftReport, isDefaultRoom, isUserCreatedPolicyRoom} from '@libs/ReportUtils';
 import {buildSearchQueryJSON, buildUserReadableQueryString, getQueryWithoutFilters, shouldHighlight} from '@libs/SearchQueryUtils';
 import StringUtils from '@libs/StringUtils';
 import {cancelSpan, endSpan, getSpan} from '@libs/telemetry/activeSpans';
@@ -106,6 +107,22 @@ function getAutocompleteDisplayText(filterKey: UserFriendlyKey, value: string) {
     return `${filterKey}:${value}`;
 }
 
+function getUpdatedWorkspaceRoomFallback(option: AutocompleteListItem, report: OnyxEntry<Report>, policyName: string | undefined, isReportArchived: boolean) {
+    if (!report || !option.subtitle || option.alternateText !== option.subtitle || (!isDefaultRoom(report) && !isUserCreatedPolicyRoom(report))) {
+        return;
+    }
+
+    const updatedSubtitle = isReportArchived ? (report.oldPolicyName ?? '') : (policyName ?? getChatRoomSubtitle(report, true, false));
+    if (!updatedSubtitle || updatedSubtitle === option.subtitle) {
+        return;
+    }
+
+    return {
+        subtitle: updatedSubtitle,
+        alternateText: updatedSubtitle,
+    };
+}
+
 function SearchRouterItem(props: UserListItemProps<AutocompleteListItem> | SearchQueryListItemProps) {
     const styles = useThemeStyles();
 
@@ -159,6 +176,7 @@ function SearchAutocompleteList({
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
     const [policies = getEmptyObject<NonNullable<OnyxCollection<Policy>>>()] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [visibleReportActionsData] = useOnyx(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS);
+    const privateIsArchivedMap = usePrivateIsArchivedMap();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserEmail = currentUserPersonalDetails.email ?? '';
     const currentUserAccountID = currentUserPersonalDetails.accountID;
@@ -393,8 +411,12 @@ function SearchAutocompleteList({
             const reportAction = getReportAction(report?.parentReportID, report?.parentReportActionID);
             const shouldParserToHTML = reportAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT;
             const keyForList = option.keyForList ?? option.reportID ?? (option.accountID ? String(option.accountID) : undefined);
+            const isReportArchived = !!privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${option.reportID}`];
+            const policyName = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`]?.name;
+            const updatedWorkspaceRoomFallback = getUpdatedWorkspaceRoomFallback(option, report, policyName, isReportArchived);
             return {
                 ...option,
+                ...updatedWorkspaceRoomFallback,
                 keyForList,
                 pressableStyle: styles.br2,
                 text: StringUtils.lineBreaksToSpaces(shouldParserToHTML ? Parser.htmlToText(option.text ?? '') : (option.text ?? '')),
@@ -458,6 +480,8 @@ function SearchAutocompleteList({
         translate,
         areOptionsInitialized,
         isRecentSearchesDataLoaded,
+        privateIsArchivedMap,
+        policies,
     ]);
 
     const sectionItemText = sections?.at(1)?.data?.[0]?.text ?? '';

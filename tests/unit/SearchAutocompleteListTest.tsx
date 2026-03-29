@@ -14,7 +14,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails, Report} from '@src/types/onyx';
 import createCollection from '../utils/collections/createCollection';
 import createPersonalDetails from '../utils/collections/personalDetails';
-import {createRandomReport} from '../utils/collections/reports';
+import {createAnnounceRoom, createRandomReport} from '../utils/collections/reports';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatchedUpdates';
@@ -123,10 +123,10 @@ const mockedOptions = createOptionList(mockedPersonalDetails, MOCK_CURRENT_USER_
 
 const mockOnClose = jest.fn();
 
-function SearchRouterWrapper() {
+function SearchRouterWrapper({options = mockedOptions}: {options?: ReturnType<typeof createOptionList>}) {
     return (
         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
-            <OptionsListStateContext.Provider value={useMemo(() => ({options: mockedOptions, areOptionsInitialized: true}), [])}>
+            <OptionsListStateContext.Provider value={useMemo(() => ({options, areOptionsInitialized: true}), [options])}>
                 <OptionsListActionsContext.Provider value={useMemo(() => ({initializeOptions: () => {}, resetOptions: () => {}}), [])}>
                     <SearchRouter onRouterClose={mockOnClose} />
                 </OptionsListActionsContext.Provider>
@@ -198,5 +198,38 @@ describe('SearchAutocompleteList', () => {
         // Verify the recent search items themselves are also displayed
         expect(screen.getByText('type:expense status:approved')).toBeTruthy();
         expect(screen.getByText('type:chat')).toBeTruthy();
+    });
+
+    it('should render the latest workspace name in recent chat alternate text when the cached option subtitle is stale', async () => {
+        const report = createAnnounceRoom(1);
+        const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`;
+        const policyKey = `${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`;
+        const staleOptions = createOptionList(
+            mockedPersonalDetails,
+            MOCK_CURRENT_USER_ACCOUNT_ID,
+            EMPTY_PRIVATE_IS_ARCHIVED_MAP,
+            {[reportKey]: report},
+            {[policyKey]: {id: report.policyID, name: 'Old Workspace'}},
+        );
+
+        await waitForBatchedUpdates();
+        await Onyx.multiSet({
+            [reportKey]: report,
+            [policyKey]: {id: report.policyID, name: 'New Workspace'},
+            [ONYXKEYS.PERSONAL_DETAILS_LIST]: mockedPersonalDetails,
+            [ONYXKEYS.BETAS]: mockedBetas,
+            [ONYXKEYS.IS_SEARCHING_FOR_REPORTS]: true,
+        });
+
+        render(<SearchRouterWrapper options={staleOptions} />);
+
+        await flushAllUpdates();
+
+        await waitFor(() => {
+            expect(screen.getByText('#announce')).toBeTruthy();
+            expect(screen.getByText('New Workspace')).toBeTruthy();
+        });
+
+        expect(screen.queryByText('Old Workspace')).toBeNull();
     });
 });
