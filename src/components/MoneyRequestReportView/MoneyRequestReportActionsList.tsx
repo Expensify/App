@@ -404,7 +404,23 @@ function MoneyRequestReportActionsList({
         transactionThreadReport,
         hasOlderActions,
         hasNewerActions,
+        newestFetchedReportActionID: reportMetadata?.newestFetchedReportActionID,
     });
+
+    const hasFinishedInitialLoad = reportMetadata?.isLoadingInitialReportActions === false;
+    const prevNewestFetchedIDRef = useRef<string | undefined>(undefined);
+    useEffect(() => {
+        if (hasFinishedInitialLoad && hasNewerActions && reportActions.length > 0 && !isOffline && !reportMetadata?.isLoadingNewerReportActions) {
+            // Safety guard: if the cursor hasn't advanced since the last call, the server
+            // isn't returning new data. Stop to prevent an infinite request loop.
+            const currentCursor = reportMetadata?.newestFetchedReportActionID;
+            if (prevNewestFetchedIDRef.current !== undefined && prevNewestFetchedIDRef.current === currentCursor) {
+                return;
+            }
+            prevNewestFetchedIDRef.current = currentCursor;
+            loadNewerChats(false);
+        }
+    }, [hasFinishedInitialLoad, reportActions.length, hasNewerActions, isOffline, reportMetadata?.isLoadingNewerReportActions, reportMetadata?.newestFetchedReportActionID, loadNewerChats]);
 
     const onStartReached = useCallback(() => {
         if (!isSearchTopmostFullScreenRoute()) {
