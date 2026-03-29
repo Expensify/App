@@ -52,6 +52,7 @@ import {
     shouldUseTransactionDraft,
 } from '@libs/IOUUtils';
 import Log from '@libs/Log';
+import dismissModalAndOpenReportInInboxTabHelper from '@libs/Navigation/helpers/dismissModalAndOpenReportInInboxTab';
 import navigateAfterInteraction from '@libs/Navigation/navigateAfterInteraction';
 import Navigation from '@libs/Navigation/Navigation';
 import {rand64, roundToTwoDecimalPlaces} from '@libs/NumberUtils';
@@ -1472,6 +1473,7 @@ function IOURequestStepConfirmation({
                     transaction.merchant,
                     receiptFiles[transaction.transactionID],
                 );
+                dismissModalAndOpenReportInInboxTabHelper(report?.reportID, undefined, false);
                 return;
             }
 
@@ -1489,6 +1491,7 @@ function IOURequestStepConfirmation({
                     transaction.merchant,
                     receiptFiles[transaction.transactionID],
                 );
+                dismissModalAndOpenReportInInboxTabHelper(report?.reportID, undefined, false);
             }
         },
         [

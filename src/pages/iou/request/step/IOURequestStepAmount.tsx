@@ -23,6 +23,7 @@ import {setTransactionReport} from '@libs/actions/Transaction';
 import {convertToBackendAmount} from '@libs/CurrencyUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {calculateDefaultReimbursable, getExistingTransactionID, isMovingTransactionFromTrackExpense, navigateToConfirmationPage, navigateToParticipantPage} from '@libs/IOUUtils';
+import dismissModalAndOpenReportInInboxTabHelper from '@libs/Navigation/helpers/dismissModalAndOpenReportInInboxTab';
 import Navigation from '@libs/Navigation/Navigation';
 import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
 import {getPolicyExpenseChat, getReportOrDraftReport, getTransactionDetails, isMoneyRequestReport, isPolicyExpenseChat, isSelfDM, shouldEnableNegative} from '@libs/ReportUtils';
@@ -246,9 +247,11 @@ function IOURequestStepAmount({
                 if (iouType === CONST.IOU.TYPE.PAY || iouType === CONST.IOU.TYPE.SEND) {
                     if (paymentMethod && paymentMethod === CONST.IOU.PAYMENT_TYPE.EXPENSIFY) {
                         sendMoneyWithWallet(report, quickAction, backendAmount, selectedCurrency, '', currentUserAccountIDParam, participants.at(0) ?? {});
+                        dismissModalAndOpenReportInInboxTabHelper(report?.reportID, undefined, false);
                         return;
                     }
                     sendMoneyElsewhere(report, quickAction, backendAmount, selectedCurrency, '', currentUserAccountIDParam, participants.at(0) ?? {});
+                    dismissModalAndOpenReportInInboxTabHelper(report?.reportID, undefined, false);
                     return;
                 }
                 if (iouType === CONST.IOU.TYPE.SUBMIT || iouType === CONST.IOU.TYPE.REQUEST) {

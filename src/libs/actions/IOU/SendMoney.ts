@@ -28,7 +28,6 @@ import type * as OnyxTypes from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 import type {Receipt} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import {dismissModalAndOpenReportInInboxTab} from '.';
 
 type SendMoneyParamsData = {
     params: SendMoneyParams;
@@ -518,7 +517,6 @@ function sendMoneyElsewhere(
     playSound(SOUNDS.DONE);
     API.write(WRITE_COMMANDS.SEND_MONEY_ELSEWHERE, params, {optimisticData, successData, failureData});
 
-    dismissModalAndOpenReportInInboxTab(params.chatReportID);
     notifyNewAction(params.chatReportID, undefined, true);
 }
 
@@ -565,7 +563,6 @@ function sendMoneyWithWallet(
     playSound(SOUNDS.DONE);
     API.write(WRITE_COMMANDS.SEND_MONEY_WITH_WALLET, params, {optimisticData, successData, failureData});
 
-    dismissModalAndOpenReportInInboxTab(params.chatReportID);
     notifyNewAction(params.chatReportID, undefined, true);
 }
 
