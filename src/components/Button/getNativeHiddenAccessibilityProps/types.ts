@@ -5,7 +5,14 @@ type NativeHiddenAccessibilityProps = {
     importantForAccessibility: 'no-hide-descendants';
 };
 
-type GetNativeHiddenAccessibilityProps = (enableNativeDisabled: boolean, isDisabledOrLoading: boolean) => NativeHiddenAccessibilityProps | undefined;
+type WebHiddenAccessibilityProps = {
+    // eslint-disable-next-line @typescript-eslint/naming-convention
+    'aria-hidden': true;
+};
 
-export type {NativeHiddenAccessibilityProps};
+type HiddenAccessibilityProps = NativeHiddenAccessibilityProps | WebHiddenAccessibilityProps;
+
+type GetNativeHiddenAccessibilityProps = (enableNativeDisabled: boolean, isDisabledOrLoading: boolean) => HiddenAccessibilityProps | undefined;
+
+export type {HiddenAccessibilityProps, NativeHiddenAccessibilityProps, WebHiddenAccessibilityProps};
 export default GetNativeHiddenAccessibilityProps;

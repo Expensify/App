@@ -5,8 +5,19 @@ const sharedAccessibilityModule: {default: typeof getNativeHiddenAccessibilityPr
 const getNativeHiddenAccessibilityPropsShared = sharedAccessibilityModule.default;
 
 describe('Button getNativeHiddenAccessibilityProps', () => {
-    it('returns undefined for the shared implementation', () => {
-        expect(getNativeHiddenAccessibilityPropsShared(true, true)).toBeUndefined();
+    it('returns hidden accessibility props for the shared web implementation when fully disabled', () => {
+        expect(getNativeHiddenAccessibilityPropsShared(true, true)).toEqual({
+            // eslint-disable-next-line @typescript-eslint/naming-convention
+            'aria-hidden': true,
+        });
+    });
+
+    it('returns undefined for the shared web implementation when enableNativeDisabled is false', () => {
+        expect(getNativeHiddenAccessibilityPropsShared(false, true)).toBeUndefined();
+    });
+
+    it('returns undefined for the shared web implementation when the button is enabled', () => {
+        expect(getNativeHiddenAccessibilityPropsShared(true, false)).toBeUndefined();
     });
 
     it('returns hidden accessibility props for the native implementation when fully disabled', () => {
