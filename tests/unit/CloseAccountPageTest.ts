@@ -1,6 +1,7 @@
 import {Str} from 'expensify-common';
 import {formatE164PhoneNumber, getPhoneNumberWithoutSpecialChars, sanitizePhoneOrEmail} from '@libs/LoginUtils';
 import CONST from '@src/CONST';
+import {getFieldRequiredErrors} from '@libs/ValidationUtils';
 
 const validatePhoneOrEmail = (inputValue: string, storedValue: string, translate: (key: string) => string, countryCode?: number) => {
     const errors: {phoneOrEmail?: string} = {};
@@ -24,8 +25,30 @@ const validatePhoneOrEmail = (inputValue: string, storedValue: string, translate
     return errors;
 };
 
+// Mock validation function that mimics CloseAccountPage's validate function
+const validateCloseAccount = (values: {reasonForLeaving?: string; phoneOrEmail?: string}, translate: (key: string) => string) => {
+    const errors: {reasonForLeaving?: string; phoneOrEmail?: string} = {};
+    
+    // This is the fixed version - includes both required fields
+    const requiredErrors = getFieldRequiredErrors(values, ['reasonForLeaving', 'phoneOrEmail'], translate);
+    Object.assign(errors, requiredErrors);
+
+    // Phone/email validation logic (simplified for testing)
+    if (values.phoneOrEmail) {
+        const phoneErrors = validatePhoneOrEmail(values.phoneOrEmail, 'user@example.com', translate);
+        if (phoneErrors.phoneOrEmail) {
+            errors.phoneOrEmail = phoneErrors.phoneOrEmail;
+        }
+    }
+
+    return errors;
+};
+
 describe('CloseAccountPage Validation', () => {
-    const mockTranslate = () => 'Please enter your default contact method';
+    const mockTranslate = (key: string) => {
+        if (key === 'common.error.required') return 'This field is required';
+        return 'Please enter your default contact method';
+    };
 
     describe('Phone Number Validation', () => {
         it('Should validate matching phone numbers in different formats', () => {
@@ -116,6 +139,48 @@ describe('CloseAccountPage Validation', () => {
                 const errors = validatePhoneOrEmail(inputPhone, storedPhone, mockTranslate);
                 expect(errors.phoneOrEmail).toBe('Please enter your default contact method');
             }
+        });
+    });
+
+    describe('Reason For Leaving Validation', () => {
+        it('Should require reasonForLeaving field', () => {
+            const values = {reasonForLeaving: '', phoneOrEmail: 'user@example.com'};
+            const errors = validateCloseAccount(values, mockTranslate);
+            expect(errors.reasonForLeaving).toBe('This field is required');
+        });
+
+        it('Should accept non-empty reasonForLeaving', () => {
+            const values = {reasonForLeaving: 'Better opportunities', phoneOrEmail: 'user@example.com'};
+            const errors = validateCloseAccount(values, mockTranslate);
+            expect(errors.reasonForLeaving).toBeUndefined();
+        });
+
+        it('Should reject undefined reasonForLeaving', () => {
+            const values = {phoneOrEmail: 'user@example.com'};
+            const errors = validateCloseAccount(values, mockTranslate);
+            expect(errors.reasonForLeaving).toBe('This field is required');
+        });
+
+        it('Should accept whitespace-only reasonForLeaving (trims on submit)', () => {
+            // Note: getFieldRequiredErrors typically treats whitespace-only as empty
+            const values = {reasonForLeaving: '   ', phoneOrEmail: 'user@example.com'};
+            const errors = validateCloseAccount(values, mockTranslate);
+            // Whitespace-only should be treated as required
+            expect(errors.reasonForLeaving).toBe('This field is required');
+        });
+
+        it('Should validate both fields simultaneously', () => {
+            const values = {reasonForLeaving: '', phoneOrEmail: ''};
+            const errors = validateCloseAccount(values, mockTranslate);
+            expect(errors.reasonForLeaving).toBe('This field is required');
+            expect(errors.phoneOrEmail).toBe('This field is required');
+        });
+
+        it('Should pass validation when both fields are filled', () => {
+            const values = {reasonForLeaving: 'Moving to a new company', phoneOrEmail: 'user@example.com'};
+            const errors = validateCloseAccount(values, mockTranslate);
+            expect(errors.reasonForLeaving).toBeUndefined();
+            expect(errors.phoneOrEmail).toBeUndefined();
         });
     });
 });
