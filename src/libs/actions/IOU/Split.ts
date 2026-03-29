@@ -1450,7 +1450,11 @@ function updateSplitTransactions({
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`,
                 value: {[newReportActionID]: reportActionComment},
             });
-
+            successDataComments.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`,
+                value: {[newReportActionID]: {pendingAction: null, isOptimisticAction: null}},
+            });
             failureDataComments.push({onyxMethod: Onyx.METHOD.MERGE, key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`, value: {[newReportActionID]: null}});
 
             if (currentSplit) {
@@ -1651,12 +1655,12 @@ function updateSplitTransactions({
                     continue;
                 }
                 optimisticActionsData[action.reportActionID] = {...action, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD};
-                successActionsData[action.reportActionID] = {pendingAction: null};
+                successActionsData[action.reportActionID] = {pendingAction: null, isOptimisticAction: null};
                 failureActionsData[action.reportActionID] = null;
             }
             if (isRemainingTransactionOnHold && remainingHoldReportAction) {
                 optimisticActionsData[remainingHoldReportAction.reportActionID] = {...remainingHoldReportAction, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD};
-                successActionsData[remainingHoldReportAction.reportActionID] = {pendingAction: null};
+                successActionsData[remainingHoldReportAction.reportActionID] = {pendingAction: null, isOptimisticAction: null};
                 failureActionsData[remainingHoldReportAction.reportActionID] = null;
 
                 optimisticDataComments.push({
