@@ -20,6 +20,7 @@ import ScrollView from '@components/ScrollView';
 import useShowWideRHPVersion from '@components/WideRHPContextProvider/useShowWideRHPVersion';
 import WideRHPOverlayWrapper from '@components/WideRHPOverlayWrapper';
 import useActionListContextValue from '@hooks/useActionListContextValue';
+import useAndroidBackButtonHandler from '@hooks/useAndroidBackButtonHandler';
 import useAppFocusEvent from '@hooks/useAppFocusEvent';
 import useArchivedReportsIdSet from '@hooks/useArchivedReportsIdSet';
 import useBankAccountUnlockEffect from '@hooks/useBankAccountUnlockEffect';
@@ -46,6 +47,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useViewportOffsetTop from '@hooks/useViewportOffsetTop';
 import {hideEmojiPicker} from '@libs/actions/EmojiPickerAction';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+import getPlatform from '@libs/getPlatform';
 import Log from '@libs/Log';
 import {getAllNonDeletedTransactions, shouldDisplayReportTableView, shouldWaitForTransactions as shouldWaitForTransactionsUtil} from '@libs/MoneyRequestReportUtils';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
@@ -102,6 +104,7 @@ import {
     updateLastVisitTime,
 } from '@userActions/Report';
 import CONST from '@src/CONST';
+import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
@@ -911,9 +914,44 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     }, [reportMetadata?.isLoadingInitialReportActions]);
 
     const navigateToEndOfReport = useCallback(() => {
+        const rootState = navigationRef.getRootState();
+        const rightModalRoute = rootState?.routes.findLast((rootRoute) => rootRoute.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR);
+        const nestedRightModalRoutes = rightModalRoute?.state?.routes ?? [];
+        const underlyingSearchReportRoute = [...nestedRightModalRoutes].reverse().find((nestedRoute) => nestedRoute.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT);
+        const shouldReturnToUnderlyingSearchReport =
+            getPlatform() !== CONST.PLATFORM.WEB &&
+            route.name === SCREENS.REPORT &&
+            underlyingSearchReportRoute?.params &&
+            'reportID' in underlyingSearchReportRoute.params &&
+            underlyingSearchReportRoute.params.reportID === reportIDFromRoute;
+
+        if (shouldReturnToUnderlyingSearchReport) {
+            // When a broken /r/:reportID/:reportActionID route was opened from Search RHP on native,
+            // pop the fullscreen report so the existing search route is revealed without leaving an extra /r/:reportID on the stack.
+            Navigation.goBack();
+            return;
+        }
+
+        // Broken linked actions are an invalid substate of the current report.
+        // Resolve back to the parent report root first and preserve `backTo`
+        // so the next back action can leave the report correctly.
         Navigation.setParams({reportActionID: ''});
         fetchReport();
-    }, [fetchReport]);
+    }, [fetchReport, reportIDFromRoute, route.name]);
+
+    const handleDeletedLinkedActionAndroidBackPress = useCallback(() => {
+        if (!shouldShowNotFoundLinkedAction) {
+            return false;
+        }
+
+        // Valid same-report links intentionally do not add a new entry to the native stack.
+        // When a linked action turns out to be deleted, Android hardware back should still
+        // mirror the Not Found header action and return to the report root.
+        navigateToEndOfReport();
+        return true;
+    }, [navigateToEndOfReport, shouldShowNotFoundLinkedAction]);
+
+    useAndroidBackButtonHandler(handleDeletedLinkedActionAndroidBackPress);
 
     useEffect(() => {
         // Only handle deletion cases when there's a deleted action
