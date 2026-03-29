@@ -16,10 +16,12 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {updateAdvancedFilters} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
 import {getHasOptions} from '@libs/SearchUIUtils';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type {HasFilterValues} from '@src/types/form/SearchAdvancedFiltersForm';
 
 function SearchFiltersHasPage() {
     const styles = useThemeStyles();
@@ -27,7 +29,7 @@ function SearchFiltersHasPage() {
     const [searchAdvancedFiltersForm, searchAdvancedFiltersFormResult] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
     const currentType = searchAdvancedFiltersForm?.type ?? CONST.SEARCH.DATA_TYPES.EXPENSE;
     const {renderProductTrainingTooltip, shouldShowProductTrainingTooltip, hideProductTrainingTooltip} = useProductTrainingContext(CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.HAS_FILTER_NEGATION);
-    const [selectedItems, setSelectedItems] = useState<string[]>(() => {
+    const [selectedItems, setSelectedItems] = useState<HasFilterValues>(() => {
         if (!searchAdvancedFiltersForm?.has) {
             return [];
         }
@@ -70,7 +72,11 @@ function SearchFiltersHasPage() {
     };
 
     if (searchAdvancedFiltersFormResult.status === 'loading') {
-        return <FullScreenLoadingIndicator />;
+        const reasonAttributes: SkeletonSpanReasonAttributes = {
+            context: 'SearchFiltersHasPage',
+            isLoading: searchAdvancedFiltersFormResult.status === 'loading',
+        };
+        return <FullScreenLoadingIndicator reasonAttributes={reasonAttributes} />;
     }
 
     return (

@@ -8,6 +8,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSidePanelDisplayStatus from '@hooks/useSidePanelDisplayStatus';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import SidePanelActions from '@libs/actions/SidePanel';
+import DateUtils from '@libs/DateUtils';
 import focusComposerWithDelay from '@libs/focusComposerWithDelay';
 import {isPolicyAdmin, shouldShowPolicy} from '@libs/PolicyUtils';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
@@ -28,6 +29,7 @@ type SidePanelStateContextProps = {
     sidePanelTranslateX: RefObject<Animated.Value>;
     sidePanelNVP?: SidePanel;
     reportID?: string;
+    sessionStartTime: string | null;
 };
 
 type SidePanelActionsContextProps = {
@@ -44,6 +46,7 @@ const SidePanelStateContext = createContext<SidePanelStateContextProps>({
     shouldHideToolTip: false,
     sidePanelOffset: {current: new Animated.Value(0)},
     sidePanelTranslateX: {current: new Animated.Value(0)},
+    sessionStartTime: null,
 });
 
 const SidePanelActionsContext = createContext<SidePanelActionsContextProps>({
@@ -82,6 +85,16 @@ function SidePanelContextProvider({children}: PropsWithChildren) {
     const adminsChatReportID = activePolicy?.chatReportIDAdmins?.toString();
 
     const reportID = isRHPAdminsRoom && isUserAdmin && isPolicyActive && adminsChatReportID ? adminsChatReportID : conciergeReportID;
+
+    const [sessionStartTime, setSessionStartTime] = useState<string | null>(null);
+    const [prevShouldHideSidePanel, setPrevShouldHideSidePanel] = useState(shouldHideSidePanel);
+
+    if (prevShouldHideSidePanel !== shouldHideSidePanel) {
+        setPrevShouldHideSidePanel(shouldHideSidePanel);
+        if (!shouldHideSidePanel) {
+            setSessionStartTime(DateUtils.getDBTime());
+        }
+    }
 
     useEffect(() => {
         sidePanelWidthRef.current = sidePanelWidth;
@@ -133,6 +146,7 @@ function SidePanelContextProvider({children}: PropsWithChildren) {
         sidePanelTranslateX,
         sidePanelNVP,
         reportID,
+        sessionStartTime,
     };
 
     // Because of the React Compiler we don't need to memoize it manually

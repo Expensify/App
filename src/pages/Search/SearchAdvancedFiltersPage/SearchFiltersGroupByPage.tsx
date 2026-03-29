@@ -5,15 +5,15 @@ import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import type {SearchGroupBy} from '@components/Search/types';
-import SelectionList from '@components/SelectionList';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
+import SelectionListWithSections from '@components/SelectionList/SelectionListWithSections';
 import type {ListItem} from '@components/SelectionList/types';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {updateAdvancedFilters} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
-import {getGroupByOptions} from '@libs/SearchUIUtils';
+import {getGroupBySections} from '@libs/SearchUIUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
@@ -23,14 +23,17 @@ function SearchFiltersGroupByPage() {
     const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
     const [selectedItem, setSelectedItem] = useState(searchAdvancedFiltersForm?.groupBy);
 
-    const listData: Array<ListItem<SearchGroupBy>> = useMemo(() => {
-        return getGroupByOptions(translate).map((groupOption) => ({
-            text: groupOption.text,
-            keyForList: groupOption.value,
-            isSelected: selectedItem === groupOption.value,
+    const sections = useMemo(() => {
+        return getGroupBySections(translate).map((section) => ({
+            sectionIndex: section.sectionIndex,
+            ...(section.sectionIndex > 0 ? {customHeader: <View style={styles.dividerLine} />} : {}),
+            data: section.options.map<ListItem<SearchGroupBy>>((groupOption) => ({
+                text: groupOption.text,
+                keyForList: groupOption.value,
+                isSelected: selectedItem === groupOption.value,
+            })),
         }));
-    }, [translate, selectedItem]);
-
+    }, [selectedItem, styles.dividerLine, translate]);
     const updateSelectedItem = useCallback((type: ListItem<SearchGroupBy>) => {
         setSelectedItem(type?.keyForList ?? undefined);
     }, []);
@@ -54,15 +57,15 @@ function SearchFiltersGroupByPage() {
             shouldEnableMaxHeight
         >
             <HeaderWithBackButton
-                title={translate('search.groupBy')}
+                title={translate('search.display.groupBy')}
                 onBackButtonPress={() => {
                     Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS.getRoute());
                 }}
             />
             <View style={[styles.flex1]}>
-                <SelectionList
+                <SelectionListWithSections
                     shouldSingleExecuteRowSelect
-                    data={listData}
+                    sections={sections}
                     ListItem={SingleSelectListItem}
                     onSelectRow={updateSelectedItem}
                 />

@@ -21,7 +21,7 @@ import {isPaidGroupPolicy} from '@libs/PolicyUtils';
 import {findSelfDMReportID, generateReportID, isInvoiceRoomWithID} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {endSpan} from '@libs/telemetry/activeSpans';
-import {getRequestType, hasRoute, isCorporateCardTransaction, isDistanceRequest, isPerDiemRequest} from '@libs/TransactionUtils';
+import {getRequestType, hasRoute, isCorporateCardTransaction, isDistanceRequest, isPerDiemRequest, isTimeRequest as isTimeRequestUtil} from '@libs/TransactionUtils';
 import MoneyRequestParticipantsSelector from '@pages/iou/request/MoneyRequestParticipantsSelector';
 import {
     navigateToStartStepIfScanFileCannotBeRead,
@@ -113,15 +113,21 @@ function IOURequestStepParticipants({
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const [userBillingGraceEndPeriods] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
+    const [ownerBillingGraceEndPeriod] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
 
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
     const isActivePolicyRequest =
-        iouType === CONST.IOU.TYPE.CREATE && isPaidGroupPolicy(activePolicy) && activePolicy?.isPolicyExpenseChatEnabled && !shouldRestrictUserBillableActions(activePolicy.id);
+        iouType === CONST.IOU.TYPE.CREATE &&
+        isPaidGroupPolicy(activePolicy) &&
+        activePolicy?.isPolicyExpenseChatEnabled &&
+        !shouldRestrictUserBillableActions(activePolicy.id, ownerBillingGraceEndPeriod, userBillingGraceEndPeriods);
 
     const isAndroidNative = getPlatform() === CONST.PLATFORM.ANDROID;
     const isMobileSafari = isMobileSafariBrowser();
     const isPerDiem = isPerDiemRequest(initialTransaction);
+    const isTime = isTimeRequestUtil(initialTransaction);
     const isCorporateCard = isCorporateCardTransaction(initialTransaction);
 
     useEffect(() => {
@@ -455,6 +461,7 @@ function IOURequestStepParticipants({
                 iouType={iouType}
                 action={action}
                 isPerDiemRequest={isPerDiem}
+                isTimeRequest={isTime}
                 isWorkspacesOnly={isWorkspacesOnly}
                 isCorporateCardTransaction={isCorporateCard}
             />
