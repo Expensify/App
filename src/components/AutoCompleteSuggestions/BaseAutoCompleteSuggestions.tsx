@@ -42,6 +42,7 @@ function BaseAutoCompleteSuggestions<TSuggestion>({
                 accessibilityLabel={accessibilityLabelExtractor(item, index)}
                 accessibilityHint={accessibilityLabelExtractor(item, index)}
                 role={CONST.ROLE.MENUITEM}
+                sentryLabel={CONST.BASE_AUTO_COMPLETE_SUGGESTIONS.MENU_ITEM}
             >
                 {renderSuggestionMenuItem(item, index)}
             </PressableWithFeedback>
