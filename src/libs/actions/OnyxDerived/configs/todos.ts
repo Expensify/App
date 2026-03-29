@@ -91,7 +91,18 @@ export default createOnyxDerivedValueConfig({
         ONYXKEYS.SESSION,
         ONYXKEYS.PERSONAL_DETAILS_LIST,
     ],
-    compute: ([allReports, allPolicies, allReportNameValuePairs, allTransactions, allReportActions, allReportMetadata, allTransactionViolations, bankAccountList, session, personalDetailsList]) => {
+    compute: ([
+        allReports,
+        allPolicies,
+        allReportNameValuePairs,
+        allTransactions,
+        allReportActions,
+        allReportMetadata,
+        allTransactionViolations,
+        bankAccountList,
+        session,
+        personalDetailsList,
+    ]) => {
         const userAccountID = session?.accountID ?? CONST.DEFAULT_NUMBER_ID;
         const login = personalDetailsList?.[userAccountID]?.login ?? session?.email ?? '';
 
