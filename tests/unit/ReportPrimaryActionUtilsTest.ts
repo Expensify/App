@@ -238,9 +238,6 @@ describe('getPrimaryAction', () => {
         };
         const transaction = {
             reportID: `${REPORT_ID}`,
-            comment: {
-                hold: 'Hold',
-            },
         } as unknown as Transaction;
 
         expect(
