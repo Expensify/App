@@ -18,9 +18,6 @@ type USDPageProps = {
     /** Array of step names for the progress indicator */
     stepNames?: readonly string[];
 
-    /** If we should show Onfido flow (used by RequestorStep) */
-    shouldShowOnfido?: boolean;
-
     /** Reference to the outer element (used by RequestorStep) */
     ref?: ForwardedRef<View>;
 

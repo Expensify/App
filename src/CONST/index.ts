@@ -598,6 +598,7 @@ const CONST = {
             COUNTRY: 'country',
             BANK_ACCOUNT: 'bank-account',
             REQUESTOR: 'requestor',
+            VERIFY_IDENTITY: 'verify-identity',
             COMPANY: 'company',
             BENEFICIAL_OWNERS: 'beneficial-owners',
             ACH_CONTRACT: 'ach-contract',

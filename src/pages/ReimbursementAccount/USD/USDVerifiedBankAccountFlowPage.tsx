@@ -16,6 +16,7 @@ import CompleteVerification from './CompleteVerification/CompleteVerification';
 import ConnectBankAccount from './ConnectBankAccount/ConnectBankAccount';
 import Country from './Country';
 import RequestorStep from './Requestor/RequestorStep';
+import VerifyIdentity from './Requestor/VerifyIdentity/VerifyIdentity';
 import type USDPageProps from './types';
 
 const PAGE_NAMES = CONST.BANK_ACCOUNT.PAGE_NAMES;
@@ -41,6 +42,7 @@ const pages: PageEntry[] = [
         firstSubPage: PERSONAL_INFO_SUB_PAGES.FULL_NAME,
         lastSubPage: PERSONAL_INFO_SUB_PAGES.CONFIRMATION,
     },
+    {pageName: PAGE_NAMES.VERIFY_IDENTITY, component: VerifyIdentity as React.ComponentType<USDPageProps>},
     {
         pageName: PAGE_NAMES.COMPANY,
         component: BusinessInfo as React.ComponentType<USDPageProps>,
@@ -71,10 +73,10 @@ function USDVerifiedBankAccountFlowPage({route}: USDVerifiedBankAccountFlowPageP
     const currentSubPage = route.params?.subPage;
     const backTo = route.params?.backTo;
 
-    const [onfidoToken = ''] = useOnyx(ONYXKEYS.ONFIDO_TOKEN);
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
 
     const requestorStepRef = useRef<View>(null);
+    const isOnfidoSetupComplete = reimbursementAccount?.achData?.isOnfidoSetupComplete;
 
     const currentPageIndex = useMemo(() => {
         const index = pages.findIndex((p) => p.pageName === currentPage);
@@ -83,29 +85,35 @@ function USDVerifiedBankAccountFlowPage({route}: USDVerifiedBankAccountFlowPageP
 
     const currentEntry = pages.at(currentPageIndex);
     const CurrentPage = currentEntry?.component ?? (Country as React.ComponentType<USDPageProps>);
+    const isRequestorStep = currentEntry?.pageName === PAGE_NAMES.REQUESTOR;
+
+    const shouldSkipVerifyIdentity = useCallback((pageName?: string) => pageName === PAGE_NAMES.VERIFY_IDENTITY && isOnfidoSetupComplete, [isOnfidoSetupComplete]);
 
     const onSubmit = useCallback(() => {
-        const nextIndex = currentPageIndex + 1;
+        let nextIndex = currentPageIndex + 1;
+        if (shouldSkipVerifyIdentity(pages.at(nextIndex)?.pageName)) {
+            nextIndex += 1;
+        }
         if (nextIndex >= pages.length) {
             Navigation.goBack();
             return;
         }
         const nextPage = pages.at(nextIndex);
         Navigation.navigate(ROUTES.BANK_ACCOUNT_USD_SETUP.getRoute({policyID, page: nextPage?.pageName, subPage: nextPage?.firstSubPage, backTo}));
-    }, [backTo, currentPageIndex, policyID]);
+    }, [backTo, currentPageIndex, policyID, shouldSkipVerifyIdentity]);
 
     const onBackButtonPress = useCallback(() => {
-        const prevIndex = currentPageIndex - 1;
+        let prevIndex = currentPageIndex - 1;
+        if (shouldSkipVerifyIdentity(pages.at(prevIndex)?.pageName)) {
+            prevIndex -= 1;
+        }
         if (prevIndex < 0) {
             Navigation.goBack();
             return;
         }
         const prevPage = pages.at(prevIndex);
         Navigation.goBack(ROUTES.BANK_ACCOUNT_USD_SETUP.getRoute({policyID, page: prevPage?.pageName, subPage: prevPage?.lastSubPage, backTo}));
-    }, [backTo, currentPageIndex, policyID]);
-
-    const shouldShowOnfido = !!(onfidoToken && !reimbursementAccount?.achData?.isOnfidoSetupComplete);
-    const isRequestorStep = currentEntry?.pageName === PAGE_NAMES.REQUESTOR;
+    }, [backTo, currentPageIndex, policyID, shouldSkipVerifyIdentity]);
 
     return (
         <View style={styles.flex1}>
@@ -115,7 +123,6 @@ function USDVerifiedBankAccountFlowPage({route}: USDVerifiedBankAccountFlowPageP
                 policyID={policyID}
                 currentSubPage={currentSubPage}
                 stepNames={CONST.BANK_ACCOUNT.STEP_NAMES}
-                shouldShowOnfido={isRequestorStep ? shouldShowOnfido : undefined}
                 ref={isRequestorStep ? requestorStepRef : undefined}
                 backTo={backTo}
             />
