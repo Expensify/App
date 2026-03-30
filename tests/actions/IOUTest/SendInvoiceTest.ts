@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import type {OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
+import {getPolicyTags} from '@libs/actions/IOU';
 import {getReceiverType, getSendInvoiceInformation, sendInvoice} from '@libs/actions/IOU/SendInvoice';
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
 import {WRITE_COMMANDS} from '@libs/API/types';
@@ -22,7 +23,6 @@ import getOnyxValue from '../../utils/getOnyxValue';
 import type {MockFetch} from '../../utils/TestHelper';
 import {getGlobalFetchMock} from '../../utils/TestHelper';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
-import {getPolicyTags} from '@libs/actions/IOU';
 
 const topMostReportID = '23423423';
 jest.mock('@src/libs/Navigation/Navigation', () => ({
@@ -123,25 +123,29 @@ describe('actions/SendInvoice', () => {
         });
     });
 
-    const baseParticipants = [
-        {accountID: 123, isSender: true, policyID: 'workspace_test'},
-        {accountID: 456, isSender: false},
-    ];
-
-    const baseSenderPolicyID = baseParticipants.find((p) => p.isSender)?.policyID;
-    const baseParticipantsPolicyTags = getPolicyTags()?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${baseSenderPolicyID}`] ?? {};
-
-    const baseTransaction = {
-        transactionID: 'transaction_base',
-        reportID: 'report_base',
-        amount: 100,
-        currency: 'USD',
-        created: '2024-02-01',
-        merchant: 'Test Merchant',
-        participants: baseParticipants,
-    };
-
     describe('getSendInvoiceInformation', () => {
+        const baseParticipants = [
+            {accountID: 123, isSender: true, policyID: 'workspace_test'},
+            {accountID: 456, isSender: false},
+        ];
+
+        const baseSenderPolicyID = baseParticipants.find((p) => p.isSender)?.policyID;
+
+        let baseParticipantsPolicyTags: PolicyTagLists;
+        beforeEach(async () => {
+            baseParticipantsPolicyTags = (await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${baseSenderPolicyID}`)) ?? {};
+        });
+
+        const baseTransaction = {
+            transactionID: 'transaction_base',
+            reportID: 'report_base',
+            amount: 100,
+            currency: 'USD',
+            created: '2024-02-01',
+            merchant: 'Test Merchant',
+            participants: baseParticipants,
+        };
+
         it('should merge policyRecentlyUsedCategories when provided', () => {
             const currentUserAccountID = 123;
             const existingRecentlyUsedCategories: OnyxEntry<RecentlyUsedCategories> = [];
