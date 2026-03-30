@@ -22,7 +22,7 @@ type ButtonTextProps = {
 };
 
 function ButtonText({children, numberOfLines = 1, style, hoverStyle}: ButtonTextProps) {
-    const {isLoading, variant, size, isHovered, hasIconLeft} = useButtonContext();
+    const {isLoading, variant, size, isHovered} = useButtonContext();
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -43,7 +43,6 @@ function ButtonText({children, numberOfLines = 1, style, hoverStyle}: ButtonText
                 variant === 'success' && styles.buttonSuccessText,
                 variant === 'danger' && styles.buttonDangerText,
                 variant === 'link' && [styles.fontWeightNormal, styles.fontSizeLabel, styles.link, isHovered && StyleUtils.getColorStyle(theme.linkHover)],
-                hasIconLeft && styles.textAlignLeft,
                 isHovered && hoverStyle,
                 style,
             ]}

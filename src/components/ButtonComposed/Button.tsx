@@ -224,9 +224,8 @@ function Button({
             isLoading,
             variant,
             size: resolvedSize,
-            hasIconLeft,
         }),
-        [isHovered, isLoading, variant, resolvedSize, hasIconLeft],
+        [isHovered, isLoading, variant, resolvedSize],
     );
 
     const buttonVariantStyles = useMemo(() => {
