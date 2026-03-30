@@ -569,10 +569,6 @@ describe('SubscriptionUtils', () => {
             expect(shouldRestrictUserBillableActions('nonexistent', getUnixTime(subDays(new Date(), 3)), undefined, 500, undefined)).toBeFalsy();
         });
 
-        it('should not restrict when policy is passed as null', () => {
-            expect(shouldRestrictUserBillableActions('nonexistent', getUnixTime(subDays(new Date(), 3)), undefined, 500, undefined)).toBeFalsy();
-        });
-
         it('should restrict for non-owner when policy is passed directly and billing grace period is overdue', async () => {
             const policyID = '2001';
             const ownerAccountID = 2001;
