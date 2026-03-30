@@ -23,7 +23,7 @@ import {
     isReimbursementDirectionInformationRequiredAction,
     isThreadParentMessage,
 } from '@libs/ReportActionsUtils';
-import {getIOUReportActionDisplayMessage, getReportName, hasMissingInvoiceBankAccount, isSettled} from '@libs/ReportUtils';
+import {getIOUReportActionDisplayMessage, hasMissingInvoiceBankAccount, isSettled} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -54,14 +54,13 @@ function ReportActionItemMessage({action, displayAsGroup, reportID, style, isHid
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(getLinkedTransactionID(action))}`);
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
+    const [reportAttributes] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
 
     const fragments = getReportActionMessageFragments(translate, action);
     const isIOUReport = isMoneyRequestAction(action);
 
     if (isMemberChangeAction(action)) {
-        // This will be fixed: https://github.com/Expensify/App/issues/76852
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        const fragment = getMemberChangeMessageFragment(translate, action, getReportName);
+        const fragment = getMemberChangeMessageFragment(translate, action, reportAttributes?.reports);
 
         return (
             <View style={[styles.chatItemMessage, style]}>

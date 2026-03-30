@@ -297,7 +297,6 @@ function Search({
     const [allReportMetadata] = useOnyx(ONYXKEYS.COLLECTION.REPORT_METADATA);
     const [visibleColumns] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {selector: columnsSelector});
     const [customCardNames] = useOnyx(ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES);
-    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
 
     const isExpenseReportType = type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
     const {markReportIDAsMultiTransactionExpense, unmarkReportIDAsMultiTransactionExpense} = useWideRHPActions();
@@ -312,6 +311,7 @@ function Search({
     const [cardFeeds, cardFeedsResult] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER);
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [onyxPersonalDetailsList] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
 
     const searchDataType = useMemo(() => (shouldUseLiveData ? CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT : searchResults?.search?.type), [shouldUseLiveData, searchResults?.search?.type]);
     const shouldCalculateTotals = useSearchShouldCalculateTotals(currentSearchKey, hash, offset === 0);
@@ -509,7 +509,7 @@ function Search({
             allTransactionViolations: violations,
             customCardNames,
             allReportMetadata,
-            conciergeReportID,
+            reportAttributes: reportAttributesDerived?.reports,
             onyxPersonalDetailsList,
         });
         return [filteredData1, filteredData1.length, allLength];
@@ -535,7 +535,7 @@ function Search({
         violations,
         customCardNames,
         allReportMetadata,
-        conciergeReportID,
+        reportAttributesDerived?.reports,
         onyxPersonalDetailsList,
     ]);
 
@@ -572,7 +572,7 @@ function Search({
                 isActionLoadingSet,
                 cardFeeds,
                 allReportMetadata,
-                conciergeReportID,
+                reportAttributes: reportAttributesDerived?.reports,
             });
             return {
                 ...item,
@@ -595,7 +595,7 @@ function Search({
         cardFeeds,
         bankAccountList,
         allReportMetadata,
-        conciergeReportID,
+        reportAttributesDerived?.reports,
     ]);
 
     const hasLoadedAllTransactions = useMemo(() => {
