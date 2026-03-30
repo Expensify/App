@@ -5,16 +5,19 @@ import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
-import UserListItem from '@components/SelectionList/ListItem/UserListItem';
+import CardListItem from '@components/SelectionList/ListItem/CardListItem';
+import type {AdditionalCardProps} from '@components/SelectionList/ListItem/CardListItem';
 import type {ListItem} from '@components/SelectionList/types';
+import {useCompanyCardFeedIcons} from '@hooks/useCompanyCardIcons';
 import useDefaultFundID from '@hooks/useDefaultFundID';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useSearchResults from '@hooks/useSearchResults';
+import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {filterCardsByPersonalDetails, filterInactiveCards, sortCardsByCardholderName} from '@libs/CardUtils';
+import {filterCardsByPersonalDetails, filterInactiveCards, getCardFeedIcon, sortCardsByCardholderName} from '@libs/CardUtils';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -31,9 +34,10 @@ import type SCREENS from '@src/SCREENS';
 import type {Card, ExpensifyCardSettings, WorkspaceCardsList} from '@src/types/onyx';
 import type {ExpensifyCardRule, ExpensifyCardRuleFilter} from '@src/types/onyx/ExpensifyCardSettings';
 
-type ExpensifyCardListItem = ListItem & {
-    card: Card;
-};
+type ExpensifyCardListItem = ListItem &
+    AdditionalCardProps & {
+        card: Card;
+    };
 
 type AddCardPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_SPEND_CARD>;
 
@@ -80,6 +84,8 @@ function AddCardPage({route}: AddCardPageProps) {
     const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${defaultFundID}_${CONST.EXPENSIFY_CARD.BANK}`, {selector: filterInactiveCards});
     const [expensifyCardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${defaultFundID}`);
     const illustrations = useMemoizedLazyIllustrations(['Telescope']);
+    const themeIllustrations = useThemeIllustrations();
+    const companyCardFeedIcons = useCompanyCardFeedIcons();
 
     const [selectedCardIDs, setSelectedCardIDs] = useState<string[]>([]);
 
@@ -92,14 +98,21 @@ function AddCardPage({route}: AddCardPageProps) {
 
     const listData: ExpensifyCardListItem[] = filteredCards.map((card) => {
         const accountID = card.accountID ?? CONST.DEFAULT_NUMBER_ID;
-        const displayName = getDisplayNameOrDefault(personalDetails?.[accountID], '', false);
-        const lastFour = card.lastFourPAN ?? '';
+        const cardOwnerPersonalDetails = personalDetails?.[accountID] ?? undefined;
+        const cardName = card.nameValuePairs?.cardTitle;
+        const displayName = getDisplayNameOrDefault(cardOwnerPersonalDetails, '', false);
         return {
             keyForList: String(card.cardID),
-            text: displayName,
-            alternateText: lastFour,
+            text: displayName !== '' ? displayName : (cardName ?? ''),
             accountID,
             card,
+            lastFourPAN: card.lastFourPAN,
+            isVirtual: !!card.nameValuePairs?.isVirtual,
+            shouldShowOwnersAvatar: true,
+            cardOwnerPersonalDetails,
+            bankIcon: {
+                icon: getCardFeedIcon(card.bank, themeIllustrations, companyCardFeedIcons),
+            },
         };
     });
 
@@ -174,7 +187,7 @@ function AddCardPage({route}: AddCardPageProps) {
                     onCheckboxPress={toggleCard}
                     onSelectRow={toggleCard}
                     selectedItems={selectedCardIDs}
-                    ListItem={UserListItem}
+                    ListItem={CardListItem}
                     shouldUseDefaultRightHandSideCheckmark={false}
                     shouldUpdateFocusedIndex
                     shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
