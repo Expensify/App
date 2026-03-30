@@ -192,11 +192,13 @@ function WorkspaceInviteMessageComponent({
         }
 
         if (isWorkflowApprovalExpensesFromRoute) {
-            const isInitialCreationFlow = !backTo?.toString().includes('backTo=');
-            if (isInitialCreationFlow) {
-                Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_APPROVER.getRoute(policyID, 0));
+            const backToStr = backTo?.toString() ?? '';
+            const nestedBackToMatch = backToStr.match(/[?&]backTo=([^&]+)/);
+            const nestedBackTo = nestedBackToMatch ? decodeURIComponent(nestedBackToMatch[1]) : undefined;
+            if (nestedBackTo) {
+                Navigation.goBack(nestedBackTo as Routes);
             } else {
-                Navigation.goBack(backTo);
+                Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_APPROVER.getRoute(policyID, 0));
             }
             return;
         }

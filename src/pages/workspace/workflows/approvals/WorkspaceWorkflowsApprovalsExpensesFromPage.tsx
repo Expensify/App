@@ -23,7 +23,8 @@ import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullsc
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES, {type Route} from '@src/ROUTES';
+import type {Route} from '@src/ROUTES';
+import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Member} from '@src/types/onyx/ApprovalWorkflow';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -322,18 +323,19 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
     const toggleMember = useCallback(
         (members: SelectionListApprover[]) => {
             setSelectedMembers((prevSelected) => {
-                // When editing an existing workflow, policy members (e.g. User C after invite) must remain in the list (Test 6).
+                // When editing an existing workflow, recently invited members must remain in the list
+                // even if the policy employee list hasn't synced yet (Test 6).
                 // When creating a new workflow, any member including Owner can be deselected (Test 5).
                 if (approvalWorkflow?.action !== CONST.APPROVAL_WORKFLOW.ACTION.EDIT) {
                     return members;
                 }
-                const policyMembers = prevSelected.filter((m) => policy?.employeeList?.[m.login]);
+                const policyOrInvitedMembers = prevSelected.filter((m) => m.login && (policy?.employeeList?.[m.login] ?? invitedEmailsToAccountIDsDraft?.[m.login] != null));
                 const alreadyInNewSelection = new Set(members.map((m) => m.login));
-                const policyMembersToKeep = policyMembers.filter((pm) => !alreadyInNewSelection.has(pm.login));
-                return [...members, ...policyMembersToKeep];
+                const membersToKeep = policyOrInvitedMembers.filter((pm) => !alreadyInNewSelection.has(pm.login));
+                return [...members, ...membersToKeep];
             });
         },
-        [approvalWorkflow?.action, policy?.employeeList],
+        [approvalWorkflow?.action, policy?.employeeList, invitedEmailsToAccountIDsDraft],
     );
 
     // Clean up invite draft when leaving the expenses-from page to prevent

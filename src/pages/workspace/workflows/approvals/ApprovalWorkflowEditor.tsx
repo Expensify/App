@@ -115,11 +115,8 @@ function ApprovalWorkflowEditor({approvalWorkflow, removeApprovalWorkflow, polic
     );
 
     const handleExpensesFromPress = useCallback(() => {
-        const firstApproverEmail = approvalWorkflow.approvers?.[0]?.email ?? '';
-        const backTo =
-            approvalWorkflow.action === CONST.APPROVAL_WORKFLOW.ACTION.EDIT
-                ? ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(policyID, firstApproverEmail)
-                : undefined;
+        const firstApproverEmail = approvalWorkflow.approvers?.at(0)?.email ?? '';
+        const backTo = approvalWorkflow.action === CONST.APPROVAL_WORKFLOW.ACTION.EDIT ? ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(policyID, firstApproverEmail) : undefined;
         Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EXPENSES_FROM.getRoute(policyID, backTo));
     }, [approvalWorkflow.action, approvalWorkflow.approvers, policyID]);
 
