@@ -20,7 +20,7 @@ function PDFInfoMessage({onShowForm}: PDFInfoMessageProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const icons = useMemoizedLazyExpensifyIcons(['EyeDisabled'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['EyeDisabled']);
 
     return (
         <View style={styles.alignItemsCenter}>
