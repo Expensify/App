@@ -94,7 +94,11 @@ function useSettlementButtonOptions({
     const hasPreferredPaymentMethod = !!lastPaymentMethod;
     const lastPaymentPolicy = usePolicy(lastPaymentMethod);
     const bankAccount = data.bankAccountList?.[lastBankAccountID ?? CONST.DEFAULT_NUMBER_ID];
-    const hasIntentToPay = ((formattedPaymentMethods.length === 1 && isIOUReport(iouReport)) || policy?.achAccount?.state === CONST.BANK_ACCOUNT.STATE.OPEN) && !lastPaymentMethod;
+    const hasIntentToPay =
+        ((formattedPaymentMethods.length === 1 && isIOUReport(iouReport)) ||
+            policy?.achAccount?.state === CONST.BANK_ACCOUNT.STATE.OPEN ||
+            policy?.achAccount?.state === CONST.BANK_ACCOUNT.STATE.LOCKED) &&
+        !lastPaymentMethod;
 
     const {checkForNecessaryAction, userBillingGraceEndPeriods} = usePaymentGuard(chatReportID, reportID, policy);
     const {approveButtonOption, handleApprove} = useApproveAction({iouReport, policyID, formattedAmount, shouldDisableApproveButton, confirmApproval, userBillingGraceEndPeriods});
