@@ -1435,11 +1435,10 @@ function updateSplitTransactions({
             },
         });
 
-        // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
         onyxData.failureData?.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`,
-            value: originalTransaction,
+            value: originalTransaction ?? null,
         });
 
         if (firstIOU) {

@@ -85,6 +85,9 @@ type ReportNameValuePairs = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Agent Zero processing request indicator message */
     agentZeroProcessingRequestIndicator?: string;
 
+    /** Parent report ID */
+    parentReportID?: string;
+
     /** Title field configuration copied from policy - presence indicates auto-generated names are allowed */
     // eslint-disable-next-line @typescript-eslint/naming-convention
     expensify_text_title?: {

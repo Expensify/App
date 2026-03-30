@@ -1,6 +1,6 @@
 import {renderHook} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
-import type {OnyxCollection} from 'react-native-onyx';
+import type {OnyxCollection, OnyxMergeCollectionInput} from 'react-native-onyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -66,8 +66,7 @@ describe('IOUUtils', () => {
             MergeQueries[`${ONYXKEYS.COLLECTION.TRANSACTION}${usdPendingTransaction.transactionID}`] = usdPendingTransaction;
             MergeQueries[`${ONYXKEYS.COLLECTION.TRANSACTION}${aedPendingTransaction.transactionID}`] = aedPendingTransaction;
 
-            // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
-            return Onyx.mergeCollection(ONYXKEYS.COLLECTION.TRANSACTION, MergeQueries).then(() => {
+            return Onyx.mergeCollection(ONYXKEYS.COLLECTION.TRANSACTION, MergeQueries as OnyxMergeCollectionInput<typeof ONYXKEYS.COLLECTION.TRANSACTION>).then(() => {
                 // We submitted an expense offline in a different currency, we don't know the total of the iouReport until we're back online
                 expect(IOUUtils.isIOUReportPendingCurrencyConversion(iouReport)).toBe(true);
             });
@@ -100,8 +99,7 @@ describe('IOUUtils', () => {
                 pendingAction: null,
             };
 
-            // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
-            return Onyx.mergeCollection(ONYXKEYS.COLLECTION.TRANSACTION, MergeQueries).then(() => {
+            return Onyx.mergeCollection(ONYXKEYS.COLLECTION.TRANSACTION, MergeQueries as OnyxMergeCollectionInput<typeof ONYXKEYS.COLLECTION.TRANSACTION>).then(() => {
                 // We submitted an expense online in a different currency, we know the iouReport total and there's no need to show the pending conversion message
                 expect(IOUUtils.isIOUReportPendingCurrencyConversion(iouReport)).toBe(false);
             });
