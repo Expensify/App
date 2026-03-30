@@ -7485,7 +7485,7 @@ describe('SearchUIUtils', () => {
 
             expect(setOptimisticDataForTransactionThreadPreview).toHaveBeenCalled();
             // The full reportAction is passed to preserve originalMessage.type for proper expense type detection
-            expect(createTransactionThreadReport).toHaveBeenCalledWith(introSelectedData, currentUserLogin, currentUserAccountID, report1, reportAction1, undefined, undefined);
+            expect(createTransactionThreadReport).toHaveBeenCalledWith(introSelectedData, currentUserLogin, currentUserAccountID, undefined, report1, reportAction1, undefined, undefined);
         });
 
         test('Should not navigate if shouldNavigate = false', () => {
