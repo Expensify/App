@@ -879,13 +879,13 @@ describe('MoneyRequest', () => {
             );
         });
 
-        it('should pass ownerBillingGraceEndPeriod through to shouldUseDefaultExpensePolicy', () => {
+        it('should pass ownerBillingGracePeriodEnd through to shouldUseDefaultExpensePolicy', () => {
             const pastDate = Math.floor(Date.now() / 1000) - 86400 * 30;
             handleMoneyRequestStepScanParticipants({
                 ...baseParams,
                 defaultExpensePolicy: undefined,
                 amountOwed: 100,
-                ownerBillingGraceEndPeriod: pastDate,
+                ownerBillingGracePeriodEnd: pastDate,
             });
 
             expect(Navigation.navigate).toHaveBeenCalledWith(
@@ -1317,7 +1317,7 @@ describe('MoneyRequest', () => {
             expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(CONST.IOU.TYPE.CREATE, baseParams.transactionID, baseParams.reportID));
         });
 
-        it('should pass ownerBillingGraceEndPeriod through to shouldUseDefaultExpensePolicy', () => {
+        it('should pass ownerBillingGracePeriodEnd through to shouldUseDefaultExpensePolicy', () => {
             const pastDate = Math.floor(Date.now() / 1000) - 86400 * 30;
             handleMoneyRequestStepDistanceNavigation({
                 ...baseParams,
@@ -1325,7 +1325,7 @@ describe('MoneyRequest', () => {
                 defaultExpensePolicy: undefined,
                 iouType: CONST.IOU.TYPE.CREATE,
                 amountOwed: 100,
-                ownerBillingGraceEndPeriod: pastDate,
+                ownerBillingGracePeriodEnd: pastDate,
             });
 
             expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(CONST.IOU.TYPE.CREATE, baseParams.transactionID, baseParams.reportID));
@@ -1395,7 +1395,7 @@ describe('MoneyRequest', () => {
             expect(shouldUseDefaultExpensePolicy(CONST.IOU.TYPE.CREATE, policy, undefined, undefined)).toBe(true);
         });
 
-        it('should pass ownerBillingGraceEndPeriod through to shouldRestrictUserBillableActions', async () => {
+        it('should pass ownerBillingGracePeriodEnd through to shouldRestrictUserBillableActions', async () => {
             const policy = {
                 ...fakePolicy,
                 type: CONST.POLICY.TYPE.TEAM,

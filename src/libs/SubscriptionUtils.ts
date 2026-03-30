@@ -246,12 +246,12 @@ function getSubscriptionStatus(
     fundList: OnyxEntry<FundList>,
     billingStatus: OnyxEntry<BillingStatus>,
     amountOwed: number,
-    ownerBillingGraceEndPeriod: OnyxEntry<number>,
+    ownerBillingGracePeriodEnd: OnyxEntry<number>,
 ): SubscriptionStatus | undefined {
-    if (ownerBillingGraceEndPeriod) {
+    if (ownerBillingGracePeriodEnd) {
         if (amountOwed !== 0) {
             // 1. Policy owner with amount owed, within grace period
-            if (!hasGracePeriodOverdue(ownerBillingGraceEndPeriod)) {
+            if (!hasGracePeriodOverdue(ownerBillingGracePeriodEnd)) {
                 return {
                     status: PAYMENT_STATUS.POLICY_OWNER_WITH_AMOUNT_OWED,
                     isError: true,
@@ -259,7 +259,7 @@ function getSubscriptionStatus(
             }
 
             // 2. Policy owner with amount owed, overdue (past grace period)
-            if (hasGracePeriodOverdue(ownerBillingGraceEndPeriod)) {
+            if (hasGracePeriodOverdue(ownerBillingGracePeriodEnd)) {
                 return {
                     isError: true,
                     status: PAYMENT_STATUS.POLICY_OWNER_WITH_AMOUNT_OWED_OVERDUE,
@@ -267,7 +267,7 @@ function getSubscriptionStatus(
             }
         } else {
             // 3. Owner of policy under invoicing, within grace period
-            if (!hasGracePeriodOverdue(ownerBillingGraceEndPeriod)) {
+            if (!hasGracePeriodOverdue(ownerBillingGracePeriodEnd)) {
                 return {
                     status: PAYMENT_STATUS.OWNER_OF_POLICY_UNDER_INVOICING,
                     isError: true,
@@ -275,7 +275,7 @@ function getSubscriptionStatus(
             }
 
             // 4. Owner of policy under invoicing, overdue (past grace period)
-            if (hasGracePeriodOverdue(ownerBillingGraceEndPeriod)) {
+            if (hasGracePeriodOverdue(ownerBillingGracePeriodEnd)) {
                 return {
                     status: PAYMENT_STATUS.OWNER_OF_POLICY_UNDER_INVOICING_OVERDUE,
                     isError: true,
@@ -352,10 +352,10 @@ function hasSubscriptionRedDotError(
     fundList: OnyxEntry<FundList>,
     billingStatus: OnyxEntry<BillingStatus>,
     amountOwed: number,
-    ownerBillingGraceEndPeriod: OnyxEntry<number>,
+    ownerBillingGracePeriodEnd: OnyxEntry<number>,
 ): boolean {
     return (
-        getSubscriptionStatus(stripeCustomerId, retryBillingSuccessful, billingDisputePending, retryBillingFailed, fundList, billingStatus, amountOwed, ownerBillingGraceEndPeriod)
+        getSubscriptionStatus(stripeCustomerId, retryBillingSuccessful, billingDisputePending, retryBillingFailed, fundList, billingStatus, amountOwed, ownerBillingGracePeriodEnd)
             ?.isError ?? false
     );
 }
@@ -371,10 +371,10 @@ function hasSubscriptionGreenDotInfo(
     fundList: OnyxEntry<FundList>,
     billingStatus: OnyxEntry<BillingStatus>,
     amountOwed: number,
-    ownerBillingGraceEndPeriod: OnyxEntry<number>,
+    ownerBillingGracePeriodEnd: OnyxEntry<number>,
 ): boolean {
     return (
-        getSubscriptionStatus(stripeCustomerId, retryBillingSuccessful, billingDisputePending, retryBillingFailed, fundList, billingStatus, amountOwed, ownerBillingGraceEndPeriod)
+        getSubscriptionStatus(stripeCustomerId, retryBillingSuccessful, billingDisputePending, retryBillingFailed, fundList, billingStatus, amountOwed, ownerBillingGracePeriodEnd)
             ?.isError === false
     );
 }
@@ -464,7 +464,7 @@ function doesUserHavePaymentCardAdded(userBillingFundID: number | undefined): bo
  */
 function shouldRestrictUserBillableActions(
     policyID: string,
-    ownerBillingGraceEndPeriod: OnyxEntry<number>,
+    ownerBillingGracePeriodEnd: OnyxEntry<number>,
     userBillingGraceEndPeriods: OnyxCollection<BillingGraceEndPeriod> = deprecatedUserBillingGraceEndPeriods,
     amountOwed: OnyxEntry<number> = privateAmountOwed,
 ): boolean {
@@ -492,10 +492,10 @@ function shouldRestrictUserBillableActions(
     // We should restrict the workspace's owner actions if it's past its grace period end date and it's owing some amount.
     if (
         isPolicyOwner(policy, currentUserAccountID) &&
-        ownerBillingGraceEndPeriod &&
+        ownerBillingGracePeriodEnd &&
         amountOwed !== undefined &&
         amountOwed > 0 &&
-        isAfter(currentDate, fromUnixTime(ownerBillingGraceEndPeriod))
+        isAfter(currentDate, fromUnixTime(ownerBillingGracePeriodEnd))
     ) {
         return true;
     }

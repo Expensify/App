@@ -46,7 +46,7 @@ type SelectPaymentTypeParams = {
     betas: OnyxEntry<Beta[]>;
     userBillingGraceEndPeriods: OnyxCollection<BillingGraceEndPeriod>;
     amountOwed: OnyxEntry<number>;
-    ownerBillingGraceEndPeriod: OnyxEntry<number>;
+    ownerBillingGracePeriodEnd: OnyxEntry<number>;
 };
 
 type BusinessBankAccountOption = {
@@ -232,9 +232,9 @@ const selectPaymentType = (params: SelectPaymentTypeParams) => {
         betas,
         userBillingGraceEndPeriods,
         amountOwed,
-        ownerBillingGraceEndPeriod,
+        ownerBillingGracePeriodEnd,
     } = params;
-    if (policy && shouldRestrictUserBillableActions(policy.id, ownerBillingGraceEndPeriod, userBillingGraceEndPeriods, amountOwed)) {
+    if (policy && shouldRestrictUserBillableActions(policy.id, ownerBillingGracePeriodEnd, userBillingGraceEndPeriods, amountOwed)) {
         Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
         return;
     }
@@ -263,7 +263,7 @@ const selectPaymentType = (params: SelectPaymentTypeParams) => {
                 betas,
                 userBillingGraceEndPeriods,
                 amountOwed,
-                ownerBillingGraceEndPeriod,
+                ownerBillingGracePeriodEnd,
                 full: true,
             });
         }

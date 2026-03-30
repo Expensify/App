@@ -49,7 +49,7 @@ function QuickCreationActionsBar() {
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`);
     const [userBillingGraceEndPeriods] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
-    const [ownerBillingGraceEndPeriod] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
+    const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const [primaryLogin] = useOnyx(ONYXKEYS.ACCOUNT, {selector: primaryLoginSelector});
     const [travelSettings] = useOnyx(ONYXKEYS.NVP_TRAVEL_SETTINGS);
 
@@ -175,13 +175,13 @@ function QuickCreationActionsBar() {
 
                 if (
                     !workspaceIDForReportCreation ||
-                    (shouldRestrictUserBillableActions(workspaceIDForReportCreation, ownerBillingGraceEndPeriod, userBillingGraceEndPeriods) && groupPoliciesWithChatEnabled.length > 1)
+                    (shouldRestrictUserBillableActions(workspaceIDForReportCreation, ownerBillingGracePeriodEnd, userBillingGraceEndPeriods) && groupPoliciesWithChatEnabled.length > 1)
                 ) {
                     Navigation.navigate(ROUTES.NEW_REPORT_WORKSPACE_SELECTION.getRoute());
                     return;
                 }
 
-                if (!shouldRestrictUserBillableActions(workspaceIDForReportCreation, ownerBillingGraceEndPeriod, userBillingGraceEndPeriods)) {
+                if (!shouldRestrictUserBillableActions(workspaceIDForReportCreation, ownerBillingGracePeriodEnd, userBillingGraceEndPeriods)) {
                     if (shouldShowEmptyReportConfirmationForDefaultChatEnabledPolicy) {
                         openCreateReportConfirmation();
                     } else {
@@ -198,7 +198,7 @@ function QuickCreationActionsBar() {
             shouldNavigateToUpgradePath,
             defaultChatEnabledPolicyID,
             userBillingGraceEndPeriods,
-            ownerBillingGraceEndPeriod,
+            ownerBillingGracePeriodEnd,
             groupPoliciesWithChatEnabled.length,
             shouldShowEmptyReportConfirmationForDefaultChatEnabledPolicy,
             openCreateReportConfirmation,

@@ -34,7 +34,7 @@ function SubmitActionButton({iouReportID, chatReportID, isSubmittingAnimationRun
     const [userBillingGraceEndPeriods] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [iouReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${iouReportID}`);
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
-    const [ownerBillingGraceEndPeriod] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
+    const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportID}`);
     const {isOffline} = useNetwork();
@@ -78,7 +78,7 @@ function SubmitActionButton({iouReportID, chatReportID, isSubmittingAnimationRun
                         userBillingGraceEndPeriods,
                         amountOwed,
                         onSubmitted: startSubmittingAnimation,
-                        ownerBillingGraceEndPeriod,
+                        ownerBillingGracePeriodEnd,
                     });
                 });
             }}

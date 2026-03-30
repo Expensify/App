@@ -7378,7 +7378,7 @@ describe('actions/IOU', () => {
                 isSelfTourViewed: false,
                 userBillingGraceEndPeriods: undefined,
                 amountOwed: 100,
-                ownerBillingGraceEndPeriod: pastDate,
+                ownerBillingGracePeriodEnd: pastDate,
             });
 
             await waitForBatchedUpdates();
@@ -9567,7 +9567,7 @@ describe('actions/IOU', () => {
                             expenseReportCurrentNextStepDeprecated: nextStep,
                             userBillingGraceEndPeriods: undefined,
                             amountOwed: 0,
-                            ownerBillingGraceEndPeriod: undefined,
+                            ownerBillingGracePeriodEnd: undefined,
                         });
                     }
                     return waitForBatchedUpdates();
@@ -9865,7 +9865,7 @@ describe('actions/IOU', () => {
                                 expenseReportCurrentNextStepDeprecated: nextStep,
                                 userBillingGraceEndPeriods: undefined,
                                 amountOwed: 0,
-                                ownerBillingGraceEndPeriod: undefined,
+                                ownerBillingGracePeriodEnd: undefined,
                             });
                         }
                         return waitForBatchedUpdates();
@@ -10131,7 +10131,7 @@ describe('actions/IOU', () => {
                                 expenseReportCurrentNextStepDeprecated: nextStep,
                                 userBillingGraceEndPeriods: undefined,
                                 amountOwed: 0,
-                                ownerBillingGraceEndPeriod: undefined,
+                                ownerBillingGracePeriodEnd: undefined,
                             });
                         }
                         return waitForBatchedUpdates();
@@ -10299,7 +10299,7 @@ describe('actions/IOU', () => {
                             expenseReportCurrentNextStepDeprecated: undefined,
                             userBillingGraceEndPeriods: undefined,
                             amountOwed: 0,
-                            ownerBillingGraceEndPeriod: undefined,
+                            ownerBillingGracePeriodEnd: undefined,
                         });
                     }
                     return waitForBatchedUpdates();
@@ -10370,7 +10370,7 @@ describe('actions/IOU', () => {
                 expenseReportCurrentNextStepDeprecated: undefined,
                 userBillingGraceEndPeriods: undefined,
                 amountOwed: 100,
-                ownerBillingGraceEndPeriod: pastDate,
+                ownerBillingGracePeriodEnd: pastDate,
             });
 
             await waitForBatchedUpdates();
@@ -10468,7 +10468,7 @@ describe('actions/IOU', () => {
                 (Navigation.navigate as jest.Mock).mockClear();
 
                 const nextStep = await getOnyxValue(`${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport.reportID}`);
-                const ownerBillingGraceEndPeriod = Math.floor(Date.now() / 1000) - 86400 * 30;
+                const ownerBillingGracePeriodEnd = Math.floor(Date.now() / 1000) - 86400 * 30;
                 submitReport({
                     expenseReport,
                     policy,
@@ -10479,7 +10479,7 @@ describe('actions/IOU', () => {
                     expenseReportCurrentNextStepDeprecated: nextStep,
                     userBillingGraceEndPeriods: undefined,
                     amountOwed: 0,
-                    ownerBillingGraceEndPeriod,
+                    ownerBillingGracePeriodEnd,
                 });
 
                 await waitForBatchedUpdates();
@@ -14217,7 +14217,7 @@ describe('actions/IOU', () => {
                 betas: [CONST.BETAS.ALL],
                 userBillingGraceEndPeriods: undefined,
                 amountOwed: 0,
-                ownerBillingGraceEndPeriod: undefined,
+                ownerBillingGracePeriodEnd: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -14267,7 +14267,7 @@ describe('actions/IOU', () => {
                 betas: [CONST.BETAS.ALL],
                 userBillingGraceEndPeriods: undefined,
                 amountOwed: 0,
-                ownerBillingGraceEndPeriod: undefined,
+                ownerBillingGracePeriodEnd: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -14313,7 +14313,7 @@ describe('actions/IOU', () => {
                 betas: [CONST.BETAS.ALL],
                 userBillingGraceEndPeriods: undefined,
                 amountOwed: 0,
-                ownerBillingGraceEndPeriod: undefined,
+                ownerBillingGracePeriodEnd: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -14435,7 +14435,7 @@ describe('actions/IOU', () => {
                 betas: [CONST.BETAS.ALL],
                 userBillingGraceEndPeriods: undefined,
                 amountOwed: 0,
-                ownerBillingGraceEndPeriod: undefined,
+                ownerBillingGracePeriodEnd: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -14464,7 +14464,7 @@ describe('actions/IOU', () => {
                 betas: [CONST.BETAS.ALL],
                 userBillingGraceEndPeriods: undefined,
                 amountOwed: 0,
-                ownerBillingGraceEndPeriod: undefined,
+                ownerBillingGracePeriodEnd: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -14491,7 +14491,7 @@ describe('actions/IOU', () => {
                 betas: [CONST.BETAS.ALL],
                 userBillingGraceEndPeriods: undefined,
                 amountOwed: 0,
-                ownerBillingGraceEndPeriod: undefined,
+                ownerBillingGracePeriodEnd: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -14548,7 +14548,7 @@ describe('actions/IOU', () => {
                 betas: [CONST.BETAS.ALL],
                 userBillingGraceEndPeriods: undefined,
                 amountOwed: 0,
-                ownerBillingGraceEndPeriod: undefined,
+                ownerBillingGracePeriodEnd: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -14662,7 +14662,7 @@ describe('actions/IOU', () => {
                 userBillingGraceEndPeriods: undefined,
                 amountOwed: 0,
                 full: false,
-                ownerBillingGraceEndPeriod: undefined,
+                ownerBillingGracePeriodEnd: undefined,
             });
             await waitForBatchedUpdates();
 

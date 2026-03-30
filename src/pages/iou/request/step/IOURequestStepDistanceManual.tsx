@@ -82,7 +82,7 @@ function IOURequestStepDistanceManual({
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const defaultExpensePolicy = useDefaultExpensePolicy();
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
-    const [ownerBillingGraceEndPeriod] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
+    const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const {policyForMovingExpenses} = usePolicyForMovingExpenses();
     const [skipConfirmation] = useOnyx(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${transactionID}`);
     const [lastSelectedDistanceRates] = useOnyx(ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES);
@@ -110,8 +110,8 @@ function IOURequestStepDistanceManual({
     const currentUserEmailParam = currentUserPersonalDetails.login ?? '';
 
     const shouldUseDefaultExpensePolicy = useMemo(
-        () => shouldUseDefaultExpensePolicyUtil(iouType, defaultExpensePolicy, amountOwed, ownerBillingGraceEndPeriod),
-        [iouType, defaultExpensePolicy, amountOwed, ownerBillingGraceEndPeriod],
+        () => shouldUseDefaultExpensePolicyUtil(iouType, defaultExpensePolicy, amountOwed, ownerBillingGracePeriodEnd),
+        [iouType, defaultExpensePolicy, amountOwed, ownerBillingGracePeriodEnd],
     );
 
     const customUnitRateID = getRateID(transaction);
@@ -249,7 +249,7 @@ function IOURequestStepDistanceManual({
                 draftTransactionIDs,
                 isSelfTourViewed: !!isSelfTourViewed,
                 amountOwed,
-                ownerBillingGraceEndPeriod,
+                ownerBillingGracePeriodEnd,
             });
         },
         [
@@ -297,7 +297,7 @@ function IOURequestStepDistanceManual({
             draftTransactionIDs,
             isSelfTourViewed,
             amountOwed,
-            ownerBillingGraceEndPeriod,
+            ownerBillingGracePeriodEnd,
         ],
     );
 

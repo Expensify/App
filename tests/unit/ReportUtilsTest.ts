@@ -13416,7 +13416,7 @@ describe('ReportUtils', () => {
                     activePolicy,
                     userBillingGraceEndPeriods: undefined,
                     amountOwed: 1,
-                    ownerBillingGraceEndPeriod: pastGracePeriod,
+                    ownerBillingGracePeriodEnd: pastGracePeriod,
                     transaction,
                 });
 
@@ -13692,7 +13692,7 @@ describe('ReportUtils', () => {
                     activePolicy,
                     userBillingGraceEndPeriods: undefined,
                     amountOwed: 0,
-                    ownerBillingGraceEndPeriod: pastGracePeriod,
+                    ownerBillingGracePeriodEnd: pastGracePeriod,
                     transaction,
                 });
 
@@ -13728,7 +13728,7 @@ describe('ReportUtils', () => {
                     activePolicy,
                     userBillingGraceEndPeriods: undefined,
                     amountOwed: 50,
-                    ownerBillingGraceEndPeriod: pastGracePeriod,
+                    ownerBillingGracePeriodEnd: pastGracePeriod,
                     transaction,
                 });
 
@@ -14414,7 +14414,7 @@ describe('ReportUtils', () => {
                 userBillingGraceEndPeriods: undefined,
                 draftTransactionIDs: undefined,
                 amountOwed: 0,
-                ownerBillingGraceEndPeriod: undefined,
+                ownerBillingGracePeriodEnd: undefined,
             });
             expect(result).toHaveLength(3);
         });
@@ -14428,7 +14428,7 @@ describe('ReportUtils', () => {
                 userBillingGraceEndPeriods: undefined,
                 draftTransactionIDs: undefined,
                 amountOwed: undefined,
-                ownerBillingGraceEndPeriod: undefined,
+                ownerBillingGracePeriodEnd: undefined,
             });
             expect(result.at(0)?.value).toBe(CONST.REPORT.ADD_EXPENSE_OPTIONS.CREATE_NEW_EXPENSE);
             expect(result.at(1)?.value).toBe(CONST.REPORT.ADD_EXPENSE_OPTIONS.TRACK_DISTANCE_EXPENSE);
@@ -14444,7 +14444,7 @@ describe('ReportUtils', () => {
                 userBillingGraceEndPeriods: undefined,
                 draftTransactionIDs: undefined,
                 amountOwed: 0,
-                ownerBillingGraceEndPeriod: undefined,
+                ownerBillingGracePeriodEnd: undefined,
             });
             expect(result.at(0)?.text).toBe(translate(CONST.LOCALES.EN, 'iou.createExpense'));
             expect(result.at(1)?.text).toBe(translate(CONST.LOCALES.EN, 'iou.trackDistance'));
@@ -14460,7 +14460,7 @@ describe('ReportUtils', () => {
                 userBillingGraceEndPeriods: undefined,
                 draftTransactionIDs: undefined,
                 amountOwed: 0,
-                ownerBillingGraceEndPeriod: undefined,
+                ownerBillingGracePeriodEnd: undefined,
             });
             expect(result.at(0)?.sentryLabel).toBe(CONST.SENTRY_LABEL.MORE_MENU.ADD_EXPENSE_CREATE);
             expect(result.at(1)?.sentryLabel).toBe(CONST.SENTRY_LABEL.MORE_MENU.ADD_EXPENSE_TRACK_DISTANCE);
@@ -14479,7 +14479,7 @@ describe('ReportUtils', () => {
                 userBillingGraceEndPeriods: undefined,
                 draftTransactionIDs: undefined,
                 amountOwed,
-                ownerBillingGraceEndPeriod: undefined,
+                ownerBillingGracePeriodEnd: undefined,
             });
 
             // Trigger each onSelected - the function should not throw
@@ -14499,7 +14499,7 @@ describe('ReportUtils', () => {
                 userBillingGraceEndPeriods: undefined,
                 draftTransactionIDs: undefined,
                 amountOwed: 0,
-                ownerBillingGraceEndPeriod: undefined,
+                ownerBillingGracePeriodEnd: undefined,
             });
 
             expect(result).toHaveLength(3);
@@ -14518,7 +14518,7 @@ describe('ReportUtils', () => {
                 userBillingGraceEndPeriods: undefined,
                 draftTransactionIDs: undefined,
                 amountOwed: 0,
-                ownerBillingGraceEndPeriod: undefined,
+                ownerBillingGracePeriodEnd: undefined,
             });
 
             // CREATE_NEW_EXPENSE and TRACK_DISTANCE_EXPENSE should early-return when iouReportID is undefined
@@ -14537,7 +14537,7 @@ describe('ReportUtils', () => {
                 userBillingGraceEndPeriods: undefined,
                 draftTransactionIDs: undefined,
                 amountOwed: 0,
-                ownerBillingGraceEndPeriod: undefined,
+                ownerBillingGracePeriodEnd: undefined,
             });
 
             expect(result).toHaveLength(3);
@@ -14556,7 +14556,7 @@ describe('ReportUtils', () => {
                 userBillingGraceEndPeriods: undefined,
                 draftTransactionIDs: undefined,
                 amountOwed,
-                ownerBillingGraceEndPeriod: undefined,
+                ownerBillingGracePeriodEnd: undefined,
             });
 
             expect(result).toHaveLength(3);
@@ -14571,7 +14571,7 @@ describe('ReportUtils', () => {
                 userBillingGraceEndPeriods: undefined,
                 draftTransactionIDs: undefined,
                 amountOwed: 0,
-                ownerBillingGraceEndPeriod: undefined,
+                ownerBillingGracePeriodEnd: undefined,
             });
             expect(result.at(1)?.icon).toBe(mockIcons.Location);
             expect(result.at(2)?.icon).toBe(mockIcons.ReceiptPlus);
@@ -14902,7 +14902,7 @@ describe('ReportUtils', () => {
                 userBillingGraceEndPeriods: undefined,
                 draftTransactionIDs: undefined,
                 amountOwed: undefined,
-                ownerBillingGraceEndPeriod: undefined,
+                ownerBillingGracePeriodEnd: undefined,
             });
 
             expect(options).toHaveLength(3);
@@ -14921,7 +14921,7 @@ describe('ReportUtils', () => {
                     userBillingGraceEndPeriods: undefined,
                     draftTransactionIDs: undefined,
                     amountOwed: undefined,
-                    ownerBillingGraceEndPeriod: undefined,
+                    ownerBillingGracePeriodEnd: undefined,
                 });
                 options.at(0)?.onSelected?.();
 
@@ -14952,7 +14952,7 @@ describe('ReportUtils', () => {
                     userBillingGraceEndPeriods: pastDueCollection,
                     draftTransactionIDs: undefined,
                     amountOwed: undefined,
-                    ownerBillingGraceEndPeriod: undefined,
+                    ownerBillingGracePeriodEnd: undefined,
                 });
                 options.at(0)?.onSelected?.();
 
@@ -14984,14 +14984,14 @@ describe('ReportUtils', () => {
                     userBillingGraceEndPeriods: pastDueCollection,
                     draftTransactionIDs: undefined,
                     amountOwed: undefined,
-                    ownerBillingGraceEndPeriod: undefined,
+                    ownerBillingGracePeriodEnd: undefined,
                 });
                 options.at(2)?.onSelected?.();
 
                 expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.RESTRICTED_ACTION.getRoute(policyID));
             });
 
-            it('should pass ownerBillingGraceEndPeriod to restrict owner with past-due billing', async () => {
+            it('should pass ownerBillingGracePeriodEnd to restrict owner with past-due billing', async () => {
                 const gracePeriodEnd = Math.floor(Date.now() / 1000) - 3600;
                 const testPolicy = {
                     ...createRandomPolicy(Number(policyID)),
@@ -15010,7 +15010,7 @@ describe('ReportUtils', () => {
                     userBillingGraceEndPeriods: undefined,
                     draftTransactionIDs: undefined,
                     amountOwed: undefined,
-                    ownerBillingGraceEndPeriod: gracePeriodEnd,
+                    ownerBillingGracePeriodEnd: gracePeriodEnd,
                 });
                 options.at(2)?.onSelected?.();
 

@@ -26,7 +26,7 @@ function useScanActions() {
     const [policyChats = getEmptyArray<OnyxTypes.Report>()] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: workspaceChatsSelector});
 
     const [userBillingGraceEndPeriods] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
-    const [ownerBillingGraceEndPeriod] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
+    const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const {shouldRedirectToExpensifyClassic, showRedirectToExpensifyClassicModal} = useRedirectToExpensifyClassic();
 
     // useState lazy initializer generates the ID once on mount and keeps it stable across renders
@@ -50,7 +50,7 @@ function useScanActions() {
 
     const startQuickScan = () => {
         interceptAnonymousUser(() => {
-            if (policyChatPolicyID && shouldRestrictUserBillableActions(policyChatPolicyID, ownerBillingGraceEndPeriod, userBillingGraceEndPeriods)) {
+            if (policyChatPolicyID && shouldRestrictUserBillableActions(policyChatPolicyID, ownerBillingGracePeriodEnd, userBillingGraceEndPeriods)) {
                 Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policyChatPolicyID));
                 return;
             }
