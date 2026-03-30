@@ -9386,7 +9386,7 @@ const CONST = {
             },
             {
                 title: 'More power, right where you need it',
-                subtitle: 'Press Release',
+                subtitle: 'Product update',
                 url: 'https://use.expensify.com/blog/expensify-march-2026-product-update',
                 publishedDate: '2026-03-23',
             },
