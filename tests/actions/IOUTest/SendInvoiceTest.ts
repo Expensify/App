@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import type {OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
-import {getPolicyTags} from '@libs/actions/IOU';
 import {getReceiverType, getSendInvoiceInformation, sendInvoice} from '@libs/actions/IOU/SendInvoice';
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
 import {WRITE_COMMANDS} from '@libs/API/types';
@@ -550,7 +549,7 @@ describe('actions/SendInvoice', () => {
 
         it('should not include recently used tags update when transaction has no tag', async () => {
             // Given: A transaction with no tag and policy tags seeded in Onyx
-            const policyID = 'workspace_notags';
+            const policyID = 'workspace_no_tags';
             const tagListName = 'Department';
 
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {

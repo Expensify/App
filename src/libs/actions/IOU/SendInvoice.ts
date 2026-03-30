@@ -647,7 +647,6 @@ function getSendInvoiceInformation({
             tag,
             taxCode,
             taxAmount,
-            taxValue,
             billable,
             reimbursable: true,
         },
