@@ -31,13 +31,40 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Card} from '@src/types/onyx';
-import type {ExpensifyCardRuleFilter} from '@src/types/onyx/ExpensifyCardSettings';
+import type {ExpensifyCardRule, ExpensifyCardRuleFilter} from '@src/types/onyx/ExpensifyCardSettings';
 
 type ExpensifyCardListItem = ListItem & {
     card: Card;
 };
 
 type AddCardPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_SPEND_CARD>;
+
+function getCardIDsWithSpendRules(cardRules: Record<string, ExpensifyCardRule> | undefined): Set<string> {
+    const cardIDs = new Set<string>();
+    if (!cardRules) {
+        return cardIDs;
+    }
+
+    const traverseFilters = (filters: ExpensifyCardRuleFilter) => {
+        if ((filters.operator === CONST.SEARCH.SYNTAX_OPERATORS.AND || filters.operator === CONST.SEARCH.SYNTAX_OPERATORS.OR)) {
+            traverseFilters(filters.left as ExpensifyCardRuleFilter);
+            traverseFilters(filters.right as ExpensifyCardRuleFilter);
+            return;
+        }
+
+        if (filters.left === CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID && filters.operator === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO && Array.isArray(filters.right)) {
+            for (const cardID of filters.right) {
+                cardIDs.add(cardID);
+            }
+        }
+    };
+
+    for (const rule of Object.values(cardRules)) {
+        traverseFilters(rule.filters);
+    }
+
+    return cardIDs;
+}
 
 function AddCardPage({route}: AddCardPageProps) {
     const {policyID} = route.params;
@@ -53,55 +80,12 @@ function AddCardPage({route}: AddCardPageProps) {
 
     const [selectedCardIDs, setSelectedCardIDs] = useState<string[]>([]);
 
-    const cardIDsWithSpendRules = useMemo(() => {
-        const into = new Set<string>();
-        const cardRules = expensifyCardSettings?.cardRules;
-        if (!cardRules) {
-            return into;
-        }
-
-        const addIdentifiersFromRight = (right: string | number | string[]) => {
-            if (Array.isArray(right)) {
-                for (const id of right) {
-                    into.add(String(id));
-                }
-                return;
-            }
-            into.add(String(right));
-        };
-
-        const collectCardIDsFromFilter = (node: ExpensifyCardRuleFilter | undefined) => {
-            if (!node) {
-                return;
-            }
-            if (typeof node.left === 'string') {
-                if (node.left === 'cardID' && node.operator === 'eq') {
-                    addIdentifiersFromRight(node.right);
-                }
-                return;
-            }
-            collectCardIDsFromFilter(node.left);
-            collectCardIDsFromFilter(node.right);
-        };
-
-        for (const rule of Object.values(cardRules)) {
-            if (!rule) {
-                continue;
-            }
-            for (const id of rule.cardID ?? []) {
-                into.add(String(id));
-            }
-            collectCardIDsFromFilter(rule.filters);
-        }
-
-        return into;
-    }, [expensifyCardSettings?.cardRules]);
-
     const eligibleCards = useMemo(() => {
         const policyMembersAccountIDs = Object.values(getMemberAccountIDsForWorkspace(policy?.employeeList));
         const allCards = getCardsByCardholderName(cardsList, policyMembersAccountIDs);
-        return allCards.filter((card) => !cardIDsWithSpendRules.has(String(card.cardID)));
-    }, [cardsList, policy?.employeeList, cardIDsWithSpendRules]);
+        const cardIDsWithSpendRules = getCardIDsWithSpendRules(expensifyCardSettings?.cardRules);
+        return allCards.filter((card) => !cardIDsWithSpendRules.has(card.cardID));
+    }, [cardsList, policy?.employeeList, expensifyCardSettings?.cardRules]);
 
     const filterCard = useCallback((card: Card, searchInput: string) => filterCardsByPersonalDetails(card, searchInput, personalDetails), [personalDetails]);
     const sortCards = useCallback((cards: Card[]) => sortCardsByCardholderName(cards, personalDetails, localeCompare), [personalDetails, localeCompare]);

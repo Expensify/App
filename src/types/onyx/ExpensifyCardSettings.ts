@@ -74,13 +74,13 @@ type ExpensifyCardSettingsBase = {
 /** Spend rule filter condition */
 type ExpensifyCardRuleFilter = {
     /** The left side of the filter condition (e.g., 'merchant') */
-    left: string;
+    left: ExpensifyCardRuleFilter | string;
 
     /** The operator for the filter, defined in CONST.SEARCH.SYNTAX_OPERATORS */
     operator: ValueOf<typeof CONST.SEARCH.SYNTAX_OPERATORS>;
 
     /** The right side of the filter condition (e.g., 'Snoop') */
-    right: ExpensifyCardRuleFilter | string;
+    right: ExpensifyCardRuleFilter | string[];
 };
 
 /** Expensify card rule data model */
@@ -111,8 +111,8 @@ type ExpensifyCardSettings = OnyxCommon.OnyxValueWithOfflineFeedback<
         // eslint-disable-next-line @typescript-eslint/naming-convention
         TRAVEL_US?: ExpensifyCardSettingsBase;
 
-        /** Spend rules for the feed */
-        cardRules?: ExpensifyCardRule;
+        /** Spend rules for the feed keyed by rule ID */
+        cardRules?: Record<string, ExpensifyCardRule>;
 
         /** Whether the card settings has been loaded before */
         hasOnceLoaded?: boolean;
@@ -120,4 +120,4 @@ type ExpensifyCardSettings = OnyxCommon.OnyxValueWithOfflineFeedback<
 >;
 
 export default ExpensifyCardSettings;
-export type {ExpensifyCardSettingsBase, ExpensifyCardRuleFilter};
+export type {ExpensifyCardSettingsBase, ExpensifyCardRule, ExpensifyCardRuleFilter};
