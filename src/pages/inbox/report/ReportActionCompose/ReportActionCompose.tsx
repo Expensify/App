@@ -30,6 +30,7 @@ import useOnyx from '@hooks/useOnyx';
 import usePreferredPolicy from '@hooks/usePreferredPolicy';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useShouldSuppressConciergeIndicators from '@hooks/useShouldSuppressConciergeIndicators';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
@@ -49,7 +50,6 @@ import {
     getParentReport,
     getReportRecipientAccountIDs,
     isChatRoom,
-    isConciergeChatReport,
     isGroupChat,
     isInvoiceReport,
     isReportApproved,
@@ -60,6 +60,7 @@ import {
 import {startSpan} from '@libs/telemetry/activeSpans';
 import {getTransactionID, hasReceipt as hasReceiptTransactionUtils} from '@libs/TransactionUtils';
 import willBlurTextInputOnTapOutsideFunc from '@libs/willBlurTextInputOnTapOutside';
+import {useAgentZeroStatusActions} from '@pages/inbox/AgentZeroStatusContext';
 import ParticipantLocalTime from '@pages/inbox/report/ParticipantLocalTime';
 import ReportTypingIndicator from '@pages/inbox/report/ReportTypingIndicator';
 import {ActionListContext} from '@pages/inbox/ReportScreenContext';
@@ -112,12 +113,15 @@ type ReportActionComposeProps = Pick<ComposerWithSuggestionsProps, 'reportID' | 
 
     /** Whether the main composer was hidden */
     didHideComposerInput?: boolean;
-
-    /** Whether to hide concierge status indicators (agent zero / typing) in the side panel */
-    shouldHideStatusIndicators?: boolean;
-    /** Function to trigger optimistic waiting indicator for Concierge */
-    kickoffWaitingIndicator?: () => void;
 };
+
+function AgentZeroAwareTypingIndicator({reportID}: {reportID: string}) {
+    const shouldSuppress = useShouldSuppressConciergeIndicators(reportID);
+    if (shouldSuppress) {
+        return null;
+    }
+    return <ReportTypingIndicator reportID={reportID} />;
+}
 
 // We want consistent auto focus behavior on input between native and mWeb so we have some auto focus management code that will
 // prevent auto focus on existing chat for mobile device
@@ -140,8 +144,6 @@ function ReportActionCompose({
     didHideComposerInput,
     reportTransactions,
     transactionThreadReportID,
-    shouldHideStatusIndicators = false,
-    kickoffWaitingIndicator,
 }: ReportActionComposeProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -150,6 +152,7 @@ function ReportActionCompose({
     const {isSmallScreenWidth, isMediumScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
     const {isOffline} = useNetwork();
     const isInSidePanel = useIsInSidePanel();
+    const {kickoffWaitingIndicator} = useAgentZeroStatusActions();
     const actionButtonRef = useRef<View | HTMLDivElement | null>(null);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const personalDetails = usePersonalDetails();
@@ -219,8 +222,6 @@ function ReportActionCompose({
     const userBlockedFromConcierge = useMemo(() => isBlockedFromConciergeUserAction(blockedFromConcierge), [blockedFromConcierge]);
     const isBlockedFromConcierge = useMemo(() => includesConcierge && userBlockedFromConcierge, [includesConcierge, userBlockedFromConcierge]);
     const isReportArchived = useReportIsArchived(report?.reportID);
-    const isConciergeChat = useMemo(() => isConciergeChatReport(report), [report]);
-
     const isTransactionThreadView = useMemo(() => isReportTransactionThread(report), [report]);
     const isExpensesReport = useMemo(() => reportTransactions && reportTransactions.length > 1, [reportTransactions]);
 
@@ -240,7 +241,10 @@ function ReportActionCompose({
     const isSingleTransactionView = useMemo(() => !!transaction && !!reportTransactions && reportTransactions.length === 1, [transaction, reportTransactions]);
     const parentReportAction = isSingleTransactionView ? iouAction : getReportAction(report?.parentReportID, report?.parentReportActionID);
     const canUserPerformWriteAction = !!canUserPerformWriteActionReportUtils(report, isReportArchived);
-    const canEditReceipt = canUserPerformWriteAction && canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.RECEIPT) && !transaction?.receipt?.isTestDriveReceipt;
+    const canEditReceipt =
+        canUserPerformWriteAction &&
+        canEditFieldOfMoneyRequest({reportAction: parentReportAction, fieldToEdit: CONST.EDIT_REQUEST_FIELD.RECEIPT, transaction}) &&
+        !transaction?.receipt?.isTestDriveReceipt;
     const shouldAddOrReplaceReceipt = (isTransactionThreadView || isSingleTransactionView) && canEditReceipt;
 
     const hasReceipt = useMemo(() => hasReceiptTransactionUtils(transaction), [transaction]);
@@ -304,9 +308,13 @@ function ReportActionCompose({
     }, []);
 
     const attachmentFileRef = useRef<FileObject | FileObject[] | null>(null);
+    /** Object URLs created for dropped files; revoked when the attachment modal closes without confirm */
+    const pendingDropObjectUrlsRef = useRef<string[]>([]);
 
     const addAttachment = useCallback((file: FileObject | FileObject[]) => {
         attachmentFileRef.current = file;
+        // User confirmed; URLs are now on the files and will be used on submit. Stop tracking for revoke-on-close.
+        pendingDropObjectUrlsRef.current = [];
 
         const clearWorklet = composerRef.current?.clearWorklet;
 
@@ -319,8 +327,15 @@ function ReportActionCompose({
 
     /**
      * Event handler to update the state after the attachment preview is closed.
+     * Revokes object URLs for dropped files when the user closed without confirming (avoids leaking blob URLs).
      */
     const onAttachmentPreviewClose = useCallback(() => {
+        if (attachmentFileRef.current === null) {
+            for (const url of pendingDropObjectUrlsRef.current) {
+                URL.revokeObjectURL(url);
+            }
+            pendingDropObjectUrlsRef.current = [];
+        }
         updateShouldShowSuggestionMenuToFalse();
         setIsAttachmentPreviewActive(false);
         // This enables Composer refocus when the attachments modal is closed by the browser navigation
@@ -334,9 +349,7 @@ function ReportActionCompose({
         (newComment: string) => {
             const newCommentTrimmed = newComment.trim();
 
-            if (isConciergeChat && kickoffWaitingIndicator) {
-                kickoffWaitingIndicator();
-            }
+            kickoffWaitingIndicator();
 
             if (attachmentFileRef.current) {
                 addAttachmentWithComment({
@@ -371,7 +384,6 @@ function ReportActionCompose({
             }
         },
         [
-            isConciergeChat,
             kickoffWaitingIndicator,
             transactionThreadReport,
             report,
@@ -541,6 +553,24 @@ function ReportActionCompose({
         setIsAttachmentPreviewActive,
     });
 
+    const handleAttachmentDrop = (event: DragEvent) => {
+        const createdUrls: string[] = [];
+        const files = Array.from(event.dataTransfer?.files ?? []).map((file) => {
+            const fileWithUri = file;
+            const objectUrl = URL.createObjectURL(fileWithUri);
+            fileWithUri.uri = objectUrl;
+            createdUrls.push(objectUrl);
+            return fileWithUri;
+        });
+
+        if (files.length === 0) {
+            return;
+        }
+
+        pendingDropObjectUrlsRef.current = createdUrls;
+        validateAttachments({files});
+    };
+
     const fsClass = FS.getChatFSClass(report);
 
     return (
@@ -626,13 +656,13 @@ function ReportActionCompose({
                         {shouldDisplayDualDropZone && (
                             <DualDropZone
                                 isEditing={shouldAddOrReplaceReceipt && hasReceipt}
-                                onAttachmentDrop={(dragEvent) => validateAttachments({dragEvent})}
+                                onAttachmentDrop={handleAttachmentDrop}
                                 onReceiptDrop={onReceiptDropped}
                                 shouldAcceptSingleReceipt={shouldAddOrReplaceReceipt}
                             />
                         )}
                         {!shouldDisplayDualDropZone && (
-                            <DragAndDropConsumer onDrop={(dragEvent) => validateAttachments({dragEvent})}>
+                            <DragAndDropConsumer onDrop={handleAttachmentDrop}>
                                 <DropZoneUI
                                     icon={icons.MessageInABottle}
                                     dropTitle={translate('dropzone.addAttachments')}
@@ -675,7 +705,7 @@ function ReportActionCompose({
                         ]}
                     >
                         {!shouldUseNarrowLayout && <OfflineIndicator containerStyles={[styles.chatItemComposeSecondaryRow]} />}
-                        {!shouldHideStatusIndicators && <ReportTypingIndicator reportID={reportID} />}
+                        <AgentZeroAwareTypingIndicator reportID={reportID} />
                         {!!exceededMaxLength && (
                             <ExceededCommentLength
                                 maxCommentLength={exceededMaxLength}

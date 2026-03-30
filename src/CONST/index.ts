@@ -7,7 +7,7 @@ import type {ValueOf} from 'type-fest';
 import type {SearchFilterKey} from '@components/Search/types';
 import type ResponsiveLayoutResult from '@hooks/useResponsiveLayout/types';
 import type {MileageRate} from '@libs/DistanceRequestUtils';
-import MULTIFACTOR_AUTHENTICATION_VALUES from '@libs/MultifactorAuthentication/Biometrics/VALUES';
+import MULTIFACTOR_AUTHENTICATION_VALUES from '@libs/MultifactorAuthentication/VALUES';
 import addTrailingForwardSlash from '@libs/UrlUtils';
 import variables from '@styles/variables';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -142,7 +142,9 @@ const signupQualifiers = {
     SMB: 'smb',
 } as const;
 
-type OnboardingAccounting = keyof typeof CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY | null;
+type NoneAccountingKey = 'none';
+
+type OnboardingAccounting = keyof typeof CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY | NoneAccountingKey | null;
 
 const onboardingInviteTypes = {
     IOU: 'iou',
@@ -224,6 +226,7 @@ const CONST = {
     ANIMATED_HIGHLIGHT_END_DELAY: 800,
     ANIMATED_HIGHLIGHT_END_DURATION: 2000,
     ANIMATED_TRANSITION: 300,
+    KEYBOARD_RESTORATION_FLAG_RESET_DELAY: 100,
     SIDE_PANEL_ANIMATED_TRANSITION: 300,
     ANIMATED_TRANSITION_FROM_VALUE: 100,
     ANIMATED_PROGRESS_BAR_DELAY: 300,
@@ -439,6 +442,19 @@ const CONST = {
 
     MULTIFACTOR_AUTHENTICATION: MULTIFACTOR_AUTHENTICATION_VALUES,
 
+    /**
+     * COSE algorithm identifiers used in WebAuthn credential registration.
+     * @see https://www.iana.org/assignments/cose/cose.xhtml#algorithms
+     */
+    COSE_ALGORITHM: {
+        /** EdDSA (ED25519) */
+        EDDSA: -8,
+        /** ES256 (ECDSA w/ SHA-256, P-256 curve) */
+        ES256: -7,
+        /** RS256 (RSASSA-PKCS1-v1_5 w/ SHA-256) */
+        RS256: -257,
+    },
+
     /** WebAuthn/Passkey credential type */
     PASSKEY_CREDENTIAL_TYPE: 'public-key',
 
@@ -649,6 +665,16 @@ const CONST = {
             DOCUSIGN: 'DocusignStep',
             FINISH: 'FinishStep',
         },
+        PAGE_NAME: {
+            CURRENCY_AND_COUNTRY: 'currency-and-country',
+            BANK_INFO: 'bank-info',
+            BUSINESS_INFO: 'business-info',
+            BENEFICIAL_OWNER_INFO: 'beneficial-owner-info',
+            SIGNER_INFO: 'signer-info',
+            AGREEMENTS: 'agreements',
+            DOCUSIGN: 'docusign',
+            FINISH: 'finish',
+        },
         BANK_INFO_STEP_ACH_DATA_INPUT_IDS: {
             ACCOUNT_HOLDER_NAME: 'addressName',
             ACCOUNT_HOLDER_REGION: 'addressState',
@@ -657,7 +683,27 @@ const CONST = {
             ACCOUNT_HOLDER_POSTAL_CODE: 'addressZipCode',
             ROUTING_CODE: 'routingNumber',
         },
+        BANK_INFO_STEP: {
+            SUB_PAGE_NAMES: {
+                BANK_ACCOUNT_DETAILS: 'bank-account-details',
+                ACCOUNT_HOLDER_DETAILS: 'account-holder-details',
+                CONFIRMATION: 'confirmation',
+            },
+        },
         BUSINESS_INFO_STEP: {
+            SUB_PAGE_NAMES: {
+                NAME: 'name',
+                WEBSITE: 'website',
+                ADDRESS: 'address',
+                CONTACT_INFORMATION: 'contact-information',
+                REGISTRATION_NUMBER: 'registration-number',
+                TAX_ID_EIN_NUMBER: 'tax-id-ein-number',
+                INCORPORATION_LOCATION: 'incorporation-location',
+                BUSINESS_TYPE: 'business-type',
+                PAYMENT_VOLUME: 'payment-volume',
+                AVERAGE_REIMBURSEMENT: 'average-reimbursement',
+                CONFIRMATION: 'confirmation',
+            },
             PICKLIST: {
                 ANNUAL_VOLUME_RANGE: 'AnnualVolumeRange',
                 APPLICANT_TYPE: 'ApplicantType',
@@ -668,6 +714,20 @@ const CONST = {
             },
         },
         BENEFICIAL_OWNER_INFO_STEP: {
+            SUB_PAGE_NAMES: {
+                IS_USER_BENEFICIAL_OWNER: 'is-user-beneficial-owner',
+                IS_ANYONE_ELSE_BENEFICIAL_OWNER: 'is-anyone-else-beneficial-owner',
+                ARE_THERE_MORE_BENEFICIAL_OWNERS: 'are-there-more-beneficial-owners',
+                BENEFICIAL_OWNERS_LIST: 'beneficial-owners-list',
+                NAME: 'name',
+                NATIONALITY: 'nationality',
+                OWNERSHIP_PERCENTAGE: 'ownership-percentage',
+                DATE_OF_BIRTH: 'date-of-birth',
+                ADDRESS: 'address',
+                LAST_4_SSN: 'last-4-ssn',
+                DOCUMENTS: 'documents',
+                CONFIRMATION: 'confirmation',
+            },
             SUBSTEP: {
                 IS_USER_BENEFICIAL_OWNER: 1,
                 IS_ANYONE_ELSE_BENEFICIAL_OWNER: 2,
@@ -701,6 +761,17 @@ const CONST = {
         DOCUSIGN_REQUIRED_STEP_NAMES: ['1', '2', '3', '4', '5', '6', '7'],
         STEP_HEADER_HEIGHT: 40,
         SIGNER_INFO_STEP: {
+            SUB_PAGE_NAMES: {
+                IS_DIRECTOR: 'is-director',
+                NAME: 'name',
+                JOB_TITLE: 'job-title',
+                DATE_OF_BIRTH: 'date-of-birth',
+                ADDRESS: 'address',
+                UPLOAD_DOCUMENTS: 'upload-documents',
+                CONFIRMATION: 'confirmation',
+                ENTER_EMAIL: 'enter-email',
+                HANG_TIGHT: 'hang-tight',
+            },
             SUBSTEP: {
                 IS_DIRECTOR: 1,
                 ENTER_EMAIL: 2,
@@ -775,13 +846,12 @@ const CONST = {
         EUR_BILLING: 'eurBilling',
         NO_OPTIMISTIC_TRANSACTION_THREADS: 'noOptimisticTransactionThreads',
         UBER_FOR_BUSINESS: 'uberForBusiness',
-        NEW_DOT_DEW: 'newDotDEW',
         ODOMETER_EXPENSES: 'odometerExpenses',
-        SINGLE_USE_AND_EXPIRE_BY_CARDS: 'singleUseAndExpireByCards',
         PAY_INVOICE_VIA_EXPENSIFY: 'payInvoiceViaExpensify',
         PERSONAL_CARD_IMPORT: 'personalCardImport',
         SUGGESTED_FOLLOWUPS: 'suggestedFollowups',
         FREEZE_CARD: 'freezeCard',
+        NEW_MANUAL_EXPENSE_FLOW: 'newManualExpenseFlow',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -1115,6 +1185,7 @@ const CONST = {
     DOMAIN_VERIFICATION_HELP_URL: 'https://help.expensify.com/articles/new-expensify/workspaces/Claim-and-Verify-a-Domain',
     SAML_HELP_URL: 'https://help.expensify.com/articles/expensify-classic/domains/Set-Up-SAML-SSO',
     REGISTER_FOR_WEBINAR_URL: 'https://events.zoom.us/eo/Aif1I8qCi1GZ7KnLnd1vwGPmeukSRoPjFpyFAZ2udQWn0-B86e1Z~AggLXsr32QYFjq8BlYLZ5I06Dg',
+    UNLOCK_BANK_ACCOUNT_HELP_URL: 'https://help.expensify.com/articles/new-expensify/wallet-and-payments/Unlock-a-Business-Bank-Account',
     TEST_RECEIPT_URL: `${CLOUDFRONT_URL}/images/fake-receipt__tacotodds.png`,
     // Use Environment.getEnvironmentURL to get the complete URL with port number
     DEV_NEW_EXPENSIFY_URL: 'https://dev.new.expensify.com:',
@@ -1206,6 +1277,7 @@ const CONST = {
         MAX_COUNT_BEFORE_FOCUS_UPDATE: 30,
         MIN_INITIAL_REPORT_ACTION_COUNT: 15,
         UNREPORTED_REPORT_ID: '0',
+        TRASH_REPORT_ID: '-1',
         SPLIT_REPORT_ID: '-2',
         SECONDARY_ACTIONS: {
             SUBMIT: 'submit',
@@ -1228,7 +1300,7 @@ const CONST = {
             EXPORT: 'export',
             PAY: 'pay',
             MERGE: 'merge',
-            DUPLICATE: 'duplicate',
+            DUPLICATE_EXPENSE: 'duplicateExpense',
             DUPLICATE_REPORT: 'duplicateReport',
             MOVE_EXPENSE: 'moveExpense',
         },
@@ -1543,16 +1615,6 @@ const CONST = {
             BILL: 'bill',
         },
         CHAT_TYPE: chatTypes,
-        HELP_TYPE: {
-            ...chatTypes,
-            CHAT_CONCIERGE: 'concierge',
-            EXPENSE_REPORT: 'expenseReport',
-            EXPENSE: 'expense',
-            CHAT: 'chat',
-            IOU: 'iou',
-            TASK: 'task',
-            INVOICE: 'invoice',
-        },
         WORKSPACE_CHAT_ROOMS: {
             ANNOUNCE: '#announce',
             ADMINS: '#admins',
@@ -1737,6 +1799,17 @@ const CONST = {
             FAB_OUT: 200,
         },
     },
+    FAB_MENU_ITEM_IDS: {
+        QUICK_ACTION: 'quick-action',
+        EXPENSE: 'expense',
+        TRACK_DISTANCE: 'track-distance',
+        CREATE_REPORT: 'create-report',
+        NEW_CHAT: 'new-chat',
+        INVOICE: 'invoice',
+        TRAVEL: 'travel',
+        TEST_DRIVE: 'test-drive',
+        NEW_WORKSPACE: 'new-workspace',
+    },
     TIMING: {
         REPORT_ACTION_ITEM_LAYOUT_DEBOUNCE_TIME: 1500,
         SHOW_LOADING_SPINNER_DEBOUNCE_TIME: 250,
@@ -1744,6 +1817,7 @@ const CONST = {
         TOOLTIP_SENSE: 1000,
         COMMENT_LENGTH_DEBOUNCE_TIME: 1500,
         SEARCH_OPTION_LIST_DEBOUNCE_TIME: 300,
+        ACCESSIBILITY_ANNOUNCEMENT_DEBOUNCE_TIME: 1000,
         SUGGESTION_DEBOUNCE_TIME: 100,
         RESIZE_DEBOUNCE_TIME: 100,
         UNREAD_UPDATE_DEBOUNCE_TIME: 300,
@@ -1756,8 +1830,10 @@ const CONST = {
         SHOW_HOVER_PREVIEW_DELAY: 270,
         SHOW_HOVER_PREVIEW_ANIMATION_DURATION: 250,
         ACTIVITY_INDICATOR_TIMEOUT: 10000,
-        GET_INITIAL_URL_TIMEOUT: 10000,
         MIN_SMOOTH_SCROLL_EVENT_THROTTLE: 16,
+    },
+    DEFERRED_LAYOUT_WRITE_KEYS: {
+        SEARCH: 'search',
     },
     TELEMETRY: {
         CONTEXT_FULLSTORY: 'Fullstory',
@@ -1768,21 +1844,31 @@ const CONST = {
         BREADCRUMB_CATEGORY_MFA: 'mfa',
         BREADCRUMB_CATEGORY_3DS_NAVIGATION: '3ds.navigation',
         BREADCRUMB_CATEGORY_3DS_AUTHORIZE: '3ds.authorize',
+        BREADCRUMB_CATEGORY_BOOTSPLASH_FLOW: 'bootsplash.flow',
         BREADCRUMB_CATEGORY_MODULE_INIT: 'module.init',
         BREADCRUMB_CATEGORY_SCRIPT_LOAD: 'script.load',
         BREADCRUMB_MEMORY_PERIODIC: 'Periodic memory check',
         BREADCRUMB_MEMORY_FOREGROUND: 'App foreground - memory check',
-        TAG_ACTIVE_POLICY: 'active_policy_id',
-        TAG_POLICIES_COUNT: 'policies_count',
-        TAG_REPORTS_COUNT: 'reports_count',
-        TAG_PERSONAL_DETAILS_COUNT: 'personal_details_count',
-        TAG_USER_ROLE: 'user_role',
-        TAG_NUDGE_MIGRATION_COHORT: 'nudge_migration_cohort',
-        TAG_AUTHENTICATION_FUNCTION: 'authentication_function',
-        TAG_AUTHENTICATION_ERROR_TYPE: 'authentication_error_type',
-        TAG_AUTHENTICATION_JSON_CODE: 'authentication_json_code',
-        TAG_EXPENSE_ERROR_TYPE: 'expense_error_type',
-        TAG_EXPENSE_ERROR_SOURCE: 'expense_error_source',
+        TAGS: {
+            ACTIVE_POLICY: 'active_policy_id',
+            POLICIES_COUNT: 'policies_count',
+            REPORTS_COUNT: 'reports_count',
+            PERSONAL_DETAILS_COUNT: 'personal_details_count',
+            USER_ROLE: 'user_role',
+            NUDGE_MIGRATION_COHORT: 'nudge_migration_cohort',
+            AUTHENTICATION_FUNCTION: 'authentication_function',
+            AUTHENTICATION_ERROR_TYPE: 'authentication_error_type',
+            AUTHENTICATION_JSON_CODE: 'authentication_json_code',
+            EXPENSE_ERROR_TYPE: 'expense_error_type',
+            EXPENSE_ERROR_SOURCE: 'expense_error_source',
+            EXPENSE_IS_REQUEST_PENDING: 'expense_is_request_pending',
+            EXPENSE_HAS_RECEIPT: 'expense_has_receipt',
+            EXPENSE_COMMAND: 'expense_command',
+            EXPENSE_JSON_CODE: 'expense_json_code',
+            MFA_SCENARIO: 'mfa_scenario',
+            MFA_ERROR_REASON: 'mfa_error_reason',
+            BUILD_TYPE: 'build_type',
+        },
         EXPENSE_ERROR_TYPE: {
             REPORT_CREATION_FAILED: 'report_creation_failed',
             TRANSACTION_MISSING: 'transaction_missing',
@@ -1795,13 +1881,6 @@ const CONST = {
             REPORT_CREATION: 'report_creation',
             API_RESPONSE: 'api_response',
         },
-        TAG_EXPENSE_IS_REQUEST_PENDING: 'expense_is_request_pending',
-        TAG_EXPENSE_HAS_RECEIPT: 'expense_has_receipt',
-        TAG_EXPENSE_COMMAND: 'expense_command',
-        TAG_EXPENSE_JSON_CODE: 'expense_json_code',
-        TAG_MFA_SCENARIO: 'mfa_scenario',
-        TAG_MFA_ERROR_REASON: 'mfa_error_reason',
-        TAG_BUILD_TYPE: 'build_type',
         BUILD_TYPE_HYBRID_APP: 'hybrid_app',
         BUILD_TYPE_STANDALONE: 'standalone',
         // Span names
@@ -1825,9 +1904,9 @@ const CONST = {
         SPAN_CONFIRMATION_LIST_READY: 'ManualConfirmationListReady',
         SPAN_CONFIRMATION_RECEIPT_LOAD: 'ManualConfirmationReceiptLoad',
         SPAN_SUBMIT_EXPENSE: 'ManualCreateExpenseSubmit',
-        SPAN_NAVIGATE_AFTER_EXPENSE_CREATE: 'ManualCreateExpenseNavigation',
         SPAN_SUBMIT_TO_DESTINATION_VISIBLE: 'ManualSubmitToDestinationVisible',
         SPAN_EXPENSE_SERVER_RESPONSE: 'ManualCreateExpenseServerResponse',
+        SPAN_GEOLOCATION_WAIT: 'ManualGeolocationWait',
         SPAN_SEND_MESSAGE: 'ManualSendMessage',
         SPAN_NOT_FOUND_PAGE: 'ManualNotFoundPage',
         SPAN_SKELETON: 'ManualSkeleton',
@@ -1847,7 +1926,9 @@ const CONST = {
             ROOT: 'BootsplashVisibleLocale',
             TRANSLATIONS_LOAD: 'LocaleTranslationsLoad',
             EMOJI_IMPORT: 'LocaleEmojiImport',
+            EMOJI_TRIE_BUILD: 'LocaleEmojiTrieBuild',
         },
+        SPAN_ONYX_DERIVED_COMPUTE: 'OnyxDerivedCompute',
         SPAN_NAVIGATION: {
             ROOT: 'BootsplashVisibleNavigation',
             PUSHER_INIT: 'NavigationPusherInit',
@@ -1868,6 +1949,7 @@ const CONST = {
         ATTRIBUTE_MIN_DURATION: 'min_duration',
         ATTRIBUTE_FINISHED_MANUALLY: 'finished_manually',
         ATTRIBUTE_IS_WARM: 'is_warm',
+        ATTRIBUTE_WAS_LIST_EMPTY: 'was_list_empty',
         ATTRIBUTE_SKELETON_PREFIX: 'skeleton.',
         ATTRIBUTE_SCENARIO: 'scenario',
         ATTRIBUTE_HAS_RECEIPT: 'has_receipt',
@@ -1932,6 +2014,9 @@ const CONST = {
         DARK: 'dark',
         LIGHT: 'light',
         SYSTEM: 'system',
+        DARK_CONTRAST: 'dark-contrast',
+        LIGHT_CONTRAST: 'light-contrast',
+        SYSTEM_CONTRAST: 'system-contrast',
     },
     COLOR_SCHEME: {
         LIGHT: 'light',
@@ -2183,9 +2268,16 @@ const CONST = {
     KEYBOARD_TYPE: {
         VISIBLE_PASSWORD: 'visible-password',
         ASCII_CAPABLE: 'ascii-capable',
+        PHONE_PAD: 'phone-pad',
         NUMBER_PAD: 'number-pad',
         DECIMAL_PAD: 'decimal-pad',
         NUMBERS_AND_PUNCTUATION: 'numbers-and-punctuation',
+    },
+
+    KEYBOARD_SUBMIT_BEHAVIOR: {
+        DISMISS_THEN_SUBMIT: 'dismiss-then-submit',
+        SUBMIT_AND_DISMISS: 'submit-and-dismiss',
+        SUBMIT_ONLY: 'submit-only',
     },
 
     INPUT_MODE: {
@@ -2283,6 +2375,7 @@ const CONST = {
         TIF: 'image/tif',
         TIFF: 'image/tiff',
         HEIC: 'image/heic',
+        HEIF: 'image/heif',
         IMG: 'image/*',
         PDF: 'application/pdf',
         MSWORD: 'application/msword',
@@ -2347,16 +2440,16 @@ const CONST = {
     },
 
     FILE_VALIDATION_ERRORS: {
+        FILE_INVALID: 'fileInvalid',
         WRONG_FILE_TYPE: 'wrongFileType',
-        WRONG_FILE_TYPE_MULTIPLE: 'wrongFileTypeMultiple',
         FILE_TOO_LARGE: 'fileTooLarge',
-        FILE_TOO_LARGE_MULTIPLE: 'fileTooLargeMultiple',
         FILE_TOO_SMALL: 'fileTooSmall',
         FILE_CORRUPTED: 'fileCorrupted',
-        FOLDER_NOT_ALLOWED: 'folderNotAllowed',
-        MAX_FILE_LIMIT_EXCEEDED: 'fileLimitExceeded',
         PROTECTED_FILE: 'protectedFile',
+        HEIC_OR_HEIF_IMAGE: 'heicOrHeifImage',
         IMAGE_DIMENSIONS_TOO_LARGE: 'imageDimensionsTooLarge',
+        FOLDER_NOT_ALLOWED: 'folderNotAllowed',
+        MAX_FILE_LIMIT_EXCEEDED: 'maxFileLimitExceeded',
     },
 
     IOS_CAMERA_ROLL_ACCESS_ERROR: 'Access to photo library was denied',
@@ -2691,6 +2784,17 @@ const CONST = {
                 JOBS: 'jobs',
             },
         },
+        NETSUITE_ADD_CUSTOM_SEGMENT: {
+            STEP_INDEX_LIST: ['1', '2', '3', '4', '5', '6'],
+            PAGE_NAME: {
+                TYPE: 'type',
+                NAME: 'name',
+                INTERNAL_ID: 'internal-id',
+                SCRIPT_ID: 'script-id',
+                MAPPING_TITLE: 'mapping-title',
+                CONFIRM: 'confirm',
+            },
+        },
         NETSUITE_ADD_CUSTOM_LIST: {
             STEP_INDEX_LIST: ['1', '2', '3', '4'],
             PAGE_NAME: {
@@ -2700,7 +2804,6 @@ const CONST = {
                 CONFIRM: 'confirm',
             },
         },
-        NETSUITE_ADD_CUSTOM_SEGMENT_STEP_NAMES: ['1', '2,', '3', '4', '5', '6,'],
     },
 
     NETSUITE_CUSTOM_FIELD_SUBSTEP_INDEXES: {
@@ -3190,19 +3293,6 @@ const CONST = {
         ODOMETER_IMAGE_TYPE: {
             START: 'start',
             END: 'end',
-        },
-        EXPENSE_TYPE: {
-            DISTANCE: 'distance',
-            MANUAL: 'manual',
-            SCAN: 'scan',
-            PER_DIEM: 'per-diem',
-            EXPENSIFY_CARD: 'expensifyCard',
-            PENDING_EXPENSIFY_CARD: 'pendingExpensifyCard',
-            DISTANCE_MAP: 'distance-map',
-            DISTANCE_MANUAL: 'distance-manual',
-            DISTANCE_GPS: 'distance-gps',
-            DISTANCE_ODOMETER: 'distance-odometer',
-            TIME: 'time',
         },
 
         REPORT_ACTION_TYPE: {
@@ -3787,8 +3877,6 @@ const CONST = {
         LIMIT_VALUE: 21474836,
         STEP_NAMES: ['1', '2', '3', '4', '5'],
         ASSIGNEE_EXCLUDED_STEP_NAMES: ['1', '2', '3', '4'],
-        SINGLE_USE_DISABLED_STEP_NAMES: ['1', '2', '3', '4'],
-        SINGLE_USE_AND_ASSIGNEE_EXCLUDED_STEP_NAMES: ['1', '2', '3'],
         STEP: {
             ASSIGNEE: 'Assignee',
             CARD_TYPE: 'CardType',
@@ -3889,6 +3977,7 @@ const CONST = {
             WELLS_FARGO: 'oauth.wellsfargo.com',
             AMEX_DIRECT: 'oauth.americanexpressfdx.com',
             AMEX_FILE_DOWNLOAD: 'americanexpressfd.us',
+            MOCK_BANK: 'oauth.mockbank.com',
             CSV: 'upload',
         },
     },
@@ -5978,6 +6067,8 @@ const CONST = {
         ENABLED: 'ENABLED',
         DISABLED: 'DISABLED',
         DISABLE: 'DISABLE',
+        REPLACE_VERIFY_OLD: 'REPLACE_VERIFY_OLD',
+        REPLACE_VERIFY_NEW: 'REPLACE_VERIFY_NEW',
     },
     MERGE_ACCOUNT_RESULTS: {
         SUCCESS: 'success',
@@ -6065,15 +6156,17 @@ const CONST = {
             NAVIGATE: 'NAVIGATE',
             SET_PARAMS: 'SET_PARAMS',
             PRELOAD: 'PRELOAD',
+            POP: 'POP',
             POP_TO: 'POP_TO',
             GO_BACK: 'GO_BACK',
+            RESET: 'RESET',
 
             /** These action types are custom for RootNavigator */
             DISMISS_MODAL: 'DISMISS_MODAL',
             REPLACE_FULLSCREEN_UNDER_RHP: 'REPLACE_FULLSCREEN_UNDER_RHP',
             OPEN_WORKSPACE_SPLIT: 'OPEN_WORKSPACE_SPLIT',
             OPEN_DOMAIN_SPLIT: 'OPEN_DOMAIN_SPLIT',
-            SET_HISTORY_PARAM: 'SET_HISTORY_PARAM',
+            PUSH_PARAMS: 'PUSH_PARAMS',
             REPLACE_PARAMS: 'REPLACE_PARAMS',
             TOGGLE_SIDE_PANEL_WITH_HISTORY: 'TOGGLE_SIDE_PANEL_WITH_HISTORY',
         },
@@ -6289,6 +6382,7 @@ const CONST = {
         MISSING_TAG: 'missingTag',
         MODIFIED_AMOUNT: 'modifiedAmount',
         MODIFIED_DATE: 'modifiedDate',
+        INCREASED_DISTANCE: 'increasedDistance',
         PROHIBITED_EXPENSE: 'prohibitedExpense',
         NON_EXPENSIWORKS_EXPENSE: 'nonExpensiworksExpense',
         OVER_AUTO_APPROVAL_LIMIT: 'overAutoApprovalLimit',
@@ -6325,10 +6419,6 @@ const CONST = {
     REPORT_VIOLATIONS: {
         FIELD_REQUIRED: 'fieldRequired',
         RBR_MESSAGE_MAX_CHARACTERS_FOR_PREVIEW: 40,
-    },
-
-    REPORT_VIOLATIONS_EXCLUDED_FIELDS: {
-        TEXT_TITLE: 'text_title',
     },
 
     /** Context menu types */
@@ -7257,6 +7347,7 @@ const CONST = {
             DONE: 'done',
             EXPORT_TO_ACCOUNTING: 'exportToAccounting',
             PAID: 'paid',
+            UNDELETE: 'undelete',
         },
         HAS_VALUES: {
             RECEIPT: 'receipt',
@@ -7277,6 +7368,7 @@ const CONST = {
             REJECT: 'reject',
             CHANGE_REPORT: 'changeReport',
             SPLIT: 'split',
+            UNDELETE: 'undelete',
         },
         TRANSACTION_TYPE: {
             CASH: 'cash',
@@ -7320,6 +7412,7 @@ const CONST = {
                 EXPENSE: {
                     RECEIPT: this.TABLE_COLUMNS.RECEIPT,
                     DATE: this.TABLE_COLUMNS.DATE,
+                    STATUS: this.TABLE_COLUMNS.STATUS,
                     SUBMITTED: this.TABLE_COLUMNS.SUBMITTED,
                     APPROVED: this.TABLE_COLUMNS.APPROVED,
                     POSTED: this.TABLE_COLUMNS.POSTED,
@@ -7340,7 +7433,6 @@ const CONST = {
                     BILLABLE: this.TABLE_COLUMNS.BILLABLE,
                     TAX_RATE: this.TABLE_COLUMNS.TAX_RATE,
                     TAX_AMOUNT: this.TABLE_COLUMNS.TAX_AMOUNT,
-                    STATUS: this.TABLE_COLUMNS.STATUS,
                     TITLE: this.TABLE_COLUMNS.TITLE,
                     AMOUNT: this.TABLE_COLUMNS.TOTAL_AMOUNT,
                     EXPORTED_TO: this.TABLE_COLUMNS.EXPORTED_TO,
@@ -7451,13 +7543,12 @@ const CONST = {
                 EXPENSE: [
                     this.TABLE_COLUMNS.RECEIPT,
                     this.TABLE_COLUMNS.DATE,
+                    this.TABLE_COLUMNS.STATUS,
                     this.TABLE_COLUMNS.MERCHANT,
                     this.TABLE_COLUMNS.FROM,
-                    this.TABLE_COLUMNS.TO,
                     this.TABLE_COLUMNS.CATEGORY,
                     this.TABLE_COLUMNS.TAG,
                     this.TABLE_COLUMNS.TOTAL_AMOUNT,
-                    this.TABLE_COLUMNS.ACTION,
                 ],
                 EXPENSE_REPORT: [
                     this.TABLE_COLUMNS.DATE,
@@ -7512,6 +7603,7 @@ const CONST = {
                 APPROVED: 'approved',
                 DONE: 'done',
                 PAID: 'paid',
+                DELETED: 'deleted',
             },
             EXPENSE_REPORT: {
                 ALL: '',
@@ -7807,6 +7899,11 @@ const CONST = {
             AFTER: 'After',
             BEFORE: 'Before',
         },
+        DATE_FILTER_SUB_PAGE: {
+            ON: 'on',
+            AFTER: 'after',
+            BEFORE: 'before',
+        },
         AMOUNT_MODIFIERS: {
             LESS_THAN: 'LessThan',
             GREATER_THAN: 'GreaterThan',
@@ -7817,6 +7914,7 @@ const CONST = {
             LAST_MONTH: 'last-month',
             THIS_MONTH: 'this-month',
             YEAR_TO_DATE: 'year-to-date',
+            LAST_12_MONTHS: 'last-12-months',
             LAST_STATEMENT: 'last-statement',
         },
         SNAPSHOT_ONYX_KEYS: [
@@ -8160,7 +8258,7 @@ const CONST = {
         CUSTOM_FIELD_1: 'customField1',
         CUSTOM_FIELD_2: 'customField2',
         ROLE: 'role',
-        REPORT_THRESHHOLD: 'reportThreshold',
+        REPORT_THRESHOLD: 'reportThreshold',
         APPROVE_TO_ALTERNATE: 'approveToAlternate',
         SUBRATE: 'subRate',
         AMOUNT: 'amount',
@@ -8209,6 +8307,7 @@ const CONST = {
         HAS_EMPLOYEE_CARD_FEED_ERRORS: 'hasEmployeeCardFeedErrors',
         HAS_POLICY_ADMIN_CARD_FEED_ERRORS: 'hasPolicyAdminCardFeedErrors',
         HAS_DOMAIN_ERRORS: 'hasDomainErrors',
+        HAS_LOCKED_BANK_ACCOUNT: 'hasLockedBankAccount',
     },
 
     DEBUG: {
@@ -8495,6 +8594,9 @@ const CONST = {
             CAPTURE_IMAGE_START: 'IOURequestStepDistanceOdometer-CaptureStartImage',
             CAPTURE_IMAGE_END: 'IOURequestStepDistanceOdometer-CaptureEndImage',
         },
+        OPTION_CARD_PICKER: {
+            OPTION_ITEM: 'OptionCardPicker-OptionItem',
+        },
         ATTACHMENT_CAROUSEL: {
             PREVIOUS_BUTTON: 'AttachmentCarousel-PreviousButton',
             NEXT_BUTTON: 'AttachmentCarousel-NextButton',
@@ -8558,6 +8660,7 @@ const CONST = {
             REPORT_EXPAND_COLLAPSE: 'Search-ReportExpandCollapse',
             SELECT_ALL_BUTTON: 'Search-SelectAllButton',
             TYPE_MENU_BUTTON: 'Search-TypeMenuButton',
+            FILTER_DISPLAY: 'Search-FilterDisplay',
             FILTER_TYPE: 'Search-FilterType',
             FILTER_STATUS: 'Search-FilterStatus',
             FILTER_DATE: 'Search-FilterDate',
@@ -8586,6 +8689,8 @@ const CONST = {
             FILTER_POPUP_APPLY_SINGLE_SELECT: 'Search-FilterPopupApplySingleSelect',
             FILTER_POPUP_RESET_MULTI_SELECT: 'Search-FilterPopupResetMultiSelect',
             FILTER_POPUP_APPLY_MULTI_SELECT: 'Search-FilterPopupApplyMultiSelect',
+            FILTER_POPUP_RESET_TEXT_INPUT: 'Search-FilterPopupResetTextInput',
+            FILTER_POPUP_APPLY_TEXT_INPUT: 'Search-FilterPopupApplyTextInput',
             FILTER_POPUP_RESET_DATE: 'Search-FilterPopupResetDate',
             FILTER_POPUP_APPLY_DATE: 'Search-FilterPopupApplyDate',
             FILTER_POPUP_RESET_USER: 'Search-FilterPopupResetUser',
@@ -8605,6 +8710,7 @@ const CONST = {
             GROUP_EXPAND_TOGGLE: 'Search-GroupExpandToggle',
             GROUP_SELECT_ALL_CHECKBOX: 'Search-GroupSelectAllCheckbox',
             SORTABLE_HEADER: 'Search-SortableHeader',
+            UNREPORTED_EXPENSE_LIST_ITEM: 'UnreportedExpenseListItem',
         },
         REPORT: {
             FLOATING_MESSAGE_COUNTER: 'Report-FloatingMessageCounter',
@@ -8751,6 +8857,9 @@ const CONST = {
         TRANSACTION_PREVIEW: {
             CARD: 'TransactionPreview-Card',
         },
+        TRIP_ROOM_PREVIEW: {
+            CARD: 'TripRoomPreview-Card',
+        },
         TRANSACTION_ITEM_ROW: {
             ARROW_RIGHT: 'TransactionItemRow-ArrowRight',
         },
@@ -8813,6 +8922,10 @@ const CONST = {
             PREV_MONTH: 'CalendarPicker-PrevMonth',
             NEXT_MONTH: 'CalendarPicker-NextMonth',
             DAY: 'CalendarPicker-Day',
+        },
+        PREV_NEXT_BUTTONS: {
+            PREV_BUTTON: 'PrevNextButtons-PrevButton',
+            NEXT_BUTTON: 'PrevNextButtons-NextButton',
         },
         REPORT_DETAILS: {
             WORKSPACE_LINK: 'ReportDetails-WorkspaceLink',
@@ -9206,6 +9319,9 @@ const CONST = {
             VIEW_PAYMENT_HISTORY: 'SettingsSubscription-ViewPaymentHistory',
             REQUEST_REFUND: 'SettingsSubscription-RequestRefund',
             REQUEST_EARLY_CANCELLATION: 'SettingsSubscription-RequestEarlyCancellation',
+        },
+        SETTINGS_HELP: {
+            HELP_DOCS: 'SettingsHelp-HelpDocs',
         },
         SETTINGS_ABOUT: {
             APP_DOWNLOAD_LINKS: 'SettingsAbout-AppDownloadLinks',
