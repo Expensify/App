@@ -7,6 +7,7 @@ import type {
     ConciergeBrokenCardConnectionParams,
     CreatedReportForUnapprovedTransactionsParams,
     MultifactorAuthenticationTranslationParams,
+    NextStepParams,
     PaidElsewhereParams,
     UpdatedPolicyTagParams,
     ViolationsRterParams,
@@ -1478,6 +1479,18 @@ const translations: TranslationDeepObject<typeof en> = {
                 markedAsResolved: 'marcó el motivo del rechazo como resuelto',
             },
         },
+        rejectReport: {
+            title: 'Rechazar informe',
+            description: 'Explica por qué rechazas este informe:',
+            rejectReason: 'Motivo del rechazo',
+            selectTarget: 'Elige al miembro al que devolver este informe para su revisión:',
+            lastApprover: 'Último aprobador',
+            submitter: 'Remitente',
+            rejectedReportMessage: 'Este informe fue rechazado.',
+            rejectedNextStep: 'Este informe fue rechazado. Esperando a que corrijas los problemas y lo vuelvas a enviar manualmente.',
+            selectMemberError: 'Selecciona un miembro al que devolver este informe.',
+            couldNotReject: 'No se pudo rechazar el informe. Por favor, inténtalo de nuevo.',
+        },
 
         moveExpenses: 'Mover a informe',
         moveExpensesError: 'No puedes mover gastos per diem a informes de otros espacios de trabajo, porque las tarifas de dietas pueden diferir entre espacios de trabajo.',
@@ -1706,6 +1719,18 @@ const translations: TranslationDeepObject<typeof en> = {
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
             [CONST.NEXT_STEP.MESSAGE_KEY.SUBMITTING_TO_SELF]: (_) =>
                 `¡Ups! Parece que estás enviando el informe a <strong>ti mismo</strong>. Aprobar tus propios informes está <strong>prohibido</strong> por tu espacio de trabajo. Por favor, envía este informe a otra persona o contacta a tu administrador para cambiar la persona a la que lo envías.`,
+            [CONST.NEXT_STEP.MESSAGE_KEY.REJECTED_REPORT]: ({actor, actorType}: NextStepParams) => {
+                // All ACTOR_TYPE enum values are explicitly handled
+                // eslint-disable-next-line default-case
+                switch (actorType) {
+                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
+                        return `Este informe fue rechazado. Esperando a que <strong>tú</strong> corrijas los problemas y lo vuelvas a enviar manualmente.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
+                        return `Este informe fue rechazado. Esperando a que <strong>${actor}</strong> corrija los problemas y lo vuelva a enviar manualmente.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
+                        return `Este informe fue rechazado. Esperando a que un administrador corrija los problemas y lo vuelva a enviar manualmente.`;
+                }
+            },
         },
         eta: {
             [CONST.NEXT_STEP.ETA_KEY.SHORTLY]: 'en breve',
