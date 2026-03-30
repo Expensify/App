@@ -36,12 +36,17 @@ function GettingStartedRow({item}: GettingStartedRowProps) {
             {({hovered}) => (
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap3, shouldUseNarrowLayout ? styles.ph5 : styles.ph8, styles.pv3, hovered && styles.hoveredComponentBG]}>
                     {item.isComplete ? (
-                        <View style={[StyleUtils.getCheckboxContainerStyle(20, 4), {backgroundColor: theme.icon, borderColor: theme.icon}]}>
+                        <View
+                            style={[
+                                StyleUtils.getCheckboxContainerStyle(variables.iconSizeNormal, variables.componentBorderRadiusSmall),
+                                {backgroundColor: theme.icon, borderColor: theme.icon},
+                            ]}
+                        >
                             <Icon
                                 src={icons.Checkmark}
                                 fill={theme.textLight}
-                                height={14}
-                                width={14}
+                                height={variables.iconSizeSemiSmall}
+                                width={variables.iconSizeSemiSmall}
                             />
                         </View>
                     ) : (
