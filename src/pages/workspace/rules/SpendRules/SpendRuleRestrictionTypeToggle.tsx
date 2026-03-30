@@ -50,7 +50,7 @@ function SpendRuleRestrictionTypeToggle({restrictionAction, onSelect}: SpendRule
                     />
                 </View>
             </View>
-            <Text style={[styles.mutedNormalTextLabel, styles.pt2]}>{restrictionTypeHelperText}</Text>
+            <Text style={[styles.mutedNormalTextLabel, styles.pt3]}>{restrictionTypeHelperText}</Text>
         </>
     );
 }
