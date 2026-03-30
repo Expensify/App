@@ -1,35 +1,41 @@
 import React, {useEffect} from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import PrevNextButtons from '@components/PrevNextButtons';
 import {useSearchStateContext} from '@components/Search/SearchContext';
 import Text from '@components/Text';
+import useFilterPendingDeleteReports from '@hooks/useFilterPendingDeleteReports';
+import useOnyx from '@hooks/useOnyx';
+import useSearchSections from '@hooks/useSearchSections';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@navigation/Navigation';
 import {saveLastSearchParams} from '@userActions/ReportNavigation';
 import {search} from '@userActions/Search';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type LastSearchParams from '@src/types/onyx/ReportNavigation';
 
 type MoneyRequestReportNavigationProps = {
     reportID?: string;
     shouldDisplayNarrowVersion: boolean;
 };
 
-function MoneyRequestReportNavigation({reportID, shouldDisplayNarrowVersion}: MoneyRequestReportNavigationProps) {
-    const [lastSearchQuery] = useOnyx(ONYXKEYS.REPORT_NAVIGATION_LAST_SEARCH_QUERY);
-    const [currentSearchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${lastSearchQuery?.queryJSON?.hash}`);
-    const {sortedReportIDs} = useSearchStateContext();
+type MoneyRequestReportNavigationContentProps = MoneyRequestReportNavigationProps & {
+    allReports: Array<string | undefined>;
+    isSearchLoading: boolean;
+    lastSearchQuery: OnyxEntry<LastSearchParams>;
+};
 
+function MoneyRequestReportNavigationContent({reportID, shouldDisplayNarrowVersion, allReports, isSearchLoading, lastSearchQuery}: MoneyRequestReportNavigationContentProps) {
     const type = lastSearchQuery?.queryJSON?.type;
-    const currentIndex = sortedReportIDs.indexOf(reportID);
+    const currentIndex = allReports.indexOf(reportID);
     const allReportsCount = lastSearchQuery?.previousLengthOfResults ?? 0;
 
-    const hideNextButton = !lastSearchQuery?.hasMoreResults && currentIndex === sortedReportIDs.length - 1;
+    const hideNextButton = !lastSearchQuery?.hasMoreResults && currentIndex === allReports.length - 1;
     const hidePrevButton = currentIndex === 0;
     const styles = useThemeStyles();
     const isExpenseReportSearch = type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
-    const shouldDisplayNavigationArrows = isExpenseReportSearch && sortedReportIDs && sortedReportIDs.length > 1 && currentIndex !== -1 && !!lastSearchQuery?.queryJSON;
+    const shouldDisplayNavigationArrows = isExpenseReportSearch && allReports && allReports.length > 1 && currentIndex !== -1 && !!lastSearchQuery?.queryJSON;
 
     useEffect(() => {
         if (!lastSearchQuery?.queryJSON) {
@@ -40,16 +46,16 @@ function MoneyRequestReportNavigation({reportID, shouldDisplayNarrowVersion}: Mo
             saveLastSearchParams({
                 ...lastSearchQuery,
                 allowPostSearchRecount: false,
-                previousLengthOfResults: sortedReportIDs.length,
+                previousLengthOfResults: allReports.length,
             });
             return;
         }
 
         // Update count when reports are added or removed (e.g., created offline)
-        if (sortedReportIDs.length !== allReportsCount) {
+        if (allReports.length !== allReportsCount) {
             saveLastSearchParams({
                 ...lastSearchQuery,
-                previousLengthOfResults: sortedReportIDs.length,
+                previousLengthOfResults: allReports.length,
             });
             return;
         }
@@ -60,9 +66,9 @@ function MoneyRequestReportNavigation({reportID, shouldDisplayNarrowVersion}: Mo
 
         saveLastSearchParams({
             ...lastSearchQuery,
-            previousLengthOfResults: sortedReportIDs.length,
+            previousLengthOfResults: allReports.length,
         });
-    }, [currentIndex, allReportsCount, sortedReportIDs.length, lastSearchQuery?.queryJSON, lastSearchQuery]);
+    }, [currentIndex, allReportsCount, allReports.length, lastSearchQuery?.queryJSON, lastSearchQuery]);
 
     const goToReportId = (reportId?: string) => {
         if (!reportId) {
@@ -74,34 +80,34 @@ function MoneyRequestReportNavigation({reportID, shouldDisplayNarrowVersion}: Mo
     };
 
     const goToNextReport = () => {
-        if (currentIndex === -1 || sortedReportIDs.length === 0 || !lastSearchQuery?.queryJSON) {
+        if (currentIndex === -1 || allReports.length === 0 || !lastSearchQuery?.queryJSON) {
             return;
         }
-        const threshold = Math.min(sortedReportIDs.length * 0.75, sortedReportIDs.length - 2);
+        const threshold = Math.min(allReports.length * 0.75, allReports.length - 2);
 
         if (currentIndex + 1 >= threshold && lastSearchQuery?.hasMoreResults) {
             const newOffset = (lastSearchQuery.offset ?? 0) + CONST.SEARCH.RESULTS_PAGE_SIZE;
             search({
                 queryJSON: lastSearchQuery.queryJSON,
                 offset: newOffset,
-                prevReportsLength: sortedReportIDs.length,
+                prevReportsLength: allReports.length,
                 shouldCalculateTotals: false,
                 searchKey: lastSearchQuery.searchKey,
-                isLoading: !!currentSearchResults?.search?.isLoading,
+                isLoading: isSearchLoading,
             });
         }
 
-        const nextIndex = (currentIndex + 1) % sortedReportIDs.length;
-        goToReportId(sortedReportIDs.at(nextIndex));
+        const nextIndex = (currentIndex + 1) % allReports.length;
+        goToReportId(allReports.at(nextIndex));
     };
 
     const goToPrevReport = () => {
-        if (currentIndex === -1 || sortedReportIDs.length === 0) {
+        if (currentIndex === -1 || allReports.length === 0) {
             return;
         }
 
-        const prevIndex = (currentIndex - 1) % sortedReportIDs.length;
-        goToReportId(sortedReportIDs.at(prevIndex));
+        const prevIndex = (currentIndex - 1) % allReports.length;
+        goToReportId(allReports.at(prevIndex));
     };
 
     return (
@@ -116,6 +122,50 @@ function MoneyRequestReportNavigation({reportID, shouldDisplayNarrowVersion}: Mo
                 />
             </View>
         )
+    );
+}
+
+// All Onyx subscriptions via useSearchSections. Mounts if there are no sorted report IDs in the context.
+function MoneyRequestReportNavigationStandalone({reportID, shouldDisplayNarrowVersion}: MoneyRequestReportNavigationProps) {
+    const {allReports, isSearchLoading, lastSearchQuery} = useSearchSections();
+
+    return (
+        <MoneyRequestReportNavigationContent
+            reportID={reportID}
+            shouldDisplayNarrowVersion={shouldDisplayNarrowVersion}
+            allReports={allReports}
+            isSearchLoading={isSearchLoading}
+            lastSearchQuery={lastSearchQuery}
+        />
+    );
+}
+
+function MoneyRequestReportNavigation({reportID, shouldDisplayNarrowVersion}: MoneyRequestReportNavigationProps) {
+    const {sortedReportIDs} = useSearchStateContext();
+    const [lastSearchQuery] = useOnyx(ONYXKEYS.REPORT_NAVIGATION_LAST_SEARCH_QUERY);
+    const [currentSearchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${lastSearchQuery?.queryJSON?.hash}`);
+    const isSearchLoading = !!currentSearchResults?.search?.isLoading;
+    const allReports = useFilterPendingDeleteReports(sortedReportIDs);
+
+    // Fast path: use pre-computed IDs from context when available and no pagination is in flight.
+    // During pagination fall back to full subscription so new pages are reflected immediately.
+    if (allReports.length > 0 && !isSearchLoading) {
+        return (
+            <MoneyRequestReportNavigationContent
+                reportID={reportID}
+                shouldDisplayNarrowVersion={shouldDisplayNarrowVersion}
+                allReports={allReports}
+                isSearchLoading={isSearchLoading}
+                lastSearchQuery={lastSearchQuery}
+            />
+        );
+    }
+
+    return (
+        <MoneyRequestReportNavigationStandalone
+            reportID={reportID}
+            shouldDisplayNarrowVersion={shouldDisplayNarrowVersion}
+        />
     );
 }
 
