@@ -4,10 +4,11 @@ import {getPreservedNavigatorState} from '@libs/Navigation/AppNavigator/createSp
 import {isFullScreenName, isWorkspacesTabScreenName} from '@libs/Navigation/helpers/isNavigatorName';
 import {getWorkspacesTabStateFromSessionStorage} from '@libs/Navigation/helpers/lastVisitedTabPathUtils';
 import navigateToWorkspacesPage from '@libs/Navigation/helpers/navigateToWorkspacesPage';
+import {getRootTabState} from '@libs/Navigation/helpers/rootTabNavigatorUtils';
 import type {DomainSplitNavigatorParamList, WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type SCREENS from '@src/SCREENS';
+import SCREENS from '@src/SCREENS';
 import type {Domain, Policy} from '@src/types/onyx';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useOnyx from './useOnyx';
@@ -27,19 +28,36 @@ function useRestoreWorkspacesTabOnNavigate() {
     const {login: currentUserLogin} = useCurrentUserPersonalDetails();
 
     // Find the last route the user had open in the Workspaces tab (workspace, domain, or list).
-    // Priority: live nav state -> preserved state (unmounted navigators) -> session storage.
+    // Priority: live nav state (root level) -> inside RootTabNavigator -> preserved state -> session storage.
     const routeState = useRootNavigationState((rootState) => {
         const fullScreenRoute = rootState?.routes?.findLast((route) => isFullScreenName(route.name));
         if (!fullScreenRoute) {
             return {};
         }
 
+        // Check root-level routes first (e.g. when workspace is pushed above RootTabNavigator)
         const workspacesRoute = rootState?.routes.findLast((route) => isWorkspacesTabScreenName(route.name));
         if (workspacesRoute) {
-            // Use route's own state, or fall back to preserved state for unmounted navigators
             const tabState = workspacesRoute.state ?? (workspacesRoute.key ? getPreservedNavigatorState(workspacesRoute.key) : undefined);
-
             return {lastWorkspacesTabNavigatorRoute: workspacesRoute, workspacesTabState: tabState, topmostFullScreenRoute: fullScreenRoute};
+        }
+
+        // Look inside RootTabNavigator for workspace/domain tabs that have been visited
+        const rootTabRoute = rootState?.routes.findLast((route) => route.name === NAVIGATORS.ROOT_TAB_NAVIGATOR);
+        const rootTabState = getRootTabState(rootTabRoute);
+        if (rootTabState) {
+            // Find a workspace or domain tab that has state (was previously visited)
+            const wsRoute = [...rootTabState.routes].reverse().find((route) => {
+                if (!isWorkspacesTabScreenName(route.name) || route.name === SCREENS.WORKSPACES_LIST) {
+                    return false;
+                }
+                return !!(route.state ?? (route.key && getPreservedNavigatorState(route.key)));
+            });
+            if (wsRoute) {
+                const innerState = wsRoute.state ?? (wsRoute.key ? getPreservedNavigatorState(wsRoute.key) : undefined);
+                // The route from RootTabNavigator's state is structurally compatible with root-level routes
+                return {lastWorkspacesTabNavigatorRoute: wsRoute as typeof fullScreenRoute, workspacesTabState: innerState, topmostFullScreenRoute: fullScreenRoute};
+            }
         }
 
         // Fall back to session storage when no route exists in the navigation tree
