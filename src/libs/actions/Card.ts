@@ -11,6 +11,7 @@ import type {
     ReportVirtualExpensifyCardFraudParams,
     RequestReplacementExpensifyCardParams,
     ResolveFraudAlertParams,
+    SetExpensifyCardRuleParams,
     RevealExpensifyCardDetailsParams,
     SetPersonalCardReimbursableParams,
     StartIssueNewCardFlowParams,
@@ -1555,6 +1556,10 @@ function queueExpensifyCardForBilling(feedCountry: string, domainAccountID: numb
     API.write(WRITE_COMMANDS.QUEUE_EXPENSIFY_CARD_FOR_BILLING, parameters);
 }
 
+function setExpensifyCardRule(parameters: SetExpensifyCardRuleParams) {
+    API.write(WRITE_COMMANDS.SET_EXPENSIFY_CARD_RULE, parameters);
+}
+
 /**
  * Resolves a fraud alert for a given card.
  * When the user clicks on the whisper it sets the optimistic data to the resolution and calls the API
@@ -1656,5 +1661,6 @@ export {
     clearIssueNewCardFormData,
     setDraftInviteAccountID,
     resolveFraudAlert,
+    setExpensifyCardRule,
 };
 export type {ReplacementReason};

@@ -4195,6 +4195,13 @@ const CONST = {
         },
     },
 
+    SPEND_CARD_RULE: {
+        ACTION: {
+            ALLOW: 'allow',
+            BLOCK: 'block',
+        },
+    },
+
     get SUBSCRIPTION_PRICES() {
         return {
             [this.PAYMENT_CARD_CURRENCY.USD]: {
@@ -9136,6 +9143,8 @@ const CONST = {
                 MERCHANT_RULE_PREVIEW_MATCHES: 'WorkspaceRules-MerchantRulePreviewMatches',
                 MERCHANT_RULE_DELETE: 'WorkspaceRules-MerchantRuleDelete',
                 CATEGORY_SELECTOR: 'WorkspaceRules-CategorySelector',
+                SPEND_RULE_SECTION_ITEM: 'WorkspaceRules-SpendRuleSectionItem',
+                SPEND_RULE_SAVE: 'WorkspaceRules-SpendRuleSave',
             },
             EXPENSIFY_CARD: {
                 ISSUE_CARD_BUTTON: 'WorkspaceExpensifyCard-IssueCardButton',
