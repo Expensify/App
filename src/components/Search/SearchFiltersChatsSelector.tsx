@@ -95,7 +95,6 @@ function SearchFiltersChatsSelector({initialReportIDs, onFiltersUpdate, isScreen
             report,
             {},
             isReportArchived,
-            currentUserAccountID,
             policy,
             {},
             undefined,

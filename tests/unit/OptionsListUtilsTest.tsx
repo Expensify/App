@@ -6947,10 +6947,11 @@ describe('OptionsListUtils', () => {
                 isThread: false,
                 isChatRoom: false,
                 isSelected: false,
+                keyForList: 'option-1',
             };
 
             const sortedActions: Record<string, ReportAction[]> = {};
-            const result = getAlternateText(option, {}, false, CURRENT_USER_ACCOUNT_ID, undefined, {}, {}, undefined, undefined, undefined, sortedActions);
+            const result = getAlternateText(option, {}, false, undefined, {}, {}, undefined, undefined, undefined, sortedActions);
 
             expect(typeof result).toBe('string');
         });
@@ -6963,9 +6964,10 @@ describe('OptionsListUtils', () => {
                 isThread: false,
                 isChatRoom: false,
                 isSelected: false,
+                keyForList: 'option-1',
             };
 
-            const result = getAlternateText(option, {}, false, CURRENT_USER_ACCOUNT_ID, undefined, {}, {}, undefined, undefined, undefined, undefined);
+            const result = getAlternateText(option, {}, false, undefined, {}, {}, undefined, undefined, undefined, undefined);
 
             expect(typeof result).toBe('string');
         });
