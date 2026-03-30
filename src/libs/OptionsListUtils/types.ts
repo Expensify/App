@@ -222,7 +222,7 @@ type GetOptionsConfig = {
     countryCode?: number;
     visibleReportActionsData?: VisibleReportActionsDerivedValue;
     reportAttributesDerived?: ReportAttributesDerivedValue['reports'];
-    sortedActions: Record<string, ReportAction[]> | undefined;
+    sortedActions?: Record<string, ReportAction[]>;
 } & GetValidReportsConfig;
 
 type GetUserToInviteConfig = {
