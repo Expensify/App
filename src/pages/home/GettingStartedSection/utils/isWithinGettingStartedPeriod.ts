@@ -12,7 +12,8 @@ function isWithinGettingStartedPeriod(firstDayFreeTrial: string | undefined): bo
     }
 
     const trialStartMs = new Date(firstDayFreeTrial).getTime();
-    return Date.now() - trialStartMs <= SIXTY_DAYS_MS;
+    const elapsed = Date.now() - trialStartMs;
+    return elapsed >= 0 && elapsed <= SIXTY_DAYS_MS;
 }
 
 export default isWithinGettingStartedPeriod;

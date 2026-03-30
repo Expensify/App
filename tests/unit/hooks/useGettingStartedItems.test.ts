@@ -138,6 +138,20 @@ describe('useGettingStartedItems', () => {
             expect(result.current.shouldShowSection).toBe(true);
         });
 
+        it('should be hidden when NVP_FIRST_DAY_FREE_TRIAL is in the future (pre-trial)', async () => {
+            const tenDaysFromNow = new Date(Date.now() + 10 * 24 * 60 * 60 * 1000).toISOString().split('T').at(0) ?? '';
+            const fortyDaysFromNow = new Date(Date.now() + 40 * 24 * 60 * 60 * 1000).toISOString().split('T').at(0) ?? '';
+            await setupManageTeamScenario({
+                accounting: CONST.POLICY.CONNECTIONS.NAME.QBO,
+                firstDayTrial: tenDaysFromNow,
+                lastDayTrial: fortyDaysFromNow,
+            });
+
+            const {result} = renderHook(() => useGettingStartedItems());
+
+            expect(result.current.shouldShowSection).toBe(false);
+        });
+
         it('should be hidden when NVP_FIRST_DAY_FREE_TRIAL is not set (not a new sign-up)', async () => {
             await Onyx.merge(ONYXKEYS.NVP_INTRO_SELECTED, {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM});
             await Onyx.merge(ONYXKEYS.NVP_ACTIVE_POLICY_ID, POLICY_ID);
