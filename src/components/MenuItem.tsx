@@ -96,6 +96,9 @@ type MenuItemBaseProps = ForwardedFSClassProps &
         /** Whether the badge should use condensed (smaller) sizing */
         isBadgeCondensed?: boolean;
 
+        /** Whether the badge should be shown as error */
+        isBadgeError?: boolean;
+
         /** Callback to fire when the badge is pressed */
         onBadgePress?: (event?: GestureResponderEvent | KeyboardEvent) => void;
 
@@ -466,6 +469,7 @@ function MenuItem({
     isBadgeSuccess,
     isBadgeStrong,
     isBadgeCondensed,
+    isBadgeError,
     onBadgePress,
     shouldShowBadgeInSeparateRow = false,
     shouldShowBadgeBelow = false,
@@ -620,6 +624,7 @@ function MenuItem({
         accessibilityLabel: combinedAccessibilityLabel,
         contextMenuHint,
     });
+    const shouldDimIconRight = iconRight === icons.ArrowRight || !iconRight;
 
     const combinedTitleTextStyle = StyleUtils.combineStyles<TextStyle>(
         [
@@ -1037,6 +1042,7 @@ function MenuItem({
                                                         success={isBadgeSuccess}
                                                         isStrong={isBadgeStrong}
                                                         isCondensed={isBadgeCondensed}
+                                                        error={isBadgeError}
                                                         onPress={onBadgePress}
                                                         pressable={!!onBadgePress}
                                                     />
@@ -1092,16 +1098,21 @@ function MenuItem({
                                                             styles.pointerEventsAuto,
                                                             StyleUtils.getMenuItemIconStyle(isCompact),
                                                             disabled && !shouldUseDefaultCursorWhenDisabled && styles.cursorDisabled,
-                                                            hasSubMenuItems && styles.opacitySemiTransparent,
                                                             hasSubMenuItems && styles.pl6,
+                                                            !isHovered && shouldDimIconRight && styles.opacitySemiTransparent,
+                                                            styles.alignItemsEnd,
                                                             rightIconWrapperStyle,
                                                         ]}
                                                     >
                                                         <Icon
                                                             src={iconRight ?? icons.ArrowRight}
-                                                            fill={StyleUtils.getIconFillColor(getButtonState(focused || isHovered, pressed, success, disabled, interactive))}
-                                                            width={hasSubMenuItems ? variables.iconSizeSmall : variables.iconSizeNormal}
-                                                            height={hasSubMenuItems ? variables.iconSizeSmall : variables.iconSizeNormal}
+                                                            fill={
+                                                                shouldDimIconRight
+                                                                    ? theme.icon
+                                                                    : StyleUtils.getIconFillColor(getButtonState(focused || isHovered, pressed, success, disabled, interactive))
+                                                            }
+                                                            width={variables.iconSizeNormal}
+                                                            height={variables.iconSizeNormal}
                                                         />
                                                     </View>
                                                 )}
