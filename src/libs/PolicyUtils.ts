@@ -688,6 +688,31 @@ function hasCustomCategories(policyCategories: OnyxEntry<PolicyCategories>): boo
 }
 
 /**
+ * Checks if a policy has any non-default rules configured.
+ * Defaults are: no approval/expense/coding rules and no custom rules text.
+ */
+function hasNonDefaultRules(policy: OnyxEntry<Policy>): boolean {
+    if (!policy) {
+        return false;
+    }
+
+    if (policy.customRules && policy.customRules.trim().length > 0) {
+        return true;
+    }
+
+    const rules = policy.rules;
+    if (!rules) {
+        return false;
+    }
+
+    const hasApprovalRules = !!rules.approvalRules && rules.approvalRules.length > 0;
+    const hasExpenseRules = !!rules.expenseRules && rules.expenseRules.length > 0;
+    const hasCodingRules = !!rules.codingRules && Object.keys(rules.codingRules).length > 0;
+
+    return hasApprovalRules || hasExpenseRules || hasCodingRules;
+}
+
+/**
  * Gets a tag list of a policy by a tag index
  */
 function getTagList(policyTagList: OnyxEntry<PolicyTagLists>, tagIndex: number): ValueOf<PolicyTagLists> {
@@ -2088,6 +2113,7 @@ export {
     getTagLists,
     hasTags,
     hasCustomCategories,
+    hasNonDefaultRules,
     getTaxByID,
     getUnitRateValue,
     getRateDisplayValue,
