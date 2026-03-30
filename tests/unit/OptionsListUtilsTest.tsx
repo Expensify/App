@@ -4070,6 +4070,87 @@ describe('OptionsListUtils', () => {
                 expect(formattedMessage).toBe('$1.00 for A A A');
             });
         });
+        describe('sortedActions parameter', () => {
+            it('should use sortedActions parameter instead of deprecated module variable for REPORT_PREVIEW', async () => {
+                const iouReport: Report = {
+                    ...createRandomReport(10, undefined),
+                    type: CONST.REPORT.TYPE.IOU,
+                    isWaitingOnBankAccount: false,
+                    currency: CONST.CURRENCY.USD,
+                    total: 200,
+                    unheldTotal: 200,
+                };
+                const report: Report = {
+                    ...createRandomReport(11, undefined),
+                    isOwnPolicyExpenseChat: false,
+                };
+                const reportPreviewAction: ReportAction = {
+                    ...createRandomReportAction(1),
+                    actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+                    childMoneyRequestCount: 1,
+                    message: [{type: 'COMMENT', text: ''}],
+                    originalMessage: {
+                        linkedReportID: iouReport.reportID,
+                    },
+                    shouldShow: true,
+                };
+                const iouAction: ReportAction = {
+                    ...createRandomReportAction(2),
+                    reportID: iouReport.reportID,
+                    actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                    message: [{type: 'COMMENT', text: ''}],
+                    originalMessage: {
+                        IOUTransactionID: 'txn1',
+                        type: 'create',
+                    },
+                    shouldShow: true,
+                };
+                const transaction: Transaction = {
+                    ...createRandomTransaction(0),
+                    amount: 200,
+                    currency: CONST.CURRENCY.USD,
+                    merchant: '',
+                    modifiedMerchant: '',
+                    comment: {comment: 'test'},
+                };
+
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`, iouReport);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {
+                    [reportPreviewAction.reportActionID]: reportPreviewAction,
+                });
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
+                await waitForBatchedUpdates();
+
+                const sortedActions: Record<string, ReportAction[]> = {
+                    [iouReport.reportID]: [iouAction],
+                };
+
+                const result = getLastMessageTextForReport({
+                    translate: translateLocal,
+                    report,
+                    lastActorDetails: null,
+                    sortedActions,
+                });
+
+                expect(typeof result).toBe('string');
+            });
+
+            it('should handle undefined sortedActions gracefully', () => {
+                const report: Report = {
+                    ...createRandomReport(12, undefined),
+                };
+
+                const result = getLastMessageTextForReport({
+                    translate: translateLocal,
+                    report,
+                    lastActorDetails: null,
+                    sortedActions: undefined,
+                });
+
+                expect(typeof result).toBe('string');
+            });
+        });
         it('MOVED_TRANSACTION action', async () => {
             const mockIsSearchTopmostFullScreenRoute = jest.mocked(isSearchTopmostFullScreenRoute);
             mockIsSearchTopmostFullScreenRoute.mockReturnValue(false);
@@ -6815,6 +6896,41 @@ describe('OptionsListUtils', () => {
 
             const config = {showPersonalDetails: true};
             const result = createOptionFromReport(report, PERSONAL_DETAILS, CURRENT_USER_ACCOUNT_ID, undefined, undefined, undefined, config);
+
+            expect(result).toBeDefined();
+            expect(result.reportID).toBe('1');
+        });
+
+        it('should forward sortedActions parameter without errors', () => {
+            const report: Report = {
+                reportID: '1',
+                reportName: 'Report with sortedActions',
+                type: CONST.REPORT.TYPE.CHAT,
+                participants: {
+                    [CURRENT_USER_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                    1: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                },
+            };
+
+            const sortedActions: Record<string, ReportAction[]> = {};
+            const result = createOptionFromReport(report, PERSONAL_DETAILS, CURRENT_USER_ACCOUNT_ID, undefined, undefined, undefined, undefined, undefined, undefined, sortedActions);
+
+            expect(result).toBeDefined();
+            expect(result.reportID).toBe('1');
+        });
+
+        it('should work when sortedActions is undefined', () => {
+            const report: Report = {
+                reportID: '1',
+                reportName: 'Report without sortedActions',
+                type: CONST.REPORT.TYPE.CHAT,
+                participants: {
+                    [CURRENT_USER_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                    1: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                },
+            };
+
+            const result = createOptionFromReport(report, PERSONAL_DETAILS, CURRENT_USER_ACCOUNT_ID, undefined, undefined, undefined, undefined, undefined, undefined, undefined);
 
             expect(result).toBeDefined();
             expect(result.reportID).toBe('1');
