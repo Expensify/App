@@ -1,4 +1,4 @@
-import React, {createContext, useContext} from 'react';
+import React, {createContext, useContext, useMemo} from 'react';
 import type {ValueOf} from 'type-fest';
 import useAgentZeroStatusIndicator from '@hooks/useAgentZeroStatusIndicator';
 import useOnyx from '@hooks/useOnyx';
@@ -63,9 +63,10 @@ function AgentZeroStatusProvider({reportID, chatType, children}: React.PropsWith
 
 function AgentZeroStatusGate({reportID, children}: React.PropsWithChildren<{reportID: string}>) {
     const {kickoffWaitingIndicator, ...stateValue} = useAgentZeroStatusIndicator(reportID, true);
+    const actionsValue = useMemo(() => ({kickoffWaitingIndicator}), [kickoffWaitingIndicator]);
 
     return (
-        <AgentZeroStatusActionsContext.Provider value={{kickoffWaitingIndicator}}>
+        <AgentZeroStatusActionsContext.Provider value={actionsValue}>
             <AgentZeroStatusStateContext.Provider value={stateValue}>{children}</AgentZeroStatusStateContext.Provider>
         </AgentZeroStatusActionsContext.Provider>
     );

@@ -1,4 +1,4 @@
-import {useEffect, useRef, useState, useSyncExternalStore} from 'react';
+import {useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {clearAgentZeroProcessingIndicator, getNewerActions, subscribeToReportReasoningEvents, unsubscribeFromReportReasoningChannel} from '@libs/actions/Report';
 import ConciergeReasoningStore from '@libs/ConciergeReasoningStore';
@@ -181,16 +181,21 @@ function useAgentZeroStatusIndicator(reportID: string, isAgentZeroChat: boolean)
 
     // Subscribe to ConciergeReasoningStore using useSyncExternalStore for
     // correct synchronization with React's render cycle.
-    const subscribeToReasoningStore = (onStoreChange: () => void) => {
-        const unsubscribe = ConciergeReasoningStore.subscribe((updatedReportID) => {
-            if (updatedReportID !== reportID) {
-                return;
-            }
-            onStoreChange();
-        });
-        return unsubscribe;
-    };
-    const getReasoningSnapshot = () => ConciergeReasoningStore.getReasoningHistory(reportID);
+    // IMPORTANT: subscribe and getSnapshot must be stable references to prevent
+    // infinite re-subscribe loops. React Compiler may not be active in tests.
+    const subscribeToReasoningStore = useCallback(
+        (onStoreChange: () => void) => {
+            const unsubscribe = ConciergeReasoningStore.subscribe((updatedReportID) => {
+                if (updatedReportID !== reportID) {
+                    return;
+                }
+                onStoreChange();
+            });
+            return unsubscribe;
+        },
+        [reportID],
+    );
+    const getReasoningSnapshot = useCallback(() => ConciergeReasoningStore.getReasoningHistory(reportID), [reportID]);
     const reasoningHistory = useSyncExternalStore(subscribeToReasoningStore, getReasoningSnapshot, getReasoningSnapshot);
 
     useEffect(() => {
@@ -294,13 +299,14 @@ function useAgentZeroStatusIndicator(reportID: string, isAgentZeroChat: boolean)
         [],
     );
 
-    const kickoffWaitingIndicator = () => {
+    const kickoffWaitingIndicator = useCallback(() => {
         if (!isAgentZeroChat) {
             return;
         }
         setPendingOptimisticRequests((prev) => prev + 1);
         startPolling();
-    };
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- startPolling is stable via React Compiler; isAgentZeroChat is a derived boolean
+    }, [isAgentZeroChat]);
 
     // Immediately clear the indicator when a Concierge response arrives while processing.
     // This eliminates the 30s delay waiting for the next poll cycle to detect it.
@@ -319,12 +325,15 @@ function useAgentZeroStatusIndicator(reportID: string, isAgentZeroChat: boolean)
 
     const isProcessing = isAgentZeroChat && !isOffline && (!!serverLabel || pendingOptimisticRequests > 0);
 
-    return {
-        isProcessing,
-        reasoningHistory,
-        statusLabel: displayedLabel,
-        kickoffWaitingIndicator,
-    };
+    return useMemo(
+        () => ({
+            isProcessing,
+            reasoningHistory,
+            statusLabel: displayedLabel,
+            kickoffWaitingIndicator,
+        }),
+        [isProcessing, reasoningHistory, displayedLabel, kickoffWaitingIndicator],
+    );
 }
 
 export default useAgentZeroStatusIndicator;
