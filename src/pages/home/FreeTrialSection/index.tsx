@@ -11,11 +11,10 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import DateUtils from '@libs/DateUtils';
-import Navigation from '@libs/Navigation/Navigation';
 import type {DiscountInfo} from '@libs/SubscriptionUtils';
+import navigateToSubscriptionPayment from '@pages/home/common/navigateToSubscriptionPayment';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
-import ROUTES from '@src/ROUTES';
 import useFreeTrial from './useFreeTrial';
 import type {DiscountType} from './useFreeTrial';
 
@@ -51,7 +50,7 @@ function FreeTrialSection() {
 
     let bodyText: string;
     let ctaText: string;
-    const onCtaPress = () => Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION_ADD_PAYMENT_CARD);
+    const onCtaPress = navigateToSubscriptionPayment;
 
     if (discountType === 50) {
         bodyText = translate('homePage.freeTrialSection.offer50Body');
