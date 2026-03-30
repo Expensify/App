@@ -152,12 +152,7 @@ function MultifactorAuthenticationValidateCodePage() {
             clearValidateCodeActionError('actionVerified');
         }
         addMFABreadcrumb('Validate code resend requested');
-        requestValidateCodeAction().then((response) => {
-            if (response?.jsonCode === CONST.JSON_CODE.SUCCESS) {
-                return;
-            }
-            addMFABreadcrumb('Validate code resend failed', {jsonCode: response?.jsonCode, message: response?.message}, 'error');
-        });
+        requestValidateCodeAction();
         inputRef.current?.clear();
         setInputCode('');
         setFormError({});
