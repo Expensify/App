@@ -2945,13 +2945,8 @@ ${amount} pour ${merchant} - ${date}`,
                         4. Recherchez ${integrationName}.
                         5. Cliquez sur *Connecter*.
 
-${
-    integrationName && CONST.connectionsVideoPaths[integrationName]
-        ? `[Accéder à la comptabilité](${workspaceAccountingLink}).
-
-                        ![Se connecter à ${integrationName}](${CONST.CLOUDFRONT_URL}/${CONST.connectionsVideoPaths[integrationName]})`
-        : `[Accéder à la comptabilité](${workspaceAccountingLink}).`
-}`),
+                        [Accéder à la comptabilité](${workspaceAccountingLink}).
+                    `),
             },
             connectCorporateCardTask: {
                 title: ({corporateCardLink}) => `Connectez [vos cartes d’entreprise](${corporateCardLink})`,
@@ -5033,6 +5028,9 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
         companyCards: {
             addCards: 'Ajouter des cartes',
             selectCards: 'Sélectionner des cartes',
+            fromOtherWorkspaces: "D'autres espaces de travail",
+            addWorkEmail: 'Ajoutez votre adresse e-mail professionnelle',
+            addWorkEmailDescription: "Veuillez ajouter votre e-mail professionnel pour utiliser les flux existants d'autres espaces de travail.",
             error: {
                 workspaceFeedsCouldNotBeLoadedTitle: 'Impossible de charger les flux de cartes',
                 workspaceFeedsCouldNotBeLoadedMessage:

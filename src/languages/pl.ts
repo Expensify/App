@@ -2923,13 +2923,8 @@ ${amount} dla ${merchant} - ${date}`,
                         4. Znajdź ${integrationName}.
                         5. Kliknij *Connect*.
 
-${
-    integrationName && CONST.connectionsVideoPaths[integrationName]
-        ? `[Przejdź do księgowości](${workspaceAccountingLink}).
-
-                        ![Połącz z ${integrationName}](${CONST.CLOUDFRONT_URL}/${CONST.connectionsVideoPaths[integrationName]})`
-        : `[Przejdź do księgowości](${workspaceAccountingLink}).`
-}`),
+                        [Przejdź do księgowości](${workspaceAccountingLink}).
+                    `),
             },
             connectCorporateCardTask: {
                 title: ({corporateCardLink}) => `Połącz [swoje karty firmowe](${corporateCardLink})`,
@@ -4993,6 +4988,9 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
         companyCards: {
             addCards: 'Dodaj karty',
             selectCards: 'Wybierz karty',
+            fromOtherWorkspaces: 'Z innych przestrzeni roboczych',
+            addWorkEmail: 'Dodaj swój służbowy e-mail',
+            addWorkEmailDescription: 'Dodaj swój służbowy e-mail, aby korzystać z istniejących kanałów z innych przestrzeni roboczych.',
             error: {
                 workspaceFeedsCouldNotBeLoadedTitle: 'Nie można wczytać kanałów kart',
                 workspaceFeedsCouldNotBeLoadedMessage: 'Wystąpił błąd podczas ładowania kanałów kart w przestrzeni roboczej. Spróbuj ponownie lub skontaktuj się ze swoim administratorem.',

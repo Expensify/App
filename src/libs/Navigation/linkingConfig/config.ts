@@ -882,6 +882,12 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.COMPANY_CARDS_VERIFY_ACCOUNT]: {
                             path: ROUTES.WORKSPACE_COMPANY_CARDS_VERIFY_ACCOUNT.route,
                         },
+                        [SCREENS.WORKSPACE.COMPANY_CARD_ADD_WORK_EMAIL]: {
+                            path: ROUTES.WORKSPACE_COMPANY_CARD_ADD_WORK_EMAIL.route,
+                        },
+                        [SCREENS.WORKSPACE.COMPANY_CARD_VERIFY_WORK_EMAIL]: {
+                            path: ROUTES.WORKSPACE_COMPANY_CARD_VERIFY_WORK_EMAIL.route,
+                        },
                         [SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD_ASSIGNEE]: {
                             path: ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_ASSIGNEE.route,
                         },

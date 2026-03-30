@@ -4090,10 +4090,10 @@ function getReimbursementDeQueuedOrCanceledActionMessage(
  * Builds an optimistic REIMBURSEMENT_DEQUEUED report action with a randomly generated reportActionID.
  *
  */
-function buildOptimisticChangeFieldAction(reportField: PolicyReportField, previousReportField: PolicyReportField): OptimisticChangeFieldAction {
+function buildOptimisticChangeFieldAction(reportField: PolicyReportField, previousReportField: PolicyReportField, currentUserAccountID: number): OptimisticChangeFieldAction {
     return {
         actionName: CONST.REPORT.ACTIONS.TYPE.CHANGE_FIELD,
-        actorAccountID: deprecatedCurrentUserAccountID,
+        actorAccountID: currentUserAccountID,
         message: [
             {
                 type: 'TEXT',
@@ -6466,7 +6466,13 @@ function buildOptimisticAddCommentReportAction({
     };
 }
 
-function buildConciergeGreetingReportAction(reportID: string, greetingText: string, created: string): ReportAction {
+type BuildConciergeGreetingReportActionParams = {
+    reportID: string | undefined;
+    greetingText: string;
+    created: string;
+};
+
+function buildConciergeGreetingReportAction({reportID, greetingText, created}: BuildConciergeGreetingReportActionParams): ReportAction {
     return {
         reportActionID: String(CONST.CONCIERGE_GREETING_ACTION_ID),
         reportID,
@@ -6487,13 +6493,18 @@ function buildConciergeGreetingReportAction(reportID: string, greetingText: stri
  * @param type - The type of action in the child report
  */
 
-function updateOptimisticParentReportAction(parentReportAction: OnyxEntry<ReportAction>, lastVisibleActionCreated: string, type: string, deleteBy = 1): UpdateOptimisticParentReportAction {
+function updateOptimisticParentReportAction(
+    parentReportAction: OnyxEntry<ReportAction>,
+    lastVisibleActionCreated: string,
+    type: string,
+    actionCount = 1,
+): UpdateOptimisticParentReportAction {
     let childVisibleActionCount = parentReportAction?.childVisibleActionCount ?? 0;
     let childCommenterCount = parentReportAction?.childCommenterCount ?? 0;
     let childOldestFourAccountIDs = parentReportAction?.childOldestFourAccountIDs;
 
     if (type === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
-        childVisibleActionCount += 1;
+        childVisibleActionCount += actionCount;
         const oldestFourAccountIDs = childOldestFourAccountIDs ? childOldestFourAccountIDs.split(',') : [];
         if (oldestFourAccountIDs.length < 4) {
             const index = oldestFourAccountIDs.findIndex((accountID) => accountID === deprecatedCurrentUserAccountID?.toString());
@@ -6505,7 +6516,7 @@ function updateOptimisticParentReportAction(parentReportAction: OnyxEntry<Report
         childOldestFourAccountIDs = oldestFourAccountIDs.join(',');
     } else if (type === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
         if (childVisibleActionCount > 0) {
-            childVisibleActionCount -= deleteBy;
+            childVisibleActionCount -= actionCount;
         }
 
         if (childVisibleActionCount === 0) {
@@ -7399,7 +7410,7 @@ function buildOptimisticMovedReportAction(
  * Builds an optimistic CHANGE_POLICY report action with a randomly generated reportActionID.
  * This action is used when we change the workspace of a report.
  */
-function buildOptimisticChangePolicyReportAction(fromPolicyID: string | undefined, toPolicyID: string, automaticAction = false): ReportAction {
+function buildOptimisticChangePolicyReportAction(fromPolicyID: string | undefined, toPolicyID: string, currentUserAccountID: number, automaticAction = false): ReportAction {
     const originalMessage = {
         fromPolicy: fromPolicyID,
         toPolicy: toPolicyID,
@@ -7430,7 +7441,7 @@ function buildOptimisticChangePolicyReportAction(fromPolicyID: string | undefine
 
     return {
         actionName: CONST.REPORT.ACTIONS.TYPE.CHANGE_POLICY,
-        actorAccountID: deprecatedCurrentUserAccountID,
+        actorAccountID: currentUserAccountID,
         avatar: getCurrentUserAvatar(),
         created: DateUtils.getDBTime(),
         originalMessage,
@@ -8301,14 +8312,14 @@ function buildOptimisticCardAssignedReportAction(assigneeAccountID: number, curr
     };
 }
 
-function buildOptimisticChangedTaskAssigneeReportAction(assigneeAccountID: number): OptimisticEditedTaskReportAction {
+function buildOptimisticChangedTaskAssigneeReportAction(assigneeAccountID: number, currentUserAccountID: number): OptimisticEditedTaskReportAction {
     const delegateAccountDetails = getPersonalDetailByEmail(delegateEmail);
 
     return {
         reportActionID: rand64(),
         actionName: CONST.REPORT.ACTIONS.TYPE.TASK_EDITED,
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-        actorAccountID: deprecatedCurrentUserAccountID,
+        actorAccountID: currentUserAccountID,
         message: [
             {
                 type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
@@ -8339,11 +8350,12 @@ function buildOptimisticChangedTaskAssigneeReportAction(assigneeAccountID: numbe
 function buildOptimisticClosedReportAction(
     emailClosingReport: string,
     policyName: string,
+    currentUserAccountID: number,
     reason: ValueOf<typeof CONST.REPORT.ARCHIVE_REASON> = CONST.REPORT.ARCHIVE_REASON.DEFAULT,
 ): OptimisticClosedReportAction {
     return {
         actionName: CONST.REPORT.ACTIONS.TYPE.CLOSED,
-        actorAccountID: deprecatedCurrentUserAccountID,
+        actorAccountID: currentUserAccountID,
         automatic: false,
         avatar: getCurrentUserAvatar(),
         created: DateUtils.getDBTime(),

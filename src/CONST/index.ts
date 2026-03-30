@@ -96,12 +96,6 @@ const ONBOARDING_ACCOUNTING_MAPPING = {
     other: 'accounting software',
 };
 
-const connectionsVideoPaths = {
-    [ONBOARDING_ACCOUNTING_MAPPING.quickbooksOnline]: 'videos/walkthrough-connect_to_qbo-v2.mp4',
-    [ONBOARDING_ACCOUNTING_MAPPING.xero]: 'videos/walkthrough-connect_to_xero-v2.mp4',
-    [ONBOARDING_ACCOUNTING_MAPPING.netsuite]: 'videos/walkthrough-connect_to_netsuite-v2.mp4',
-};
-
 // Explicit type annotation is required
 const cardActiveStates: number[] = [2, 3, 4, 7];
 
@@ -1086,7 +1080,6 @@ const CONST = {
     FORMATTED_EXAMPLE_PHONE_NUMBER: '+1-(201)-867-5309',
     CONCIERGE_CHAT_NAME: 'Concierge',
     CLOUDFRONT_URL,
-    connectionsVideoPaths,
     EMPTY_ARRAY,
     EMPTY_OBJECT,
     EMPTY_SET,
@@ -3822,6 +3815,10 @@ const CONST = {
             CSV: 'ccupload',
             MOCK_BANK: 'oauth.mockbank.com',
             UPLOAD: 'upload',
+        },
+        LINK_FEED_TYPE: {
+            COMPANY_CARD: 'CompanyCard',
+            EXPENSIFY_CARD: 'ExpensifyCard',
         },
         FEED_KEY_SEPARATOR: '#',
         CARD_NUMBER_MASK_CHAR: 'X',
@@ -8749,6 +8746,13 @@ const CONST = {
         },
         LHN: {
             OPTION_ROW: 'LHN-OptionRow',
+        },
+        OPTION_ROW: {
+            BASE_LIST_ITEM: 'OptionRow-BaseListItem',
+            USER_SELECTION_CHECKBOX: 'OptionRow-UserSelectionCheckbox',
+        },
+        TABLE_HEADER: {
+            SORTABLE_COLUMN: 'TableHeader-SortableColumn',
         },
         SELECTION_LIST: {
             BASE_LIST_ITEM: 'SelectionList-BaseListItem',

@@ -2906,13 +2906,8 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
                         4. ${integrationName} を探します。
                         5.「*接続*」をクリックします。
 
-${
-    integrationName && CONST.connectionsVideoPaths[integrationName]
-        ? `[会計画面へ移動](${workspaceAccountingLink})。
-
-                        ![${integrationName} に接続](${CONST.CLOUDFRONT_URL}/${CONST.connectionsVideoPaths[integrationName]})`
-        : `[経理画面に移動](${workspaceAccountingLink})。`
-}`),
+                        [経理画面に移動](${workspaceAccountingLink})。
+                    `),
             },
             connectCorporateCardTask: {
                 title: ({corporateCardLink}) => `[法人カード](${corporateCardLink})を連携`,
@@ -4962,6 +4957,9 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
         companyCards: {
             addCards: 'カードを追加',
             selectCards: 'カードを選択',
+            fromOtherWorkspaces: '他のワークスペースから',
+            addWorkEmail: 'あなたの勤務用メールアドレスを追加',
+            addWorkEmailDescription: '他のワークスペースの既存フィードを使用するには、勤務用メールアドレスを追加してください。',
             error: {
                 workspaceFeedsCouldNotBeLoadedTitle: 'カードフィードを読み込めませんでした',
                 workspaceFeedsCouldNotBeLoadedMessage: 'ワークスペースカードフィードの読み込み中にエラーが発生しました。もう一度お試しいただくか、管理者にお問い合わせください。',

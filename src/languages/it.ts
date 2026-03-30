@@ -2932,13 +2932,8 @@ ${amount} per ${merchant} - ${date}`,
                         4. Trova ${integrationName}.
                         5. Fai clic su *Connetti*.
 
-${
-    integrationName && CONST.connectionsVideoPaths[integrationName]
-        ? `[Portami alla contabilità](${workspaceAccountingLink}).
-
-                        ![Connetti a ${integrationName}](${CONST.CLOUDFRONT_URL}/${CONST.connectionsVideoPaths[integrationName]})`
-        : `[Portami alla contabilità](${workspaceAccountingLink}).`
-}`),
+                        [Portami alla contabilità](${workspaceAccountingLink}).
+                    `),
             },
             connectCorporateCardTask: {
                 title: ({corporateCardLink}) => `Collega [le tue carte aziendali](${corporateCardLink})`,
@@ -5007,6 +5002,9 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
         companyCards: {
             addCards: 'Aggiungi carte',
             selectCards: 'Seleziona carte',
+            fromOtherWorkspaces: 'Da altri spazi di lavoro',
+            addWorkEmail: 'Aggiungi la tua email di lavoro',
+            addWorkEmailDescription: 'Aggiungi la tua email di lavoro per utilizzare i feed esistenti di altri spazi di lavoro.',
             error: {
                 workspaceFeedsCouldNotBeLoadedTitle: 'Impossibile caricare i feed della carta',
                 workspaceFeedsCouldNotBeLoadedMessage:

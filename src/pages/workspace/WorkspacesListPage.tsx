@@ -238,6 +238,7 @@ function WorkspacesListPage() {
             lastUsedPaymentMethods: lastPaymentMethod,
             localeCompare,
             personalPolicyID,
+            currentUserAccountID: currentUserPersonalDetails.accountID,
         });
         if (isOffline) {
             setIsDeleteModalOpen(false);

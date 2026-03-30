@@ -2995,13 +2995,8 @@ const translations = {
                         4. Find ${integrationName}.
                         5. Click *Connect*.
 
-                        ${
-                            integrationName && CONST.connectionsVideoPaths[integrationName]
-                                ? `[Take me to accounting](${workspaceAccountingLink}).
-
-                        ![Connect to ${integrationName}](${CONST.CLOUDFRONT_URL}/${CONST.connectionsVideoPaths[integrationName]})`
-                                : `[Take me to accounting](${workspaceAccountingLink}).`
-                        }`),
+                        [Take me to accounting](${workspaceAccountingLink}).
+                    `),
             },
             connectCorporateCardTask: {
                 title: ({corporateCardLink}) => `Connect [your corporate cards](${corporateCardLink})`,
@@ -5045,6 +5040,9 @@ const translations = {
         companyCards: {
             addCards: 'Add cards',
             selectCards: 'Select cards',
+            fromOtherWorkspaces: 'From other workspaces',
+            addWorkEmail: 'Add your work email',
+            addWorkEmailDescription: 'Please add your work email in order to use existing feeds from other workspaces.',
             error: {
                 workspaceFeedsCouldNotBeLoadedTitle: "Couldn't load card feeds",
                 workspaceFeedsCouldNotBeLoadedMessage: 'An error occurred while loading workspace card feeds. Please try again or contact your administrator.',

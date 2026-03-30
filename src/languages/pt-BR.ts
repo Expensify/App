@@ -2923,13 +2923,8 @@ ${amount} para ${merchant} - ${date}`,
                         4. Encontre ${integrationName}.
                         5. Clique em *Connect*.
 
-${
-    integrationName && CONST.connectionsVideoPaths[integrationName]
-        ? `[Leve-me para a contabilidade](${workspaceAccountingLink}).
-
-                        ![Conectar ao ${integrationName}](${CONST.CLOUDFRONT_URL}/${CONST.connectionsVideoPaths[integrationName]})`
-        : `[Leve-me para a contabilidade](${workspaceAccountingLink}).`
-}`),
+                        [Leve-me para a contabilidade](${workspaceAccountingLink}).
+                    `),
             },
             connectCorporateCardTask: {
                 title: ({corporateCardLink}) => `Conecte [seus cartões corporativos](${corporateCardLink})`,
@@ -4992,6 +4987,9 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
         companyCards: {
             addCards: 'Adicionar cartões',
             selectCards: 'Selecionar cartões',
+            fromOtherWorkspaces: 'De outros workspaces',
+            addWorkEmail: 'Adicione seu e-mail de trabalho',
+            addWorkEmailDescription: 'Adicione seu e-mail de trabalho para usar os feeds existentes de outros workspaces.',
             error: {
                 workspaceFeedsCouldNotBeLoadedTitle: 'Não foi possível carregar os feeds do cartão',
                 workspaceFeedsCouldNotBeLoadedMessage: 'Ocorreu um erro ao carregar os feeds de cartões do workspace. Tente novamente ou contate o seu administrador.',
