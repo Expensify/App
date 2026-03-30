@@ -1,8 +1,14 @@
 import type {OnboardingInvite} from '@src/CONST';
+import type CONST from '@src/CONST';
 import type {OnboardingPurpose} from './index';
 
 /** The tasks of IntroSelected model */
-type IntroSelectedTask = 'viewTour' | 'createWorkspace' | 'setupCategories' | 'setupCategoriesAndTags';
+type IntroSelectedTask =
+    | typeof CONST.ONBOARDING_TASK_TYPE.VIEW_TOUR
+    | typeof CONST.ONBOARDING_TASK_TYPE.CREATE_WORKSPACE
+    | typeof CONST.ONBOARDING_TASK_TYPE.SETUP_CATEGORIES
+    | typeof CONST.ONBOARDING_TASK_TYPE.SETUP_CATEGORIES_AND_TAGS
+    | typeof CONST.ONBOARDING_TASK_TYPE.REVIEW_WORKSPACE_SETTINGS;
 
 /** Model of onboarding */
 type IntroSelected = {
@@ -27,6 +33,8 @@ type IntroSelected = {
     /** Task reportID for 'setupCategories' type */
     setupCategories?: string;
 
+    /** Task reportID for 'reviewWorkspaceSettings' type */
+    reviewWorkspaceSettings?: string;
     /** Task reportID for 'addExpenseApprovals' type */
     addExpenseApprovals?: string;
 

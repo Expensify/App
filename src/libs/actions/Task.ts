@@ -482,6 +482,7 @@ function completeTask(
     hasOutstandingChildTask: boolean,
     parentReportAction: OnyxEntry<ReportAction> | undefined,
     reportIDFromAction?: string,
+    shouldOnlyCreateOptimisticData = false,
 ): OnyxData<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS> {
     const taskReportID = taskReport?.reportID ?? reportIDFromAction;
 
@@ -497,8 +498,10 @@ function completeTask(
         parentReportAction,
     );
 
-    playSound(SOUNDS.SUCCESS);
-    API.write(WRITE_COMMANDS.COMPLETE_TASK, parameters, {optimisticData, successData, failureData});
+    if (!shouldOnlyCreateOptimisticData) {
+        playSound(SOUNDS.SUCCESS);
+        API.write(WRITE_COMMANDS.COMPLETE_TASK, parameters, {optimisticData, successData, failureData});
+    }
     return {optimisticData, successData, failureData};
 }
 
@@ -1407,11 +1410,12 @@ function getFinishOnboardingTaskOnyxData(
     currentUserAccountID: number,
     hasOutstandingChildTask: boolean,
     parentReportAction: OnyxEntry<ReportAction> | undefined,
+    shouldOnlyCreateOptimisticData?: boolean,
 ): OnyxData<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS> {
     if (taskReport && canActionTask(taskReport, parentReportAction, currentUserAccountID, taskParentReport, isParentReportArchived)) {
         if (taskReport) {
             if (taskReport.stateNum !== CONST.REPORT.STATE_NUM.APPROVED || taskReport.statusNum !== CONST.REPORT.STATUS_NUM.APPROVED) {
-                return completeTask(taskReport, taskParentReport?.hasOutstandingChildTask ?? false, hasOutstandingChildTask, parentReportAction);
+                return completeTask(taskReport, taskParentReport?.hasOutstandingChildTask ?? false, hasOutstandingChildTask, parentReportAction, undefined, shouldOnlyCreateOptimisticData);
             }
         }
     }
