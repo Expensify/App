@@ -1,3 +1,4 @@
+import passthroughPolicyTagListSelector from '@selectors/PolicyTagList';
 import {sortedActionsSelector} from '@selectors/SortedReportActions';
 import React, {useEffect, useState} from 'react';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
@@ -66,7 +67,7 @@ function SearchFiltersChatsSelector({initialReportIDs, onFiltersUpdate, isScreen
     const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT);
     const privateIsArchivedMap = usePrivateIsArchivedMap();
     const [nvpDismissedProductTraining] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING);
-    const [policyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
+    const [policyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS, {selector: passthroughPolicyTagListSelector});
     const [sortedActions] = useOnyx(ONYXKEYS.DERIVED.SORTED_REPORT_ACTIONS, {selector: sortedActionsSelector});
 
     const selectedOptions: OptionData[] = selectedReportIDs.map((id) => {
