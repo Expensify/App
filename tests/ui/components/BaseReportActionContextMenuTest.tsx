@@ -302,6 +302,6 @@ describe('BaseReportActionContextMenu hold/unhold action', () => {
         });
 
         expect(mockUnholdRequest).toHaveBeenCalledTimes(1);
-        expect(mockUnholdRequest).toHaveBeenCalledWith(transactionID, childReportID, expect.objectContaining({id: policyID}));
+        expect(mockUnholdRequest).toHaveBeenCalledWith(transactionID, childReportID, expect.objectContaining({id: policyID}), false);
     });
 });
