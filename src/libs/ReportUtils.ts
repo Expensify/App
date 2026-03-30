@@ -9040,11 +9040,13 @@ function isUnread(report: OnyxEntry<Report>, oneTransactionThreadReport: OnyxEnt
     if (isEmptyReport(report, isReportArchived)) {
         return false;
     }
-    const latestReportActionFromOtherUsers = getLatestReportActionFromOtherUsers(reportActions, deprecatedCurrentUserAccountID);
 
     if (!report.lastReadTime) {
         return true;
     }
+
+    const latestReportActionFromOtherUsers = getLatestReportActionFromOtherUsers(reportActions, deprecatedCurrentUserAccountID);
+
     // lastVisibleActionCreated and lastReadTime are both datetime strings and can be compared directly
     const lastVisibleActionCreated = getReportLastVisibleActionCreated(report, oneTransactionThreadReport);
     const lastReadTime = report.lastReadTime ?? '';
