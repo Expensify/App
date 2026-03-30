@@ -2,8 +2,10 @@ import React from 'react';
 import {View} from 'react-native';
 import type {GestureResponderEvent} from 'react-native';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import Icon from './Icon';
 import PressableWithFeedback from './Pressable/PressableWithFeedback';
@@ -26,14 +28,16 @@ function PrevNextButtons({isPrevButtonDisabled, isNextButtonDisabled, onNext, on
     const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'BackArrow']);
     const styles = useThemeStyles();
     const theme = useTheme();
+    const {translate} = useLocalize();
 
     return (
         <View style={styles.flexRow}>
             <PressableWithFeedback
                 accessible
                 accessibilityRole={CONST.ROLE.BUTTON}
-                accessibilityLabel={CONST.ROLE.BUTTON}
+                accessibilityLabel={translate('common.previous')}
                 disabled={isPrevButtonDisabled}
+                sentryLabel={CONST.SENTRY_LABEL.HEADER.PREVIOUS_BUTTON}
                 style={[styles.h7, styles.mr1, styles.alignItemsCenter, styles.justifyContentCenter]}
                 onPress={onPrevious}
             >
@@ -49,17 +53,18 @@ function PrevNextButtons({isPrevButtonDisabled, isNextButtonDisabled, onNext, on
             <PressableWithFeedback
                 accessible
                 accessibilityRole={CONST.ROLE.BUTTON}
-                accessibilityLabel={CONST.ROLE.BUTTON}
+                accessibilityLabel={translate('common.next')}
                 disabled={isNextButtonDisabled}
+                sentryLabel={CONST.SENTRY_LABEL.HEADER.NEXT_BUTTON}
                 style={[styles.h7, styles.alignItemsCenter, styles.justifyContentCenter]}
                 onPress={onNext}
             >
                 <View style={[styles.reportActionContextMenuMiniButton, {backgroundColor: theme.borderLighter}, isNextButtonDisabled && styles.buttonOpacityDisabled]}>
                     <Icon
                         src={icons.ArrowRight}
-                        small
                         fill={theme.icon}
-                        isButtonIcon
+                        width={variables.iconSizeNormal}
+                        height={variables.iconSizeNormal}
                     />
                 </View>
             </PressableWithFeedback>

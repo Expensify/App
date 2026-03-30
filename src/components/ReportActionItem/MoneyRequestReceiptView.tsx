@@ -244,6 +244,9 @@ function MoneyRequestReceiptView({
     const shouldShowReceiptEmptyState = (isDisplayedInWideRHP || !isInvoice) && !hasReceipt && !!transactionToCheck && !doesTransactionHaveReceipt;
     const isMarkAsCash = parentReport && currentUserLogin ? isMarkAsCashActionForTransaction(currentUserLogin, parentReport, transactionViolations, policy) : false;
 
+    const routeDistanceMeters = transaction?.comment?.customUnit?.routeDistanceMeters;
+    const distanceUnit = transaction?.comment?.customUnit?.distanceUnit;
+
     const [receiptImageViolations, receiptViolations] = useMemo(() => {
         const imageViolations = [];
         const allViolations = [];
@@ -256,7 +259,18 @@ function MoneyRequestReceiptView({
             if (isReceiptFieldViolation || isReceiptImageViolation || isRTERViolation) {
                 const cardID = violation.data?.cardID;
                 const card = cardID ? cardList?.[cardID] : undefined;
-                const violationMessage = ViolationsUtils.getViolationTranslation(violation, translate, canEdit, undefined, companyCardPageURL, connectionLink, card, isMarkAsCash);
+                const violationMessage = ViolationsUtils.getViolationTranslation(
+                    violation,
+                    translate,
+                    canEdit,
+                    undefined,
+                    companyCardPageURL,
+                    connectionLink,
+                    card,
+                    isMarkAsCash,
+                    routeDistanceMeters,
+                    distanceUnit,
+                );
                 allViolations.push(violationMessage);
                 if (isReceiptImageViolation || isRTERViolation) {
                     imageViolations.push(violationMessage);
@@ -264,7 +278,7 @@ function MoneyRequestReceiptView({
             }
         }
         return [imageViolations, allViolations];
-    }, [transactionViolations, translate, canEdit, companyCardPageURL, connectionLink, cardList, isMarkAsCash]);
+    }, [transactionViolations, translate, canEdit, companyCardPageURL, connectionLink, cardList, isMarkAsCash, routeDistanceMeters, distanceUnit]);
 
     const receiptRequiredViolation = transactionViolations?.some((violation) => violation.name === CONST.VIOLATIONS.RECEIPT_REQUIRED);
     const itemizedReceiptRequiredViolation = transactionViolations?.some((violation) => violation.name === CONST.VIOLATIONS.ITEMIZED_RECEIPT_REQUIRED);

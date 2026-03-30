@@ -1,5 +1,6 @@
 import type {OnyxEntry} from 'react-native-onyx';
 import {getCurrentAddress} from '@libs/PersonalDetailsUtils';
+import {isValidPastDate, meetsMaximumAgeRequirement, meetsMinimumAgeRequirement} from '@libs/ValidationUtils';
 import CONST from '@src/CONST';
 import type {PersonalDetailsForm} from '@src/types/form';
 import INPUT_IDS from '@src/types/form/PersonalDetailsForm';
@@ -27,7 +28,8 @@ function getInitialSubPage(values: PersonalDetailsForm, shouldCollectPin = false
     if (values[INPUT_IDS.LEGAL_FIRST_NAME] === '' || values[INPUT_IDS.LEGAL_LAST_NAME] === '') {
         return CONST.MISSING_PERSONAL_DETAILS.PAGE_NAME.LEGAL_NAME;
     }
-    if (values[INPUT_IDS.DATE_OF_BIRTH] === '') {
+    const dobValue = values[INPUT_IDS.DATE_OF_BIRTH];
+    if (dobValue === '' || !isValidPastDate(dobValue) || !meetsMaximumAgeRequirement(dobValue) || !meetsMinimumAgeRequirement(dobValue)) {
         return CONST.MISSING_PERSONAL_DETAILS.PAGE_NAME.DATE_OF_BIRTH;
     }
     if (
