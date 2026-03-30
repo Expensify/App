@@ -7,9 +7,10 @@ import * as AppUpdate from '@libs/actions/AppUpdate';
 import {translateLocal} from '@libs/Localize';
 import {getForReportAction} from '@libs/ModifiedExpenseMessage';
 import {getTextFromHtml} from '@libs/ReportActionsUtils';
+import {getReportName} from '@libs/ReportNameUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
-import type {Report, ReportAction} from '@src/types/onyx';
+import type {Report, ReportAction, ReportAttributesDerivedValue} from '@src/types/onyx';
 import SafeString from '@src/utils/SafeString';
 import type {LocalNotificationClickHandler, LocalNotificationData, LocalNotificationModifiedExpensePushParams} from './types';
 
@@ -96,7 +97,13 @@ export default {
      *
      * @param usesIcon true if notification uses right circular icon
      */
-    pushReportCommentNotification(report: Report, reportAction: ReportAction, onClick: LocalNotificationClickHandler, conciergeReportID: string | undefined, usesIcon = false) {
+    pushReportCommentNotification(
+        report: Report,
+        reportAction: ReportAction,
+        onClick: LocalNotificationClickHandler,
+        usesIcon = false,
+        reportAttributes?: ReportAttributesDerivedValue['reports'],
+    ) {
         let title;
         let body;
         const icon = usesIcon ? EXPENSIFY_ICON_URL : '';
@@ -115,9 +122,7 @@ export default {
         }
 
         if (isRoomOrGroupChat) {
-            // Will be fixed in https://github.com/Expensify/App/issues/76852
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            const roomName = ReportUtils.getReportName({report, conciergeReportID});
+            const roomName = getReportName(report, reportAttributes);
             title = roomName;
             body = `${plainTextPerson}: ${plainTextMessage}`;
         } else {
@@ -142,6 +147,7 @@ export default {
         policyTags,
         policy,
         currentUserLogin,
+        reportAttributes,
     }: LocalNotificationModifiedExpensePushParams) {
         const title = reportAction.person?.map((f) => f.text).join(', ') ?? '';
         const bodyWithHTML = getForReportAction({
@@ -153,6 +159,7 @@ export default {
             movedToReport,
             policyTags,
             currentUserLogin,
+            reportAttributes,
         });
         // Strip HTML tags for plain text notification body
         const body = getTextFromHtml(bodyWithHTML);
