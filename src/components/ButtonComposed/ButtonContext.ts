@@ -15,7 +15,6 @@ type ButtonContextValue = ButtonAppearanceProps & {
     iconFill?: string;
     iconHoverFill?: string;
     hasIconLeft: boolean;
-    hasText: boolean;
 };
 
 const defaultButtonContextValue: ButtonContextValue = {
@@ -26,7 +25,6 @@ const defaultButtonContextValue: ButtonContextValue = {
     iconFill: undefined,
     iconHoverFill: undefined,
     hasIconLeft: false,
-    hasText: false,
 };
 
 const ButtonContext = createContext<ButtonContextValue>(defaultButtonContextValue);
