@@ -1037,7 +1037,7 @@ function isSmartLimitEnabled(cardsList: CardList) {
     return Object.values(assignedCards).some((card) => card.nameValuePairs?.limitType === CONST.EXPENSIFY_CARD.LIMIT_TYPES.SMART);
 }
 
-const CUSTOM_FEEDS = [CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD, CONST.COMPANY_CARD.FEED_BANK_NAME.VISA, CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX];
+const CUSTOM_FEEDS = [CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD, CONST.COMPANY_CARD.FEED_BANK_NAME.VISA, CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX, CONST.COMPANY_CARD.FEED_BANK_NAME.CSV];
 
 function getFeedType(feedKey: CompanyCardFeed, cardFeeds: OnyxEntry<CombinedCardFeeds>): CompanyCardFeedWithNumber {
     if (CUSTOM_FEEDS.some((feed) => feed === feedKey)) {

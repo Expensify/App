@@ -1271,7 +1271,7 @@ function importCSVCompanyCards({
         optimisticData.push({
             onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
-            value: transaction as Transaction,
+            value: transaction,
         });
         failureData.push({
             onyxMethod: Onyx.METHOD.SET,
