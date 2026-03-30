@@ -1,4 +1,5 @@
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useEffect, useState} from 'react';
+import type {OnyxEntry} from 'react-native-onyx';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -11,18 +12,15 @@ import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
-import usePolicy from '@hooks/usePolicy';
 import useSearchResults from '@hooks/useSearchResults';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {updateSelectedExpensifyCardFeed} from '@libs/actions/Card';
-import {filterCardsByPersonalDetails, filterInactiveCards, getCardsByCardholderName, sortCardsByCardholderName} from '@libs/CardUtils';
+import {filterCardsByPersonalDetails, filterInactiveCards, sortCardsByCardholderName} from '@libs/CardUtils';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {getHeaderMessage} from '@libs/OptionsListUtils';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
-import {getMemberAccountIDsForWorkspace} from '@libs/PolicyUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import variables from '@styles/variables';
 import {openPolicyExpensifyCardsPage} from '@userActions/Policy/Policy';
@@ -30,7 +28,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {Card} from '@src/types/onyx';
+import type {Card, ExpensifyCardSettings, WorkspaceCardsList} from '@src/types/onyx';
 import type {ExpensifyCardRule, ExpensifyCardRuleFilter} from '@src/types/onyx/ExpensifyCardSettings';
 
 type ExpensifyCardListItem = ListItem & {
@@ -39,14 +37,14 @@ type ExpensifyCardListItem = ListItem & {
 
 type AddCardPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_SPEND_CARD>;
 
-function getCardIDsWithSpendRules(cardRules: Record<string, ExpensifyCardRule> | undefined): Set<string> {
-    const cardIDs = new Set<string>();
+function getCardIDsWithSpendRules(cardRules: Record<string, ExpensifyCardRule> | undefined): Set<number> {
+    const cardIDs = new Set<number>();
     if (!cardRules) {
         return cardIDs;
     }
 
     const traverseFilters = (filters: ExpensifyCardRuleFilter) => {
-        if ((filters.operator === CONST.SEARCH.SYNTAX_OPERATORS.AND || filters.operator === CONST.SEARCH.SYNTAX_OPERATORS.OR)) {
+        if (filters.operator === CONST.SEARCH.SYNTAX_OPERATORS.AND || filters.operator === CONST.SEARCH.SYNTAX_OPERATORS.OR) {
             traverseFilters(filters.left as ExpensifyCardRuleFilter);
             traverseFilters(filters.right as ExpensifyCardRuleFilter);
             return;
@@ -66,11 +64,16 @@ function getCardIDsWithSpendRules(cardRules: Record<string, ExpensifyCardRule> |
     return cardIDs;
 }
 
+function getEligibleCards(cardsList: OnyxEntry<WorkspaceCardsList>, expensifyCardSettings: ExpensifyCardSettings) {
+    const {cardList, ...cards} = cardsList ?? {};
+    const cardIDsWithSpendRules = getCardIDsWithSpendRules(expensifyCardSettings?.cardRules);
+    return Object.values(cards).filter((card: Card) => !cardIDsWithSpendRules.has(card.cardID));
+}
+
 function AddCardPage({route}: AddCardPageProps) {
     const {policyID} = route.params;
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
-    const policy = usePolicy(policyID);
     const defaultFundID = useDefaultFundID(policyID);
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
@@ -80,58 +83,46 @@ function AddCardPage({route}: AddCardPageProps) {
 
     const [selectedCardIDs, setSelectedCardIDs] = useState<string[]>([]);
 
-    const eligibleCards = useMemo(() => {
-        const policyMembersAccountIDs = Object.values(getMemberAccountIDsForWorkspace(policy?.employeeList));
-        const allCards = getCardsByCardholderName(cardsList, policyMembersAccountIDs);
-        const cardIDsWithSpendRules = getCardIDsWithSpendRules(expensifyCardSettings?.cardRules);
-        return allCards.filter((card) => !cardIDsWithSpendRules.has(card.cardID));
-    }, [cardsList, policy?.employeeList, expensifyCardSettings?.cardRules]);
+    const eligibleCards = getEligibleCards(cardsList, expensifyCardSettings ?? {});
 
-    const filterCard = useCallback((card: Card, searchInput: string) => filterCardsByPersonalDetails(card, searchInput, personalDetails), [personalDetails]);
-    const sortCards = useCallback((cards: Card[]) => sortCardsByCardholderName(cards, personalDetails, localeCompare), [personalDetails, localeCompare]);
+    const filterCard = (card: Card, searchInput: string) => filterCardsByPersonalDetails(card, searchInput, personalDetails);
+    const sortCards = (cards: Card[]) => sortCardsByCardholderName(cards, personalDetails, localeCompare);
 
     const [inputValue, setInputValue, filteredCards] = useSearchResults(eligibleCards, filterCard, sortCards);
 
-    const listData: ExpensifyCardListItem[] = useMemo(
-        () =>
-            filteredCards.map((card) => {
-                const accountID = card.accountID ?? CONST.DEFAULT_NUMBER_ID;
-                const displayName = getDisplayNameOrDefault(personalDetails?.[accountID], '', false);
-                const lastFour = card.lastFourPAN ?? '';
-                return {
-                    keyForList: String(card.cardID),
-                    text: displayName,
-                    alternateText: lastFour,
-                    accountID,
-                    card,
-                };
-            }),
-        [filteredCards, personalDetails],
-    );
+    const listData: ExpensifyCardListItem[] = filteredCards.map((card) => {
+        const accountID = card.accountID ?? CONST.DEFAULT_NUMBER_ID;
+        const displayName = getDisplayNameOrDefault(personalDetails?.[accountID], '', false);
+        const lastFour = card.lastFourPAN ?? '';
+        return {
+            keyForList: String(card.cardID),
+            text: displayName,
+            alternateText: lastFour,
+            accountID,
+            card,
+        };
+    });
 
-    const fetchCards = useCallback(() => {
-        updateSelectedExpensifyCardFeed(defaultFundID, policyID);
+    useEffect(() => {
         openPolicyExpensifyCardsPage(policyID, defaultFundID);
     }, [defaultFundID, policyID]);
 
-    useEffect(() => {
-        fetchCards();
-    }, [fetchCards]);
+    useNetwork({
+        onReconnect: () => {
+            openPolicyExpensifyCardsPage(policyID, defaultFundID);
+        },
+    });
 
-    useNetwork({onReconnect: fetchCards});
-
-    const backToSpendRule = ROUTES.RULES_SPEND_NEW.getRoute(policyID);
-
-    const toggleCard = useCallback((item: ExpensifyCardListItem) => {
+    const toggleCard = (item: ExpensifyCardListItem) => {
         setSelectedCardIDs((prev) => {
             if (prev.includes(item.keyForList)) {
                 return prev.filter((id) => id !== item.keyForList);
             }
             return [...prev, item.keyForList];
         });
-    }, []);
+    };
 
-    const toggleSelectAll = useCallback(() => {
+    const toggleSelectAll = () => {
         const visibleKeys = listData.map((item) => item.keyForList);
         const allVisibleSelected = visibleKeys.length > 0 && visibleKeys.every((key) => selectedCardIDs.includes(key));
         if (allVisibleSelected) {
@@ -146,11 +137,11 @@ function AddCardPage({route}: AddCardPageProps) {
             }
             return Array.from(next);
         });
-    }, [listData, selectedCardIDs]);
+    };
 
-    const handleSave = useCallback(() => {
-        Navigation.goBack(backToSpendRule);
-    }, [backToSpendRule]);
+    const handleSave = () => {
+        Navigation.goBack(ROUTES.RULES_SPEND_NEW.getRoute(policyID));
+    };
 
     const headerMessage = getHeaderMessage(listData.length > 0, false, inputValue, countryCode, false);
 
@@ -168,7 +159,7 @@ function AddCardPage({route}: AddCardPageProps) {
             >
                 <HeaderWithBackButton
                     title={translate('workspace.rules.spendRules.cardPageTitle')}
-                    onBackButtonPress={() => Navigation.goBack(backToSpendRule)}
+                    onBackButtonPress={() => Navigation.goBack(ROUTES.RULES_SPEND_NEW.getRoute(policyID))}
                 />
                 <SelectionList
                     canSelectMultiple
