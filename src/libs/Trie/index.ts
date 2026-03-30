@@ -14,26 +14,6 @@ class Trie<TMetaData extends MetaData> {
     }
 
     /**
-     * Add a word to the Trie
-     * @param [metaData] - attach additional data to the word
-     */
-    add(word: string, metaData: Partial<TMetaData> = {}) {
-        if (word.length === 0) {
-            throw new Error('Cannot insert empty word into Trie');
-        }
-        const lower = word.toLowerCase();
-        let node = this.root;
-        for (const ch of lower) {
-            if (!node.children[ch]) {
-                node.children[ch] = new TrieNode();
-            }
-            node = node.children[ch];
-        }
-        node.isEndOfWord = true;
-        node.metaData = metaData;
-    }
-
-    /**
      * Walk to the end node for a word, creating intermediate nodes as needed.
      * Marks the final node as end-of-word if it wasn't already.
      * @returns the node and whether this is a new end-of-word entry
@@ -65,35 +45,13 @@ class Trie<TMetaData extends MetaData> {
         }
         const lower = word.toLowerCase();
         let node = this.root;
-        for (let i = 0; i < lower.length - 1; i++) {
-            const ch = lower[i];
+        for (const ch of lower) {
             if (!node.children[ch]) {
                 return null;
             }
             node = node.children[ch];
         }
-        const last = lower[lower.length - 1];
-        return node.children[last]?.isEndOfWord ? node.children[last] : null;
-    }
-
-    /**
-     * Update a word data in the Trie.
-     */
-    update(word: string, metaData: TMetaData) {
-        const lower = word.toLowerCase();
-        let node = this.root;
-        for (let i = 0; i < lower.length - 1; i++) {
-            const ch = lower[i];
-            if (!node.children[ch]) {
-                throw new Error('Word does not exist in the Trie');
-            }
-            node = node.children[ch];
-        }
-        const last = lower[lower.length - 1];
-        if (!node.children[last]) {
-            throw new Error('Word does not exist in the Trie');
-        }
-        node.children[last].metaData = metaData;
+        return node.isEndOfWord ? node : null;
     }
 
     /**
