@@ -5,6 +5,7 @@ import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import useAncestors from '@hooks/useAncestors';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import {putOnHold} from '@libs/actions/IOU/Hold';
 import {addErrorMessage} from '@libs/ErrorUtils';
@@ -32,6 +33,7 @@ function HoldReasonPage({route}: HoldReasonPageProps) {
 
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
+    const {isOffline} = useNetwork();
     const ancestors = useAncestors(report);
 
     const [parentReportOwnerAccountID] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`, {selector: getReportOwnerAccountID});
@@ -57,7 +59,7 @@ function HoldReasonPage({route}: HoldReasonPageProps) {
             return;
         }
 
-        putOnHold(transactionID, values.comment, reportID, ancestors);
+        putOnHold(transactionID, values.comment, reportID, isOffline, ancestors);
         Navigation.goBack(backTo);
     };
 

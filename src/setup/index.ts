@@ -60,6 +60,7 @@ export default function () {
         },
         skippableCollectionMemberIDs: CONST.SKIPPABLE_COLLECTION_MEMBER_IDS,
         snapshotMergeKeys: ['pendingAction', 'pendingFields'],
+        ramOnlyKeys: [ONYXKEYS.DERIVED.SORTED_REPORT_ACTIONS],
     });
 
     // Must be imported after Onyx.init() and outside the React lifecycle so that push notification
