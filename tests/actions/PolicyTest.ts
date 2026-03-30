@@ -1031,7 +1031,6 @@ describe('actions/Policy', () => {
 
         it('should not include guidedSetupData when hasCompletedGuidedSetupFlow is true', async () => {
             await Onyx.set(ONYXKEYS.SESSION, {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID});
-            await Onyx.set(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: true} as Onboarding);
             await waitForBatchedUpdates();
 
             const apiWriteSpy = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => Promise.resolve());
@@ -1049,6 +1048,7 @@ describe('actions/Policy', () => {
                 currentUserEmailParam: ESH_EMAIL,
                 isSelfTourViewed: false,
                 hasActiveAdminPolicies: false,
+                hasCompletedGuidedSetupFlow: true,
             });
             await waitForBatchedUpdates();
 

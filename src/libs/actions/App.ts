@@ -571,6 +571,7 @@ type CreateWorkspaceWithPolicyDraftParams = {
     // TODO: Remove optional (?) once allBetas Onyx.connect is removed (https://github.com/Expensify/App/issues/66417)
     betas?: OnyxEntry<OnyxTypes.Beta[]>;
     hasActiveAdminPolicies: boolean;
+    hasCompletedGuidedSetupFlow?: boolean;
 };
 
 /**
@@ -597,6 +598,7 @@ function createWorkspaceWithPolicyDraftAndNavigateToIt(params: CreateWorkspaceWi
         isSelfTourViewed,
         betas,
         hasActiveAdminPolicies,
+        hasCompletedGuidedSetupFlow,
     } = params;
 
     const policyIDWithDefault = policyID || generatePolicyID();
@@ -625,6 +627,7 @@ function createWorkspaceWithPolicyDraftAndNavigateToIt(params: CreateWorkspaceWi
             isSelfTourViewed,
             betas,
             hasActiveAdminPolicies,
+            hasCompletedGuidedSetupFlow,
         });
         Navigation.navigate(routeToNavigate, {forceReplace: !transitionFromOldDot});
     });
@@ -647,6 +650,7 @@ function createWorkspaceWithPolicyDraft(params: CreateWorkspaceWithPolicyDraftPa
         isSelfTourViewed,
         betas,
         hasActiveAdminPolicies,
+        hasCompletedGuidedSetupFlow,
     } = params;
 
     createDraftInitialWorkspace(introSelected, policyOwnerEmail, policyName, policyID, makeMeAdmin, currency, file);
@@ -667,6 +671,7 @@ function createWorkspaceWithPolicyDraft(params: CreateWorkspaceWithPolicyDraftPa
         isSelfTourViewed,
         betas,
         hasActiveAdminPolicies,
+        hasCompletedGuidedSetupFlow,
     });
 }
 
@@ -689,6 +694,7 @@ type SavePolicyDraftByNewWorkspaceParams = {
     // TODO: Remove optional (?) once allBetas Onyx.connect is removed (https://github.com/Expensify/App/issues/66417)
     betas?: OnyxEntry<OnyxTypes.Beta[]>;
     hasActiveAdminPolicies: boolean;
+    hasCompletedGuidedSetupFlow?: boolean;
 };
 
 /**
@@ -712,6 +718,7 @@ function savePolicyDraftByNewWorkspace({
     isSelfTourViewed,
     betas,
     hasActiveAdminPolicies,
+    hasCompletedGuidedSetupFlow,
 }: SavePolicyDraftByNewWorkspaceParams) {
     createWorkspace({
         policyOwnerEmail,
@@ -732,6 +739,7 @@ function savePolicyDraftByNewWorkspace({
         isSelfTourViewed,
         betas,
         hasActiveAdminPolicies,
+        hasCompletedGuidedSetupFlow,
     });
 }
 
@@ -756,6 +764,7 @@ function setUpPoliciesAndNavigate(
     activePolicyID: string | undefined,
     isSelfTourViewed: boolean | undefined,
     hasActiveAdminPolicies: boolean,
+    hasCompletedGuidedSetupFlow?: boolean,
 ) {
     const currentUrl = getCurrentUrl();
     if (!session || !currentUrl?.includes('exitTo')) {
@@ -788,6 +797,7 @@ function setUpPoliciesAndNavigate(
             currentUserEmailParam: currentSessionData.email ?? '',
             isSelfTourViewed,
             hasActiveAdminPolicies,
+            hasCompletedGuidedSetupFlow,
         });
         return;
     }

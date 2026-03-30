@@ -113,7 +113,6 @@ import type {
     InvitedEmailsToAccountIDs,
     LastPaymentMethod,
     LastPaymentMethodType,
-    Onboarding,
     PersonalDetailsList,
     Policy,
     PolicyCategories,
@@ -211,6 +210,7 @@ type BuildPolicyDataOptions = {
     isSelfTourViewed?: boolean;
     // TODO: Remove optional (?) once allBetas Onyx.connect is removed (https://github.com/Expensify/App/issues/66417)
     betas?: OnyxEntry<Beta[]>;
+    hasCompletedGuidedSetupFlow?: boolean;
 };
 
 // TODO: Remove this type once we complete refactoring the buildPolicyData function to use isSelfTourViewed. Refactor issue: https://github.com/Expensify/App/issues/66424
@@ -291,17 +291,6 @@ let deprecatedAllPersonalDetails: OnyxEntry<PersonalDetailsList>;
 Onyx.connect({
     key: ONYXKEYS.PERSONAL_DETAILS_LIST,
     callback: (val) => (deprecatedAllPersonalDetails = val),
-});
-
-let onboarding: OnyxEntry<Onboarding>;
-Onyx.connect({
-    key: ONYXKEYS.NVP_ONBOARDING,
-    callback: (val) => {
-        if (Array.isArray(val)) {
-            return;
-        }
-        onboarding = val;
-    },
 });
 
 /**
@@ -2402,6 +2391,7 @@ function buildPolicyData(options: BuildPolicyDataOptions): OnyxData<BuildPolicyD
         type,
         isSelfTourViewed,
         betas,
+        hasCompletedGuidedSetupFlow,
     } = options;
     const workspaceName = policyName || generateDefaultWorkspaceName(policyOwnerEmail);
 
@@ -2856,7 +2846,7 @@ function buildPolicyData(options: BuildPolicyDataOptions): OnyxData<BuildPolicyD
         (introSelected.choice === CONST.ONBOARDING_CHOICES.TEST_DRIVE_RECEIVER || !introSelected?.createWorkspace) &&
         engagementChoice &&
         shouldAddOnboardingTasks &&
-        !onboarding?.hasCompletedGuidedSetupFlow
+        !hasCompletedGuidedSetupFlow
     ) {
         const {onboardingMessages} = getOnboardingMessages();
         const onboardingData = ReportUtils.prepareOnboardingOnyxData({

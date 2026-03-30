@@ -335,6 +335,7 @@ type PayInvoiceArgs = {
     activePolicy?: OnyxTypes.Policy;
     betas: OnyxEntry<OnyxTypes.Beta[]>;
     isSelfTourViewed: boolean | undefined;
+    hasCompletedGuidedSetupFlow?: boolean;
 };
 
 type RejectMoneyRequestData = {

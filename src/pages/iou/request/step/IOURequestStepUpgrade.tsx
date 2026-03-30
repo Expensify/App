@@ -1,4 +1,4 @@
-import {hasSeenTourSelector} from '@selectors/Onboarding';
+import {hasCompletedGuidedSetupFlowSelector, hasSeenTourSelector} from '@selectors/Onboarding';
 import React, {useRef, useState} from 'react';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -68,6 +68,7 @@ function IOURequestStepUpgrade({
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
+    const [hasCompletedGuidedSetupFlow] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasCompletedGuidedSetupFlowSelector});
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [createdPolicyID, setCreatedPolicyID] = useState<string | undefined>();
@@ -190,6 +191,7 @@ function IOURequestStepUpgrade({
             betas,
             isSelfTourViewed,
             hasActiveAdminPolicies,
+            hasCompletedGuidedSetupFlow: !!hasCompletedGuidedSetupFlow,
         });
         setIsUpgraded(true);
         setCreatedPolicyID(policyData.policyID);
@@ -217,6 +219,7 @@ function IOURequestStepUpgrade({
             betas,
             isSelfTourViewed,
             hasActiveAdminPolicies,
+            hasCompletedGuidedSetupFlow: !!hasCompletedGuidedSetupFlow,
         });
         policyDataRef.current = policyData;
         setCreatedPolicyID(policyData.policyID);
