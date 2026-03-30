@@ -1096,6 +1096,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                             transactionID,
                             selectedTransactions[transactionID].reportAction?.childReportID,
                             policies?.[`${ONYXKEYS.COLLECTION.POLICY}${selectedTransactions[transactionID].policyID}`],
+                            isOffline,
                         );
                     }
                     // eslint-disable-next-line @typescript-eslint/no-deprecated
