@@ -4317,6 +4317,20 @@ describe('actions/Report', () => {
 
             expect(mockNavigation.goBack).toHaveBeenCalled();
         });
+
+        it('should pass isSelfTourViewed to navigateToConciergeChat', async () => {
+            await Onyx.set(ONYXKEYS.CONCIERGE_REPORT_ID, CONCIERGE_REPORT_ID);
+            const testReport = createRandomReport(Number(REPORT_ID), undefined);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, testReport);
+            await waitForBatchedUpdates();
+
+            Report.navigateToConciergeChatAndDeleteReport(REPORT_ID, CONCIERGE_REPORT_ID, TEST_USER_ACCOUNT_ID, INTRO_SELECTED, true, undefined);
+
+            await waitForBatchedUpdates();
+
+            expect(mockNavigation.goBack).toHaveBeenCalled();
+            expect(mockNavigation.navigate).toHaveBeenCalled();
+        });
     });
 
     describe('navigateToAndOpenChildReport', () => {
