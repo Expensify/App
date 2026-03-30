@@ -20,6 +20,7 @@ import {
     createOptionList,
     filterAndOrderOptions,
     filterReports,
+    getAlternateText,
     filterSelfDMChat,
     filterWorkspaceChats,
     formatMemberForList,
@@ -6934,6 +6935,39 @@ describe('OptionsListUtils', () => {
 
             expect(result).toBeDefined();
             expect(result.reportID).toBe('1');
+        });
+    });
+
+    describe('getAlternateText', () => {
+        it('should forward sortedActions to getLastMessageTextForReport without errors', () => {
+            const option: OptionData = {
+                reportID: '1',
+                lastMessageText: '',
+                isMoneyRequestReport: false,
+                isThread: false,
+                isChatRoom: false,
+                isSelected: false,
+            };
+
+            const sortedActions: Record<string, ReportAction[]> = {};
+            const result = getAlternateText(option, {}, false, CURRENT_USER_ACCOUNT_ID, undefined, {}, {}, undefined, undefined, undefined, sortedActions);
+
+            expect(typeof result).toBe('string');
+        });
+
+        it('should work when sortedActions is undefined', () => {
+            const option: OptionData = {
+                reportID: '1',
+                lastMessageText: '',
+                isMoneyRequestReport: false,
+                isThread: false,
+                isChatRoom: false,
+                isSelected: false,
+            };
+
+            const result = getAlternateText(option, {}, false, CURRENT_USER_ACCOUNT_ID, undefined, {}, {}, undefined, undefined, undefined, undefined);
+
+            expect(typeof result).toBe('string');
         });
     });
 

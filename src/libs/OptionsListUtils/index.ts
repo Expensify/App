@@ -437,6 +437,7 @@ function getAlternateText(
     translate?: LocalizedTranslate,
     reportAttributesDerived?: ReportAttributesDerivedValue['reports'],
     policyTags?: OnyxEntry<PolicyTagLists>,
+    sortedActions?: Record<string, ReportAction[]>,
 ) {
     const report = getReportOrDraftReport(option.reportID);
     const isAdminRoom = reportUtilsIsAdminRoom(report);
@@ -456,6 +457,7 @@ function getAlternateText(
             visibleReportActionsDataParam: visibleReportActionsData,
             reportAttributesDerived,
             policyTags,
+            sortedActions,
         });
     const reportPrefix = getReportSubtitlePrefix(report);
     const formattedLastMessageTextWithPrefix = reportPrefix + formattedLastMessageText;
@@ -1083,6 +1085,7 @@ function createOption({
                       translateFn,
                       reportAttributesDerived,
                       policyTags,
+                      sortedActions,
                   );
 
         const computedReportName = getReportName(report, reportAttributesDerived);
