@@ -300,10 +300,9 @@ function getInvoicesChatName({
     currentUserAccountID,
 }: {
     report: OnyxEntry<Report>;
+    policy: OnyxEntry<Policy>;
     receiverPolicy: OnyxEntry<Policy>;
     personalDetails?: Partial<PersonalDetailsList>;
-    // TODO: This will be required eventually. Ref: https://github.com/Expensify/App/issues/66415
-    policy?: OnyxEntry<Policy>;
     currentUserAccountID?: number;
 }): string {
     const invoiceReceiver = report?.invoiceReceiver;
@@ -406,6 +405,8 @@ function computeReportNameBasedOnReportAction(
     report: Report | undefined,
     reportPolicy: Policy | undefined,
     parentReport: Report | undefined,
+    fromMovedReportPolicy?: Policy,
+    toMovedReportPolicy?: Policy,
 ): string | undefined {
     if (!parentReportAction) {
         return undefined;
@@ -489,7 +490,7 @@ function computeReportNameBasedOnReportAction(
     }
 
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION)) {
-        return Parser.htmlToText(getMovedTransactionMessage(translate, parentReportAction));
+        return Parser.htmlToText(getMovedTransactionMessage(translate, parentReportAction, fromMovedReportPolicy, toMovedReportPolicy));
     }
 
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MAX_EXPENSE_AMOUNT)) {
@@ -812,8 +813,25 @@ function computeReportName({
     const parentReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`];
     const parentReportAction = isThread(report) ? reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.parentReportID}`]?.[report.parentReportActionID] : undefined;
 
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const parentReportActionBasedName = computeReportNameBasedOnReportAction(translateLocal, parentReportAction, report, reportPolicy, parentReport);
+    const movedFromReport = isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION)
+        ? reports?.[`${ONYXKEYS.COLLECTION.REPORT}${getMovedReportID(parentReportAction, CONST.REPORT.MOVE_TYPE.FROM)}`]
+        : undefined;
+    const movedToReport = isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION)
+        ? reports?.[`${ONYXKEYS.COLLECTION.REPORT}${getMovedReportID(parentReportAction, CONST.REPORT.MOVE_TYPE.TO)}`]
+        : undefined;
+    const fromMovedReportPolicy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${movedFromReport?.policyID}`];
+    const toMovedReportPolicy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${movedToReport?.policyID}`];
+
+    const parentReportActionBasedName = computeReportNameBasedOnReportAction(
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        translateLocal,
+        parentReportAction,
+        report,
+        reportPolicy,
+        parentReport,
+        fromMovedReportPolicy,
+        toMovedReportPolicy,
+    );
 
     if (parentReportActionBasedName) {
         return parentReportActionBasedName;

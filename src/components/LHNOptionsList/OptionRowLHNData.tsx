@@ -134,6 +134,8 @@ function OptionRowLHNData({
 
     const [movedFromReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getMovedReportID(lastAction, CONST.REPORT.MOVE_TYPE.FROM)}`);
     const [movedToReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getMovedReportID(lastAction, CONST.REPORT.MOVE_TYPE.TO)}`);
+    const [movedFromReportPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${movedFromReport?.policyID}`);
+    const [movedToReportPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${movedToReport?.policyID}`);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const {login} = useCurrentUserPersonalDetails();
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fullReport?.policyID}`);
@@ -203,6 +205,8 @@ function OptionRowLHNData({
             lastActionReport,
             movedFromReport,
             movedToReport,
+            movedFromReportPolicy,
+            movedToReportPolicy,
             currentUserAccountID,
             reportAttributesDerived,
             policyTags,
