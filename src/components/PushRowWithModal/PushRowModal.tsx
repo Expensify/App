@@ -5,7 +5,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import useDebouncedState from '@hooks/useDebouncedState';
-import useInitialSelectionRef from '@hooks/useInitialSelectionRef';
+import useInitialSelection from '@hooks/useInitialSelection';
 import useLocalize from '@hooks/useLocalize';
 import searchOptions from '@libs/searchOptions';
 import {moveInitialSelectionToTopByValue} from '@libs/SelectionListOrderUtils';
@@ -46,8 +46,9 @@ function PushRowModal({isVisible, selectedOption, onOptionChange, onClose, optio
     const {translate} = useLocalize();
 
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
-    const initialSelectedValues = useInitialSelectionRef(selectedOption ? [selectedOption] : [], {resetDeps: [isVisible]});
-    const initiallyFocusedOption = initialSelectedValues.at(0);
+    const initialSelectedValue = useInitialSelection(selectedOption || undefined, {resetDeps: [isVisible]});
+    const initialSelectedValues = initialSelectedValue ? [initialSelectedValue] : [];
+    const initiallyFocusedOption = initialSelectedValue;
 
     const options = useMemo(
         () =>

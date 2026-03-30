@@ -6,7 +6,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import useDebouncedState from '@hooks/useDebouncedState';
-import useInitialSelectionRef from '@hooks/useInitialSelectionRef';
+import useInitialSelection from '@hooks/useInitialSelection';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import searchOptions from '@libs/searchOptions';
@@ -41,8 +41,9 @@ function StateSelectorModal({isVisible, currentState, onStateSelected, onClose, 
     const {translate} = useLocalize();
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
     const styles = useThemeStyles();
-    const initialSelectedValues = useInitialSelectionRef(currentState ? [currentState] : [], {resetDeps: [isVisible]});
-    const initiallyFocusedState = initialSelectedValues.at(0);
+    const initialSelectedValue = useInitialSelection(currentState || undefined, {resetDeps: [isVisible]});
+    const initialSelectedValues = initialSelectedValue ? [initialSelectedValue] : [];
+    const initiallyFocusedState = initialSelectedValue;
 
     const countryStates = useMemo(
         () =>

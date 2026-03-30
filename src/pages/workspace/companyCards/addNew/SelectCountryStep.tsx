@@ -9,7 +9,7 @@ import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import Text from '@components/Text';
 import {useCurrencyListState} from '@hooks/useCurrencyList';
 import useDebouncedState from '@hooks/useDebouncedState';
-import useInitialSelectionRef from '@hooks/useInitialSelectionRef';
+import useInitialSelection from '@hooks/useInitialSelection';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
@@ -44,8 +44,9 @@ function SelectCountryStep({policyID}: CountryStepProps) {
 
     const [selectedCountry, setSelectedCountry] = useState<string | null>(null);
     const currentCountry = selectedCountry ?? addNewCard?.data?.selectedCountry ?? getPlaidCountry(policy?.outputCurrency, currencyList, countryByIp);
-    const initialSelectedValues = useInitialSelectionRef(currentCountry ? [currentCountry] : [], {resetOnFocus: true});
-    const initiallyFocusedCountry = initialSelectedValues.at(0);
+    const initialSelectedValue = useInitialSelection(currentCountry || undefined, {resetOnFocus: true});
+    const initialSelectedValues = initialSelectedValue ? [initialSelectedValue] : [];
+    const initiallyFocusedCountry = initialSelectedValue;
 
     const [hasError, setHasError] = useState(false);
     const doesCountrySupportPlaid = isPlaidSupportedCountry(currentCountry);

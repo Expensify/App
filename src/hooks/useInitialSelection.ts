@@ -2,7 +2,7 @@ import {useFocusEffect} from '@react-navigation/native';
 import type {DependencyList} from 'react';
 import {useCallback, useEffect, useRef, useState} from 'react';
 
-type UseInitialSelectionRefOptions<T> = {
+type UseInitialSelectionOptions<T> = {
     /** Dependencies that should trigger refreshing the snapshot (e.g., when a modal opens) */
     resetDeps?: DependencyList;
 
@@ -20,7 +20,7 @@ type UseInitialSelectionRefOptions<T> = {
  * Keeps an immutable snapshot of the initial selection for the current open/focus cycle.
  * Callers can refresh the snapshot by changing `resetDeps` or via screen focus.
  */
-function useInitialSelectionRef<T>(selection: T, options: UseInitialSelectionRefOptions<T> = {}) {
+function useInitialSelection<T>(selection: T, options: UseInitialSelectionOptions<T> = {}) {
     const {resetDeps = [], resetOnFocus = false, shouldSyncSelection = false, isEqual = Object.is} = options;
     const [initialSelection, setInitialSelection] = useState(selection);
     const latestSelectionRef = useRef(selection);
@@ -37,6 +37,8 @@ function useInitialSelectionRef<T>(selection: T, options: UseInitialSelectionRef
     }, [selection]);
 
     useEffect(() => {
+        // Intentionally refresh the snapshot only when the caller marks a new open/focus cycle.
+        // Live selection changes while the picker stays open should not repin or refocus the list.
         updateInitialSelection(selection);
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, resetDeps);
@@ -62,4 +64,4 @@ function useInitialSelectionRef<T>(selection: T, options: UseInitialSelectionRef
     return initialSelection;
 }
 
-export default useInitialSelectionRef;
+export default useInitialSelection;

@@ -1,7 +1,7 @@
 import React, {useMemo} from 'react';
 import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
-import useInitialSelectionRef from '@hooks/useInitialSelectionRef';
+import useInitialSelection from '@hooks/useInitialSelection';
 import {moveInitialSelectionToTopByValue} from '@libs/SelectionListOrderUtils';
 import type {ValueSelectionListProps} from './types';
 
@@ -15,8 +15,9 @@ function ValueSelectionList({
     alternateNumberOfSupportedLines,
     isVisible,
 }: ValueSelectionListProps) {
-    const initialSelectedValues = useInitialSelectionRef(selectedItem?.value ? [selectedItem.value] : [], isVisible === undefined ? {resetOnFocus: true} : {resetDeps: [isVisible]});
-    const initiallyFocusedItemKey = initialSelectedValues.at(0);
+    const initialSelectedValue = useInitialSelection(selectedItem?.value || undefined, isVisible === undefined ? {resetOnFocus: true} : {resetDeps: [isVisible]});
+    const initialSelectedValues = initialSelectedValue ? [initialSelectedValue] : [];
+    const initiallyFocusedItemKey = initialSelectedValue;
 
     const mappedOptions = useMemo(() => items.map((item) => ({value: item.value ?? '', alternateText: item.description, text: item.label ?? '', keyForList: item.value ?? ''})), [items]);
     const orderedOptions = useMemo(() => moveInitialSelectionToTopByValue(mappedOptions, initialSelectedValues), [initialSelectedValues, mappedOptions]);
