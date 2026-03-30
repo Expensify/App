@@ -12094,6 +12094,8 @@ describe('actions/IOU', () => {
                 policyCategories: undefined,
                 policyTags: {},
                 hash: undefined,
+                introSelected: undefined,
+                betas: undefined,
             });
 
             const params = writeSpy.mock.calls.at(0)?.[1] as {updates: string};
@@ -12163,6 +12165,8 @@ describe('actions/IOU', () => {
                 policyCategories: undefined,
                 policyTags: {},
                 hash: undefined,
+                introSelected: undefined,
+                betas: undefined,
             });
 
             expect(writeSpy).not.toHaveBeenCalled();
@@ -12221,6 +12225,8 @@ describe('actions/IOU', () => {
                 policyCategories: undefined,
                 policyTags: {},
                 hash: undefined,
+                introSelected: undefined,
+                betas: undefined,
             });
 
             const getOptimisticTotal = (callIndex: number) => {
@@ -12288,6 +12294,8 @@ describe('actions/IOU', () => {
                 policyCategories: undefined,
                 policyTags: {},
                 hash: undefined,
+                introSelected: undefined,
+                betas: undefined,
             });
 
             const params = writeSpy.mock.calls.at(0)?.[1] as {updates: string};
@@ -12359,6 +12367,8 @@ describe('actions/IOU', () => {
                 policyCategories: undefined,
                 policyTags: {},
                 hash: undefined,
+                introSelected: undefined,
+                betas: undefined,
             });
 
             const params = writeSpy.mock.calls.at(0)?.[1] as {updates: string};
@@ -12421,6 +12431,8 @@ describe('actions/IOU', () => {
                 policyCategories: undefined,
                 policyTags: {},
                 hash: undefined,
+                introSelected: undefined,
+                betas: undefined,
             });
 
             const params = writeSpy.mock.calls.at(0)?.[1] as {updates: string};
@@ -12481,6 +12493,8 @@ describe('actions/IOU', () => {
                 policyCategories: undefined,
                 policyTags: {},
                 hash: undefined,
+                introSelected: undefined,
+                betas: undefined,
             });
 
             expect(writeSpy).toHaveBeenCalled();
@@ -12549,6 +12563,8 @@ describe('actions/IOU', () => {
                     },
                 },
                 hash: undefined,
+                introSelected: undefined,
+                betas: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -12601,6 +12617,8 @@ describe('actions/IOU', () => {
                 policyCategories: undefined,
                 policyTags: {},
                 hash: undefined,
+                introSelected: undefined,
+                betas: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -12656,6 +12674,8 @@ describe('actions/IOU', () => {
                 policyCategories: undefined,
                 policyTags: {},
                 hash: undefined,
+                introSelected: undefined,
+                betas: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -12718,6 +12738,8 @@ describe('actions/IOU', () => {
                 },
                 policyTags: {},
                 hash: undefined,
+                introSelected: undefined,
+                betas: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -12781,6 +12803,8 @@ describe('actions/IOU', () => {
                 allPolicies: {
                     [`${ONYXKEYS.COLLECTION.POLICY}${transactionPolicyID}`]: transactionPolicy,
                 },
+                introSelected: undefined,
+                betas: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -12855,6 +12879,8 @@ describe('actions/IOU', () => {
                 allPolicies: {
                     [`${ONYXKEYS.COLLECTION.POLICY}${transactionPolicyID}`]: txPolicy,
                 },
+                introSelected: undefined,
+                betas: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -12917,6 +12943,8 @@ describe('actions/IOU', () => {
                 },
                 policyTags: {},
                 hash: undefined,
+                introSelected: undefined,
+                betas: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -12992,6 +13020,8 @@ describe('actions/IOU', () => {
                     [`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policy.id}`]: policyTagsForPolicy,
                 },
                 hash: undefined,
+                introSelected: undefined,
+                betas: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -13047,6 +13077,8 @@ describe('actions/IOU', () => {
                 policyCategories: undefined,
                 policyTags: {},
                 hash: undefined,
+                introSelected: undefined,
+                betas: undefined,
             });
 
             // category/billable changes must be silently dropped for IOUs —
@@ -13127,6 +13159,8 @@ describe('actions/IOU', () => {
                 policyTags: {},
                 hash: undefined,
                 allPolicies,
+                introSelected: undefined,
+                betas: undefined,
             });
 
             // Then: the optimistic transaction update should use the transaction's own policy for tax resolution.
@@ -13215,6 +13249,8 @@ describe('actions/IOU', () => {
                 policyTags: {},
                 hash: undefined,
                 allPolicies,
+                introSelected: undefined,
+                betas: undefined,
             });
 
             // Then: buildOptimisticModifiedExpenseReportAction should receive the transaction's own policy,
