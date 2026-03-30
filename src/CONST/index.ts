@@ -4198,6 +4198,7 @@ const CONST = {
     SPEND_RULE_FORM: {
         FIELDS: {
             CARD_IDS: 'cardIDs',
+            RESTRICTION_ACTION: 'restrictionAction',
         },
     },
 
@@ -9151,6 +9152,7 @@ const CONST = {
                 CATEGORY_SELECTOR: 'WorkspaceRules-CategorySelector',
                 SPEND_RULE_SECTION_ITEM: 'WorkspaceRules-SpendRuleSectionItem',
                 SPEND_RULE_SAVE: 'WorkspaceRules-SpendRuleSave',
+                SPEND_RULE_RESTRICTION_TYPE: 'WorkspaceRules-SpendRuleRestrictionType',
             },
             EXPENSIFY_CARD: {
                 ISSUE_CARD_BUTTON: 'WorkspaceExpensifyCard-IssueCardButton',

@@ -10,6 +10,7 @@ type SpendRuleForm = Form<
     InputID,
     {
         [INPUT_IDS.CARD_IDS]: string[];
+        [INPUT_IDS.RESTRICTION_ACTION]: ValueOf<typeof CONST.SPEND_CARD_RULE.ACTION>;
     }
 >;
 

@@ -1,4 +1,5 @@
 import React, {useEffect} from 'react';
+import {View} from 'react-native';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
@@ -10,7 +11,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getSpendCardRuleValueJSON, setExpensifyCardRule} from '@libs/actions/Card';
-import {clearDraftSpendRule} from '@libs/actions/User';
+import {clearDraftSpendRule, updateDraftSpendRule} from '@libs/actions/User';
 import {filterInactiveCards, getCardDescriptionForSearchTable, isCard} from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {rand64} from '@libs/NumberUtils';
@@ -20,6 +21,7 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import SpendRuleRestrictionTypeToggle from './SpendRuleRestrictionTypeToggle';
 
 type SpendRulePageBaseProps = {
     policyID: string;
@@ -38,6 +40,7 @@ function SpendRulePageBase({policyID, titleKey, testID}: SpendRulePageBaseProps)
     useEffect(() => () => clearDraftSpendRule(), []);
 
     const cardIDs = spendRuleForm?.cardIDs;
+    const restrictionAction = spendRuleForm?.restrictionAction ?? CONST.SPEND_CARD_RULE.ACTION.ALLOW;
 
     const cardsMenuTitle = !cardIDs?.length
         ? ''
@@ -60,7 +63,7 @@ function SpendRulePageBase({policyID, titleKey, testID}: SpendRulePageBaseProps)
         setExpensifyCardRule({
             domainAccountID,
             cardRuleID: String(rand64()),
-            cardRuleValue: getSpendCardRuleValueJSON(cardIDs, CONST.SPEND_CARD_RULE.ACTION.BLOCK),
+            cardRuleValue: getSpendCardRuleValueJSON(cardIDs, restrictionAction),
         });
         clearDraftSpendRule();
         Navigation.goBack();
@@ -88,6 +91,13 @@ function SpendRulePageBase({policyID, titleKey, testID}: SpendRulePageBaseProps)
                         titleStyle={styles.flex1}
                         sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_SECTION_ITEM}
                     />
+                    <Text style={[styles.textStrong, styles.ph5, styles.mt5]}>{translate('workspace.rules.spendRules.spendRuleSectionTitle')}</Text>
+                    <View style={[styles.ph5, styles.pv3]}>
+                        <SpendRuleRestrictionTypeToggle
+                            restrictionAction={restrictionAction}
+                            onSelect={(action) => updateDraftSpendRule({restrictionAction: action})}
+                        />
+                    </View>
                 </ScrollView>
                 <FormAlertWithSubmitButton
                     buttonText={translate('workspace.rules.spendRules.saveRule')}

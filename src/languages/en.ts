@@ -6669,6 +6669,11 @@ const translations = {
                 cardsSectionTitle: 'Cards',
                 chooseCards: 'Choose cards',
                 saveRule: 'Save rule',
+                allow: 'Allow',
+                spendRuleSectionTitle: 'Spend rule',
+                restrictionType: 'Restriction type',
+                restrictionTypeHelpAllow: "Charges are approved if they match any merchant or category, and don't exceed a max amount.",
+                restrictionTypeHelpBlock: 'Charges are declined if they match any merchant or category, or exceed a max amount.',
             },
         },
         planTypePage: {
