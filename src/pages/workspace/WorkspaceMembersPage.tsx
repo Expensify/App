@@ -38,7 +38,6 @@ import {
     clearInviteDraft,
     clearWorkspaceOwnerChangeFlow,
     downloadMembersCSV,
-    isApprover,
     openWorkspaceMembersPage,
     removeMembers,
     updateWorkspaceMembersRole,
@@ -60,6 +59,7 @@ import {
     isExpensifyTeam,
     isPaidGroupPolicy,
     isPolicyAdmin as isPolicyAdminUtils,
+    isPolicyApprover,
 } from '@libs/PolicyUtils';
 import {getDisplayNameForParticipant} from '@libs/ReportUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
@@ -98,7 +98,7 @@ type MemberOption = Omit<ListItem, 'accountID' | 'login'> & {
 
 function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembersPageProps) {
     useWorkspaceDocumentTitle(policy?.name, 'common.members');
-    const icons = useMemoizedLazyExpensifyIcons(['Download', 'FallbackAvatar', 'MakeAdmin', 'Plus', 'RemoveMembers', 'Table', 'User', 'UserEye'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Download', 'FallbackAvatar', 'MakeAdmin', 'Plus', 'RemoveMembers', 'Table', 'User', 'UserEye']);
     const policyMemberEmailsToAccountIDs = useMemo(() => getMemberAccountIDsForWorkspace(policy?.employeeList, true), [policy?.employeeList]);
     const employeeListDetails = useMemo(() => policy?.employeeList ?? ({} as PolicyEmployeeList), [policy?.employeeList]);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
@@ -163,7 +163,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     const canSelectMultiple = isPolicyAdmin && (shouldUseNarrowLayout ? isMobileSelectionModeEnabled : true);
 
     const confirmModalPrompt = useMemo(() => {
-        const approverEmail = selectedEmployees.find((selectedEmployee) => isApprover(policy, selectedEmployee));
+        const approverEmail = selectedEmployees.find((selectedEmployee) => isPolicyApprover(policy, selectedEmployee));
 
         if (approverEmail) {
             const approverAccountID = policyMemberEmailsToAccountIDs[approverEmail];
@@ -229,12 +229,12 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
      */
     const removeUsers = () => {
         // Check if any of the members are approvers
-        const hasApprovers = selectedEmployees.some((email) => isApprover(policy, email));
+        const hasApprovers = selectedEmployees.some((email) => isPolicyApprover(policy, email));
 
         if (hasApprovers) {
             const ownerEmail = ownerDetails.login;
             for (const login of selectedEmployees) {
-                if (!isApprover(policy, login)) {
+                if (!isPolicyApprover(policy, login)) {
                     continue;
                 }
 

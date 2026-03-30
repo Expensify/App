@@ -153,7 +153,7 @@ function DebugReportPage({
         ];
     }, [report, transactionViolations, isReportArchived, chatReport, reportActions, transactions, reportAttributes?.reportErrors, betas, priorityMode, draftComment, translate]);
 
-    const icons = useMemoizedLazyExpensifyIcons(['Eye'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Eye']);
 
     const DebugDetailsTab = useCallback(
         () => (
@@ -164,7 +164,7 @@ function DebugReportPage({
                     Debug.setDebugData(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, data);
                 }}
                 onDelete={() => {
-                    navigateToConciergeChatAndDeleteReport(reportID, conciergeReportID, currentUserAccountID, introSelected, true, true);
+                    navigateToConciergeChatAndDeleteReport(reportID, conciergeReportID, currentUserAccountID, introSelected, betas, true, true);
                 }}
                 validate={DebugUtils.validateReportDraftProperty}
             >
@@ -228,6 +228,7 @@ function DebugReportPage({
             currentUserAccountID,
             conciergeReportID,
             introSelected,
+            betas,
         ],
     );
 
