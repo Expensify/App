@@ -3,14 +3,7 @@ import {Freeze} from 'react-freeze';
 import TooltipSense from '@components/Tooltip/TooltipSense';
 import {areAllModalsHidden} from '@userActions/Modal';
 import ScreenFreezeContext from './ScreenFreezeContext';
-
-type ScreenFreezeWrapperProps = {
-    /** Whether the screen is not currently visible to the user */
-    isScreenBlurred: boolean;
-
-    /** The screen content to freeze when blurred */
-    children: React.ReactNode;
-};
+import type ScreenFreezeWrapperProps from './types';
 
 function ScreenFreezeWrapper({isScreenBlurred, children}: ScreenFreezeWrapperProps) {
     const [frozen, setFrozen] = useState(false);

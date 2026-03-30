@@ -12,6 +12,7 @@ import type {
     PlatformStackNavigatorProps,
     PlatformStackRouterOptions,
 } from '@libs/Navigation/PlatformStackNavigation/types';
+import ScreenFreezeWrapper from './ScreenFreezeWrapper';
 
 function createPlatformStackNavigatorComponent<RouterOptions extends PlatformStackRouterOptions = PlatformStackRouterOptions>(
     displayName: string,
@@ -23,6 +24,7 @@ function createPlatformStackNavigatorComponent<RouterOptions extends PlatformSta
     const useCustomEffects = options?.useCustomEffects ?? (() => undefined);
     const ExtraContent = options?.ExtraContent;
     const NavigationContentWrapper = options?.NavigationContentWrapper;
+    const freezeNonTopScreens = options?.freezeNonTopScreens;
 
     function PlatformNavigator({
         id,
@@ -87,6 +89,21 @@ function createPlatformStackNavigatorComponent<RouterOptions extends PlatformSta
         // Executes custom effects defined in "useCustomEffects" navigator option.
         useCustomEffects(customCodePropsWithCustomState);
 
+        let wrappedDescriptors = descriptors;
+        if (freezeNonTopScreens) {
+            const topRouteKey = state.routes[state.index]?.key;
+            const result: typeof descriptors = {};
+            for (const [key, descriptor] of Object.entries(descriptors)) {
+                const isOnTop = key === topRouteKey;
+                const isScreenBlurred = !isOnTop;
+                result[key] = {
+                    ...descriptor,
+                    render: () => <ScreenFreezeWrapper isScreenBlurred={isScreenBlurred}>{descriptor.render()}</ScreenFreezeWrapper>,
+                };
+            }
+            wrappedDescriptors = result;
+        }
+
         const Content = useMemo(
             () => (
                 <NavigationContent>
@@ -94,7 +111,7 @@ function createPlatformStackNavigatorComponent<RouterOptions extends PlatformSta
                         // eslint-disable-next-line react/jsx-props-no-spreading
                         {...props}
                         state={state}
-                        descriptors={descriptors}
+                        descriptors={wrappedDescriptors}
                         navigation={navigation}
                         describe={describe}
                     />
@@ -104,7 +121,7 @@ function createPlatformStackNavigatorComponent<RouterOptions extends PlatformSta
                     )}
                 </NavigationContent>
             ),
-            [NavigationContent, customCodePropsWithCustomState, describe, descriptors, navigation, props, state],
+            [NavigationContent, customCodePropsWithCustomState, describe, wrappedDescriptors, navigation, props, state],
         );
 
         // eslint-disable-next-line react/jsx-props-no-spreading
