@@ -7,10 +7,9 @@ import MultiSelectPopup from '@components/Search/FilterDropdowns/MultiSelectPopu
 import SingleSelectPopup from '@components/Search/FilterDropdowns/SingleSelectPopup';
 import UserSelectPopup from '@components/Search/FilterDropdowns/UserSelectPopup';
 import {useSearchStateContext} from '@components/Search/SearchContext';
-import {filterFeedSelector, filterGroupCurrencySelector, filterPolicyIDSelector} from '@components/Search/selectors/Search';
+import {filterFeedSelector, filterPolicyIDSelector} from '@components/Search/selectors/Search';
 import type {SearchDateFilterKeys, SearchQueryJSON, SingularSearchStatus} from '@components/Search/types';
 import useAdvancedSearchFilters from '@hooks/useAdvancedSearchFilters';
-import {useCurrencyListActions, useCurrencyListState} from '@hooks/useCurrencyList';
 import useFeedKeysWithAssignedCards from '@hooks/useFeedKeysWithAssignedCards';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -20,23 +19,14 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {close} from '@libs/actions/Modal';
 import Navigation from '@libs/Navigation/Navigation';
 import {buildFilterQueryWithSortDefaults} from '@libs/SearchQueryUtils';
-import {
-    DATE_FILTER_GROUP_MAP,
-    filterValidHasValues,
-    getFeedOptions,
-    getGroupCurrencyOptions,
-    getHasOptions,
-    getStatusOptions,
-    getWithdrawalTypeOptions,
-    mapFiltersFormToLabelValueList,
-} from '@libs/SearchUIUtils';
+import {DATE_FILTER_GROUP_MAP, filterValidHasValues, getFeedOptions, getHasOptions, getStatusOptions, getWithdrawalTypeOptions, mapFiltersFormToLabelValueList} from '@libs/SearchUIUtils';
 import type {SearchFilter} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
 import FILTER_KEYS from '@src/types/form/SearchAdvancedFiltersForm';
-import type {HasFilterValue, IsFilterValue} from '@src/types/form/SearchAdvancedFiltersForm';
+import type {HasFilterValue, IsFilterValue, SearchAdvancedFiltersKey} from '@src/types/form/SearchAdvancedFiltersForm';
 import type {Policy} from '@src/types/onyx';
 import type {Icon} from '@src/types/onyx/OnyxCommon';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
@@ -61,6 +51,8 @@ type UseSearchActionsBarResult = {
 type FilterBarPopupProps = PopoverComponentProps & {
     updateFilterForm: (values: Partial<SearchAdvancedFiltersForm>) => void;
 };
+
+const SKIPPED_FILTERS = new Set<SearchAdvancedFiltersKey>([CONST.SEARCH.SYNTAX_FILTER_KEYS.GROUP_CURRENCY]);
 
 /**
  * Extracts only the fields needed by getTypeOptions (canSendInvoice check).
@@ -89,28 +81,6 @@ function typeOptionsPoliciesSelector(policies: OnyxCollection<Policy>): OnyxColl
         } as Policy;
     }
     return result;
-}
-
-function GroupCurrencyPopup({updateFilterForm, closeOverlay}: FilterBarPopupProps) {
-    const {translate} = useLocalize();
-    const {currencyList} = useCurrencyListState();
-    const {getCurrencySymbol} = useCurrencyListActions();
-    const groupCurrencyOptions = getGroupCurrencyOptions(currencyList, getCurrencySymbol);
-    const [groupCurrency] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {selector: filterGroupCurrencySelector});
-
-    const groupCurrencyValue = groupCurrencyOptions.find((option) => option.value === groupCurrency) ?? null;
-
-    return (
-        <SingleSelectPopup
-            label={translate('common.groupCurrency')}
-            items={groupCurrencyOptions}
-            value={groupCurrencyValue}
-            closeOverlay={closeOverlay}
-            onChange={(item) => updateFilterForm({groupCurrency: item?.value})}
-            isSearchable
-            searchPlaceholder={translate('common.groupCurrency')}
-        />
-    );
 }
 
 function FeedPopup({updateFilterForm, closeOverlay}: FilterBarPopupProps) {
@@ -244,7 +214,7 @@ function useSearchActionsBar(queryJSON: SearchQueryJSON, isMobileSelectionModeEn
         });
     };
 
-    const filters = mapFiltersFormToLabelValueList<FilterItem>(searchAdvancedFiltersForm, queryJSON.policyID, translate, (filterKey) => {
+    const filters = mapFiltersFormToLabelValueList<FilterItem>(searchAdvancedFiltersForm, queryJSON.policyID, SKIPPED_FILTERS, translate, (filterKey) => {
         const dateGroupConfig = DATE_FILTER_GROUP_MAP[filterKey];
         if (dateGroupConfig) {
             return makeDateFilterItem(
@@ -259,16 +229,6 @@ function useSearchActionsBar(queryJSON: SearchQueryJSON, isMobileSelectionModeEn
         }
 
         switch (filterKey) {
-            case FILTER_KEYS.GROUP_CURRENCY:
-                return {
-                    PopoverComponent: ({closeOverlay}) => (
-                        <GroupCurrencyPopup
-                            updateFilterForm={updateFilterForm}
-                            closeOverlay={closeOverlay}
-                        />
-                    ),
-                    sentryLabel: CONST.SENTRY_LABEL.SEARCH.FILTER_GROUP_CURRENCY,
-                };
             case FILTER_KEYS.HAS: {
                 const hasFilterValues = searchAdvancedFiltersForm[filterKey];
                 const hasOptions = getHasOptions(translate, type);

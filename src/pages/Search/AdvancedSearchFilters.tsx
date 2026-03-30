@@ -110,11 +110,6 @@ const baseFilterConfig = {
         description: 'common.currency' as const,
         route: ROUTES.SEARCH_ADVANCED_FILTERS.getRoute(CONST.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY),
     },
-    groupCurrency: {
-        getTitle: getFilterDisplayTitle,
-        description: 'common.groupCurrency' as const,
-        route: ROUTES.SEARCH_ADVANCED_FILTERS.getRoute(CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.GROUP_CURRENCY),
-    },
     merchant: {
         getTitle: getFilterDisplayTitle,
         description: 'common.merchant' as const,

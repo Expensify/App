@@ -21,6 +21,7 @@ import type {SearchAdvancedFiltersForm} from '@src/types/form';
 import type {SearchResults} from '@src/types/onyx';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
 import GroupByPopup from './GroupByPopup';
+import GroupCurrencyPopup from './GroupCurrencyPopup';
 import SingleSelectPopup from './SingleSelectPopup';
 import SortByPopup from './SortByPopup';
 import SortOrderPopup from './SortOrderPopup';
@@ -42,6 +43,7 @@ function DisplayPopup({queryJSON, searchResults, closeOverlay, onSort}: DisplayP
     const [selectedDisplayFilter, setSelectedDisplayFilter] = useState<
         | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.LIMIT
         | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY
+        | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.GROUP_CURRENCY
         | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.VIEW
         | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_BY
         | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_ORDER
@@ -66,6 +68,7 @@ function DisplayPopup({queryJSON, searchResults, closeOverlay, onSort}: DisplayP
         const sortByValue = queryJSON.sortBy;
         const sortOrderValue = queryJSON.sortOrder;
         const groupByValue = searchAdvancedFilters[CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY];
+        const groupCurrencyValue = searchAdvancedFilters[CONST.SEARCH.SYNTAX_FILTER_KEYS.GROUP_CURRENCY];
         const viewValue = searchAdvancedFilters[CONST.SEARCH.SYNTAX_ROOT_KEYS.VIEW];
 
         return (
@@ -82,6 +85,15 @@ function DisplayPopup({queryJSON, searchResults, closeOverlay, onSort}: DisplayP
                         description={translate('search.display.groupBy')}
                         title={groupByValue ? translate(`search.filters.groupBy.${groupByValue}`) : undefined}
                         onPress={() => setSelectedDisplayFilter(CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY)}
+                    />
+                )}
+                {groupBy && (
+                    <MenuItemWithTopDescription
+                        shouldShowRightIcon
+                        description={translate('common.groupCurrency')}
+                        title={groupCurrencyValue}
+                        onPress={() => setSelectedDisplayFilter(CONST.SEARCH.SYNTAX_FILTER_KEYS.GROUP_CURRENCY)}
+                        sentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_GROUP_CURRENCY}
                     />
                 )}
                 {isExpenseType && !!groupByValue && (
@@ -150,6 +162,7 @@ function DisplayPopup({queryJSON, searchResults, closeOverlay, onSort}: DisplayP
         [CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_BY]: translate('search.display.sortBy'),
         [CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_ORDER]: translate('search.display.sortOrder'),
         [CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY]: translate('search.display.groupBy'),
+        [CONST.SEARCH.SYNTAX_FILTER_KEYS.GROUP_CURRENCY]: translate('common.groupCurrency'),
         [CONST.SEARCH.SYNTAX_ROOT_KEYS.VIEW]: translate('search.view.label'),
         [CONST.SEARCH.SYNTAX_ROOT_KEYS.LIMIT]: translate('search.display.limitResults'),
     };
@@ -193,6 +206,14 @@ function DisplayPopup({queryJSON, searchResults, closeOverlay, onSort}: DisplayP
                             updateFilterForm({groupBy: newValue});
                         }
                     }}
+                />
+            );
+            break;
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.GROUP_CURRENCY:
+            subPopup = (
+                <GroupCurrencyPopup
+                    onChange={(item) => updateFilterForm({groupCurrency: item?.value})}
+                    closeOverlay={closeOverlay}
                 />
             );
             break;

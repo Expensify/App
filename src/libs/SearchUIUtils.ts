@@ -4321,6 +4321,7 @@ const DATE_FILTER_GROUP_MAP: Partial<Record<SearchAdvancedFiltersKey, DateFilter
 function mapFiltersFormToLabelValueList<T extends Record<string, unknown>>(
     searchAdvancedFiltersForm: Partial<SearchAdvancedFiltersForm>,
     policyIDQuery: string[] | undefined,
+    skipFilters: Set<SearchAdvancedFiltersKey> | undefined,
     translate: LocalizedTranslate,
     mapper?: (filterKey: SearchAdvancedFiltersKey) => T,
 ): Array<SearchFilter & T> {
@@ -4358,7 +4359,7 @@ function mapFiltersFormToLabelValueList<T extends Record<string, unknown>>(
 
     for (const filterKey of Object.keys(searchAdvancedFiltersForm)) {
         const key = filterKey as SearchAdvancedFiltersKey;
-        if (key === FILTER_KEYS.TYPE || !isFilterSupported(key, type)) {
+        if (key === FILTER_KEYS.TYPE || skipFilters?.has(key) || !isFilterSupported(key, type)) {
             continue;
         }
         const extra = mapper?.(key) ?? ({} as T);
