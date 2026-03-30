@@ -19,8 +19,8 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useSaveSortedReportIDs from '@hooks/useSaveSortedReportIDs';
 import useSearchHighlightAndScroll from '@hooks/useSearchHighlightAndScroll';
-import useSearchSections from '@hooks/useSearchSections';
 import useSearchShouldCalculateTotals from '@hooks/useSearchShouldCalculateTotals';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {turnOffMobileSelectionMode, turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
@@ -41,6 +41,7 @@ import {
     getColumnsToShow,
     getListItem,
     getSections,
+    getSortedSections,
     getValidGroupBy,
     getWideAmountIndicators,
     isGroupedItemArray,
@@ -1192,11 +1193,9 @@ function Search({
     const canSelectMultiple = !isChat && !isTask && (!isSmallScreenWidth || isMobileSelectionModeEnabled);
     const ListItem = getListItem(type, status, validGroupBy);
 
-    const sortedItems = useSearchSections(type, status, filteredData, sortBy, sortOrder, validGroupBy);
-
     const sortedData = useMemo(
         () =>
-            sortedItems.map((item) => {
+            getSortedSections(type, status, filteredData, localeCompare, translate, sortBy, sortOrder, validGroupBy).map((item) => {
                 const baseKey = isChat
                     ? `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${(item as ReportActionListItemType).reportActionID}`
                     : `${ONYXKEYS.COLLECTION.TRANSACTION}${(item as TransactionListItemType).transactionID}`;
@@ -1218,8 +1217,10 @@ function Search({
 
                 return {...item, shouldAnimateInHighlight, hash};
             }),
-        [sortedItems, isChat, newSearchResultKeys, hash],
+        [type, status, filteredData, localeCompare, translate, sortBy, sortOrder, validGroupBy, isChat, newSearchResultKeys, hash],
     );
+
+    useSaveSortedReportIDs(type, sortedData);
 
     // Track the optimistic item through its lifecycle in sortedData.
     // First appearance -> cache it & hide the skeleton.
