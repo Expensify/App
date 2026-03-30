@@ -29,6 +29,8 @@ const VIEW_CONFIG = {
     },
 } as ReturnType<ViewConfigProvider>;
 
+// Keeps the underlay screen visible during swipe-back gestures on mobile,
+// preventing a blank screen flash while navigating between screens.
 const CustomViewWrapper = NativeComponentRegistry.get<PropsWithChildren<{style: ViewStyle}>>('CustomViewWrapper', () => VIEW_CONFIG);
 
 function ScreenFreezeWrapper({isScreenBlurred, children}: ScreenFreezeWrapperProps) {
