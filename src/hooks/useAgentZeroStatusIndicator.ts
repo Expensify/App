@@ -300,13 +300,17 @@ function useAgentZeroStatusIndicator(reportID: string, isAgentZeroChat: boolean)
 
     // Immediately clear the indicator when a Concierge response arrives while processing.
     // This eliminates the 30s delay waiting for the next poll cycle to detect it.
-    // Placed after all dependencies (clearPolling, optimisticStartTime) are defined.
+    const newestActorAccountID = newestReportAction?.actorAccountID;
     useEffect(() => {
-        if (newestReportAction?.actorAccountID === CONST.ACCOUNT_ID.CONCIERGE && (serverLabel || optimisticStartTime)) {
-            clearAgentZeroProcessingIndicator(reportID);
-            clearPolling();
+        if (newestActorAccountID !== CONST.ACCOUNT_ID.CONCIERGE) {
+            return;
         }
-    }, [newestReportAction, serverLabel, optimisticStartTime, reportID, clearPolling]);
+        if (!serverLabel && !optimisticStartTime) {
+            return;
+        }
+        clearAgentZeroProcessingIndicator(reportID);
+        clearPolling();
+    }, [newestActorAccountID, serverLabel, optimisticStartTime, reportID, clearPolling]);
 
     const isProcessing = isAgentZeroChat && !isOffline && (!!serverLabel || !!optimisticStartTime);
 
