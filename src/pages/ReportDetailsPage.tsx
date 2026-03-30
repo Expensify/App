@@ -167,6 +167,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
 
     const [userBillingGraceEndPeriods] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
+    const [ownerBillingGraceEndPeriod] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`);
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report.chatReportID}`);
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
@@ -192,6 +193,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
     const [isDebugModeEnabled = false] = useOnyx(ONYXKEYS.IS_DEBUG_MODE_ENABLED);
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
@@ -224,7 +226,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
     const isReportArchived = useReportIsArchived(report?.reportID);
     const isArchivedRoom = useMemo(() => isArchivedNonExpenseReport(report, isReportArchived), [report, isReportArchived]);
     const shouldDisableRename = useMemo(() => shouldDisableRenameUtil(report, isReportArchived), [report, isReportArchived]);
-    const parentNavigationSubtitleData = getParentNavigationSubtitle(report, conciergeReportID, isParentReportArchived);
+    const parentNavigationSubtitleData = getParentNavigationSubtitle(report, policy, conciergeReportID, isParentReportArchived);
     const base62ReportID = getBase62ReportID(Number(report.reportID));
     const ancestors = useAncestors(report);
     // eslint-disable-next-line react-hooks/exhaustive-deps -- policy is a dependency because `getChatRoomSubtitle` calls `getPolicyName` which in turn retrieves the value from the `policy` value stored in Onyx
@@ -329,13 +331,13 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
 
     const leaveChat = useCallback(() => {
         if (isRootGroupChat) {
-            leaveGroupChat(report, quickAction?.chatReportID?.toString() === report.reportID, currentUserPersonalDetails.accountID, conciergeReportID, introSelected);
+            leaveGroupChat(report, quickAction?.chatReportID?.toString() === report.reportID, currentUserPersonalDetails.accountID, conciergeReportID, introSelected, betas);
             return;
         }
 
         const isWorkspaceMemberLeavingWorkspaceRoom = isWorkspaceMemberLeavingWorkspaceRoomUtil(report, isPolicyEmployee, isPolicyAdmin);
-        leaveRoom(report, currentUserPersonalDetails.accountID, conciergeReportID, introSelected, isWorkspaceMemberLeavingWorkspaceRoom);
-    }, [isRootGroupChat, isPolicyEmployee, isPolicyAdmin, quickAction?.chatReportID, report, currentUserPersonalDetails.accountID, conciergeReportID, introSelected]);
+        leaveRoom(report, currentUserPersonalDetails.accountID, conciergeReportID, introSelected, betas, isWorkspaceMemberLeavingWorkspaceRoom);
+    }, [isRootGroupChat, isPolicyEmployee, isPolicyAdmin, quickAction?.chatReportID, report, currentUserPersonalDetails.accountID, conciergeReportID, introSelected, betas]);
 
     const showLastMemberLeavingModal = useCallback(async () => {
         const {action} = await showConfirmModal({
@@ -462,6 +464,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                         activePolicy,
                         userBillingGraceEndPeriods,
                         amountOwed,
+                        ownerBillingGraceEndPeriod,
                         isRestrictedToPreferredPolicy,
                         preferredPolicyID,
                         transaction: iouTransaction,
@@ -485,6 +488,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                             activePolicy,
                             userBillingGraceEndPeriods,
                             amountOwed,
+                            ownerBillingGraceEndPeriod,
                             transaction: iouTransaction,
                         });
                     },
@@ -505,6 +509,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                             activePolicy,
                             userBillingGraceEndPeriods,
                             amountOwed,
+                            ownerBillingGraceEndPeriod,
                             transaction: iouTransaction,
                         });
                     },
@@ -634,6 +639,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
         reportActionsForOriginalReportID,
         userBillingGraceEndPeriods,
         amountOwed,
+        ownerBillingGraceEndPeriod,
         iouTransaction,
     ]);
 
