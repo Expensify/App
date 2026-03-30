@@ -70,12 +70,29 @@ function BaseOnboardingPrivateDomain({shouldUseNativeStyles, route}: BaseOnboard
     }, [sendValidateCode, isValidated]);
 
     useEffect(() => {
-        if (!isValidated || joinablePoliciesLength === 0) {
+        if (!isValidated) {
             return;
         }
 
-        Navigation.navigate(ROUTES.ONBOARDING_WORKSPACES.getRoute(ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute()), {forceReplace: true});
-    }, [isValidated, joinablePoliciesLength]);
+        if (joinablePoliciesLength > 0) {
+            Navigation.navigate(ROUTES.ONBOARDING_WORKSPACES.getRoute(ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute()), {forceReplace: true});
+            return;
+        }
+
+        // When validation succeeded but there are no joinable workspaces and the API call has completed,
+        // navigate to the next onboarding step (same as the skip button behavior).
+        if (getAccessiblePoliciesAction?.loading === false) {
+            if (isVsb) {
+                Navigation.navigate(ROUTES.ONBOARDING_ACCOUNTING.getRoute(route.params?.backTo));
+                return;
+            }
+            if (isSmb) {
+                Navigation.navigate(ROUTES.ONBOARDING_EMPLOYEES.getRoute(route.params?.backTo));
+                return;
+            }
+            Navigation.navigate(ROUTES.ONBOARDING_PURPOSE.getRoute(route.params?.backTo));
+        }
+    }, [isValidated, joinablePoliciesLength, getAccessiblePoliciesAction?.loading, isVsb, isSmb, route.params?.backTo]);
 
     return (
         <ScreenWrapper
