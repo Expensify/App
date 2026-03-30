@@ -92,6 +92,7 @@ export type {WorkspaceCategoryDescriptionHintForm} from './WorkspaceCategoryDesc
 export type {WorkspaceCategoryFlagAmountsOverForm} from './WorkspaceCategoryFlagAmountsOverForm';
 export type {WorkspaceCompanyCardFeedName} from './WorkspaceCompanyCardFeedName';
 export type {SearchSavedSearchRenameForm} from './SearchSavedSearchRenameForm';
+export type {SearchSaveForm} from './SearchSaveForm';
 export type {WorkspaceCompanyCardEditName} from './WorkspaceCompanyCardEditName';
 export type {PersonalDetailsForm} from './PersonalDetailsForm';
 export type {OnboardingWorkEmailForm} from './OnboardingWorkEmailForm';
@@ -102,6 +103,7 @@ export type {MoneyRequestSubrateForm} from './MoneyRequestSubrateForm';
 export type {InternationalBankAccountForm} from './InternationalBankAccountForm';
 export type {WorkspacePerDiemForm} from './WorkspacePerDiemForm';
 export type {MoneyRequestRejectReasonForm} from './MoneyRequestRejectReasonForm';
+export type {ReportRejectForm} from './ReportRejectForm';
 export type {EnableGlobalReimbursementsForm} from './EnableGlobalReimbursementsForm';
 export type {EnterSignerInfoForm} from './EnterSignerInfoForm';
 export type {CreateDomainForm} from './CreateDomainForm';
