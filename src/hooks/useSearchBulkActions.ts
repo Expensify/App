@@ -933,10 +933,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         if (shouldShowApproveOption) {
             options.push({
                 icon: expensifyIcons.ThumbsUp,
-                text:
-                    isTrackIntentUser && selectedReports.every((report) => isSubmitAndClose(policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`]))
-                        ? translate('common.markAsDone')
-                        : translate('search.bulkActions.approve'),
+                text: translate('search.bulkActions.approve'),
                 value: CONST.SEARCH.BULK_ACTION_TYPES.APPROVE,
                 shouldCloseModalOnSelect: true,
                 onSelected: () => {

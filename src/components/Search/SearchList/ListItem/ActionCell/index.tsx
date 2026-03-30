@@ -84,7 +84,7 @@ function ActionCell({
         );
     }
 
-    const shouldUseMarkAsDone = isTrackIntentUser && isSubmitAndClose(actionCellPolicy) && (action === CONST.SEARCH.ACTION_TYPES.SUBMIT || action === CONST.SEARCH.ACTION_TYPES.APPROVE);
+    const shouldUseMarkAsDone = isTrackIntentUser && isSubmitAndClose(actionCellPolicy) && action === CONST.SEARCH.ACTION_TYPES.SUBMIT;
     const text = shouldUseMarkAsDone ? translate('common.markAsDone') : translate(actionTranslationsMap[action]);
 
     return (
