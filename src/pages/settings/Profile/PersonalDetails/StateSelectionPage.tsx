@@ -34,7 +34,7 @@ function StateSelectionPage() {
     const currentState = params?.state;
     const label = params?.label;
     const initialSelectedValue = useInitialSelection(currentState ?? undefined, {resetOnFocus: true});
-    const initialSelectedValues = useMemo(() => (initialSelectedValue ? [initialSelectedValue] : []), [initialSelectedValue]);
+    const initialSelectedValues = initialSelectedValue ? [initialSelectedValue] : [];
 
     const countryStates = useMemo(
         () =>
@@ -53,11 +53,8 @@ function StateSelectionPage() {
         [translate, currentState],
     );
 
-    const orderedCountryStates = useMemo(() => moveInitialSelectionToTopByValue(countryStates, initialSelectedValues), [countryStates, initialSelectedValues]);
-    const searchResults = useMemo(
-        () => searchOptions(debouncedSearchValue, debouncedSearchValue ? countryStates : orderedCountryStates),
-        [countryStates, debouncedSearchValue, orderedCountryStates],
-    );
+    const orderedCountryStates = moveInitialSelectionToTopByValue(countryStates, initialSelectedValues);
+    const searchResults = searchOptions(debouncedSearchValue, debouncedSearchValue ? countryStates : orderedCountryStates);
     const headerMessage = debouncedSearchValue.trim() && !searchResults.length ? translate('common.noResultsFound') : '';
 
     const selectCountryState = useCallback(

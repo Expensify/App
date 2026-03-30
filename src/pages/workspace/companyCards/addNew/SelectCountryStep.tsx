@@ -1,5 +1,5 @@
 import {useRoute} from '@react-navigation/native';
-import React, {useMemo, useState} from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
 import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -77,24 +77,20 @@ function SelectCountryStep({policyID}: CountryStepProps) {
         Navigation.goBack();
     };
 
-    const countries = useMemo(
-        () =>
-            Object.keys(CONST.ALL_COUNTRIES)
-                .filter((countryISO) => !CONST.PLAID_EXCLUDED_COUNTRIES.includes(countryISO))
-                .map((countryISO) => {
-                    const countryName = translate(`allCountries.${countryISO}` as TranslationPaths);
-                    return {
-                        value: countryISO,
-                        keyForList: countryISO,
-                        text: countryName,
-                        searchValue: StringUtils.sanitizeString(`${countryISO}${countryName}`),
-                    };
-                }),
-        [translate],
-    );
-    const orderedCountries = useMemo(() => moveInitialSelectionToTopByValue(countries, initialSelectedValues), [countries, initialSelectedValues]);
-    const filteredCountries = useMemo(() => searchOptions(debouncedSearchValue, debouncedSearchValue ? countries : orderedCountries), [debouncedSearchValue, countries, orderedCountries]);
-    const searchResults = useMemo(() => filteredCountries.map((country) => ({...country, isSelected: currentCountry === country.value})), [filteredCountries, currentCountry]);
+    const countries = Object.keys(CONST.ALL_COUNTRIES)
+        .filter((countryISO) => !CONST.PLAID_EXCLUDED_COUNTRIES.includes(countryISO))
+        .map((countryISO) => {
+            const countryName = translate(`allCountries.${countryISO}` as TranslationPaths);
+            return {
+                value: countryISO,
+                keyForList: countryISO,
+                text: countryName,
+                searchValue: StringUtils.sanitizeString(`${countryISO}${countryName}`),
+            };
+        });
+    const orderedCountries = moveInitialSelectionToTopByValue(countries, initialSelectedValues);
+    const filteredCountries = searchOptions(debouncedSearchValue, debouncedSearchValue ? countries : orderedCountries);
+    const searchResults = filteredCountries.map((country) => ({...country, isSelected: currentCountry === country.value}));
     const headerMessage = debouncedSearchValue.trim() && !searchResults.length ? translate('common.noResultsFound') : '';
 
     const textInputOptions = {

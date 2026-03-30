@@ -62,7 +62,7 @@ function PushRowModal({isVisible, selectedOption, onOptionChange, onClose, optio
         [optionsList, selectedOption],
     );
 
-    const orderedOptions = useMemo(() => moveInitialSelectionToTopByValue(options, initialSelectedValues), [initialSelectedValues, options]);
+    const orderedOptions = moveInitialSelectionToTopByValue(options, initialSelectedValues);
 
     const handleSelectRow = (option: ListItemType) => {
         onOptionChange(option.value);
@@ -74,7 +74,7 @@ function PushRowModal({isVisible, selectedOption, onOptionChange, onClose, optio
         setSearchValue('');
     };
 
-    const searchResults = useMemo(() => searchOptions(debouncedSearchValue, debouncedSearchValue ? options : orderedOptions), [debouncedSearchValue, options, orderedOptions]);
+    const searchResults = searchOptions(debouncedSearchValue, debouncedSearchValue ? options : orderedOptions);
 
     const textInputOptions = useMemo(
         () => ({

@@ -28,7 +28,7 @@ function DynamicCountrySelectionPage({route}: DynamicCountrySelectionPageProps) 
     const currentCountry = route.params.country;
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.ADDRESS_COUNTRY.path);
     const initialSelectedValue = useInitialSelection(currentCountry ?? undefined, {resetOnFocus: true});
-    const initialSelectedValues = useMemo(() => (initialSelectedValue ? [initialSelectedValue] : []), [initialSelectedValue]);
+    const initialSelectedValues = initialSelectedValue ? [initialSelectedValue] : [];
 
     const countries = useMemo(
         () =>
@@ -45,11 +45,8 @@ function DynamicCountrySelectionPage({route}: DynamicCountrySelectionPageProps) 
         [translate, currentCountry],
     );
 
-    const orderedCountries = useMemo(() => moveInitialSelectionToTopByValue(countries, initialSelectedValues), [countries, initialSelectedValues]);
-    const searchResults = useMemo(
-        () => searchOptions(debouncedSearchValue, debouncedSearchValue ? countries : orderedCountries),
-        [countries, debouncedSearchValue, orderedCountries],
-    );
+    const orderedCountries = moveInitialSelectionToTopByValue(countries, initialSelectedValues);
+    const searchResults = searchOptions(debouncedSearchValue, debouncedSearchValue ? countries : orderedCountries);
 
     const selectCountry = useCallback(
         (option: Option) => {

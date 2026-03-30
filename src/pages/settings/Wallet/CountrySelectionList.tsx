@@ -1,4 +1,4 @@
-import React, {useMemo} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import SelectionList from '@components/SelectionList';
@@ -41,52 +41,39 @@ function CountrySelectionList({isEditing, selectedCountry, countries, onCountryS
     const styles = useThemeStyles();
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
     const initialSelectedValue = useInitialSelection(selectedCountry ?? undefined, {resetOnFocus: true});
-    const initialSelectedValues = useMemo(() => (initialSelectedValue ? [initialSelectedValue] : []), [initialSelectedValue]);
+    const initialSelectedValues = initialSelectedValue ? [initialSelectedValue] : [];
 
     const onSelectionChange = (country: Option) => {
         onCountrySelected(country.value);
     };
 
-    const countriesList = useMemo(
-        () =>
-            countries.map((countryISO) => {
-                const countryName = translate(`allCountries.${countryISO}` as TranslationPaths);
-                return {
-                    value: countryISO,
-                    keyForList: countryISO,
-                    text: countryName,
-                    isSelected: selectedCountry === countryISO,
-                    searchValue: StringUtils.sanitizeString(`${countryISO}${countryName}`),
-                };
-            }),
-        [countries, selectedCountry, translate],
-    );
+    const countriesList = countries.map((countryISO) => {
+        const countryName = translate(`allCountries.${countryISO}` as TranslationPaths);
+        return {
+            value: countryISO,
+            keyForList: countryISO,
+            text: countryName,
+            isSelected: selectedCountry === countryISO,
+            searchValue: StringUtils.sanitizeString(`${countryISO}${countryName}`),
+        };
+    });
 
-    const orderedCountries = useMemo(() => moveInitialSelectionToTopByValue(countriesList, initialSelectedValues), [countriesList, initialSelectedValues]);
-    const searchResults = useMemo(
-        () => searchOptions(debouncedSearchValue, debouncedSearchValue ? countriesList : orderedCountries),
-        [countriesList, debouncedSearchValue, orderedCountries],
-    );
+    const orderedCountries = moveInitialSelectionToTopByValue(countriesList, initialSelectedValues);
+    const searchResults = searchOptions(debouncedSearchValue, debouncedSearchValue ? countriesList : orderedCountries);
 
-    const textInputOptions = useMemo(
-        () => ({
-            label: translate('common.search'),
-            value: searchValue,
-            onChangeText: setSearchValue,
-            headerMessage: debouncedSearchValue.trim() && !searchResults.length ? translate('common.noResultsFound') : '',
-        }),
-        [debouncedSearchValue, searchResults.length, searchValue, setSearchValue, translate],
-    );
+    const textInputOptions = {
+        label: translate('common.search'),
+        value: searchValue,
+        onChangeText: setSearchValue,
+        headerMessage: debouncedSearchValue.trim() && !searchResults.length ? translate('common.noResultsFound') : '',
+    };
 
-    const confirmButtonOptions = useMemo(
-        () => ({
-            showButton: true,
-            text: isEditing ? translate('common.confirm') : translate('common.next'),
-            isDisabled: isOffline,
-            onConfirm,
-        }),
-        [isEditing, isOffline, onConfirm, translate],
-    );
+    const confirmButtonOptions = {
+        showButton: true,
+        text: isEditing ? translate('common.confirm') : translate('common.next'),
+        isDisabled: isOffline,
+        onConfirm,
+    };
 
     return (
         <FullPageOfflineBlockingView>

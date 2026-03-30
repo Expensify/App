@@ -62,11 +62,8 @@ function StateSelectorModal({isVisible, currentState, onStateSelected, onClose, 
         [translate, currentState],
     );
 
-    const orderedCountryStates = useMemo(() => moveInitialSelectionToTopByValue(countryStates, initialSelectedValues), [countryStates, initialSelectedValues]);
-    const searchResults = useMemo(
-        () => searchOptions(debouncedSearchValue, debouncedSearchValue ? countryStates : orderedCountryStates),
-        [countryStates, orderedCountryStates, debouncedSearchValue],
-    );
+    const orderedCountryStates = moveInitialSelectionToTopByValue(countryStates, initialSelectedValues);
+    const searchResults = searchOptions(debouncedSearchValue, debouncedSearchValue ? countryStates : orderedCountryStates);
 
     const textInputOptions = useMemo(
         () => ({

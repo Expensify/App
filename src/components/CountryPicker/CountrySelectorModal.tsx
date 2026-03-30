@@ -56,10 +56,8 @@ function CountrySelectorModal({isVisible, currentCountry, onCountrySelected, onC
             }),
         [translate, currentCountry],
     );
-
-    const orderedCountries = useMemo(() => moveInitialSelectionToTopByValue(countries, initialSelectedValues), [countries, initialSelectedValues]);
-
-    const searchResults = useMemo(() => searchOptions(debouncedSearchValue, debouncedSearchValue ? countries : orderedCountries), [countries, orderedCountries, debouncedSearchValue]);
+    const orderedCountries = moveInitialSelectionToTopByValue(countries, initialSelectedValues);
+    const searchResults = searchOptions(debouncedSearchValue, debouncedSearchValue ? countries : orderedCountries);
     const headerMessage = debouncedSearchValue.trim() && !searchResults.length ? translate('common.noResultsFound') : '';
 
     const styles = useThemeStyles();

@@ -15,13 +15,16 @@ function ValueSelectionList({
     alternateNumberOfSupportedLines,
     isVisible,
 }: ValueSelectionListProps) {
-    const initialSelectedValue = useInitialSelection(selectedItem?.value || undefined, isVisible === undefined ? {resetOnFocus: true} : {resetDeps: [isVisible]});
+    const initialSelectedValue = useInitialSelection(selectedItem?.value ? selectedItem.value : undefined, isVisible === undefined ? {resetOnFocus: true} : {resetDeps: [isVisible]});
     const initialSelectedValues = initialSelectedValue ? [initialSelectedValue] : [];
     const initiallyFocusedItemKey = initialSelectedValue;
 
-    const mappedOptions = useMemo(() => items.map((item) => ({value: item.value ?? '', alternateText: item.description, text: item.label ?? '', keyForList: item.value ?? ''})), [items]);
-    const orderedOptions = useMemo(() => moveInitialSelectionToTopByValue(mappedOptions, initialSelectedValues), [initialSelectedValues, mappedOptions]);
-    const options = useMemo(() => orderedOptions.map((item) => ({...item, isSelected: item.value === selectedItem?.value})), [orderedOptions, selectedItem?.value]);
+    const options = useMemo(() => {
+        const mappedOptions = items.map((item) => ({value: item.value ?? '', alternateText: item.description, text: item.label ?? '', keyForList: item.value ?? ''}));
+        const orderedOptions = moveInitialSelectionToTopByValue(mappedOptions, initialSelectedValues);
+
+        return orderedOptions.map((item) => ({...item, isSelected: item.value === selectedItem?.value}));
+    }, [initialSelectedValues, items, selectedItem?.value]);
 
     return (
         <SelectionList
