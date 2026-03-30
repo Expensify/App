@@ -48,7 +48,7 @@ import ROUTES from '@src/ROUTES';
 import {hasMultipleOutputCurrenciesSelector} from '@src/selectors/Policy';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
 import FILTER_KEYS, {AMOUNT_FILTER_KEYS, DATE_FILTER_KEYS} from '@src/types/form/SearchAdvancedFiltersForm';
-import type {SearchAdvancedFiltersKey} from '@src/types/form/SearchAdvancedFiltersForm';
+import type {HasFilterValue, IsFilterValue, SearchAdvancedFiltersKey} from '@src/types/form/SearchAdvancedFiltersForm';
 import type {Policy} from '@src/types/onyx';
 import type {Icon} from '@src/types/onyx/OnyxCommon';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
@@ -123,7 +123,7 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON, isMobileSelectionModeEn
     const filterFormValues = useFilterFormValues(queryJSON);
     useSearchFilterSync(filterFormValues);
     const {shouldUseNarrowLayout, isLargeScreenWidth} = useResponsiveLayout();
-    const {selectedTransactions, shouldShowFiltersBarLoading, currentSearchResults} = useSearchStateContext();
+    const {selectedTransactions, shouldShowActionsBarLoading: shouldShowFiltersBarLoading, currentSearchResults} = useSearchStateContext();
     const {currencyList} = useCurrencyListState();
     const {getCurrencySymbol} = useCurrencyListActions();
 
@@ -287,7 +287,7 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON, isMobileSelectionModeEn
 
     const groupByComponent = ({closeOverlay}: PopoverComponentProps) => (
         <GroupByPopup
-            label={translate('search.groupBy')}
+            label={translate('search.display.groupBy')}
             sections={groupBySections}
             value={groupBy}
             closeOverlay={closeOverlay}
@@ -391,7 +391,7 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON, isMobileSelectionModeEn
         />
     );
 
-    const updateHasFilterForm = (selectedItems: Array<MultiSelectItem<string>>) => {
+    const updateHasFilterForm = (selectedItems: Array<MultiSelectItem<HasFilterValue>>) => {
         updateFilterForm({has: selectedItems.map((item) => item.value)});
     };
     const hasComponent = (props: PopoverComponentProps) => (
@@ -404,7 +404,7 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON, isMobileSelectionModeEn
         />
     );
 
-    const updateIsFilterForm = (selectedItems: Array<MultiSelectItem<string>>) => {
+    const updateIsFilterForm = (selectedItems: Array<MultiSelectItem<IsFilterValue>>) => {
         updateFilterForm({is: selectedItems.map((item) => item.value)});
     };
     const isComponent = (props: PopoverComponentProps) => (
@@ -467,7 +467,7 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON, isMobileSelectionModeEn
         ...(shouldDisplayGroupByFilter
             ? [
                   {
-                      label: translate('search.groupBy'),
+                      label: translate('search.display.groupBy'),
                       PopoverComponent: groupByComponent,
                       value: groupBy?.text ?? null,
                       filterKey: FILTER_KEYS.GROUP_BY,

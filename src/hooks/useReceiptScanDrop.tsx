@@ -1,3 +1,4 @@
+import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
 import React, {useMemo} from 'react';
 import {setTransactionReport} from '@libs/actions/Transaction';
 import {navigateToParticipantPage} from '@libs/IOUUtils';
@@ -35,7 +36,7 @@ function useReceiptScanDrop() {
     const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`);
     const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID);
     const [personalPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${personalPolicyID}`);
-    const [draftTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT);
+    const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
 
     // Memoize the new report ID to avoid re-generating it on every render and cause the hook to change, which leads to performance issues.
     const newReportID = useMemo(() => generateReportID(), []);
@@ -52,7 +53,7 @@ function useReceiptScanDrop() {
             currentDate,
             currentUserPersonalDetails,
             hasOnlyPersonalPolicies,
-            draftTransactions,
+            draftTransactionIDs,
         });
 
         const newReceiptFiles: ReceiptFile[] = [];
@@ -79,7 +80,7 @@ function useReceiptScanDrop() {
         if (
             isPaidGroupPolicy(activePolicy) &&
             activePolicy?.isPolicyExpenseChatEnabled &&
-            !shouldRestrictUserBillableActions(activePolicy.id, userBillingGraceEndPeriods, undefined, ownerBillingGraceEndPeriod)
+            !shouldRestrictUserBillableActions(activePolicy.id, ownerBillingGraceEndPeriod, userBillingGraceEndPeriods)
         ) {
             const shouldAutoReport = !!activePolicy?.autoReporting || !!personalPolicy?.autoReporting;
             const report = shouldAutoReport ? getPolicyExpenseChat(currentUserPersonalDetails.accountID, activePolicy?.id) : selfDMReport;
