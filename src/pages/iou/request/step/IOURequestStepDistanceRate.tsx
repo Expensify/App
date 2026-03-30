@@ -160,11 +160,11 @@ function IOURequestStepDistanceRate({
                 return;
             }
 
-            setMoneyRequestDistanceRate(transaction, customUnitRateID, policy, shouldUseTransactionDraft(action));
+            setMoneyRequestDistanceRate(transactionID, customUnitRateID, policy, shouldUseTransactionDraft(action));
 
             if (isEditing && transaction?.transactionID) {
                 updateMoneyRequestDistanceRate({
-                    transaction,
+                    transactionID: transaction.transactionID,
                     transactionThreadReport: report,
                     parentReport,
                     parentReportNextStep,

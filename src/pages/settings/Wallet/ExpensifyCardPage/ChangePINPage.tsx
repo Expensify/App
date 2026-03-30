@@ -2,11 +2,11 @@ import React, {useCallback, useState} from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import * as Expensicons from '@components/Icon/Expensicons';
 import MagicCodeInput from '@components/MagicCodeInput';
 import {useMultifactorAuthentication} from '@components/MultifactorAuthentication/Context';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
@@ -23,6 +23,7 @@ type ChangePINPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, t
 function ChangePINPageContent({cardID}: {cardID: string}) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const icons = useMemoizedLazyExpensifyIcons(['Eye', 'EyeDisabled']);
     const {executeScenario} = useMultifactorAuthentication();
     const {isConfirmStep, isPINHidden} = usePINState();
     const {setIsConfirmStep, togglePINVisibility} = usePINActions();
@@ -117,7 +118,7 @@ function ChangePINPageContent({cardID}: {cardID: string}) {
 
                     <View style={[styles.flexRow, styles.justifyContentCenter, styles.mv4, styles.alignItemsCenter, styles.w100]}>
                         <Button
-                            icon={isPINHidden ? Expensicons.Eye : Expensicons.EyeDisabled}
+                            icon={isPINHidden ? icons.Eye : icons.EyeDisabled}
                             text={isPINHidden ? translate('cardPage.revealPin') : translate('cardPage.hidePin')}
                             onPress={togglePINVisibility}
                             medium
