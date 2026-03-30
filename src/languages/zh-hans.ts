@@ -86,6 +86,7 @@ import type {
     UpdateRoleParams,
     UpgradeSuccessMessageParams,
     UserIsAlreadyMemberParams,
+    ViolationsIncreasedDistanceParams,
     ViolationsMissingTagParams,
     ViolationsModifiedAmountParams,
     ViolationsProhibitedExpenseParams,
@@ -704,6 +705,7 @@ const translations: TranslationDeepObject<typeof en> = {
         unsupportedDevice: {
             unsupportedDevice: '不支持的设备',
             pleaseDownloadMobileApp: `您的设备不支持此操作。请从<a href="${CONST.APP_DOWNLOAD_LINKS.IOS}">App Store</a>或<a href="${CONST.APP_DOWNLOAD_LINKS.ANDROID}">Google Play 商店</a>下载 Expensify 应用，然后重试。`,
+            pleaseUseWebApp: `您的设备不支持此操作。请使用<a href="${CONST.NEW_EXPENSIFY_URL}">Expensify 网页应用</a>重试。`,
         },
         verificationFailed: '验证失败',
         setPin: {didNotShipCard: '我们未能寄出您的卡。请重试。'},
@@ -1511,6 +1513,18 @@ const translations: TranslationDeepObject<typeof en> = {
                 markedAsResolved: '已将拒绝原因标记为已解决',
             },
         },
+        rejectReport: {
+            title: '拒绝报表',
+            description: '请说明你为何不会批准此报告：',
+            rejectReason: '拒绝原因',
+            selectTarget: '选择要将此报表退回给哪位成员以供审核：',
+            lastApprover: '最后审批人',
+            submitter: '提交人',
+            rejectedReportMessage: '此报告已被拒绝。',
+            rejectedNextStep: '此报表已被拒绝。等待你修复问题并手动重新提交。',
+            selectMemberError: '选择一位成员将此报表退回给 TA。',
+            couldNotReject: '无法拒绝该报表。请重试。',
+        },
         moveExpenses: '移动到报告',
         moveExpensesError: '您无法将每日津贴报销移动到其他工作区的报表中，因为不同工作区的每日津贴标准可能不同。',
         changeApprover: {
@@ -1556,6 +1570,7 @@ const translations: TranslationDeepObject<typeof en> = {
         failedToAutoApproveViaDEW: (reason: string) => `未能通过<a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">工作区规则</a>批准。${reason}`,
         failedToApproveViaDEW: (reason: string) => `批准失败。${reason}`,
         cannotDuplicateDistanceExpense: '你无法在不同工作区之间复制里程报销，因为各个工作区的费率可能不同。',
+        deleted: '已删除',
     },
     transactionMerge: {
         listPage: {
@@ -1643,18 +1658,18 @@ const translations: TranslationDeepObject<typeof en> = {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
                         return `正在等待<strong>你</strong>提交报销。`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `正在等待 <strong>${actor}</strong> 提交报销。`;
+                        return `正在等待<strong>${actor}</strong>提交报销。`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
                         return `正在等待管理员提交报销。`;
                 }
             },
-            [CONST.NEXT_STEP.MESSAGE_KEY.NO_FURTHER_ACTION]: (_: NextStepParams) => `无需采取进一步操作！`,
+            [CONST.NEXT_STEP.MESSAGE_KEY.NO_FURTHER_ACTION]: (_: NextStepParams) => `无需执行其他操作！`,
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_SUBMITTER_ACCOUNT]: ({actor, actorType}: NextStepParams) => {
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
                         return `正在等待<strong>你</strong>添加银行账户。`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `正在等待<strong>${actor}</strong>添加银行账户。`;
+                        return `正在等待 <strong>${actor}</strong> 添加银行账户。`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
                         return `正在等待管理员添加银行账户。`;
                 }
@@ -1662,13 +1677,13 @@ const translations: TranslationDeepObject<typeof en> = {
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_AUTOMATIC_SUBMIT]: ({actor, actorType, eta, etaType}: NextStepParams) => {
                 let formattedETA = '';
                 if (eta) {
-                    formattedETA = etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? ` 在每个月的第 ${eta} 天` : ` ${eta}`;
+                    formattedETA = etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? `在每个月的 ${eta} 日` : ` ${eta}`;
                 }
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `正在等待<strong>你的</strong>报销自动提交${formattedETA}。`;
+                        return `正在等待<strong>你的</strong>报销费用自动提交${formattedETA}。`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `正在等待<strong>${actor}</strong>的报销在${formattedETA}自动提交。`;
+                        return `正在等待<strong>${actor}</strong>的报销费用在${formattedETA}自动提交。`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
                         return `正在等待管理员的报销在${formattedETA}自动提交。`;
                 }
@@ -1676,9 +1691,9 @@ const translations: TranslationDeepObject<typeof en> = {
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_FIX_ISSUES]: ({actor, actorType}: NextStepParams) => {
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `正在等待<strong>你</strong>来修复这些问题。`;
+                        return `正在等待<strong>你</strong>来解决这些问题。`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `正在等待<strong>${actor}</strong>修复这些问题。`;
+                        return `正在等待 <strong>${actor}</strong> 解决这些问题。`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
                         return `正在等待管理员修复这些问题。`;
                 }
@@ -1686,9 +1701,9 @@ const translations: TranslationDeepObject<typeof en> = {
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_APPROVE]: ({actor, actorType}: NextStepParams) => {
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `正在等待<strong>你</strong>批准报销。`;
+                        return `正在等待<strong>你</strong>审批报销。`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `正在等待 <strong>${actor}</strong> 批准报销。`;
+                        return `正在等待<strong>${actor}</strong>审批报销。`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
                         return `正在等待管理员批准报销。`;
                 }
@@ -1696,9 +1711,9 @@ const translations: TranslationDeepObject<typeof en> = {
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_EXPORT]: ({actor, actorType}: NextStepParams) => {
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `正在等待<strong>您</strong>导出此报表。`;
+                        return `正在等待<strong>你</strong>导出此报表。`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `正在等待<strong>${actor}</strong>导出此报表。`;
+                        return `正在等待 <strong>${actor}</strong> 导出此报告。`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
                         return `正在等待管理员导出此报表。`;
                 }
@@ -1708,7 +1723,7 @@ const translations: TranslationDeepObject<typeof en> = {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
                         return `正在等待<strong>你</strong>报销费用。`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `正在等待 <strong>${actor}</strong> 支付报销费用。`;
+                        return `正在等待<strong>${actor}</strong>支付报销费用。`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
                         return `正在等待管理员报销费用。`;
                 }
@@ -1716,7 +1731,7 @@ const translations: TranslationDeepObject<typeof en> = {
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_POLICY_BANK_ACCOUNT]: ({actor, actorType}: NextStepParams) => {
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `等待<strong>你</strong>完成企业银行账户的设置。`;
+                        return `正在等待<strong>你</strong>完成设置企业银行账户。`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
                         return `正在等待<strong>${actor}</strong>完成企业银行账户的设置。`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
@@ -1726,12 +1741,22 @@ const translations: TranslationDeepObject<typeof en> = {
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_PAYMENT]: ({eta, etaType}: NextStepParams) => {
                 let formattedETA = '';
                 if (eta) {
-                    formattedETA = etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? ` 在 ${eta} 前` : ` ${eta}`;
+                    formattedETA = etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? `于 ${eta} 前` : ` ${eta}`;
                 }
                 return `正在等待付款完成${formattedETA}。`;
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.SUBMITTING_TO_SELF]: (_: NextStepParams) =>
-                `哎呀！看起来你正在将报销单提交给<strong>自己</strong>。根据你的工作区规定，审批自己的报销单是<strong>禁止的</strong>。请将此报销单提交给其他人，或联系管理员更改你的报销单提交对象。`,
+                `哎呀！看起来你正在将报销单提交给<strong>自己</strong>。根据你的工作区规定，审批自己的报销单是<strong>禁止的</strong>。请将此报销单提交给其他人，或联系管理员更改你提交报销单的审批人。`,
+            [CONST.NEXT_STEP.MESSAGE_KEY.REJECTED_REPORT]: ({actor, actorType}: NextStepParams) => {
+                switch (actorType) {
+                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
+                        return `此报表已被拒绝。正在等待<strong>你</strong>修复问题并手动重新提交。`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
+                        return `此报表已被拒绝。正在等待<strong>${actor}</strong>修复问题并手动重新提交。`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
+                        return `该报表已被拒绝。正在等待管理员修复问题并手动重新提交。`;
+                }
+            },
         },
         eta: {
             [CONST.NEXT_STEP.ETA_KEY.SHORTLY]: '很快',
@@ -1900,6 +1925,7 @@ const translations: TranslationDeepObject<typeof en> = {
             softKillTheApp: '软关闭应用程序',
             kill: '终止',
             sentryDebug: 'Sentry 调试',
+            sentrySendDescription: '向 Sentry 发送数据',
             sentryDebugDescription: '将 Sentry 请求记录到控制台',
             sentryHighlightedSpanOps: '高亮的跨度名称',
             sentryHighlightedSpanOpsPlaceholder: 'ui.interaction.click，navigation，ui.load',
@@ -1915,6 +1941,7 @@ const translations: TranslationDeepObject<typeof en> = {
         accountSettings: '账户设置',
         account: '账户',
         general: '常规',
+        helpPage: {title: '帮助与支持', description: '我们全天候 24/7 为您提供帮助', helpSite: '帮助网站'},
     },
     closeAccountPage: {
         closeAccount: '关闭账户',
@@ -3200,6 +3227,13 @@ ${
         hasCurrencyError: (workspaceRoute: string) => `哎呀！看起来您的工作区货币不是 USD。要继续操作，请前往<a href="${workspaceRoute}">工作区设置</a>将其设置为 USD，然后再试一次。`,
         bbaAdded: '已添加企业银行账户！',
         bbaAddedDescription: '它已准备好用于付款。',
+        lockedBankAccount: '已锁定的银行账户',
+        unlockBankAccount: '解锁银行账户',
+        youCantPayThis: `您无法支付此报告，因为您有一个<a href="${CONST.UNLOCK_BANK_ACCOUNT_HELP_URL}">已锁定的银行账户</a>。请点击下方，礼宾服务将协助您完成解锁步骤。`,
+        htmlUnlockMessage: (maskedAccountNumber: string) =>
+            `<h1>Expensify Business Bank Account ${maskedAccountNumber}</h1><p>感谢您提交解锁银行账户的请求。提款请求可能因余额不足或银行账户未启用直接借记而被拒绝。我们将审核您的情况，如需更多信息来解决此问题，我们会与您联系。</p>`,
+        textUnlockMessage: (maskedAccountNumber: string) =>
+            `Expensify Business Bank Account ${maskedAccountNumber}\n感谢您提交解锁银行账户的请求。提款请求可能因余额不足或银行账户未启用直接借记而被拒绝。我们将审核您的情况，如需更多信息来解决此问题，我们会与您联系。`,
         error: {
             youNeedToSelectAnOption: '请选择一个选项以继续',
             noBankAccountAvailable: '抱歉，没有可用的银行账户',
@@ -4988,6 +5022,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                 flipAmountSign: '翻转金额符号',
                 importButton: '导入交易',
             },
+            deletedCard: '已删除的卡片',
             assignNewCards: {title: '分配新卡', description: '从您的银行获取可分配的最新银行卡'},
         },
         expensifyCard: {
@@ -6251,21 +6286,24 @@ ${reportName}
         },
         downgrade: {
             commonFeatures: {
-                title: '降级到 Collect 方案',
-                note: '如果您降级，您将失去对以下这些功能及更多功能的访问权限：',
+                title: '降级为 Collect',
+                note: '您将无法再使用以下功能',
                 benefits: {
-                    note: '如需完整比较我们的套餐，请查看我们的',
-                    pricingPage: '定价页面',
-                    confirm: '确定要降级并删除您的配置吗？',
-                    warning: '此操作无法撤销。',
-                    benefit1: '会计连接（QuickBooks Online 和 Xero 除外）',
-                    benefit2: '智能报销规则',
-                    benefit3: '多级审批工作流程',
-                    benefit4: '增强的安全控制',
+                    confirm: '你需要将每个工作区的“套餐类型”更改为“Collect”，才能锁定 Collect 费率。',
+                    benefit1: 'NetSuite、Sage Intacct、QuickBooks Desktop、Oracle、Microsoft Dynamics',
+                    benefit2: 'Workday、Certinia',
+                    benefit3: 'SSO/SAML',
+                    benefit4: '智能报销规则、日津贴、多级审批、自定义报表和预算管理',
                     headsUp: '注意！',
                     multiWorkspaceNote: '在首次月度付款前，您需要将所有工作区降级，才能以 Collect 费率开始订阅。点击',
                     selectStep: '> 选择每个工作区 > 将套餐类型更改为',
+                    benefit1Label: 'ERP 集成',
+                    benefit2Label: '人力资源集成',
+                    benefit3Label: '安全',
+                    benefit4Label: '高级',
+                    important: '重要：',
                 },
+                noteAndMore: '以及更多：',
             },
             completed: {
                 headline: '您的工作区已被降级',
@@ -6335,7 +6373,7 @@ ${reportName}
                 eReceiptsHint: `电子收据会自动为[大多数美元信用卡交易](${CONST.DEEP_DIVE_ERECEIPTS})创建。`,
                 attendeeTracking: '参会者跟踪',
                 attendeeTrackingHint: '跟踪每笔报销的单人费用。',
-                prohibitedDefaultDescription: '标记所有包含酒精、赌博或其他受限项目的收据。含有这些项目的收据报销将需要人工审核。',
+                prohibitedDefaultDescription: '将包含这些明细项目的收据标记为人工审核。',
                 prohibitedExpenses: '禁止报销的费用',
                 alcohol: '酒精',
                 hotelIncidentals: '酒店杂费',
@@ -6642,7 +6680,6 @@ ${reportName}
             return `${newValue ? '已启用' : '已禁用'}${customUnitName}费率“${customUnitRateName}”`;
         },
         deleteCustomUnitRate: ({customUnitName, rateName}: AddOrDeletePolicyCustomUnitRateParams) => `已删除“${customUnitName}”费率“${rateName}”`,
-        addedReportField: ({fieldType, fieldName}: AddedOrDeletedPolicyReportFieldParams) => `已添加${fieldType}报表字段“${fieldName}”`,
         updateReportFieldDefaultValue: ({defaultValue, fieldName}: UpdatedPolicyReportFieldDefaultValueParams) => `将报表字段“${fieldName}”的默认值设置为“${defaultValue}”`,
         addedReportFieldOption: (fieldName: string, optionName: string) => `已将选项“${optionName}”添加到报表字段“${fieldName}”`,
         removedReportFieldOption: (fieldName: string, optionName: string) => `已从报表字段“${fieldName}”中移除选项“${optionName}”`,
@@ -6946,6 +6983,8 @@ ${reportName}
             approvedReimbursedClosedSpend,
         }: UpdatedPolicyBudgetNotificationParams) =>
             `提醒！此工作区的${budgetTypeForNotificationMessage}“${budgetName}”设有${budgetFrequency}预算“${budgetAmount}”。你当前已花费${approvedReimbursedClosedSpend}，已超过预算的${thresholdPercentage}%。另外还有${awaitingApprovalSpend}在等待审批，以及${unsubmittedSpend}尚未提交，总计${totalSpend}。${summaryLink ? `<a href="${summaryLink}">这里有一份报表</a>，包含了所有相关报销记录，供你留档保存！` : ''}`,
+        addedReportField: ({fieldType, fieldName, defaultValue}: AddedOrDeletedPolicyReportFieldParams) =>
+            `已添加 ${fieldType} 报告字段“${fieldName}”${defaultValue ? ` 默认值为“${defaultValue}”` : ''}`,
     },
     roomMembersPage: {
         memberNotFound: '未找到成员。',
@@ -7096,6 +7135,7 @@ ${reportName}
             unhold: '解除保留',
             reject: '拒绝',
             noOptionsAvailable: '所选报销的费用组没有可用选项。',
+            undelete: '取消删除',
         },
         filtersHeader: '筛选器',
         filters: {
@@ -7205,7 +7245,14 @@ ${reportName}
         searchIn: '搜索范围',
         searchPlaceholder: '搜索内容',
         suggestions: '建议',
-        suggestionsAvailable: ({count}: {count: number}, query = '') => ({
+        suggestionsAvailable: (
+            {
+                count,
+            }: {
+                count: number;
+            },
+            query = '',
+        ) => ({
             one: `有可用建议${query ? `：${query}` : ''}。共${count}条结果。`,
             other: (resultCount: number) => `有可用建议${query ? `：${query}` : ''}。共${resultCount}条结果。`,
         }),
@@ -7684,6 +7731,8 @@ ${reportName}
             }
         },
         modifiedDate: '日期与已扫描收据不符',
+        increasedDistance: ({formattedRouteDistance}: ViolationsIncreasedDistanceParams) =>
+            formattedRouteDistance ? `距离超过计算出的路线 ${formattedRouteDistance}` : '距离超过计算的路线',
         nonExpensiworksExpense: '非 Expensiworks 报销',
         overAutoApprovalLimit: (formattedLimit: string) => `报销金额超出自动审批上限 ${formattedLimit}`,
         overCategoryLimit: (formattedLimit: string) => `金额超出每人 ${formattedLimit} 的类别限额`,
@@ -8215,6 +8264,7 @@ ${reportName}
             theresWasAProblemDuringAWorkspaceConnectionSync: '在工作区连接同步过程中出现问题',
             theresAProblemWithYourWallet: '您的钱包出现问题',
             theresAProblemWithYourWalletTerms: '您的钱包条款存在问题',
+            aBankAccountIsLocked: '银行账户已锁定',
         },
     },
     emptySearchView: {

@@ -25,7 +25,7 @@ import type {Country, IOUAction, IOUType, OdometerImageType} from '@src/CONST';
 import type NAVIGATORS from '@src/NAVIGATORS';
 import type {Route as ExpensifyRoute, Route as Routes} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {CompanyCardFeedWithDomainID} from '@src/types/onyx';
+import type {CompanyCardFeedWithDomainID, PersonalCardFeed} from '@src/types/onyx';
 import type {ConnectionName, SageIntacctMappingName} from '@src/types/onyx/Policy';
 import type {CustomFieldType} from '@src/types/onyx/PolicyEmployee';
 import type {FileObject} from '@src/types/utils/Attachment';
@@ -215,6 +215,10 @@ type SettingsNavigatorParamList = {
     };
     [SCREENS.SETTINGS.WALLET.TRAVEL_CVV]: undefined;
     [SCREENS.SETTINGS.WALLET.TRAVEL_CVV_VERIFY_ACCOUNT]: undefined;
+    [SCREENS.SETTINGS.WALLET.PERSONAL_CARD_ADD_NEW]: undefined;
+    [SCREENS.SETTINGS.WALLET.PERSONAL_CARD_BANK_CONNECTION]: {
+        feed: PersonalCardFeed;
+    };
     [SCREENS.SETTINGS.WALLET.PERSONAL_CARD_WARNING]: undefined;
     [SCREENS.SETTINGS.WALLET.PERSONAL_CARD_UPGRADE]: undefined;
     [SCREENS.SETTINGS.ADD_DEBIT_CARD]: undefined;
@@ -310,6 +314,11 @@ type SettingsNavigatorParamList = {
         backTo?: Routes;
     };
     [SCREENS.WORKSPACE.INVITE_MESSAGE_ROLE]: {
+        policyID: string;
+        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
+        backTo?: Routes;
+    };
+    [SCREENS.WORKSPACE.INVITE_MESSAGE_APPROVER]: {
         policyID: string;
         // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
         backTo?: Routes;
@@ -1691,10 +1700,8 @@ type ReportSettingsNavigatorParamList = {
         // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
         backTo?: Routes;
     };
-    [SCREENS.REPORT_SETTINGS.NAME]: {
+    [SCREENS.REPORT_SETTINGS.DYNAMIC_SETTINGS_NAME]: {
         reportID: string;
-        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
-        backTo?: Routes;
     };
     [SCREENS.REPORT_SETTINGS.NOTIFICATION_PREFERENCES]: {
         reportID: string;
@@ -2035,6 +2042,10 @@ type MoneyRequestNavigatorParamList = {
         /** Link to previous page */
         // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
         backTo: ExpensifyRoute;
+    };
+    [SCREENS.MONEY_REQUEST.REPORT_REJECT]: {
+        /** ID of the expense report being rejected */
+        reportID: string;
     };
     [SCREENS.MONEY_REQUEST.STEP_ATTENDEES]: {
         action: IOUAction;
@@ -2585,6 +2596,7 @@ type SettingsSplitNavigatorParamList = {
     [SCREENS.SETTINGS.WALLET.ROOT]: undefined;
     [SCREENS.SETTINGS.RULES.ROOT]: undefined;
     [SCREENS.SETTINGS.ABOUT]: undefined;
+    [SCREENS.SETTINGS.HELP]: undefined;
     [SCREENS.SETTINGS.TROUBLESHOOT]: undefined;
     [SCREENS.SETTINGS.SAVE_THE_WORLD]: undefined;
     [SCREENS.SETTINGS.SUBSCRIPTION.ROOT]?: {
@@ -3120,19 +3132,15 @@ type DebugParamList = {
     [SCREENS.DEBUG.REPORT_ACTION_CREATE]: {
         reportID: string;
     };
-    [SCREENS.DEBUG.DETAILS_CONSTANT_PICKER_PAGE]: {
+    [SCREENS.DEBUG.DYNAMIC_DETAILS_CONSTANT_PICKER_PAGE]: {
         formType: string;
         fieldName: string;
         fieldValue?: string;
         policyID?: string;
-        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
-        backTo?: string;
     };
-    [SCREENS.DEBUG.DETAILS_DATE_TIME_PICKER_PAGE]: {
+    [SCREENS.DEBUG.DYNAMIC_DETAILS_DATE_TIME_PICKER_PAGE]: {
         fieldName: string;
         fieldValue?: string;
-        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
-        backTo?: string;
     };
     [SCREENS.DEBUG.TRANSACTION]: {
         transactionID: string;

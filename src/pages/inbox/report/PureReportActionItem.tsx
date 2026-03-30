@@ -2054,12 +2054,6 @@ function PureReportActionItem({
         );
     };
 
-    // Calculating accessibilityLabel for chat message with sender, date and time and the message content.
-    const displayName = getDisplayNameOrDefault(personalDetails?.[action.actorAccountID ?? CONST.DEFAULT_NUMBER_ID]);
-    const formattedTimestamp = datetimeToCalendarTime(action.created, false);
-    const plainMessage = getReportActionText(action);
-    const accessibilityLabel = `${displayName}, ${formattedTimestamp}, ${plainMessage}`;
-
     return (
         <View>
             {shouldShowCreatedAction && createdActionContent}
@@ -2080,8 +2074,7 @@ function PureReportActionItem({
                 onSecondaryInteraction={showPopover}
                 preventDefaultContextMenu={draftMessage === undefined && !hasErrors}
                 withoutFocusOnSecondaryInteraction
-                accessibilityLabel={accessibilityLabel}
-                accessibilityHint={translate('accessibilityHints.chatMessage')}
+                accessibilityLabel={translate('accessibilityHints.chatMessage')}
                 accessibilityRole={CONST.ROLE.BUTTON}
                 sentryLabel={CONST.SENTRY_LABEL.REPORT.PURE_REPORT_ACTION_ITEM}
             >

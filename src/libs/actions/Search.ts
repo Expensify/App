@@ -31,7 +31,6 @@ import enhanceParameters from '@libs/Network/enhanceParameters';
 import {rand64} from '@libs/NumberUtils';
 import {getActivePaymentType} from '@libs/PaymentUtils';
 import {getSubmitToAccountID, getValidConnectedIntegration, isDelayedSubmissionEnabled} from '@libs/PolicyUtils';
-import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
 import type {OptimisticExportIntegrationAction} from '@libs/ReportUtils';
 import {
     buildOptimisticExportIntegrationAction,
@@ -65,7 +64,6 @@ import type {
     Policy,
     Report,
     ReportAction,
-    ReportActions,
     ReportNameValuePairs,
     Transaction,
     TransactionViolations,
@@ -110,6 +108,8 @@ type HandleActionButtonPressParams = {
     isDelegateAccessRestricted?: boolean;
     onDelegateAccessRestricted?: () => void;
     personalPolicyID: string | undefined;
+    ownerBillingGraceEndPeriod: OnyxEntry<number>;
+    onUndelete?: () => void;
 };
 
 type BulkDeleteReportsParams = {
@@ -140,13 +140,15 @@ function handleActionButtonPress({
     isDelegateAccessRestricted,
     onDelegateAccessRestricted,
     personalPolicyID,
+    ownerBillingGraceEndPeriod,
+    onUndelete,
 }: HandleActionButtonPressParams) {
     // The transactionIDList is needed to handle actions taken on `status:""` where transactions on single expense reports can be approved/paid.
     // We need the transactionID to display the loading indicator for that list item's action.
     const allReportTransactions = (isTransactionGroupListItemType(item) ? item.transactions : [item]) as Transaction[];
     const hasHeldExpense = hasHeldExpenses('', allReportTransactions);
 
-    if (hasHeldExpense && item.action !== CONST.SEARCH.ACTION_TYPES.SUBMIT) {
+    if (hasHeldExpense && item.action !== CONST.SEARCH.ACTION_TYPES.SUBMIT && item.action !== CONST.SEARCH.ACTION_TYPES.UNDELETE) {
         goToItem();
         return;
     }
@@ -157,7 +159,7 @@ function handleActionButtonPress({
                 onDelegateAccessRestricted?.();
                 return;
             }
-            if (snapshotReport.policyID && shouldRestrictUserBillableActions(snapshotReport.policyID, userBillingGraceEndPeriods)) {
+            if (snapshotReport.policyID && shouldRestrictUserBillableActions(snapshotReport.policyID, ownerBillingGraceEndPeriod, userBillingGraceEndPeriods)) {
                 Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(snapshotReport.policyID));
                 return;
             }
@@ -168,14 +170,14 @@ function handleActionButtonPress({
                 onDelegateAccessRestricted?.();
                 return;
             }
-            if (snapshotReport.policyID && shouldRestrictUserBillableActions(snapshotReport.policyID, userBillingGraceEndPeriods)) {
+            if (snapshotReport.policyID && shouldRestrictUserBillableActions(snapshotReport.policyID, ownerBillingGraceEndPeriod, userBillingGraceEndPeriods)) {
                 Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(snapshotReport.policyID));
                 return;
             }
             approveMoneyRequestOnSearch(hash, item.reportID ? [item.reportID] : [], currentSearchKey);
             return;
         case CONST.SEARCH.ACTION_TYPES.SUBMIT: {
-            if (snapshotReport.policyID && shouldRestrictUserBillableActions(snapshotReport.policyID, userBillingGraceEndPeriods)) {
+            if (snapshotReport.policyID && shouldRestrictUserBillableActions(snapshotReport.policyID, ownerBillingGraceEndPeriod, userBillingGraceEndPeriods)) {
                 Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(snapshotReport.policyID));
                 return;
             }
@@ -201,6 +203,9 @@ function handleActionButtonPress({
             exportToIntegrationOnSearch(hash, [item.reportID], connectedIntegration, currentSearchKey);
             return;
         }
+        case CONST.SEARCH.ACTION_TYPES.UNDELETE:
+            onUndelete?.();
+            return;
         default:
             goToItem();
     }
@@ -428,7 +433,7 @@ function deleteSavedSearch(hash: number) {
     API.write(WRITE_COMMANDS.DELETE_SAVED_SEARCH, {hash}, {optimisticData, failureData, successData});
 }
 
-function openSearchPage({includePartiallySetupBankAccounts}: OpenSearchPageParams) {
+function openSearchPage(params?: OpenSearchPageParams) {
     const successData: Array<OnyxUpdate<typeof ONYXKEYS.IS_SEARCH_PAGE_DATA_LOADED>> = [
         {
             onyxMethod: Onyx.METHOD.SET,
@@ -437,7 +442,14 @@ function openSearchPage({includePartiallySetupBankAccounts}: OpenSearchPageParam
         },
     ];
 
-    API.read(READ_COMMANDS.OPEN_SEARCH_PAGE, {includePartiallySetupBankAccounts}, {successData});
+    API.read(
+        READ_COMMANDS.OPEN_SEARCH_PAGE,
+        {
+            includePartiallySetupBankAccounts: params?.includePartiallySetupBankAccounts ?? true,
+            includeLockedBankAccounts: params?.includeLockedBankAccounts ?? true,
+        },
+        {successData},
+    );
 }
 
 function openSearchCardFiltersPage() {
@@ -568,35 +580,6 @@ function search({
                 inFlightSearchRequests.delete(dedupeKey);
             });
     });
-}
-
-function holdMoneyRequestOnSearch(hash: number, transactionIDList: string[], comment: string, allTransactions: OnyxCollection<Transaction>, allReportActions: OnyxCollection<ReportActions>) {
-    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.SNAPSHOT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [];
-    const finallyData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.SNAPSHOT>> = [];
-
-    const onyxLoadingData = getOnyxLoadingData(hash);
-
-    optimisticData.push(...(onyxLoadingData.optimisticData ?? []));
-    finallyData.push(...(onyxLoadingData.finallyData ?? []));
-
-    for (const transactionID of transactionIDList) {
-        const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
-        const reportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transaction?.reportID}`] ?? {};
-        const iouReportAction = getIOUActionForTransactionID(Object.values(reportActions ?? {}), transactionID);
-        if (iouReportAction) {
-            optimisticData.push({
-                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transaction?.reportID}`,
-                onyxMethod: Onyx.METHOD.MERGE,
-                value: {
-                    [iouReportAction.reportActionID]: {
-                        childVisibleActionCount: (iouReportAction?.childVisibleActionCount ?? 0) + 1,
-                    },
-                },
-            });
-        }
-    }
-
-    API.write(WRITE_COMMANDS.HOLD_MONEY_REQUEST_ON_SEARCH, {hash, transactionIDList, comment}, {optimisticData, finallyData});
 }
 
 function submitMoneyRequestOnSearch(hash: number, reportList: Report[], policy: Policy[], currentSearchKey?: SearchKey) {
@@ -880,12 +863,6 @@ function payMoneyRequestOnSearch(hash: number, paymentData: PaymentData[], curre
         }
         playSound(SOUNDS.SUCCESS);
     });
-}
-
-function unholdMoneyRequestOnSearch(hash: number, transactionIDList: string[]) {
-    const {optimisticData, finallyData} = getOnyxLoadingData(hash);
-
-    API.write(WRITE_COMMANDS.UNHOLD_MONEY_REQUEST_ON_SEARCH, {hash, transactionIDList}, {optimisticData, finallyData});
 }
 
 function bulkDeleteReports({
@@ -1515,6 +1492,7 @@ function handleBulkPayItemSelected(params: {
     userBillingGraceEndPeriods: OnyxCollection<BillingGraceEndPeriod>;
     showDelegateNoAccessModal: () => void;
     amountOwed: OnyxEntry<number>;
+    ownerBillingGraceEndPeriod: OnyxEntry<number>;
     confirmPayment?: (paymentType: PaymentMethodType | undefined, additionalData?: BulkPaySelectionData) => void;
     setPendingPaymentAdditionalData?: (data: BulkPaySelectionData | undefined) => void;
 }) {
@@ -1532,6 +1510,7 @@ function handleBulkPayItemSelected(params: {
         showDelegateNoAccessModal,
         confirmPayment,
         amountOwed,
+        ownerBillingGraceEndPeriod,
         setPendingPaymentAdditionalData,
     } = params;
     const {paymentType, policyFromPaymentMethod, policyFromContext, shouldSelectPaymentMethod} = getActivePaymentType(item.key, activeAdminPolicies, businessBankAccountOptions, policy?.id);
@@ -1550,7 +1529,7 @@ function handleBulkPayItemSelected(params: {
         return;
     }
 
-    if (policy && shouldRestrictUserBillableActions(policy?.id, userBillingGraceEndPeriods, amountOwed)) {
+    if (policy && shouldRestrictUserBillableActions(policy?.id, ownerBillingGraceEndPeriod, userBillingGraceEndPeriods, amountOwed)) {
         Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy?.id));
         return;
     }
@@ -1690,9 +1669,7 @@ export {
     saveSearch,
     search,
     revertSplitTransactionOnSearch,
-    holdMoneyRequestOnSearch,
     bulkDeleteReports,
-    unholdMoneyRequestOnSearch,
     rejectMoneyRequestsOnSearch,
     exportSearchItemsToCSV,
     queueExportSearchItemsToCSV,
