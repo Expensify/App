@@ -1720,6 +1720,7 @@ const CONST = {
             WAITING_FOR_PAYMENT: 'waitingForPayment',
             WAITING_TO_EXPORT: 'waitingToExport',
             SUBMITTING_TO_SELF: 'submittingToSelf',
+            REJECTED_REPORT: 'rejectedReport',
         },
         ICONS: {
             HOURGLASS: 'hourglass',
@@ -8613,6 +8614,8 @@ const CONST = {
             ROTATE_BUTTON: 'Header-RotateButton',
             CLOSE_BUTTON: 'Header-CloseButton',
             MORE_BUTTON: 'Header-MoreButton',
+            PREVIOUS_BUTTON: 'Header-PreviousButton',
+            NEXT_BUTTON: 'Header-NextButton',
         },
         TOP_BAR: {
             CANCEL_BUTTON: 'TopBar-CancelButton',

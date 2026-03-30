@@ -330,6 +330,7 @@ const SCREENS = {
         CREATE: 'Money_Request_Create',
         HOLD: 'Money_Request_Hold_Reason',
         REJECT: 'Money_Request_Reject_Reason',
+        REPORT_REJECT: 'Money_Request_Report_Reject',
         STEP_CONFIRMATION: 'Money_Request_Step_Confirmation',
         STEP_CONFIRMATION_VERIFY_ACCOUNT: 'Money_Request_Step_Confirmation_Verify_Account',
         START: 'Money_Request_Start',
@@ -448,7 +449,7 @@ const SCREENS = {
 
     REPORT_SETTINGS: {
         ROOT: 'Report_Settings_Root',
-        NAME: 'Report_Settings_Name',
+        DYNAMIC_SETTINGS_NAME: 'Dynamic_Report_Settings_Name',
         NOTIFICATION_PREFERENCES: 'Report_Settings_Notification_Preferences',
         DYNAMIC_SETTINGS_WRITE_CAPABILITY: 'Dynamic_Report_Settings_Write_Capability',
         VISIBILITY: 'Report_Settings_Visibility',
@@ -927,8 +928,8 @@ const SCREENS = {
         REPORT: 'Debug_Report',
         REPORT_ACTION: 'Debug_Report_Action',
         REPORT_ACTION_CREATE: 'Debug_Report_Action_Create',
-        DETAILS_CONSTANT_PICKER_PAGE: 'Debug_Details_Constant_Picker_Page',
-        DETAILS_DATE_TIME_PICKER_PAGE: 'Debug_Details_Date_Time_Picker_Page',
+        DYNAMIC_DETAILS_CONSTANT_PICKER_PAGE: 'Dynamic_Debug_Details_Constant_Picker_Page',
+        DYNAMIC_DETAILS_DATE_TIME_PICKER_PAGE: 'Dynamic_Debug_Details_Date_Time_Picker_Page',
         TRANSACTION: 'Debug_Transaction',
         TRANSACTION_VIOLATION_CREATE: 'Debug_Transaction_Violation_Create',
         TRANSACTION_VIOLATION: 'Debug_Transaction_Violation',
