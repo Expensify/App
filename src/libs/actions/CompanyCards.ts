@@ -221,14 +221,12 @@ function deleteWorkspaceCompanyCardFeed(
     cardIDs: string[],
     feedToOpen?: CompanyCardFeedWithDomainID,
 ) {
-    const isCustomFeed = CardUtils.isCustomFeed(bankName);
-    const optimisticFeedRemoval = {[bankName]: null};
+    const optimisticFeedUpdates = {[bankName]: {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}};
     const failureFeedUpdates = {[bankName]: {pendingAction: null, errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')}};
     const optimisticCardUpdates = Object.fromEntries(cardIDs.map((cardID) => [cardID, {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}]));
     const successCardUpdates = Object.fromEntries(cardIDs.map((cardID) => [cardID, null]));
     const failureCardUpdates = Object.fromEntries(cardIDs.map((cardID) => [cardID, {pendingAction: null}]));
 
-    // Remove feed from SHARED_NVP optimistically so feed lists (useCardFeeds) update while offline; successData does not run until the API responds.
     const optimisticData: Array<
         OnyxUpdate<
             | typeof ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER
@@ -242,10 +240,7 @@ function deleteWorkspaceCompanyCardFeed(
             key: `${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${domainOrWorkspaceAccountID}`,
             value: {
                 settings: {
-                    ...(isCustomFeed ? {companyCards: optimisticFeedRemoval} : {oAuthAccountDetails: optimisticFeedRemoval, companyCards: optimisticFeedRemoval}),
-                    companyCardNicknames: {
-                        [bankName]: null,
-                    },
+                    companyCards: optimisticFeedUpdates,
                 },
             },
         },
