@@ -115,9 +115,6 @@ type BaseSelectionListProps<TItem extends ListItem> = {
 
     /** Whether to set the hover style */
     setShouldDisableHoverStyle?: React.Dispatch<React.SetStateAction<boolean>>;
-
-    /** Whether to show the radio button */
-    shouldShowRadioButton?: boolean;
 };
 
 /**

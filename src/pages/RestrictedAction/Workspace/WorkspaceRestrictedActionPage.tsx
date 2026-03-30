@@ -50,7 +50,7 @@ function WorkspaceRestrictedActionPage({
         if (isLoadingSubscriptionData !== false) {
             return;
         }
-        if (!shouldRestrictUserBillableActions(policyID, userBillingGracePeriods, undefined, ownerBillingGraceEndPeriod)) {
+        if (!shouldRestrictUserBillableActions(policyID, ownerBillingGraceEndPeriod, userBillingGracePeriods)) {
             Navigation.goBack();
         }
     }, [policyID, isLoadingSubscriptionData, userBillingGracePeriods, ownerBillingGraceEndPeriod]);

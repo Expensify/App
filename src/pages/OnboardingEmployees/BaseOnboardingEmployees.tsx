@@ -4,7 +4,7 @@ import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
-import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
+import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
@@ -103,7 +103,7 @@ function BaseOnboardingEmployees({shouldUseNativeStyles, route}: BaseOnboardingE
                 }}
                 initiallyFocusedItemKey={companySizeOptions.find((item) => item.keyForList === selectedCompanySize)?.keyForList}
                 shouldUpdateFocusedIndex
-                ListItem={SingleSelectListItem}
+                ListItem={RadioListItem}
                 footerContent={footerContent}
                 style={{listItemWrapperStyle: onboardingIsMediumOrLargerScreenWidth ? [styles.pl8, styles.pr8] : []}}
             />

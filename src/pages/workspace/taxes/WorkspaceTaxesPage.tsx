@@ -83,7 +83,7 @@ function WorkspaceTaxesPage({
 
     const enabledRatesCount = selectedTaxesIDs.filter((taxID) => !policy?.taxRates?.taxes[taxID]?.isDisabled).length;
     const disabledRatesCount = selectedTaxesIDs.length - enabledRatesCount;
-    const icons = useMemoizedLazyExpensifyIcons(['Checkmark', 'Close', 'Gear', 'Plus', 'Trashcan'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Checkmark', 'Close', 'Gear', 'Plus', 'Trashcan']);
     const illustrations = useMemoizedLazyIllustrations(['Coins']);
 
     const fetchTaxes = useCallback(() => {

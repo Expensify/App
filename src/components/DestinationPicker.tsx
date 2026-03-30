@@ -10,7 +10,7 @@ import type {Destination} from '@libs/PerDiemRequestUtils';
 import {getPerDiemCustomUnit} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import SingleSelectListItem from './SelectionList/ListItem/SingleSelectListItem';
+import RadioListItem from './SelectionList/ListItem/RadioListItem';
 import SelectionListWithSections from './SelectionList/SelectionListWithSections';
 import type {ListItem, SelectionListWithSectionsHandle} from './SelectionList/types';
 
@@ -80,7 +80,7 @@ function DestinationPicker({selectedDestination, policyID, onSubmit, ref}: Desti
             shouldShowTextInput={shouldShowTextInput}
             textInputOptions={textInputOptions}
             onSelectRow={onSubmit}
-            ListItem={SingleSelectListItem}
+            ListItem={RadioListItem}
             initiallyFocusedItemKey={selectedOptionKey}
             shouldHideKeyboardOnScroll={false}
             shouldUpdateFocusedIndex
