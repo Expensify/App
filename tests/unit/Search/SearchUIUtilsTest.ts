@@ -7475,20 +7475,50 @@ describe('SearchUIUtils', () => {
         test('Should create transaction thread report and set optimistic data necessary for its preview', () => {
             (createTransactionThreadReport as jest.Mock).mockReturnValue(threadReport);
 
-            SearchUIUtils.createAndOpenSearchTransactionThread(transactionListItem, introSelectedData, backTo, currentUserLogin, currentUserAccountID, threadReportID, undefined, false);
+            SearchUIUtils.createAndOpenSearchTransactionThread(
+                transactionListItem,
+                introSelectedData,
+                backTo,
+                currentUserLogin,
+                currentUserAccountID,
+                undefined,
+                threadReportID,
+                undefined,
+                false,
+            );
 
             expect(setOptimisticDataForTransactionThreadPreview).toHaveBeenCalled();
             // The full reportAction is passed to preserve originalMessage.type for proper expense type detection
-            expect(createTransactionThreadReport).toHaveBeenCalledWith(introSelectedData, currentUserLogin, currentUserAccountID, report1, reportAction1, undefined, undefined);
+            expect(createTransactionThreadReport).toHaveBeenCalledWith(introSelectedData, currentUserLogin, currentUserAccountID, undefined, report1, reportAction1, undefined, undefined);
         });
 
         test('Should not navigate if shouldNavigate = false', () => {
-            SearchUIUtils.createAndOpenSearchTransactionThread(transactionListItem, introSelectedData, backTo, currentUserLogin, currentUserAccountID, threadReportID, undefined, false);
+            SearchUIUtils.createAndOpenSearchTransactionThread(
+                transactionListItem,
+                introSelectedData,
+                backTo,
+                currentUserLogin,
+                currentUserAccountID,
+                undefined,
+                threadReportID,
+                undefined,
+                false,
+            );
             expect(Navigation.navigate).not.toHaveBeenCalled();
         });
 
         test('Should handle navigation if shouldNavigate = true', () => {
-            SearchUIUtils.createAndOpenSearchTransactionThread(transactionListItem, introSelectedData, backTo, currentUserLogin, currentUserAccountID, threadReportID, undefined, true);
+            SearchUIUtils.createAndOpenSearchTransactionThread(
+                transactionListItem,
+                introSelectedData,
+                backTo,
+                currentUserLogin,
+                currentUserAccountID,
+                undefined,
+                threadReportID,
+                undefined,
+                true,
+            );
             // For one-transaction reports (isOneTransactionReport = true), navigation goes to the parent report (item.reportID)
             // instead of the transaction thread report
             expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SEARCH_REPORT.getRoute({reportID: transactionListItem.reportID, backTo}));
@@ -7509,7 +7539,17 @@ describe('SearchUIUtils', () => {
             });
             await waitForBatchedUpdates();
 
-            SearchUIUtils.createAndOpenSearchTransactionThread(multiTransactionItem, introSelectedData, backTo, currentUserLogin, currentUserAccountID, undefined, undefined, true);
+            SearchUIUtils.createAndOpenSearchTransactionThread(
+                multiTransactionItem,
+                introSelectedData,
+                backTo,
+                currentUserLogin,
+                currentUserAccountID,
+                undefined,
+                undefined,
+                undefined,
+                true,
+            );
 
             expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SEARCH_REPORT.getRoute({reportID: childReportID, backTo}));
         });
@@ -7518,7 +7558,17 @@ describe('SearchUIUtils', () => {
             (createTransactionThreadReport as jest.Mock).mockReturnValue(threadReport);
             const customIntroSelected: OnyxTypes.IntroSelected = {choice: CONST.ONBOARDING_CHOICES.PERSONAL_SPEND};
 
-            SearchUIUtils.createAndOpenSearchTransactionThread(transactionListItem, customIntroSelected, backTo, currentUserLogin, currentUserAccountID, threadReportID, undefined, false);
+            SearchUIUtils.createAndOpenSearchTransactionThread(
+                transactionListItem,
+                customIntroSelected,
+                backTo,
+                currentUserLogin,
+                currentUserAccountID,
+                undefined,
+                threadReportID,
+                undefined,
+                false,
+            );
 
             expect(((createTransactionThreadReport as jest.Mock).mock.calls.at(0) as unknown[] | undefined)?.at(0)).toEqual(customIntroSelected);
         });
@@ -7526,7 +7576,7 @@ describe('SearchUIUtils', () => {
         test('Should pass undefined introSelected without bypassing with empty values', () => {
             (createTransactionThreadReport as jest.Mock).mockReturnValue(threadReport);
 
-            SearchUIUtils.createAndOpenSearchTransactionThread(transactionListItem, undefined, backTo, currentUserLogin, currentUserAccountID, threadReportID, undefined, false);
+            SearchUIUtils.createAndOpenSearchTransactionThread(transactionListItem, undefined, backTo, currentUserLogin, currentUserAccountID, undefined, threadReportID, undefined, false);
 
             expect(((createTransactionThreadReport as jest.Mock).mock.calls.at(0) as unknown[] | undefined)?.at(0)).toBeUndefined();
         });
