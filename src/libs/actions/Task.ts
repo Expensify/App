@@ -1,7 +1,7 @@
 import {InteractionManager} from 'react-native';
 import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
-import * as Expensicons from '@components/Icon/Expensicons';
+import FallbackAvatar from '@assets/images/avatars/fallback-avatar.svg';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import * as API from '@libs/API';
 import type {CancelTaskParams, CompleteTaskParams, CreateTaskParams, EditTaskAssigneeParams, EditTaskParams, ReopenTaskParams} from '@libs/API/parameters';
@@ -1101,7 +1101,7 @@ function getShareDestination(
         subtitle = ReportUtils.getChatRoomSubtitle(report) ?? '';
     }
     return {
-        icons: ReportUtils.getIcons(report, LocalePhoneNumber.formatPhoneNumber, personalDetails, Expensicons.FallbackAvatar),
+        icons: ReportUtils.getIcons(report, LocalePhoneNumber.formatPhoneNumber, personalDetails, FallbackAvatar),
         displayName: getReportName(report, reportAttributes),
         subtitle,
         displayNamesWithTooltips,

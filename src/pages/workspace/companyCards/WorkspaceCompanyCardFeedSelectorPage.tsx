@@ -7,7 +7,7 @@ import MenuItem from '@components/MenuItem';
 import PlaidCardFeedIcon from '@components/PlaidCardFeedIcon';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
-import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
+import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import useCardFeedErrors from '@hooks/useCardFeedErrors';
 import type {CombinedCardFeed, CompanyCardFeedWithDomainID} from '@hooks/useCardFeeds';
@@ -132,7 +132,7 @@ function WorkspaceCompanyCardFeedSelectorPage({route}: WorkspaceCompanyCardFeedS
                     onBackButtonPress={goBack}
                 />
                 <SelectionList
-                    ListItem={SingleSelectListItem}
+                    ListItem={RadioListItem}
                     onSelectRow={selectFeed}
                     data={feeds}
                     alternateNumberOfSupportedLines={2}

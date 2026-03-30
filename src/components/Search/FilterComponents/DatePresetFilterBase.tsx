@@ -189,7 +189,7 @@ function DatePresetFilterBase({
                     }}
                     onSelectRow={() => setDateValue(CONST.SEARCH.DATE_MODIFIERS.ON, preset)}
                     keyForList={preset}
-                    wrapperStyle={(styles.flexReset, styles.optionRowCompact)}
+                    wrapperStyle={styles.flexReset}
                 />
             ))}
             {shouldShowHorizontalRule && (

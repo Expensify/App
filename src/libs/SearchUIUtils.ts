@@ -57,7 +57,6 @@ import type {
 import type {ListItem} from '@components/SelectionList/types';
 import type {FeedKeysWithAssignedCards} from '@hooks/useFeedKeysWithAssignedCards';
 import type {ThemeColors} from '@styles/theme/types';
-import * as Expensicons from '@src/components/Icon/Expensicons';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -165,6 +164,7 @@ import {
     getAmount as getTransactionAmount,
     getCreated as getTransactionCreatedDate,
     getMerchant as getTransactionMerchant,
+    isDeletedTransaction,
     isPending,
     isScanning,
     isViolationDismissed,
@@ -342,18 +342,18 @@ const transactionQuarterGroupColumnNamesToSortingProperty: TransactionQuarterGro
     ...transactionGroupBaseSortingProperties,
 };
 
-const expenseStatusActionMapping = {
-    [CONST.SEARCH.STATUS.EXPENSE.DRAFTS]: (expenseReport?: OnyxTypes.Report) =>
-        expenseReport?.stateNum === CONST.REPORT.STATE_NUM.OPEN && expenseReport.statusNum === CONST.REPORT.STATUS_NUM.OPEN,
-    [CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING]: (expenseReport?: OnyxTypes.Report) =>
+type ExpenseStatusPredicate = (expenseReport?: OnyxTypes.Report, transactionReportID?: string) => boolean;
+
+const expenseStatusActionMapping: Record<string, ExpenseStatusPredicate> = {
+    [CONST.SEARCH.STATUS.EXPENSE.DRAFTS]: (expenseReport) => expenseReport?.stateNum === CONST.REPORT.STATE_NUM.OPEN && expenseReport.statusNum === CONST.REPORT.STATUS_NUM.OPEN,
+    [CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING]: (expenseReport) =>
         expenseReport?.stateNum === CONST.REPORT.STATE_NUM.SUBMITTED && expenseReport.statusNum === CONST.REPORT.STATUS_NUM.SUBMITTED,
-    [CONST.SEARCH.STATUS.EXPENSE.APPROVED]: (expenseReport?: OnyxTypes.Report) =>
-        expenseReport?.stateNum === CONST.REPORT.STATE_NUM.APPROVED && expenseReport.statusNum === CONST.REPORT.STATUS_NUM.APPROVED,
-    [CONST.SEARCH.STATUS.EXPENSE.PAID]: (expenseReport?: OnyxTypes.Report) =>
+    [CONST.SEARCH.STATUS.EXPENSE.APPROVED]: (expenseReport) => expenseReport?.stateNum === CONST.REPORT.STATE_NUM.APPROVED && expenseReport.statusNum === CONST.REPORT.STATUS_NUM.APPROVED,
+    [CONST.SEARCH.STATUS.EXPENSE.PAID]: (expenseReport) =>
         (expenseReport?.stateNum ?? 0) >= CONST.REPORT.STATE_NUM.APPROVED && expenseReport?.statusNum === CONST.REPORT.STATUS_NUM.REIMBURSED,
-    [CONST.SEARCH.STATUS.EXPENSE.DONE]: (expenseReport?: OnyxTypes.Report) =>
-        expenseReport?.stateNum === CONST.REPORT.STATE_NUM.APPROVED && expenseReport.statusNum === CONST.REPORT.STATUS_NUM.CLOSED,
-    [CONST.SEARCH.STATUS.EXPENSE.UNREPORTED]: (expenseReport?: OnyxTypes.Report) => !expenseReport,
+    [CONST.SEARCH.STATUS.EXPENSE.DONE]: (expenseReport) => expenseReport?.stateNum === CONST.REPORT.STATE_NUM.APPROVED && expenseReport.statusNum === CONST.REPORT.STATUS_NUM.CLOSED,
+    [CONST.SEARCH.STATUS.EXPENSE.UNREPORTED]: (expenseReport, transactionReportID) => !expenseReport && transactionReportID !== CONST.REPORT.TRASH_REPORT_ID,
+    [CONST.SEARCH.STATUS.EXPENSE.DELETED]: (_expenseReport, transactionReportID) => transactionReportID === CONST.REPORT.TRASH_REPORT_ID,
     [CONST.SEARCH.STATUS.EXPENSE.ALL]: () => true,
 };
 
@@ -392,6 +392,7 @@ function getExpenseStatusOptions(translate: LocalizedTranslate): Array<MultiSele
         {text: translate('iou.approved'), value: CONST.SEARCH.STATUS.EXPENSE.APPROVED},
         {text: translate('iou.settledExpensify'), value: CONST.SEARCH.STATUS.EXPENSE.PAID},
         {text: translate('iou.done'), value: CONST.SEARCH.STATUS.EXPENSE.DONE},
+        {text: translate('iou.deleted'), value: CONST.SEARCH.STATUS.EXPENSE.DELETED},
     ];
 }
 
@@ -461,12 +462,25 @@ type SearchTypeMenuItem = {
     key: SearchKey;
     translationPath: TranslationPaths;
     type: SearchDataTypes;
-    icon?:
-        | IconAsset
-        | Extract<
-              ExpensifyIconName,
-              'Receipt' | 'ChatBubbles' | 'MoneyBag' | 'CreditCard' | 'MoneyHourglass' | 'CreditCardHourglass' | 'Bank' | 'User' | 'Folder' | 'Basket' | 'CalendarSolid' | 'ExpensifyCard'
-          >;
+    icon: Extract<
+        ExpensifyIconName,
+        | 'Receipt'
+        | 'ChatBubbles'
+        | 'MoneyBag'
+        | 'CreditCard'
+        | 'MoneyHourglass'
+        | 'CreditCardHourglass'
+        | 'Bank'
+        | 'User'
+        | 'Folder'
+        | 'Basket'
+        | 'CalendarSolid'
+        | 'ExpensifyCard'
+        | 'Document'
+        | 'Send'
+        | 'ThumbsUp'
+        | 'CheckCircle'
+    >;
     searchQuery: string;
     searchQueryJSON: SearchQueryJSON | undefined;
     hash: number;
@@ -534,12 +548,10 @@ function doesSearchItemMatchSort(key: SearchKey, itemSortBy: string | undefined,
 function createTopSearchMenuItem(
     key: SearchKey,
     translationPath: TranslationPaths,
-    icon:
-        | IconAsset
-        | Extract<
-              ExpensifyIconName,
-              'Receipt' | 'ChatBubbles' | 'MoneyBag' | 'CreditCard' | 'MoneyHourglass' | 'CreditCardHourglass' | 'Bank' | 'User' | 'Folder' | 'Basket' | 'ExpensifyCard'
-          >,
+    icon: Extract<
+        ExpensifyIconName,
+        'Receipt' | 'ChatBubbles' | 'MoneyBag' | 'CreditCard' | 'MoneyHourglass' | 'CreditCardHourglass' | 'Bank' | 'User' | 'Folder' | 'Basket' | 'ExpensifyCard'
+    >,
     groupBy: ValueOf<typeof CONST.SEARCH.GROUP_BY>,
     limit?: number,
     view?: ValueOf<typeof CONST.SEARCH.VIEW>,
@@ -596,11 +608,7 @@ function createTopSearchMenuItem(
  * If you are trying to access data about a specific search, you do NOT need to subscribe to the data (such as feeds) if it does not
  * affect the specific query you are looking for
  */
-function getSuggestedSearches(
-    accountID: number = CONST.DEFAULT_NUMBER_ID,
-    defaultFeedID?: string,
-    icons?: Record<'Document' | 'Send' | 'ThumbsUp', IconAsset>,
-): Record<ValueOf<typeof CONST.SEARCH.SEARCH_KEYS>, SearchTypeMenuItem> {
+function getSuggestedSearches(accountID: number = CONST.DEFAULT_NUMBER_ID, defaultFeedID?: string): Record<ValueOf<typeof CONST.SEARCH.SEARCH_KEYS>, SearchTypeMenuItem> {
     return {
         [CONST.SEARCH.SEARCH_KEYS.EXPENSES]: {
             key: CONST.SEARCH.SEARCH_KEYS.EXPENSES,
@@ -625,7 +633,7 @@ function getSuggestedSearches(
             key: CONST.SEARCH.SEARCH_KEYS.REPORTS,
             translationPath: 'common.reports',
             type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
-            icon: icons?.Document,
+            icon: 'Document',
             searchQuery: buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT}),
             get searchQueryJSON() {
                 return buildSearchQueryJSON(this.searchQuery);
@@ -663,7 +671,7 @@ function getSuggestedSearches(
             key: CONST.SEARCH.SEARCH_KEYS.SUBMIT,
             translationPath: 'common.submit',
             type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
-            icon: icons?.Send,
+            icon: 'Send',
             searchQuery: buildQueryStringFromFilterFormValues({
                 type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
                 action: CONST.SEARCH.ACTION_FILTERS.SUBMIT,
@@ -686,7 +694,7 @@ function getSuggestedSearches(
             key: CONST.SEARCH.SEARCH_KEYS.APPROVE,
             translationPath: 'search.bulkActions.approve',
             type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
-            icon: icons?.ThumbsUp,
+            icon: 'ThumbsUp',
             searchQuery: buildQueryStringFromFilterFormValues({
                 type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
                 action: CONST.SEARCH.ACTION_FILTERS.APPROVE,
@@ -733,7 +741,7 @@ function getSuggestedSearches(
             key: CONST.SEARCH.SEARCH_KEYS.EXPORT,
             translationPath: 'common.export',
             type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
-            icon: Expensicons.CheckCircle,
+            icon: 'CheckCircle',
             searchQuery: buildQueryStringFromFilterFormValues({
                 type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
                 action: CONST.SEARCH.ACTION_FILTERS.EXPORT,
@@ -891,7 +899,7 @@ function getSuggestedSearches(
             key: CONST.SEARCH.SEARCH_KEYS.TOP_SPENDERS,
             translationPath: 'search.topSpenders',
             type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-            icon: Expensicons.User,
+            icon: 'User',
             searchQuery: buildQueryStringFromFilterFormValues(
                 {
                     type: CONST.SEARCH.DATA_TYPES.EXPENSE,
@@ -1729,10 +1737,10 @@ function getTransactionsSections({
                 const status = currentQueryJSON.status;
                 if (Array.isArray(status)) {
                     shouldShow = status.some((expenseStatus) => {
-                        return isValidExpenseStatus(expenseStatus) ? expenseStatusActionMapping[expenseStatus](report) : false;
+                        return isValidExpenseStatus(expenseStatus) ? expenseStatusActionMapping[expenseStatus](report, transactionItem.reportID) : false;
                     });
                 } else {
-                    shouldShow = isValidExpenseStatus(status) ? expenseStatusActionMapping[status](report) : false;
+                    shouldShow = isValidExpenseStatus(status) ? expenseStatusActionMapping[status](report, transactionItem.reportID) : false;
                 }
             }
         }
@@ -1936,6 +1944,11 @@ function getActions(
     }
 
     const transaction = isTransaction ? data[key] : undefined;
+
+    if (transaction && isDeletedTransaction(transaction)) {
+        return [CONST.SEARCH.ACTION_TYPES.UNDELETE];
+    }
+
     // Tracked and unreported expenses don't have a report, so we return early.
     if (!report) {
         return [CONST.SEARCH.ACTION_TYPES.VIEW];
@@ -2109,6 +2122,7 @@ function createAndOpenSearchTransactionThread(
     shouldNavigate = true,
 ) {
     const isFromSelfDM = item.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
+    const isDeleted = isDeletedTransaction(item);
     const iouReportAction = getIOUActionForReportID(isFromSelfDM ? findSelfDMReportID() : item.reportID, item.transactionID);
     const moneyRequestReportActionID = item.reportAction?.reportActionID ?? undefined;
     const previewData = transactionPreviewData
@@ -2122,16 +2136,16 @@ function createAndOpenSearchTransactionThread(
     // The transaction thread can be created from the chat page and the snapshot data is stale
     if (hasActualTransactionThread) {
         transactionThreadReport = getReportOrDraftReport(iouReportAction.childReportID);
-    } else {
-        // For legacy transactions without an IOU action in the backend, pass transaction data
-        // This allows OpenReport to create the IOU action and transaction thread on the backend
+    }
+
+    // Only create a new thread when there's no existing childReportID.
+    // When childReportID exists but the report isn't in Onyx (e.g. search snapshot didn't include it),
+    // skip creation so the navigation below falls back to the real childReportID.
+    if (!transactionThreadReport && !hasActualTransactionThread) {
         const reportActionID = moneyRequestReportActionID ?? iouReportAction?.reportActionID;
-        // Pass transaction data when there's no reportActionID OR when the item is from self DM
-        // (unreported transactions have a valid reportActionID but still need transaction data for proper detection)
         const shouldPassTransactionData = !reportActionID || isFromSelfDM;
         const transaction = shouldPassTransactionData ? getTransactionFromTransactionListItem(item) : undefined;
         const transactionViolations = shouldPassTransactionData ? item.violations : undefined;
-        // Use the full reportAction to preserve originalMessage.type (e.g., "track") for proper expense type detection
         const reportActionToPass = iouReportAction ?? item.reportAction ?? ({reportActionID} as OnyxTypes.ReportAction);
         transactionThreadReport = createTransactionThreadReport(
             introSelected,
@@ -2147,7 +2161,7 @@ function createAndOpenSearchTransactionThread(
     if (shouldNavigate) {
         // Navigate to transaction thread if there are multiple transactions in the report, or to the parent report if it's the only transaction
         const isFromOneTransactionReport = isOneTransactionReport(item.report);
-        const shouldNavigateToTransactionThread = (!isFromOneTransactionReport || isFromSelfDM) && transactionThreadReport?.reportID !== CONST.REPORT.UNREPORTED_REPORT_ID;
+        const shouldNavigateToTransactionThread = (!isFromOneTransactionReport || isFromSelfDM || isDeleted) && transactionThreadReport?.reportID !== CONST.REPORT.UNREPORTED_REPORT_ID;
         // When we have an actual transaction thread (childReportID from Onyx) but the report isn't in Onyx yet
         // (e.g. Search didn't return the IOU action for deleted items), use childReportID directly so we don't navigate with undefined
         const targetReportID = shouldNavigateToTransactionThread
@@ -2387,6 +2401,11 @@ function getReportSections({
                 const reportIsArchived = isArchivedReport(getReportNameValuePairsFromKey(data, reportItem));
                 const avatarProps = getSearchReportAvatarProps(reportItem, formatPhoneNumber, mergedPersonalDetails, policy, reportIsArchived);
 
+                const isRejectedReport =
+                    reportItem.stateNum === CONST.REPORT.STATE_NUM.OPEN &&
+                    reportItem.ownerAccountID === currentAccountID &&
+                    reportItem.nextStep?.messageKey === CONST.NEXT_STEP.MESSAGE_KEY.REJECTED_REPORT;
+
                 reportIDToTransactions[reportKey] = {
                     ...reportItem,
                     action: allActions.at(0) ?? CONST.SEARCH.ACTION_TYPES.VIEW,
@@ -2407,6 +2426,7 @@ function getReportSections({
                     shouldShowYearApproved: shouldShowYearApprovedReport,
                     shouldShowYearExported: shouldShowYearExportedReport,
                     hasVisibleViolations: hasVisibleViolationsForReport,
+                    isRejectedReport,
                     totalDisplaySpend,
                     nonReimbursableSpend,
                     reimbursableSpend,
@@ -3643,7 +3663,7 @@ function isColumnSortable(column: SearchColumnType) {
     return !nonSortableColumns.has(column);
 }
 
-type OverflowMenuIconsType = Record<'Pencil', IconAsset>;
+type OverflowMenuIconsType = Record<'Pencil' | 'Trashcan', IconAsset>;
 
 /**
  * Constructs and configures the overflow menu for search items, handling interactions such as renaming or deleting items.
@@ -3680,7 +3700,7 @@ function getOverflowMenu(
                 }
                 showDeleteModal(hash);
             },
-            icon: Expensicons.Trashcan,
+            icon: icons.Trashcan,
             shouldShowRightIcon: false,
             shouldShowRightComponent: false,
             shouldCallAfterModalHide: true,
@@ -3703,7 +3723,6 @@ function isTodoSearch(recentSearchHash: number, suggestedSearches: Record<string
 }
 
 type TypeMenuSectionsParams = {
-    icons: Record<'Document' | 'Send' | 'ThumbsUp', IconAsset>;
     currentUserEmail: string | undefined;
     currentUserAccountID: number | undefined;
     cardFeedsByPolicy: Record<string, CardFeedForDisplay[]>;
@@ -3719,7 +3738,6 @@ type TypeMenuSectionsParams = {
 
 function createTypeMenuSections(params: TypeMenuSectionsParams): SearchTypeMenuSection[] {
     const {
-        icons,
         currentUserEmail,
         currentUserAccountID,
         cardFeedsByPolicy,
@@ -3734,7 +3752,7 @@ function createTypeMenuSections(params: TypeMenuSectionsParams): SearchTypeMenuS
     } = params;
     const typeMenuSections: SearchTypeMenuSection[] = [];
 
-    const suggestedSearches = getSuggestedSearches(currentUserAccountID, defaultCardFeed?.id, icons);
+    const suggestedSearches = getSuggestedSearches(currentUserAccountID, defaultCardFeed?.id);
     const {visibility: suggestedSearchesVisibility, hasGroupPoliciesWithExpenseChat} = getSuggestedSearchesVisibility(currentUserEmail, cardFeedsByPolicy, policies, defaultExpensifyCard);
 
     // Explore section
