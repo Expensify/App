@@ -19,17 +19,8 @@ jest.mock('@libs/Log', () => ({
 
 type MoveReceiptFn = (uri: string, fileName: string) => Promise<string>;
 
-let moveReceiptToDurableStorage: MoveReceiptFn;
-try {
-    // On the fix branch the module exists and moves files from cache → durable storage.
-    // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
-    const mod: {default: MoveReceiptFn} = jest.requireActual('@libs/moveReceiptToDurableStorage/index.native.ts');
-    moveReceiptToDurableStorage = mod.default;
-} catch {
-    // On main this module doesn't exist — fall back to identity, which mirrors
-    // the pre-fix component behavior (cache URI passes straight to the action).
-    moveReceiptToDurableStorage = async (uri: string) => uri;
-}
+// eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
+const {default: moveReceiptToDurableStorage}: {default: MoveReceiptFn} = jest.requireActual('@libs/moveReceiptToDurableStorage/index.native.ts');
 
 describe('Receipt flows should persist to durable storage after crop/rotate', () => {
     it('should move a cropped receipt out of ImageManipulator cache into Receipts-Upload', async () => {
