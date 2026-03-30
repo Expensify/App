@@ -13286,6 +13286,8 @@ type UpdateMultipleMoneyRequestsParams = {
     policyTags: OnyxCollection<OnyxTypes.PolicyTagLists>;
     hash?: number;
     allPolicies?: OnyxCollection<OnyxTypes.Policy>;
+    introSelected: OnyxEntry<OnyxTypes.IntroSelected>;
+    betas: OnyxEntry<OnyxTypes.Beta[]>;
 };
 
 function updateMultipleMoneyRequests({
@@ -13299,6 +13301,8 @@ function updateMultipleMoneyRequests({
     policyTags,
     hash,
     allPolicies,
+    introSelected,
+    betas,
 }: UpdateMultipleMoneyRequestsParams) {
     // Track running totals per report so multiple edits in the same report compound correctly.
     const optimisticReportsByID: Record<string, OnyxTypes.Report> = {};
@@ -13337,7 +13341,7 @@ function updateMultipleMoneyRequests({
         // bulk-edit comments are visible immediately while still offline.
         let didCreateThreadInThisIteration = false;
         if (!transactionThreadReportID && iouReport?.reportID) {
-            const optimisticTransactionThread = createTransactionThreadReport(undefined, currentUserEmail, userAccountID, iouReport, reportAction, transaction);
+            const optimisticTransactionThread = createTransactionThreadReport(introSelected, currentUserEmail, userAccountID, betas, iouReport, reportAction, transaction);
             if (optimisticTransactionThread?.reportID) {
                 transactionThreadReportID = optimisticTransactionThread.reportID;
                 transactionThread = optimisticTransactionThread;
