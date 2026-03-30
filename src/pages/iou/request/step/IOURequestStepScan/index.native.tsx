@@ -82,7 +82,11 @@ function IOURequestStepScan({
     // format instead of the 5712x4284 (24.5MP) format that videoResolution:'max' would select.
     // This cuts capture time roughly in half while maintaining the same output photo resolution.
     // Use screen dimensions for video resolution since we only need enough for the preview.
-    const format = useCameraFormat(device, [{photoAspectRatio: 4 / 3}, {photoResolution: {width: 4032, height: 3024}}, {videoResolution: {width: windowHeight, height: windowWidth}}]);
+    const format = useCameraFormat(device, [
+        {photoAspectRatio: CONST.RECEIPT_CAMERA.PHOTO_ASPECT_RATIO},
+        {photoResolution: {width: CONST.RECEIPT_CAMERA.PHOTO_WIDTH, height: CONST.RECEIPT_CAMERA.PHOTO_HEIGHT}},
+        {videoResolution: {width: windowHeight, height: windowWidth}},
+    ]);
     // Format dimensions are in landscape orientation, so height/width gives portrait aspect ratio
     const cameraAspectRatio = format ? format.photoHeight / format.photoWidth : undefined;
     const fps = useMemo(() => (format ? Math.min(Math.max(30, format.minFps), format.maxFps) : 30), [format]);
