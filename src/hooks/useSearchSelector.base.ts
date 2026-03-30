@@ -238,6 +238,7 @@ function useSearchSelectorBase({
                     currentUserAccountID,
                     currentUserEmail,
                     personalDetails,
+                    sortedActions,
                 });
             case CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_MEMBER_INVITE:
                 return getValidOptions(optionsWithContacts, allPolicies, draftComments, nvpDismissedProductTraining, loginList, currentUserAccountID, currentUserEmail, {

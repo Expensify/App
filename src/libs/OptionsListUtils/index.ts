@@ -2329,6 +2329,7 @@ function prepareReportOptionsForDisplay(
             undefined,
             reportAttributesDerived,
             reportPolicyTags,
+            sortedActions,
         );
         const isSelected = isReportSelected(option, selectedOptions);
 
@@ -2749,6 +2750,7 @@ type SearchOptionsConfig = {
     personalDetails?: OnyxEntry<PersonalDetailsList>;
     reportAttributesDerived?: ReportAttributesDerivedValue['reports'];
     allPolicyTags?: OnyxCollection<PolicyTagLists>;
+    sortedActions?: Record<string, ReportAction[]>;
 };
 
 /**
@@ -2777,6 +2779,7 @@ function getSearchOptions({
     reportAttributesDerived,
     personalDetails,
     allPolicyTags,
+    sortedActions,
 }: SearchOptionsConfig): Options {
     const optionList = getValidOptions(options, policyCollection, draftComments, nvpDismissedProductTraining, loginList, currentUserAccountID, currentUserEmail, {
         betas,
@@ -2803,6 +2806,7 @@ function getSearchOptions({
         visibleReportActionsData,
         reportAttributesDerived,
         allPolicyTags,
+        sortedActions,
     });
 
     return optionList;

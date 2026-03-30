@@ -99,6 +99,7 @@ function SearchFiltersChatsSelector({initialReportIDs, onFiltersUpdate, isScreen
                   currentUserEmail,
                   personalDetails,
                   policyCollection: allPolicies,
+                  sortedActions,
               });
 
     const chatOptions = filterAndOrderOptions(defaultOptions, cleanSearchTerm, countryCode, loginList, currentUserEmail, currentUserAccountID, personalDetails, {
