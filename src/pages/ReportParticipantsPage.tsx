@@ -64,7 +64,7 @@ type MemberOption = Omit<ListItem, 'accountID'> & {accountID: number};
 type ReportParticipantsPageProps = WithReportOrNotFoundProps & PlatformStackScreenProps<ParticipantsNavigatorParamList, typeof SCREENS.REPORT_PARTICIPANTS.ROOT>;
 function ReportParticipantsPage({report, route}: ReportParticipantsPageProps) {
     const backTo = route.params.backTo;
-    const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar', 'MakeAdmin', 'Plus', 'RemoveMembers', 'User'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar', 'MakeAdmin', 'Plus', 'RemoveMembers', 'User']);
     const {translate, formatPhoneNumber, localeCompare} = useLocalize();
     const {showConfirmModal} = useConfirmModal();
     const styles = useThemeStyles();

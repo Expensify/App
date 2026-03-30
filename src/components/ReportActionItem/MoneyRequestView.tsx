@@ -468,6 +468,7 @@ function MoneyRequestView({
 
     const shouldNavigateToUpgradePath = !policyForMovingExpenses && !shouldSelectPolicy;
     const updatedTransactionDescription = getDescription(updatedTransaction) || undefined;
+    const shouldHideEmptyDescription = (isFromReviewDuplicates || isFromMergeTransaction) && !(updatedTransactionDescription ?? transactionDescription);
     const isEmptyUpdatedMerchant = isInvalidMerchantValue(updatedTransaction?.modifiedMerchant);
     const updatedMerchantTitle = isEmptyUpdatedMerchant ? '' : (updatedTransaction?.modifiedMerchant ?? merchantTitle);
 
@@ -598,7 +599,18 @@ function MoneyRequestView({
                 .map((violation) => {
                     const cardID = violation.data?.cardID;
                     const card = cardID ? cardList?.[cardID] : undefined;
-                    return ViolationsUtils.getViolationTranslation(violation, translate, canEdit, undefined, companyCardPageURL, connectionLink, card, isMarkAsCash);
+                    return ViolationsUtils.getViolationTranslation(
+                        violation,
+                        translate,
+                        canEdit,
+                        undefined,
+                        companyCardPageURL,
+                        connectionLink,
+                        card,
+                        isMarkAsCash,
+                        transaction?.comment?.customUnit?.routeDistanceMeters,
+                        transaction?.comment?.customUnit?.distanceUnit,
+                    );
                 })
                 .join('. ')}.`;
         }
@@ -892,33 +904,35 @@ function MoneyRequestView({
                         copyable={!!amountCopyValue}
                     />
                 </OfflineWithFeedback>
-                <OfflineWithFeedback pendingAction={getPendingFieldAction('comment')}>
-                    <MenuItemWithTopDescription
-                        description={translate('common.description')}
-                        shouldRenderAsHTML
-                        title={updatedTransactionDescription ?? transactionDescription}
-                        interactive={canEdit}
-                        shouldShowRightIcon={canEdit}
-                        titleStyle={styles.flex1}
-                        onPress={() => {
-                            Navigation.navigate(
-                                ROUTES.MONEY_REQUEST_STEP_DESCRIPTION.getRoute(
-                                    CONST.IOU.ACTION.EDIT,
-                                    iouType,
-                                    transaction.transactionID,
-                                    transactionThreadReport?.reportID,
-                                    getReportRHPActiveRoute(),
-                                ),
-                            );
-                        }}
-                        wrapperStyle={[styles.pv2, styles.taskDescriptionMenuItem]}
-                        brickRoadIndicator={getErrorForField('comment') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                        errorText={getErrorForField('comment')}
-                        numberOfLinesTitle={0}
-                        copyValue={descriptionCopyValue}
-                        copyable={!!descriptionCopyValue}
-                    />
-                </OfflineWithFeedback>
+                {!shouldHideEmptyDescription && (
+                    <OfflineWithFeedback pendingAction={getPendingFieldAction('comment')}>
+                        <MenuItemWithTopDescription
+                            description={translate('common.description')}
+                            shouldRenderAsHTML
+                            title={updatedTransactionDescription ?? transactionDescription}
+                            interactive={canEdit}
+                            shouldShowRightIcon={canEdit}
+                            titleStyle={styles.flex1}
+                            onPress={() => {
+                                Navigation.navigate(
+                                    ROUTES.MONEY_REQUEST_STEP_DESCRIPTION.getRoute(
+                                        CONST.IOU.ACTION.EDIT,
+                                        iouType,
+                                        transaction.transactionID,
+                                        transactionThreadReport?.reportID,
+                                        getReportRHPActiveRoute(),
+                                    ),
+                                );
+                            }}
+                            wrapperStyle={[styles.pv2, styles.taskDescriptionMenuItem]}
+                            brickRoadIndicator={getErrorForField('comment') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                            errorText={getErrorForField('comment')}
+                            numberOfLinesTitle={0}
+                            copyValue={descriptionCopyValue}
+                            copyable={!!descriptionCopyValue}
+                        />
+                    </OfflineWithFeedback>
+                )}
                 {isManualDistanceRequest || isGPSDistanceRequest || isOdometerDistanceRequest || (isMapDistanceRequest && transaction?.comment?.waypoints) ? (
                     distanceRequestFields
                 ) : (
@@ -1155,6 +1169,8 @@ function MoneyRequestView({
                                     canEdit={canEdit}
                                     companyCardPageURL={companyCardPageURL}
                                     connectionLink={connectionLink}
+                                    routeDistanceMeters={transaction?.comment?.customUnit?.routeDistanceMeters}
+                                    distanceUnit={transaction?.comment?.customUnit?.distanceUnit}
                                 />
                             )}
                         </View>

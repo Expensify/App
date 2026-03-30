@@ -2,6 +2,7 @@ import {useRoute} from '@react-navigation/native';
 import {isUserValidatedSelector} from '@selectors/Account';
 import {shouldFailAllRequestsSelector} from '@selectors/Network';
 import {hasSeenTourSelector} from '@selectors/Onboarding';
+import passthroughPolicyTagListSelector from '@selectors/PolicyTagList';
 import {getArchiveReason} from '@selectors/Report';
 import {validTransactionDraftsSelector} from '@selectors/TransactionDraft';
 import truncate from 'lodash/truncate';
@@ -301,7 +302,7 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
         'ReportCopy',
         'Printer',
         'DocumentMerge',
-    ] as const);
+    ]);
     const [lastDistanceExpenseType] = useOnyx(ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE);
     const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${moneyRequestReport?.reportID}`);
     const [transactionDrafts] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {
@@ -393,8 +394,7 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
     const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
-    const isDEWBetaEnabled = isBetaEnabled(CONST.BETAS.NEW_DOT_DEW);
-    const isDEWPolicy = isDEWBetaEnabled && hasDynamicExternalWorkflow(policy);
+    const isDEWPolicy = hasDynamicExternalWorkflow(policy);
     const hasViolations = hasViolationsReportUtils(moneyRequestReport?.reportID, allTransactionViolations, accountID, email ?? '');
     const hasCustomUnitOutOfPolicyViolation = hasCustomUnitOutOfPolicyViolationTransactionUtils(transactionViolations);
     const isPerDiemRequestOnNonDefaultWorkspace = isPerDiemRequest(transaction) && defaultExpensePolicy?.id !== policy?.id;
@@ -817,25 +817,8 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
         isSelectionModePaymentRef.current = false;
     }, [selectedTransactionIDs.length]);
 
-    const showDWEModal = useCallback(async () => {
-        const result = await showConfirmModal({
-            confirmText: translate('customApprovalWorkflow.goToExpensifyClassic'),
-            title: translate('customApprovalWorkflow.title'),
-            prompt: translate('customApprovalWorkflow.description'),
-            shouldShowCancelButton: false,
-        });
-
-        if (result.action === ModalActions.CONFIRM) {
-            openOldDotLink(CONST.OLDDOT_URLS.INBOX);
-        }
-    }, [showConfirmModal, translate]);
-
     const confirmApproval = useCallback(
         (skipAnimation = false) => {
-            if (hasDynamicExternalWorkflow(policy) && !isDEWBetaEnabled) {
-                showDWEModal();
-                return;
-            }
             setRequestType(CONST.IOU.REPORT_ACTION_TYPE.APPROVE);
             if (isDelegateAccessRestricted) {
                 showDelegateNoAccessModal();
@@ -872,8 +855,6 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
         },
         [
             policy,
-            isDEWBetaEnabled,
-            showDWEModal,
             isDelegateAccessRestricted,
             showDelegateNoAccessModal,
             isAnyTransactionOnHold,
@@ -903,10 +884,7 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
             if (!moneyRequestReport || shouldBlockSubmit) {
                 return;
             }
-            if (hasDynamicExternalWorkflow(policy) && !isDEWBetaEnabled) {
-                showDWEModal();
-                return;
-            }
+
             const doSubmit = () => {
                 submitReport({
                     expenseReport: moneyRequestReport,
@@ -946,8 +924,6 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
             moneyRequestReport,
             shouldBlockSubmit,
             policy,
-            isDEWBetaEnabled,
-            showDWEModal,
             startSubmittingAnimation,
             accountID,
             email,
@@ -979,7 +955,7 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
         markAsCashAction(iouTransactionID, reportID, transactionViolations);
     }, [iouTransactionID, requestParentReportAction, transactionThreadReport?.reportID, transactionViolations]);
 
-    const [allPolicyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
+    const [allPolicyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS, {selector: passthroughPolicyTagListSelector});
     const targetPolicyTags = useMemo(
         () => (defaultExpensePolicy ? (allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${defaultExpensePolicy.id}`] ?? {}) : {}),
         [defaultExpensePolicy, allPolicyTags],
@@ -1537,7 +1513,7 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
                         );
                         const transactionID = duplicateTransaction?.transactionID;
                         const iouAction = getIOUActionForReportID(moneyRequestReport?.reportID, transactionID);
-                        const createdTransactionThreadReport = createTransactionThreadReport(introSelected, email ?? '', accountID, moneyRequestReport, iouAction);
+                        const createdTransactionThreadReport = createTransactionThreadReport(introSelected, email ?? '', accountID, betas, moneyRequestReport, iouAction);
                         threadID = createdTransactionThreadReport?.reportID;
                     }
                     Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_PAGE.getRoute(threadID));
@@ -1763,10 +1739,7 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
                 if (!moneyRequestReport) {
                     return;
                 }
-                if (hasDynamicExternalWorkflow(policy) && !isDEWBetaEnabled) {
-                    showDWEModal();
-                    return;
-                }
+
                 confirmPendingRTERAndProceed(() => {
                     submitReport({
                         expenseReport: moneyRequestReport,
@@ -2181,15 +2154,10 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
                     return;
                 }
 
-                if (dismissedRejectUseExplanation) {
-                    if (requestParentReportAction) {
-                        rejectMoneyRequestReason(requestParentReportAction);
-                    }
-                } else {
-                    setRejectModalAction(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.REJECT);
+                if (moneyRequestReport?.reportID) {
+                    Navigation.navigate(ROUTES.REJECT_EXPENSE_REPORT.getRoute(moneyRequestReport.reportID));
                 }
             },
-            shouldShow: transactions.length === 1,
         },
         [CONST.REPORT.SECONDARY_ACTIONS.ADD_EXPENSE]: {
             text: translate('iou.addExpense'),
@@ -2203,7 +2171,7 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
                 if (!moneyRequestReport?.reportID) {
                     return;
                 }
-                if (policy && shouldRestrictUserBillableActions(policy.id, userBillingGraceEndPeriods, undefined, ownerBillingGraceEndPeriod)) {
+                if (policy && shouldRestrictUserBillableActions(policy.id, ownerBillingGraceEndPeriod, userBillingGraceEndPeriods)) {
                     Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
                     return;
                 }
@@ -2478,7 +2446,7 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
         );
     }
 
-    const showNextStepBar = shouldShowNextStep && !!(optimisticNextStep?.message?.length ?? (optimisticNextStep && 'messageKey' in optimisticNextStep));
+    const showNextStepBar = shouldShowNextStep && !!optimisticNextStep && (('message' in optimisticNextStep && !!optimisticNextStep.message?.length) || 'messageKey' in optimisticNextStep);
     const showNextStepSkeleton = shouldShowNextStep && !optimisticNextStep && !!isLoadingInitialReportActions && !isOffline;
     const shouldShowMoreContent = showNextStepBar || showNextStepSkeleton || !!statusBarProps || isReportInSearch;
 

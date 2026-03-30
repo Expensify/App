@@ -6,6 +6,8 @@ import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import Log from '@libs/Log';
 import getStateFromPath from '@libs/Navigation/helpers/getStateFromPath';
 import {isFullScreenName, isSplitNavigatorName} from '@libs/Navigation/helpers/isNavigatorName';
+import isSideModalNavigator from '@libs/Navigation/helpers/isSideModalNavigator';
+import shouldStripRHPOnFullscreenPush from '@libs/Navigation/helpers/shouldStripRHPOnFullscreenPush';
 import {SPLIT_TO_SIDEBAR} from '@libs/Navigation/linkingConfig/RELATIONS';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
@@ -36,6 +38,7 @@ const MODAL_ROUTES_TO_DISMISS = new Set<string>([
     SCREENS.WORKSPACE_AVATAR,
     SCREENS.REPORT_AVATAR,
     SCREENS.CONCIERGE,
+    SCREENS.SEARCH_ROUTER.ROOT,
 ]);
 
 const workspaceOrDomainSplitsWithoutEnteringAnimation = new Set<string>();
@@ -145,7 +148,14 @@ function handlePushFullscreenAction(
 ) {
     const targetScreen = action.payload?.params && 'screen' in action.payload.params ? (action.payload?.params?.screen as string) : undefined;
     const navigatorName = action.payload.name;
-    const adjustedState = getStateWithFilteredPreloadedRoutes(state, navigatorName, targetScreen);
+
+    const lastRoute = state.routes.at(-1);
+
+    // On native, strip the RHP before pushing to prevent react-native-screens from freezing it.
+    const stateWithoutModal =
+        shouldStripRHPOnFullscreenPush && isSideModalNavigator(lastRoute?.name) ? {...state, routes: state.routes.slice(0, -1), index: state.index !== 0 ? state.index - 1 : 0} : state;
+
+    const adjustedState = getStateWithFilteredPreloadedRoutes(stateWithoutModal, navigatorName, targetScreen);
     const stateWithNavigator = stackRouter.getStateForAction(adjustedState, action, configOptions);
 
     if (!stateWithNavigator) {
@@ -203,7 +213,7 @@ function handleReplaceReportsSplitNavigatorAction(
  * that the Home+RHP browser-history entry is stale and correctly replaces it with
  * a new Search entry, producing browser history [Home, Search].
  *
- * The companion history-preservation logic lives in addCustomHistoryRouterExtension
+ * The companion history-preservation logic lives in addRootHistoryRouterExtension
  * which keeps `state.history` unchanged for this action so that no browser history
  * update is triggered during the insert step itself.
  *

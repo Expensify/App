@@ -43,7 +43,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionViolationOfWorkspace from '@hooks/useTransactionViolationOfWorkspace';
 import {isConnectionInProgress} from '@libs/actions/connections';
 import {close} from '@libs/actions/Modal';
-import {clearWorkspaceOwnerChangeFlow, isApprover as isApproverUserAction, requestWorkspaceOwnerChange} from '@libs/actions/Policy/Member';
+import {clearWorkspaceOwnerChangeFlow, requestWorkspaceOwnerChange} from '@libs/actions/Policy/Member';
 import {calculateBillNewDot, clearDeleteWorkspaceError, clearDuplicateWorkspace, clearErrors, deleteWorkspace, leaveWorkspace, removeWorkspace} from '@libs/actions/Policy/Policy';
 import {callFunctionIfActionIsAllowed} from '@libs/actions/Session';
 import {filterInactiveCards} from '@libs/CardUtils';
@@ -59,6 +59,7 @@ import {
     getUberConnectionErrorDirectlyFromPolicy,
     isPendingDeletePolicy,
     isPolicyAdmin,
+    isPolicyApprover,
     isPolicyAuditor,
     shouldBlockWorkspaceDeletionForInvoicifyUser,
     shouldShowEmployeeListError,
@@ -239,6 +240,7 @@ function WorkspacesListPage() {
                 lastUsedPaymentMethods: lastPaymentMethod,
                 localeCompare,
                 personalPolicyID,
+                currentUserAccountID: currentUserPersonalDetails.accountID,
             });
             if (isOffline) {
                 closeModal();
@@ -317,7 +319,7 @@ function WorkspacesListPage() {
         const technicalContact = policyToLeave?.technicalContact;
         const isCurrentUserReimburser = isUserReimburserForPolicy(policies, policyIDToLeave, session?.email);
         const userEmail = session?.email ?? '';
-        const isApprover = isApproverUserAction(policyToLeave, userEmail);
+        const isApprover = isPolicyApprover(policyToLeave, userEmail);
 
         if (isCurrentUserReimburser) {
             return translate('common.leaveWorkspaceReimburser');

@@ -104,6 +104,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
     });
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const isUberConnected = useIsPolicyConnectedToUberReceiptPartner({policyID});
@@ -139,7 +140,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
         'Gears',
         'ReceiptPartners',
         'Clock',
-    ] as const);
+    ]);
 
     const onDisabledOrganizeSwitchPress = useCallback(() => {
         if (!hasAccountingConnection) {
@@ -237,7 +238,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                     if (result.action !== ModalActions.CONFIRM) {
                         return;
                     }
-                    navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, false);
+                    navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas, false);
                 });
             },
             onPress: () => {
@@ -272,7 +273,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                 if (result.action !== ModalActions.CONFIRM) {
                     return;
                 }
-                navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, false);
+                navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas, false);
             });
         },
         onPress: () => {
