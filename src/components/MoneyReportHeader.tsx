@@ -260,6 +260,7 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
     const [csvExportLayouts] = useOnyx(ONYXKEYS.NVP_CSV_EXPORT_LAYOUTS);
     const [selfDMReportID] = useOnyx(ONYXKEYS.SELF_DM_REPORT_ID);
     const [selfDMReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReportID}`);
+    const [defaultP2PMileageRate] = useOnyx(ONYXKEYS.DEFAULT_P2P_MILEAGE_RATE);
     const personalPolicy = usePersonalPolicy();
 
     const expensifyIcons = useMemoizedLazyExpensifyIcons([
@@ -1867,7 +1868,7 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
                     return;
                 }
 
-                initSplitExpense(currentTransaction, policy);
+                initSplitExpense(currentTransaction, policy, defaultP2PMileageRate);
             },
         },
         [CONST.REPORT.SECONDARY_ACTIONS.MERGE]: {
@@ -2090,6 +2091,7 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
                             translate,
                             toLocaleDigit,
                             hash: currentSearchHash,
+                            defaultP2PMileageRate,
                         });
                     });
                 });

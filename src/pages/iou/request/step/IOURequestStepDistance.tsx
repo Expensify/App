@@ -98,6 +98,7 @@ function IOURequestStepDistance({
     const [ownerBillingGraceEndPeriod] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const [skipConfirmation] = useOnyx(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${transactionID}`);
     const [lastSelectedDistanceRates] = useOnyx(ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES);
+    const [defaultP2PMileageRate] = useOnyx(ONYXKEYS.DEFAULT_P2P_MILEAGE_RATE);
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
     const [optimisticWaypoints, setOptimisticWaypoints] = useState<WaypointCollection | null>(null);
     const [policyRecentlyUsedCurrencies] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES);
@@ -187,7 +188,7 @@ function IOURequestStepDistance({
             const mileageRates = DistanceRequestUtils.getMileageRates(policy);
             const defaultMileageRate = DistanceRequestUtils.getDefaultMileageRate(policy);
             const mileageRate: MileageRate | undefined = isCustomUnitRateIDForP2P(transaction)
-                ? DistanceRequestUtils.getRateForP2P(policyCurrency, transaction)
+                ? DistanceRequestUtils.getRateForP2P(policyCurrency, transaction, defaultP2PMileageRate)
                 : // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                   (customUnitRateID && mileageRates?.[customUnitRateID]) || defaultMileageRate;
 
@@ -202,7 +203,7 @@ function IOURequestStepDistance({
                 setSplitShares(transaction, amount, currency ?? '', participantAccountIDs ?? []);
             }
         },
-        [policy, personalPolicy?.outputCurrency, transaction, customUnitRateID, transactionID, isSplitRequest],
+        [policy, personalPolicy?.outputCurrency, transaction, customUnitRateID, transactionID, isSplitRequest, defaultP2PMileageRate],
     );
 
     // For quick button actions, we'll skip the confirmation page unless the report is archived or this is a workspace
@@ -341,6 +342,7 @@ function IOURequestStepDistance({
             isSelfTourViewed: !!isSelfTourViewed,
             amountOwed,
             ownerBillingGraceEndPeriod,
+            defaultP2PMileageRate,
         });
     }, [
         iouType,
@@ -379,6 +381,7 @@ function IOURequestStepDistance({
         isSelfTourViewed,
         amountOwed,
         ownerBillingGraceEndPeriod,
+        defaultP2PMileageRate,
     ]);
 
     const getError = () => {
@@ -450,6 +453,7 @@ function IOURequestStepDistance({
                     originalSplitTransactionDraft,
                     {waypoints: currentTransaction?.comment?.waypoints, routes: currentTransaction?.routes},
                     policy,
+                    defaultP2PMileageRate,
                 );
                 navigateBack();
                 return;
@@ -517,6 +521,7 @@ function IOURequestStepDistance({
         currentUserEmailParam,
         isASAPSubmitBetaEnabled,
         parentReportNextStep,
+        defaultP2PMileageRate,
     ]);
 
     const renderItem = useCallback(

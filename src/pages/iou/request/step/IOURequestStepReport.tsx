@@ -94,6 +94,7 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
     const perDiemOriginalPolicy = getPolicyByCustomUnitID(transaction, allPolicies);
     const [transactions] = useOptimisticDraftTransactions(transaction);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [defaultP2PMileageRate] = useOnyx(ONYXKEYS.DEFAULT_P2P_MILEAGE_RATE);
     const handleGoBack = () => {
         if (isEditing) {
             Navigation.dismissToSuperWideRHP();
@@ -187,6 +188,7 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
                         allTransactions,
                         translate,
                         toLocaleDigit,
+                        defaultP2PMileageRate,
                     });
                     removeTransaction(transaction.transactionID);
                 }
@@ -233,6 +235,7 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
                 allTransactions,
                 translate,
                 toLocaleDigit,
+                defaultP2PMileageRate,
             });
             removeTransaction(transaction.transactionID);
         });

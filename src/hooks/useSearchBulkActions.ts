@@ -109,6 +109,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     const [csvExportLayouts] = useOnyx(ONYXKEYS.NVP_CSV_EXPORT_LAYOUTS);
     const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
+    const [defaultP2PMileageRate] = useOnyx(ONYXKEYS.DEFAULT_P2P_MILEAGE_RATE);
     const personalPolicy = usePersonalPolicy();
     const [userBillingGraceEndPeriods] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [ownerBillingGraceEndPeriod] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
@@ -478,6 +479,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                             translate,
                             toLocaleDigit,
                             hash,
+                            defaultP2PMileageRate,
                         });
                     }
                 } else {
@@ -498,6 +500,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                         toLocaleDigit,
                         transactions,
                         allReportNameValuePairs,
+                        defaultP2PMileageRate,
                     });
                 }
                 clearSelectedTransactions();
@@ -525,6 +528,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         isExpenseReportType,
         selectedReportIDs,
         allReportNameValuePairs,
+        defaultP2PMileageRate,
     ]);
 
     const onBulkPaySelected = useCallback(
@@ -1137,7 +1141,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 icon: expensifyIcons.ArrowSplit,
                 value: CONST.SEARCH.BULK_ACTION_TYPES.SPLIT,
                 onSelected: () => {
-                    initSplitExpense(firstTransaction, firstTransactionPolicy);
+                    initSplitExpense(firstTransaction, firstTransactionPolicy, defaultP2PMileageRate);
                 },
             });
         }
@@ -1243,6 +1247,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         userBillingGraceEndPeriods,
         ownerBillingGraceEndPeriod,
         currentSearchKey,
+        defaultP2PMileageRate,
     ]);
 
     const handleOfflineModalClose = useCallback(() => {

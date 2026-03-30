@@ -67,6 +67,7 @@ import type {
     TransactionViolation,
     TransactionViolations,
 } from '@src/types/onyx';
+import type DefaultP2PMileageRate from '@src/types/onyx/DefaultP2PMileageRate';
 import type {OriginalMessageIOU, OriginalMessageModifiedExpense} from '@src/types/onyx/OriginalMessage';
 import type {OnyxData} from '@src/types/onyx/Request';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
@@ -833,6 +834,10 @@ function openDraftDistanceExpense() {
     API.read(READ_COMMANDS.OPEN_DRAFT_DISTANCE_EXPENSE, null, onyxData);
 }
 
+function getDefaultP2PMileageRate() {
+    API.read(READ_COMMANDS.GET_DEFAULT_P2P_MILEAGE_RATE, {});
+}
+
 /**
  * Returns a client generated 16 character hexadecimal value for the transactionID
  */
@@ -856,6 +861,7 @@ type ChangeTransactionsReportProps = {
     allTransactions: OnyxCollection<Transaction>;
     translate: LocaleContextProps['translate'];
     toLocaleDigit: LocaleContextProps['toLocaleDigit'];
+    defaultP2PMileageRate?: DefaultP2PMileageRate;
 };
 
 function changeTransactionsReport({
@@ -870,6 +876,7 @@ function changeTransactionsReport({
     allTransactions,
     translate,
     toLocaleDigit,
+    defaultP2PMileageRate,
 }: ChangeTransactionsReportProps) {
     const reportID = newReport?.reportID ?? CONST.REPORT.UNREPORTED_REPORT_ID;
 
@@ -1056,7 +1063,7 @@ function changeTransactionsReport({
         };
 
         const {comment, modifiedAmount, modifiedCurrency, modifiedMerchant} = isUnreported
-            ? recalculateUnreportedTransactionDetails(transaction, destinationCurrency, translate, toLocaleDigit)
+            ? recalculateUnreportedTransactionDetails(transaction, destinationCurrency, translate, toLocaleDigit, defaultP2PMileageRate)
             : {};
 
         // 1. Optimistically update the transaction with full data and changed fields.
@@ -1686,6 +1693,7 @@ export {
     setReviewDuplicatesKey,
     abandonReviewDuplicateTransactions,
     openDraftDistanceExpense,
+    getDefaultP2PMileageRate,
     sanitizeWaypointsForAPI,
     stringifyWaypointsForAPI,
     getLastModifiedExpense,

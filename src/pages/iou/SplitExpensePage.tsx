@@ -162,6 +162,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const [defaultP2PMileageRate] = useOnyx(ONYXKEYS.DEFAULT_P2P_MILEAGE_RATE);
     const icons = useMemoizedLazyExpensifyIcons(['ArrowsLeftRight', 'Plus']);
 
     const {isBetaEnabled} = usePermissions();
@@ -181,7 +182,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
             if (isSplitDistance) {
                 const currentRateID = splitExpense?.customUnit?.customUnitRateID ?? String(CONST.DEFAULT_NUMBER_ID);
                 const rates = DistanceRequestUtils.getMileageRates(currentPolicy, false, currentRateID);
-                const {rate} = DistanceRequestUtils.getRate({transaction: splitTransaction, policy: currentPolicy});
+                const {rate} = DistanceRequestUtils.getRate({transaction: splitTransaction, policy: currentPolicy, defaultP2PMileageRate});
                 if (!rates[currentRateID] || !rate) {
                     isUnitRateIDOutOfPolicy = true;
                 }
@@ -205,14 +206,14 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
         if (draftTransaction?.errors) {
             clearSplitTransactionDraftErrors(transactionID);
         }
-        addSplitExpenseField(transaction, draftTransaction, transactionReport, currentPolicy);
+        addSplitExpenseField(transaction, draftTransaction, transactionReport, currentPolicy, defaultP2PMileageRate);
     };
 
     const onMakeSplitsEven = () => {
         if (!draftTransaction) {
             return;
         }
-        evenlyDistributeSplitExpenseAmounts(draftTransaction, transaction, currentPolicy);
+        evenlyDistributeSplitExpenseAmounts(draftTransaction, transaction, currentPolicy, defaultP2PMileageRate);
     };
 
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(expenseReport?.policyID)}`);
@@ -326,10 +327,10 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
     const onSplitExpenseValueChange = (id: string, value: number, mode: ValueOf<typeof CONST.TAB.SPLIT>) => {
         if (mode === CONST.TAB.SPLIT.AMOUNT || mode === CONST.TAB.SPLIT.DATE) {
             const amountInCents = convertToBackendAmount(value);
-            updateSplitExpenseAmountField(draftTransaction, id, amountInCents, currentPolicy);
+            updateSplitExpenseAmountField(draftTransaction, id, amountInCents, currentPolicy, defaultP2PMileageRate);
         } else {
             const amountInCents = calculateSplitAmountFromPercentage(transactionDetailsAmount, value);
-            updateSplitExpenseAmountField(draftTransaction, id, amountInCents, currentPolicy);
+            updateSplitExpenseAmountField(draftTransaction, id, amountInCents, currentPolicy, defaultP2PMileageRate);
         }
     };
 

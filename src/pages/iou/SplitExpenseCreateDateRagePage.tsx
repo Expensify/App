@@ -51,9 +51,10 @@ function SplitExpenseCreateDateRagePage({route}: SplitExpenseCreateDateRagePageP
         ? policy
         : currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(currentReport?.policyID)}`];
     const {login, accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
+    const [defaultP2PMileageRate] = useOnyx(ONYXKEYS.DEFAULT_P2P_MILEAGE_RATE);
 
     const updateDate = (value: FormOnyxValues<typeof ONYXKEYS.FORMS.SPLIT_EXPENSE_EDIT_DATES>) => {
-        resetSplitExpensesByDateRange(transaction, currentReport, value[INPUT_IDS.START_DATE], value[INPUT_IDS.END_DATE], currentPolicy);
+        resetSplitExpensesByDateRange(transaction, currentReport, value[INPUT_IDS.START_DATE], value[INPUT_IDS.END_DATE], currentPolicy, defaultP2PMileageRate);
         Navigation.goBack(backTo);
     };
 

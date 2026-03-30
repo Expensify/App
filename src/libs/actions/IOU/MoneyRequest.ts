@@ -34,6 +34,7 @@ import type {
     Transaction,
     TransactionViolation,
 } from '@src/types/onyx';
+import type DefaultP2PMileageRate from '@src/types/onyx/DefaultP2PMileageRate';
 import type {ReportAttributes, ReportAttributesDerivedValue} from '@src/types/onyx/DerivedValues';
 import type {Participant} from '@src/types/onyx/IOU';
 import type {Unit} from '@src/types/onyx/Policy';
@@ -175,6 +176,7 @@ type MoneyRequestStepDistanceNavigationParams = {
     isSelfTourViewed: boolean;
     amountOwed: OnyxEntry<number>;
     ownerBillingGraceEndPeriod?: OnyxEntry<number>;
+    defaultP2PMileageRate?: DefaultP2PMileageRate;
 };
 
 function createTransaction({
@@ -594,6 +596,7 @@ function handleMoneyRequestStepDistanceNavigation({
     isSelfTourViewed,
     amountOwed,
     ownerBillingGraceEndPeriod,
+    defaultP2PMileageRate,
 }: MoneyRequestStepDistanceNavigationParams) {
     const isManualDistance = manualDistance !== undefined;
     const isOdometerDistance = odometerDistance !== undefined;
@@ -643,7 +646,7 @@ function handleMoneyRequestStepDistanceNavigation({
             let merchant = translate('iou.fieldPending');
             if (isManualDistance && distance !== undefined && unit) {
                 const distanceInMeters = DistanceRequestUtils.convertToDistanceInMeters(distance, unit);
-                const mileageRate = DistanceRequestUtils.getRate({transaction, policy});
+                const mileageRate = DistanceRequestUtils.getRate({transaction, policy, defaultP2PMileageRate});
                 amount = DistanceRequestUtils.getDistanceRequestAmount(distanceInMeters, unit, mileageRate?.rate ?? 0);
                 merchant = DistanceRequestUtils.getDistanceMerchant(
                     true,
@@ -767,7 +770,7 @@ function handleMoneyRequestStepDistanceNavigation({
         // and because of this this report is converted to selfDM here
         if (isSelfDMReport && distance !== undefined && unit) {
             const personalCurrency = personalOutputCurrency ?? CONST.CURRENCY.USD;
-            const personalDistanceUnit = DistanceRequestUtils.getRateForP2P(personalCurrency, transaction).unit;
+            const personalDistanceUnit = DistanceRequestUtils.getRateForP2P(personalCurrency, transaction, defaultP2PMileageRate).unit;
             const distanceInMeters = DistanceRequestUtils.convertToDistanceInMeters(distance, unit);
             const distanceUsingPersonalDistanceUnit = roundToTwoDecimalPlaces(DistanceRequestUtils.convertDistanceUnit(distanceInMeters, personalDistanceUnit));
             setMoneyRequestDistance(transactionID, distanceUsingPersonalDistanceUnit, true, personalDistanceUnit);

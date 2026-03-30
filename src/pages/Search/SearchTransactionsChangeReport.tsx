@@ -52,6 +52,7 @@ function SearchTransactionsChangeReport() {
     const [userBillingGraceEndPeriods] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [ownerBillingGraceEndPeriod] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [defaultP2PMileageRate] = useOnyx(ONYXKEYS.DEFAULT_P2P_MILEAGE_RATE);
     const hasPerDiemTransactions = useHasPerDiemTransactions(selectedTransactionsKeys);
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const {isBetaEnabled} = usePermissions();
@@ -119,6 +120,7 @@ function SearchTransactionsChangeReport() {
                 allTransactions: transactions,
                 translate,
                 toLocaleDigit,
+                defaultP2PMileageRate,
             });
             clearSelectedTransactions();
         });
@@ -163,6 +165,7 @@ function SearchTransactionsChangeReport() {
             allTransactions: transactions,
             translate,
             toLocaleDigit,
+            defaultP2PMileageRate,
         });
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
@@ -185,6 +188,7 @@ function SearchTransactionsChangeReport() {
             allTransactions: transactions,
             translate,
             toLocaleDigit,
+            defaultP2PMileageRate,
         });
         clearSelectedTransactions();
         Navigation.goBack();

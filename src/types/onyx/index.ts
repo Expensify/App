@@ -42,6 +42,7 @@ import type Credentials from './Credentials';
 import type Currency from './Currency';
 import type {CurrencyList} from './Currency';
 import type CustomStatusDraft from './CustomStatusDraft';
+import type DefaultP2PMileageRate from './DefaultP2PMileageRate';
 import type {
     CardFeedErrorsDerivedValue,
     NonPersonalAndWorkspaceCardListDerivedValue,
@@ -207,6 +208,7 @@ export type {
     Currency,
     CurrencyList,
     CustomStatusDraft,
+    DefaultP2PMileageRate,
     UnshareBankAccount,
     DismissedReferralBanners,
     Domain,
