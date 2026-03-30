@@ -52,7 +52,7 @@ const defaultSearchContextData: SearchContextData = {
     currentSearchHash: -1,
     currentSimilarSearchHash: -1,
     suggestedSearches: {} as Record<SearchKey, SearchTypeMenuItem>,
-    sortedReportIDs: [],
+    sortedReportIDs: CONST.EMPTY_ARRAY,
 };
 
 const defaultSearchStateContext: SearchStateContextValue = {
@@ -297,7 +297,7 @@ function SearchContextProvider({children}: SearchContextProps) {
         }));
     }, []);
 
-    const setSortedReportIDs = (newIDs: Array<string | undefined>) => {
+    const setSortedReportIDs = (newIDs: ReadonlyArray<string | undefined>) => {
         setSearchContextData((prev) => {
             // ensure that we don't save the same report IDs unless they are really different
             const hasChanged = prev.sortedReportIDs.length !== newIDs.length || prev.sortedReportIDs.some((id, i) => id !== newIDs.at(i));
