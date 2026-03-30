@@ -2569,7 +2569,6 @@ function getValidOptions(
                 sortedActions,
                 visibleReportActionsData,
                 reportAttributesDerived,
-
                 allPolicyTags,
             ).at(0);
         }

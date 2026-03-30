@@ -7691,4 +7691,201 @@ describe('OptionsListUtils', () => {
             expect(resultOption?.lastIOUCreationDate).toBeUndefined();
         });
     });
+
+    describe('getSearchOptions with sortedActions', () => {
+        it('should forward sortedActions through getSearchOptions without errors', async () => {
+            const reportID = 'search-sorted-1';
+            const iouReportID = 'search-iou-1';
+
+            const report: Report = {
+                ...createRegularChat(Number(reportID), [1]),
+                reportID,
+                reportName: 'Search Sorted Test',
+                lastVisibleActionCreated: '2025-06-15 10:00:00.000',
+                lastActorAccountID: 1,
+                lastMessageText: 'Test',
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, report);
+            await waitForBatchedUpdates();
+
+            const reportPreviewAction: ReportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+                originalMessage: {linkedReportID: iouReportID},
+            } as ReportAction;
+
+            const iouAction: ReportAction = {
+                ...createRandomReportAction(2),
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                lastModified: '2025-06-15 10:30:00.000',
+            } as ReportAction;
+
+            const inputOption: SearchOption<Report> = {
+                item: report,
+                reportID,
+                text: 'Search Sorted Test',
+                isUnread: false,
+                participantsList: [],
+                keyForList: reportID,
+                isChatRoom: true,
+                policyID: '123',
+                lastMessageText: 'Test',
+                lastVisibleActionCreated: report.lastVisibleActionCreated,
+                notificationPreference: 'always',
+                accountID: 0,
+                login: '',
+                alternateText: '',
+                subtitle: '',
+                firstName: '',
+                lastName: '',
+                icons: [],
+                isSelected: false,
+                isDisabled: false,
+                brickRoadIndicator: null,
+                isBold: false,
+            };
+
+            const sortedActions = {
+                [reportID]: [reportPreviewAction],
+                [iouReportID]: [iouAction],
+            };
+
+            const results = getSearchOptions({
+                options: {reports: [inputOption], personalDetails: []},
+                draftComments: {},
+                nvpDismissedProductTraining,
+                betas: [CONST.BETAS.ALL],
+                loginList,
+                policyCollection: allPolicies,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                currentUserEmail: CURRENT_USER_EMAIL,
+                sortedActions,
+            });
+
+            expect(results.recentReports.length).toBe(1);
+        });
+
+        it('should handle undefined sortedActions via getSearchOptions', async () => {
+            const reportID = 'search-sorted-2';
+
+            const report: Report = {
+                ...createRegularChat(Number(reportID), [1]),
+                reportID,
+                reportName: 'Search Sorted Test 2',
+                lastVisibleActionCreated: '2025-06-15 10:00:00.000',
+                lastActorAccountID: 1,
+                lastMessageText: 'Test',
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, report);
+            await waitForBatchedUpdates();
+
+            const inputOption: SearchOption<Report> = {
+                item: report,
+                reportID,
+                text: 'Search Sorted Test 2',
+                isUnread: false,
+                participantsList: [],
+                keyForList: reportID,
+                isChatRoom: true,
+                policyID: '123',
+                lastMessageText: 'Test',
+                lastVisibleActionCreated: report.lastVisibleActionCreated,
+                notificationPreference: 'always',
+                accountID: 0,
+                login: '',
+                alternateText: '',
+                subtitle: '',
+                firstName: '',
+                lastName: '',
+                icons: [],
+                isSelected: false,
+                isDisabled: false,
+                brickRoadIndicator: null,
+                isBold: false,
+            };
+
+            const results = getSearchOptions({
+                options: {reports: [inputOption], personalDetails: []},
+                draftComments: {},
+                nvpDismissedProductTraining,
+                betas: [CONST.BETAS.ALL],
+                loginList,
+                policyCollection: allPolicies,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                currentUserEmail: CURRENT_USER_EMAIL,
+                sortedActions: undefined,
+            });
+
+            expect(results.recentReports.length).toBe(1);
+            expect(results.recentReports.at(0)?.lastIOUCreationDate).toBeUndefined();
+        });
+
+        it('should use sortedActions for unread computation with shouldUnreadBeBold on IOU reports', async () => {
+            const reportID = 'search-sorted-3';
+
+            const report: Report = {
+                ...createRegularChat(Number(reportID), [1]),
+                reportID,
+                reportName: 'Search IOU Test',
+                lastVisibleActionCreated: '2025-06-15 10:00:00.000',
+                lastActorAccountID: 1,
+                lastMessageText: 'Test',
+                type: CONST.REPORT.TYPE.IOU,
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, report);
+            await waitForBatchedUpdates();
+
+            const iouAction: ReportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+            } as ReportAction;
+
+            const inputOption: SearchOption<Report> = {
+                item: report,
+                reportID,
+                text: 'Search IOU Test',
+                isUnread: true,
+                participantsList: [],
+                keyForList: reportID,
+                isChatRoom: false,
+                policyID: '123',
+                lastMessageText: 'Test',
+                lastVisibleActionCreated: report.lastVisibleActionCreated,
+                notificationPreference: 'always',
+                accountID: 0,
+                login: '',
+                alternateText: '',
+                subtitle: '',
+                firstName: '',
+                lastName: '',
+                icons: [],
+                isSelected: false,
+                isDisabled: false,
+                brickRoadIndicator: null,
+                isBold: false,
+            };
+
+            const sortedActions = {
+                [reportID]: [iouAction],
+            };
+
+            const results = getSearchOptions({
+                options: {reports: [inputOption], personalDetails: []},
+                draftComments: {},
+                nvpDismissedProductTraining,
+                betas: [CONST.BETAS.ALL],
+                loginList,
+                policyCollection: allPolicies,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                currentUserEmail: CURRENT_USER_EMAIL,
+                shouldUnreadBeBold: true,
+                sortedActions,
+            });
+
+            expect(results.recentReports.length).toBe(1);
+        });
+    });
 });
