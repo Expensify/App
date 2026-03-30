@@ -11,6 +11,7 @@ import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
+import useEnvironment from '@hooks/useEnvironment';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -30,6 +31,7 @@ function SpendRulesSection({policyID}: SpendRulesSectionProps) {
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Lock', 'Plus']);
     const {showConfirmModal} = useConfirmModal();
     const illustrations = useMemoizedLazyIllustrations(['ExpensifyCardProtectionIllustration']);
+    const {isDevelopment} = useEnvironment();
 
     const showBuiltInProtectionModal = () => {
         showConfirmModal({
@@ -112,7 +114,7 @@ function SpendRulesSection({policyID}: SpendRulesSectionProps) {
                 onPress={showBuiltInProtectionModal}
                 shouldShowRightIcon
             />
-            <MenuItem
+            {isDevelopment && <MenuItem
                 title={translate('workspace.rules.spendRules.addSpendRule')}
                 titleStyle={styles.textStrong}
                 icon={expensifyIcons.Plus}
@@ -121,7 +123,7 @@ function SpendRulesSection({policyID}: SpendRulesSectionProps) {
                 style={[styles.sectionMenuItemTopDescription, styles.mt6, styles.mbn3]}
                 onPress={() => Navigation.navigate(ROUTES.RULES_SPEND_NEW.getRoute(policyID))}
                 sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.ADD_SPEND_RULE}
-            />
+            />}
         </Section>
     );
 }
