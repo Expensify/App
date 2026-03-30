@@ -403,8 +403,9 @@ Onyx.connect({
 
 const typingWatchTimers: Record<string, NodeJS.Timeout> = {};
 
-// Track subscriptions to conciergeReasoning Pusher events to avoid duplicates
-const reasoningSubscriptions = new Set<string>();
+// Track subscriptions to conciergeReasoning Pusher events to avoid duplicates.
+// Maps reportID to the PusherSubscription handle for proper per-callback cleanup.
+const reasoningSubscriptions = new Map<string, ReturnType<typeof Pusher.subscribe>>();
 
 let reportIDDeeplinkedFromOldDot: string | undefined;
 Linking.getInitialURL().then((url) => {
@@ -594,10 +595,7 @@ function subscribeToReportReasoningEvents(reportID: string) {
 
     const pusherChannelName = getReportChannelName(reportID);
 
-    // Add to subscriptions immediately to prevent duplicate subscriptions
-    reasoningSubscriptions.add(reportID);
-
-    Pusher.subscribe(pusherChannelName, Pusher.TYPE.CONCIERGE_REASONING, (data: Record<string, unknown>) => {
+    const handle = Pusher.subscribe(pusherChannelName, Pusher.TYPE.CONCIERGE_REASONING, (data: Record<string, unknown>) => {
         const eventData = data as {reasoning: string; agentZeroRequestID: string; loopCount: number};
 
         ConciergeReasoningStore.addReasoning(reportID, {
@@ -605,7 +603,12 @@ function subscribeToReportReasoningEvents(reportID: string) {
             agentZeroRequestID: eventData.agentZeroRequestID,
             loopCount: eventData.loopCount,
         });
-    }).catch((error: ReportError) => {
+    });
+
+    // Store the handle immediately to prevent duplicate subscriptions
+    reasoningSubscriptions.set(reportID, handle);
+
+    handle.catch((error: ReportError) => {
         Log.hmmm('[Report] Failed to subscribe to Pusher concierge reasoning events', {errorType: error.type, pusherChannelName, reportID});
         // Remove from subscriptions if subscription failed
         reasoningSubscriptions.delete(reportID);
@@ -617,12 +620,14 @@ function subscribeToReportReasoningEvents(reportID: string) {
  * Clears reasoning state and removes from subscription tracking.
  */
 function unsubscribeFromReportReasoningChannel(reportID: string) {
-    if (!reportID || !reasoningSubscriptions.has(reportID)) {
+    const handle = reasoningSubscriptions.get(reportID);
+    if (!reportID || !handle) {
         return;
     }
 
-    const pusherChannelName = getReportChannelName(reportID);
-    Pusher.unsubscribe(pusherChannelName, Pusher.TYPE.CONCIERGE_REASONING);
+    // Use the per-callback handle for precise cleanup instead of the global
+    // Pusher.unsubscribe which removes ALL callbacks for the event on the channel.
+    handle.unsubscribe();
     ConciergeReasoningStore.clearReasoning(reportID);
     reasoningSubscriptions.delete(reportID);
 }

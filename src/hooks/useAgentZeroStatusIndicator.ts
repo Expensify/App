@@ -1,4 +1,4 @@
-import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import {useEffect, useRef, useState, useSyncExternalStore} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {clearAgentZeroProcessingIndicator, getNewerActions, subscribeToReportReasoningEvents, unsubscribeFromReportReasoningChannel} from '@libs/actions/Report';
 import ConciergeReasoningStore from '@libs/ConciergeReasoningStore';
@@ -73,9 +73,11 @@ function useAgentZeroStatusIndicator(reportID: string, isAgentZeroChat: boolean)
         newestReportActionRef.current = newestReportAction;
     }, [newestReportAction]);
 
-    const [optimisticStartTime, setOptimisticStartTime] = useState<number | null>(null);
+    // Track pending optimistic requests with a counter instead of a single timestamp.
+    // Each kickoffWaitingIndicator() call increments the counter; each Concierge reply
+    // decrements it. The indicator stays active until all pending requests are resolved.
+    const [pendingOptimisticRequests, setPendingOptimisticRequests] = useState(0);
     const [displayedLabel, setDisplayedLabel] = useState<string>('');
-    const [reasoningHistory, setReasoningHistory] = useState<ReasoningEntry[]>([]);
     const {translate} = useLocalize();
     const prevServerLabelRef = useRef<string>(serverLabel);
     const updateTimerRef = useRef<NodeJS.Timeout | null>(null);
@@ -93,7 +95,7 @@ function useAgentZeroStatusIndicator(reportID: string, isAgentZeroChat: boolean)
      * Clear the polling interval and safety timer. Called when the indicator clears normally,
      * when a new processing cycle starts, or when the component unmounts.
      */
-    const clearPolling = useCallback(() => {
+    const clearPolling = () => {
         if (pollIntervalRef.current) {
             clearInterval(pollIntervalRef.current);
             pollIntervalRef.current = null;
@@ -102,23 +104,23 @@ function useAgentZeroStatusIndicator(reportID: string, isAgentZeroChat: boolean)
             clearTimeout(pollSafetyTimerRef.current);
             pollSafetyTimerRef.current = null;
         }
-    }, []);
+    };
 
     /**
      * Hard-clear the indicator by resetting local state and clearing the Onyx NVP.
      * Called as a safety net after MAX_POLL_DURATION_MS if no response has arrived.
      */
-    const hardClearIndicator = useCallback(() => {
+    const hardClearIndicator = () => {
         // If offline, don't clear — the response may arrive when reconnected
         if (isOfflineRef.current) {
             return;
         }
         clearPolling();
-        setOptimisticStartTime(null);
+        setPendingOptimisticRequests(0);
         setDisplayedLabel('');
         clearAgentZeroProcessingIndicator(reportID);
         getNewerActions(reportID, newestReportActionRef.current?.reportActionID);
-    }, [reportID, clearPolling]);
+    };
 
     /**
      * Start polling for missed actions every POLL_INTERVAL_MS. Every time processing
@@ -130,7 +132,7 @@ function useAgentZeroStatusIndicator(reportID: string, isAgentZeroChat: boolean)
      *
      * Polling stops when: indicator clears, component unmounts, or user goes offline.
      */
-    const startPolling = useCallback(() => {
+    const startPolling = () => {
         clearPolling();
 
         // Poll every 30s for missed actions. Track the newest action ID before polling
@@ -149,6 +151,7 @@ function useAgentZeroStatusIndicator(reportID: string, isAgentZeroChat: boolean)
             if (didConciergeReplyAfterPollingStarted) {
                 clearAgentZeroProcessingIndicator(reportID);
                 clearPolling();
+                setPendingOptimisticRequests(0);
                 return;
             }
             getNewerActions(reportID, currentNewestReportAction?.reportActionID);
@@ -158,14 +161,14 @@ function useAgentZeroStatusIndicator(reportID: string, isAgentZeroChat: boolean)
         pollSafetyTimerRef.current = setTimeout(() => {
             hardClearIndicator();
         }, MAX_POLL_DURATION_MS);
-    }, [clearPolling, hardClearIndicator, reportID]);
+    };
 
     // On reconnect, fetch missed actions if the indicator is still active.
     // Do not clear locally just because the socket recovered, and do not restart polling here:
     // the existing poll cycle keeps the original action baseline needed to detect a missed Concierge reply.
     const {isOffline} = useNetwork({
         onReconnect: () => {
-            if (!serverLabel && !optimisticStartTime) {
+            if (!serverLabel && pendingOptimisticRequests === 0) {
                 return;
             }
             // Fetch missed actions AND start polling to detect when the Concierge response arrives.
@@ -176,20 +179,19 @@ function useAgentZeroStatusIndicator(reportID: string, isAgentZeroChat: boolean)
         },
     });
 
-    useEffect(() => {
-        setReasoningHistory(ConciergeReasoningStore.getReasoningHistory(reportID));
-    }, [reportID]);
-
-    useEffect(() => {
-        const unsubscribe = ConciergeReasoningStore.subscribe((updatedReportID, entries) => {
+    // Subscribe to ConciergeReasoningStore using useSyncExternalStore for
+    // correct synchronization with React's render cycle.
+    const subscribeToReasoningStore = (onStoreChange: () => void) => {
+        const unsubscribe = ConciergeReasoningStore.subscribe((updatedReportID) => {
             if (updatedReportID !== reportID) {
                 return;
             }
-            setReasoningHistory(entries);
+            onStoreChange();
         });
-
         return unsubscribe;
-    }, [reportID]);
+    };
+    const getReasoningSnapshot = () => ConciergeReasoningStore.getReasoningHistory(reportID);
+    const reasoningHistory = useSyncExternalStore(subscribeToReasoningStore, getReasoningSnapshot, getReasoningSnapshot);
 
     useEffect(() => {
         if (!isAgentZeroChat) {
@@ -245,12 +247,12 @@ function useAgentZeroStatusIndicator(reportID: string, isAgentZeroChat: boolean)
         if (hasServerLabel) {
             updateLabel(serverLabel);
             startPolling();
-            if (optimisticStartTime) {
-                setOptimisticStartTime(null);
+            if (pendingOptimisticRequests > 0) {
+                setPendingOptimisticRequests(0);
             }
         }
         // When optimistic state is active but no server label, show "Concierge is thinking..."
-        else if (optimisticStartTime) {
+        else if (pendingOptimisticRequests > 0) {
             const thinkingLabel = translate('common.thinking');
             updateLabel(thinkingLabel);
             // Polling was already started in kickoffWaitingIndicator
@@ -276,7 +278,8 @@ function useAgentZeroStatusIndicator(reportID: string, isAgentZeroChat: boolean)
             }
             clearTimeout(updateTimerRef.current);
         };
-    }, [serverLabel, reasoningHistory.length, reportID, optimisticStartTime, translate, displayedLabel, startPolling, clearPolling]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- startPolling/clearPolling are plain functions stable via React Compiler
+    }, [serverLabel, reasoningHistory.length, reportID, pendingOptimisticRequests, translate, displayedLabel]);
 
     useEffect(() => {
         isOfflineRef.current = isOffline;
@@ -287,16 +290,17 @@ function useAgentZeroStatusIndicator(reportID: string, isAgentZeroChat: boolean)
         () => () => {
             clearPolling();
         },
-        [clearPolling],
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        [],
     );
 
-    const kickoffWaitingIndicator = useCallback(() => {
+    const kickoffWaitingIndicator = () => {
         if (!isAgentZeroChat) {
             return;
         }
-        setOptimisticStartTime(Date.now());
+        setPendingOptimisticRequests((prev) => prev + 1);
         startPolling();
-    }, [isAgentZeroChat, startPolling]);
+    };
 
     // Immediately clear the indicator when a Concierge response arrives while processing.
     // This eliminates the 30s delay waiting for the next poll cycle to detect it.
@@ -305,24 +309,22 @@ function useAgentZeroStatusIndicator(reportID: string, isAgentZeroChat: boolean)
         if (newestActorAccountID !== CONST.ACCOUNT_ID.CONCIERGE) {
             return;
         }
-        if (!serverLabel && !optimisticStartTime) {
+        if (!serverLabel && pendingOptimisticRequests === 0) {
             return;
         }
         clearAgentZeroProcessingIndicator(reportID);
         clearPolling();
-    }, [newestActorAccountID, serverLabel, optimisticStartTime, reportID, clearPolling]);
+        setPendingOptimisticRequests(0);
+    }, [newestActorAccountID, serverLabel, pendingOptimisticRequests, reportID]);
 
-    const isProcessing = isAgentZeroChat && !isOffline && (!!serverLabel || !!optimisticStartTime);
+    const isProcessing = isAgentZeroChat && !isOffline && (!!serverLabel || pendingOptimisticRequests > 0);
 
-    return useMemo(
-        () => ({
-            isProcessing,
-            reasoningHistory,
-            statusLabel: displayedLabel,
-            kickoffWaitingIndicator,
-        }),
-        [isProcessing, reasoningHistory, displayedLabel, kickoffWaitingIndicator],
-    );
+    return {
+        isProcessing,
+        reasoningHistory,
+        statusLabel: displayedLabel,
+        kickoffWaitingIndicator,
+    };
 }
 
 export default useAgentZeroStatusIndicator;
