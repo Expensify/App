@@ -996,6 +996,7 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
         case 'convertedTaxAmount':
         case 'groupAmount':
         case 'groupExchangeRate':
+        case 'currencyConversionRate':
             return validateNumber(value);
         case 'iouRequestType':
             return validateConstantEnum(value, CONST.IOU.REQUEST_TYPE);
@@ -1130,6 +1131,7 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                     groupAmount: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     groupCurrency: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     groupExchangeRate: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    currencyConversionRate: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     splitsStartDate: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     splitsEndDate: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 },
