@@ -36,6 +36,7 @@ const MODAL_ROUTES_TO_DISMISS = new Set<string>([
     SCREENS.WORKSPACE_AVATAR,
     SCREENS.REPORT_AVATAR,
     SCREENS.CONCIERGE,
+    SCREENS.SEARCH_ROUTER.ROOT,
 ]);
 
 const workspaceOrDomainSplitsWithoutEnteringAnimation = new Set<string>();
@@ -123,6 +124,20 @@ function handleOpenDomainSplitAction(
     return prepareStateUnderWorkspaceOrDomainNavigator(state, configOptions, stackRouter, actionToPushDomainSplitNavigator, NAVIGATORS.DOMAIN_SPLIT_NAVIGATOR);
 }
 
+/**
+ * Filters preloaded routes when navigating to a central screen of a split navigator on narrow layout.
+ * This removes the sidebar screen from the state so only the central screen is shown.
+ */
+function getStateWithFilteredPreloadedRoutes(state: StackNavigationState<ParamListBase>, navigatorName: string, targetScreen?: string) {
+    const shouldFilterPreloadedRoutes =
+        getIsNarrowLayout() &&
+        isSplitNavigatorName(navigatorName) &&
+        targetScreen !== SPLIT_TO_SIDEBAR[navigatorName] &&
+        state.preloadedRoutes?.some((preloadedRoute) => preloadedRoute.name === navigatorName);
+
+    return shouldFilterPreloadedRoutes ? {...state, preloadedRoutes: state.preloadedRoutes.filter((preloadedRoute) => preloadedRoute.name !== navigatorName)} : state;
+}
+
 function handlePushFullscreenAction(
     state: StackNavigationState<ParamListBase>,
     action: PushActionType,
@@ -131,15 +146,7 @@ function handlePushFullscreenAction(
 ) {
     const targetScreen = action.payload?.params && 'screen' in action.payload.params ? (action.payload?.params?.screen as string) : undefined;
     const navigatorName = action.payload.name;
-
-    // If we navigate to the central screen of the split navigator, we need to filter this navigator from preloadedRoutes to remove a sidebar screen from the state
-    const shouldFilterPreloadedRoutes =
-        getIsNarrowLayout() &&
-        isSplitNavigatorName(navigatorName) &&
-        targetScreen !== SPLIT_TO_SIDEBAR[navigatorName] &&
-        state.preloadedRoutes?.some((preloadedRoute) => preloadedRoute.name === navigatorName);
-
-    const adjustedState = shouldFilterPreloadedRoutes ? {...state, preloadedRoutes: state.preloadedRoutes.filter((preloadedRoute) => preloadedRoute.name !== navigatorName)} : state;
+    const adjustedState = getStateWithFilteredPreloadedRoutes(state, navigatorName, targetScreen);
     const stateWithNavigator = stackRouter.getStateForAction(adjustedState, action, configOptions);
 
     if (!stateWithNavigator) {
@@ -163,7 +170,10 @@ function handleReplaceReportsSplitNavigatorAction(
     configOptions: RouterConfigOptions,
     stackRouter: Router<StackNavigationState<ParamListBase>, CommonActions.Action | StackActionType>,
 ) {
-    const stateWithReportsSplitNavigator = stackRouter.getStateForAction(state, action, configOptions);
+    const targetScreen = action.payload?.params && 'screen' in action.payload.params ? (action.payload?.params?.screen as string) : undefined;
+    const navigatorName = action.payload.name;
+    const adjustedState = getStateWithFilteredPreloadedRoutes(state, navigatorName, targetScreen);
+    const stateWithReportsSplitNavigator = stackRouter.getStateForAction(adjustedState, action, configOptions);
 
     if (!stateWithReportsSplitNavigator) {
         Log.hmmm('[handleReplaceReportsSplitNavigatorAction] ReportsSplitNavigator has not been found in the navigation state.');
@@ -194,7 +204,7 @@ function handleReplaceReportsSplitNavigatorAction(
  * that the Home+RHP browser-history entry is stale and correctly replaces it with
  * a new Search entry, producing browser history [Home, Search].
  *
- * The companion history-preservation logic lives in addCustomHistoryRouterExtension
+ * The companion history-preservation logic lives in addRootHistoryRouterExtension
  * which keeps `state.history` unchanged for this action so that no browser history
  * update is triggered during the insert step itself.
  *

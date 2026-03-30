@@ -1,7 +1,9 @@
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxCollection} from 'react-native-onyx';
 import Icon from '@components/Icon';
+import {loadExpensifyIconsChunk} from '@components/Icon/ExpensifyIconLoader';
+import {loadIllustrationsChunk} from '@components/Icon/IllustrationLoader';
 import {PressableWithoutFeedback} from '@components/Pressable';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -33,6 +35,11 @@ function BaseFloatingCameraButton({icon}: BaseFloatingCameraButtonProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
+    useEffect(() => {
+        loadIllustrationsChunk().catch(() => {});
+        loadExpensifyIconsChunk().catch(() => {});
+    }, []);
+
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`);
     const [session] = useOnyx(ONYXKEYS.SESSION, {selector: sessionEmailAndAccountIDSelector});
@@ -52,10 +59,7 @@ function BaseFloatingCameraButton({icon}: BaseFloatingCameraButtonProps) {
 
     const onPress = () => {
         interceptAnonymousUser(() => {
-            if (
-                policyChatForActivePolicy?.policyID &&
-                shouldRestrictUserBillableActions(policyChatForActivePolicy.policyID, userBillingGraceEndPeriods, undefined, ownerBillingGraceEndPeriod)
-            ) {
+            if (policyChatForActivePolicy?.policyID && shouldRestrictUserBillableActions(policyChatForActivePolicy.policyID, ownerBillingGraceEndPeriod, userBillingGraceEndPeriods)) {
                 Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policyChatForActivePolicy.policyID));
                 return;
             }
