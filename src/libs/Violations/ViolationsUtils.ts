@@ -9,6 +9,7 @@ import {isPersonalCard} from '@libs/CardUtils';
 import {getDecodedCategoryName, isCategoryMissing} from '@libs/CategoryUtils';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
+import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {isReceiptError} from '@libs/ErrorUtils';
 import {getCurrentUserEmail} from '@libs/Network/NetworkStore';
 import Parser from '@libs/Parser';
@@ -20,6 +21,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Card, CardList, Policy, PolicyCategories, PolicyTagLists, PolicyTags, Report, ReportAction, Transaction, TransactionViolation, ViolationName} from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
+import type {Unit} from '@src/types/onyx/Policy';
 import type {ReceiptError, ReceiptErrors} from '@src/types/onyx/Transaction';
 import type ViolationFixParams from './types';
 
@@ -670,6 +672,8 @@ const ViolationsUtils = {
         connectionLink?: string,
         card?: Card,
         isMarkAsCash?: boolean,
+        routeDistanceMeters?: number,
+        distanceUnit?: Unit,
     ): string {
         const {
             brokenBankConnection = false,
@@ -727,6 +731,11 @@ const ViolationsUtils = {
                 return translate('violations.modifiedAmount', {type, displayPercentVariance: violation.data?.displayPercentVariance});
             case 'modifiedDate':
                 return translate('violations.modifiedDate');
+            case 'increasedDistance': {
+                const distance = routeDistanceMeters ?? 0;
+                const formattedRouteDistance = distance > 0 && distanceUnit ? DistanceRequestUtils.getDistanceForDisplayLabel(distance, distanceUnit) : undefined;
+                return translate('violations.increasedDistance', {formattedRouteDistance});
+            }
             case 'nonExpensiworksExpense':
                 return translate('violations.nonExpensiworksExpense');
             case 'overAutoApprovalLimit':
@@ -829,7 +838,18 @@ const ViolationsUtils = {
             ...filteredViolations.map((violation) => {
                 const cardID = violation?.data?.cardID;
                 const card = cardID ? cardList?.[cardID] : undefined;
-                const message = ViolationsUtils.getViolationTranslation(violation, translate, true, tags, companyCardPageURL, connectionLink, card, isMarkAsCash);
+                const message = ViolationsUtils.getViolationTranslation(
+                    violation,
+                    translate,
+                    true,
+                    tags,
+                    companyCardPageURL,
+                    connectionLink,
+                    card,
+                    isMarkAsCash,
+                    transaction?.comment?.customUnit?.routeDistanceMeters,
+                    transaction?.comment?.customUnit?.distanceUnit,
+                );
                 if (!message) {
                     return;
                 }
