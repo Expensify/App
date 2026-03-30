@@ -41,7 +41,7 @@ function CompanyCardsImportedPage({route}: CompanyCardsImportedPageProps) {
     const shouldUseAdvancedFields = addNewCard?.data?.useAdvancedFields ?? false;
     const layoutName = addNewCard?.data?.companyCardLayoutName ?? '';
     const prefilledLayoutType = addNewCard?.data?.layoutType;
-    const [generatedLayoutType] = useState(() => prefilledLayoutType ?? `${CONST.COMPANY_CARD.FEED_BANK_NAME.CSV}_${rand64()}_`);
+    const [generatedLayoutType] = useState(() => prefilledLayoutType ?? `${CONST.COMPANY_CARD.FEED_BANK_NAME.CSV}${rand64()}_`);
     const layoutType = prefilledLayoutType ?? generatedLayoutType;
     const [existingCardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${layoutType}`);
 

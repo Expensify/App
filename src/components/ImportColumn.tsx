@@ -96,6 +96,8 @@ function findColumnName(header: string, columnRoles?: ColumnRole[]): string {
             break;
 
         case 'amount':
+        case 'postedamount':
+        case 'posted_amount':
             attribute = CONST.CSV_IMPORT_COLUMNS.AMOUNT;
             break;
 
@@ -106,6 +108,8 @@ function findColumnName(header: string, columnRoles?: ColumnRole[]): string {
             break;
 
         case 'currency':
+        case 'postedcurrency':
+        case 'posted_currency':
             attribute = CONST.CSV_IMPORT_COLUMNS.CURRENCY;
             break;
 
