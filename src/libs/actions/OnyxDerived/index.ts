@@ -6,8 +6,11 @@
  * The primary purpose is to optimize performance by reducing redundant computations. More info can be found in the README.
  */
 import Onyx from 'react-native-onyx';
+import OnyxKeys from 'react-native-onyx/dist/OnyxKeys';
 import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
 import Log from '@libs/Log';
+import {endSpan, getSpan, startSpan} from '@libs/telemetry/activeSpans';
+import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ObjectUtils from '@src/types/utils/ObjectUtils';
@@ -76,18 +79,30 @@ function init() {
                 context.currentValue = derivedValue;
                 context.sourceValues = sourceKey && sourceValue !== undefined ? {[sourceKey]: sourceValue} : undefined;
 
-                // @ts-expect-error TypeScript can't confirm the shape of dependencyValues matches the compute function's parameters
-                const newDerivedValue = compute(dependencyValues, context);
-                Log.info(`[OnyxDerived] updating value for ${key} in Onyx`);
-                derivedValue = newDerivedValue;
-                setDerivedValue(key, derivedValue);
+                const spanId = `${CONST.TELEMETRY.SPAN_ONYX_DERIVED_COMPUTE}_${key}`;
+                startSpan(spanId, {
+                    name: CONST.TELEMETRY.SPAN_ONYX_DERIVED_COMPUTE,
+                    op: CONST.TELEMETRY.SPAN_ONYX_DERIVED_COMPUTE,
+                    parentSpan: getSpan(CONST.TELEMETRY.SPAN_APP_STARTUP),
+                    attributes: {derivedKey: key},
+                });
+
+                try {
+                    // @ts-expect-error TypeScript can't confirm the shape of dependencyValues matches the compute function's parameters
+                    const newDerivedValue = compute(dependencyValues, context);
+                    Log.info(`[OnyxDerived] updating value for ${key} in Onyx`);
+                    derivedValue = newDerivedValue;
+                    setDerivedValue(key, derivedValue);
+                } finally {
+                    endSpan(spanId);
+                }
             };
 
             for (let i = 0; i < dependencies.length; i++) {
                 const dependencyIndex = i;
                 const dependencyOnyxKey = dependencies[dependencyIndex];
 
-                if (OnyxUtils.isCollectionKey(dependencyOnyxKey)) {
+                if (OnyxKeys.isCollectionKey(dependencyOnyxKey)) {
                     Onyx.connectWithoutView({
                         key: dependencyOnyxKey,
                         waitForCollectionCallback: true,
