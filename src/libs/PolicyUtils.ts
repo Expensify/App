@@ -692,24 +692,17 @@ function hasCustomCategories(policyCategories: OnyxEntry<PolicyCategories>): boo
  * Defaults are: no approval/expense/coding rules and no custom rules text.
  */
 function hasNonDefaultRules(policy: OnyxEntry<Policy>): boolean {
-    if (!policy) {
+    if (!policy?.rules) {
         return false;
     }
 
-    if (policy.customRules && policy.customRules.trim().length > 0) {
-        return true;
-    }
-
-    const rules = policy.rules;
-    if (!rules) {
-        return false;
-    }
-
+    const {rules} = policy;
+    const hasCustomRules = !!policy.customRules && policy.customRules.trim().length > 0;
     const hasApprovalRules = !!rules.approvalRules && rules.approvalRules.length > 0;
     const hasExpenseRules = !!rules.expenseRules && rules.expenseRules.length > 0;
     const hasCodingRules = !!rules.codingRules && Object.keys(rules.codingRules).length > 0;
 
-    return hasApprovalRules || hasExpenseRules || hasCodingRules;
+    return hasCustomRules || hasApprovalRules || hasExpenseRules || hasCodingRules;
 }
 
 /**
