@@ -1,7 +1,6 @@
 import {hasSeenTourSelector} from '@selectors/Onboarding';
 import {useCallback, useMemo} from 'react';
 import type {OnyxCollection} from 'react-native-onyx';
-import isSidePanelReportSupported from '@components/SidePanel/isSidePanelReportSupported';
 import {navigateAfterOnboardingWithMicrotaskQueue} from '@libs/navigateAfterOnboarding';
 import {createDisplayName} from '@libs/PersonalDetailsUtils';
 import {isPaidGroupPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
@@ -93,7 +92,7 @@ function useAutoCreateTrackWorkspace() {
                 lastName,
                 adminsChatReportID: newAdminsChatReportID,
                 onboardingPolicyID: newPolicyID,
-                shouldWaitForRHPVariantInitialization: isSidePanelReportSupported,
+                shouldWaitForRHPVariantInitialization: true,
                 introSelected,
                 isSelfTourViewed,
                 betas,
