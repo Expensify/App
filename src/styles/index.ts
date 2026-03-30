@@ -1077,7 +1077,7 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         badgeStrongText: {
-            color: colors.white,
+            color: theme.buttonSuccessText,
         },
 
         badgeText: {
