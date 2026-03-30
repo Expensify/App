@@ -15,9 +15,8 @@ import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatchedUpdates';
 
-// Be sure to include the mocked Permissions and Expensicons libraries or else the beta tests won't work
+// Be sure to include the mocked Permissions libraries or else the beta tests won't work
 jest.mock('@libs/Permissions');
-jest.mock('@components/Icon/Expensicons');
 jest.mock('@src/hooks/useResponsiveLayout');
 jest.mock('@react-navigation/native', () => ({
     ...jest.requireActual<typeof reactNavigationNativeImport>('@react-navigation/native'),

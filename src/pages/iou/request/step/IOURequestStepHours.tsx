@@ -40,7 +40,7 @@ type IOURequestStepHoursProps = WithWritableReportOrNotFoundProps<
 function IOURequestStepHours({
     report,
     route: {
-        params: {iouType, reportID, transactionID = '-1', action, reportActionID},
+        params: {iouType, reportID, transactionID = '-1', action, reportActionID, backToReport},
         name: routeName,
     },
     transaction,
@@ -51,6 +51,7 @@ function IOURequestStepHours({
     const policyID = explicitPolicyID ?? report?.policyID;
     const isTransactionDraft = shouldUseTransactionDraft(action);
     const [selectedTab] = useOnyx(`${ONYXKEYS.COLLECTION.SELECTED_TAB}${CONST.TAB.IOU_REQUEST_TYPE}`);
+    const [userBillingGraceEndPeriods] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [ownerBillingGraceEndPeriod] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const {accountID} = useCurrentUserPersonalDetails();
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
@@ -120,12 +121,12 @@ function IOURequestStepHours({
                 setTransactionReport(transactionID, {reportID: policyExpenseChat.reportID}, isTransactionDraft);
                 setMoneyRequestParticipantsFromReport(transactionID, policyExpenseChat, accountID);
 
-                return Navigation.setNavigationActionToMicrotaskQueue(() => navigateToConfirmationPage(iouType, transactionID, policyExpenseChat.reportID, undefined));
+                return Navigation.setNavigationActionToMicrotaskQueue(() => navigateToConfirmationPage(iouType, transactionID, policyExpenseChat.reportID, backToReport));
             }
             setMoneyRequestParticipantsFromReport(transactionID, report, accountID);
         }
 
-        navigateToConfirmationPage(iouType, transactionID, reportID, undefined);
+        navigateToConfirmationPage(iouType, transactionID, reportID, backToReport);
     };
 
     return (
@@ -165,7 +166,7 @@ function IOURequestStepHours({
                         large={!isExtraSmallScreenHeight}
                         style={[styles.w100, canUseTouchScreen ? styles.mt5 : styles.mt0]}
                         onPress={() => {
-                            if (policyID && shouldRestrictUserBillableActions(policyID, undefined, undefined, ownerBillingGraceEndPeriod)) {
+                            if (policyID && shouldRestrictUserBillableActions(policyID, ownerBillingGraceEndPeriod, userBillingGraceEndPeriods)) {
                                 Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policyID));
                                 return;
                             }
