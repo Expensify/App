@@ -11,7 +11,7 @@ import {getHeaderMessageForNonUserList} from '@libs/OptionsListUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import SingleSelectListItem from './SelectionList/ListItem/SingleSelectListItem';
+import RadioListItem from './SelectionList/ListItem/RadioListItem';
 import SelectionListWithSections from './SelectionList/SelectionListWithSections';
 import type {ListItem} from './SelectionList/types';
 
@@ -80,7 +80,7 @@ function CategoryPicker({selectedCategory, policyID, onSubmit, addBottomSafeArea
         <SelectionListWithSections
             sections={sections}
             onSelectRow={onSubmit}
-            ListItem={SingleSelectListItem}
+            ListItem={RadioListItem}
             shouldShowTextInput={categoriesCount >= CONST.STANDARD_LIST_ITEM_LIMIT}
             textInputOptions={textInputOptions}
             initiallyFocusedItemKey={selectedOptionKey}
