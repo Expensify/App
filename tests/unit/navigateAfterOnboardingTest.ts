@@ -62,12 +62,12 @@ describe('navigateAfterOnboarding', () => {
         return Onyx.clear();
     });
 
-    it('should navigate to Home on desktop even when onboardingAdminsChatReportID is provided', () => {
+    it('should navigate to the admin room report if onboardingAdminsChatReportID is provided', () => {
         const navigate = jest.spyOn(Navigation, 'navigate');
         const testSession = {email: 'realaccount@gmail.com'};
 
         navigateAfterOnboarding(false, true, '', new Set(), undefined, ONBOARDING_ADMINS_CHAT_REPORT_ID, (testSession?.email ?? '').includes('+'));
-        expect(navigate).toHaveBeenCalledWith(ROUTES.HOME);
+        expect(navigate).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(ONBOARDING_ADMINS_CHAT_REPORT_ID));
     });
 
     it('should not navigate to the admin room report if onboardingAdminsChatReportID is not provided on larger screens', () => {
