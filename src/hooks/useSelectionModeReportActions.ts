@@ -316,14 +316,6 @@ function useSelectionModeReportActions({
     const [paymentType, setPaymentType] = useState<PaymentMethodType>();
     const [requestType, setRequestType] = useState<ActionHandledType>();
     const [selectedVBBAToPayFromHoldMenu, setSelectedVBBAToPayFromHoldMenu] = useState<number | undefined>(undefined);
-    const isSelectionModePaymentRef = useRef(false);
-
-    useEffect(() => {
-        if (selectedTransactionIDs.length !== 0) {
-            return;
-        }
-        isSelectionModePaymentRef.current = false;
-    }, [selectedTransactionIDs.length]);
 
     const checkForNecessaryAction = useCallback(() => {
         if (isDelegateAccessRestricted) {
@@ -537,17 +529,13 @@ function useSelectionModeReportActions({
     }, [confirmPayment]);
 
     const handleApproveSelected = useCallback(() => {
-        isSelectionModePaymentRef.current = true;
         confirmApproval();
     }, [confirmApproval]);
 
-    const handlePaySelected = useCallback(() => {
-        isSelectionModePaymentRef.current = true;
-    }, []);
+    const handlePaySelected = useCallback(() => {}, []);
 
     const onSelectionModePaymentSelect = useCallback(
         (event: KYCFlowEvent, iouPaymentType: PaymentMethodType, triggerKYCFlow: TriggerKYCFlow) => {
-            isSelectionModePaymentRef.current = true;
             if (checkForNecessaryAction()) {
                 return;
             }
@@ -597,7 +585,6 @@ function useSelectionModeReportActions({
 
     const selectionModeKYCSuccess = useCallback(
         (type?: PaymentMethodType) => {
-            isSelectionModePaymentRef.current = true;
             confirmPayment({paymentType: type});
         },
         [confirmPayment],
@@ -606,7 +593,19 @@ function useSelectionModeReportActions({
     const hasActualPaymentOptions = paymentButtonOptions.some((opt) => Object.values(CONST.IOU.PAYMENT_TYPE).some((type) => type === opt.value));
     const hasPayInSelectionMode = allExpensesSelected && hasPayAction && hasActualPaymentOptions && isSelectionModeReportActionsEnabled;
 
-    /* eslint-disable react-hooks/refs -- onSelected callbacks are event handlers, not invoked during render */
+    const [paymentSubMenuItems, setPaymentSubMenuItems] = useState<PopoverMenuItem[]>([]);
+
+    useEffect(() => {
+        setPaymentSubMenuItems(
+            buildPaymentSubMenuItems((wp) => {
+                if (checkForNecessaryAction()) {
+                    return;
+                }
+                kycWallRef.current?.continueAction?.({policy: wp});
+            }),
+        );
+    }, [buildPaymentSubMenuItems, checkForNecessaryAction, kycWallRef]);
+
     const selectionModeReportLevelActions = useMemo(() => {
         if (!isSelectionModeReportActionsEnabled) {
             return [];
@@ -635,13 +634,7 @@ function useSelectionModeReportActions({
                 value: CONST.REPORT.PRIMARY_ACTIONS.PAY,
                 rightIcon: expensifyIcons.ArrowRight,
                 backButtonText: translate('iou.settlePayment', totalAmount),
-                subMenuItems: buildPaymentSubMenuItems((wp) => {
-                    isSelectionModePaymentRef.current = true;
-                    if (checkForNecessaryAction()) {
-                        return;
-                    }
-                    kycWallRef.current?.continueAction?.({policy: wp});
-                }),
+                subMenuItems: paymentSubMenuItems,
                 onSelected: handlePaySelected,
             });
         }
@@ -660,20 +653,16 @@ function useSelectionModeReportActions({
         handleApproveSelected,
         handlePaySelected,
         totalAmount,
-        buildPaymentSubMenuItems,
-        checkForNecessaryAction,
+        paymentSubMenuItems,
         expensifyIcons.ArrowRight,
         expensifyIcons.Cash,
         expensifyIcons.Send,
         expensifyIcons.ThumbsUp,
-        kycWallRef,
     ]);
-    /* eslint-enable react-hooks/refs */
 
     const handleHoldMenuClose = useCallback(() => {
         setSelectedVBBAToPayFromHoldMenu(undefined);
         setIsHoldMenuVisible(false);
-        isSelectionModePaymentRef.current = false;
     }, []);
 
     const handleHoldMenuConfirm = useCallback(() => {
@@ -696,7 +685,6 @@ function useSelectionModeReportActions({
         handleHoldMenuConfirm,
         confirmPayment,
         confirmApproval,
-        isSelectionModePaymentRef,
         checkForNecessaryAction,
 
         // Pay-related
