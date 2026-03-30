@@ -1485,7 +1485,7 @@ function Search({
         navigation.setParams({q: newQuery, rawQuery: undefined});
     };
 
-    const {shouldShowYearCreated, shouldShowYearSubmitted, shouldShowYearApproved, shouldShowYearPosted, shouldShowYearExported} = shouldShowYearUtil(
+    const {shouldShowYearCreated, shouldShowYearSubmitted, shouldShowYearApproved, shouldShowYearPosted, shouldShowYearExported, shouldShowYearWithdrawn} = shouldShowYearUtil(
         searchResults?.data,
         isExpenseReportType ?? false,
         undefined,
@@ -1570,6 +1570,7 @@ function Search({
                                     shouldShowYearApproved={shouldShowYearApproved}
                                     shouldShowYearPosted={shouldShowYearPosted}
                                     shouldShowYearExported={shouldShowYearExported}
+                                    shouldShowYearWithdrawn={shouldShowYearWithdrawn}
                                     isAmountColumnWide={shouldShowAmountInWideColumn}
                                     isTaxAmountColumnWide={shouldShowTaxAmountInWideColumn}
                                     shouldShowSorting

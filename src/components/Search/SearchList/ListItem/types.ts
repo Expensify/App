@@ -359,6 +359,9 @@ type TransactionMonthGroupListItemType = TransactionGroupListItemType & {grouped
 type TransactionWithdrawalIDGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID} & SearchWithdrawalIDGroup & {
         /** Final and formatted "withdrawalID" value used for displaying and sorting */
         formattedWithdrawalID?: string;
+
+        /** Whether any withdrawn date in the current results belongs to a past year */
+        shouldShowYearWithdrawn?: boolean;
     };
 
 type TransactionCategoryGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.CATEGORY} & SearchCategoryGroup & {

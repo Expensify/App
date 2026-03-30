@@ -1383,6 +1383,7 @@ type ShouldShowYearResult = {
     shouldShowYearApproved: boolean;
     shouldShowYearPosted: boolean;
     shouldShowYearExported: boolean;
+    shouldShowYearWithdrawn: boolean;
 };
 
 /**
@@ -1437,6 +1438,7 @@ function shouldShowYear(
         shouldShowYearApproved: false,
         shouldShowYearPosted: false,
         shouldShowYearExported: false,
+        shouldShowYearWithdrawn: false,
     };
 
     const currentYear = new Date().getFullYear();
@@ -1538,6 +1540,11 @@ function shouldShowYear(
             const exportedAction = lastExportedActionByReportID.get(item.reportID);
             if (exportedAction?.created && DateUtils.doesDateBelongToAPastYear(exportedAction.created)) {
                 result.shouldShowYearExported = true;
+            }
+        } else if (!result.shouldShowYearWithdrawn && isGroupEntry(key)) {
+            const group = data[key];
+            if ('debitPosted' in group && group.debitPosted && DateUtils.doesDateBelongToAPastYear(group.debitPosted)) {
+                result.shouldShowYearWithdrawn = true;
             }
         }
 
@@ -2648,6 +2655,7 @@ function getCardSections(
  * Do not use directly, use only via `getSections()` facade.
  */
 function getWithdrawalIDSections(data: OnyxTypes.SearchResults['data'], queryJSON: SearchQueryJSON | undefined): [TransactionWithdrawalIDGroupListItemType[], number] {
+    const {shouldShowYearWithdrawn} = shouldShowYear(data);
     const withdrawalIDSections: Record<string, TransactionWithdrawalIDGroupListItemType> = {};
 
     for (const key in data) {
@@ -2665,6 +2673,7 @@ function getWithdrawalIDSections(data: OnyxTypes.SearchResults['data'], queryJSO
                 transactions: [],
                 transactionsQueryJSON,
                 ...withdrawalIDGroup,
+                shouldShowYearWithdrawn,
                 formattedWithdrawalID: String(withdrawalIDGroup.entryID),
                 keyForList: key,
             };
@@ -4959,7 +4968,13 @@ function getTableMinWidth(columns: SearchColumnType[]) {
             minWidth += 68;
         } else if (column === CONST.SEARCH.TABLE_COLUMNS.DATE) {
             minWidth += 48;
-        } else if (column === CONST.SEARCH.TABLE_COLUMNS.SUBMITTED || column === CONST.SEARCH.TABLE_COLUMNS.APPROVED || column === CONST.SEARCH.TABLE_COLUMNS.POSTED) {
+        } else if (
+            column === CONST.SEARCH.TABLE_COLUMNS.SUBMITTED ||
+            column === CONST.SEARCH.TABLE_COLUMNS.APPROVED ||
+            column === CONST.SEARCH.TABLE_COLUMNS.POSTED ||
+            column === CONST.SEARCH.TABLE_COLUMNS.WITHDRAWN ||
+            column === CONST.SEARCH.TABLE_COLUMNS.GROUP_WITHDRAWN
+        ) {
             minWidth += 72;
         } else if (column === CONST.SEARCH.TABLE_COLUMNS.TYPE) {
             minWidth += 16;

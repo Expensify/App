@@ -116,7 +116,18 @@ function WithdrawalIDListItemHeader<TItem extends ListItem>({
         [CONST.SEARCH.TABLE_COLUMNS.GROUP_WITHDRAWN]: (
             <View
                 key={CONST.SEARCH.TABLE_COLUMNS.WITHDRAWN}
-                style={StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.WITHDRAWN)}
+                style={StyleUtils.getReportTableColumnStyles(
+                    CONST.SEARCH.TABLE_COLUMNS.WITHDRAWN,
+                    false,
+                    false,
+                    false,
+                    false,
+                    false,
+                    false,
+                    false,
+                    false,
+                    !!withdrawalIDItem.shouldShowYearWithdrawn,
+                )}
             >
                 <TextWithTooltip
                     text={formattedWithdrawalDate}
