@@ -343,7 +343,7 @@ function openReportFromDeepLink(
                                         return;
                                     }
                                     // TODO: We'll pass isSelfTourViewed in the next PR. Refactor issue: https://github.com/Expensify/App/issues/66424
-                                    navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, undefined, false, () => true);
+                                    navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, undefined, betas, false, () => true);
                                     return;
                                 }
 

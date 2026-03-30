@@ -9,6 +9,7 @@ import {DefaultCancelConfirmModal} from '@components/MultifactorAuthentication/c
 import {useMultifactorAuthentication, useMultifactorAuthenticationActions, useMultifactorAuthenticationState, usePromptContent} from '@components/MultifactorAuthentication/Context';
 import MultifactorAuthenticationPromptContent from '@components/MultifactorAuthentication/PromptContent';
 import ScreenWrapper from '@components/ScreenWrapper';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -27,6 +28,7 @@ function MultifactorAuthenticationPromptPage({route}: MultifactorAuthenticationP
     const {cancel} = useMultifactorAuthentication();
     const state = useMultifactorAuthenticationState();
     const {dispatch} = useMultifactorAuthenticationActions();
+    const {accountID} = useCurrentUserPersonalDetails();
     const {isOffline} = useNetwork();
 
     const {illustration, title, subtitle, shouldDisplayConfirmButton} = usePromptContent(route.params.promptType);
@@ -34,7 +36,7 @@ function MultifactorAuthenticationPromptPage({route}: MultifactorAuthenticationP
     const [isCancelModalVisible, setCancelModalVisibility] = useState(false);
 
     const onConfirm = () => {
-        markHasAcceptedSoftPrompt();
+        markHasAcceptedSoftPrompt(accountID);
         dispatch({type: 'SET_SOFT_PROMPT_APPROVED', payload: true});
     };
 
