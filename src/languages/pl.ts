@@ -1612,6 +1612,7 @@ const translations: TranslationDeepObject<typeof en> = {
             `nie udało się zatwierdzić przez <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">zasady w przestrzeni roboczej</a>. ${reason}`,
         failedToApproveViaDEW: (reason: string) => `nie udało się zaakceptować. ${reason}`,
         cannotDuplicateDistanceExpense: 'Nie możesz duplikować wydatków za przejazdy między przestrzeniami roboczymi, ponieważ stawki mogą się różnić między poszczególnymi przestrzeniami.',
+        deleted: 'Usunięto',
     },
     transactionMerge: {
         listPage: {
@@ -1967,6 +1968,7 @@ const translations: TranslationDeepObject<typeof en> = {
             softKillTheApp: 'Miękko zamknij aplikację',
             kill: 'Zabij',
             sentryDebug: 'Debugowanie Sentry',
+            sentrySendDescription: 'Wysyłaj dane do Sentry',
             sentryDebugDescription: 'Rejestruj żądania Sentry w konsoli',
             sentryHighlightedSpanOps: 'Wyróżnione nazwy zakresów',
             sentryHighlightedSpanOpsPlaceholder: 'kliknięcie interfejsu, nawigacja, ładowanie interfejsu',
@@ -1982,6 +1984,7 @@ const translations: TranslationDeepObject<typeof en> = {
         accountSettings: 'Ustawienia konta',
         account: 'Konto',
         general: 'Ogólne',
+        helpPage: {title: 'Pomoc i wsparcie', description: 'Jesteśmy tu, żeby pomagać ci 24/7', helpSite: 'Centrum pomocy'},
     },
     closeAccountPage: {
         closeAccount: 'Zamknij konto',
@@ -5126,6 +5129,7 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
                 flipAmountSign: 'Odwróć znak kwoty',
                 importButton: 'Importuj transakcje',
             },
+            deletedCard: 'Usunięta karta',
             assignNewCards: {title: 'Przydziel nowe karty', description: 'Pobierz z banku najnowsze karty do przypisania'},
         },
         expensifyCard: {
@@ -7304,6 +7308,7 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
             unhold: 'Usuń blokadę',
             reject: 'Odrzuć',
             noOptionsAvailable: 'Brak opcji dostępnych dla wybranej grupy wydatków.',
+            undelete: 'Cofnij usunięcie',
         },
         filtersHeader: 'Filtry',
         filters: {
@@ -7419,7 +7424,14 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
         searchIn: 'Szukaj w',
         searchPlaceholder: 'Wyszukaj coś',
         suggestions: 'Sugestie',
-        suggestionsAvailable: ({count}: {count: number}, query = '') => ({
+        suggestionsAvailable: (
+            {
+                count,
+            }: {
+                count: number;
+            },
+            query = '',
+        ) => ({
             one: `Dostępne sugestie${query ? ` dla ${query}` : ''}. ${count} wynik.`,
             other: (resultCount: number) => `Dostępne sugestie${query ? ` dla ${query}` : ''}. ${resultCount} wyniki.`,
         }),

@@ -80,7 +80,7 @@ function BaseRequestStepWorkspace({transaction, getPolicies, onSelectWorkspace}:
 
     const selectWorkspace = (item: WorkspaceListItem) => {
         const policyID = item.policyID;
-        if (shouldRestrictUserBillableActions(policyID, userBillingGraceEndPeriods, undefined, ownerBillingGraceEndPeriod)) {
+        if (shouldRestrictUserBillableActions(policyID, ownerBillingGraceEndPeriod, userBillingGraceEndPeriods)) {
             Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policyID));
             return;
         }

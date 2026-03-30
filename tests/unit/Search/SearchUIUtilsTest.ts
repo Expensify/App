@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/naming-convention */
-import {renderHook} from '@testing-library/react-native';
 import type {OnyxCollection} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import * as defaultWorkspaceAvatars from '@components/Icon/WorkspaceDefaultAvatars';
@@ -25,7 +24,6 @@ import type {
     TransactionYearGroupListItemType,
 } from '@components/Search/SearchList/ListItem/types';
 import type {SelectedTransactionInfo} from '@components/Search/types';
-import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import Navigation from '@navigation/Navigation';
 // eslint-disable-next-line no-restricted-syntax
 import type * as ReportUserActions from '@userActions/Report';
@@ -5661,9 +5659,7 @@ describe('SearchUIUtils', () => {
 
     describe('Test createTypeMenuItems', () => {
         it('should return the default menu items', () => {
-            const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document', 'Send', 'ThumbsUp']));
             const menuItems = SearchUIUtils.createTypeMenuSections({
-                icons: icons.current,
                 currentUserEmail: undefined,
                 currentUserAccountID: undefined,
                 cardFeedsByPolicy: {},
@@ -5690,7 +5686,7 @@ describe('SearchUIUtils', () => {
                     expect.objectContaining({
                         translationPath: 'common.reports',
                         type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
-                        icon: icons.current.Document,
+                        icon: 'Document',
                     }),
                     expect.objectContaining({
                         translationPath: 'common.chats',
@@ -5753,9 +5749,7 @@ describe('SearchUIUtils', () => {
 
             const mockSavedSearches = {};
 
-            const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document', 'Send', 'ThumbsUp']));
             const sections = SearchUIUtils.createTypeMenuSections({
-                icons: icons.current,
                 currentUserEmail: adminEmail,
                 currentUserAccountID: adminAccountID,
                 cardFeedsByPolicy: mockCardFeedsByPolicy,
@@ -5817,9 +5811,7 @@ describe('SearchUIUtils', () => {
 
             const mockSavedSearches = {};
 
-            const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document', 'Send', 'ThumbsUp']));
             const sections = SearchUIUtils.createTypeMenuSections({
-                icons: icons.current,
                 currentUserEmail: adminEmail,
                 currentUserAccountID: adminAccountID,
                 cardFeedsByPolicy: mockCardFeedsByPolicy,
@@ -5867,9 +5859,7 @@ describe('SearchUIUtils', () => {
                 },
             };
 
-            const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document', 'Send', 'ThumbsUp']));
             const sections = SearchUIUtils.createTypeMenuSections({
-                icons: icons.current,
                 currentUserEmail: adminEmail,
                 currentUserAccountID: adminAccountID,
                 cardFeedsByPolicy: {},
@@ -5890,9 +5880,7 @@ describe('SearchUIUtils', () => {
         it('should not show saved section when there are no saved searches', () => {
             const mockSavedSearches = {};
 
-            const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document', 'Send', 'ThumbsUp']));
             const sections = SearchUIUtils.createTypeMenuSections({
-                icons: icons.current,
                 currentUserEmail: adminEmail,
                 currentUserAccountID: adminAccountID,
                 cardFeedsByPolicy: {},
@@ -5920,9 +5908,7 @@ describe('SearchUIUtils', () => {
                 },
             };
 
-            const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document', 'Send', 'ThumbsUp']));
             const sections = SearchUIUtils.createTypeMenuSections({
-                icons: icons.current,
                 currentUserEmail: adminEmail,
                 currentUserAccountID: adminAccountID,
                 cardFeedsByPolicy: {},
@@ -5950,9 +5936,7 @@ describe('SearchUIUtils', () => {
                 },
             };
 
-            const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document', 'Send', 'ThumbsUp']));
             const sections = SearchUIUtils.createTypeMenuSections({
-                icons: icons.current,
                 currentUserEmail: adminEmail,
                 currentUserAccountID: adminAccountID,
                 cardFeedsByPolicy: {},
@@ -5984,9 +5968,7 @@ describe('SearchUIUtils', () => {
                 },
             };
 
-            const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document', 'Send', 'ThumbsUp']));
             const sections = SearchUIUtils.createTypeMenuSections({
-                icons: icons.current,
                 currentUserEmail: adminEmail,
                 currentUserAccountID: adminAccountID,
                 cardFeedsByPolicy: {},
@@ -6018,9 +6000,7 @@ describe('SearchUIUtils', () => {
                 },
             };
 
-            const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document', 'Send', 'ThumbsUp']));
             const sections = SearchUIUtils.createTypeMenuSections({
-                icons: icons.current,
                 currentUserEmail: adminEmail,
                 currentUserAccountID: adminAccountID,
                 cardFeedsByPolicy: {},
@@ -6064,9 +6044,7 @@ describe('SearchUIUtils', () => {
                 },
             };
 
-            const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document', 'Send', 'ThumbsUp']));
             const sections = SearchUIUtils.createTypeMenuSections({
-                icons: icons.current,
                 currentUserEmail: adminEmail,
                 currentUserAccountID: adminAccountID,
                 cardFeedsByPolicy: {},
@@ -6104,9 +6082,7 @@ describe('SearchUIUtils', () => {
             };
 
             const mockCardFeedsByPolicy: Record<string, CardFeedForDisplay[]> = {};
-            const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document', 'Send', 'ThumbsUp']));
             const sections = SearchUIUtils.createTypeMenuSections({
-                icons: icons.current,
                 currentUserEmail: adminEmail,
                 currentUserAccountID: adminAccountID,
                 cardFeedsByPolicy: mockCardFeedsByPolicy,
@@ -6129,9 +6105,7 @@ describe('SearchUIUtils', () => {
         });
 
         it('should generate correct routes', () => {
-            const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document', 'Send', 'ThumbsUp']));
             const menuItems = SearchUIUtils.createTypeMenuSections({
-                icons: icons.current,
                 currentUserEmail: undefined,
                 currentUserAccountID: undefined,
                 cardFeedsByPolicy: {},
@@ -6205,9 +6179,7 @@ describe('SearchUIUtils', () => {
                 ],
             };
 
-            const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document', 'Send', 'ThumbsUp']));
             const sections = SearchUIUtils.createTypeMenuSections({
-                icons: icons.current,
                 currentUserEmail: adminEmail,
                 currentUserAccountID: adminAccountID,
                 cardFeedsByPolicy: mockCardFeedsByPolicy,
@@ -6711,7 +6683,7 @@ describe('SearchUIUtils', () => {
         });
 
         test('Should return Spend Over Time search with correct properties', () => {
-            const suggestedSearches = SearchUIUtils.getSuggestedSearches(adminAccountID, undefined, undefined);
+            const suggestedSearches = SearchUIUtils.getSuggestedSearches(adminAccountID, undefined);
             const spendOverTimeSearch = suggestedSearches[CONST.SEARCH.SEARCH_KEYS.SPEND_OVER_TIME];
 
             expect(spendOverTimeSearch).toBeDefined();
@@ -6722,7 +6694,7 @@ describe('SearchUIUtils', () => {
         });
 
         test('Should return Spend Over Time search query with correct parameters', () => {
-            const suggestedSearches = SearchUIUtils.getSuggestedSearches(adminAccountID, undefined, undefined);
+            const suggestedSearches = SearchUIUtils.getSuggestedSearches(adminAccountID, undefined);
             const spendOverTimeSearch = suggestedSearches[CONST.SEARCH.SEARCH_KEYS.SPEND_OVER_TIME];
             const searchQueryJSON = spendOverTimeSearch.searchQueryJSON;
 
@@ -6741,7 +6713,7 @@ describe('SearchUIUtils', () => {
         });
 
         test('Should return Spend Over Time search with valid hash', () => {
-            const suggestedSearches = SearchUIUtils.getSuggestedSearches(adminAccountID, undefined, undefined);
+            const suggestedSearches = SearchUIUtils.getSuggestedSearches(adminAccountID, undefined);
             const spendOverTimeSearch = suggestedSearches[CONST.SEARCH.SEARCH_KEYS.SPEND_OVER_TIME];
 
             expect(spendOverTimeSearch.hash).toBeGreaterThan(0);
@@ -6749,7 +6721,7 @@ describe('SearchUIUtils', () => {
         });
 
         test('Should return Spend Over Time search query string with correct format', () => {
-            const suggestedSearches = SearchUIUtils.getSuggestedSearches(adminAccountID, undefined, undefined);
+            const suggestedSearches = SearchUIUtils.getSuggestedSearches(adminAccountID, undefined);
             const spendOverTimeSearch = suggestedSearches[CONST.SEARCH.SEARCH_KEYS.SPEND_OVER_TIME];
             const searchQuery = spendOverTimeSearch.searchQuery;
 
@@ -6762,7 +6734,7 @@ describe('SearchUIUtils', () => {
         });
 
         test('Should return Top Merchants search query with pie view', () => {
-            const suggestedSearches = SearchUIUtils.getSuggestedSearches(adminAccountID, undefined, undefined);
+            const suggestedSearches = SearchUIUtils.getSuggestedSearches(adminAccountID, undefined);
             const topMerchantsSearch = suggestedSearches[CONST.SEARCH.SEARCH_KEYS.TOP_MERCHANTS];
 
             expect(topMerchantsSearch).toBeDefined();
@@ -6773,7 +6745,7 @@ describe('SearchUIUtils', () => {
         });
 
         test('Should return Top Merchants search query string with pie view', () => {
-            const suggestedSearches = SearchUIUtils.getSuggestedSearches(adminAccountID, undefined, undefined);
+            const suggestedSearches = SearchUIUtils.getSuggestedSearches(adminAccountID, undefined);
             const topMerchantsSearch = suggestedSearches[CONST.SEARCH.SEARCH_KEYS.TOP_MERCHANTS];
 
             expect(topMerchantsSearch).toBeDefined();
@@ -6861,7 +6833,7 @@ describe('SearchUIUtils', () => {
 
     describe('Test getColumnsToShow', () => {
         test('Should show all default columns when no custom columns are saved & viewing expense reports', () => {
-            expect(SearchUIUtils.getColumnsToShow(1, [], [], false, CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT)).toEqual([
+            expect(SearchUIUtils.getColumnsToShow({currentAccountID: 1, data: [], visibleColumns: [], type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT})).toEqual([
                 CONST.SEARCH.TABLE_COLUMNS.AVATAR,
                 CONST.SEARCH.TABLE_COLUMNS.DATE,
                 CONST.SEARCH.TABLE_COLUMNS.STATUS,
@@ -6876,7 +6848,7 @@ describe('SearchUIUtils', () => {
         test('Should show specific columns when custom columns are saved & viewing expense reports', () => {
             const visibleColumns = [CONST.SEARCH.TABLE_COLUMNS.DATE, CONST.SEARCH.TABLE_COLUMNS.STATUS, CONST.SEARCH.TABLE_COLUMNS.TITLE, CONST.SEARCH.TABLE_COLUMNS.TOTAL];
 
-            expect(SearchUIUtils.getColumnsToShow(1, [], visibleColumns, false, CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT)).toEqual([
+            expect(SearchUIUtils.getColumnsToShow({currentAccountID: 1, data: [], visibleColumns, type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT})).toEqual([
                 // Avatar should always be visible
                 CONST.SEARCH.TABLE_COLUMNS.AVATAR,
                 CONST.SEARCH.TABLE_COLUMNS.DATE,
@@ -6907,12 +6879,12 @@ describe('SearchUIUtils', () => {
                 personalDetailsList: searchResults.data.personalDetailsList,
             };
 
-            const nonStrictColumns = SearchUIUtils.getColumnsToShow(submitterAccountID, data, [], false, undefined, undefined, false, false, false, false);
+            const nonStrictColumns = SearchUIUtils.getColumnsToShow({currentAccountID: submitterAccountID, data, visibleColumns: []});
             expect(nonStrictColumns).toContain(CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION);
             expect(nonStrictColumns).toContain(CONST.SEARCH.TABLE_COLUMNS.TAG);
             expect(nonStrictColumns).toContain(CONST.SEARCH.TABLE_COLUMNS.TO);
 
-            const strictColumns = SearchUIUtils.getColumnsToShow(submitterAccountID, data, [], false, undefined, undefined, false, false, false, true);
+            const strictColumns = SearchUIUtils.getColumnsToShow({currentAccountID: submitterAccountID, data, visibleColumns: [], shouldUseStrictDefaultExpenseColumns: true});
             expect(strictColumns).toContain(CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION);
             expect(strictColumns).toContain(CONST.SEARCH.TABLE_COLUMNS.TAG);
             expect(strictColumns).not.toContain(CONST.SEARCH.TABLE_COLUMNS.TO);
@@ -7001,7 +6973,7 @@ describe('SearchUIUtils', () => {
             };
 
             // Test 1: No optional fields should be shown when all transactions are empty
-            let columns = SearchUIUtils.getColumnsToShow(submitterAccountID, [emptyTransaction, emptyTransaction], [], false);
+            let columns = SearchUIUtils.getColumnsToShow({currentAccountID: submitterAccountID, data: [emptyTransaction, emptyTransaction], visibleColumns: []});
             expect(columns).not.toContain(CONST.SEARCH.TABLE_COLUMNS.MERCHANT);
             expect(columns).not.toContain(CONST.SEARCH.TABLE_COLUMNS.CATEGORY);
             expect(columns).not.toContain(CONST.SEARCH.TABLE_COLUMNS.TAG);
@@ -7010,22 +6982,22 @@ describe('SearchUIUtils', () => {
             expect(columns).not.toContain(CONST.SEARCH.TABLE_COLUMNS.TO);
 
             // Test 2: Merchant column should show when at least one transaction has merchant
-            columns = SearchUIUtils.getColumnsToShow(submitterAccountID, [emptyTransaction, merchantTransaction], [], false);
+            columns = SearchUIUtils.getColumnsToShow({currentAccountID: submitterAccountID, data: [emptyTransaction, merchantTransaction], visibleColumns: []});
             expect(columns).toContain(CONST.SEARCH.TABLE_COLUMNS.MERCHANT);
             expect(columns).not.toContain(CONST.SEARCH.TABLE_COLUMNS.CATEGORY);
 
             // Test 3: Category column should show when at least one transaction has category
-            columns = SearchUIUtils.getColumnsToShow(submitterAccountID, [emptyTransaction, categoryTransaction], [], false);
+            columns = SearchUIUtils.getColumnsToShow({currentAccountID: submitterAccountID, data: [emptyTransaction, categoryTransaction], visibleColumns: []});
             expect(columns).toContain(CONST.SEARCH.TABLE_COLUMNS.CATEGORY);
             expect(columns).not.toContain(CONST.SEARCH.TABLE_COLUMNS.MERCHANT);
 
             // Test 4: Tag column should show when at least one transaction has tag
-            columns = SearchUIUtils.getColumnsToShow(submitterAccountID, [emptyTransaction, tagTransaction], [], false);
+            columns = SearchUIUtils.getColumnsToShow({currentAccountID: submitterAccountID, data: [emptyTransaction, tagTransaction], visibleColumns: []});
             expect(columns).toContain(CONST.SEARCH.TABLE_COLUMNS.TAG);
             expect(columns).not.toContain(CONST.SEARCH.TABLE_COLUMNS.CATEGORY);
 
             // Test 5: Description column should show when at least one transaction has description
-            columns = SearchUIUtils.getColumnsToShow(submitterAccountID, [emptyTransaction, descriptionTransaction], [], false);
+            columns = SearchUIUtils.getColumnsToShow({currentAccountID: submitterAccountID, data: [emptyTransaction, descriptionTransaction], visibleColumns: []});
             expect(columns).toContain(CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION);
             expect(columns).not.toContain(CONST.SEARCH.TABLE_COLUMNS.MERCHANT);
 
@@ -7038,12 +7010,12 @@ describe('SearchUIUtils', () => {
                 [`reportActions_${reportID2}`]: {[differentUsersTransactionIOUAction.reportActionID]: differentUsersTransactionIOUAction},
                 personalDetailsList: searchResults.data.personalDetailsList,
             };
-            columns = SearchUIUtils.getColumnsToShow(submitterAccountID, data, [], false);
+            columns = SearchUIUtils.getColumnsToShow({currentAccountID: submitterAccountID, data, visibleColumns: []});
             expect(columns).toContain(CONST.SEARCH.TABLE_COLUMNS.FROM);
             expect(columns).toContain(CONST.SEARCH.TABLE_COLUMNS.TO);
 
             // Test 7: Multiple columns should show when transactions have different fields
-            columns = SearchUIUtils.getColumnsToShow(submitterAccountID, [merchantTransaction, categoryTransaction, tagTransaction], [], false);
+            columns = SearchUIUtils.getColumnsToShow({currentAccountID: submitterAccountID, data: [merchantTransaction, categoryTransaction, tagTransaction], visibleColumns: []});
             expect(columns).toContain(CONST.SEARCH.TABLE_COLUMNS.MERCHANT);
             expect(columns).toContain(CONST.SEARCH.TABLE_COLUMNS.CATEGORY);
             expect(columns).toContain(CONST.SEARCH.TABLE_COLUMNS.TAG);
@@ -7066,7 +7038,7 @@ describe('SearchUIUtils', () => {
             };
 
             // In expense report view, From/To columns should not be shown
-            const columns = SearchUIUtils.getColumnsToShow(submitterAccountID, [testTransaction], [], true);
+            const columns = SearchUIUtils.getColumnsToShow({currentAccountID: submitterAccountID, data: [testTransaction], visibleColumns: [], isExpenseReportView: true});
 
             // These columns should be shown based on data
             expect(columns).toContain(CONST.SEARCH.TABLE_COLUMNS.MERCHANT);
@@ -7103,7 +7075,14 @@ describe('SearchUIUtils', () => {
                 billable: false,
             };
 
-            const columns = SearchUIUtils.getColumnsToShow(submitterAccountID, [reimbursableTransaction, nonReimbursableTransaction], [], true, undefined, undefined, false, true, true);
+            const columns = SearchUIUtils.getColumnsToShow({
+                currentAccountID: submitterAccountID,
+                data: [reimbursableTransaction, nonReimbursableTransaction],
+                visibleColumns: [],
+                isExpenseReportView: true,
+                shouldShowBillableColumn: true,
+                shouldShowReimbursableColumn: true,
+            });
 
             expect(columns).toContain(CONST.SEARCH.TABLE_COLUMNS.BILLABLE);
             expect(columns).toContain(CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE);
@@ -7138,7 +7117,13 @@ describe('SearchUIUtils', () => {
                 billable: true,
             };
 
-            const columns = SearchUIUtils.getColumnsToShow(submitterAccountID, [reimbursableTransaction1, reimbursableTransaction2], [], true, undefined, undefined, false, true, false);
+            const columns = SearchUIUtils.getColumnsToShow({
+                currentAccountID: submitterAccountID,
+                data: [reimbursableTransaction1, reimbursableTransaction2],
+                visibleColumns: [],
+                isExpenseReportView: true,
+                shouldShowBillableColumn: true,
+            });
 
             expect(columns).toContain(CONST.SEARCH.TABLE_COLUMNS.BILLABLE);
             expect(columns).not.toContain(CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE);
@@ -7158,7 +7143,7 @@ describe('SearchUIUtils', () => {
                 managerID: adminAccountID,
             };
 
-            const columns = SearchUIUtils.getColumnsToShow(submitterAccountID, [testTransaction], [], false);
+            const columns = SearchUIUtils.getColumnsToShow({currentAccountID: submitterAccountID, data: [testTransaction], visibleColumns: []});
 
             // Should show merchant column because modifiedMerchant has value
             expect(columns).toContain(CONST.SEARCH.TABLE_COLUMNS.MERCHANT);
@@ -7168,6 +7153,221 @@ describe('SearchUIUtils', () => {
 
             // Should not show tag column because it's the empty tag value
             expect(columns).not.toContain(CONST.SEARCH.TABLE_COLUMNS.TAG);
+        });
+
+        test('Should include COMMENTS column at the end in expense report view with custom columns', () => {
+            const baseTransaction = searchResults.data[`transactions_${transactionID}`];
+            const testTransaction = {
+                ...baseTransaction,
+                transactionID: 'test',
+                merchant: 'Test Merchant',
+            };
+
+            // Use custom columns to trigger the custom columns path
+            const visibleColumns = [CONST.SEARCH.TABLE_COLUMNS.DATE, CONST.SEARCH.TABLE_COLUMNS.MERCHANT, CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT];
+            const columns = SearchUIUtils.getColumnsToShow({currentAccountID: submitterAccountID, data: [testTransaction], visibleColumns, isExpenseReportView: true});
+
+            expect(columns).toContain(CONST.SEARCH.TABLE_COLUMNS.COMMENTS);
+            // COMMENTS should be at the end
+            expect(columns.indexOf(CONST.SEARCH.TABLE_COLUMNS.COMMENTS)).toBe(columns.length - 1);
+        });
+
+        test('Should not duplicate COMMENTS column when already in visible columns', () => {
+            const baseTransaction = searchResults.data[`transactions_${transactionID}`];
+            const testTransaction = {
+                ...baseTransaction,
+                transactionID: 'test',
+                merchant: 'Test Merchant',
+            };
+
+            // Include COMMENTS in visible columns - it should not be duplicated
+            const visibleColumns = [CONST.SEARCH.TABLE_COLUMNS.DATE, CONST.SEARCH.TABLE_COLUMNS.MERCHANT];
+            const columns = SearchUIUtils.getColumnsToShow({currentAccountID: submitterAccountID, data: [testTransaction], visibleColumns, isExpenseReportView: true});
+
+            // COMMENTS should appear only once
+            const commentsCount = columns.filter((col) => col === CONST.SEARCH.TABLE_COLUMNS.COMMENTS).length;
+            expect(commentsCount).toBe(1);
+        });
+
+        test('Should hide empty EXCHANGE_RATE column in expense report view with custom columns', () => {
+            const baseTransaction = searchResults.data[`transactions_${transactionID}`];
+            const testTransaction = {
+                ...baseTransaction,
+                transactionID: 'test',
+                merchant: 'Test Merchant',
+                groupExchangeRate: undefined,
+                convertedAmount: undefined,
+            };
+
+            const visibleColumns = [CONST.SEARCH.TABLE_COLUMNS.DATE, CONST.SEARCH.TABLE_COLUMNS.MERCHANT, CONST.SEARCH.TABLE_COLUMNS.EXCHANGE_RATE, CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT];
+            const columns = SearchUIUtils.getColumnsToShow({currentAccountID: submitterAccountID, data: [testTransaction], visibleColumns, isExpenseReportView: true});
+
+            // EXCHANGE_RATE should be hidden because no transaction has exchange rate data
+            expect(columns).not.toContain(CONST.SEARCH.TABLE_COLUMNS.EXCHANGE_RATE);
+            // Always-shown columns should still be present
+            expect(columns).toContain(CONST.SEARCH.TABLE_COLUMNS.DATE);
+            expect(columns).toContain(CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT);
+        });
+
+        test('Should show EXCHANGE_RATE column when transaction has exchange rate data', () => {
+            const baseTransaction = searchResults.data[`transactions_${transactionID}`];
+            const testTransaction = {
+                ...baseTransaction,
+                transactionID: 'test',
+                merchant: 'Test Merchant',
+                groupExchangeRate: 1.25,
+                groupCurrency: 'EUR',
+                currency: 'USD',
+            };
+
+            const visibleColumns = [CONST.SEARCH.TABLE_COLUMNS.DATE, CONST.SEARCH.TABLE_COLUMNS.MERCHANT, CONST.SEARCH.TABLE_COLUMNS.EXCHANGE_RATE, CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT];
+            const columns = SearchUIUtils.getColumnsToShow({currentAccountID: submitterAccountID, data: [testTransaction], visibleColumns, isExpenseReportView: true});
+
+            expect(columns).toContain(CONST.SEARCH.TABLE_COLUMNS.EXCHANGE_RATE);
+        });
+
+        test('Should hide empty CARD column in expense report view with custom columns', () => {
+            const baseTransaction = searchResults.data[`transactions_${transactionID}`];
+            const testTransaction = {
+                ...baseTransaction,
+                transactionID: 'test',
+                merchant: 'Test Merchant',
+                cardID: undefined,
+            };
+
+            const visibleColumns = [CONST.SEARCH.TABLE_COLUMNS.DATE, CONST.SEARCH.TABLE_COLUMNS.CARD, CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT];
+            const columns = SearchUIUtils.getColumnsToShow({currentAccountID: submitterAccountID, data: [testTransaction], visibleColumns, isExpenseReportView: true});
+
+            expect(columns).not.toContain(CONST.SEARCH.TABLE_COLUMNS.CARD);
+        });
+
+        test('Should show CARD column when transaction has cardName', () => {
+            const baseTransaction = searchResults.data[`transactions_${transactionID}`];
+            const testTransaction = {
+                ...baseTransaction,
+                transactionID: 'test',
+                merchant: 'Test Merchant',
+                cardID: 12345,
+                cardName: 'Test Card',
+            };
+
+            const visibleColumns = [CONST.SEARCH.TABLE_COLUMNS.DATE, CONST.SEARCH.TABLE_COLUMNS.CARD, CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT];
+            const columns = SearchUIUtils.getColumnsToShow({currentAccountID: submitterAccountID, data: [testTransaction], visibleColumns, isExpenseReportView: true});
+
+            expect(columns).toContain(CONST.SEARCH.TABLE_COLUMNS.CARD);
+        });
+
+        test('Should hide empty TAX columns in expense report view with custom columns', () => {
+            const baseTransaction = searchResults.data[`transactions_${transactionID}`];
+            const testTransaction = {
+                ...baseTransaction,
+                transactionID: 'test',
+                merchant: 'Test Merchant',
+                taxCode: undefined,
+                taxAmount: undefined,
+            };
+
+            const visibleColumns = [CONST.SEARCH.TABLE_COLUMNS.DATE, CONST.SEARCH.TABLE_COLUMNS.TAX_RATE, CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT, CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT];
+            const columns = SearchUIUtils.getColumnsToShow({currentAccountID: submitterAccountID, data: [testTransaction], visibleColumns, isExpenseReportView: true});
+
+            expect(columns).not.toContain(CONST.SEARCH.TABLE_COLUMNS.TAX_RATE);
+            expect(columns).not.toContain(CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT);
+        });
+
+        test('Should show TAX columns when transaction has tax data', () => {
+            const baseTransaction = searchResults.data[`transactions_${transactionID}`];
+            const testTransaction = {
+                ...baseTransaction,
+                transactionID: 'test',
+                merchant: 'Test Merchant',
+                taxCode: 'VAT_20',
+                taxAmount: 500,
+            };
+
+            const visibleColumns = [CONST.SEARCH.TABLE_COLUMNS.DATE, CONST.SEARCH.TABLE_COLUMNS.TAX_RATE, CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT, CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT];
+            const columns = SearchUIUtils.getColumnsToShow({currentAccountID: submitterAccountID, data: [testTransaction], visibleColumns, isExpenseReportView: true});
+
+            expect(columns).toContain(CONST.SEARCH.TABLE_COLUMNS.TAX_RATE);
+            expect(columns).toContain(CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT);
+        });
+
+        test('Should hide empty ORIGINAL_AMOUNT column in expense report view with custom columns', () => {
+            const baseTransaction = searchResults.data[`transactions_${transactionID}`];
+            const testTransaction = {
+                ...baseTransaction,
+                transactionID: 'test',
+                merchant: 'Test Merchant',
+                originalAmount: undefined,
+            };
+
+            const visibleColumns = [CONST.SEARCH.TABLE_COLUMNS.DATE, CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT, CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT];
+            const columns = SearchUIUtils.getColumnsToShow({currentAccountID: submitterAccountID, data: [testTransaction], visibleColumns, isExpenseReportView: true});
+
+            expect(columns).not.toContain(CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT);
+        });
+
+        test('Should show ORIGINAL_AMOUNT column when transaction has original amount', () => {
+            const baseTransaction = searchResults.data[`transactions_${transactionID}`];
+            const testTransaction = {
+                ...baseTransaction,
+                transactionID: 'test',
+                merchant: 'Test Merchant',
+                originalAmount: 2500,
+            };
+
+            const visibleColumns = [CONST.SEARCH.TABLE_COLUMNS.DATE, CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT, CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT];
+            const columns = SearchUIUtils.getColumnsToShow({currentAccountID: submitterAccountID, data: [testTransaction], visibleColumns, isExpenseReportView: true});
+
+            expect(columns).toContain(CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT);
+        });
+
+        test('Should show column if at least one transaction has data for it', () => {
+            const baseTransaction = searchResults.data[`transactions_${transactionID}`];
+            const emptyTransaction = {
+                ...baseTransaction,
+                transactionID: 'empty',
+                merchant: 'Test Merchant',
+                cardID: undefined,
+                taxCode: undefined,
+            };
+            const transactionWithCard = {
+                ...baseTransaction,
+                transactionID: 'withCard',
+                merchant: 'Test Merchant 2',
+                cardID: 12345,
+                cardName: 'Test Card',
+                taxCode: undefined,
+            };
+
+            const visibleColumns = [CONST.SEARCH.TABLE_COLUMNS.DATE, CONST.SEARCH.TABLE_COLUMNS.CARD, CONST.SEARCH.TABLE_COLUMNS.TAX_RATE, CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT];
+            const columns = SearchUIUtils.getColumnsToShow({currentAccountID: submitterAccountID, data: [emptyTransaction, transactionWithCard], visibleColumns, isExpenseReportView: true});
+
+            // CARD should be shown because one transaction has a card name
+            expect(columns).toContain(CONST.SEARCH.TABLE_COLUMNS.CARD);
+            // TAX_RATE should be hidden because no transaction has taxCode
+            expect(columns).not.toContain(CONST.SEARCH.TABLE_COLUMNS.TAX_RATE);
+        });
+
+        test('Should always show RECEIPT, TYPE, DATE, COMMENTS, TOTAL_AMOUNT in custom columns regardless of data', () => {
+            const baseTransaction = searchResults.data[`transactions_${transactionID}`];
+            const testTransaction = {
+                ...baseTransaction,
+                transactionID: 'test',
+                merchant: '',
+                modifiedMerchant: '',
+            };
+
+            const visibleColumns = [CONST.SEARCH.TABLE_COLUMNS.RECEIPT, CONST.SEARCH.TABLE_COLUMNS.DATE, CONST.SEARCH.TABLE_COLUMNS.MERCHANT, CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT];
+            const columns = SearchUIUtils.getColumnsToShow({currentAccountID: submitterAccountID, data: [testTransaction], visibleColumns, isExpenseReportView: true});
+
+            // Always-shown columns should be present
+            expect(columns).toContain(CONST.SEARCH.TABLE_COLUMNS.RECEIPT);
+            expect(columns).toContain(CONST.SEARCH.TABLE_COLUMNS.DATE);
+            expect(columns).toContain(CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT);
+            expect(columns).toContain(CONST.SEARCH.TABLE_COLUMNS.TYPE);
+            expect(columns).toContain(CONST.SEARCH.TABLE_COLUMNS.COMMENTS);
+            // MERCHANT should be hidden because no data
+            expect(columns).not.toContain(CONST.SEARCH.TABLE_COLUMNS.MERCHANT);
         });
     });
 
@@ -7295,6 +7495,7 @@ describe('SearchUIUtils', () => {
         });
 
         test('Should fallback to childReportID from IOU action when transaction thread report is not in Onyx', async () => {
+            (createTransactionThreadReport as jest.Mock).mockReset();
             const childReportID = 'child-thread-456';
             // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
             const multiTransactionItem = transactionsListItems.at(2) as TransactionListItemType;
