@@ -835,7 +835,7 @@ function openDraftDistanceExpense() {
 }
 
 function getDefaultP2PMileageRate() {
-    API.read(READ_COMMANDS.GET_DEFAULT_P2P_MILEAGE_RATE, {}, {});
+    API.read(READ_COMMANDS.GET_DEFAULT_P2P_MILEAGE_RATE, {});
 }
 
 /**
