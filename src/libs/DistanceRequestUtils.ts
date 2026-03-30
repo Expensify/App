@@ -268,26 +268,12 @@ function getDistanceMerchant(
 }
 
 /**
- * Returns the default P2P mileage rate from Auth (stored in Onyx).
- * Falls back to USD defaults if the server-fetched rate hasn't loaded yet.
- */
-function getDefaultP2PMileageRate(storedRate?: DefaultP2PMileageRate | null): {rate: number; unit: Unit} {
-    if (storedRate) {
-        return storedRate;
-    }
-    return {rate: 72.5, unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES as Unit};
-}
-
-/**
  * Retrieves the rate and unit for a P2P distance expense.
  */
 function getRateForP2P(currency: string, transaction: OnyxEntry<Transaction>, defaultP2PMileageRate?: DefaultP2PMileageRate | null): MileageRate {
-    const mileageRate = getDefaultP2PMileageRate(defaultP2PMileageRate);
-
-    // Ensure the rate is updated when the currency changes, otherwise use the stored rate
-    const rate = getCurrency(transaction) === currency ? (transaction?.comment?.customUnit?.defaultP2PRate ?? mileageRate.rate) : mileageRate.rate;
+    const rate = getCurrency(transaction) === currency ? (transaction?.comment?.customUnit?.defaultP2PRate ?? defaultP2PMileageRate?.rate) : defaultP2PMileageRate?.rate;
     return {
-        ...mileageRate,
+        unit: defaultP2PMileageRate?.unit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
         currency,
         rate,
     };
@@ -513,7 +499,6 @@ export default {
     getDistanceForDisplay,
     getRoundedDistanceInUnits,
     getRateForP2P,
-    getDefaultP2PMileageRate,
     getCustomUnitRateID,
     convertToDistanceInMeters,
     getTaxableAmount,
