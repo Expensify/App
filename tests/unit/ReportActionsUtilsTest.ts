@@ -4430,6 +4430,12 @@ describe('ReportActionsUtils', () => {
         it('returns null for unrelated text', () => {
             expect(isChronosStartOrStopMessage('hello chronos')).toBe(null);
         });
+
+        it('returns null when start or stop appears only inside other words', () => {
+            expect(isChronosStartOrStopMessage('kickstart')).toBe(null);
+            expect(isChronosStartOrStopMessage('nonstop')).toBe(null);
+            expect(isChronosStartOrStopMessage('upstart')).toBe(null);
+        });
     });
 
     describe('getLatestUserChronosTimerCommand', () => {

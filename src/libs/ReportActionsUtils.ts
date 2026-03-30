@@ -986,18 +986,21 @@ function canActionsBeGrouped(currentAction?: ReportAction, adjacentAction?: Repo
     return currentActionActorAccountID === adjacentActionActorAccountID;
 }
 
-const CHRONOS_TIMER_COMMAND_STOP_REGEX = /stop(?:ped|ping)?(?:\snow)?/i;
-const CHRONOS_TIMER_COMMAND_START_REGEX = /start(?:ed|ing)?(?:\snow)?/i;
+// Word boundaries avoid matching substrings like "kickstart", "nonstop", or "starting" inside longer words.
+const CHRONOS_TIMER_COMMAND_STOP_REGEX = /\bstop(?:ped|ping)?(?:\s+now)?\b/i;
+const CHRONOS_TIMER_COMMAND_START_REGEX = /\bstart(?:ed|ing)?(?:\s+now)?\b/i;
 
 /**
  * Returns `'start'`, `'stop'`, or `null` for plain text using the same patterns as grouped Chronos timer messages.
+ * Uses word-boundary matching so arbitrary substrings (e.g. in "kickstart", "nonstop") are not treated as commands.
  * Stop is matched before start when both could apply to one string.
  */
 function isChronosStartOrStopMessage(text: string): 'start' | 'stop' | null {
-    if (CHRONOS_TIMER_COMMAND_STOP_REGEX.test(text)) {
+    const trimmedText = text.trim();
+    if (CHRONOS_TIMER_COMMAND_STOP_REGEX.test(trimmedText)) {
         return 'stop';
     }
-    if (CHRONOS_TIMER_COMMAND_START_REGEX.test(text)) {
+    if (CHRONOS_TIMER_COMMAND_START_REGEX.test(trimmedText)) {
         return 'start';
     }
     return null;
