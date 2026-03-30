@@ -136,7 +136,7 @@ index c78ce40..ede5607 100644
     * The string that will be rendered before text input has been entered.
     */
 diff --git a/node_modules/react-native/Libraries/Text/TextInput/Multiline/RCTUITextView.mm b/node_modules/react-native/Libraries/Text/TextInput/Multiline/RCTUITextView.mm
-index 6e9c384..804afdc 100644
+index 6e9c384..e48c1aa 100644
 --- a/node_modules/react-native/Libraries/Text/TextInput/Multiline/RCTUITextView.mm
 +++ b/node_modules/react-native/Libraries/Text/TextInput/Multiline/RCTUITextView.mm
 @@ -13,6 +13,12 @@
@@ -152,36 +152,25 @@ index 6e9c384..804afdc 100644
  @implementation RCTUITextView {
    UILabel *_placeholderView;
    UITextView *_detachedTextView;
-@@ -209,7 +215,27 @@ static UIColor *defaultPlaceholderColor(void)
+@@ -209,6 +215,17 @@ static UIColor *defaultPlaceholderColor(void)
  - (void)paste:(id)sender
  {
    _textWasPasted = YES;
--  [super paste:sender];
 +  UIPasteboard *clipboard = [UIPasteboard generalPasteboard];
-+
-+  // Fast path for plain text - also call super to insert the text
-+  if (clipboard.hasStrings && clipboard.string != nil &&
-+      ![RCTPasteHandlerUtil containsFileURLRepresentation:clipboard]) {
-+    NSDictionary<NSString *, NSString *> *stringItem = @{@"type": @"text/plain", @"data": clipboard.string};
-+    [_textInputDelegateAdapter didPaste:@[stringItem]];
-+    [super paste:sender];
-+    return;
-+  }
-+
-+  // Process non-text items using the utility
 +  NSArray<NSDictionary<NSString *, NSString *> *> *items =
 +      [RCTPasteHandlerUtil itemInfosFromPasteboard:clipboard];
++  NSArray<NSDictionary<NSString *, NSString *> *> *fileItems =
++      [RCTPasteHandlerUtil fileLikeItemsFromItemInfos:items];
 +
-+  if (items.count == 0) {
-+    [super paste:sender];
++  if (fileItems.count >= 1) {
++    [_textInputDelegateAdapter didPaste:fileItems];
 +    return;
 +  }
 +
-+  [_textInputDelegateAdapter didPaste:items];
+   [super paste:sender];
  }
  
- // Turn off scroll animation to fix flaky scrolling.
-@@ -301,6 +327,10 @@ static UIColor *defaultPlaceholderColor(void)
+@@ -301,6 +318,10 @@ static UIColor *defaultPlaceholderColor(void)
      return NO;
    }
  
@@ -305,10 +294,10 @@ index 5d3a675..a92904d 100644
  RCT_EXPORT_SHADOW_PROPERTY(placeholder, NSString)
 diff --git a/node_modules/react-native/Libraries/Text/TextInput/RCTPasteHandlerUtil.h b/node_modules/react-native/Libraries/Text/TextInput/RCTPasteHandlerUtil.h
 new file mode 100644
-index 0000000..24b5994
+index 0000000..7770528
 --- /dev/null
 +++ b/node_modules/react-native/Libraries/Text/TextInput/RCTPasteHandlerUtil.h
-@@ -0,0 +1,58 @@
+@@ -0,0 +1,76 @@
 +/*
 + * Copyright (c) Meta Platforms, Inc. and affiliates.
 + *
@@ -361,19 +350,37 @@ index 0000000..24b5994
 +  * @param pasteboard The UIPasteboard instance to inspect.
 +  * @return YES if any pasteboard item includes a file URL representation.
 +  */
-+ + (BOOL)containsFileURLRepresentation:(UIPasteboard *)pasteboard;
-+ 
-+ @end
+++ (BOOL)containsFileURLRepresentation:(UIPasteboard *)pasteboard;
++
++/**
++ * Returns YES for MIME types that should use default text paste only (no onPaste to JS):
++ * text/plain, text/html, RTF variants, and any type with the text/ prefix.
++ */
+++ (BOOL)isTextBasedMimeType:(NSString *)mimeType;
++
++/**
++ * YES if this paste item should be surfaced as a file attachment (onPaste), including
++ * file:// or content:// payloads even when MIME is mislabeled as text.
++ */
+++ (BOOL)isFileLikePasteItem:(NSDictionary<NSString *, NSString *> *)item;
++
++/**
++ * Filters item infos to only entries that are file-like for onPaste dispatch.
++ */
+++ (NSArray<NSDictionary<NSString *, NSString *> *> *)fileLikeItemsFromItemInfos:
++    (NSArray<NSDictionary<NSString *, NSString *> *> *)itemInfos;
++
++@end
 + 
 + NS_ASSUME_NONNULL_END
 + 
 \ No newline at end of file
 diff --git a/node_modules/react-native/Libraries/Text/TextInput/RCTPasteHandlerUtil.mm b/node_modules/react-native/Libraries/Text/TextInput/RCTPasteHandlerUtil.mm
 new file mode 100644
-index 0000000..645ac52
+index 0000000..2550eb2
 --- /dev/null
 +++ b/node_modules/react-native/Libraries/Text/TextInput/RCTPasteHandlerUtil.mm
-@@ -0,0 +1,238 @@
+@@ -0,0 +1,296 @@
 +/*
 + * Copyright (c) Meta Platforms, Inc. and affiliates.
 + *
@@ -440,6 +447,64 @@ index 0000000..645ac52
 +  }
 +
 +  return NO;
++}
++
+++ (BOOL)isTextBasedMimeType:(NSString *)mimeType
++{
++  if (!mimeType.length) {
++    return NO;
++  }
++
++  NSString *lower = [mimeType lowercaseString];
++  if ([lower isEqualToString:@"text/plain"] || [lower isEqualToString:@"text/html"]) {
++    return YES;
++  }
++  if ([lower isEqualToString:@"text/rtf"] || [lower isEqualToString:@"application/rtf"]) {
++    return YES;
++  }
++  return [lower hasPrefix:@"text/"];
++}
++
+++ (BOOL)dataLooksLikeFileOrContentURI:(NSString *)data
++{
++  if (!data.length) {
++    return NO;
++  }
++  NSString *lower = [data lowercaseString];
++  return [lower hasPrefix:@"file://"] || [lower hasPrefix:@"content://"];
++}
++
+++ (BOOL)isFileLikePasteItem:(NSDictionary<NSString *, NSString *> *)item
++{
++  NSString *data = item[@"data"];
++  if ([self dataLooksLikeFileOrContentURI:data]) {
++    return YES;
++  }
++
++  NSString *type = item[@"type"];
++  if (!type.length) {
++    return NO;
++  }
++  if ([self isTextBasedMimeType:type]) {
++    return NO;
++  }
++  return YES;
++}
++
+++ (NSArray<NSDictionary<NSString *, NSString *> *> *)fileLikeItemsFromItemInfos:
++    (NSArray<NSDictionary<NSString *, NSString *> *> *)itemInfos
++{
++  if (itemInfos.count == 0) {
++    return @[];
++  }
++
++  NSMutableArray<NSDictionary<NSString *, NSString *> *> *result = [NSMutableArray array];
++  for (NSDictionary<NSString *, NSString *> *item in itemInfos) {
++    if ([self isFileLikePasteItem:item]) {
++      [result addObject:item];
++    }
++  }
++  return [result copy];
 +}
 +
 +#pragma mark - Private Methods
@@ -613,7 +678,7 @@ index 0000000..645ac52
 +
 +@end
 diff --git a/node_modules/react-native/Libraries/Text/TextInput/Singleline/RCTUITextField.mm b/node_modules/react-native/Libraries/Text/TextInput/Singleline/RCTUITextField.mm
-index 377f41e..fb851ae 100644
+index 377f41e..15f7274 100644
 --- a/node_modules/react-native/Libraries/Text/TextInput/Singleline/RCTUITextField.mm
 +++ b/node_modules/react-native/Libraries/Text/TextInput/Singleline/RCTUITextField.mm
 @@ -12,6 +12,12 @@
@@ -640,35 +705,24 @@ index 377f41e..fb851ae 100644
    return [super canPerformAction:action withSender:sender];
  }
  
-@@ -263,7 +273,27 @@
+@@ -263,6 +273,17 @@
  - (void)paste:(id)sender
  {
    _textWasPasted = YES;
--  [super paste:sender];
 +  UIPasteboard *clipboard = [UIPasteboard generalPasteboard];
-+
-+  // Fast path for plain text - also call super to insert the text
-+  if (clipboard.hasStrings && clipboard.string != nil &&
-+      ![RCTPasteHandlerUtil containsFileURLRepresentation:clipboard]) {
-+    NSDictionary<NSString *, NSString *> *stringItem = @{@"type": @"text/plain", @"data": clipboard.string};
-+    [_textInputDelegateAdapter didPaste:@[stringItem]];
-+    [super paste:sender];
-+    return;
-+  }
-+
-+  // Process non-text items using the utility
 +  NSArray<NSDictionary<NSString *, NSString *> *> *items =
 +      [RCTPasteHandlerUtil itemInfosFromPasteboard:clipboard];
++  NSArray<NSDictionary<NSString *, NSString *> *> *fileItems =
++      [RCTPasteHandlerUtil fileLikeItemsFromItemInfos:items];
 +
-+  if (items.count == 0) {
-+    [super paste:sender];
++  if (fileItems.count >= 1) {
++    [_textInputDelegateAdapter didPaste:fileItems];
 +    return;
 +  }
 +
-+  [_textInputDelegateAdapter didPaste:items];
+   [super paste:sender];
  }
  
- #pragma mark - Layout
 diff --git a/node_modules/react-native/React/Fabric/Mounting/ComponentViews/TextInput/RCTTextInputComponentView.mm b/node_modules/react-native/React/Fabric/Mounting/ComponentViews/TextInput/RCTTextInputComponentView.mm
 index 92ce922..8f4d992 100644
 --- a/node_modules/react-native/React/Fabric/Mounting/ComponentViews/TextInput/RCTTextInputComponentView.mm
@@ -732,7 +786,7 @@ index 0000000..a2475b3
 +}
 \ No newline at end of file
 diff --git a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/textinput/ReactEditText.kt b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/textinput/ReactEditText.kt
-index fb8f4b1..b5ab9a1 100644
+index fb8f4b1..674ffe6 100644
 --- a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/textinput/ReactEditText.kt
 +++ b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/textinput/ReactEditText.kt
 @@ -8,13 +8,20 @@
@@ -772,7 +826,49 @@ index fb8f4b1..b5ab9a1 100644
      textAttributes = TextAttributes()
  
      applyTextAttributes()
-@@ -367,10 +376,73 @@ public open class ReactEditText public constructor(context: Context) : AppCompat
+@@ -363,14 +372,114 @@ public open class ReactEditText public constructor(context: Context) : AppCompat
+     return inputConnection
+   }
+ 
++  /** Matches RCTPasteHandlerUtil on iOS: text MIME types use default paste only. */
++  private fun isTextBasedMimeType(mime: String?): Boolean {
++    if (mime.isNullOrEmpty()) {
++      return false
++    }
++    val lower = mime.lowercase()
++    return lower == ClipDescription.MIMETYPE_TEXT_PLAIN ||
++        lower == ClipDescription.MIMETYPE_TEXT_HTML ||
++        lower == "text/rtf" ||
++        lower == "application/rtf" ||
++        lower.startsWith("text/")
++  }
++
++  private fun dataLooksLikeFileOrContentUri(data: String?): Boolean {
++    if (data.isNullOrEmpty()) {
++      return false
++    }
++    val lower = data.lowercase()
++    return lower.startsWith("file://") || lower.startsWith("content://")
++  }
++
++  private fun isFileLikePasteItem(type: String, data: String): Boolean {
++    if (dataLooksLikeFileOrContentUri(data)) {
++      return true
++    }
++    if (type.isEmpty()) {
++      return false
++    }
++    if (isTextBasedMimeType(type)) {
++      return false
++    }
++    return true
++  }
++
++  private fun fileLikeItemsFrom(items: List<Pair<String, String>>): List<Pair<String, String>> {
++    return items.filter { (type, data) -> isFileLikePasteItem(type, data) }
++  }
++
+   /*
     * Called when a context menu option for the text view is selected.
     * React Native replaces copy (as rich text) with copy as plain text.
     */
@@ -834,12 +930,11 @@ index fb8f4b1..b5ab9a1 100644
 +          }
 +      }
 +
-+      // Only consume the paste when the clipboard has non-plain-text content (e.g. URI, HTML,
-+      // intent). Plain-text-only paste is left to Android so it inserts the text; otherwise
-+      // JS handlers that ignore text/plain would drop the paste.
-+      val hasNonPlainText = items.any { it.first != ClipDescription.MIMETYPE_TEXT_PLAIN }
-+      if (items.isNotEmpty() && hasNonPlainText && pasteWatcher != null) {
-+        pasteWatcher?.onPaste(items)
++      // Only consume when there is at least one file-like item (matches iOS RCTPasteHandlerUtil).
++      // Text-only clipboards are left to Android default paste so plain/HTML/RTF insert normally.
++      val fileItems = fileLikeItemsFrom(items)
++      if (fileItems.isNotEmpty() && pasteWatcher != null) {
++        pasteWatcher?.onPaste(fileItems)
 +        return true
 +      }
 +
@@ -850,7 +945,7 @@ index fb8f4b1..b5ab9a1 100644
  
    internal fun clearFocusAndMaybeRefocus() {
      if (Build.VERSION.SDK_INT > Build.VERSION_CODES.P || !isInTouchMode) {
-@@ -433,6 +505,10 @@ public open class ReactEditText public constructor(context: Context) : AppCompat
+@@ -433,6 +542,10 @@ public open class ReactEditText public constructor(context: Context) : AppCompat
      this.scrollWatcher = scrollWatcher
    }
  
