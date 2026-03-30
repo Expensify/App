@@ -130,6 +130,7 @@ function SelectCountryStep({policyID}: CountryStepProps) {
                     setSelectedCountry(countryOption.value ?? null);
                 }}
                 textInputOptions={textInputOptions}
+                searchValueForFocusSync={debouncedSearchValue}
                 confirmButtonOptions={confirmButtonOptions}
                 initiallyFocusedItemKey={initiallyFocusedCountry}
                 disableMaintainingScrollPosition

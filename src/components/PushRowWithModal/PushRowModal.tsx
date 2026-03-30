@@ -109,6 +109,7 @@ function PushRowModal({isVisible, selectedOption, onOptionChange, onClose, optio
                     ListItem={RadioListItem}
                     onSelectRow={handleSelectRow}
                     textInputOptions={textInputOptions}
+                    searchValueForFocusSync={debouncedSearchValue}
                     initiallyFocusedItemKey={initiallyFocusedOption}
                     disableMaintainingScrollPosition
                     shouldShowTooltips={false}

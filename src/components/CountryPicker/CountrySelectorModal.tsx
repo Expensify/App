@@ -96,6 +96,7 @@ function CountrySelectorModal({isVisible, currentCountry, onCountrySelected, onC
                 <SelectionList
                     data={searchResults}
                     textInputOptions={textInputOptions}
+                    searchValueForFocusSync={debouncedSearchValue}
                     onSelectRow={onCountrySelected}
                     ListItem={RadioListItem}
                     initiallyFocusedItemKey={initiallyFocusedCountry}

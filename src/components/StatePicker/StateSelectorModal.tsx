@@ -102,6 +102,7 @@ function StateSelectorModal({isVisible, currentState, onStateSelected, onClose, 
                     ListItem={RadioListItem}
                     onSelectRow={onStateSelected}
                     textInputOptions={textInputOptions}
+                    searchValueForFocusSync={debouncedSearchValue}
                     initiallyFocusedItemKey={initiallyFocusedState}
                     disableMaintainingScrollPosition
                     shouldSingleExecuteRowSelect
