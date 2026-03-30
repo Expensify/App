@@ -61,7 +61,7 @@ function SpendRulePageBase({policyID, titleKey, testID}: SpendRulePageBaseProps)
                     />
                 </ScrollView>
                 <FormAlertWithSubmitButton
-                    buttonText={translate('workspace.rules.merchantRules.saveRule')}
+                    buttonText={translate('workspace.rules.spendRules.saveRule')}
                     containerStyles={[styles.m4, styles.mb5]}
                     isAlertVisible={false}
                     onSubmit={handleSaveRule}

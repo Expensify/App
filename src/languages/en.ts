@@ -6668,6 +6668,7 @@ const translations = {
                 cardPageTitle: 'Card',
                 cardsSectionTitle: 'Cards',
                 chooseCards: 'Choose cards',
+                saveRule: 'Save rule',
             },
         },
         planTypePage: {
