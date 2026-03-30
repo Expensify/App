@@ -66,12 +66,6 @@ Onyx.connect({
     callback: (value) => (privateAmountOwed = value),
 });
 
-let ownerBillingGraceEndPeriodDeprecated: OnyxEntry<number>;
-Onyx.connect({
-    key: ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END,
-    callback: (value) => (ownerBillingGraceEndPeriodDeprecated = value),
-});
-
 let deprecatedUserBillingGraceEndPeriods: OnyxCollection<BillingGraceEndPeriod>;
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END,
@@ -470,9 +464,9 @@ function doesUserHavePaymentCardAdded(userBillingFundID: number | undefined): bo
  */
 function shouldRestrictUserBillableActions(
     policyID: string,
+    ownerBillingGraceEndPeriod: OnyxEntry<number>,
     userBillingGraceEndPeriods: OnyxCollection<BillingGraceEndPeriod> = deprecatedUserBillingGraceEndPeriods,
     amountOwed: OnyxEntry<number> = privateAmountOwed,
-    ownerBillingGraceEndPeriod: OnyxEntry<number> = ownerBillingGraceEndPeriodDeprecated,
 ): boolean {
     const currentDate = new Date();
 
@@ -628,6 +622,7 @@ export {
     getFreeTrialText,
     getSubscriptionStatus,
     hasCardAuthenticatedError,
+    hasCardExpiredError,
     hasGracePeriodOverdue,
     hasRetryBillingError,
     hasSubscriptionGreenDotInfo,
@@ -644,6 +639,7 @@ export {
     getSubscriptionPrice,
     shouldShowTrialEndedUI,
     isSubscriptionTypeOfInvoicing,
+    hasInsufficientFundsError,
 };
 
 export type {SubscriptionPlanIllustrations};

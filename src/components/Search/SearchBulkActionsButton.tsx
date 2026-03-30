@@ -15,12 +15,12 @@ import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchBulkActions from '@hooks/useSearchBulkActions';
-import useSearchDeleteTransactions from '@hooks/useSearchDeleteTransactions';
 import useSortedActiveAdminPolicies from '@hooks/useSortedActiveAdminPolicies';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {handleBulkPayItemSelected} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
 import {isExpenseReport} from '@libs/ReportUtils';
+import shouldPopoverUseScrollView from '@libs/shouldPopoverUseScrollView';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -47,8 +47,8 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
     const [userBillingGraceEndPeriods] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isUserValidatedSelector});
     const activeAdminPolicies = useSortedActiveAdminPolicies();
-    const {deleteTransactionsOnSearch} = useSearchDeleteTransactions();
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
+    const [ownerBillingGraceEndPeriod] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
 
     const {
         headerButtonsOptions,
@@ -66,7 +66,7 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
         handleDownloadErrorModalClose,
         dismissModalAndUpdateUseHold,
         dismissRejectModalBasedOnAction,
-    } = useSearchBulkActions({queryJSON, deleteTransactionsOnSearch});
+    } = useSearchBulkActions({queryJSON});
 
     const currentSelectedPolicyID = selectedPolicyIDs?.at(0);
     const currentSelectedReportID = selectedTransactionReportIDs?.at(0) ?? selectedReportIDs?.at(0);
@@ -78,8 +78,7 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
     const selectedTransactionsKeys = Object.keys(selectedTransactions ?? {});
     const isExpenseReportType = queryJSON.type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
 
-    const shouldPopoverUseScrollView =
-        headerButtonsOptions.length >= CONST.DROPDOWN_SCROLL_THRESHOLD || headerButtonsOptions.some((option) => (option.subMenuItems?.length ?? 0) >= CONST.DROPDOWN_SCROLL_THRESHOLD);
+    const popoverUseScrollView = shouldPopoverUseScrollView(headerButtonsOptions);
 
     const selectedItemsCount = useMemo(() => {
         if (!selectedTransactions) {
@@ -125,7 +124,7 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
                                 shouldAlwaysShowDropdownMenu
                                 isDisabled={headerButtonsOptions.length === 0}
                                 onPress={() => null}
-                                shouldPopoverUseScrollView={shouldPopoverUseScrollView}
+                                shouldPopoverUseScrollView={popoverUseScrollView}
                                 onSubItemSelected={(subItem) =>
                                     handleBulkPayItemSelected({
                                         item: subItem,
@@ -141,6 +140,7 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
                                         confirmPayment,
                                         userBillingGraceEndPeriods,
                                         amountOwed,
+                                        ownerBillingGraceEndPeriod,
                                         setPendingPaymentAdditionalData: (data) => {
                                             pendingPaymentAdditionalDataRef.current = data;
                                         },
@@ -165,7 +165,7 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
                                 buttonSize={CONST.DROPDOWN_BUTTON_SIZE.SMALL}
                                 customText={selectionButtonText}
                                 options={headerButtonsOptions}
-                                shouldPopoverUseScrollView={shouldPopoverUseScrollView}
+                                shouldPopoverUseScrollView={popoverUseScrollView}
                                 onSubItemSelected={(subItem) =>
                                     handleBulkPayItemSelected({
                                         item: subItem,
@@ -181,6 +181,7 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
                                         confirmPayment,
                                         userBillingGraceEndPeriods,
                                         amountOwed,
+                                        ownerBillingGraceEndPeriod,
                                         setPendingPaymentAdditionalData: (data) => {
                                             pendingPaymentAdditionalDataRef.current = data;
                                         },
