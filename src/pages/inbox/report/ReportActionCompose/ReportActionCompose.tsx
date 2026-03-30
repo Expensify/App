@@ -195,7 +195,8 @@ function ReportActionCompose({reportID}: ReportActionComposeProps) {
     const shouldFocusComposerOnScreenFocus = shouldFocusInputOnScreenFocus || !!draftComment;
 
     const [targetReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${effectiveTransactionThreadReportID ?? reportID}`);
-    const ancestors = useAncestors(targetReport);
+    const reportAncestors = useAncestors(report);
+    const targetReportAncestors = useAncestors(targetReport);
     const {scrollOffsetRef} = useContext(ActionListContext);
 
     /**
@@ -380,7 +381,7 @@ function ReportActionCompose({reportID}: ReportActionComposeProps) {
                 addAttachmentWithComment({
                     report: targetReport,
                     notifyReportID: reportID,
-                    ancestors,
+                    ancestors: targetReportAncestors,
                     attachments: attachmentFileRef.current,
                     currentUserAccountID: currentUserPersonalDetails.accountID,
                     text: newCommentTrimmed,
@@ -428,7 +429,7 @@ function ReportActionCompose({reportID}: ReportActionComposeProps) {
                             policyID: report?.policyID,
                             isCreatedUsingMarkdown: true,
                             quickAction,
-                            ancestors,
+                            ancestors: reportAncestors,
                         });
                         return;
                     }
@@ -452,7 +453,7 @@ function ReportActionCompose({reportID}: ReportActionComposeProps) {
                 addComment({
                     report: targetReport,
                     notifyReportID: reportID,
-                    ancestors,
+                    ancestors: targetReportAncestors,
                     text: newCommentTrimmed,
                     timezoneParam: currentUserPersonalDetails.timezone ?? CONST.DEFAULT_TIME_ZONE,
                     currentUserAccountID: currentUserPersonalDetails.accountID,
@@ -465,8 +466,10 @@ function ReportActionCompose({reportID}: ReportActionComposeProps) {
         [
             kickoffWaitingIndicator,
             targetReport,
+            report,
             reportID,
-            ancestors,
+            targetReportAncestors,
+            reportAncestors,
             currentUserPersonalDetails.accountID,
             currentUserPersonalDetails.timezone,
             isInSidePanel,

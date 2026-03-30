@@ -13,6 +13,7 @@ import useIsAnonymousUser from '@hooks/useIsAnonymousUser';
 import useIsReportReadyToDisplay from '@hooks/useIsReportReadyToDisplay';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -46,6 +47,7 @@ function ReportFooter() {
 
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {isOffline} = useNetwork();
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth -- isSmallScreenWidth guards composer visibility on mobile during keyboard events, shouldUseNarrowLayout would wrongly hide it in RHP
     const {isSmallScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Lightbulb']);
@@ -82,10 +84,12 @@ function ReportFooter() {
         return null;
     }
 
+    const chatFooterStyles = {...styles.chatFooter, minHeight: !isOffline ? CONST.CHAT_FOOTER_MIN_HEIGHT : 0};
+
     // Happy path — user can compose
     if (!shouldHideComposer && (shouldShowComposeInput || !isSmallScreenWidth)) {
         return (
-            <View style={[styles.chatFooter, isComposerFullSize && styles.chatFooterFullCompose]}>
+            <View style={[chatFooterStyles, isComposerFullSize && styles.chatFooterFullCompose]}>
                 <SwipeableView onSwipeDown={Keyboard.dismiss}>
                     <ReportActionCompose reportID={report.reportID} />
                 </SwipeableView>
