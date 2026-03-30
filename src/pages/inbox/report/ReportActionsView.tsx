@@ -81,7 +81,7 @@ function ReportActionsView({reportID, onLayout}: ReportActionsViewProps) {
 
     const reportActionID = route?.params?.reportActionID;
     const {reportActions: unfilteredReportActions, hasNewerActions, hasOlderActions} = usePaginatedReportActions(reportID, reportActionID);
-    const allReportActions = getFilteredReportActionsForReportView(unfilteredReportActions);
+    const allReportActions = useMemo(() => getFilteredReportActionsForReportView(unfilteredReportActions), [unfilteredReportActions]);
 
     const parentReportAction = useParentReportAction(report);
 
@@ -106,10 +106,19 @@ function ReportActionsView({reportID, onLayout}: ReportActionsViewProps) {
 
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.chatReportID}`);
     const allReportTransactions = useReportTransactionsCollection(reportID);
-    const reportTransactionsForThreadID = getAllNonDeletedTransactions(allReportTransactions, allReportActions ?? [], isOffline, true);
-    const visibleTransactionsForThreadID = reportTransactionsForThreadID?.filter((transaction) => isOffline || transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
-    const reportTransactionIDsForThread = visibleTransactionsForThreadID?.map((t) => t.transactionID);
-    const transactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, allReportActions ?? [], isOffline, reportTransactionIDsForThread);
+    const reportTransactionsForThreadID = useMemo(
+        () => getAllNonDeletedTransactions(allReportTransactions, allReportActions ?? [], isOffline, true),
+        [allReportTransactions, allReportActions, isOffline],
+    );
+    const visibleTransactionsForThreadID = useMemo(
+        () => reportTransactionsForThreadID?.filter((transaction) => isOffline || transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE),
+        [reportTransactionsForThreadID, isOffline],
+    );
+    const reportTransactionIDsForThread = useMemo(() => visibleTransactionsForThreadID?.map((t) => t.transactionID), [visibleTransactionsForThreadID]);
+    const transactionThreadReportID = useMemo(
+        () => getOneTransactionThreadReportID(report, chatReport, allReportActions ?? [], isOffline, reportTransactionIDsForThread),
+        [report, chatReport, allReportActions, isOffline, reportTransactionIDsForThread],
+    );
 
     const isReportArchived = useReportIsArchived(reportID);
     const canPerformWriteAction = canUserPerformWriteAction(report, isReportArchived);
@@ -132,15 +141,18 @@ function ReportActionsView({reportID, onLayout}: ReportActionsViewProps) {
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const [visibleReportActionsData] = useOnyx(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS);
     const prevReportActionID = usePrevious(reportActionID);
-    const reportPreviewAction = getReportPreviewAction(report?.chatReportID, report?.reportID);
+    const reportPreviewAction = useMemo(() => getReportPreviewAction(report?.chatReportID, report?.reportID), [report?.chatReportID, report?.reportID]);
     const didLayout = useRef(false);
 
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const isFocused = useIsFocused();
     const prevShouldUseNarrowLayoutRef = useRef(shouldUseNarrowLayout);
-    const isReportFullyVisible = getIsReportFullyVisible(isFocused);
+    const isReportFullyVisible = useMemo(() => getIsReportFullyVisible(isFocused), [isFocused]);
     const {transactions: reportTransactions} = useTransactionsAndViolationsForReport(reportID);
-    const reportTransactionIDs = getAllNonDeletedTransactions(reportTransactions, allReportActions ?? []).map((transaction) => transaction.transactionID);
+    const reportTransactionIDs = useMemo(
+        () => getAllNonDeletedTransactions(reportTransactions, allReportActions ?? []).map((transaction) => transaction.transactionID),
+        [reportTransactions, allReportActions],
+    );
 
     const lastAction = allReportActions?.at(-1);
     const isInitiallyLoadingTransactionThread = isReportTransactionThread && (!!isLoadingInitialReportActions || (allReportActions ?? [])?.length <= 1);
@@ -272,7 +284,7 @@ function ReportActionsView({reportID, onLayout}: ReportActionsViewProps) {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [shouldUseNarrowLayout, reportActions, isReportFullyVisible]);
 
-    const allReportActionIDs = allReportActions?.map((action) => action.reportActionID) ?? [];
+    const allReportActionIDs = useMemo(() => allReportActions?.map((action) => action.reportActionID) ?? [], [allReportActions]);
 
     const {loadOlderChats, loadNewerChats} = useLoadReportActions({
         reportID,
