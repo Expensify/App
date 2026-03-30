@@ -20,7 +20,8 @@ const Stack = createWorkspaceNavigator<WorkspaceNavigatorParamList>();
 
 function WorkspaceNavigator({route}: PlatformStackScreenProps<AuthScreensParamList, typeof NAVIGATORS.WORKSPACE_NAVIGATOR>) {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const splitNavigatorAnimation = shouldUseNarrowLayout ? Animations.SLIDE_FROM_RIGHT : Animations.NONE;
+    // On narrow layout, use slide animation and enable swipe-back gesture on native platforms from WorkspaceInitialPage and DomainInitialPage.
+    const splitNavigatorOptions = shouldUseNarrowLayout ? {animation: Animations.SLIDE_FROM_RIGHT, gestureEnabled: true} : {animation: Animations.NONE};
     const styles = useThemeStyles();
 
     // This hook preloads the screens of adjacent tabs to make changing tabs faster.
@@ -45,12 +46,12 @@ function WorkspaceNavigator({route}: PlatformStackScreenProps<AuthScreensParamLi
             />
             <Stack.Screen
                 name={NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR}
-                options={{animation: splitNavigatorAnimation}}
+                options={splitNavigatorOptions}
                 component={WorkspaceSplitNavigator}
             />
             <Stack.Screen
                 name={NAVIGATORS.DOMAIN_SPLIT_NAVIGATOR}
-                options={{animation: splitNavigatorAnimation}}
+                options={splitNavigatorOptions}
                 component={DomainSplitNavigator}
             />
         </Stack.Navigator>
