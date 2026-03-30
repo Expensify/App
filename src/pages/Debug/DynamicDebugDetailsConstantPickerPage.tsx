@@ -4,6 +4,7 @@ import CategoryPicker from '@components/CategoryPicker';
 import CurrencySelectionList from '@components/CurrencySelectionList';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
@@ -11,38 +12,26 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {DebugParamList} from '@libs/Navigation/types';
 import {appendParam} from '@libs/Url';
 import CONST from '@src/CONST';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import TRANSACTION_FORM_INPUT_IDS from '@src/types/form/DebugTransactionForm';
 import ConstantPicker from './ConstantPicker';
 import DebugTagPicker from './DebugTagPicker';
 
-type DebugDetailsConstantPickerPageProps = PlatformStackScreenProps<DebugParamList, typeof SCREENS.DEBUG.DETAILS_CONSTANT_PICKER_PAGE>;
+type DynamicDebugDetailsConstantPickerPageProps = PlatformStackScreenProps<DebugParamList, typeof SCREENS.DEBUG.DYNAMIC_DETAILS_CONSTANT_PICKER_PAGE>;
 
-function DebugDetailsConstantPickerPage({
+function DynamicDebugDetailsConstantPickerPage({
     route: {
-        params: {formType, fieldName, fieldValue, policyID = '', backTo = ''},
+        params: {formType, fieldName, fieldValue, policyID = ''},
     },
-    navigation,
-}: DebugDetailsConstantPickerPageProps) {
+}: DynamicDebugDetailsConstantPickerPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const onSubmit = useCallback(
-        (item: {text?: string; keyForList?: string}) => {
-            const value = item.text === fieldValue ? '' : (item.text ?? '');
-            // Check the navigation state and "backTo" parameter to decide navigation behavior
-            if (navigation.getState().routes.length === 1 && !backTo) {
-                // If there is only one route and "backTo" is empty, go back in navigation
-                Navigation.goBack();
-            } else if (!!backTo && navigation.getState().routes.length === 1) {
-                // If "backTo" is not empty and there is only one route, go back to the specific route defined in "backTo" with a country parameter
-                Navigation.goBack(appendParam(backTo, fieldName, value));
-            } else {
-                // Otherwise, navigate to the specific route defined in "backTo" with a country parameter
-                Navigation.navigate(appendParam(backTo, fieldName, value));
-            }
-        },
-        [backTo, fieldName, fieldValue, navigation],
-    );
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.DETAILS_CONSTANT_PICKER.path);
+    const onSubmit = (item: {text?: string; keyForList?: string}) => {
+        const value = item.text === fieldValue ? '' : (item.text ?? '');
+        Navigation.goBack(appendParam(backPath, fieldName ?? '', value), {compareParams: false});
+    };
 
     const renderPicker = useCallback(() => {
         if (([TRANSACTION_FORM_INPUT_IDS.CURRENCY, TRANSACTION_FORM_INPUT_IDS.MODIFIED_CURRENCY, TRANSACTION_FORM_INPUT_IDS.ORIGINAL_CURRENCY] as string[]).includes(fieldName)) {
@@ -91,10 +80,16 @@ function DebugDetailsConstantPickerPage({
 
     return (
         <ScreenWrapper testID="DebugDetailsConstantPickerPage">
-            <HeaderWithBackButton title={fieldName} />
+            <HeaderWithBackButton
+                title={fieldName}
+                shouldShowBackButton
+                onBackButtonPress={() => {
+                    Navigation.goBack(fieldValue ? appendParam(backPath, fieldName, fieldValue) : backPath, {compareParams: false});
+                }}
+            />
             <View style={styles.containerWithSpaceBetween}>{renderPicker()}</View>
         </ScreenWrapper>
     );
 }
 
-export default DebugDetailsConstantPickerPage;
+export default DynamicDebugDetailsConstantPickerPage;
