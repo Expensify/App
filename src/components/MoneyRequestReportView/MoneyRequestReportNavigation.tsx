@@ -13,6 +13,7 @@ import {saveLastSearchParams} from '@userActions/ReportNavigation';
 import {search} from '@userActions/Search';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {SearchResults} from '@src/types/onyx';
 import type LastSearchParams from '@src/types/onyx/ReportNavigation';
 
 type MoneyRequestReportNavigationProps = {
@@ -143,8 +144,10 @@ function MoneyRequestReportNavigationStandalone({reportID, shouldDisplayNarrowVe
 function MoneyRequestReportNavigation({reportID, shouldDisplayNarrowVersion}: MoneyRequestReportNavigationProps) {
     const {sortedReportIDs} = useSearchStateContext();
     const [lastSearchQuery] = useOnyx(ONYXKEYS.REPORT_NAVIGATION_LAST_SEARCH_QUERY);
-    const [currentSearchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${lastSearchQuery?.queryJSON?.hash}`);
-    const isSearchLoading = !!currentSearchResults?.search?.isLoading;
+    const searchLoadingSelector = (data: OnyxEntry<SearchResults>) => !!data?.search?.isLoading;
+    const [isSearchLoading = false] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${lastSearchQuery?.queryJSON?.hash}`, {
+        selector: searchLoadingSelector,
+    });
     const allReports = useFilterPendingDeleteReports(sortedReportIDs);
 
     // Fast path: use pre-computed IDs from context when available and no pagination is in flight.
