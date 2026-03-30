@@ -1,11 +1,11 @@
 import {NavigationContainer} from '@react-navigation/native';
+import {createStackNavigator} from '@react-navigation/stack';
 import {act, render} from '@testing-library/react-native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
-import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {MoneyRequestNavigatorParamList} from '@libs/Navigation/types';
 import IOURequestStepScan from '@pages/iou/request/step/IOURequestStepScan';
 import CONST from '@src/CONST';
@@ -54,6 +54,8 @@ jest.mock('react-native-vision-camera', () => ({
     useCameraDevice: jest.fn(() => null),
     useCameraFormat: jest.fn(() => null),
 }));
+
+const Stack = createStackNavigator<MoneyRequestNavigatorParamList>();
 
 function createMinimalReport(reportID: string, policyID: string): Report {
     return {
@@ -126,23 +128,20 @@ describe('IOURequestStepScan', () => {
             <OnyxListItemProvider>
                 <LocaleContextProvider>
                     <NavigationContainer>
-                        <IOURequestStepScan
-                            route={
-                                {
-                                    key: 'StepScan',
-                                    name: SCREENS.MONEY_REQUEST.STEP_SCAN,
-                                    params: {
-                                        action: CONST.IOU.ACTION.CREATE,
-                                        iouType: CONST.IOU.TYPE.SUBMIT,
-                                        reportID: REPORT_ID,
-                                        transactionID: TRANSACTION_ID_1,
-                                        backTo: ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.route,
-                                        pageIndex: 0,
-                                    },
-                                } as unknown as PlatformStackScreenProps<MoneyRequestNavigatorParamList, typeof SCREENS.MONEY_REQUEST.STEP_SCAN>['route']
-                            }
-                            navigation={{} as never}
-                        />
+                        <Stack.Navigator>
+                            <Stack.Screen
+                                name={SCREENS.MONEY_REQUEST.STEP_SCAN}
+                                component={IOURequestStepScan}
+                                initialParams={{
+                                    action: CONST.IOU.ACTION.CREATE,
+                                    iouType: CONST.IOU.TYPE.SUBMIT,
+                                    reportID: REPORT_ID,
+                                    transactionID: TRANSACTION_ID_1,
+                                    backTo: ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.route,
+                                    pageIndex: 0,
+                                }}
+                            />
+                        </Stack.Navigator>
                     </NavigationContainer>
                 </LocaleContextProvider>
             </OnyxListItemProvider>,
@@ -187,25 +186,19 @@ describe('IOURequestStepScan', () => {
             <OnyxListItemProvider>
                 <LocaleContextProvider>
                     <NavigationContainer>
-                        <IOURequestStepScan
-                            route={
-                                {
-                                    key: 'StepScan2',
-                                    name: SCREENS.MONEY_REQUEST.STEP_SCAN,
-                                    params: {
-                                        action: CONST.IOU.ACTION.CREATE,
-                                        iouType: CONST.IOU.TYPE.SUBMIT,
-                                        reportID: REPORT_ID,
-                                        transactionID: TRANSACTION_ID_1,
-                                        pageIndex: 0,
-                                    },
-                                } as unknown as PlatformStackScreenProps<MoneyRequestNavigatorParamList, typeof SCREENS.MONEY_REQUEST.STEP_SCAN>['route']
-                            }
-                            navigation={{} as never}
-                            isMultiScanEnabled
-                            isStartingScan
-                            setIsMultiScanEnabled={jest.fn()}
-                        />
+                        <Stack.Navigator>
+                            <Stack.Screen
+                                name={SCREENS.MONEY_REQUEST.STEP_SCAN}
+                                component={IOURequestStepScan}
+                                initialParams={{
+                                    action: CONST.IOU.ACTION.CREATE,
+                                    iouType: CONST.IOU.TYPE.SUBMIT,
+                                    reportID: REPORT_ID,
+                                    transactionID: TRANSACTION_ID_1,
+                                    pageIndex: 0,
+                                }}
+                            />
+                        </Stack.Navigator>
                     </NavigationContainer>
                 </LocaleContextProvider>
             </OnyxListItemProvider>,
