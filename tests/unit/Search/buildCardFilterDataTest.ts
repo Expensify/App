@@ -323,6 +323,7 @@ const companyCardIconsMock = {
     BrexCompanyCardDetailLarge: jest.fn(),
     StripeCompanyCardDetailLarge: jest.fn(),
     PlaidCompanyCardDetailLarge: jest.fn(),
+    ExpensifyCardImage: jest.fn(),
 };
 
 describe('buildIndividualCardsData', () => {

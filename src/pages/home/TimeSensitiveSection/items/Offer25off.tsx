@@ -14,7 +14,7 @@ type Offer25offProps = {
 function Offer25off({days}: Offer25offProps) {
     const theme = useTheme();
     const {translate} = useLocalize();
-    const icons = useMemoizedLazyExpensifyIcons(['TreasureChest'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['TreasureChest']);
 
     const subtitle = translate('homePage.timeSensitiveSection.offer25off.subtitle', {days});
 

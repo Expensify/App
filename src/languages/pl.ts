@@ -1553,6 +1553,18 @@ const translations: TranslationDeepObject<typeof en> = {
                 markedAsResolved: 'oznaczono powód odrzucenia jako rozwiązany',
             },
         },
+        rejectReport: {
+            title: 'Odrzuć raport',
+            description: 'Wyjaśnij, dlaczego nie zatwierdzisz tego raportu:',
+            rejectReason: 'Powód odrzucenia',
+            selectTarget: 'Wybierz członka, do którego chcesz odesłać ten raport do ponownego przejrzenia:',
+            lastApprover: 'Ostatni akceptujący',
+            submitter: 'Zgłaszający',
+            rejectedReportMessage: 'Ten raport został odrzucony.',
+            rejectedNextStep: 'Ten raport został odrzucony. Czekamy, aż naprawisz problemy i wyślesz go ponownie ręcznie.',
+            selectMemberError: 'Wybierz członka, do którego chcesz odesłać ten raport do odrzucenia.',
+            couldNotReject: 'Nie udało się odrzucić raportu. Spróbuj ponownie.',
+        },
         moveExpenses: 'Przenieś do raportu',
         moveExpensesError: 'Nie możesz przenosić diet do raportów w innych przestrzeniach roboczych, ponieważ stawki diet mogą się różnić między przestrzeniami roboczymi.',
         changeApprover: {
@@ -1601,6 +1613,7 @@ const translations: TranslationDeepObject<typeof en> = {
             `nie udało się zatwierdzić przez <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">zasady w przestrzeni roboczej</a>. ${reason}`,
         failedToApproveViaDEW: (reason: string) => `nie udało się zaakceptować. ${reason}`,
         cannotDuplicateDistanceExpense: 'Nie możesz duplikować wydatków za przejazdy między przestrzeniami roboczymi, ponieważ stawki mogą się różnić między poszczególnymi przestrzeniami.',
+        deleted: 'Usunięto',
     },
     transactionMerge: {
         listPage: {
@@ -1676,28 +1689,28 @@ const translations: TranslationDeepObject<typeof en> = {
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_ADD_TRANSACTIONS]: ({actor, actorType}: NextStepParams) => {
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `Czekamy, aż <strong>Ty</strong> dodasz wydatki.`;
+                        return `Czekamy, aż to <strong>ty</strong> dodasz wydatki.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
                         return `Oczekiwanie, aż <strong>${actor}</strong> doda wydatki.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `Oczekiwanie na dodanie wydatków przez administratora.`;
+                        return `Oczekiwanie, aż administrator doda wydatki.`;
                 }
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_SUBMIT]: ({actor, actorType}: NextStepParams) => {
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `Oczekiwanie, aż <strong>ty</strong> zgłosisz wydatki.`;
+                        return `Czekamy, aż <strong>Ty</strong> zgłosisz wydatki.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
                         return `Oczekiwanie, aż <strong>${actor}</strong> prześle wydatki.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `Oczekiwanie na zgłoszenie wydatków przez administratora.`;
+                        return `Oczekiwanie, aż administrator złoży wydatki.`;
                 }
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.NO_FURTHER_ACTION]: (_: NextStepParams) => `Nie są wymagane dalsze działania!`,
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_SUBMITTER_ACCOUNT]: ({actor, actorType}: NextStepParams) => {
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `Czekamy, aż <strong>Ty</strong> dodasz konto bankowe.`;
+                        return `Czekamy, aż <strong>dodasz</strong> konto bankowe.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
                         return `Oczekiwanie, aż <strong>${actor}</strong> doda konto bankowe.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
@@ -1707,31 +1720,31 @@ const translations: TranslationDeepObject<typeof en> = {
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_AUTOMATIC_SUBMIT]: ({actor, actorType, eta, etaType}: NextStepParams) => {
                 let formattedETA = '';
                 if (eta) {
-                    formattedETA = etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? ` ${eta} dnia każdego miesiąca` : ` ${eta}`;
+                    formattedETA = etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? `${eta}. dnia każdego miesiąca` : ` ${eta}`;
                 }
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `Oczekiwanie, aż <strong>Twoje</strong> wydatki zostaną automatycznie przesłane${formattedETA}.`;
+                        return `Oczekiwanie, aż <strong>twoje</strong> wydatki zostaną automatycznie przesłane${formattedETA}.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `Oczekiwanie na automatyczne przesłanie wydatków użytkownika <strong>${actor}</strong>${formattedETA}.`;
+                        return `Oczekiwanie, aż wydatki użytkownika <strong>${actor}</strong> zostaną automatycznie przesłane${formattedETA}.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `Oczekiwanie na automatyczne przesłanie wydatków administratora${formattedETA}.`;
+                        return `Oczekiwanie, aż wydatki administratora zostaną automatycznie wysłane${formattedETA}.`;
                 }
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_FIX_ISSUES]: ({actor, actorType}: NextStepParams) => {
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `Czekamy, aż <strong>Ty</strong> naprawisz problemy.`;
+                        return `Czekamy, aż <strong>ty</strong> naprawisz problemy.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
                         return `Oczekiwanie, aż <strong>${actor}</strong> naprawi problemy.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `Oczekiwanie na administratora, który naprawi problemy.`;
+                        return `Oczekiwanie na naprawienie problemów przez administratora.`;
                 }
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_APPROVE]: ({actor, actorType}: NextStepParams) => {
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `Oczekiwanie na <strong>Twoje</strong> zatwierdzenie wydatków.`;
+                        return `Czekamy, aż <strong>ty</strong> zatwierdzisz wydatki.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
                         return `Oczekiwanie, aż <strong>${actor}</strong> zatwierdzi wydatki.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
@@ -1741,7 +1754,7 @@ const translations: TranslationDeepObject<typeof en> = {
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_EXPORT]: ({actor, actorType}: NextStepParams) => {
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `Oczekujemy, aż <strong>ty</strong> wyeksportujesz ten raport.`;
+                        return `Czekamy, aż to <strong>ty</strong> wyeksportujesz ten raport.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
                         return `Oczekiwanie, aż <strong>${actor}</strong> wyeksportuje ten raport.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
@@ -1751,9 +1764,9 @@ const translations: TranslationDeepObject<typeof en> = {
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_PAY]: ({actor, actorType}: NextStepParams) => {
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `Czekamy, aż <strong>Ty</strong> opłacisz wydatki.`;
+                        return `Czekamy, aż <strong>ty</strong> zapłacisz wydatki.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `Oczekiwanie, aż <strong>${actor}</strong> zapłaci za wydatki.`;
+                        return `Oczekiwanie, aż <strong>${actor}</strong> zapłaci wydatki.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
                         return `Oczekiwanie na opłacenie wydatków przez administratora.`;
                 }
@@ -1761,22 +1774,32 @@ const translations: TranslationDeepObject<typeof en> = {
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_POLICY_BANK_ACCOUNT]: ({actor, actorType}: NextStepParams) => {
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `Czekamy, aż <strong>Ty</strong> zakończysz konfigurację firmowego konta bankowego.`;
+                        return `Czekamy, aż <strong>Ty</strong> skończysz zakładać firmowe konto bankowe.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `Oczekiwanie, aż <strong>${actor}</strong> zakończy zakładanie firmowego konta bankowego.`;
+                        return `Oczekiwanie, aż <strong>${actor}</strong> zakończy konfigurowanie firmowego konta bankowego.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `Oczekiwanie, aż administrator zakończy konfigurację firmowego konta bankowego.`;
+                        return `Czekanie, aż administrator skończy konfigurować firmowe konto bankowe.`;
                 }
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_PAYMENT]: ({eta, etaType}: NextStepParams) => {
                 let formattedETA = '';
                 if (eta) {
-                    formattedETA = etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? ` do ${eta}` : ` ${eta}`;
+                    formattedETA = etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? `do ${eta}` : ` ${eta}`;
                 }
                 return `Oczekiwanie na zakończenie płatności${formattedETA}.`;
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.SUBMITTING_TO_SELF]: (_: NextStepParams) =>
-                `Ups! Wygląda na to, że wysyłasz zgłoszenie <strong>do siebie</strong>. Zatwierdzanie własnych raportów jest <strong>zabronione</strong> w Twojej przestrzeni roboczej. Wyślij ten raport do kogoś innego lub skontaktuj się z administratorem, aby zmienić osobę, do której wysyłasz zgłoszenia.`,
+                `Ups! Wygląda na to, że wysyłasz raport do <strong>siebie</strong>. Zatwierdzanie własnych raportów jest <strong>zabronione</strong> w twojej przestrzeni roboczej. Wyślij ten raport do kogoś innego albo skontaktuj się z administratorem, żeby zmienić osobę, do której wysyłasz.`,
+            [CONST.NEXT_STEP.MESSAGE_KEY.REJECTED_REPORT]: ({actor, actorType}: NextStepParams) => {
+                switch (actorType) {
+                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
+                        return `Ten raport został odrzucony. Czekamy, aż <strong>ty</strong> naprawisz problemy i ręcznie go prześlesz ponownie.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
+                        return `Ten raport został odrzucony. Oczekiwanie na <strong>${actor}</strong> w celu naprawienia problemów i ręcznego ponownego przesłania.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
+                        return `Ten raport został odrzucony. Czekamy, aż administrator naprawi problemy i prześle go ponownie ręcznie.`;
+                }
+            },
         },
         eta: {
             [CONST.NEXT_STEP.ETA_KEY.SHORTLY]: 'wkrótce',
@@ -1946,6 +1969,7 @@ const translations: TranslationDeepObject<typeof en> = {
             softKillTheApp: 'Miękko zamknij aplikację',
             kill: 'Zabij',
             sentryDebug: 'Debugowanie Sentry',
+            sentrySendDescription: 'Wysyłaj dane do Sentry',
             sentryDebugDescription: 'Rejestruj żądania Sentry w konsoli',
             sentryHighlightedSpanOps: 'Wyróżnione nazwy zakresów',
             sentryHighlightedSpanOpsPlaceholder: 'kliknięcie interfejsu, nawigacja, ładowanie interfejsu',
@@ -1961,6 +1985,7 @@ const translations: TranslationDeepObject<typeof en> = {
         accountSettings: 'Ustawienia konta',
         account: 'Konto',
         general: 'Ogólne',
+        helpPage: {title: 'Pomoc i wsparcie', description: 'Jesteśmy tu, żeby pomagać ci 24/7', helpSite: 'Centrum pomocy'},
     },
     closeAccountPage: {
         closeAccount: 'Zamknij konto',
@@ -2899,13 +2924,8 @@ ${amount} dla ${merchant} - ${date}`,
                         4. Znajdź ${integrationName}.
                         5. Kliknij *Connect*.
 
-${
-    integrationName && CONST.connectionsVideoPaths[integrationName]
-        ? `[Przejdź do księgowości](${workspaceAccountingLink}).
-
-                        ![Połącz z ${integrationName}](${CONST.CLOUDFRONT_URL}/${CONST.connectionsVideoPaths[integrationName]})`
-        : `[Przejdź do księgowości](${workspaceAccountingLink}).`
-}`),
+                        [Przejdź do księgowości](${workspaceAccountingLink}).
+                    `),
             },
             connectCorporateCardTask: {
                 title: ({corporateCardLink}) => `Połącz [swoje karty firmowe](${corporateCardLink})`,
@@ -4969,6 +4989,9 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
         companyCards: {
             addCards: 'Dodaj karty',
             selectCards: 'Wybierz karty',
+            fromOtherWorkspaces: 'Z innych przestrzeni roboczych',
+            addWorkEmail: 'Dodaj swój służbowy e-mail',
+            addWorkEmailDescription: 'Dodaj swój służbowy e-mail, aby korzystać z istniejących kanałów z innych przestrzeni roboczych.',
             error: {
                 workspaceFeedsCouldNotBeLoadedTitle: 'Nie można wczytać kanałów kart',
                 workspaceFeedsCouldNotBeLoadedMessage: 'Wystąpił błąd podczas ładowania kanałów kart w przestrzeni roboczej. Spróbuj ponownie lub skontaktuj się ze swoim administratorem.',
@@ -5128,6 +5151,7 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
                 flipAmountSign: 'Odwróć znak kwoty',
                 importButton: 'Importuj transakcje',
             },
+            deletedCard: 'Usunięta karta',
             assignNewCards: {title: 'Przydziel nowe karty', description: 'Pobierz z banku najnowsze karty do przypisania'},
         },
         expensifyCard: {
@@ -7306,6 +7330,7 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
             unhold: 'Usuń blokadę',
             reject: 'Odrzuć',
             noOptionsAvailable: 'Brak opcji dostępnych dla wybranej grupy wydatków.',
+            undelete: 'Cofnij usunięcie',
         },
         filtersHeader: 'Filtry',
         filters: {
@@ -7421,7 +7446,14 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
         searchIn: 'Szukaj w',
         searchPlaceholder: 'Wyszukaj coś',
         suggestions: 'Sugestie',
-        suggestionsAvailable: ({count}: {count: number}, query = '') => ({
+        suggestionsAvailable: (
+            {
+                count,
+            }: {
+                count: number;
+            },
+            query = '',
+        ) => ({
             one: `Dostępne sugestie${query ? ` dla ${query}` : ''}. ${count} wynik.`,
             other: (resultCount: number) => `Dostępne sugestie${query ? ` dla ${query}` : ''}. ${resultCount} wyniki.`,
         }),

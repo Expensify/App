@@ -99,6 +99,10 @@ const DYNAMIC_ROUTES = {
         path: 'owner-selector',
         entryScreens: [],
     },
+    REPORT_SETTINGS_NAME: {
+        path: 'settings/name',
+        entryScreens: [SCREENS.REPORT_DETAILS.ROOT],
+    },
     REPORT_SETTINGS_WRITE_CAPABILITY: {
         path: 'who-can-post',
         entryScreens: [SCREENS.REPORT_SETTINGS.ROOT],
@@ -119,6 +123,29 @@ const DYNAMIC_ROUTES = {
         ],
         getRoute: (country = '') => `country?country=${country}`,
         queryParams: ['country'],
+    },
+    DETAILS_CONSTANT_PICKER: {
+        path: 'constant-picker',
+        entryScreens: [SCREENS.DEBUG.REPORT, SCREENS.DEBUG.REPORT_ACTION, SCREENS.DEBUG.TRANSACTION, SCREENS.DEBUG.TRANSACTION_VIOLATION],
+        getRoute: (formType: string, fieldName: string, fieldValue?: string, policyID?: string) =>
+            getUrlWithParams('constant-picker', {
+                formType,
+                fieldName,
+                fieldValue,
+                policyID,
+            }),
+        queryParams: ['formType', 'fieldName', 'fieldValue', 'policyID'],
+    },
+    DETAILS_DATE_TIME_PICKER: {
+        path: 'datetime-picker',
+        entryScreens: [SCREENS.DEBUG.REPORT, SCREENS.DEBUG.REPORT_ACTION, SCREENS.DEBUG.TRANSACTION, SCREENS.DEBUG.TRANSACTION_VIOLATION],
+        getRoute: (fieldName: string, fieldValue?: string, policyID?: string) =>
+            getUrlWithParams('datetime-picker', {
+                fieldName,
+                fieldValue,
+                policyID,
+            }),
+        queryParams: ['fieldName', 'fieldValue', 'policyID'],
     },
 } as const satisfies DynamicRoutes;
 
@@ -653,7 +680,7 @@ const ROUTES = {
     SETTINGS_STATUS_CLEAR_AFTER_TIME: 'settings/profile/status/clear-after/time',
     SETTINGS_VACATION_DELEGATE: 'settings/profile/status/vacation-delegate',
     SETTINGS_TROUBLESHOOT: 'settings/troubleshoot',
-
+    SETTINGS_HELP: 'settings/help',
     SETTINGS_EXIT_SURVEY_REASON: 'settings/exit-survey/reason',
 
     SETTINGS_EXIT_SURVEY_CONFIRM: {
@@ -827,12 +854,6 @@ const ROUTES = {
 
         // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
         getRoute: (reportID: string, backTo?: string) => getUrlWithBackToParam(`r/${reportID}/settings` as const, backTo),
-    },
-    REPORT_SETTINGS_NAME: {
-        route: 'r/:reportID/settings/name',
-
-        // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-        getRoute: (reportID: string, backTo?: string) => getUrlWithBackToParam(`r/${reportID}/settings/name` as const, backTo),
     },
     REPORT_SETTINGS_NOTIFICATION_PREFERENCES: {
         route: 'r/:reportID/settings/notification-preferences',
@@ -2552,6 +2573,14 @@ const ROUTES = {
         getRoute: (policyID: string, cardID: string, feed: CompanyCardFeedWithDomainID) =>
             `workspaces/${policyID}/company-cards/${encodeURIComponent(feed)}/${encodeURIComponent(cardID)}/edit/name` as const,
     },
+    WORKSPACE_COMPANY_CARD_ADD_WORK_EMAIL: {
+        route: 'workspaces/:policyID/company-cards/:feed/work-email',
+        getRoute: (policyID: string, feed: CompanyCardFeedWithDomainID) => `workspaces/${policyID}/company-cards/${encodeURIComponent(feed)}/work-email` as const,
+    },
+    WORKSPACE_COMPANY_CARD_VERIFY_WORK_EMAIL: {
+        route: 'workspaces/:policyID/company-cards/:feed/verify-work-email',
+        getRoute: (policyID: string, feed: CompanyCardFeedWithDomainID) => `workspaces/${policyID}/company-cards/${encodeURIComponent(feed)}/verify-work-email` as const,
+    },
     WORKSPACE_COMPANY_CARD_EDIT_TRANSACTION_START_DATE: {
         route: 'workspaces/:policyID/company-cards/:feed/:cardID/edit/transaction-start-date',
         getRoute: (policyID: string, cardID: string, feed: CompanyCardFeedWithDomainID) =>
@@ -3919,18 +3948,6 @@ const ROUTES = {
         route: 'debug/report/:reportID/actions/:reportActionID/preview',
         getRoute: (reportID: string, reportActionID: string) => `debug/report/${reportID}/actions/${reportActionID}/preview` as const,
     },
-    DETAILS_CONSTANT_PICKER_PAGE: {
-        route: 'debug/:formType/details/constant/:fieldName',
-        getRoute: (formType: string, fieldName: string, fieldValue?: string, policyID?: string, backTo?: string) =>
-            // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-            getUrlWithBackToParam(`debug/${formType}/details/constant/${fieldName}?fieldValue=${fieldValue}&policyID=${policyID}`, backTo),
-    },
-    DETAILS_DATE_TIME_PICKER_PAGE: {
-        route: 'debug/details/datetime/:fieldName',
-
-        // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-        getRoute: (fieldName: string, fieldValue?: string, backTo?: string) => getUrlWithBackToParam(`debug/details/datetime/${fieldName}?fieldValue=${fieldValue}`, backTo),
-    },
     DEBUG_TRANSACTION: {
         route: 'debug/transaction/:transactionID',
         getRoute: (transactionID: string) => `debug/transaction/${transactionID}` as const,
@@ -3966,6 +3983,10 @@ const ROUTES = {
     REJECT_MONEY_REQUEST_REASON: {
         route: 'reject/reason/:transactionID',
         getRoute: (transactionID: string, reportID: string, backTo?: string) => `reject/reason/${transactionID}?reportID=${reportID}&backTo=${backTo}` as const,
+    },
+    REJECT_EXPENSE_REPORT: {
+        route: 'reports/reject/:reportID',
+        getRoute: (reportID: string) => `reports/reject/${reportID}` as const,
     },
     SCHEDULE_CALL_BOOK: {
         route: 'r/:reportID/schedule-call/book',

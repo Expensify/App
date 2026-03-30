@@ -1510,6 +1510,18 @@ const translations: TranslationDeepObject<typeof en> = {
                 markedAsResolved: '已将拒绝原因标记为已解决',
             },
         },
+        rejectReport: {
+            title: '拒绝报表',
+            description: '请说明你为何不会批准此报告：',
+            rejectReason: '拒绝原因',
+            selectTarget: '选择要将此报表退回给哪位成员以供审核：',
+            lastApprover: '最后审批人',
+            submitter: '提交人',
+            rejectedReportMessage: '此报告已被拒绝。',
+            rejectedNextStep: '此报表已被拒绝。等待你修复问题并手动重新提交。',
+            selectMemberError: '选择一位成员将此报表退回给 TA。',
+            couldNotReject: '无法拒绝该报表。请重试。',
+        },
         moveExpenses: '移动到报告',
         moveExpensesError: '您无法将每日津贴报销移动到其他工作区的报表中，因为不同工作区的每日津贴标准可能不同。',
         changeApprover: {
@@ -1555,6 +1567,7 @@ const translations: TranslationDeepObject<typeof en> = {
         failedToAutoApproveViaDEW: (reason: string) => `未能通过<a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">工作区规则</a>批准。${reason}`,
         failedToApproveViaDEW: (reason: string) => `批准失败。${reason}`,
         cannotDuplicateDistanceExpense: '你无法在不同工作区之间复制里程报销，因为各个工作区的费率可能不同。',
+        deleted: '已删除',
     },
     transactionMerge: {
         listPage: {
@@ -1642,18 +1655,18 @@ const translations: TranslationDeepObject<typeof en> = {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
                         return `正在等待<strong>你</strong>提交报销。`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `正在等待 <strong>${actor}</strong> 提交报销。`;
+                        return `正在等待<strong>${actor}</strong>提交报销。`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
                         return `正在等待管理员提交报销。`;
                 }
             },
-            [CONST.NEXT_STEP.MESSAGE_KEY.NO_FURTHER_ACTION]: (_: NextStepParams) => `无需采取进一步操作！`,
+            [CONST.NEXT_STEP.MESSAGE_KEY.NO_FURTHER_ACTION]: (_: NextStepParams) => `无需执行其他操作！`,
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_SUBMITTER_ACCOUNT]: ({actor, actorType}: NextStepParams) => {
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
                         return `正在等待<strong>你</strong>添加银行账户。`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `正在等待<strong>${actor}</strong>添加银行账户。`;
+                        return `正在等待 <strong>${actor}</strong> 添加银行账户。`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
                         return `正在等待管理员添加银行账户。`;
                 }
@@ -1661,13 +1674,13 @@ const translations: TranslationDeepObject<typeof en> = {
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_AUTOMATIC_SUBMIT]: ({actor, actorType, eta, etaType}: NextStepParams) => {
                 let formattedETA = '';
                 if (eta) {
-                    formattedETA = etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? ` 在每个月的第 ${eta} 天` : ` ${eta}`;
+                    formattedETA = etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? `在每个月的 ${eta} 日` : ` ${eta}`;
                 }
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `正在等待<strong>你的</strong>报销自动提交${formattedETA}。`;
+                        return `正在等待<strong>你的</strong>报销费用自动提交${formattedETA}。`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `正在等待<strong>${actor}</strong>的报销在${formattedETA}自动提交。`;
+                        return `正在等待<strong>${actor}</strong>的报销费用在${formattedETA}自动提交。`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
                         return `正在等待管理员的报销在${formattedETA}自动提交。`;
                 }
@@ -1675,9 +1688,9 @@ const translations: TranslationDeepObject<typeof en> = {
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_FIX_ISSUES]: ({actor, actorType}: NextStepParams) => {
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `正在等待<strong>你</strong>来修复这些问题。`;
+                        return `正在等待<strong>你</strong>来解决这些问题。`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `正在等待<strong>${actor}</strong>修复这些问题。`;
+                        return `正在等待 <strong>${actor}</strong> 解决这些问题。`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
                         return `正在等待管理员修复这些问题。`;
                 }
@@ -1685,9 +1698,9 @@ const translations: TranslationDeepObject<typeof en> = {
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_APPROVE]: ({actor, actorType}: NextStepParams) => {
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `正在等待<strong>你</strong>批准报销。`;
+                        return `正在等待<strong>你</strong>审批报销。`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `正在等待 <strong>${actor}</strong> 批准报销。`;
+                        return `正在等待<strong>${actor}</strong>审批报销。`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
                         return `正在等待管理员批准报销。`;
                 }
@@ -1695,9 +1708,9 @@ const translations: TranslationDeepObject<typeof en> = {
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_EXPORT]: ({actor, actorType}: NextStepParams) => {
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `正在等待<strong>您</strong>导出此报表。`;
+                        return `正在等待<strong>你</strong>导出此报表。`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `正在等待<strong>${actor}</strong>导出此报表。`;
+                        return `正在等待 <strong>${actor}</strong> 导出此报告。`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
                         return `正在等待管理员导出此报表。`;
                 }
@@ -1707,7 +1720,7 @@ const translations: TranslationDeepObject<typeof en> = {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
                         return `正在等待<strong>你</strong>报销费用。`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `正在等待 <strong>${actor}</strong> 支付报销费用。`;
+                        return `正在等待<strong>${actor}</strong>支付报销费用。`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
                         return `正在等待管理员报销费用。`;
                 }
@@ -1715,7 +1728,7 @@ const translations: TranslationDeepObject<typeof en> = {
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_POLICY_BANK_ACCOUNT]: ({actor, actorType}: NextStepParams) => {
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `等待<strong>你</strong>完成企业银行账户的设置。`;
+                        return `正在等待<strong>你</strong>完成设置企业银行账户。`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
                         return `正在等待<strong>${actor}</strong>完成企业银行账户的设置。`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
@@ -1725,12 +1738,22 @@ const translations: TranslationDeepObject<typeof en> = {
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_PAYMENT]: ({eta, etaType}: NextStepParams) => {
                 let formattedETA = '';
                 if (eta) {
-                    formattedETA = etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? ` 在 ${eta} 前` : ` ${eta}`;
+                    formattedETA = etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? `于 ${eta} 前` : ` ${eta}`;
                 }
                 return `正在等待付款完成${formattedETA}。`;
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.SUBMITTING_TO_SELF]: (_: NextStepParams) =>
-                `哎呀！看起来你正在将报销单提交给<strong>自己</strong>。根据你的工作区规定，审批自己的报销单是<strong>禁止的</strong>。请将此报销单提交给其他人，或联系管理员更改你的报销单提交对象。`,
+                `哎呀！看起来你正在将报销单提交给<strong>自己</strong>。根据你的工作区规定，审批自己的报销单是<strong>禁止的</strong>。请将此报销单提交给其他人，或联系管理员更改你提交报销单的审批人。`,
+            [CONST.NEXT_STEP.MESSAGE_KEY.REJECTED_REPORT]: ({actor, actorType}: NextStepParams) => {
+                switch (actorType) {
+                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
+                        return `此报表已被拒绝。正在等待<strong>你</strong>修复问题并手动重新提交。`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
+                        return `此报表已被拒绝。正在等待<strong>${actor}</strong>修复问题并手动重新提交。`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
+                        return `该报表已被拒绝。正在等待管理员修复问题并手动重新提交。`;
+                }
+            },
         },
         eta: {
             [CONST.NEXT_STEP.ETA_KEY.SHORTLY]: '很快',
@@ -1899,6 +1922,7 @@ const translations: TranslationDeepObject<typeof en> = {
             softKillTheApp: '软关闭应用程序',
             kill: '终止',
             sentryDebug: 'Sentry 调试',
+            sentrySendDescription: '向 Sentry 发送数据',
             sentryDebugDescription: '将 Sentry 请求记录到控制台',
             sentryHighlightedSpanOps: '高亮的跨度名称',
             sentryHighlightedSpanOpsPlaceholder: 'ui.interaction.click，navigation，ui.load',
@@ -1914,6 +1938,7 @@ const translations: TranslationDeepObject<typeof en> = {
         accountSettings: '账户设置',
         account: '账户',
         general: '常规',
+        helpPage: {title: '帮助与支持', description: '我们全天候 24/7 为您提供帮助', helpSite: '帮助网站'},
     },
     closeAccountPage: {
         closeAccount: '关闭账户',
@@ -2835,13 +2860,8 @@ ${amount}，商户：${merchant} - 日期：${date}`,
                         4. 找到 ${integrationName}。
                         5. 点击 *Connect*。
 
-${
-    integrationName && CONST.connectionsVideoPaths[integrationName]
-        ? `[带我去会计页面](${workspaceAccountingLink}).
-
-                        ![连接到 ${integrationName}](${CONST.CLOUDFRONT_URL}/${CONST.connectionsVideoPaths[integrationName]})`
-        : `[带我前往会计页面](${workspaceAccountingLink})。`
-}`),
+                        [带我前往会计页面](${workspaceAccountingLink})。
+                    `),
             },
             connectCorporateCardTask: {
                 title: ({corporateCardLink}) => `连接[您的公司卡](${corporateCardLink})`,
@@ -4859,6 +4879,9 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
         companyCards: {
             addCards: '添加卡片',
             selectCards: '选择卡片',
+            fromOtherWorkspaces: '来自其他工作区',
+            addWorkEmail: '添加您的工作邮箱',
+            addWorkEmailDescription: '请添加您的工作邮箱以使用其他工作区的现有流水。',
             error: {
                 workspaceFeedsCouldNotBeLoadedTitle: '无法加载卡片流水',
                 workspaceFeedsCouldNotBeLoadedMessage: '加载工作区卡片动态时发生错误。请重试或联系管理员。',
@@ -5017,6 +5040,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                 flipAmountSign: '翻转金额符号',
                 importButton: '导入交易',
             },
+            deletedCard: '已删除的卡片',
             assignNewCards: {title: '分配新卡', description: '从您的银行获取可分配的最新银行卡'},
         },
         expensifyCard: {
@@ -7129,6 +7153,7 @@ ${reportName}
             unhold: '解除保留',
             reject: '拒绝',
             noOptionsAvailable: '所选报销的费用组没有可用选项。',
+            undelete: '取消删除',
         },
         filtersHeader: '筛选器',
         filters: {
@@ -7238,7 +7263,14 @@ ${reportName}
         searchIn: '搜索范围',
         searchPlaceholder: '搜索内容',
         suggestions: '建议',
-        suggestionsAvailable: ({count}: {count: number}, query = '') => ({
+        suggestionsAvailable: (
+            {
+                count,
+            }: {
+                count: number;
+            },
+            query = '',
+        ) => ({
             one: `有可用建议${query ? `：${query}` : ''}。共${count}条结果。`,
             other: (resultCount: number) => `有可用建议${query ? `：${query}` : ''}。共${resultCount}条结果。`,
         }),
