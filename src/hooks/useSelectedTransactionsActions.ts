@@ -94,7 +94,6 @@ function useSelectedTransactionsActions({
     const [integrationsExportTemplates] = useOnyx(ONYXKEYS.NVP_INTEGRATION_SERVER_EXPORT_TEMPLATES);
     const [csvExportLayouts] = useOnyx(ONYXKEYS.NVP_CSV_EXPORT_LAYOUTS);
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
-    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [allReportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
 
     const expensifyIcons = useMemoizedLazyExpensifyIcons([
@@ -108,7 +107,6 @@ function useSelectedTransactionsActions({
         'ArrowSplit',
         'ThumbsDown',
         'ExpenseCopy',
-    ]);
         'Pencil',
     ] as const);
 
