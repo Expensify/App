@@ -183,6 +183,10 @@ function AddCardPage({route}: AddCardPageProps) {
                         onChangeText: setInputValue,
                     }}
                     data={listData}
+                    style={{
+                        listHeaderWrapperStyle: [styles.pt5, styles.pb2],
+                        listHeaderSelectAllTextStyle: [styles.textLabelSupporting],
+                    }}
                     onSelectAll={listData.length > 0 ? toggleSelectAll : undefined}
                     onCheckboxPress={toggleCard}
                     onSelectRow={toggleCard}
