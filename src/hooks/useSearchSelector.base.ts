@@ -1,3 +1,4 @@
+import passthroughPolicyTagListSelector from '@selectors/PolicyTagList';
 import {sortedActionsSelector} from '@selectors/SortedReportActions';
 import {useCallback, useMemo, useState} from 'react';
 import type {PermissionStatus} from 'react-native-permissions';
@@ -199,7 +200,7 @@ function useSearchSelectorBase({
     const currentUserAccountID = currentUserPersonalDetails.accountID;
     const currentUserEmail = currentUserPersonalDetails.email ?? '';
     const personalDetails = usePersonalDetails();
-    const [allPolicyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
+    const [allPolicyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS, {selector: passthroughPolicyTagListSelector});
 
     const onListEndReached = useDebounce(
         useCallback(() => {

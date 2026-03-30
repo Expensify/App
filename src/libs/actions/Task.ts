@@ -1,7 +1,7 @@
 import {InteractionManager} from 'react-native';
 import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
-import * as Expensicons from '@components/Icon/Expensicons';
+import FallbackAvatar from '@assets/images/avatars/fallback-avatar.svg';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import * as API from '@libs/API';
 import type {CancelTaskParams, CompleteTaskParams, CreateTaskParams, EditTaskAssigneeParams, EditTaskParams, ReopenTaskParams} from '@libs/API/parameters';
@@ -613,9 +613,9 @@ function reopenTask(taskReport: OnyxEntry<OnyxTypes.Report>, parentReport: OnyxE
     API.write(WRITE_COMMANDS.REOPEN_TASK, parameters, {optimisticData, successData, failureData});
 }
 
-function editTask(report: OnyxTypes.Report, {title, description}: OnyxTypes.Task) {
+function editTask(report: OnyxTypes.Report, {title, description}: OnyxTypes.Task, delegateEmail: string | undefined) {
     // Create the EditedReportAction on the task
-    const editTaskReportAction = ReportUtils.buildOptimisticEditedTaskFieldReportAction({title, description});
+    const editTaskReportAction = ReportUtils.buildOptimisticEditedTaskFieldReportAction({title, description}, delegateEmail);
 
     // Ensure title is defined before parsing it with getParsedComment. If title is undefined, fall back to reportName from report.
     // Trim the final parsed title for consistency.
@@ -1101,7 +1101,7 @@ function getShareDestination(
         subtitle = ReportUtils.getChatRoomSubtitle(report) ?? '';
     }
     return {
-        icons: ReportUtils.getIcons(report, LocalePhoneNumber.formatPhoneNumber, personalDetails, Expensicons.FallbackAvatar),
+        icons: ReportUtils.getIcons(report, LocalePhoneNumber.formatPhoneNumber, personalDetails, FallbackAvatar),
         displayName: getReportName(report, reportAttributes),
         subtitle,
         displayNamesWithTooltips,

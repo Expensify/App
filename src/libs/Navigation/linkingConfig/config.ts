@@ -945,6 +945,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.INVITE_MESSAGE_ROLE]: {
                             path: ROUTES.WORKSPACE_INVITE_MESSAGE_ROLE.route,
                         },
+                        [SCREENS.WORKSPACE.INVITE_MESSAGE_APPROVER]: {
+                            path: ROUTES.WORKSPACE_INVITE_MESSAGE_APPROVER.route,
+                        },
                         [SCREENS.WORKSPACE.RECEIPT_PARTNERS_INVITE]: {
                             path: ROUTES.WORKSPACE_RECEIPT_PARTNERS_INVITE.route,
                         },
@@ -1420,9 +1423,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.REPORT_SETTINGS.ROOT]: {
                             path: ROUTES.REPORT_SETTINGS.route,
                         },
-                        [SCREENS.REPORT_SETTINGS.NAME]: {
-                            path: ROUTES.REPORT_SETTINGS_NAME.route,
-                        },
+                        [SCREENS.REPORT_SETTINGS.DYNAMIC_SETTINGS_NAME]: DYNAMIC_ROUTES.REPORT_SETTINGS_NAME.path,
                         [SCREENS.REPORT_SETTINGS.NOTIFICATION_PREFERENCES]: {
                             path: ROUTES.REPORT_SETTINGS_NOTIFICATION_PREFERENCES.route,
                         },
@@ -1698,6 +1699,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.MONEY_REQUEST.ODOMETER_IMAGE]: ROUTES.ODOMETER_IMAGE.route,
                         [SCREENS.MONEY_REQUEST.HOLD]: ROUTES.MONEY_REQUEST_HOLD_REASON.route,
                         [SCREENS.MONEY_REQUEST.REJECT]: ROUTES.REJECT_MONEY_REQUEST_REASON.route,
+                        [SCREENS.MONEY_REQUEST.REPORT_REJECT]: ROUTES.REJECT_EXPENSE_REPORT.route,
                         [SCREENS.MONEY_REQUEST.STEP_MERCHANT]: ROUTES.MONEY_REQUEST_STEP_MERCHANT.route,
                         [SCREENS.MONEY_REQUEST.STEP_PARTICIPANTS]: ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.route,
                         [SCREENS.MONEY_REQUEST.STEP_SCAN]: ROUTES.MONEY_REQUEST_STEP_SCAN.route,
@@ -2028,14 +2030,8 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                             path: ROUTES.DEBUG_REPORT_ACTION_CREATE.route,
                             exact: true,
                         },
-                        [SCREENS.DEBUG.DETAILS_CONSTANT_PICKER_PAGE]: {
-                            path: ROUTES.DETAILS_CONSTANT_PICKER_PAGE.route,
-                            exact: true,
-                        },
-                        [SCREENS.DEBUG.DETAILS_DATE_TIME_PICKER_PAGE]: {
-                            path: ROUTES.DETAILS_DATE_TIME_PICKER_PAGE.route,
-                            exact: true,
-                        },
+                        [SCREENS.DEBUG.DYNAMIC_DETAILS_CONSTANT_PICKER_PAGE]: DYNAMIC_ROUTES.DETAILS_CONSTANT_PICKER.path,
+                        [SCREENS.DEBUG.DYNAMIC_DETAILS_DATE_TIME_PICKER_PAGE]: DYNAMIC_ROUTES.DETAILS_DATE_TIME_PICKER.path,
                         [SCREENS.DEBUG.TRANSACTION]: {
                             path: ROUTES.DEBUG_TRANSACTION.route,
                             exact: true,
@@ -2173,6 +2169,10 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                 },
                 [SCREENS.SETTINGS.ABOUT]: {
                     path: ROUTES.SETTINGS_ABOUT,
+                    exact: true,
+                },
+                [SCREENS.SETTINGS.HELP]: {
+                    path: ROUTES.SETTINGS_HELP,
                     exact: true,
                 },
                 [SCREENS.SETTINGS.TROUBLESHOOT]: {
