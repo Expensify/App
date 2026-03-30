@@ -102,7 +102,11 @@ function ReportFooter() {
         return (
             <View style={[styles.chatFooter, styles.mt4, shouldUseNarrowLayout && styles.mb5]}>
                 <ArchivedReportFooter reportID={report.reportID} />
-                {!shouldUseNarrowLayout && <OfflineIndicator containerStyles={[styles.chatItemComposeSecondaryRow]} />}
+                {!shouldUseNarrowLayout && (
+                    <View style={styles.offlineIndicatorContainer}>
+                        <OfflineIndicator containerStyles={[styles.chatItemComposeSecondaryRow]} />
+                    </View>
+                )}
             </View>
         );
     }
@@ -112,7 +116,11 @@ function ReportFooter() {
         return (
             <View style={[styles.chatFooter, styles.mt4, shouldUseNarrowLayout && styles.mb5]}>
                 <AnonymousReportFooter reportID={report.reportID} />
-                {!shouldUseNarrowLayout && <OfflineIndicator containerStyles={[styles.chatItemComposeSecondaryRow]} />}
+                {!shouldUseNarrowLayout && (
+                    <View style={styles.offlineIndicatorContainer}>
+                        <OfflineIndicator containerStyles={[styles.chatItemComposeSecondaryRow]} />
+                    </View>
+                )}
             </View>
         );
     }
@@ -122,7 +130,11 @@ function ReportFooter() {
         return (
             <View style={[styles.chatFooter, styles.mt4, shouldUseNarrowLayout && styles.mb5]}>
                 <BlockedReportFooter />
-                {!shouldUseNarrowLayout && <OfflineIndicator containerStyles={[styles.chatItemComposeSecondaryRow]} />}
+                {!shouldUseNarrowLayout && (
+                    <View style={styles.offlineIndicatorContainer}>
+                        <OfflineIndicator containerStyles={[styles.chatItemComposeSecondaryRow]} />
+                    </View>
+                )}
             </View>
         );
     }
@@ -132,7 +144,11 @@ function ReportFooter() {
         return (
             <View style={[styles.chatFooter, styles.mt4, shouldUseNarrowLayout && styles.mb5]}>
                 <SystemChatReportFooterMessage />
-                {!shouldUseNarrowLayout && <OfflineIndicator containerStyles={[styles.chatItemComposeSecondaryRow]} />}
+                {!shouldUseNarrowLayout && (
+                    <View style={styles.offlineIndicatorContainer}>
+                        <OfflineIndicator containerStyles={[styles.chatItemComposeSecondaryRow]} />
+                    </View>
+                )}
             </View>
         );
     }
@@ -147,7 +163,11 @@ function ReportFooter() {
                     icon={expensifyIcons.Lightbulb}
                     shouldShowIcon
                 />
-                {!shouldUseNarrowLayout && <OfflineIndicator containerStyles={[styles.chatItemComposeSecondaryRow]} />}
+                {!shouldUseNarrowLayout && (
+                    <View style={styles.offlineIndicatorContainer}>
+                        <OfflineIndicator containerStyles={[styles.chatItemComposeSecondaryRow]} />
+                    </View>
+                )}
             </View>
         );
     }
