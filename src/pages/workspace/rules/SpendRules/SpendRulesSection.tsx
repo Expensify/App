@@ -31,7 +31,7 @@ function SpendRulesSection({policyID}: SpendRulesSectionProps) {
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Lock', 'Plus']);
     const {showConfirmModal} = useConfirmModal();
     const illustrations = useMemoizedLazyIllustrations(['ExpensifyCardProtectionIllustration']);
-    const {isDevelopment} = useEnvironment();
+    const {isProduction} = useEnvironment();
 
     const showBuiltInProtectionModal = () => {
         showConfirmModal({
@@ -114,7 +114,7 @@ function SpendRulesSection({policyID}: SpendRulesSectionProps) {
                 onPress={showBuiltInProtectionModal}
                 shouldShowRightIcon
             />
-            {isDevelopment && <MenuItem
+            {!isProduction && <MenuItem
                 title={translate('workspace.rules.spendRules.addSpendRule')}
                 titleStyle={styles.textStrong}
                 icon={expensifyIcons.Plus}
