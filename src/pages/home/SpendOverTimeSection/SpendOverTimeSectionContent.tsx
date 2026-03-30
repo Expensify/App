@@ -75,6 +75,7 @@ function SpendOverTimeSectionContent() {
                     subtitle={translate('errorPage.subtitle')}
                     subtitleStyle={styles.textSupporting}
                     containerStyle={[{minHeight: CHART_CONTENT_MIN_HEIGHT}, styles.gap5]}
+                    contentFitImage="contain"
                 />
             )}
             {!shouldShowOfflineIndicator && !shouldShowErrorIndicator && (

@@ -6,6 +6,7 @@
  * The primary purpose is to optimize performance by reducing redundant computations. More info can be found in the README.
  */
 import Onyx from 'react-native-onyx';
+import OnyxKeys from 'react-native-onyx/dist/OnyxKeys';
 import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
 import Log from '@libs/Log';
 import {endSpan, getSpan, startSpan} from '@libs/telemetry/activeSpans';
@@ -101,7 +102,7 @@ function init() {
                 const dependencyIndex = i;
                 const dependencyOnyxKey = dependencies[dependencyIndex];
 
-                if (OnyxUtils.isCollectionKey(dependencyOnyxKey)) {
+                if (OnyxKeys.isCollectionKey(dependencyOnyxKey)) {
                     Onyx.connectWithoutView({
                         key: dependencyOnyxKey,
                         waitForCollectionCallback: true,
