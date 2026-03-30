@@ -166,7 +166,7 @@ function DebugReportPage({
                     Debug.setDebugData(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, data);
                 }}
                 onDelete={() => {
-                    navigateToConciergeChatAndDeleteReport(reportID, conciergeReportID, currentUserAccountID, introSelected, isSelfTourViewed, true, true);
+                    navigateToConciergeChatAndDeleteReport(reportID, conciergeReportID, currentUserAccountID, introSelected, isSelfTourViewed, betas, true, true);
                 }}
                 validate={DebugUtils.validateReportDraftProperty}
             >
@@ -231,6 +231,7 @@ function DebugReportPage({
             conciergeReportID,
             introSelected,
             isSelfTourViewed,
+            betas,
         ],
     );
 
