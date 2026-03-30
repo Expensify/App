@@ -343,7 +343,7 @@ function openReportFromDeepLink(
                                         Navigation.navigate(lastAccessedReportRoute, {forceReplace: Navigation.getTopmostReportId() === reportID});
                                         return;
                                     }
-                                    navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, false, () => true);
+                                    navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas, false, () => true);
                                     return;
                                 }
 
