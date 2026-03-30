@@ -47,14 +47,22 @@ function ChronosTimerHeaderButton({report}: ChronosTimerHeaderButtonProps) {
     const ancestors = useAncestors(report);
     const isInSidePanel = useIsInSidePanel();
 
-    const isTimerRunning = useMemo(() => {
-        if (typeof currentUserAccountID !== 'number') {
-            return false;
-        }
-        return isChronosTimerRunningFromVisibleActions(sortedVisibleReportActions, currentUserAccountID);
-    }, [sortedVisibleReportActions, currentUserAccountID]);
+    const isTimerRunning = useMemo(() => isChronosTimerRunningFromVisibleActions(sortedVisibleReportActions, currentUserAccountID), [sortedVisibleReportActions, currentUserAccountID]);
 
-    if (!canWriteInReport(report) || typeof currentUserAccountID !== 'number') {
+    const onChronosTimerPress = useCallback(() => {
+        addComment({
+            report,
+            notifyReportID: report.reportID,
+            ancestors,
+            text: isTimerRunning ? 'stop' : 'start',
+            timezoneParam: timezoneParam ?? CONST.DEFAULT_TIME_ZONE,
+            currentUserAccountID,
+            shouldPlaySound: false,
+            isInSidePanel,
+        });
+    }, [report, ancestors, isTimerRunning, timezoneParam, currentUserAccountID, isInSidePanel]);
+
+    if (!canWriteInReport(report)) {
         return null;
     }
 
@@ -63,18 +71,7 @@ function ChronosTimerHeaderButton({report}: ChronosTimerHeaderButtonProps) {
             <Button
                 success
                 text={translate(isTimerRunning ? 'chronos.stopTimer' : 'chronos.startTimer')}
-                onPress={callFunctionIfActionIsAllowed(() => {
-                    addComment({
-                        report,
-                        notifyReportID: report.reportID,
-                        ancestors,
-                        text: isTimerRunning ? 'stop' : 'start',
-                        timezoneParam: timezoneParam ?? CONST.DEFAULT_TIME_ZONE,
-                        currentUserAccountID,
-                        shouldPlaySound: false,
-                        isInSidePanel,
-                    });
-                })}
+                onPress={callFunctionIfActionIsAllowed(onChronosTimerPress)}
                 style={styles.flex1}
                 sentryLabel={CONST.SENTRY_LABEL.HEADER_VIEW.CHRONOS_TIMER_BUTTON}
             />
