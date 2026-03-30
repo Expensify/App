@@ -369,7 +369,17 @@ function Button({
             >
                 {shouldBlendOpacity && <View style={[StyleSheet.absoluteFill, buttonBlendForegroundStyle]} />}
                 <ButtonContext.Provider value={contextValue}>
-                    <View style={[styles.flexRow, styles.alignItemsCenter, contentContainerStyle, styles.mw100]}>{children}</View>
+                    <View
+                        style={[
+                            styles.flexRow,
+                            styles.alignItemsCenter,
+                            contentContainerStyle,
+                            styles.mw100,
+                            size === CONST.DROPDOWN_BUTTON_SIZE.EXTRA_SMALL || size === CONST.DROPDOWN_BUTTON_SIZE.SMALL ? styles.gap1 : styles.gap2,
+                        ]}
+                    >
+                        {children}
+                    </View>
                 </ButtonContext.Provider>
                 {isLoading && (
                     <ActivityIndicator

@@ -45,7 +45,6 @@ function ButtonText({children, numberOfLines = 1, style, hoverStyle}: ButtonText
                 variant === 'link' && [styles.fontWeightNormal, styles.fontSizeLabel, styles.link, isHovered && StyleUtils.getColorStyle(theme.linkHover)],
                 hasIconLeft && styles.textAlignLeft,
                 isHovered && hoverStyle,
-                hasIconLeft && (size === CONST.DROPDOWN_BUTTON_SIZE.EXTRA_SMALL || size === CONST.DROPDOWN_BUTTON_SIZE.SMALL ? styles.ml1 : styles.ml2),
                 style,
             ]}
             dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
