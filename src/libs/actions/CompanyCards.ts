@@ -221,31 +221,12 @@ function deleteWorkspaceCompanyCardFeed(
     cardIDs: string[],
     feedToOpen?: CompanyCardFeedWithDomainID,
 ) {
-    const isCustomFeed = CardUtils.isCustomFeed(bankName);
-    const optimisticFeedUpdates = {[bankName]: {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}};
-    const successFeedUpdates = {[bankName]: null};
     const failureFeedUpdates = {[bankName]: {pendingAction: null, errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')}};
     const optimisticCardUpdates = Object.fromEntries(cardIDs.map((cardID) => [cardID, {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}]));
     const successCardUpdates = Object.fromEntries(cardIDs.map((cardID) => [cardID, null]));
     const failureCardUpdates = Object.fromEntries(cardIDs.map((cardID) => [cardID, {pendingAction: null}]));
 
-    const optimisticData: Array<
-        OnyxUpdate<
-            | typeof ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER
-            | typeof ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST
-            | typeof ONYXKEYS.CARD_LIST
-            | typeof ONYXKEYS.COLLECTION.LAST_SELECTED_FEED
-        >
-    > = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${domainOrWorkspaceAccountID}`,
-            value: {
-                settings: {
-                    companyCards: optimisticFeedUpdates,
-                },
-            },
-        },
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST | typeof ONYXKEYS.CARD_LIST | typeof ONYXKEYS.COLLECTION.LAST_SELECTED_FEED>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${domainOrWorkspaceAccountID}_${bankName}`,
@@ -258,19 +239,8 @@ function deleteWorkspaceCompanyCardFeed(
         },
     ];
 
-    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER | typeof ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST | typeof ONYXKEYS.CARD_LIST>> = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${domainOrWorkspaceAccountID}`,
-            value: {
-                settings: {
-                    ...(isCustomFeed ? {companyCards: successFeedUpdates} : {oAuthAccountDetails: successFeedUpdates, companyCards: successFeedUpdates}),
-                    companyCardNicknames: {
-                        [bankName]: null,
-                    },
-                },
-            },
-        },
+    // Feed settings are applied from API onyxData; only clear local card collections here (see applyHTTPSOnyxUpdates order).
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST | typeof ONYXKEYS.CARD_LIST>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${domainOrWorkspaceAccountID}_${bankName}`,
