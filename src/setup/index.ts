@@ -2,7 +2,6 @@ import toSortedPolyfill from 'array.prototype.tosorted';
 import {I18nManager} from 'react-native';
 import Config from 'react-native-config';
 import Onyx from 'react-native-onyx';
-import {enableFreeze} from 'react-native-screens';
 import intlPolyfill from '@libs/IntlPolyfill';
 import {setDeviceID} from '@userActions/Device';
 import initOnyxDerivedValues from '@userActions/OnyxDerived';
