@@ -1,5 +1,5 @@
 import lodashIsEmpty from 'lodash/isEmpty';
-import React, {useEffect} from 'react';
+import React, {useEffect, useRef} from 'react';
 import {InteractionManager, View} from 'react-native';
 import ActivityIndicator from '@components/ActivityIndicator';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
@@ -22,7 +22,7 @@ import useShowNotFoundPageInIOUStep from '@hooks/useShowNotFoundPageInIOUStep';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getIOURequestPolicyID, setMoneyRequestCategory, updateMoneyRequestCategory} from '@libs/actions/IOU';
 import {setDraftSplitTransaction} from '@libs/actions/IOU/Split';
-import {enablePolicyCategories, getPolicyCategories} from '@libs/actions/Policy/Category';
+import {clearPendingCategorySelection, enablePolicyCategories, getPolicyCategories, setPendingCategorySelection} from '@libs/actions/Policy/Category';
 import {isCategoryMissing} from '@libs/CategoryUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
@@ -91,6 +91,8 @@ function IOURequestStepCategory({
 
     const canCreateCategoryInSitu = isPolicyAdmin(policy) && !getValidConnectedIntegration(policy);
 
+    const [pendingCategorySelection] = useOnyx(ONYXKEYS.PENDING_CATEGORY_SELECTION);
+
     const createCategoryMenuItems = canCreateCategoryInSitu
         ? [
               {
@@ -100,6 +102,7 @@ function IOURequestStepCategory({
                       if (!policyID || !report?.reportID) {
                           return;
                       }
+                      setPendingCategorySelection(transactionID);
                       Navigation.navigate(
                           ROUTES.SETTINGS_CATEGORY_CREATE.getRoute(
                               policyID,
@@ -191,6 +194,21 @@ function IOURequestStepCategory({
 
         navigateBack();
     };
+
+    const updateCategoryRef = useRef(updateCategory);
+    updateCategoryRef.current = updateCategory;
+
+    useEffect(() => {
+        if (pendingCategorySelection?.transactionID !== transactionID || !pendingCategorySelection?.categoryName) {
+            return;
+        }
+        const {categoryName} = pendingCategorySelection;
+        clearPendingCategorySelection();
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        InteractionManager.runAfterInteractions(() => {
+            updateCategoryRef.current({searchText: categoryName, keyForList: categoryName, text: categoryName, isSelected: false});
+        });
+    }, [pendingCategorySelection, transactionID]);
 
     return (
         <StepScreenWrapper

@@ -7,7 +7,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnboardingTaskInformation from '@hooks/useOnboardingTaskInformation';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {createPolicyCategory} from '@libs/actions/Policy/Category';
+import {completePendingCategorySelection, createPolicyCategory} from '@libs/actions/Policy/Category';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {hasTags} from '@libs/PolicyUtils';
@@ -67,6 +67,7 @@ function CreateCategoryPage({route}: CreateCategoryPageProps) {
                 setupCategoriesAndTagsParentReportAction,
                 policyHasTags,
             });
+            completePendingCategorySelection(values.categoryName.trim());
             Navigation.goBack(isQuickSettingsFlow ? ROUTES.SETTINGS_CATEGORIES_ROOT.getRoute(route.params.policyID, backTo) : undefined);
         },
         [
