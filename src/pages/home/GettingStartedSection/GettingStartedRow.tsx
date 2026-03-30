@@ -1,4 +1,4 @@
-import React, {useCallback} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 import Checkbox from '@components/Checkbox';
 import Icon from '@components/Icon';
@@ -24,9 +24,9 @@ function GettingStartedRow({item}: GettingStartedRowProps) {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'Checkmark'] as const);
 
-    const navigateToItem = useCallback(() => {
+    const navigateToItem = () => {
         Navigation.navigate(item.route);
-    }, [item.route]);
+    };
 
     return (
         <PressableWithoutFeedback
