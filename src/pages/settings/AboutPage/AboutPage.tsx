@@ -11,6 +11,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import Text from '@components/Text';
+import useAccessibilityFocusOnReturn from '@hooks/useAccessibilityFocusOnReturn';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDocumentTitle from '@hooks/useDocumentTitle';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
@@ -50,6 +51,7 @@ type MenuItem = WithSentryLabel & {
     icon: IconAsset;
     iconRight?: IconAsset;
     action: () => Promise<void>;
+    shouldRestoreFocusOnReturn?: boolean;
     link?: string;
     wrapperStyle?: StyleProp<ViewStyle>;
 };
@@ -62,6 +64,7 @@ function AboutPage() {
     const popoverAnchor = useRef<View>(null);
     const waitForNavigate = useWaitForNavigation();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {setFocusTarget, restoreFocusOnReturn} = useAccessibilityFocusOnReturn();
     useDocumentTitle(translate('initialSettingsPage.about'));
     const aboutIllustration = useAboutSectionIllustration();
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
@@ -77,12 +80,14 @@ function AboutPage() {
                 icon: icons.Link,
                 sentryLabel: CONST.SENTRY_LABEL.SETTINGS_ABOUT.APP_DOWNLOAD_LINKS,
                 action: waitForNavigate(() => Navigation.navigate(ROUTES.SETTINGS_APP_DOWNLOAD_LINKS)),
+                shouldRestoreFocusOnReturn: true,
             },
             {
                 translationKey: 'initialSettingsPage.aboutPage.viewKeyboardShortcuts',
                 icon: icons.Keyboard,
                 sentryLabel: CONST.SENTRY_LABEL.SETTINGS_ABOUT.VIEW_KEYBOARD_SHORTCUTS,
                 action: waitForNavigate(() => Navigation.navigate(ROUTES.KEYBOARD_SHORTCUTS.getRoute(Navigation.getActiveRoute()))),
+                shouldRestoreFocusOnReturn: true,
             },
             {
                 translationKey: 'initialSettingsPage.aboutPage.viewTheCode',
@@ -111,15 +116,24 @@ function AboutPage() {
                 icon: icons.Bug,
                 sentryLabel: CONST.SENTRY_LABEL.SETTINGS_ABOUT.REPORT_A_BUG,
                 action: waitForNavigate(() => navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas, false)),
+                shouldRestoreFocusOnReturn: true,
             },
         ];
 
-        return baseMenuItems.map(({translationKey, icon, iconRight, action, link, sentryLabel}: MenuItem) => ({
+        return baseMenuItems.map(({translationKey, icon, iconRight, action, link, sentryLabel, shouldRestoreFocusOnReturn}: MenuItem) => ({
             key: translationKey,
             title: translate(translationKey),
             icon,
             iconRight,
-            onPress: action,
+            onPress: (event: GestureResponderEvent | KeyboardEvent | undefined) => {
+                // Only internal navigation targets restore focus on return. External links should
+                // keep their existing behavior because there is no in-app screen to come back from.
+                if (shouldRestoreFocusOnReturn) {
+                    setFocusTarget(event);
+                }
+
+                return action();
+            },
             shouldShowRightIcon: true,
             shouldShowContextMenuHint: !!link,
             onSecondaryInteraction: link
@@ -136,7 +150,7 @@ function AboutPage() {
             wrapperStyle: [styles.sectionMenuItemTopDescription],
             sentryLabel,
         }));
-    }, [icons, styles, translate, waitForNavigate, conciergeReportID, introSelected, isSelfTourViewed, currentUserAccountID, betas]);
+    }, [icons, styles, translate, waitForNavigate, conciergeReportID, introSelected, isSelfTourViewed, currentUserAccountID, betas, setFocusTarget]);
 
     const overlayContent = useCallback(
         () => (
@@ -159,6 +173,7 @@ function AboutPage() {
             shouldEnablePickerAvoiding={false}
             shouldShowOfflineIndicatorInWideScreen
             testID="AboutPage"
+            onEntryTransitionEnd={restoreFocusOnReturn}
         >
             <HeaderWithBackButton
                 title={translate('initialSettingsPage.about')}

@@ -7,6 +7,7 @@ import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import Switch from '@components/Switch';
 import Text from '@components/Text';
+import useAccessibilityFocusOnReturn from '@hooks/useAccessibilityFocusOnReturn';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useDocumentTitle from '@hooks/useDocumentTitle';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
@@ -49,6 +50,7 @@ function PreferencesPage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {setFocusTarget, restoreFocusOnReturn} = useAccessibilityFocusOnReturn();
     useDocumentTitle(translate('common.preferences'));
 
     return (
@@ -57,6 +59,7 @@ function PreferencesPage() {
             shouldEnablePickerAvoiding={false}
             shouldShowOfflineIndicatorInWideScreen
             testID="PreferencesPage"
+            onEntryTransitionEnd={restoreFocusOnReturn}
         >
             <HeaderWithBackButton
                 title={translate('common.preferences')}
@@ -117,7 +120,10 @@ function PreferencesPage() {
                                 shouldShowRightIcon
                                 title={translate(`priorityModePage.priorityModes.${priorityMode ?? CONST.PRIORITY_MODE.DEFAULT}.label`)}
                                 description={translate('priorityModePage.priorityMode')}
-                                onPress={() => Navigation.navigate(ROUTES.SETTINGS_PRIORITY_MODE)}
+                                onPress={(event) => {
+                                    setFocusTarget(event);
+                                    Navigation.navigate(ROUTES.SETTINGS_PRIORITY_MODE);
+                                }}
                                 wrapperStyle={styles.sectionMenuItemTopDescription}
                                 sentryLabel={CONST.SENTRY_LABEL.SETTINGS_PREFERENCES.PRIORITY_MODE}
                             />
@@ -125,7 +131,10 @@ function PreferencesPage() {
                                 shouldShowRightIcon
                                 title={preferredLocale ? LOCALE_TO_LANGUAGE_STRING[preferredLocale] : undefined}
                                 description={translate('languagePage.language')}
-                                onPress={() => Navigation.navigate(ROUTES.SETTINGS_LANGUAGE)}
+                                onPress={(event) => {
+                                    setFocusTarget(event);
+                                    Navigation.navigate(ROUTES.SETTINGS_LANGUAGE);
+                                }}
                                 wrapperStyle={styles.sectionMenuItemTopDescription}
                                 hintText={!preferredLocale || !isFullySupportedLocale(preferredLocale) ? translate('languagePage.aiGenerated') : ''}
                                 sentryLabel={CONST.SENTRY_LABEL.SETTINGS_PREFERENCES.LANGUAGE}
@@ -134,7 +143,10 @@ function PreferencesPage() {
                                 shouldShowRightIcon
                                 title={`${paymentCurrency} - ${getCurrencySymbol(paymentCurrency)}`}
                                 description={translate('billingCurrency.paymentCurrency')}
-                                onPress={() => Navigation.navigate(ROUTES.SETTINGS_PAYMENT_CURRENCY)}
+                                onPress={(event) => {
+                                    setFocusTarget(event);
+                                    Navigation.navigate(ROUTES.SETTINGS_PAYMENT_CURRENCY);
+                                }}
                                 wrapperStyle={styles.sectionMenuItemTopDescription}
                                 sentryLabel={CONST.SENTRY_LABEL.SETTINGS_PREFERENCES.PAYMENT_CURRENCY}
                             />
@@ -142,7 +154,10 @@ function PreferencesPage() {
                                 shouldShowRightIcon
                                 title={translate(`themePage.themes.${getBaseTheme(preferredTheme ?? CONST.THEME.DEFAULT)}.label`)}
                                 description={translate('themePage.theme')}
-                                onPress={() => Navigation.navigate(ROUTES.SETTINGS_THEME)}
+                                onPress={(event) => {
+                                    setFocusTarget(event);
+                                    Navigation.navigate(ROUTES.SETTINGS_THEME);
+                                }}
                                 wrapperStyle={styles.sectionMenuItemTopDescription}
                                 sentryLabel={CONST.SENTRY_LABEL.SETTINGS_PREFERENCES.THEME}
                             />

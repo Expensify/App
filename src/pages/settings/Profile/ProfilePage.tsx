@@ -1,5 +1,6 @@
 import {useRoute} from '@react-navigation/native';
-import React, {useMemo} from 'react';
+import React, {createRef, useMemo} from 'react';
+import type {RefObject} from 'react';
 import {View} from 'react-native';
 import ActivityIndicator from '@components/ActivityIndicator';
 import AvatarButtonWithIcon from '@components/AvatarButtonWithIcon';
@@ -14,6 +15,7 @@ import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
+import useAccessibilityFocusOnReturn from '@hooks/useAccessibilityFocusOnReturn';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDocumentTitle from '@hooks/useDocumentTitle';
 import {useMemoizedLazyAsset, useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -50,6 +52,7 @@ function ProfilePage() {
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const {setFocusTarget, restoreFocusOnReturn} = useAccessibilityFocusOnReturn();
     const route = useRoute<PlatformStackRouteProp<SettingsSplitNavigatorParamList, typeof SCREENS.SETTINGS.PROFILE.ROOT>>();
     useDocumentTitle(translate('common.profile'));
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
@@ -116,51 +119,27 @@ function ProfilePage() {
         {
             description: translate('privatePersonalDetails.legalName'),
             title: legalName,
+            pageRoute: ROUTES.SETTINGS_LEGAL_NAME,
             sentryLabel: CONST.SENTRY_LABEL.SETTINGS_PROFILE.LEGAL_NAME,
-            action: () => {
-                if (isActingAsDelegate) {
-                    showDelegateNoAccessModal();
-                    return;
-                }
-                Navigation.navigate(ROUTES.SETTINGS_LEGAL_NAME);
-            },
         },
         {
             description: translate('common.dob'),
             title: privateDetails.dob ?? '',
+            pageRoute: ROUTES.SETTINGS_DATE_OF_BIRTH,
             sentryLabel: CONST.SENTRY_LABEL.SETTINGS_PROFILE.DATE_OF_BIRTH,
-            action: () => {
-                if (isActingAsDelegate) {
-                    showDelegateNoAccessModal();
-                    return;
-                }
-                Navigation.navigate(ROUTES.SETTINGS_DATE_OF_BIRTH);
-            },
         },
         {
             description: translate('common.phoneNumber'),
             title: privateDetails.phoneNumber ?? '',
+            pageRoute: ROUTES.SETTINGS_PHONE_NUMBER,
             sentryLabel: CONST.SENTRY_LABEL.SETTINGS_PROFILE.PHONE_NUMBER,
-            action: () => {
-                if (isActingAsDelegate) {
-                    showDelegateNoAccessModal();
-                    return;
-                }
-                Navigation.navigate(ROUTES.SETTINGS_PHONE_NUMBER);
-            },
             brickRoadIndicator: privatePersonalDetails?.errorFields?.phoneNumber ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
         },
         {
             description: translate('privatePersonalDetails.address'),
             title: getFormattedAddress(privateDetails),
+            pageRoute: ROUTES.SETTINGS_ADDRESS,
             sentryLabel: CONST.SENTRY_LABEL.SETTINGS_PROFILE.ADDRESS,
-            action: () => {
-                if (isActingAsDelegate) {
-                    showDelegateNoAccessModal();
-                    return;
-                }
-                Navigation.navigate(ROUTES.SETTINGS_ADDRESS);
-            },
         },
     ];
 
@@ -169,11 +148,27 @@ function ProfilePage() {
         isLoadingApp: !!isLoadingApp,
     };
 
+    const menuItemFocusRefs = useMemo<Record<string, RefObject<HTMLDivElement | View | null>>>(
+        () => ({
+            [ROUTES.SETTINGS_DISPLAY_NAME]: createRef<HTMLDivElement | View>(),
+            [ROUTES.SETTINGS_CONTACT_METHODS.route]: createRef<HTMLDivElement | View>(),
+            [ROUTES.SETTINGS_STATUS]: createRef<HTMLDivElement | View>(),
+            [ROUTES.SETTINGS_PRONOUNS]: createRef<HTMLDivElement | View>(),
+            [ROUTES.SETTINGS_TIMEZONE]: createRef<HTMLDivElement | View>(),
+            [ROUTES.SETTINGS_LEGAL_NAME]: createRef<HTMLDivElement | View>(),
+            [ROUTES.SETTINGS_DATE_OF_BIRTH]: createRef<HTMLDivElement | View>(),
+            [ROUTES.SETTINGS_PHONE_NUMBER]: createRef<HTMLDivElement | View>(),
+            [ROUTES.SETTINGS_ADDRESS]: createRef<HTMLDivElement | View>(),
+        }),
+        [],
+    );
+
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
             testID="ProfilePage"
             shouldShowOfflineIndicatorInWideScreen
+            onEntryTransitionEnd={restoreFocusOnReturn}
         >
             <HeaderWithBackButton
                 title={translate('common.profile')}
@@ -233,15 +228,18 @@ function ProfilePage() {
                                     </MenuItemGroup>
                                 )}
                             </View>
-                            {publicOptions.map((detail, index) => (
+                            {publicOptions.map((detail) => (
                                 <MenuItemWithTopDescription
-                                    // eslint-disable-next-line react/no-array-index-key
-                                    key={`${detail.title}_${index}`}
+                                    key={detail.pageRoute}
+                                    ref={menuItemFocusRefs[detail.pageRoute]}
                                     shouldShowRightIcon
                                     title={detail.title}
                                     description={detail.description}
                                     wrapperStyle={styles.sectionMenuItemTopDescription}
-                                    onPress={() => Navigation.navigate(detail.pageRoute)}
+                                    onPress={() => {
+                                        setFocusTarget(menuItemFocusRefs[detail.pageRoute]);
+                                        Navigation.navigate(detail.pageRoute);
+                                    }}
                                     brickRoadIndicator={detail.brickRoadIndicator}
                                     pressableTestID={detail?.testID}
                                     sentryLabel={detail.sentryLabel}
@@ -273,15 +271,22 @@ function ProfilePage() {
                                 </View>
                             ) : (
                                 <MenuItemGroup shouldUseSingleExecution={!isActingAsDelegate}>
-                                    {privateOptions.map((detail, index) => (
+                                    {privateOptions.map((detail) => (
                                         <MenuItemWithTopDescription
-                                            // eslint-disable-next-line react/no-array-index-key
-                                            key={`${detail.title}_${index}`}
+                                            key={detail.pageRoute}
+                                            ref={menuItemFocusRefs[detail.pageRoute]}
                                             shouldShowRightIcon
                                             title={detail.title}
                                             description={detail.description}
                                             wrapperStyle={styles.sectionMenuItemTopDescription}
-                                            onPress={detail.action}
+                                            onPress={() => {
+                                                if (isActingAsDelegate) {
+                                                    showDelegateNoAccessModal();
+                                                    return;
+                                                }
+                                                setFocusTarget(menuItemFocusRefs[detail.pageRoute]);
+                                                Navigation.navigate(detail.pageRoute);
+                                            }}
                                             brickRoadIndicator={detail.brickRoadIndicator}
                                             sentryLabel={detail.sentryLabel}
                                         />
