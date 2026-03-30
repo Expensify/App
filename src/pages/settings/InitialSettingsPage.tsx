@@ -115,7 +115,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
         'CreditCard',
         'Wallet',
         'Bolt',
-    ] as const);
+    ]);
     const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET);
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [fundList] = useOnyx(ONYXKEYS.FUND_LIST);
@@ -357,13 +357,9 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
             {
                 translationKey: 'initialSettingsPage.help',
                 icon: icons.QuestionMark,
-                iconRight: icons.NewWindow,
-                shouldShowRightIcon: true,
+                screenName: SCREENS.SETTINGS.HELP,
                 sentryLabel: CONST.SENTRY_LABEL.SETTINGS_GENERAL.HELP,
-                link: CONST.NEWHELP_URL,
-                action: () => {
-                    openExternalLink(CONST.NEWHELP_URL);
-                },
+                action: () => Navigation.navigate(ROUTES.SETTINGS_HELP),
             },
             {
                 translationKey: 'initialSettingsPage.whatIsNew',
