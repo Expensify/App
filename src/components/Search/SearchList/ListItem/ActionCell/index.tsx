@@ -99,6 +99,7 @@ function ActionCell({
             isDisabled={isOffline || shouldDisablePointerEvents}
             shouldStayNormalOnDisable={shouldDisablePointerEvents}
             isNested
+            innerStyles={shouldUseMarkAsDone ? [styles.ph2] : undefined}
             sentryLabel={CONST.SENTRY_LABEL.SEARCH.ACTION_CELL_ACTION}
         />
     );
