@@ -11,8 +11,8 @@ import {
     mapBiometryTypeToAuthType,
     mapLibraryError,
     mapSignErrorCode,
-} from '@libs/MultifactorAuthentication/NativeBiometricsEC256/helpers';
-import type {NativeBiometricsEC256KeyInfo} from '@libs/MultifactorAuthentication/NativeBiometricsEC256/types';
+} from '@libs/MultifactorAuthentication/NativeBiometricsHSM/helpers';
+import type {NativeBiometricsHSMKeyInfo} from '@libs/MultifactorAuthentication/NativeBiometricsHSM/types';
 import VALUES from '@libs/MultifactorAuthentication/VALUES';
 import CONST from '@src/CONST';
 import Base64URL from '@src/utils/Base64URL';
@@ -20,11 +20,11 @@ import type {AuthorizeParams, AuthorizeResult, RegisterResult, UseBiometricsRetu
 import useServerCredentials from './shared/useServerCredentials';
 
 /**
- * Native biometrics hook using EC P-256 keys via react-native-biometrics.
+ * Native biometrics hook using HSM-backed EC P-256 keys via react-native-biometrics.
  * All cryptographic operations happen in native code (Secure Enclave / Android Keystore).
  * Private keys never enter JS memory.
  */
-function useNativeBiometricsEC256(): UseBiometricsReturn {
+function useNativeBiometricsHSM(): UseBiometricsReturn {
     const {accountID} = useCurrentUserPersonalDetails();
     const {translate} = useLocalize();
     const {serverKnownCredentialIDs, haveCredentialsEverBeenConfigured} = useServerCredentials();
@@ -58,7 +58,14 @@ function useNativeBiometricsEC256(): UseBiometricsReturn {
         try {
             const keyAlias = getKeyAlias(accountID);
 
-            // createKeys with failIfExists=false auto-deletes existing key and recreates
+            /**
+             * createKeys called with:
+             * keyAlias - alias associated with the key stored on the device
+             * keyType: 'ec256' - Elliptic Curve P-256 key
+             * biometricStrength: undefined - currently ignored when allowDeviceCredentials is set to true
+             * allowDeviceCredentials: true - allow device credentials fallback when biometrics are unavailable
+             * failIfExists: false - overwrite any existing key for this alias to support re-registration
+             */
             const {publicKey} = await createKeys(keyAlias, 'ec256', undefined, true, false);
 
             const credentialID = base64ToBase64url(publicKey);
@@ -72,9 +79,9 @@ function useNativeBiometricsEC256(): UseBiometricsReturn {
             }
 
             const clientDataJSON = JSON.stringify({challenge: registrationChallenge.challenge});
-            const keyInfo: NativeBiometricsEC256KeyInfo = {
+            const keyInfo: NativeBiometricsHSMKeyInfo = {
                 rawId: credentialID,
-                type: CONST.MULTIFACTOR_AUTHENTICATION.EC256_TYPE,
+                type: CONST.MULTIFACTOR_AUTHENTICATION.HSM_TYPE,
                 response: {
                     clientDataJSON: Base64URL.encode(clientDataJSON),
                     biometric: {
@@ -156,7 +163,7 @@ function useNativeBiometricsEC256(): UseBiometricsReturn {
                 reason: VALUES.REASON.CHALLENGE.CHALLENGE_SIGNED,
                 signedChallenge: {
                     rawId: credentialID,
-                    type: CONST.MULTIFACTOR_AUTHENTICATION.EC256_TYPE,
+                    type: CONST.MULTIFACTOR_AUTHENTICATION.HSM_TYPE,
                     response: {
                         authenticatorData: base64ToBase64url(authenticatorData.toString('base64')),
                         clientDataJSON: Base64URL.encode(clientDataJSON),
@@ -181,6 +188,7 @@ function useNativeBiometricsEC256(): UseBiometricsReturn {
         haveCredentialsEverBeenConfigured,
         getLocalCredentialID,
         doesDeviceSupportAuthenticationMethod,
+        deviceCheckFailureReason: VALUES.REASON.GENERIC.NO_AUTHENTICATION_METHODS_ENROLLED,
         hasLocalCredentials,
         areLocalCredentialsKnownToServer,
         register,
@@ -189,4 +197,4 @@ function useNativeBiometricsEC256(): UseBiometricsReturn {
     };
 }
 
-export default useNativeBiometricsEC256;
+export default useNativeBiometricsHSM;

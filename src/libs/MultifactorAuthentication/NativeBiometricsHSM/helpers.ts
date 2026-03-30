@@ -1,5 +1,5 @@
 /**
- * Helper utilities for native biometrics EC256 (react-native-biometrics).
+ * Helper utilities for native biometrics HSM (react-native-biometrics).
  */
 import type {BiometricSensorInfo} from '@sbaiahmed1/react-native-biometrics';
 import {isSensorAvailable} from '@sbaiahmed1/react-native-biometrics';
@@ -7,9 +7,9 @@ import type {ValueOf} from 'type-fest';
 import type {AuthTypeInfo, MultifactorAuthenticationReason} from '@libs/MultifactorAuthentication/shared/types';
 import VALUES from '@libs/MultifactorAuthentication/VALUES';
 import CONST from '@src/CONST';
-import NATIVE_BIOMETRICS_EC256_VALUES from './VALUES';
+import NATIVE_BIOMETRICS_HSM_VALUES from './VALUES';
 
-type SecureStoreAuthTypeEntry = ValueOf<typeof NATIVE_BIOMETRICS_EC256_VALUES.AUTH_TYPE>;
+type SecureStoreAuthTypeEntry = ValueOf<typeof NATIVE_BIOMETRICS_HSM_VALUES.AUTH_TYPE>;
 
 /**
  * Converts standard base64 to base64url encoding.
@@ -22,7 +22,7 @@ function base64ToBase64url(b64: string): string {
  * Builds the key alias for a given account.
  */
 function getKeyAlias(accountID: number): string {
-    return `${accountID}_${CONST.MULTIFACTOR_AUTHENTICATION.EC256_KEY_SUFFIX}`;
+    return `${accountID}_${CONST.MULTIFACTOR_AUTHENTICATION.HSM_KEY_SUFFIX}`;
 }
 
 /**
@@ -47,13 +47,13 @@ function getSensorResult(): BiometricSensorInfo {
  * Native layer returns: -1=Unknown, 0=None, 1=DeviceCredentials, 2=Biometrics, 3=FaceID, 4=TouchID, 5=OpticID
  */
 const AUTH_TYPE_NUMBER_MAP = new Map<number, SecureStoreAuthTypeEntry>([
-    [-1, NATIVE_BIOMETRICS_EC256_VALUES.AUTH_TYPE.UNKNOWN],
-    [0, NATIVE_BIOMETRICS_EC256_VALUES.AUTH_TYPE.NONE],
-    [1, NATIVE_BIOMETRICS_EC256_VALUES.AUTH_TYPE.CREDENTIALS],
-    [2, NATIVE_BIOMETRICS_EC256_VALUES.AUTH_TYPE.BIOMETRICS],
-    [3, NATIVE_BIOMETRICS_EC256_VALUES.AUTH_TYPE.FACE_ID],
-    [4, NATIVE_BIOMETRICS_EC256_VALUES.AUTH_TYPE.TOUCH_ID],
-    [5, NATIVE_BIOMETRICS_EC256_VALUES.AUTH_TYPE.OPTIC_ID],
+    [-1, NATIVE_BIOMETRICS_HSM_VALUES.AUTH_TYPE.UNKNOWN],
+    [0, NATIVE_BIOMETRICS_HSM_VALUES.AUTH_TYPE.NONE],
+    [1, NATIVE_BIOMETRICS_HSM_VALUES.AUTH_TYPE.CREDENTIALS],
+    [2, NATIVE_BIOMETRICS_HSM_VALUES.AUTH_TYPE.BIOMETRICS],
+    [3, NATIVE_BIOMETRICS_HSM_VALUES.AUTH_TYPE.FACE_ID],
+    [4, NATIVE_BIOMETRICS_HSM_VALUES.AUTH_TYPE.TOUCH_ID],
+    [5, NATIVE_BIOMETRICS_HSM_VALUES.AUTH_TYPE.OPTIC_ID],
 ]);
 
 function mapAuthTypeNumber(authType?: number): AuthTypeInfo | undefined {
@@ -71,17 +71,17 @@ function mapAuthTypeNumber(authType?: number): AuthTypeInfo | undefined {
  * Maps biometryType string from isSensorAvailable to AuthTypeInfo (used during registration).
  */
 const BIOMETRY_TYPE_MAP: Record<string, SecureStoreAuthTypeEntry> = {
-    FaceID: NATIVE_BIOMETRICS_EC256_VALUES.AUTH_TYPE.FACE_ID,
-    TouchID: NATIVE_BIOMETRICS_EC256_VALUES.AUTH_TYPE.TOUCH_ID,
-    Biometrics: NATIVE_BIOMETRICS_EC256_VALUES.AUTH_TYPE.BIOMETRICS,
-    OpticID: NATIVE_BIOMETRICS_EC256_VALUES.AUTH_TYPE.OPTIC_ID,
+    FaceID: NATIVE_BIOMETRICS_HSM_VALUES.AUTH_TYPE.FACE_ID,
+    TouchID: NATIVE_BIOMETRICS_HSM_VALUES.AUTH_TYPE.TOUCH_ID,
+    Biometrics: NATIVE_BIOMETRICS_HSM_VALUES.AUTH_TYPE.BIOMETRICS,
+    OpticID: NATIVE_BIOMETRICS_HSM_VALUES.AUTH_TYPE.OPTIC_ID,
 };
 
 function mapBiometryTypeToAuthType(biometryType?: string, isDeviceSecure?: boolean): AuthTypeInfo | undefined {
     let entry = BIOMETRY_TYPE_MAP[biometryType ?? ''];
     if (!entry) {
         if (isDeviceSecure) {
-            entry = NATIVE_BIOMETRICS_EC256_VALUES.AUTH_TYPE.CREDENTIALS;
+            entry = NATIVE_BIOMETRICS_HSM_VALUES.AUTH_TYPE.CREDENTIALS;
         } else {
             return undefined;
         }

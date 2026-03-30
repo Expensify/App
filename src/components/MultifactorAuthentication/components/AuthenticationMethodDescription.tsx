@@ -3,7 +3,7 @@ import {useMultifactorAuthenticationState} from '@components/MultifactorAuthenti
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import NATIVE_BIOMETRICS_EC256_VALUES from '@libs/MultifactorAuthentication/NativeBiometricsEC256/VALUES';
+import NATIVE_BIOMETRICS_HSM_VALUES from '@libs/MultifactorAuthentication/NativeBiometricsHSM/VALUES';
 import type {AuthTypeName} from '@libs/MultifactorAuthentication/shared/types';
 import type {TranslationPaths} from '@src/languages/types';
 
@@ -25,7 +25,7 @@ function AuthenticationMethodDescription() {
     const {translate} = useLocalize();
     const {authenticationMethod} = useMultifactorAuthenticationState();
 
-    const authType = translate(AUTH_TYPE_TRANSLATION_KEY[authenticationMethod?.name ?? NATIVE_BIOMETRICS_EC256_VALUES.AUTH_TYPE.UNKNOWN.NAME]);
+    const authType = translate(AUTH_TYPE_TRANSLATION_KEY[authenticationMethod?.name ?? NATIVE_BIOMETRICS_HSM_VALUES.AUTH_TYPE.UNKNOWN.NAME]);
 
     return <Text style={[styles.textAlignCenter, styles.textSupporting]}>{translate('multifactorAuthentication.biometricsTest.successfullyAuthenticatedUsing', {authType})}</Text>;
 }

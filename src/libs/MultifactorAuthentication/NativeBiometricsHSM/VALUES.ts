@@ -1,19 +1,19 @@
 /**
- * Constants specific to native biometrics (EC256 / react-native-biometrics).
+ * Constants specific to native biometrics (HSM / react-native-biometrics).
  */
 import {AuthType} from '@sbaiahmed1/react-native-biometrics';
 import MARQETA_VALUES from '@libs/MultifactorAuthentication/shared/MarqetaValues';
 
-const NATIVE_BIOMETRICS_EC256_VALUES = {
+const NATIVE_BIOMETRICS_HSM_VALUES = {
     /**
-     * EC256 key type identifier
+     * HSM key type identifier
      */
-    EC256_TYPE: 'biometric',
+    HSM_TYPE: 'biometric-hsm',
 
     /**
-     * Key alias suffix for EC256 keys managed by react-native-biometrics.
+     * Key alias suffix for HSM keys managed by react-native-biometrics.
      */
-    EC256_KEY_SUFFIX: 'EC256_KEY',
+    HSM_KEY_SUFFIX: 'HSM_KEY',
 
     /**
      * Authentication types mapped to Marqeta values
@@ -64,4 +64,4 @@ const NATIVE_BIOMETRICS_EC256_VALUES = {
     },
 } as const;
 
-export default NATIVE_BIOMETRICS_EC256_VALUES;
+export default NATIVE_BIOMETRICS_HSM_VALUES;

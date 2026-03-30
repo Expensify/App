@@ -1,12 +1,12 @@
-import {base64ToBase64url, getKeyAlias, mapAuthTypeNumber, mapBiometryTypeToAuthType, mapLibraryError, mapSignErrorCode} from '@libs/MultifactorAuthentication/NativeBiometricsEC256/helpers';
-import NATIVE_BIOMETRICS_EC256_VALUES from '@libs/MultifactorAuthentication/NativeBiometricsEC256/VALUES';
+import {base64ToBase64url, getKeyAlias, mapAuthTypeNumber, mapBiometryTypeToAuthType, mapLibraryError, mapSignErrorCode} from '@libs/MultifactorAuthentication/NativeBiometricsHSM/helpers';
+import NATIVE_BIOMETRICS_HSM_VALUES from '@libs/MultifactorAuthentication/NativeBiometricsHSM/VALUES';
 import VALUES from '@libs/MultifactorAuthentication/VALUES';
 
 jest.mock('@sbaiahmed1/react-native-biometrics', () => ({
     isSensorAvailable: jest.fn().mockResolvedValue({available: true, biometryType: 'FaceID', isDeviceSecure: true}),
 }));
 
-describe('NativeBiometricsEC256 helpers', () => {
+describe('NativeBiometricsHSM helpers', () => {
     describe('base64ToBase64url', () => {
         it('should replace + with -', () => {
             // Given a base64 string containing '+' characters, which are not URL-safe
@@ -46,19 +46,19 @@ describe('NativeBiometricsEC256 helpers', () => {
     });
 
     describe('getKeyAlias', () => {
-        it('should build alias from accountID and EC256_KEY_SUFFIX', () => {
+        it('should build alias from accountID and HSM_KEY_SUFFIX', () => {
             // Given a valid account ID
             // When generating a key alias for biometric key storage
-            // Then the alias should combine the account ID with the EC256 suffix to uniquely identify the key per account
-            expect(getKeyAlias(12345)).toBe('12345_EC256_KEY');
+            // Then the alias should combine the account ID with the HSM suffix to uniquely identify the key per account
+            expect(getKeyAlias(12345)).toBe('12345_HSM_KEY');
         });
 
         it('should handle different account IDs', () => {
             // Given various account IDs including edge cases like 0
             // When generating key aliases
             // Then each alias should be unique per account to prevent key collisions across different users on the same device
-            expect(getKeyAlias(0)).toBe('0_EC256_KEY');
-            expect(getKeyAlias(999999)).toBe('999999_EC256_KEY');
+            expect(getKeyAlias(0)).toBe('0_HSM_KEY');
+            expect(getKeyAlias(999999)).toBe('999999_HSM_KEY');
         });
     });
 
@@ -83,9 +83,9 @@ describe('NativeBiometricsEC256 helpers', () => {
             // Then it should resolve to the Unknown auth type, because the method could not be determined, but the authentication was successful
             const result = mapAuthTypeNumber(-1);
             expect(result).toEqual({
-                code: NATIVE_BIOMETRICS_EC256_VALUES.AUTH_TYPE.UNKNOWN.CODE,
-                name: NATIVE_BIOMETRICS_EC256_VALUES.AUTH_TYPE.UNKNOWN.NAME,
-                marqetaValue: NATIVE_BIOMETRICS_EC256_VALUES.AUTH_TYPE.UNKNOWN.MARQETA_VALUE,
+                code: NATIVE_BIOMETRICS_HSM_VALUES.AUTH_TYPE.UNKNOWN.CODE,
+                name: NATIVE_BIOMETRICS_HSM_VALUES.AUTH_TYPE.UNKNOWN.NAME,
+                marqetaValue: NATIVE_BIOMETRICS_HSM_VALUES.AUTH_TYPE.UNKNOWN.MARQETA_VALUE,
             });
         });
 

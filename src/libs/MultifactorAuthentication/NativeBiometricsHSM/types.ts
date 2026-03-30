@@ -1,13 +1,13 @@
 /**
- * Type definitions specific to native biometrics (EC256).
+ * Type definitions specific to native biometrics (HSM).
  */
 import type CONST from '@src/CONST';
 import type {Base64URLString} from '@src/utils/Base64URL';
 import type VALUES from './VALUES';
 
-type NativeBiometricsEC256KeyInfo = {
+type NativeBiometricsHSMKeyInfo = {
     rawId: Base64URLString;
-    type: typeof VALUES.EC256_TYPE;
+    type: typeof VALUES.HSM_TYPE;
     response: {
         clientDataJSON: Base64URLString;
         biometric: {
@@ -18,4 +18,4 @@ type NativeBiometricsEC256KeyInfo = {
 };
 
 // eslint-disable-next-line import/prefer-default-export
-export type {NativeBiometricsEC256KeyInfo};
+export type {NativeBiometricsHSMKeyInfo};

@@ -5,8 +5,8 @@
 import type {ValueOf} from 'type-fest';
 import type {MultifactorAuthenticationScenario, MultifactorAuthenticationScenarioAdditionalParams} from '@components/MultifactorAuthentication/config/types';
 import type {NativeBiometricsKeyInfo} from '@libs/MultifactorAuthentication/NativeBiometrics/types';
-import type {NativeBiometricsEC256KeyInfo} from '@libs/MultifactorAuthentication/NativeBiometricsEC256/types';
-import type NATIVE_BIOMETRICS_EC256_VALUES from '@libs/MultifactorAuthentication/NativeBiometricsEC256/VALUES';
+import type {NativeBiometricsHSMKeyInfo} from '@libs/MultifactorAuthentication/NativeBiometricsHSM/types';
+import type NATIVE_BIOMETRICS_HSM_VALUES from '@libs/MultifactorAuthentication/NativeBiometricsHSM/VALUES';
 import type {PasskeyRegistrationKeyInfo} from '@libs/MultifactorAuthentication/Passkeys/types';
 import type {PASSKEY_AUTH_TYPE} from '@libs/MultifactorAuthentication/Passkeys/WebAuthn';
 import type {SignedChallenge} from './challengeTypes';
@@ -15,9 +15,9 @@ import type VALUES from './VALUES';
 /**
  * Authentication type name derived from react-native-biometrics values and passkey auth type.
  */
-type AuthTypeName = ValueOf<typeof NATIVE_BIOMETRICS_EC256_VALUES.AUTH_TYPE>['NAME'] | (typeof PASSKEY_AUTH_TYPE)['NAME'];
+type AuthTypeName = ValueOf<typeof NATIVE_BIOMETRICS_HSM_VALUES.AUTH_TYPE>['NAME'] | (typeof PASSKEY_AUTH_TYPE)['NAME'];
 
-type MarqetaAuthTypeName = ValueOf<typeof NATIVE_BIOMETRICS_EC256_VALUES.AUTH_TYPE>['MARQETA_VALUE'] | (typeof PASSKEY_AUTH_TYPE)['MARQETA_VALUE'];
+type MarqetaAuthTypeName = ValueOf<typeof NATIVE_BIOMETRICS_HSM_VALUES.AUTH_TYPE>['MARQETA_VALUE'] | (typeof PASSKEY_AUTH_TYPE)['MARQETA_VALUE'];
 
 type AuthTypeInfo = {
     code?: MultifactorAuthenticationMethodCode;
@@ -25,7 +25,7 @@ type AuthTypeInfo = {
     marqetaValue: MarqetaAuthTypeName;
 };
 
-type MultifactorAuthenticationMethodCode = ValueOf<typeof NATIVE_BIOMETRICS_EC256_VALUES.AUTH_TYPE>['CODE'];
+type MultifactorAuthenticationMethodCode = ValueOf<typeof NATIVE_BIOMETRICS_HSM_VALUES.AUTH_TYPE>['CODE'];
 
 /**
  * Represents the reason for a multifactor authentication response from the backend.
@@ -53,7 +53,7 @@ type MultifactorAuthenticationResponseMap = typeof VALUES.API_RESPONSE_MAP;
 type MultifactorAuthenticationActionParams<T extends Record<string, unknown>, R extends keyof AllMultifactorAuthenticationBaseParameters> = T &
     Pick<AllMultifactorAuthenticationBaseParameters, R> & {authenticationMethod: MarqetaAuthTypeName};
 
-type RegistrationKeyInfo = NativeBiometricsKeyInfo | NativeBiometricsEC256KeyInfo | PasskeyRegistrationKeyInfo;
+type RegistrationKeyInfo = NativeBiometricsKeyInfo | NativeBiometricsHSMKeyInfo | PasskeyRegistrationKeyInfo;
 
 type ChallengeType = ValueOf<typeof VALUES.CHALLENGE_TYPE>;
 
