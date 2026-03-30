@@ -67,17 +67,19 @@ function navigateAfterOnboarding(
 ) {
     setDisableDismissOnEscape(false);
 
-    if (shouldOpenRHPVariant(variantOverride)) {
-        handleRHPVariantNavigation(onboardingPolicyID, variantOverride);
-        return;
-    }
-
     // On mobile (small screen), Track workspace admins with the trackExpensesWithConcierge variant
     // should navigate directly to the Concierge DM (which contains onboarding tasks).
-    // The native shouldOpenRHPVariant() returns false (no side panel on mobile), so we handle it here.
+    // This must be checked before shouldOpenRHPVariant() because on mobile web, the web variant
+    // of shouldOpenRHPVariant returns true and navigates to HOME with the side panel, but on
+    // small screens we want the Concierge DM chat instead.
     const variant = variantOverride ?? onboardingRHPVariant;
     if (isSmallScreenWidth && variant === CONST.ONBOARDING_RHP_VARIANT.TRACK_EXPENSES_WITH_CONCIERGE) {
         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(conciergeReportID));
+        return;
+    }
+
+    if (shouldOpenRHPVariant(variantOverride)) {
+        handleRHPVariantNavigation(onboardingPolicyID, variantOverride);
         return;
     }
 
