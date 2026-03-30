@@ -17,6 +17,7 @@ import type {
     ShareBankAccountAndSetPayerParams,
     ShareBankAccountParams,
     UnshareBankAccountParams,
+    UpdatePersonalBankAccountInfoParams,
     ValidateBankAccountWithTransactionsParams,
     VerifyIdentityForBankAccountParams,
 } from '@libs/API/parameters';
@@ -27,8 +28,10 @@ import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
+import * as NetworkStore from '@libs/Network/NetworkStore';
 import type {MemberForList} from '@libs/OptionsListUtils';
 import {getFormattedStreet} from '@libs/PersonalDetailsUtils';
+import {buildOptimisticAddCommentReportAction} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -37,6 +40,7 @@ import type {Route} from '@src/ROUTES';
 import type {InternationalBankAccountForm, PersonalBankAccountForm} from '@src/types/form';
 import type {ACHContractStepProps, BeneficialOwnersStepProps, CompanyStepProps, ReimbursementAccountForm, RequestorStepProps} from '@src/types/form/ReimbursementAccountForm';
 import type {BankAccountList, LastPaymentMethod, LastPaymentMethodType, PersonalBankAccount} from '@src/types/onyx';
+import type {BankAccountAdditionalData} from '@src/types/onyx/BankAccount';
 import type PlaidBankAccount from '@src/types/onyx/PlaidBankAccount';
 import type {BankAccountStep, ReimbursementAccountStep, ReimbursementAccountSubStep} from '@src/types/onyx/ReimbursementAccount';
 import type {OnyxData} from '@src/types/onyx/Request';
@@ -150,6 +154,128 @@ function clearPersonalBankAccountErrors() {
     Onyx.merge(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {errors: null});
 }
 
+type PersonalBankAccountUpdateData = Pick<
+    PersonalBankAccountForm,
+    'legalFirstName' | 'legalLastName' | 'addressStreet' | 'addressStreet2' | 'addressCity' | 'addressState' | 'addressZipCode' | 'phoneNumber'
+>;
+
+function updatePersonalBankAccountInfo(bankAccountID: number, accountData: PersonalBankAccountUpdateData) {
+    const formattedStreet = getFormattedStreet(accountData.addressStreet, accountData.addressStreet2);
+
+    const bankAccountKey = String(bankAccountID);
+    const prevData = bankAccountList?.[bankAccountKey]?.accountData?.additionalData;
+
+    type AdditionalDataFields = Pick<BankAccountAdditionalData, 'firstName' | 'lastName' | 'addressStreet' | 'addressCity' | 'addressState' | 'addressZipCode' | 'companyPhone'>;
+
+    const additionalDataUpdate: AdditionalDataFields = {
+        firstName: accountData.legalFirstName,
+        lastName: accountData.legalLastName,
+        addressStreet: formattedStreet,
+        addressCity: accountData.addressCity,
+        addressState: accountData.addressState,
+        addressZipCode: accountData.addressZipCode,
+        companyPhone: accountData.phoneNumber,
+    };
+
+    const parameters: UpdatePersonalBankAccountInfoParams = {
+        bankAccountID,
+        companyPhone: accountData.phoneNumber,
+        legalFirstName: accountData.legalFirstName,
+        legalLastName: accountData.legalLastName,
+        addressStreet: formattedStreet,
+        addressCity: accountData.addressCity,
+        addressState: accountData.addressState,
+        addressZip: accountData.addressZipCode,
+    };
+
+    const onyxData: OnyxData<typeof ONYXKEYS.PERSONAL_BANK_ACCOUNT | typeof ONYXKEYS.BANK_ACCOUNT_LIST | typeof ONYXKEYS.FORMS.HOME_ADDRESS_FORM> = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.PERSONAL_BANK_ACCOUNT,
+                value: {
+                    isLoading: true,
+                    errors: null,
+                },
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.FORMS.HOME_ADDRESS_FORM,
+                value: {
+                    isLoading: true,
+                },
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.BANK_ACCOUNT_LIST,
+                value: {
+                    [bankAccountKey]: {
+                        accountData: {
+                            additionalData: additionalDataUpdate,
+                        },
+                    },
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.PERSONAL_BANK_ACCOUNT,
+                value: {
+                    isLoading: false,
+                    errors: null,
+                    shouldShowSuccess: true,
+                },
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.FORMS.HOME_ADDRESS_FORM,
+                value: {
+                    isLoading: false,
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.PERSONAL_BANK_ACCOUNT,
+                value: {
+                    isLoading: false,
+                    errors: getMicroSecondOnyxErrorWithTranslationKey('addPersonalBankAccount.updatePersonalInfoFailure'),
+                },
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.FORMS.HOME_ADDRESS_FORM,
+                value: {
+                    isLoading: false,
+                },
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.BANK_ACCOUNT_LIST,
+                value: {
+                    [bankAccountKey]: {
+                        accountData: {
+                            additionalData: {
+                                firstName: prevData?.firstName ?? null,
+                                lastName: prevData?.lastName ?? null,
+                                addressStreet: prevData?.addressStreet ?? null,
+                                addressCity: prevData?.addressCity ?? null,
+                                addressState: prevData?.addressState ?? null,
+                                addressZipCode: prevData?.addressZipCode ?? null,
+                                companyPhone: prevData?.companyPhone ?? null,
+                            },
+                        },
+                    },
+                },
+            },
+        ],
+    };
+
+    API.write(WRITE_COMMANDS.UPDATE_PERSONAL_BANK_ACCOUNT_INFO, parameters, onyxData);
+}
+
 /**
  * Whether after adding a bank account we should continue with the KYC flow. If so, we must specify the fallback route.
  */
@@ -162,6 +288,14 @@ function clearPersonalBankAccount() {
     Onyx.set(ONYXKEYS.PERSONAL_BANK_ACCOUNT, null);
     Onyx.set(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM_DRAFT, null);
     clearPersonalBankAccountSetupType();
+}
+
+/** Atomically resets personal bank account state and seeds draft values using Onyx.set to avoid set/merge races. */
+function resetPersonalBankAccountForUpdate(bankAccountID: number, personalBankAccountDraft?: Partial<PersonalBankAccountForm>, homeAddressDraft?: Record<string, string | undefined>) {
+    clearPlaid();
+    Onyx.set(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {bankAccountID});
+    Onyx.set(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM_DRAFT, personalBankAccountDraft ?? null);
+    Onyx.set(ONYXKEYS.FORMS.HOME_ADDRESS_FORM_DRAFT, homeAddressDraft ?? null);
 }
 
 function clearOnfidoToken() {
@@ -255,8 +389,24 @@ function getOnyxDataForConnectingVBBAAndLastPaymentMethod(
  * Submit Bank Account step with Plaid data so php can perform some checks.
  */
 function connectBankAccountWithPlaid(bankAccountID: number, selectedPlaidBankAccount: PlaidBankAccount, policyID: string) {
+    const isChaseBank = selectedPlaidBankAccount.bankName?.toLowerCase() === CONST.BANK_NAMES.CHASE;
+    if (bankAccountID === CONST.DEFAULT_NUMBER_ID && isChaseBank) {
+        Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {
+            achData: {
+                currentStep: CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT,
+                subStep: CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL,
+            },
+            errors: null,
+        });
+        Onyx.merge(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT, {
+            accountNumber: '',
+            routingNumber: '',
+        });
+        return;
+    }
+
     const parameters: ConnectBankAccountParams = {
-        bankAccountID,
+        bankAccountID: !Number.isNaN(bankAccountID) ? bankAccountID : CONST.DEFAULT_NUMBER_ID,
         routingNumber: selectedPlaidBankAccount.routingNumber,
         accountNumber: selectedPlaidBankAccount.accountNumber,
         bank: selectedPlaidBankAccount.bankName,
@@ -1162,7 +1312,7 @@ function acceptACHContractForBankAccount(bankAccountID: number, params: ACHContr
  */
 function connectBankAccountManually(bankAccountID: number, bankAccount: PlaidBankAccount, policyID: string) {
     const parameters: ConnectBankAccountParams = {
-        bankAccountID,
+        bankAccountID: !Number.isNaN(bankAccountID) ? bankAccountID : CONST.DEFAULT_NUMBER_ID,
         routingNumber: bankAccount.routingNumber,
         accountNumber: bankAccount.accountNumber,
         bank: bankAccount.bankName,
@@ -1539,12 +1689,113 @@ function openBankAccountSharePage() {
     });
 }
 
+function initiateBankAccountUnlock(bankAccountID: number, conciergeReportID: string | undefined, optimisticReportActionID: string | null | undefined) {
+    const authToken = NetworkStore.getAuthToken();
+
+    const onyxData: OnyxData<typeof ONYXKEYS.INITIATING_BANK_ACCOUNT_UNLOCK | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS> = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.INITIATING_BANK_ACCOUNT_UNLOCK,
+                value: {
+                    isLoading: true,
+                    isSuccess: false,
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.INITIATING_BANK_ACCOUNT_UNLOCK,
+                value: {
+                    errors: null,
+                    isLoading: false,
+                    isSuccess: null,
+                    bankAccountIDToUnlock: null,
+                    optimisticReportActionID: null,
+                },
+            },
+            ...(optimisticReportActionID && conciergeReportID
+                ? [
+                      {
+                          onyxMethod: Onyx.METHOD.MERGE,
+                          key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${conciergeReportID}` as const,
+                          value: {[optimisticReportActionID]: {pendingAction: null}},
+                      },
+                  ]
+                : []),
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.INITIATING_BANK_ACCOUNT_UNLOCK,
+                value: {
+                    isLoading: false,
+                    isSuccess: false,
+                    errors: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                },
+            },
+            ...(optimisticReportActionID && conciergeReportID
+                ? [
+                      {
+                          onyxMethod: Onyx.METHOD.MERGE,
+                          key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${conciergeReportID}` as const,
+                          value: {[optimisticReportActionID]: {errors: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')}},
+                      },
+                  ]
+                : []),
+        ],
+    };
+
+    return API.write(WRITE_COMMANDS.INITIATE_BANK_ACCOUNT_UNLOCK, {bankAccountID, authToken, optimisticReportActionID}, onyxData);
+}
+
+function pressLockedBankAccount(bankAccountID: number, translate: LocalizedTranslate, conciergeReportID: string | undefined) {
+    let optimisticReportActionID: string | undefined;
+
+    if (conciergeReportID) {
+        const bankAccount = Object.values(bankAccountList ?? {}).find((account) => account?.accountData?.bankAccountID === bankAccountID);
+        const maskedAccountNumber = bankAccount?.accountData?.accountNumber ?? '';
+
+        const html = translate('bankAccount.htmlUnlockMessage', maskedAccountNumber);
+        const text = translate('bankAccount.textUnlockMessage', maskedAccountNumber);
+
+        const {reportAction} = buildOptimisticAddCommentReportAction({text, actorAccountID: CONST.ACCOUNT_ID.CONCIERGE, reportID: conciergeReportID});
+        optimisticReportActionID = reportAction.reportActionID;
+
+        reportAction.message = [
+            {
+                type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
+                html,
+                text,
+                isEdited: false,
+                whisperedTo: [],
+                isDeletedParentAction: false,
+                deleted: '',
+            },
+        ];
+        Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${conciergeReportID}`, {
+            [optimisticReportActionID]: reportAction,
+        });
+        Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`, {
+            lastVisibleActionCreated: reportAction.created,
+            lastActorAccountID: CONST.ACCOUNT_ID.CONCIERGE,
+        });
+    }
+
+    Onyx.merge(ONYXKEYS.INITIATING_BANK_ACCOUNT_UNLOCK, {
+        bankAccountIDToUnlock: bankAccountID,
+        optimisticReportActionID: optimisticReportActionID ?? null,
+    });
+}
+
 export {
     acceptACHContractForBankAccount,
     addBusinessWebsiteForDraft,
     addPersonalBankAccount,
     clearOnfidoToken,
     clearPersonalBankAccount,
+    resetPersonalBankAccountForUpdate,
     setPlaidEvent,
     openPlaidView,
     connectBankAccountManually,
@@ -1596,4 +1847,7 @@ export {
     getBankAccountFromID,
     openBankAccountSharePage,
     clearShareBankAccountErrors,
+    updatePersonalBankAccountInfo,
+    initiateBankAccountUnlock,
+    pressLockedBankAccount,
 };

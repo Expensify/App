@@ -431,7 +431,6 @@ function IOURequestStepScan({
                 showCameraAlert();
                 Log.warn('Error taking photo', error);
             });
-        // eslint-disable-next-line react-hooks/exhaustive-deps -- askForPermissions is not needed
     }, [
         cameraPermissionStatus,
         isMultiScanEnabled,
@@ -446,9 +445,11 @@ function IOURequestStepScan({
         initialTransactionID,
         isEditing,
         receiptFiles,
+        setReceiptFiles,
         submitReceipts,
         updateScanAndNavigate,
         askForPermissions,
+        maybeCancelShutterSpan,
     ]);
 
     const cameraLoadingReasonAttributes: SkeletonSpanReasonAttributes = {
