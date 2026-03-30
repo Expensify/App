@@ -234,7 +234,7 @@ const selectPaymentType = (params: SelectPaymentTypeParams) => {
         amountOwed,
         ownerBillingGraceEndPeriod,
     } = params;
-    if (policy && shouldRestrictUserBillableActions(policy.id, userBillingGraceEndPeriods, amountOwed, ownerBillingGraceEndPeriod)) {
+    if (policy && shouldRestrictUserBillableActions(policy.id, ownerBillingGraceEndPeriod, userBillingGraceEndPeriods, amountOwed)) {
         Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
         return;
     }

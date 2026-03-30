@@ -12,7 +12,7 @@ import CONST from '@src/CONST';
 import type {IOUAction} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import SingleSelectListItem from './SelectionList/ListItem/SingleSelectListItem';
+import RadioListItem from './SelectionList/ListItem/RadioListItem';
 import SelectionListWithSections from './SelectionList/SelectionListWithSections';
 
 type TaxPickerProps = {
@@ -147,7 +147,7 @@ function TaxPicker({selectedTaxRate = '', policyID, transactionID, onSubmit, act
             shouldShowTextInput={shouldShowTextInput}
             textInputOptions={textInputOptions}
             onSelectRow={handleSelectRow}
-            ListItem={SingleSelectListItem}
+            ListItem={RadioListItem}
             initiallyFocusedItemKey={selectedOptionKey ?? undefined}
             addBottomSafeAreaPadding={addBottomSafeAreaPadding}
         />

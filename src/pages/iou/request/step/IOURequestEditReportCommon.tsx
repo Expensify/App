@@ -225,7 +225,7 @@ function IOURequestEditReportCommon({
             return;
         }
 
-        if (item?.policyID && shouldRestrictUserBillableActions(item.policyID, userBillingGraceEndPeriods, undefined, ownerBillingGraceEndPeriod)) {
+        if (item?.policyID && shouldRestrictUserBillableActions(item.policyID, ownerBillingGraceEndPeriod, userBillingGraceEndPeriods, undefined)) {
             Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(item.policyID));
             return;
         }

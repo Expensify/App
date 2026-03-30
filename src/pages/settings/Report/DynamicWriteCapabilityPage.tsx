@@ -4,7 +4,7 @@ import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
-import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
+import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useReportIsArchived from '@hooks/useReportIsArchived';
@@ -56,7 +56,7 @@ function DynamicWriteCapabilityPage({report, policy}: DynamicWriteCapabilityPage
                 />
                 <SelectionList
                     data={writeCapabilityOptions}
-                    ListItem={SingleSelectListItem}
+                    ListItem={RadioListItem}
                     onSelectRow={(option) => updateWriteCapability(option.value)}
                     shouldSingleExecuteRowSelect
                     initiallyFocusedItemKey={selectedOptionKey}
