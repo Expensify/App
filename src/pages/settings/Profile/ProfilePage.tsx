@@ -1,5 +1,6 @@
 import {useRoute} from '@react-navigation/native';
-import React, {useMemo} from 'react';
+import React, {createRef, useMemo} from 'react';
+import type {RefObject} from 'react';
 import {View} from 'react-native';
 import ActivityIndicator from '@components/ActivityIndicator';
 import AvatarButtonWithIcon from '@components/AvatarButtonWithIcon';
@@ -147,6 +148,21 @@ function ProfilePage() {
         isLoadingApp: !!isLoadingApp,
     };
 
+    const menuItemFocusRefs = useMemo<Record<string, RefObject<HTMLDivElement | View | null>>>(
+        () => ({
+            [ROUTES.SETTINGS_DISPLAY_NAME]: createRef<HTMLDivElement | View>(),
+            [ROUTES.SETTINGS_CONTACT_METHODS.route]: createRef<HTMLDivElement | View>(),
+            [ROUTES.SETTINGS_STATUS]: createRef<HTMLDivElement | View>(),
+            [ROUTES.SETTINGS_PRONOUNS]: createRef<HTMLDivElement | View>(),
+            [ROUTES.SETTINGS_TIMEZONE]: createRef<HTMLDivElement | View>(),
+            [ROUTES.SETTINGS_LEGAL_NAME]: createRef<HTMLDivElement | View>(),
+            [ROUTES.SETTINGS_DATE_OF_BIRTH]: createRef<HTMLDivElement | View>(),
+            [ROUTES.SETTINGS_PHONE_NUMBER]: createRef<HTMLDivElement | View>(),
+            [ROUTES.SETTINGS_ADDRESS]: createRef<HTMLDivElement | View>(),
+        }),
+        [],
+    );
+
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
@@ -212,16 +228,16 @@ function ProfilePage() {
                                     </MenuItemGroup>
                                 )}
                             </View>
-                            {publicOptions.map((detail, index) => (
+                            {publicOptions.map((detail) => (
                                 <MenuItemWithTopDescription
-                                    // eslint-disable-next-line react/no-array-index-key
-                                    key={`${detail.title}_${index}`}
+                                    key={detail.pageRoute}
+                                    ref={menuItemFocusRefs[detail.pageRoute]}
                                     shouldShowRightIcon
                                     title={detail.title}
                                     description={detail.description}
                                     wrapperStyle={styles.sectionMenuItemTopDescription}
-                                    onPress={(event) => {
-                                        setFocusTarget(event);
+                                    onPress={() => {
+                                        setFocusTarget(menuItemFocusRefs[detail.pageRoute]);
                                         Navigation.navigate(detail.pageRoute);
                                     }}
                                     brickRoadIndicator={detail.brickRoadIndicator}
@@ -255,20 +271,20 @@ function ProfilePage() {
                                 </View>
                             ) : (
                                 <MenuItemGroup shouldUseSingleExecution={!isActingAsDelegate}>
-                                    {privateOptions.map((detail, index) => (
+                                    {privateOptions.map((detail) => (
                                         <MenuItemWithTopDescription
-                                            // eslint-disable-next-line react/no-array-index-key
-                                            key={`${detail.title}_${index}`}
+                                            key={detail.pageRoute}
+                                            ref={menuItemFocusRefs[detail.pageRoute]}
                                             shouldShowRightIcon
                                             title={detail.title}
                                             description={detail.description}
                                             wrapperStyle={styles.sectionMenuItemTopDescription}
-                                            onPress={(event) => {
+                                            onPress={() => {
                                                 if (isActingAsDelegate) {
                                                     showDelegateNoAccessModal();
                                                     return;
                                                 }
-                                                setFocusTarget(event);
+                                                setFocusTarget(menuItemFocusRefs[detail.pageRoute]);
                                                 Navigation.navigate(detail.pageRoute);
                                             }}
                                             brickRoadIndicator={detail.brickRoadIndicator}

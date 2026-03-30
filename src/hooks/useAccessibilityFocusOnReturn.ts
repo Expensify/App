@@ -29,6 +29,7 @@ function resolveFocusTarget(focusTarget: FocusTarget): FocusTarget | null {
 
 function useAccessibilityFocusOnReturn() {
     const isFocused = useIsFocused();
+    const isFocusedRef = useRef(isFocused);
     const focusTargetRef = useRef<FocusTarget | null>(null);
     const retryCountRef = useRef(0);
     const retryTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -60,7 +61,7 @@ function useAccessibilityFocusOnReturn() {
     }, []);
 
     const restoreFocusOnReturn = useCallback(() => {
-        if (!isFocused || !focusTargetRef.current) {
+        if (!isFocusedRef.current || !focusTargetRef.current) {
             return;
         }
 
@@ -104,7 +105,11 @@ function useAccessibilityFocusOnReturn() {
         deferredRestoreTimeoutRef.current = setTimeout(() => {
             tryRestoreFocus();
         }, WEB_FOCUS_RESTORE_DELAY);
-    }, [clearPendingFocusRestore, isFocused]);
+    }, [clearPendingFocusRestore]);
+
+    useEffect(() => {
+        isFocusedRef.current = isFocused;
+    }, [isFocused]);
 
     useEffect(() => {
         if (Platform.OS !== 'web') {
