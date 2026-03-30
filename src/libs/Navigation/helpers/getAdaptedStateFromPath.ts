@@ -199,7 +199,7 @@ function getMatchingFullScreenRoute(route: NavigationPartialRoute) {
     if (RHP_TO_DOMAIN[route.name]) {
         const paramsFromRoute = getParamsFromRoute(RHP_TO_DOMAIN[route.name]);
 
-        return getInitialSplitNavigatorState(
+        const domainState = getInitialSplitNavigatorState(
             {
                 name: SCREENS.DOMAIN.INITIAL,
                 params: paramsFromRoute.length > 0 ? pick(route.params, paramsFromRoute) : undefined,
@@ -209,6 +209,7 @@ function getMatchingFullScreenRoute(route: NavigationPartialRoute) {
                 params: paramsFromRoute.length > 0 ? pick(route.params, paramsFromRoute) : undefined,
             },
         );
+        return getRootTabNavigatorState(domainState);
     }
 
     // Fallback: if no specific central screen RELATION matched, check if the RHP screen
