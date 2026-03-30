@@ -6,9 +6,8 @@ import Log from '@libs/Log';
 import getStateFromPath from '@libs/Navigation/helpers/getStateFromPath';
 import {isFullScreenName, isSplitNavigatorName} from '@libs/Navigation/helpers/isNavigatorName';
 import isSideModalNavigator from '@libs/Navigation/helpers/isSideModalNavigator';
-import shouldStripRHPOnFullscreenPush from '@libs/Navigation/helpers/shouldStripRHPOnFullscreenPush';
-import {SPLIT_TO_SIDEBAR} from '@libs/Navigation/linkingConfig/RELATIONS';
 import {getRootTabScreenParam} from '@libs/Navigation/helpers/rootTabNavigatorUtils';
+import shouldStripRHPOnFullscreenPush from '@libs/Navigation/helpers/shouldStripRHPOnFullscreenPush';
 import {SIDEBAR_TO_SPLIT, SPLIT_TO_SIDEBAR} from '@libs/Navigation/linkingConfig/RELATIONS';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
@@ -22,7 +21,14 @@ import type {
     ToggleSidePanelWithHistoryActionType,
 } from './types';
 
-const SCREENS_WITH_NAVIGATION_TAB_BAR = new Set([...Object.keys(SIDEBAR_TO_SPLIT), NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR, SCREENS.SEARCH.ROOT, SCREENS.HOME]);
+const SCREENS_WITH_NAVIGATION_TAB_BAR = new Set([
+    ...Object.keys(SIDEBAR_TO_SPLIT),
+    NAVIGATORS.WORKSPACE_NAVIGATOR,
+    NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR,
+    SCREENS.SEARCH.ROOT,
+    SCREENS.WORKSPACES_LIST,
+    SCREENS.HOME,
+]);
 
 const MODAL_ROUTES_TO_DISMISS = new Set<string>([
     NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR,
@@ -44,49 +50,68 @@ const MODAL_ROUTES_TO_DISMISS = new Set<string>([
     SCREENS.SEARCH_ROUTER.ROOT,
 ]);
 
-const workspaceOrDomainSplitsWithoutEnteringAnimation = new Set<string>();
-
 const screensWithEnteringAnimation = new Set<string>();
 
 /**
  * Util function with common logic for handling OPEN_WORKSPACE_SPLIT and OPEN_DOMAIN_SPLIT actions.
  *
- * Pushes the workspace hub split navigator first and then pushes the split navigator.
- * This allows the user to swipe back on the iOS to the workspace hub split navigator underneath.
+ * Pushes WorkspaceNavigator onto the root stack and explicitly sets its nested state to
+ * [WorkspacesList, SplitNavigator]. This mirrors the structure built by getAdaptedStateFromPath
+ * and guarantees WorkspacesList is in the back stack so the user can swipe back to it on iOS.
+ *
+ * Note: passing {screen, params} as route params is not sufficient because React Navigation only
+ * processes the screen param after mounting (via useEffect), so the nested state would not be
+ * set up at state-computation time.
  */
 function prepareStateUnderWorkspaceOrDomainNavigator(
     state: StackNavigationState<ParamListBase>,
     configOptions: RouterConfigOptions,
     stackRouter: Router<StackNavigationState<ParamListBase>, CommonActions.Action | StackActionType>,
-    actionToPushWorkspaceSplitNavigator: StackActionType,
     splitNavigatorName: typeof NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR | typeof NAVIGATORS.DOMAIN_SPLIT_NAVIGATOR,
+    splitNavigatorParams: Record<string, unknown>,
 ) {
-    const actionToPushWorkspacesList = StackActions.push(NAVIGATORS.ROOT_TAB_NAVIGATOR, {screen: SCREENS.WORKSPACES_LIST});
+    const actionToPushRootTab = StackActions.push(NAVIGATORS.ROOT_TAB_NAVIGATOR, {screen: NAVIGATORS.WORKSPACE_NAVIGATOR});
+    const stateWithRootTab = stackRouter.getStateForAction(state, actionToPushRootTab, configOptions);
 
-    const stateWithWorkspacesList = stackRouter.getStateForAction(state, actionToPushWorkspacesList, configOptions);
-
-    if (!stateWithWorkspacesList) {
-        Log.hmmm('[handleOpenWorkspaceOrDomainSplitAction] WorkspacesList has not been found in the navigation state.');
+    if (!stateWithRootTab) {
+        Log.hmmm('[handleOpenWorkspaceOrDomainSplitAction] RootTabNavigator has not been found in the navigation state.');
         return null;
     }
 
-    const rehydratedStateWithWorkspacesList = stackRouter.getRehydratedState(stateWithWorkspacesList, configOptions);
-    const stateWithSplitNavigator = stackRouter.getStateForAction(rehydratedStateWithWorkspacesList, actionToPushWorkspaceSplitNavigator, configOptions);
+    const rehydratedState = stackRouter.getRehydratedState(stateWithRootTab, configOptions);
+    const rootTabRoute = rehydratedState.routes.at(-1);
 
-    if (!stateWithSplitNavigator) {
+    if (!rootTabRoute || rootTabRoute.name !== NAVIGATORS.ROOT_TAB_NAVIGATOR) {
         Log.hmmm(`[handleOpenWorkspaceOrDomainSplitAction] ${splitNavigatorName} has not been found in the navigation state.`);
         return null;
     }
 
-    const lastFullScreenRoute = stateWithSplitNavigator.routes.at(-1);
+    // Find the WORKSPACE_NAVIGATOR within the tab state and set its nested state
+    // so WorkspacesList is always present underneath the split navigator.
+    const tabState = rootTabRoute.state;
+    const workspaceNavIndex = tabState?.routes?.findIndex((r) => r.name === NAVIGATORS.WORKSPACE_NAVIGATOR) ?? -1;
 
-    if (lastFullScreenRoute?.key) {
-        // If the user opened the workspace/domain split navigator from a different tab, we don't want to animate the entering transition.
-        // To make it feel like bottom tab navigator.
-        workspaceOrDomainSplitsWithoutEnteringAnimation.add(lastFullScreenRoute.key);
+    if (workspaceNavIndex < 0 || !tabState) {
+        Log.hmmm('[handleOpenWorkspaceOrDomainSplitAction] WorkspaceNavigator not found in tab state.');
+        return null;
     }
 
-    return stateWithSplitNavigator;
+    const workspaceNavRoute = tabState.routes[workspaceNavIndex];
+    const nestedWorkspacesState = {
+        routes: [{name: SCREENS.WORKSPACES_LIST}, {name: splitNavigatorName, params: splitNavigatorParams}],
+        index: 1,
+    };
+
+    const updatedTabRoutes = [...tabState.routes];
+    updatedTabRoutes[workspaceNavIndex] = {...workspaceNavRoute, state: nestedWorkspacesState};
+
+    const updatedTabState = {...tabState, routes: updatedTabRoutes, index: workspaceNavIndex};
+    const updatedRootTabRoute = {...rootTabRoute, state: updatedTabState};
+
+    return {
+        ...rehydratedState,
+        routes: [...rehydratedState.routes.slice(0, -1), updatedRootTabRoute],
+    };
 }
 
 /**
@@ -99,14 +124,10 @@ function handleOpenWorkspaceSplitAction(
     configOptions: RouterConfigOptions,
     stackRouter: Router<StackNavigationState<ParamListBase>, CommonActions.Action | StackActionType>,
 ) {
-    const actionToPushWorkspaceSplitNavigator = StackActions.push(NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR, {
+    return prepareStateUnderWorkspaceOrDomainNavigator(state, configOptions, stackRouter, NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR, {
         screen: action.payload.screenName,
-        params: {
-            policyID: action.payload.policyID,
-        },
+        params: {policyID: action.payload.policyID},
     });
-
-    return prepareStateUnderWorkspaceOrDomainNavigator(state, configOptions, stackRouter, actionToPushWorkspaceSplitNavigator, NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR);
 }
 
 /**
@@ -119,14 +140,10 @@ function handleOpenDomainSplitAction(
     configOptions: RouterConfigOptions,
     stackRouter: Router<StackNavigationState<ParamListBase>, CommonActions.Action | StackActionType>,
 ) {
-    const actionToPushDomainSplitNavigator = StackActions.push(NAVIGATORS.DOMAIN_SPLIT_NAVIGATOR, {
+    return prepareStateUnderWorkspaceOrDomainNavigator(state, configOptions, stackRouter, NAVIGATORS.DOMAIN_SPLIT_NAVIGATOR, {
         screen: action.payload.screenName,
-        params: {
-            domainAccountID: action.payload.domainAccountID,
-        },
+        params: {domainAccountID: action.payload.domainAccountID},
     });
-
-    return prepareStateUnderWorkspaceOrDomainNavigator(state, configOptions, stackRouter, actionToPushDomainSplitNavigator, NAVIGATORS.DOMAIN_SPLIT_NAVIGATOR);
 }
 
 /**
@@ -152,6 +169,12 @@ function handlePushFullscreenAction(
     const targetScreen = action.payload?.params && 'screen' in action.payload.params ? (action.payload?.params?.screen as string) : undefined;
     const navigatorName = action.payload.name;
 
+    const lastRoute = state.routes.at(-1);
+
+    // On native, strip the RHP before pushing to prevent react-native-screens from freezing it.
+    const stateWithoutModal =
+        shouldStripRHPOnFullscreenPush && isSideModalNavigator(lastRoute?.name) ? {...state, routes: state.routes.slice(0, -1), index: state.index !== 0 ? state.index - 1 : 0} : state;
+
     // When pushing ROOT_TAB_NAVIGATOR, the inner split name is in targetScreen
     const innerSplitName = navigatorName === NAVIGATORS.ROOT_TAB_NAVIGATOR ? targetScreen : navigatorName;
 
@@ -161,14 +184,16 @@ function handlePushFullscreenAction(
         innerSplitName &&
         isSplitNavigatorName(innerSplitName) &&
         targetScreen !== SPLIT_TO_SIDEBAR[innerSplitName] &&
-        state.preloadedRoutes?.some((preloadedRoute) => preloadedRoute.name === innerSplitName || getRootTabScreenParam(preloadedRoute) === innerSplitName);
+        stateWithoutModal.preloadedRoutes?.some((preloadedRoute) => preloadedRoute.name === innerSplitName || getRootTabScreenParam(preloadedRoute) === innerSplitName);
 
     const adjustedState = shouldFilterPreloadedRoutes
         ? {
-              ...state,
-              preloadedRoutes: state.preloadedRoutes.filter((preloadedRoute) => preloadedRoute.name !== innerSplitName && getRootTabScreenParam(preloadedRoute) !== innerSplitName),
+              ...stateWithoutModal,
+              preloadedRoutes: stateWithoutModal.preloadedRoutes.filter(
+                  (preloadedRoute) => preloadedRoute.name !== innerSplitName && getRootTabScreenParam(preloadedRoute) !== innerSplitName,
+              ),
           }
-        : state;
+        : stateWithoutModal;
     const stateWithNavigator = stackRouter.getStateForAction(adjustedState, action, configOptions);
 
     if (!stateWithNavigator) {
@@ -348,6 +373,5 @@ export {
     handleReplaceFullscreenUnderRHP,
     handleReplaceReportsSplitNavigatorAction,
     screensWithEnteringAnimation,
-    workspaceOrDomainSplitsWithoutEnteringAnimation,
     handleToggleSidePanelWithHistoryAction,
 };

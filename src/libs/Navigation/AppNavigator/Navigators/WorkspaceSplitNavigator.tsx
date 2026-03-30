@@ -4,9 +4,8 @@ import FocusTrapForScreens from '@components/FocusTrap/FocusTrapForScreen';
 import useThemeStyles from '@hooks/useThemeStyles';
 import createSplitNavigator from '@libs/Navigation/AppNavigator/createSplitNavigator';
 import useSplitNavigatorScreenOptions from '@libs/Navigation/AppNavigator/useSplitNavigatorScreenOptions';
-import useEnableBackAnimationWhenOpenedFromTabBar from '@libs/Navigation/helpers/useEnableBackAnimationWhenOpenedFromTabBar';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import type {RootTabNavigatorParamList, WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
+import type {WorkspaceNavigatorParamList, WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import type NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
 import type ReactComponentModule from '@src/types/utils/ReactComponentModule';
@@ -38,11 +37,9 @@ const CENTRAL_PANE_WORKSPACE_SCREENS = {
 
 const Split = createSplitNavigator<WorkspaceSplitNavigatorParamList>();
 
-function WorkspaceSplitNavigator({route, navigation}: PlatformStackScreenProps<RootTabNavigatorParamList, typeof NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR>) {
+function WorkspaceSplitNavigator({route}: PlatformStackScreenProps<WorkspaceNavigatorParamList, typeof NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR>) {
     const splitNavigatorScreenOptions = useSplitNavigatorScreenOptions();
     const styles = useThemeStyles();
-
-    useEnableBackAnimationWhenOpenedFromTabBar(navigation, route.key);
 
     return (
         <FocusTrapForScreens>

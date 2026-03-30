@@ -29,7 +29,7 @@ import {cleanPreservedNavigatorStates} from './AppNavigator/createSplitNavigator
 import getActiveTabName from './helpers/getActiveTabName';
 import getAdaptedStateFromPath from './helpers/getAdaptedStateFromPath';
 import getPathFromState from './helpers/getPathFromState';
-import {isSplitNavigatorName, isWorkspacesTabScreenName} from './helpers/isNavigatorName';
+import {isSplitNavigatorName} from './helpers/isNavigatorName';
 import {saveSettingsTabPathToSessionStorage, saveWorkspacesTabPathToSessionStorage} from './helpers/lastVisitedTabPathUtils';
 import {linkingConfig} from './linkingConfig';
 import Navigation, {navigationRef} from './Navigation';
@@ -79,7 +79,7 @@ function parseAndLogRoute(state: NavigationState) {
     const lastRoute = state.routes.at(-1);
     const activeTabName = getActiveTabName(lastRoute);
 
-    if (isWorkspacesTabScreenName(lastRoute?.name) || isWorkspacesTabScreenName(activeTabName)) {
+    if (activeTabName === NAVIGATORS.WORKSPACE_NAVIGATOR) {
         saveWorkspacesTabPathToSessionStorage(currentPath);
     } else if (activeTabName === NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR) {
         saveSettingsTabPathToSessionStorage(currentPath);

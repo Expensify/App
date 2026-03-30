@@ -26,24 +26,20 @@ type Params = {
 const navigateToWorkspacesPage = ({currentUserLogin, shouldUseNarrowLayout, policy, domain, lastWorkspacesTabNavigatorRoute, topmostFullScreenRoute}: Params) => {
     const rootState = navigationRef.getRootState();
     const focusedRoute = rootState ? findFocusedRoute(rootState) : undefined;
-    const isOnWorkspacesList =
-        topmostFullScreenRoute?.name === SCREENS.WORKSPACES_LIST || (topmostFullScreenRoute?.name === NAVIGATORS.ROOT_TAB_NAVIGATOR && focusedRoute?.name === SCREENS.WORKSPACES_LIST);
+    const isOnWorkspacesList = focusedRoute?.name === SCREENS.WORKSPACES_LIST;
 
     if (!topmostFullScreenRoute || isOnWorkspacesList) {
         // Not in a main workspace navigation context or the workspaces list page is already displayed, so do nothing.
         return;
     }
 
-    // Check if user is already on a workspace or domain — either at root level or as active tab in RootTabNavigator.
+    // Check if user is already on a workspace or domain inside WORKSPACE_NAVIGATOR (within RootTabNavigator)
+    const isWorkspaceOrDomainOnTop =
+        lastWorkspacesTabNavigatorRoute?.name === NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR || lastWorkspacesTabNavigatorRoute?.name === NAVIGATORS.DOMAIN_SPLIT_NAVIGATOR;
     const activeTabName = topmostFullScreenRoute.name === NAVIGATORS.ROOT_TAB_NAVIGATOR ? getActiveTabName(topmostFullScreenRoute as Parameters<typeof getActiveTabName>[0]) : undefined;
-    if (
-        topmostFullScreenRoute.name === NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR ||
-        topmostFullScreenRoute.name === NAVIGATORS.DOMAIN_SPLIT_NAVIGATOR ||
-        activeTabName === NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR ||
-        activeTabName === NAVIGATORS.DOMAIN_SPLIT_NAVIGATOR
-    ) {
+    if (activeTabName === NAVIGATORS.WORKSPACE_NAVIGATOR && isWorkspaceOrDomainOnTop) {
         // Already inside a workspace or domain: go back to the list.
-        Navigation.navigate(ROUTES.WORKSPACES_LIST.route);
+        Navigation.goBack(ROUTES.WORKSPACES_LIST.route);
         return;
     }
 
