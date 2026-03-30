@@ -3,13 +3,21 @@ import {StackActions} from '@react-navigation/native';
 import type {ParamListBase, Router} from '@react-navigation/routers';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import Log from '@libs/Log';
-import {isSplitNavigatorName} from '@libs/Navigation/helpers/isNavigatorName';
+import getStateFromPath from '@libs/Navigation/helpers/getStateFromPath';
+import {isFullScreenName, isSplitNavigatorName} from '@libs/Navigation/helpers/isNavigatorName';
 import {getRootTabScreenParam} from '@libs/Navigation/helpers/rootTabNavigatorUtils';
 import {SIDEBAR_TO_SPLIT, SPLIT_TO_SIDEBAR} from '@libs/Navigation/linkingConfig/RELATIONS';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
-import type {OpenDomainSplitActionType, OpenWorkspaceSplitActionType, PushActionType, ReplaceActionType, ToggleSidePanelWithHistoryActionType} from './types';
+import type {
+    OpenDomainSplitActionType,
+    OpenWorkspaceSplitActionType,
+    PushActionType,
+    ReplaceActionType,
+    ReplaceFullscreenUnderRHPActionType,
+    ToggleSidePanelWithHistoryActionType,
+} from './types';
 
 const SCREENS_WITH_NAVIGATION_TAB_BAR = new Set([...Object.keys(SIDEBAR_TO_SPLIT), NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR, SCREENS.SEARCH.ROOT, SCREENS.HOME]);
 
@@ -30,6 +38,7 @@ const MODAL_ROUTES_TO_DISMISS = new Set<string>([
     SCREENS.WORKSPACE_AVATAR,
     SCREENS.REPORT_AVATAR,
     SCREENS.CONCIERGE,
+    SCREENS.SEARCH_ROUTER.ROOT,
 ]);
 
 const workspaceOrDomainSplitsWithoutEnteringAnimation = new Set<string>();
@@ -117,6 +126,20 @@ function handleOpenDomainSplitAction(
     return prepareStateUnderWorkspaceOrDomainNavigator(state, configOptions, stackRouter, actionToPushDomainSplitNavigator, NAVIGATORS.DOMAIN_SPLIT_NAVIGATOR);
 }
 
+/**
+ * Filters preloaded routes when navigating to a central screen of a split navigator on narrow layout.
+ * This removes the sidebar screen from the state so only the central screen is shown.
+ */
+function getStateWithFilteredPreloadedRoutes(state: StackNavigationState<ParamListBase>, navigatorName: string, targetScreen?: string) {
+    const shouldFilterPreloadedRoutes =
+        getIsNarrowLayout() &&
+        isSplitNavigatorName(navigatorName) &&
+        targetScreen !== SPLIT_TO_SIDEBAR[navigatorName] &&
+        state.preloadedRoutes?.some((preloadedRoute) => preloadedRoute.name === navigatorName);
+
+    return shouldFilterPreloadedRoutes ? {...state, preloadedRoutes: state.preloadedRoutes.filter((preloadedRoute) => preloadedRoute.name !== navigatorName)} : state;
+}
+
 function handlePushFullscreenAction(
     state: StackNavigationState<ParamListBase>,
     action: PushActionType,
@@ -166,7 +189,10 @@ function handleReplaceReportsSplitNavigatorAction(
     configOptions: RouterConfigOptions,
     stackRouter: Router<StackNavigationState<ParamListBase>, CommonActions.Action | StackActionType>,
 ) {
-    const stateWithReportsSplitNavigator = stackRouter.getStateForAction(state, action, configOptions);
+    const targetScreen = action.payload?.params && 'screen' in action.payload.params ? (action.payload?.params?.screen as string) : undefined;
+    const navigatorName = action.payload.name;
+    const adjustedState = getStateWithFilteredPreloadedRoutes(state, navigatorName, targetScreen);
+    const stateWithReportsSplitNavigator = stackRouter.getStateForAction(adjustedState, action, configOptions);
 
     if (!stateWithReportsSplitNavigator) {
         Log.hmmm('[handleReplaceReportsSplitNavigatorAction] ReportsSplitNavigator has not been found in the navigation state.');
@@ -181,6 +207,80 @@ function handleReplaceReportsSplitNavigatorAction(
     }
 
     return stateWithReportsSplitNavigator;
+}
+
+/**
+ * Handles the REPLACE_FULLSCREEN_UNDER_RHP action.
+ *
+ * Inserts a new fullscreen route (e.g. SearchFullscreenNavigator) underneath the
+ * currently open modal (RHP) without destroying the original fullscreen route.
+ *
+ * State transition: [Home, RHP] -> [Home, Search, RHP]
+ *
+ * This is intentionally different from a REPLACE (which would yield [Search, RHP]
+ * and destroy the Home route). Preserving Home is critical for correct browser
+ * history: when the RHP is dismissed in the next animation frame, useLinking sees
+ * that the Home+RHP browser-history entry is stale and correctly replaces it with
+ * a new Search entry, producing browser history [Home, Search].
+ *
+ * The companion history-preservation logic lives in addRootHistoryRouterExtension
+ * which keeps `state.history` unchanged for this action so that no browser history
+ * update is triggered during the insert step itself.
+ *
+ * @see revealRouteBeforeDismissingModal in Navigation.ts - the caller that orchestrates
+ *      this action followed by a DISMISS_MODAL on the next animation frame.
+ */
+function handleReplaceFullscreenUnderRHP(
+    state: StackNavigationState<ParamListBase>,
+    action: ReplaceFullscreenUnderRHPActionType,
+    configOptions: RouterConfigOptions,
+    stackRouter: Router<StackNavigationState<ParamListBase>, CommonActions.Action | StackActionType>,
+) {
+    const stateFromPath = getStateFromPath(action.payload.route);
+    const targetRoute = stateFromPath?.routes.findLast((r) => isFullScreenName(r.name));
+    if (!targetRoute) {
+        return null;
+    }
+
+    // Only operates when a modal (e.g. RHP) sits on top of the stack.
+    const rhpRoute = state.routes.at(-1);
+    if (!rhpRoute || isFullScreenName(rhpRoute.name)) {
+        return null;
+    }
+
+    // 1. Pop the modal to get the clean fullscreen-only state.
+    const stateAfterPop = stackRouter.getStateForAction(state, StackActions.pop(), configOptions);
+    if (!stateAfterPop) {
+        return null;
+    }
+
+    // 2. Push the target fullscreen route on top of the existing one(s).
+    //    getStateFromPath returns nested state (e.g. { name: 'SearchFullscreenNavigator', state: { routes: [{ name: 'Search_Central', params: { q: '...' } }] } })
+    //    but StackActions.push expects { screen, params } format, so we convert the nested state.
+    let pushParams = targetRoute.params as Record<string, unknown> | undefined;
+    const nestedRoute = targetRoute.state?.routes?.at(-1);
+    if (nestedRoute) {
+        pushParams = {
+            ...pushParams,
+            screen: nestedRoute.name,
+            params: nestedRoute.params,
+        };
+    }
+
+    const rehydratedStateAfterPop = stackRouter.getRehydratedState(stateAfterPop, configOptions);
+    const stateAfterPush = stackRouter.getStateForAction(rehydratedStateAfterPop, StackActions.push(targetRoute.name, pushParams), configOptions);
+    if (!stateAfterPush) {
+        return null;
+    }
+
+    // 3. Re-add the modal on top so visually nothing changes yet - the user still sees
+    //    the RHP, but the new fullscreen route is now rendered behind it.
+    const rehydratedStateAfterPush = stackRouter.getRehydratedState(stateAfterPush, configOptions);
+    return {
+        ...rehydratedStateAfterPush,
+        routes: [...rehydratedStateAfterPush.routes, rhpRoute],
+        index: rehydratedStateAfterPush.routes.length,
+    };
 }
 
 /**
@@ -242,6 +342,7 @@ export {
     handleOpenWorkspaceSplitAction,
     handleOpenDomainSplitAction,
     handlePushFullscreenAction,
+    handleReplaceFullscreenUnderRHP,
     handleReplaceReportsSplitNavigatorAction,
     screensWithEnteringAnimation,
     workspaceOrDomainSplitsWithoutEnteringAnimation,

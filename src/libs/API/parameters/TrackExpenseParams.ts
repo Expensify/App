@@ -26,6 +26,7 @@ type TrackExpenseParams = {
     tag?: string;
     taxCode: string;
     taxAmount: number;
+    taxPolicyID?: string;
     billable?: boolean;
     reimbursable?: boolean;
     receiptGpsPoints?: string;

@@ -90,7 +90,7 @@ function ImageRenderer({tnode}: CustomRendererProps<TBlock>) {
         />
     );
 
-    const {anchor, report, isReportArchived, action, isDisabled, shouldDisplayContextMenu} = useShowContextMenuState();
+    const {anchor, report, isReportArchived, action, isDisabled, shouldDisplayContextMenu, originalReportID} = useShowContextMenuState();
     const {onShowContextMenu, checkIfContextMenuActive} = useShowContextMenuActions();
 
     return imagePreviewModalDisabled ? (
@@ -109,6 +109,7 @@ function ImageRenderer({tnode}: CustomRendererProps<TBlock>) {
                         const route = ROUTES.REPORT_ATTACHMENTS?.getRoute({
                             attachmentID,
                             reportID,
+                            reportActionID: action?.reportActionID,
                             type,
                             source,
                             accountID,
@@ -123,7 +124,15 @@ function ImageRenderer({tnode}: CustomRendererProps<TBlock>) {
                             return;
                         }
                         return onShowContextMenu(() =>
-                            showContextMenuForReport(event, anchor, report?.reportID, action, checkIfContextMenuActive, isArchivedNonExpenseReport(report, isReportArchived)),
+                            showContextMenuForReport(
+                                event,
+                                anchor,
+                                report?.reportID,
+                                action,
+                                checkIfContextMenuActive,
+                                isArchivedNonExpenseReport(report, isReportArchived),
+                                originalReportID,
+                            ),
                         );
                     }}
                     isNested

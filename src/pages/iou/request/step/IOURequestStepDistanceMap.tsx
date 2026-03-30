@@ -49,6 +49,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import {hasSeenTourSelector} from '@src/selectors/Onboarding';
+import {validTransactionDraftIDsSelector} from '@src/selectors/TransactionDraft';
 import type {Participant} from '@src/types/onyx/IOU';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type {Waypoint, WaypointCollection} from '@src/types/onyx/Transaction';
@@ -94,6 +95,7 @@ function IOURequestStepDistanceMap({
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const defaultExpensePolicy = useDefaultExpensePolicy();
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
+    const [ownerBillingGraceEndPeriod] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const [skipConfirmation] = useOnyx(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${transactionID}`);
     const [lastSelectedDistanceRates] = useOnyx(ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES);
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
@@ -169,6 +171,8 @@ function IOURequestStepDistanceMap({
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
+    const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
+
     const currentUserAccountIDParam = currentUserPersonalDetails.accountID;
     const currentUserEmailParam = currentUserPersonalDetails.login ?? '';
 
@@ -279,7 +283,7 @@ function IOURequestStepDistanceMap({
             if (!transaction?.reportID || hasRoute(transaction, true)) {
                 return;
             }
-            openReport({reportID: transaction?.reportID, introSelected});
+            openReport({reportID: transaction?.reportID, introSelected, betas});
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
@@ -335,8 +339,10 @@ function IOURequestStepDistanceMap({
             policyForMovingExpenses,
             betas,
             recentWaypoints,
+            draftTransactionIDs,
             isSelfTourViewed: !!isSelfTourViewed,
             amountOwed,
+            ownerBillingGraceEndPeriod,
         });
     }, [
         iouType,
@@ -371,8 +377,10 @@ function IOURequestStepDistanceMap({
         selfDMReport,
         betas,
         recentWaypoints,
+        draftTransactionIDs,
         isSelfTourViewed,
         amountOwed,
+        ownerBillingGraceEndPeriod,
     ]);
 
     const getError = () => {

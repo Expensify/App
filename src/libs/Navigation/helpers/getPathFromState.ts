@@ -4,7 +4,7 @@ import {config, normalizedConfigs} from '@libs/Navigation/linkingConfig/config';
 import type {DynamicRouteSuffix} from '@src/ROUTES';
 import type {Screen} from '@src/SCREENS';
 import SCREENS from '@src/SCREENS';
-import {dynamicRoutePaths} from './isDynamicRouteSuffix';
+import {dynamicRoutePaths} from './dynamicRoutesUtils/isDynamicRouteSuffix';
 
 type State = NavigationState | Omit<PartialState<NavigationState>, 'stale'>;
 

@@ -12,7 +12,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ConnectToQuickbooksOnlineFlowProps} from './types';
 
-const renderLoading = () => <FullScreenLoadingIndicator />;
+const renderLoading = () => <FullScreenLoadingIndicator reasonAttributes={{context: 'ConnectToQuickbooksOnlineFlow'}} />;
 
 function ConnectToQuickbooksOnlineFlow({policyID}: ConnectToQuickbooksOnlineFlowProps) {
     const {translate} = useLocalize();

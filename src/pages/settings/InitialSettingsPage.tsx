@@ -13,7 +13,7 @@ import MenuItem from '@components/MenuItem';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
 import TabBarBottomContent from '@components/Navigation/TabBarBottomContent';
-import TopBar from '@components/Navigation/TopBar';
+import TopBarWithLoadingBar from '@components/Navigation/TopBarWithLoadingBar';
 import {PressableWithFeedback} from '@components/Pressable';
 import ScreenWrapper from '@components/ScreenWrapper';
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
@@ -146,6 +146,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
     const emojiCode = currentUserPersonalDetails?.status?.emojiCode ?? '';
     const isScreenFocused = useIsSidebarRouteActive(NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR, shouldUseNarrowLayout);
     const hasActivatedWallet = ([CONST.WALLET.TIER_NAME.GOLD, CONST.WALLET.TIER_NAME.PLATINUM] as string[]).includes(userWallet?.tierName ?? '');
+    const hasLockedBankAccount = bankAccountList ? Object.values(bankAccountList).some((bankAccount) => bankAccount.accountData?.state === CONST.BANK_ACCOUNT.STATE.LOCKED) : false;
     const [firstDayFreeTrial] = useOnyx(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL);
     const [isTrackingGPS = false] = useOnyx(ONYXKEYS.GPS_DRAFT_DETAILS, {selector: isTrackingSelector});
     const [lastDayFreeTrial] = useOnyx(ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL);
@@ -158,18 +159,16 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
     const freeTrialText = getFreeTrialText(translate, policies, introSelected, firstDayFreeTrial, lastDayFreeTrial);
 
     const {
-        all: {shouldShowRBR},
         personalCard: {shouldShowRBR: shouldShowRBRForPersonalCard},
     } = useCardFeedErrors();
-
     const hasPendingCardAction = hasPendingExpensifyCardAction(allCards, privatePersonalDetails);
     let walletBrickRoadIndicator;
     if (
-        hasPaymentMethodError(bankAccountList, fundList, allCards) ||
+        hasLockedBankAccount ||
+        hasPaymentMethodError(bankAccountList, fundList, allCards, session, policies) ||
         !isEmptyObject(userWallet?.errors) ||
         !isEmptyObject(walletTerms?.errors) ||
         !isEmptyObject(unsharedBankAccount?.errors) ||
-        shouldShowRBR ||
         shouldShowRBRForPersonalCard
     ) {
         walletBrickRoadIndicator = CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
@@ -278,7 +277,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
         },
     ];
 
-    if (subscriptionPlan) {
+    if (subscriptionPlan || (amountOwed ?? 0) > 0) {
         accountItems.splice(1, 0, {
             translationKey: 'allSettingsScreen.subscription',
             icon: icons.CreditCard,
@@ -357,13 +356,9 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
             {
                 translationKey: 'initialSettingsPage.help',
                 icon: icons.QuestionMark,
-                iconRight: icons.NewWindow,
-                shouldShowRightIcon: true,
+                screenName: SCREENS.SETTINGS.HELP,
                 sentryLabel: CONST.SENTRY_LABEL.SETTINGS_GENERAL.HELP,
-                link: CONST.NEWHELP_URL,
-                action: () => {
-                    openExternalLink(CONST.NEWHELP_URL);
-                },
+                action: () => Navigation.navigate(ROUTES.SETTINGS_HELP),
             },
             {
                 translationKey: 'initialSettingsPage.whatIsNew',
@@ -453,7 +448,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                     return (
                         <MenuItem
                             key={keyTitle}
-                            wrapperStyle={styles.sectionMenuItem}
+                            wrapperStyle={styles.sectionMenuItem(shouldUseNarrowLayout)}
                             title={keyTitle}
                             icon={item.icon}
                             iconType={item.iconType}
@@ -471,7 +466,9 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                             ref={popoverAnchor}
                             shouldBlockSelection={!!item.link}
                             onSecondaryInteraction={item.link ? (event) => openPopover(item.link, event) : undefined}
+                            shouldShowContextMenuHint={!!item.link}
                             focused={isFocused}
+                            role={CONST.ROLE.TAB}
                             isPaneMenu
                             sentryLabel={item.sentryLabel}
                             iconRight={item.iconRight}
@@ -562,7 +559,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
             bottomContentStyle={styles.overflowVisible}
         >
             {shouldUseNarrowLayout && (
-                <TopBar
+                <TopBarWithLoadingBar
                     breadcrumbLabel={translate('initialSettingsPage.account')}
                     shouldDisplaySearch
                     shouldDisplayHelpButton
@@ -572,7 +569,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
             <ScrollView
                 ref={scrollViewRef}
                 onScroll={onScroll}
-                scrollEventThrottle={16}
+                scrollEventThrottle={CONST.TIMING.MIN_SMOOTH_SCROLL_EVENT_THROTTLE}
                 contentContainerStyle={[styles.w100]}
                 showsVerticalScrollIndicator={false}
             >

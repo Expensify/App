@@ -69,6 +69,7 @@ import focusComposerWithDelay from '@libs/focusComposerWithDelay';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {isReportMessageAttachment} from '@libs/isReportMessageAttachment';
 import Navigation from '@libs/Navigation/Navigation';
+import {getBankAccountLastFourDigits} from '@libs/PaymentUtils';
 import Permissions from '@libs/Permissions';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {getCleanedTagName, hasDynamicExternalWorkflow, isPolicyAdmin, isPolicyMember, isPolicyOwner} from '@libs/PolicyUtils';
@@ -268,8 +269,8 @@ type PureReportActionItemProps = {
     /** Model of onboarding selected */
     introSelected?: OnyxEntry<OnyxTypes.IntroSelected>;
 
-    /** All transaction drafts */
-    allTransactionDrafts: OnyxCollection<OnyxTypes.Transaction>;
+    /** All transaction draft IDs */
+    draftTransactionIDs: string[] | undefined;
 
     /** Report for this action */
     report: OnyxEntry<OnyxTypes.Report>;
@@ -454,6 +455,9 @@ type PureReportActionItemProps = {
     /** Current user's account id */
     currentUserAccountID: number;
 
+    /** Current user's email */
+    currentUserEmail: string | undefined;
+
     /** The bank account list */
     bankAccountList?: OnyxTypes.BankAccountList | undefined;
 
@@ -467,7 +471,7 @@ type PureReportActionItemProps = {
     reportMetadata?: OnyxEntry<OnyxTypes.ReportMetadata>;
 
     /** The billing grace end period's shared NVP collection */
-    userBillingGraceEndPeriodCollection: OnyxCollection<OnyxTypes.BillingGraceEndPeriod>;
+    userBillingGraceEndPeriods: OnyxCollection<OnyxTypes.BillingGraceEndPeriod>;
 };
 
 // This is equivalent to returning a negative boolean in normal functions, but we can keep the element return type
@@ -479,7 +483,7 @@ const isEmptyHTML = <T extends React.JSX.Element>({props: {html}}: T): boolean =
 function PureReportActionItem({
     personalPolicyID,
     introSelected,
-    allTransactionDrafts,
+    draftTransactionIDs,
     action,
     report,
     policy,
@@ -532,18 +536,20 @@ function PureReportActionItem({
     shouldHighlight = false,
     isTryNewDotNVPDismissed = false,
     currentUserAccountID,
+    currentUserEmail,
     bankAccountList,
     reportNameValuePairsOrigin,
     reportNameValuePairsOriginalID,
     reportMetadata,
-    userBillingGraceEndPeriodCollection,
+    userBillingGraceEndPeriods,
 }: PureReportActionItemProps) {
     const isConciergeGreeting = action.reportActionID === CONST.CONCIERGE_GREETING_ACTION_ID;
     const shouldDisplayContextMenuValue = shouldDisplayContextMenu && !isConciergeGreeting;
 
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
+    const [ownerBillingGraceEndPeriod] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const {transitionActionSheetState} = ActionSheetAwareScrollView.useActionSheetAwareScrollViewActions();
-    const {translate, formatPhoneNumber, localeCompare, formatTravelDate, getLocalDateFromDatetime, datetimeToCalendarTime} = useLocalize();
+    const {translate, formatPhoneNumber, localeCompare, formatTravelDate, getLocalDateFromDatetime} = useLocalize();
     const {showConfirmModal} = useConfirmModal();
     const personalDetail = useCurrentUserPersonalDetails();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -578,6 +584,8 @@ function PureReportActionItem({
 
     const [childReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(action.childReportID)}`);
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.chatReportID)}`);
+    const trackExpenseTransactionID = isActionableTrackExpense(action) ? getOriginalMessage(action)?.transactionID : undefined;
+    const [trackExpenseTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(trackExpenseTransactionID)}`);
 
     const highlightedBackgroundColorIfNeeded = useMemo(
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
@@ -596,7 +604,7 @@ function PureReportActionItem({
         (isHiddenValue: boolean) => {
             setIsHidden(isHiddenValue);
             const message = Array.isArray(action.message) ? action.message?.at(-1) : action.message;
-            const isAttachment = CONST.ATTACHMENT_REGEX.test(message?.html ?? '') || isReportMessageAttachment(message);
+            const isAttachment = (message?.html ?? '').search(CONST.REGEX.ATTACHMENT.ATTACHMENT_REGEX) !== -1 || isReportMessageAttachment(message);
             if (!isAttachment) {
                 return;
             }
@@ -622,7 +630,7 @@ function PureReportActionItem({
             clearError(transactionID);
         }
         clearAllRelatedReportActionErrors(reportID, action, originalReportID);
-    }, [action, isSendingMoney, reportID, clearAllRelatedReportActionErrors, report, chatReport, clearError]);
+    }, [action, isSendingMoney, reportID, clearAllRelatedReportActionErrors, report, chatReport, clearError, originalReportID]);
 
     const showDismissReceiptErrorModal = useCallback(async () => {
         const result = await showConfirmModal({
@@ -830,9 +838,10 @@ function PureReportActionItem({
             action,
             transactionThreadReport,
             isDisabled: false,
-            shouldDisplayContextMenuValue,
+            shouldDisplayContextMenu: shouldDisplayContextMenuValue,
+            originalReportID,
         }),
-        [report, action, transactionThreadReport, shouldDisplayContextMenuValue, isReportArchived],
+        [report, action, transactionThreadReport, shouldDisplayContextMenuValue, isReportArchived, originalReportID],
     );
 
     const contextMenuActionsValue = useMemo(
@@ -920,7 +929,7 @@ function PureReportActionItem({
                     shouldUseLocalization: false,
                     key: `${action.reportActionID}-followup-${followup.text}`,
                     onPress: () => {
-                        resolveSuggestedFollowup(reportActionReport, reportID, action, followup, personalDetail.timezone ?? CONST.DEFAULT_TIME_ZONE, currentUserAccountID);
+                        resolveSuggestedFollowup(reportActionReport, reportID, action, followup, personalDetail.timezone ?? CONST.DEFAULT_TIME_ZONE, currentUserAccountID, currentUserEmail);
                     },
                 }));
             }
@@ -932,24 +941,24 @@ function PureReportActionItem({
 
         const reportActionReportID = originalReportID ?? reportID;
         if (isActionableTrackExpense(action)) {
-            const transactionID = getOriginalMessage(action)?.transactionID;
             const options = [
                 {
                     text: 'actionableMentionTrackExpense.submit',
                     key: `${action.reportActionID}-actionableMentionTrackExpense-submit`,
                     onPress: () => {
                         createDraftTransactionAndNavigateToParticipantSelector({
-                            transactionID,
                             reportID: reportActionReportID,
                             actionName: CONST.IOU.ACTION.SUBMIT,
                             reportActionID: action.reportActionID,
                             introSelected,
-                            allTransactionDrafts,
+                            draftTransactionIDs,
                             activePolicy,
-                            userBillingGraceEndPeriodCollection,
+                            userBillingGraceEndPeriods,
                             amountOwed,
+                            ownerBillingGraceEndPeriod,
                             isRestrictedToPreferredPolicy,
                             preferredPolicyID,
+                            transaction: trackExpenseTransaction,
                         });
                     },
                 },
@@ -962,15 +971,16 @@ function PureReportActionItem({
                         key: `${action.reportActionID}-actionableMentionTrackExpense-categorize`,
                         onPress: () => {
                             createDraftTransactionAndNavigateToParticipantSelector({
-                                transactionID,
                                 reportID: reportActionReportID,
                                 actionName: CONST.IOU.ACTION.CATEGORIZE,
                                 reportActionID: action.reportActionID,
                                 introSelected,
-                                allTransactionDrafts,
+                                draftTransactionIDs,
                                 activePolicy,
-                                userBillingGraceEndPeriodCollection,
+                                userBillingGraceEndPeriods,
                                 amountOwed,
+                                ownerBillingGraceEndPeriod,
+                                transaction: trackExpenseTransaction,
                             });
                         },
                     },
@@ -979,15 +989,16 @@ function PureReportActionItem({
                         key: `${action.reportActionID}-actionableMentionTrackExpense-share`,
                         onPress: () => {
                             createDraftTransactionAndNavigateToParticipantSelector({
-                                transactionID,
                                 reportID: reportActionReportID,
                                 actionName: CONST.IOU.ACTION.SHARE,
                                 reportActionID: action.reportActionID,
                                 introSelected,
-                                allTransactionDrafts,
+                                draftTransactionIDs,
                                 activePolicy,
-                                userBillingGraceEndPeriodCollection,
+                                userBillingGraceEndPeriods,
                                 amountOwed,
+                                ownerBillingGraceEndPeriod,
+                                transaction: trackExpenseTransaction,
                             });
                         },
                     },
@@ -1116,6 +1127,7 @@ function PureReportActionItem({
         isActionableWhisper,
         policy,
         currentUserAccountID,
+        currentUserEmail,
         personalDetail.timezone,
         createDraftTransactionAndNavigateToParticipantSelector,
         isRestrictedToPreferredPolicy,
@@ -1127,13 +1139,15 @@ function PureReportActionItem({
         isOriginalReportArchived,
         resolveActionableMentionWhisper,
         introSelected,
-        allTransactionDrafts,
+        draftTransactionIDs,
         activePolicy,
         report,
         originalReport,
         personalPolicyID,
-        userBillingGraceEndPeriodCollection,
+        userBillingGraceEndPeriods,
         amountOwed,
+        ownerBillingGraceEndPeriod,
+        trackExpenseTransaction,
     ]);
 
     /**
@@ -1168,6 +1182,7 @@ function PureReportActionItem({
                     style={displayAsGroup ? [] : [styles.mt2]}
                     isWhisper={isWhisper}
                     shouldDisplayContextMenu={shouldDisplayContextMenuValue}
+                    originalReportID={originalReportID}
                 />
             );
 
@@ -1212,6 +1227,7 @@ function PureReportActionItem({
                                     Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(action.childReportID, undefined, undefined, Navigation.getActiveRoute()));
                                 }}
                                 isTrackExpense={isTrackExpenseActionReportActionsUtils(action)}
+                                originalReportID={originalReportID}
                             />
                         </View>
                     );
@@ -1230,6 +1246,7 @@ function PureReportActionItem({
                     containerStyles={displayAsGroup ? [] : [styles.mt2]}
                     checkIfContextMenuActive={toggleContextMenuFromActiveReportAction}
                     shouldDisplayContextMenu={shouldDisplayContextMenuValue}
+                    originalReportID={originalReportID}
                 />
             );
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW && isClosedExpenseReportWithNoExpenses) {
@@ -1249,6 +1266,7 @@ function PureReportActionItem({
                     onPaymentOptionsHide={() => setIsPaymentMethodPopoverActive(false)}
                     shouldDisplayContextMenu={shouldDisplayContextMenuValue}
                     shouldShowBorder={shouldShowBorder}
+                    originalReportID={originalReportID}
                 />
             );
         } else if (isTaskAction(action)) {
@@ -1279,7 +1297,7 @@ function PureReportActionItem({
 
             children = (
                 <ReportActionItemBasicMessage
-                    message={translate(paymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY ? 'iou.waitingOnEnabledWallet' : 'iou.waitingOnBankAccount', {submitterDisplayName})}
+                    message={translate(paymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY ? 'iou.waitingOnEnabledWallet' : 'iou.waitingOnBankAccount', submitterDisplayName)}
                 >
                     <>
                         {missingPaymentMethod === 'bankAccount' && (
@@ -1359,9 +1377,12 @@ function PureReportActionItem({
 
             if (wasAutoApproved) {
                 children = (
-                    <ReportActionItemBasicMessage>
-                        <RenderHTML html={`<comment><muted-text>${translate('iou.automaticallyApproved')}</muted-text></comment>`} />
-                    </ReportActionItemBasicMessage>
+                    <ReportActionItemMessageWithExplain
+                        message={translate('iou.automaticallyApproved')}
+                        action={action}
+                        childReport={childReport}
+                        originalReport={originalReport}
+                    />
                 );
             } else if (hasPendingDEWApprove(reportMetadata, isDEWPolicy) && isPendingAdd) {
                 children = <ReportActionItemBasicMessage message={translate('iou.queuedToApproveViaDEW')} />;
@@ -1375,8 +1396,8 @@ function PureReportActionItem({
             if (paymentType === CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {
                 children = <ReportActionItemBasicMessage message={translate('iou.paidElsewhere')} />;
             } else if (paymentType === CONST.IOU.PAYMENT_TYPE.VBBA) {
-                const last4Digits = policy?.achAccount?.accountNumber?.slice(-4) ?? '';
-
+                const originalMessage = getOriginalMessage(action);
+                const last4Digits = getBankAccountLastFourDigits(originalMessage?.bankAccountID, bankAccountList, policy);
                 if (wasAutoPaid) {
                     const translation = translate('iou.automaticallyPaidWithBusinessBankAccount', '', last4Digits);
 
@@ -2027,12 +2048,6 @@ function PureReportActionItem({
         );
     };
 
-    // Calculating accessibilityLabel for chat message with sender, date and time and the message content.
-    const displayName = getDisplayNameOrDefault(personalDetails?.[action.actorAccountID ?? CONST.DEFAULT_NUMBER_ID]);
-    const formattedTimestamp = datetimeToCalendarTime(action.created, false);
-    const plainMessage = getReportActionText(action);
-    const accessibilityLabel = `${displayName}, ${formattedTimestamp}, ${plainMessage}`;
-
     return (
         <View>
             {shouldShowCreatedAction && createdActionContent}
@@ -2053,8 +2068,7 @@ function PureReportActionItem({
                 onSecondaryInteraction={showPopover}
                 preventDefaultContextMenu={draftMessage === undefined && !hasErrors}
                 withoutFocusOnSecondaryInteraction
-                accessibilityLabel={accessibilityLabel}
-                accessibilityHint={translate('accessibilityHints.chatMessage')}
+                accessibilityLabel={translate('accessibilityHints.chatMessage')}
                 accessibilityRole={CONST.ROLE.BUTTON}
                 sentryLabel={CONST.SENTRY_LABEL.REPORT.PURE_REPORT_ACTION_ITEM}
             >

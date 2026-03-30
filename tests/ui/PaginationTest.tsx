@@ -26,7 +26,6 @@ jest.mock('@libs/BootSplash', () => ({
 }));
 jest.mock('@react-navigation/native');
 jest.mock('../../src/libs/Notification/LocalNotification');
-jest.mock('../../src/components/Icon/Expensicons');
 jest.mock('../../src/components/ConfirmedRoute.tsx');
 
 TestHelper.setupApp();
@@ -134,7 +133,7 @@ function buildReportComments(count: number, initialID: string, reverse = false) 
 }
 
 function mockOpenReport(messageCount: number, initialID: string) {
-    fetchMock.mockAPICommand('OpenReport', ({reportID}) => {
+    fetchMock.mockAPICommand('OpenReport', ({reportID, reportActionID}) => {
         const comments = buildReportComments(messageCount, initialID);
         return {
             onyxData:
@@ -148,7 +147,8 @@ function mockOpenReport(messageCount: number, initialID: string) {
                       ]
                     : [],
             hasOlderActions: !comments['1'],
-            hasNewerActions: !!reportID,
+            // When comment-linking (reportActionID present), there may be newer actions beyond the cursor.
+            hasNewerActions: !!reportActionID,
         };
     });
 }
@@ -226,7 +226,7 @@ async function signInAndGetApp(): Promise<void> {
     await waitForBatchedUpdatesWithAct();
 
     // Start listening for pusher events after navigation settles.
-    subscribeToUserEvents(USER_A_ACCOUNT_ID);
+    subscribeToUserEvents(USER_A_ACCOUNT_ID, undefined);
     await waitForBatchedUpdates();
 
     await act(async () => {
@@ -376,6 +376,9 @@ describe('Pagination', () => {
         // Here we have 5 messages from the initial OpenReport and 5 from the initial GetNewerActions.
         expect(getReportActions()).toHaveLength(10);
 
+        // Simulate the backend returning no new messages to simulate reaching the start of the chat.
+        mockGetNewerActions(0);
+
         // There is 1 extra call here because of the comment linking report.
         TestHelper.expectAPICommandToHaveBeenCalled('OpenReport', 3);
         TestHelper.expectAPICommandToHaveBeenCalledWith('OpenReport', 1, {reportID: REPORT_ID, reportActionID: '5'});
@@ -390,22 +393,20 @@ describe('Pagination', () => {
 
         TestHelper.expectAPICommandToHaveBeenCalled('OpenReport', 3);
         TestHelper.expectAPICommandToHaveBeenCalled('GetOlderActions', 0);
-        TestHelper.expectAPICommandToHaveBeenCalled('GetNewerActions', 1);
+        TestHelper.expectAPICommandToHaveBeenCalled('GetNewerActions', 2);
 
         // We now have 10 messages. 5 from the initial OpenReport and 5 from the GetNewerActions call.
         expect(getReportActions()).toHaveLength(10);
-
-        // Simulate the backend returning no new messages to simulate reaching the start of the chat.
-        mockGetNewerActions(0);
 
         scrollToOffset(500);
         await waitForBatchedUpdatesWithAct();
         scrollToOffset(0);
         await waitForBatchedUpdatesWithAct();
 
+        // When there are no newer actions, we don't want to trigger GetNewerActions again.
         TestHelper.expectAPICommandToHaveBeenCalled('OpenReport', 3);
         TestHelper.expectAPICommandToHaveBeenCalled('GetOlderActions', 0);
-        TestHelper.expectAPICommandToHaveBeenCalled('GetNewerActions', 1);
+        TestHelper.expectAPICommandToHaveBeenCalled('GetNewerActions', 2);
 
         // We still have 15 messages. 5 from the initial OpenReport and 5 from the GetNewerActions call.
         expect(getReportActions()).toHaveLength(10);

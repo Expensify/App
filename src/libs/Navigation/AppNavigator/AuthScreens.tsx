@@ -41,6 +41,7 @@ import createRootStackNavigator from './createRootStackNavigator';
 import {screensWithEnteringAnimation} from './createRootStackNavigator/GetStateForActionHandlers';
 import defaultScreenOptions from './defaultScreenOptions';
 import DelegatorConnectGuard from './DelegatorConnectGate';
+import hideKeyboardOnSwipe from './hideKeyboardOnSwipe';
 import KeyboardShortcutsHandler from './KeyboardShortcutsHandler';
 import {ShareModalStackNavigator} from './ModalStackNavigators';
 import ExplanationModalNavigator from './Navigators/ExplanationModalNavigator';
@@ -65,6 +66,7 @@ const loadTrackExpensePage = () => require<ReactComponentModule>('../../../pages
 const loadSubmitExpensePage = () => require<ReactComponentModule>('../../../pages/SubmitExpensePage').default;
 const loadWorkspaceJoinUser = () => require<ReactComponentModule>('@pages/workspace/WorkspaceJoinUserPage').default;
 
+const loadSearchRouterPage = () => require<ReactComponentModule>('../../../components/Search/SearchRouter/SearchRouterPage').default;
 const RootStack = createRootStackNavigator<AuthScreensParamList>();
 
 // We want to delay the re-rendering for components(e.g. ReportActionCompose)
@@ -238,6 +240,16 @@ function AuthScreens() {
                             options={attachmentModalScreenOptions}
                             getComponent={loadAttachmentModalScreen}
                             listeners={modalScreenListeners}
+                        />
+                        <RootStack.Screen
+                            name={SCREENS.SEARCH_ROUTER.ROOT}
+                            options={{
+                                ...hideKeyboardOnSwipe,
+                                animation: Animations.SLIDE_FROM_RIGHT,
+                                headerShown: false,
+                            }}
+                            getComponent={loadSearchRouterPage}
+                            listeners={modalScreenListenersWithCancelSearch}
                         />
                         <RootStack.Screen
                             name={SCREENS.NOT_FOUND}

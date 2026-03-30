@@ -3,7 +3,6 @@ import {View} from 'react-native';
 import EReceiptWithSizeCalculation from '@components/EReceiptWithSizeCalculation';
 import Icon from '@components/Icon';
 import * as eReceiptBGs from '@components/Icon/EReceiptBGs';
-import {CreditCardExclamation} from '@components/Icon/Expensicons';
 import Text from '@components/Text';
 import TransactionPreviewSkeletonView from '@components/TransactionPreviewSkeletonView';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -14,6 +13,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {convertToDisplayStringWithExplicitCurrency} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {formatLastFourPAN} from '@libs/TransactionPreviewUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -33,7 +33,7 @@ function AuthorizeCardTransactionPreview({transactionID, amount, currency, merch
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const theme = useTheme();
-    const icons = useMemoizedLazyExpensifyIcons(['CreditCard', 'ReceiptBody']);
+    const icons = useMemoizedLazyExpensifyIcons(['CreditCard', 'ReceiptBody', 'CreditCardExclamation']);
 
     const reportPreviewStyles = StyleUtils.getMoneyRequestReportPreviewStyle(shouldUseNarrowLayout, 1);
     const transactionPreviewWidth = reportPreviewStyles.transactionPreviewStandaloneStyle.width;
@@ -45,7 +45,12 @@ function AuthorizeCardTransactionPreview({transactionID, amount, currency, merch
     if (shouldShowSkeleton) {
         return (
             <View style={containerStyle}>
-                <TransactionPreviewSkeletonView transactionPreviewWidth={transactionPreviewWidth} />
+                <TransactionPreviewSkeletonView
+                    transactionPreviewWidth={transactionPreviewWidth}
+                    reasonAttributes={
+                        {context: 'AuthorizeCardTransactionPreview', isCreatedUndefined: !created, isTransactionIDUndefined: !transactionID} satisfies SkeletonSpanReasonAttributes
+                    }
+                />
             </View>
         );
     }
@@ -66,7 +71,7 @@ function AuthorizeCardTransactionPreview({transactionID, amount, currency, merch
         primaryColor: colorStyles?.backgroundColor,
         secondaryColor: colorStyles?.color,
         titleColor: colorStyles?.titleColor,
-        MCCIcon: CreditCardExclamation,
+        MCCIcon: icons.CreditCardExclamation,
         backgroundImage: eReceiptBGs.EReceiptBG_Green,
         titleText: translate('multifactorAuthentication.reviewTransaction.attemptedTransaction'),
     };

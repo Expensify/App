@@ -1,20 +1,17 @@
-import React from 'react';
+import React, {useRef} from 'react';
 import {View} from 'react-native';
-import DragAndDropConsumer from '@components/DragAndDrop/Consumer';
-import DragAndDropProvider from '@components/DragAndDrop/Provider';
-import DropZoneUI from '@components/DropZone/DropZoneUI';
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
+import QuickCreationActionsBar from '@components/Navigation/QuickCreationActionsBar';
 import TabBarBottomContent from '@components/Navigation/TabBarBottomContent';
 import TopBar from '@components/Navigation/TopBar';
+import ReceiptScanDropZone from '@components/ReceiptScanDropZone';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import useConfirmReadyToOpenApp from '@hooks/useConfirmReadyToOpenApp';
-import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import useDocumentTitle from '@hooks/useDocumentTitle';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import useReceiptScanDrop from '@hooks/useReceiptScanDrop';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -22,26 +19,29 @@ import AnnouncementSection from './AnnouncementSection';
 import AssignedCardsSection from './AssignedCardsSection';
 import DiscoverSection from './DiscoverSection';
 import ForYouSection from './ForYouSection';
+import SpendOverTimeSection from './SpendOverTimeSection';
 import TimeSensitiveSection from './TimeSensitiveSection';
 import UpcomingTravelSection from './UpcomingTravelSection';
 
 function HomePage() {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const styles = useThemeStyles();
-    const theme = useTheme();
     const {translate} = useLocalize();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['SmartScan'] as const);
-    const {initScanRequest, PDFValidationComponent, ErrorModal, isDragDisabled} = useReceiptScanDrop();
+    useDocumentTitle(translate('common.home'));
     const [isLoadingApp = true] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const [isLoadingReportData = false] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA);
     const isForYouLoading = !!(isLoadingApp || isLoadingReportData);
+    const receiptDropTargetRef = useRef<View>(null);
+
     // This hook signals that the app is ready to be opened after HomePage mounts
     // to make sure everything loads properly
     useConfirmReadyToOpenApp();
 
     return (
-        <DragAndDropProvider isDisabled={isDragDisabled}>
-            {PDFValidationComponent}
+        <View
+            ref={receiptDropTargetRef}
+            style={styles.flex1}
+        >
             <ScreenWrapper
                 shouldEnablePickerAvoiding={false}
                 shouldShowOfflineIndicatorInWideScreen
@@ -59,11 +59,13 @@ function HomePage() {
                     contentContainerStyle={styles.homePageContentContainer}
                     addBottomSafeAreaPadding
                 >
+                    {!shouldUseNarrowLayout && <QuickCreationActionsBar />}
                     <View style={styles.homePageMainLayout(shouldUseNarrowLayout)}>
                         {/* Widgets handle their own visibility and may return null to avoid duplicating visibility logic here */}
                         <View style={styles.homePageLeftColumn(shouldUseNarrowLayout)}>
                             <TimeSensitiveSection />
                             <ForYouSection />
+                            <SpendOverTimeSection />
                             <DiscoverSection />
                         </View>
                         <View style={styles.homePageRightColumn(shouldUseNarrowLayout)}>
@@ -74,18 +76,11 @@ function HomePage() {
                     </View>
                 </ScrollView>
             </ScreenWrapper>
-            <DragAndDropConsumer onDrop={initScanRequest}>
-                <DropZoneUI
-                    icon={expensifyIcons.SmartScan}
-                    dropTitle={translate('dropzone.scanReceipts')}
-                    dropStyles={styles.receiptDropOverlay(true)}
-                    dropTextStyles={styles.receiptDropText}
-                    dropWrapperStyles={shouldUseNarrowLayout ? {marginBottom: variables.bottomTabHeight} : undefined}
-                    dashedBorderStyles={[styles.dropzoneArea, styles.easeInOpacityTransition, styles.activeDropzoneDashedBorder(theme.receiptDropBorderColorActive, true)]}
-                />
-            </DragAndDropConsumer>
-            {ErrorModal}
-        </DragAndDropProvider>
+            <ReceiptScanDropZone
+                targetRef={receiptDropTargetRef}
+                dropWrapperStyle={shouldUseNarrowLayout ? {marginBottom: variables.bottomTabHeight} : undefined}
+            />
+        </View>
     );
 }
 
