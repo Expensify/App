@@ -69,7 +69,7 @@ function buildNextStepMessage(nextStep: ReportNextStep, translate: LocaleContext
     return `<next-step>${translate(`nextStep.message.${nextStep.messageKey}`, {actor, actorType, eta, etaType})}</next-step>`;
 }
 
-function isReportContainingTransactions(report: OnyxEntry<Report>): boolean {
+function doesReportContainTransactions(report: OnyxEntry<Report>): boolean {
     return (
         (report?.transactionCount ?? 0) > 0 ||
         (report?.total !== 0 && report?.total !== undefined) ||
@@ -101,7 +101,7 @@ function buildOptimisticNextStep(params: BuildNextStepNewParams): ReportNextStep
     const autoReportingFrequency = getCorrectedAutoReportingFrequency(policy);
     const isInstantSubmitEnabled = autoReportingFrequency === CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT;
     const shouldShowFixMessage = hasViolations && isInstantSubmitEnabled && !isASAPSubmitBetaEnabled;
-    const hasTransactions = isReportContainingTransactions(report);
+    const hasTransactions = doesReportContainTransactions(report);
     const approverAccountID = bypassNextApproverID ?? getNextApproverAccountID(report, isUnapprove);
     const reimburserAccountID = getReimburserAccountID(policy);
     const hasValidAccount = !!policy?.achAccount?.accountNumber || policy?.reimbursementChoice !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES;
@@ -477,7 +477,7 @@ function buildNextStepNew(params: BuildNextStepNewParams): ReportNextStepDepreca
         currentUserAccountID: currentUserAccountIDParam ?? CONST.DEFAULT_NUMBER_ID,
         shouldChangeUserDisplayName: true,
     });
-    const hasTransactions = isReportContainingTransactions(report);
+    const hasTransactions = doesReportContainTransactions(report);
     const {reimbursableSpend} = getMoneyRequestSpendBreakdown(report);
 
     const ownerDisplayName =
