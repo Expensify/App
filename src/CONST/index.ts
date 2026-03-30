@@ -9126,6 +9126,7 @@ const CONST = {
                 THREE_DOT_MENU: 'WorkspaceAccounting-ThreeDotMenu',
             },
             RULES: {
+                ADD_SPEND_RULE: 'WorkspaceRules-AddSpendRule',
                 INDIVIDUAL_EXPENSES_MENU_ITEM: 'WorkspaceRules-IndividualExpensesMenuItem',
                 SPEND_RULE_ITEM: 'WorkspaceRules-SpendRuleItem',
                 MERCHANT_RULE_ITEM: 'WorkspaceRules-MerchantRuleItem',
