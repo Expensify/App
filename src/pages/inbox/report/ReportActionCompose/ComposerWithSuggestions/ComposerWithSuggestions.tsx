@@ -289,7 +289,7 @@ function ComposerWithSuggestions({
         lastTextRef.current = value;
     }, [value]);
 
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {shouldUseNarrowLayout, isExtraLargeScreenWidth} = useResponsiveLayout();
     const maxComposerLines = shouldUseNarrowLayout ? CONST.COMPOSER.MAX_LINES_SMALL_SCREEN : CONST.COMPOSER.MAX_LINES;
     const shouldAutoFocus = (shouldFocusInputOnScreenFocus || !!draftComment) && shouldShowComposeInput && areAllModalsHidden() && isFocused && !didHideComposerInput;
     const delayedAutoFocusRouteKeyRef = useRef<string | null>(null);
@@ -761,6 +761,11 @@ function ComposerWithSuggestions({
     }, []);
 
     useEffect(() => {
+        // On large screens there can be 2 Composers at the same time (Report & Concierge anywhere).
+        // This prevents composer that hasn't been active last from "stealing" focus between them when another input (ex. in search / emoji modals).
+        if (isExtraLargeScreenWidth && ReportActionComposeFocusManager.composerRef.current !== textInputRef.current) {
+            return;
+        }
         const unsubscribeNavigationBlur = navigation.addListener('blur', () => removeKeyDownPressListener(focusComposerOnKeyPress));
         const unsubscribeNavigationFocus = navigation.addListener('focus', () => {
             addKeyDownPressListener(focusComposerOnKeyPress);
