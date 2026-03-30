@@ -114,7 +114,18 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
 
                 const privateIsArchived = privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${contextualReportID}`];
                 const reportPolicy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
-                const option = createOptionFromReport(report, personalDetails, currentUserAccountID, privateIsArchived, reportPolicy, undefined, {showPersonalDetails: true}, undefined, undefined, sortedActions);
+                const option = createOptionFromReport(
+                    report,
+                    personalDetails,
+                    currentUserAccountID,
+                    privateIsArchived,
+                    reportPolicy,
+                    undefined,
+                    {showPersonalDetails: true},
+                    undefined,
+                    undefined,
+                    sortedActions,
+                );
                 reportForContextualSearch = option;
             }
 

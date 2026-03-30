@@ -75,12 +75,35 @@ function SearchFiltersChatsSelector({initialReportIDs, onFiltersUpdate, isScreen
         const reportData = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${id}`];
         const reportPolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${reportData?.policyID}`];
         const report = getSelectedOptionData(
-            createOptionFromReport({...reportData, reportID: id}, personalDetails, currentUserAccountID, privateIsArchived, reportPolicy, reportAttributesDerived, undefined, undefined, undefined, sortedActions),
+            createOptionFromReport(
+                {...reportData, reportID: id},
+                personalDetails,
+                currentUserAccountID,
+                privateIsArchived,
+                reportPolicy,
+                reportAttributesDerived,
+                undefined,
+                undefined,
+                undefined,
+                sortedActions,
+            ),
         );
         const isReportArchived = !!privateIsArchived;
         const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${reportData?.policyID}`];
         const reportPolicyTags = policyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(report?.policyID)}`];
-        const alternateText = getAlternateText(report, {}, isReportArchived, currentUserAccountID, policy, {}, undefined, undefined, reportAttributesDerived, reportPolicyTags, sortedActions);
+        const alternateText = getAlternateText(
+            report,
+            {},
+            isReportArchived,
+            currentUserAccountID,
+            policy,
+            {},
+            undefined,
+            undefined,
+            reportAttributesDerived,
+            reportPolicyTags,
+            sortedActions,
+        );
         return {...report, alternateText};
     });
 

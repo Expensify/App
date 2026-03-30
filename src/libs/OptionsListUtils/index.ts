@@ -1666,7 +1666,19 @@ function createOptionFromReport(
 
     return {
         item: report,
-        ...createOption({accountIDs, personalDetails, report, currentUserAccountID, privateIsArchived, policy, config, reportAttributesDerived, policyTags, visibleReportActionsData, sortedActions}),
+        ...createOption({
+            accountIDs,
+            personalDetails,
+            report,
+            currentUserAccountID,
+            privateIsArchived,
+            policy,
+            config,
+            reportAttributesDerived,
+            policyTags,
+            visibleReportActionsData,
+            sortedActions,
+        }),
     };
 }
 
