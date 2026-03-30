@@ -3,6 +3,7 @@ import {useCallback, useEffect, useRef} from 'react';
 import {DeviceEventEmitter, Platform} from 'react-native';
 import Accessibility from '@libs/Accessibility';
 import type {FocusTarget} from '@libs/Accessibility/moveAccessibilityFocus/types';
+import {isFocusTargetRef} from '@libs/Accessibility/moveAccessibilityFocus/utils';
 import CONST from '@src/CONST';
 
 const FOCUS_RESTORE_MAX_RETRIES = 10;
@@ -10,17 +11,9 @@ const FOCUS_RESTORE_RETRY_INTERVAL = 100;
 const WEB_FOCUS_RESTORE_DELAY = CONST.ANIMATED_TRANSITION + 50;
 const IOS_FOCUS_RESTORE_DELAY = 100;
 
-type FocusTargetRef = {
-    current: unknown;
-};
-
 type FocusTargetEvent = {
     currentTarget?: unknown;
 };
-
-function isFocusTargetRef(focusTarget: FocusTarget): focusTarget is FocusTargetRef {
-    return typeof focusTarget === 'object' && focusTarget !== null && 'current' in focusTarget;
-}
 
 function isFocusTargetEvent(focusTarget: unknown): focusTarget is FocusTargetEvent {
     return typeof focusTarget === 'object' && focusTarget !== null && 'currentTarget' in focusTarget;
@@ -118,6 +111,8 @@ function useAccessibilityFocusOnReturn() {
             return;
         }
 
+        // Web can return to the parent screen through navigator transitions or modal dismissal,
+        // so we listen to both shared events and let restoreFocusOnReturn guard redundant calls.
         const transitionEndSubscription = DeviceEventEmitter.addListener(CONST.EVENTS.TRANSITION_END_SCREEN_WRAPPER, restoreFocusOnReturn);
         const modalClosedSubscription = DeviceEventEmitter.addListener(CONST.MODAL_EVENTS.CLOSED, restoreFocusOnReturn);
 

@@ -126,6 +126,8 @@ function AboutPage() {
             icon,
             iconRight,
             onPress: (event: GestureResponderEvent | KeyboardEvent | undefined) => {
+                // Only internal navigation targets restore focus on return. External links should
+                // keep their existing behavior because there is no in-app screen to come back from.
                 if (shouldRestoreFocusOnReturn) {
                     setFocusTarget(event);
                 }

@@ -2,14 +2,7 @@ import {AccessibilityInfo} from 'react-native';
 import type {HostInstance} from 'react-native';
 import type MoveAccessibilityFocus from './types';
 import type {FocusTarget} from './types';
-
-type FocusTargetRef = {
-    current: unknown;
-};
-
-function isFocusTargetRef(focusTarget: FocusTarget): focusTarget is FocusTargetRef {
-    return typeof focusTarget === 'object' && focusTarget !== null && 'current' in focusTarget;
-}
+import {isFocusTargetRef} from './utils';
 
 function isHostInstance(focusTarget: unknown): focusTarget is HostInstance {
     return typeof focusTarget === 'object' && focusTarget !== null && ('setNativeProps' in focusTarget || 'measure' in focusTarget || 'focus' in focusTarget);
