@@ -45,6 +45,7 @@ import {
     isInvoiceReport,
     isIOUReport as isIOUReportUtil,
 } from '@libs/ReportUtils';
+import {serializeQueryJSONForBackend} from '@libs/SearchQueryUtils';
 import {navigateToSearchRHP, shouldShowDeleteOption} from '@libs/SearchUIUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {hasTransactionBeenRejected, isDeletedTransaction} from '@libs/TransactionUtils';
@@ -160,7 +161,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         'QBDSquare',
         'CertiniaSquare',
         'Pencil',
-    ] as const);
+    ]);
 
     const selectedTransactionReportIDs = useMemo(
         () => [
@@ -248,7 +249,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 queueExportSearchWithTemplate({
                     templateName,
                     templateType,
-                    jsonQuery: JSON.stringify(queryJSON),
+                    jsonQuery: queryJSON ? serializeQueryJSONForBackend(queryJSON) : JSON.stringify(queryJSON),
                     reportIDList: [],
                     transactionIDList: [],
                     policyID,
@@ -328,7 +329,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             const reportIDList = selectedReports?.map((report) => report?.reportID).filter((reportID) => reportID !== undefined) ?? [];
             queueExportSearchItemsToCSV({
                 query: status,
-                jsonQuery: JSON.stringify(queryJSON),
+                jsonQuery: queryJSON ? serializeQueryJSONForBackend(queryJSON) : JSON.stringify(queryJSON),
                 reportIDList,
                 transactionIDList: selectedTransactionsKeys,
             });
@@ -341,7 +342,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         await exportSearchItemsToCSV(
             {
                 query: status,
-                jsonQuery: JSON.stringify(queryJSON),
+                jsonQuery: queryJSON ? serializeQueryJSONForBackend(queryJSON) : JSON.stringify(queryJSON),
                 reportIDList: selectedReports.length > 0 ? selectedReportIDs : selectedTransactionReportIDs,
                 transactionIDList: selectedTransactionsKeys,
             },
