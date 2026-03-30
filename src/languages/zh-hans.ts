@@ -6484,6 +6484,7 @@ ${reportName}
                 cardPageTitle: '卡',
                 cardsSectionTitle: '卡',
                 chooseCards: '选择卡',
+                saveRule: '保存规则',
             },
         },
         planTypePage: {

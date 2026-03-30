@@ -6707,6 +6707,7 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
                 cardPageTitle: 'Carte',
                 cardsSectionTitle: 'Cartes',
                 chooseCards: 'Choisir des cartes',
+                saveRule: 'Enregistrer la règle',
             },
         },
         planTypePage: {

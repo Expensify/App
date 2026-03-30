@@ -6683,6 +6683,7 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
                 cardPageTitle: 'Karte',
                 cardsSectionTitle: 'Karten',
                 chooseCards: 'Karten auswählen',
+                saveRule: 'Regel speichern',
             },
         },
         planTypePage: {

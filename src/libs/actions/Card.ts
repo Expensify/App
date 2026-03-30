@@ -11,8 +11,8 @@ import type {
     ReportVirtualExpensifyCardFraudParams,
     RequestReplacementExpensifyCardParams,
     ResolveFraudAlertParams,
-    SetExpensifyCardRuleParams,
     RevealExpensifyCardDetailsParams,
+    SetExpensifyCardRuleParams,
     SetPersonalCardReimbursableParams,
     StartIssueNewCardFlowParams,
     UnassignCardParams,
@@ -1560,6 +1560,19 @@ function setExpensifyCardRule(parameters: SetExpensifyCardRuleParams) {
     API.write(WRITE_COMMANDS.SET_EXPENSIFY_CARD_RULE, parameters);
 }
 
+function getSpendCardRuleValueJSON(cardIDStrings: string[], action: ValueOf<typeof CONST.SPEND_CARD_RULE.ACTION>) {
+    const numericIDs = cardIDStrings.map((id) => Number(id)).filter((id) => Number.isFinite(id));
+    return JSON.stringify({
+        created: new Date().toISOString(),
+        filters: {
+            left: CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID,
+            operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
+            right: numericIDs,
+        },
+        action,
+    });
+}
+
 /**
  * Resolves a fraud alert for a given card.
  * When the user clicks on the whisper it sets the optimistic data to the resolution and calls the API
@@ -1662,5 +1675,6 @@ export {
     setDraftInviteAccountID,
     resolveFraudAlert,
     setExpensifyCardRule,
+    getSpendCardRuleValueJSON,
 };
 export type {ReplacementReason};

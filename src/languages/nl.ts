@@ -6649,6 +6649,7 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
                 cardPageTitle: 'Kaart',
                 cardsSectionTitle: 'Kaarten',
                 chooseCards: 'Kaarten kiezen',
+                saveRule: 'Regel opslaan',
             },
         },
         planTypePage: {

@@ -4195,6 +4195,12 @@ const CONST = {
         },
     },
 
+    SPEND_RULE_FORM: {
+        FIELDS: {
+            CARD_IDS: 'cardIDs',
+        },
+    },
+
     SPEND_CARD_RULE: {
         ACTION: {
             ALLOW: 'allow',

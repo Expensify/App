@@ -6644,6 +6644,7 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
                 cardPageTitle: 'Karta',
                 cardsSectionTitle: 'Karty',
                 chooseCards: 'Wybierz karty',
+                saveRule: 'Zapisz regułę',
             },
         },
         planTypePage: {

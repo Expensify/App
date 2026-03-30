@@ -48,7 +48,7 @@ import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {ExpenseRuleForm, MerchantRuleForm} from '@src/types/form';
+import type {ExpenseRuleForm, MerchantRuleForm, SpendRuleForm} from '@src/types/form';
 import type {AppReview, BlockedFromConcierge, CustomStatusDraft, ExpenseRule, Policy, ReportAttributesDerivedValue} from '@src/types/onyx';
 import type Login from '@src/types/onyx/Login';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
@@ -1877,6 +1877,18 @@ function clearDraftMerchantRule() {
     Onyx.set(ONYXKEYS.FORMS.MERCHANT_RULE_FORM, null);
 }
 
+function setDraftSpendRule(ruleData: Partial<SpendRuleForm>) {
+    Onyx.set(ONYXKEYS.FORMS.SPEND_RULE_FORM, ruleData);
+}
+
+function updateDraftSpendRule(ruleData: Partial<SpendRuleForm>) {
+    Onyx.merge(ONYXKEYS.FORMS.SPEND_RULE_FORM, ruleData);
+}
+
+function clearDraftSpendRule() {
+    Onyx.set(ONYXKEYS.FORMS.SPEND_RULE_FORM, null);
+}
+
 export {
     closeAccount,
     setServerErrorsOnForm,
@@ -1928,6 +1940,9 @@ export {
     setDraftMerchantRule,
     updateDraftMerchantRule,
     clearDraftMerchantRule,
+    setDraftSpendRule,
+    updateDraftSpendRule,
+    clearDraftSpendRule,
     openTroubleshootSettingsPage,
     openMultifactorAuthenticationRevokePage,
 };

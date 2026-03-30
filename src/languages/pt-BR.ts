@@ -6648,6 +6648,7 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
                 cardPageTitle: 'Cartão',
                 cardsSectionTitle: 'Cartões',
                 chooseCards: 'Escolher cartões',
+                saveRule: 'Salvar regra',
             },
         },
         planTypePage: {

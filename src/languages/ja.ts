@@ -6596,6 +6596,7 @@ ${reportName}
                 cardPageTitle: 'カード',
                 cardsSectionTitle: 'カード',
                 chooseCards: 'カードを選択',
+                saveRule: 'ルールを保存',
             },
         },
         planTypePage: {

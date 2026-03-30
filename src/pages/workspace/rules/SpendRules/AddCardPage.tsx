@@ -1,4 +1,5 @@
-import React, {useEffect, useState} from 'react';
+import {useFocusEffect} from '@react-navigation/native';
+import React, {useCallback, useEffect, useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
@@ -17,6 +18,7 @@ import useOnyx from '@hooks/useOnyx';
 import useSearchResults from '@hooks/useSearchResults';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {updateDraftSpendRule} from '@libs/actions/User';
 import {filterCardsByPersonalDetails, filterInactiveCards, getCardFeedIcon, sortCardsByCardholderName} from '@libs/CardUtils';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
@@ -83,11 +85,18 @@ function AddCardPage({route}: AddCardPageProps) {
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${defaultFundID}_${CONST.EXPENSIFY_CARD.BANK}`, {selector: filterInactiveCards});
     const [expensifyCardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${defaultFundID}`);
+    const [spendRuleForm] = useOnyx(ONYXKEYS.FORMS.SPEND_RULE_FORM);
     const illustrations = useMemoizedLazyIllustrations(['Telescope']);
     const themeIllustrations = useThemeIllustrations();
     const companyCardFeedIcons = useCompanyCardFeedIcons();
 
     const [selectedCardIDs, setSelectedCardIDs] = useState<string[]>([]);
+
+    useFocusEffect(
+        useCallback(() => {
+            setSelectedCardIDs(spendRuleForm?.cardIDs ?? []);
+        }, [spendRuleForm?.cardIDs]),
+    );
 
     const eligibleCards = getEligibleCards(cardsList, expensifyCardSettings ?? {});
 
@@ -153,6 +162,7 @@ function AddCardPage({route}: AddCardPageProps) {
     };
 
     const handleSave = () => {
+        updateDraftSpendRule({cardIDs: selectedCardIDs});
         Navigation.goBack(ROUTES.RULES_SPEND_NEW.getRoute(policyID));
     };
 

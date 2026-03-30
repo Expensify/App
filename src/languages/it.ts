@@ -6670,6 +6670,7 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
                 cardPageTitle: 'Carta',
                 cardsSectionTitle: 'Carte',
                 chooseCards: 'Scegli le carte',
+                saveRule: 'Salva regola',
             },
         },
         planTypePage: {
