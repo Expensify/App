@@ -1,4 +1,4 @@
-import {base64ToBase64url, getKeyAlias, mapAuthTypeNumber, mapBiometryTypeToAuthType, mapLibraryError, mapSignErrorCode} from '@libs/MultifactorAuthentication/NativeBiometricsHSM/helpers';
+import {getKeyAlias, mapAuthTypeNumber, mapLibraryError, mapSignErrorCode} from '@libs/MultifactorAuthentication/NativeBiometricsHSM/helpers';
 import NATIVE_BIOMETRICS_HSM_VALUES from '@libs/MultifactorAuthentication/NativeBiometricsHSM/VALUES';
 import VALUES from '@libs/MultifactorAuthentication/VALUES';
 
@@ -7,44 +7,6 @@ jest.mock('@sbaiahmed1/react-native-biometrics', () => ({
 }));
 
 describe('NativeBiometricsHSM helpers', () => {
-    describe('base64ToBase64url', () => {
-        it('should replace + with -', () => {
-            // Given a base64 string containing '+' characters, which are not URL-safe
-            // When converting to base64url format
-            // Then '+' should be replaced with '-' because base64url encoding requires URL-safe characters for use in credential IDs
-            expect(base64ToBase64url('abc+def')).toBe('abc-def');
-        });
-
-        it('should replace / with _', () => {
-            // Given a base64 string containing '/' characters, which are not URL-safe
-            // When converting to base64url format
-            // Then '/' should be replaced with '_' because base64url encoding requires URL-safe characters for use in credential IDs
-            expect(base64ToBase64url('abc/def')).toBe('abc_def');
-        });
-
-        it('should strip trailing = padding', () => {
-            // Given a base64 string with trailing '=' padding characters
-            // When converting to base64url format
-            // Then padding should be stripped because base64url omits padding per RFC 4648 §5
-            expect(base64ToBase64url('abc==')).toBe('abc');
-            expect(base64ToBase64url('abcd=')).toBe('abcd');
-        });
-
-        it('should handle all replacements together', () => {
-            // Given a base64 string with '+', '/', and '=' characters combined
-            // When converting to base64url format
-            // Then all unsafe characters should be replaced in a single pass to produce a valid base64url credential ID
-            expect(base64ToBase64url('abc+def/ghi==')).toBe('abc-def_ghi');
-        });
-
-        it('should leave already-safe strings unchanged', () => {
-            // Given a base64 string that already contains only URL-safe characters
-            // When converting to base64url format
-            // Then the string should remain unchanged because no substitution is needed
-            expect(base64ToBase64url('abcdef')).toBe('abcdef');
-        });
-    });
-
     describe('getKeyAlias', () => {
         it('should build alias from accountID and HSM_KEY_SUFFIX', () => {
             // Given a valid account ID
@@ -135,63 +97,6 @@ describe('NativeBiometricsHSM helpers', () => {
             // Then it should resolve to "Optic ID"
             const result = mapAuthTypeNumber(5);
             expect(result?.name).toBe('Optic ID');
-        });
-    });
-
-    describe('mapBiometryTypeToAuthType', () => {
-        it('should map FaceID string to Face ID auth type', () => {
-            // Given the biometric sensor reports "FaceID" as the available biometry type (iOS devices with Face ID)
-            // When mapping the biometry type string to an auth type
-            // Then it should resolve to "Face ID" for accurate biometric method reporting
-            const result = mapBiometryTypeToAuthType('FaceID');
-            expect(result?.name).toBe('Face ID');
-        });
-
-        it('should map TouchID string to Touch ID auth type', () => {
-            // Given the biometric sensor reports "TouchID" as the available biometry type (older iOS devices)
-            // When mapping the biometry type string to an auth type
-            // Then it should resolve to "Touch ID" for accurate biometric method reporting
-            const result = mapBiometryTypeToAuthType('TouchID');
-            expect(result?.name).toBe('Touch ID');
-        });
-
-        it('should map Biometrics string to Biometrics auth type', () => {
-            // Given the biometric sensor reports "Biometrics" as the available type (Android devices)
-            // When mapping the biometry type string to an auth type
-            // Then it should resolve to "Biometrics" since Android does not distinguish specific biometric hardware
-            const result = mapBiometryTypeToAuthType('Biometrics');
-            expect(result?.name).toBe('Biometrics');
-        });
-
-        it('should map OpticID string to Optic ID auth type', () => {
-            // Given the biometric sensor reports "OpticID" as the available biometry type (Apple Vision Pro)
-            // When mapping the biometry type string to an auth type
-            // Then it should resolve to "Optic ID" for accurate biometric method reporting
-            const result = mapBiometryTypeToAuthType('OpticID');
-            expect(result?.name).toBe('Optic ID');
-        });
-
-        it('should fall back to Credentials when biometryType is unknown but device is secure', () => {
-            // Given an unknown biometry type but the device has a secure lock screen
-            // When mapping the biometry type to an auth type
-            // Then it should fall back to "Credentials" because the device can still verify the user via PIN/password
-            const result = mapBiometryTypeToAuthType(undefined, true);
-            expect(result?.name).toBe('Credentials');
-        });
-
-        it('should return undefined when biometryType is unknown and device is not secure', () => {
-            // Given an unknown biometry type and the device has no secure lock screen
-            // When mapping the biometry type to an auth type
-            // Then undefined should be returned because no verification method is available on this device
-            expect(mapBiometryTypeToAuthType(undefined, false)).toBeUndefined();
-            expect(mapBiometryTypeToAuthType(undefined)).toBeUndefined();
-        });
-
-        it('should return undefined for unrecognized biometryType when device is not secure', () => {
-            // Given an unrecognized biometry type string and the device has no secure lock screen
-            // When mapping the biometry type to an auth type
-            // Then undefined should be returned because neither the biometric type nor a fallback is available
-            expect(mapBiometryTypeToAuthType('SomeNewType', false)).toBeUndefined();
         });
     });
 

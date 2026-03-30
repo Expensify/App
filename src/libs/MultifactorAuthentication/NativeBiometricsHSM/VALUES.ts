@@ -8,7 +8,7 @@ const NATIVE_BIOMETRICS_HSM_VALUES = {
     /**
      * HSM key type identifier
      */
-    HSM_TYPE: 'biometric-hsm',
+    BIOMETRIC_HSM_TYPE: 'biometric-hsm',
 
     /**
      * Key alias suffix for HSM keys managed by react-native-biometrics.

@@ -12,13 +12,6 @@ import NATIVE_BIOMETRICS_HSM_VALUES from './VALUES';
 type SecureStoreAuthTypeEntry = ValueOf<typeof NATIVE_BIOMETRICS_HSM_VALUES.AUTH_TYPE>;
 
 /**
- * Converts standard base64 to base64url encoding.
- */
-function base64ToBase64url(b64: string): string {
-    return b64.replaceAll('+', '-').replaceAll('/', '_').replace(/=+$/, '');
-}
-
-/**
  * Builds the key alias for a given account.
  */
 function getKeyAlias(accountID: number): string {
@@ -68,28 +61,6 @@ function mapAuthTypeNumber(authType?: number): AuthTypeInfo | undefined {
 }
 
 /**
- * Maps biometryType string from isSensorAvailable to AuthTypeInfo (used during registration).
- */
-const BIOMETRY_TYPE_MAP: Record<string, SecureStoreAuthTypeEntry> = {
-    FaceID: NATIVE_BIOMETRICS_HSM_VALUES.AUTH_TYPE.FACE_ID,
-    TouchID: NATIVE_BIOMETRICS_HSM_VALUES.AUTH_TYPE.TOUCH_ID,
-    Biometrics: NATIVE_BIOMETRICS_HSM_VALUES.AUTH_TYPE.BIOMETRICS,
-    OpticID: NATIVE_BIOMETRICS_HSM_VALUES.AUTH_TYPE.OPTIC_ID,
-};
-
-function mapBiometryTypeToAuthType(biometryType?: string, isDeviceSecure?: boolean): AuthTypeInfo | undefined {
-    let entry = BIOMETRY_TYPE_MAP[biometryType ?? ''];
-    if (!entry) {
-        if (isDeviceSecure) {
-            entry = NATIVE_BIOMETRICS_HSM_VALUES.AUTH_TYPE.CREDENTIALS;
-        } else {
-            return undefined;
-        }
-    }
-    return {code: entry.CODE, name: entry.NAME, marqetaValue: entry.MARQETA_VALUE};
-}
-
-/**
  * Maps library errorCode strings to existing REASON values.
  */
 function mapSignErrorCode(errorCode?: string): MultifactorAuthenticationReason | undefined {
@@ -116,4 +87,4 @@ function mapLibraryError(e: unknown): MultifactorAuthenticationReason | undefine
     return undefined;
 }
 
-export {base64ToBase64url, getKeyAlias, getSensorResult, mapAuthTypeNumber, mapBiometryTypeToAuthType, mapSignErrorCode, mapLibraryError};
+export {getKeyAlias, getSensorResult, mapAuthTypeNumber, mapSignErrorCode, mapLibraryError};

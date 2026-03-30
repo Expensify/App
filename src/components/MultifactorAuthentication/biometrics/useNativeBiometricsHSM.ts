@@ -3,15 +3,7 @@ import {Buffer} from 'buffer';
 import {useCallback} from 'react';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
-import {
-    base64ToBase64url,
-    getKeyAlias,
-    getSensorResult,
-    mapAuthTypeNumber,
-    mapBiometryTypeToAuthType,
-    mapLibraryError,
-    mapSignErrorCode,
-} from '@libs/MultifactorAuthentication/NativeBiometricsHSM/helpers';
+import {getKeyAlias, getSensorResult, mapAuthTypeNumber, mapLibraryError, mapSignErrorCode} from '@libs/MultifactorAuthentication/NativeBiometricsHSM/helpers';
 import type {NativeBiometricsHSMKeyInfo} from '@libs/MultifactorAuthentication/NativeBiometricsHSM/types';
 import VALUES from '@libs/MultifactorAuthentication/VALUES';
 import CONST from '@src/CONST';
@@ -41,7 +33,7 @@ function useNativeBiometricsHSM(): UseBiometricsReturn {
         if (!entry) {
             return undefined;
         }
-        return base64ToBase64url(entry.publicKey);
+        return Base64URL.base64ToBase64url(entry.publicKey);
     }, [accountID]);
 
     const areLocalCredentialsKnownToServer = useCallback(async () => {
@@ -68,20 +60,16 @@ function useNativeBiometricsHSM(): UseBiometricsReturn {
              */
             const {publicKey} = await createKeys(keyAlias, 'ec256', undefined, true, false);
 
-            const credentialID = base64ToBase64url(publicKey);
+            const credentialID = Base64URL.base64ToBase64url(publicKey);
 
-            // Map biometryType from module-level cache to auth type
-            const sensorResult = getSensorResult();
-            const authType = mapBiometryTypeToAuthType(sensorResult.biometryType, sensorResult.isDeviceSecure);
-            if (!authType) {
-                onResult({success: false, reason: VALUES.REASON.GENERIC.BAD_REQUEST});
-                return;
-            }
+            // TODO: Remove once the backend no longer requires a Marqeta auth method at registration.
+            // No actual authentication happens during key creation, so this value is a placeholder.
+            const authType = VALUES.AUTH_TYPE.CREDENTIALS;
 
             const clientDataJSON = JSON.stringify({challenge: registrationChallenge.challenge});
             const keyInfo: NativeBiometricsHSMKeyInfo = {
                 rawId: credentialID,
-                type: CONST.MULTIFACTOR_AUTHENTICATION.HSM_TYPE,
+                type: CONST.MULTIFACTOR_AUTHENTICATION.BIOMETRIC_HSM_TYPE,
                 response: {
                     clientDataJSON: Base64URL.encode(clientDataJSON),
                     biometric: {
@@ -95,7 +83,7 @@ function useNativeBiometricsHSM(): UseBiometricsReturn {
                 success: true,
                 reason: CONST.MULTIFACTOR_AUTHENTICATION.REASON.GENERIC.LOCAL_REGISTRATION_COMPLETE,
                 keyInfo,
-                authenticationMethod: authType,
+                authenticationMethod: {code: authType.CODE, name: authType.NAME, marqetaValue: authType.MARQETA_VALUE},
             });
         } catch (e) {
             onResult({
@@ -111,7 +99,7 @@ function useNativeBiometricsHSM(): UseBiometricsReturn {
         try {
             const keyAlias = getKeyAlias(accountID);
             const credentialID = await getLocalCredentialID();
-            const allowedIDs = challenge.allowCredentials?.map((c: {id: string; type: string}) => c.id) ?? [];
+            const allowedIDs = challenge.allowCredentials?.map((credential: {id: string; type: string}) => credential.id) ?? [];
 
             if (!credentialID || !allowedIDs.includes(credentialID)) {
                 onResult({success: false, reason: VALUES.REASON.KEYSTORE.REGISTRATION_REQUIRED});
@@ -122,8 +110,10 @@ function useNativeBiometricsHSM(): UseBiometricsReturn {
             const {hash: rpIdHashB64} = await sha256(challenge.rpId);
             const rpIdHash = Buffer.from(rpIdHashB64, 'base64');
 
-            const flags = Buffer.from([0x05]); // UP (0x01) | UV (0x04)
-            const signCount = Buffer.alloc(4); // 4 zero bytes, big-endian
+            // UP (0x01) | UV (0x04)
+            const flags = Buffer.from([0x05]);
+            // 4 zero bytes, big-endian
+            const signCount = Buffer.alloc(4);
 
             const authenticatorData = Buffer.concat([rpIdHash, flags, signCount]);
 
@@ -163,11 +153,11 @@ function useNativeBiometricsHSM(): UseBiometricsReturn {
                 reason: VALUES.REASON.CHALLENGE.CHALLENGE_SIGNED,
                 signedChallenge: {
                     rawId: credentialID,
-                    type: CONST.MULTIFACTOR_AUTHENTICATION.HSM_TYPE,
+                    type: CONST.MULTIFACTOR_AUTHENTICATION.BIOMETRIC_HSM_TYPE,
                     response: {
-                        authenticatorData: base64ToBase64url(authenticatorData.toString('base64')),
+                        authenticatorData: Base64URL.base64ToBase64url(authenticatorData.toString('base64')),
                         clientDataJSON: Base64URL.encode(clientDataJSON),
-                        signature: base64ToBase64url(signResult.signature),
+                        signature: Base64URL.base64ToBase64url(signResult.signature),
                     },
                 },
                 authenticationMethod: authType,
@@ -183,7 +173,7 @@ function useNativeBiometricsHSM(): UseBiometricsReturn {
     const hasLocalCredentials = async () => !!(await getLocalCredentialID());
 
     return {
-        deviceVerificationType: CONST.MULTIFACTOR_AUTHENTICATION.TYPE.BIOMETRICS,
+        deviceVerificationType: CONST.MULTIFACTOR_AUTHENTICATION.TYPE.BIOMETRIC_HSM,
         serverKnownCredentialIDs,
         haveCredentialsEverBeenConfigured,
         getLocalCredentialID,

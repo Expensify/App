@@ -279,6 +279,7 @@ const SHARED_VALUES = {
      * Authentication type identifiers.
      */
     TYPE: {
+        BIOMETRIC_HSM: 'BIOMETRIC_HSM',
         BIOMETRICS: 'BIOMETRICS',
         PASSKEYS: 'PASSKEYS',
     },
