@@ -1,4 +1,4 @@
-import React, {useCallback, useMemo} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry, OnyxKey} from 'react-native-onyx';
 import useAncestors from '@hooks/useAncestors';
@@ -27,29 +27,26 @@ function ChronosTimerHeaderButton({report}: ChronosTimerHeaderButtonProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const isReportArchived = useReportIsArchived(report?.reportID);
-    const canPerformWriteAction = useMemo(() => canUserPerformWriteAction(report, isReportArchived), [report, isReportArchived]);
+    const canPerformWriteAction = canUserPerformWriteAction(report, isReportArchived);
     const [visibleReportActionsData] = useOnyx(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS);
-
-    const getSortedVisibleReportActions = useCallback(
-        (reportActions: unknown): OnyxTypes.ReportAction[] =>
-            getSortedReportActionsForDisplay(reportActions as OnyxEntry<ReportActions>, canPerformWriteAction, false, visibleReportActionsData, report.reportID),
-        [canPerformWriteAction, visibleReportActionsData, report.reportID],
-    );
 
     const reportActionsOnyxKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}` as OnyxKey;
     const [sortedVisibleReportActions = getEmptyArray<OnyxTypes.ReportAction>()] = useOnyx<OnyxKey, OnyxTypes.ReportAction[]>(
         reportActionsOnyxKey,
-        {selector: getSortedVisibleReportActions},
-        [getSortedVisibleReportActions],
+        {
+            selector: (reportActions: unknown): OnyxTypes.ReportAction[] =>
+                getSortedReportActionsForDisplay(reportActions as OnyxEntry<ReportActions>, canPerformWriteAction, false, visibleReportActionsData, report.reportID),
+        },
+        [canPerformWriteAction, visibleReportActionsData, report.reportID],
     );
 
     const {accountID: currentUserAccountID, timezone: timezoneParam} = useCurrentUserPersonalDetails();
     const ancestors = useAncestors(report);
     const isInSidePanel = useIsInSidePanel();
 
-    const isTimerRunning = useMemo(() => isChronosTimerRunningFromVisibleActions(sortedVisibleReportActions, currentUserAccountID), [sortedVisibleReportActions, currentUserAccountID]);
+    const isTimerRunning = isChronosTimerRunningFromVisibleActions(sortedVisibleReportActions, currentUserAccountID);
 
-    const onChronosTimerPress = useCallback(() => {
+    function onChronosTimerPress() {
         addComment({
             report,
             notifyReportID: report.reportID,
@@ -60,7 +57,7 @@ function ChronosTimerHeaderButton({report}: ChronosTimerHeaderButtonProps) {
             shouldPlaySound: false,
             isInSidePanel,
         });
-    }, [report, ancestors, isTimerRunning, timezoneParam, currentUserAccountID, isInSidePanel]);
+    }
 
     if (!canWriteInReport(report)) {
         return null;
