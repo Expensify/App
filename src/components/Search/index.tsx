@@ -133,6 +133,7 @@ function mapTransactionItemToSelectedEntry(
             action: item.action,
             groupCurrency: item.groupCurrency,
             groupExchangeRate: item.groupExchangeRate,
+            currencyConversionRate: item.currencyConversionRate,
             reportID: item.reportID,
             policyID: item.policyID,
             amount: allowNegativeAmount ? amount : Math.abs(amount),
@@ -766,6 +767,7 @@ function Search({
                         groupAmount: transactionItem.groupAmount,
                         groupCurrency: transactionItem.groupCurrency,
                         groupExchangeRate: transactionItem.groupExchangeRate,
+                        currencyConversionRate: transactionItem.currencyConversionRate,
                         currency: transactionItem.currency,
                         ownerAccountID: transactionItem.reportAction?.actorAccountID,
                         reportAction: transactionItem.reportAction,
@@ -820,6 +822,7 @@ function Search({
                     groupAmount: transactionItem.groupAmount,
                     groupCurrency: transactionItem.groupCurrency,
                     groupExchangeRate: transactionItem.groupExchangeRate,
+                    currencyConversionRate: transactionItem.currencyConversionRate,
                     currency: transactionItem.currency,
                     ownerAccountID: transactionItem.reportAction?.actorAccountID,
                     reportAction: transactionItem.reportAction,
@@ -1151,18 +1154,7 @@ function Search({
         if (!searchResults?.data) {
             return [];
         }
-        return getColumnsToShow({
-            currentAccountID: accountID,
-            data: searchResults?.data,
-            visibleColumns,
-            isExpenseReportView: false,
-            type: searchDataType,
-            groupBy: validGroupBy,
-            isExpenseReportViewFromIOUReport: false,
-            shouldShowBillableColumn: false,
-            shouldShowReimbursableColumn: false,
-            shouldUseStrictDefaultExpenseColumns,
-        });
+        return getColumnsToShow({currentAccountID: accountID, data: searchResults?.data, visibleColumns, type: searchDataType, groupBy: validGroupBy, shouldUseStrictDefaultExpenseColumns});
     }, [accountID, searchResults?.data, searchDataType, visibleColumns, validGroupBy, shouldUseStrictDefaultExpenseColumns]);
 
     const opacity = useSharedValue(1);

@@ -78,13 +78,7 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
         if (!transactionsSnapshot?.data) {
             currentColumns = [];
         } else {
-            currentColumns = getColumnsToShow({
-                currentAccountID: accountID,
-                data: transactionsSnapshot?.data,
-                visibleColumns,
-                isExpenseReportView: false,
-                type: transactionsSnapshot?.search.type,
-            });
+            currentColumns = getColumnsToShow({currentAccountID: accountID, data: transactionsSnapshot?.data, visibleColumns, type: transactionsSnapshot?.search.type});
         }
     }
 

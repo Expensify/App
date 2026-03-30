@@ -37,13 +37,7 @@ function SortByPopup({searchResults, queryJSON, groupBy, onSort, closeOverlay}: 
     const searchDataType = shouldUseLiveData ? CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT : searchResults?.search?.type;
     const currentColumns = !searchResults?.data
         ? []
-        : getColumnsToShow({
-              currentAccountID: accountID,
-              data: searchResults?.data,
-              visibleColumns,
-              type: searchDataType,
-              groupBy: groupBy?.value,
-          });
+        : getColumnsToShow({currentAccountID: accountID, data: searchResults.data, visibleColumns, type: searchDataType, groupBy: groupBy?.value});
     const sortableColumns = getSortByOptions(currentColumns, translate);
     const sortBy = {text: translate(getSearchColumnTranslationKey(queryJSON.sortBy)), value: queryJSON.sortBy};
 

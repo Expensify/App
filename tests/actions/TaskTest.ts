@@ -45,7 +45,6 @@ jest.mock('@libs/Sound');
 jest.mock('@libs/ErrorUtils');
 jest.mock('@libs/actions/Welcome');
 // Keep OnyxDerived real initialization below
-jest.mock('@components/Icon/Expensicons');
 jest.mock('@components/LocaleContextProvider');
 
 // ReportUtils spies used in createTaskAndNavigate tests
