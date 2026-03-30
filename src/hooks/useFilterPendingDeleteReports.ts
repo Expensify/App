@@ -21,7 +21,7 @@ const selectPendingDeleteReportKeys = (reports: OnyxCollection<Report>): string[
 
 /**
  * Filters out report IDs whose corresponding reports have a pending DELETE action.
- * Subscribes to the REPORT collection with a lightweight selector to minimise re-renders.
+ * Subscribes to the REPORT collection with a lightweight selector to minimize re-renders.
  */
 function useFilterPendingDeleteReports(ids: ReadonlyArray<string | undefined>): Array<string | undefined> {
     const [pendingDeleteReportKeys = CONST.EMPTY_ARRAY] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: selectPendingDeleteReportKeys});

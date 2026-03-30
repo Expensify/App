@@ -95,7 +95,7 @@ describe('useSearchSections', () => {
                 search: {isLoading: false},
             };
             onyxData[ONYXKEYS.COLLECTION.REPORT] = {
-                [`${ONYXKEYS.COLLECTION.REPORT}2`]: {reportID: '2', pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE} as Report,
+                [`${ONYXKEYS.COLLECTION.REPORT}2`]: {reportID: '2', pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE} as unknown as Report,
             };
 
             const {result} = renderHook(() => useSearchSections());
