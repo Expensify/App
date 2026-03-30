@@ -55,7 +55,7 @@ function BeneficialOwnersStep({onBackButtonPress, onSubmit, currentSubPage, poli
     const beneficialOwners = reimbursementAccount?.achData?.beneficialOwners;
     const isAnyoneElseUBO = beneficialOwners?.length ? true : (reimbursementAccountDraft?.hasOtherBeneficialOwners ?? false);
     const beneficialOwnerKeys: string[] = reimbursementAccountDraft?.beneficialOwnerKeys ?? reimbursementAccount?.achData?.beneficialOwnerKeys ?? [];
-    const beneficialOwnerBeingModifiedID = reimbursementAccountDraft?.ownerBeingModifiedID ?? '';
+    const beneficialOwnerBeingModifiedID = reimbursementAccountDraft?.ownerBeingModifiedID;
     const isEditingCreatedBeneficialOwner = reimbursementAccountDraft?.isEditingCreatedOwner ?? false;
     const canAddMoreUBOS = beneficialOwnerKeys.length < (isUserUBO ? MAX_NUMBER_OF_UBOS - 1 : MAX_NUMBER_OF_UBOS);
 
@@ -66,7 +66,7 @@ function BeneficialOwnersStep({onBackButtonPress, onSubmit, currentSubPage, poli
         }
         const subPage = isUserUBO || (isAnyoneElseUBO && beneficialOwnerKeys.length > 0) ? SUB_PAGE_NAMES.UBOS_LIST : SUB_PAGE_NAMES.IS_USER_UBO;
         Navigation.setParams({subPage} as Record<string, unknown>);
-    }, [currentSubPage, policyID, backTo, isAnyoneElseUBO, beneficialOwnerKeys.length]);
+    }, [currentSubPage, policyID, backTo, isAnyoneElseUBO, beneficialOwnerKeys.length, isUserUBO]);
 
     const navigateToSubPage = useCallback(
         (subPage: string) => {
@@ -114,7 +114,7 @@ function BeneficialOwnersStep({onBackButtonPress, onSubmit, currentSubPage, poli
     const handleBeneficialOwnerDetailsFormSubmit = () => {
         const shouldAddBeneficialOwner = !beneficialOwnerKeys.find((beneficialOwnerID) => beneficialOwnerID === beneficialOwnerBeingModifiedID) && canAddMoreUBOS;
 
-        if (shouldAddBeneficialOwner) {
+        if (shouldAddBeneficialOwner && beneficialOwnerBeingModifiedID) {
             addBeneficialOwner(beneficialOwnerBeingModifiedID);
         }
 
@@ -201,7 +201,7 @@ function BeneficialOwnersStep({onBackButtonPress, onSubmit, currentSubPage, poli
         return (
             <BeneficialOwnerDetailsFormPages
                 policyID={policyID}
-                beneficialOwnerBeingModifiedID={beneficialOwnerBeingModifiedID}
+                beneficialOwnerBeingModifiedID={beneficialOwnerBeingModifiedID ?? ''}
                 // eslint-disable-next-line @typescript-eslint/no-misused-promises
                 setBeneficialOwnerBeingModifiedID={(id: string) => setDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, {ownerBeingModifiedID: id})}
                 isEditingCreatedBeneficialOwner={isEditingCreatedBeneficialOwner}

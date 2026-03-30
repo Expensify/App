@@ -14,7 +14,6 @@ import type {ReplacementReason} from './libs/actions/Card';
 import type {IOURequestType} from './libs/actions/IOU';
 import Log from './libs/Log';
 import type {RootNavigatorParamList} from './libs/Navigation/types';
-import type {ReimbursementAccountStepToOpen} from './libs/ReimbursementAccountUtils';
 import StringUtils from './libs/StringUtils';
 import {getUrlWithParams} from './libs/Url';
 import SCREENS from './SCREENS';
@@ -299,15 +298,7 @@ const ROUTES = {
     // TODO: rename the route as no longer accepts step
     BANK_ACCOUNT_WITH_STEP_TO_OPEN: {
         route: 'bank-account/new',
-        getRoute: ({
-            policyID,
-            bankAccountID,
-            backTo,
-        }: {
-            policyID: string | undefined;
-            bankAccountID?: number;
-            backTo?: string;
-        }) => {
+        getRoute: ({policyID, bankAccountID, backTo}: {policyID: string | undefined; bankAccountID?: number; backTo?: string}) => {
             if (!policyID && !bankAccountID) {
                 // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
                 return getUrlWithBackToParam(`bank-account/new`, backTo);
