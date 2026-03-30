@@ -69,7 +69,7 @@ import {
 } from '@libs/NextStepUtils';
 import type {KYCFlowEvent, TriggerKYCFlow} from '@libs/PaymentUtils';
 import {handleUnvalidatedAccount, selectPaymentType} from '@libs/PaymentUtils';
-import {getConnectedIntegration, getValidConnectedIntegration, hasDynamicExternalWorkflow, isPolicyAccessible, sortPoliciesByName} from '@libs/PolicyUtils';
+import {getConnectedIntegration, getValidConnectedIntegration, hasDynamicExternalWorkflow, isPolicyAccessible, isSubmitAndClose, sortPoliciesByName} from '@libs/PolicyUtils';
 import {
     getFilteredReportActionsForReportView,
     getIOUActionForReportID,
@@ -1387,8 +1387,9 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
         beginExportWithTemplate,
     ]);
 
-    const submitButtonText = isTrackIntentUser ? translate('common.markAsDone') : translate('common.submit');
-    const approveButtonText = isTrackIntentUser ? translate('common.markAsDone') : translate('iou.approve');
+    const shouldUseMarkAsDoneCopy = isTrackIntentUser && isSubmitAndClose(policy);
+    const submitButtonText = shouldUseMarkAsDoneCopy ? translate('common.markAsDone') : translate('common.submit');
+    const approveButtonText = shouldUseMarkAsDoneCopy ? translate('common.markAsDone') : translate('iou.approve');
 
     const primaryActionsImplementation = {
         [CONST.REPORT.PRIMARY_ACTIONS.SUBMIT]: (
@@ -1399,6 +1400,7 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
                 isSubmittingAnimationRunning={isSubmittingAnimationRunning}
                 onAnimationFinish={stopAnimation}
                 isDisabled={shouldBlockSubmit}
+                policyID={moneyRequestReport?.policyID}
             />
         ),
         [CONST.REPORT.PRIMARY_ACTIONS.APPROVE]: (

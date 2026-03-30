@@ -7,6 +7,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
+import {isSubmitAndClose} from '@libs/PolicyUtils';
 import {hasHeldExpenses as hasHeldExpensesReportUtils, hasViolations as hasViolationsReportUtils} from '@libs/ReportUtils';
 import {approveMoneyRequest} from '@userActions/IOU';
 import CONST from '@src/CONST';
@@ -39,6 +40,7 @@ function ApproveActionButton({iouReportID, startApprovedAnimation, onHoldMenuOpe
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
+    const [iouReportPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${iouReport?.policyID}`);
 
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const hasViolations = hasViolationsReportUtils(iouReport?.reportID, transactionViolations, currentUserAccountID, currentUserEmail);
@@ -69,7 +71,7 @@ function ApproveActionButton({iouReportID, startApprovedAnimation, onHoldMenuOpe
 
     return (
         <Button
-            text={isTrackIntentUser ? translate('common.markAsDone') : translate('iou.approve')}
+            text={isTrackIntentUser && isSubmitAndClose(iouReportPolicy) ? translate('common.markAsDone') : translate('iou.approve')}
             success
             onPress={confirmApproval}
             sentryLabel={CONST.SENTRY_LABEL.REPORT_PREVIEW.APPROVE_BUTTON}

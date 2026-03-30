@@ -7,6 +7,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import {isSubmitAndClose} from '@libs/PolicyUtils';
 import {canSubmitAndIsAwaitingForCurrentUser, getReportTransactions, hasViolations as hasViolationsReportUtils} from '@libs/ReportUtils';
 import {hasAnyPendingRTERViolation as hasAnyPendingRTERViolationTransactionUtils} from '@libs/TransactionUtils';
 import {submitReport} from '@userActions/IOU';
@@ -66,7 +67,7 @@ function SubmitActionButton({iouReportID, chatReportID, isSubmittingAnimationRun
     return (
         <AnimatedSubmitButton
             success={isWaitingForSubmissionFromCurrentUser}
-            text={isTrackIntentUser ? translate('common.markAsDone') : translate('common.submit')}
+            text={isTrackIntentUser && isSubmitAndClose(policy) ? translate('common.markAsDone') : translate('common.submit')}
             onPress={() => {
                 confirmPendingRTERAndProceed(() => {
                     submitReport({
@@ -87,6 +88,7 @@ function SubmitActionButton({iouReportID, chatReportID, isSubmittingAnimationRun
             isSubmittingAnimationRunning={isSubmittingAnimationRunning}
             onAnimationFinish={stopAnimation}
             sentryLabel={CONST.SENTRY_LABEL.REPORT_PREVIEW.SUBMIT_BUTTON}
+            policyID={iouReport?.policyID}
         />
     );
 }

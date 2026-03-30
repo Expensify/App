@@ -73,7 +73,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {getBankAccountLastFourDigits} from '@libs/PaymentUtils';
 import Permissions from '@libs/Permissions';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
-import {getCleanedTagName, hasDynamicExternalWorkflow, isPolicyAdmin, isPolicyMember, isPolicyOwner} from '@libs/PolicyUtils';
+import {getCleanedTagName, hasDynamicExternalWorkflow, isPolicyAdmin, isPolicyMember, isPolicyOwner, isSubmitAndClose} from '@libs/PolicyUtils';
 import {containsActionableFollowUps, parseFollowupsFromHtml} from '@libs/ReportActionFollowupUtils';
 import {
     extractLinksFromMessageHtml,
@@ -1355,7 +1355,7 @@ function PureReportActionItem({
             const isDEWPolicy = hasDynamicExternalWorkflow(policy);
 
             const isPendingAdd = action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD;
-            if (isTrackIntentUser) {
+            if (isTrackIntentUser && isSubmitAndClose(policy)) {
                 children = <ReportActionItemBasicMessage message={translate('iou.markedAsDone', getOriginalMessage(action)?.message)} />;
             } else if (wasSubmittedViaHarvesting) {
                 children = (
@@ -1379,7 +1379,7 @@ function PureReportActionItem({
             const isDEWPolicy = hasDynamicExternalWorkflow(policy);
             const isPendingAdd = action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD;
 
-            if (isTrackIntentUser) {
+            if (isTrackIntentUser && isSubmitAndClose(policy)) {
                 children = <ReportActionItemBasicMessage message={translate('iou.markedAsDone')} />;
             } else if (wasAutoApproved) {
                 children = (

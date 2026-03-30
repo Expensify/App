@@ -35,7 +35,7 @@ import initSplitExpense from '@libs/actions/SplitExpenses';
 import {setNameValuePair} from '@libs/actions/User';
 import {getTransactionsAndReportsFromSearch} from '@libs/MergeTransactionUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {getConnectedIntegration} from '@libs/PolicyUtils';
+import {getConnectedIntegration, isSubmitAndClose} from '@libs/PolicyUtils';
 import {getSecondaryExportReportActions, isMergeActionForSelectedTransactions} from '@libs/ReportSecondaryActionUtils';
 import {
     getIntegrationIcon,
@@ -902,7 +902,10 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         if (shouldShowApproveOption) {
             options.push({
                 icon: expensifyIcons.ThumbsUp,
-                text: isTrackIntentUser ? translate('common.markAsDone') : translate('search.bulkActions.approve'),
+                text:
+                    isTrackIntentUser && selectedReports.every((report) => isSubmitAndClose(policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`]))
+                        ? translate('common.markAsDone')
+                        : translate('search.bulkActions.approve'),
                 value: CONST.SEARCH.BULK_ACTION_TYPES.APPROVE,
                 shouldCloseModalOnSelect: true,
                 onSelected: () => {
@@ -958,7 +961,10 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         if (shouldShowSubmitOption) {
             options.push({
                 icon: expensifyIcons.Send,
-                text: isTrackIntentUser ? translate('common.markAsDone') : translate('common.submit'),
+                text:
+                    isTrackIntentUser && selectedReports.every((report) => isSubmitAndClose(policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`]))
+                        ? translate('common.markAsDone')
+                        : translate('common.submit'),
                 value: CONST.SEARCH.BULK_ACTION_TYPES.SUBMIT,
                 shouldCloseModalOnSelect: true,
                 onSelected: () => {
