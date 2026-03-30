@@ -215,13 +215,13 @@ Onyx.connect({
     },
 });
 
-/** @deprecated Use sortedReportActionsData from ONYXKEYS.DERIVED.SORTED_REPORT_ACTIONS instead. Will be removed once all flows are migrated. */
+/** @deprecated Use sortedReportActionsData from ONYXKEYS.DERIVED.RAM_ONLY_SORTED_REPORT_ACTIONS instead. Will be removed once all flows are migrated. */
 const deprecatedLastReportActions: ReportActions = {};
-/** @deprecated Use sortedReportActionsData from ONYXKEYS.DERIVED.SORTED_REPORT_ACTIONS instead. Will be removed once all flows are migrated. */
+/** @deprecated Use sortedReportActionsData from ONYXKEYS.DERIVED.RAM_ONLY_SORTED_REPORT_ACTIONS instead. Will be removed once all flows are migrated. */
 const deprecatedAllSortedReportActions: Record<string, ReportAction[]> = {};
-/** @deprecated Use sortedReportActionsData from ONYXKEYS.DERIVED.SORTED_REPORT_ACTIONS instead. Will be removed once all flows are migrated. */
+/** @deprecated Use sortedReportActionsData from ONYXKEYS.DERIVED.RAM_ONLY_SORTED_REPORT_ACTIONS instead. Will be removed once all flows are migrated. */
 const deprecatedCachedOneTransactionThreadReportIDs: Record<string, string | undefined> = {};
-/** @deprecated Use sortedReportActionsData from ONYXKEYS.DERIVED.SORTED_REPORT_ACTIONS instead. Will be removed once all flows are migrated. */
+/** @deprecated Use sortedReportActionsData from ONYXKEYS.DERIVED.RAM_ONLY_SORTED_REPORT_ACTIONS instead. Will be removed once all flows are migrated. */
 let deprecatedAllReportActions: OnyxCollection<ReportActions>;
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
