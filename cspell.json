@@ -619,6 +619,7 @@
         "reimbursible",
         "Reimbursments",
         "REJECTEDTRANSACTION",
+        "REJECTEDTOSUBMITTER",
         "remotedesktop",
         "remotesync",
         "removeHiddenElems",

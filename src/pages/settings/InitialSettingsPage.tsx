@@ -115,7 +115,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
         'CreditCard',
         'Wallet',
         'Bolt',
-    ] as const);
+    ]);
     const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET);
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [fundList] = useOnyx(ONYXKEYS.FUND_LIST);

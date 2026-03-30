@@ -99,6 +99,9 @@ type CustomCardFeedData = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Preferred policy */
     preferredPolicy?: string;
 
+    /** Linked policy IDs */
+    linkedPolicyIDs?: string[];
+
     /** Country associated with this feed (ISO 3166-1 alpha-2 code) */
     country?: string;
 
