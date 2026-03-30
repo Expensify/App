@@ -13,7 +13,7 @@ function SplashScreenHider({shouldHideSplash, onHide}: SplashScreenHiderProps): 
     const styles = useThemeStyles();
     const logoSizeRatio = BootSplash.logoSizeRatio || 1;
 
-    const opacity = useSharedValue(1);
+    const opacity = useSharedValue(0);
     const scale = useSharedValue(1);
 
     const opacityStyle = useAnimatedStyle<ViewStyle>(() => ({
@@ -32,24 +32,31 @@ function SplashScreenHider({shouldHideSplash, onHide}: SplashScreenHiderProps): 
 
         hideHasBeenCalled.current = true;
 
-        BootSplash.hide().then(() => {
-            scale.set(
-                withTiming(0, {
-                    duration: 200,
-                    easing: Easing.back(2),
-                }),
-            );
+        // Set RN splash visible, then wait two frames to ensure it's painted
+        // before hiding the native BootSplash.
+        opacity.set(1);
+        requestAnimationFrame(() => {
+            requestAnimationFrame(() => {
+                BootSplash.hide().then(() => {
+                    scale.set(
+                        withTiming(0, {
+                            duration: 200,
+                            easing: Easing.back(2),
+                        }),
+                    );
 
-            opacity.set(
-                withTiming(
-                    0,
-                    {
-                        duration: 250,
-                        easing: Easing.out(Easing.ease),
-                    },
-                    () => scheduleOnRN(onHide),
-                ),
-            );
+                    opacity.set(
+                        withTiming(
+                            0,
+                            {
+                                duration: 250,
+                                easing: Easing.out(Easing.ease),
+                            },
+                            () => scheduleOnRN(onHide),
+                        ),
+                    );
+                });
+            });
         });
     });
 

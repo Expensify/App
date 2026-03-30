@@ -136,9 +136,11 @@ function Expensify() {
 
     const isSplashReadyToBeHidden = splashScreenState === CONST.BOOT_SPLASH_STATE.READY_TO_BE_HIDDEN;
     const isSplashVisible = splashScreenState === CONST.BOOT_SPLASH_STATE.VISIBLE;
+    const [splashHideHasBeenCalled, setSplashHideHasBeenCalled] = useState(false);
 
     const shouldInit = isNavigationReady && hasAttemptedToOpenPublicRoom && !!preferredLocale;
     const shouldHideSplash = shouldInit && (CONFIG.IS_HYBRID_APP ? isSplashReadyToBeHidden : isSplashVisible);
+    const shouldRenderSplashScreenHider = !splashHideHasBeenCalled && splashScreenState !== CONST.BOOT_SPLASH_STATE.HIDDEN;
 
     // We store this in a ref to get the latest values in BootsplashMonitor callback
     const gateStatusRef = useRef<BootsplashGateStatus | null>(null);
@@ -199,7 +201,6 @@ function Expensify() {
         Navigation.setIsNavigationReady();
     }, []);
 
-    const [splashHideHasBeenCalled, setSplashHideHasBeenCalled] = useState(false);
     const onSplashHide = useCallback(() => {
         setSplashHideHasBeenCalled(true);
         setSplashScreenState(CONST.BOOT_SPLASH_STATE.HIDDEN);
@@ -294,7 +295,7 @@ function Expensify() {
                     initialUrl={initialUrl}
                 />
             )}
-            {!splashHideHasBeenCalled && (
+            {shouldRenderSplashScreenHider && (
                 <SplashScreenHider
                     shouldHideSplash={shouldHideSplash}
                     onHide={onSplashHide}
