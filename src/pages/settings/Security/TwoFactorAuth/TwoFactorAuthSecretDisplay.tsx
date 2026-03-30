@@ -1,10 +1,10 @@
 import React from 'react';
 import {View} from 'react-native';
 import expensifyLogo from '@assets/images/expensify-logo-round-transparent.png';
-import * as Expensicons from '@components/Icon/Expensicons';
 import PressableWithDelayToggle from '@components/Pressable/PressableWithDelayToggle';
 import QRCode from '@components/QRCode';
 import Text from '@components/Text';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Clipboard from '@libs/Clipboard';
@@ -25,6 +25,7 @@ type TwoFactorAuthSecretDisplayProps = {
 function TwoFactorAuthSecretDisplay({contactMethod, secretKey, description}: TwoFactorAuthSecretDisplayProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const icons = useMemoizedLazyExpensifyIcons(['Copy']);
 
     return (
         <>
@@ -56,7 +57,7 @@ function TwoFactorAuthSecretDisplay({contactMethod, secretKey, description}: Two
                     tooltipText=""
                     tooltipTextChecked=""
                     accessibilityLabel={translate('twoFactorAuth.copy')}
-                    icon={Expensicons.Copy}
+                    icon={icons.Copy}
                     inline={false}
                     onPress={() => Clipboard.setString(secretKey)}
                     styles={[styles.button, styles.buttonMedium, styles.twoFactorAuthCopyCodeButton]}
