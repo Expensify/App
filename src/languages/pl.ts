@@ -6640,6 +6640,10 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
                     title: 'Karty Expensify zapewniają wbudowaną ochronę – zawsze',
                     description: `Expensify zawsze odrzuca te obciążenia:\n\n  • Usługi dla dorosłych\n  • Bankomaty\n  • Hazard\n  • Przelewy pieniężne\n\nDodaj więcej zasad wydatków, żeby chronić przepływy pieniężne firmy.`,
                 },
+                addSpendRule: 'Dodaj zasadę wydatków',
+                cardPageTitle: 'Karta',
+                cardsSectionTitle: 'Karty',
+                chooseCards: 'Wybierz karty',
             },
         },
         planTypePage: {

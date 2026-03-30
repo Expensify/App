@@ -6665,6 +6665,9 @@ const translations = {
                     description: `Expensify always declines these charges:\n\n  • Adult services\n  • ATMs\n  • Gambling\n  • Money transfers\n\nAdd more spend rules to protect company cash flow.`,
                 },
                 addSpendRule: 'Add spend rule',
+                cardPageTitle: 'Card',
+                cardsSectionTitle: 'Cards',
+                chooseCards: 'Choose cards',
             },
         },
         planTypePage: {

@@ -6645,6 +6645,10 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
                     title: 'Expensify Kaarten bieden altijd ingebouwde bescherming',
                     description: `Expensify wijst deze transacties altijd af:\n\n  • Seksdiensten\n  • Geldautomaten (ATM's)\n  • Gokken\n  • Geldoverschrijvingen\n\nVoeg meer bestedingsregels toe om de cashflow van je bedrijf te beschermen.`,
                 },
+                addSpendRule: 'Bestedingsregel toevoegen',
+                cardPageTitle: 'Kaart',
+                cardsSectionTitle: 'Kaarten',
+                chooseCards: 'Kaarten kiezen',
             },
         },
         planTypePage: {

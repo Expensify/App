@@ -6480,6 +6480,10 @@ ${reportName}
                     title: 'Expensify 卡提供始终内置的保护',
                     description: `Expensify 始终会拒绝以下消费：\n\n  • 成人服务\n  • 自动取款机（ATM）\n  • 赌博\n  • 转账汇款\n\n添加更多消费规则，保护公司的现金流。`,
                 },
+                addSpendRule: '添加支出规则',
+                cardPageTitle: '卡',
+                cardsSectionTitle: '卡',
+                chooseCards: '选择卡',
             },
         },
         planTypePage: {

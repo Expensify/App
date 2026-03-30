@@ -6679,6 +6679,10 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
                     title: 'Expensify Karten bieten integrierten Schutz – jederzeit',
                     description: `Expensify lehnt diese Belastungen immer ab:\n\n  • Dienstleistungen für Erwachsene\n  • Geldautomaten (ATMs)\n  • Glücksspiel\n  • Geldüberweisungen\n\nFügen Sie weitere Ausgabenregeln hinzu, um den Cashflow des Unternehmens zu schützen.`,
                 },
+                addSpendRule: 'Ausgabenregel hinzufügen',
+                cardPageTitle: 'Karte',
+                cardsSectionTitle: 'Karten',
+                chooseCards: 'Karten auswählen',
             },
         },
         planTypePage: {

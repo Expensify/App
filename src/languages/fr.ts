@@ -6703,6 +6703,10 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
                     title: 'Les Cartes Expensify offrent une protection intégrée – en permanence',
                     description: `Expensify refuse toujours ces types de dépenses:\n\n  • Services pour adultes\n  • DAB\n  • Jeux d’argent\n  • Transferts d’argent\n\nAjoutez davantage de règles de dépenses pour protéger la trésorerie de l’entreprise.`,
                 },
+                addSpendRule: 'Ajouter une règle de dépenses',
+                cardPageTitle: 'Carte',
+                cardsSectionTitle: 'Cartes',
+                chooseCards: 'Choisir des cartes',
             },
         },
         planTypePage: {

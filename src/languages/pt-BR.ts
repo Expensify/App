@@ -6644,6 +6644,10 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
                     title: 'Os Cartões Expensify oferecem proteção integrada — sempre',
                     description: `A Expensify sempre recusa estas cobranças:\n\n  • Serviços adultos\n  • Caixas eletrônicos (ATMs)\n  • Jogos de azar\n  • Transferências de dinheiro\n\nAdicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
                 },
+                addSpendRule: 'Adicionar regra de gastos',
+                cardPageTitle: 'Cartão',
+                cardsSectionTitle: 'Cartões',
+                chooseCards: 'Escolher cartões',
             },
         },
         planTypePage: {

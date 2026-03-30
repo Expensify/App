@@ -6666,6 +6666,10 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
                     title: 'Le Carte Expensify offrono una protezione integrata, sempre',
                     description: `Expensify rifiuta sempre queste spese:\n\n  • Servizi per adulti\n  • Bancomat\n  • Gioco d’azzardo\n  • Trasferimenti di denaro\n\nAggiungi altre regole di spesa per proteggere il flusso di cassa dell’azienda.`,
                 },
+                addSpendRule: 'Aggiungi regola di spesa',
+                cardPageTitle: 'Carta',
+                cardsSectionTitle: 'Carte',
+                chooseCards: 'Scegli le carte',
             },
         },
         planTypePage: {

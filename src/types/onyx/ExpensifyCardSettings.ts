@@ -1,3 +1,5 @@
+import type {ValueOf} from 'type-fest';
+import type CONST from '@src/CONST';
 import type * as OnyxCommon from './OnyxCommon';
 
 /** Base settings that can appear at root level or nested under feed type */
@@ -69,6 +71,30 @@ type ExpensifyCardSettingsBase = {
     ownerEmail?: string;
 };
 
+/** Spend rule filter condition */
+type ExpensifyCardRuleFilter = {
+    /** The left side of the filter condition (e.g., 'merchant') */
+    left: string;
+
+    /** The operator for the filter, defined in CONST.SEARCH.SYNTAX_OPERATORS */
+    operator: ValueOf<typeof CONST.SEARCH.SYNTAX_OPERATORS>;
+
+    /** The right side of the filter condition (e.g., 'Snoop') */
+    right: ExpensifyCardRuleFilter | string;
+};
+
+/** Expensify card rule data model */
+type ExpensifyCardRule = {
+    /** Date the rule was created */
+    created: string;
+
+    /** Filter AST evaluated for the transaction */
+    filters: ExpensifyCardRuleFilter;
+
+    /** Action to take when the rule is matched */
+    action: ValueOf<typeof CONST.SPEND_CARD_RULE.ACTION>;
+};
+
 /** Model of Expensify card settings for a workspace - can have nested feed types from backend */
 type ExpensifyCardSettings = OnyxCommon.OnyxValueWithOfflineFeedback<
     ExpensifyCardSettingsBase & {
@@ -85,10 +111,13 @@ type ExpensifyCardSettings = OnyxCommon.OnyxValueWithOfflineFeedback<
         // eslint-disable-next-line @typescript-eslint/naming-convention
         TRAVEL_US?: ExpensifyCardSettingsBase;
 
+        /** Spend rules for the feed */
+        cardRules?: ExpensifyCardRule;
+
         /** Whether the card settings has been loaded before */
         hasOnceLoaded?: boolean;
     }
 >;
 
 export default ExpensifyCardSettings;
-export type {ExpensifyCardSettingsBase};
+export type {ExpensifyCardSettingsBase, ExpensifyCardRuleFilter};
