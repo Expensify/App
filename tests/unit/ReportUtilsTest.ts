@@ -6263,6 +6263,7 @@ describe('ReportUtils', () => {
         it('should always set isPinned to false', () => {
             const result = buildOptimisticChatReport({
                 participantList: [1, 2, 3],
+                currentUserAccountID: 1,
             });
             expect(result.isPinned).toBe(false);
         });

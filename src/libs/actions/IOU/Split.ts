@@ -860,6 +860,7 @@ function completeSplitBill(
                 existingChatReport ??
                 buildOptimisticChatReport({
                     participantList: participant.accountID ? [participant.accountID, sessionAccountID] : [],
+                    currentUserAccountID: sessionAccountID,
                 });
         }
 
