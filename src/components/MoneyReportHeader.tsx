@@ -196,6 +196,7 @@ import type {PopoverMenuItem} from './PopoverMenu';
 import {PressableWithFeedback} from './Pressable';
 import type {ActionHandledType} from './ProcessMoneyReportHoldMenu';
 import ProcessMoneyReportHoldMenu from './ProcessMoneyReportHoldMenu';
+import BulkDuplicateHandler from './Search/BulkDuplicateHandler';
 import {useSearchActionsContext, useSearchStateContext} from './Search/SearchContext';
 import AnimatedSettlementButton from './SettlementButton/AnimatedSettlementButton';
 import type {PaymentActionParams} from './SettlementButton/types';
@@ -609,6 +610,10 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
         options: originalSelectedTransactionsOptions,
         handleDeleteTransactions,
         handleDeleteTransactionsWithNavigation,
+        isDuplicateOptionVisible,
+        setDuplicateHandler,
+        allTransactions: allTransactionsForDuplicate,
+        allReports: allReportsForDuplicate,
     } = useSelectedTransactionsActions({
         report: moneyRequestReport,
         reportActions,
@@ -2468,239 +2473,251 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
     };
 
     return (
-        <View style={[styles.pt0, styles.borderBottom]}>
-            <HeaderWithBackButton
-                shouldShowReportAvatarWithDisplay
-                shouldDisplayStatus
-                shouldShowPinButton={false}
-                report={moneyRequestReport}
-                policy={policy}
-                shouldShowBackButton={shouldShowBackButton}
-                shouldDisplaySearchRouter={shouldDisplaySearchRouter}
-                shouldDisplayHelpButton={!(isReportInRHP && shouldUseNarrowLayout)}
-                onBackButtonPress={onBackButtonPress}
-                shouldShowBorderBottom={false}
-                shouldEnableDetailPageNavigation
-                openParentReportInCurrentTab
-            >
-                {shouldDisplayNarrowMoreButton && (
-                    <View style={[styles.flexRow, styles.gap2]}>
-                        {!!primaryAction && !shouldShowSelectedTransactionsButton && primaryActionsImplementation[primaryAction]}
-                        {!!applicableSecondaryActions.length && !shouldShowSelectedTransactionsButton && (
-                            <MoneyReportHeaderKYCDropdown
-                                chatReportID={chatReport?.reportID}
-                                iouReport={moneyRequestReport}
-                                onPaymentSelect={onPaymentSelect}
-                                onSuccessfulKYC={(type) => confirmPayment({paymentType: type})}
-                                primaryAction={primaryAction}
-                                applicableSecondaryActions={applicableSecondaryActions}
-                                dropdownMenuRef={dropdownMenuRef}
-                                onOptionsMenuHide={handleOptionsMenuHide}
-                                ref={kycWallRef}
-                            />
-                        )}
-                        {shouldShowSelectedTransactionsButton && <View>{renderSelectionModeDropdown()}</View>}
-                    </View>
-                )}
-            </HeaderWithBackButton>
-            {!shouldDisplayNarrowMoreButton &&
-                (shouldShowSelectedTransactionsButton ? (
-                    <View style={[styles.dFlex, styles.w100, styles.ph5, styles.pb3]}>{renderSelectionModeDropdown(styles.w100)}</View>
-                ) : (
-                    <View style={[styles.flexRow, styles.gap2, styles.pb3, styles.ph5, styles.w100, styles.alignItemsCenter, styles.justifyContentCenter]}>
-                        {!!primaryAction && <View style={[styles.flex1]}>{primaryActionsImplementation[primaryAction]}</View>}
-                        {!!applicableSecondaryActions.length && (
-                            <MoneyReportHeaderKYCDropdown
-                                chatReportID={chatReport?.reportID}
-                                iouReport={moneyRequestReport}
-                                onPaymentSelect={onPaymentSelect}
-                                onSuccessfulKYC={(type) => confirmPayment({paymentType: type})}
-                                primaryAction={primaryAction}
-                                applicableSecondaryActions={applicableSecondaryActions}
-                                dropdownMenuRef={dropdownMenuRef}
-                                onOptionsMenuHide={handleOptionsMenuHide}
-                                ref={kycWallRef}
-                            />
-                        )}
-                    </View>
-                ))}
-
-            {shouldShowMoreContent && (
-                <View style={[styles.flexRow, styles.gap2, styles.justifyContentStart, styles.flexNoWrap, styles.ph5, styles.pb3]}>
-                    <View style={[styles.flexShrink1, styles.flexGrow1, styles.mnw0, styles.flexWrap, styles.justifyContentCenter]}>
-                        {showNextStepBar && <MoneyReportHeaderStatusBar nextStep={optimisticNextStep} />}
-                        {showNextStepSkeleton && <MoneyReportHeaderStatusBarSkeleton reasonAttributes={nextStepSkeletonReasonAttributes} />}
-                        {!!statusBarProps && (
-                            <MoneyRequestHeaderStatusBar
-                                icon={statusBarProps.icon}
-                                description={statusBarProps.description}
-                            />
-                        )}
-                    </View>
-                    {isReportInSearch && (
-                        <MoneyRequestReportNavigation
-                            reportID={moneyRequestReport?.reportID}
-                            shouldDisplayNarrowVersion={!shouldDisplayNarrowMoreButton}
-                        />
+        <>
+            {isDuplicateOptionVisible && (
+                <BulkDuplicateHandler
+                    selectedTransactionsKeys={selectedTransactionIDs}
+                    allTransactions={allTransactionsForDuplicate}
+                    allReports={allReportsForDuplicate}
+                    searchData={undefined}
+                    onHandlerReady={setDuplicateHandler}
+                    onAfterDuplicate={() => clearSelectedTransactions(true)}
+                />
+            )}
+            <View style={[styles.pt0, styles.borderBottom]}>
+                <HeaderWithBackButton
+                    shouldShowReportAvatarWithDisplay
+                    shouldDisplayStatus
+                    shouldShowPinButton={false}
+                    report={moneyRequestReport}
+                    policy={policy}
+                    shouldShowBackButton={shouldShowBackButton}
+                    shouldDisplaySearchRouter={shouldDisplaySearchRouter}
+                    shouldDisplayHelpButton={!(isReportInRHP && shouldUseNarrowLayout)}
+                    onBackButtonPress={onBackButtonPress}
+                    shouldShowBorderBottom={false}
+                    shouldEnableDetailPageNavigation
+                    openParentReportInCurrentTab
+                >
+                    {shouldDisplayNarrowMoreButton && (
+                        <View style={[styles.flexRow, styles.gap2]}>
+                            {!!primaryAction && !shouldShowSelectedTransactionsButton && primaryActionsImplementation[primaryAction]}
+                            {!!applicableSecondaryActions.length && !shouldShowSelectedTransactionsButton && (
+                                <MoneyReportHeaderKYCDropdown
+                                    chatReportID={chatReport?.reportID}
+                                    iouReport={moneyRequestReport}
+                                    onPaymentSelect={onPaymentSelect}
+                                    onSuccessfulKYC={(type) => confirmPayment({paymentType: type})}
+                                    primaryAction={primaryAction}
+                                    applicableSecondaryActions={applicableSecondaryActions}
+                                    dropdownMenuRef={dropdownMenuRef}
+                                    onOptionsMenuHide={handleOptionsMenuHide}
+                                    ref={kycWallRef}
+                                />
+                            )}
+                            {shouldShowSelectedTransactionsButton && <View>{renderSelectionModeDropdown()}</View>}
+                        </View>
                     )}
-                </View>
-            )}
-
-            <HeaderLoadingBar />
-            {isHoldMenuVisible && requestType !== undefined && (
-                <ProcessMoneyReportHoldMenu
-                    nonHeldAmount={!hasOnlyHeldExpenses && hasValidNonHeldAmount ? nonHeldAmount : undefined}
-                    requestType={requestType}
-                    fullAmount={fullAmount}
-                    onClose={() => {
-                        setSelectedVBBAToPayFromHoldMenu(undefined);
-                        setIsHoldMenuVisible(false);
-                        isSelectionModePaymentRef.current = false;
-                    }}
-                    isVisible={isHoldMenuVisible}
-                    paymentType={paymentType}
-                    methodID={paymentType === CONST.IOU.PAYMENT_TYPE.VBBA ? selectedVBBAToPayFromHoldMenu : undefined}
-                    chatReport={chatReport}
-                    moneyRequestReport={moneyRequestReport}
-                    hasNonHeldExpenses={!hasOnlyHeldExpenses}
-                    startAnimation={() => {
-                        if (isSelectionModePaymentRef.current) {
-                            clearSelectedTransactions(true);
-                            return;
-                        }
-                        if (requestType === CONST.IOU.REPORT_ACTION_TYPE.APPROVE) {
-                            startApprovedAnimation();
-                        } else {
-                            startAnimation();
-                        }
-                    }}
-                    transactionCount={transactionIDs?.length ?? 0}
-                />
-            )}
-            <DecisionModal
-                title={translate('common.downloadFailedTitle')}
-                prompt={translate('common.downloadFailedDescription')}
-                isSmallScreenWidth={isSmallScreenWidth}
-                onSecondOptionSubmit={() => setDownloadErrorModalVisible(false)}
-                secondOptionText={translate('common.buttonConfirm')}
-                isVisible={downloadErrorModalVisible}
-                onClose={() => setDownloadErrorModalVisible(false)}
-            />
-            <DecisionModal
-                title={translate('common.downloadFailedTitle')}
-                prompt={translate('common.downloadFailedDescription')}
-                isSmallScreenWidth={isSmallScreenWidth}
-                onSecondOptionSubmit={() => setIsDownloadErrorModalVisible(false)}
-                secondOptionText={translate('common.buttonConfirm')}
-                isVisible={isDownloadErrorModalVisible}
-                onClose={() => setIsDownloadErrorModalVisible(false)}
-            />
-            <ConfirmModal
-                title={translate('common.duplicateExpense')}
-                isVisible={rateErrorModalVisible}
-                onConfirm={() => setRateErrorModalVisible(false)}
-                onCancel={() => setRateErrorModalVisible(false)}
-                confirmText={translate('common.buttonConfirm')}
-                prompt={translate('iou.correctRateError')}
-                shouldShowCancelButton={false}
-            />
-            <ConfirmModal
-                title={translate('common.duplicateExpense')}
-                isVisible={duplicateDistanceErrorModalVisible}
-                onConfirm={() => setDuplicateDistanceErrorModalVisible(false)}
-                onCancel={() => setDuplicateDistanceErrorModalVisible(false)}
-                confirmText={translate('common.buttonConfirm')}
-                prompt={translate('iou.cannotDuplicateDistanceExpense')}
-                shouldShowCancelButton={false}
-            />
-            <ConfirmModal
-                title={translate('common.duplicateExpense')}
-                isVisible={duplicatePerDiemErrorModalVisible}
-                onConfirm={() => setDuplicatePerDiemErrorModalVisible(false)}
-                onCancel={() => setDuplicatePerDiemErrorModalVisible(false)}
-                confirmText={translate('common.buttonConfirm')}
-                prompt={translate('iou.duplicateNonDefaultWorkspacePerDiemError')}
-                shouldShowCancelButton={false}
-            />
-            {!!rejectModalAction && (
-                <HoldOrRejectEducationalModal
-                    onClose={dismissRejectModalBasedOnAction}
-                    onConfirm={dismissRejectModalBasedOnAction}
-                />
-            )}
-            {!!isHoldEducationalModalVisible && (
-                <HoldSubmitterEducationalModal
-                    onClose={dismissModalAndUpdateUseHold}
-                    onConfirm={dismissModalAndUpdateUseHold}
-                />
-            )}
-            <DecisionModal
-                title={translate('common.youAppearToBeOffline')}
-                prompt={translate('common.offlinePrompt')}
-                isSmallScreenWidth={isSmallScreenWidth}
-                onSecondOptionSubmit={() => setOfflineModalVisible(false)}
-                secondOptionText={translate('common.buttonConfirm')}
-                isVisible={offlineModalVisible}
-                onClose={() => setOfflineModalVisible(false)}
-            />
-            <Modal
-                onClose={() => {
-                    setIsPDFModalVisible(false);
-                }}
-                isVisible={isPDFModalVisible}
-                type={isSmallScreenWidth ? CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED : CONST.MODAL.MODAL_TYPE.CONFIRM}
-                innerContainerStyle={styles.pv0}
-            >
-                <View style={[styles.flexRow, styles.m5]}>
-                    <View style={[styles.flex1]}>
-                        <View style={[styles.flexRow, styles.mb4]}>
-                            <View style={[styles.flex1]}>
-                                <View style={[styles.flexRow]}>
-                                    <Header title={translate('reportDetailsPage.generatingPDF')} />
-                                </View>
-                                <Text style={[styles.mt5, styles.textAlignLeft]}>{messagePDF}</Text>
-                            </View>
-
-                            {!hasFinishedPDFDownload && (
-                                <View style={[styles.dFlex, styles.justifyContentEnd]}>
-                                    <ActivityIndicator
-                                        size={CONST.ACTIVITY_INDICATOR_SIZE.SMALL}
-                                        color={theme.textSupporting}
-                                        style={styles.ml3}
-                                        reasonAttributes={pdfLoadingReasonAttributes}
-                                    />
-                                </View>
+                </HeaderWithBackButton>
+                {!shouldDisplayNarrowMoreButton &&
+                    (shouldShowSelectedTransactionsButton ? (
+                        <View style={[styles.dFlex, styles.w100, styles.ph5, styles.pb3]}>{renderSelectionModeDropdown(styles.w100)}</View>
+                    ) : (
+                        <View style={[styles.flexRow, styles.gap2, styles.pb3, styles.ph5, styles.w100, styles.alignItemsCenter, styles.justifyContentCenter]}>
+                            {!!primaryAction && <View style={[styles.flex1]}>{primaryActionsImplementation[primaryAction]}</View>}
+                            {!!applicableSecondaryActions.length && (
+                                <MoneyReportHeaderKYCDropdown
+                                    chatReportID={chatReport?.reportID}
+                                    iouReport={moneyRequestReport}
+                                    onPaymentSelect={onPaymentSelect}
+                                    onSuccessfulKYC={(type) => confirmPayment({paymentType: type})}
+                                    primaryAction={primaryAction}
+                                    applicableSecondaryActions={applicableSecondaryActions}
+                                    dropdownMenuRef={dropdownMenuRef}
+                                    onOptionsMenuHide={handleOptionsMenuHide}
+                                    ref={kycWallRef}
+                                />
                             )}
                         </View>
-                        <Button
-                            style={[styles.mt3, styles.noSelect]}
-                            onPress={() => {
-                                if (!hasFinishedPDFDownload) {
-                                    setIsPDFModalVisible(false);
-                                } else {
-                                    downloadReportPDF(reportPDFFilename, moneyRequestReport?.reportName ?? '', translate, currentUserLogin ?? '', encryptedAuthToken);
-                                }
-                            }}
-                            text={hasFinishedPDFDownload ? translate('common.download') : translate('common.cancel')}
-                        />
+                    ))}
+
+                {shouldShowMoreContent && (
+                    <View style={[styles.flexRow, styles.gap2, styles.justifyContentStart, styles.flexNoWrap, styles.ph5, styles.pb3]}>
+                        <View style={[styles.flexShrink1, styles.flexGrow1, styles.mnw0, styles.flexWrap, styles.justifyContentCenter]}>
+                            {showNextStepBar && <MoneyReportHeaderStatusBar nextStep={optimisticNextStep} />}
+                            {showNextStepSkeleton && <MoneyReportHeaderStatusBarSkeleton reasonAttributes={nextStepSkeletonReasonAttributes} />}
+                            {!!statusBarProps && (
+                                <MoneyRequestHeaderStatusBar
+                                    icon={statusBarProps.icon}
+                                    description={statusBarProps.description}
+                                />
+                            )}
+                        </View>
+                        {isReportInSearch && (
+                            <MoneyRequestReportNavigation
+                                reportID={moneyRequestReport?.reportID}
+                                shouldDisplayNarrowVersion={!shouldDisplayNarrowMoreButton}
+                            />
+                        )}
                     </View>
-                    <PressableWithFeedback
-                        onPress={() => {
-                            setIsPDFModalVisible(false);
+                )}
+
+                <HeaderLoadingBar />
+                {isHoldMenuVisible && requestType !== undefined && (
+                    <ProcessMoneyReportHoldMenu
+                        nonHeldAmount={!hasOnlyHeldExpenses && hasValidNonHeldAmount ? nonHeldAmount : undefined}
+                        requestType={requestType}
+                        fullAmount={fullAmount}
+                        onClose={() => {
+                            setSelectedVBBAToPayFromHoldMenu(undefined);
+                            setIsHoldMenuVisible(false);
+                            isSelectionModePaymentRef.current = false;
                         }}
-                        role={CONST.ROLE.BUTTON}
-                        accessibilityLabel={translate('common.close')}
-                        wrapperStyle={[styles.pAbsolute, styles.r0]}
-                        sentryLabel={CONST.SENTRY_LABEL.MORE_MENU.CLOSE_PDF_MODAL}
-                    >
-                        <Icon
-                            src={expensifyIcons.Close}
-                            fill={theme.icon}
-                        />
-                    </PressableWithFeedback>
-                </View>
-            </Modal>
-        </View>
+                        isVisible={isHoldMenuVisible}
+                        paymentType={paymentType}
+                        methodID={paymentType === CONST.IOU.PAYMENT_TYPE.VBBA ? selectedVBBAToPayFromHoldMenu : undefined}
+                        chatReport={chatReport}
+                        moneyRequestReport={moneyRequestReport}
+                        hasNonHeldExpenses={!hasOnlyHeldExpenses}
+                        startAnimation={() => {
+                            if (isSelectionModePaymentRef.current) {
+                                clearSelectedTransactions(true);
+                                return;
+                            }
+                            if (requestType === CONST.IOU.REPORT_ACTION_TYPE.APPROVE) {
+                                startApprovedAnimation();
+                            } else {
+                                startAnimation();
+                            }
+                        }}
+                        transactionCount={transactionIDs?.length ?? 0}
+                    />
+                )}
+                <DecisionModal
+                    title={translate('common.downloadFailedTitle')}
+                    prompt={translate('common.downloadFailedDescription')}
+                    isSmallScreenWidth={isSmallScreenWidth}
+                    onSecondOptionSubmit={() => setDownloadErrorModalVisible(false)}
+                    secondOptionText={translate('common.buttonConfirm')}
+                    isVisible={downloadErrorModalVisible}
+                    onClose={() => setDownloadErrorModalVisible(false)}
+                />
+                <DecisionModal
+                    title={translate('common.downloadFailedTitle')}
+                    prompt={translate('common.downloadFailedDescription')}
+                    isSmallScreenWidth={isSmallScreenWidth}
+                    onSecondOptionSubmit={() => setIsDownloadErrorModalVisible(false)}
+                    secondOptionText={translate('common.buttonConfirm')}
+                    isVisible={isDownloadErrorModalVisible}
+                    onClose={() => setIsDownloadErrorModalVisible(false)}
+                />
+                <ConfirmModal
+                    title={translate('common.duplicateExpense')}
+                    isVisible={rateErrorModalVisible}
+                    onConfirm={() => setRateErrorModalVisible(false)}
+                    onCancel={() => setRateErrorModalVisible(false)}
+                    confirmText={translate('common.buttonConfirm')}
+                    prompt={translate('iou.correctRateError')}
+                    shouldShowCancelButton={false}
+                />
+                <ConfirmModal
+                    title={translate('common.duplicateExpense')}
+                    isVisible={duplicateDistanceErrorModalVisible}
+                    onConfirm={() => setDuplicateDistanceErrorModalVisible(false)}
+                    onCancel={() => setDuplicateDistanceErrorModalVisible(false)}
+                    confirmText={translate('common.buttonConfirm')}
+                    prompt={translate('iou.cannotDuplicateDistanceExpense')}
+                    shouldShowCancelButton={false}
+                />
+                <ConfirmModal
+                    title={translate('common.duplicateExpense')}
+                    isVisible={duplicatePerDiemErrorModalVisible}
+                    onConfirm={() => setDuplicatePerDiemErrorModalVisible(false)}
+                    onCancel={() => setDuplicatePerDiemErrorModalVisible(false)}
+                    confirmText={translate('common.buttonConfirm')}
+                    prompt={translate('iou.duplicateNonDefaultWorkspacePerDiemError')}
+                    shouldShowCancelButton={false}
+                />
+                {!!rejectModalAction && (
+                    <HoldOrRejectEducationalModal
+                        onClose={dismissRejectModalBasedOnAction}
+                        onConfirm={dismissRejectModalBasedOnAction}
+                    />
+                )}
+                {!!isHoldEducationalModalVisible && (
+                    <HoldSubmitterEducationalModal
+                        onClose={dismissModalAndUpdateUseHold}
+                        onConfirm={dismissModalAndUpdateUseHold}
+                    />
+                )}
+                <DecisionModal
+                    title={translate('common.youAppearToBeOffline')}
+                    prompt={translate('common.offlinePrompt')}
+                    isSmallScreenWidth={isSmallScreenWidth}
+                    onSecondOptionSubmit={() => setOfflineModalVisible(false)}
+                    secondOptionText={translate('common.buttonConfirm')}
+                    isVisible={offlineModalVisible}
+                    onClose={() => setOfflineModalVisible(false)}
+                />
+                <Modal
+                    onClose={() => {
+                        setIsPDFModalVisible(false);
+                    }}
+                    isVisible={isPDFModalVisible}
+                    type={isSmallScreenWidth ? CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED : CONST.MODAL.MODAL_TYPE.CONFIRM}
+                    innerContainerStyle={styles.pv0}
+                >
+                    <View style={[styles.flexRow, styles.m5]}>
+                        <View style={[styles.flex1]}>
+                            <View style={[styles.flexRow, styles.mb4]}>
+                                <View style={[styles.flex1]}>
+                                    <View style={[styles.flexRow]}>
+                                        <Header title={translate('reportDetailsPage.generatingPDF')} />
+                                    </View>
+                                    <Text style={[styles.mt5, styles.textAlignLeft]}>{messagePDF}</Text>
+                                </View>
+
+                                {!hasFinishedPDFDownload && (
+                                    <View style={[styles.dFlex, styles.justifyContentEnd]}>
+                                        <ActivityIndicator
+                                            size={CONST.ACTIVITY_INDICATOR_SIZE.SMALL}
+                                            color={theme.textSupporting}
+                                            style={styles.ml3}
+                                            reasonAttributes={pdfLoadingReasonAttributes}
+                                        />
+                                    </View>
+                                )}
+                            </View>
+                            <Button
+                                style={[styles.mt3, styles.noSelect]}
+                                onPress={() => {
+                                    if (!hasFinishedPDFDownload) {
+                                        setIsPDFModalVisible(false);
+                                    } else {
+                                        downloadReportPDF(reportPDFFilename, moneyRequestReport?.reportName ?? '', translate, currentUserLogin ?? '', encryptedAuthToken);
+                                    }
+                                }}
+                                text={hasFinishedPDFDownload ? translate('common.download') : translate('common.cancel')}
+                            />
+                        </View>
+                        <PressableWithFeedback
+                            onPress={() => {
+                                setIsPDFModalVisible(false);
+                            }}
+                            role={CONST.ROLE.BUTTON}
+                            accessibilityLabel={translate('common.close')}
+                            wrapperStyle={[styles.pAbsolute, styles.r0]}
+                            sentryLabel={CONST.SENTRY_LABEL.MORE_MENU.CLOSE_PDF_MODAL}
+                        >
+                            <Icon
+                                src={expensifyIcons.Close}
+                                fill={theme.icon}
+                            />
+                        </PressableWithFeedback>
+                    </View>
+                </Modal>
+            </View>
+        </>
     );
 }
 

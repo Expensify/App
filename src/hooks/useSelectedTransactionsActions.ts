@@ -1,4 +1,4 @@
-import {useCallback, useRef, useState} from 'react';
+import {useRef, useState} from 'react';
 import {DeviceEventEmitter} from 'react-native';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
@@ -159,28 +159,28 @@ function useSelectedTransactionsActions({
 
     const activePolicyExpenseChat = getPolicyExpenseChat(currentUserAccountID, defaultExpensePolicy?.id);
 
-    const isDuplicateOptionVisible =
-        !isProduction &&
-        shouldShowBulkDuplicateOption({
-            selectedTransactionsKeys: selectedTransactionIDs,
-            selectedTransactions: selectedTransactionsForDuplicate,
-            allTransactions,
-            allReports,
-            allTransactionViolations,
-            allReportNameValuePairs,
-            defaultExpensePolicyID: defaultExpensePolicy?.id,
-            activePolicyExpenseChat,
-            typeExpenseReport: false,
-            searchData: undefined,
-        });
+    const shouldShow = shouldShowBulkDuplicateOption({
+        selectedTransactionsKeys: selectedTransactionIDs,
+        selectedTransactions: selectedTransactionsForDuplicate,
+        allTransactions,
+        allReports,
+        allTransactionViolations,
+        allReportNameValuePairs,
+        defaultExpensePolicyID: defaultExpensePolicy?.id,
+        activePolicyExpenseChat,
+        typeExpenseReport: false,
+        searchData: undefined,
+    });
+
+    const isDuplicateOptionVisible = !isProduction && shouldShow;
 
     const duplicateHandlerRef = useRef<() => void>(() => {});
-    const setDuplicateHandler = useCallback((handler: () => void) => {
+    const setDuplicateHandler = (handler: () => void) => {
         duplicateHandlerRef.current = handler;
-    }, []);
-    const invokeDuplicateHandler = useCallback(() => {
+    };
+    const invokeDuplicateHandler = () => {
         duplicateHandlerRef.current();
-    }, []);
+    };
 
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     const isTrackExpenseThread = isTrackExpenseReport(report);
