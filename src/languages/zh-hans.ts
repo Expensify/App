@@ -2732,6 +2732,8 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         },
         employees: {
             title: '您有多少名员工？',
+            [CONST.ONBOARDING_COMPANY_SIZE.MICRO_SMALL]: '1-4',
+            [CONST.ONBOARDING_COMPANY_SIZE.MICRO_MEDIUM]: '5-10',
             [CONST.ONBOARDING_COMPANY_SIZE.MICRO]: '1–10 名员工',
             [CONST.ONBOARDING_COMPANY_SIZE.SMALL]: '11-50 名员工',
             [CONST.ONBOARDING_COMPANY_SIZE.MEDIUM_SMALL]: '51-100 名员工',

@@ -148,6 +148,8 @@ const onboardingInviteTypes = {
 } as const;
 
 const onboardingCompanySize = {
+    MICRO_SMALL: '1-4',
+    MICRO_MEDIUM: '5-10',
     MICRO: '1-10',
     SMALL: '11-50',
     MEDIUM_SMALL: '51-100',

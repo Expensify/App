@@ -2790,6 +2790,8 @@ ${date} の ${merchant} への ${amount}`,
         },
         employees: {
             title: '従業員は何人いますか？',
+            [CONST.ONBOARDING_COMPANY_SIZE.MICRO_SMALL]: '1-4',
+            [CONST.ONBOARDING_COMPANY_SIZE.MICRO_MEDIUM]: '5-10',
             [CONST.ONBOARDING_COMPANY_SIZE.MICRO]: '従業員数 1～10 人',
             [CONST.ONBOARDING_COMPANY_SIZE.SMALL]: '従業員数 11～50 人',
             [CONST.ONBOARDING_COMPANY_SIZE.MEDIUM_SMALL]: '従業員数 51～100 人',

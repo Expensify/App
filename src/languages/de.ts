@@ -2819,6 +2819,8 @@ ${amount} für ${merchant} – ${date}`,
         },
         employees: {
             title: 'Wie viele Mitarbeitende haben Sie?',
+            [CONST.ONBOARDING_COMPANY_SIZE.MICRO_SMALL]: '1-4',
+            [CONST.ONBOARDING_COMPANY_SIZE.MICRO_MEDIUM]: '5-10',
             [CONST.ONBOARDING_COMPANY_SIZE.MICRO]: '1–10 Beschäftigte',
             [CONST.ONBOARDING_COMPANY_SIZE.SMALL]: '11–50 Mitarbeitende',
             [CONST.ONBOARDING_COMPANY_SIZE.MEDIUM_SMALL]: '51–100 Mitarbeitende',

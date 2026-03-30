@@ -2816,6 +2816,8 @@ ${amount} per ${merchant} - ${date}`,
         },
         employees: {
             title: 'Quanti dipendenti hai?',
+            [CONST.ONBOARDING_COMPANY_SIZE.MICRO_SMALL]: '1-4',
+            [CONST.ONBOARDING_COMPANY_SIZE.MICRO_MEDIUM]: '5-10',
             [CONST.ONBOARDING_COMPANY_SIZE.MICRO]: '1-10 dipendenti',
             [CONST.ONBOARDING_COMPANY_SIZE.SMALL]: '11-50 dipendenti',
             [CONST.ONBOARDING_COMPANY_SIZE.MEDIUM_SMALL]: '51-100 dipendenti',

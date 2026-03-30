@@ -31,7 +31,7 @@ Onyx.connectWithoutView({
  * The RHP variant is only shown to micro companies that are part of the RHP experiment.
  */
 const shouldOpenRHPVariant: ShouldOpenRHPVariant = () => {
-    const isMicroCompany = onboardingCompanySize === CONST.ONBOARDING_COMPANY_SIZE.MICRO;
+    const isMicroCompany = onboardingCompanySize === CONST.ONBOARDING_COMPANY_SIZE.MICRO_SMALL || onboardingCompanySize === CONST.ONBOARDING_COMPANY_SIZE.MICRO;
     const isRHPConciergeDM = onboardingRHPVariant === CONST.ONBOARDING_RHP_VARIANT.RHP_CONCIERGE_DM;
     const isRHPAdminsRoom = onboardingRHPVariant === CONST.ONBOARDING_RHP_VARIANT.RHP_ADMINS_ROOM;
 
