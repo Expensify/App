@@ -201,8 +201,7 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                         ref={containerRef}
                         role={isSmallScreenWidth ? undefined : CONST.ROLE.DIALOG}
                         aria-modal={isSmallScreenWidth ? undefined : true}
-                        tabIndex={isSmallScreenWidth ? undefined : -1}
-                        style={[styles.pAbsolute, styles.r0, styles.h100, styles.overflowHidden, animatedWidthStyle, !isSmallScreenWidth && styles.noOutline]}
+                        style={[styles.pAbsolute, styles.r0, styles.h100, styles.overflowHidden, animatedWidthStyle]}
                     >
                         <DialogLabelProvider containerRef={containerRef}>
                             <Stack.Navigator
