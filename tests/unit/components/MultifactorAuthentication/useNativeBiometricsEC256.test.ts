@@ -78,6 +78,9 @@ describe('useNativeBiometricsEC256 hook', () => {
 
     describe('Hook initialization', () => {
         it('should return hook with required properties', () => {
+            // Given a device with biometrics available and an authenticated user
+            // When the hook is initialized
+            // Then it should expose all required interface methods so consumers can register, authorize, and manage biometric credentials
             const {result} = renderHook(() => useNativeBiometricsEC256());
 
             expect(result.current).toHaveProperty('serverKnownCredentialIDs');
@@ -90,6 +93,9 @@ describe('useNativeBiometricsEC256 hook', () => {
         });
 
         it('should return biometrics device verification type', () => {
+            // Given a device with biometrics available
+            // When the hook is initialized
+            // Then it should report BIOMETRICS as its device verification type so the MFA system can distinguish it from other verification methods
             const {result} = renderHook(() => useNativeBiometricsEC256());
 
             expect(result.current.deviceVerificationType).toBe(CONST.MULTIFACTOR_AUTHENTICATION.TYPE.BIOMETRICS);
@@ -98,12 +104,18 @@ describe('useNativeBiometricsEC256 hook', () => {
 
     describe('doesDeviceSupportAuthenticationMethod', () => {
         it('should return true when sensor is available', () => {
+            // Given a device with a biometric sensor available (e.g., Face ID or Touch ID)
+            // When checking device support for biometric authentication
+            // Then it should return true because the device can perform biometric verification
             const {result} = renderHook(() => useNativeBiometricsEC256());
 
             expect(result.current.doesDeviceSupportAuthenticationMethod()).toBe(true);
         });
 
         it('should return true when device is secure but no biometrics', () => {
+            // Given a device without biometric hardware but with a secure lock screen (PIN/password)
+            // When checking device support for biometric authentication
+            // Then it should return true because device credentials can serve as a fallback verification method
             jest.spyOn(EC256Helpers, 'getSensorResult').mockReturnValue({available: false, isDeviceSecure: true});
 
             const {result} = renderHook(() => useNativeBiometricsEC256());
@@ -112,6 +124,9 @@ describe('useNativeBiometricsEC256 hook', () => {
         });
 
         it('should return false when sensor unavailable and device not secure', () => {
+            // Given a device with no biometric sensor and no secure lock screen configured
+            // When checking device support for biometric authentication
+            // Then it should return false because there is no way to verify the user's identity on this device
             jest.spyOn(EC256Helpers, 'getSensorResult').mockReturnValue({available: false});
 
             const {result} = renderHook(() => useNativeBiometricsEC256());
@@ -122,6 +137,9 @@ describe('useNativeBiometricsEC256 hook', () => {
 
     describe('getLocalCredentialID', () => {
         it('should return undefined when no local key exists', async () => {
+            // Given no EC256 keys have been created on the device for this account
+            // When retrieving the local credential ID
+            // Then undefined should be returned because the user has not yet registered biometrics on this device
             mockGetAllKeys.mockResolvedValue({keys: []});
 
             const {result} = renderHook(() => useNativeBiometricsEC256());
@@ -131,6 +149,9 @@ describe('useNativeBiometricsEC256 hook', () => {
         });
 
         it('should return base64url-encoded public key when key exists', async () => {
+            // Given an EC256 key exists on the device for this account with a base64 public key
+            // When retrieving the local credential ID
+            // Then the public key should be returned in base64url format because credential IDs must be URL-safe for server communication
             const keyAlias = '12345_EC256_KEY';
             mockGetAllKeys.mockResolvedValue({keys: [{alias: keyAlias, publicKey: 'abc+def/ghi='}]});
 
@@ -143,6 +164,9 @@ describe('useNativeBiometricsEC256 hook', () => {
 
     describe('areLocalCredentialsKnownToServer', () => {
         it('should return false when no local credential exists', async () => {
+            // Given no EC256 keys exist on the device
+            // When checking if local credentials are known to the server
+            // Then it should return false because there is no local key to match against server-known credential IDs
             const {result} = renderHook(() => useNativeBiometricsEC256());
 
             const isKnown = await result.current.areLocalCredentialsKnownToServer();
@@ -150,6 +174,9 @@ describe('useNativeBiometricsEC256 hook', () => {
         });
 
         it('should return true when local credential is known to server', async () => {
+            // Given an EC256 key exists on the device and its base64url-encoded public key matches a server-known credential ID
+            // When checking if local credentials are known to the server
+            // Then it should return true because the device's biometric registration is still valid on the server
             const keyAlias = '12345_EC256_KEY';
             mockMultifactorAuthenticationPublicKeyIDs = ['abc-def_ghi'];
             mockGetAllKeys.mockResolvedValue({keys: [{alias: keyAlias, publicKey: 'abc+def/ghi='}]});
@@ -163,6 +190,9 @@ describe('useNativeBiometricsEC256 hook', () => {
 
     describe('serverKnownCredentialIDs', () => {
         it('should expose credential IDs from Onyx state', () => {
+            // Given the server has registered multiple biometric credential IDs stored in Onyx
+            // When accessing serverKnownCredentialIDs from the hook
+            // Then it should return all credential IDs
             mockMultifactorAuthenticationPublicKeyIDs = ['key-1', 'key-2'];
             const {result} = renderHook(() => useNativeBiometricsEC256());
 
@@ -170,6 +200,9 @@ describe('useNativeBiometricsEC256 hook', () => {
         });
 
         it('should return empty array when Onyx state is empty', () => {
+            // Given no biometric credentials are registered on the server (empty Onyx state)
+            // When accessing serverKnownCredentialIDs from the hook
+            // Then it should return an empty array rather than undefined
             mockMultifactorAuthenticationPublicKeyIDs = [];
             const {result} = renderHook(() => useNativeBiometricsEC256());
 
@@ -179,6 +212,9 @@ describe('useNativeBiometricsEC256 hook', () => {
 
     describe('haveCredentialsEverBeenConfigured', () => {
         it('should return false when Onyx state is undefined', () => {
+            // Given the Onyx state for MFA public key IDs is undefined, meaning biometrics have never been set up for this account
+            // When checking if credentials have ever been configured
+            // Then it should return false because undefined indicates the key was never initialized in Onyx
             mockMultifactorAuthenticationPublicKeyIDs = undefined;
             const {result} = renderHook(() => useNativeBiometricsEC256());
 
@@ -186,6 +222,9 @@ describe('useNativeBiometricsEC256 hook', () => {
         });
 
         it('should return true when Onyx state is an empty array', () => {
+            // Given the Onyx state is an empty array, meaning biometrics were configured but all credentials have since been removed
+            // When checking if credentials have ever been configured
+            // Then it should return true because an empty array (vs undefined) indicates the user previously set up biometrics
             mockMultifactorAuthenticationPublicKeyIDs = [];
             const {result} = renderHook(() => useNativeBiometricsEC256());
 
@@ -193,6 +232,9 @@ describe('useNativeBiometricsEC256 hook', () => {
         });
 
         it('should return true when Onyx state has credential IDs', () => {
+            // Given the Onyx state contains active credential IDs
+            // When checking if credentials have ever been configured
+            // Then it should return true because credentials are currently registered
             mockMultifactorAuthenticationPublicKeyIDs = ['key-1'];
             const {result} = renderHook(() => useNativeBiometricsEC256());
 
@@ -214,6 +256,9 @@ describe('useNativeBiometricsEC256 hook', () => {
         });
 
         it('should create keys with correct alias', async () => {
+            // Given a valid registration challenge from the server
+            // When registering a new biometric credential
+            // Then it should create an EC256 key with the account-specific alias so the key is uniquely tied to the current user
             const {result} = renderHook(() => useNativeBiometricsEC256());
             const onResult = jest.fn();
 
@@ -225,6 +270,9 @@ describe('useNativeBiometricsEC256 hook', () => {
         });
 
         it('should call onResult with success and keyInfo on successful registration', async () => {
+            // Given a valid registration challenge and the biometric library successfully creates an EC256 key pair
+            // When the registration completes
+            // Then onResult should receive a success result with the base64url-encoded public key as rawId and EC256 type for server registration
             const {result} = renderHook(() => useNativeBiometricsEC256());
             const onResult = jest.fn();
 
@@ -245,6 +293,9 @@ describe('useNativeBiometricsEC256 hook', () => {
         });
 
         it('should call onResult with failure when createKeys throws', async () => {
+            // Given the biometric library fails to create keys
+            // When the registration is attempted
+            // Then onResult should receive a failure result
             mockCreateKeys.mockRejectedValue(new Error('Key creation failed'));
 
             const {result} = renderHook(() => useNativeBiometricsEC256());
@@ -279,6 +330,9 @@ describe('useNativeBiometricsEC256 hook', () => {
         });
 
         it('should sign challenge and return success', async () => {
+            // Given a valid authentication challenge from the server and a local EC256 key that can sign it
+            // When the user successfully authenticates via biometrics
+            // Then onResult should receive a success with the signed challenge and EC256 type so the server can verify the signature
             const {result} = renderHook(() => useNativeBiometricsEC256());
             const onResult = jest.fn();
 
@@ -298,6 +352,9 @@ describe('useNativeBiometricsEC256 hook', () => {
         });
 
         it('should call signWithOptions with biometric prompt', async () => {
+            // Given a valid authentication challenge and a local EC256 key
+            // When initiating the authorize flow
+            // Then signWithOptions should be called with the correct key alias and a localized prompt title
             const {result} = renderHook(() => useNativeBiometricsEC256());
             const onResult = jest.fn();
 
@@ -315,6 +372,9 @@ describe('useNativeBiometricsEC256 hook', () => {
         });
 
         it('should handle sign failure', async () => {
+            // Given the biometric sign operation returns a failure result (e.g., user canceled the biometric prompt)
+            // When the authorize flow completes
+            // Then onResult should receive a failure so the app can prompt the user to retry or use an alternative method
             mockSignWithOptions.mockResolvedValue({success: false, errorCode: 'canceled'});
 
             const {result} = renderHook(() => useNativeBiometricsEC256());
@@ -332,6 +392,9 @@ describe('useNativeBiometricsEC256 hook', () => {
         });
 
         it('should handle thrown errors', async () => {
+            // Given the biometric library throws an error containing "canceled"
+            // When the authorize flow catches the thrown error
+            // Then onResult should receive a failure with CANCELED reason
             mockSignWithOptions.mockRejectedValue(new Error('Biometric canceled'));
 
             const {result} = renderHook(() => useNativeBiometricsEC256());
@@ -352,6 +415,9 @@ describe('useNativeBiometricsEC256 hook', () => {
 
     describe('deleteLocalKeysForAccount', () => {
         it('should delete keys with correct alias', async () => {
+            // Given an authenticated user with a locally stored EC256 key
+            // When deleting local biometric keys for the account
+            // Then deleteKeys should be called with the account-specific alias to remove only this user's key without affecting other accounts on the device
             const {result} = renderHook(() => useNativeBiometricsEC256());
 
             await act(async () => {
