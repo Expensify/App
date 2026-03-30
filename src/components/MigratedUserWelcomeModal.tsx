@@ -16,8 +16,6 @@ import CONST from '@src/CONST';
 import type {FeatureListItem} from './FeatureList';
 import FeatureTrainingModal from './FeatureTrainingModal';
 import Icon from './Icon';
-// eslint-disable-next-line no-restricted-imports
-import * as Illustrations from './Icon/Illustrations';
 import LottieAnimations from './LottieAnimations';
 import RenderHTML from './RenderHTML';
 
@@ -27,17 +25,17 @@ function MigratedUserWelcomeModal() {
     const StyleUtils = useStyleUtils();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const isReduceMotionEnabled = Accessibility.useReducedMotion();
-    const illustrations = useMemoizedLazyIllustrations(['ChatBubbles', 'PlanetWithMobileApp']);
+    const illustrations = useMemoizedLazyIllustrations(['ChatBubbles', 'ConciergeBot', 'PlanetWithMobileApp', 'MagnifyingGlassReceipt']);
     const isCurrentUserPolicyAdmin = useIsPaidPolicyAdmin();
 
     const ExpensifyFeatures = useMemo<FeatureListItem[]>(
         () => [
             {
-                icon: Illustrations.MagnifyingGlassReceipt,
+                icon: illustrations.MagnifyingGlassReceipt,
                 translationKey: 'migratedUserWelcomeModal.features.search',
             },
             {
-                icon: Illustrations.ConciergeBot,
+                icon: illustrations.ConciergeBot,
                 translationKey: 'migratedUserWelcomeModal.features.concierge',
             },
             {
@@ -45,7 +43,7 @@ function MigratedUserWelcomeModal() {
                 translationKey: 'migratedUserWelcomeModal.features.chat',
             },
         ],
-        [illustrations.ChatBubbles],
+        [illustrations.ChatBubbles, illustrations.ConciergeBot, illustrations.MagnifyingGlassReceipt],
     );
 
     const onHelp = () => {

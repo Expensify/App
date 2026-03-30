@@ -6,6 +6,8 @@ import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import Log from '@libs/Log';
 import getStateFromPath from '@libs/Navigation/helpers/getStateFromPath';
 import {isFullScreenName, isSplitNavigatorName} from '@libs/Navigation/helpers/isNavigatorName';
+import isSideModalNavigator from '@libs/Navigation/helpers/isSideModalNavigator';
+import shouldStripRHPOnFullscreenPush from '@libs/Navigation/helpers/shouldStripRHPOnFullscreenPush';
 import {SPLIT_TO_SIDEBAR} from '@libs/Navigation/linkingConfig/RELATIONS';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
@@ -146,7 +148,14 @@ function handlePushFullscreenAction(
 ) {
     const targetScreen = action.payload?.params && 'screen' in action.payload.params ? (action.payload?.params?.screen as string) : undefined;
     const navigatorName = action.payload.name;
-    const adjustedState = getStateWithFilteredPreloadedRoutes(state, navigatorName, targetScreen);
+
+    const lastRoute = state.routes.at(-1);
+
+    // On native, strip the RHP before pushing to prevent react-native-screens from freezing it.
+    const stateWithoutModal =
+        shouldStripRHPOnFullscreenPush && isSideModalNavigator(lastRoute?.name) ? {...state, routes: state.routes.slice(0, -1), index: state.index !== 0 ? state.index - 1 : 0} : state;
+
+    const adjustedState = getStateWithFilteredPreloadedRoutes(stateWithoutModal, navigatorName, targetScreen);
     const stateWithNavigator = stackRouter.getStateForAction(adjustedState, action, configOptions);
 
     if (!stateWithNavigator) {

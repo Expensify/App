@@ -9,7 +9,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {IntroSelected, Policy, Session} from '@src/types/onyx';
 import useCardFeedsForDisplay from './useCardFeedsForDisplay';
 import useCreateEmptyReportConfirmation from './useCreateEmptyReportConfirmation';
-import {useMemoizedLazyExpensifyIcons} from './useLazyAsset';
 import useMappedPolicies from './useMappedPolicies';
 import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
@@ -65,7 +64,6 @@ const useSearchTypeMenuSections = (queryParams?: UseSearchTypeMenuSectionsParams
 
     const {defaultCardFeed, cardFeedsByPolicy} = useCardFeedsForDisplay();
 
-    const icons = useMemoizedLazyExpensifyIcons(['Document', 'Send', 'ThumbsUp']);
     const {isOffline} = useNetwork();
     const [allPolicies] = useMappedPolicies(policyMapper);
     const [currentUserLoginAndAccountID] = useOnyx(ONYXKEYS.SESSION, {selector: currentUserLoginAndAccountIDSelector});
@@ -106,7 +104,6 @@ const useSearchTypeMenuSections = (queryParams?: UseSearchTypeMenuSectionsParams
     const typeMenuSections = useMemo(
         () =>
             createTypeMenuSections({
-                icons,
                 currentUserEmail: currentUserLoginAndAccountID?.email,
                 currentUserAccountID: currentUserLoginAndAccountID?.accountID,
                 cardFeedsByPolicy,
@@ -129,7 +126,6 @@ const useSearchTypeMenuSections = (queryParams?: UseSearchTypeMenuSectionsParams
             savedSearches,
             isOffline,
             shouldRedirectToExpensifyClassic,
-            icons,
             draftTransactionIDs,
             isTrackIntentUser,
         ],
