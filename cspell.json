@@ -866,7 +866,8 @@
         "zxcv",
         "zxldvw",
         "مثال",
-        "PINATM"
+        "PINATM",
+        "deprioritizes"
     ],
     "ignorePaths": [
         "src/languages/de.ts",
