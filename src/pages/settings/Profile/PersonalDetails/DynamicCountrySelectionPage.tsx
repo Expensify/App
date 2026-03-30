@@ -1,13 +1,16 @@
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useCallback, useMemo} from 'react';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
+import useDebouncedState from '@hooks/useDebouncedState';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
+import useInitialSelection from '@hooks/useInitialSelection';
 import useLocalize from '@hooks/useLocalize';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+import {moveInitialSelectionToTopByValue} from '@libs/SelectionListOrderUtils';
 import type {Option} from '@libs/searchOptions';
 import searchOptions from '@libs/searchOptions';
 import StringUtils from '@libs/StringUtils';
@@ -20,10 +23,12 @@ import type SCREENS from '@src/SCREENS';
 type DynamicCountrySelectionPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.PROFILE.DYNAMIC_ADDRESS_COUNTRY>;
 
 function DynamicCountrySelectionPage({route}: DynamicCountrySelectionPageProps) {
-    const [searchValue, setSearchValue] = useState('');
+    const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
     const {translate} = useLocalize();
     const currentCountry = route.params.country;
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.ADDRESS_COUNTRY.path);
+    const initialSelectedValue = useInitialSelection(currentCountry ?? undefined, {resetOnFocus: true});
+    const initialSelectedValues = useMemo(() => (initialSelectedValue ? [initialSelectedValue] : []), [initialSelectedValue]);
 
     const countries = useMemo(
         () =>
@@ -40,7 +45,11 @@ function DynamicCountrySelectionPage({route}: DynamicCountrySelectionPageProps) 
         [translate, currentCountry],
     );
 
-    const searchResults = searchOptions(searchValue, countries);
+    const orderedCountries = useMemo(() => moveInitialSelectionToTopByValue(countries, initialSelectedValues), [countries, initialSelectedValues]);
+    const searchResults = useMemo(
+        () => searchOptions(debouncedSearchValue, debouncedSearchValue ? countries : orderedCountries),
+        [countries, debouncedSearchValue, orderedCountries],
+    );
 
     const selectCountry = useCallback(
         (option: Option) => {
@@ -51,12 +60,12 @@ function DynamicCountrySelectionPage({route}: DynamicCountrySelectionPageProps) 
 
     const textInputOptions = useMemo(
         () => ({
-            headerMessage: searchValue.trim() && !searchResults.length ? translate('common.noResultsFound') : '',
+            headerMessage: debouncedSearchValue.trim() && !searchResults.length ? translate('common.noResultsFound') : '',
             label: translate('common.country'),
             value: searchValue,
             onChangeText: setSearchValue,
         }),
-        [searchResults.length, searchValue, translate],
+        [debouncedSearchValue, searchResults.length, searchValue, translate, setSearchValue],
     );
 
     return (
@@ -77,7 +86,8 @@ function DynamicCountrySelectionPage({route}: DynamicCountrySelectionPageProps) 
                 ListItem={RadioListItem}
                 onSelectRow={selectCountry}
                 textInputOptions={textInputOptions}
-                initiallyFocusedItemKey={currentCountry}
+                searchValueForFocusSync={debouncedSearchValue}
+                initiallyFocusedItemKey={initialSelectedValue}
                 shouldSingleExecuteRowSelect
                 addBottomSafeAreaPadding
             />

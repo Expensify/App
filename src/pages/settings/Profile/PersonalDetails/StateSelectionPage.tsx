@@ -1,13 +1,16 @@
 import {useRoute} from '@react-navigation/native';
 import {CONST as COMMON_CONST} from 'expensify-common';
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
+import useDebouncedState from '@hooks/useDebouncedState';
+import useInitialSelection from '@hooks/useInitialSelection';
 import useLocalize from '@hooks/useLocalize';
 import Navigation from '@libs/Navigation/Navigation';
+import {moveInitialSelectionToTopByValue} from '@libs/SelectionListOrderUtils';
 import searchOptions from '@libs/searchOptions';
 import type {Option} from '@libs/searchOptions';
 import StringUtils from '@libs/StringUtils';
@@ -26,10 +29,12 @@ function StateSelectionPage() {
     const route = useRoute();
     const {translate} = useLocalize();
 
-    const [searchValue, setSearchValue] = useState('');
+    const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
     const params = route.params as RouteParams | undefined;
     const currentState = params?.state;
     const label = params?.label;
+    const initialSelectedValue = useInitialSelection(currentState ?? undefined, {resetOnFocus: true});
+    const initialSelectedValues = useMemo(() => (initialSelectedValue ? [initialSelectedValue] : []), [initialSelectedValue]);
 
     const countryStates = useMemo(
         () =>
@@ -48,8 +53,12 @@ function StateSelectionPage() {
         [translate, currentState],
     );
 
-    const searchResults = searchOptions(searchValue, countryStates);
-    const headerMessage = searchValue.trim() && !searchResults.length ? translate('common.noResultsFound') : '';
+    const orderedCountryStates = useMemo(() => moveInitialSelectionToTopByValue(countryStates, initialSelectedValues), [countryStates, initialSelectedValues]);
+    const searchResults = useMemo(
+        () => searchOptions(debouncedSearchValue, debouncedSearchValue ? countryStates : orderedCountryStates),
+        [countryStates, debouncedSearchValue, orderedCountryStates],
+    );
+    const headerMessage = debouncedSearchValue.trim() && !searchResults.length ? translate('common.noResultsFound') : '';
 
     const selectCountryState = useCallback(
         (option: Option) => {
@@ -75,7 +84,7 @@ function StateSelectionPage() {
             value: searchValue,
             onChangeText: setSearchValue,
         }),
-        [headerMessage, label, searchValue, translate],
+        [headerMessage, label, searchValue, setSearchValue, translate],
     );
 
     return (
@@ -106,7 +115,8 @@ function StateSelectionPage() {
                 ListItem={RadioListItem}
                 onSelectRow={selectCountryState}
                 textInputOptions={textInputOptions}
-                initiallyFocusedItemKey={currentState}
+                searchValueForFocusSync={debouncedSearchValue}
+                initiallyFocusedItemKey={initialSelectedValue}
                 shouldSingleExecuteRowSelect
                 disableMaintainingScrollPosition
                 addBottomSafeAreaPadding
