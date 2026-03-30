@@ -28,7 +28,6 @@ import type {OptionRowLHNDataProps} from './types';
 function OptionRowLHNData({
     isOptionFocused = false,
     fullReport,
-    reportNameValuePairs,
     personalDetails = {},
     policy,
     invoiceReceiverPolicy,
@@ -89,7 +88,7 @@ function OptionRowLHNData({
     const transactionID = isMoneyRequestAction(parentReportAction) ? (getOriginalMessage(parentReportAction)?.IOUTransactionID ?? CONST.DEFAULT_NUMBER_ID) : CONST.DEFAULT_NUMBER_ID;
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID !== CONST.DEFAULT_NUMBER_ID ? String(transactionID) : undefined)}`);
 
-    const isReportArchived = !!(reportNameValuePairsEntry ?? reportNameValuePairs)?.private_isArchived;
+    const isReportArchived = !!reportNameValuePairsEntry?.private_isArchived;
     const canUserPerformWrite = canUserPerformWriteActionUtil(fullReport, isReportArchived);
 
     const lastAction = useMemo(() => {
@@ -103,8 +102,8 @@ function OptionRowLHNData({
     }, [reportID, canUserPerformWrite, reportActions, transactionThreadReportActions, visibleReportActionsData, oneTransactionThreadReportID]);
 
     const iouReportIDOfLastAction = useMemo(
-        () => getIOUReportIDOfLastAction(fullReport, (reportNameValuePairsEntry ?? reportNameValuePairs)?.private_isArchived, visibleReportActionsData, lastAction),
-        [fullReport, reportNameValuePairsEntry, reportNameValuePairs, visibleReportActionsData, lastAction],
+        () => getIOUReportIDOfLastAction(fullReport, reportNameValuePairsEntry?.private_isArchived, visibleReportActionsData, lastAction),
+        [fullReport, reportNameValuePairsEntry?.private_isArchived, visibleReportActionsData, lastAction],
     );
     const [iouReportReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(iouReportIDOfLastAction)}`);
 
@@ -161,7 +160,7 @@ function OptionRowLHNData({
                 report: fullReport,
                 reportAttributes,
                 oneTransactionThreadReport,
-                reportNameValuePairs,
+                reportNameValuePairs: reportNameValuePairsEntry,
                 personalDetails,
                 policy,
                 parentReportAction,
@@ -188,7 +187,7 @@ function OptionRowLHNData({
             fullReport,
             reportAttributes,
             oneTransactionThreadReport,
-            reportNameValuePairs,
+            reportNameValuePairsEntry,
             personalDetails,
             policy,
             parentReportAction,
