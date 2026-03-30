@@ -25,6 +25,7 @@ import {getBrokenConnectionUrlToFixPersonalCard} from '@libs/CardUtils';
 import {getDecodedCategoryName} from '@libs/CategoryUtils';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+import getPlatform from '@libs/getPlatform';
 import {calculateAmount} from '@libs/IOUUtils';
 import Parser from '@libs/Parser';
 import {getCommaSeparatedTagNameWithSanitizedColons} from '@libs/PolicyUtils';
@@ -174,7 +175,8 @@ function TransactionPreviewContent({
     const shouldShowMerchantOrDescription = shouldShowDescription || shouldShowMerchant;
     const isDescriptionHTML = !!requestComment && Parser.isHTML(requestComment);
     const requestDescription = truncate(requestComment ?? '', {length: CONST.REQUEST_PREVIEW.MAX_LENGTH});
-    const description = Parser.truncateHTML(requestComment ?? '', CONST.REQUEST_PREVIEW.MAX_LENGTH);
+    const isAndroidNative = getPlatform() === CONST.PLATFORM.ANDROID;
+    const description = Parser.truncateHTML(requestComment ?? '', isAndroidNative ? CONST.REQUEST_PREVIEW.TRANSACTION_PREVIEW_MAX_LENGTH : CONST.REQUEST_PREVIEW.MAX_LENGTH);
     const requestMerchant = truncate(merchant, {length: CONST.REQUEST_PREVIEW.MAX_LENGTH});
     const isApproved = isReportApproved({report});
     const pendingAction = action?.pendingAction;
