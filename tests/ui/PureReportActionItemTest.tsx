@@ -99,6 +99,7 @@ describe('PureReportActionItem', () => {
                         <PortalProvider>
                             <PureReportActionItem
                                 personalPolicyID={undefined}
+                                currentUserEmail={undefined}
                                 report={undefined}
                                 parentReportAction={undefined}
                                 action={action}
@@ -111,6 +112,7 @@ describe('PureReportActionItem', () => {
                                 linkedReport={undefined}
                                 iouReportOfLinkedReport={undefined}
                                 currentUserAccountID={ACTOR_ACCOUNT_ID}
+                                betas={undefined}
                                 draftTransactionIDs={[]}
                                 userBillingGraceEndPeriods={undefined}
                             />
@@ -322,6 +324,7 @@ describe('PureReportActionItem', () => {
                             <PortalProvider>
                                 <PureReportActionItem
                                     personalPolicyID={undefined}
+                                    currentUserEmail={undefined}
                                     policy={dewPolicy as Policy}
                                     report={{reportID: 'testReport', policyID: 'testPolicy'}}
                                     parentReportAction={undefined}
@@ -336,6 +339,7 @@ describe('PureReportActionItem', () => {
                                     iouReportOfLinkedReport={undefined}
                                     reportMetadata={reportMetadata}
                                     currentUserAccountID={ACTOR_ACCOUNT_ID}
+                                    betas={undefined}
                                     draftTransactionIDs={[]}
                                     userBillingGraceEndPeriods={undefined}
                                 />
@@ -380,6 +384,7 @@ describe('PureReportActionItem', () => {
                             <PortalProvider>
                                 <PureReportActionItem
                                     personalPolicyID={undefined}
+                                    currentUserEmail={undefined}
                                     policy={basicPolicy as Policy}
                                     report={{reportID: 'testReport', policyID: 'testPolicy'}}
                                     parentReportAction={undefined}
@@ -393,6 +398,7 @@ describe('PureReportActionItem', () => {
                                     linkedReport={undefined}
                                     iouReportOfLinkedReport={undefined}
                                     currentUserAccountID={ACTOR_ACCOUNT_ID}
+                                    betas={undefined}
                                     draftTransactionIDs={[]}
                                     userBillingGraceEndPeriods={undefined}
                                 />
@@ -450,6 +456,7 @@ describe('PureReportActionItem', () => {
                             <PortalProvider>
                                 <PureReportActionItem
                                     personalPolicyID={undefined}
+                                    currentUserEmail={undefined}
                                     report={report}
                                     parentReportAction={undefined}
                                     action={action}
@@ -462,6 +469,7 @@ describe('PureReportActionItem', () => {
                                     linkedReport={undefined}
                                     iouReportOfLinkedReport={undefined}
                                     currentUserAccountID={ACTOR_ACCOUNT_ID}
+                                    betas={undefined}
                                     draftTransactionIDs={[]}
                                     userBillingGraceEndPeriods={undefined}
                                 />
@@ -514,6 +522,7 @@ describe('PureReportActionItem', () => {
                             <PortalProvider>
                                 <PureReportActionItem
                                     personalPolicyID={undefined}
+                                    currentUserEmail={undefined}
                                     report={report}
                                     parentReportAction={undefined}
                                     action={action}
@@ -526,6 +535,7 @@ describe('PureReportActionItem', () => {
                                     linkedReport={undefined}
                                     iouReportOfLinkedReport={undefined}
                                     currentUserAccountID={ACTOR_ACCOUNT_ID}
+                                    betas={undefined}
                                     draftTransactionIDs={[]}
                                     userBillingGraceEndPeriods={undefined}
                                 />
@@ -564,6 +574,7 @@ describe('PureReportActionItem', () => {
                             <PortalProvider>
                                 <PureReportActionItem
                                     personalPolicyID={undefined}
+                                    currentUserEmail={undefined}
                                     report={report}
                                     parentReportAction={undefined}
                                     action={action}
@@ -576,6 +587,7 @@ describe('PureReportActionItem', () => {
                                     linkedReport={undefined}
                                     iouReportOfLinkedReport={undefined}
                                     currentUserAccountID={ACTOR_ACCOUNT_ID}
+                                    betas={undefined}
                                     draftTransactionIDs={[]}
                                     modifiedExpenseMessage={modifiedExpenseMessage}
                                     userBillingGraceEndPeriods={undefined}
