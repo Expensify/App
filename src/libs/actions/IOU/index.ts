@@ -13337,7 +13337,7 @@ function updateMultipleMoneyRequests({
         // bulk-edit comments are visible immediately while still offline.
         let didCreateThreadInThisIteration = false;
         if (!transactionThreadReportID && iouReport?.reportID) {
-            const optimisticTransactionThread = createTransactionThreadReport(undefined, currentUserEmail, userAccountID, iouReport, reportAction, transaction);
+            const optimisticTransactionThread = createTransactionThreadReport(undefined, currentUserEmail, userAccountID, undefined, iouReport, reportAction, transaction);
             if (optimisticTransactionThread?.reportID) {
                 transactionThreadReportID = optimisticTransactionThread.reportID;
                 transactionThread = optimisticTransactionThread;
