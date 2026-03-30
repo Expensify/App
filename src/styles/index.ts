@@ -1076,10 +1076,6 @@ const staticStyles = (theme: ThemeColors) =>
             color: theme.badgeDangerText,
         },
 
-        badgeStrongText: {
-            color: theme.buttonSuccessText,
-        },
-
         badgeText: {
             color: theme.text,
             fontSize: variables.fontSizeSmall,
