@@ -8539,7 +8539,13 @@ function getCleanUpTransactionThreadReportOnyxData({
             });
         }
 
-        reportPreviewAction = {...reportPreviewAction, childVisibleActionCount, childCommenterCount, childLastVisibleActionCreated, childOldestFourAccountIDs};
+        reportPreviewAction = {
+            reportActionID: originalReportPreviewAction.reportActionID,
+            childVisibleActionCount,
+            childCommenterCount,
+            childLastVisibleActionCreated,
+            childOldestFourAccountIDs,
+        } as ReportAction;
     }
 
     return {
