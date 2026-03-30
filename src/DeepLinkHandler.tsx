@@ -31,12 +31,12 @@ function DeepLinkHandler({onInitialUrl}: DeepLinkHandlerProps) {
     const [, sessionMetadata] = useOnyx(ONYXKEYS.SESSION);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
+    const [isSelfTourViewed, isSelfTourViewedMetadata] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const isAuthenticated = useIsAuthenticated();
 
     useEffect(() => {
-        if (isLoadingOnyxValue(sessionMetadata)) {
+        if (isLoadingOnyxValue(sessionMetadata, isSelfTourViewedMetadata)) {
             return;
         }
         // If the app is opened from a deep link, get the reportID (if exists) from the deep link and navigate to the chat report
@@ -73,8 +73,8 @@ function DeepLinkHandler({onInitialUrl}: DeepLinkHandlerProps) {
         return () => {
             linkingChangeListener.current?.remove();
         };
-        // eslint-disable-next-line react-hooks/exhaustive-deps -- we only want this effect to re-run when conciergeReportID changes
-    }, [sessionMetadata?.status, conciergeReportID, introSelected, isSelfTourViewed, betas]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- intentionally excluding allReports, isAuthenticated, and onInitialUrl to avoid re-triggering deep link handling on every report update
+    }, [sessionMetadata?.status, conciergeReportID, introSelected, isSelfTourViewedMetadata, betas]);
 
     return null;
 }
