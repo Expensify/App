@@ -55,7 +55,8 @@ function BeneficialOwnersStep({onBackButtonPress, onSubmit, currentSubPage, poli
     const beneficialOwners = reimbursementAccount?.achData?.beneficialOwners;
     const isAnyoneElseUBO = beneficialOwners?.length ? true : (reimbursementAccountDraft?.hasOtherBeneficialOwners ?? false);
     const beneficialOwnerKeys: string[] = reimbursementAccountDraft?.beneficialOwnerKeys ?? reimbursementAccount?.achData?.beneficialOwnerKeys ?? [];
-    const beneficialOwnerBeingModifiedID = reimbursementAccountDraft?.ownerBeingModifiedID;
+    // eslint-disable-next-line rulesdir/no-default-id-values
+    const beneficialOwnerBeingModifiedID = reimbursementAccountDraft?.ownerBeingModifiedID ?? '';
     const isEditingCreatedBeneficialOwner = reimbursementAccountDraft?.isEditingCreatedOwner ?? false;
     const canAddMoreUBOS = beneficialOwnerKeys.length < (isUserUBO ? MAX_NUMBER_OF_UBOS - 1 : MAX_NUMBER_OF_UBOS);
 
@@ -201,7 +202,7 @@ function BeneficialOwnersStep({onBackButtonPress, onSubmit, currentSubPage, poli
         return (
             <BeneficialOwnerDetailsFormPages
                 policyID={policyID}
-                beneficialOwnerBeingModifiedID={beneficialOwnerBeingModifiedID ?? ''}
+                beneficialOwnerBeingModifiedID={beneficialOwnerBeingModifiedID}
                 // eslint-disable-next-line @typescript-eslint/no-misused-promises
                 setBeneficialOwnerBeingModifiedID={(id: string) => setDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, {ownerBeingModifiedID: id})}
                 isEditingCreatedBeneficialOwner={isEditingCreatedBeneficialOwner}
