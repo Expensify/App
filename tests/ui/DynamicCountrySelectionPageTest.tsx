@@ -1,10 +1,10 @@
 import type * as ReactNavigation from '@react-navigation/native';
 import {act, render} from '@testing-library/react-native';
 import React from 'react';
-import DynamicCountrySelectionPage from '@pages/settings/Profile/PersonalDetails/DynamicCountrySelectionPage';
 import SelectionList from '@components/SelectionList';
 import searchOptions from '@libs/searchOptions';
 import StringUtils from '@libs/StringUtils';
+import DynamicCountrySelectionPage from '@pages/settings/Profile/PersonalDetails/DynamicCountrySelectionPage';
 import CONST from '@src/CONST';
 
 const mockUseState = React.useState;
@@ -54,7 +54,12 @@ describe('DynamicCountrySelectionPage', () => {
     });
 
     it('pins the saved country to the top on reopen and wires debounced focus sync', () => {
-        render(<DynamicCountrySelectionPage route={{params: {country: 'US'}} as never} navigation={jest.fn() as never} />);
+        render(
+            <DynamicCountrySelectionPage
+                route={{params: {country: 'US'}} as never}
+                navigation={jest.fn() as never}
+            />,
+        );
 
         const selectionListProps = mockedSelectionList.mock.lastCall?.[0];
         expect(selectionListProps?.data.at(0)).toEqual(
@@ -69,7 +74,12 @@ describe('DynamicCountrySelectionPage', () => {
     });
 
     it('keeps natural filtered ordering while search is active', () => {
-        render(<DynamicCountrySelectionPage route={{params: {country: 'US'}} as never} navigation={jest.fn() as never} />);
+        render(
+            <DynamicCountrySelectionPage
+                route={{params: {country: 'US'}} as never}
+                navigation={jest.fn() as never}
+            />,
+        );
 
         const initialProps = mockedSelectionList.mock.lastCall?.[0];
 

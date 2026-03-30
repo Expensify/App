@@ -122,9 +122,16 @@ describe('SelectCountryStep', () => {
         render(<SelectCountryStep policyID="policyID" />);
 
         const initialProps = mockedSelectionList.mock.lastCall?.[0];
+        const selectedCountry = initialProps?.data.find((item) => item.keyForList === 'GB');
+
+        expect(selectedCountry).toBeDefined();
 
         act(() => {
-            initialProps?.onSelectRow?.({value: 'GB', keyForList: 'GB'});
+            if (!selectedCountry) {
+                return;
+            }
+
+            initialProps?.onSelectRow?.(selectedCountry);
         });
 
         const updatedProps = mockedSelectionList.mock.lastCall?.[0];
@@ -163,6 +170,7 @@ describe('SelectCountryStep', () => {
                     value: countryISO,
                     keyForList: countryISO,
                     text: CONST.ALL_COUNTRIES[countryISO as keyof typeof CONST.ALL_COUNTRIES],
+                    isSelected: false,
                     searchValue: StringUtils.sanitizeString(`${countryISO}${CONST.ALL_COUNTRIES[countryISO as keyof typeof CONST.ALL_COUNTRIES]}`),
                 })),
         );

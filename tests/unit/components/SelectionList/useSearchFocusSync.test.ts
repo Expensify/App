@@ -11,12 +11,7 @@ describe('useSearchFocusSync', () => {
         const scrollToIndex = jest.fn();
         const setFocusedIndex = jest.fn();
         const filteredData: MockItem[] = [{keyForList: 'match'}];
-        const fullData: MockItem[] = [
-            {keyForList: 'a'},
-            {keyForList: 'b'},
-            {keyForList: 'selected', isSelected: true},
-            {keyForList: 'c'},
-        ];
+        const fullData: MockItem[] = [{keyForList: 'a'}, {keyForList: 'b'}, {keyForList: 'selected', isSelected: true}, {keyForList: 'c'}];
 
         const {rerender} = renderHook(
             ({searchValue, data}: {searchValue: string; data: MockItem[]}) =>

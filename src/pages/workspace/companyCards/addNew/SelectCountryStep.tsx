@@ -85,6 +85,7 @@ function SelectCountryStep({policyID}: CountryStepProps) {
                 value: countryISO,
                 keyForList: countryISO,
                 text: countryName,
+                isSelected: currentCountry === countryISO,
                 searchValue: StringUtils.sanitizeString(`${countryISO}${countryName}`),
             };
         });
