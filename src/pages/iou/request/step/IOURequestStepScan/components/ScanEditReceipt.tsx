@@ -2,7 +2,6 @@ import React, {useEffect} from 'react';
 import {View} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import useOptimisticDraftTransactions from '@hooks/useOptimisticDraftTransactions';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
@@ -10,7 +9,6 @@ import {endSpan} from '@libs/telemetry/activeSpans';
 import useScanCapture from '@pages/iou/request/step/IOURequestStepScan/hooks/useScanCapture';
 import useScanRouteParams from '@pages/iou/request/step/IOURequestStepScan/hooks/useScanRouteParams';
 import getFileSource from '@pages/iou/request/step/IOURequestStepScan/utils/getFileSource';
-import useScanFileReadabilityCheck from '@pages/iou/request/step/IOURequestStepScan/utils/useScanFileReadabilityCheck';
 import StepScreenWrapper from '@pages/iou/request/step/StepScreenWrapper';
 import {replaceReceipt, setMoneyRequestReceipt} from '@userActions/IOU';
 import CONST from '@src/CONST';
@@ -32,8 +30,6 @@ function ScanEditReceipt() {
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const policy = usePolicy(report?.policyID);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report?.policyID}`);
-    const [initialTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${initialTransactionID}`);
-    const [transactions] = useOptimisticDraftTransactions(initialTransaction);
     const isEditing = action === CONST.IOU.ACTION.EDIT;
 
     const navigateBack = () => {
@@ -66,8 +62,6 @@ function ScanEditReceipt() {
     useEffect(() => {
         endSpan(CONST.TELEMETRY.SPAN_OPEN_CREATE_EXPENSE);
     }, []);
-
-    useScanFileReadabilityCheck(transactions);
 
     return (
         <StepScreenWrapper
