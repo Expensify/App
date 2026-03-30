@@ -1,147 +1,92 @@
-import React, {useContext} from 'react';
-import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
-import KYCWall from '@components/KYCWall';
-import {KYCWallContext} from '@components/KYCWall/KYCWallContext';
-import useLocalize from '@hooks/useLocalize';
-import useNetwork from '@hooks/useNetwork';
-import useThemeStyles from '@hooks/useThemeStyles';
-import Navigation from '@libs/Navigation/Navigation';
+import React from 'react';
 import {isExpenseReport as isExpenseReportUtil, isInvoiceReport as isInvoiceReportUtil} from '@libs/ReportUtils';
-import CONST from '@src/CONST';
-import ROUTES from '@src/ROUTES';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import ExpenseSettlementButton from './ExpenseSettlementButton';
+import InvoiceSettlementButton from './InvoiceSettlementButton';
+import IOUSettlementButton from './IOUSettlementButton';
 import type SettlementButtonProps from './types';
-import useSettlementButtonOptions from './useSettlementButtonOptions';
 
 function SettlementButton({
-    addDebitCardRoute = ROUTES.IOU_SEND_ADD_DEBIT_CARD,
-    kycWallAnchorAlignment = {
-        horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT, // button is at left, so horizontal anchor is at LEFT
-        vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP, // we assume that popover menu opens below the button, anchor is at TOP
-    },
-    paymentMethodDropdownAnchorAlignment = {
-        horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT, // caret for dropdown is at right, so horizontal anchor is at RIGHT
-        vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP, // we assume that popover menu opens below the button, anchor is at TOP
-    },
-    buttonSize = CONST.DROPDOWN_BUTTON_SIZE.MEDIUM,
-    extraSmall = false,
-    chatReportID = '',
-    currency = CONST.CURRENCY.USD,
+    addDebitCardRoute,
+    kycWallAnchorAlignment,
+    paymentMethodDropdownAnchorAlignment,
+    buttonSize,
+    extraSmall,
+    chatReportID,
+    currency,
     enablePaymentsRoute,
     iouReport,
-    formattedAmount = '',
+    formattedAmount,
     onPress,
-    policyID = '-1',
-    isDisabled = false,
-    shouldStayNormalOnDisable = false,
-    isLoading = false,
-    pressOnEnter = false,
+    policyID,
+    isDisabled,
+    shouldStayNormalOnDisable,
+    isLoading,
+    pressOnEnter,
     style,
     disabledStyle,
-    shouldHidePaymentOptions = false,
-    shouldShowApproveButton = false,
-    shouldDisableApproveButton = false,
-    shouldShowPersonalBankAccountOption = false,
-    enterKeyEventListenerPriority = 0,
+    shouldHidePaymentOptions,
+    shouldShowApproveButton,
+    shouldDisableApproveButton,
+    shouldShowPersonalBankAccountOption,
+    enterKeyEventListenerPriority,
     confirmApproval,
-    useKeyboardShortcuts = false,
+    useKeyboardShortcuts,
     onPaymentOptionsShow,
     onPaymentOptionsHide,
     onlyShowPayElsewhere,
     wrapperStyle,
-    shouldUseShortForm = false,
-    hasOnlyHeldExpenses = false,
+    shouldUseShortForm,
+    hasOnlyHeldExpenses,
     sentryLabel,
 }: SettlementButtonProps) {
-    const styles = useThemeStyles();
-    const {translate} = useLocalize();
-    const {isOffline} = useNetwork();
-    const isExpenseReport = isExpenseReportUtil(iouReport);
     const isInvoiceReport = (!isEmptyObject(iouReport) && isInvoiceReportUtil(iouReport)) || false;
+    const isExpenseReport = isExpenseReportUtil(iouReport);
 
-    const kycWallRef = useContext(KYCWallContext);
-    const {
-        paymentButtonOptions,
-        customText,
-        secondaryText,
-        defaultSelectedIndex,
-        shouldUseSplitButton,
-        shouldLimitWidth,
-        shouldPopoverUseScrollView,
-        handlePaymentSelection,
-        lastPaymentPolicy,
-    } = useSettlementButtonOptions({
-        chatReportID,
-        currency,
-        iouReport,
-        formattedAmount,
-        onPress,
-        policyID,
-        shouldHidePaymentOptions,
-        shouldShowApproveButton,
-        shouldDisableApproveButton,
-        shouldShowPersonalBankAccountOption,
-        onlyShowPayElsewhere,
-        shouldUseShortForm,
-        confirmApproval,
-    });
+    let Variant;
+    if (isInvoiceReport) {
+        Variant = InvoiceSettlementButton;
+    } else if (isExpenseReport) {
+        Variant = ExpenseSettlementButton;
+    } else {
+        Variant = IOUSettlementButton;
+    }
 
     return (
-        <KYCWall
-            ref={kycWallRef}
-            onSuccessfulKYC={(paymentType) => onPress({paymentType})}
-            enablePaymentsRoute={enablePaymentsRoute}
+        <Variant
             addDebitCardRoute={addDebitCardRoute}
-            isDisabled={isOffline}
-            source={CONST.KYC_WALL_SOURCE.REPORT}
+            kycWallAnchorAlignment={kycWallAnchorAlignment}
+            paymentMethodDropdownAnchorAlignment={paymentMethodDropdownAnchorAlignment}
+            buttonSize={buttonSize}
+            extraSmall={extraSmall}
             chatReportID={chatReportID}
-            addBankAccountRoute={isExpenseReport ? ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute({policyID: iouReport?.policyID, backTo: Navigation.getActiveRoute()}) : undefined}
+            currency={currency}
+            enablePaymentsRoute={enablePaymentsRoute}
             iouReport={iouReport}
-            policy={lastPaymentPolicy}
-            anchorAlignment={kycWallAnchorAlignment}
+            formattedAmount={formattedAmount}
+            onPress={onPress}
+            policyID={policyID}
+            isDisabled={isDisabled}
+            shouldStayNormalOnDisable={shouldStayNormalOnDisable}
+            isLoading={isLoading}
+            pressOnEnter={pressOnEnter}
+            style={style}
+            disabledStyle={disabledStyle}
+            shouldHidePaymentOptions={shouldHidePaymentOptions}
+            shouldShowApproveButton={shouldShowApproveButton}
+            shouldDisableApproveButton={shouldDisableApproveButton}
             shouldShowPersonalBankAccountOption={shouldShowPersonalBankAccountOption}
-        >
-            {(triggerKYCFlow, buttonRef) => (
-                <ButtonWithDropdownMenu<string>
-                    onOptionsMenuShow={onPaymentOptionsShow}
-                    onOptionsMenuHide={onPaymentOptionsHide}
-                    buttonRef={buttonRef}
-                    shouldAlwaysShowDropdownMenu={isInvoiceReport && !onlyShowPayElsewhere}
-                    customText={customText}
-                    menuHeaderText={isInvoiceReport ? translate('workspace.invoices.paymentMethods.chooseInvoiceMethod') : undefined}
-                    isSplitButton={shouldUseSplitButton}
-                    isDisabled={isDisabled}
-                    shouldStayNormalOnDisable={shouldStayNormalOnDisable}
-                    isLoading={isLoading}
-                    defaultSelectedIndex={defaultSelectedIndex !== -1 ? defaultSelectedIndex : 0}
-                    onPress={(event, iouPaymentType) => handlePaymentSelection(event, iouPaymentType, triggerKYCFlow)}
-                    success={!hasOnlyHeldExpenses}
-                    extraSmall={extraSmall}
-                    secondLineText={secondaryText}
-                    pressOnEnter={pressOnEnter}
-                    options={paymentButtonOptions}
-                    onOptionSelected={(option) => {
-                        if (paymentButtonOptions.length === 1) {
-                            return;
-                        }
-
-                        handlePaymentSelection(undefined, option.value, triggerKYCFlow);
-                    }}
-                    style={style}
-                    shouldUseShortForm={shouldUseShortForm}
-                    shouldPopoverUseScrollView={shouldPopoverUseScrollView}
-                    containerStyles={paymentButtonOptions.length > 5 ? styles.settlementButtonListContainer : {}}
-                    wrapperStyle={[wrapperStyle, shouldLimitWidth ? styles.settlementButtonShortFormWidth : {}]}
-                    disabledStyle={disabledStyle}
-                    buttonSize={buttonSize}
-                    anchorAlignment={paymentMethodDropdownAnchorAlignment}
-                    enterKeyEventListenerPriority={enterKeyEventListenerPriority}
-                    useKeyboardShortcuts={useKeyboardShortcuts}
-                    shouldUseModalPaddingStyle={paymentButtonOptions.length <= 5}
-                    sentryLabel={sentryLabel}
-                />
-            )}
-        </KYCWall>
+            enterKeyEventListenerPriority={enterKeyEventListenerPriority}
+            confirmApproval={confirmApproval}
+            useKeyboardShortcuts={useKeyboardShortcuts}
+            onPaymentOptionsShow={onPaymentOptionsShow}
+            onPaymentOptionsHide={onPaymentOptionsHide}
+            onlyShowPayElsewhere={onlyShowPayElsewhere}
+            wrapperStyle={wrapperStyle}
+            shouldUseShortForm={shouldUseShortForm}
+            hasOnlyHeldExpenses={hasOnlyHeldExpenses}
+            sentryLabel={sentryLabel}
+        />
     );
 }
 
