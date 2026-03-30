@@ -190,6 +190,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
             currentUserAccountID,
             privateIsArchivedMap,
             policies,
+            sortedActions,
         ],
     );
 
