@@ -71,7 +71,15 @@ function useAgentZeroStatusIndicator(reportID: string, isAgentZeroChat: boolean)
     const newestReportActionRef = useRef<NewestReportAction | undefined>(newestReportAction);
     useEffect(() => {
         newestReportActionRef.current = newestReportAction;
-    }, [newestReportAction]);
+
+        // Immediately clear the indicator when a Concierge response arrives while processing.
+        // This eliminates the 30s delay waiting for the next poll cycle to detect it.
+        // The Onyx subscription fires as soon as getNewerActions merges new actions.
+        if (newestReportAction?.actorAccountID === CONST.ACCOUNT_ID.CONCIERGE && (serverLabel || optimisticStartTime)) {
+            clearAgentZeroProcessingIndicator(reportID);
+            clearPolling();
+        }
+    }, [newestReportAction, serverLabel, optimisticStartTime, reportID, clearPolling]);
 
     const [optimisticStartTime, setOptimisticStartTime] = useState<number | null>(null);
     const [displayedLabel, setDisplayedLabel] = useState<string>('');
@@ -168,7 +176,11 @@ function useAgentZeroStatusIndicator(reportID: string, isAgentZeroChat: boolean)
             if (!serverLabel && !optimisticStartTime) {
                 return;
             }
+            // Fetch missed actions AND start polling to detect when the Concierge response arrives.
+            // getNewerActions is a one-shot fetch; polling ensures we keep checking until
+            // the response is detected (via actorAccountID === CONCIERGE check in the poll).
             getNewerActions(reportID, newestReportActionRef.current?.reportActionID);
+            startPolling();
         },
     });
 
