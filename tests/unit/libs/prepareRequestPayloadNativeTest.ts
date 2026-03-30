@@ -84,5 +84,4 @@ describe('prepareRequestPayload (native)', () => {
         expect(formData.get('amount')).toBe('100');
         expect(formData.has('undefinedField')).toBe(false);
     });
-
 });
