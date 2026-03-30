@@ -87,14 +87,12 @@ function ActionCell({
     const shouldUseMarkAsDone = isTrackIntentUser && isSubmitAndClose(actionCellPolicy) && (action === CONST.SEARCH.ACTION_TYPES.SUBMIT || action === CONST.SEARCH.ACTION_TYPES.APPROVE);
     const text = shouldUseMarkAsDone ? translate('common.markAsDone') : translate(actionTranslationsMap[action]);
 
-    const useExtraSmall = extraSmall || shouldUseMarkAsDone;
-
     return (
         <Button
             text={text}
             onPress={goToItem}
-            small={!useExtraSmall}
-            extraSmall={useExtraSmall}
+            small={!extraSmall}
+            extraSmall={extraSmall}
             style={[styles.w100, shouldDisablePointerEvents && styles.pointerEventsNone]}
             isLoading={isLoading}
             success
